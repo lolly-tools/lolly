@@ -1,0 +1,14 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Lolly//Meeting Planner//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+UID:{{icsStamp meetingTime}}@lolly.meeting-planner
+DTSTAMP:{{icsStamp meetingTime}}
+DTSTART:{{icsStamp meetingTime}}
+DURATION:PT1H
+SUMMARY:{{rfcText heading}}
+LOCATION:{{rfcText hostCity}}
+DESCRIPTION:{{rfcText heading}} — hosted in {{rfcText hostCity}}
+END:VEVENT
+END:VCALENDAR

@@ -1,0 +1,314 @@
+{
+  "id": "chart-creator",
+  "name": "Chart Creator",
+  "description": "On-brand charts from your data — bar, donut, pie or stacked. Exports vector.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["chart", "data", "visualization", "bar", "pie", "donut", "infographic", "svg"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["png", "svg", "pdf",  "pdf-cmyk", "webp", "csv"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": true
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "chartType", "urlKey": "ct",
+      "label": "Chart type",
+      "type": "select",
+      "default": "donut",
+      "options": [
+        { "value": "vertical-bar",   "label": "Vertical bars" },
+        { "value": "horizontal-bar", "label": "Horizontal bars" },
+        { "value": "donut",          "label": "Donut" },
+        { "value": "pie",            "label": "Pie" },
+        { "value": "stacked",        "label": "Stacked bar" }
+      ]
+    },
+    {
+      "id": "donutRadius", "urlKey": "dr",
+      "label": "Donut radius",
+      "type": "number",
+      "display": "slider",
+      "min": 0.10,
+      "max": 0.90,
+      "step": 0.01,
+      "default": 0.55,
+      "showIf": { "chartType": "donut" }
+    },
+    {
+      "id": "heading", "urlKey": "t",
+      "label": "Title",
+      "type": "text",
+      "default": "",
+      "placeholder": "Chart title"
+    },
+    {
+      "id": "subheading", "urlKey": "st",
+      "label": "Subtitle / source",
+      "type": "text",
+      "default": "",
+      "placeholder": "Optional subtitle or data source"
+    },
+    {
+      "id": "color", "urlKey": "tc",
+      "label": "Text color",
+      "type": "color",
+      "default": "#0c322c"
+    },
+    {
+      "id": "background", "urlKey": "bg",
+      "label": "Background",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    {
+      "id": "showLegend", "urlKey": "lg",
+      "label": "Show legend",
+      "section": "Legend",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "id": "legendPosition", "urlKey": "lp",
+      "label": "Position",
+      "section": "Legend",
+      "type": "select",
+      "default": "bottom",
+      "options": [
+        { "value": "bottom", "label": "Bottom" },
+        { "value": "top", "label": "Top" },
+        { "value": "left", "label": "Left" },
+        { "value": "right", "label": "Right" }
+      ]
+    },
+    {
+      "id": "legendDotShape", "urlKey": "ld",
+      "label": "Dot shape",
+      "section": "Legend",
+      "type": "select",
+      "default": "circle",
+      "options": [
+        { "value": "square", "label": "Square" },
+        { "value": "circle", "label": "Circle" }
+      ]
+    },
+    {
+      "id": "legendSize", "urlKey": "ls",
+      "label": "Text size",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 22,
+      "min": 8,
+      "max": 48,
+      "step": 1
+    },
+    {
+      "id": "legendFontWeight", "urlKey": "lf",
+      "label": "Font weight",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 500,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "legendWidth", "urlKey": "lw",
+      "label": "Legend width %",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 40,
+      "min": 15,
+      "max": 65,
+      "step": 1,
+      "showIf": { "showLegend": true }
+    },
+    {
+      "id": "showLabels", "urlKey": "sl",
+      "label": "Show labels",
+      "section": "Labels",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "labelSize", "urlKey": "lbs",
+      "label": "Text size",
+      "section": "Labels",
+      "type": "number",
+      "display": "slider",
+      "default": 22,
+      "min": 10,
+      "max": 48,
+      "step": 1
+    },
+    {
+      "id": "labelWeight", "urlKey": "lbw",
+      "label": "Font weight",
+      "section": "Labels",
+      "type": "number",
+      "display": "slider",
+      "default": 500,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "labelPosition", "urlKey": "lbp",
+      "label": "Position",
+      "section": "Labels",
+      "type": "select",
+      "default": "inside",
+      "options": [
+        { "value": "inside",  "label": "Inside" },
+        { "value": "outside", "label": "Outside" }
+      ]
+    },
+    {
+      "id": "labelAlign", "urlKey": "lba",
+      "label": "Align",
+      "section": "Labels",
+      "type": "select",
+      "default": "bottom",
+      "options": [
+        { "value": "top",    "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    {
+      "id": "labelOffset",
+      "label": "Offset",
+      "section": "Labels",
+      "type": "vector",
+      "fields": [
+        { "id": "x", "label": "X", "min": -100, "max": 100, "step": 1, "default": 0 },
+        { "id": "y", "label": "Y", "min": -100, "max": 100, "step": 1, "default": 0 }
+      ]
+    },
+    {
+      "id": "labelGap", "urlKey": "lbg",
+      "label": "Outside gap",
+      "section": "Labels",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 120,
+      "step": 1
+    },
+    {
+      "id": "dataLabels", "urlKey": "dv",
+      "label": "Show values",
+      "section": "Value",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "id": "valueSize", "urlKey": "vs",
+      "label": "Text size",
+      "section": "Value",
+      "type": "number",
+      "display": "slider",
+      "default": 24,
+      "min": 8,
+      "max": 96,
+      "step": 1
+    },
+    {
+      "id": "valueWeight", "urlKey": "vw",
+      "label": "Font weight",
+      "section": "Value",
+      "type": "number",
+      "display": "slider",
+      "default": 700,
+      "min": 100,
+      "max": 900,
+      "step": 100
+    },
+    {
+      "id": "valuePosition", "urlKey": "vp",
+      "label": "Position",
+      "section": "Value",
+      "type": "select",
+      "default": "inside",
+      "options": [
+        { "value": "inside",  "label": "Inside" },
+        { "value": "outside", "label": "Outside" }
+      ]
+    },
+    {
+      "id": "valueAlign", "urlKey": "va",
+      "label": "Align",
+      "section": "Value",
+      "type": "select",
+      "default": "top",
+      "options": [
+        { "value": "top",    "label": "Top" },
+        { "value": "center", "label": "Center" },
+        { "value": "bottom", "label": "Bottom" }
+      ]
+    },
+    {
+      "id": "valueOffset",
+      "label": "Offset",
+      "section": "Value",
+      "type": "vector",
+      "fields": [
+        { "id": "x", "label": "X", "min": -100, "max": 100, "step": 1, "default": 0 },
+        { "id": "y", "label": "Y", "min": -100, "max": 100, "step": 1, "default": 0 }
+      ]
+    },
+    {
+      "id": "valueGap", "urlKey": "vg",
+      "label": "Outside gap",
+      "section": "Value",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 120,
+      "step": 1
+    },
+    {
+      "id": "valueFormat", "urlKey": "vf",
+      "label": "Number format",
+      "section": "Value",
+      "type": "select",
+      "default": "auto",
+      "options": [
+        { "value": "auto",    "label": "Auto" },
+        { "value": "value",   "label": "Original number" },
+        { "value": "percent", "label": "Percentage" }
+      ]
+    },
+    {
+      "id": "data", "urlKey": "d",
+      "label": "Data",
+      "type": "blocks",
+      "fields": [
+        { "id": "label", "urlKey": "l", "label": "Label", "placeholder": "Label" },
+        { "id": "value", "urlKey": "v", "label": "Value", "placeholder": "0" },
+        { "id": "color", "urlKey": "c", "label": "Color", "type": "color", "placeholder": "#30ba78" }
+      ],
+      "default": [
+        { "label": "Linux",    "value": "67", "color": "#30ba78" },
+        { "label": "Cloud",   "value": "54", "color": "#0c322c" },
+        { "label": "Edge", "value": "38", "color": "#fe7c3f" },
+        { "label": "AI",        "value": "72", "color": "#192072" }
+      ]
+    },
+    { "id": "width",  "label": "Width",  "type": "number", "default": 1080, "min": 100, "max": 8000, "group": "export" },
+    { "id": "height", "label": "Height", "type": "number", "default": 1080, "min": 100, "max": 8000, "group": "export" }
+  ]
+}

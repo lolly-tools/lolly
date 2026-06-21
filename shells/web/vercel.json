@@ -1,0 +1,20 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www\\.lolly\\.tools" }],
+      "destination": "https://lolly.tools/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": ".*lolly\\.(art|ad|bot|codes|design|free|gallery|graphics|ing|ink|is|media|sh|style|to|work)" }],
+      "destination": "https://lolly.tools/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Lolly URL Screenshot",
+  "version": "0.1.0",
+  "description": "Enables the Lolly web app to screenshot any URL, using the DevTools Protocol — the same capture the desktop app does.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "minimum_chrome_version": "111",
+  "permissions": ["debugger", "tabs"],
+  "host_permissions": ["<all_urls>"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:5173/*", "https://lolly.tools/*", "https://*.lolly.tools/*"],
+      "js": ["inpage.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["http://localhost:5173/*", "https://lolly.tools/*", "https://*.lolly.tools/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

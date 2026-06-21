@@ -1,0 +1,26 @@
+{
+  "id": "film-burn-filter",
+  "name": "Film Burn Filter",
+  "description": "A warm film-burn effect for any image.",
+  "version": "0.2.0",
+  "engineVersion": "^1.0.0",
+  "status": "experimental",
+  "category": "designer",
+  "tags": ["photo", "filter", "film", "burn", "effect"],
+  "render": {
+    "width": 512,
+    "height": 512,
+    "formats": ["png", "jpg", "webp", "avif", "webm", "mp4", "gif"],
+    "actions": ["copy", "download", "save"]
+  },
+  "inputs": [
+    {
+      "id": "image",
+      "label": "Image",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "The image to apply the film burn effect to."
+    }
+  ]
+}

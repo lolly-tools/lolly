@@ -1,0 +1,33 @@
+<svg id="chart-svg" xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 {{width}} {{height}}" width="{{width}}" height="{{height}}"
+     style="width:100%;height:auto;display:block;">
+  <defs>
+    <style>
+      @font-face {
+        font-family: 'SUSE';
+        src: url('/tools/lockup/src/fonts/webfonts/SUSE[wght].woff2') format('woff2-variations');
+        font-weight: 100 900;
+        font-display: block;
+      }
+      text, tspan { font-family: 'SUSE', system-ui, sans-serif; }
+    </style>
+  </defs>
+  <rect id="chart-bg" width="{{width}}" height="{{height}}" fill="{{chartBgFill}}"/>
+  {{{chartSvg}}}
+</svg>
+<script>
+(function () {
+  var svg = document.getElementById('chart-svg');
+  if (!svg) return;
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  var w = wEl ? parseInt(wEl.value, 10) : 0;
+  var h = hEl ? parseInt(hEl.value, 10) : 0;
+  if (!(w > 0 && h > 0)) return;
+  svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+  svg.setAttribute('width', w);
+  svg.setAttribute('height', h);
+  var bg = document.getElementById('chart-bg');
+  if (bg) { bg.setAttribute('width', w); bg.setAttribute('height', h); }
+})();
+</script>

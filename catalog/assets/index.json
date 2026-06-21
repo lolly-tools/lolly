@@ -1,0 +1,1291 @@
+{
+  "version": "1",
+  "generatedAt": "2026-06-16T00:00:00Z",
+  "assets": [
+    {
+      "id": "suse/palette/brand-core",
+      "name": "SUSE Brand Core Palette",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "palette",
+        "official",
+        "brand-core"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/suse/palette/brand-core.json",
+          "checksum": "sha256-1EpJIF4V1u4nz1lFWRuIm8bAOJcsRdvsnwKgwVITPjc=",
+          "size": 901
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/hor-neg-green",
+      "name": "SUSE Logo — Horizontal Green (on dark)",
+      "description": "Green SUSE logo, horizontal (wide) lockup, for placement on dark backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "horizontal",
+        "on-dark",
+        "green"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-hor-neg-green.svg",
+          "checksum": "sha256-kp36pKPju6Adkpk2xeot2BYtfOssDk3qUdPJfkN1e+g=",
+          "size": 4309
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/hor-neg-white",
+      "name": "SUSE Logo — Horizontal White (on dark)",
+      "description": "White SUSE logo, horizontal (wide) lockup, for placement on dark backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "horizontal",
+        "on-dark",
+        "white",
+        "mono"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-hor-neg-white.svg",
+          "checksum": "sha256-5VQrzZfVic38L+yiF4gusVa2fBImQCkWZqkBwaPGs70=",
+          "size": 6082
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/hor-pos-green",
+      "name": "SUSE Logo — Horizontal Green (on light)",
+      "description": "Green SUSE logo, horizontal (wide) lockup, for placement on light backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "horizontal",
+        "on-light",
+        "green"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-hor-pos-green.svg",
+          "checksum": "sha256-p0E1Vi+ZS2UUVzX45wH+hYK6tn2qJW8VPmiSGk16qxg=",
+          "size": 4254
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/hor-pos-black",
+      "name": "SUSE Logo — Horizontal Black (on light)",
+      "description": "Black SUSE logo, horizontal (wide) lockup, for placement on light backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "horizontal",
+        "on-light",
+        "black",
+        "mono"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-hor-pos-black.svg",
+          "checksum": "sha256-pVDPskjxWuP4DFwGJonIhRKlLT7Kr4YYiz6uNRuXRP4=",
+          "size": 4212
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/vert-neg-green",
+      "name": "SUSE Logo — Vertical Green (on dark)",
+      "description": "Green SUSE logo, vertical (stacked, near-square) lockup, for placement on dark backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "vertical",
+        "on-dark",
+        "green"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-vert-neg-green.svg",
+          "checksum": "sha256-r5+kHLmLnZiJXsCWab18mb13TvwQXz8wVIHbBcTvzyk=",
+          "size": 4525
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/vert-neg-white",
+      "name": "SUSE Logo — Vertical White (on dark)",
+      "description": "White SUSE logo, vertical (stacked, near-square) lockup, for placement on dark backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "vertical",
+        "on-dark",
+        "white",
+        "mono"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-vert-neg-white.svg",
+          "checksum": "sha256-vnSmZtY1+V8Ehfh8nUfHjJAftJ2sz1PNJGuSsM4kp+8=",
+          "size": 5399
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/vert-pos-green",
+      "name": "SUSE Logo — Vertical Green (on light)",
+      "description": "Green SUSE logo, vertical (stacked, near-square) lockup, for placement on light backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "vertical",
+        "on-light",
+        "green"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-vert-pos-green.svg",
+          "checksum": "sha256-u6v1SP6CvE7/9utVThMFGanGH7C7VPaMFO2WiHXpobI=",
+          "size": 4435
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/logo/vert-pos-black",
+      "name": "SUSE Logo — Vertical Black (on light)",
+      "description": "Black SUSE logo, vertical (stacked, near-square) lockup, for placement on light backgrounds.",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "logo",
+        "official",
+        "suse",
+        "vertical",
+        "on-light",
+        "black",
+        "mono"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/logo/SUSE_logo-vert-pos-black.svg",
+          "checksum": "sha256-5KaJZ4Kl7GPszhFZDjyBUJibOKgCc0nJLdFIRjBn4uc=",
+          "size": 4393
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/abhinav-puri",
+      "name": "Abhinav Puri",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/abhinav-puri.jpg",
+          "checksum": "sha256-XrgV9pUI2i5UHgvklTd1HNO7yKJTC2TeGUHQCUiYxZ8=",
+          "size": 62761
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/ajay-patel",
+      "name": "Ajay Patel",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/ajay-patel2.jpg",
+          "checksum": "sha256-XFCTAmj2RctCIHB4mz0D5oCLM6ilkh6ZAFvjOBEsMiY=",
+          "size": 68010
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/andreas-prins",
+      "name": "Andreas Prins",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/andreas-prins.jpg",
+          "checksum": "sha256-bjp+cM1QF3LJZLp5u+7GtrZk9d6wcqy7cSLgP63WeX8=",
+          "size": 61299
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/andrew-toole",
+      "name": "Andrew Toole",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/andrew-toole2.jpg",
+          "checksum": "sha256-C/Zrywj4+eY4d+4RyCThUjLS7Cp4xQXpJTm9FOLon6g=",
+          "size": 55315
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/andy-fitzsimon",
+      "name": "Andy Fitzsimon",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/andy-fitzsimon.jpg",
+          "checksum": "sha256-OYExtWS6iY5rNMOGFjeAL19yrnAcdEHM0X4HCP5nB6Y=",
+          "size": 132284
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/andy-mcdonald",
+      "name": "Andy McDonald",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/andy-mcdonald.jpg",
+          "checksum": "sha256-iyYrYxa0Kd+AiufwQBIX6C7RZNxIvOEfNxWUxjK2fEA=",
+          "size": 64911
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/april-cuthbert",
+      "name": "April Cuthbert",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/april-cuthbert2.jpg",
+          "checksum": "sha256-QuOmN4FgyOJ2xxdPp7MjVWvScnFsup32U2y+AtWOrZ8=",
+          "size": 65917
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/camilla-keighley",
+      "name": "Camilla Keighley",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/camilla-keighley2.jpg",
+          "checksum": "sha256-FnkokV5So9lZq1IWu/Plp4AwbtXkpwfQLyu2OhiYNOo=",
+          "size": 54607
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/casey-woods",
+      "name": "Casey Woods",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/casey-woods2.jpg",
+          "checksum": "sha256-yQtM7ZgZuQRj9SfRJOixUS9clVd2+CoE2f6/tMolHPg=",
+          "size": 86337
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/charlie-metz",
+      "name": "Charlie Metz",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/charlie-metz2.jpg",
+          "checksum": "sha256-oF3gsXgw/XHRITb/3iDHdLK4wp0I4PlLns81ails+GQ=",
+          "size": 69644
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/christine-puccio",
+      "name": "Christine Puccio",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/christine-puccio2.jpg",
+          "checksum": "sha256-IULW+Jch/BKdk3PfFaPcvK0xd7LnPdTPN1EnC2UbjRY=",
+          "size": 86498
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/david-hughes",
+      "name": "David Hughes",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/david-hughes.jpg",
+          "checksum": "sha256-SyanEE4qlFFeC7F1S9AGKBTBByya+aN5y+pHFluKajU=",
+          "size": 68323
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/declan-oatley",
+      "name": "Declan Oatley",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/declan-oatley2.jpg",
+          "checksum": "sha256-XbtMA/94jH6xdizq9/bGuIiUaq9QNPglC7WkV7oXVXw=",
+          "size": 42331
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/diego-akechi",
+      "name": "Diego Akechi",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/diego-akechi2.jpg",
+          "checksum": "sha256-iYW49FpBPHmDuqBQuIv73SkOeHkrXNs6HJSbCQS2Fa0=",
+          "size": 52538
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/dirk-peter-van-leeuwen",
+      "name": "Dirk-Peter van Leeuwen",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/dirk-peter-van-leeuwen-dp.jpg",
+          "checksum": "sha256-ObQyfhX2yN4tL2MaNVRIU/n7BuAMeZ2N5SbxFrWoDvE=",
+          "size": 102562
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/doug-alston",
+      "name": "Doug Alston",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/doug-alston2.jpg",
+          "checksum": "sha256-oUpWkaP9+zQHBM2Qf7xcYXPRWPrimHNpluEa69tcR4g=",
+          "size": 83119
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/thomas-di-giacomo",
+      "name": "Dr. Thomas Di Giacomo",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/dr.-thomas-di-giacomo2.jpg",
+          "checksum": "sha256-KpDDdhPMdRJbzZkDSBVgi1GWjT+b8H78l1pCGGywFlE=",
+          "size": 480282
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/emma-willis",
+      "name": "Emma Willis",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/emma-willis2.jpg",
+          "checksum": "sha256-zACgOP2A3SxvFKtoIVi46TvJ3jPXhkcWy6Uw8wUIv2s=",
+          "size": 60889
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/frank-feldmann",
+      "name": "Frank Feldmann",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/frank-feldmann2.jpg",
+          "checksum": "sha256-YxqDgBXz4i4iHJFSGiuG8cjHDAkWPEWM0HNZCkbmA3w=",
+          "size": 219320
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/hayley-wienszczak",
+      "name": "Hayley Wienszczak",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/hayley-wienszczak.jpg",
+          "checksum": "sha256-nYevB/LriynaBSTrQk7FJF1wWqs08Umj9Opv/Nj0vuQ=",
+          "size": 61459
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/holger-pfister",
+      "name": "Holger Pfister",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/holger-pfister.jpg",
+          "checksum": "sha256-GHodFWTuV5XYR5E2Ydluf8sQ7Fw+rpm+dngTntyDvP4=",
+          "size": 62143
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/ian-halifax",
+      "name": "Ian Halifax",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/ian-halifax2.jpg",
+          "checksum": "sha256-XEmO2NeUWOJMczW+HAmEiQrq2BaA28cQP6rX9j7okhQ=",
+          "size": 83151
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/imran-khan",
+      "name": "Imran Khan",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/imran-khan2.jpg",
+          "checksum": "sha256-W13LleaptlQNZrLaxseS8X5MBCLu+PUIzUtyE+LJZJw=",
+          "size": 399162
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/jamie-rahbany",
+      "name": "Jamie Rahbany",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/jamie-rahbany2.jpg",
+          "checksum": "sha256-R6LBqH4UiY/hWZt66cS7GN67e8zajD/Mevzs0Nxoz3w=",
+          "size": 97693
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/jason-vaughn",
+      "name": "Jason Vaughn",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/jason-vaughn.jpg",
+          "checksum": "sha256-zC1isRCdgXg4Zmdwg3oXLk7xq+cBaiz/q2WAAsE7y8c=",
+          "size": 63949
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/jeff-mahoney",
+      "name": "Jeff Mahoney",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/jeff-mahoney2.jpg",
+          "checksum": "sha256-uYYwUi8s54BDpt9GQryXKu/hn3w6MFNhqNnJH1FZYLw=",
+          "size": 65149
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/jeff-paul",
+      "name": "Jeff Paul",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/jeff-paul.jpg",
+          "checksum": "sha256-Cb511CBzFl6uwElBjM14yHkiMfgoEw+DUCYhKr/I5Vk=",
+          "size": 54446
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/jochen-jaser",
+      "name": "Jochen Jaser",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/jochen-jaser2.jpg",
+          "checksum": "sha256-U0a4d2dsVS+VNEzPOASiIJcBB/dsRmxYXt1kX2dJeeE=",
+          "size": 52747
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/john-lowe",
+      "name": "John Lowe",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/john-lowe2.jpg",
+          "checksum": "sha256-hZ6jGJH0qGGdGNTpeDiM+hMn2hpphwfK0n38oq6QsCI=",
+          "size": 84104
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/josep-garcia",
+      "name": "Josep Garcia",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/josep-garcia2.jpg",
+          "checksum": "sha256-dKVIuKqVhGX20OCwOXjioYE5Pm0G+DjhoC0uskkm70w=",
+          "size": 57589
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/karthik-prabakaran",
+      "name": "Karthik Prabakaran",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/karthik-prabakaran2.jpg",
+          "checksum": "sha256-zAyl0lEGz1c7yg7k2yHubWHVZGTHlzmqr/j5wwlP8rs=",
+          "size": 74599
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/keith-basil",
+      "name": "Keith Basil",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/keith-basil2.jpg",
+          "checksum": "sha256-0UeRbbS2Kuu4YqCqDIBeQ5kbZnFe8LsCW0CG2A8B49o=",
+          "size": 83002
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/kevin-smith",
+      "name": "Kevin Smith",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/kevin-smith2.jpg",
+          "checksum": "sha256-Tdo2YBRUECXrNXixb1GLnxmyL3dG9fAlkFKveAGbFTQ=",
+          "size": 76164
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/lisa",
+      "name": "Lisa Sherwell",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/lisa1.jpg",
+          "checksum": "sha256-+64TyDQaVBLFuGfmOFBmLZEL8h8O8kxrl2Vd6nWPGbY=",
+          "size": 83768
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/marcos-lacerda",
+      "name": "Marcos Lacerda",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/marcos-lacerda2.jpg",
+          "checksum": "sha256-VLaHNMqytKZmsxqsvD2pL62B1mOe+s6UcfjXNPouvPQ=",
+          "size": 63640
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/margaret-dawson",
+      "name": "Margaret Dawson",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/margaret-dawson2.jpg",
+          "checksum": "sha256-TTZprVHGIyh/Nag93zxf48kZF3cweUK/giOqQ8d4Mm8=",
+          "size": 56741
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/marie-louise-van-deutekom",
+      "name": "Marie-Louise van Deutekom",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/marie-louise-van-deutekom.jpg",
+          "checksum": "sha256-OSJAUsUb9U9pU0+vuXz9NktRfZUWlEUughvEm97ZTGw=",
+          "size": 68437
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/mark-dando",
+      "name": "Mark Dando",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/mark-dando2.jpg",
+          "checksum": "sha256-mrD3HWgM8NoifHBBnRg3hNDgGsTkuRaj0IEcIS4THIM=",
+          "size": 48769
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/mark-gradwell",
+      "name": "Mark Gradwell",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/mark-gradwell2.jpg",
+          "checksum": "sha256-Y8aTKniY+l5KGGJnP4pQa7s6gmsHMK/YrT6NfZxyt5w=",
+          "size": 76783
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/mike-pallot",
+      "name": "Mike Pallot",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/mike-pallot2.jpg",
+          "checksum": "sha256-qPdAiIZcJsBto6h9+MAwVZqQlrkzn+t89414JVJMILs=",
+          "size": 54262
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/nadine-pieper",
+      "name": "Nadine Pieper",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/nadine-pieper2.jpg",
+          "checksum": "sha256-AA3XG7P3fOAoMiuCbfEDhd6xUSlCjpJ2Y8yZ9s+EF0g=",
+          "size": 79760
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/naji-almahmoud",
+      "name": "Naji Almahmoud",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/naji-almahmoud.jpg",
+          "checksum": "sha256-5v+ddUfhPnRYbQWQSZeLYaNwPv4cQ5D4hgowIh62Xio=",
+          "size": 56226
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/nicholas-dimotakis",
+      "name": "Nicholas Dimotakis",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/nicholas-dimotakis.jpg",
+          "checksum": "sha256-ENC9SZevWulUXVS9clKJ+cnEboW7iNLyjVax2cdo0i8=",
+          "size": 80096
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/oliver-ries",
+      "name": "Oliver Ries",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/oliver-ries2.jpg",
+          "checksum": "sha256-9dVfba3j/CigJi4lyUqt9PuldSOXx+hIq2BqWSYB7TU=",
+          "size": 69987
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/owen-lewis",
+      "name": "Owen Lewis",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/owen-lewis2.jpg",
+          "checksum": "sha256-IFYhduQHsDX2vBZ7IG2nJ2J2IBArrX40kwnyP/ePgJo=",
+          "size": 79592
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/peter-lees",
+      "name": "Peter Lees",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/peter-lees2.jpg",
+          "checksum": "sha256-ql+79lQvEqAmrgqTbdWdzjcNWWaSCvCQfT1Cl9Y6d+s=",
+          "size": 88520
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/peter-smails",
+      "name": "Peter Smails",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/peter-smails2.jpg",
+          "checksum": "sha256-T+SrUIkXtUke2xvg2Wt8NEgmh1PDwd3rpvtEATpSVlo=",
+          "size": 73845
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/petr-uzel",
+      "name": "Petr Uzel",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/petr-uzel1.jpg",
+          "checksum": "sha256-pErqszAeoceBqUs0+30arL0dE34H0VOAHrY3LdcTNRQ=",
+          "size": 63444
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/rachel-vowles",
+      "name": "Rachel Vowles",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/rachel-vowles.jpg",
+          "checksum": "sha256-ZRORdt8NrHJQkEPbpsEDpfkOz5Wp6G/etBy+8gKzTpc=",
+          "size": 60756
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/rhys",
+      "name": "Rhys Oxenham",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/rhys2.jpg",
+          "checksum": "sha256-fpZO3f7dpIRAnThC1nVy2IFr/6Vm0GnNB/ftkckg+rM=",
+          "size": 70224
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/sabeen-mushtaq",
+      "name": "Sabeen Mushtaq",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/sabeen-mushtaq.jpg",
+          "checksum": "sha256-Ca4wCj4nHJgsBd0r2BH/SX3G45XNHn6qxbWS8ZLZHxg=",
+          "size": 77973
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/stefan-gaiser",
+      "name": "Stefan Gaiser",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/stefan-gaiser2.jpg",
+          "checksum": "sha256-6B47vSM3nyFbBezUsZKy4eAmwWwDE2YTaenkw1rA3zY=",
+          "size": 45497
+        }
+      ],
+      "license": "internal"
+    },
+    {
+      "id": "suse/headshots/tina-steincke",
+      "name": "Tina Steincke",
+      "type": "raster",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "headshot",
+        "people"
+      ],
+      "formats": [
+        {
+          "format": "jpg",
+          "url": "/catalog/assets/suse/executives/tina-steincke.jpg",
+          "checksum": "sha256-TEfdwV5TgulTtvZ16oZXFAPYBzOt2BdGwY3KGTR/yOc=",
+          "size": 81256
+        }
+      ],
+      "license": "internal"
+    }
+  ]
+}

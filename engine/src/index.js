@@ -1,0 +1,20 @@
+/**
+ * Engine public surface.
+ *
+ * Host shells (web/Tauri/CLI) import from here. Tools NEVER import from here —
+ * tools talk to the host through the capability bridge passed to their hooks.
+ */
+
+export { loadTool } from './loader.js';
+export { validateManifest } from './validate.js';
+export { createRuntime } from './runtime.js';
+export { hydrate, annotateTemplate } from './template.js';
+export { buildInputModel } from './inputs.js';
+export { parseUrlState, serializeUrlState } from './url-mode.js';
+export { buildExportMeta } from './metadata.js';
+export {
+  UNITS, CSS_DPI, isUnit, parseDimension,
+  toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
+} from './units.js';
+
+export const ENGINE_VERSION = '1.0.0';

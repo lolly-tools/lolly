@@ -1,0 +1,13 @@
+{
+  "name": "SUSE Brand Core",
+  "swatches": [
+    { "name": "Jungle",     "hex": "#0C322C", "rgb": "rgb(12, 50, 44)",    "hsl": "hsl(170, 61%, 12%)" },
+    { "name": "Pine",       "hex": "#30BA78", "rgb": "rgb(48, 186, 120)",  "hsl": "hsl(150, 59%, 46%)" },
+    { "name": "Mint",       "hex": "#BFF1EA", "rgb": "rgb(191, 241, 234)", "hsl": "hsl(172, 71%, 85%)" },
+    { "name": "Midnight",   "hex": "#192072", "rgb": "rgb(25, 32, 114)",   "hsl": "hsl(234, 64%, 27%)" },
+    { "name": "Waterhole",  "hex": "#2453FF", "rgb": "rgb(36, 83, 255)",   "hsl": "hsl(228, 100%, 57%)" },
+    { "name": "Persimmon",  "hex": "#FE7C3F", "rgb": "rgb(254, 124, 63)",  "hsl": "hsl(19, 99%, 62%)"  },
+    { "name": "Apricot",    "hex": "#FAB088", "rgb": "rgb(250, 176, 136)", "hsl": "hsl(21, 91%, 76%)"  },
+    { "name": "Fog",        "hex": "#EFEFEF", "rgb": "rgb(239, 239, 239)", "hsl": "hsl(0, 0%, 94%)"    }
+  ]
+}

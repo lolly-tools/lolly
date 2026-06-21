@@ -1,0 +1,52 @@
+.palette-tool {
+  width: 100%;
+  height: 100%;
+  
+  background: white;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.palette-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  height: 100%;
+}
+
+.swatch {
+  display: grid;
+  flex-direction: column;
+ 
+  padding: 12px;
+ 
+  cursor: pointer;
+  color: white;
+  transition: transform 0.1s;
+}
+
+.swatch:hover {
+  transform: scale(1.02);
+}
+
+.swatch-name {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.swatch-value {
+  display: block;
+  font-size: 14px;
+  font-family: ui-monospace, monospace;
+  margin-top: 2px;
+}
+
+.palette-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #888;
+}

@@ -1,0 +1,435 @@
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cc-root {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  padding: 56px;
+  font-family: 'SUSE Mono', 'Fira Code', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+}
+
+/* ── Window card ── */
+.cc-window {
+  width: 100%; max-width: 1088px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 8px 24px rgba(0,0,0,0.35);
+}
+
+/* ── Header ── */
+.cc-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.cc-dots { display: flex; gap: 7px; }
+.cc-dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
+.cc-dot-red    { background: #ff5f57; }
+.cc-dot-yellow { background: #ffbd2e; }
+.cc-dot-green  { background: #28c840; }
+.cc-filename { font-size: 14px; font-weight: 700; opacity: 0.45; margin: 0 auto; }
+
+/* ── Code body ── */
+.cc-body {
+  display: flex;
+  overflow: hidden;
+}
+.cc-gutter {
+  flex-shrink: 0;
+  padding: 20px 16px 20px 20px;
+  text-align: right; white-space: pre;
+  user-select: none;
+  font-size: 13px; line-height: 1.7;
+  opacity: 0.3;
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+.cc-code {
+  flex: 1; min-width: 0;
+  padding: 20px 24px;
+  font-size: 13px; line-height: 1.7;
+  white-space: pre;
+  overflow: hidden;
+  tab-size: 2;
+}
+
+/* ── Token colors (set by JS via CSS vars) ── */
+.tok-keyword  { color: var(--tok-keyword); }
+.tok-string   { color: var(--tok-string); }
+.tok-comment  { color: var(--tok-comment); font-style: italic; }
+.tok-number   { color: var(--tok-number); }
+.tok-function { color: var(--tok-function); }
+.tok-type     { color: var(--tok-type); }
+.tok-operator { color: var(--tok-operator); }
+</style>
+
+<div class="cc-root" id="cc-root" data-code="{{code}}" data-language="{{language}}" data-theme="{{theme}}" data-line-numbers="{{lineNumbers}}" data-show-window="{{showWindow}}" data-scale="{{scale}}" data-transparent-bg="{{transparentBg}}">
+  <div class="cc-window" id="cc-window">
+    <div class="cc-header" id="cc-header">
+      <div class="cc-dots" id="cc-dots">
+        <span class="cc-dot cc-dot-red"></span>
+        <span class="cc-dot cc-dot-yellow"></span>
+        <span class="cc-dot cc-dot-green"></span>
+      </div>
+      <div class="cc-filename" id="cc-filename">{{filename}}</div>
+    </div>
+    <div class="cc-body" id="cc-body">
+      <div class="cc-gutter" id="cc-gutter"></div>
+      <pre class="cc-code" id="cc-code"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var DEFAULT_CODE = "const greet = (name) => {\\n  console.log(`Hello, ${name}!`);\\n  return name;\\n};\\n\\ngreet('World');";
+
+  var root = document.getElementById('cc-root');
+  var code = root.dataset.code || DEFAULT_CODE;
+  var language = root.dataset.language || 'javascript';
+  var theme = root.dataset.theme || 'suse-dark';
+  var lineNums = root.dataset.lineNumbers !== 'false';
+  var showWindow = root.dataset.showWindow !== 'false';
+  var scale = parseFloat(root.dataset.scale || '100') / 100;
+  var transparentBg = root.dataset.transparentBg === 'true';
+
+  // ── Theme definitions ────────────────────────────────────────────────────
+  var THEMES = {
+    'suse-dark': {
+      outerBg:   'linear-gradient(135deg, #1a5c3a 0%, #0c322c 100%)',
+      windowBg:  '#0c322c',
+      headerBg:  '#092b23',
+      codeBg:    '#0c322c',
+      fg:        '#d4ede1',
+      gutter:    '#d4ede1',
+      keyword:   '#30ba78',
+      string:    '#7dd3a8',
+      comment:   '#3d7a58',
+      number:    '#fe7c3f',
+      fn:        '#5ecf94',
+      type:      '#8be9fd',
+      operator:  '#30ba78'
+    },
+    'suse-light': {
+      outerBg:   'linear-gradient(135deg, #30ba78 0%, #e8f5ee 100%)',
+      windowBg:  '#ffffff',
+      headerBg:  '#f0f7f3',
+      codeBg:    '#ffffff',
+      fg:        '#0c322c',
+      gutter:    '#0c322c',
+      keyword:   '#0c8c5c',
+      string:    '#1a6e40',
+      comment:   '#7aaa90',
+      number:    '#d45c00',
+      fn:        '#0c322c',
+      type:      '#006b8c',
+      operator:  '#0c8c5c'
+    },
+    'dracula': {
+      outerBg:   'linear-gradient(135deg, #9b6dab 0%, #6272a4 50%, #282a36 100%)',
+      windowBg:  '#282a36',
+      headerBg:  '#21222c',
+      codeBg:    '#282a36',
+      fg:        '#f8f8f2',
+      gutter:    '#f8f8f2',
+      keyword:   '#ff79c6',
+      string:    '#f1fa8c',
+      comment:   '#6272a4',
+      number:    '#bd93f9',
+      fn:        '#50fa7b',
+      type:      '#8be9fd',
+      operator:  '#ff79c6'
+    },
+    'github-dark': {
+      outerBg:   'linear-gradient(135deg, #1c2128 0%, #0d1117 100%)',
+      windowBg:  '#0d1117',
+      headerBg:  '#161b22',
+      codeBg:    '#0d1117',
+      fg:        '#c9d1d9',
+      gutter:    '#c9d1d9',
+      keyword:   '#ff7b72',
+      string:    '#a5d6ff',
+      comment:   '#8b949e',
+      number:    '#79c0ff',
+      fn:        '#d2a8ff',
+      type:      '#ffa657',
+      operator:  '#ff7b72'
+    },
+    'nord': {
+      outerBg:   'linear-gradient(135deg, #5e81ac 0%, #2e3440 100%)',
+      windowBg:  '#2e3440',
+      headerBg:  '#252932',
+      codeBg:    '#2e3440',
+      fg:        '#d8dee9',
+      gutter:    '#d8dee9',
+      keyword:   '#81a1c1',
+      string:    '#a3be8c',
+      comment:   '#4c566a',
+      number:    '#b48ead',
+      fn:        '#88c0d0',
+      type:      '#8fbcbb',
+      operator:  '#81a1c1'
+    },
+    'monokai': {
+      outerBg:   'linear-gradient(135deg, #f92672 0%, #272822 60%, #ae81ff 100%)',
+      windowBg:  '#272822',
+      headerBg:  '#1e1f1c',
+      codeBg:    '#272822',
+      fg:        '#f8f8f2',
+      gutter:    '#f8f8f2',
+      keyword:   '#f92672',
+      string:    '#e6db74',
+      comment:   '#75715e',
+      number:    '#ae81ff',
+      fn:        '#a6e22e',
+      type:      '#66d9ef',
+      operator:  '#f92672'
+    }
+  };
+
+  var t = THEMES[theme] || THEMES['suse-dark'];
+
+  // ── Apply theme ──────────────────────────────────────────────────────────
+  var window_ = document.getElementById('cc-window');
+  var header = document.getElementById('cc-header');
+  var codeEl = document.getElementById('cc-code');
+  var gutter = document.getElementById('cc-gutter');
+
+  root.style.background = transparentBg ? 'transparent' : t.outerBg;
+  window_.style.background = t.codeBg;
+  header.style.background  = t.headerBg;
+  codeEl.style.background  = t.codeBg;
+  codeEl.style.color       = t.fg;
+  gutter.style.background  = t.headerBg;
+  gutter.style.color       = t.gutter;
+
+  // CSS vars on root (token colours + ui scale)
+  var cssVars = '--tok-keyword:' + t.keyword + ';--tok-string:' + t.string +
+    ';--tok-comment:' + t.comment + ';--tok-number:' + t.number +
+    ';--tok-function:' + t.fn + ';--tok-type:' + t.type +
+    ';--tok-operator:' + t.operator;
+  root.setAttribute('style', root.getAttribute('style') + ';' + cssVars);
+
+  // ── Window chrome ────────────────────────────────────────────────────────
+  if (!showWindow) {
+    document.getElementById('cc-header').style.display = 'none';
+    gutter.style.borderTop = 'none';
+  }
+
+  // ── Syntax tokenizer ─────────────────────────────────────────────────────
+  var KW = {
+    javascript: 'const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|delete|typeof|instanceof|in|of|class|extends|import|export|default|from|async|await|try|catch|finally|throw|this|super|true|false|null|undefined|void|yield|static',
+    typescript: 'const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|new|delete|typeof|instanceof|in|of|class|extends|import|export|default|from|async|await|try|catch|finally|throw|this|super|true|false|null|undefined|void|yield|static|type|interface|enum|implements|abstract|readonly|private|public|protected|namespace|declare|as|keyof|infer|never|unknown|any|string|number|boolean|object',
+    python:     'def|class|return|if|elif|else|for|while|in|not|and|or|import|from|as|try|except|finally|raise|with|lambda|yield|global|nonlocal|pass|break|continue|True|False|None|del|assert|is|self|print',
+    rust:       'fn|let|mut|const|struct|enum|impl|trait|use|mod|pub|return|if|else|match|for|while|loop|break|continue|in|where|type|async|await|move|ref|self|Self|super|crate|true|false',
+    go:         'func|var|const|type|struct|interface|return|if|else|for|range|switch|case|break|continue|default|import|package|go|chan|select|defer|fallthrough|map|make|new|nil|true|false|iota',
+    css:        'important|media|keyframes|charset|import|supports|root|hover|focus|active|before|after|not|nth-child|first-child|last-child',
+    bash:       'if|then|else|elif|fi|for|do|done|while|case|esac|in|function|return|exit|echo|export|local|source|readonly|set|unset|true|false',
+    json:       '',
+    html:       '',
+    plain:      ''
+  };
+
+  function esc(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function tokenize(src, lang) {
+    var kwSet = {};
+    var kwStr = KW[lang] || KW.javascript;
+    if (kwStr) kwStr.split('|').forEach(function(k) { kwSet[k] = true; });
+
+    var out = '';
+    var i = 0;
+    var n = src.length;
+
+    function peek(offset) { return src[i + (offset || 0)] || ''; }
+    function span(cls, val) { return '<span class="tok-' + cls + '">' + esc(val) + '</span>'; }
+
+    while (i < n) {
+      var c = src[i];
+
+      // HTML tags (lang === html)
+      if (lang === 'html' && c === '<') {
+        var j = i + 1;
+        while (j < n && src[j] !== '>') j++;
+        j = Math.min(j + 1, n);
+        out += span('keyword', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // HTML entities
+      if (lang === 'html' && c === '&') {
+        var j = i + 1;
+        while (j < n && src[j] !== ';' && j - i < 12) j++;
+        if (src[j] === ';') j++;
+        out += span('string', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // Single-line comment: //
+      if (c === '/' && peek(1) === '/' && lang !== 'css') {
+        var j = i;
+        while (j < n && src[j] !== '\n') j++;
+        out += span('comment', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // # comment (python, bash)
+      if (c === '#' && (lang === 'python' || lang === 'bash')) {
+        var j = i;
+        while (j < n && src[j] !== '\n') j++;
+        out += span('comment', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // /* */ comment
+      if (c === '/' && peek(1) === '*') {
+        var j = i + 2;
+        while (j < n && !(src[j] === '*' && src[j+1] === '/')) j++;
+        j = Math.min(j + 2, n);
+        out += span('comment', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // CSS /* */ already handled above; CSS // not standard
+
+      // Template literal
+      if (c === '`' && (lang === 'javascript' || lang === 'typescript')) {
+        var j = i + 1;
+        while (j < n && src[j] !== '`') {
+          if (src[j] === '\\') j++;
+          j++;
+        }
+        j = Math.min(j + 1, n);
+        out += span('string', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // String " or '
+      if (c === '"' || c === "'") {
+        var q = c;
+        var j = i + 1;
+        while (j < n && src[j] !== q && src[j] !== '\n') {
+          if (src[j] === '\\') j++;
+          j++;
+        }
+        j = Math.min(j + 1, n);
+        out += span('string', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // Number
+      if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(peek(1)))) {
+        var j = i;
+        while (j < n && /[0-9a-fA-FxX._]/.test(src[j])) j++;
+        out += span('number', src.slice(i, j));
+        i = j; continue;
+      }
+
+      // Identifier / keyword / function / type
+      if (/[a-zA-Z_$]/.test(c)) {
+        var j = i;
+        while (j < n && /[a-zA-Z0-9_$]/.test(src[j])) j++;
+        var word = src.slice(i, j);
+        // look ahead past spaces for '('
+        var k = j;
+        while (k < n && src[k] === ' ') k++;
+        var isFn = src[k] === '(';
+
+        if (kwSet[word]) {
+          out += span('keyword', word);
+        } else if (isFn) {
+          out += span('function', word);
+        } else if (/^[A-Z]/.test(word)) {
+          out += span('type', word);
+        } else {
+          out += esc(word);
+        }
+        i = j; continue;
+      }
+
+      // Operators
+      if (/[+\-*/%=!<>&|^~?:@]/.test(c)) {
+        out += span('operator', c);
+        i++; continue;
+      }
+
+      // Everything else (punctuation, whitespace)
+      out += esc(c);
+      i++;
+    }
+
+    return out;
+  }
+
+  // ── Render ───────────────────────────────────────────────────────────────
+  var highlighted = language === 'plain' ? esc(code) : tokenize(code, language);
+  codeEl.innerHTML = highlighted;
+
+  var lineCount = code.split('\n').length;
+  if (lineNums) {
+    var nums = '';
+    for (var ln = 1; ln <= lineCount; ln++) nums += (ln > 1 ? '\n' : '') + ln;
+    gutter.textContent = nums;
+    gutter.style.display = '';
+  } else {
+    gutter.style.display = 'none';
+  }
+
+  // ── Filename color (must be set explicitly — not inherited for all themes) ──
+  var filenameEl = document.getElementById('cc-filename');
+  if (filenameEl) filenameEl.style.color = t.fg;
+
+  // ── Chrome sizing (slider scale only, not content-dependent) ─────────────
+  var IS = scale; // slider value: 0.7 – 1.3
+  header.style.padding = (14 * IS) + 'px ' + (20 * IS) + 'px';
+  header.style.gap     = (16 * IS) + 'px';
+  if (filenameEl) filenameEl.style.fontSize = (14 * IS) + 'px';
+  document.querySelectorAll('.cc-dot').forEach(function(d) {
+    d.style.width = d.style.height = (13 * IS) + 'px';
+  });
+  codeEl.style.paddingTop    = (20 * IS) + 'px';
+  codeEl.style.paddingRight  = (24 * IS) + 'px';
+  codeEl.style.paddingBottom = (20 * IS) + 'px';
+  codeEl.style.paddingLeft   = (24 * IS) + 'px';
+  gutter.style.paddingTop    = (20 * IS) + 'px';
+  gutter.style.paddingRight  = (16 * IS) + 'px';
+  gutter.style.paddingBottom = (20 * IS) + 'px';
+  gutter.style.paddingLeft   = (20 * IS) + 'px';
+
+  // ── Auto-fit: binary search for the largest font that doesn't overflow ────
+  // The slider then acts as a multiplier on the fitted size.
+  function applyFs(fs) {
+    codeEl.style.fontSize  = fs + 'px';
+    gutter.style.fontSize  = fs + 'px';
+  }
+
+  function fit() {
+    var availH = root.clientHeight - 112; // 56px root-padding each side
+    if (availH <= 0) { applyFs(13 * IS); return; }
+    var lo = 7, hi = 26;
+    applyFs(hi);
+    if (window_.scrollHeight <= availH && codeEl.scrollWidth <= codeEl.clientWidth) {
+      applyFs(hi * IS); return;
+    }
+    while (hi - lo > 0.25) {
+      var mid = (lo + hi) / 2;
+      applyFs(mid);
+      if (window_.scrollHeight > availH || codeEl.scrollWidth > codeEl.clientWidth) hi = mid;
+      else lo = mid;
+    }
+    applyFs(lo * IS);
+  }
+
+  fit();
+
+  // Re-fit whenever the canvas element is resized
+  if (window.__ccRo) window.__ccRo.disconnect();
+  if (typeof ResizeObserver !== 'undefined') {
+    window.__ccRo = new ResizeObserver(function() { fit(); });
+    window.__ccRo.observe(root);
+  }
+
+}());
+
+</script>

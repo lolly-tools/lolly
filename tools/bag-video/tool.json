@@ -1,0 +1,109 @@
+{
+  "id": "bag-video",
+  "name": "Bag Video",
+  "description": "An animated, on-brand video for bag visuals.",
+  "version": "0.3.0",
+  "engineVersion": "^1.0.0",
+  "status": "experimental",
+  "category": "designer",
+  "tags": ["video", "bag", "animation"],
+  "render": {
+    "width": 800,
+    "height": 800,
+    "formats": ["webm", "mp4", "gif", "png", "svg"],
+    "actions": ["download", "copy", "save"],
+    "video": {
+      "wait": 1,
+      "duration": 4
+    }
+  },
+  "inputs": [
+    {
+      "id": "pose",
+      "label": "Geeko",
+      "type": "select",
+      "default": "curious",
+      "options": [
+        { "value": "curious",   "label": "Curious" },
+        { "value": "sitting",   "label": "Sitting" },
+        { "value": "laying",    "label": "Laying" },
+        { "value": "dangling",  "label": "Dangling" }
+      ]
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "dark",
+      "options": [
+        { "value": "dark",   "label": "Dark" },
+        { "value": "light",  "label": "Light" },
+        { "value": "pine",   "label": "Pine" },
+        { "value": "fresh",  "label": "Fresh" }
+      ]
+    },
+    {
+      "id": "heading",
+      "label": "Heading",
+      "type": "text",
+      "default": "",
+      "placeholder": "Open. Flexible. Secure."
+    },
+    {
+      "id": "body",
+      "label": "Body",
+      "type": "longtext",
+      "default": "",
+      "rows": 3,
+      "placeholder": "Supporting text goes here."
+    },
+    {
+      "id": "cta",
+      "label": "Call to Action",
+      "type": "text",
+      "default": "",
+      "placeholder": "Learn more"
+    },
+    {
+      "id": "geeko",
+      "label": "Scale & Position",
+      "section": "Geeko Options",
+      "help": "Scale sizes Geeko; X / Y nudge it in the frame (%). Drag a label or type a value.",
+      "type": "vector",
+      "fields": [
+        { "id": "scale", "label": "Scale", "min": 0.25, "max": 3,   "step": 0.05, "default": 1 },
+        { "id": "x",     "label": "X",     "min": -100, "max": 100, "step": 1,    "default": 0 },
+        { "id": "y",     "label": "Y",     "min": -100, "max": 100, "step": 1,    "default": 0 }
+      ]
+    },
+    {
+      "id": "animSpeed",
+      "label": "Animation Speed",
+      "type": "number",
+      "display": "slider",
+      "section": "Geeko Options",
+      "min": 0.25,
+      "max": 4,
+      "step": 0.05,
+      "default": 1
+    },
+    {
+      "id": "blinkRate",
+      "label": "Blink Rate (s)",
+      "type": "number",
+      "display": "slider",
+      "section": "Geeko Options",
+      "min": 0.5,
+      "max": 12,
+      "step": 0.5,
+      "default": 4
+    },
+    {
+      "id": "flip",
+      "label": "Flip Geeko",
+      "type": "boolean",
+      "section": "Geeko Options",
+      "default": false
+    }
+  ]
+}

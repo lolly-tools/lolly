@@ -1,0 +1,485 @@
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.dc-root {
+  width: 100%; height: 100%;
+  font-family: SUSE, ui-sans-serif, sans-serif;
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* ── Themes ── */
+.dc-dark  { background: #0c322c; color: #fff; --accent: #30ba78; --muted: rgba(255,255,255,.45); --border: rgba(48,186,120,.18); --card: rgba(255,255,255,.05); }
+.dc-light { background: #f5f5f0; color: #0c322c; --accent: #0c8c5c; --muted: rgba(12,50,44,.5); --border: rgba(12,50,44,.12); --card: rgba(12,50,44,.04); }
+.dc-green { background: #30ba78; color: #0c322c; --accent: #0c322c; --muted: rgba(12,50,44,.55); --border: rgba(12,50,44,.15); --card: rgba(12,50,44,.06); }
+
+/* ── Quote section ── */
+.dc-quote-wrap {
+  flex: 1; display: flex; flex-direction: column; justify-content: center;
+  padding: 24px;
+  min-height: 0;
+  cursor: pointer;
+  user-select: none;
+}
+.dc-quote-wrap:hover .dc-quote-text { opacity: .85; }
+.dc-city-strip { cursor: text; }
+
+.dc-mark {
+  font-size: 96px; line-height: .8; font-weight: 900;
+  color: var(--accent); letter-spacing: -.04em;
+  margin-bottom: 16px; user-select: none;
+}
+
+.dc-quote-text {
+  font-weight: 300; letter-spacing: -.02em; line-height: 1.22;
+  color: inherit;
+}
+.dc-quote-text strong { font-weight: 700; }
+.dc-quote-text em { font-style: italic; }
+.dc-quote-text del { text-decoration: line-through; }
+
+.dc-quote-author {
+  margin-top: 24px; font-size: 18px; font-weight: 600;
+  color: var(--accent); letter-spacing: .01em;
+}
+
+.dc-date {
+  position: absolute; top: 32px; right: 48px;
+  font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500;
+}
+
+/* ── City strip ── */
+.dc-city-strip {
+   flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 180px 1fr 180px;
+  
+  gap: 0;
+}
+.dc-city-strip.hidden { display: none !important; }
+/* When weather panel is hidden, collapse to map + clock only */
+.dc-strip-panel[style*="display: none"] + .dc-strip-panel { border-left: none; }
+
+.dc-strip-panel {
+  padding: 20px 24px;
+  display: flex; flex-direction: column; justify-content: center;
+   
+}
+.dc-strip-panel:last-child { border-right: none; }
+
+/* Weather panel */
+.dc-weather-icon { font-size: 40px; line-height: 1; margin-bottom: 6px; }
+.dc-weather-temp { font-size: 32px; font-weight: 700; letter-spacing: -.02em; }
+.dc-weather-desc { font-size: 12px; color: var(--muted); margin-top: 4px; text-transform: capitalize; }
+.dc-weather-city { font-size: 11px; color: var(--primary); margin-top: 8px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+.dc-weather-loading { font-size: 12px; color: var(--muted); }
+
+/* Map panel */
+.dc-map-panel { padding: 0; position: relative; overflow: hidden; }
+.dc-map-canvas { display: block; width: 100%; aspect-ratio: 2 / 1; }
+
+/* Time panel */
+.dc-time-display {
+  font-size: 44px; font-weight: 200; letter-spacing: -.02em; line-height: 1;
+}
+.dc-time-sub { font-size: 11px; color: var(--muted); margin-top: 8px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+.dc-time-tz  { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: .04em; }
+
+
+</style>
+
+<div class="dc-root dc-{{theme}}" id="dc-root">
+
+  <div class="dc-date">{{dateStr}}</div>
+
+  <div class="dc-quote-wrap" id="dc-quote-wrap" title="Click for next quote">
+    <div class="dc-mark" aria-hidden="true">&#x275D;</div>
+    <div class="dc-quote-text" id="dc-quote-text">{{quoteText}}</div>
+    <div class="dc-quote-author" id="dc-quote-author">— {{quoteAuthor}}</div>
+  </div>
+
+  <div class="dc-city-strip{{#unless cityNorm}} hidden{{/unless}}" id="dc-strip">
+
+    <div class="dc-strip-panel" id="dc-weather-panel">
+      <div class="dc-weather-loading">Loading…</div>
+    </div>
+
+    <div class="dc-strip-panel dc-map-panel">
+      <svg class="dc-map-canvas" id="dc-map" xmlns="http://www.w3.org/2000/svg" viewBox="-185 -90 380 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+    </div>
+
+    <div class="dc-strip-panel" id="dc-time-panel">
+      <div class="dc-weather-loading">Loading…</div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+(function () {
+  // ── Quotes (must match hooks.js) ───────────────────────────────────────
+  var QUOTES = [
+    { text: "People who love ideas must have a love of words, and that means, given a chance, they will take a vivid interest in the clothes which **words wear**", author: "Beatrice Warde" },
+    { text: "The best way to predict the future is to create it.", author: "Peter Drucker" },
+    { text: "In the middle of difficulty lies opportunity.", author: "Albert Einstein" },
+    { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
+    { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+    { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" },
+    { text: "Stay hungry. Stay foolish.", author: "Stewart Brand" },
+    { text: "Move fast and learn things.", author: "Unknown" },
+    { text: "Done is better than perfect.", author: "Sheryl Sandberg" },
+    { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
+    { text: "What you do today can improve all your tomorrows.", author: "Ralph Marston" },
+    { text: "Well done is better than well said.", author: "Benjamin Franklin" },
+    { text: "Act as if what you do makes a difference. It does.", author: "William James" },
+    { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
+    { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
+    { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
+    { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" },
+    { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
+    { text: "It is during our darkest moments that we must focus to see the light.", author: "Aristotle" },
+    { text: "Life is what happens when you're busy making other plans.", author: "John Lennon" },
+    { text: "When you reach the end of your rope, tie a knot in it and hang on.", author: "Franklin D. Roosevelt" },
+    { text: "Always remember that you are absolutely unique. Just like everyone else.", author: "Margaret Mead" },
+    { text: "Don't judge each day by the harvest you reap but by the seeds that you plant.", author: "Robert Louis Stevenson" },
+    { text: "The purpose of our lives is to be happy.", author: "Dalai Lama" },
+    { text: "Get busy living or get busy dying.", author: "Stephen King" },
+    { text: "If life were predictable it would cease to be life, and be without flavor.", author: "Eleanor Roosevelt" },
+    { text: "One machine can do the work of fifty ordinary men. **No machine** can do the work of **one extraordinary man**.", author: "Elbert Hubbard" },
+    { text: "Technology made large populations possible; large populations now make *technology indispensable*.", author: "Joseph Krutch" },
+    { text: "**Creativity and innovation** always builds on the past. The past always tries to control the creativity that builds upon it.", author: "Lawrence Lessig" },
+    { text: "The art *challenges* the technology, and the technology **inspires the art**.", author: "John Lasseter" },
+    { text: "It is not the strongest of the species that survive, nor the most intelligent, but the one ***most responsive to change***.", author: "Charles Darwin" },
+    { text: "No matter how brilliant your mind or strategy, *if you're playing a solo game*, you'll always **lose out to a team**.", author: "Reid Hoffman" },
+    { text: "The best way to have a good idea is to have a lot of ideas.", author: "Linus Pauling" },
+    { text: "Alone we can do so little; together we can do so much.", author: "Helen Keller" },
+    { text: "Do not fear to be eccentric in opinion, for every opinion now accepted was once eccentric.", author: "Bertrand Russell" },
+    { text: "Culture eats strategy for breakfast.", author: "Peter Drucker" },
+    { text: "Vulnerability is the birthplace of innovation, creativity, and change.", author: "Brene Brown" },
+    { text: "Any sufficiently advanced technology is equivalent to magic.", author: "Arthur C. Clarke" },
+    { text: "We need diversity of thought in the world to face the new challenges.", author: "Tim Berners-Lee" },
+    { text: "The Linux philosophy is 'Laugh in the face of danger'. Oops. Wrong One. 'Do it yourself'. Yes, that's it.", author: "Linus Torvalds" },
+    { text: "Intelligence is the ability to avoid doing work, yet getting the work done.", author: "Linus Torvalds" },
+    { text: "Creativity is allowing yourself to make mistakes. Art is knowing which ones to keep.", author: "Scott Adams" },
+    { text: "May your choices reflect your hopes, not your fears.", author: "Nelson Mandela" },
+    { text: "I learned that courage was not the absence of fear, but the triumph over it. The brave man is not he who does not feel afraid, but he who conquers that fear.", author: "Nelson Mandela" }
+  ];
+
+
+
+  // Starting index from hooks.js — random per session, stable across onInput calls.
+  var quoteIndex = {{quoteIndex}};
+
+  // ── Quote font sizing + update ─────────────────────────────────────────
+  var wrap   = document.getElementById('dc-quote-wrap');
+  var text   = document.getElementById('dc-quote-text');
+  var author = document.getElementById('dc-quote-author');
+
+  function fitQuote() {
+    if (!wrap || !text) return;
+    text.style.fontSize = '';
+    var available = (wrap.clientHeight - 96 - 24 - 48) * 0.5;
+    if (available <= 0) return;
+    var lo = 16, hi = 80;
+    function overflows(sz) { text.style.fontSize = sz + 'px'; return text.scrollHeight > available; }
+    if (overflows(hi)) {
+      while (hi - lo > 1) { var mid = (lo + hi) >> 1; if (overflows(mid)) hi = mid; else lo = mid; }
+      text.style.fontSize = lo + 'px';
+    }
+  }
+
+  function mdToHtml(s) {
+    var e = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return e
+      .replace(/\*\*\*([\s\S]+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/~~([\s\S]+?)~~/g, '<del>$1</del>')
+      .replace(/\*([\s\S]+?)\*/g, '<em>$1</em>');
+  }
+
+  function showQuote(idx) {
+    var q = QUOTES[idx % QUOTES.length];
+    if (text)   text.innerHTML     = mdToHtml(q.text);
+    if (author) author.textContent = '— ' + q.author;
+    fitQuote();
+  }
+
+  showQuote(quoteIndex);
+
+  // Click to cycle
+  if (wrap) {
+    wrap.addEventListener('click', function () {
+      quoteIndex = (quoteIndex + 1) % QUOTES.length;
+      showQuote(quoteIndex);
+    });
+  }
+
+  // Clicking the city strip focuses the city input in the sidebar.
+  var stripEl = document.getElementById('dc-strip');
+  if (stripEl) {
+    stripEl.addEventListener('click', function () {
+      var cityInput = document.querySelector('[data-input-id="city"]');
+      if (cityInput) { cityInput.focus(); cityInput.select(); }
+    });
+  }
+
+  // ── City / weather / map / time ────────────────────────────────────────
+  var city = '{{cityNorm}}';
+  if (!city || !city.trim()) return;
+
+  // Tell waitForQuiescence (auto-export) to hold until we dispatch 'tool:ready'.
+  // We dispatch it in every terminal state of the fetch chain below.
+  window.__toolHasReadySignal = true;
+
+  // Skip the debounce on the very first render — it exists to prevent hammering
+  // the API while the user types, which can't happen on first paint.
+  var _isFirstRender = !window._dcEverLoaded;
+  window._dcEverLoaded = true;
+
+  var strip = document.getElementById('dc-strip');
+  // Hide strip until we confirm we can serve data
+  if (strip) strip.classList.add('hidden');
+
+  // WMO weather interpretation
+  function wmoIcon(code) {
+    if (code === 0)           return '☀️';
+    if (code <= 2)            return '🌤';
+    if (code === 3)           return '☁️';
+    if (code <= 48)           return '🌫';
+    if (code <= 57)           return '🌦';
+    if (code <= 67)           return '🌧';
+    if (code <= 77)           return '❄️';
+    if (code <= 82)           return '🌦';
+    if (code <= 86)           return '❄️';
+    if (code <= 99)           return '⛈';
+    return '🌡';
+  }
+  function wmoDesc(code) {
+    if (code === 0)           return 'Clear sky';
+    if (code === 1)           return 'Mainly clear';
+    if (code === 2)           return 'Partly cloudy';
+    if (code === 3)           return 'Overcast';
+    if (code <= 48)           return 'Foggy';
+    if (code <= 57)           return 'Drizzle';
+    if (code <= 67)           return 'Rainy';
+    if (code <= 77)           return 'Snowing';
+    if (code <= 82)           return 'Rain showers';
+    if (code <= 86)           return 'Snow showers';
+    if (code <= 99)           return 'Thunderstorm';
+    return 'Unknown';
+  }
+
+  // ── Higher-resolution vector world map in SVG ─────────────────────────
+  var WORLD_PATH_D = window._dcWorldPath || null;
+  if (!window._dcWorldPath) {
+    window._dcWorldPathP = window._dcWorldPathP ||
+      fetch('/tools/daily-card/world-map.txt').then(function(r) { return r.text(); })
+        .then(function(d) { window._dcWorldPath = d.trim(); return window._dcWorldPath; });
+  }
+
+  function drawMap(svg, lat, lon) {
+    var root = document.getElementById('dc-root');
+    var isDark = root.classList.contains('dc-dark');
+    var isGreen = root.classList.contains('dc-green');
+    var oceanFill = isDark ? '#092b23' : isGreen ? '#1e513d' : '#eef3f1';
+    var landFill = isDark ? '#1a4a3a' : isGreen ? '#0c322c' : '#c8d8c8';
+    var landStroke = isDark ? '#30ba78' : isGreen ? '#30ba78' : '#6aaa8a';
+    var gridStroke = isDark ? 'rgba(255,255,255,0.09)' : isGreen ? 'rgba(255,255,255,0.08)' : 'rgba(12,50,44,0.1)';
+    var dotColor = isDark ? '#fff' : isGreen ? '#fff' : '#0c322c';
+
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+
+    var ocean = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    ocean.setAttribute('x', '-180');
+    ocean.setAttribute('y', '-90');
+    ocean.setAttribute('width', '360');
+    ocean.setAttribute('height', '180');
+    ocean.setAttribute('fill', oceanFill);
+    ocean.setAttribute('opacity', '0.9');
+    //svg.appendChild(ocean);
+
+    var grid = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    grid.setAttribute('stroke', gridStroke);
+    grid.setAttribute('stroke-width', '0.3');
+    grid.setAttribute('fill', 'none');
+    for (var x = -150; x <= 150; x += 30) {
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(x));
+      line.setAttribute('y1', '-90');
+      line.setAttribute('x2', String(x));
+      line.setAttribute('y2', '90');
+      grid.appendChild(line);
+    }
+    for (var y = -60; y <= 60; y += 30) {
+      var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', '-180');
+      line.setAttribute('y1', String(y));
+      line.setAttribute('x2', '180');
+      line.setAttribute('y2', String(y));
+      grid.appendChild(line);
+    }
+   // svg.appendChild(grid);
+
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', WORLD_PATH_D);
+    path.setAttribute('fill', landFill);
+    path.setAttribute('stroke', landStroke);
+    path.setAttribute('stroke-width', '0');
+    path.setAttribute('stroke-linejoin', 'round');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('fill-rule', 'evenodd');
+    path.setAttribute('opacity', '1');
+    svg.appendChild(path);
+
+    var cx = lon;
+    var cy = -lat; // SVG viewBox uses inverted Y with viewBox="-180 -90 360 180"
+    var marker = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    marker.setAttribute('opacity', '0.95');
+
+    var glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    glow.setAttribute('cx', String(cx));
+    glow.setAttribute('cy', String(cy));
+    glow.setAttribute('r', '6');
+    glow.setAttribute('fill', dotColor);
+    glow.setAttribute('opacity', '0.18');
+
+    var ring = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    ring.setAttribute('cx', String(cx));
+    ring.setAttribute('cy', String(cy));
+    ring.setAttribute('r', '4');
+    ring.setAttribute('fill', 'none');
+    ring.setAttribute('stroke', dotColor);
+    ring.setAttribute('stroke-width', '1.2');
+    ring.setAttribute('opacity', '0.85');
+
+    var dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', String(cx));
+    dot.setAttribute('cy', String(cy));
+    dot.setAttribute('r', '2.2');
+    dot.setAttribute('fill', dotColor);
+
+    marker.appendChild(glow);
+    marker.appendChild(ring);
+    marker.appendChild(dot);
+    svg.appendChild(marker);
+  }
+
+  // ── Clock ──────────────────────────────────────────────────────────────
+  var _clockInterval = null;
+  function startClock(timezone, timePanel) {
+    if (_clockInterval) clearInterval(_clockInterval);
+    function tick() {
+      try {
+        var now = new Date();
+        var timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: timezone });
+        var dayStr  = now.toLocaleDateString('en-US', { weekday: 'long', timeZone: timezone });
+        var offStr  = now.toLocaleTimeString('en-US', { timeZoneName: 'short', timeZone: timezone }).split(' ').pop();
+        timePanel.innerHTML =
+          '<div class="dc-time-display">' + timeStr + '</div>' +
+          '<div class="dc-time-sub">' + dayStr + '</div>' +
+          '<div class="dc-time-tz">' + timezone.replace('_', ' ') + ' · ' + offStr + '</div>';
+      } catch(e) {
+        timePanel.innerHTML = '<div class="dc-weather-loading">Time unavailable</div>';
+      }
+    }
+    tick();
+    _clockInterval = setInterval(tick, 10000);
+  }
+
+  // ── Fetch geocoding + weather ──────────────────────────────────────────
+  var _debounce = null;
+  function load() {
+    clearTimeout(_debounce);
+    // No debounce on the first render — the debounce is for rapid typing.
+    _debounce = setTimeout(doLoad, _isFirstRender ? 0 : 600);
+    _isFirstRender = false;
+  }
+
+  function doLoad() {
+    var geoUrl = 'https://geocoding-api.open-meteo.com/v1/search?name=' +
+      encodeURIComponent(city) + '&count=1&language=en&format=json';
+
+    fetch(geoUrl)
+      .then(function(r) {
+        if (!r.ok) throw new Error('geo ' + r.status);
+        return r.json();
+      })
+      .then(function(geo) {
+        var result = geo.results && geo.results[0];
+        if (!result) throw new Error('City not found');
+
+        var lat = result.latitude;
+        var lon = result.longitude;
+        var tz  = result.timezone || 'UTC';
+        var displayName = result.name + (result.country ? '<br> ' + result.country : '');
+
+        // Geocoding succeeded — show the strip and fill map + clock immediately
+        // (both work without a weather response).
+        if (strip) strip.classList.remove('hidden');
+
+        // Clock (local, always works once we have a timezone)
+        var timePanel = document.getElementById('dc-time-panel');
+        if (timePanel) startClock(tz, timePanel);
+
+        // Map
+        var mapSvg = document.getElementById('dc-map');
+        if (mapSvg) {
+          // Read layout after strip is visible; rAF ensures the browser has painted.
+          requestAnimationFrame(function () {
+            var doMap = function() {
+              WORLD_PATH_D = window._dcWorldPath || '';
+              drawMap(mapSvg, lat, lon);
+            };
+            if (window._dcWorldPath) doMap();
+            else if (window._dcWorldPathP) window._dcWorldPathP.then(doMap);
+          });
+        }
+
+        // Weather — hide the panel silently if it fails
+        var weatherPanel = document.getElementById('dc-weather-panel');
+        if (weatherPanel) weatherPanel.innerHTML = '';
+
+        var wxUrl = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat +
+          '&longitude=' + lon +
+          '&current=temperature_2m,weather_code,wind_speed_10m' +
+          '&temperature_unit=celsius&wind_speed_unit=kmh&timezone=' + encodeURIComponent(tz);
+
+        fetch(wxUrl)
+          .then(function(r) {
+            if (!r.ok) throw new Error('wx ' + r.status);
+            return r.json();
+          })
+          .then(function(wx) {
+            var cur = wx.current;
+            if (!cur || !weatherPanel) return;
+            var temp = Math.round(cur.temperature_2m);
+            var code = cur.weather_code || 0;
+            var wind = Math.round(cur.wind_speed_10m);
+            weatherPanel.innerHTML =
+              '<div class="dc-weather-icon">' + wmoIcon(code) + '</div>' +
+              '<div class="dc-weather-temp">' + temp + '°C</div>' +
+              '<div class="dc-weather-desc">' + wmoDesc(code) + '</div>' +
+              '<div class="dc-weather-desc" style="margin-top:2px">Wind ' + wind + ' km/h</div>' +
+              '<div class="dc-weather-city">' + displayName + '</div>';
+          })
+          .catch(function() {
+            // Weather unavailable — hide the panel so the strip still looks clean
+            if (weatherPanel) weatherPanel.style.display = 'none';
+          })
+          .finally(function() {
+            document.dispatchEvent(new CustomEvent('tool:ready'));
+          });
+      })
+      .catch(function() {
+        // Geocoding failed (offline or unknown city) — keep strip hidden, show nothing
+        if (strip) strip.classList.add('hidden');
+        document.dispatchEvent(new CustomEvent('tool:ready'));
+      });
+  }
+
+  load();
+}());
+</script>

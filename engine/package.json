@@ -1,0 +1,23 @@
+{
+  "name": "@lolly/engine",
+  "version": "0.1.0",
+  "description": "Platform-agnostic engine for Lolly. Loads tool manifests, renders inputs, hydrates templates, drives exports through the capability bridge.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./bridge/v1": "./src/bridge/host-v1.ts"
+  },
+  "scripts": {
+    "test": "node --test \"../tests/**/*.test.js\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.8",
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  },
+  "//": "The engine has NO direct dependency on a DOM library, framework, or storage backend. Those are provided by the host shell at runtime via the capability bridge."
+}

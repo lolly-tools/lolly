@@ -1,0 +1,113 @@
+.url-shot {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f4f4f4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The captured screenshot, injected into [data-capture] by beforeExport.
+   The capture is taken at the EXPORT dimensions, so the canvas (which adopts the
+   export size) and the image share an aspect ratio: object-fit: contain then fills
+   it exactly with no crop and no distortion. If they ever diverged, contain would
+   letterbox (preserving the whole capture) rather than silently crop or stretch. */
+.url-shot .shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+/* Hide the image until a capture has set its src. */
+.url-shot .shot:not([src]) {
+  display: none;
+}
+
+/* Live-preview placeholder (capture only happens at export). */
+.url-shot .placeholder {
+  text-align: center;
+  color: #30ba78;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  padding: 2rem;
+}
+.url-shot .placeholder .badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #0c322c;
+  background: #efefef;
+  border: 1px solid #d6d6d6;
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  margin-bottom: 1rem;
+}
+.url-shot .placeholder .hint {
+  margin: 0 0 0.5rem;
+  color: #4a4a4a;
+  font-size: 0.95rem;
+}
+.url-shot .placeholder .target {
+  margin: 0 0 1.25rem;
+  color: #0c322c;
+  font-size: 1.1rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+.url-shot .placeholder .hint {
+  margin: 1rem 0 0;
+}
+
+/* Render-to-frame trigger. A preview is a real capture (slow — a headless page
+   load), so it's an explicit click, not a live update. The shell wires it via
+   [data-preview]; on success the capture replaces this whole placeholder. */
+.url-shot .preview-btn {
+  appearance: none;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: #30ba78;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  box-shadow: 0 1px 3px rgba(12, 50, 44, 0.25);
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+.url-shot .preview-btn:hover { background: #2aa76b; }
+.url-shot .preview-btn:active { transform: translateY(1px); }
+
+/* Busy: page is loading/settling in the capture engine. */
+.url-shot .preview-btn.is-busy {
+  cursor: progress;
+  background: #6fcfa1;
+  padding-left: 2.4rem;
+  position: relative;
+}
+.url-shot .preview-btn.is-busy::before {
+  content: "";
+  position: absolute;
+  left: 1.2rem;
+  top: 50%;
+  width: 0.9em;
+  height: 0.9em;
+  margin-top: -0.45em;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: url-shot-spin 0.7s linear infinite;
+}
+@keyframes url-shot-spin { to { transform: rotate(360deg); } }
+
+/* Error: capture failed — the message lands in the button so the user can retry. */
+.url-shot .preview-btn.is-error {
+  background: #fff;
+  color: #b32d2d;
+  border: 1px solid #e5b4b4;
+  font-weight: 500;
+  white-space: normal;
+  max-width: 32ch;
+}

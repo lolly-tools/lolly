@@ -1,0 +1,41 @@
+{
+  "id": "daily-card",
+  "name": "Day Brief",
+  "description": "Quote of the day with live weather, time and a map for any city.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["quote", "weather", "daily", "inspiration"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["png", "jpeg",  "pdf"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "city",
+      "label": "City",
+      "type": "text",
+      "default": "",
+      "help": "Optional. City name, Airport (LAX, LHR), or abbreviation (LA, NYC, SF…)"
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "dark",
+      "options": [
+        { "value": "dark",  "label": "Dark" },
+        { "value": "light", "label": "Light" },
+        { "value": "green", "label": "SUSE Green" }
+      ]
+    }
+  ]
+}

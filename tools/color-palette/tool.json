@@ -1,0 +1,17 @@
+{
+  "id": "color-palette",
+  "name": "Color Palette",
+  "description": "Browse SUSE brand colors — click a swatch to copy it.",
+  "version": "1.1.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "tags": ["color", "reference", "brand"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["html"],
+    "export": false
+  },
+  "inputs": []
+}

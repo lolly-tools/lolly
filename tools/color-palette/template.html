@@ -1,0 +1,677 @@
+<style> 
+:root{
+    --color-white:       rgb(255, 255, 255);
+    --color-black:       rgb( 0,    0,   0);
+
+    --color-pine:        rgb( 12,  50,  44);
+    --color-jungle:      rgb( 48, 186, 120);
+    --color-mint:        rgb(144, 235, 205);
+    --color-persimmon:   rgb(254, 124,  63);
+    --color-midnight:    rgb( 25,  32, 114);
+    --color-waterhole:   rgb( 36,  83, 255);
+    --color-fog:         rgb(239, 239, 239);
+
+    --color-jungle-1:    var(--color-pine);
+    --color-jungle-2:    rgb(  2,  89,  55);
+    --color-jungle-3:    rgb(  0, 134,  87);
+    --color-jungle-4:    var(--color-jungle);
+    --color-jungle-5:    rgb( 66, 210, 159);
+    --color-jungle-6:    rgb(131, 225, 190);
+    --color-jungle-7:    rgb(192, 239, 222);
+    --color-jungle-8:    rgb(234, 250, 244);
+
+    --color-pine-1:      var(--color-pine);
+    --color-pine-2:      rgb(  1,  86,  74);
+    --color-pine-3:      rgb(  0, 136, 120);
+    --color-pine-4:      rgb(  0, 189, 167);
+    --color-pine-5:      rgb( 56, 213, 180);
+    --color-pine-6:      var(--color-mint);
+    --color-pine-7:      rgb(191, 241, 234);
+    --color-pine-8:      rgb(234, 250, 248);
+
+    --color-persimmon-1: rgb( 71,  25,  13);
+    --color-persimmon-2: rgb(142,  40,  16);
+    --color-persimmon-3: rgb(189,  51,  20);
+    --color-persimmon-4: rgb(255,  90,  43);
+    --color-persimmon-5: rgb(254, 124,  63);
+    --color-persimmon-6: rgb(255, 177, 132);
+    --color-persimmon-7: rgb(255, 211, 189);
+    --color-persimmon-8: rgb(255, 239, 233);
+
+    --color-blue-1:      rgb( 10,  17,  43);
+    --color-blue-2:      rgb( 25,  32, 114);
+    --color-blue-3:      rgb( 11,  65, 183);
+    --color-blue-4:      rgb( 36,  83, 255);
+    --color-blue-5:      rgb( 60, 142, 239);
+    --color-blue-6:      rgb(129, 174, 252);
+    --color-blue-7:      rgb(200, 218, 252);
+    --color-blue-8:      rgb(230, 237, 254);
+
+    --color-fog-1:       rgb( 29,  29,  29);
+    --color-fog-2:       rgb( 62,  62,  62);
+    --color-fog-3:       rgb( 82,  82,  82);
+    --color-fog-4:       rgb(111, 111, 111);
+    --color-fog-5:       rgb(153, 153, 153);
+    --color-fog-6:       rgb(186, 186, 186);
+    --color-fog-7:       rgb(220, 219, 220);
+    --color-fog-8:       rgb(239, 239, 239);
+
+    --color-spectrum-1:  rgb(  0, 189, 167);
+    --color-spectrum-2:  rgb(161, 239, 139); 
+    --color-spectrum-3:  rgb(125, 198, 226); 
+    --color-spectrum-4:  rgb(232, 193, 247); 
+    --color-spectrum-5:  rgb( 93,  79, 153); 
+    --color-spectrum-6:  rgb(249, 202, 191); 
+    --color-spectrum-7:  rgb(252, 178,  68); 
+    --color-spectrum-8:  rgb(189,  51,  20); 
+
+    /*helper variables*/
+    --color-teal:     var(--color-spectrum-1);
+    --color-lime:     var(--color-spectrum-2);
+    --color-sky:      var(--color-spectrum-3);
+    --color-lilac:    var(--color-spectrum-4);
+    --color-amethyst: var(--color-spectrum-5);
+    --color-peach:    var(--color-spectrum-6);
+    --color-marigold: var(--color-spectrum-7);
+    --color-rust:     var(--color-spectrum-8);
+    }
+
+.suse-pl-bg-teal       {background-color:var(--color-teal)}
+.suse-pl-bg-lime       {background-color:var(--color-lime)}
+.suse-pl-bg-sky        {background-color:var(--color-sky)}
+.suse-pl-bg-lilac      {background-color:var(--color-lilac)}
+.suse-pl-bg-amethyst   {background-color:var(--color-amethyst)}
+.suse-pl-bg-peach      {background-color:var(--color-peach)}
+.suse-pl-bg-cantalope  {background-color:var(--color-cantalope)}
+.suse-pl-bg-rust        {background-color:var(--color-rust)}
+
+.suse-pl-text-teal     {color:var(--color-teal)}
+.suse-pl-text-lime     {color:var(--color-lime)}
+.suse-pl-text-sky      {color:var(--color-sky)}
+.suse-pl-text-lilac    {color:var(--color-lilac)}
+.suse-pl-text-amethyst {color:var(--color-amethyst)}
+.suse-pl-text-peach    {color:var(--color-peach)}
+.suse-pl-text-marigold {color:var(--color-marigold)}
+.suse-pl-text-cantalope{color:var(--color-cantalope)}
+.suse-pl-text-rust      {color:var(--color-rust)}
+
+
+/*helper classes*/
+.suse-pl-bg-white      {background-color:var(--color-white)}
+.suse-pl-bg-black      {background-color:var(--color-black)}
+
+.suse-pl-bg-pine       {background-color:var(--color-pine)}
+.suse-pl-bg-pine-0     {background-color:var(--color-pine-0)}
+.suse-pl-bg-pine-1     {background-color:var(--color-pine-1)}
+.suse-pl-bg-pine-2     {background-color:var(--color-pine-2)}
+.suse-pl-bg-pine-3     {background-color:var(--color-pine-3)}
+.suse-pl-bg-pine-4     {background-color:var(--color-pine-4)}
+.suse-pl-bg-pine-5     {background-color:var(--color-pine-5)}
+.suse-pl-bg-pine-6     {background-color:var(--color-pine-6)}
+.suse-pl-bg-pine-7     {background-color:var(--color-pine-7)}
+
+.suse-pl-bg-jungle     {background-color:var(--color-jungle)}
+.suse-pl-bg-jungle-0   {background-color:var(--color-jungle-0)}
+.suse-pl-bg-jungle-1   {background-color:var(--color-jungle-1)}
+.suse-pl-bg-jungle-2   {background-color:var(--color-jungle-2)}
+.suse-pl-bg-jungle-3   {background-color:var(--color-jungle-3)}
+.suse-pl-bg-jungle-4   {background-color:var(--color-jungle-4)}
+.suse-pl-bg-jungle-5   {background-color:var(--color-jungle-5)}
+.suse-pl-bg-jungle-6   {background-color:var(--color-jungle-6)}
+.suse-pl-bg-jungle-7   {background-color:var(--color-jungle-7)}
+
+.suse-pl-bg-mint       {background-color:var(--color-mint)}
+.suse-pl-bg-mint-0     {background-color:var(--color-mint-0)}
+.suse-pl-bg-mint-1     {background-color:var(--color-mint-1)}
+.suse-pl-bg-mint-2     {background-color:var(--color-mint-2)}
+.suse-pl-bg-mint-3     {background-color:var(--color-mint-3)}
+.suse-pl-bg-mint-4     {background-color:var(--color-mint-4)}
+.suse-pl-bg-mint-5     {background-color:var(--color-mint-5)}
+.suse-pl-bg-mint-6     {background-color:var(--color-mint-6)}
+.suse-pl-bg-mint-7     {background-color:var(--color-mint-7)}
+
+.suse-pl-bg-persimmon  {background-color:var(--color-persimmon)}
+.suse-pl-bg-persimmon-0{background-color:var(--color-persimmon-0)}
+.suse-pl-bg-persimmon-1{background-color:var(--color-persimmon-1)}
+.suse-pl-bg-persimmon-2{background-color:var(--color-persimmon-2)}
+.suse-pl-bg-persimmon-3{background-color:var(--color-persimmon-3)}
+.suse-pl-bg-persimmon-4{background-color:var(--color-persimmon-4)}
+.suse-pl-bg-persimmon-5{background-color:var(--color-persimmon-5)}
+.suse-pl-bg-persimmon-6{background-color:var(--color-persimmon-6)}
+.suse-pl-bg-persimmon-7{background-color:var(--color-persimmon-7)}
+
+.suse-pl-bg-blue       {background-color:var(--color-blue)}
+.suse-pl-bg-blue-0     {background-color:var(--color-blue-0)}
+.suse-pl-bg-blue-1     {background-color:var(--color-blue-1)}
+.suse-pl-bg-blue-2     {background-color:var(--color-blue-2)}
+.suse-pl-bg-blue-3     {background-color:var(--color-blue-3)}
+.suse-pl-bg-blue-4     {background-color:var(--color-blue-4)}
+.suse-pl-bg-blue-5     {background-color:var(--color-blue-5)}
+.suse-pl-bg-blue-6     {background-color:var(--color-blue-6)}
+.suse-pl-bg-blue-7     {background-color:var(--color-blue-7)}
+
+.suse-pl-bg-fog        {background-color:var(--color-fog)}
+.suse-pl-bg-fog-0      {background-color:var(--color-fog-0)}
+.suse-pl-bg-fog-1      {background-color:var(--color-fog-1)}
+.suse-pl-bg-fog-2      {background-color:var(--color-fog-2)}
+.suse-pl-bg-fog-3      {background-color:var(--color-fog-3)}
+.suse-pl-bg-fog-4      {background-color:var(--color-fog-4)}
+.suse-pl-bg-fog-5      {background-color:var(--color-fog-5)}
+.suse-pl-bg-fog-6      {background-color:var(--color-fog-6)}
+.suse-pl-bg-fog-7      {background-color:var(--color-fog-7)}
+
+.suse-pl-bg-spectrum-1 {background-color:var(--color-spectrum-1)}
+.suse-pl-bg-spectrum-2 {background-color:var(--color-spectrum-2)}
+.suse-pl-bg-spectrum-3 {background-color:var(--color-spectrum-3)}
+.suse-pl-bg-spectrum-4 {background-color:var(--color-spectrum-4)}
+.suse-pl-bg-spectrum-5 {background-color:var(--color-spectrum-5)}
+.suse-pl-bg-spectrum-6 {background-color:var(--color-spectrum-6)}
+.suse-pl-bg-spectrum-7 {background-color:var(--color-spectrum-7)}
+
+ 
+/* UI Theme Classes */
+
+/*
+SUSE Pattern Library Reset
+scoped to .suse-pl class for easier merging with existing code bases
+*/
+
+/* EASY BOX MODEL */
+.suse-pl,
+.suse-pl *,
+.suse-pl*::before,
+.suse-pl*::after {
+  box-sizing: border-box;
+}
+/* NO MARGIN BY DEFAULT */
+
+.suse-pl,
+.suse-pl * {
+  margin: 0;
+}
+/* FONT FIXES */
+.suse-pl {
+  font-family: "SUSE", sans-serif;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/* MEDIA */
+.suse-pl :is(img, picture, video, canvas, svg) {
+  display: block;
+  max-width: 100%;
+}
+/* FIX FORM FONTS */
+.suse-pl :is(input, button, textarea, select) {
+  font: inherit;
+}
+/* NO TEXT OVERFLOW */
+.suse-pl :is(p, h1, h2, h3, h4, h5, h6) {
+  overflow-wrap: break-word;
+}
+
+
+  </style>
+ 
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    .palette {
+      min-height: 100vh;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      place-content: center;
+      padding: 10vw;
+      
+    }
+
+    .swatch {
+      align-items: center;
+      border-radius: 0 !important;  
+      min-width: 20em;
+      position: relative;
+      grid-template-rows: .1fr 1fr 1fr;
+      padding: 0 0 1em 0;
+      display: grid;
+      min-height: 6em;
+      vertical-align: middle;
+      align-content: center;
+    }
+
+    .swatch:not(:hover)>* {
+      opacity: 1
+    }
+
+    .swatch:hover>* {
+      opacity: 1;
+    }
+
+    .swatch:not(:hover) {
+    
+    }
+
+    .swatch:hover {
+      transform: scale(1.75);
+      
+      box-shadow: 0 0 0 .5em white, 0 .3em 2.5em .5em #0104;
+      position: relative;
+      z-index: 9;
+      transition: all .05s cubic-bezier(.5, .1, .1, 1.1);
+    }
+
+    .swatch h2 {
+      font-size: 2em;
+      margin-bottom: -.2em;
+      padding-top: .2em;
+      opacity: 1;
+      font-weight: 400;
+      user-select: none;
+      pointer-events: none;
+    }
+
+    .swatch>* {
+      padding-left: 1rem;
+    }
+
+    .swatch span {
+      font-family: 'SUSE Mono';
+      letter-spacing: 0.05em;
+      font-weight: 300;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .swatch b {
+      white-space: nowrap;
+      font-weight: 500;
+      display: block;
+      align-self: middle;
+      line-height: 4em;
+      right: 0;
+      left: 0;
+      user-select: contain;
+      
+    }
+
+    .swatch i {
+     display:none;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .swatch span {
+      line-height: 3em;
+    }
+
+    @keyframes whoosh {
+      100% {
+        background-position: 0% 0%;
+        box-shadow: 0 0 0 transparent
+      }
+    }
+
+    .success {
+      box-shadow: 0 .3em 0 -.2em;
+      animation: whoosh 0.8s ease forwards;
+      background-image: linear-gradient(-45deg,
+          transparent 20%,
+          currentcolor 20%,
+          currentcolor 30%,
+          transparent 40%);
+      background-position: 100% 100%;
+      background-size: 600%;
+    }
+
+    .success:after {
+      position:absolute;
+      color: var(--color-black);
+      background-color: var(--color-white);
+      font-weight: 700;
+      letter-spacing: 0;
+      content: "Copied";
+      font-size: 0.5em;
+      display: inline-block;
+      transform: scale(1.5);
+      transform-origin: 50% 50%;
+      margin: 0;
+      width: auto;
+      box-shadow: 0 0.36em 0.75em -0.3em rgba(0, 0, 0, 0.25);
+      height: 2.5em;
+      line-height: 2.5em;
+      padding: 0 1em;
+      margin-left: 2.5em;
+      pointer-events: none;
+      animation: copied 2s cubic-bezier(0.6, 0.2, 0.1, 1) forwards;
+      position: relative;
+      z-index: 9;
+    }
+
+    @keyframes copied {
+      0% {
+        opacity: 0;
+      }
+
+      10% {
+        opacity: 1;
+      }
+
+      40%,
+      60% {
+        opacity: 1;
+        transform: scale(1.5) translate(0, 0);
+      }
+
+      100% {
+        transform: scale(1.5) translate(0, -1em);
+        opacity: 0;
+      }
+    }
+
+    .copy-llm-btn {
+      display: block;
+      margin: 2em auto 1em;
+      padding: 0.6em 1.4em;
+      font-family: 'SUSE', sans-serif;
+      font-size: 1em;
+      font-weight: 500;
+      background-color: var(--color-pine);
+      color: var(--color-mint);
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background-color 0.15s;
+    }
+
+    .copy-llm-btn:hover {
+      background-color: var(--color-jungle);
+      color: var(--color-pine);
+    }
+
+    .copy-llm-btn.success {
+      background-color: var(--color-jungle);
+      color: var(--color-pine);
+    }
+</style>
+
+<div class="suse-pl">
+  <button class="copy-llm-btn" id="copyLlmBtn">Copy LLM Instructions</button>
+  <div class="palette">
+    <div class="swatch" name="pine"> </div>
+    <div class="swatch" name="jungle"> </div>
+    <div class="swatch" name="mint"> </div>
+    <div class="swatch" name="persimmon"> </div>
+    <div class="swatch" name="midnight"> </div>
+    <div class="swatch" name="waterhole"> </div>
+    <div class="swatch" name="fog"> </div>
+    <div class="swatch" name="white"> </div>
+
+    <div class="swatch" name="jungle-1"> </div>
+    <div class="swatch" name="jungle-2"> </div>
+    <div class="swatch" name="jungle-3"> </div>
+    <div class="swatch" name="jungle-4"> </div>
+    <div class="swatch" name="jungle-5"> </div>
+    <div class="swatch" name="jungle-6"> </div>
+    <div class="swatch" name="jungle-7"> </div>
+    <div class="swatch" name="jungle-8"> </div>
+
+    <div class="swatch" name="pine-1"> </div>
+    <div class="swatch" name="pine-2"> </div>
+    <div class="swatch" name="pine-3"> </div>
+    <div class="swatch" name="pine-4"> </div>
+    <div class="swatch" name="pine-5"> </div>
+    <div class="swatch" name="pine-6"> </div>
+    <div class="swatch" name="pine-7"> </div>
+    <div class="swatch" name="pine-8"> </div>
+
+    <div class="swatch" name="persimmon-1"> </div>
+    <div class="swatch" name="persimmon-2"> </div>
+    <div class="swatch" name="persimmon-3"> </div>
+    <div class="swatch" name="persimmon-4"> </div>
+    <div class="swatch" name="persimmon-5"> </div>
+    <div class="swatch" name="persimmon-6"> </div>
+    <div class="swatch" name="persimmon-7"> </div>
+    <div class="swatch" name="persimmon-8"> </div>
+
+    <div class="swatch" name="blue-1"> </div>
+    <div class="swatch" name="blue-2"> </div>
+    <div class="swatch" name="blue-3"> </div>
+    <div class="swatch" name="blue-4"> </div>
+    <div class="swatch" name="blue-5"> </div>
+    <div class="swatch" name="blue-6"> </div>
+    <div class="swatch" name="blue-7"> </div>
+    <div class="swatch" name="blue-8"> </div>
+
+
+
+    <div class="swatch" name="teal"> </div>
+    <div class="swatch" name="lime"> </div>
+    <div class="swatch" name="sky"> </div>
+    <div class="swatch" name="lilac"> </div>
+    <div class="swatch" name="amethyst"> </div>
+    <div class="swatch" name="peach"> </div>
+    <div class="swatch" name="marigold"> </div>
+    <div class="swatch" name="rust"> </div>
+
+    <div class="swatch" name="black"> </div>
+    <div class="swatch" name="fog-1"> </div>
+    <div class="swatch" name="fog-2"> </div>
+    <div class="swatch" name="fog-3"> </div>
+    <div class="swatch" name="fog-4"> </div>
+    <div class="swatch" name="fog-5"> </div>
+    <div class="swatch" name="fog-6"> </div>
+    <div class="swatch" name="fog-7"> </div>
+    <div class="swatch" name="fog-8"> </div>
+    <div class="swatch" name="white"> </div>
+  </div>
+
+</div>
+
+<script>
+
+const llmColorInstructions = `SUSE's brand colors are inspired by natural elements, symbolizing the environment where the chameleon thrives. The color palette is a star player in the brand identity and is one way to foster recognition with audiences.
+## Primary colors
+
+SUSE remains a green brand through and through. The primary color palette reflects SUSE's unique identity green roots.
+
+Pine: #0c322c
+White: #ffffff
+Jungle: #30ba78
+Fog:  #efefef
+Midnight:  #192072
+Persimmon:  #fe7c3f
+Waterhole: #2453ff
+Mint:  #90ebcd
+
+## Color combinations and backgrounds
+
+Pine, Jungle, White and Fog are the primary background colors.
+
+Use the following color palette combinations (background and foregrounds) to ensure accessibility, clarity and legibility for both written and graphic content.
+
+- Pine Background:  Mint, Persimmon, Jungle, Fog, White
+- Jungle background: White - Graphics only, White - Graphics only, Pine, Midnight
+- White bacground: Jungle - Graphics Only, Pine, Watehole, Midnight
+- Fog: Jungle - Graphics only, Pine, Waterhole, Midnight
+
+## Primary colors shades
+
+To create depth and contrast, graphic designs may feature shades of primary colors. Do not use these shades as a replacement for primary colors.
+
+#0c322c, #025937, #008657, #30ba78, #42d29f, #83e1be, #c0efde, #eafaf4, #47190d, #8e2810, #bd3314, #ff5a2b, #fe7c3f, #ffb184, #ffd3bd, #ffefe9, #0a112b, #192072, #0b41b7, #2453ff, #3c8eef, #81aefc, #c8dafc, #e6edfe, #0c322c, #01564a, #008878, #00bda7, #38d5b4, #90ebcd, #bff1ea, #eafaf8, #1d1d1d, #3e3e3e, #525252, #6f6f6f, #999999, #bababa, #dcdbdc, #efefef
+
+## Infographics palette
+
+The infographics palette is a secondary palette designed to complement and expand upon the primary palette. Filling gaps in the color wheel, it maximizes flexibility while maintaining harmony with the primary SUSE palette.
+This secondary palette is for limited uses only (e.g., infographics, charts and other data visualizations).
+Do not use secondary colors as a replacement for primary colors or shades.
+
+#00bda7, #a1ef8b, #7dc6e2, #e8c1f7, #5d4f99, #f9cabf, #fcb244, #bd3314
+
+## Dont's
+Do not:
+- use too many colors from different spectrums.
+- create unpleasant combinations.
+- use typography or the logo with a lack of contrast.
+- use the infographics palette for primary situations (e.g. illustrations and icons).
+
+The full color palette with color names:
+
+pine #0c322c
+jungle #30ba78
+mint #90ebcd
+persimmon #fe7c3f
+midnight #192072
+waterhole #2453ff
+fog #efefef
+white #ffffff
+jungle-1 #0c322c
+jungle-2 #025937
+jungle-3 #008657
+jungle-4 #30ba78
+jungle-5 #42d29f
+jungle-6 #83e1be
+jungle-7 #c0efde
+jungle-8 #eafaf4
+pine-1 #0c322c
+pine-2 #01564a
+pine-3 #008878
+pine-4 #00bda7
+pine-5 #38d5b4
+pine-6 #90ebcd
+pine-7 #bff1ea
+pine-8 #eafaf8
+persimmon-1 #47190d
+persimmon-2 #8e2810
+persimmon-3 #bd3314
+persimmon-4 #ff5a2b
+persimmon-5 #fe7c3f
+persimmon-6 #ffb184
+persimmon-7 #ffd3bd
+persimmon-8 #ffefe9
+blue-1 #0a112b
+blue-2 #192072
+blue-3 #0b41b7
+blue-4 #2453ff
+blue-5 #3c8eef
+blue-6 #81aefc
+blue-7 #c8dafc
+blue-8 #e6edfe
+teal #00bda7
+lime #a1ef8b
+sky #7dc6e2
+lilac #e8c1f7
+amethyst #5d4f99
+peach #f9cabf
+marigold #fcb244
+rust #bd3314
+black #000000
+fog-1 #1d1d1d
+fog-2 #3e3e3e
+fog-3 #525252
+fog-4 #6f6f6f
+fog-5 #999999
+fog-6 #bababa
+fog-7 #dcdbdc
+fog-8 #efefef
+white #ffffff`;
+
+document.getElementById('copyLlmBtn').addEventListener('click', function() {
+  navigator.clipboard.writeText(llmColorInstructions).then(() => {
+    const btn = this;
+    const original = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.classList.add('success');
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.classList.remove('success');
+    }, 1500);
+  });
+});
+
+
+function rgbToHex(col)
+{
+    if(col.charAt(0)=='r')
+    {
+        col=col.replace('rgb(','').replace(')','').split(',');
+        var r=parseInt(col[0], 10).toString(16);
+        var g=parseInt(col[1], 10).toString(16);
+        var b=parseInt(col[2], 10).toString(16);
+        r=r.length==1?'0'+r:r; g=g.length==1?'0'+g:g; b=b.length==1?'0'+b:b;
+        var colHex='#'+r+g+b;
+        return colHex;
+    }
+}
+
+const swatches = document.querySelectorAll('.swatch');
+
+swatches.forEach((swatch) => {
+  const name = swatch.getAttribute('name');
+
+  const swatchName = document.createElement('h2');
+  swatchName.innerText = `${name}`;
+  swatch.appendChild(swatchName);
+
+  swatch.style.backgroundColor = `var(--color-${name})`;
+
+  const backgroundColor = window.getComputedStyle(swatch).getPropertyValue('background-color');
+
+  const colors = backgroundColor.match(/\d+/g);
+  if (colors) {
+    const r = parseInt(colors[0]);
+    const g = parseInt(colors[1]);
+    const b = parseInt(colors[2]);
+    const o = Math.round(((r * 299) + (g * 587) + (b * 114)) / 1000);
+    swatch.style.color = o > 125 ? 'black' : 'white';
+  }
+
+  const span = document.createElement('span');
+  span.innerHTML = `<i>rgb</i> <b>${backgroundColor}</b>`;
+  swatch.appendChild(span);
+
+  const hexval = document.createElement('span');
+  hexval.innerHTML = `<i>hex</i> <b>${rgbToHex(backgroundColor)}</b>`;
+  swatch.appendChild(hexval);
+
+});
+ 
+
+
+const aioColors = document.querySelectorAll(".swatch b");
+
+aioColors.forEach((color) => {
+  color.addEventListener("click", () => {
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.selectNodeContents(color);
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    try {
+      document.execCommand("copy");
+      selection.removeAllRanges();
+
+      const original = color.textContent;
+      // color.textContent = 'Copied!';
+      color.classList.add("success");
+
+      setTimeout(() => {
+        color.textContent = original;
+        color.classList.remove("success");
+      }, 1500);
+    } catch (e) {
+      const errorMsg = document.querySelector(".error-msg");
+      errorMsg.classList.add("show");
+
+      setTimeout(() => {
+        errorMsg.classList.remove("show");
+      }, 1500);
+    }
+  });
+});
+
+
+
+</script>

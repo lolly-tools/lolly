@@ -1,0 +1,92 @@
+{
+  "id": "code-canvas",
+  "name": "Code Canvas",
+  "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["code", "developer", "snippet", "export"],
+  "render": {
+    "width": 1200,
+    "height": 800,
+    "formats": ["png", "svg"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "code",
+      "label": "Code",
+      "type": "longtext",
+      "default": "const greet = (name) => {\n  console.log(`Hello, ${name}!`);\n  return name;\n};\n\ngreet('World');",
+      "placeholder": "Paste your code here…"
+    },
+    {
+      "id": "filename",
+      "label": "Filename",
+      "type": "text",
+      "default": "",
+      "placeholder": "snippet.js"
+    },
+    {
+      "id": "language",
+      "label": "Language",
+      "type": "select",
+      "default": "javascript",
+      "options": [
+        { "value": "auto",       "label": "Auto Detect" },
+        { "value": "javascript", "label": "JavaScript" },
+        { "value": "typescript", "label": "TypeScript" },
+        { "value": "python",     "label": "Python" },
+        { "value": "rust",       "label": "Rust" },
+        { "value": "go",         "label": "Go" },
+        { "value": "css",        "label": "CSS" },
+        { "value": "html",       "label": "HTML" },
+        { "value": "bash",       "label": "Bash / Shell" },
+        { "value": "json",       "label": "JSON" },
+        { "value": "plain",      "label": "Plain Text" }
+      ]
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "suse-dark",
+      "options": [
+        { "value": "suse-dark",   "label": "SUSE Dark" },
+        { "value": "suse-light",  "label": "SUSE Light" },
+        { "value": "dracula",     "label": "Dracula" },
+        { "value": "github-dark", "label": "GitHub Dark" },
+        { "value": "nord",        "label": "Nord" },
+        { "value": "monokai",     "label": "Monokai" }
+      ]
+    },
+    {
+      "id": "lineNumbers",
+      "label": "Line Numbers",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "showWindow",
+      "label": "Window Chrome",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "scale",
+      "label": "Size",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 70,
+      "max": 200,
+      "step": 5
+    }
+  ]
+}

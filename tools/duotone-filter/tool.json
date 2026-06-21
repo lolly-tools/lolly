@@ -1,0 +1,55 @@
+{
+  "id": "duotone-filter",
+  "name": "Duotone Filter",
+  "description": "A two-color duotone for any photo — shadows one color, highlights another.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["photo", "filter", "duotone", "color", "effect"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["png", "jpg", "webp", "svg"],
+    "actions": ["copy", "download", "save"]
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "bgImage",
+      "label": "Background image",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true
+    },
+    {
+      "id": "colorFg",
+      "label": "Shadow color",
+      "type": "color",
+      "default": "#0c322c"
+    },
+    {
+      "id": "colorBg",
+      "label": "Highlight color",
+      "type": "color",
+      "default": "#30ba78"
+    },
+    {
+      "id": "imageFraming",
+      "label": "Zoom & Position",
+      "section": "Position",
+      "help": "Zoom scales the photo up; X / Y pan it within the frame (like object-position). Drag a label or type a value.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    { "id": "width",  "label": "Width",  "type": "number", "default": 1080, "min": 1, "max": 8000, "group": "export" },
+    { "id": "height", "label": "Height", "type": "number", "default": 1080, "min": 1, "max": 8000, "group": "export" }
+  ]
+}

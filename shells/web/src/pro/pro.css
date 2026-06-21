@@ -1,0 +1,575 @@
+/*
+ * Pro / Batch mode styles.
+ *
+ * Scoped under .pro-wrap (and .pro-popover, which is body-mounted) so nothing
+ * here can leak into other views. Uses the app's themed CSS variables
+ * (hsl(var(--token))) so light / dark / suse themes work automatically.
+ * Deleting the /pro folder removes this file from the bundle entirely.
+ */
+
+.pro-wrap {
+  /* Full-bleed app frame: a fixed column that owns the whole viewport so the
+     grid can fill it. Toolbar takes the top ~48px; the grid fills down to a
+     32px gap at the bottom. The "← Tools" pill is fixed on top (z-index 100). */
+  position: fixed;
+  inset: 0;
+  width: auto;
+  padding: 0 0 32px;
+  display: flex;
+  flex-direction: column;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+}
+
+/* Header title + subtitle were removed — the toolbar is the top bar now. */
+.pro-exit { font-size: .85rem; color: hsl(var(--muted-foreground)); white-space: nowrap; }
+.pro-exit:hover { color: hsl(var(--foreground)); }
+
+/* Toolbar */
+.pro-toolbar {
+  flex: none;
+  height: 48px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  /* One scrolling row so the grid below always starts at a fixed 48px. Left pad
+     clears the fixed "← Tools" pill (top/left 1.25rem). */
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 1rem 0 8rem;
+  margin: 0;
+
+}
+.pro-spacer { flex: 1; }
+.pro-toolbar-sep { width: 1px; align-self: stretch; background: hsl(var(--border)); margin: .1rem .25rem; }
+.pro-count { font-size: .8rem; color: hsl(var(--muted-foreground)); }
+.pro-collapsed-bar .pro-count { margin-left: auto; white-space: nowrap; } /* pushed to the right of the columns bar */
+.pro-collapsed-bar {    max-height: 30vh;
+    overflow: auto;}
+/* Collapsible toolbar: on wide screens the group is just an inline flex row and
+   the hamburger is hidden. The narrow-screen behaviour is in the media query. */
+.pro-toolbar-group { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.pro-hamburger { display: none; flex: none; }
+
+@media (max-width: 720px) {
+  /* Tuck the controls behind a hamburger so even a phone can drive batch mode.
+     Collapse at ≈720px — keeps the full toolbar on laptops/tablets. Keep in sync
+     with the matchMedia query in index.js that relocates the format/sessions
+     controls. */
+  .pro-toolbar { position: relative; overflow: visible; padding-left: 7rem; }
+  .pro-hamburger { display: inline-flex; }
+  .pro-toolbar-group {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .4rem;
+    margin: 0;
+    padding: .6rem;
+    background: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .22);
+    z-index: 20;
+  }
+  .pro-toolbar.is-open .pro-toolbar-group { display: flex; }
+  .pro-toolbar-group .pro-toolbar-sep { display: none; }
+  .pro-toolbar-group .pro-format { justify-content: space-between; }
+  .pro-toolbar-group .pro-format input { width: auto; flex: 1; }
+  .pro-toolbar-group .pro-format select { flex: 1; }
+  .pro-toolbar-group .pro-btn { text-align: left; }
+}
+.pro-format { font-size: .8rem; color: hsl(var(--muted-foreground)); display: inline-flex; align-items: center; gap: .4rem; }
+
+/* UI zoom stepper (−/+), left of the format select. */
+.pro-zoom { display: inline-flex; gap: .25rem; flex: none; }
+.pro-zoom-btn { padding: .4rem .55rem; font-size: 1.05rem; font-weight: 700; line-height: 1; }
+.pro-format select,
+.pro-format input,
+.pro-control {
+  font: inherit;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--input));
+  border-radius: calc(var(--radius) * .35);
+ 
+  padding: .5rem 0;
+}
+.pro-format input { width: 11rem; }
+
+/* Units + DPI controls (left of the format select). Compact: the unit select
+   sizes to content; the DPI input is a short box with a static "dpi" suffix. */
+.pro-unit-field select { padding-left: .4rem; padding-right: .2rem; }
+.pro-dpi-field { gap: .3rem; }
+.pro-dpi-field input { width: 4.2rem; padding-left: .4rem; text-align: right; }
+.pro-dpi-field input:disabled { opacity: .45; }
+.pro-dpi-suffix { font-size: .72rem; color: hsl(var(--muted-foreground)); }
+/* Active unit shown beside the Width/Height column headers. */
+.pro-col-unit { font-weight: 400; color: hsl(var(--muted-foreground)); }
+
+/* Zip-name field: the ".zip" is a static suffix rendered inside the field so
+   it's clear the batch downloads as a single archive (the "Zip name" label is
+   gone). The wrapper carries the border; the input itself is borderless. */
+.pro-zip { gap: 0; padding: .5rem;border: 0; border-radius: calc(var(--radius) * .35); background: hsl(var(--background)); }
+.pro-zip:focus-within { border-color: hsl(var(--ring)); }
+.pro-zip input { font-size: 1.5rem; border: none; background: transparent; width: 9rem; padding-right: .1rem; text-align: right; }
+.pro-zip input:focus { outline: none; }
+.pro-zip-ext { color: hsl(var(--muted-foreground));margin-bottom: -.5em; font-size: .8rem; white-space: nowrap; }
+.pro-btn {
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: .45rem .66rem;
+  
+  border-radius: calc(var(--radius) * .4);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+.pro-btn:hover:not(:disabled) { background: hsl(var(--accent)); }
+.pro-btn:disabled { opacity: .5; cursor: not-allowed; }
+.pro-btn--primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
+.pro-btn--primary:hover:not(:disabled) { filter: brightness(1.1); background: hsl(var(--primary)); }
+
+/* Grid */
+/* The grid host fills the space between the toolbar and the 32px bottom gap; the
+   scroll area takes all of it (scrolling both axes), with the collapsed-columns
+   bar / empty hint sitting beneath it. */
+#pro-grid-host {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  overflow: hidden;
+}
+.pro-grid-scroll { flex: 1; min-height: 0; overflow: auto; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .5); }
+.pro-collapsed-bar, .pro-empty-hint { flex: none; }
+/* Fixed layout, table sized to its container (width:100%). Data columns carry no
+   explicit width, so they flex-share the space and the table fits with little or
+   no horizontal scroll. Dragging a column gives it a fixed px width; once the
+   sized columns total more than the viewport the table grows and scrolls — so the
+   user can still widen a cell to edit, it's just not forced on everyone. */
+.pro-grid { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: .85rem; }
+.pro-grid th, .pro-grid td {
+  border-bottom: 1px solid hsl(var(--border));
+  border-right: 1px solid hsl(var(--border));
+  text-align: left;
+  vertical-align: middle;
+}
+.pro-grid th { padding: .4rem .6rem; }
+.pro-grid td { padding: 0; } /* cells own zero spacing; the control fills them */
+
+/* ── Drag-resize grab zones (handled by resize.js via geometry) ─────────────── */
+/* Row height: a strip along each row's bottom grid line — grab anywhere across. */
+.pro-grid tbody td:not(.pro-cell-template):not(.pro-cell-actions) { position: relative; }
+.pro-grid tbody td::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -3px; height: 6px;
+  cursor: row-resize; z-index: 4;
+}
+.pro-grid tbody td:hover::after { background: hsl(var(--primary) / .18); }
+/* Column width: a strip along each header cell's right edge. Sits just inside
+   the edge (right:0) so the header's overflow:hidden doesn't clip the handle. */
+.pro-grid thead th[data-col]::after {
+  content: ''; position: absolute; top: 0; bottom: 0; right: 0; width: 7px;
+  cursor: col-resize; z-index: 7;
+}
+.pro-grid thead th[data-col]:hover::after { background: hsl(var(--primary) / .18); }
+/* Lock the cursor + suppress selection while dragging. */
+body.pro-row-resizing, body.pro-row-resizing * { cursor: row-resize !important; user-select: none !important; }
+body.pro-col-resizing, body.pro-col-resizing * { cursor: col-resize !important; user-select: none !important; }
+body.pro-scrubbing, body.pro-scrubbing * { cursor: ew-resize !important; user-select: none !important; }
+/* Numeric scrub cells (Width/Height) hint the drag affordance; typing restores the caret. */
+.pro-cell input.pro-num { cursor: ew-resize; }
+.pro-cell input.pro-num:focus { cursor: text; }
+/* Per-row unit selector fills its cell like other controls. */
+.pro-cell select.pro-unit-cell { width: 100%; }
+/* DPI cell dimmed when the row is in px (DPI doesn't apply). */
+.pro-cell.pro-cell-muted { opacity: .5; }
+.pro-grid thead th {
+  position: sticky;
+  top: 0;
+  background: hsl(var(--card));
+  z-index: 2;
+  font-weight: 700;
+  white-space: normal; /* headings may wrap so a column can be narrower than its title */
+  vertical-align: bottom;
+  overflow: hidden;
+  min-width: 0;        /* don't let the heading's content set a width floor */
+}
+.pro-col-head { display: flex; align-items: center; gap: .5rem; justify-content: space-between; min-width: 0; }
+/* The heading is a button: clicking it collapses the column to a tag below.
+   It wraps to at most 3 lines and breaks long words, so a column can be dragged
+   well below its title width and still read; past 3 lines it clamps with an
+   ellipsis. Pure-CSS line-clamp — no JS measuring — so it's cheap on re-render. */
+.pro-col-label {
+  font: inherit; font-weight: 700; color: inherit; cursor: pointer;
+  background: transparent; border: none; padding: 0; text-align: left;
+  flex: 1; min-width: 0;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.18;
+}
+.pro-col-label:hover { color: hsl(var(--primary)); text-decoration: underline; }
+.pro-col-flag {
+  font-size: .6rem; text-transform: uppercase; letter-spacing: .04em;
+  color: hsl(var(--muted-foreground)); border: 1px solid hsl(var(--border));
+  border-radius: 999px; padding: .1rem .4rem; cursor: help;
+}
+.pro-fill-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.6rem; height: 1.6rem; padding: 0; cursor: pointer;
+  border: 0; transform: scaleX(-1); color: hsl(var(--primary));
+  background: transparent; border-radius: 6px;
+}
+.pro-fill-btn:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.pro-fill-btn svg { pointer-events: none; }
+
+/* min-width:0 so the template column can be dragged narrow like any other (the
+   header truncates with an ellipsis); its default width keeps it comfortable. */
+.pro-col-template, .pro-cell-template { min-width: 0; position: sticky; left: 0; background: hsl(var(--card)); z-index: 1; }
+.pro-grid thead .pro-col-template { z-index: 3; }
+
+/* The remove-row column stays pinned to the right edge, mirroring the sticky
+   template column on the left — its border-left is the separator the scrolling
+   cells slide under (their own border-right scrolls away). */
+.pro-col-actions, .pro-cell-actions {
+  position: sticky; right: 0; background: hsl(var(--card)); z-index: 1;
+  border-left: 1px solid hsl(var(--border));
+}
+.pro-grid thead .pro-col-actions { z-index: 3; }
+
+/* Zero spacing: every editable control fills its whole cell, so the entire cell
+   area is the hit target. The cell's own borders provide the grid lines; the
+   control is borderless and transparent, with its padding as the text inset. */
+.pro-cell .pro-control,
+.pro-cell-template .pro-template-select {
+  width: 100%;
+  height: 100%; /* fill the (possibly drag-resized) row height */
+  box-sizing: border-box;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  padding: .6rem;
+  min-height: 2.5rem;
+  max-width: none;
+  min-width: 0; /* form controls otherwise keep an intrinsic width — let them
+                   shrink with the column so it can be dragged arbitrarily narrow */
+}
+.pro-cell .pro-control:focus,
+.pro-cell-template .pro-template-select:focus { outline: none; }
+
+/* Vector cell — N number sub-fields share the one column. Labels are hidden to
+   stay dense (the column header names the group; hover a field for its label);
+   the sub-fields keep a consistent declared order, e.g. zoom · x · y. */
+.pro-vector { display: flex; width: 100%; height: 100%; }
+.pro-vec-field { flex: 1 1 0; min-width: 0; display: flex; }
+.pro-vec-label { display: none; }
+.pro-cell .pro-vec-num {
+  text-align: center;
+  padding-left: .15rem; padding-right: .15rem;
+  border-right: 1px solid hsl(var(--input) / .5);
+  -moz-appearance: textfield; appearance: textfield;
+}
+.pro-vec-field:last-child .pro-vec-num { border-right: none; }
+.pro-cell .pro-vec-num::-webkit-outer-spin-button,
+.pro-cell .pro-vec-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* Textareas get no drag handle on /pro — rows are resized via the grid line. */
+.pro-cell textarea.pro-control { display: block; resize: none; line-height: 1.4; }
+.pro-cell select.pro-control { appearance: auto; -webkit-appearance: auto; }
+.pro-cell button[data-asset-pick].pro-control {
+  display: flex; align-items: center; gap: .5rem;
+  text-align: left; cursor: pointer; overflow: hidden;
+  color: hsl(var(--muted-foreground)); /* "Choose…" placeholder is muted */
+}
+/* A picked image: thumbnail + name + a check, and the whole cell gets a subtle
+   tint so a filled image field reads at a glance. */
+.pro-cell button[data-asset-pick][data-selected].pro-control { color: hsl(var(--foreground)); }
+.pro-asset-thumb {
+  flex: none; width: 1.6rem; height: 1.6rem;
+  object-fit: cover; border-radius: calc(var(--radius) * .35);
+  background: hsl(var(--muted));
+}
+.pro-asset-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pro-cell button[data-asset-pick][data-selected].pro-control::after {
+  content: '✓'; margin-left: auto; flex: none;
+  color: hsl(var(--primary)); font-weight: 700;
+}
+.pro-cell:has(button[data-asset-pick][data-selected]) { background: hsl(var(--primary) / .07); }
+.pro-cell input[type="checkbox"].pro-control {
+  width: 1rem; height: 1rem; min-height: 0; margin: .6rem auto; display: block;
+  padding: 0; accent-color: hsl(var(--primary)); cursor: pointer;
+}
+.pro-cell:has(input[type="checkbox"]) { cursor: pointer; } /* whole boolean cell is clickable */
+
+/* Template cell: eye + badge on the LEFT, name fills, format icon on the right. */
+.pro-cell-template .pro-template-select { padding-left: 2.2rem; }
+.pro-cell-template .pro-template-select.has-fmt { padding-right: 2em; }
+.pro-template-format { position: absolute; right: .4rem; top: 50%; transform: translateY(-50%); pointer-events: none; z-index: 2; }
+.pro-template-format .pro-fmt { pointer-events: auto; }
+.pro-template-actions { position: absolute; left: .4rem; top: 50%; transform: translateY(-50%); display: inline-flex; align-items: center; gap: .25rem; pointer-events: none; z-index: 2; }
+.pro-template-actions .pro-eye { pointer-events: auto; } /* interactive; the badge is not */
+
+/* Template trigger button — looks like the old input, opens the search popover. */
+.pro-template-trigger { display: flex; align-items: center; text-align: left; cursor: pointer; }
+.pro-template-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pro-template-name.is-placeholder { color: hsl(var(--muted-foreground)); }
+
+/* Template search popover (body-mounted, docked to the cell's top-left). */
+.pro-tpl-popover { padding: 0; max-height: 60vh; display: flex; flex-direction: column; overflow: hidden; border-top-left-radius: 0; }
+.pro-tpl-search { flex: none; margin: 0; border: none; border-bottom: 1px solid hsl(var(--border)); border-radius: 0; background: hsl(var(--background)); color: hsl(var(--foreground)); font: inherit; font-size: .9rem; padding: .6rem .7rem; }
+.pro-tpl-search:focus { outline: none; }
+.pro-tpl-list { list-style: none; margin: 0; padding: .25rem; overflow-y: auto; flex: 1; min-height: 0; }
+.pro-tpl-opt { display: flex; align-items: center; gap: .5rem; width: 100%; text-align: left; font: inherit; font-size: .85rem; cursor: pointer; background: transparent; border: none; border-radius: calc(var(--radius) * .35); padding: .45rem .55rem; color: hsl(var(--foreground)); }
+.pro-tpl-opt:hover, .pro-tpl-opt.is-active { background: hsl(var(--accent)); }
+.pro-tpl-opt-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.pro-tpl-opt-exp { flex: none; font-size: .6rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: hsl(var(--destructive)); }
+.pro-tpl-none { padding: .6rem .7rem; font-size: .8rem; color: hsl(var(--muted-foreground)); }
+.pro-eye, .pro-fmt {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.6rem; height: 1.6rem; padding: 0; cursor: pointer;
+  border: 1px solid hsl(var(--border)); border-radius: 6px;
+  background: hsl(var(--background)); color: hsl(var(--muted-foreground));
+}
+.pro-eye:hover, .pro-fmt:hover { color: hsl(var(--primary)); border-color: hsl(var(--primary)); background: hsl(var(--accent)); }
+.pro-eye svg, .pro-fmt svg { pointer-events: none; }
+/* The format pill widens to hold the extension label (e.g. WEBP). */
+.pro-fmt { width: 2.4rem; }
+.pro-fmt-ext { font-size: .62rem; font-weight: 600; line-height: 1; letter-spacing: .02em; pointer-events: none; }
+/* The native <select> overlays the document icon at zero opacity. */
+.pro-fmt-select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: none; appearance: none; }
+.pro-fmt--set { color: hsl(var(--primary)); border-color: hsl(var(--primary)); } /* per-row override active */
+
+/* Colour cell: the shared picker's trigger fills the cell (whole-cell target). */
+.pro-cell--color .color-picker-field { width: 100%; height: 100%; }
+.pro-cell--color .color-trigger { width: 100%; height: 100%; box-sizing: border-box; border: none; border-radius: 0; background: transparent; padding: .35rem .5rem; }
+
+.pro-cell--absent { background: hsl(var(--muted) / .4); text-align: center; color: hsl(var(--muted-foreground)); padding: .6rem; }
+.pro-cell--readonly { color: hsl(var(--muted-foreground)); font-style: italic; padding: .6rem; }
+
+/* Collapsed-column tags (restore on click) */
+.pro-collapsed-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .85rem .25rem; }
+.pro-collapsed-bar-label { font-size: .72rem; color: hsl(var(--muted-foreground)); text-transform: uppercase; letter-spacing: .05em; margin-right: .25rem; }
+/* + Row / +5 anchored together at the bottom-left of the table. */
+.pro-addrow { display: inline-flex; gap: .35rem; flex: none; }
+/* ── Bottom-bar hierarchy (most → least prominent) ──
+   1. + Row / +5  — the primary action: filled green, a solid rounded-rect.
+   2. .pro-cols-action (Hide/Show all) — secondary: outlined uppercase pill.
+   3. .pro-collapsed-tag (restore a hidden column) — quietest: small ghost pill. */
+
+/* 1 — filled, leads the bar. */
+.pro-addrow .pro-btn {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+  font-weight: 700;
+}
+.pro-addrow .pro-btn:hover:not(:disabled) { background: hsl(var(--primary)); filter: brightness(1.08); }
+
+/* "Fill last" is a convenience, not a primary action: outlined rather than
+   filled so it sits a step below + Row / +5, and dimmed + inert when there's
+   no source row or nothing empty to fill. */
+.pro-addrow .pro-fill-last {
+  background: transparent;
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+.pro-addrow .pro-fill-last:hover:not(:disabled) {
+  background: hsl(var(--primary) / .1);
+  filter: none;
+}
+.pro-addrow .pro-fill-last:disabled { opacity: .4; cursor: not-allowed; }
+
+/* 3 — small ghost pill: no fill, thin solid border, muted text. Most recessive. */
+.pro-collapsed-tag {
+  font: inherit; font-size: .7rem; font-weight: 500; cursor: pointer;
+  border: 1px solid hsl(var(--border)); background: transparent; color: hsl(var(--muted-foreground));
+  border-radius: 999px; padding: .16rem .5rem;
+}
+.pro-collapsed-tag:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+.pro-collapsed-tag span { opacity: .55; font-weight: 700; }
+
+/* 2 — solid outlined uppercase pill: clearly an action, below the filled +Row. */
+.pro-cols-action {
+  font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer;
+  text-transform: uppercase; letter-spacing: .04em;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground));
+  border-radius: 999px; padding: .3rem .8rem;
+}
+.pro-cols-action:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+[data-show-all-cols] { margin-left: .25rem; }
+
+/* Spreadsheet focus model: a navigable "focused" ring and a stronger "editing"
+   ring. The <td> is the focus target in nav mode (roving tabindex). */
+.pro-grid td { cursor: cell; }
+.pro-grid td:focus { outline: none; } /* suppress the UA ring; we draw our own below */
+/* The `td.` qualifier matches the specificity of `td:focus` above so this WINS on
+   source order — otherwise the focused cell's own :focus rule erases its ring and
+   you can't see where focus is. A faint fill makes the active cell unmistakable. */
+.pro-grid td.pro-cell--focused { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; background: hsl(var(--ring) / .07); }
+.pro-grid td.pro-cell--editing { outline: 2px solid hsl(var(--primary)); outline-offset: -2px; box-shadow: inset 0 0 0 1px hsl(var(--primary)); }
+.pro-grid .pro-cell--editing .pro-control,
+.pro-grid .pro-cell--editing .pro-template-select { cursor: text; }
+.pro-cell-default { font-size: .75rem; }
+/* Last column holds the reorder grip + close ✕ side by side: a hard fixed width,
+   never grows or shrinks. */
+.pro-cell-actions, .pro-col-actions { width: 3.4em; min-width: 3.4em; max-width: 3.4em; text-align: center; padding: 0; }
+.pro-row-actions { display: flex; align-items: center; justify-content: center; gap: 1px; height: 100%; }
+.pro-row-remove { border: none; background: transparent; cursor: pointer; color: hsl(var(--muted-foreground)); font-size: .9rem; padding: .25rem .25rem; border-radius: 4px; }
+.pro-row-remove:hover { color: hsl(var(--destructive)); background: hsl(var(--muted)); }
+/* Grip: the grab affordance for drag-to-reorder (see reorder.js). Dimmed until
+   the row is hovered, so it's quiet but discoverable. */
+.pro-row-drag {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; border-radius: 4px;
+  padding: .25rem .1rem; cursor: grab; color: hsl(var(--muted-foreground)); opacity: .5;
+  touch-action: none; /* claim vertical drags instead of scrolling the page */
+}
+.pro-grid tbody tr:hover .pro-row-drag { opacity: 1; }
+.pro-row-drag:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
+.pro-row-drag svg { pointer-events: none; }
+/* While a row is being dragged: a grabbing cursor everywhere + no text selection,
+   and the lifted row floats above its neighbours so the drop target reads clearly. */
+body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; user-select: none !important; }
+.pro-grid tbody tr.pro-row-drag-active { position: relative; z-index: 4; opacity: .92; }
+.pro-grid tbody tr.pro-row-drag-active td { background: hsl(var(--accent)); box-shadow: 0 6px 16px hsl(var(--foreground) / .18); }
+/* Experimental row: the template cell carries .pro-exp. A faint 45° hatch marks
+   it (exports are watermarked) without stealing space like a badge would. It's a
+   background-image, so the cell's own background-color (card) shows beneath and
+   the template name stays readable — tune the alpha / stripe widths to taste.
+
+   Keyed off --foreground (not a hue like --destructive): a dark red at low alpha
+   has almost no contrast on the SUSE theme's dark teal card and disappears, but
+   --foreground is defined to contrast the card in EVERY theme, so the hatch is
+   always visible. The color-mix adds a faint caution tint where supported; the
+   plain --foreground line above it is the fallback if color-mix isn't. */
+.pro-cell-template.pro-exp {
+  background-image: repeating-linear-gradient(45deg,
+    hsl(var(--foreground) / .12) 0 4px, transparent 4px 10px);
+  background-image: repeating-linear-gradient(45deg,
+    color-mix(in srgb, hsl(var(--foreground) / .14), hsl(var(--destructive) / .14)) 0 4px,
+    transparent 4px 10px);
+}
+
+.pro-empty-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  color: hsl(var(--muted-foreground));
+  font-size: .85rem;
+  padding: 1rem .25rem;
+  max-width: 46rem;
+  /* Toast-style reveal on load — grows in place (no movement) by animating
+     max-height from a sliver up to the panel's height, with a gentle fade. */
+  max-height: 40vh;
+  overflow: hidden;
+  animation: pro-hint-in .55s ease-out both;
+}
+@keyframes pro-hint-in {
+  from { max-height: 5vh; opacity: 0; }
+  to   { max-height: 40vh; opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pro-empty-hint { animation: none; }
+}
+/* Warning icon sits to the left of the message, nudged to align with the first line. */
+.pro-empty-hint-icon { flex: none; color: hsl(var(--primary)); margin-top: .1rem; line-height: 0; }
+.pro-empty-hint-text { margin: 0; line-height: 1.5; }
+.pro-empty-hint-text strong { color: hsl(var(--foreground)); font-weight: 700; }
+
+/* Bulk-write popover (mounted on <body>) */
+.pro-popover {
+  position: absolute;
+  z-index: 1000;
+  width: 260px;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * .5);
+  box-shadow: 0 12px 32px rgba(0,0,0,.22);
+  padding: .8rem;
+}
+.pro-popover-title { font-weight: 700; font-size: .85rem; margin-bottom: .6rem; }
+.pro-popover-control { margin-bottom: .7rem; }
+.pro-popover-control .pro-control { width: 100%; }
+.pro-popover-actions { display: flex; justify-content: flex-end; gap: .5rem; }
+
+/* Saved-sessions popover */
+.pro-popover--sessions { width: 300px; }
+.pro-sess-list { list-style: none; margin: 0 0 .6rem; padding: 0; max-height: 16rem; overflow-y: auto; }
+.pro-sess-item { display: flex; align-items: stretch; gap: .3rem; }
+.pro-sess-item + .pro-sess-item { margin-top: .2rem; }
+.pro-sess-load {
+  flex: 1; min-width: 0; display: flex; align-items: baseline; justify-content: space-between; gap: .6rem;
+  padding: .4rem .5rem; text-align: left; font: inherit; cursor: pointer;
+  background: hsl(var(--muted) / .4); color: inherit;
+  border: 1px solid transparent; border-radius: calc(var(--radius) * .5);
+}
+.pro-sess-load:hover { background: hsl(var(--accent)); border-color: hsl(var(--border)); }
+.pro-sess-name { font-weight: 600; font-size: .85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pro-sess-when { flex: none; font-size: .72rem; color: hsl(var(--muted-foreground)); }
+.pro-sess-del {
+  flex: none; width: 1.8rem; border: 1px solid transparent; border-radius: calc(var(--radius) * .5);
+  background: none; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: .8rem; line-height: 1;
+}
+.pro-sess-del:hover { background: hsl(var(--destructive) / .12); color: hsl(var(--destructive)); }
+.pro-sess-empty { margin: 0 0 .6rem; font-size: .82rem; color: hsl(var(--muted-foreground)); }
+.pro-sess-save { display: flex; gap: .4rem; border-top: 1px solid hsl(var(--border)); padding-top: .6rem; }
+.pro-sess-input {
+  flex: 1; min-width: 0; padding: .35rem .5rem; font: inherit; font-size: .85rem;
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * .5);
+}
+.pro-sess-input:focus { outline: none; border-color: hsl(var(--primary)); box-shadow: 0 0 0 2px hsl(var(--primary) / .35); }
+/* Offline CSV round-trip inside the sessions dialog. */
+.pro-sess-csv { display: flex; align-items: center; gap: .4rem; margin-top: .6rem; padding-top: .6rem; border-top: 1px solid hsl(var(--border)); }
+.pro-sess-csv-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); margin-right: auto; }
+.pro-sess-csv .pro-btn { font-size: .8rem; }
+
+/* Progress + log */
+.pro-progress {
+  flex: none;
+  max-height: 32vh;
+  overflow: auto;
+  margin: .6rem 1.25rem 0;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * .5);
+  padding: 1rem;
+  background: hsl(var(--card));
+}
+.pro-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .6rem; }
+.pro-progress-msg { color: hsl(var(--muted-foreground)); font-size: .9rem; margin: 0; }
+
+/* Rotating wait-time quip (two lines, gentle fade on each swap). */
+.pro-quip {
+  text-align: center;
+  margin: .2rem 0 1rem;
+  line-height: 1.45;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+  animation: pro-quip-in .45s ease both;
+}
+.pro-quip span { display: block; }
+.pro-quip span:first-child { color: hsl(var(--foreground)); font-style: normal; }
+@keyframes pro-quip-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pro-quip { animation: none; } }
+.pro-log { list-style: none; margin: 0; padding: 0; font-size: .8rem; max-height: 16rem; overflow-y: auto; font-family: var(--font-mono, ui-monospace, monospace); }
+.pro-log li { padding: .15rem 0; }
+.pro-log-ok { color: hsl(var(--muted-foreground)); }
+.pro-log-err { color: hsl(var(--destructive)); }
+.pro-log-skip { color: hsl(var(--muted-foreground)); font-style: italic; }

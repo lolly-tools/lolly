@@ -1,0 +1,135 @@
+{
+  "id": "quotes",
+  "name": "Quote Card",
+  "description": "On-brand quote cards for social posts and slides.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["quote", "social", "marketing", "card"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["png", "svg", "html", "md", "txt", "pdf", "pdf-cmyk", "webp", "avif", "jpeg"],
+    "actions": ["copy", "download", "save"]
+  },
+  "hooks": {
+    "onInit": true
+  },
+  "inputs": [
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "dark",
+      "options": [
+        { "value": "light", "label": "Light" },
+        { "value": "dark",  "label": "Dark" },
+        { "value": "main",  "label": "Main" }
+      ]
+    },
+    {
+      "id": "quoteStyle",
+      "label": "Quote Style",
+      "type": "select",
+      "default": "big",
+      "options": [
+        { "value": "big",      "label": "Big Quote Mark" },
+        { "value": "wrapping", "label": "Wrapping Quotes" },
+        { "value": "none",     "label": "No Quotes" }
+      ]
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "minimal",
+      "options": [
+        { "value": "minimal",      "label": "Minimal" },
+        { "value": "speaker-top",  "label": "Speaker on Top" },
+        { "value": "side-by-side", "label": "Side by Side" }
+      ]
+    },
+    {
+      "id": "frameInset",
+      "label": "Frame Inset",
+      "type": "number",
+      "default": 80,
+      "min": 0,
+      "max": 400,
+      "step": 1,
+      "help": "Padding in pixels between the card edge and its content."
+    },
+    {
+      "id": "separator",
+      "label": "Separator",
+      "type": "boolean",
+      "default": true,
+      "help": "Show a divider line between the quote and the speaker."
+    },
+    {
+      "id": "quote",
+      "label": "Quote",
+      "type": "longtext",
+      "required": true,
+      "default": "The best way to predict the future is to create it.",
+      "rows": 4,
+      "help": "The quote text to display. Supports **bold**, *italic* and ~~strikethrough~~ markdown."
+    },
+    {
+      "id": "name",
+      "label": "Name",
+      "type": "text",
+      "default": "",
+      "help": ""
+    },
+    {
+      "id": "company",
+      "label": "Company",
+      "type": "text",
+      "default": "",
+      "help": "title, organization, company name to display under the quotee."
+    },
+    {
+      "id": "headshot",
+      "label": "Headshot",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "filter": { "namespace": "suse/headshots" },
+      "help": "Optional portrait photo. Upload your own or choose from the library."
+    },
+    {
+      "id": "bgImage",
+      "label": "Background Image",
+      "section": "Background Options",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Optional background image behind the quote."
+    },
+    {
+      "id": "bgOpacity",
+      "label": "Opacity",
+      "section": "Background Options",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0.5
+    },
+    {
+      "id": "imageFraming",
+      "label": "Zoom & Position",
+      "section": "Background Options",
+      "help": "Zoom scales the background image up; X / Y pan it within the frame (like object-position). Drag a label or type a value.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    }
+  ]
+}

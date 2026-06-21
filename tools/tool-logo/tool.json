@@ -1,0 +1,52 @@
+{
+  "id": "tool-logo",
+  "name": "Logo",
+  "description": "Place the SUSE logo — it auto-picks the right variant and exports vector.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["logo", "brand", "identity", "svg"],
+  "render": {
+    "width": 1200,
+    "height": 1200,
+    "formats": ["svg", "png", "jpg", "webp", "pdf", "pdf-cmyk", "ico", "zip"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "#0c322c",
+      "help": "The colour the logo sits on. The matching logo (reversed for dark, normal for light) is chosen for you. Turn on \"No BG\" in export to drop it."
+    },
+    {
+      "id": "orientation",
+      "label": "Orientation",
+      "type": "select",
+      "default": "horizontal",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "vertical", "label": "Stacked" }
+      ],
+      "help": "Horizontal is the wide lockup; Stacked is the square one for tight or square spaces."
+    },
+    {
+      "id": "ink",
+      "label": "Style",
+      "type": "select",
+      "default": "brand",
+      "options": [
+        { "value": "brand", "label": "Brand green" },
+        { "value": "mono", "label": "Mono" }
+      ],
+      "help": "Brand green on any background, or high-contrast mono (white on dark, black on light)."
+    }
+  ]
+}

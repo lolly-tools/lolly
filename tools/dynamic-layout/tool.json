@@ -1,0 +1,256 @@
+{
+  "id": "dynamic-layout",
+  "name": "Dynamic Layout",
+  "description": "A do-anything layout that recomposes around whatever you add, at any size.",
+  "a11yLabel": "{{default heading cta}} — Dynamic Layout preview",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["layout", "responsive", "hero", "social", "poster", "cta", "headshot", "text"],
+  "render": {
+    "width": 1920,
+    "height": 1080,
+    "formats": ["png", "jpg", "webp", "pdf", "pdf-cmyk", "svg", "html"],
+    "actions": ["copy", "download", "save"]
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "white",
+      "options": [
+        { "value": "pine",      "label": "Pine" },
+        { "value": "jungle",    "label": "Jungle" },
+        { "value": "mint",      "label": "Mint" },
+        { "value": "forest",    "label": "Forest" },
+        { "value": "midnight",  "label": "Midnight" },
+        { "value": "white",     "label": "White" }
+      ],
+      "help": "On-brand SUSE colour combinations for the card, text and call-to-action."
+    },
+    {
+      "id": "heading",
+      "label": "Heading",
+      "type": "text",
+      "default": "> heading",
+      "help": "The big, impactful line. Leave empty to omit it. Start with a direction marker — \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓ — to prefix it with that arrow."
+    },
+    {
+      "id": "headingFontSize",
+      "label": "Size",
+      "section": "Heading type",
+      "type": "number",
+      "display": "slider",
+      "min": 0.5,
+      "max": 2,
+      "step": 0.05,
+      "default": 1.15,
+      "help": "Relative size — the layout still auto-fits to the canvas."
+    },
+    {
+      "id": "headingFontWeight",
+      "label": "Weight",
+      "section": "Heading type",
+      "type": "number",
+      "display": "slider",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 200
+    },
+    {
+      "id": "subheading",
+      "label": "Subheading",
+      "type": "text",
+      "default": "Subheading",
+      "help": "A supporting line under the heading. Supports markdown: **bold**, *italic*, ~~strikethrough~~. Start with a direction marker — \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓ — to prefix it with that arrow."
+    },
+    {
+      "id": "subheadingFontSize",
+      "label": "Size",
+      "section": "Subheading type",
+      "type": "number",
+      "display": "slider",
+      "min": 0.5,
+      "max": 2,
+      "step": 0.05,
+      "default": 1,
+      "help": "Relative size — the layout still auto-fits to the canvas."
+    },
+    {
+      "id": "subheadingFontWeight",
+      "label": "Weight",
+      "section": "Subheading type",
+      "type": "number",
+      "display": "slider",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 400
+    },
+    {
+      "id": "body",
+      "label": "Body text",
+      "type": "longtext",
+      "default": "Body Text\n\n> supports bullets\n> like these\n\n**bold** and *italic*",
+      "rows": 4,
+      "help": "Supports markdown: **bold**, *italic*, ~~strikethrough~~, bullet lists (lines starting with - ) and arrow bullets — lines starting with a direction marker: \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓."
+    },
+    {
+      "id": "bodyFontSize",
+      "label": "Size",
+      "section": "Body type",
+      "type": "number",
+      "display": "slider",
+      "min": 0.5,
+      "max": 2,
+      "step": 0.05,
+      "default": 0.9,
+      "help": "Relative size — the layout still auto-fits to the canvas."
+    },
+    {
+      "id": "bodyFontWeight",
+      "label": "Weight",
+      "section": "Body type",
+      "type": "number",
+      "display": "slider",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 300
+    },
+    {
+      "id": "cta",
+      "label": "Call to action",
+      "type": "text",
+      "default": "> cta",
+      "maxLength": 20,
+      "help": "A short button label — up to 20 characters. Start with a direction marker — \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓ — to prefix the label with that arrow."
+    },
+    {
+      "id": "ctaTypography",
+      "label": "Font",
+      "section": "Call-to-action type",
+      "type": "select",
+      "default": "sans",
+      "options": [
+        { "value": "sans", "label": "SUSE Sans" },
+        { "value": "mono", "label": "SUSE Mono" }
+      ],
+      "help": "SUSE Mono gives the button a technical, code-like feel."
+    },
+    {
+      "id": "ctaFontSize",
+      "label": "Size",
+      "section": "Call-to-action type",
+      "type": "number",
+      "display": "slider",
+      "min": 0.5,
+      "max": 2,
+      "step": 0.05,
+      "default": 0.65,
+      "help": "Relative size — the layout still auto-fits to the canvas."
+    },
+    {
+      "id": "ctaFontWeight",
+      "label": "Weight",
+      "section": "Call-to-action type",
+      "type": "number",
+      "display": "slider",
+      "min": 100,
+      "max": 900,
+      "step": 100,
+      "default": 300
+    },
+    {
+      "id": "headshot",
+      "label": "Headshot",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "filter": { "namespace": "suse/headshots" },
+      "help": "Optional portrait. When set, it anchors its own colour block beside the text."
+    },
+    {
+      "id": "bgImage",
+      "label": "Background image",
+      "section": "Background",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Optional full-bleed background behind the content."
+    },
+    {
+      "id": "imageFilter",
+      "label": "Image filter",
+      "section": "Background",
+      "type": "select",
+      "default": "none",
+      "options": [
+        { "value": "none",  "label": "None" },
+        { "value": "mono",  "label": "Mono" },
+        { "value": "punch", "label": "Punch" },
+        { "value": "warm",  "label": "Warm" },
+        { "value": "cool",  "label": "Cool" },
+        { "value": "fade",  "label": "Fade" }
+      ]
+    },
+    {
+      "id": "imageFraming",
+      "label": "Position",
+      "section": "Background",
+      "help": "Zoom scales the background image up to crop in; X / Y pan it. Drag a label or type a value.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "bgOpacity",
+      "label": "Overlay",
+      "section": "Background",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0.4,
+      "help": "Tint the image with the theme colour so text stays legible."
+    },
+    {
+      "id": "logo",
+      "label": "Logo",
+      "section": "Logo",
+      "type": "select",
+      "default": "top-right",
+      "options": [
+        { "value": "none",         "label": "None" },
+        { "value": "top-left",     "label": "Top left" },
+        { "value": "top-right",    "label": "Top right" },
+        { "value": "bottom-left",  "label": "Bottom left" },
+        { "value": "bottom-right", "label": "Bottom right" }
+      ],
+      "help": "Drop the SUSE logo in a corner. The right variant for the theme is chosen automatically."
+    },
+    {
+      "id": "logoStyle",
+      "label": "Logo style",
+      "section": "Logo",
+      "type": "select",
+      "default": "mono",
+      "options": [
+        { "value": "mono",  "label": "Mono (white / black)" },
+        { "value": "brand", "label": "Brand green" }
+      ],
+      "help": "Mono stays legible on any theme; brand green uses the green mark."
+    }
+  ]
+}

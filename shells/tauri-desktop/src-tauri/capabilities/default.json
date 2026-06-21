@@ -1,0 +1,19 @@
+{
+  "identifier": "default",
+  "description": "Default permissions for Lolly desktop",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "fs:allow-exists",
+    "fs:allow-read-file",
+    "fs:allow-write-file",
+    "fs:allow-create",
+    "fs:allow-rename",
+    "fs:allow-remove",
+    "fs:allow-mkdir",
+    "fs:allow-read-dir",
+    "fs:scope-appdata-recursive",
+    "shell:allow-open",
+    "http:default"
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "id": "meeting-planner",
+  "name": "Meeting Planner",
+  "description": "Plan a global meeting and see the time for every teammate's timezone.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["map", "team", "timezone", "world", "time", "meeting", "schedule", "planner", "d3"],
+  "render": {
+    "width": 800,
+    "height": 600,
+    "formats": ["png", "jpeg", "ics", "json"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "heading",
+      "label": "Event name",
+      "type": "text",
+      "default": "",
+      "placeholder": " "
+    },
+    {
+      "id": "hostCity",
+      "label": "Host city",
+      "type": "text",
+      "default": "Amsterdam",
+      "placeholder": "e.g. Nuremberg",
+      "help": "The city where the meeting originates — sets the timezone for the time below."
+    },
+    {
+      "id": "meetingTime",
+      "label": "Meeting date & time",
+      "type": "datetime-local",
+      "default": "",
+      "help": "Local date and time in the host city."
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "dark",
+      "options": [
+        { "value": "dark",  "label": "Dark" },
+        { "value": "light", "label": "Light" },
+        { "value": "green", "label": "SUSE Green" }
+      ]
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "landscape",
+      "options": [
+        { "value": "landscape", "label": "Landscape" },
+        { "value": "portrait",  "label": "Portrait" },
+        { "value": "square",    "label": "Square" }
+      ]
+    },
+    {
+      "id": "projection",
+      "label": "Map projection",
+      "type": "select",
+      "group": "map",
+      "default": "geoEquirectangular",
+      "options": [
+        { "value": "geoNaturalEarth1",      "label": "Natural Earth" },
+        { "value": "geoEqualEarth",         "label": "Equal Earth" },
+        { "value": "geoMercator",           "label": "Mercator" },
+        { "value": "geoOrthographic",       "label": "Orthographic" },
+        { "value": "geoAzimuthalEqualArea", "label": "Azimuthal Equal Area" },
+        { "value": "geoEquirectangular",    "label": "Equirectangular" },
+        { "value": "geoStereographic",      "label": "Stereographic" }
+      ]
+    },
+    {
+      "id": "showNight",
+      "label": "Night overlay",
+      "type": "boolean",
+      "group": "map",
+      "default": true
+    },
+    {
+      "id": "showGraticule",
+      "label": "Graticule lines",
+      "type": "boolean",
+      "group": "map",
+      "default": false
+    },
+    {
+      "id": "showBorders",
+      "label": "Country borders",
+      "type": "boolean",
+      "group": "map",
+      "default": false
+    },
+    {
+      "id": "landColor",
+      "label": "Land color",
+      "type": "color",
+      "group": "map",
+      "default": ""
+    },
+    {
+      "id": "oceanColor",
+      "label": "Ocean color",
+      "type": "color",
+      "group": "map",
+      "default": "transparent"
+    },
+    {
+      "id": "mapZoom",
+      "label": "Map viewport",
+      "type": "text",
+      "group": "map",
+      "default": "2.2511%2C-348.76%2C-147.81",
+      "placeholder": "pan & zoom map to set",
+      "help": "Auto-saved when you pan or zoom. Clear to reset to default view."
+    },
+    {
+      "id": "pinColor",
+      "label": "Pin color",
+      "type": "color",
+      "group": "map",
+      "default": ""
+    },
+    {
+      "id": "pinShape",
+      "label": "Pin shape",
+      "type": "select",
+      "group": "map",
+      "default": "circle",
+      "options": [
+        { "value": "circle",  "label": "Circle" },
+        { "value": "diamond", "label": "Diamond" },
+        { "value": "square",  "label": "Square" }
+      ]
+    },
+    {
+      "id": "pinSize",
+      "label": "Pin size",
+      "type": "number",
+      "display": "slider",
+      "group": "map",
+      "default": 1,
+      "min": 0.01,
+      "max": 3,
+      "step": 0.01
+    },
+    {
+      "id": "labelSize",
+      "label": "Label size",
+      "type": "number",
+      "display": "slider",
+      "group": "map",
+      "default": 1,
+      "min": 0.01,
+      "max": 4,
+      "step": 0.01
+    },
+    {
+      "id": "showNameInPin",
+      "label": "Show name on pin",
+      "type": "boolean",
+      "group": "map",
+      "default": false
+    },
+    {
+      "id": "hideCity",
+      "label": "Remove city from label",
+      "type": "boolean",
+      "group": "map",
+      "default": false
+    },
+    {
+      "id": "fontSize",
+      "label": "Card text size",
+      "type": "number",
+      "display": "slider",
+      "group": "map",
+      "default": 1,
+      "min": 0.7,
+      "max": 1.5,
+      "step": 0.05
+    },
+    {
+      "id": "people",
+      "label": "Team members",
+      "type": "blocks",
+      "fields": [
+        { "id": "name", "label": "Name",  "placeholder": "Name" },
+        { "id": "city", "label": "City",  "placeholder": "City" }
+      ],
+      "default": [
+        {"name":"Linus Torvalds", "city":"Portland"}
+      ]
+    }
+  ]
+}

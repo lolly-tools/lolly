@@ -1,0 +1,140 @@
+{
+  "version": "1",
+  "generatedAt": "2026-06-21T17:55:14.485Z",
+  "tools": [
+    {
+      "id": "dynamic-layout",
+      "name": "Dynamic Layout",
+      "description": "A do-anything layout that recomposes around whatever you add, at any size.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "quotes",
+      "name": "Quote Card",
+      "description": "On-brand quote cards for social posts and slides.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "meeting-planner",
+      "name": "Meeting Planner",
+      "description": "Plan a global meeting and see the time for every teammate's timezone.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "code-canvas",
+      "name": "Code Canvas",
+      "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "qr-code",
+      "name": "QR Code Generator",
+      "description": "On-brand QR codes for any URL, with full color and style control.",
+      "version": "2.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "daily-card",
+      "name": "Day Brief",
+      "description": "Quote of the day with live weather, time and a map for any city.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "tool-logo",
+      "name": "Logo",
+      "description": "Place the SUSE logo — it auto-picks the right variant and exports vector.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "email-signature",
+      "name": "Email Signature",
+      "description": "An on-brand SUSE email signature, ready to paste into any client.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "everyone"
+    },
+    {
+      "id": "chart-creator",
+      "name": "Chart Creator",
+      "description": "On-brand charts from your data — bar, donut, pie or stacked. Exports vector.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer"
+    },
+    {
+      "id": "bag-video",
+      "name": "Bag Video",
+      "description": "An animated, on-brand video for bag visuals.",
+      "version": "0.3.0",
+      "status": "experimental",
+      "category": "designer"
+    },
+    {
+      "id": "duotone-filter",
+      "name": "Duotone Filter",
+      "description": "A two-color duotone for any photo — shadows one color, highlights another.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer"
+    },
+    {
+      "id": "lockup",
+      "name": "Product Lockup",
+      "description": "SUSE product lockups as crisp outlined vectors.",
+      "version": "1.1.0",
+      "status": "experimental",
+      "category": "designer",
+      "capabilities": [
+        "wasm"
+      ]
+    },
+    {
+      "id": "film-burn-filter",
+      "name": "Film Burn Filter",
+      "description": "A warm film-burn effect for any image.",
+      "version": "0.2.0",
+      "status": "experimental",
+      "category": "designer"
+    },
+    {
+      "id": "color-palette",
+      "name": "Color Palette",
+      "description": "Browse SUSE brand colors — click a swatch to copy it.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "utility"
+    },
+    {
+      "id": "countdown-timer",
+      "name": "Countdown Timer",
+      "description": "A focused countdown with a live progress ring. Click to pause.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility"
+    },
+    {
+      "id": "url-shot",
+      "name": "URL Screenshot",
+      "description": "Any web page, at any scroll-depth, with custom CSS",
+      "version": "0.1.0",
+      "status": "experimental",
+      "category": "utility",
+      "capabilities": [
+        "capture"
+      ]
+    }
+  ]
+}

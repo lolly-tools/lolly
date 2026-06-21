@@ -1,0 +1,17 @@
+{
+  "id": "countdown-timer",
+  "name": "Countdown Timer",
+  "description": "A focused countdown with a live progress ring. Click to pause.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "tags": ["timer", "productivity", "utility"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["html"],
+    "export": false
+  },
+  "inputs": []
+}

@@ -1,0 +1,141 @@
+<style>
+.film-burn-canvas svg {
+  position:absolute; top:0; left:0; right:0; bottom:0; height:100%; width:100%;
+
+}
+</style>
+<div class="film-burn-canvas">
+
+         <h1 class="date-text"   style="position:absolute; z-index:1; text-shadow: 0 .2em 1em #0004; top:0; bottom:0;font-size: 40px;color:white;font-family:SUSE;text-anchor: middle;text-align:center; width:100%;  display:grid; place-content: center;"></h1>
+
+  <svg xmlns="http://www.w3.org/2000/svg" version="1.1"  viewBox="0 0 512 512" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <filter id="noise" color-interpolation-filters="sRGB">
+        <!--  randomly generated filter goes here   -->
+      </filter>
+
+    </defs>
+             <rect   fill="#0c322c" width="100%" height="100%"  x="0" y="0" />
+
+        {{#if image}}
+        <image 
+          preserveAspectRatio="xMidYMid slice" 
+          id="randomPhoto" class="source-image" 
+          filter="url(#duo)" 
+          href="{{asset image}}" 
+          height="512"
+          width="512" x="0" y="0" />
+
+          
+          
+        {{/if}}
+
+        
+          <rect style="mix-blend-mode: lighten;" fill="#555" width="100%" height="100%" filter="url(#noise)" />
+ 
+    <defs>
+      <!-- tightening up the palette of the splotches -->
+      <filter id="duo">
+        <feComponentTransfer color-interpolation-filters="sRGB">
+          <feFuncR id="randomR" type="table" tableValues=".4  .999"></feFuncR>
+          <feFuncG id="randomG" type="table" tableValues=".123  .6"></feFuncG>
+          <feFuncB id="randomB" type="table" tableValues=".505  .7"></feFuncB>
+        </feComponentTransfer>
+      </filter>
+       
+    </defs>
+  </svg>
+
+
+</div>
+<script>
+var intervalId = window.setInterval(function () {
+  removeAll();
+  drawNoise();
+}, 200);
+
+var photoUpdateSpeed = window.setInterval(function () {
+ 
+}, 2000);
+
+
+var filterSpeed = window.setInterval(function () {
+  newTreatment();
+}, 500);
+
+
+function newTreatment() { document.getElementById("randomR").setAttribute("tableValues", 
+Math.random() * (.333 - 0) + 0 + " " + Math.random() * (.999 - .666 +.666 )
+);
+
+
+document.getElementById("randomG").setAttribute("tableValues",
+Math.random() * (.333 - 0) + 0 + " " +  Math.random() * (.999 - .666 + .666)
+);
+
+
+document.getElementById("randomB").setAttribute("tableValues", 
+ Math.random() * (.333 - 0) + 0 + " " +  Math.random() * (.999 - .666 + .666)
+);
+                         
+}
+
+
+ 
+
+
+function drawNoise() {
+  const svg = document.getElementById("noise");
+  if (!svg) return;
+
+  turbulence = document.createElementNS(
+  "http://www.w3.org/2000/svg",
+  "feTurbulence");
+
+  turbulence.setAttribute("seed", Math.floor(Math.random() * 99999999));
+  turbulence.setAttribute("baseFrequency", Math.random() * 0.0069 + .001);
+  turbulence.setAttribute("type", "turbulence");
+  turbulence.setAttribute("numOctaves", Math.floor(Math.random() * 2) + 1 );
+  turbulence.setAttribute("id", "noised");
+  turbulence.setAttribute("result", "grain");
+  svg.appendChild(turbulence);
+
+  colors = document.createElementNS(
+  "http://www.w3.org/2000/svg",
+  "feColorMatrix");
+
+  colors.setAttribute("type", "matrix");
+  colors.setAttribute("id", "colored");
+  colors.setAttribute(
+  "values",
+  "2 2 1.7 0 0.1 0 0.4 1.6 -0.4 0 0 -1 2 0 0 0 0 0 40 -19");
+
+
+  svg.appendChild(colors);
+}
+
+function removeAll() {
+  document.getElementById("noised")?.remove();
+  document.getElementById("colored")?.remove();
+}
+
+ 
+
+drawNoise();
+
+function updateClock() {
+  const el = document.querySelector(".date-text");
+  if (!el) return;
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes().toString().padStart(2, '0');
+  const ampm = h >= 12 ? 'pm' : 'am';
+  const h12 = h % 12 || 12;
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  el.textContent = `${h12}:${m}${ampm}   ${now.getDate()}  ${months[now.getMonth()]}  ${now.getFullYear()}`;
+}
+
+updateClock();
+window.setInterval(updateClock, 1000);
+
+</script>

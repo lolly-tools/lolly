@@ -1,0 +1,117 @@
+{
+  "id": "email-signature",
+  "name": "Email Signature",
+  "description": "An on-brand SUSE email signature, ready to paste into any client.",
+  "version": "1.1.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["email", "signature", "contact", "branding"],
+  "render": {
+    "width": 600,
+    "height": 300,
+    "formats": ["html", "txt", "png", "vcf", "json"],
+    "actions": ["copy", "download", "save"]
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "firstname",
+      "label": "First Name",
+      "type": "text",
+      "required": true,
+      "default": "",
+      "bindToProfile": "firstname"
+    },
+    {
+      "id": "lastname",
+      "label": "Last Name",
+      "type": "text",
+      "default": "",
+      "bindToProfile": "lastname"
+    },
+    {
+      "id": "position",
+      "label": "Job Title, Department",
+      "type": "text",
+      "default": "",
+      "placeholder": "Senior Engineer, Product"
+    },
+    {
+      "id": "certs",
+      "label": "Certifications",
+      "type": "text",
+      "default": "",
+      "placeholder": ""
+    },
+    {
+      "id": "email",
+      "label": "Email",
+      "type": "text",
+      "default": "",
+      "bindToProfile": "email"
+    },
+    {
+      "id": "phone",
+      "label": "Desk Phone",
+      "type": "text",
+      "default": "",
+      "bindToProfile": "phone"
+    },
+    {
+      "id": "mobile",
+      "label": "Mobile",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "id": "fax",
+      "label": "Fax",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "id": "address",
+      "label": "Address",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "id": "address2",
+      "label": "Address Line 2",
+      "type": "text",
+      "default": ""
+    },
+    {
+      "id": "im",
+      "label": "IM Handle",
+      "type": "text",
+      "default": "",
+      "placeholder": "@handle on Slack"
+    },
+    {
+      "id": "headshot",
+      "label": "Headshot",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "filter": { "namespace": "suse/headshots" },
+      "help": "Optional headshot. Displayed as a circle."
+    },
+    {
+      "id": "append",
+      "label": "Append",
+      "type": "select",
+      "default": "none",
+      "options": [
+        { "value": "none",    "label": "None" },
+        { "value": "germany", "label": "Germany" },
+        { "value": "business","label": "Business" },
+        { "value": "wellbeing", "label": "Wellbeing" }
+      ]
+    }
+  ]
+}

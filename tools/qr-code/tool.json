@@ -1,0 +1,74 @@
+{
+  "id": "qr-code",
+  "name": "QR Code Generator",
+  "description": "On-brand QR codes for any URL, with full color and style control.",
+  "a11yLabel": "QR code linking to {{default url \"(no URL set)\"}}",
+  "version": "2.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "everyone",
+  "tags": ["qr", "url", "link", "marketing"],
+  "render": {
+    "width": 600,
+    "height": 600,
+    "formats": ["svg", "pdf", "pdf-cmyk", "png", "jpeg", "webp", "avif" ],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false
+  },
+  "inputs": [
+    {
+      "id": "url",
+      "label": "URL",
+      "type": "url",
+      "required": true,
+      "default": "https://www.suse.com"
+    },
+    {
+      "id": "color",
+      "label": "Module color",
+      "type": "color",
+      "default": "#0c322c"
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    {
+      "id": "ecl",
+      "label": "Error correction",
+      "type": "select",
+      "default": "M",
+      "options": [
+        { "value": "L", "label": "Low (7%)" },
+        { "value": "M", "label": "Medium (15%)" },
+        { "value": "Q", "label": "Quartile (25%)" },
+        { "value": "H", "label": "High (30%)" }
+      ]
+    },
+    {
+      "id": "padding",
+      "label": "Quiet zone",
+      "type": "number",
+      "display": "slider",
+      "default": 4,
+      "min": 0,
+      "max": 10,
+      "step": 1,
+      "help": "Modules of white space around the code. Minimum 4 recommended."
+    },
+    {
+      "id": "join",
+      "label": "Joined modules",
+      "type": "boolean",
+      "default": false,
+      "help": "Merge all modules into a single SVG path. Crisper at small sizes."
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  }
+}

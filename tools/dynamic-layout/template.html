@@ -1,0 +1,337 @@
+<style>
+/* SUSE variable font — same source the lockup/chart tools use. */
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSE[wght].woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-display: swap;
+}
+/* The variable face tops out at 800; the Black static covers the 900 stop. */
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSE-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+/* SUSE Mono — used by the call-to-action when its font is set to Mono. */
+@font-face {
+  font-family: 'SUSE Mono';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSEMono[wght].woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.dl-root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: row;            /* default; the controller flips to column when tall */
+  font-family: 'SUSE', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* Baseline = the default (Pine) theme, so the card always has a background and
+     accent even on the very first paint, before the theme class resolves. */
+  background: #0c322c;
+  color: #ffffff;
+  --accent: #30ba78;
+  --accent-fg: #0c322c;
+  --muted: #90ebcd;
+  --scrim: #0c322c;
+}
+
+/* ── Themes (SUSE palette) ───────────────────────────────────────────────────
+   The card colour is the BASE block; --accent is the FEATURE block; --accent-fg
+   is the foreground that sits on the accent block; --scrim tints a photo. */
+.dl-pine      { background: #0c322c; color: #ffffff; --accent: #30ba78; --accent-fg: #0c322c; --muted: #90ebcd; --scrim: #0c322c; }
+.dl-jungle    { background: #30ba78; color: #0c322c; --accent: #0c322c; --accent-fg: #ffffff; --muted: #01564a; --scrim: #30ba78; }
+.dl-mint      { background: #90ebcd; color: #0c322c; --accent: #0c322c; --accent-fg: #90ebcd; --muted: #01564a; --scrim: #90ebcd; }
+.dl-forest    { background: #01564a; color: #ffffff; --accent: #90ebcd; --accent-fg: #01564a; --muted: #30ba78; --scrim: #01564a; }
+.dl-midnight  { background: #192072; color: #ffffff; --accent: #2453ff; --accent-fg: #ffffff; --muted: #81aefc; --scrim: #192072; }
+.dl-white     { background: #ffffff; color: #0c322c; --accent: #30ba78; --accent-fg: #0c322c; --muted: #4b7a70; --scrim: #ffffff; }
+
+/* ── Background image (photo mode) ── */
+.dl-bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.dl-bg img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: var(--bgx, 50%) var(--bgy, 50%);
+  transform: scale(calc(var(--bgzoom, 100) / 100));
+  transform-origin: var(--bgx, 50%) var(--bgy, 50%);
+}
+.dl-bg.flt-mono  img { filter: grayscale(1); }
+.dl-bg.flt-punch img { filter: contrast(1.15) saturate(1.25); }
+.dl-bg.flt-warm  img { filter: saturate(1.35) sepia(0.35) hue-rotate(-18deg); }
+.dl-bg.flt-cool  img { filter: saturate(1.1) hue-rotate(16deg) brightness(1.03); }
+.dl-bg.flt-fade  img { filter: contrast(0.9) brightness(1.08) saturate(0.78); }
+.dl-overlay { position: absolute; inset: 0; background: var(--scrim); opacity: var(--bgoverlay, 0.4); pointer-events: none; z-index: 0; }
+
+/* ── Panels ──
+   Two solid colour blocks split along the canvas's long edge. The controller
+   sets data-orient (row|column), data-mode (split|single|photo), --split (the
+   feature panel's share) and an .is-empty class; CSS just reacts. Panel padding
+   is set inline by the controller so it scales with the panel, not the viewport. */
+.dl-root[data-orient="tall"] { flex-direction: column; }
+
+.dl-feature, .dl-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0; min-height: 0;
+  display: flex;
+}
+.dl-feature { flex: 0 0 var(--split, 38%); background: var(--accent); color: var(--accent-fg); }
+.dl-content { flex: 1 1 0; }
+
+.dl-feature.is-empty, .dl-content.is-empty { display: none; }
+/* Single block: the surviving panel fills the whole canvas. */
+.dl-root[data-mode="single"] .dl-feature:not(.is-empty) { flex: 1 1 0; }
+/* Photo: panels stay translucent (not invisible) so the split grid reads over the
+   image — the feature block a touch lighter, the content a touch darker, so the two
+   blocks stay distinguishable on any photo. The theme scrim still tints the whole
+   image for text legibility (see .dl-overlay above). */
+.dl-root[data-mode="photo"] .dl-feature { background: rgba(255, 255, 255, 0.13); color: inherit; }
+.dl-root[data-mode="photo"] .dl-content { background: rgba(0, 0, 0, 0.13); }
+/* Click-to-focus: over a photo the panels proxy the background-image input, so
+   clicking the image area focuses it (the nested heading/body/cta/headshot still
+   win, since the click handler picks the closest tagged ancestor). Suppress the
+   panel's own hover outline — a dashed box around a whole half-canvas panel reads
+   as a glitch; the inner targets still highlight on hover. */
+.dl-root[data-mode="photo"] .dl-feature:hover,
+.dl-root[data-mode="photo"] .dl-content:hover { outline: none; }
+
+.dl-box {
+  flex: 1;
+  min-width: 0; min-height: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  overflow: hidden;
+}
+/* A lone portrait centres in its block; everything else reads from the edge. */
+.dl-feature .dl-box:has(.dl-headshot) { align-items: center; }
+
+.dl-fit {
+  font-size: 64px;                 /* replaced by the fit controller */
+  display: flex; flex-direction: column; align-items: flex-start;
+  gap: 0.7em;
+  max-width: 100%;
+}
+.dl-feature .dl-box:has(.dl-headshot) .dl-fit { align-items: center; }
+/* The content copy (heading/sub/text) groups so the CTA can sit apart from it. */
+.dl-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 0.7em; min-width: 0; max-width: 100%; }
+/* Banner: past ~3:1 the canvas is a wide strip, so the CTA moves out to the
+   right of the copy (set by the controller) rather than stacking beneath it. */
+.dl-root[data-banner="1"] .dl-content .dl-fit { flex-direction: row; align-items: center; gap: 1.4em; }
+.dl-root[data-banner="1"] .dl-content .dl-copy { flex: 1 1 auto; }
+.dl-root[data-banner="1"] .dl-content .dl-cta-row { flex-shrink: 0; }
+
+/* ── Elements (sized in em so one font-size scales each block's stack) ── */
+.dl-headshot {
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  flex-shrink: 0;
+}
+.dl-heading {
+  font-weight: var(--head-weight, 800);
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+}
+/* Lone heading in the feature block fills it; heading in the content stack keeps
+   a hierarchy above the body. Both honour the relative size knob. */
+.dl-feature .dl-heading { font-size: calc(1em * var(--head-scale, 1)); }
+.dl-content .dl-heading { font-size: calc(2.7em * var(--head-scale, 1)); }
+
+.dl-subheading {
+  font-size: calc(1.35em * var(--sub-scale, 1));
+  font-weight: var(--sub-weight, 500);
+  line-height: 1.25;
+  color: currentColor;
+  letter-spacing: -0.005em;
+}
+.dl-subheading p { margin: 0; }
+.dl-subheading strong { font-weight: 700; }
+.dl-subheading em { font-style: italic; }
+.dl-subheading del { text-decoration: line-through; }
+
+.dl-text {
+  font-size: calc(1em * var(--text-scale, 1));
+  font-weight: var(--text-weight, 400);
+  line-height: 1.5;
+  max-width: 26em;
+}
+.dl-text p { margin: 0 0 0.55em; }
+.dl-text p:last-child { margin-bottom: 0; }
+.dl-text strong { font-weight: 700; color: var(--accent); }
+.dl-content .dl-text strong { color: var(--accent); }
+.dl-text em { font-style: italic; }
+.dl-text del { text-decoration: line-through; }
+.dl-text ul { margin: 0.1em 0 0; padding-left: 1.1em; list-style: none; }
+.dl-text li { position: relative; margin: 0 0 0.35em; }
+.dl-text li::before {
+  content: ''; position: absolute; left: -1.05em; top: 0.6em;
+  width: 0.4em; height: 0.4em; border-radius: 50%; background: var(--accent);
+}
+/* Arrow bullets: lines the author started with a direction marker (see the
+   markdown helper) — ">" →, "<" ←, "^" ↑, "v" ↓. The arrow takes the list item's
+   own colour and weight (inherited), so it reads as part of the line rather than
+   an accent marker. */
+.dl-text li.md-arrow::before,
+.dl-text li.md-arrow-left::before,
+.dl-text li.md-arrow-up::before,
+.dl-text li.md-arrow-down::before {
+  left: -1.15em; top: 0;
+  width: auto; height: auto; background: none; border-radius: 0;
+  color: inherit; font-weight: inherit;
+}
+.dl-text li.md-arrow::before      { content: '\2192'; } /* → */
+.dl-text li.md-arrow-left::before { content: '\2190'; } /* ← */
+.dl-text li.md-arrow-up::before   { content: '\2191'; } /* ↑ */
+.dl-text li.md-arrow-down::before { content: '\2193'; } /* ↓ */
+
+.dl-cta {
+  display: inline-flex; align-items: center;
+  font-size: calc(1.05em * var(--cta-scale, 1)); font-weight: var(--cta-weight, 700); line-height: 1;
+  padding: 0.62em 1.2em;
+  border-radius: 999px;
+  /* Ghost pill: no fill, hairline outline in the block's foreground colour. */
+  background: transparent;
+  color: currentColor;
+  border: 1px solid currentColor;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+.dl-ctafont-mono .dl-cta { font-family: 'SUSE Mono', ui-monospace, SFMono-Regular, monospace; }
+
+/* ── Corner logo (overlays the panels; variant chosen by the hook) ── */
+.dl-logo {
+  position: absolute;
+  z-index: 3;                 /* above the panels (1) and the photo (0) */
+  height: 6%;
+  width: auto;
+  max-width: 38%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.dl-logo-top-left     { top: 5%;    left: 5%;  }
+.dl-logo-top-right    { top: 5%;    right: 5%; }
+.dl-logo-bottom-left  { bottom: 5%; left: 5%;  }
+.dl-logo-bottom-right { bottom: 5%; right: 5%; }
+</style>
+
+<div class="dl-root dl-{{theme}} dl-ctafont-{{ctaTypography}}" id="dl-root"
+     style="--bgx:{{imageFraming.x}}%; --bgy:{{imageFraming.y}}%; --bgzoom:{{imageFraming.zoom}}; --bgoverlay:{{bgOpacity}}; --head-scale:{{headingFontSize}}; --head-weight:{{headingFontWeight}}; --sub-scale:{{subheadingFontSize}}; --sub-weight:{{subheadingFontWeight}}; --text-scale:{{bodyFontSize}}; --text-weight:{{bodyFontWeight}}; --cta-scale:{{ctaFontSize}}; --cta-weight:{{ctaFontWeight}}">
+
+  {{#if bgImage}}
+  <div class="dl-bg flt-{{imageFilter}}"><img src="{{asset bgImage}}" alt=""></div>
+  <div class="dl-overlay"></div>
+  {{/if}}
+
+  <!-- Feature block: the headshot, or (with no headshot) the heading. -->
+  <div class="dl-feature" id="dl-feature"{{#if bgImage}} data-canvas-input="bgImage"{{/if}}>
+    <div class="dl-box"><div class="dl-fit">
+      {{#if headshot}}<img class="dl-headshot" src="{{asset headshot}}" alt="" data-canvas-input="headshot">{{else}}{{#if heading}}<h1 class="dl-heading">{{arrow heading}}</h1>{{/if}}{{/if}}
+    </div></div>
+  </div>
+
+  <!-- Content block: the message + action. The heading lives here only when the
+       feature block is showing the headshot instead. -->
+  <div class="dl-content" id="dl-content"{{#if bgImage}} data-canvas-input="bgImage"{{/if}}>
+    <div class="dl-box"><div class="dl-fit">
+      <div class="dl-copy">
+        {{#if headshot}}{{#if heading}}<h1 class="dl-heading">{{arrow heading}}</h1>{{/if}}{{/if}}
+        {{#if subheading}}<div class="dl-subheading">{{{markdown (arrow subheading)}}}</div>{{/if}}
+        {{#if body}}<div class="dl-text">{{{markdown body}}}</div>{{/if}}
+      </div>
+      {{#if cta}}<div class="dl-cta-row"><span class="dl-cta">{{arrow cta}}</span></div>{{/if}}
+    </div></div>
+  </div>
+
+  {{#if brandLogo}}<img class="dl-logo dl-logo-{{logo}}" src="{{asset brandLogo}}" alt="SUSE logo">{{/if}}
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById('dl-root');
+  if (!root) return;
+  var feature = document.getElementById('dl-feature');
+  var content = document.getElementById('dl-content');
+
+  function hasContent(panel) {
+    var fit = panel && panel.querySelector('.dl-fit');
+    return !!(fit && (fit.querySelector('img') || fit.textContent.trim().length));
+  }
+
+  // Binary-search the font-size so the block's stack fills its space without
+  // overflowing — short copy goes large, long copy shrinks. One size scales the
+  // whole stack, so the per-element em ratios (and the size knobs) hold.
+  function fitText(box, fit) {
+    var maxH = box.clientHeight, maxW = box.clientWidth;
+    if (maxH <= 0 || maxW <= 0) return;
+    function fits(s) { fit.style.fontSize = s + 'px'; return fit.scrollHeight <= maxH && fit.scrollWidth <= maxW; }
+    var lo = 6, hi = Math.max(maxH, maxW);
+    if (fits(hi)) return;
+    while (hi - lo > 0.4) { var m = (lo + hi) / 2; if (fits(m)) lo = m; else hi = m; }
+    fit.style.fontSize = lo + 'px';
+  }
+
+  function fitPanel(panel) {
+    // Spacious, panel-relative padding (scales with the block, not the viewport).
+    var pw = panel.clientWidth, ph = panel.clientHeight;
+    var pad = Math.round(Math.max(22, Math.min(96, Math.min(pw, ph) * 0.09)));
+    panel.style.padding = pad + 'px';
+
+    var box = panel.querySelector('.dl-box');
+    var fit = panel.querySelector('.dl-fit');
+    if (!box || !fit) return;
+
+    var hs = fit.querySelector('.dl-headshot');
+    if (hs) {
+      var d = Math.max(40, Math.round(Math.min(box.clientWidth, box.clientHeight) * 0.66));
+      hs.style.width = d + 'px';
+      hs.style.height = d + 'px';
+    }
+    fitText(box, fit);
+  }
+
+  function layout() {
+    var W = root.clientWidth, H = root.clientHeight;
+    if (!W || !H) return;
+    var ar = W / H;
+    var photo = !!root.querySelector('.dl-bg');
+
+    var fHas = hasContent(feature);
+    var cHas = hasContent(content);
+    feature.classList.toggle('is-empty', !fHas);
+    content.classList.toggle('is-empty', !cHas);
+
+    var mode = photo ? 'photo' : (fHas && cHas ? 'split' : 'single');
+    root.dataset.mode = mode;
+    // A colour split follows the long edge; over a photo we always stack.
+    root.dataset.orient = (mode === 'photo') ? 'tall' : (ar >= 1 ? 'wide' : 'tall');
+    // Past ~3:1 it reads as a banner — lay the CTA out to the right of the copy.
+    root.dataset.banner = ar > 3 ? '1' : '';
+
+    if (fHas && cHas) {
+      // Feature block's share of the long edge — generous by default, eased toward
+      // a slimmer band as the canvas gets extreme, trimmed when the message is long.
+      var extreme = ar >= 1 ? ar : 1 / ar;
+      var split = 42 - Math.min(15, (extreme - 1) * 8);
+      var chars = content.querySelector('.dl-fit').textContent.trim().length;
+      if (chars > 260) split -= 7; else if (chars > 130) split -= 4;
+      if (feature.querySelector('.dl-headshot')) split = Math.max(split, 34);
+      root.style.setProperty('--split', Math.max(24, Math.min(46, split)).toFixed(1) + '%');
+    } else {
+      root.style.removeProperty('--split');
+    }
+
+    if (fHas) fitPanel(feature);
+    if (cHas) fitPanel(content);
+  }
+
+  // Lay out now for a fast paint, then again once the SUSE font has loaded so the
+  // measurements use real glyph metrics (the export waits for fonts.ready).
+  layout();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+}());
+</script>

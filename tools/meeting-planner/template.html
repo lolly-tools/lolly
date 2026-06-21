@@ -1,0 +1,692 @@
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.mp-root {
+  width: 100%; height: 100%;
+  font-family: SUSE, ui-sans-serif, sans-serif;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  --fs: 1;
+}
+
+/* ── Themes ──────────────────────────────────────────────────────────────── */
+.mp-dark  { background: #071f1a; color: #fff;    --accent: #30ba78; --muted: rgba(255,255,255,.42); --land: #163d2e; --ocean: #050f0c; }
+.mp-light { background: #f0f5f2; color: #0c322c; --accent: #0a6e43; --muted: rgba(12,50,44,.58);   --land: #9fbfaa; --ocean: #cde4d5; }
+.mp-green { background: #30ba78; color: #0c322c; --accent: #ffffff; --muted: rgba(12,50,44,1);   --land: #1a7a48; --ocean: #0d5c35; }
+
+/* ── Layout: portrait — map left, sidebar right ──────────────────────────── */
+.mp-root.mp-layout-portrait {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  grid-template-rows: auto 1fr;
+}
+.mp-root.mp-layout-portrait .mp-header {
+  grid-column: 2; grid-row: 1;
+  padding: 40px 36px 16px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+.mp-root.mp-layout-portrait .mp-meta {
+  align-items: flex-start;
+}
+.mp-root.mp-layout-portrait .mp-map-wrap {
+  grid-column: 1; grid-row: 1 / 3;
+}
+.mp-root.mp-layout-portrait .mp-team {
+  grid-column: 2; grid-row: 2;
+  flex-direction: column;
+  padding: 0 ;
+  overflow-y: auto;
+  gap: 6px;
+}
+.mp-root.mp-layout-portrait .mp-card {
+  flex: none;
+}
+
+/* ── Layout: square — pillarbox to 1080×1080 content area ───────────────── */
+.mp-root.mp-layout-square {
+  padding: 0 420px;
+}
+
+/* ── Header ──────────────────────────────────────────────────────────────── */
+.mp-header {
+  flex-shrink: 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 44px 64px 0;
+}
+.mp-title {
+  font-size: calc(22px * var(--fs)); font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--accent); padding-top: 4px;
+}
+.mp-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+.mp-host-city {
+  font-size: calc(22px * var(--fs)); font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+}
+.mp-host-city:empty { display: none; }
+.mp-meeting-time {
+  font-size: calc(17px * var(--fs)); font-weight: 700; letter-spacing: .05em;
+  color: var(--accent);
+}
+.mp-meeting-time:empty { display: none; }
+.mp-meeting-date {
+  font-size: calc(12px * var(--fs)); font-weight: 500; letter-spacing: .07em; text-transform: uppercase;
+  color: var(--muted);
+}
+.mp-meeting-date:empty { display: none; }
+
+/* ── Map wrap ────────────────────────────────────────────────────────────── */
+.mp-map-wrap {
+  flex: 1; min-height: 0; width: 100%;
+  position: relative;
+}
+.mp-map-wrap svg { display: block; width: 100%; height: 100%; cursor: grab; }
+.mp-map-wrap svg:active { cursor: grabbing; }
+
+/* ── Zoom controls ───────────────────────────────────────────────────────── */
+.mp-zoom-controls {
+  position: absolute; bottom: 14px; right: 14px;
+  display: flex; flex-direction: column; gap: 4px;
+  z-index: 10;
+}
+.mp-zoom-btn {margin:3px;
+  width: 28px; height: 28px;
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 4px; cursor: pointer;
+  font-size: 16px; line-height: 1;
+  font-weight: 700; font-family: inherit;
+  opacity: 0.72; transition: opacity .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.mp-zoom-btn:hover { opacity: 1; }
+
+/* ── Team cards ──────────────────────────────────────────────────────────── */
+.mp-team {
+  flex-shrink: 0;
+  display: flex; align-items: stretch;
+  padding: 0 ;
+  gap: 0; min-height: 0;
+}
+.mp-card {
+  flex: 1;
+  border-left: 1px solid var(--card-color, var(--accent));
+  padding: 10px 14px 10px 16px;
+  display: flex; flex-direction: column; gap: 1px;
+  min-width: 0;
+}
+.mp-card:first-child{border-left:none;}
+.mp-card-name {
+  font-size: calc(9px * var(--fs) * 2); font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  opacity: .55; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mp-card-city {
+  font-size: calc(9px * var(--fs)); font-weight: 400; letter-spacing: .04em;
+  color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mp-card-time {
+  font-size: calc(22px * var(--fs)); font-weight: 700; letter-spacing: .01em;
+  color: var(--card-color, var(--accent));
+  white-space: nowrap; margin-top: 3px;
+}
+.mp-card-date {
+  font-size: calc(9px * var(--fs)); font-weight: 500; letter-spacing: .05em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+
+.mp-zoom-controls{opacity:0; visibility: hidden;display:none;}
+
+.mp-map-wrap:hover{.mp-zoom-controls{opacity:1; visibility:visible;display:block;}}
+</style>
+
+<div class="mp-root mp-{{theme}} mp-layout-{{layout}}" id="mp-root">
+  <div class="mp-header">
+    <span class="mp-title">{{heading}}</span>
+    <div class="mp-meta">
+      <span class="mp-host-city">{{hostCity}}</span>
+      <span class="mp-meeting-time" id="mp-time"></span>
+      <span class="mp-meeting-date" id="mp-date"></span>
+    </div>
+  </div>
+  <div class="mp-map-wrap" id="mp-map"></div>
+  <div class="mp-team" id="mp-team"></div>
+</div>
+
+<script>
+(function () {
+  /* ── Epoch guard — prevents stale async callbacks from drawing ───────── */
+  if (window.__mpIv) { window.__mpIv.forEach(clearInterval); }
+  window.__mpIv    = [];
+  window.__mpEpoch = (window.__mpEpoch || 0) + 1;
+  var _ep = window.__mpEpoch;
+  function alive() { return window.__mpEpoch === _ep; }
+  clearTimeout(window.__mpZoomTimer); /* cancel pending debounced zoom-save */
+
+  /* ── Template inputs ─────────────────────────────────────────────────── */
+  // Use _-prefixed extras (not declared input IDs) so annotateTemplate does not
+  // wrap these in <!-- ci:id --> markers inside the script — JS treats <!-- as
+  // a single-line comment when it appears at statement level (ECMAScript Annex B).
+  var hostCity      = '{{_hostCity}}';
+  var meetingTime   = '{{_meetingTime}}';
+  var people        = {{{peopleJson}}};
+  var theme         = '{{_theme}}';
+  var projection    = '{{_projection}}';
+  var showNight     = '{{_showNight}}'     === 'yes';
+  var showGraticule = '{{_showGraticule}}' === 'yes';
+  var showBorders   = '{{_showBorders}}'   === 'yes';
+  var landColorIn   = '{{_landColor}}';
+  var oceanColorIn  = '{{_oceanColor}}';
+  var pinColorIn    = '{{_pinColor}}';
+  var pinShape      = '{{_pinShape}}';
+  var pinSizeScale  = parseFloat('{{_pinSize}}')    || 1;
+  var labelSizeScale= parseFloat('{{_labelSize}}')  || 1;
+  var fontSizeScale = parseFloat('{{_fontSize}}')   || 1;
+  var showNameInPin = '{{_showNameInPin}}' === 'yes';
+  var hideCity      = '{{_hideCity}}'      === 'yes';
+  var mapZoomIn     = '{{_mapZoom}}';
+
+  if (!meetingTime) {
+    var _dn = new Date(); _dn.setDate(_dn.getDate() + 1); _dn.setHours(10, 0, 0, 0);
+    var _z  = function(n) { return String(n).padStart(2,'0'); };
+    meetingTime = _dn.getFullYear()+'-'+_z(_dn.getMonth()+1)+'-'+_z(_dn.getDate())+'T10:00';
+  }
+
+  /* ── DOM refs ────────────────────────────────────────────────────────── */
+  var root   = document.getElementById('mp-root');
+  var mapEl  = document.getElementById('mp-map');
+  var timeEl = document.getElementById('mp-time');
+  var dateEl = document.getElementById('mp-date');
+  var teamEl = document.getElementById('mp-team');
+
+  root.style.setProperty('--fs', fontSizeScale);
+
+  /* ── Theme palette ───────────────────────────────────────────────────── */
+  var cs      = getComputedStyle(root);
+  var accent  = cs.getPropertyValue('--accent').trim()  || '#30ba78';
+  var muted   = cs.getPropertyValue('--muted').trim()   || 'rgba(255,255,255,.4)';
+  var landCol = cs.getPropertyValue('--land').trim()    || '#163d2e';
+  var oceanCol= cs.getPropertyValue('--ocean').trim()   || '#050f0c';
+
+  if (landColorIn)  landCol  = landColorIn;
+  if (oceanColorIn) oceanCol = oceanColorIn;
+
+  var textStroke, nightFill, gratStroke, labelBgCol, sphereStroke;
+  if (theme === 'light') {
+    textStroke   = 'rgba(240,245,242,0)';
+    nightFill    = 'rgba(0,0,40,.18)';
+    gratStroke   = 'rgba(0,60,30,.08)';
+    labelBgCol   = 'rgba(240,245,242,1)';
+    sphereStroke = 'rgba(0,60,30,.12)';
+  } else if (theme === 'green') {
+    textStroke   = 'rgba(255,255,255,.0)';
+    nightFill    = 'rgba(0,20,10,.42)';
+    gratStroke   = 'rgba(12,50,44,.15)';
+    labelBgCol   = 'rgba(239,239,239,1)';
+    sphereStroke = 'rgba(12,50,44,.28)';
+  } else {
+    textStroke   = 'rgba(5,15,12,0)';
+    nightFill    = 'rgba(0,0,0,.45)';
+    gratStroke   = 'rgba(48,186,120,.07)';
+    labelBgCol   = 'rgba(5,15,12,1)';
+    sphereStroke = 'rgba(48,186,120,.2)';
+  }
+
+  /* ── Timezone math ───────────────────────────────────────────────────── */
+  function tzLocalMs(utcMs, tz) {
+    var pts = {};
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, year:'numeric', month:'numeric', day:'numeric',
+      hour:'numeric', minute:'numeric', hour12: false
+    }).formatToParts(new Date(utcMs)).forEach(function(p) {
+      if (p.type !== 'literal') pts[p.type] = +p.value;
+    });
+    var h = pts.hour === 24 ? 0 : pts.hour;
+    return Date.UTC(pts.year, pts.month - 1, pts.day, h, pts.minute, 0);
+  }
+
+  function wallToUtc(y, mo, d, h, mi, tz) {
+    var seed   = Date.UTC(y, mo, d, h, mi, 0);
+    var approx = seed - (tzLocalMs(seed, tz) - seed);
+    return new Date(seed - (tzLocalMs(approx, tz) - approx));
+  }
+
+  function parseInTz(str, tz) {
+    if (!str) return null;
+    var clean  = str.replace(' ', 'T').slice(0, 16);
+    var halves = clean.split('T');
+    if (halves.length !== 2) return null;
+    var dp = halves[0].split('-'), tp = halves[1].split(':');
+    if (dp.length < 3 || tp.length < 2) return null;
+    var y = +dp[0], mo = +dp[1]-1, d = +dp[2], h = +tp[0], mi = +tp[1];
+    if (isNaN(y+mo+d+h+mi)) return null;
+    if (!tz) return new Date(y, mo, d, h, mi, 0);
+    try {
+      var r = wallToUtc(y, mo, d, h, mi, tz);
+      return isNaN(r.getTime()) ? new Date(y, mo, d, h, mi, 0) : r;
+    } catch(e) { return new Date(y, mo, d, h, mi, 0); }
+  }
+
+  function localHour(tz, dt) {
+    try { return +dt.toLocaleTimeString('en-GB', { timeZone: tz }).split(':')[0]; }
+    catch(e) { return 12; }
+  }
+
+  var C_WARN = '#f59e0b';
+  var C_BAD  = '#ef4444';
+
+  function qualColor(tz, dt) {
+    var h = localHour(tz, dt);
+    if (h < 6 || h >= 22) return C_BAD;
+    if (h < 8 || h >= 20) return C_WARN;
+    return accent;
+  }
+
+  function fmtTime(tz, dt) {
+    try { return dt.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit', hour12:true, timeZone:tz }); }
+    catch(e) { return '--:--'; }
+  }
+  function fmtDate(tz, dt) {
+    try { return dt.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', timeZone:tz }); }
+    catch(e) { return ''; }
+  }
+
+  /* ── Geocoding ───────────────────────────────────────────────────────── */
+  var _gc = window.__mpGeoCache || (window.__mpGeoCache = {});
+  var _GC_LS_KEY = '__mpGeoCacheV1';
+
+  function _gcLsLoad() {
+    try { return JSON.parse(localStorage.getItem(_GC_LS_KEY) || '{}'); }
+    catch(e) { return {}; }
+  }
+  function _gcLsSave(city, data) {
+    try {
+      var store = _gcLsLoad();
+      store[city] = data;
+      localStorage.setItem(_GC_LS_KEY, JSON.stringify(store));
+    } catch(e) {}
+  }
+
+  function geocode(city) {
+    if (_gc[city]) return Promise.resolve(_gc[city]);
+    /* Check localStorage cache — populated on previous online sessions so the
+       tool works fully offline once a city has been looked up at least once. */
+    var lsStore = _gcLsLoad();
+    if (lsStore[city]) { _gc[city] = lsStore[city]; return Promise.resolve(lsStore[city]); }
+    return fetch('https://geocoding-api.open-meteo.com/v1/search?name=' +
+      encodeURIComponent(city) + '&count=1&language=en&format=json')
+      .then(function(r) { return r.ok ? r.json() : null; })
+      .then(function(data) {
+        var r = data && data.results && data.results[0];
+        if (!r) return null;
+        var g = { lat: r.latitude, lon: r.longitude, tz: r.timezone || 'UTC',
+                  name: r.name + (r.country ? ', '+r.country : '') };
+        _gc[city] = g;
+        _gcLsSave(city, g);
+        return g;
+      })
+      .catch(function() { return null; });
+  }
+
+  /* ── Solar terminator ────────────────────────────────────────────────── */
+  function subsolarPoint(dt) {
+    var start = Date.UTC(dt.getUTCFullYear(), 0, 0);
+    var doy   = Math.floor((dt - start) / 86400000);
+    var dec   = 23.45 * Math.sin(2 * Math.PI * (doy - 81) / 365);
+    var utcH  = dt.getUTCHours() + dt.getUTCMinutes()/60 + dt.getUTCSeconds()/3600;
+    var lon   = (180 - 15 * utcH % 360 + 3600) % 360;
+    if (lon > 180) lon -= 360;
+    return [lon, dec];
+  }
+
+  /* ── Script loader — deduplicates concurrent loads across re-renders ──── */
+  function loadScript(src, present) {
+    if (present()) return Promise.resolve();
+    window.__mpLoading = window.__mpLoading || {};
+    if (!window.__mpLoading[src]) {
+      window.__mpLoading[src] = new Promise(function(res, rej) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.onload = res;
+        s.onerror = function() { delete window.__mpLoading[src]; rej(new Error('Failed: ' + src)); };
+        document.head.appendChild(s);
+      });
+    }
+    return window.__mpLoading[src];
+  }
+
+  /* ── Draw ────────────────────────────────────────────────────────────── */
+  function draw(world, hostGeo, members, refDate, hostTz) {
+    if (!alive()) return;
+
+    mapEl.innerHTML = '';
+    teamEl.innerHTML = '';
+
+    var W = mapEl.clientWidth  || 1920;
+    var H = mapEl.clientHeight || 760;
+
+    var svg = d3.select(mapEl).append('svg')
+      .attr('viewBox', '0 0 '+W+' '+H)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('width','100%').style('height','100%');
+
+    /* All map geometry lives in gMap so D3 zoom/pan applies to it as a unit */
+    var gMap = svg.append('g').attr('class', 'mp-map-g');
+
+    /* ── Projection ──────────────────────────────────────────────────── */
+    var projFn   = (typeof d3[projection] === 'function') ? d3[projection] : d3.geoNaturalEarth1;
+    var projInst = projFn();
+    /* Globe projections: auto-rotate to center on the host city so cities
+       appear in the correct hemisphere rather than wrapping to the back face. */
+    var isGlobe = projection === 'geoOrthographic' || projection === 'geoStereographic' ||
+                  projection === 'geoAzimuthalEqualArea';
+    if (isGlobe && hostGeo) {
+      projInst.rotate([-hostGeo.lon, -hostGeo.lat]);
+    }
+    var proj = projInst.fitExtent([[32, 12], [W-32, H-12]], {type:'Sphere'});
+    var path = d3.geoPath(proj);
+
+    /* Ocean */
+    gMap.append('path').datum({type:'Sphere'})
+      .attr('fill', oceanCol).attr('d', path);
+
+    
+
+    /* Graticule */
+    if (showGraticule) {
+      gMap.append('path').datum(d3.geoGraticule()())
+        .attr('fill','none').attr('stroke', gratStroke)
+        .attr('stroke-width', 0.5).attr('d', path);
+    }
+
+    /* Land */
+    gMap.append('path')
+      .datum(topojson.feature(world, world.objects.countries))
+      .attr('fill', landCol).attr('stroke', 'none').attr('d', path);
+
+    /* Country borders */
+    if (showBorders) {
+      gMap.append('path')
+        .datum(topojson.mesh(world, world.objects.countries, function(a,b){ return a!==b; }))
+        .attr('fill','none').attr('stroke', oceanCol)
+        .attr('stroke-width', 0.5).attr('d', path);
+    }
+
+    /* Night overlay */
+    if (showNight && refDate) {
+      var sub  = subsolarPoint(refDate);
+      var nlon = sub[0] >= 0 ? sub[0] - 180 : sub[0] + 180;
+      try {
+        var nightPoly = d3.geoCircle().center([nlon, -sub[1]]).radius(90)();
+        gMap.append('path').datum(nightPoly)
+          .attr('fill', nightFill).attr('d', path);
+      } catch(e) {}
+    }
+
+    /* Sphere outline */
+    gMap.append('path').datum({type:'Sphere'})
+      .attr('fill','none').attr('stroke', sphereStroke)
+      .attr('stroke-width', 1).attr('d', path);
+
+    var pins = gMap.append('g').attr('class','pins');
+
+    /* ── SVG helpers ─────────────────────────────────────────────────── */
+    function addText(parent, x, y, txt, size, fill, weight, anchor) {
+      return parent.append('text')
+        .attr('x', x).attr('y', y)
+        .attr('text-anchor', anchor || 'start')
+        .attr('font-family', 'SUSE, ui-sans-serif, sans-serif')
+        .attr('font-size', size).attr('font-weight', weight || '400')
+        .attr('fill', fill)
+        .attr('paint-order', 'stroke')
+        .attr('stroke', textStroke)
+        .attr('stroke-width', 3).attr('stroke-linejoin', 'round')
+        .text(txt);
+    }
+
+    function drawShape(parent, r, color) {
+      if (pinShape === 'diamond') {
+        return parent.append('polygon')
+          .attr('points', '0,'+(-r)+' '+r+',0 0,'+r+' '+(-r)+',0')
+          .attr('fill', color);
+      }
+      if (pinShape === 'square') {
+        return parent.append('rect')
+          .attr('x', -r).attr('y', -r)
+          .attr('width', r*2).attr('height', r*2)
+          .attr('fill', color);
+      }
+      return parent.append('circle').attr('r', r).attr('fill', color);
+    }
+
+    /* ── Pin ─────────────────────────────────────────────────────────── */
+    function addPin(geo, isHost, cityLabel, memberName) {
+      var xy = proj([geo.lon, geo.lat]);
+      if (!xy) return;
+
+      var color = pinColorIn
+        ? pinColorIn
+        : (isHost ? accent : qualColor(geo.tz, refDate));
+      var ps = pinSizeScale;
+
+      var g = pins.append('g').attr('transform','translate('+xy[0]+','+xy[1]+')');
+
+      /* Glow halo */
+      g.append('circle').attr('r', (isHost ? 16 : 10) * ps)
+        .attr('fill', color).attr('opacity', isHost ? 0.18 : 0.14);
+
+      /* Host outer ring */
+      if (isHost) {
+        g.append('circle').attr('r', 9.5 * ps)
+          .attr('fill','none').attr('stroke', color)
+          .attr('stroke-width', 1.8).attr('opacity', 0.75);
+      }
+
+      /* Main dot */
+      var dotR = (isHost ? 5 : 3.5) * ps;
+      drawShape(g, dotR, color);
+
+      /* Label with optional background rect */
+      if (cityLabel || (showNameInPin && memberName && !isHost)) {
+        var goLeft = geo.lon > 120;
+        var goDown = geo.lat > 58;
+        var dx     = goLeft ? -(dotR + 6) : (dotR + 6);
+        var anchor = goLeft ? 'end' : 'start';
+        var ls     = labelSizeScale;
+        var cityFontSz = (isHost ? 11 : 9) * ls;
+        var nameFontSz = (isHost ? 9  : 7.5) * ls;
+        var lineH  = cityFontSz * 1.3;
+        var baseY  = goDown ? (dotR + 14 * ls) : -(dotR + 6 * ls);
+
+        var lg = g.append('g').attr('class','pin-label');
+
+        /* Optional member name line (above city) */
+        if (showNameInPin && memberName && !isHost) {
+          addText(lg, dx, baseY - lineH,
+            memberName.toUpperCase(), nameFontSz, 'currentColor', '500', anchor)
+            .attr('letter-spacing', '.06em').attr('opacity', '.85');
+        }
+
+        /* City / host name */
+        if (cityLabel) addText(lg, dx, baseY,
+          cityLabel.toUpperCase(), cityFontSz, 'currentColor', '700', anchor)
+          .attr('letter-spacing', '.07em');
+
+        /* Rounded bg rect behind the label group */
+        try {
+          var bb = lg.node().getBBox();
+          lg.insert('rect', ':first-child')
+            .attr('x', bb.x - 5).attr('y', bb.y - 3)
+            .attr('width', bb.width + 10).attr('height', bb.height + 6)
+            .attr('rx', 3).attr('fill', labelBgCol);
+        } catch(e) {}
+      }
+    }
+
+    /* Host drawn first so member pins render on top */
+    if (hostGeo) {
+      var hostIsAlsoAttendee = members.some(function(m) {
+        return m.geo &&
+          Math.abs(m.geo.lat - hostGeo.lat) < 0.5 &&
+          Math.abs(m.geo.lon - hostGeo.lon) < 0.5;
+      });
+      addPin(hostGeo, true, hostIsAlsoAttendee ? null : (hostCity || hostGeo.name), null);
+    }
+    members.forEach(function(m) {
+      if (m.geo) addPin(m.geo, false, hideCity ? null : (m.city || m.name), m.name);
+    });
+
+    
+
+    /* ── Header time / date ──────────────────────────────────────────── */
+    if (timeEl && refDate) timeEl.textContent = fmtTime(hostTz || 'UTC', refDate);
+    if (dateEl && refDate) dateEl.textContent = fmtDate(hostTz || 'UTC', refDate) + (hostTz ? '' : ' (local)');
+
+    /* ── Team cards ──────────────────────────────────────────────────── */
+    var shown = members.filter(function(m) { return m.geo; });
+
+    if (shown.length && hostGeo) {
+      var hCard = document.createElement('div');
+      hCard.className = 'mp-card';
+      hCard.style.setProperty('--card-color', pinColorIn || accent);
+      var hnEl = document.createElement('div'); hnEl.className = 'mp-card-name'; hnEl.textContent = hostCity || 'HOST';
+      var htEl = document.createElement('div'); htEl.className = 'mp-card-time'; htEl.textContent = refDate ? fmtTime(hostGeo.tz, refDate) : '--:--';
+      var hdEl = document.createElement('div'); hdEl.className = 'mp-card-date'; hdEl.textContent = refDate ? fmtDate(hostGeo.tz, refDate) : '';
+      hCard.append(hnEl, htEl, hdEl);
+      teamEl.appendChild(hCard);
+    }
+
+    shown.forEach(function(m) {
+      var cardColor = qualColor(m.geo.tz, refDate);
+      var card  = document.createElement('div');
+      card.className = 'mp-card';
+      card.style.setProperty('--card-color', cardColor);
+      var nEl = document.createElement('div'); nEl.className = 'mp-card-name'; nEl.textContent = m.name || m.city;
+      var cEl = document.createElement('div'); cEl.className = 'mp-card-city'; cEl.textContent = m.city !== m.name ? m.city : '';
+      var tEl = document.createElement('div'); tEl.className = 'mp-card-time'; tEl.textContent = fmtTime(m.geo.tz, refDate);
+      var dEl = document.createElement('div'); dEl.className = 'mp-card-date'; dEl.textContent = fmtDate(m.geo.tz, refDate);
+      card.append(nEl, cEl, tEl, dEl);
+      teamEl.appendChild(card);
+    });
+
+    /* ── Zoom + pan behavior ─────────────────────────────────────────── */
+    var _applyingZoom = false;
+
+    var zoomFn = d3.zoom()
+      .scaleExtent([0.4, 12])
+      .on('zoom', function(event) {
+        gMap.attr('transform', event.transform);
+        window.__mpZoom = event.transform; /* track live state for cross-render persistence */
+        if (_applyingZoom) return;
+        /* Debounce-save to the mapZoom input so the viewport survives page reload
+           and can be shared via URL or saved to a slot. */
+        clearTimeout(window.__mpZoomTimer);
+        window.__mpZoomTimer = setTimeout(function() {
+          if (!alive()) return;
+          var t = window.__mpZoom;
+          if (!t) return;
+          var encoded = t.k.toFixed(4) + ',' + t.x.toFixed(2) + ',' + t.y.toFixed(2);
+          var inp = document.querySelector('[data-input-id="mapZoom"]');
+          if (inp && inp.value !== encoded) {
+            inp.value = encoded;
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }, 700);
+      });
+
+    svg.call(zoomFn);
+
+    /* Restore viewport:
+       - Prefer window.__mpZoom (live state from earlier in this session) if set,
+         so projection/theme changes don't reset the user's pan/zoom position.
+       - Fall back to mapZoomIn (from URL / saved slot) on first load.
+       - If mapZoomIn is empty the user cleared it — also clear the live state. */
+    if (!mapZoomIn) window.__mpZoom = null;
+    var restoreT = window.__mpZoom || (function() {
+      if (!mapZoomIn) return null;
+      try {
+        var p = mapZoomIn.split(',').map(Number);
+        return (p.length === 3 && p[0] > 0 && p.every(isFinite))
+          ? d3.zoomIdentity.translate(p[1], p[2]).scale(p[0])
+          : null;
+      } catch(e) { return null; }
+    })();
+    if (restoreT) {
+      _applyingZoom = true;
+      svg.call(zoomFn.transform, restoreT);
+      _applyingZoom = false;
+    }
+
+    /* Zoom control buttons */
+    var ctrlDiv = document.createElement('div');
+    ctrlDiv.className = 'mp-zoom-controls';
+    ctrlDiv.innerHTML =
+      '<button class="mp-zoom-btn" id="mp-zi">+</button>' +
+      '<button class="mp-zoom-btn" id="mp-zo">−</button>' +
+      '<button class="mp-zoom-btn" id="mp-zr">⌂</button>';
+    mapEl.appendChild(ctrlDiv);
+
+    var svgRef = svg;
+    document.getElementById('mp-zi').onclick = function() {
+      svgRef.transition().duration(250).call(zoomFn.scaleBy, 1.5);
+    };
+    document.getElementById('mp-zo').onclick = function() {
+      svgRef.transition().duration(250).call(zoomFn.scaleBy, 0.667);
+    };
+    document.getElementById('mp-zr').onclick = function() {
+      /* Reset: clear live state so the next render doesn't re-apply the old position */
+      window.__mpZoom = null;
+      svgRef.transition().duration(300).call(zoomFn.transform, d3.zoomIdentity);
+    };
+  }
+
+  /* ── Boot ────────────────────────────────────────────────────────────── */
+  function boot(world) {
+    if (!alive()) return;
+
+    var hostGeoResult = null;
+    var hostTz        = null;
+    var memberItems   = people.map(function(p) {
+      return { name: p.name || p.city, city: p.city, geo: null };
+    });
+
+    var tasks = [];
+    if (hostCity) {
+      tasks.push(geocode(hostCity).then(function(g) {
+        hostGeoResult = g;
+        if (g) hostTz = g.tz;
+      }));
+    }
+    memberItems.forEach(function(m) {
+      if (!m.city) return;
+      tasks.push(geocode(m.city).then(function(g) { m.geo = g; }));
+    });
+
+    Promise.all(tasks).then(function() {
+      if (!alive()) return;
+      draw(world, hostGeoResult, memberItems, parseInTz(meetingTime, hostTz), hostTz);
+    });
+  }
+
+  /* ── Load D3 → TopoJSON → world data → boot ─────────────────────────── */
+  var LIB = '/tools/meeting-planner/lib/';
+  loadScript(LIB + 'd3.min.js', function() { return !!window.d3; })
+  .then(function() {
+    return loadScript(LIB + 'topojson.min.js', function() { return !!window.topojson; });
+  }).then(function() {
+    if (window.__mpWorld) return boot(window.__mpWorld);
+    if (!window.__mpWorldP) {
+      window.__mpWorldP = fetch(LIB + 'countries-110m.json')
+        .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function(world) { window.__mpWorld = world; return world; })
+        .catch(function(e) { window.__mpWorldP = null; throw e; });
+    }
+    return window.__mpWorldP.then(function(world) { boot(world); });
+  }).catch(function(e) {
+    if (!alive()) return;
+    console.error('[meeting-planner] load error:', e);
+    mapEl.innerHTML = '<p style="color:var(--muted);padding:48px;font-size:14px;letter-spacing:.05em">Map failed to load.</p>';
+  });
+}());
+</script>

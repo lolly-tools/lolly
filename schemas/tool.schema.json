@@ -1,0 +1,301 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brand-tools.suse.com/schemas/tool.schema.json",
+  "title": "Tool Manifest",
+  "description": "Declares everything the engine needs to know about a tool: its identity, its inputs, its render target, and its capabilities. The template consumes inputs by name; this manifest declares them.",
+  "type": "object",
+  "required": ["id", "name", "version", "engineVersion", "status", "render", "inputs"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "description": "Stable, lowercase, hyphen-separated. NEVER changes once published. URL-safe."
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable display name."
+    },
+    "description": {
+      "type": "string",
+      "description": "Shown in the tool gallery."
+    },
+    "a11yLabel": {
+      "type": "string",
+      "description": "Optional Handlebars template for the canvas's accessible label (the preview is exposed to screen readers as role=img). Hydrated live with input values, e.g. \"QR code linking to {{url}}\". Defaults to \"<name> preview\" when omitted."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "SemVer. Bumped on any change. Used for cache-busting and saved-state migration."
+    },
+    "engineVersion": {
+      "type": "string",
+      "description": "SemVer range of engine versions this tool is compatible with, e.g. '^1.0.0'."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["official", "community", "experimental"],
+      "description": "Drives gallery sorting, watermarking, and brand-approval messaging. Experimental tools watermark their exports."
+    },
+    "category": {
+      "type": "string",
+      "description": "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Free-form search tags."
+    },
+    "render": {
+      "type": "object",
+      "required": ["width", "height", "formats"],
+      "additionalProperties": false,
+      "description": "Defines the template render area and supported export formats.",
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "formats": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "pdf", "pdf-cmyk", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "avif", "webm", "mp4", "gif"] },
+          "minItems": 1,
+          "description": "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
+        },
+        "actions": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["copy", "download", "save", "share"] },
+          "description": "Default actions to show. Defaults to ['copy', 'download', 'save'] if omitted."
+        },
+        "export": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false for utility/interactive tools that have no export. Hides download, copy, format, and dimension controls. Shows Save only when the tool has inputs. Hides the sidebar entirely when there are no inputs."
+        },
+        "dims": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to hide the export dimension inputs in the download bar."
+        },
+        "transparentBg": {
+          "type": "boolean",
+          "default": false,
+          "description": "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
+        },
+        "convertPaths": {
+          "type": "boolean",
+          "default": true,
+          "description": "Controls the 'Convert paths' export toggle (outline text to vector paths in SVG/PDF/PDF-CMYK so output renders identically without the fonts installed). The engine auto-injects the toggle whenever the tool exports a vector format. Set false to suppress the toggle entirely and never outline text — e.g. capture tools, where the output is a raster and text-outlining doesn't apply."
+        },
+        "preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Marks a tool whose live canvas is a placeholder until an explicit, expensive render runs (e.g. a capture tool that screenshots a page in beforeExport). The shell wires a [data-preview] control in the template to render into the frame — preview only, never a download — and re-shows the placeholder whenever an input changes (the last preview is invalidated).",
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": ["png", "jpg", "jpeg", "svg", "pdf", "webp", "avif"],
+              "description": "Format used for the preview render. Defaults to the tool's first render format. Pick a cheap raster (e.g. webp) — the blob is discarded; only the painted frame is kept."
+            },
+            "auto": {
+              "type": "boolean",
+              "default": false,
+              "description": "Generate a preview automatically once the tool finishes loading, so the user lands on a rendered frame rather than the placeholder. Fires once on load only — never on every input change — so deferred renders stay deliberate."
+            }
+          }
+        },
+        "video": {
+          "type": "object",
+          "description": "Default video capture settings used when webm or mp4 is in formats.",
+          "additionalProperties": false,
+          "properties": {
+            "wait":     { "type": "number", "minimum": 0, "description": "Seconds to wait before recording starts. Default 1." },
+            "duration": { "type": "number", "minimum": 0.5, "description": "Length of the recorded clip in seconds. Default 5." }
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "description": "Declares user-facing inputs. The host generates UI from this. The template references inputs by id.",
+      "items": { "$ref": "#/$defs/input" }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm", "capture"]
+      },
+      "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. ffmpeg-using tool unavailable in web shell)."
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional escape hatch. If present, the tool ships a hooks.js file that the host loads in a sandboxed context.",
+      "properties": {
+        "onInit": { "type": "boolean" },
+        "onInput": { "type": "boolean" },
+        "beforeRender": { "type": "boolean" },
+        "beforeExport": { "type": "boolean" },
+        "afterExport": { "type": "boolean" }
+      }
+    }
+  },
+  "$defs": {
+    "input": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+          "description": "Referenced in the template as {{id}}. Also becomes a URL param."
+        },
+        "label": { "type": "string" },
+        "help": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "profile", "blocks", "vector"]
+        },
+        "required": { "type": "boolean", "default": false },
+        "default": { "description": "Type-appropriate default value." },
+        "bindToProfile": {
+          "type": "string",
+          "description": "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "text" } } },
+          "then": {
+            "properties": {
+              "maxLength": { "type": "integer" },
+              "minLength": { "type": "integer" },
+              "pattern": { "type": "string", "description": "Regex." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "longtext" } } },
+          "then": {
+            "properties": {
+              "maxLength": { "type": "integer" },
+              "rows": { "type": "integer" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "number" } } },
+          "then": {
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "step": { "type": "number" },
+              "display": { "type": "string", "enum": ["input", "slider"], "default": "input" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "color" } } },
+          "then": {
+            "properties": {
+              "palette": {
+                "type": "string",
+                "description": "Asset ID of a palette asset to constrain choices. If omitted, free color picker."
+              },
+              "swatchesOnly": {
+                "type": "boolean",
+                "description": "Restrict to brand palette swatches only — hides the hex entry, native picker and alpha. Default false (full picker)."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "select" } } },
+          "then": {
+            "required": ["options"],
+            "properties": {
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["value"],
+                  "properties": {
+                    "value": { "type": "string" },
+                    "label": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "asset" } } },
+          "then": {
+            "properties": {
+              "assetType": { "type": "string", "enum": ["vector", "raster", "video", "any"] },
+              "filter": {
+                "type": "object",
+                "description": "Constraints passed to host.assets.query(). Limits the picker.",
+                "properties": {
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "namespace": { "type": "string" }
+                }
+              },
+              "allowUpload": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, picker offers user upload alongside library."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "blocks" } } },
+          "then": {
+            "properties": {
+              "fields": {
+                "type": "array",
+                "description": "Sub-fields for each repeatable block entry.",
+                "items": {
+                  "type": "object",
+                  "required": ["id"],
+                  "properties": {
+                    "id": { "type": "string" },
+                    "label": { "type": "string" },
+                    "placeholder": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "vector" } } },
+          "then": {
+            "required": ["fields"],
+            "properties": {
+              "fields": {
+                "type": "array",
+                "minItems": 1,
+                "description": "Numeric sub-fields, each a labelled Figma-style scrubber. Stored as one compound value { fieldId: number } and rendered as a single control / column.",
+                "items": {
+                  "type": "object",
+                  "required": ["id"],
+                  "properties": {
+                    "id": { "type": "string" },
+                    "label": { "type": "string" },
+                    "symbol": { "type": "string", "description": "Single character shown inside the field as its scrub handle (e.g. \"+\" for zoom). Defaults to the first letter of the label." },
+                    "min": { "type": "number" },
+                    "max": { "type": "number" },
+                    "step": { "type": "number" },
+                    "default": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

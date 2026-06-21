@@ -1,0 +1,7 @@
+<svg class="tl-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" preserveAspectRatio="xMidYMid meet">
+  {{!-- Oversized so it fills the whole viewport at any aspect: with the root's
+        "meet" the 1200 viewBox is letterboxed, but this rect extends past the
+        centred square into the margins (the outer SVG clips at the viewport). --}}
+  {{#unless transparentBg}}<rect x="-12000" y="-12000" width="25200" height="25200" fill="{{background}}"/>{{/unless}}
+  {{#if logo}}<image href="{{asset logo}}" x="{{logoX}}" y="{{logoY}}" width="{{logoSize}}" height="{{logoSize}}" preserveAspectRatio="xMidYMid meet"/>{{/if}}
+</svg>

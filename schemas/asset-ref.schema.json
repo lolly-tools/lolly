@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brand-tools.suse.com/schemas/asset-ref.schema.json",
+  "title": "AssetRef",
+  "description": "The runtime object representing a resolved asset. Returned by host.assets.get(), host.assets.pick(), and stored in saved tool state. Uniform across library assets and user uploads — tools handle them identically.",
+  "type": "object",
+  "required": ["source", "id", "type", "format", "url"],
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": ["library", "user", "remote"],
+      "description": "'library' = global catalog; 'user' = uploaded by this user; 'remote' = fetched by URL (rare, network capability only)."
+    },
+    "id": {
+      "type": "string",
+      "description": "For library: the canonical asset id (e.g. 'suse/logo/primary'). For user: a host-generated local id. For remote: the source URL."
+    },
+    "type": { "type": "string", "enum": ["vector", "raster", "video", "palette", "font"] },
+    "format": {
+      "type": "string",
+      "description": "The specific variant resolved, e.g. 'svg', 'png@2x'."
+    },
+    "url": {
+      "type": "string",
+      "description": "An object URL or data URL the template can use directly in <img src>, <use href>, etc. The host manages its lifecycle."
+    },
+    "width": { "type": "integer" },
+    "height": { "type": "integer" },
+    "version": {
+      "type": "string",
+      "description": "For library assets: the version resolved. Stored in saved state so re-opens get the same bytes (with fallback to latest if that version is gone)."
+    },
+    "checksum": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "description": "Type-specific metadata. e.g. for palettes: { swatches: [...] }."
+    }
+  }
+}

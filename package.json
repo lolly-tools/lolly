@@ -1,0 +1,27 @@
+{
+  "name": "lolly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Constraint-first, template-driven on-brand asset generation for SUSE.",
+  "type": "module",
+  "workspaces": [
+    "engine",
+    "shells/web",
+    "shells/cli"
+  ],
+  "scripts": {
+    "dev:web": "npm run build:info && npm --workspace shells/web run dev",
+    "build:web": "npm run build:info && npm --workspace shells/web run build",
+    "build:info": "node docs/build.js",
+    "test": "node --test \"tests/**/*.test.js\"",
+    "build:catalog": "node scripts/build-catalog-index.js && node scripts/checksum-assets.js",
+    "validate:catalog": "node scripts/validate-catalog.js",
+    "cli": "node shells/cli/bin/brand-tool.js",
+    "dev:desktop": "cd shells/tauri-desktop && npm run dev",
+    "build:desktop": "cd shells/tauri-desktop && npm run build",
+    "dev:android": "cd shells/tauri-mobile && npm run dev:android",
+    "dev:ios": "cd shells/tauri-mobile && npm run dev:ios",
+    "build:android": "cd shells/tauri-mobile && npm run build:android",
+    "build:ios": "cd shells/tauri-mobile && npm run build:ios"
+  }
+}

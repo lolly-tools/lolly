@@ -1,0 +1,3 @@
+label,value,color
+{{#each data}}{{csvCell label}},{{csvCell value}},{{csvCell color}}
+{{/each}}
