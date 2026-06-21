@@ -11,6 +11,7 @@ const repoRoot = resolve(__dirname, '..');
 const outDir = resolve(repoRoot, 'shells/web/public/info');
 mkdirSync(outDir, { recursive: true });
 try { copyFileSync(resolve(repoRoot, 'icon.png'), resolve(repoRoot, 'shells/web/public/icon.png')); } catch {}
+try { copyFileSync(resolve(repoRoot, 'icon-normal.webp'), resolve(outDir, 'icon-normal.webp')); } catch {}
 const logosOutDir = resolve(outDir, 'logos');
 mkdirSync(logosOutDir, { recursive: true });
 readdirSync(resolve(__dirname, 'src')).filter(f => f.endsWith('.svg')).forEach(f => {
@@ -510,7 +511,7 @@ Automated, just-in-time, permutations of things, articulated by your choice. The
   <canvas id="heroCanvas" aria-hidden="true"></canvas>
   <div class="hero-inner">
   <div class="hero-heading">
-    <h1>Abundant,<br>Instant,<br>Free!</h1>
+    <h1 class="hero-logo-h1"><img src="/info/icon-normal.webp" alt="Lolly" class="hero-logo"></h1>
   </div>
   <div class="hero-details">
     <p class="subtitle">${heroSubtitle}</p>
@@ -714,12 +715,14 @@ nav a.active:not(.nav-launch){color:#fff}
 .nav-launch:hover{background:var(--light);text-decoration:none!important}
 
 /* Hero */
-.hero{background:#01564a;color:#fff;padding:7rem 1.5rem 6rem;text-align:center;position:relative;overflow:hidden;min-height:50vh;user-select:none;-webkit-user-select:none}
+.hero{background:#1c4a2e;color:#fff;padding:7rem 1.5rem 6rem;text-align:center;position:relative;overflow:hidden;min-height:50vh;user-select:none;-webkit-user-select:none}
 /* Double-clicking the hero backdrop shouldn't highlight the heading/subtitle/trust copy; buttons keep normal selection. */
 .hero .btn{user-select:auto;-webkit-user-select:auto}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(48,186,120,.13) 0%,transparent 65%);pointer-events:none}
-#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:overlay;opacity:1}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:normal;opacity:1}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
+.hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
+.hero-logo{display:block;width:clamp(180px,32vw,340px);height:auto;margin:0 auto;position:relative}
 .hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem;color:rgba(255,255,255,.8);line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
