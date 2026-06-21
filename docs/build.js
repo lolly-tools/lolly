@@ -15,7 +15,7 @@ const outDir = resolve(repoRoot, 'shells/web/public/info');
 // Social crawlers (Slack, X, Facebook, LinkedIn, iMessage) require absolute og:image URLs.
 const SITE_URL = 'https://lolly.tools';
 const OG_IMAGE = `${SITE_URL}/og.png`;
-const OG_LOGO = `${SITE_URL}/info/icon-normal.webp`;
+const OG_LOGO = `${SITE_URL}/info/icon-normal.png`;
 const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating on-brand creative assets at scale.';
 
 const pages = [
@@ -514,7 +514,7 @@ ${cardData.map(({ h2 }, i) => `  <button class="audience-tab" role="tab" aria-se
   <canvas id="heroCanvas" aria-hidden="true"></canvas>
   <div class="hero-inner">
   <div class="hero-heading">
-    <h1 class="hero-logo-h1"><img src="/info/icon-normal.webp" alt="Lolly" class="hero-logo"></h1>
+    <h1 class="hero-logo-h1"><a href="/" class="hero-logo-link" aria-label="Open Lolly — browse all tools"><img src="/info/icon-normal.webp" alt="Lolly" class="hero-logo"></a></h1>
   </div>
   <div class="hero-details">
     <p class="subtitle">${heroSubtitle}</p>
@@ -704,14 +704,17 @@ nav a.active:not(.nav-launch){color:#fff}
 #heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;   mix-blend-mode: luminosity;;opacity:.4}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
 .hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
-.hero-logo{display:block;width:clamp(180px,32vw,340px);height:auto;margin:0 auto;position:relative;  box-shadow: 0 0.5em 1em #0004, 0 .1em .2em #0003;  border-radius: .91em;}
+.hero-logo-link{display:block;width:clamp(180px,32vw,340px);margin:0 auto;border-radius:.91em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 0.5em 1em #0004,0 .1em .2em #0003}
+.hero-logo-link:hover,.hero-logo-link:focus-visible{transform:translateY(-3px) scale(1.02);box-shadow:0 0.9em 1.6em #0006,0 .15em .3em #0004;outline:none}
+.hero-logo-link:active{transform:translateY(-1px) scale(1.0)}
+.hero-logo{display:block;width:100%;height:auto;position:relative;border-radius:.91em}
 .hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem;color:rgba(255,255,255,.8);line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
 .hero-trust span{font-size:.8rem;color:rgba(255,255,255,.5);letter-spacing:.02em}
 .trust-dot{color:rgba(255,255,255,.18)!important}
 .btn{display:inline-flex;align-items:center;padding:2rem 3rem;border-radius:1rem;font-weight:700;font-size:1rem;transition:all .18s ease;box-shadow:0 .2em 1em #0002}
-.btn-primary{background:rgba(48,186,120,.72);color:#000;mix-blend-mode:color-dodge}
+.btn-primary{background:rgba(48,186,120,.72);color:#000;mix-blend-mode:plus-lighter}
 .btn-primary:hover{background:var(--light);text-decoration:none;transform:translateY(-2px);box-shadow:0 8px 28px rgba(48,186,120,.35)}
 .btn-secondary{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.22);position:relative}
 .btn-secondary:hover{background:rgba(255,255,255,.1);text-decoration:none;transform:translateY(-1px)}
@@ -1394,6 +1397,7 @@ function build() {
   mkdirSync(outDir, { recursive: true });
   try { copyFileSync(resolve(repoRoot, 'icon.png'), resolve(repoRoot, 'shells/web/public/icon.png')); } catch {}
   try { copyFileSync(resolve(repoRoot, 'icon-normal.webp'), resolve(outDir, 'icon-normal.webp')); } catch {}
+  try { copyFileSync(resolve(repoRoot, 'icon-normal.png'), resolve(outDir, 'icon-normal.png')); } catch {}
 
   for (const page of pages) {
     const srcPath = resolve(__dirname, page.src);

@@ -39,7 +39,7 @@
       "label": "Heading",
       "type": "text",
       "default": "> heading",
-      "help": "The big, impactful line. Leave empty to omit it. Start with a direction marker — \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓ — to prefix it with that arrow."
+      "help": "The big, impactful line. Leave empty to omit it."
     },
     {
       "id": "headingFontSize",
@@ -69,7 +69,7 @@
       "label": "Subheading",
       "type": "text",
       "default": "Subheading",
-      "help": "A supporting line under the heading. Supports markdown: **bold**, *italic*, ~~strikethrough~~. Start with a direction marker — \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓ — to prefix it with that arrow."
+      "help": "A supporting line under the heading. Supports markdown: **bold**, *italic*, ~~strikethrough~~."
     },
     {
       "id": "subheadingFontSize",
@@ -100,7 +100,7 @@
       "type": "longtext",
       "default": "Body Text\n\n> supports bullets\n> like these\n\n**bold** and *italic*",
       "rows": 4,
-      "help": "Supports markdown: **bold**, *italic*, ~~strikethrough~~, bullet lists (lines starting with - ) and arrow bullets — lines starting with a direction marker: \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓."
+      "help": "Supports markdown: **bold**, *italic*, ~~strikethrough~~, and bullet lists (lines starting with - )."
     },
     {
       "id": "bodyFontSize",
@@ -131,7 +131,7 @@
       "type": "text",
       "default": "> cta",
       "maxLength": 20,
-      "help": "A short button label — up to 20 characters. Start with a direction marker — \"> \" →, \"< \" ←, \"^ \" ↑, \"v \" ↓ — to prefix the label with that arrow."
+      "help": "A short button label — up to 20 characters."
     },
     {
       "id": "ctaTypography",
