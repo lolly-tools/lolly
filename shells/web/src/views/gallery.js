@@ -121,7 +121,7 @@ export async function mountGallery(viewEl, host) {
         <div class="gallery-search-wrap">
           <input class="gallery-search" type="search" placeholder="Search tools…" autocomplete="off" spellcheck="false" aria-label="Search tools">
         </div>
-        <a href="/info/index.html" class="gallery-info-link btn" aria-label="What is Lolly? — about &amp; help">What?</a>
+        <a href="/info/" class="gallery-info-link btn" aria-label="What is Lolly? — about &amp; help">What?</a>
       </footer>
     </div>
   `;
