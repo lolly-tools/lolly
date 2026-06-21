@@ -30,7 +30,7 @@
       "id": "hostCity",
       "label": "Host city",
       "type": "text",
-      "default": "Amsterdam",
+      "default": "Nuremberg",
       "placeholder": "e.g. Nuremberg",
       "help": "The city where the meeting originates — sets the timezone for the time below."
     },
@@ -68,7 +68,7 @@
       "label": "Map projection",
       "type": "select",
       "group": "map",
-      "default": "geoEquirectangular",
+      "default": "geoOrthographic",
       "options": [
         { "value": "geoNaturalEarth1",      "label": "Natural Earth" },
         { "value": "geoEqualEarth",         "label": "Equal Earth" },
