@@ -303,6 +303,9 @@ footer{text-align:right;}
 
 /* Empty state: every tool category is hidden (or there are none). */
 .gallery-empty {
+  display: grid;
+  place-content: center;
+  min-height: 70vh;
   text-align: center;
   padding: 3rem 1.5rem;
   color: hsl(var(--muted-foreground));
@@ -1325,14 +1328,17 @@ background-color:hsl(var(--background) / 1);
     font-weight: 600;
     line-height: 1;
     color: hsl(var(--muted-foreground));
-    cursor: ew-resize;
     user-select: none;
     -webkit-user-select: none;
     touch-action: none;
     z-index: 1;
+    /* Purely a visual cue — let hover/click/focus fall through to the <input>
+       below. Drag-to-scrub still works: that listener is on .vec-field and gets
+       pointer events bubbling up from the input. */
+    pointer-events: none;
     transition: color 0.12s;
 }
-.vec-scrub:hover { color: hsl(var(--foreground)); }
+.vec-field:hover .vec-scrub { color: hsl(var(--foreground)); }
 .vec-field:focus-within .vec-scrub { color: hsl(var(--ring)); }
 .vec-num {
   width: 100%;
@@ -1349,6 +1355,7 @@ background-color:hsl(var(--background) / 1);
   text-align: left;
   -moz-appearance: textfield;
   appearance: textfield;
+  cursor: ew-resize;               /* drag anywhere to scrub (handled on .vec-field) */
 }
 /* Round only the outer corners; the last field restores its right border. */
 .vec-field:first-child .vec-num {
@@ -1368,6 +1375,7 @@ background-color:hsl(var(--background) / 1);
   z-index: 2;                      /* lift the focused field's ring above its neighbours */
   border-color: hsl(var(--ring));
   border-right-width: 1px;
+  cursor: text;                    /* once editing, show the caret instead of the scrub cue */
 }
 
 .storage-row{display:grid; grid-template-columns:2fr .5fr;}
@@ -2954,6 +2962,15 @@ a.storage-indicator:hover { opacity: 1; }
 .profile-view .feature-flag:hover { background: hsl(var(--accent)); }
 .profile-view .feature-flag:has(input:checked) { border-color: hsl(var(--primary)); }
 .profile-view .feature-flag-label { font-weight: 500; }
+/* "(batch mode)" rendered as a small pill beside the "Pro" label. */
+.profile-view .feature-flag-pill {
+  display: inline-block; vertical-align: middle;
+  margin-left: .5rem; padding: .1rem .5rem;
+  border-radius: 999px;
+  background: hsl(var(--primary) / .12);
+  color: hsl(var(--primary));
+  font-size: .7rem; font-weight: 600; letter-spacing: .02em;
+}
 .profile-view .feature-flag-input { position: absolute; opacity: 0; width: 0; height: 0; }
 .profile-view .feature-flag-switch {
   flex: none; position: relative;

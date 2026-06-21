@@ -40,7 +40,7 @@
       "min": 0.10,
       "max": 0.90,
       "step": 0.01,
-      "default": 0.55,
+      "default": 0.44,
       "showIf": { "chartType": "donut" }
     },
     {
@@ -147,7 +147,7 @@
       "section": "Labels",
       "type": "number",
       "display": "slider",
-      "default": 22,
+      "default": 44,
       "min": 10,
       "max": 48,
       "step": 1
@@ -158,7 +158,7 @@
       "section": "Labels",
       "type": "number",
       "display": "slider",
-      "default": 500,
+      "default": 600,
       "min": 100,
       "max": 900,
       "step": 100
@@ -212,7 +212,7 @@
       "label": "Show values",
       "section": "Value",
       "type": "boolean",
-      "default": false
+      "default": true
     },
     {
       "id": "valueSize", "urlKey": "vs",
@@ -220,7 +220,7 @@
       "section": "Value",
       "type": "number",
       "display": "slider",
-      "default": 24,
+      "default": 51,
       "min": 8,
       "max": 96,
       "step": 1
@@ -252,7 +252,7 @@
       "label": "Align",
       "section": "Value",
       "type": "select",
-      "default": "top",
+      "default": "center",
       "options": [
         { "value": "top",    "label": "Top" },
         { "value": "center", "label": "Center" },
@@ -304,8 +304,8 @@
       "default": [
         { "label": "Linux",    "value": "67", "color": "#30ba78" },
         { "label": "Cloud",   "value": "54", "color": "#0c322c" },
-        { "label": "Edge", "value": "38", "color": "#fe7c3f" },
-        { "label": "AI",        "value": "72", "color": "#192072" }
+        { "label": "Edge", "value": "38", "color": "#90ebcd" },
+        { "label": "AI",        "value": "72", "color": "#01564a" }
       ]
     },
     { "id": "width",  "label": "Width",  "type": "number", "default": 1080, "min": 100, "max": 8000, "group": "export" },
