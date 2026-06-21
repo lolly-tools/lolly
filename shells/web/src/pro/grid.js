@@ -254,10 +254,14 @@ export function renderGridHtml(state, columns, ctx, hidden = []) {
 
   const body = `<tbody>${state.rows.map(r => bodyRow(r, columns, ctx)).join('')}</tbody>`;
 
+  // Greet returning Pros by name when they've saved one (Profile → First name);
+  // fall back to the generic welcome otherwise.
+  const name = ctx.firstname?.trim();
+  const greeting = name ? `<strong>${esc(name)}, you're a pro!:</strong>` : `<strong>Welcome Pro:</strong>`;
   const emptyHint = columns.length === 0 && hidden.length === 0
     ? `<div class="pro-empty-hint">
         <span class="pro-empty-hint-icon">${WARNING_SVG}</span>
-        <p class="pro-empty-hint-text"><strong>Welcome to Pro Mode:</strong> Pick a tool to begin.
+        <p class="pro-empty-hint-text">${greeting} Pick a tool to begin.
         Fill any value down a whole column at once.</p>
       </div>`
     : '';

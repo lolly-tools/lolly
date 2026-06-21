@@ -520,11 +520,11 @@ ${cardData.map(({ h2 }, i) => `  <button class="audience-tab" role="tab" aria-se
       <span class="trust-dot">·</span>
       <span>Works offline</span>
       <span class="trust-dot">·</span>
-      <span>100% open source</span>
+      <span>Open Source</span>
       <span class="trust-dot">·</span>
       <span>14 tools ready</span>
       <span class="trust-dot">·</span>
-      <span>Privacy & sovereignty first</span>
+      <span>Privacy & Sovereignty 1st!</span>
     </div>
   </div>
   </div>
@@ -716,7 +716,7 @@ nav a.active:not(.nav-launch){color:#fff}
 /* Double-clicking the hero backdrop shouldn't highlight the heading/subtitle/trust copy; buttons keep normal selection. */
 .hero .btn{user-select:auto;-webkit-user-select:auto}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(48,186,120,.13) 0%,transparent 65%);pointer-events:none}
-#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:normal;opacity:1}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;   mix-blend-mode: luminosity;;opacity:.4}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
 .hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
 .hero-logo{display:block;width:clamp(180px,32vw,340px);height:auto;margin:0 auto;position:relative;  box-shadow: 0 0.5em 1em #0006, 0 .1em .2em #0005  ; border-radius: 3em;}
@@ -1225,8 +1225,8 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     var lw=Math.max(1.5,fs*0.16);
     sx.lineJoin='round';
     rr(sx,lw/2,lw/2,w-lw,h-lw,Math.max(0,r-lw/2));
-    sx.strokeStyle='#000'; sx.lineWidth=lw; sx.stroke();
-    sx.fillStyle='#000';
+    sx.strokeStyle='#30ba78'; sx.lineWidth=lw; sx.stroke();
+    sx.fillStyle='#30ba78';
     sx.font=weight+' '+fs+'px SUSE,sans-serif';
     // Centre on the actual glyph box, not the em box: these labels are all-caps
     // with no descenders, so a 'middle' baseline leaves them riding high with a
@@ -1294,7 +1294,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
       }
       ctx.save();
       ctx.translate(s.x,s.y); ctx.rotate(s.rot); ctx.globalAlpha=s.alpha;
-      ctx.strokeStyle='#000'; ctx.lineWidth=s.size*0.22; ctx.lineCap='round';
+      ctx.strokeStyle='#30ba78'; ctx.lineWidth=s.size*0.22; ctx.lineCap='round';
       ctx.beginPath(); ctx.arc(0,0,s.size,0,Math.PI*1.65); ctx.stroke();
       ctx.restore();
     }
