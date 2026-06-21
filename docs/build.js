@@ -641,6 +641,7 @@ ${whatsLines.length ? `<section class="whats-a-tool">
       <img src="/info/logos/chainchain.svg" alt="ChainChain">
     </div>
   </div>
+  <p class="social-proof-credit">Presently developed in-house at <a href="https://www.suse.com" target="_blank" rel="noopener"> SUSE</a></p>
 </section>
 <section class="about-section">
   <div class="about-inner reveal">
@@ -660,7 +661,7 @@ ${whatsLines.length ? `<section class="whats-a-tool">
       </div>
       <div class="about-item">
         <div class="about-item-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 13L2 9z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg></div>
-        <p><strong>Quoll-tea. Koala-ty. Quo'lity.</strong> We are obsessed with quality. Studio-quality media. When evaluating tools and platform improvements we ask:  Is it robust enough for everything.</p>
+        <p><strong>Quoll-tea. Koala-ty. Quo'lity.</strong> We are obsessed with quality. Studio-quality media. When evaluating tools and platform improvements we ask:  Is it good enough to make everything?</p>
       </div>
     </div>
 
@@ -718,7 +719,7 @@ nav a.active:not(.nav-launch){color:#fff}
 #heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:normal;opacity:1}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
 .hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
-.hero-logo{display:block;width:clamp(180px,32vw,340px);height:auto;margin:0 auto;position:relative;  box-shadow: 0 0.5em 1em #0006, 0 .1em .2em #0005   border-radius: 3em;}
+.hero-logo{display:block;width:clamp(180px,32vw,340px);height:auto;margin:0 auto;position:relative;  box-shadow: 0 0.5em 1em #0006, 0 .1em .2em #0005  ; border-radius: 3em;}
 .hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem;color:rgba(255,255,255,.8);line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
@@ -893,6 +894,9 @@ tr:nth-child(even) td{background:#fafffe}
 .logo-band{display:flex;align-items:center;gap:4rem;width:max-content;animation:logoScroll 32s linear infinite;padding:1rem 2rem}
 .logo-band img{height:2rem;width:auto;opacity:1;filter:grayscale(1);transition:opacity .2s,filter .2s;flex-shrink:0}
 .logo-band img:hover{opacity:1;filter:grayscale(0)}
+.social-proof-credit{text-align:center;color:var(--muted);font-size:.875rem;margin-top:1.75rem;padding:0 1.5rem}
+.social-proof-credit a{color:var(--green);font-weight:600;text-decoration:none}
+.social-proof-credit a:hover{text-decoration:underline}
 @keyframes logoScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
 /* About section */
