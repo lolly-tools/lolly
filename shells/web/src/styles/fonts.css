@@ -1,0 +1,34 @@
+/* SUSE variable fonts — served from the tools/lockup source tree,
+   available to all tools and app UI via these @font-face registrations. */
+
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/variable/SUSE[wght].ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/variable/SUSE-Italic[wght].ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUSE Mono';
+  src: url('/tools/lockup/src/fonts/variable/SUSEMono[wght].ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SUSE Mono';
+  src: url('/tools/lockup/src/fonts/variable/SUSEMono-Italic[wght].ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}

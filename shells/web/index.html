@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Page pinch-zoom is enabled (WCAG 1.4.4 — never lock it). The mobile
+       controls sheet is position:fixed and would otherwise strand off-screen
+       while zoomed; a VisualViewport shim (main.js) re-pins it to the visible
+       area via the --vv-top/--vv-left CSS vars. The canvas preview also keeps
+       its own pinch/pan (setupStagePinchZoom). -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Lolly — on-brand assets from simple inputs</title>
+  <meta name="description" content="Lolly generates on-brand assets — QR codes, charts, graphics, PDFs and more — from simple inputs. Constraint-first, template-driven, works offline." />
+  <link rel="canonical" href="https://lolly.tools/" />
+  <meta name="theme-color" content="#0c322c" />
+
+  <!-- Open Graph / social preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Lolly" />
+  <meta property="og:title" content="Lolly — on-brand assets from simple inputs" />
+  <meta property="og:description" content="Generate on-brand assets — QR codes, charts, graphics, PDFs — from simple inputs. Works offline." />
+  <meta property="og:url" content="https://lolly.tools/" />
+  <meta property="og:image" content="https://lolly.tools/og.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Lolly — on-brand assets from simple inputs" />
+  <meta name="twitter:description" content="Generate on-brand assets from simple inputs. Works offline." />
+  <meta name="twitter:image" content="https://lolly.tools/og.png" />
+
+  <!-- Brand-SERP structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Lolly",
+    "url": "https://lolly.tools/",
+    "applicationCategory": "DesignApplication",
+    "operatingSystem": "Web, Windows, macOS, Linux, iOS, Android",
+    "description": "Generate on-brand assets — QR codes, charts, graphics, PDFs and more — from simple inputs.",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
+
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" href="/icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <link rel="stylesheet" href="/src/styles/app.css" />
+  <!-- Apply saved theme before CSS paints to prevent flash of wrong theme. -->
+  <script>
+    (function () {
+      var t = localStorage.getItem('theme');
+      if (t === 'dark' || t === 'suse') document.documentElement.dataset.theme = t;
+    })();
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#tool-inputs">Skip to inputs</a>
+  <div id="app">
+    <main id="view" class="app-view">
+      <p class="loading">Loading…</p>
+    </main>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

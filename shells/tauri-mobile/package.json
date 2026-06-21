@@ -1,0 +1,23 @@
+{
+  "name": "@lolly/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:android": "tauri android dev",
+    "dev:ios": "tauri ios dev",
+    "build:frontend": "vite build",
+    "build:android": "npm run build:frontend && tauri android build",
+    "build:ios": "npm run build:frontend && tauri ios build",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-fs": "^2",
+    "@tauri-apps/plugin-http": "^2"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "vite": "^5"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "@lolly/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "brand-tool": "./bin/brand-tool.js"
+  },
+  "dependencies": {
+    "@lolly/engine": "*",
+    "jsdom": "^25.0.0"
+  }
+}

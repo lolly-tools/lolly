@@ -1,0 +1,115 @@
+/*
+ * Design tokens — three themes using shadcn's HSL-triple convention.
+ *
+ * Values are bare "H S% L%" triples, NOT wrapped in hsl(). This lets callers
+ * use both hsl(var(--x)) and hsl(var(--x) / 0.5) for alpha compositing.
+ *
+ * Themes are selected via [data-theme] on <html>. The light theme is also the
+ * :root default so the page renders correctly before JS applies the saved pref.
+ */
+
+/* ─── Light ─────────────────────────────────────────────────────────────── */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --background:             0 0% 100%;
+  --foreground:             224 71% 4%;
+
+  --card:                   0 0% 99%;
+  --card-foreground:        224 71% 4%;
+
+  --popover:                0 0% 100%;
+  --popover-foreground:     224 71% 4%;
+
+  --primary:                171 62% 12%;      /* SUSE dark teal — #0c322c */
+  --primary-foreground:     0 0% 100%;
+
+  --secondary:              210 40% 96%;
+  --secondary-foreground:   224 71% 4%;
+
+  --muted:                  210 40% 96%;
+  --muted-foreground:       215 16% 47%;
+
+  --accent:                 210 40% 94%;
+  --accent-foreground:      224 71% 4%;
+
+  --destructive:            0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border:                 214 32% 91%;
+  --input:                  214 32% 91%;
+  --ring:                   171 62% 12%;
+
+  --radius:                 1rem;
+}
+
+/* ─── Dark ───────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background:             224 71% 4%;
+  --foreground:             213 31% 91%;
+
+  --card:                   222 47% 7%;
+  --card-foreground:        213 31% 91%;
+
+  --popover:                222 47% 7%;
+  --popover-foreground:     213 31% 91%;
+
+  --primary:                151 57% 46%;      /* Pine Green — #30ba78 */
+  --primary-foreground:     171 62% 5%;
+
+  --secondary:              217 33% 14%;
+  --secondary-foreground:   213 31% 91%;
+
+  --muted:                  217 33% 14%;
+  --muted-foreground:       215 20% 65%;
+
+  --accent:                 217 33% 18%;
+  --accent-foreground:      213 31% 91%;
+
+  --destructive:            0 63% 38%;
+  --destructive-foreground: 213 31% 91%;
+
+  --border:                 217 33% 18%;
+  --input:                  217 33% 18%;
+  --ring:                   151 57% 46%;
+
+  --radius:                 1rem;
+}
+
+/* ─── SUSE (dark-teal brand base) ───────────────────────────────────────── */
+[data-theme="suse"] {
+  color-scheme: dark;
+
+  --background:             171 62% 12%;      /* #0c322c dark teal */
+  --foreground:             160 30% 92%;
+
+  --card:                   171 55% 17%;
+  --card-foreground:        160 30% 92%;
+
+  --popover:                171 55% 17%;
+  --popover-foreground:     160 30% 92%;
+
+  --primary:                151 57% 46%;      /* #30ba78 Pine Green */
+  --primary-foreground:     171 62% 8%;
+
+  --secondary:              171 48% 21%;
+  --secondary-foreground:   160 30% 92%;
+
+  --muted:                  171 48% 20%;
+  --muted-foreground:       160 20% 68%;
+
+  --accent:                 171 48% 22%;
+  --accent-foreground:      160 30% 92%;
+
+  --destructive:            0 55% 42%;
+  --destructive-foreground: 160 30% 92%;
+
+  --border:                 171 40% 24%;
+  --input:                  171 40% 24%;
+  --ring:                   151 57% 46%;
+
+  --radius:                 1rem;
+}

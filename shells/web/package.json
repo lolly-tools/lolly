@@ -1,0 +1,26 @@
+{
+  "name": "@lolly/web",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@lolly/engine": "*",
+    "dom-to-image-more": "^3.5.0",
+    "dompurify": "^3.4.9",
+    "fflate": "^0.8.3",
+    "flatpickr": "^4.6.13",
+    "gifenc": "^1.0.3",
+    "harfbuzzjs": "^1.4.0",
+    "idb": "^8.0.0",
+    "jspdf": "^4.2.1",
+    "pdf-lib": "^1.17.1"
+  },
+  "devDependencies": {
+    "vite": "^8.0.13"
+  }
+}

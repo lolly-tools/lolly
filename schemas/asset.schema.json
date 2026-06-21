@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brand-tools.suse.com/schemas/asset.schema.json",
+  "title": "Asset Manifest Entry",
+  "description": "One asset in the global catalog. Tools resolve assets by id via host.assets.get(). The id is a forever-stable contract; the version moves.",
+  "type": "object",
+  "required": ["id", "type", "version", "tier", "formats"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(/[a-z0-9][a-z0-9-]*)+$",
+      "description": "Namespaced. e.g. 'suse/logo/primary', 'event/kubecon-2026/badge'. NEVER changes. NEVER reused for a different asset."
+    },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["vector", "raster", "video", "palette", "font"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "SemVer. Bump on every byte change. Drives cache invalidation."
+    },
+    "tier": {
+      "type": "string",
+      "enum": ["core", "catalog", "on-demand"],
+      "description": "core = always bundled with app; catalog = synced at launch, cached; on-demand = fetched when used."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Used by host.assets.query() and pickers to filter."
+    },
+    "formats": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Available format variants. The host picks the right one based on use.",
+      "items": {
+        "type": "object",
+        "required": ["format", "url", "checksum"],
+        "properties": {
+          "format": {
+            "type": "string",
+            "description": "e.g. 'svg', 'png@1x', 'png@2x', 'png@3x', 'webp', 'mp4', 'json'."
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative to the catalog root, or absolute. Used by host to fetch bytes."
+          },
+          "checksum": {
+            "type": "string",
+            "pattern": "^sha256-",
+            "description": "SRI-format SHA-256. End-to-end integrity check."
+          },
+          "size": { "type": "integer", "description": "Bytes. Used for sync progress estimation." },
+          "width": { "type": "integer" },
+          "height": { "type": "integer" }
+        }
+      }
+    },
+    "locales": {
+      "type": "object",
+      "description": "Locale-specific format overrides. Key is BCP-47 locale tag. Value mirrors the 'formats' structure.",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "$ref": "#/properties/formats/items" }
+      }
+    },
+    "license": {
+      "type": "string",
+      "description": "e.g. 'internal', 'cc-by-4.0', 'all-rights-reserved'."
+    },
+    "deprecated": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft-deprecate before removal. Existing references still resolve."
+    },
+    "replacedBy": {
+      "type": "string",
+      "description": "If deprecated, asset id that supersedes this one."
+    },
+    "prefetch": {
+      "type": "boolean",
+      "default": false,
+      "description": "Catalog tier only. If true, fetch bytes at sync time, not on first use."
+    }
+  }
+}

@@ -1,0 +1,261 @@
+/**
+ * Runtime — orchestrates the 5-step lifecycle for a single mounted tool.
+ *
+ *   1. Request tool & template      → loader.js (done before runtime exists)
+ *   2. Present inputs               → buildInputModel + host UI
+ *   3. Hydrate template             → hydrate()
+ *   4. Stage for render             → host configures the render target
+ *   5. Render to format             → host.export.render()
+ *
+ * The runtime is platform-agnostic. It receives a host (the capability bridge)
+ * and emits state updates. The shell renders them.
+ *
+ * Hooks (if the tool declares any) are loaded into a sandboxed context. The
+ * runtime invokes them at the right lifecycle points and merges their effects.
+ *
+ * Patch semantics:
+ *   Hooks return a plain object. Keys that match a declared input id update
+ *   that input's value. Keys with no matching input go into `extras` — a
+ *   parallel store of hook-computed values the template can reference directly.
+ *   This is how QR module lists, chart data, etc. reach the template without
+ *   being declared as user-facing inputs in the manifest.
+ */
+
+import { buildInputModel, updateInput, modelToValues } from './inputs.js';
+import { hydrate } from './template.js';
+import { buildExportMeta } from './metadata.js';
+
+/**
+ * @param {Tool} tool                 from loader.js
+ * @param {HostV1} host               capability bridge implementation
+ * @param {object} [initialState]     from URL params or saved slot
+ */
+export async function createRuntime(tool, host, initialState = {}) {
+  if (host.version !== '1') {
+    throw new Error(`Tool requires host bridge v1, got v${host.version}`);
+  }
+
+  const profile = await host.profile.get();
+  let model = buildInputModel(tool.manifest, { profile, initial: initialState });
+
+  // Resolve any unresolved asset refs (from URL mode or a saved session). Any
+  // that no longer resolve (e.g. a user deleted an image a saved design used) are
+  // collected so the shell can tell the user the field was left blank.
+  const droppedAssets = [];
+  model = await resolveAssetRefs(model, host, droppedAssets);
+
+  // extras: hook-computed values that have no matching input id.
+  // Available to templates alongside input values.
+  let extras = {};
+
+  let hooks = null;
+  if (tool.hooksSource && tool.manifest.hooks) {
+    hooks = await loadHooks(tool, host);
+    if (hooks.onInit) {
+      try {
+        const patch = await withTimeout(hooks.onInit({ model, host }), 5000, tool.manifest.id);
+        if (patch) ({ model, extras } = mergePatch(model, extras, patch));
+      } catch (e) {
+        host.log('warn', `onInit ${e.message}`, { toolId: tool.manifest.id });
+      }
+    }
+  }
+
+  const listeners = new Set();
+  const emit = () => listeners.forEach(fn => fn({ model, hydrated: getHydrated() }));
+
+  function getHydrated() {
+    return hydrate(tool.template, { ...modelToValues(model), ...extras });
+  }
+
+  // Hydrate an arbitrary template string against the SAME context as the main
+  // template (input values + hook extras). Used by shells for things like a
+  // live accessible-label summary of the current render (manifest.a11yLabel).
+  function getHydratedString(str) {
+    return str ? hydrate(str, { ...modelToValues(model), ...extras }) : '';
+  }
+
+  // Same context, but WITHOUT HTML escaping — for non-HTML data templates
+  // (template.ics/.vcf/.csv). Each data format escapes via its own helper.
+  function getHydratedText(str) {
+    return str ? hydrate(str, { ...modelToValues(model), ...extras }, { raw: true }) : '';
+  }
+
+  return {
+    getModel: () => model,
+    getHydrated,
+    getHydratedString,
+    manifest: tool.manifest,
+    styles: tool.styles,
+    // Asset refs (from a saved session / URL) that no longer resolve. The shell
+    // reads this once after mount to surface a "left blank" notice.
+    droppedAssets,
+
+    async setInput(id, value) {
+      model = updateInput(model, id, value);
+      if (hooks?.onInput) {
+        try {
+          const patch = await withTimeout(hooks.onInput({ id, value, model, host }), 2000, tool.manifest.id);
+          if (patch) ({ model, extras } = mergePatch(model, extras, patch));
+        } catch (e) {
+          host.log('warn', `onInput ${e.message}`, { toolId: tool.manifest.id });
+        }
+      }
+      emit();
+    },
+
+    subscribe(fn) {
+      listeners.add(fn);
+      fn({ model, hydrated: getHydrated() });
+      return () => listeners.delete(fn);
+    },
+
+    // Re-notify subscribers with the CURRENT model — no value change. For shell
+    // state that lives outside the input model but still affects the render (e.g.
+    // export dimensions): a shell can force the canvas to re-hydrate through the
+    // one render path instead of mutating the DOM itself. Used to invalidate a
+    // deferred preview (manifest.render.preview) when the capture geometry changes.
+    refresh: emit,
+
+    async export(renderedNode, format, opts = {}) {
+      if (hooks?.beforeExport) {
+        await hooks.beforeExport({ node: renderedNode, format, opts, host });
+      }
+      // Surface the 'Convert paths' export toggle (a synthetic export-group input)
+      // to the bridge as opts.convertPaths, unless the caller set it explicitly.
+      // When a tool suppresses the toggle (render.convertPaths:false) there's no
+      // input to read, so honour the manifest opt-out directly — otherwise the
+      // bridge's default would outline text anyway.
+      if (opts.convertPaths === undefined) {
+        const cp = model.find(i => i.id === 'convertPaths');
+        if (cp) opts = { ...opts, convertPaths: Boolean(cp.value) };
+        else if (tool.manifest?.render?.convertPaths === false) opts = { ...opts, convertPaths: false };
+      }
+      const isExperimental = tool.manifest.status === 'experimental';
+      // Provenance: stamp authorship into the asset itself (per-format, in the
+      // bridge). Auto-assembled from the host profile + tool unless the caller
+      // supplied its own `meta` or opted out (e.g. thumbnails) with embedMeta:false.
+      let meta = opts.meta;
+      if (meta === undefined && opts.embedMeta !== false) {
+        meta = await buildExportMeta(host, tool.manifest);
+      }
+      // Data/text formats are produced from the input model (and optional sibling
+      // text templates), not the rendered DOM. The engine hydrates the text here
+      // and hands it to the host, which only has to wrap it in a Blob (one MIME
+      // per format). This keeps the single export entry point — every shell that
+      // calls runtime.export gets these formats for free.
+      const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
+      const blob = await host.export.render(renderedNode, format, {
+        ...opts,
+        watermark: opts.watermark ?? isExperimental,
+        meta,
+        ...dataExtra,
+      });
+      if (hooks?.afterExport) {
+        await hooks.afterExport({ node: renderedNode, format, opts, host });
+      }
+      return blob;
+    },
+  };
+}
+
+// Text/data export formats and their MIME types. These are produced from the
+// model rather than the rendered DOM, so the engine assembles the payload and
+// the host just wraps it in a Blob. JSON is derived from the resolved input
+// values; ICS/VCF/CSV come from a sibling text template (template.<ext>).
+const DATA_FORMATS = { json: 'application/json', csv: 'text/csv', ics: 'text/calendar', vcf: 'text/vcard' };
+
+// Returns { dataText, dataMime } for a data/text format, or {} for render
+// formats (png/svg/pdf/…) so the host takes its normal DOM path.
+function buildDataPayload(tool, format, model, getHydratedText) {
+  const dataMime = DATA_FORMATS[format];
+  if (!dataMime) return {};
+  if (format === 'json') {
+    const dataText = JSON.stringify(
+      { tool: tool.manifest.id, version: tool.manifest.version, inputs: modelToValues(model) },
+      null, 2,
+    );
+    return { dataText, dataMime };
+  }
+  const tpl = tool.textTemplates?.[format];
+  if (tpl == null) {
+    throw new Error(`Tool "${tool.manifest.id}" declares format "${format}" but ships no template.${format}`);
+  }
+  return { dataText: getHydratedText(tpl), dataMime };
+}
+
+async function resolveAssetRefs(model, host, dropped = []) {
+  return Promise.all(
+    model.map(async input => {
+      const v = input.value;
+      if (v && typeof v === 'object' && input.type === 'asset' && typeof v.id === 'string') {
+        // Re-resolve any asset ref that carries an id — this covers both the
+        // _unresolved URL-mode path AND saved-session refs.  Saved sessions store
+        // the full resolved object, but blob: URLs are session-scoped and invalid
+        // after a page reload, so we always re-fetch a fresh blob URL from the cache.
+        try {
+          const resolved = await host.assets.get(v.id);
+          return { ...input, value: resolved };
+        } catch (e) {
+          host.log('warn', `Failed to resolve asset ${v.id}`, { error: String(e) });
+          dropped.push({ inputId: input.id, label: input.label || input.id, id: v.id });
+          return { ...input, value: null };
+        }
+      }
+      return input;
+    }),
+  );
+}
+
+async function loadHooks(tool, host) {
+  // Hooks run in a Function() scope with only the host bridge in reach.
+  // No window, no global fetch — anything tools need goes through host.
+  // typeof guards prevent ReferenceError for hooks that aren't declared.
+  const factory = new Function(
+    'host',
+    `${tool.hooksSource}; return {` +
+    `onInit: typeof onInit !== 'undefined' ? onInit : null,` +
+    `onInput: typeof onInput !== 'undefined' ? onInput : null,` +
+    `beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,` +
+    `beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,` +
+    `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null` +
+    `};`,
+  );
+  const mod = factory(host);
+  return {
+    onInit:       typeof mod.onInit       === 'function' ? mod.onInit       : null,
+    onInput:      typeof mod.onInput      === 'function' ? mod.onInput      : null,
+    beforeRender: typeof mod.beforeRender === 'function' ? mod.beforeRender : null,
+    beforeExport: typeof mod.beforeExport === 'function' ? mod.beforeExport : null,
+    afterExport:  typeof mod.afterExport  === 'function' ? mod.afterExport  : null,
+  };
+}
+
+function withTimeout(promise, ms, toolId) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
+    Promise.resolve(promise).then(
+      v => { clearTimeout(t); resolve(v); },
+      e => { clearTimeout(t); reject(e); },
+    );
+  });
+}
+
+/**
+ * Split a hook patch into model updates (declared input ids) and extras
+ * (computed values with no matching input). Returns updated model + extras.
+ */
+function mergePatch(model, extras, patch) {
+  if (!patch || typeof patch !== 'object') return { model, extras };
+  const inputIds = new Set(model.map(i => i.id));
+  const newExtras = { ...extras };
+  const modelPatch = {};
+  for (const [k, v] of Object.entries(patch)) {
+    if (inputIds.has(k)) modelPatch[k] = v;
+    else newExtras[k] = v;
+  }
+  const newModel = model.map(input =>
+    input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input,
+  );
+  return { model: newModel, extras: newExtras };
+}

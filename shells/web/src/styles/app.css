@@ -1,0 +1,3843 @@
+/*
+ * App chrome — layout and component styles for the web shell.
+ *
+ * All colours flow through tokens.css HSL variables so the three themes
+ * (light / dark / suse) require no per-component overrides here.
+ * Tool-internal styles live in each tool's own template <style> block and
+ * are scoped to #tool-canvas — they don't inherit these variables.
+ */
+
+@import './fonts.css';
+@import './tokens.css';
+@import './picker.css';
+
+/* ─── Skip link ─────────────────────────────────────────────────────────── */
+
+/* Accessibility skip-nav. Its target (#tool-inputs) only exists on the tool
+   view, so it's scoped to that route — hidden and out of the tab order on the
+   gallery / profile / info pages, where it would jump nowhere. The router sets
+   .tool-view on #view (see main.js); :has() flips the link on only then. */
+.skip-link {
+  display: none;
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+body:has(.app-view.tool-view) .skip-link { display: block; }
+/* The router moves focus to #view on route change (tabindex=-1) for SR/keyboard
+   users; it's a programmatic target, so no visible focus ring. */
+.app-view:focus { outline: none; }
+.skip-link:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  z-index: 9999;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 0 0 var(--radius) 0;
+  overflow: visible;
+  text-decoration: none;
+}
+
+/* Screen-reader-only: visually hidden but exposed to assistive tech. Used for
+   per-view <h1>s, control hints, and live-region announcers. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Honour a user's reduced-motion preference for app CHROME only: tame looping /
+   decorative keyframe animations and smooth scroll. Colours/layout unchanged.
+   We deliberately DO NOT zero transitions — functional state changes (the mobile
+   sheet sliding, the export popup, hovers) are short, non-vestibular, and reading
+   them as instant "jumps" feels broken; honouring reduced motion shouldn't make
+   the UI feel broken. Looping/entrance animations (the genuinely gratuitous kind)
+   are still reduced.
+   The tool render canvas (.tool-canvas / #tool-content) and its ENTIRE subtree —
+   descendants and their pseudo-elements — are exempt: that motion is the user's
+   creative output, and animated tools (e.g. Bag Video) must keep animating to
+   render as intended. The exemption is repeated on ::before/::after so the
+   pseudo-elements of canvas content aren't frozen. */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *),
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *)::before,
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Reset / base ──────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+
+}
+*:before,*:after{  font-family: SUSE, ui-sans-serif, system-ui, sans-serif;}
+[hidden]{display:none;visibility:hidden}
+body {
+  margin: 0;
+  font-family: SUSE, ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth colour transitions only when the theme changes (class set by JS). */
+.theme-transitioning,
+.theme-transitioning * {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.15s ease !important;
+}
+
+/* Global focus ring — keyboard navigation only. */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── App shell ─────────────────────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  height: 52px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.app-header a {
+
+  -webkit-text-stroke: .04em;
+  text-decoration: none;
+  color: currentcolor;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+}
+
+.brand-name {
+  color: hsl(var(--primary));
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Ghost nav buttons */
+.nav-btn {
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  }
+  
+  .nav-btn--active {}
+  
+  .app-view {
+    padding: 24px 4px;
+    min-height: 100vh;
+  }
+  
+  /* Tool view is full-bleed — the sidebar provides its own visual edge. */
+  .app-view.tool-view {
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .pro-view {
+    padding: 48px 0
+  }
+  
+  .pro-wrap {
+    padding: 1em 0 !important
+  }
+  
+  .pro-col-head {
+    position: relative
+  }
+  
+  .pro-col-head .pro-fill-btn {
+    position: absolute;
+    right: 0
+  }
+  
+  .pro-col-head:hover .pro-fill-btn{opacity:1}
+.pro-col-head:not(:hover) .pro-fill-btn{opacity:0}
+.pro-addrow .pro-btn{border-radius: 0em 0 1em 1em; padding: 1em 2em; }
+footer{text-align:right;}
+
+/* ─── Gallery ───────────────────────────────────────────────────────────── */
+
+/* Sticky footer bar (gallery only): Batch link on the far left, "what is this?"
+   on the right — both plain .btn-styled links flanking the centered search. */
+.gallery-footer {
+  position: fixed;
+  /* --vv-* (set by the VisualViewport shim) keep the fixed bar on the visible
+     edge while the page is pinch-zoomed; all 0px when not zoomed. */
+  left: var(--vv-left, 0px); right: var(--vv-right, 0px); bottom: var(--vv-bottom, 0px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .6rem 1rem;
+  /* viewport-fit=cover (see index.html) lets the footer reach the screen edge;
+     pad its content up past the iOS home-indicator so the controls stay tappable
+     and the bar reads as pinned to the visible viewport bottom. */
+  padding-bottom: calc(.6rem + env(safe-area-inset-bottom));
+  background: hsl(var(--background) / .82);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid hsl(var(--border));
+}
+.app-view.gallery-view { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); } /* clear the fixed footer */
+
+/* Subtle translucent-black wash so the cards read as raised on every theme. */
+.gallery-view { background-color: #0001; }
+
+
+@media (min-width:756px) {
+  .gallery-view {
+    display: grid;
+        grid-template-columns: 1.5fr 4fr;
+        gap: 12px;
+        place-content: center;
+        align-items: start;
+  }
+  .gallery-view.no-saves{  grid-template-columns: 1fr;}
+}
+.gallery-title{font-size:4em !important; line-height:1; font-weight:100;margin-top:.3em; margin-bottom:.5em;}
+.gallery-header{font-size:1.5em;  
+    place-content: center;}
+
+
+.gallery-view .saved-list{display:block;}
+.gallery-view .saved-list > *{display:block;}
+
+
+/* Lives in the sticky footer between the Batch CTA and the info link: take the
+   middle space and center the field within it (min-width:0 lets it shrink past
+   its content on narrow screens so the side items never get pushed off). */
+.gallery-search-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+}
+
+
+.gallery-search {
+  width: 100%;
+  min-width:4em;
+  max-width: 28rem;
+  padding: 8px 12px;
+  font: inherit;
+  font-size: 13px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  outline: none;
+  transition: border-color 0.12s;
+}
+
+.gallery-search:focus {
+  border-color: hsl(var(--ring));
+}
+
+.gallery-no-results {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  padding: 8px 0;
+}
+
+/* Empty state: every tool category is hidden (or there are none). */
+.gallery-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: hsl(var(--muted-foreground));
+}
+.gallery-empty-title {
+  margin: 0 0 .4rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.gallery-empty-hint { margin: 0; font-size: .9rem; }
+.gallery-empty-hint a { color: hsl(var(--primary)); font-weight: 600; }
+
+.gallery-category {
+  margin-bottom: 32px;
+}
+
+.gallery-hint{display:grid;grid-template-columns: 1fr 1fr;}
+.category-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-align:center;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 12px;
+}
+.saved-row h4{font-weight: 600;
+    font-size: 12px;}
+
+.category-utility{
+  /*background-color:hsl(var(--muted)); border-radius: 2em; padding:1em; border: 1px solid hsl(var(--border))*/
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 6px;
+}
+
+@keyframes card-in {
+  from { opacity: 0; translate: 0 6px; }
+  to   { opacity: 1; translate: 0 0;   }
+}
+
+.tool-grid .tool-card,
+.saved-list .tool-card {
+  animation: card-in 0.25s ease both;
+}
+
+/* Suppress entrance animation when returning from a tool — cards are already known. */
+.gallery-view.is-returning .tool-grid .tool-card,
+.gallery-view.is-returning .saved-list .tool-card {
+  animation: none;
+}
+
+/* Visual feedback on the element that triggered navigation while the tool loads. */
+.is-navigating {
+  opacity: 0.45;
+  scale: 0.97;
+  pointer-events: none;
+  transition: opacity 0.15s, scale 0.15s;
+}
+.tool-grid .tool-card:nth-child(1),  .saved-list .tool-card:nth-child(1)  { animation-delay: 0.00s; }
+.tool-grid .tool-card:nth-child(2),  .saved-list .tool-card:nth-child(2)  { animation-delay: 0.05s; }
+.tool-grid .tool-card:nth-child(3),  .saved-list .tool-card:nth-child(3)  { animation-delay: 0.10s; }
+.tool-grid .tool-card:nth-child(4),  .saved-list .tool-card:nth-child(4)  { animation-delay: 0.15s; }
+.tool-grid .tool-card:nth-child(5),  .saved-list .tool-card:nth-child(5)  { animation-delay: 0.20s; }
+.tool-grid .tool-card:nth-child(6),  .saved-list .tool-card:nth-child(6)  { animation-delay: 0.25s; }
+.tool-grid .tool-card:nth-child(7),  .saved-list .tool-card:nth-child(7)  { animation-delay: 0.30s; }
+.tool-grid .tool-card:nth-child(8),  .saved-list .tool-card:nth-child(8)  { animation-delay: 0.35s; }
+.tool-grid .tool-card:nth-child(9),  .saved-list .tool-card:nth-child(9)  { animation-delay: 0.40s; }
+.tool-grid .tool-card:nth-child(10), .saved-list .tool-card:nth-child(10) { animation-delay: 0.45s; }
+.tool-grid .tool-card:nth-child(11), .saved-list .tool-card:nth-child(11) { animation-delay: 0.50s; }
+.tool-grid .tool-card:nth-child(12), .saved-list .tool-card:nth-child(12) { animation-delay: 0.55s; }
+.tool-grid .tool-card:nth-child(n+13), .saved-list .tool-card:nth-child(n+13) { animation-delay: 0.60s; }
+
+/* Keep the gallery's card-in build-up under reduced motion. It's a deliberately
+   gentle fade + 6px rise — the page's load character, not gratuitous movement —
+   so we exempt it from the global chrome rule that zeroes animation durations.
+   Needs an id in the selector to out-specify that rule, whose :not() list pulls
+   in #tool-content and so carries ID-level specificity. */
+@media (prefers-reduced-motion: reduce) {
+  #view.gallery-view .tool-grid .tool-card,
+  #view.gallery-view .saved-list .tool-card {
+    animation-duration: 0.25s !important;
+  }
+}
+
+.tool-card {
+  position: relative;
+  text-align: left;
+  padding: 1.5em;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-radius: calc(var(--radius) * 1.25);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 7em;
+  cursor: pointer;
+  box-shadow: .1rem .2rem .5rem #0002;
+  transition: border-color 0.12s, box-shadow 0.12s;
+}
+.tool-name,.tool-desc{margin-left:1em}
+
+
+.tool-card:has(.tool-card-actions){display: grid;
+
+    grid-template-columns: 1fr }
+
+.tool-card:hover {
+  border-color: hsl(var(--primary) / 0.5);
+  box-shadow: 0 2px 8px hsl(var(--primary) / 0.08);
+}
+
+.tool-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.tool-card-actions {
+  display: flex;
+  gap: 6px;
+  border-radius: var(--radius);
+  background: repeating-conic-gradient(rgba(255, 255, 255, .025) 0% 25%, rgba(0, 0, 0, .025) 0% 50%) 50% / .5em .5em;
+  position: relative;
+  z-index: 1;
+}
+
+/* Stretched-link: the <a> inside .tool-card-body covers the whole card. */
+.tool-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+.tool-card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+}
+/* Route focus ring to the card boundary, not the inline link element. */
+.tool-card:has(.tool-card-link:focus-visible) {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+.tool-card-link:focus-visible {
+  outline: none;
+}
+
+.tool-card-action {
+  flex: 1;
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+   
+}
+
+.tool-card-action:hover {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--border));
+}
+
+.tool-card-action--continue {
+  display: flex;
+  align-items: center;
+  padding:0;
+  background: hsl(var(--primary) / 0.00);
+  border-color: hsl(var(--primary) / 0);
+  color: hsl(var(--muted-foreground));
+   
+  font-weight: 400;    place-content: center;
+
+}
+
+.tool-card-action--continue:hover {
+  background: hsl(var(--primary) / 0.15);
+  border-color: hsl(var(--primary) / 0.5);
+  color: hsl(var(--primary));
+}
+
+.tool-card-thumb {
+  flex-shrink: 0;
+  max-width: 175px;
+  max-height: 100px;
+  width: auto;
+  height: auto;
+  border-radius: calc(var(--radius) / 2);
+  object-fit: contain;
+  display: block;
+}
+
+.tool-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.tool-desc {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+.badge {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-family:"SUSE Mono";
+  z-index: 1;
+}
+
+.badge-experimental {
+  background: hsl(var(--background) / .9);
+  
+  color: hsl(var(--destructive));
+  border: 1px solid hsl(var(--destructive) / 0.3);
+}
+
+.badge-community {
+  background: hsl(40 90% 50% / 0.1);
+  color: hsl(35 80% 40%);
+  border: 1px solid hsl(40 70% 50% / 0.3);
+}
+
+.badge-desktop {
+  background: hsl(var(--muted) / 0.9);
+  color: hsl(var(--muted-foreground));
+  border: 1px solid hsl(var(--border));
+}
+
+/* Capture tools on a Chromium browser: runnable via the extension (clickable). */
+.badge-install {
+  background: hsl(152 60% 45% / 0.12);
+  color: hsl(152 55% 32%);
+  border: 1px solid hsl(152 50% 45% / 0.35);
+}
+
+/* A tool this shell can't run (unmet capability, e.g. capture). Greyed and inert
+   — it has no link, so it's there for discoverability ("use the desktop app"). */
+.tool-card--unavailable {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.tool-card--unavailable .tool-name {
+  color: hsl(var(--muted-foreground));
+}
+
+/* ─── Tool view layout ──────────────────────────────────────────────────── */
+
+.tool-layout {
+  display: flex;
+  min-height: 100vh ;
+  min-height: 100dvh ;
+}
+
+/* ─── Sidebar ───────────────────────────────────────────────────────────── */
+
+/* Drag grip for the mobile sheet — hidden on desktop. The full mobile sheet
+   layout lives in a media block near the end of this file: it must come AFTER the
+   base .sidebar / .tool-stage rules (which appear later in source order) or those
+   would override it at equal specificity. */
+.sheet-grip { display: none; }
+
+/* "Render" button + export popup. Shared visual styling here; each breakpoint
+   positions it — a bottom-centre FAB + full-screen sheet on mobile, a bottom-left
+   sidebar pill + non-modal sticky panel on desktop. Hidden until a breakpoint
+   shows it. The export controls (#tool-actions) are moved into the popup on both. */
+.render-fab {
+  display: none;            /* shown per breakpoint */
+  align-items: center;
+  gap: 8px;
+  border: none;
+  border-radius: 999px;
+  padding: 13px 24px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+}
+.render-fab svg { width: 18px; height: 18px; }
+.export-overlay { display: none; }
+
+/* Desktop (>640px): the Render button lives bottom-left of the sidebar and the
+   export panel expands as a NON-MODAL sticky sheet over the sidebar bottom — no
+   scrim, so the inputs above stay live. Sized to the (resizable) sidebar width. */
+@media (min-width: 641px) {
+  /* Render button is a centred footer INSIDE the sidebar (JS reparents it there
+     on desktop; on mobile it's a viewport FAB outside the sheet). */
+  .render-fab {
+    display: inline-flex;
+    align-self: center;
+    flex-shrink: 0;
+    margin: 6px auto 14px;
+  }
+  .tool-layout.export-open .render-fab { display: none; }
+
+  .export-overlay {
+    display: block;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w, 272px);
+    z-index: 40;
+    pointer-events: none;        /* the box never blocks; only the panel is interactive */
+  }
+  .export-overlay-scrim { display: none; }   /* no darkening — non-modal */
+  .export-popup {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    width: 100%;
+    max-height: 72vh;
+    display: flex;
+    flex-direction: column;
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-radius: 12px 12px 0 0;
+    border-top: 1px solid hsl(var(--border));
+    box-shadow: 0 .2rem .5rem 1px #0004, 0 -10px 36px #0002;
+    pointer-events: auto;
+    transform: translateY(110%);              /* tucked below the viewport when closed */
+    transition: transform 0.22s ease;
+  }
+  .tool-layout.export-open .export-popup { transform: translateY(0); }
+  .export-popup-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid hsl(var(--border));
+    flex-shrink: 0;
+  }
+  .export-popup-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+  }
+  .export-popup-close {
+    border: none; background: none; cursor: pointer; padding: 4px 8px;
+    font-size: 18px; line-height: 1; color: hsl(var(--muted-foreground));
+  }
+  .export-popup-body { overflow-y: auto; padding: 14px; }
+  .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
+  /* Let the last input scroll clear of the open export panel. */
+  .tool-layout.export-open .sidebar-body { padding-bottom: 45vh; }
+  /* No export affordance while the sidebar is collapsed (fullscreen preview). */
+  .tool-layout[data-sidebar="closed"] .render-fab,
+  .tool-layout[data-sidebar="closed"] .export-overlay { display: none; }
+}
+
+
+.sidebar {
+  flex-shrink: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: hsl(var(--card) / .8);
+  backdrop-filter: blur(5px);
+  border-right: 1px solid hsl(var(--border));
+  transition: width 0.2s ease;
+  /* overflow-x hidden so the contents (frozen at the open width via --sb-open-w,
+     see .sidebar-body) CLIP rather than reflow as the panel width-collapses — a
+     smooth glide with no scrollbar flash. overflow-y auto for tall input lists. */
+  overflow-x: hidden;
+  overflow-y: auto;
+    max-height: 100vh;
+    max-height: 100dvh; /* track the visible viewport so mobile chrome can't hide the header/actions */
+}
+
+.sidebar.is-dragging {
+  transition: none;
+}
+
+.sidebar-drag-handle {
+  position: absolute;
+  top: 0;
+  right: -8px;
+  width: 16px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 10;
+  transition: background 0.12s;
+}
+
+.sidebar-drag-handle:hover,
+.sidebar.is-dragging .sidebar-drag-handle {
+  background: hsl(var(--primary) / 0.25);
+}
+
+.sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 8px 0 14px;
+    height: 48px;
+    border-bottom: 1px solid hsl(var(--border));
+    flex-shrink: 0;
+    gap: 8px;
+
+    /* Sticky — pins to the top of the scrolling sidebar so the Tools /
+       fullscreen controls are always reachable, even after scrolling the inputs. */
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: hsl(var(--card) / 0.82);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+    width: 100%;
+    box-shadow: inset 0 -1px #fff1, 0 .1em .6em #0002, 0 .1em .2em #0002;
+}
+
+.sidebar-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
+  transition: opacity 0.15s;
+}
+
+.tool-layout[data-sidebar="closed"] .sidebar-title {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.fullscreen-toggle {
+  flex-shrink: 0;
+  z-index: 9;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.fullscreen-toggle::before {
+  content: "\02192";
+}
+
+/* Sidebar-collapse state — a sidebar-panel icon (kept class name). A currentColor
+   mask so it still inherits the toggle's colour + hover, unlike a coloured glyph. */
+.fullscreen-toggle[open]::before {
+  content: "";
+  width: 17px;
+  height: 17px;
+  background-color: currentColor;
+  --sidebar-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2'/%3E%3Cline x1='9' y1='3' x2='9' y2='21'/%3E%3C/svg%3E");
+  -webkit-mask: var(--sidebar-icon) no-repeat center / contain;
+          mask: var(--sidebar-icon) no-repeat center / contain;
+}
+
+.fullscreen-toggle:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+/* Mobile sheet grip — a centred drag bar. Positioned (fixed, on the divider) in
+   the mobile media block; this is just its appearance + interaction. */
+.sheet-grip {
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+.sheet-grip::before {
+  content: "";
+  width: 44px;
+  height: 8px;            /* was 5px — ~0.2em taller, easier to spot & grab */
+  border-radius: 999px;
+  background: hsl(var(--primary));
+  border: 1px solid #fff5;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+}
+.tool-layout.is-sheet-dragging .sheet-grip { cursor: grabbing; }
+
+.sidebar-utils{display: grid;
+    grid-template-columns: 1fr;}
+.sidebar-body {
+  flex: 1;
+  /* Hold the open width so the controls don't reflow (squish/wrap) frame-by-frame
+     while the panel collapses — they stay put and get clipped, so the collapse
+     glides. --sb-open-w is set by the shell as the sidebar opens/resizes. */
+  min-width: var(--sb-open-w, 272px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+  transition: opacity 0.12s;
+}
+
+.tool-layout[data-sidebar="closed"] .sidebar-body {
+  opacity: 0;
+  pointer-events: none;
+}
+/* minmax(0,1fr): let the single column shrink below its content's intrinsic
+   width (default grid tracks are min-content), so long values (e.g. an asset
+   file path) truncate instead of widening the sidebar. */
+.tool-inputs{display:grid; grid-template-columns:minmax(0,1fr); gap: 18px}
+
+/* Notice shown when a saved design referenced an image that's since been deleted. */
+.tool-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding: 9px 10px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: hsl(var(--foreground));
+  background: hsl(var(--destructive) / 0.08);
+  border: 1px solid hsl(var(--destructive) / 0.3);
+  border-radius: var(--radius);
+}
+.tool-notice-text { flex: 1; min-width: 0; }
+.tool-notice-text strong { font-weight: 600; }
+.tool-notice-close {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: hsl(var(--foreground) / 0.55);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 5px;
+}
+.tool-notice-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.fullscreen-toggle-float {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 20;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card) / 0.88);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border-radius: var(--radius);
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: 16px;
+  line-height: 1;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+
+.fullscreen-toggle-float::before {
+    content: "\02192";
+}
+
+.tool-layout[data-sidebar="closed"] .fullscreen-toggle-float {
+  display: flex;
+}
+
+.fullscreen-toggle-float:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.home-full {
+  display: block;
+  padding: 10px 12px;
+  position:absolute;
+}
+
+/* Shared "← Tools" return pill — fixed top-left corner. Used identically on the
+   profile page, /pro batch mode, and full-screen utility tools (color-palette,
+   countdown-timer). Combined selector beats the single-class .tools-home/.home-full
+   rules so the fixed positioning always wins regardless of source order. */
+.tools-home.home-full {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 100;
+}
+
+.input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  min-width: 0; /* shrink below content (grid/flex item) so children can truncate */
+}
+
+/* Base label — used for selects, checkboxes, asset-pickers, etc. */
+.input-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+.input-value {
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground));
+  margin-left: 0.4em;
+}
+
+/* ── Floating labels for text inputs and textareas ─────────────── */
+
+/* Resting state: label sits inside the field like placeholder text.
+   Rows tagged .input-row--static-label (e.g. the flatpickr datetime) opt out and
+   keep the plain static label above the field. */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])) .input-label,
+.input-row:not(.input-row--static-label):has(textarea) .input-label {
+  position: absolute;
+  left: 10px;
+  top: 23px;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground) / 0.65);
+  pointer-events: none;
+  transition:
+    top 0.15s ease,
+    transform 0.15s ease,
+    font-size 0.15s ease,
+    color 0.15s ease,
+    font-weight 0.15s ease,
+    letter-spacing 0.15s ease;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 20px);
+}
+
+/* Floating state — focused or has content */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not(:placeholder-shown)) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:focus) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:not(:placeholder-shown)) .input-label {
+  top: 7px;
+  transform: translateY(0);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+      color: hsl(var(--muted-foreground));
+}
+
+/* Highlight label on focus */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:focus) .input-label {
+  color: hsl(var(--ring));
+}
+
+/* Hide placeholder in resting state — label acts as the visual placeholder.
+   Only reveal hint text once the label has floated up (on focus). */
+.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"])::placeholder,
+.input-row:not(.input-row--static-label) textarea::placeholder {
+  color: transparent;
+  transition: color 0.15s;
+}
+
+.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus::placeholder,
+.input-row:not(.input-row--static-label) textarea:focus::placeholder {
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Shared control appearance */
+.input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]),
+.input-row textarea {
+  width: 100%;
+
+  background: hsl(var(--background) / .5);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+  appearance: auto;
+  padding: 16px 14px 16px;
+}
+
+/* The rule above forces appearance:auto on number fields (the vector scrubbers),
+   which re-shows Firefox's spin buttons — Chrome hides them via ::-webkit-*-spin-
+   button, which Firefox lacks. Restore appearance:textfield with matching
+   specificity so it wins the cascade and the spinners stay hidden everywhere. */
+.input-row input[type="number"]:not([type="checkbox"]):not([type="color"]):not([type="range"]) {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.input-row select {
+  width: 100%;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+  appearance: auto;
+}
+
+.input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]):hover,
+.input-row textarea:hover,
+.input-row select:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.input-row input:focus,
+.input-row textarea:focus,
+.input-row select:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+.input-row textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.input-row--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  user-select: none;
+}
+
+.input-row--checkbox:hover {
+  border-color: hsl(var(--ring) / 0.4);
+  background: hsl(var(--accent));
+}
+
+.input-row--checkbox:has(input:checked) {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.07);
+}
+
+.input-row--checkbox .input-label {
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+
+.input-row input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+}
+
+.input-row input[type="color"]:not(.color-popover-native) {
+  width: 36px;
+  height: 28px;
+  padding: 1px 2px;
+  border:none;;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: none;
+}
+
+/* ─── Time input ────────────────────────────────────────────────────────── */
+
+.input-row:has(.time-input-wrap) .input-label {
+  position: static;
+  transform: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  pointer-events: auto;
+  white-space: normal;
+  max-width: none;
+}
+
+.time-input-wrap input[type="time"] {
+  width: 100%;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+  color-scheme: light dark;
+}
+.time-input-wrap input[type="time"]:hover { border-color: hsl(var(--ring) / 0.4); }
+.time-input-wrap input[type="time"]:focus { border-color: hsl(var(--ring)); outline: none; box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
+
+/* ─── Datetime-local input ──────────────────────────────────────────────── */
+
+/* The datetime control renders a flatpickr-enhanced `.fp-datetime` text input
+   (see controlHtml in tool.js) — it picks up the shared input-box styling above.
+   Its row carries .input-row--static-label so the label stays static rather than
+   floating: the panel re-renders on every keystroke and flatpickr re-populates
+   the value, which would otherwise make a floating label wobble each time. */
+
+/* ─── Collapsible input section ─────────────────────────────────────────── */
+
+.input-section {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+ 
+  min-width: 0; /* grid item: allow shrink so inner controls can truncate */
+}
+
+.input-section-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.input-section-summary:hover{
+  color:var(--primary); 
+background-color:hsl(var(--background) / 1);
+}
+
+
+.input-section-summary::-webkit-details-marker { display: none; }
+
+.input-section-summary::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.input-section[open] .input-section-summary::after {
+  transform: rotate(45deg);
+}
+
+.input-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 6px 10px 10px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* ─── Blocks input ──────────────────────────────────────────────────────── */
+
+/* Disable floating-label behaviour for rows that contain a blocks control */
+.input-row:has(.blocks-input) .input-label {
+  position: static;
+  transform: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  pointer-events: auto;
+  white-space: normal;
+  max-width: none;
+}
+
+.blocks-input {margin-top: 2em; display: flex; flex-direction: column; gap: 6px; }
+.blocks-list  { display: flex; flex-direction: column; gap: 4px;     margin: 0 -12px;}
+
+.block-item {
+  display: grid;
+  grid-template-columns: 1fr .51fr .71fr ;
+  gap: 1px;
+  align-items: center;
+}
+
+/* Color picker field inside a block row spans full width on its own row.
+   The remove button is pinned to row 1 col 3 so it stays with the text fields. */
+.block-item:has(.block-color-field) .block-remove {
+  grid-row: 1;
+  grid-column: 4;
+}
+.block-color-field {
+ 
+  grid-row: 1;grid-column: 3;
+}
+.blocks-list .block-field{padding:4px  4px 4px  14px !important; }
+.block-field {
+  width: 100%;
+  padding: 6px 8px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 12px;
+  transition: border-color 0.12s;
+}
+.block-field:hover { border-color: hsl(var(--ring) / 0.4); }
+.block-field:focus { border-color: hsl(var(--ring)); outline: none; box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
+
+.block-remove {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; flex-shrink: 0;
+  background: none; border: none; cursor: pointer;
+  color: hsl(var(--muted-foreground)); border-radius: var(--radius);
+  font-size: 12px; transition: color 0.12s, background 0.12s;
+}
+.block-remove:hover { color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+
+.block-add {
+  align-self: flex-start;
+  padding: 5px 10px;
+  background: none;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 12px; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.block-add:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+
+/* Vector input — N Figma-style number scrubbers on one row, one control/column.
+   The label doubles as a drag handle (scrub left/right); the number field is
+   typeable. */
+/* Vector input — N numeric fields joined into one segmented component (e.g. the
+   background Zoom / X / Y control). Each field overlays a tiny draggable character
+   (Figma-style scrub) on the left of a typeable number, mirroring the export-dims
+   width/height fields. Only the outer corners round; internal borders collapse so
+   the segments read as a single pill. */
+
+/* The row's own label is redundant for a vector control — the section header
+   names it (e.g. "Position") and the per-field scrub symbols + help text carry
+   the rest. Left visible it gets the floating-label treatment (the fields are
+   <input type=number>) and collides with the scrubbers, so hide it. Each field
+   keeps its own aria-label, so the accessible name is unaffected. */
+.input-row:has(.vector-input) .input-label { display: none; }
+
+.vector-input {
+  display: flex;
+  margin-top: 2px;
+}
+.vec-field {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* The scrub character, overlaid inside the field on the left. Drag it to change
+   the value; the rest of the field stays clickable for typing. */
+.vec-scrub {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    color: hsl(var(--muted-foreground));
+    cursor: ew-resize;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    z-index: 1;
+    transition: color 0.12s;
+}
+.vec-scrub:hover { color: hsl(var(--foreground)); }
+.vec-field:focus-within .vec-scrub { color: hsl(var(--ring)); }
+.vec-num {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 6px 7px 19px;       /* left room for the scrub character */
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: 0;
+  border-right-width: 0;           /* collapse internal dividers */
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+/* Round only the outer corners; the last field restores its right border. */
+.vec-field:first-child .vec-num {
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+.vec-field:last-child .vec-num {
+  border-right-width: 1px;
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+.vec-num::-webkit-outer-spin-button,
+.vec-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.vec-num:focus {
+  outline: none;
+  position: relative;
+  z-index: 2;                      /* lift the focused field's ring above its neighbours */
+  border-color: hsl(var(--ring));
+  border-right-width: 1px;
+}
+
+.storage-row{display:grid; grid-template-columns:2fr .5fr;}
+/* ─── Custom slider ─────────────────────────────────────────────────────── */
+
+.custom-slider {
+  position: relative;
+  padding: 8px 0 20px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Claim the gesture: without this, a vertical drag that starts on the slider
+     scrolls the page on touch instead of moving the thumb. */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cs-track {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: hsl(var(--input));
+}
+
+.cs-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+  background: hsl(var(--primary));
+  pointer-events: none;
+  /* Glide for keyboard / programmatic changes; suppressed while dragging below
+     so a finger/pointer drag stays 1:1 with no lag. */
+  transition: width 0.12s ease;
+}
+
+.cs-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  box-shadow: 0 1px 4px hsl(0 0% 0% / 0.25);
+  pointer-events: none;
+  transition: box-shadow 0.12s, transform 0.12s ease, left 0.12s ease;
+}
+
+.custom-slider:focus-visible .cs-thumb {
+  box-shadow: 0 0 0 4px hsl(var(--ring) / 0.3), 0 1px 4px hsl(0 0% 0% / 0.25);
+}
+
+/* Tactile grab feedback: the thumb swells while the slider is being dragged
+   (JS toggles .dragging) and on a desktop press. */
+.custom-slider.dragging .cs-thumb,
+.custom-slider:active .cs-thumb {
+  transform: translate(-50%, -50%) scale(1.35);
+  box-shadow: 0 0 0 5px hsl(var(--ring) / 0.25), 0 1px 5px hsl(0 0% 0% / 0.3);
+}
+
+.custom-slider.dragging .cs-fill,
+.custom-slider.dragging .cs-thumb {
+  transition: box-shadow 0.12s, transform 0.12s ease;
+}
+
+.cs-ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(8px + 4px + 5px);
+  height: 8px;
+  pointer-events: none;
+}
+
+.cs-tick {
+  position: absolute;
+  width: 1.5px;
+  height: 4px;
+  border-radius: 1px;
+  background: hsl(var(--muted-foreground) / 0.3);
+  transform: translateX(-50%);
+}
+
+.cs-tick:first-child,
+.cs-tick:last-child {
+  height: 6px;
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+.input-help {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+/* Asset picker */
+.asset-picker-row {
+  display: flex;
+  gap: 4px;
+  /* Don't let a long file path set the component's min width: allow the row to
+     shrink below its content (flex items default to min-width:auto) so the
+     trigger's ellipsis kicks in instead of widening / wrapping the sidebar. */
+  min-width: 0;
+  max-width: 100%;
+}
+.saved-row.tool-card{font-weight:600;text-transform:capitalize;}
+
+.saved-row.tool-card small{    display: grid;
+    padding: 2px 4px;
+    border-radius: var(--radius);
+    color: hsl(var(--primary));
+    font-size: 9px;
+    font-weight: 400;
+    cursor: pointer;
+    float: right;
+    text-decoration: none;
+    font-family: "SUSE Mono", monospace;
+}
+
+.asset-picker-thumb-inline {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+}
+
+.asset-picker-trigger {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.12s;
+}
+
+.asset-picker-trigger:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.asset-clear {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.asset-clear:hover {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive));
+}
+
+/* ─── Tool stage & canvas ───────────────────────────────────────────────── */
+
+.tool-stage {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0  ;
+  place-items: center;
+  overflow: hidden;
+  justify-content: center;
+  height:100vh;
+  height:100dvh;
+
+    background:
+    repeating-conic-gradient(
+      rgba(255,255,255,.025) 0% 25%,
+      rgba(0,0,0,.025) 0% 50%)
+     50% / 2em 2em;
+}
+
+/* Clips the canvas to its visual (scaled) size so the stage doesn't leave
+   a gap when transform: scale() reduces the canvas below its DOM dimensions. */
+.tool-canvas-outer {
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 .5em 3em #0002;
+}
+
+/* Export shutter — a CSS camera-iris that sweeps in to COVER the whole stage
+   while the brief full-res resize during export (the "shake") happens, then
+   sweeps back out. Template-agnostic: the live canvas is what's exported
+   underneath, so canvas/WebGL document roots keep their real pixels.
+   (Adapted from a one-shot keyframe — codepen.io/shshaw/pen/yLMMBxa — to a held
+   open↔closed transition so it can stay covered for the variable export time.) */
+.export-shutter {
+  --flaps: 6;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+  display: none;             /* only mounted/composited while exporting */
+}
+.export-shutter.is-active { display: block; }
+/* Mobile: the controller moves the shutter to <body> and adds this class so it
+   covers the whole screen — above the sidebar sheet, export popup and FAB — while
+   the system download/share sheet appears. Desktop keeps the in-stage shutter. */
+.export-shutter--fullscreen { position: fixed; inset: 0; z-index: 100000; }
+.export-shutter .flap {
+  position: absolute;
+  width: 150vmax; height: 150vmax;
+  bottom: 50%; right: 50%;                 /* pivot at the stage centre */
+  transform-origin: bottom right;
+  pointer-events: none;
+  will-change: transform;
+  background: linear-gradient(35deg, hsl(var(--card)), hsl(var(--secondary)));
+  border: 1.5px solid hsl(var(--border));
+  /* Directional shadow away from the centre pivot (bottom-right) for blade depth,
+     plus a hairline inset highlight on the trailing edge. Baked into the layer
+     once → no per-frame cost; flip the outer offset if it casts the wrong way. */
+  box-shadow: -3px -3px 16px rgba(0, 0, 0, 0.22), inset 0 -1px rgba(255, 255, 255, 0.2);
+  --p: calc(var(--i) / var(--flaps));      /* this blade's share of the circle */
+  transition: transform 0.42s cubic-bezier(0.5, 0, 0.5, 1);
+  /* Resting (open): blades fanned off-screen. */
+  transform: rotate(-0.5turn) rotate(calc(1turn * var(--p))) skewX(30deg) translateX(-100%) translateY(90%);
+}
+/* Closed: blades swept into the centre, fully covering the stage. */
+.export-shutter.is-closed .flap {
+  transform: rotate(-0.25turn) rotate(calc(1turn * var(--p))) skewX(30deg) translateX(0%) translateY(0%);
+}
+
+/* Fullscreen utility tools (no sidebar, no export) */
+.tool-layout[data-sidebar="hidden"] .tool-stage {
+  overflow: auto;
+  align-items: flex-start;
+  justify-content: flex-start;
+  place-items: start;
+  background: none;
+    height:  100vh  !important;
+    height:  100dvh  !important;
+}
+
+#tool-content {
+  width: 100%;
+  min-height: 100%;
+}
+
+
+.tool-canvas {
+  background: transparent;
+  overflow: hidden;
+  position: relative;
+  transform-origin: top left;
+}
+
+/* ── Canvas pan/zoom (setupStageNav) ────────────────────────────────────── */
+/* Panning the stage: Space- or middle-drag. Plain clicks stay free for the
+   canvas click-to-focus behaviour, so the grab cursor only shows on Space-hold. */
+.tool-stage.is-grabbable { cursor: grab; }
+.tool-stage.is-grabbing  { cursor: grabbing; }
+
+/* Zoom HUD — a small bottom-right pill: −  [NN%]  +  Fit. Dimmed until the stage
+   is hovered or the canvas is zoomed, so it stays out of the way at rest. */
+.stage-nav {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.85);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid hsl(var(--border));
+  opacity: 0.45;
+  transition: opacity 0.12s;
+}
+.tool-stage:hover .stage-nav,
+.stage-nav[data-zoomed="1"],
+.stage-nav:focus-within { opacity: 1; }
+
+.stage-nav-btn,
+.stage-nav-pct {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: hsl(var(--foreground));
+  height: 26px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+.stage-nav-btn { width: 26px; font-size: 16px; line-height: 1; }
+.stage-nav-pct { min-width: 48px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.stage-nav-fit { width: auto; padding: 0 10px; font-size: 12px; font-weight: 600; }
+.stage-nav-btn:hover,
+.stage-nav-pct:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+
+/* Mobile: stack the zoom HUD into a vertical capsule so it fits the narrow stage,
+   reading + / NN% / − / Fit top-to-bottom like a map zoom control. */
+@media (max-width: 640px) {
+  .stage-nav { flex-direction: column; align-items: stretch; }
+  .stage-nav-btn { width: auto; }                 /* fill the column when stacked */
+  .stage-nav [data-nav="in"]  { order: 1; }       /* + */
+  .stage-nav [data-nav="pct"] { order: 2; }       /* NN% */
+  .stage-nav [data-nav="out"] { order: 3; }       /* − */
+  .stage-nav [data-nav="fit"] { order: 4; }       /* Fit */
+}
+
+/* On touch the canvas uses pinch/drag gestures — the HUD isn't created there. */
+
+/* ── Mobile (≤640px): controls become a drag sheet, preview fills below ──────
+   Placed after the base .sidebar / .tool-stage rules so it actually wins the
+   cascade. The controls panel is anchored at the TOP with the grip on its BOTTOM
+   edge, so dragging the grip down grows the controls (and shrinks the preview)
+   while the grip tracks the finger 1:1. Snap heights mirror setupMobileSheet. */
+@media (max-width: 640px) {
+  .tool-layout {
+    display: block;
+    height: 100dvh;
+    --sheet-h: 50dvh;                 /* default; overridden per data-sheet state */
+    /* Clearance below the peek bar (56px) so the preview doesn't run up under it.
+       Static — independent of the sheet height — so the preview never rescales. */
+    --preview-top: calc(56px + 4dvh);
+  }
+  .tool-layout[data-sheet="peek"] { --sheet-h: 56px; }
+  .tool-layout[data-sheet="half"] { --sheet-h: 50dvh; }
+  .tool-layout[data-sheet="full"] { --sheet-h: 90dvh; }
+
+  /* Controls panel — anchored at the top, grip on its bottom edge. The --vv-*
+     offsets (set by the VisualViewport shim in main.js) keep it pinned to the
+     VISIBLE area while the page is pinch-zoomed; they're 0px when not zoomed. */
+  .sidebar {
+    position: fixed;
+    top: var(--vv-top, 0px); left: var(--vv-left, 0px); right: auto;
+    width: 100% !important;           /* override the desktop inline width */
+    height: var(--sheet-h);
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+    transition: height 0.34s cubic-bezier(0.32, 0.72, 0, 1); /* confident, decelerating settle */
+    z-index: 50;
+    /* Clip the sheet so the form can't spill past its rounded bottom edge. The
+       grip is NOT a child (it's a sibling in tool.js, position:fixed) so this
+       clipping never crops it. Inputs scroll via .sidebar-body's own overflow. */
+    overflow: hidden;
+  }
+  /* The title bar doubles as a wide drag handle for the sheet (see addDragHandle
+     in tool.js). touch-action:none so the drag moves the panel instead of the
+     page; the inner Tools link / controls stay tappable and are excluded in JS. */
+  .sidebar-header {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .tool-layout.is-sheet-dragging .sidebar-header { cursor: grabbing; }
+
+  /* Grip is pinned to the divider line itself (fixed, out of the panel's flow),
+     so it's always visible and grabbable no matter how short the panel gets. */
+  .sheet-grip {
+    display: flex;
+    position: fixed;
+    left: var(--vv-left, 0px); right: auto; width: 100%;
+    top: calc(var(--sheet-h) + var(--vv-top, 0px));   /* tracks the sheet + the visible-area offset */
+    transform: translateY(-50%);
+    height: 30px;                 /* generous hit area straddling the divider */
+    z-index: 60;                  /* above the panel (50) and the preview */
+    transition: top 0.34s cubic-bezier(0.32, 0.72, 0, 1); /* match the sheet's settle */
+  }
+  .tool-layout.is-sheet-dragging .sheet-grip { transition: none; }
+
+  /* Preview — a static backdrop offset below the top bar. The controls sheet
+     slides over it (it doesn't rescale as the sheet moves), and Fit fits to this
+     region since fitCanvas reads the stage rect. Collapse to peek to see it whole. */
+  .tool-stage {
+    position: fixed;
+    inset: var(--preview-top) 0 0 0;
+    height: auto;
+  }
+
+  /* Track the finger 1:1 while dragging — no easing on the panel height. */
+  .tool-layout.is-sheet-dragging .sidebar { transition: none; }
+
+  /* The grip replaces the desktop width handle + fullscreen toggles. */
+  .sidebar-drag-handle { display: none; }
+  .fullscreen-toggle,
+  .fullscreen-toggle-float { display: none !important; }
+
+  /* The desktop "collapsed" hide must not blank the sheet body on mobile. */
+  .tool-layout[data-sidebar="closed"] .sidebar-body { opacity: 1 !important; pointer-events: auto !important; }
+  /* The sheet is full-width; don't pin the body to the desktop open width. */
+  .sidebar-body { min-width: 0; }
+
+  /* "Render" button — the primary export CTA, floating bottom-centre over the
+     preview, always reachable regardless of the controls-sheet position. */
+  .render-fab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    left: 50%;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 55;
+    padding: 13px 24px;
+    border: none;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3),inset 0 .1px #fff6;
+    cursor: pointer;
+  }
+  .render-fab svg { width: 18px; height: 18px; }
+  .tool-layout.export-open .render-fab { display: none; }
+
+  /* Export popup — a bottom sheet holding the (moved) actions panel. Hidden until
+     Render is tapped; dismiss via the scrim or the ✕. */
+  .export-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  .tool-layout.export-open .export-overlay { opacity: 1; visibility: visible; }
+  .export-overlay-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
+  .export-popup {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    max-height: 85dvh;
+    display: flex;
+    flex-direction: column;
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+    transform: translateY(100%);
+    transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1); /* same settle as the sheet */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .tool-layout.export-open .export-popup { transform: translateY(0); }
+  /* While the finger is dragging the sheet down, track it 1:1 — the spring-back
+     / dismiss animation re-enables once the touch ends. */
+  .export-popup.is-popup-dragging { transition: none; }
+  /* Grab affordance — hints that the sheet can be flicked away. */
+  .export-popup::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 4px;
+    border-radius: 999px;
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+  .export-popup-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 16px 12px;
+    border-bottom: 1px solid hsl(var(--border));
+    flex-shrink: 0;
+  }
+  .export-popup-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+  }
+  .export-popup-close {
+    border: none; background: none; cursor: pointer; padding: 4px 8px;
+    font-size: 18px; line-height: 1; color: hsl(var(--muted-foreground));
+  }
+  .export-popup-body { overflow-y: auto; padding: 16px; }
+  /* Drop the sidebar-specific spacing now that the panel lives in the popup. */
+  .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
+}
+
+/* ─── Actions bar ───────────────────────────────────────────────────────── */
+/* The export panel is a strict priority stack: filename·format → dimensions →
+   ancillary settings → action buttons. DOM order encodes the hierarchy, so a
+   flex column keeps the layout stable no matter which optional rows a given
+   tool/format contributes. */
+.tool-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid hsl(var(--border));
+  margin-top: auto;
+  margin-bottom:5em;
+  width: 100%;
+}
+
+/* Collapse the whitespace-only text nodes left by the template literal so they
+   don't add phantom gaps between rows. */
+.tool-actions:empty { display: none; }
+
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.export-option:hover {
+  border-color: hsl(var(--ring) / 0.4);
+  background: hsl(var(--accent));
+}
+
+.export-option:has(input:checked) {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.07);
+}
+
+.export-option input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  accent-color: hsl(var(--primary));
+  cursor: pointer;
+}
+
+/* Tier 2 — dimensions. The headline sizing control: both fields share the full
+   width and sit taller than the other inputs. Each field carries a directional
+   icon (↔ width, ↕ height) tucked inside on the left. */
+.export-dims {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.dim-field {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.dim-icon {
+  position: absolute;
+  /* Centred in the 18px gap before the text: (18 − 15)/2 ≈ 1.5px each side. */
+  left: 1.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  transition: color 0.12s;
+}
+
+.dim-field:focus-within .dim-icon { color: hsl(var(--ring)); }
+
+.export-dims input[type="number"] {
+  width: 100%;
+  padding: 9px 10px 9px 18px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  cursor: ew-resize;
+  user-select: none;
+}
+
+.export-dims input[type="number"]:focus {
+  cursor: text;
+  user-select: auto;
+}
+
+.dim-x {
+  flex: 0 0 auto;
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+}
+
+/* Units selector — a compact dropdown where the static "px" used to be. */
+.dim-unit {
+  flex: 0 0 auto;
+  align-self: stretch;   /* match the height of the dimension inputs in its row */
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  padding: 0 6px;        /* vertical centring comes from the stretched height */
+  cursor: pointer;
+}
+.dim-unit:focus { border-color: hsl(var(--ring)); outline: none; }
+
+/* DPI field — only shown for physical units; a short box + "dpi" suffix. */
+.dim-dpi {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+.export-dims .dim-dpi input[type="number"] {
+  width: 3.6rem;
+  padding: 9px 8px;          /* no icon → normal left padding */
+  text-align: right;
+  cursor: text;              /* not a scrub field */
+  user-select: auto;
+}
+
+/* Spinner-hiding + focus ring shared by all action-bar number inputs
+   (dimensions and video timing). Kept as one rule so the two contexts can't
+   drift. */
+.export-dims input[type="number"]::-webkit-inner-spin-button,
+.export-dims input[type="number"]::-webkit-outer-spin-button,
+.video-params input[type="number"]::-webkit-inner-spin-button,
+.video-params input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.export-dims input[type="number"]:focus,
+.video-params input[type="number"]:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+/* Tier 4 — actions. Download is the primary CTA and gets the widest track;
+   any present secondary buttons (copy/save) split the remainder evenly. */
+.export-action-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+  /* Query container so Copy/Save/Share react to the row's own width — the
+     sidebar is resizable, so the viewport isn't a reliable signal here. */
+  container-type: inline-size;
+}
+/* Taller, easier-to-hit targets while labelled; collapses back to compact icons
+   in the @container query below. */
+.export-action-buttons button { flex: 1 1 0; min-width: 0; padding-block: 9px; }
+/* Copy and Save each carry a line-art glyph ahead of their label. */
+.copy-btn,
+.save-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.copy-icon,
+.save-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* Share button — equal flex sibling of Copy and Save in the actions row (sized
+   by .export-action-buttons button), link glyph riding ahead of the label. */
+.copy-url-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.copy-url-icon { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* When the actions row gets too narrow for icon + label to sit comfortably
+   side by side, drop the labels and let Copy/Save/Share collapse to their
+   three icons. `title`/`aria-label` keep each button's meaning available. */
+@container (max-width: 220px) {
+  .copy-btn > span,
+  .save-btn > [data-save-label],
+  .copy-url-btn > [data-copy-url-label] { display: none; }
+  .copy-btn,
+  .save-btn,
+  .copy-url-btn { gap: 0; }
+  /* Icon-only: drop back to a compact square rather than a tall, empty pill. */
+  .export-action-buttons button { padding-block: 6px; }
+}
+
+/* Tier 1 — filename · format. The filename fills the row; when a format
+   selector exists the two fuse into a single "name.format" segmented control. */
+.filename-extension {
+  display: flex;
+  align-items: stretch;
+}
+.filename-extension .export-filename {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.filename-extension:has(select) .export-filename {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+.filename-extension:has(select) select[data-action="format"] {
+  flex: 0 0 auto;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Tier 3 — ancillary settings. A single wrapping cluster of chips so optional
+   controls never disrupt the rows above. */
+.export-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.export-settings:empty { display: none; }
+
+/* Filename input */
+.export-filename {
+  padding: 9px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+}
+
+.export-filename:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.export-filename:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+/* Format selector */
+.tool-actions select {
+  padding: 9px 28px 9px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.tool-actions select:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.tool-actions select:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+.cancel-button{    border: 1px solid hsl(var(--border));
+    text-decoration: none;
+    background-color: hsl(var(--card));
+    border-radius: var(--radius);
+    color:currentcolor;
+    text-align: center;}
+
+/* Timing inputs — wait and duration, shown for webm and gif formats */
+/* Shown only for animated formats. Takes its own full-width row in the Tier-3
+   cluster and wraps internally, so the timing controls reflow cleanly instead
+   of overflowing a narrow sidebar. */
+.video-params {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  padding: 6px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+
+/* Keep each "label · input · unit" trio together as one unwrappable unit. */
+.vp-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.video-params input[type="number"] {
+  width: 48px;
+  padding: 5px 6px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 12px;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* Dither / 60fps toggles — shown inside .video-params for gif / webm. Separated
+   from the timing fields by the cluster gap so they wrap without a stray
+   divider hanging at the start of a wrapped line. */
+.gif-dither-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.gif-dither-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+}
+
+/* Action buttons — outline style by default */
+.btn,
+.tool-actions button {
+  text-decoration:none;
+  padding: 5px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: inset 0 1px #fff3, 0 1px 3px #0002;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.tool-actions button:hover {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--border));
+}
+
+.tool-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Copy button armed by the ?copy URL action — pulses to invite the click that
+   gives the clipboard write its required user gesture. */
+.tool-actions [data-action="copy"].copy-armed {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+  animation: copy-armed-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes copy-armed-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.5); }
+  50%      { box-shadow: 0 0 0 5px hsl(var(--primary) / 0); }
+}
+
+/* Download is the primary CTA — the biggest, easiest target in the row. */
+.tool-actions [data-action="download"] {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+  font-weight: 600;
+  padding-block: 13px;
+}
+
+/* Down-arrow glyph as the download affordance, riding ahead of the label. */
+.tool-actions [data-action="download"]::before {
+  content: "\2193";   /* ↓ */
+  margin-right: 0.4em;
+  font-weight: 700;
+}
+
+.tool-actions [data-action="download"]:hover {
+  background: hsl(var(--primary) / 0.88);
+  border-color: hsl(var(--primary) / 0.88);
+}
+
+/* ─── Saved section (gallery page) ─────────────────────────────────────── */
+
+.saved-section {
+
+
+
+}
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 12px;
+}
+.small{font-size:13px}
+
+/* ─── Storage indicator ─────────────────────────────────────────────────── */
+
+a.storage-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  margin-bottom: 8px;
+  opacity: 0.7;
+      place-self: end;
+    align-self: center;
+}
+a.storage-indicator:hover { opacity: 1; }
+
+.storage-bar-wrap {
+  display: inline-block;
+  width: 80px;
+  height: 6px;
+  background: hsl(var(--border));
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.storage-bar-fill {
+  display: block;
+  height: 100%;
+  background: hsl(var(--muted-foreground));
+  border-radius: 3px;
+  min-width: 2px;
+}
+
+/* profile page storage row reuses the same bar but inline */
+.storage-indicator-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+.storage-indicator-profile .storage-bar-wrap { width: 120px; height: 8px; }
+.storage-indicator-profile .storage-bar-fill { background: hsl(var(--foreground)); }
+
+.storage-subsection {
+  margin-top: 1.25em;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 1em;
+}
+.storage-subsection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.5em;
+}
+.storage-count {
+  display: inline-block;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border-radius: 99px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 4px;
+}
+.storage-hint {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.storage-empty {
+  list-style: none;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  padding: 4px 0;
+}
+.storage-hint-text {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+.feature-hint-text {margin-bottom:2em;}
+.session-size {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-left: auto;
+  margin-right: 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.btn-link-danger {
+  background: hsl(0 72% 51% / 0.1);
+  border: 1px solid hsl(0 72% 51% / 0.35);
+  color: hsl(0 72% 51%);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+}
+.btn-link-danger:hover { background: hsl(0 72% 51% / 0.18); border-color: hsl(0 72% 51% / 0.55); }
+.btn-link-danger:disabled { opacity: 0.4; cursor: default; }
+
+/* My images — personal device-image library */
+.userimg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.userimg-item {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+.userimg-view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+.userimg-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.15s ease;
+}
+/* SVGs (logos/icons) are shown whole, not cropped to fill. */
+.userimg-thumb.is-vector { object-fit: contain; padding: 6px; }
+.userimg-view:hover .userimg-thumb { transform: scale(1.05); }
+.userimg-delete {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: hsl(var(--background) / 0.85);
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s, background 0.12s;
+}
+.userimg-item:hover .userimg-delete,
+.userimg-delete:focus-visible { opacity: 1; }
+.userimg-delete:hover { color: hsl(var(--destructive)); background: hsl(var(--accent)); }
+.userimg-delete:disabled { opacity: 0.4; cursor: default; }
+
+/* "Add" tile — sits in the grid as the last cell (or the only cell when empty),
+   matching the thumb cells in size but dashed to read as an upload affordance. */
+.userimg-add {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.userimg-add:hover {
+  border-color: hsl(var(--ring) / 0.6);
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+.userimg-add:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.userimg-add:disabled { opacity: 0.5; cursor: default; }
+.userimg-add-icon { font-size: 20px; line-height: 1; font-weight: 300; }
+.userimg-add-text { font-size: 10px; letter-spacing: 0.02em; }
+
+/* My images — full-size preview lightbox */
+.userimg-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 6vw;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.userimg-lightbox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  max-height: 100%;
+}
+.userimg-lightbox-img {
+  max-width: 100%;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+/* viewBox-only SVGs report no intrinsic size — in an <img> they'd fall back to
+   ~300×150 and look tiny. Give vectors a definite, bounded box and let
+   object-fit scale them up to fit (preserving the viewBox aspect, no distortion
+   at any size), on a card so transparent art stays visible. */
+.userimg-lightbox-img.is-vector {
+  width: min(86vw, 680px);
+  height: min(78vh, 520px);
+  object-fit: contain;
+  padding: 28px;
+  background: hsl(var(--card));
+}
+.userimg-lightbox-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: #fff;
+  font-size: 13px;
+}
+.userimg-lightbox-dims {
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.userimg-lightbox-close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.userimg-lightbox-close:hover { background: hsl(var(--accent)); }
+
+.profile-sessions-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.btn-danger {
+  background: hsl(0 72% 51%);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-danger:hover { background: hsl(0 72% 42%); }
+.btn-danger:disabled { opacity: 0.5; cursor: default; }
+
+/* ─── Clear-data confirmation dialog ────────────────────────────────────── */
+
+.clear-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: hsl(0 0% 0% / 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.clear-dialog {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+}
+
+.clear-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.clear-dialog p {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.clear-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clear-dialog-actions .btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+.clear-dialog-actions .btn:hover { background: hsl(var(--muted)); }
+.clear-dialog-actions .btn.btn-danger { border-color: transparent; }
+
+.saved-label {
+  display:grid;
+  grid-template-columns: 4fr 1fr 1fr 2em;
+  place-items: inherit;
+  flex: 1;
+  min-width: 0;
+  width:100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-row .muted{
+  display:block;
+}
+
+/* ─── Saved list ────────────────────────────────────────────────────────── */
+
+.saved-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.saved-row {
+  position: relative;
+ padding:10px;margin:4px 0;
+  gap: 12px;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 0;
+  font-size: 13px;
+  transition: background 0.12s;
+  display:grid !important;
+  grid-template-columns: 3.5em 4fr;
+      border-radius: 1.05em;
+}
+
+/* Collapsed/filtered rows must leave the layout entirely (not just go invisible)
+   so a long saved list can't push the page tall. `.saved-row` sets
+   `display:grid !important` and the global `[hidden]` only adds visibility:hidden,
+   so the hide needs `!important` + higher specificity to win and pull the row —
+   and the show-all button row — out of flow completely. */
+.gallery-view .saved-list > [hidden] { display: none !important; }
+
+/* "Show all saved" — a box the same size as a saved row that reveals the
+   sessions collapsed behind it. */
+.saved-show-all-row { margin: 0; }
+.saved-show-all {
+  width: 100%;
+  margin: 4px 0;
+  min-height: 60px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--background) / .5);
+  border: 1px dashed hsl(var(--border));
+  border-radius: 1.05em;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.saved-show-all:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+
+.saved-thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: calc(var(--radius) / 2);
+  object-fit: contain;
+  background: hsl(var(--background));
+  display: block;
+}
+
+.saved-thumb--empty {
+  opacity: 0.3;
+  background: hsl(var(--muted));
+}
+
+/* Batch sessions have no render thumbnail — show a package icon instead. */
+.saved-thumb--batch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+.saved-thumb--batch svg { width: 24px; height: 24px; }
+/* Keep the user's session name verbatim (the row otherwise capitalizes). */
+.saved-row--batch h4 { text-transform: none; }
+ 
+
+.saved-row:hover {
+  background: hsl(var(--accent));
+}
+
+/* date-time size stamps on hover*/
+.saved-row:hover .saved-label{opacity:1}
+.saved-row:not(:hover) .saved-label{opacity:.5}
+.saved-row:not(:hover) .saved-label small {opacity:0.}
+
+.saved-delete button:focus{opacity:1 !important}
+
+
+.saved-resume {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 0;
+}
+
+.saved-delete {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid transparent;
+  border-radius: 50%;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.saved-delete:hover {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.5);
+  background: hsl(var(--destructive) / 0.08);
+}
+
+/* ─── Segmented control ─────────────────────────────────────────────────── */
+
+.segmented-control {
+  display: inline-flex;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+
+.segmented-btn {
+  flex: 1;
+  padding: 6px 16px;
+  border: none;
+  border-right: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  text-transform:uppercase;
+}
+
+.segmented-btn:last-child {
+  border-right: none;
+}
+
+.segmented-btn:hover:not([aria-pressed="true"]) {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.segmented-btn[aria-pressed="true"] {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+}
+
+/* ─── Profile layout ────────────────────────────────────────────────────── */
+
+/* ─── Profile view ──────────────────────────────────────────────────────────
+   Everything is scoped under .profile-view (set on the view container for the
+   /profile route) so the shared sidebar classes (.input-row, .btn, …) can't
+   bleed in and these rules can't leak out. Layout: a centred stack of cards. */
+.profile-view .profile-layout {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 3rem 0 2.5rem; /* top clears the fixed "← Tools" pill */
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+.profile-view .profile-head h1 {
+  margin: 0 0 .25rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.profile-view .profile-card {
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.25);
+  padding: 1.25rem 1.4rem;
+}
+.profile-view .profile-card h2 {
+  margin: 0 0 1rem;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Details card: fields (two columns of three) on the left, theme + headshot
+   stacked on the right. Collapses to one column when there isn't room. */
+.profile-view .profile-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) .6fr;
+  gap: 1.75rem;
+  align-items: start;
+}
+/* Stretch to the (taller) headshot/theme column so the actions can pin to the bottom. */
+.profile-view .profile-details-main { min-width: 0; display: flex; flex-direction: column; align-self: stretch; }
+.profile-view .profile-side { display: flex; flex-direction: column; gap: 1.4rem; }
+
+.profile-view .profile-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .85rem 1rem;
+  margin-bottom: 1.25rem;
+}
+.profile-view .profile-field { display: flex; flex-direction: column; gap: .3rem; min-width: 0; }
+.profile-view .profile-field-label {
+  font-size: .68rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .04em; color: hsl(var(--muted-foreground));
+}
+.profile-view .profile-field input {
+  width: 100%; box-sizing: border-box;
+  padding: .5rem .65rem; font: inherit; font-size: .9rem;
+  color: hsl(var(--foreground)); background: hsl(var(--background));
+  border: 1px solid hsl(var(--input)); border-radius: var(--radius);
+}
+.profile-view .profile-field input:focus {
+  outline: none; border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / .3);
+}
+
+/* Form: "use my details" toggle (a pill that hugs its label) + actions row */
+.profile-view .profile-check {
+  min-width:19em;
+  display: inline-flex; align-items: center; gap: .55rem;
+  margin: 0 auto 0 0; padding: .4rem .8rem; /* margin-right:auto keeps the buttons on the right */
+  border: 1px solid hsl(var(--border)); border-radius: 999px;
+  font-size: .85rem; cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.profile-view .profile-check:hover { background: hsl(var(--accent)); }
+.profile-view .profile-check:has(input:checked) { border-color: hsl(var(--primary)); background: hsl(var(--primary) / .08); }
+.profile-view .profile-check input {
+  width: 1rem; height: 1rem; margin: 0;
+  appearance: none; -webkit-appearance: none;
+  border: 1.5px solid hsl(var(--border));   /* off → outlined box */
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.profile-view .profile-check input:checked {
+  background: hsl(var(--primary));          /* on → filled box */
+  border-color: hsl(var(--primary));
+}
+/* Tiny "opt-in" pill before the checkbox. */
+.profile-view .profile-check-tag {
+  flex: none;
+  font-size: .58rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  padding: .1rem .45rem; border-radius: 999px;
+  background: hsl(var(--primary) / .15); color: hsl(var(--primary));
+}
+
+/* Feature flags — a list of labelled toggle switches (auto-save on change). */
+.profile-view .feature-flags { list-style: none; margin: .5rem 0 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.profile-view .feature-flag {
+  
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: .55rem .9rem;
+  border: 1px solid hsl(var(--border)); border-radius: 2em;
+  font-size: .9rem; cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.profile-view .feature-flag:hover { background: hsl(var(--accent)); }
+.profile-view .feature-flag:has(input:checked) { border-color: hsl(var(--primary)); }
+.profile-view .feature-flag-label { font-weight: 500; }
+.profile-view .feature-flag-input { position: absolute; opacity: 0; width: 0; height: 0; }
+.profile-view .feature-flag-switch {
+  flex: none; position: relative;
+  width: 2.4rem; height: 1.35rem; border-radius: 999px;
+  background: hsl(var(--border));
+  transition: background .15s;
+}
+.profile-view .feature-flag-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: calc(1.35rem - 4px); height: calc(1.35rem - 4px);
+  border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .25);
+  transition: transform .15s;
+}
+/* Separates the category flags from the Pro (batch) mode flag. */
+.profile-view .feature-flag-divider {
+  list-style: none;
+  height: 1px;
+  margin: .35rem .25rem;
+  background: hsl(var(--border));
+}
+.profile-view .feature-flag-input:checked + .feature-flag-switch { background: hsl(var(--primary)); }
+.profile-view .feature-flag-input:checked + .feature-flag-switch::after { transform: translateX(calc(2.4rem - 1.35rem)); }
+.profile-view .feature-flag-input:focus-visible + .feature-flag-switch { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+/* Sits at the bottom-left of the details column; margin-top:auto fills the gap. */
+.profile-view .profile-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; margin-top: auto; padding-top: 1.25rem; }
+.profile-view .profile-btn-primary,
+.profile-view .profile-btn-secondary {
+  padding: .5rem 1.15rem; font: inherit; font-size: .85rem; font-weight: 600;
+  border-radius: var(--radius); border: 1px solid hsl(var(--border));
+  cursor: pointer; text-decoration: none; text-align: center; line-height: 1.4;
+}
+.profile-view .profile-btn-secondary { background: hsl(var(--card)); color: hsl(var(--foreground)); }
+.profile-view .profile-btn-secondary:hover { background: hsl(var(--accent)); }
+.profile-view .profile-btn-primary { padding: 1em 2em;   border-radius: 3em;background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
+.profile-view .profile-btn-primary:hover { filter: brightness(1.08); }
+.headshot-heading{text-align:center;}
+/* Appearance segmented control — a fixed-ish pill, not the full card width */
+.profile-view .segmented-control { display: flex; width: 100%; max-width: 22rem; }
+
+/* Activity — stat tiles, a format leaderboard (proportional bars), meta line */
+/* On desktop the stat tiles sit beside the format leaderboard; they stack below. */
+.profile-view .activity-split {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.75rem; align-items: start; margin: 0 0 1.25rem;
+}
+.profile-view .activity-split .activity-grid,
+.profile-view .activity-split .activity-block { margin: 0; }
+.profile-view .activity-grid {
+  /* Cap at ~4 columns (a higher min stops auto-fit cramming 6 narrow ones); the
+     1fr lets the tiles stretch to fill the row. */
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: .7rem; margin: 0 0 1.25rem;
+}
+.profile-view .activity-stat {text-align: center;
+  display: flex; flex-direction: column; gap: .25rem;
+  padding: .85rem .9rem; border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--muted) / .45);
+  border: 1px solid hsl(var(--border) / .6);
+}
+.profile-view .activity-num { font-size: 1.75rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.profile-view .activity-label { font-size: .64rem; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); }
+
+.profile-view .activity-block { margin: 0 0 1.1rem; }
+.profile-view .activity-h3 {
+  margin: 0 0 .55rem; font-size: .64rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; color: hsl(var(--muted-foreground));
+}
+.profile-view .fmt-bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .4rem; }
+.profile-view .fmt-row { display: grid; grid-template-columns: 5rem 1fr 2.75rem; text-align:right;align-items: center; gap: .65rem; font-size: .8rem; }
+.profile-view .fmt-name { font-weight: 700; letter-spacing: .03em; }
+.profile-view .fmt-track { height: .55rem; background: hsl(var(--muted)); border-radius: 999px; overflow: hidden; }
+.profile-view .fmt-fill { display: block; height: 100%; border-radius: 999px; background: hsl(var(--primary) / .5); }
+.profile-view .fmt-row.is-top .fmt-fill { background: hsl(var(--primary)); }
+.profile-view .fmt-count { text-align: right; color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+
+.profile-view .activity-meta { font-size: .82rem; line-height: 1.7; margin: 0; color: hsl(var(--muted-foreground)); }
+.profile-view .activity-meta strong { color: hsl(var(--foreground)); font-weight: 700; }
+.profile-view .activity-meta .dot { opacity: .45; margin: 0 .15rem; }
+/* Favourite tool: a pill button in the meta line that opens that tool. */
+.profile-view .activity-meta .activity-fav {
+  display: inline-flex; align-items: center; gap: .25rem;
+  padding: .05rem .5rem;
+  border: 1px solid hsl(var(--border)); border-radius: 999px;
+  color: hsl(var(--foreground)); font-weight: 700; text-decoration: none;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.profile-view .activity-meta .activity-fav::after { content: "→"; font-weight: 600; opacity: .55; }
+.profile-view .activity-meta .activity-fav:hover {
+  background: hsl(var(--primary) / .08); border-color: hsl(var(--primary)); color: hsl(var(--primary));
+}
+
+/* Storage */
+.profile-view .storage-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.profile-view .storage-subsection:first-of-type { margin-top: 1.1rem; }
+/* Clear cache + Clear all my data sit together on their own row, right-aligned. */
+.profile-view .storage-actions { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; margin-top: 1.25em; }
+
+/* "i" badge beside a heading — hover/focus reveals the description as a tooltip. */
+.profile-view .info-dot {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 14px; height: 14px; margin: 0 .15rem; vertical-align: middle;
+  border: 1px solid currentColor; border-radius: 50%;
+  font-size: 9px; font-weight: 700; font-style: normal; line-height: 1;
+  opacity: .55; cursor: help; outline: none;
+  /* Reset native <button> chrome so the badge looks identical. */
+  appearance: none; -webkit-appearance: none;
+  background: none; padding: 0; color: inherit; font-family: inherit;
+}
+.profile-view .info-dot:hover, .profile-view .info-dot:focus-visible { opacity: 1; }
+.profile-view .info-tip {
+  position: absolute; top: calc(100% + 7px); left: 0;
+  width: max-content; max-width: 230px;
+  padding: .45rem .6rem; border-radius: var(--radius);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+  font-size: .72rem; font-weight: 400; line-height: 1.45;
+  text-transform: none; letter-spacing: 0; white-space: normal; text-align: left;
+  opacity: 0; visibility: hidden; transition: opacity .12s; pointer-events: none; z-index: 5;
+}
+.profile-view .info-dot:hover .info-tip,
+.profile-view .info-dot:focus-visible .info-tip { opacity: 1; visibility: visible; }
+
+/* Headshot widget — a large circle; "Edit" overlays it (on hover, or always
+   when empty), and a small ✕ badge top-right removes it. */
+.profile-view .headshot {     position: relative;
+    width: 200px;
+    height: 200px;
+    margin: 0 auto;}
+.profile-view .headshot-preview {
+      box-shadow: 0 .2em 1em #0005;
+  position: relative; width: 100%; height: 100%;
+  border-radius: 50%; overflow: hidden; border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--muted)); background-size: cover; background-position: center;
+}
+.profile-view .headshot-edit {
+  position: absolute; inset: 0; border: none; border-radius: 50%; cursor: pointer;
+  display: flex; align-items: flex-end; justify-content: center; padding-bottom: 16px;
+  font: inherit; font-size: .78rem; font-weight: 700; letter-spacing: .03em; color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, .55), rgba(0, 0, 0, 0) 55%);
+  opacity: 0; transition: opacity .15s;
+}
+.profile-view .headshot-preview:hover .headshot-edit,
+.profile-view .headshot-edit:focus-visible { opacity: 1; }
+/* Empty state: the overlay is always shown as a muted "Upload" prompt. */
+.profile-view .headshot-preview.is-empty .headshot-edit {
+  opacity: 1; align-items: center; padding: 0; background: none;
+  color: hsl(var(--muted-foreground)); font-weight: 600;
+  font-size: .7rem; text-transform: uppercase; letter-spacing: .05em;
+}
+.profile-view .headshot-remove {
+  position: absolute; top: 4px; right: 4px; z-index: 2;
+  width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background));
+  color: hsl(var(--muted-foreground)); font-size: 16px; line-height: 1; cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, .18);
+}
+.profile-view .headshot-remove:hover { color: hsl(var(--destructive)); border-color: hsl(var(--destructive)); }
+.profile-view .headshot-remove[hidden] { display: none; }
+
+@media (max-width: 640px) {
+  /* Single-column flow. Flatten both column wrappers (display: contents) so the
+     headshot — which lives in .profile-side — can sit above the name/email
+     fields, while Save + opt-in (.profile-actions) drop to the bottom. Order:
+     headshot → details → theme → actions. */
+  .profile-view .profile-details-grid { display: flex; flex-direction: column; gap: 1.4rem; align-items: center; }
+  .profile-view .profile-details-main,
+  .profile-view .profile-side { display: contents; }
+  .profile-view .profile-side .profile-field:has(.headshot) { order: 1; }
+  .profile-view .profile-fields { grid-template-columns: 1fr; order: 2; margin-bottom: 0; }
+  .profile-view .profile-side .profile-field:has(#theme-picker) { order: 3; }
+  .profile-view .profile-actions { order: 4; padding-top: 0; justify-content: center; }
+  .profile-view .activity-split { grid-template-columns: 1fr; gap: 1.1rem; }
+
+  /* "Your details": center the heading + controls; detail inputs stretch
+     full-width with more height for easier tapping (16px font also stops iOS
+     from zoom-jumping on focus). */
+  .profile-view .profile-card:first-of-type h2 { text-align: center; }
+  .profile-view .profile-form .profile-field-label { text-align: center; }
+  .profile-view .profile-form .profile-field input {
+    width: 100%; padding: .65rem .75rem; font-size: 1rem;
+  }
+  .profile-view .profile-form .segmented-control { margin-inline: auto; max-width: none; }
+  .profile-view .profile-actions { justify-content: center; }
+  .profile-view .profile-check { margin: 0; }
+}
+
+/* ─── Headshot cropper (body-mounted modal; own classes, no profile scoping) ── */
+.cropper-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; background: rgba(0, 0, 0, .55);
+}
+.cropper {
+  width: min(92vw, 360px);
+  background: hsl(var(--card)); color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) * 1.25);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .4); padding: 1.25rem;
+}
+.cropper-title { margin: 0 0 1rem; font-size: 1rem; font-weight: 700; }
+.cropper-stage {
+  position: relative; width: 300px; height: 300px; max-width: 100%;
+  margin: 0 auto; overflow: hidden; border-radius: var(--radius);
+  background: hsl(var(--muted)); cursor: grab; touch-action: none; user-select: none;
+}
+.cropper-stage:active { cursor: grabbing; }
+.cropper-img { position: absolute; top: 0; left: 0; transform-origin: 0 0; will-change: transform; }
+.cropper-mask {
+  position: absolute; inset: 0; pointer-events: none; border-radius: 50%;
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, .45);
+  outline: 2px solid hsl(var(--primary)); outline-offset: -1px;
+}
+.cropper-zoom { display: flex; align-items: center; gap: .7rem; margin: 1rem 0 .25rem; font-size: .8rem; color: hsl(var(--muted-foreground)); }
+.cropper-zoom input { flex: 1; accent-color: hsl(var(--primary)); }
+.cropper-actions { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1rem; }
+.cropper-btn {
+  padding: .5rem 1.15rem; font: inherit; font-size: .85rem; font-weight: 600;
+  border-radius: var(--radius); border: 1px solid hsl(var(--border)); cursor: pointer;
+}
+.cropper-btn--secondary { background: hsl(var(--card)); color: hsl(var(--foreground)); }
+.cropper-btn--secondary:hover { background: hsl(var(--accent)); }
+.cropper-btn--primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
+.cropper-btn--primary:hover { filter: brightness(1.08); }
+
+/* ─── State messages ────────────────────────────────────────────────────── */
+
+.loading,
+.empty {
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.error {
+  color: hsl(var(--destructive));
+  padding: 12px 16px;
+  border: 1px solid hsl(var(--destructive) / 0.4);
+  background: hsl(var(--destructive) / 0.06);
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.error-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.error-list code {
+  font-family: ui-monospace, monospace;
+  background: hsl(var(--muted));
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.muted {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+}
+
+.tools-home {
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 99999;
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--primary-foreground));
+  z-index:9;
+  top: 2em;
+  left: 2em;
+  padding: 7px 20px;
+  border-radius: var(--radius);
+  text-decoration: none;
+}
+
+.tools-home:before {
+  content: "←";
+  ;
+}
+
+.profile-link {
+    position: absolute;
+    z-index:99999;
+    right: 2em;
+    top: 1.25em;
+    color: currentcolor;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid hsl(var(--primary));
+    padding: 12px 10px 12px 3em;
+    border-radius: 2em;
+    backdrop-filter: blur(2px);
+    transition: background 0.12s, color 0.12s;
+  }
+
+/* Pin the profile link to the viewport on the gallery so it stays put while the
+   tool list scrolls (mobile already does this below; this covers desktop too). */
+.gallery-view .profile-link { position: fixed; }
+
+/* Placeholder dot — shown only when the user has no headshot yet. */
+.profile-link::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.2em;
+ height: 2.2em;
+  background-color: hsl(var(--primary));
+  border-radius: 50%;
+}
+.profile-link.has-avatar::before { display: none; }
+
+/* Real user headshot, clipped to a circle in place of the dot. */
+.profile-link-avatar {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.2em;
+ height: 2.2em;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid hsl(var(--primary) / .4);
+}
+
+/* On mobile the gallery scrolls under it, so pin the profile button to the
+   viewport and blur what passes behind for legibility. */
+@media (max-width: 640px) {
+  .profile-link {
+    position: fixed;
+    /* Re-pin to the visible top-right while the page is pinch-zoomed. */
+    top: calc(1.25em + var(--vv-top, 0px));
+    right: calc(2em + var(--vv-right, 0px));
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+}
+
+/* ─── Color picker with swatches ────────────────────────────────────────────── */
+
+/* ─── Color picker (trigger + popover) ─────────────────────────────────── */
+
+.color-picker-field {
+  position: relative;
+}
+
+.color-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s;
+  justify-content: end;
+}
+
+.color-trigger:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.color-trigger-preview {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: 0 .1rem .2rem -.05rem #0004;
+
+  flex-shrink: 0;
+}
+
+.color-trigger-hex {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.color-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 10px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-hex-input {
+  width: 100%;
+  padding: 5px 8px;
+  background: hsl(var(--input) / 0.3);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: calc(var(--radius) *2) !important;
+  text-align:center;
+  font-family: "SUSE Mono", ui-monospace, monospace !important;
+  font-size: 17px !important;
+  padding:16px !important;  
+  outline: none;
+}
+.color-hex-input:focus {
+  border-color: hsl(var(--ring) / 0.6);
+}
+
+.color-alpha-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.color-alpha-label {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  width: 12px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.color-alpha-slider {
+  flex: 1;
+  height: 4px;
+  cursor: pointer;
+  accent-color: hsl(var(--ring));
+}
+.color-alpha-pct {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  min-width: 30px;
+  text-align: right;
+}
+
+.color-popover-native {
+    width: 3em;
+    height: 3em;
+    padding: 0;
+    border: 1px solid hsl(var(--input));
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: none;
+    position: absolute;
+    top: 1.5em;
+    left: 1.5em;
+    display:none;
+}
+
+.color-swatches {
+  display: flex;
+  flex-flow:wrap;
+
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border));
+  padding:6px; 
+}
+
+.color-popover-native::part{border-radius: var(--radius)}
+.color-swatch {
+  
+  height: 2em;
+  width:2em;border-radius:50%;
+ 
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.1s, border-color 0.1s;
+  box-shadow: inset 0 0 0 .1rem #fff0, inset 0 .1rem  .25rem #fff4, 0 .1rem .2rem -.05rem #0004;
+}
+[pseudo="-webkit-color-swatch"]{border-radius: var(--radius)}
+.color-swatch:hover {
+  transform: scale(1.18);
+  border-color: hsl(var(--foreground) / 0.5);
+  box-shadow:  0 .1em .5em #0003;
+}
+
+.color-swatch:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.color-swatch--transparent {
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-color: #fff;
+}
+
+/* ─── Flatpickr datetime picker ─────────────────────────────────────────── */
+
+input.fp-datetime {
+  width: 100%;
+  cursor: pointer;
+}
+
+.flatpickr-calendar {
+  background:    hsl(var(--popover));
+  border:        1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow:    0 8px 32px hsl(var(--foreground) / 0.12);
+  font-family:   SUSE, ui-sans-serif, system-ui, sans-serif;
+  font-size:     13px;
+  color:         hsl(var(--popover-foreground));
+}
+
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after,
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after {
+  border-bottom-color: hsl(var(--border));
+  border-top-color:    hsl(var(--border));
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month,
+.flatpickr-current-month input.cur-year,
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  background:    transparent;
+  color:         hsl(var(--popover-foreground));
+  fill:          hsl(var(--popover-foreground));
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+  color: hsl(var(--muted-foreground));
+  fill:  hsl(var(--muted-foreground));
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+  color: hsl(var(--popover-foreground));
+  fill:  hsl(var(--popover-foreground));
+}
+
+.flatpickr-weekdays,
+span.flatpickr-weekday {
+  background: transparent;
+  color:      hsl(var(--muted-foreground));
+  font-size:  11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+
+.flatpickr-day {
+  color:         hsl(var(--popover-foreground));
+  border-radius: 0.4rem;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+  background: hsl(var(--accent));
+  border-color: transparent;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+  background:   hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color:        hsl(var(--primary-foreground));
+  font-weight:  700;
+}
+
+.flatpickr-day.today {
+  border-color: hsl(var(--primary));
+}
+
+.flatpickr-day.today:not(.selected) {
+  color: hsl(var(--primary));
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+.flatpickr-time {
+  border-top: 1px solid hsl(var(--border));
+}
+
+.flatpickr-time input,
+.flatpickr-time .flatpickr-time-separator,
+.flatpickr-time .flatpickr-am-pm {
+  background: transparent;
+  color:      hsl(var(--popover-foreground));
+  font-family: SUSE, ui-sans-serif, system-ui, sans-serif;
+}
+
+.flatpickr-time input:hover,
+.flatpickr-time input:focus,
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time .flatpickr-am-pm:focus {
+  background: hsl(var(--accent));
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month input.cur-year:hover {
+  background: hsl(var(--accent) / 0.6);
+}
+
+.numInputWrapper:hover,
+.numInputWrapper span:hover {
+  background: hsl(var(--accent) / 0.6);
+}
+
+/* ─── Unsaved changes dialog ─────────────────────────────────────────────── */
+
+.unsaved-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0;
+  max-width: 380px;
+  width: 90vw;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+}
+
+.unsaved-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+.unsaved-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unsaved-dialog-body h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.unsaved-dialog-body p {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+.unsaved-dialog-actions {
+  display: flex;
+  gap: 3px;
+  justify-content: space-between;
+  margin-top: 8px;
+  flex-wrap: wrap;
+
+}
+
+.unsaved-save {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.unsaved-save:hover {
+  opacity: 0.88;
+}
+
+.unsaved-leave,
+.unsaved-cancel {
+  padding: 6px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+    transition: background 0.12s;
+  }
+  
+  .unsaved-leave:hover,
+  .unsaved-cancel:hover {
+    background: hsl(var(--accent));
+  }
+  
+  .clear-inputs-btn {
+    appearance: none;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    cursor: pointer;
+    padding: 4px 16px;
+    background-color: transparent;
+    max-width: 10em;
+    place-self: end;
+    color: hsl(var(--muted-foreground));
+    font: inherit;
+    font-size: 13px;
+    transition: border-color 0.12s, color 0.12s, background-color 0.12s;
+  }
+
+  .clear-inputs-btn:hover {
+    border-color: hsl(var(--destructive));
+    color: hsl(var(--destructive));
+    background-color: hsl(var(--destructive) / 0.08);
+  }
+
+/* ─── 404 / not-found ───────────────────────────────────────────────────── */
+
+.not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 48px 24px;
+}
+
+.not-found-inner {
+  text-align: center;
+  max-width: 360px;
+}
+
+.not-found-code {
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0 8px;
+  color: hsl(var(--muted-foreground) / 0.3);
+  letter-spacing: -4px;
+}
+
+.not-found-title {
+  font-size: 22px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: hsl(var(--foreground));
+}
+
+.not-found-desc {
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 28px;
+}
+
+.not-found-desc code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+  background: hsl(var(--muted));
+  padding: 2px 6px;
+  border-radius: var(--radius);
+}
+
+.not-found-home {
+  display: inline-block;
+  padding: 8px 20px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-radius: var(--radius);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  transition: opacity 0.12s;
+}
+
+.not-found-home:hover {
+  opacity: 0.85;
+}
+
+/* Secondary "no thanks" escape under a primary CTA (e.g. the extension prompt). */
+.not-found-back {
+  display: block;
+  margin-top: 16px;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  text-decoration: none;
+}
+.not-found-back:hover {
+  color: hsl(var(--foreground));
+  text-decoration: underline;
+}
+
+/* ═══ Mobile / touch affordances ═════════════════════════════════════════════
+   Polish for finger input. Desktop is untouched: the font-size bumps and the
+   enlarged hit-areas live behind (pointer: coarse), and the press feedback is
+   :active (a no-op on a mouse until you actually click). Hover-only affordances
+   never fire on touch, so these add the tactile cues a finger otherwise misses. */
+
+/* Kill the translucent grey/blue flash iOS & Android paint over tapped
+   controls — we provide our own :active feedback instead. */
+.btn,
+.color-trigger,
+.color-swatch,
+.asset-picker-trigger,
+.asset-clear,
+.block-add,
+.block-remove,
+.input-row--checkbox,
+.custom-slider,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Quick, springy press state. Transform-only so it composites on the GPU and
+   can't reflow the layout. */
+.color-trigger:active,
+.asset-picker-trigger:active,
+.asset-clear:active,
+.block-add:active,
+.block-remove:active {
+  transform: scale(0.97);
+}
+.color-swatch:active {
+  transform: scale(1.05);
+}
+.color-trigger,
+.asset-picker-trigger,
+.asset-clear,
+.block-add,
+.block-remove {
+  transition: border-color 0.12s, background 0.12s, color 0.12s, transform 0.08s ease;
+}
+
+@media (pointer: coarse) {
+  /* 16px is the threshold below which iOS Safari zooms the page on focus — a
+     jarring jump that strands the sticky sidebar header. Match it everywhere a
+     finger can land a caret. */
+  .input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]),
+  .input-row textarea,
+  .input-row select,
+  .block-field,
+  .time-input-wrap input[type="time"],
+  .datetime-local-wrap input[type="datetime-local"],
+  .color-hex-input {
+    font-size: 16px;
+  }
+
+  /* Comfortable ~44px tap targets for the tappable controls. */
+  .input-row select,
+  .asset-picker-trigger,
+  .asset-clear,
+  .color-trigger,
+  .block-add {
+    min-height: 44px;
+  }
+  .asset-clear {
+    width: 44px;
+  }
+
+  /* Bigger, easier-to-grab slider: a taller track and a thumb sized for a
+     fingertip. The row already captures the whole hit-area, so this is purely
+     making the target legible. */
+  .cs-track { height: 6px; }
+  .cs-thumb { width: 22px; height: 22px; }
+  .custom-slider { padding: 12px 0 24px; }
+
+  /* Roomier swatches and checkbox. */
+  .color-swatch { height: 2.4em; width: 2.4em; }
+  .input-row input[type="checkbox"] { width: 20px; height: 20px; }
+  .input-row--checkbox { padding: 11px 12px; }
+}
