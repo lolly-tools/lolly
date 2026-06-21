@@ -2,7 +2,7 @@
 # Lolly — Landing page copy
 
 Save money, time, tokens, with ephemeral assets.
-No skills, no cloud, no waiting on anyone.
+No cloud, no waiting, no worries.
 
 ---
 
