@@ -45,7 +45,9 @@
 .pro-spacer { flex: none; } /* desktop: the toolbar group grows to fill, so the spacer is inert here; it only pushes controls right on mobile (see media query) */
 .pro-toolbar-sep { width: 1px; align-self: stretch; background: hsl(var(--border)); margin: .1rem .25rem; }
 .pro-count { font-size: .8rem; color: hsl(var(--muted-foreground)); }
-.pro-collapsed-bar .pro-count { margin-left: auto; white-space: nowrap; } /* pushed to the right of the columns bar */
+.pro-collapsed-bar .pro-count { margin-left: auto; white-space: nowrap;     font-weight: 600;color: hsl(var(--foreground) / 1);
+
+} /* pushed to the right of the columns bar */
 .pro-collapsed-bar {    max-height: 30vh;
     overflow: auto;}
 /* Collapsible toolbar: on wide screens the group is just an inline flex row and
@@ -124,7 +126,21 @@
    fill the toolbar, so the empty space to the right stays a clickable target. */
 .pro-zip input { font-size: 1.5rem; border: none; background: transparent; flex: 0 0 auto; min-width: 0; width: auto; padding: 0; text-align: left; }
 .pro-zip input:focus { outline: none; }
-.pro-zip-ext { flex: none; color: hsl(var(--muted-foreground)); font-size: .8rem; white-space: nowrap; }
+/* ".zip" rendered as a small uppercase pill so it reads as a format badge that
+   trails the typed name. The border has no colour of its own → currentColor. */
+.pro-zip-ext {
+  flex: none;
+  color: hsl(var(--muted-foreground));
+  font-size: .8rem;
+  white-space: nowrap;
+  padding: .25em .5em;
+  padding-top: .2em;
+  border: 2px solid;
+  border-radius: .5em;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
 /* Hidden mirror: matches the input's font so JS can measure the typed text width. */
 .pro-zip-measure { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; pointer-events: none; font-size: 1.5rem; }
 .pro-btn {
@@ -312,10 +328,21 @@ body.pro-scrubbing, body.pro-scrubbing * { cursor: ew-resize !important; user-se
   background: hsl(var(--muted));
 }
 .pro-asset-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pro-cell button[data-asset-pick][data-selected].pro-control::after {
-  content: '✓'; margin-left: auto; flex: none;
-  color: hsl(var(--primary)); font-weight: 700;
+/* Trailing badge doubles as a clear control: a ✓ that becomes a clickable ✕ on
+   hover/focus, emptying the cell without opening the picker. */
+.pro-asset-clear {
+  margin-left: auto; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.5rem; height: 1.5rem; border-radius: 50%;
+  color: hsl(var(--primary)); font-weight: 700; line-height: 1; cursor: pointer;
 }
+.pro-asset-clear::before { content: '✓'; }
+.pro-asset-clear:hover,
+.pro-asset-clear:focus-visible {
+  color: hsl(var(--destructive)); background: hsl(var(--destructive) / .12);
+}
+.pro-asset-clear:hover::before,
+.pro-asset-clear:focus-visible::before { content: '✕'; }
 .pro-cell:has(button[data-asset-pick][data-selected]) { background: hsl(var(--primary) / .07); }
 .pro-cell input[type="checkbox"].pro-control {
   width: 1rem; height: 1rem; min-height: 0; margin: .6rem auto; display: block;

@@ -79,6 +79,11 @@ export async function mountPro(viewEl, host, opts = {}) {
     zipName: '',          // optional name for the delivered zip
   };
   const ctx = { tools, assetPicker, unit: state.unit, dpi: state.dpi };
+  // Personalise the empty-grid welcome when the user has a saved profile name
+  // (Profile → First name). Fetched once at mount; the hint only shows before a
+  // tool is picked, so a mid-session profile edit needn't re-render it.
+  const meProfile = await host.profile?.get?.().catch(() => null);
+  ctx.firstname = (meProfile?.firstname ?? '').trim();
 
   // ── Static shell ───────────────────────────────────────────────────────────
   viewEl.innerHTML = `
@@ -462,6 +467,15 @@ export async function mountPro(viewEl, host, opts = {}) {
       state.rows = state.rows.filter(r => r.uid !== remove.dataset.row);
       if (state.rows.length === 0) state.rows.push(newRow());
       columns = renderGrid();
+      return;
+    }
+    // Clearing an image (the ✕ that the ✓ badge becomes on hover) must be checked
+    // before the picker, since the badge lives inside the [data-asset-pick] button.
+    const assetClear = e.target.closest('[data-asset-clear]');
+    if (assetClear) {
+      const cell = assetClear.closest('[data-cell]');
+      const row = cell && rowByUid(cell.dataset.row);
+      if (row) { delete row.values[cell.dataset.col]; columns = renderGrid(); }
       return;
     }
     const assetBtn = e.target.closest('[data-asset-pick]');

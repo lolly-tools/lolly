@@ -117,7 +117,7 @@ export async function mountGallery(viewEl, host) {
         </section>
       `).join('')}
       <footer class="gallery-footer">
-        ${proEnabled ? `<a href="#/pro" class="gallery-batch-link btn" aria-label="Open Batch mode — for power users">Batch</a>` : ''}
+        ${proEnabled ? `<a href="#/pro" class="gallery-batch-link btn" aria-label="Open Batch mode — for power users">Pro</a>` : ''}
         <div class="gallery-search-wrap">
           <input class="gallery-search" type="search" placeholder="Search tools…" autocomplete="off" spellcheck="false" aria-label="Search tools">
         </div>
