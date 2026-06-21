@@ -56,7 +56,7 @@ export async function mountProfile(viewEl, host, params = '') {
   const flagRow = (f) => `
     <li>
       <label class="feature-flag">
-        <span class="feature-flag-label">${escape(f.label)}</span>
+        <span class="feature-flag-label">${escape(f.label)}${f.pill ? `<span class="feature-flag-pill">${escape(f.pill)}</span>` : ''}</span>
         <input type="checkbox" class="feature-flag-input" data-flag="${escape(f.id)}" ${flagEnabled(profile, f.id) ? 'checked' : ''}>
         <span class="feature-flag-switch" aria-hidden="true"></span>
       </label>

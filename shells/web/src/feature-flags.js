@@ -17,7 +17,7 @@ export const CATEGORY_FLAGS = [
   { id: 'cat-developer', label: 'Handy Apps',   category: 'utility'  },
 ];
 
-export const PRO_FLAG = { id: 'pro-batch', label: 'Pro (batch) mode' };
+export const PRO_FLAG = { id: 'pro-batch', label: 'Pro', pill: 'batch mode' };
 
 // Order shown in the profile's Feature flags section.
 export const FEATURE_FLAGS = [...CATEGORY_FLAGS, PRO_FLAG];
