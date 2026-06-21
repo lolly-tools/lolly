@@ -12,9 +12,9 @@
 
 // label → the gallery `category` it shows/hides. (Categories live in tool.json.)
 export const CATEGORY_FLAGS = [
-  { id: 'cat-everyone',  label: 'Tools for everyone', category: 'everyone' },
-  { id: 'cat-designer',  label: 'Designer tools',     category: 'designer' },
-  { id: 'cat-developer', label: 'Useful utilities',   category: 'utility'  },
+  { id: 'cat-everyone',  label: 'Tools for Everyone', category: 'everyone' },
+  { id: 'cat-designer',  label: 'Designer Tools',     category: 'designer' },
+  { id: 'cat-developer', label: 'Handy Apps',   category: 'utility'  },
 ];
 
 export const PRO_FLAG = { id: 'pro-batch', label: 'Pro (batch) mode' };
