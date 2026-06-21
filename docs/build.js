@@ -3,13 +3,20 @@
 // Run: node docs/build.js            build the /info pages once
 //      node docs/build.js --watch    rebuild on every change under docs/ (used by dev:web)
 // Output: shells/web/public/info/
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, watch } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, watch } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
 const outDir = resolve(repoRoot, 'shells/web/public/info');
+
+// Canonical site origin — used for absolute URLs in social/Open Graph tags.
+// Social crawlers (Slack, X, Facebook, LinkedIn, iMessage) require absolute og:image URLs.
+const SITE_URL = 'https://lolly.tools';
+const OG_IMAGE = `${SITE_URL}/og.png`;
+const OG_LOGO = `${SITE_URL}/info/icon-normal.webp`;
+const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating on-brand creative assets at scale.';
 
 const pages = [
   { slug: 'index',            title: 'Lolly',     src: 'site.md',            isLanding: true },
@@ -619,28 +626,6 @@ ${whatsLines.length ? `<section class="whats-a-tool">
     <p class="social-proof-desc">Made in the open, used in confidence.<br>By design, we have no idea who or what runs Lolly — and that's exactly the point.</p>
     <p class="social-proof-desc">These are the kinds of organisations that benefit most, privacy aware ones!</p>
   </div>
-  <div class="logo-band-wrap">
-    <div class="logo-band">
-      <img src="/info/logos/globocorp.svg" alt="globoCorp">
-      <img src="/info/logos/brushbud.svg" alt="BrushBud">
-      <img src="/info/logos/stylus.svg" alt="Stylus">
-      <img src="/info/logos/fountain.svg" alt="Fountain">
-      <img src="/info/logos/internai.svg" alt="intern.AI">
-      <img src="/info/logos/philsbins.svg" alt="phil's bins">
-      <img src="/info/logos/yaymart.svg" alt="Yaymart">
-      <img src="/info/logos/spaceleysspeockets.svg" alt="Spaceleys Sprockets">
-      <img src="/info/logos/chainchain.svg" alt="ChainChain">
-      <img src="/info/logos/globocorp.svg" alt="globoCorp">
-      <img src="/info/logos/brushbud.svg" alt="BrushBud">
-      <img src="/info/logos/stylus.svg" alt="Stylus">
-      <img src="/info/logos/fountain.svg" alt="Fountain">
-      <img src="/info/logos/internai.svg" alt="intern.AI">
-      <img src="/info/logos/philsbins.svg" alt="phil's bins">
-      <img src="/info/logos/yaymart.svg" alt="Yaymart">
-      <img src="/info/logos/spaceleysspeockets.svg" alt="Spaceleys Sprockets">
-      <img src="/info/logos/chainchain.svg" alt="ChainChain">
-    </div>
-  </div>
   <p class="social-proof-credit">Presently developed in-house at <a href="https://www.suse.com" target="_blank" rel="noopener"> SUSE</a></p>
 </section>
 <section class="about-section">
@@ -890,14 +875,9 @@ tr:nth-child(even) td{background:#fafffe}
 .social-proof h2{font-size:2rem;color:var(--dark);margin-bottom:.375rem}
 .social-proof-date{font-size:.8125rem;color:var(--green);font-weight:600;margin-bottom:.625rem;letter-spacing:.02em;text-transform:uppercase}
 .social-proof-desc{color:var(--muted);font-size:.9375rem;line-height:1.6}
-.logo-band-wrap{overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent 0%,#000 12%,#000 88%,transparent 100%);mask:linear-gradient(90deg,transparent 0%,#000 12%,#000 88%,transparent 100%)}
-.logo-band{display:flex;align-items:center;gap:4rem;width:max-content;animation:logoScroll 32s linear infinite;padding:1rem 2rem}
-.logo-band img{height:2rem;width:auto;opacity:1;filter:grayscale(1);transition:opacity .2s,filter .2s;flex-shrink:0}
-.logo-band img:hover{opacity:1;filter:grayscale(0)}
 .social-proof-credit{text-align:center;color:var(--muted);font-size:.875rem;margin-top:1.75rem;padding:0 1.5rem}
 .social-proof-credit a{color:var(--green);font-weight:600;text-decoration:none}
 .social-proof-credit a:hover{text-decoration:underline}
-@keyframes logoScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
 /* About section */
 .about-section{padding:5rem 1.5rem;background:var(--dark);color:#fff}
@@ -1360,13 +1340,31 @@ function wrapPage(page, content) {
   </main>
 </div>`;
 
+  const ogTitle    = isLanding ? 'Lolly' : `${page.title} — Lolly`;
+  const canonical  = `${SITE_URL}${activeHref}`;
+
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${esc(page.title)} — Lolly</title>
-<meta name="description" content="Lolly: constraint-first, template-driven platform for generating on-brand creative assets at scale.">
+<meta name="description" content="${esc(SITE_DESCRIPTION)}">
+<link rel="canonical" href="${esc(canonical)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lolly">
+<meta property="og:title" content="${esc(ogTitle)}">
+<meta property="og:description" content="${esc(SITE_DESCRIPTION)}">
+<meta property="og:url" content="${esc(canonical)}">
+<meta property="og:image" content="${esc(OG_IMAGE)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Lolly — SUSE Brand Tools">
+<meta property="og:logo" content="${esc(OG_LOGO)}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(ogTitle)}">
+<meta name="twitter:description" content="${esc(SITE_DESCRIPTION)}">
+<meta name="twitter:image" content="${esc(OG_IMAGE)}">
 <link rel="icon" href="/favicon.ico">
 <link rel="icon" type="image/png" href="/icon.png">
 <link rel="apple-touch-icon" href="/icon.png">
@@ -1392,15 +1390,10 @@ ${isLanding ? LIQUID_GLASS_SCRIPT : ''}
 // ── Build all pages ───────────────────────────────────────────────────────────
 
 function build() {
-  // Ensure output dirs exist and copy static assets (icons + logo SVGs).
+  // Ensure output dirs exist and copy static assets (icons).
   mkdirSync(outDir, { recursive: true });
   try { copyFileSync(resolve(repoRoot, 'icon.png'), resolve(repoRoot, 'shells/web/public/icon.png')); } catch {}
   try { copyFileSync(resolve(repoRoot, 'icon-normal.webp'), resolve(outDir, 'icon-normal.webp')); } catch {}
-  const logosOutDir = resolve(outDir, 'logos');
-  mkdirSync(logosOutDir, { recursive: true });
-  readdirSync(resolve(__dirname, 'src')).filter(f => f.endsWith('.svg')).forEach(f => {
-    try { copyFileSync(resolve(__dirname, 'src', f), resolve(logosOutDir, f)); } catch {}
-  });
 
   for (const page of pages) {
     const srcPath = resolve(__dirname, page.src);
