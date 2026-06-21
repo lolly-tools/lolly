@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "node ../../docs/build.js && npm run build",
   "redirects": [
     {
       "source": "/:path*",

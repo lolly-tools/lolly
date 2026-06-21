@@ -10,7 +10,7 @@
     "shells/cli"
   ],
   "scripts": {
-    "dev:web": "npm run build:info && npm --workspace shells/web run dev",
+    "dev:web": "node docs/build.js --watch & npm --workspace shells/web run dev",
     "build:web": "npm run build:info && npm --workspace shells/web run build",
     "build:info": "node docs/build.js",
     "test": "node --test \"tests/**/*.test.js\"",
