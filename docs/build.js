@@ -655,7 +655,7 @@ ${whatsLines.length ? `<section class="whats-a-tool">
 <section class="opensource-section">
   <div class="opensource-inner reveal">
     <h2>Why open source?</h2>
-    <p>The more the platform is used, the richer the tool library becomes — and the more time, money, and frustration we collectively save. Open source means anyone can build, audit, improve, and deploy Lolly. That's a better deal for everyone.</p>
+    <p>The more the platform is used, the more we improve the core engine — and the more time, money, and frustration we collectively save. Open source means anyone can build, audit, improve, and deploy Lolly. That's a better deal for everyone.</p>
   </div>
 </section>
 ${faqHtml}
