@@ -8,6 +8,24 @@ The web shell is the primary MVP target. It:
 - Renders the gallery, profile, saved-state, and tool UI chrome
 - Drives the engine's lifecycle
 
+## Running locally
+
+From the **repo root** (not this workspace):
+
+```bash
+npm run dev:web     # Vite dev server + live-rebuild of the /info docs pages
+npm run build:web   # production build (builds the /info pages first)
+```
+
+`dev:web` runs two things in parallel: the Vite dev server **and** `node docs/build.js --watch`,
+which generates the static `/info` site into `public/info/` and rebuilds it whenever anything
+under `docs/` (or the root `README.md`) changes.
+
+> **Heads-up:** running this workspace's own `npm run dev` (plain `vite`) does **not** build or
+> watch the `/info` pages — so `/info/*` will 404 or serve stale content. Use `npm run dev:web`
+> from the repo root. If you do want the bare `vite` server, run `npm run build:info` once from the
+> root first to generate the pages.
+
 ## Bridge implementation
 
 | Capability     | Web implementation |

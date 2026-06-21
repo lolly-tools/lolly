@@ -42,7 +42,7 @@
   margin: 0;
 
 }
-.pro-spacer { flex: 1; }
+.pro-spacer { flex: none; } /* desktop: the toolbar group grows to fill, so the spacer is inert here; it only pushes controls right on mobile (see media query) */
 .pro-toolbar-sep { width: 1px; align-self: stretch; background: hsl(var(--border)); margin: .1rem .25rem; }
 .pro-count { font-size: .8rem; color: hsl(var(--muted-foreground)); }
 .pro-collapsed-bar .pro-count { margin-left: auto; white-space: nowrap; } /* pushed to the right of the columns bar */
@@ -50,7 +50,7 @@
     overflow: auto;}
 /* Collapsible toolbar: on wide screens the group is just an inline flex row and
    the hamburger is hidden. The narrow-screen behaviour is in the media query. */
-.pro-toolbar-group { display: flex; align-items: center; gap: .6rem; min-width: 0; }
+.pro-toolbar-group { display: flex; align-items: center; gap: .6rem; min-width: 0; flex: 1 1 auto; } /* grow so the zip-name field can take the full remaining toolbar width */
 .pro-hamburger { display: none; flex: none; }
 
 @media (max-width: 720px) {
@@ -60,6 +60,8 @@
      controls. */
   .pro-toolbar { position: relative; overflow: visible; padding-left: 7rem; }
   .pro-hamburger { display: inline-flex; }
+  /* Group becomes a dropdown, so the spacer goes back to pushing zoom/render right. */
+  .pro-spacer { flex: 1; }
   .pro-toolbar-group {
     display: none;
     position: absolute;
@@ -115,11 +117,16 @@
 /* Zip-name field: the ".zip" is a static suffix rendered inside the field so
    it's clear the batch downloads as a single archive (the "Zip name" label is
    gone). The wrapper carries the border; the input itself is borderless. */
-.pro-zip { gap: 0; padding: .5rem;border: 0; border-radius: calc(var(--radius) * .35); background: hsl(var(--background)); }
+.pro-zip { gap: .25rem; padding: .5rem; border: 0; border-radius: calc(var(--radius) * .35); background: hsl(var(--background)); flex: 1 1 auto; min-width: 0; }
 .pro-zip:focus-within { border-color: hsl(var(--ring)); }
-.pro-zip input { font-size: 1.5rem; border: none; background: transparent; width: 9rem; padding-right: .1rem; text-align: right; }
+/* The input sizes to its content (width set in JS via the mirror span below) so
+   ".zip" trails the last character the user types. The wrapper still flexes to
+   fill the toolbar, so the empty space to the right stays a clickable target. */
+.pro-zip input { font-size: 1.5rem; border: none; background: transparent; flex: 0 0 auto; min-width: 0; width: auto; padding: 0; text-align: left; }
 .pro-zip input:focus { outline: none; }
-.pro-zip-ext { color: hsl(var(--muted-foreground));margin-bottom: -.5em; font-size: .8rem; white-space: nowrap; }
+.pro-zip-ext { flex: none; color: hsl(var(--muted-foreground)); font-size: .8rem; white-space: nowrap; }
+/* Hidden mirror: matches the input's font so JS can measure the typed text width. */
+.pro-zip-measure { position: absolute; left: -9999px; top: 0; visibility: hidden; white-space: pre; pointer-events: none; font-size: 1.5rem; }
 .pro-btn {
   font: inherit;
   font-size: .85rem;
@@ -377,6 +384,7 @@ body.pro-scrubbing, body.pro-scrubbing * { cursor: ew-resize !important; user-se
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
   border-color: hsl(var(--primary));
+  border-top:none;
   font-weight: 700;
 }
 .pro-addrow .pro-btn:hover:not(:disabled) { background: hsl(var(--primary)); filter: brightness(1.08); }
@@ -500,7 +508,7 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
   background: hsl(var(--popover));
   color: hsl(var(--popover-foreground));
   border: 1px solid hsl(var(--border));
-  border-radius: calc(var(--radius) * .5);
+  border-radius: 0 .5em .5em 0;
   box-shadow: 0 12px 32px rgba(0,0,0,.22);
   padding: .8rem;
 }

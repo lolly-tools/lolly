@@ -1,22 +1,15 @@
 #!/usr/bin/env node
 // Minimal static site generator for Lolly.
-// Run: node docs/build.js  (from repo root or docs/ directory)
+// Run: node docs/build.js            build the /info pages once
+//      node docs/build.js --watch    rebuild on every change under docs/ (used by dev:web)
 // Output: shells/web/public/info/
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, readdirSync, watch } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
 const outDir = resolve(repoRoot, 'shells/web/public/info');
-mkdirSync(outDir, { recursive: true });
-try { copyFileSync(resolve(repoRoot, 'icon.png'), resolve(repoRoot, 'shells/web/public/icon.png')); } catch {}
-try { copyFileSync(resolve(repoRoot, 'icon-normal.webp'), resolve(outDir, 'icon-normal.webp')); } catch {}
-const logosOutDir = resolve(outDir, 'logos');
-mkdirSync(logosOutDir, { recursive: true });
-readdirSync(resolve(__dirname, 'src')).filter(f => f.endsWith('.svg')).forEach(f => {
-  try { copyFileSync(resolve(__dirname, 'src', f), resolve(logosOutDir, f)); } catch {}
-});
 
 const pages = [
   { slug: 'index',            title: 'Lolly',     src: 'site.md',            isLanding: true },
@@ -279,6 +272,28 @@ function mdToHtml(md) {
   return out.join('\n');
 }
 
+// ── FAQ source ────────────────────────────────────────────────────────────────
+// FAQs are authored in docs/faq.md so they can be maintained without touching this
+// build script. Each `##` heading is a question; the lines beneath it (up to the
+// next `##`) are the answer, in the same lightweight markdown the rest of the site
+// uses. Everything before the first `##` (title + maintainer notes) is ignored.
+function loadFaqs() {
+  const md = readFileSync(resolve(__dirname, 'faq.md'), 'utf8');
+  const faqs = [];
+  let cur = null;
+  for (const line of md.split('\n')) {
+    const m = line.match(/^##\s+(.+)/);
+    if (m) {
+      if (cur) faqs.push({ q: cur.q, a: cur.a.join('\n').trim() });
+      cur = { q: m[1].trim(), a: [] };
+    } else if (cur) {
+      cur.a.push(line);
+    }
+  }
+  if (cur) faqs.push({ q: cur.q, a: cur.a.join('\n').trim() });
+  return faqs;
+}
+
 // ── Landing page special renderer ─────────────────────────────────────────────
 
 function buildLandingContent(md) {
@@ -470,28 +485,9 @@ ${cardData.map(({ h2 }, i) => `  <button class="audience-tab" role="tab" aria-se
 
   // Frequently asked questions — rendered as native <details> accordions (no JS,
   // keyboard-accessible, works offline). Answers are markdown; blank lines split
-  // paragraphs. Add an entry here to add an item.
+  // paragraphs. Add or edit an item in docs/faq.md (see loadFaqs above).
   const FAQ_CHEVRON = `<svg viewBox="0 0 24 24" ${S}><polyline points="6 9 12 15 18 9"/></svg>`;
-  const FAQS = [
-    {
-      q: 'What happens when I opt-in on the /profile page?',
-      a: `When you first use Lolly, everything you type anywhere is fully private until you deliberately want that information out there via media or a share link (if online).
-
-With the opt-in selected, we embed some of your profile information as provenance into assets and bundles to identify you as the source.
-
-Lolly produces a large volume of content. We take a strict data minimization approach to prevent risk.`,
-    },
-    {
-      q: 'How do I get the mobile or desktop apps?',
-      a: `Anybody can distribute their own apps, the tools and configuration of those apps should vary widely depending on what audience it's intended for. So there's no one app unless you made it or someone relevant gives it to you.`,
-    },
-    {
-      q: 'What are **ephemeral** assets?',
-      a: `> Ephemeral (Adjective) Something that lasts for only a very short time; it is fleeting, transient, or short-lived.
-
-Automated, just-in-time, permutations of things, articulated by your choice. The result of rules, data, templates and so much more, made how you need it when you need it.`,
-    },
-  ];
+  const FAQS = loadFaqs();
 
   const faqHtml = `<section class="faq-section" id="faq">
   <div class="faq-inner reveal">
@@ -1391,20 +1387,54 @@ ${isLanding ? LIQUID_GLASS_SCRIPT : ''}
 
 // ── Build all pages ───────────────────────────────────────────────────────────
 
-for (const page of pages) {
-  const srcPath = resolve(__dirname, page.src);
-  let md;
-  try {
-    md = readFileSync(srcPath, 'utf-8');
-  } catch {
-    console.warn(`⚠  Skipping ${page.slug}: ${srcPath} not found`);
-    continue;
-  }
+function build() {
+  // Ensure output dirs exist and copy static assets (icons + logo SVGs).
+  mkdirSync(outDir, { recursive: true });
+  try { copyFileSync(resolve(repoRoot, 'icon.png'), resolve(repoRoot, 'shells/web/public/icon.png')); } catch {}
+  try { copyFileSync(resolve(repoRoot, 'icon-normal.webp'), resolve(outDir, 'icon-normal.webp')); } catch {}
+  const logosOutDir = resolve(outDir, 'logos');
+  mkdirSync(logosOutDir, { recursive: true });
+  readdirSync(resolve(__dirname, 'src')).filter(f => f.endsWith('.svg')).forEach(f => {
+    try { copyFileSync(resolve(__dirname, 'src', f), resolve(logosOutDir, f)); } catch {}
+  });
 
-  const content = page.isLanding ? buildLandingContent(md) : mdToHtml(md);
-  const html    = wrapPage(page, content);
-  const outFile = page.slug === 'index' ? 'index.html' : `${page.slug}.html`;
-  writeFileSync(resolve(outDir, outFile), html, 'utf-8');
-  console.log(`✓  /info/${outFile}`);
+  for (const page of pages) {
+    const srcPath = resolve(__dirname, page.src);
+    let md;
+    try {
+      md = readFileSync(srcPath, 'utf-8');
+    } catch {
+      console.warn(`⚠  Skipping ${page.slug}: ${srcPath} not found`);
+      continue;
+    }
+
+    const content = page.isLanding ? buildLandingContent(md) : mdToHtml(md);
+    const html    = wrapPage(page, content);
+    const outFile = page.slug === 'index' ? 'index.html' : `${page.slug}.html`;
+    writeFileSync(resolve(outDir, outFile), html, 'utf-8');
+    console.log(`✓  /info/${outFile}`);
+  }
+  console.log(`\nSite built → shells/web/public/info/`);
 }
-console.log(`\nSite built → shells/web/public/info/`);
+
+build();
+
+// ── Watch mode ────────────────────────────────────────────────────────────────
+// `node docs/build.js --watch` rebuilds whenever a docs source changes, so the
+// /info pages stay current during `npm run dev:web`. Sources are everything under
+// docs/ (the markdown, faq.md, and src/*.svg) plus the repo-root README.md (the
+// About page). Output goes to shells/web/public/ — outside docs/ — so a rebuild
+// never re-triggers the watcher.
+if (process.argv.includes('--watch')) {
+  let timer = null;
+  const scheduleRebuild = (label) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      console.log(`\n↻  ${label} changed — rebuilding /info…`);
+      try { build(); } catch (err) { console.error('✗  Rebuild failed:', err.message); }
+    }, 120);
+  };
+  watch(__dirname, { recursive: true }, (_event, file) => scheduleRebuild(file || 'docs'));
+  try { watch(resolve(repoRoot, 'README.md'), () => scheduleRebuild('README.md')); } catch {}
+  console.log('\n👀  Watching docs/ for changes — Ctrl+C to stop.');
+}

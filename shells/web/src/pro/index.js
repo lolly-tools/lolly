@@ -145,6 +145,31 @@ export async function mountPro(viewEl, host, opts = {}) {
   placeFormat();
   narrowMq.addEventListener('change', placeFormat);
 
+  // Auto-size the zip-name field so the ".zip" suffix trails the last character
+  // the user types instead of being pinned to the far right. A hidden span mirrors
+  // the text to measure its pixel width; we clamp to the room the field actually
+  // has so a long name scrolls inside the input rather than shoving ".zip" off the
+  // edge. On mobile the field is a full-width dropdown row, so CSS owns sizing there.
+  const zipField = zipNameInput.closest('.pro-zip');
+  const zipExt = zipField.querySelector('.pro-zip-ext');
+  const zipMeasure = document.createElement('span');
+  zipMeasure.className = 'pro-zip-measure';
+  zipMeasure.setAttribute('aria-hidden', 'true');
+  zipField.appendChild(zipMeasure);
+  const sizeZip = () => {
+    if (narrowMq.matches) { zipNameInput.style.width = ''; return; }
+    zipMeasure.textContent = zipNameInput.value || zipNameInput.placeholder || '';
+    const cs = getComputedStyle(zipField);
+    const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+    const gap = parseFloat(cs.columnGap || cs.gap || '0') || 0;
+    const room = zipField.clientWidth - padX - zipExt.offsetWidth - gap;
+    const want = zipMeasure.offsetWidth + 2;        // +2 keeps the caret from clipping
+    zipNameInput.style.width = `${Math.max(40, Math.min(want, room))}px`;
+  };
+  const zipRO = new ResizeObserver(sizeZip);        // fires on mount + toolbar/zoom reflow
+  zipRO.observe(zipField);
+  narrowMq.addEventListener('change', sizeZip);
+
   // UI zoom (the −/+ buttons): emulate Cmd +/− using the CSS `zoom` property,
   // which reflows the whole page like native zoom. Works on desktop AND lets a
   // zoomed mobile display be shrunk back down. Applied to <html> so it affects
@@ -325,9 +350,10 @@ export async function mountPro(viewEl, host, opts = {}) {
     _tplPop = pop;
 
     // Dock to the cell's top-left (overlays it), escaping the scroll container.
+    // Nudge 2px left so the popover's flat left edge aligns flush with the grid.
     const r = td.getBoundingClientRect();
     const W = Math.max(240, Math.round(r.width));
-    const left = Math.max(8, Math.min(r.left, window.innerWidth - W - 8));
+    const left = Math.max(6, Math.min(r.left - 2, window.innerWidth - W - 8));
     pop.style.cssText = `position:fixed;top:${Math.round(r.top)}px;left:${left}px;width:${W}px;z-index:9999;`;
 
     const search = pop.querySelector('.pro-tpl-search');
@@ -628,6 +654,7 @@ export async function mountPro(viewEl, host, opts = {}) {
     dpiInput.value = String(state.dpi);
     dpiInput.disabled = (state.unit === 'px');
     zipNameInput.value = state.zipName;
+    sizeZip();
     columns = renderGrid();
     nav.focusActive();
     markClean();                              // a freshly loaded snapshot is the new baseline
@@ -733,7 +760,7 @@ export async function mountPro(viewEl, host, opts = {}) {
 
   // ── Toolbar ─────────────────────────────────────────────────────────────────
   formatSel.addEventListener('change', (e) => { state.format = e.target.value; });
-  zipNameInput.addEventListener('input', (e) => { state.zipName = e.target.value; });
+  zipNameInput.addEventListener('input', (e) => { state.zipName = e.target.value; sizeZip(); });
 
   // The toolbar unit/DPI are the DEFAULTS every row inherits (row.unit/row.dpi
   // override per row, like the global vs per-row format). Changing a default
@@ -1082,7 +1109,7 @@ export async function mountPro(viewEl, host, opts = {}) {
   }
 
   // ── Cleanup (called by the router on navigation away) ───────────────────────
-  viewEl._cleanup = () => { closeBulkPopover(); closeSessions(); closeTemplatePicker(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); narrowMq.removeEventListener('change', placeFormat); document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
+  viewEl._cleanup = () => { closeBulkPopover(); closeSessions(); closeTemplatePicker(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zipRO.disconnect(); narrowMq.removeEventListener('change', placeFormat); narrowMq.removeEventListener('change', sizeZip); document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
 
   // Deep link: open a saved session if the route asked for one (#/pro?session=…),
   // e.g. resuming a batch from the gallery's Saved-sessions list. Otherwise drop
