@@ -808,7 +808,7 @@ nav a.active:not(.nav-launch){color:#fff}
 .everywhere-model-icon{width:2.25rem;height:2.25rem;color:var(--green);display:block;margin-bottom:.9rem}
 .everywhere-model h3{color:var(--green);font-size:1.2rem;margin:0}
 .everywhere-model p{flex:1;min-width:0;font-size:.95rem;line-height:1.65;color:rgba(255,255,255,.6);margin:0;padding-left:1.5rem}
-@media(max-width:768px){.everywhere-models-grid{grid-template-columns:1fr;gap:1rem}.everywhere-models{margin-top:2.5rem}}
+@media(max-width:768px){.everywhere-models-grid{grid-template-columns:1fr;gap:2rem}.everywhere-models{margin-top:2.5rem}}
 
 /* What's a tool */
 .whats-a-tool{padding:4.5rem 3.5rem;background:var(--border)}
