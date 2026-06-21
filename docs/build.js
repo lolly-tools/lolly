@@ -719,7 +719,7 @@ nav a.active:not(.nav-launch){color:#fff}
 #heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;   mix-blend-mode: luminosity;;opacity:.4}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
 .hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
-.hero-logo{display:block;width:clamp(180px,32vw,340px);height:auto;margin:0 auto;position:relative;  box-shadow: 0 0.5em 1em #0006, 0 .1em .2em #0005  ; border-radius: 3em;}
+.hero-logo{display:block;width:clamp(180px,32vw,340px);height:auto;margin:0 auto;position:relative;  box-shadow: 0 0.5em 1em #0004, 0 .1em .2em #0003;  border-radius: .91em;}
 .hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem;color:rgba(255,255,255,.8);line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
