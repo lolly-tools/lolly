@@ -108,4 +108,6 @@ See `docs/authoring-tools.md` to build your first tool.
 
 ## Open-sourcing plan
 
-The `engine/`, `shells/`, `schemas/`, and `docs/` directories are designed to be open-sourceable. `tools/` and `catalog/assets/` are SUSE-specific and will move to a private repo before that happens. The split is enforced now (no cross-imports from engine to tools) so the eventual extraction is clean.
+The `engine/`, `shells/`, `schemas/`, and `docs/` directories are designed to be open-sourceable. 
+
+`tools/` and `catalog/assets/` are not under the MPL and should will be replaced with example tools end of August
