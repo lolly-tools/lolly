@@ -170,7 +170,7 @@ export interface ExportAPI {
   download(blob: Blob, filename: string): Promise<void>;
 }
 
-export type ExportFormat = 'png' | 'jpg' | 'svg' | 'pdf' | 'html' | 'webm' | 'av1';
+export type ExportFormat = 'png' | 'jpg' | 'svg' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'av1';
 
 export interface ExportOpts {
   scale?: number;        // raster scale (1, 2, 3) — used when width/height absent

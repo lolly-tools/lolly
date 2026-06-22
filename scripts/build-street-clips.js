@@ -91,7 +91,7 @@ const CITIES = {
 
   // ── Oceania ──────────────────────────────────────────────────────────────
   brisbane:     { label: 'Brisbane',      center: [153.0251, -27.4698],  radiusM: 1100 }, // Queen Street Mall
-  noosa:        { label: 'Noosa',         center: [153.0917, -26.3958],  radiusM: 1100 }, // Noosa Heads / Hastings St
+  noosa:        { label: 'Noosa',         center: [153.0910, -26.3910],  radiusM: 1100 }, // Hastings St / Main Beach
 };
 
 const LIB_DIR   = join(ROOT, 'tools', 'street-map', 'lib');
@@ -117,13 +117,18 @@ function bbox(center, radiusM) {
   return { s: lat - dLat, w: lon - dLon, n: lat + dLat, e: lon + dLon };
 }
 
-function overpassQuery(b) {
+function overpassQuery(b, bCoast) {
   const box = `${b.s},${b.w},${b.n},${b.e}`;
+  // Coastline is fetched over a larger box than we clip to, so chains reliably
+  // cross the clip boundary instead of dead-ending just inside it (which would
+  // leave a dangling endpoint the sea assembler can't close).
+  const coastBox = `${bCoast.s},${bCoast.w},${bCoast.n},${bCoast.e}`;
   return `[out:json][timeout:90];
 (
   way[highway][!area](${box});
   way[waterway](${box});
   way[natural=water](${box});
+  way[natural=coastline](${coastBox});
 );
 out geom;`;
 }
@@ -173,14 +178,14 @@ function wayToFeature(el) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function overpassFetch(b, attempt = 1) {
+async function overpassFetch(b, bCoast, attempt = 1) {
   const res = await fetch(OVERPASS, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': 'lolly-street-map/0.1 (brandtools data-prep)',
     },
-    body: 'data=' + encodeURIComponent(overpassQuery(b)),
+    body: 'data=' + encodeURIComponent(overpassQuery(b, bCoast)),
   });
   if (res.ok) return res.json();
   // 429 (rate limit) / 504 (timeout) are transient — back off and retry.
@@ -188,21 +193,214 @@ async function overpassFetch(b, attempt = 1) {
     const wait = 5000 * attempt;
     process.stdout.write(`(HTTP ${res.status}, retry in ${wait / 1000}s) `);
     await sleep(wait);
-    return overpassFetch(b, attempt + 1);
+    return overpassFetch(b, bCoast, attempt + 1);
   }
   throw new Error(`Overpass HTTP ${res.status}: ${(await res.text()).slice(0, 160)}`);
+}
+
+// ─── Coastline → sea polygons ─────────────────────────────────────────────────
+// OSM marks the sea edge with open `natural=coastline` ways, directed so that
+// LAND is on the left and WATER on the right. To fill the ocean we stitch those
+// ways into chains, clip them to the city bbox, then close each chain along the
+// bbox edges into a polygon. The closing direction is chosen self-correctingly:
+// we sample a point just off the RIGHT of the coast (guaranteed sea by the OSM
+// rule) and keep whichever closure actually contains it — so an orientation slip
+// can never paint the land instead of the water. All build-time; the tool renders
+// the result like any other water fill.
+
+const _key  = (p) => p[0] + ',' + p[1];
+const _near = (a, b) => Math.abs(a - b) < 1e-9;
+const _mod  = (x, n) => ((x % n) + n) % n;
+const _lerp = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+
+// Join coastline ways into maximal chains. Only end→start joins, never a reversal
+// (reversing a way would flip its land/water side).
+function stitchChains(lines) {
+  const chains = lines.map((l) => l.slice());
+  for (let merged = true; merged; ) {
+    merged = false;
+    for (let i = 0; i < chains.length; i++) {
+      if (!chains[i]) continue;
+      for (let j = 0; j < chains.length; j++) {
+        if (i === j || !chains[i] || !chains[j]) continue;
+        if (_key(chains[i][chains[i].length - 1]) === _key(chains[j][0])) {
+          chains[i] = chains[i].concat(chains[j].slice(1));
+          chains[j] = null;
+          merged = true;
+        }
+      }
+    }
+  }
+  return chains.filter(Boolean);
+}
+
+// Liang–Barsky: clip param range [t0,t1] of segment p0→p1 to rect R, or null.
+function clipSeg(p0, p1, R) {
+  let t0 = 0, t1 = 1;
+  const dx = p1[0] - p0[0], dy = p1[1] - p0[1];
+  const edges = [[-dx, p0[0] - R.w], [dx, R.e - p0[0]], [-dy, p0[1] - R.s], [dy, R.n - p0[1]]];
+  for (const [p, q] of edges) {
+    if (p === 0) { if (q < 0) return null; continue; }
+    const r = q / p;
+    if (p < 0) { if (r > t1) return null; if (r > t0) t0 = r; }
+    else       { if (r < t0) return null; if (r < t1) t1 = r; }
+  }
+  return [t0, t1];
+}
+
+// Clip a chain to R → inside sub-paths, with the bbox-edge crossing points kept.
+function clipChain(pts, R) {
+  const out = [];
+  let cur = null;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const c = clipSeg(pts[i], pts[i + 1], R);
+    if (!c) { cur = null; continue; }
+    const A = _lerp(pts[i], pts[i + 1], c[0]);
+    const B = _lerp(pts[i], pts[i + 1], c[1]);
+    if (cur === null || c[0] > 0) { cur = [A]; out.push(cur); }
+    const last = cur[cur.length - 1];
+    if (!_near(last[0], B[0]) || !_near(last[1], B[1])) cur.push(B);
+    if (c[1] < 1) cur = null;
+  }
+  return out.filter((s) => s.length >= 2);
+}
+
+const onEdge = (p, R) =>
+  _near(p[0], R.w) || _near(p[0], R.e) || _near(p[1], R.s) || _near(p[1], R.n);
+
+// Clockwise perimeter coordinate in [0,4): top L→R, right N→S, bottom R→L, left S→N.
+function perim(p, R) {
+  if (_near(p[1], R.n)) return (p[0] - R.w) / (R.e - R.w);
+  if (_near(p[0], R.e)) return 1 + (R.n - p[1]) / (R.n - R.s);
+  if (_near(p[1], R.s)) return 2 + (R.e - p[0]) / (R.e - R.w);
+  return 3 + (p[1] - R.s) / (R.n - R.s);
+}
+const cornerAt = (m, R) => {
+  m = _mod(Math.round(m), 4);
+  return m === 0 ? [R.w, R.n] : m === 1 ? [R.e, R.n] : m === 2 ? [R.e, R.s] : [R.w, R.s];
+};
+
+// Bbox corners strictly between two perimeter positions, in travel order.
+function cornersBetween(fromPos, toPos, dir, R) {
+  const span = dir > 0 ? _mod(toPos - fromPos, 4) : _mod(fromPos - toPos, 4);
+  const got = [];
+  for (const m of [1, 2, 3, 4]) {
+    const d = dir > 0 ? _mod(m - fromPos, 4) : _mod(fromPos - m, 4);
+    if (d > 1e-9 && d < span - 1e-9) got.push([d, cornerAt(m, R)]);
+  }
+  return got.sort((a, b) => a[0] - b[0]).map((c) => c[1]);
+}
+
+function pointInRings(rings, pt) {
+  let inside = false;
+  for (const ring of rings) {
+    for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      const [xi, yi] = ring[i], [xj, yj] = ring[j];
+      if ((yi > pt[1]) !== (yj > pt[1]) &&
+          pt[0] < ((xj - xi) * (pt[1] - yi)) / (yj - yi) + xi) inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function assembleSea(coastLines, R) {
+  // Stitch → clip → keep only sub-paths that cross the bbox (both ends on edge).
+  const open = [];
+  for (const chain of stitchChains(coastLines)) {
+    for (const sub of clipChain(chain, R)) {
+      if (onEdge(sub[0], R) && onEdge(sub[sub.length - 1], R)) open.push(sub);
+    }
+  }
+  if (!open.length) return [];
+
+  // A guaranteed-water point: just off the RIGHT side of the coastline segment
+  // nearest the bbox centre (right normal of travel (dx,dy) is (dy,−dx), y-up).
+  const cx = (R.w + R.e) / 2, cy = (R.s + R.n) / 2;
+  let seg = [open[0][0], open[0][1]], bestD = Infinity;
+  for (const sub of open) {
+    for (let i = 0; i + 1 < sub.length; i++) {
+      const mx = (sub[i][0] + sub[i + 1][0]) / 2, my = (sub[i][1] + sub[i + 1][1]) / 2;
+      const d = (mx - cx) ** 2 + (my - cy) ** 2;
+      if (d < bestD) { bestD = d; seg = [sub[i], sub[i + 1]]; }
+    }
+  }
+  const dx = seg[1][0] - seg[0][0], dy = seg[1][1] - seg[0][1];
+  const len = Math.hypot(dx, dy) || 1;
+  const eps = (R.e - R.w) * 0.02;
+  const midx = (seg[0][0] + seg[1][0]) / 2, midy = (seg[0][1] + seg[1][1]) / 2;
+  const waterPt = [midx + (dy / len) * eps, midy + (-dx / len) * eps]; // right of coast = sea
+  const landPt  = [midx - (dy / len) * eps, midy - (-dx / len) * eps]; // left  of coast = land
+
+  const build = (dir) => {
+    const used = new Array(open.length).fill(false);
+    const rings = [];
+    for (let s = 0; s < open.length; s++) {
+      if (used[s]) continue;
+      const ring = [];
+      let ci = s;
+      for (let guard = 0; guard <= open.length; guard++) {
+        used[ci] = true;
+        for (const p of open[ci]) ring.push(p);
+        const exitPos = perim(open[ci][open[ci].length - 1], R);
+        let nx = -1, nd = Infinity;
+        for (let j = 0; j < open.length; j++) {
+          let d = dir > 0 ? _mod(perim(open[j][0], R) - exitPos, 4)
+                          : _mod(exitPos - perim(open[j][0], R), 4);
+          if (d < 1e-9) d = 4; // a near-zero hop means "all the way around" to self
+          if (d < nd) { nd = d; nx = j; }
+        }
+        for (const c of cornersBetween(exitPos, perim(open[nx][0], R), dir, R)) ring.push(c);
+        if (nx === s || used[nx]) break;
+        ci = nx;
+      }
+      if (ring.length > 2) { ring.push(ring[0].slice()); rings.push(ring); }
+    }
+    return rings;
+  };
+
+  // A correct sea fill contains the guaranteed-water point and excludes BOTH the
+  // guaranteed-land point and the (land) city centre. The two closures are
+  // complementary, so for a clean coast exactly one passes. If neither does (a
+  // tangled multi-chain coast, e.g. a city wedged between two rivers), skip the
+  // fill — never flood the land. cx/cy (bbox centre) is the city centre.
+  const ok = (rings) => rings.length > 0 &&
+    pointInRings(rings, waterPt) && !pointInRings(rings, landPt) && !pointInRings(rings, [cx, cy]);
+
+  const ringsCW = build(1);
+  if (ok(ringsCW)) return ringsCW;
+  const ringsCCW = build(-1);
+  if (ok(ringsCCW)) return ringsCCW;
+  return [];
 }
 
 async function buildCity(key) {
   const city = CITIES[key];
   if (!city) throw new Error(`Unknown city "${key}". Known: ${Object.keys(CITIES).join(', ')}`);
   const b = bbox(city.center, city.radiusM);
+  const bCoast = bbox(city.center, city.radiusM * 2); // wider net for coastline only
   process.stdout.write(`[${key}] querying Overpass… `);
-  const json = await overpassFetch(b);
-  const features = (json.elements || [])
-    .filter((e) => e.type === 'way')
-    .map(wayToFeature)
-    .filter(Boolean);
+  const json = await overpassFetch(b, bCoast);
+  const elements = (json.elements || []).filter((e) => e.type === 'way');
+  const features = elements.map(wayToFeature).filter(Boolean);
+
+  // Fill the ocean: assemble polygons from natural=coastline ways (open lines,
+  // water-on-right). Inland cities return none → no-op. Failures are non-fatal:
+  // we just skip the sea fill rather than lose the whole clip.
+  const coast = elements
+    .filter((e) => e.tags && e.tags.natural === 'coastline' && e.geometry && e.geometry.length >= 2)
+    .map((e) => cleanCoords(e.geometry))
+    .filter((c) => c.length >= 2);
+  if (coast.length) {
+    try {
+      const rings = assembleSea(coast, b).map((r) => r.map((p) => [round(p[0]), round(p[1])]));
+      for (const ring of rings) {
+        features.push({ type: 'Feature', properties: { k: 'water' }, geometry: { type: 'Polygon', coordinates: [ring] } });
+      }
+      if (rings.length) process.stdout.write(`(+${rings.length} sea) `);
+    } catch (e) {
+      process.stdout.write(`(sea skipped: ${e.message}) `);
+    }
+  }
 
   const fc = {
     type: 'FeatureCollection',

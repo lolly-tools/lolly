@@ -108,6 +108,25 @@ export function createAssetsAPI(db) {
         .map(rec => toAssetRef(rec, 'user'));
     },
 
+    /**
+     * Internal: full user-asset records *including the raw Blob*, for the data
+     * backup/export. Unlike _listUserAssets (which returns AssetRefs without the
+     * bytes), this hands back exactly what's stored so a bundle can round-trip it.
+     */
+    async _exportUserAssets() {
+      return db.getAll('user-assets');
+    },
+
+    /**
+     * Internal: write a user-asset record straight back in from a backup import.
+     * Deliberately bypasses the personal-library cap and quota check — a restore
+     * should faithfully reproduce the library the user exported, not be rejected
+     * for being "too big" on arrival.
+     */
+    async _importUserAsset(record) {
+      await db.put('user-assets', record);
+    },
+
     /** Internal: how many images are in the user's personal library. */
     async _userAssetsCount() {
       return (await db.getAllKeys('user-assets')).length;

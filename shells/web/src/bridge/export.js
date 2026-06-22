@@ -99,6 +99,8 @@ async function renderFormat(node, format, opts = {}) {
       return await renderBitmap(node, 'image/webp', opts);
     case 'avif':
       return await renderBitmap(node, 'image/avif', opts);
+    case 'cmyk-tiff':
+      return await renderCmykTiff(node, opts);
     case 'svg':
       return await renderSvg(node, opts);
     case 'pdf':
@@ -184,6 +186,156 @@ async function renderBitmap(node, mimeType, opts) {
       opts.quality ?? 0.9,
     );
   });
+}
+
+// ── DeviceCMYK TIFF export ──────────────────────────────────────────────────
+//
+// A print-grade CMYK TIFF, written by hand (no browser TIFF encoder exists; this
+// is the same hand-rolled-binary approach used for PNG chunks / EXIF / ICC). The
+// canvas is rasterised exactly like the other raster formats, its sRGB pixels are
+// converted per-pixel to *device* CMYK via the engine's rgbToCmyk (Path 1: no ICC
+// transform, no brand-palette substitution — incidental colours only), and the
+// result is stored uncompressed in a single strip.
+//
+// Deliberately untagged DeviceCMYK: there is no embedded output profile, so a RIP
+// assigns its own working space. A colour-managed variant (real ICC separation +
+// embedded press profile) is a separate, heavier project — see cmykTiffSupport,
+// which keeps the format off environments where it can't be produced or delivered.
+async function renderCmykTiff(node, opts) {
+  const lib = await getDomToImage();
+  const d = exportDims(node, opts);
+  const dtoOpts = rasterStyle(d, opts);
+  const restore = await swapBlobUrls(node);
+  let canvas;
+  try {
+    const raw = await lib.toCanvas(node, dtoOpts);
+    canvas = normalizeCanvas(raw, dtoOpts.width, dtoOpts.height);
+  } finally {
+    restore();
+  }
+  const W = canvas.width, H = canvas.height;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const rgba = ctx.getImageData(0, 0, W, H).data;   // sRGB, straight (un-premultiplied)
+  const cmyk = rgbaToDeviceCmyk(rgba);
+  const tiff = encodeCmykTiff(cmyk, W, H, d.dpi, opts.meta);
+  return new Blob([tiff], { type: 'image/tiff' });
+}
+
+// RGBA (0–255, sRGB) → packed CMYK bytes (0=no ink … 255=full ink), one tight
+// numeric pass over the typed array. Transparency is flattened onto white (CMYK
+// has no alpha channel and print stock is white). ~tens of ms for 1080².
+function rgbaToDeviceCmyk(rgba) {
+  const n = rgba.length / 4;
+  const out = new Uint8Array(n * 4);
+  for (let i = 0, j = 0; i < rgba.length; i += 4, j += 4) {
+    const a = rgba[i + 3];
+    let r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
+    if (a < 255) {                                   // composite over white
+      const t = a / 255, u = 255 * (1 - t);
+      r = r * t + u; g = g * t + u; b = b * t + u;
+    }
+    const [c, m, y, k] = rgbToCmyk(r / 255, g / 255, b / 255);
+    out[j]     = (c * 255 + 0.5) | 0;
+    out[j + 1] = (m * 255 + 0.5) | 0;
+    out[j + 2] = (y * 255 + 0.5) | 0;
+    out[j + 3] = (k * 255 + 0.5) | 0;
+  }
+  return out;
+}
+
+// Assemble a baseline little-endian CMYK TIFF: 8-byte header → IFD → out-of-line
+// values → one uncompressed strip. Entries are gathered, then sorted by tag (a
+// TIFF requirement) with ≤4-byte values inlined and larger ones placed after the
+// IFD. Mirrors buildExifTiff, scaled up to a full image + provenance + DPI.
+function encodeCmykTiff(cmyk, W, H, dpi, meta) {
+  const enc = new TextEncoder();
+  const SHORT = 3, LONG = 4, RATIONAL = 5, ASCII = 2;
+  const TYPE_SIZE = { 2: 1, 3: 2, 4: 4, 5: 8 };
+  const entries = [];
+  const num   = (tag, type, n) => entries.push({ tag, type, count: 1, n });
+  const asciiTag = (tag, s) => { if (s) { const a = enc.encode(String(s)); const d = new Uint8Array(a.length + 1); d.set(a, 0); entries.push({ tag, type: ASCII, count: d.length, data: d }); } };
+
+  const bps = new Uint8Array(8); { const dv = new DataView(bps.buffer); for (let i = 0; i < 4; i++) dv.setUint16(i * 2, 8, true); }
+  const rational = (n2, den) => { const d = new Uint8Array(8); const dv = new DataView(d.buffer); dv.setUint32(0, n2, true); dv.setUint32(4, den, true); return d; };
+  const res = Math.max(1, Math.round(dpi || 72));
+
+  num(256, LONG, W);                                  // ImageWidth
+  num(257, LONG, H);                                  // ImageLength
+  entries.push({ tag: 258, type: SHORT, count: 4, data: bps }); // BitsPerSample [8,8,8,8]
+  num(259, SHORT, 1);                                 // Compression: none
+  num(262, SHORT, 5);                                 // PhotometricInterpretation: Separated (CMYK)
+  asciiTag(270, meta?.description);                   // ImageDescription
+  num(273, LONG, 0);                                  // StripOffsets — patched after layout
+  num(277, SHORT, 4);                                 // SamplesPerPixel
+  num(278, LONG, H);                                  // RowsPerStrip (single strip)
+  num(279, LONG, W * H * 4);                          // StripByteCounts
+  entries.push({ tag: 282, type: RATIONAL, count: 1, data: rational(res, 1) }); // XResolution
+  entries.push({ tag: 283, type: RATIONAL, count: 1, data: rational(res, 1) }); // YResolution
+  num(296, SHORT, 2);                                 // ResolutionUnit: inch
+  asciiTag(305, meta?.software);                      // Software
+  asciiTag(315, meta?.author);                        // Artist
+  num(332, SHORT, 1);                                 // InkSet: CMYK
+
+  entries.sort((a, b) => a.tag - b.tag);
+
+  const N = entries.length;
+  const ifdStart = 8;
+  let ext = ifdStart + 2 + N * 12 + 4;                // out-of-line region start
+  for (const e of entries) {
+    const bytes = e.data ? e.data.length : e.count * TYPE_SIZE[e.type];
+    if (bytes > 4) { e.offset = ext; ext += bytes + (bytes & 1); } // keep word alignment
+  }
+  const stripOffset = ext + (ext & 1);
+  entries.find(e => e.tag === 273).n = stripOffset;   // patch StripOffsets
+
+  const out = new Uint8Array(stripOffset + W * H * 4);
+  const dv = new DataView(out.buffer);
+  out[0] = 0x49; out[1] = 0x49;                       // "II" little-endian
+  dv.setUint16(2, 42, true);
+  dv.setUint32(4, ifdStart, true);
+  dv.setUint16(ifdStart, N, true);
+  let o = ifdStart + 2;
+  for (const e of entries) {
+    dv.setUint16(o, e.tag, true);
+    dv.setUint16(o + 2, e.type, true);
+    dv.setUint32(o + 4, e.count, true);
+    const bytes = e.data ? e.data.length : e.count * TYPE_SIZE[e.type];
+    if (bytes > 4) { dv.setUint32(o + 8, e.offset, true); out.set(e.data, e.offset); }
+    else if (e.data) out.set(e.data, o + 8);          // small inline value (e.g. short ASCII)
+    else if (e.type === SHORT) dv.setUint16(o + 8, e.n, true);
+    else dv.setUint32(o + 8, e.n, true);
+    o += 12;
+  }
+  dv.setUint32(o, 0, true);                           // next IFD: none
+  out.set(cmyk, stripOffset);
+  return out;
+}
+
+// Can this environment both PRODUCE and DELIVER a DeviceCMYK TIFF? Memoised.
+// Production needs canvas pixel readback (blocked by Tor / Firefox RFP, which
+// breaks every raster export). Delivery is the TIFF-specific catch: the browser
+// can't preview a CMYK TIFF, and mobile Safari / in-app WebViews route blob
+// downloads to an in-page view — a dead end for a non-displayable file. So the
+// format is offered on desktop only, until a previewable / colour-managed path
+// exists. The shell calls this from keepFormat to hide the option where unusable.
+let _cmykTiff = null;
+export function cmykTiffSupport() {
+  if (_cmykTiff !== null) return _cmykTiff;
+  _cmykTiff = false;
+  if (typeof document === 'undefined' || typeof navigator === 'undefined') return _cmykTiff;
+  try {
+    const c = document.createElement('canvas');
+    c.width = c.height = 2;
+    const ctx = c.getContext('2d');
+    if (!ctx) return _cmykTiff;
+    ctx.fillRect(0, 0, 1, 1);
+    ctx.getImageData(0, 0, 1, 1);                     // throws if readback is blocked
+  } catch { return _cmykTiff; }
+  const ua = navigator.userAgent || '';
+  const iOS = /iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+  const mobile = iOS || /Android/.test(ua) || (/Mobi/.test(ua) && (navigator.maxTouchPoints || 0) > 0);
+  _cmykTiff = !mobile;
+  return _cmykTiff;
 }
 
 // dom-to-image options: render the node at its native CSS size then scale it up

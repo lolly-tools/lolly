@@ -123,6 +123,7 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `export` | web + CLI | Presence flag — trigger an immediate download on page load. |
 | `copy` | web only | Presence flag — arm copy-to-clipboard on first interaction. |
 | `full` | web only | Presence flag — open in fullscreen (sidebar collapsed). |
+| `options` | web only | Presence flag — open with the export-settings panel expanded instead of the collapsed Render button. `full` wins if both are set. |
 | `filename` | web only | Name for the downloaded file (no extension). Defaults to the tool ID. |
 | `slot` | web + CLI | Name of a saved state slot to pre-load. URL params override saved values. |
 | `output` | CLI only | File path to write the exported file. Defaults to stdout. |
@@ -132,7 +133,9 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `unit` | web + CLI | Physical unit for `width`/`height`: `px` (default), `mm`, `cm`, `in`, `pt`, `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
 
-`export`, `copy`, and `full` are **presence flags** — the parameter value is ignored; what matters is whether the key appears in the URL.
+`export`, `copy`, `full`, and `options` are **presence flags** — the parameter value is ignored; what matters is whether the key appears in the URL.
+
+> **Building share links in the UI.** In the web shell you don't have to hand-write these. The **Share** button (in the export panel) opens a dialog with the ready-to-copy link plus a toggle for each on-visit flag — _open fullscreen_ (`full`), _open with the export panel expanded_ (`options`), _download automatically_ (`export`), _copy to clipboard_ (`copy`), and _pin tool version_ (`_v`). The copy toggle appears only for clipboard-friendly formats (bitmap/text/html) and is hidden for SVG, PDF, and video. Ticking a box rewrites the link in place.
 
 ### Physical units (`unit=` + `dpi=`)
 
@@ -256,6 +259,18 @@ Combine with `export` for a clean unattended export flow:
 ```
 /#/tool/qr-code?url=https://suse.com&format=png&filename=my-qr&export&full
 ```
+
+---
+
+## Land on the export panel with `options`
+
+`options` opens the tool with the export-settings panel already expanded (format, dimensions, DPI, and the export/copy buttons) instead of the collapsed **Render** button. Use it to share a link where the recipient is one click from downloading.
+
+```
+/#/tool/qr-code?url=https://suse.com&options
+```
+
+`options` is the opposite of `full`: `full` hides all chrome to show only the preview, while `options` surfaces the export chrome. If both appear, `full` wins (there's nowhere to anchor the export panel once the sidebar is collapsed). The flag is web-only — the CLI ignores it.
 
 ---
 

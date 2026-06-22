@@ -14,6 +14,8 @@
  *   - `export`   — presence flag: trigger an immediate download on load
  *   - `copy`     — presence flag: arm copy-to-clipboard on first interaction
  *   - `full`     — presence flag: open in fullscreen (sidebar collapsed)
+ *   - `options`  — presence flag: open with the export-settings panel expanded
+ *                  (web shell only; ignored by CLI). `full` wins if both are set.
  *   - `slot`     — saved state slot to load
  *   - `output`   — output filename (CLI only)
  *   - `filename` — download filename (web shell)
@@ -21,6 +23,8 @@
  *   - `width`/`w`, `height`/`h` — output dimensions (value in `unit`, default px)
  *   - `unit`     — physical unit for width/height: px (default), mm, cm, in, pt
  *   - `dpi`      — raster resolution for physical units (default 300; px → 96)
+ *   - `profile`  — colour profile: raster ICC ('srgb'/'none') or, for pdf-cmyk,
+ *                  the press condition ('fogra39', 'swop', 'gracol', …)
  *
  * Compact URL encoding (opt-in per tool via tool.json):
  *   - Inputs can declare a short `urlKey` alias (e.g. "textColor" → "tc")
@@ -39,7 +43,7 @@
 
 import { isUnit } from './units.js';
 
-const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'full']);
+const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'full', 'options']);
 
 /**
  * Parse URL params into an input-state object the runtime can apply.
@@ -96,6 +100,8 @@ export function parseUrlState(searchParams, manifest) {
     // Physical unit for width/height (default px) and the raster DPI for it.
     unit:     isUnit(rawUnit) ? rawUnit : null,
     dpi:      rawDpi != null ? (Number(rawDpi) || null) : null,
+    // Colour profile / CMYK press condition for the export (see color.js).
+    profile:  params.get('profile') || null,
   };
 }
 
@@ -127,6 +133,7 @@ export function serializeUrlState(model, opts = {}) {
   if (opts.height) params.set('h', String(opts.height));
   if (opts.unit && opts.unit !== 'px') params.set('unit', opts.unit);
   if (opts.dpi)    params.set('dpi', String(opts.dpi));
+  if (opts.profile) params.set('profile', opts.profile);
   return params.toString();
 }
 

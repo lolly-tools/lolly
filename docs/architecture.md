@@ -319,10 +319,11 @@ The split is enforced now — there are no cross-imports from `engine/` to `tool
 | Milestone | Target | What |
 |---|---|---|
 | **Initial tools** | ✅ Done | QR Code, Quote Card, Email Signature, Day Brief, Code Canvas, Countdown Timer, Color Palette, Product Lockup, Bag Video, Film Burn Filter, Chart Creator, Duotone Filter, Meeting Planner — web shell live |
-| **Enhance current tooling** | Mid 2026 | Downloadable offline app (Tauri); additional employee and event tools; richer export pipeline (text-to-path stability, metadata, extra formats — see `plans.md`) |
-| **Open source the engine** | Late 2026 | Engine, shells, schemas, docs go public — not the branded tools/assets |
-| **Establish tool roadmap** | Late 2026 | Customer reference kits, Claude design ingest, GET/URL request mode |
+| **Enhance current tooling** | Mid 2026 ✅ Done  | Downloadable offline app (Tauri); additional employee and event tools; richer export pipeline (text-to-path stability, metadata, extra formats — see `plans.md`) |
+| **Open source the engine** | Late 2026 ✅ Done  | Engine, shells, schemas, docs go public — not the branded tools/assets |
+| **Establish formal tool roadmap** | Late 2026 | Customer reference kits, Claude design ingest, GET/URL request mode |
 | **RBAC + SUSE ID** | 2027+ | Gate specific tools behind SUSE ID; multi-device saved state; Google Drive ingest/export |
+| **MCP + Penpot Extension** the most visual way to create deterministic templates directly with AI kicking off a very brand informed first round. Start with user intervation perfecting all templates, target one shotting new contexts" 
 
 ---
 

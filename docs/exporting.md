@@ -39,6 +39,16 @@ Example: width `210`, height `297`, unit `mm` → an A4 page.
 
 Tools that support it offer a **transparent background** toggle (e.g. *No BG*). Transparency is preserved by PNG, WebP, AVIF, and SVG. JPG and PDF are always opaque.
 
+## Colour profiles
+
+So colours reproduce faithfully in colour-managed apps (print shops, Photoshop, browsers), exports are **tagged with a colour profile**:
+
+- **PNG / JPG** carry an embedded **sRGB** ICC profile — the colour space the preview is actually rendered in — so nothing is left to guess. (Tagging only; the pixels aren't re-encoded.)
+- **Print PDF (CMYK)** declares a target **press condition** in its *OutputIntent* (default *Coated FOGRA39*), telling a RIP/print shop how its CMYK inks are meant to be read. Brand swatches with measured ink values are converted exactly; other colours use a standard device conversion.
+- **SVG** is resolution- and profile-independent; its colours are plain sRGB values.
+
+This is automatic — no setting to fiddle with. Thumbnails and previews skip the tag to stay small.
+
 ## Video
 
 Animated tools export motion as **MP4**, **WebM**, or **GIF**. Which video container you see depends on your browser — the picker only shows what it can actually record:

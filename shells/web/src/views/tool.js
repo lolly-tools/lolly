@@ -10,33 +10,40 @@
  *   5. Action buttons call runtime.export() / host.clipboard / host.state
  */
 
-import { loadTool, createRuntime, parseUrlState, annotateTemplate, UNITS, toCssPx } from '@lolly/engine';
+import { loadTool, createRuntime, parseUrlState, annotateTemplate, UNITS, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
 import { escape } from '../utils.js';
 import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabilities.js';
 import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
 import { colorFieldHtml, wireColorField } from '../components/color-field.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
-import { videoSupport } from '../bridge/export.js';
+import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
 // Human-readable labels and file extensions for format identifiers that differ
 // from their raw string (e.g. "pdf-cmyk" → "Print PDF" / ".pdf").
-const FMT_LABEL = { 'pdf-cmyk': 'Print PDF', 'jpeg': 'JPG', 'webm': 'WebM', 'mp4': 'MP4',
+const FMT_LABEL = { 'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', 'jpeg': 'JPG', 'webm': 'WebM', 'mp4': 'MP4',
   ics: 'Calendar', vcf: 'vCard', ico: 'Icon', zip: 'ZIP', csv: 'CSV', json: 'JSON' };
-const FMT_EXT   = { 'pdf-cmyk': 'pdf', 'jpeg': 'jpg' };
+const FMT_EXT   = { 'pdf-cmyk': 'pdf', 'cmyk-tiff': 'tiff', 'jpeg': 'jpg' };
 
 // Visual formats a ZIP export bundles (data/text and video are excluded). The
 // shell passes these as opts.bundleFormats; the export bridge renders each and
 // archives them (see renderZip).
-const ZIP_BUNDLE = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'pdf', 'pdf-cmyk', 'gif', 'ico']);
+const ZIP_BUNDLE = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'pdf', 'pdf-cmyk', 'cmyk-tiff', 'gif', 'ico']);
 
 // Which video containers this browser's MediaRecorder can actually record.
 // Safari/iOS = mp4 only; Firefox = webm only; recent Chrome = both. Used to gate
 // the video format options so users only ever see what their browser can produce.
 const VIDEO = videoSupport();
-const keepFormat = (f) => f === 'webm' ? VIDEO.webm : f === 'mp4' ? VIDEO.mp4 : true;
+// Print TIFF is desktop-only with working canvas readback (see cmykTiffSupport);
+// hide it everywhere it can't be produced or cleanly downloaded.
+const CMYK_TIFF_OK = cmykTiffSupport();
+const keepFormat = (f) =>
+  f === 'webm' ? VIDEO.webm
+  : f === 'mp4' ? VIDEO.mp4
+  : f === 'cmyk-tiff' ? CMYK_TIFF_OK
+  : true;
 
 const fmtLabel = (f) => FMT_LABEL[f] ?? f.toUpperCase();
 
@@ -104,8 +111,14 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   tool.template = annotateTemplate(tool.template, inputIds);
   document.title = `${tool.manifest.name} — Lolly`;
 
-  const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi } = parseUrlState(urlParams, tool.manifest);
-  const isFull = new URLSearchParams(urlParams || '').has('full');
+  const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi, profile: urlProfile } = parseUrlState(urlParams, tool.manifest);
+  const urlFlags = new URLSearchParams(urlParams || '');
+  const isFull = urlFlags.has('full');
+  // `?options` lands the recipient on the export-settings panel expanded (instead
+  // of the collapsed Render button). `full` collapses ALL chrome to the bare
+  // preview — the opposite intent — so it wins when both are present, matching the
+  // CSS, which hides the export panel whenever its host sidebar is collapsed.
+  const showExportPanel = !isFull && urlFlags.has('options');
 
   let initialValues = values;
   if (slot) {
@@ -147,7 +160,10 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const SIDEBAR_DEFAULT = 272;
   const SIDEBAR_MIN     = 40;
   const savedWidth  = Number(localStorage.getItem('sidebarWidth') ?? SIDEBAR_DEFAULT);
-  const sidebarOpen = (isFull || hideSidebar) ? false : savedWidth > 0;
+  // The desktop export panel anchors to the sidebar's bottom edge, so ?options
+  // needs the sidebar open even if this device last left it collapsed (width 0).
+  const sidebarOpen = (isFull || hideSidebar) ? false : (showExportPanel || savedWidth > 0);
+  const openWidth   = savedWidth > 0 ? savedWidth : SIDEBAR_DEFAULT;
 
   // A saved design (or a shared URL) can reference an image the user has since
   // deleted from their device library. The runtime resolves those to null and
@@ -385,7 +401,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     }
 
     // Apply saved/initial width without triggering a save
-    setSidebarWidth(sidebarOpen ? savedWidth : 0, false);
+    setSidebarWidth(sidebarOpen ? openWidth : 0, false);
   }
 
   // ── Responsive canvas ─────────────────────────────────────────────────────
@@ -471,11 +487,12 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       renderFab.setAttribute('aria-expanded', 'false');
       renderFab.focus(); // return focus to the trigger (it reappears on close)
     };
-    const openExport = () => {
+    const openExport = ({ focus = true } = {}) => {
       layout.classList.add('export-open');
       renderFab.setAttribute('aria-expanded', 'true');
-      // Move focus into the dialog (its close button) for keyboard/SR users.
-      exportOverlay.querySelector('.export-popup-close')?.focus();
+      // Move focus into the dialog (its close button) for keyboard/SR users — but
+      // not when auto-opened from ?options on load, where grabbing focus is jarring.
+      if (focus) exportOverlay.querySelector('.export-popup-close')?.focus();
     };
     // Actions live in the Render popup on every breakpoint. The Render button
     // lives INSIDE the sidebar on desktop (a centred footer) but must sit OUTSIDE
@@ -487,7 +504,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     };
     renderFab.setAttribute('aria-haspopup', 'dialog');
     renderFab.setAttribute('aria-expanded', 'false');
-    renderFab.addEventListener('click', openExport);
+    renderFab.addEventListener('click', () => openExport());
     exportOverlay.querySelectorAll('[data-export-close]')
       .forEach(el => el.addEventListener('click', closeExport));
     // Escape closes the export popup.
@@ -529,6 +546,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     exportPopup.addEventListener('touchcancel', popupEnd, { passive: true });
 
     placeActions();
+    // ?options share-links land with the export panel already open (no focus grab).
+    if (showExportPanel) openExport({ focus: false });
     mqMobile.addEventListener('change', placeActions);
     exportTeardown = () => { mqMobile.removeEventListener('change', placeActions); document.removeEventListener('keydown', onExportKey); };
   }
@@ -573,6 +592,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     height:   urlHeight || Number(initialValues.__export_height) || undefined,
     unit:     urlUnit || initialValues.__export_unit || 'px',
     dpi:      urlDpi || Number(initialValues.__export_dpi) || 300,
+    profile:  urlProfile || initialValues.__export_profile || undefined,
   };
   // Rewrite the URL hash query string to reflect the current tool state so the
   // page is shareable and bookmarkable. Uses replaceState — no history entry.
@@ -646,6 +666,13 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       const filename = actionsEl?.querySelector('[data-action="filename"]')?.value?.trim();
       if (filename) params.set('filename', filename);
     }
+    if (dirtyParams.has('profile')) {
+      // Only meaningful for the CMYK print PDF; share it only when that's the
+      // selected format and it isn't the default condition (keeps links clean).
+      const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
+      const prof = actionsEl?.querySelector('[data-action="cmyk-profile"]')?.value;
+      if (fmt === 'pdf-cmyk' && prof && prof !== DEFAULT_CMYK_CONDITION) params.set('profile', prof);
+    }
 
     const base = window.location.hash.split('?')[0];
     const qs = params.toString();
@@ -661,7 +688,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
 
   // Copy-URL now lives in the actions bar (renderActions), alongside the export
   // buttons — its format/filename/dimension inputs are in the same element.
-  if (actionsEl) wireUpCopyUrl(actionsEl, runtime, actionsEl);
+  if (actionsEl) wireUpCopyUrl(actionsEl, runtime, actionsEl, tool.manifest);
 
   // Wire up the remaining sidebar utility buttons (Shrink URL, Clear changes).
   const sidebarUtilsEl = viewEl.querySelector('#sidebar-utils');
@@ -792,6 +819,12 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         const dim = (v, native) => (v > 0 ? (u !== 'px' ? `${v}${u}` : v) : native);
         const expOpts = { width: dim(urlWidth, nativeW), height: dim(urlHeight, nativeH) };
         if (u !== 'px') expOpts.dpi = urlDpi || 300;
+        // Print PDF: carry the brand palette (exact ink matches) + the chosen
+        // press condition so a shared ?format=pdf-cmyk link renders correctly.
+        if (fmt === 'pdf-cmyk') {
+          expOpts.palette = PALETTE;
+          expOpts.colorProfile = urlProfile || DEFAULT_CMYK_CONDITION;
+        }
         exportUnscaled(() =>
           runtime.export(canvasEl, fmt, expOpts)
             .then(blob => host.export.download(blob, `${name}.${extFor(fmt, blob)}`))
@@ -1737,6 +1770,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         __export_height:   el?.querySelector('[data-action="export-height"]')?.value ?? '',
         __export_unit:     el?.querySelector('[data-action="export-unit"]')?.value ?? 'px',
         __export_dpi:      el?.querySelector('[data-action="export-dpi"]')?.value ?? '',
+        __export_profile:  el?.querySelector('[data-action="cmyk-profile"]')?.value ?? '',
       }, thumb);
       label.textContent = 'Saved';
       announce('Saved');
@@ -1823,6 +1857,27 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         </label>
       </div>` : '';
 
+  // Tier 2.5 — colour profile (Print PDF only). The CMYK press condition embedded
+  // in the PDF's OutputIntent. A self-contained card so this professional/print
+  // setting reads as deliberate; revealed only when "Print PDF" (pdf-cmyk) is the
+  // chosen format. Options come from the engine's CMYK_CONDITIONS registry.
+  const ICON_DROP = `<svg class="cmyk-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.7s6.5 7 6.5 11.8a6.5 6.5 0 0 1-13 0C5.5 9.7 12 2.7 12 2.7z"/></svg>`;
+  const hasCmyk     = formats.includes('pdf-cmyk');
+  const initProfile = (exportDefaults.profile && CMYK_CONDITIONS[exportDefaults.profile])
+    ? exportDefaults.profile : DEFAULT_CMYK_CONDITION;
+  const cmykOptions = Object.entries(CMYK_CONDITIONS)
+    .map(([key, c]) => `<option value="${escape(key)}" ${key === initProfile ? 'selected' : ''}>${escape(c.info)}</option>`)
+    .join('');
+  const cmykRow = hasCmyk ? `
+      <div class="export-cmyk" data-cmyk-only style="display:${initialFmt === 'pdf-cmyk' ? 'flex' : 'none'}">
+        <span class="cmyk-head">${ICON_DROP}<span>Color profile</span></span>
+        <select data-action="cmyk-profile" aria-label="CMYK press profile"
+                title="The ICC press condition embedded in the print PDF's output intent. Pick the standard your printer targets.">
+          ${cmykOptions}
+        </select>
+        <p class="cmyk-hint">Embedded as the PDF's output intent, so a print shop reproduces these CMYK inks accurately.</p>
+      </div>` : '';
+
   // Tier 3 — ancillary settings. Everything optional (transparent bg, timing,
   // dithering) lives in one wrapping chip cluster so the panel reads consistently
   // no matter which controls a given tool/format enables.
@@ -1872,7 +1927,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const downloadRow = downloadBtn ? `<div class="export-action-buttons">${downloadBtn}</div>` : '';
 
   el.innerHTML = `
-    ${actions.includes('download') ? `${filenameRow}${dimsRow}${settingsRow}` : ''}
+    ${actions.includes('download') ? `${filenameRow}${dimsRow}${cmykRow}${settingsRow}` : ''}
     ${secondaryRow}
     ${downloadRow}
   `;
@@ -1895,9 +1950,13 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       if (ditherEl)     ditherEl.style.display     = fmt === 'gif'  ? 'flex' : 'none';
       if (webm60El)     webm60El.style.display      = fmt === 'webm' ? 'flex' : 'none';
       el.querySelectorAll('[data-vector-only]').forEach(c => { c.style.display = isVectorFmt(fmt) ? 'flex' : 'none'; });
+      el.querySelectorAll('[data-cmyk-only]').forEach(c => { c.style.display = fmt === 'pdf-cmyk' ? 'flex' : 'none'; });
       onUrlSync?.('format');
     });
   }
+
+  // Colour profile (CMYK press condition) — print-PDF only; persists via URL/save.
+  el.querySelector('[data-action="cmyk-profile"]')?.addEventListener('change', () => onUrlSync?.('profile'));
 
   el.querySelector('[data-action="filename"]')?.addEventListener('input', () => onUrlSync?.('filename'));
 
@@ -2140,9 +2199,13 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         ...exportDims(),
         ...(isAnimated ? videoParams() : {}),
         ...(isGif ? { dither: el.querySelector('[data-action="gif-dither"]')?.checked ?? false } : {}),
-        ...(fmt === 'pdf-cmyk' ? { palette: PALETTE } : {}),
+        ...(fmt === 'pdf-cmyk' ? {
+          palette: PALETTE,
+          colorProfile: el.querySelector('[data-action="cmyk-profile"]')?.value || DEFAULT_CMYK_CONDITION,
+        } : {}),
         ...(fmt === 'zip' ? {
           palette: PALETTE,
+          colorProfile: el.querySelector('[data-action="cmyk-profile"]')?.value || DEFAULT_CMYK_CONDITION,
           filename: el.querySelector('[data-action="filename"]')?.value.trim() || manifest.name,
           bundleFormats: formats.filter(f => ZIP_BUNDLE.has(f)),
         } : {}),
@@ -2275,108 +2338,209 @@ function encodeBlocksCompact(items, fields) {
 
 // btnScopeEl — element containing the copy-url button (the actions bar)
 // exportScopeEl — element containing format/filename/w/h inputs (actionsEl); optional
-function wireUpCopyUrl(btnScopeEl, runtime, exportScopeEl) {
-  btnScopeEl.querySelector('[data-action="copy-url"]')?.addEventListener('click', async function () {
-    const btn = this;
-    const parts = [];
-    const exportScope = exportScopeEl ?? btnScopeEl;
-
-    for (const input of runtime.getModel()) {
-      const { id, type, value, group, fields } = input;
-      const key = input.urlKey ?? id;
-      if (group === 'export') continue;
-
-      if (type === 'asset') {
-        const assetId = value?.id;
-        if (assetId && !assetId.startsWith('user/')) {
-          parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(assetId)}`);
-        }
-        continue;
-      }
-
-      if (type === 'blocks') {
-        if (!Array.isArray(value) || value.length === 0) continue;
-        const compact = encodeBlocksCompact(value, fields ?? []);
-        // Fall back to JSON if no fields defined (other tools)
-        const encoded = compact ?? JSON.stringify(value);
-        if (encoded.length <= 8000) parts.push(`${key}=${compact ? encoded : encodeURIComponent(encoded)}`);
-        continue;
-      }
-
-      if (type === 'vector') {
-        // One flat param per field ("<inputId>.<fieldId>"), matching syncUrl and
-        // serializeUrlState. Without this the object stringifies to "[object Object]".
-        // Fields still at their default are omitted to keep the link short.
-        if (value && typeof value === 'object') {
-          for (const f of fields ?? []) {
-            const fv = value[f.id];
-            if (fv == null) continue;
-            if (f.default !== undefined && String(fv) === String(f.default)) continue;
-            parts.push(`${encodeURIComponent(`${key}.${f.id}`)}=${encodeURIComponent(String(fv))}`);
-          }
-        }
-        continue;
-      }
-
-      if (value == null || value === '') continue;
-      if (typeof value === 'boolean' && !value) continue;
-
-      // Skip params whose value matches the declared default — they load identically without being in the URL.
-      const def = input.default;
-      if (def != null && type !== 'asset') {
-        if (String(value) === String(def)) continue;
-      }
-
-      let str = String(value);
-      if (str.length > 150) continue;
-
-      // Strip # from hex colors — saves 3 encoded chars (%23) per color param.
-      if (type === 'color' && str.startsWith('#')) str = str.slice(1);
-
-      parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(str)}`);
-    }
-
-    const fmtEl  = exportScope.querySelector('[data-action="format"]');
-    if (fmtEl?.value) parts.push(`format=${encodeURIComponent(fmtEl.value)}`);
-    const nameEl = exportScope.querySelector('[data-action="filename"]');
-    const fname  = nameEl?.value?.trim();
-    if (fname) parts.push(`filename=${encodeURIComponent(fname)}`);
-    const wEl = exportScope.querySelector('[data-action="export-width"]');
-    const hEl = exportScope.querySelector('[data-action="export-height"]');
-    const w = parseFloat(wEl?.value);
-    const h = parseFloat(hEl?.value);
-    if (w > 0) parts.push(`w=${w}`);
-    if (h > 0) parts.push(`h=${h}`);
-    const u = exportScope.querySelector('[data-action="export-unit"]')?.value;
-    if (u && u !== 'px') {
-      parts.push(`unit=${u}`);
-      const d = parseInt(exportScope.querySelector('[data-action="export-dpi"]')?.value, 10);
-      if (d > 0) parts.push(`dpi=${d}`);
-    }
-
-    const hashBase = window.location.hash.split('?')[0];
-    const qs = parts.join('&');
-    const url = window.location.origin + window.location.pathname + hashBase + (qs ? '?' + qs : '');
-
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch {
-      const ta = Object.assign(document.createElement('textarea'), { value: url });
-      Object.assign(ta.style, { position: 'fixed', opacity: '0', pointerEvents: 'none' });
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      ta.remove();
-    }
-    bumpMetric('linksCopied'); // local usage metric
-    announce('Shareable link copied');
-
-    // Swap only the label so the link icon stays put during the confirmation.
-    const labelEl = btn.querySelector('[data-copy-url-label]') ?? btn;
-    const prev = labelEl.textContent;
-    labelEl.textContent = 'Copied!';
-    setTimeout(() => { labelEl.textContent = prev; }, 2000);
+function wireUpCopyUrl(btnScopeEl, runtime, exportScopeEl, manifest) {
+  btnScopeEl.querySelector('[data-action="copy-url"]')?.addEventListener('click', () => {
+    showShareDialog(runtime, exportScopeEl ?? btnScopeEl, manifest);
   });
+}
+
+// Builds the base share-link query parts (tool inputs + the chosen export
+// settings) — WITHOUT the on-visit behaviour flags (full/options/export/copy/_v),
+// which the share dialog appends per the user's toggles.
+function buildShareParams(runtime, exportScope) {
+  const parts = [];
+
+  for (const input of runtime.getModel()) {
+    const { id, type, value, group, fields } = input;
+    const key = input.urlKey ?? id;
+    if (group === 'export') continue;
+
+    if (type === 'asset') {
+      const assetId = value?.id;
+      if (assetId && !assetId.startsWith('user/')) {
+        parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(assetId)}`);
+      }
+      continue;
+    }
+
+    if (type === 'blocks') {
+      if (!Array.isArray(value) || value.length === 0) continue;
+      const compact = encodeBlocksCompact(value, fields ?? []);
+      // Fall back to JSON if no fields defined (other tools)
+      const encoded = compact ?? JSON.stringify(value);
+      if (encoded.length <= 8000) parts.push(`${key}=${compact ? encoded : encodeURIComponent(encoded)}`);
+      continue;
+    }
+
+    if (type === 'vector') {
+      // One flat param per field ("<inputId>.<fieldId>"), matching syncUrl and
+      // serializeUrlState. Without this the object stringifies to "[object Object]".
+      // Fields still at their default are omitted to keep the link short.
+      if (value && typeof value === 'object') {
+        for (const f of fields ?? []) {
+          const fv = value[f.id];
+          if (fv == null) continue;
+          if (f.default !== undefined && String(fv) === String(f.default)) continue;
+          parts.push(`${encodeURIComponent(`${key}.${f.id}`)}=${encodeURIComponent(String(fv))}`);
+        }
+      }
+      continue;
+    }
+
+    if (value == null || value === '') continue;
+    if (typeof value === 'boolean' && !value) continue;
+
+    // Skip params whose value matches the declared default — they load identically without being in the URL.
+    const def = input.default;
+    if (def != null && type !== 'asset') {
+      if (String(value) === String(def)) continue;
+    }
+
+    let str = String(value);
+    if (str.length > 150) continue;
+
+    // Strip # from hex colors — saves 3 encoded chars (%23) per color param.
+    if (type === 'color' && str.startsWith('#')) str = str.slice(1);
+
+    parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(str)}`);
+  }
+
+  // Export settings come from the live actions-bar controls (the export panel).
+  const fmtEl = exportScope?.querySelector('[data-action="format"]');
+  if (fmtEl?.value) parts.push(`format=${encodeURIComponent(fmtEl.value)}`);
+  const fname = exportScope?.querySelector('[data-action="filename"]')?.value?.trim();
+  if (fname) parts.push(`filename=${encodeURIComponent(fname)}`);
+  const w = parseFloat(exportScope?.querySelector('[data-action="export-width"]')?.value);
+  const h = parseFloat(exportScope?.querySelector('[data-action="export-height"]')?.value);
+  if (w > 0) parts.push(`w=${w}`);
+  if (h > 0) parts.push(`h=${h}`);
+  const u = exportScope?.querySelector('[data-action="export-unit"]')?.value;
+  if (u && u !== 'px') {
+    parts.push(`unit=${u}`);
+    const d = parseInt(exportScope?.querySelector('[data-action="export-dpi"]')?.value, 10);
+    if (d > 0) parts.push(`dpi=${d}`);
+  }
+  // Colour profile is only meaningful for the CMYK print PDF; carry it only when
+  // that format is selected and it isn't the default condition (matches syncUrl).
+  const prof = exportScope?.querySelector('[data-action="cmyk-profile"]')?.value;
+  if (fmtEl?.value === 'pdf-cmyk' && prof && prof !== DEFAULT_CMYK_CONDITION) {
+    parts.push(`profile=${encodeURIComponent(prof)}`);
+  }
+
+  return parts;
+}
+
+// Assemble a full shareable URL from query parts, preserving the current hash route.
+function shareUrlFromParts(parts) {
+  const hashBase = window.location.hash.split('?')[0];
+  const qs = parts.join('&');
+  return window.location.origin + window.location.pathname + hashBase + (qs ? '?' + qs : '');
+}
+
+// Clipboard write with the legacy textarea fallback (older/locked-down browsers).
+async function copyToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = Object.assign(document.createElement('textarea'), { value: text });
+    Object.assign(ta.style, { position: 'fixed', opacity: '0', pointerEvents: 'none' });
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+  }
+}
+
+// Bitmap formats copy to the clipboard as a PNG; text/html copy as text/rich text.
+// Vector (svg/pdf) and video formats have no useful clipboard form, so the
+// "copy on visit" toggle is hidden for them. Mirrors performCopy()'s branches.
+const SHARE_BITMAP_FORMATS = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif']);
+const SHARE_TEXT_FORMATS   = new Set(['txt', 'md', 'markdown', 'html']);
+
+// The Share button opens this dialog: a ready-to-copy link at the top, plus
+// toggles for the on-visit behaviour flags that aren't inputs or export settings
+// (full/options/export/copy/_v). Toggling a box rewrites the link live.
+function showShareDialog(runtime, exportScope, manifest) {
+  const baseParts = buildShareParams(runtime, exportScope);
+
+  // Only offer toggles the tool can actually honour.
+  const canExport  = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
+  const actions    = manifest.render?.actions ?? ['copy', 'download', 'save'];
+  const currentFmt = exportScope?.querySelector('[data-action="format"]')?.value
+                     || manifest.render?.formats?.[0] || '';
+  const isBitmap   = SHARE_BITMAP_FORMATS.has(currentFmt);
+  const showCopy   = canExport && actions.includes('copy') && (isBitmap || SHARE_TEXT_FORMATS.has(currentFmt));
+  const copyLabel  = isBitmap ? 'Copy image to clipboard on visit' : 'Copy to clipboard on visit';
+  const version    = manifest.version;
+
+  const dialog = document.createElement('dialog');
+  dialog.className = 'share-dialog';
+  dialog.innerHTML = `
+    <div class="share-dialog-body">
+      <h2>Share this tool</h2>
+      <div class="share-link-row">
+        <input type="text" class="share-link-field" readonly aria-label="Shareable link">
+        <button type="button" class="share-copy-btn">Copy</button>
+      </div>
+      <fieldset class="share-toggles">
+        <legend>When the recipient opens the link…</legend>
+        <label><input type="checkbox" data-flag="full"> Open in fullscreen (hide controls)</label>
+        <label data-options-row><input type="checkbox" data-flag="options"> Open with the export panel expanded</label>
+        ${canExport ? `<label><input type="checkbox" data-flag="export"> Download automatically when opened</label>` : ''}
+        ${showCopy ? `<label><input type="checkbox" data-flag="copy"> ${escape(copyLabel)}</label>` : ''}
+        ${version ? `<label><input type="checkbox" data-flag="_v"> Pin this tool version (${escape(String(version))})</label>` : ''}
+      </fieldset>
+      <div class="share-dialog-actions">
+        <button type="button" class="share-done">Done</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(dialog);
+  dialog.showModal();
+
+  const field      = dialog.querySelector('.share-link-field');
+  const fullCb     = dialog.querySelector('[data-flag="full"]');
+  const optionsCb  = dialog.querySelector('[data-flag="options"]');
+  const optionsRow = dialog.querySelector('[data-options-row]');
+  const checkboxes = [...dialog.querySelectorAll('.share-toggles input[type="checkbox"]')];
+
+  const refresh = () => {
+    const parts = [...baseParts];
+    for (const cb of checkboxes) {
+      if (cb.disabled || !cb.checked) continue;
+      parts.push(cb.dataset.flag === '_v' ? `_v=${encodeURIComponent(String(version))}` : cb.dataset.flag);
+    }
+    field.value = shareUrlFromParts(parts);
+  };
+
+  // `full` collapses the sidebar, so the export panel has nowhere to anchor —
+  // full wins, exactly as the URL handling and CSS do. Reflect that here.
+  const syncFullWins = () => {
+    const dim = !!fullCb?.checked;
+    if (optionsCb) { optionsCb.disabled = dim; if (dim) optionsCb.checked = false; }
+    optionsRow?.classList.toggle('is-disabled', dim);
+  };
+
+  for (const cb of checkboxes) cb.addEventListener('change', () => { syncFullWins(); refresh(); });
+
+  dialog.querySelector('.share-copy-btn').addEventListener('click', async function () {
+    await copyToClipboard(field.value);
+    bumpMetric('linksCopied');
+    announce('Shareable link copied');
+    const prev = this.textContent;
+    this.textContent = 'Copied!';
+    setTimeout(() => { this.textContent = prev; }, 1500);
+  });
+
+  const cleanup = () => { dialog.close(); dialog.remove(); };
+  dialog.querySelector('.share-done').addEventListener('click', cleanup);
+  dialog.addEventListener('cancel', () => dialog.remove());            // Esc
+  dialog.addEventListener('click', e => { if (e.target === dialog) cleanup(); }); // click backdrop
+
+  syncFullWins();
+  refresh();
+  field.focus();
+  field.select();
 }
 
 // A vector input: N number fields committed together as one { fieldId: number }
