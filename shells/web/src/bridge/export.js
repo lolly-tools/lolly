@@ -148,13 +148,16 @@ async function renderRaster(node, format, opts) {
       : lib.toPng(node, dtoOpts));
     const res = await fetch(dataUrl);
     let blob = await res.blob();
-    // Stamp the DPI (physical size) + provenance metadata into the file.
+    // Stamp the DPI (physical size) + provenance metadata + colour profile.
+    const icc = iccWanted(opts) ? iccProfileBytes(opts.colorProfile) : null;
     if (format === 'png') {
       blob = await withPngDpi(blob, d.dpi);
       blob = await withPngMeta(blob, opts.meta);
+      if (icc) blob = await withPngIcc(blob, icc);
     } else if (format === 'jpeg') {
       blob = await withJpegDpi(blob, d.dpi);
       blob = await withJpegExif(blob, opts.meta);
+      if (icc) blob = await withJpegIcc(blob, icc);
     }
     return blob;
   } finally {
