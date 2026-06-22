@@ -1,8 +1,11 @@
 # Lolly Tools
 
-A constraint-first, template-driven platform for generating on-brand creative assets at scale.
+Powerfully reproducable asset & tools.
+Deterministic, fast, free & open source. 
 
 > **Status:** Working platform. Web shell live; 16 tools shipped; engine, CLI, and catalog all functional.
+
+ 
 
 ## What this is
 
