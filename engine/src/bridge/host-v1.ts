@@ -195,6 +195,18 @@ export interface ExportOpts {
   embedMeta?: boolean;
 
   /**
+   * Colour-management tag for the output. For raster formats (PNG/JPEG) this is
+   * the ICC profile embedded into the file: 'srgb' (default) records the colour
+   * space the canvas actually renders in, so colour-managed apps reproduce the
+   * pixels faithfully; 'none' skips embedding (e.g. thumbnails). For pdf-cmyk it
+   * names the press condition declared in the PDF's OutputIntent — one of the
+   * keys in CMYK_CONDITIONS ('fogra39' default, 'swop', 'gracol', …). The
+   * profile data and conversions live in the engine (engine/src/color.js); the
+   * bridge only writes them into each format's native slot.
+   */
+  colorProfile?: 'srgb' | 'none' | string;
+
+  /**
    * Hint: this export is a low-fidelity thumbnail/preview, not the deliverable.
    * Hooks may take a cheap path — e.g. an expensive-capture tool can reuse the
    * last render already on the canvas instead of re-running the capture.

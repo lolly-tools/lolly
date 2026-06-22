@@ -16,5 +16,9 @@ export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
 } from './units.js';
+export {
+  srgbIccProfile, iccProfileBytes, COLOR_PROFILES,
+  rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
+} from './color.js';
 
 export const ENGINE_VERSION = '1.0.0';

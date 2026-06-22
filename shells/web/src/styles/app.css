@@ -317,7 +317,17 @@ footer{text-align:right;}
   color: hsl(var(--foreground));
 }
 .gallery-empty-hint { margin: 0; font-size: .9rem; }
-.gallery-empty-hint a { color: hsl(var(--primary)); font-weight: 600; }
+.gallery-empty-hint a,
+.gallery-retry { color: hsl(var(--primary)); font-weight: 600; }
+.gallery-retry {
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.gallery-retry:disabled { opacity: .6; cursor: default; text-decoration: none; }
 
 .gallery-category {
   margin-bottom: 32px;
