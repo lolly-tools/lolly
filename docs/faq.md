@@ -33,9 +33,9 @@ Tools specifically because that's what Lolly hosts and supercharges: things that
 
 ## What makes utilities different from tools?
 
-Tech Answer: Utilities dont alawys need to render and therefore demand a different UX. 
+**Basic Answer →** Utilities dont alawys need to render and therefore demand a different UX. 
 
-Real Answer: The reason utilities are hostable inside Lolly Tools is to add yet another convenience layer to disincentivise data exfiltration. 
+**Real Answer →** The reason utilities are hostable inside Lolly Tools is to add yet another 'convenience layer' of defence to disincentivise data exfiltration. 
 
 Every day, people take **confidential content they already have** and hand it to a
 random website to perform one small mechanical operation:
