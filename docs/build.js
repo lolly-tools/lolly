@@ -527,15 +527,19 @@ ${cardData.map(({ h2 }, i) => `  <button class="audience-tab" role="tab" aria-se
       <a href="/info/about.html" class="btn btn-secondary">Learn More</a>
     </div>
     <div class="hero-trust">
-      <span>No account required</span>
+      <span>100% Free</span>
+      <span class="trust-dot">·</span>
+      <span>No Cookies</span>
+      <span class="trust-dot">·</span>
+      <span>No Sign-up</span>
       <span class="trust-dot">·</span>
       <span>Works offline</span>
       <span class="trust-dot">·</span>
       <span>Open Source</span>
       <span class="trust-dot">·</span>
-      <span>14 tools ready</span>
+      <span>Privacy First</span>
       <span class="trust-dot">·</span>
-      <span>Privacy & Sovereignty 1st!</span>
+      <span>14 tools ready</span>
     </div>
   </div>
   </div>
@@ -721,7 +725,7 @@ nav .nav-group + .nav-group{margin-left:.5rem;padding-left:.625rem;border-left:1
 .hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem;color:rgba(255,255,255,.8);line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
-.hero-trust span{font-size:.8rem;color:rgba(255,255,255,.5);letter-spacing:.02em}
+.hero-trust span{font-size:.8rem;line-height:1;color:rgba(255,255,255,.5);letter-spacing:.02em}
 .trust-dot{color:rgba(255,255,255,.18)!important}
 .btn{display:inline-flex;align-items:center;padding:2rem 3rem;border-radius:1rem;font-weight:700;font-size:1rem;transition:all .18s ease;box-shadow:0 .2em 1em #0002}
 .btn-primary{background:rgba(48,186,120,.72);color:#000;mix-blend-mode:plus-lighter}
