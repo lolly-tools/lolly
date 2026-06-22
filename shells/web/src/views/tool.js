@@ -846,6 +846,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
 // `scale` is a multiplier where 1 == the fitted view ("Fit").
 function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
   const MIN = 1, MAX = 16;        // multiplier on top of the fitted view (Fit = 1)
+  const PINCH_DEADZONE = 0.02;    // ignore <2% finger-spread wobble so a pan ≠ zoom
   let scale = 1, tx = 0, ty = 0;
   let originX = 0, originY = 0;   // outer's natural (untransformed) top-left, client coords
   const pts = new Map();          // pointerId -> { x, y }   (touch / pen)
@@ -956,15 +957,21 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
       const d = dist(a, b);
       const m = mid(a, b);
       if (lastMid) { tx += m.x - lastMid.x; ty += m.y - lastMid.y; }  // two-finger pan
-      if (pinchDist > 0) {
+      // Pinch-zoom with a dead-zone: ignore small finger-spread wobble so a
+      // two-finger PAN doesn't register as zoom. (Without this, every frame
+      // applied a tiny zoom about the moving midpoint and the jitter compounded —
+      // "zooms like crazy" — while also fighting the pan so it felt sluggish.)
+      // Hold pinchDist as the reference until we actually zoom, so a slow,
+      // deliberate pinch still accumulates past the threshold and applies smoothly.
+      if (pinchDist > 0 && Math.abs(d / pinchDist - 1) > PINCH_DEADZONE) {
         const next = Math.max(MIN, Math.min(MAX, scale * (d / pinchDist)));
         const r = next / scale;
         const fx = m.x - originX, fy = m.y - originY;
         tx = fx - (fx - tx) * r;   // zoom about the pinch midpoint
         ty = fy - (fy - ty) * r;
         scale = next;
+        pinchDist = d;             // reset the reference only when we actually zoom
       }
-      pinchDist = d;
       lastMid = m;
       clampPan();
       apply();
@@ -1018,26 +1025,32 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
   };
   const onKeyUp = e => { if (e.code === 'Space') { spaceDown = false; stageEl.classList.remove('is-grabbable'); } };
 
-  if (!isTouch) {
-    hud = document.createElement('div');
-    hud.className = 'stage-nav';
-    hud.innerHTML =
-      '<button type="button" class="stage-nav-btn" data-nav="out" aria-label="Zoom out">−</button>' +
-      '<button type="button" class="stage-nav-pct" data-nav="pct" aria-label="Toggle Fit and 100%"><span class="stage-nav-pct-val">100%</span></button>' +
-      '<button type="button" class="stage-nav-btn" data-nav="in" aria-label="Zoom in">+</button>' +
-      '<button type="button" class="stage-nav-btn stage-nav-fit" data-nav="fit" aria-label="Fit to window">Fit</button>';
-    stageEl.appendChild(hud);
-    pctEl = hud.querySelector('.stage-nav-pct-val');
-    hud.addEventListener('click', e => {
-      const b = e.target.closest('[data-nav]');
-      if (!b) return;
-      const c = stageCentre();
-      if (b.dataset.nav === 'in')       zoomAbout(1.25, c.x, c.y);
-      else if (b.dataset.nav === 'out') zoomAbout(0.8,  c.x, c.y);
-      else if (b.dataset.nav === 'fit') fit();
-      else if (b.dataset.nav === 'pct') { isZoomed() ? fit() : actual(); }
-    });
+  // Zoom HUD (−  [NN%]  +  Fit) — created for EVERY pointer type. On touch it's the
+  // primary way to snap to exact zoom levels and Fit (a pinch is imprecise); on
+  // desktop it complements the trackpad/keyboard. The desktop-only wheel, mouse-pan
+  // and keyboard wiring stays gated behind !isTouch further below.
+  hud = document.createElement('div');
+  hud.className = 'stage-nav';
+  hud.innerHTML =
+    '<button type="button" class="stage-nav-btn" data-nav="out" aria-label="Zoom out">−</button>' +
+    '<button type="button" class="stage-nav-pct" data-nav="pct" aria-label="Toggle Fit and 100%"><span class="stage-nav-pct-val">100%</span></button>' +
+    '<button type="button" class="stage-nav-btn" data-nav="in" aria-label="Zoom in">+</button>' +
+    '<button type="button" class="stage-nav-btn stage-nav-fit" data-nav="fit" aria-label="Fit to window">Fit</button>';
+  stageEl.appendChild(hud);
+  pctEl = hud.querySelector('.stage-nav-pct-val');
+  // Keep taps on the pill from reaching the stage's pinch / double-tap-to-fit logic.
+  hud.addEventListener('pointerdown', e => e.stopPropagation());
+  hud.addEventListener('click', e => {
+    const b = e.target.closest('[data-nav]');
+    if (!b) return;
+    const c = stageCentre();
+    if (b.dataset.nav === 'in')       zoomAbout(1.25, c.x, c.y);
+    else if (b.dataset.nav === 'out') zoomAbout(0.8,  c.x, c.y);
+    else if (b.dataset.nav === 'fit') fit();
+    else if (b.dataset.nav === 'pct') { isZoomed() ? fit() : actual(); }
+  });
 
+  if (!isTouch) {
     // Cmd/Ctrl-wheel (and trackpad pinch, which the browser delivers as ctrl+wheel)
     // zooms about the cursor; a plain wheel pans, but only once zoomed in (nothing
     // to pan at Fit). passive:false so we can preventDefault the page zoom/scroll.

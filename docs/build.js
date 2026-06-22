@@ -701,13 +701,13 @@ nav a.active:not(.nav-launch){color:#fff}
 /* Double-clicking the hero backdrop shouldn't highlight the heading/subtitle/trust copy; buttons keep normal selection. */
 .hero .btn{user-select:auto;-webkit-user-select:auto}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(48,186,120,.13) 0%,transparent 65%);pointer-events:none}
-#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;   mix-blend-mode: luminosity;;opacity:.4}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;   mix-blend-mode: color-dodge;;opacity:.4}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
 .hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
-.hero-logo-link{display:block;width:clamp(180px,32vw,340px);margin:0 auto;border-radius:.91em;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 0.5em 1em #0004,0 .1em .2em #0003}
+.hero-logo-link{display:block;width:clamp(180px,32vw,340px);margin:0 auto;border-radius:50%;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 0.5em 1em #0004,0 .1em .2em #0003}
 .hero-logo-link:hover,.hero-logo-link:focus-visible{transform:translateY(-3px) scale(1.02);box-shadow:0 0.9em 1.6em #0006,0 .15em .3em #0004;outline:none}
 .hero-logo-link:active{transform:translateY(-1px) scale(1.0)}
-.hero-logo{display:block;width:100%;height:auto;position:relative;border-radius:.91em}
+.hero-logo{display:block;width:100%;height:auto;position:relative;border-radius:50%}
 .hero .subtitle{font-size:clamp(.9375rem,1.8vw,1.125rem);max-width:560px;margin:0 auto 2.75rem;color:rgba(255,255,255,.8);line-height:1.85;position:relative}
 .hero-cta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;margin-bottom:2.5rem}
 .hero-trust{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.5rem;position:relative}
@@ -1169,19 +1169,28 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   var exts=['.TXT','.MD','.PDF','.SVG','.PNG','.WEBM','.MP4','.WEBP','.GIF','.AVIF','.HTML'];
   var spinners=[], fragments=[];
   var MAX_SPINNERS=6;
+  // Logical (CSS-pixel) canvas size. The backing store is scaled by devicePixelRatio
+  // so the animation stays crisp on HiDPI/Retina displays instead of being a 1x
+  // bitmap the browser upscales; all motion math below stays in these logical units.
+  var dpr=Math.max(1, window.devicePixelRatio||1);
+  var cw=800, ch=400;
 
   function resize(){
-    canvas.width=canvas.parentElement.offsetWidth||800;
-    canvas.height=canvas.parentElement.offsetHeight||400;
+    dpr=Math.max(1, window.devicePixelRatio||1);
+    cw=canvas.parentElement.offsetWidth||800;
+    ch=canvas.parentElement.offsetHeight||400;
+    canvas.width=Math.round(cw*dpr);
+    canvas.height=Math.round(ch*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);
   }
   function rand(a,b){return a+Math.random()*(b-a);}
 
   function makeSpinner(initial){
     var size=rand(12,26);
-    var explodeY=rand(canvas.height*0.08, canvas.height*0.62);
-    var y=initial ? rand(explodeY+size*3, canvas.height+size) : canvas.height+size+10;
+    var explodeY=rand(ch*0.08, ch*0.62);
+    var y=initial ? rand(explodeY+size*3, ch+size) : ch+size+10;
     return{
-      x:rand(size*2, canvas.width-size*2),
+      x:rand(size*2, cw-size*2),
       y:y, vy:rand(-1.6,-0.8),
       size:size, rot:rand(0,Math.PI*2),
       vrot:rand(0.02,0.055)*(Math.random()>.5?1:-1),
@@ -1203,11 +1212,15 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     // white backdrop independently, losing contrast mid-fade. A pre-composited
     // sprite blitted at the group alpha keeps the whole chip coherent all the way out.
     var spr=document.createElement('canvas');
-    spr.width=Math.ceil(w); spr.height=Math.ceil(h);
+    spr.width=Math.ceil(w*dpr); spr.height=Math.ceil(h*dpr);
     var sx=spr.getContext('2d');
+    sx.scale(dpr,dpr);
     var lw=Math.max(1.5,fs*0.16);
     sx.lineJoin='round';
     rr(sx,lw/2,lw/2,w-lw,h-lw,Math.max(0,r-lw/2));
+    // Solid fill (hero background) so overlapping chips occlude each other cleanly
+    // instead of letting the outlines and labels behind them bleed through.
+    sx.fillStyle='#1c4a2e'; sx.fill();
     sx.strokeStyle='#30ba78'; sx.lineWidth=lw; sx.stroke();
     sx.fillStyle='#30ba78';
     sx.font=weight+' '+fs+'px SUSE,sans-serif';
@@ -1253,7 +1266,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   }
 
   function tick(){
-    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.clearRect(0,0,cw,ch);
 
     // Fragments: drag + gravity, fade out
     for(var i=fragments.length-1;i>=0;i--){
