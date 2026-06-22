@@ -51,21 +51,31 @@ const isTransparent = (hex) => !hex || hex.toLowerCase() === 'transparent';
 const cmykText = (cmyk) =>
   Array.isArray(cmyk) ? `C ${cmyk[0]}  M ${cmyk[1]}  Y ${cmyk[2]}  K ${cmyk[3]}` : 'RGB→CMYK (generic)';
 
-// Split the flat palette into the named "brand" colours and the numbered tint
+// Split the flat palette into three buckets: the named "brand" colours, the
+// secondary "spectrum" palette (tagged group:'spectrum'), and the numbered tint
 // ramps (e.g. "Jungle 1".."Jungle 8"), grouped by family in first-seen order.
+// An explicit group that names a family (e.g. White → 'Fog') pins a swatch into
+// that ramp; otherwise a trailing number in the label decides the family.
 function groupPalette(palette) {
   const ramps = new Map();
   const brand = [];
+  const spectrum = [];
+  const addToRamp = (fam, c) => {
+    if (!ramps.has(fam)) ramps.set(fam, []);
+    ramps.get(fam).push(c);
+  };
   for (const c of palette) {
-    const m = /^(.+?)\s+\d+$/.exec(c.label);
-    if (m) {
-      if (!ramps.has(m[1])) ramps.set(m[1], []);
-      ramps.get(m[1]).push(c);
+    if (c.group === 'spectrum') {
+      spectrum.push(c);
+    } else if (c.group) {
+      addToRamp(c.group, c);
     } else {
-      brand.push(c);
+      const m = /^(.+?)\s+\d+$/.exec(c.label);
+      if (m) addToRamp(m[1], c);
+      else brand.push(c);
     }
   }
-  return { brand, ramps: [...ramps] };
+  return { brand, spectrum, ramps: [...ramps] };
 }
 
 function swatch(c) {
@@ -88,7 +98,7 @@ function swatch(c) {
 export async function mountPlatform(viewEl, host) {
   document.title = 'Platform — Lolly';
 
-  const { brand, ramps } = groupPalette(PALETTE);
+  const { brand, spectrum, ramps } = groupPalette(PALETTE);
   const measuredCount = PALETTE.filter((c) => Array.isArray(c.cmyk)).length;
 
   const tools = window.__toolIndex?.tools ?? [];
@@ -144,6 +154,13 @@ export async function mountPlatform(viewEl, host) {
         </div>
         <h3 class="plat-ramp-title">Brand colours</h3>
         <div class="plat-swatch-grid">${brand.map(swatch).join('')}</div>
+        ${
+          spectrum.length
+            ? `<h3 class="plat-ramp-title">Spectrum <span class="plat-ramp-count">${spectrum.length}</span></h3>
+        <p class="plat-ramp-note">Secondary palette for infographics, charts &amp; data viz — it expands the colour wheel but does <strong>not</strong> replace brand colours.</p>
+        <div class="plat-swatch-grid">${spectrum.map(swatch).join('')}</div>`
+            : ''
+        }
         ${ramps
           .map(
             ([fam, cols]) => `
