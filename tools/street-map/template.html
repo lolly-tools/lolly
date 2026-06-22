@@ -21,6 +21,7 @@
   var roadWeight = parseFloat('{{_roadWeight}}') || 1;
   var showWater  = '{{_showWater}}' === 'yes';
   var roadColor  = '{{_roadColor}}';
+  var waterColor = '{{_waterColor}}';
   var bgColor    = '{{_background}}';
   var viewIn     = '{{_view}}';
 
@@ -30,8 +31,9 @@
     dark:  { bg: '#10131a', road: '#d7dde4', water: '#16323f', waterLine: '#2c5870' },
   };
   var pal = PALETTES[theme] || PALETTES.light;
-  if (roadColor) pal = Object.assign({}, pal, { road: roadColor });
-  if (bgColor)   pal = Object.assign({}, pal, { bg: bgColor });
+  if (roadColor)  pal = Object.assign({}, pal, { road: roadColor });
+  if (waterColor) pal = Object.assign({}, pal, { water: waterColor, waterLine: waterColor });
+  if (bgColor)    pal = Object.assign({}, pal, { bg: bgColor });
 
   /* Stroke width (px) per road tier, before the roadWeight multiplier. */
   var TIER_W = { 0: 0.4, 1: 0.6, 2: 1.0, 3: 1.5, 4: 2.0, 5: 2.6 };

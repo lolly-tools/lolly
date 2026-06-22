@@ -28,6 +28,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 // center is [lon, lat] (an iconic, dense downtown point); radiusM is the pan
 // half-extent in metres. The default framing shows ~700 m / 5 blocks across.
 const CITIES = {
+  // ── Original 15 ──────────────────────────────────────────────────────────
   nuremberg:    { label: 'Nuremberg',     center: [11.0767, 49.4521],    radiusM: 1100 },
   provo:        { label: 'Provo',         center: [-111.6586, 40.2338],  radiusM: 1100 },
   munich:       { label: 'Munich',        center: [11.5755, 48.1374],    radiusM: 1100 },
@@ -43,6 +44,54 @@ const CITIES = {
   tokyo:        { label: 'Tokyo',         center: [139.7671, 35.6812],   radiusM: 1100 },
   singapore:    { label: 'Singapore',     center: [103.8519, 1.2897],    radiusM: 1100 },
   sydney:       { label: 'Sydney',        center: [151.2093, -33.8688],  radiusM: 1100 },
+
+  // ── Europe ───────────────────────────────────────────────────────────────
+  madrid:       { label: 'Madrid',        center: [-3.7038, 40.4168],    radiusM: 1100 }, // Puerta del Sol
+  rome:         { label: 'Rome',          center: [12.4823, 41.8955],    radiusM: 1100 }, // Piazza Venezia
+  vienna:       { label: 'Vienna',        center: [16.3725, 48.2085],    radiusM: 1100 }, // Stephansplatz
+  lisbon:       { label: 'Lisbon',        center: [-9.1393, 38.7139],    radiusM: 1100 }, // Baixa / Rossio
+  copenhagen:   { label: 'Copenhagen',    center: [12.5700, 55.6759],    radiusM: 1100 }, // Rådhuspladsen
+  stockholm:    { label: 'Stockholm',     center: [18.0686, 59.3293],    radiusM: 1100 }, // Gamla stan
+  oslo:         { label: 'Oslo',          center: [10.7390, 59.9133],    radiusM: 1100 }, // Karl Johans gate
+  helsinki:     { label: 'Helsinki',      center: [24.9420, 60.1699],    radiusM: 1100 }, // Senate Square
+  warsaw:       { label: 'Warsaw',        center: [21.0122, 52.2297],    radiusM: 1100 }, // Śródmieście
+  budapest:     { label: 'Budapest',      center: [19.0536, 47.4972],    radiusM: 1100 }, // Deák Ferenc tér
+  athens:       { label: 'Athens',        center: [23.7348, 37.9755],    radiusM: 1100 }, // Syntagma
+  brussels:     { label: 'Brussels',      center: [4.3525, 50.8467],     radiusM: 1100 }, // Grand-Place
+  zurich:       { label: 'Zurich',        center: [8.5400, 47.3744],     radiusM: 1100 }, // Paradeplatz
+  edinburgh:    { label: 'Edinburgh',     center: [-3.1900, 55.9533],    radiusM: 1100 }, // Old Town
+  istanbul:     { label: 'Istanbul',      center: [28.9770, 41.0086],    radiusM: 1100 }, // Sultanahmet
+  moscow:       { label: 'Moscow',        center: [37.6173, 55.7558],    radiusM: 1100 }, // Red Square
+
+  // ── Americas ─────────────────────────────────────────────────────────────
+  washington:   { label: 'Washington, DC',center: [-77.0364, 38.8951],   radiusM: 1100 }, // Downtown
+  chicago:      { label: 'Chicago',       center: [-87.6298, 41.8781],   radiusM: 1100 }, // The Loop
+  losangeles:   { label: 'Los Angeles',   center: [-118.2437, 34.0522],  radiusM: 1100 }, // Downtown
+  toronto:      { label: 'Toronto',       center: [-79.3832, 43.6532],   radiusM: 1100 }, // Downtown
+  vancouver:    { label: 'Vancouver',     center: [-123.1207, 49.2827],  radiusM: 1100 }, // Downtown
+  mexicocity:   { label: 'Mexico City',   center: [-99.1332, 19.4326],   radiusM: 1100 }, // Zócalo
+  buenosaires:  { label: 'Buenos Aires',  center: [-58.3816, -34.6037],  radiusM: 1100 }, // Microcentro
+  riodejaneiro: { label: 'Rio de Janeiro',center: [-43.1822, -22.9035],  radiusM: 1100 }, // Centro
+  saopaulo:     { label: 'São Paulo',     center: [-46.6388, -23.5475],  radiusM: 1100 }, // Sé
+
+  // ── Asia & Middle East ───────────────────────────────────────────────────
+  beijing:      { label: 'Beijing',       center: [116.4074, 39.9087],   radiusM: 1100 }, // Tiananmen
+  shanghai:     { label: 'Shanghai',      center: [121.4750, 31.2304],   radiusM: 1100 }, // People's Square
+  seoul:        { label: 'Seoul',         center: [126.9780, 37.5665],   radiusM: 1100 }, // City Hall
+  bangkok:      { label: 'Bangkok',       center: [100.5333, 13.7460],   radiusM: 1100 }, // Siam
+  hongkong:     { label: 'Hong Kong',     center: [114.1577, 22.2820],   radiusM: 1100 }, // Central
+  mumbai:       { label: 'Mumbai',        center: [72.8311, 18.9389],    radiusM: 1100 }, // Fort
+  delhi:        { label: 'Delhi',         center: [77.2197, 28.6328],    radiusM: 1100 }, // Connaught Place
+  dubai:        { label: 'Dubai',         center: [55.2744, 25.1972],    radiusM: 1100 }, // Downtown
+  kualalumpur:  { label: 'Kuala Lumpur',  center: [101.6958, 3.1478],    radiusM: 1100 }, // Bukit Bintang
+
+  // ── Africa ───────────────────────────────────────────────────────────────
+  cairo:        { label: 'Cairo',         center: [31.2357, 30.0444],    radiusM: 1100 }, // Tahrir
+  capetown:     { label: 'Cape Town',     center: [18.4241, -33.9249],   radiusM: 1100 }, // CBD
+
+  // ── Oceania ──────────────────────────────────────────────────────────────
+  brisbane:     { label: 'Brisbane',      center: [153.0251, -27.4698],  radiusM: 1100 }, // Queen Street Mall
+  noosa:        { label: 'Noosa',         center: [153.0917, -26.3958],  radiusM: 1100 }, // Noosa Heads / Hastings St
 };
 
 const LIB_DIR   = join(ROOT, 'tools', 'street-map', 'lib');

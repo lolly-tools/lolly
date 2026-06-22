@@ -3,7 +3,7 @@
   "name": "Street Map",
   "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
   "a11yLabel": "Street map centered on {{city}}",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -41,7 +41,9 @@
         { "value": "provo", "label": "Provo" },
         { "value": "tokyo", "label": "Tokyo" },
         { "value": "singapore", "label": "Singapore" },
-        { "value": "sydney", "label": "Sydney" }
+        { "value": "sydney", "label": "Sydney" },
+        { "value": "brisbane", "label": "Brisbane" },
+        { "value": "noosa", "label": "Noosa" }
       ]
     },
     {
@@ -61,8 +63,8 @@
       "display": "slider",
       "default": 1,
       "min": 0.25,
-      "max": 3,
-      "step": 0.05,
+      "max": 9,
+      "step": 0.01,
       "help": "Stroke thickness of the road lines."
     },
     {
@@ -74,6 +76,13 @@
     {
       "id": "roadColor",
       "label": "Road color",
+      "type": "color",
+      "default": "",
+      "help": "Leave empty to use the theme's default."
+    },
+    {
+      "id": "waterColor",
+      "label": "Water color",
       "type": "color",
       "default": "",
       "help": "Leave empty to use the theme's default."

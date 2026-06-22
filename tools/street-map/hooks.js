@@ -15,6 +15,7 @@ function compute(inputs) {
   const roadWeight = Math.max(0.1, Number(inputs.roadWeight) || 1);
   const showWater  = inputs.showWater !== false && inputs.showWater !== 'false';
   const roadColor  = (inputs.roadColor || '').trim();
+  const waterColor = (inputs.waterColor || '').trim();
   const background = (inputs.background || '').trim();
   const view       = (inputs.view || '').trim();
 
@@ -29,6 +30,7 @@ function compute(inputs) {
     _roadWeight: String(roadWeight),
     _showWater:  showWater ? 'yes' : 'no',
     _roadColor:  roadColor,
+    _waterColor: waterColor,
     _background: background,
     _view:       view,
   };
