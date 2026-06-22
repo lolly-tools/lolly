@@ -623,10 +623,10 @@ ${whatsLines.length ? `<section class="whats-a-tool">
   <div class="social-proof-inner reveal">
     <h2>Building &amp; brand new</h2>
     <p class="social-proof-date">June 2026</p>
-    <p class="social-proof-desc">Made in the open, used in confidence.<br>By design, we have no idea who or what runs Lolly — and that's exactly the point.</p>
-    <p class="social-proof-desc">These are the kinds of organisations that benefit most, privacy aware ones!</p>
+    <p class="social-proof-desc">Made in the open, used in confidence.</p> <p>By design, we have no idea who or what runs Lolly — and that's exactly the point.</p>
+    <p class="social-proof-desc">Organisations that benefit most, are privacy aware ones!</p>
   </div>
-  <p class="social-proof-credit">Presently developed in-house at <a href="https://www.suse.com" target="_blank" rel="noopener"> SUSE</a></p>
+  <p class="social-proof-credit">Developed in-house at <a href="https://www.suse.com" target="_blank" rel="noopener"> SUSE</a></p>
 </section>
 <section class="about-section">
   <div class="about-inner reveal">
