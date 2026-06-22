@@ -10,7 +10,7 @@
   "render": {
     "width": 1200,
     "height": 1200,
-    "formats": ["svg", "png", "jpg", "webp", "pdf", "pdf-cmyk", "ico", "zip"],
+    "formats": ["svg", "png", "jpg", "webp", "pdf", "pdf-cmyk", "cmyk-tiff", "ico", "zip"],
     "actions": ["copy", "download", "save"],
     "transparentBg": false
   },

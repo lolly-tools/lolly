@@ -127,6 +127,17 @@ test('url-mode: serialize emits unit/dpi/w/h, omits px', () => {
   assert.equal(new URLSearchParams(serializeUrlState([], { unit: 'px' })).has('unit'), false);
 });
 
+test('url-mode: profile is a reserved export param', () => {
+  // The CMYK press condition for pdf-cmyk rides as a reserved `profile` param —
+  // extracted, never leaked into values, and round-trips through serialize.
+  const s = parseUrlState('heading=Hi&format=pdf-cmyk&profile=swop', SAMPLE_MANIFEST);
+  assert.equal(s.profile, 'swop');
+  assert.equal(s.values.profile, undefined);          // reserved — never a value
+  assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).profile, null);
+  const qs = serializeUrlState([], { profile: 'fogra51' });
+  assert.equal(new URLSearchParams(qs).get('profile'), 'fogra51');
+});
+
 test('url-mode: round-trips', () => {
   const model = [
     { id: 'heading', type: 'text', value: 'Hi there' },

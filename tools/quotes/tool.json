@@ -10,7 +10,7 @@
   "render": {
     "width": 1080,
     "height": 1080,
-    "formats": ["png", "svg", "html", "md", "txt", "pdf", "pdf-cmyk", "webp", "avif", "jpeg"],
+    "formats": ["png", "svg", "html", "md", "txt", "pdf", "pdf-cmyk", "cmyk-tiff", "webp", "avif", "jpeg"],
     "actions": ["copy", "download", "save"]
   },
   "hooks": {

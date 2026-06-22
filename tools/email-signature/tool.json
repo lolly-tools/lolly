@@ -2,7 +2,7 @@
   "id": "email-signature",
   "name": "Email Signature",
   "description": "An on-brand SUSE email signature, ready to paste into any client.",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "everyone",
@@ -100,6 +100,25 @@
       "allowUpload": true,
       "filter": { "namespace": "suse/headshots" },
       "help": "Optional headshot. Displayed as a circle."
+    },
+    {
+      "id": "logo",
+      "label": "Logo",
+      "type": "select",
+      "default": "standard",
+      "options": [
+        { "value": "standard", "label": "Standard" },
+        { "value": "grey",     "label": "Grey" }
+      ],
+      "help": "Footer wordmark. Grey suits low-colour or monochrome contexts."
+    },
+    {
+      "id": "emailPromo",
+      "label": "Email Promo",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Optional promo banner below the signature. Scaled to fit within 400×200px, aspect preserved."
     },
     {
       "id": "append",

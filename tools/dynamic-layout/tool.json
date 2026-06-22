@@ -11,7 +11,7 @@
   "render": {
     "width": 1920,
     "height": 1080,
-    "formats": ["png", "jpg", "webp", "pdf", "pdf-cmyk", "svg", "html"],
+    "formats": ["png", "jpg", "webp", "pdf", "pdf-cmyk", "cmyk-tiff", "svg", "html"],
     "actions": ["copy", "download", "save"]
   },
   "hooks": {

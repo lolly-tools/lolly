@@ -194,10 +194,13 @@
   font-size: calc(1.05em * var(--cta-scale, 1)); font-weight: var(--cta-weight, 700); line-height: 1;
   padding: 0.62em 1.2em;
   border-radius: 999px;
-  /* Ghost pill: no fill, hairline outline in the block's foreground colour. */
+  /* Ghost pill: no fill, outline in the block's foreground colour. The outline
+     thickness tracks the label weight (100 → 1px … 900 → 9px) so the line
+     matches the stroke thickness of the text at any weight. */
   background: transparent;
   color: currentColor;
-  border: 1px solid currentColor;
+  border: solid currentColor;
+  border-width: calc(var(--cta-weight, 700) / 100 * 1px);
   letter-spacing: 0.005em;
   white-space: nowrap;
 }

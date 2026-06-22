@@ -10,7 +10,7 @@
   "render": {
     "width": 1080,
     "height": 1080,
-    "formats": ["png", "svg", "pdf",  "pdf-cmyk", "webp", "csv"],
+    "formats": ["png", "svg", "pdf",  "pdf-cmyk", "cmyk-tiff", "webp", "csv"],
     "actions": ["copy", "download", "save"],
     "transparentBg": true
   },

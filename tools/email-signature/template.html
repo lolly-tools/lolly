@@ -27,7 +27,7 @@
 .es-append { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(12,50,44,0.08); font-size: 10px; color: #999; line-height: 1.55; }
 </style>
 
-<div class="es-root" style="background:#ffffff; font-family:'SUSE',Arial,Helvetica,sans-serif;  color:#0c322c;">
+<div class="es-root" style="background:#ffffff; font-family:'SUSE',Arial,Helvetica,sans-serif;  color:{{cText}};">
 
   <!-- Main row: optional photo + info -->
   <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
@@ -41,17 +41,17 @@
       </td>
       {{/if}}
 
-      <td style="vertical-align:top; border-left:3px solid #30ba78; padding-left:14px;">
+      <td style="vertical-align:top; border-left:3px solid {{cAccent}}; padding-left:14px;">
 
-        <p class="es-name" style="font-size:19px; font-weight:700; color:#0c322c; letter-spacing:-0.02em; line-height:1.15; margin:0;">{{firstname}}{{#if lastname}} {{lastname}}{{/if}}</p>
+        <p class="es-name" style="font-size:19px; font-weight:700; color:{{cText}}; letter-spacing:-0.02em; line-height:1.15; margin:0;">{{firstname}}{{#if lastname}} {{lastname}}{{/if}}</p>
 
         {{#if position}}
-        <p class="es-title" style="font-size:12px; color:#4b7a70; margin:3px 0 0; line-height:1.3;">{{position}}{{#if certs}}&ensp;<span class="es-certs" style="font-style:italic;">{{certs}}</span>{{/if}}</p>
+        <p class="es-title" style="font-size:12px; color:{{cMuted}}; margin:3px 0 0; line-height:1.3;">{{position}}{{#if certs}}&ensp;<span class="es-certs" style="font-style:italic; color:{{cMuted}};">{{certs}}</span>{{/if}}</p>
         {{/if}}
 
         <!-- Contact details -->
-        <table cellpadding="0" cellspacing="0" border="0" class="es-contact" style="margin-top:10px; font-size:12px; color:#0c322c; line-height:1.6; border-collapse:collapse;">
-          {{#if email}}        <tr><td style="padding:0; white-space:nowrap;"><a href="mailto:{{email}}" style="color:#30ba78; text-decoration:none;">{{email}}</a></td></tr>          {{/if}}
+        <table cellpadding="0" cellspacing="0" border="0" class="es-contact" style="margin-top:10px; font-size:12px; color:{{cText}}; line-height:1.6; border-collapse:collapse;">
+          {{#if email}}        <tr><td style="padding:0; white-space:nowrap;"><a href="mailto:{{email}}" style="color:{{cAccent}}; text-decoration:none;">{{email}}</a></td></tr>          {{/if}}
           {{#if phone}}        <tr><td style="padding:0; white-space:nowrap;">T:&ensp;{{phone}}</td></tr>          {{/if}}
           {{#if mobile}}       <tr><td style="padding:0; white-space:nowrap;">M:&ensp;{{mobile}}</td></tr>          {{/if}}
           {{#if fax}}          <tr><td style="padding:0; white-space:nowrap;">F:&ensp;{{fax}}</td></tr>          {{/if}}
@@ -59,10 +59,10 @@
 
         <!-- Address + IM -->
         {{#if address}}
-        <p class="es-meta" style="font-size:11px; color:#4b7a70; margin-top:5px; line-height:1.5;">{{address}}{{#if address2}}<br>{{address2}}{{/if}}</p>
+        <p class="es-meta" style="font-size:11px; color:{{cMuted}}; margin-top:5px; line-height:1.5;">{{address}}{{#if address2}}<br>{{address2}}{{/if}}</p>
         {{/if}}
         {{#if im}}
-        <p class="es-meta" style="font-size:11px; color:#4b7a70; margin-top:3px; line-height:1.5;">{{im}}</p>
+        <p class="es-meta" style="font-size:11px; color:{{cMuted}}; margin-top:3px; line-height:1.5;">{{im}}</p>
         {{/if}}
 
       </td>
@@ -72,13 +72,24 @@
   <!-- Brand footer -->
   <table cellpadding="0" cellspacing="0" border="0" style="margin-top:14px; border-collapse:collapse; ">
     <tr>
-      <td style="padding-top:11px; border-top:1px solid rgba(12,50,44,0.1);">
-        <a style="color:currentColor; text-decoration:none" href="https://www.suse.com/"><span class="es-brand-name" style="font-size:15px; font-weight:800; color:#30ba78; letter-spacing:0.04em; font-family:'SUSE',Arial,Helvetica,sans-serif;">
-          <img width="100" style="width:100px;max-width:110px;display:inline-block;vertical-align:middle;" src="data:image/png;base64,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" />
-</span><span style="color:rgba(12,50,44,0.2); margin:0 7px;">|</span><span class="es-brand-url" style="font-size:11px; color:#4b7a70; font-family:'SUSE',Arial,Helvetica,sans-serif;">suse.com</span>
+      <td style="padding-top:11px; border-top:1px solid {{cBorder}};">
+        <a style="color:currentColor; text-decoration:none" href="https://www.suse.com/"><span class="es-brand-name" style="font-size:15px; font-weight:800; color:{{cAccent}}; letter-spacing:0.04em; font-family:'SUSE',Arial,Helvetica,sans-serif;">
+          <img width="100" style="width:100px;max-width:110px;display:inline-block;vertical-align:middle;" src="{{logoSrc}}" alt="SUSE" />
+</span><span style="color:{{cSep}}; margin:0 7px;">|</span><span class="es-brand-url" style="font-size:11px; color:{{cMuted}}; font-family:'SUSE',Arial,Helvetica,sans-serif;">suse.com</span>
       </a></td>
     </tr>
   </table>
+
+  <!-- Promo banner (pre-scaled by the hook to fit within 400×200) -->
+  {{#if promoSrc}}
+  <table cellpadding="0" cellspacing="0" border="0" style="margin-top:14px; border-collapse:collapse;">
+    <tr>
+      <td style="padding:0;">
+        <img src="{{promoSrc}}" style="display:block; max-width:400px; height:auto; border:0;" alt="">
+      </td>
+    </tr>
+  </table>
+  {{/if}}
 
   <!-- Append block -->
   {{#if appendHtml}}

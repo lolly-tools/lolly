@@ -13,6 +13,8 @@ import { getMetrics } from '../metrics.js';
 import { openHeadshotCropper } from '../components/headshot-cropper.js';
 import { storeUserUpload } from './picker.js';
 import { CATEGORY_FLAGS, PRO_FLAG, flagEnabled } from '../feature-flags.js';
+import { saveBlob } from '../pro/zip.js';
+import { exportBackup, importBackup } from '../data-transfer.js';
 
 // Friendly labels for the raw profile field keys.
 const FIELD_LABELS = {
@@ -64,6 +66,7 @@ export async function mountProfile(viewEl, host, params = '') {
 
   viewEl.innerHTML = `
     <a href="#/" class="tools-home home-full">Tools</a>
+    <a href="#/platform" class="profile-platform-link" aria-label="Platform — brand colours, fonts &amp; global settings">Platform</a>
     <div class="profile-layout">
       <h1 class="visually-hidden">Your profile</h1>
 
@@ -142,6 +145,17 @@ export async function mountProfile(viewEl, host, params = '') {
         <div class="storage-subsection">
           <div class="storage-subsection-header">
             <span>Asset cache ${infoDot('Downloaded catalog content. On-demand assets not referenced by a saved session are automatically removed on next load.')} <span class="storage-count" id="cache-size-label">${fmtBytes(cacheSize)}</span></span>
+          </div>
+        </div>
+
+        <div class="storage-subsection">
+          <div class="storage-subsection-header">
+            <span>Move to another device ${infoDot('Export everything — profile, saved sessions, uploaded images and preferences — as one file, then import it on another offline install to pick up exactly where you left off. Stays entirely on your devices.')}</span>
+          </div>
+          <div class="storage-actions">
+            <button type="button" id="export-data-btn" class="btn">Export my data</button>
+            <button type="button" id="import-data-btn" class="btn">Import data…</button>
+            <input type="file" id="import-data-input" accept=".zip,application/zip" hidden>
           </div>
         </div>
 
@@ -374,6 +388,41 @@ export async function mountProfile(viewEl, host, params = '') {
     });
   });
 
+  // Export everything to a portable .zip for carrying to another offline install.
+  viewEl.querySelector('#export-data-btn')?.addEventListener('click', async e => {
+    const btn = e.currentTarget;
+    const prev = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Exporting…';
+    try {
+      const { blob, filename, summary } = await exportBackup({ host, storage: localStorage });
+      saveBlob(blob, filename);
+      announce(`Exported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}`);
+      btn.textContent = 'Exported';
+    } catch (err) {
+      host.log('error', 'Data export failed', { error: String(err) });
+      btn.textContent = 'Export failed';
+    }
+    setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1800);
+  });
+
+  // Import a bundle from another install (merge-overwrite), then re-mount to reflect it.
+  const importInput = viewEl.querySelector('#import-data-input');
+  viewEl.querySelector('#import-data-btn')?.addEventListener('click', () => importInput?.click());
+  importInput?.addEventListener('change', () => {
+    const file = importInput.files?.[0];
+    importInput.value = ''; // let the same file be re-picked later
+    if (!file) return;
+    showImportDialog(async () => {
+      const bytes = await file.arrayBuffer();
+      const summary = await importBackup({ host, storage: localStorage }, bytes);
+      host.profile.bust();
+      applyTheme(localStorage.getItem('theme') || 'light');
+      announce(`Imported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}`);
+      await mountProfile(viewEl, host);
+    });
+  });
+
   // Personal details form
   viewEl.querySelector('#profile-form').addEventListener('submit', async e => {
     e.preventDefault();
@@ -466,6 +515,46 @@ function fmtBytes(bytes) {
   if (!bytes) return '0 KB';
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+// Confirm + run a data import. The action may throw (not a backup, wrong format,
+// quota); surface the reason in place and keep the dialog open rather than
+// leaving the user guessing.
+function showImportDialog(onConfirm) {
+  const overlay = document.createElement('div');
+  overlay.className = 'clear-dialog-overlay';
+  overlay.innerHTML = `
+    <div class="clear-dialog" role="dialog" aria-modal="true" aria-labelledby="import-dialog-title">
+      <h3 id="import-dialog-title">Import data?</h3>
+      <p>This loads the profile, saved sessions, images and preferences from the file. Anything with the same name on this device is overwritten; everything else is kept.</p>
+      <p class="import-error" style="color:hsl(var(--destructive));font-size:13px;margin:0" hidden></p>
+      <div class="clear-dialog-actions">
+        <button class="btn" data-scope="import">Import</button>
+        <button class="btn" data-scope="cancel">Cancel</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', async e => {
+    const scope = e.target.closest('[data-scope]')?.dataset.scope;
+    if (!scope) return;
+    if (scope === 'cancel') { overlay.remove(); return; }
+
+    const btns = overlay.querySelectorAll('button');
+    const errEl = overlay.querySelector('.import-error');
+    btns.forEach(b => (b.disabled = true));
+    e.target.textContent = 'Importing…';
+    try {
+      await onConfirm();
+      overlay.remove(); // success re-mounts the page; drop the (body-level) overlay
+    } catch (err) {
+      errEl.textContent = err?.message || 'Import failed.';
+      errEl.hidden = false;
+      btns.forEach(b => (b.disabled = false));
+      e.target.textContent = 'Import';
+    }
+  });
 }
 
 // Local-only usage stats. All derived from a tiny localStorage blob (metrics.js);

@@ -418,8 +418,8 @@
   "noosa": {
     "label": "Noosa",
     "center": [
-      153.0917,
-      -26.3958
+      153.091,
+      -26.391
     ],
     "data": "roads/noosa.json"
   }

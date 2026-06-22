@@ -40,7 +40,7 @@ const BULK_TYPES = new Set([
 // twice). Mirrors RESERVED in engine/src/url-mode.js.
 const RESERVED_KEYS = new Set([
   'format', 'export', 'copy', 'slot', 'output', 'filename', '_v',
-  'width', 'height', 'w', 'h', 'unit', 'dpi', 'full',
+  'width', 'height', 'w', 'h', 'unit', 'dpi', 'full', 'options',
 ]);
 
 /**

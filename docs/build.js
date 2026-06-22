@@ -626,6 +626,9 @@ ${whatsLines.length ? `<section class="whats-a-tool">
     <p class="social-proof-desc">Made in the open, used in confidence.</p> <p>By design, we have no idea who or what runs Lolly — and that's exactly the point.</p>
     <p class="social-proof-desc">Organisations that benefit most, are privacy aware ones!</p>
   </div>
+  <a class="social-proof-founded" href="https://www.suse.com" target="_blank" rel="noopener" aria-label="Founded by SUSE">
+    <img src="/info/founded-by.svg" alt="Founded by SUSE">
+  </a>
   <p class="social-proof-credit">Developed in-house at <a href="https://www.suse.com" target="_blank" rel="noopener"> SUSE</a></p>
 </section>
 <section class="about-section">
@@ -878,6 +881,8 @@ tr:nth-child(even) td{background:#fafffe}
 .social-proof h2{font-size:2rem;color:var(--dark);margin-bottom:.375rem}
 .social-proof-date{font-size:.8125rem;color:var(--green);font-weight:600;margin-bottom:.625rem;letter-spacing:.02em;text-transform:uppercase}
 .social-proof-desc{color:var(--muted);font-size:.9375rem;line-height:1.6}
+.social-proof-founded{display:block;margin:1.5rem 0 0}
+.social-proof-founded img{display:block;max-width:10em;height:auto;margin:0 auto}
 .social-proof-credit{text-align:center;color:var(--muted);font-size:.875rem;margin-top:1.75rem;padding:0 1.5rem}
 .social-proof-credit a{color:var(--green);font-weight:600;text-decoration:none}
 .social-proof-credit a:hover{text-decoration:underline}
@@ -1430,6 +1435,7 @@ function build() {
   try { copyFileSync(resolve(repoRoot, 'icon.png'), resolve(repoRoot, 'shells/web/public/icon.png')); } catch {}
   try { copyFileSync(resolve(repoRoot, 'icon-normal.webp'), resolve(outDir, 'icon-normal.webp')); } catch {}
   try { copyFileSync(resolve(repoRoot, 'icon-normal.png'), resolve(outDir, 'icon-normal.png')); } catch {}
+  try { copyFileSync(resolve(repoRoot, 'founded-by.svg'), resolve(outDir, 'founded-by.svg')); } catch {}
 
   for (const page of pages) {
     const srcPath = resolve(__dirname, page.src);
