@@ -33,7 +33,7 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
   const tool = await loadTool(toolId, fetchFile);
   const host = await createCliBridge({ dom });
 
-  const { values, export: paramExport, width, height, unit, dpi } = parseUrlState(
+  const { values, export: paramExport, width, height, unit, dpi, password } = parseUrlState(
     new URLSearchParams(params).toString(),
     tool.manifest,
   );
@@ -59,6 +59,10 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
   const qual = (v) => (v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
   const exportOpts = { width: qual(width), height: qual(height) };
   if (u !== 'px') exportOpts.dpi = dpi || 300;
+  // --password= sets the standard PDF's open-password (basic lock). Only the
+  // browser-backed export bridge (Tauri-bundled CLI) renders PDF; the pure-Node
+  // CLI errors on the pdf format before this is used.
+  if (targetFormat === 'pdf' && password) exportOpts.password = password;
   const blob = await runtime.export(canvas, targetFormat, exportOpts);
   const buf = Buffer.from(await blob.arrayBuffer());
 

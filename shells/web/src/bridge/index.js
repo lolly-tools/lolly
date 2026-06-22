@@ -9,6 +9,7 @@
 import { createStateAPI } from './state.js';
 import { createProfileAPI } from './profile.js';
 import { createAssetsAPI } from './assets.js';
+import { createTokensAPI } from './tokens.js';
 import { createClipboardAPI } from './clipboard.js';
 import { createExportAPI } from './export.js';
 import { createNetAPI } from './net.js';
@@ -49,6 +50,7 @@ export async function createBridge() {
   host.state = createStateAPI(db);
   host.profile = createProfileAPI(db);
   host.assets = createAssetsAPI(db);
+  host.tokens = createTokensAPI(host); // depends on assets (reads the brand tokens asset)
   host.clipboard = createClipboardAPI();
   host.export = createExportAPI(host);
   host.net = createNetAPI({ allowlist: [] }); // populated per-tool from manifest

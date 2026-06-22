@@ -48,6 +48,15 @@ export interface HostV1 {
   net?: NetAPI;
 
   /**
+   * Design tokens (DTCG). Resolves the catalog's brand token document into a flat,
+   * themed lookup. The host UI uses it to source colour-picker swatches from
+   * tokens; the runtime uses it to resolve token-referenced input values; a
+   * token-aware tool can read the whole tree. Optional and additive (like net/
+   * text) — a shell that doesn't provide it just doesn't offer token-driven UI.
+   */
+  tokens?: TokensAPI;
+
+  /**
    * Text-to-path primitive. Shape and outline a text run into an SVG path.
    * Backed by HarfBuzz WASM — correct shaping including GPOS, ligatures, kerning.
    * Optional: not all shells implement it (CLI has no DOM context).
@@ -147,6 +156,48 @@ export interface StateEntry {
   toolVersion: string;
   updatedAt: string; // ISO
   label?: string;    // user-given name
+}
+
+// ─── Design tokens ────────────────────────────────────────────────────────────
+
+export interface TokensAPI {
+  /** The resolved token set for the active (or named) theme. */
+  get(opts?: { theme?: string }): Promise<TokenSet>;
+  /** Colour tokens as picker-ready swatches. */
+  colors(opts?: { theme?: string }): Promise<ColorSwatch[]>;
+  /** Resolve a `{dotted.path}` alias (or bare path) to its concrete value. */
+  resolve(ref: string, opts?: { theme?: string }): Promise<unknown>;
+  /** Theme names declared in the document. */
+  themes(): Promise<{ name: string; group: string | null }[]>;
+}
+
+/** A resolved token set. Returned by tokens.get(); see engine/src/tokens.js. */
+export interface TokenSet {
+  readonly size: number;
+  has(path: string): boolean;
+  get(path: string): TokenEntry | undefined;
+  resolve(ref: string): unknown;
+  query(filter?: { type?: string }): TokenEntry[];
+  colors(): ColorSwatch[];
+  themes(): { name: string; group: string | null }[];
+}
+
+export interface TokenEntry {
+  path: string;                 // dotted path, e.g. 'color.brand.jungle'
+  type: string | null;          // DTCG $type (possibly inherited from a group)
+  value: unknown;               // resolved value (aliases already followed)
+  description: string | null;   // DTCG $description
+  extensions: Record<string, unknown> | null; // DTCG $extensions (e.g. CMYK anchors)
+}
+
+export interface ColorSwatch {
+  ref: string;                  // canonical reference, e.g. '{color.brand.jungle}'
+  path: string;
+  name: string;                 // display label ($description, or prettified leaf)
+  group: string | null;        // display group (parent group, prettified)
+  value: string;               // resolved colour as a hex string
+  description: string | null;
+  cmyk: number[] | null;       // [C,M,Y,K] from $extensions, when present
 }
 
 // ─── Clipboard ──────────────────────────────────────────────────────────────

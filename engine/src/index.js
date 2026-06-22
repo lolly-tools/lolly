@@ -20,5 +20,9 @@ export {
   srgbIccProfile, iccProfileBytes, COLOR_PROFILES,
   rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
 } from './color.js';
+export {
+  createTokenSet, resolveColorValue, colorToHex,
+  isAlias, aliasPath, isTokenValue, TOKEN_EXT,
+} from './tokens.js';
 
 export const ENGINE_VERSION = '1.0.0';

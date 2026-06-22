@@ -1,0 +1,344 @@
+{
+  "$description": "SUSE brand colour tokens — generated from shells/web/src/palette.js by scripts/build-brand-tokens.js. Edit the palette and re-run; do not hand-edit.",
+  "color": {
+    "$type": "color",
+    "brand": {
+      "transparent": {
+        "$value": "transparent",
+        "$description": "Transparent"
+      },
+      "pine": {
+        "$value": "#0c322c",
+        "$description": "Pine",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              65,
+              0,
+              35,
+              85
+            ]
+          }
+        }
+      },
+      "jungle": {
+        "$value": "#30ba78",
+        "$description": "Jungle",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              70,
+              0,
+              65,
+              0
+            ]
+          }
+        }
+      },
+      "mint": {
+        "$value": "#90ebcd",
+        "$description": "Mint",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              40,
+              0,
+              30,
+              0
+            ]
+          }
+        }
+      },
+      "persimmon": {
+        "$value": "#fe7c3f",
+        "$description": "Persimmon",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              0,
+              60,
+              80,
+              0
+            ]
+          }
+        }
+      },
+      "midnight": {
+        "$value": "#192072",
+        "$description": "Midnight",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              100,
+              85,
+              0,
+              30
+            ]
+          }
+        }
+      },
+      "waterhole": {
+        "$value": "#2453ff",
+        "$description": "Waterhole",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              90,
+              50,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "fog": {
+        "$value": "#efefef",
+        "$description": "Fog",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              0,
+              0,
+              0,
+              7
+            ]
+          }
+        }
+      },
+      "white": {
+        "$value": "#ffffff",
+        "$description": "White",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "black": {
+        "$value": "#000000",
+        "$description": "Black",
+        "$extensions": {
+          "com.suse.lolly": {
+            "cmyk": [
+              0,
+              0,
+              0,
+              100
+            ]
+          }
+        }
+      }
+    },
+    "ramp": {
+      "jungle": {
+        "1": {
+          "$value": "#0c322c",
+          "$description": "Jungle 1"
+        },
+        "2": {
+          "$value": "#025937",
+          "$description": "Jungle 2"
+        },
+        "3": {
+          "$value": "#008657",
+          "$description": "Jungle 3"
+        },
+        "4": {
+          "$value": "#30ba78",
+          "$description": "Jungle 4"
+        },
+        "5": {
+          "$value": "#42d29f",
+          "$description": "Jungle 5"
+        },
+        "6": {
+          "$value": "#83e1be",
+          "$description": "Jungle 6"
+        },
+        "7": {
+          "$value": "#c0efde",
+          "$description": "Jungle 7"
+        },
+        "8": {
+          "$value": "#eafaf4",
+          "$description": "Jungle 8"
+        }
+      },
+      "pine": {
+        "1": {
+          "$value": "#0c322c",
+          "$description": "Pine 1"
+        },
+        "2": {
+          "$value": "#01564a",
+          "$description": "Pine 2"
+        },
+        "3": {
+          "$value": "#008878",
+          "$description": "Pine 3"
+        },
+        "4": {
+          "$value": "#00bda7",
+          "$description": "Pine 4"
+        },
+        "5": {
+          "$value": "#38d5b4",
+          "$description": "Pine 5"
+        },
+        "6": {
+          "$value": "#90ebcd",
+          "$description": "Pine 6"
+        },
+        "7": {
+          "$value": "#bff1ea",
+          "$description": "Pine 7"
+        },
+        "8": {
+          "$value": "#eafaf8",
+          "$description": "Pine 8"
+        }
+      },
+      "persimmon": {
+        "1": {
+          "$value": "#47190d",
+          "$description": "Persimmon 1"
+        },
+        "2": {
+          "$value": "#8e2810",
+          "$description": "Persimmon 2"
+        },
+        "3": {
+          "$value": "#bd3314",
+          "$description": "Persimmon 3"
+        },
+        "4": {
+          "$value": "#ff5a2b",
+          "$description": "Persimmon 4"
+        },
+        "5": {
+          "$value": "#fe7c3f",
+          "$description": "Persimmon 5"
+        },
+        "6": {
+          "$value": "#ffb184",
+          "$description": "Persimmon 6"
+        },
+        "7": {
+          "$value": "#ffd3bd",
+          "$description": "Persimmon 7"
+        },
+        "8": {
+          "$value": "#ffefe9",
+          "$description": "Persimmon 8"
+        }
+      },
+      "blue": {
+        "1": {
+          "$value": "#0a112b",
+          "$description": "Blue 1"
+        },
+        "2": {
+          "$value": "#192072",
+          "$description": "Blue 2"
+        },
+        "3": {
+          "$value": "#0b41b7",
+          "$description": "Blue 3"
+        },
+        "4": {
+          "$value": "#2453ff",
+          "$description": "Blue 4"
+        },
+        "5": {
+          "$value": "#3c8eef",
+          "$description": "Blue 5"
+        },
+        "6": {
+          "$value": "#81aefc",
+          "$description": "Blue 6"
+        },
+        "7": {
+          "$value": "#c8dafc",
+          "$description": "Blue 7"
+        },
+        "8": {
+          "$value": "#e6edfe",
+          "$description": "Blue 8"
+        }
+      },
+      "fog": {
+        "1": {
+          "$value": "#1d1d1d",
+          "$description": "Fog 1"
+        },
+        "2": {
+          "$value": "#3e3e3e",
+          "$description": "Fog 2"
+        },
+        "3": {
+          "$value": "#525252",
+          "$description": "Fog 3"
+        },
+        "4": {
+          "$value": "#6f6f6f",
+          "$description": "Fog 4"
+        },
+        "5": {
+          "$value": "#999999",
+          "$description": "Fog 5"
+        },
+        "6": {
+          "$value": "#bababa",
+          "$description": "Fog 6"
+        },
+        "7": {
+          "$value": "#dcdbdc",
+          "$description": "Fog 7"
+        },
+        "8": {
+          "$value": "#efefef",
+          "$description": "Fog 8"
+        }
+      }
+    },
+    "spectrum": {
+      "teal": {
+        "$value": "#00bda7",
+        "$description": "Teal"
+      },
+      "lime": {
+        "$value": "#a1ef8b",
+        "$description": "Lime"
+      },
+      "sky": {
+        "$value": "#7dc6e2",
+        "$description": "Sky"
+      },
+      "lilac": {
+        "$value": "#e8c1f7",
+        "$description": "Lilac"
+      },
+      "amethyst": {
+        "$value": "#5d4f99",
+        "$description": "Amethyst"
+      },
+      "peach": {
+        "$value": "#f9cabf",
+        "$description": "Peach"
+      },
+      "marigold": {
+        "$value": "#fcb244",
+        "$description": "Marigold"
+      },
+      "rust": {
+        "$value": "#bd3314",
+        "$description": "Rust"
+      }
+    }
+  }
+}

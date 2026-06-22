@@ -25,6 +25,10 @@
  *   - `dpi`      — raster resolution for physical units (default 300; px → 96)
  *   - `profile`  — colour profile: raster ICC ('srgb'/'none') or, for pdf-cmyk,
  *                  the press condition ('fogra39', 'swop', 'gracol', …)
+ *   - `password` — open-password for the standard `pdf` format (a basic lock, not
+ *                  strong encryption). Intentionally clear-text in the URL — it
+ *                  exists so links can pre-set a password for quick, short-lived
+ *                  transactional use; do not use it for confidential material.
  *
  * Compact URL encoding (opt-in per tool via tool.json):
  *   - Inputs can declare a short `urlKey` alias (e.g. "textColor" → "tc")
@@ -42,8 +46,9 @@
  */
 
 import { isUnit } from './units.js';
+import { isTokenValue, isAlias } from './tokens.js';
 
-const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'full', 'options']);
+const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'full', 'options']);
 
 /**
  * Parse URL params into an input-state object the runtime can apply.
@@ -102,6 +107,8 @@ export function parseUrlState(searchParams, manifest) {
     dpi:      rawDpi != null ? (Number(rawDpi) || null) : null,
     // Colour profile / CMYK press condition for the export (see color.js).
     profile:  params.get('profile') || null,
+    // Open-password for the standard `pdf` export (basic lock; clear-text by design).
+    password: params.get('password') || null,
   };
 }
 
@@ -134,6 +141,7 @@ export function serializeUrlState(model, opts = {}) {
   if (opts.unit && opts.unit !== 'px') params.set('unit', opts.unit);
   if (opts.dpi)    params.set('dpi', String(opts.dpi));
   if (opts.profile) params.set('profile', opts.profile);
+  if (opts.password) params.set('password', opts.password);
   return params.toString();
 }
 
@@ -144,6 +152,9 @@ function coerceFromString(input, raw) {
     case 'boolean':
       return raw === '1' || raw === 'true';
     case 'color':
+      // A `{token.path}` alias is a token-backed colour; keep it as an unresolved
+      // token value for the runtime to resolve (mirrors the asset _unresolved path).
+      if (isAlias(raw)) return { ref: raw, _unresolved: true };
       // Colors are stored without # for compactness; restore it here.
       if (raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw)) return '#' + raw;
       return raw;
@@ -166,6 +177,9 @@ function coerceFromString(input, raw) {
 function coerceToString(input, value) {
   if (input.type === 'boolean') return value ? '1' : '0';
   if (input.type === 'asset' && value && typeof value === 'object') return value.id;
+  // A token-backed colour serialises to its reference ('{color.brand.jungle}'),
+  // so a shared link re-resolves against the destination's tokens (canonical).
+  if (input.type === 'color' && isTokenValue(value)) return value.ref;
   if (input.type === 'blocks') return JSON.stringify(value ?? []);
   // 'vector' is serialised per-field in serializeUrlState, not here.
   return String(value);

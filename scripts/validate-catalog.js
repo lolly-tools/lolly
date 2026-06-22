@@ -46,10 +46,12 @@ const PROFILE_FIELDS = new Set([
 
 const toolSchema = readJson('schemas/tool.schema.json');
 const assetSchema = readJson('schemas/asset.schema.json');
+const tokensSchema = readJson('schemas/tokens.schema.json');
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 const validateTool = ajv.compile(toolSchema);
 const validateAsset = ajv.compile(assetSchema);
+const validateTokens = ajv.compile(tokensSchema);
 
 // ─── Collect everything ─────────────────────────────────────────────────────
 
@@ -197,6 +199,20 @@ for (const asset of assetsIndex.assets) {
       const actual = `sha256-${createHash('sha256').update(readFileSync(absPath)).digest('base64')}`;
       if (fmt.checksum !== actual) {
         errors.push(`[asset ${asset.id}] format "${fmt.format}" checksum stale — run \`npm run build:catalog\``);
+      }
+
+      // Tokens assets carry a DTCG document — validate its structure too.
+      if (asset.type === 'tokens' && fmt.format === 'json') {
+        let doc;
+        try { doc = JSON.parse(readFileSync(absPath, 'utf8')); } catch {
+          errors.push(`[asset ${asset.id}] tokens doc "${fmt.url}" is not valid JSON`);
+          continue;
+        }
+        if (!validateTokens(doc)) {
+          for (const err of validateTokens.errors) {
+            errors.push(`[asset ${asset.id}] tokens: ${err.instancePath || '/'} ${err.message}`);
+          }
+        }
       }
     }
   }

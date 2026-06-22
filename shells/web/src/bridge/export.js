@@ -1306,7 +1306,17 @@ async function renderPdf(node, opts) {
   // 'portrait' mode swaps format[0] and format[1] when width > height, which
   // would produce an inverted page with all drawHtmlVectors coordinates wrong.
   const orientation = pageW >= pageH ? 'landscape' : 'portrait';
-  const pdf = new jsPDF({ unit: 'pt', format: [pageW, pageH], orientation });
+
+  // A non-empty opts.password locks the PDF on open via jsPDF's standard security
+  // handler. The same secret is the user (open) and owner password; permissions
+  // are restricted to printing only, so copy/modify are flagged off for compliant
+  // readers. Note: only this RGB path encrypts — renderCmykPdf re-saves through
+  // pdf-lib (which can't write encrypted PDFs), so it never passes a password.
+  // Passing `encryption: undefined` is a no-op (jsPDF treats it as unencrypted).
+  const encryption = opts.password
+    ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
+    : undefined;
+  const pdf = new jsPDF({ unit: 'pt', format: [pageW, pageH], orientation, encryption });
   const m = opts.meta;
   const creator = m?.software || 'Lolly';
   pdf.setProperties({

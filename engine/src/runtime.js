@@ -21,9 +21,10 @@
  *   being declared as user-facing inputs in the manifest.
  */
 
-import { buildInputModel, updateInput, modelToValues } from './inputs.js';
+import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue } from './inputs.js';
 import { hydrate } from './template.js';
 import { buildExportMeta } from './metadata.js';
+import { isTokenValue, isAlias, colorToHex } from './tokens.js';
 
 /**
  * @param {Tool} tool                 from loader.js
@@ -44,6 +45,11 @@ export async function createRuntime(tool, host, initialState = {}) {
   const droppedAssets = [];
   model = await resolveAssetRefs(model, host, droppedAssets);
 
+  // Resolve token-referenced colour values (from URL mode or a saved session)
+  // against the live token set, refreshing each cached hex so a token edit
+  // propagates. Mirrors resolveAssetRefs; a no-op on shells without host.tokens.
+  model = await resolveTokenRefs(model, host);
+
   // extras: hook-computed values that have no matching input id.
   // Available to templates alongside input values.
   let extras = {};
@@ -53,7 +59,7 @@ export async function createRuntime(tool, host, initialState = {}) {
     hooks = await loadHooks(tool, host);
     if (hooks.onInit) {
       try {
-        const patch = await withTimeout(hooks.onInit({ model, host }), 5000, tool.manifest.id);
+        const patch = await withTimeout(hooks.onInit({ model: modelForHooks(model), host }), 5000, tool.manifest.id);
         if (patch) ({ model, extras } = mergePatch(model, extras, patch));
       } catch (e) {
         host.log('warn', `onInit ${e.message}`, { toolId: tool.manifest.id });
@@ -95,7 +101,7 @@ export async function createRuntime(tool, host, initialState = {}) {
       model = updateInput(model, id, value);
       if (hooks?.onInput) {
         try {
-          const patch = await withTimeout(hooks.onInput({ id, value, model, host }), 2000, tool.manifest.id);
+          const patch = await withTimeout(hooks.onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }), 2000, tool.manifest.id);
           if (patch) ({ model, extras } = mergePatch(model, extras, patch));
         } catch (e) {
           host.log('warn', `onInput ${e.message}`, { toolId: tool.manifest.id });
@@ -208,6 +214,28 @@ async function resolveAssetRefs(model, host, dropped = []) {
       return input;
     }),
   );
+}
+
+// Re-resolve token-backed colour values against the live token set. A value is
+// token-backed when it's a { ref, value } object (saved session / resolved URL)
+// or a bare `{path}` alias string (freshly parsed from a URL). Each becomes a
+// { ref, value:<hex> } pair: the ref keeps it canonical, the hex is the cached
+// fallback for when the token is absent on this device.
+async function resolveTokenRefs(model, host) {
+  if (!host.tokens) return model; // shell without token support — leave values as-is
+  let set;
+  try { set = await host.tokens.get(); } catch { return model; }
+  return model.map(input => {
+    if (input.type !== 'color') return input;
+    const v = input.value;
+    const ref = isTokenValue(v) ? v.ref : (isAlias(v) ? v : null);
+    if (!ref) return input;
+    const resolved = set.resolve(ref);
+    if (resolved !== undefined) return { ...input, value: { ref, value: colorToHex(resolved) } };
+    // Unresolved here: keep the cached value if we had one; otherwise mark it
+    // resolved-to-nothing so modelToValues yields '' rather than the raw alias.
+    return { ...input, value: isTokenValue(v) ? v : { ref, value: undefined } };
+  });
 }
 
 async function loadHooks(tool, host) {

@@ -11,7 +11,7 @@
   "render": {
     "width": 900,
     "height": 900,
-    "formats": ["svg", "pdf", "png"],
+    "formats": ["svg", "pdf", "pdf-cmyk", "png"],
     "actions": ["copy", "download", "save"],
     "transparentBg": false
   },
