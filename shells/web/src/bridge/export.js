@@ -416,6 +416,85 @@ async function withJpegExif(blob, meta) {
   }
 }
 
+// ── ICC colour profile embedding ─────────────────────────────────────────────
+//
+// Tags raster output with the colour space its pixels were rendered in (sRGB —
+// what the browser canvas produces), so colour-managed software reproduces them
+// faithfully instead of guessing. Profile bytes come from the engine (the single
+// source of truth); the shell only splices them into each format's native slot:
+// PNG iCCP chunk, JPEG APP2 segment. Best-effort: any hiccup returns the blob.
+
+// Embed when a profile is requested (default 'srgb') and this isn't a thumbnail.
+function iccWanted(opts) {
+  return opts.colorProfile !== 'none' && !opts.thumbnail;
+}
+
+// PNG: an iCCP chunk (profile name + compression method 0 + zlib-deflated
+// profile) spliced in right after IHDR, before IDAT — where the spec requires it.
+async function withPngIcc(blob, iccBytes) {
+  try {
+    const png = new Uint8Array(await blob.arrayBuffer());
+    const SIG = [137, 80, 78, 71, 13, 10, 26, 10];
+    for (let i = 0; i < 8; i++) if (png[i] !== SIG[i]) return blob;
+    const name = new TextEncoder().encode('sRGB'); // 1–79 bytes, Latin-1
+    const compressed = await deflateBytes(iccBytes);
+    const data = new Uint8Array(name.length + 2 + compressed.length);
+    data.set(name, 0);
+    data[name.length] = 0;     // name terminator
+    data[name.length + 1] = 0; // compression method: zlib/deflate
+    data.set(compressed, name.length + 2);
+    const chunk = pngChunk('iCCP', data);
+    const at = 8 + 12 + readU32(png, 8); // after IHDR
+    const out = new Uint8Array(png.length + chunk.length);
+    out.set(png.subarray(0, at), 0);
+    out.set(chunk, at);
+    out.set(png.subarray(at), at + chunk.length);
+    return new Blob([out], { type: 'image/png' });
+  } catch {
+    return blob;
+  }
+}
+
+// JPEG: one or more APP2 "ICC_PROFILE\0" segments (the profile is split across
+// 65 519-byte chunks when large), inserted after the leading APP0/APP1 segments.
+async function withJpegIcc(blob, iccBytes) {
+  try {
+    const b = new Uint8Array(await blob.arrayBuffer());
+    if (b[0] !== 0xFF || b[1] !== 0xD8) return blob; // not JPEG
+    const id = [0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00]; // "ICC_PROFILE\0"
+    const MAX = 0xFFFF - 2 - id.length - 2; // payload room per APP2 (after len + id + seq/count)
+    const count = Math.ceil(iccBytes.length / MAX);
+    if (count > 255) return blob; // ICC caps at 255 chunks
+    const segs = [];
+    for (let i = 0; i < count; i++) {
+      const part = iccBytes.subarray(i * MAX, i * MAX + MAX);
+      const segLen = 2 + id.length + 2 + part.length; // length field includes itself
+      const app2 = new Uint8Array(2 + segLen);
+      app2[0] = 0xFF; app2[1] = 0xE2;
+      app2[2] = (segLen >> 8) & 0xFF; app2[3] = segLen & 0xFF;
+      app2.set(id, 4);
+      app2[4 + id.length] = i + 1;   // chunk sequence number (1-based)
+      app2[5 + id.length] = count;   // total chunks
+      app2.set(part, 6 + id.length);
+      segs.push(app2);
+    }
+    // Insert after a leading APP0 (JFIF) and/or APP1 (EXIF) so marker order stays valid.
+    let at = 2;
+    while (b[at] === 0xFF && (b[at + 1] === 0xE0 || b[at + 1] === 0xE1)) {
+      at += 2 + ((b[at + 2] << 8) | b[at + 3]);
+    }
+    const extra = segs.reduce((n, s) => n + s.length, 0);
+    const out = new Uint8Array(b.length + extra);
+    out.set(b.subarray(0, at), 0);
+    let o = at;
+    for (const s of segs) { out.set(s, o); o += s.length; }
+    out.set(b.subarray(at), o);
+    return new Blob([out], { type: 'image/jpeg' });
+  } catch {
+    return blob;
+  }
+}
+
 // SVG: <title>/<desc> + a Dublin-Core <metadata> block, injected right after the
 // opening <svg> tag of the serialized markup (avoids DOM-namespace gymnastics).
 function svgMetaBlock(meta) {
@@ -1910,7 +1989,7 @@ async function renderCmykPdf(node, opts) {
   const rgbBlob = await renderPdf(node, opts);
   const rgbBytes = new Uint8Array(await rgbBlob.arrayBuffer());
 
-  const { PDFDocument, PDFName, PDFNumber } = await import('pdf-lib');
+  const { PDFDocument, PDFName, PDFNumber, PDFString } = await import('pdf-lib');
   const pdfDoc = await PDFDocument.load(rgbBytes);
   const m = opts.meta;
   const creator = m?.software || 'Lolly';
@@ -1924,6 +2003,13 @@ async function renderCmykPdf(node, opts) {
     if (kw.length) pdfDoc.setKeywords(kw);
   }
   const paletteMap = buildCmykPaletteMap(opts.palette ?? []);
+
+  // Declare the press condition the DeviceCMYK values are meant to be read under,
+  // so a RIP/print shop knows the intended output. Referenced by registered name
+  // (no heavy destination profile embedded) — valid for a standard condition.
+  if (opts.colorProfile !== 'none') {
+    addCmykOutputIntent(pdfDoc, opts.colorProfile, PDFName, PDFString);
+  }
 
   for (const [, obj] of pdfDoc.context.enumerateIndirectObjects()) {
     if (!(obj.contents instanceof Uint8Array)) continue;
@@ -1984,14 +2070,30 @@ function cmykKey(r, g, b) {
   return `${Math.round(r * 1000)},${Math.round(g * 1000)},${Math.round(b * 1000)}`;
 }
 
-// Converts PDF-space RGB (0–1) to CMYK (0–1), preferring palette lookup.
+// Adds an OutputIntent declaring the target CMYK press condition to the document
+// catalog. The condition descriptor (registered name / info / registry) comes
+// from the engine; 'srgb'/undefined falls back to the default press condition.
+function addCmykOutputIntent(pdfDoc, name, PDFName, PDFString) {
+  const cond = cmykCondition(name === 'srgb' ? undefined : name);
+  const intent = pdfDoc.context.obj({
+    Type: 'OutputIntent',
+    S: 'GTS_PDFX',
+    OutputConditionIdentifier: PDFString.of(cond.identifier),
+    OutputCondition: PDFString.of(cond.info),
+    Info: PDFString.of(cond.info),
+    RegistryName: PDFString.of(cond.registry),
+  });
+  const catalog = pdfDoc.catalog;
+  const key = PDFName.of('OutputIntents');
+  let arr = catalog.lookup(key);
+  if (!arr) { arr = pdfDoc.context.obj([]); catalog.set(key, arr); }
+  arr.push(intent);
+}
+
+// Converts PDF-space RGB (0–1) to CMYK (0–1), preferring an exact palette match
+// (measured brand inks) before the engine's generic device-CMYK conversion.
 function pdfRgbToCmyk(r, g, b, paletteMap) {
-  const pal = paletteMap.get(cmykKey(r, g, b));
-  if (pal) return pal;
-  const k = 1 - Math.max(r, g, b);
-  if (k >= 1) return [0, 0, 0, 1];
-  const d = 1 - k;
-  return [(1 - r - k) / d, (1 - g - k) / d, (1 - b - k) / d, k];
+  return paletteMap.get(cmykKey(r, g, b)) ?? rgbToCmyk(r, g, b);
 }
 
 // Formats a CMYK component (0–1) as a compact decimal string for PDF output.
