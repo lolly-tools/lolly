@@ -106,10 +106,28 @@
     var rivers = feats.filter(function (f) { return f.properties.k === 'waterway'; });
     var roads  = feats.filter(function (f) { return f.properties.k === 'road'; });
 
-    /* Water bodies (fill) */
+    /* Water bodies (fill). Build a planar projected path rather than using
+       geoPath's spherical fill: OSM polygon rings have inconsistent winding, and
+       a reversed ring makes geoPath fill the whole-globe complement (flooding the
+       canvas). At city scale a planar fill is indistinguishable and winding-safe. */
     if (showWater && waters.length) {
-      gMap.append('path').datum(collection(waters))
-        .attr('fill', pal.water).attr('stroke', 'none').attr('d', path);
+      var wd = '';
+      waters.forEach(function (f) {
+        if (f.geometry.type !== 'Polygon') return;
+        f.geometry.coordinates.forEach(function (ring) {
+          if (ring.length < 3) return;
+          for (var i = 0; i < ring.length; i++) {
+            var p = proj(ring[i]);
+            if (!p) continue;
+            wd += (i === 0 ? 'M' : 'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1);
+          }
+          wd += 'Z';
+        });
+      });
+      if (wd) {
+        gMap.append('path').attr('d', wd)
+          .attr('fill', pal.water).attr('stroke', 'none').attr('fill-rule', 'nonzero');
+      }
     }
     /* Rivers / streams (center-lines) */
     if (showWater && rivers.length) {

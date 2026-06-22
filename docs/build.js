@@ -701,7 +701,7 @@ nav a.active:not(.nav-launch){color:#fff}
 /* Double-clicking the hero backdrop shouldn't highlight the heading/subtitle/trust copy; buttons keep normal selection. */
 .hero .btn{user-select:auto;-webkit-user-select:auto}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(48,186,120,.13) 0%,transparent 65%);pointer-events:none}
-#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:color-dodge;opacity:1}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:color-dodge;opacity:.6}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
 .hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
 .hero-logo-link{display:block;width:clamp(180px,32vw,340px);margin:0 auto;border-radius:50%;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 0.5em 1em #0004,0 .1em .2em #0003}
@@ -1166,9 +1166,14 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   var canvas=document.getElementById('heroCanvas');
   if(!canvas)return;
   var ctx=canvas.getContext('2d');
-  var exts=['.TXT','.MD','.PDF','.SVG','.PNG','.WEBM','.MP4','.WEBP','.GIF','.AVIF','.HTML'];
-  var spinners=[], fragments=[];
-  var MAX_SPINNERS=6;
+  var exts=['.TXT','.MD','.PDF','.SVG','.JPG','.PNG','.WEBM','.MP4','.WEBP','.GIF','.AVIF','.HTML'];
+  // Headline formats appear ~2x as often as the rest: listing them again weights
+  // them double in the pick pool (each favored ext is in the pool twice).
+  var extPool=exts.concat(['.PDF','.SVG','.JPG','.MP4']);
+  var floaters=[], fragments=[];
+  // Ambient chip population scales with canvas width so wide heroes aren't sparse
+  // and narrow/mobile ones aren't crowded.
+  function targetFloaters(){ return Math.max(5, Math.min(14, Math.round(cw/100))); }
   // Logical (CSS-pixel) canvas size. The backing store is scaled by devicePixelRatio
   // so the animation stays crisp on HiDPI/Retina displays instead of being a 1x
   // bitmap the browser upscales; all motion math below stays in these logical units.
@@ -1185,32 +1190,18 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   }
   function rand(a,b){return a+Math.random()*(b-a);}
 
-  function makeSpinner(initial){
-    var size=rand(9,14);
-    var explodeY=rand(ch*0.08, ch*0.62);
-    var y=initial ? rand(explodeY+size*3, ch+size) : ch+size+10;
-    return{
-      x:rand(size*2, cw-size*2),
-      y:y, vy:rand(-1.6,-0.8),
-      size:size, rot:rand(0,Math.PI*2),
-      vrot:rand(0.02,0.055)*(Math.random()>.5?1:-1),
-      explodeY:explodeY, alpha:rand(0.45,0.85)
-    };
-  }
-
-  function makeFragment(x,y,angle){
-    var ext=exts[Math.floor(Math.random()*exts.length)];
+  // Bake one chip (filled box + label) into an offscreen sprite. Both the ambient
+  // floaters and the click-burst fragments reuse this, so the chip look lives in
+  // one place; callers add their own motion fields. Pre-compositing also lets a
+  // chip fade as a single group instead of each layer fading over the bg.
+  function makeChip(){
+    var ext=extPool[Math.floor(Math.random()*extPool.length)];
     var fs=rand(10,22);
     var weight='500';
     ctx.font=weight+' '+fs+'px SUSE,sans-serif';
     var tw=ctx.measureText(ext).width;
     var px=fs*0.75,py=fs*0.75;
-    var spd=rand(4.5,11.0);
     var w=tw+px*2, h=fs+py*2, r=Math.round(fs*0.38);
-    // Bake the chip (filled box + label) into one sprite so they fade as a
-    // single group. Drawing them straight onto the canvas fades each over the
-    // white backdrop independently, losing contrast mid-fade. A pre-composited
-    // sprite blitted at the group alpha keeps the whole chip coherent all the way out.
     var spr=document.createElement('canvas');
     spr.width=Math.ceil(w*dpr); spr.height=Math.ceil(h*dpr);
     var sx=spr.getContext('2d');
@@ -1218,8 +1209,8 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     sx.lineJoin='round';
     rr(sx,0,0,w,h,r);
     // Borderless: a solid fill (hero background) so overlapping chips occlude each
-    // other cleanly instead of letting labels behind them bleed through. The old
-    // outline is gone — chips read apart via the soft drop shadow cast at blit time.
+    // other cleanly instead of letting labels behind them bleed through. The chips
+    // read apart via the soft drop shadow cast at blit time (see drawChip).
     sx.fillStyle='#1c4a2e'; sx.fill();
     sx.fillStyle='#30ba78';
     sx.font=weight+' '+fs+'px SUSE,sans-serif';
@@ -1230,20 +1221,36 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     var m=sx.measureText(ext);
     var asc=m.actualBoundingBoxAscent||fs*0.7, desc=m.actualBoundingBoxDescent||0;
     sx.fillText(ext,w/2,h/2+(asc-desc)/2);
+    return{spr:spr,w:w,h:h};
+  }
+
+  // Ambient chip: drifts up from below the canvas, anti-gravity, with a gentle
+  // leaf-like sway. The tilt tracks the horizontal sway so it reads as floating,
+  // not spinning. initial=true spreads the first batch across the full height so
+  // the hero isn't empty on load; otherwise it starts just below the bottom edge.
+  function makeFloater(initial){
+    var c=makeChip();
+    var x=rand(c.w*0.6, cw-c.w*0.6);
+    var y=initial ? rand(-c.h, ch) : ch+c.h+rand(0,ch*0.35);
     return{
-      x:x,y:y,
-      vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
-      rot:rand(-0.5,0.5), vrot:rand(-0.022,0.022),
-      w:w, h:h, spr:spr, alpha:rand(0.8,1.0), life:1
+      spr:c.spr, w:c.w, h:c.h,
+      baseX:x, x:x, y:y, vy:rand(-0.95,-0.45),
+      swayPhase:rand(0,Math.PI*2), swayFreq:rand(0.006,0.016), swayAmp:rand(6,20),
+      rot:0, tilt:rand(0.18,0.79)
     };
   }
 
-  function explode(s){
-    var count=Math.floor(rand(7,12));
-    for(var i=0;i<count;i++){
-      var angle=(i/count)*Math.PI*2+rand(-0.25,0.25);
-      fragments.push(makeFragment(s.x,s.y,angle));
-    }
+  // Click burst: a chip flung outward from (x,y); drag + gravity + fade in tick().
+  function makeFragment(x,y,angle){
+    var c=makeChip();
+    var spd=rand(4.5,11.0);
+    return{
+      spr:c.spr, w:c.w, h:c.h,
+      x:x,y:y,
+      vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
+      rot:rand(-0.5,0.5), vrot:rand(-0.022,0.022),
+      alpha:rand(0.8,1.0), life:1
+    };
   }
 
   function explodeAt(x,y){
@@ -1264,13 +1271,25 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     c.arcTo(x,y,x+r,y,r);c.closePath();
   }
 
+  // Blit a chip sprite with a soft, centred drop shadow. The shadow stands in for
+  // the old chip border so overlapping chips read apart; the canvas blends 'normal'
+  // (a dark shadow would vanish under color-dodge). Per-frame shadowBlur is the
+  // cost; if we keep this, bake the shadow into the sprite once in makeChip.
+  function drawChip(c,alpha){
+    ctx.save();
+    ctx.translate(c.x,c.y); ctx.rotate(c.rot); ctx.globalAlpha=alpha;
+    ctx.shadowColor='#0a2823'; ctx.shadowBlur=8; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
+    ctx.drawImage(c.spr,-c.w/2,-c.h/2,c.w,c.h);
+    ctx.restore();
+  }
+
   function tick(){
     ctx.clearRect(0,0,cw,ch);
 
     // Fragments: drag + gravity, fade out
     for(var i=fragments.length-1;i>=0;i--){
       var f=fragments[i];
-      f.vx*=0.972; f.vy=f.vy*0.972+0.07;
+      f.vx*=0.972; f.vy=f.vy*0.972+0.03;
       f.x+=f.vx; f.y+=f.vy; f.rot+=f.vrot;
       f.life-=0.0045;
       if(f.life<=0){fragments.splice(i,1);continue;}
@@ -1279,36 +1298,24 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
       // time, so their solid fill goes translucent and overlapping chips bleed
       // through (muddy). Squaring the tail makes the late drop bite harder.
       var t=f.life/0.18, fade=t>=1?1:t*t;
-      ctx.save();
-      ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.globalAlpha=f.alpha*fade;
-      // Soft drop shadow stands in for the old chip border: a dark, blurred
-      // shadow lets overlapping chips read apart and lifts them off the bg.
-      // Requires the canvas off 'color-dodge' (now normal blend) — under
-      // color-dodge a dark shadow dodges to nothing and reads as a glow.
-      // Per-frame shadowBlur is the cost here; if we keep this look, bake the
-      // shadow into the sprite once (in makeFragment) to drop the perf hit.
-      ctx.shadowColor='#0a2823';
-      ctx.shadowBlur=8; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
-      ctx.drawImage(f.spr,-f.w/2,-f.h/2,f.w,f.h);
-      ctx.restore();
+      drawChip(f, f.alpha*fade);
     }
 
-    // Spinners: rise, spin, explode at threshold
-    for(var i=spinners.length-1;i>=0;i--){
-      var s=spinners[i];
-      s.y+=s.vy; s.rot+=s.vrot;
-      if(s.y<=s.explodeY){
-        explode(s); spinners.splice(i,1); continue;
-      }
-      ctx.save();
-      ctx.translate(s.x,s.y); ctx.rotate(s.rot); ctx.globalAlpha=s.alpha;
-      ctx.strokeStyle='#30ba78'; ctx.lineWidth=s.size*0.22; ctx.lineCap='round';
-      ctx.beginPath(); ctx.arc(0,0,s.size,0,Math.PI*1.65); ctx.stroke();
-      ctx.restore();
+    // Floaters: drift up, sway, fade at the top/bottom edges, recycle off-top.
+    for(var i=floaters.length-1;i>=0;i--){
+      var fl=floaters[i];
+      fl.swayPhase+=fl.swayFreq;
+      fl.y+=fl.vy;
+      fl.x=fl.baseX+Math.sin(fl.swayPhase)*fl.swayAmp;
+      fl.rot=Math.sin(fl.swayPhase)*fl.tilt;
+      // No fade: chips ride in fully opaque from below the bottom edge, and the
+      // canvas edge simply clips them as they pass the top. Drop once fully above.
+      if(fl.y<-fl.h){ floaters.splice(i,1); continue; }
+      drawChip(fl, 1);
     }
 
-    // Replenish
-    while(spinners.length<MAX_SPINNERS) spinners.push(makeSpinner(false));
+    // Replenish to the responsive target (also restocks after a resize grows it).
+    while(floaters.length<targetFloaters()) floaters.push(makeFloater(false));
 
     requestAnimationFrame(tick);
   }
@@ -1321,7 +1328,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     var rect=canvas.getBoundingClientRect();
     explodeAt(e.clientX-rect.left,e.clientY-rect.top);
   });
-  for(var i=0;i<MAX_SPINNERS;i++) spinners.push(makeSpinner(true));
+  while(floaters.length<targetFloaters()) floaters.push(makeFloater(true));
   tick();
 })();<\/script>`;
 
