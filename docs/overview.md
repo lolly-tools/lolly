@@ -1,4 +1,4 @@
-# Architecture
+# Overview
 
 This document captures the purpose, structure, and architectural decisions for the Lolly platform. It reflects both the product vision and the current state of the codebase.
 

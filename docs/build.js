@@ -27,7 +27,7 @@ const pages = [
   { slug: 'exporting',        title: 'Exporting & Formats', src: 'exporting.md' },
   { slug: 'positioning',      title: 'Positioning',       src: 'positioning.md' },
   { slug: 'ai-agents',        title: 'AI Agents',         src: 'ai-agents.md' },
-  { slug: 'architecture',     title: 'Architecture',      src: 'architecture.md' },
+  { slug: 'overview',         title: 'Overview',          src: 'overview.md' },
   { slug: 'authoring-tools',  title: 'Authoring Tools',   src: 'authoring-tools.md' },
   { slug: 'authoring-assets', title: 'Authoring Assets',  src: 'authoring-assets.md' },
   { slug: 'host-api',         title: 'Host API',          src: 'host-api.md' },
@@ -39,18 +39,20 @@ const pages = [
   { slug: 'privacy',          title: 'Privacy Policy',    src: 'privacy.md' },
 ];
 
+// Top-nav links, grouped into clusters. Each inner array renders as one cluster
+// (tight spacing); clusters are separated by a divider (see .nav-group CSS). Home
+// is intentionally omitted — the brand wordmark already links to /info/index.html.
 const NAV = [
-  { label: 'Home',            href: '/info/index.html' },
-  { label: 'Using',           href: '/info/using.html' },
-  { label: 'Extension',       href: '/info/extension.html' },
-  { label: 'Export',          href: '/info/exporting.html' },
-  { label: 'AI',              href: '/info/ai-agents.html' },
-  { label: 'Compare',         href: '/info/positioning.html' },
-  { label: 'Architecture',    href: '/info/architecture.html' },
-  { label: 'Authoring',       href: '/info/authoring-tools.html' },
-  { label: 'Host API',        href: '/info/host-api.html' },
-  { label: 'CLI',             href: '/info/cli.html' },
-  { label: 'Build',           href: '/info/build-guide.html' },
+  [ { label: 'Overview',   href: '/info/overview.html' },
+    { label: 'Compare',    href: '/info/positioning.html' } ],
+  [ { label: 'Using',      href: '/info/using.html' },
+    { label: 'AI',         href: '/info/ai-agents.html' },
+    { label: 'Export',     href: '/info/exporting.html' } ],
+  [ { label: 'Authoring',  href: '/info/authoring-tools.html' },
+    { label: 'Build',      href: '/info/build-guide.html' },
+    { label: 'Extension',  href: '/info/extension.html' } ],
+  [ { label: 'Host API',   href: '/info/host-api.html' },
+    { label: 'CLI',        href: '/info/cli.html' } ],
 ];
 
 const ICONS = {
@@ -698,6 +700,9 @@ nav .gap{flex:1}
 nav a:not(.brand):not(.nav-launch){color:rgba(255,255,255,.55);font-size:.8125rem;padding:.25rem .5rem;white-space:nowrap;border-radius:2em;transition:color .12s}
 nav a:not(.brand):not(.nav-launch):hover{color:#fff;text-decoration:none}
 nav a.active:not(.nav-launch){color:#fff}
+/* Top-nav clusters: tight within a group, a thin divider between groups. */
+nav .nav-group{display:inline-flex;align-items:center;gap:.0625rem}
+nav .nav-group + .nav-group{margin-left:.5rem;padding-left:.625rem;border-left:1px solid rgba(255,255,255,.18)}
 .nav-launch{background:var(--green);color:var(--dark)!important;padding:.375rem 1rem;border-radius:6px;font-weight:700;font-size:.875rem;white-space:nowrap;margin-left:.5rem;transition:background .15s}
 .nav-launch:hover{background:var(--light);text-decoration:none!important}
 
@@ -969,6 +974,7 @@ footer a:hover{color:var(--dark)}
   .docs-content{padding:1.5rem 1rem}
   nav{overflow-x:visible}
   nav a:not(.brand){display:none}
+  nav .nav-group{display:none}
   .nav-hamburger{display:flex}
   .audience-card.tab-active{
     display:flex;flex-direction:column;
@@ -1342,14 +1348,14 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
 const HAMBURGER_SCRIPT = `<script>(function(){var ham=document.getElementById('navHamburger');var menu=document.getElementById('navMobileMenu');if(!ham||!menu)return;ham.addEventListener('click',function(){var open=menu.classList.toggle('open');ham.classList.toggle('open',open);ham.setAttribute('aria-expanded',open?'true':'false');});menu.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){menu.classList.remove('open');ham.classList.remove('open');ham.setAttribute('aria-expanded','false');});});document.addEventListener('click',function(e){if(!menu.contains(e.target)&&!ham.contains(e.target)){menu.classList.remove('open');ham.classList.remove('open');ham.setAttribute('aria-expanded','false');}});})();<\/script>`;
 
 function buildNav(activeHref, isLanding) {
-  const links = NAV.map(n =>
-    `<a href="${n.href}"${n.href === activeHref ? ' class="active"' : ''}>${esc(n.label)}</a>`
-  ).join('');
-  const mobileLinks = NAV.map(n =>
-    `<a href="${n.href}"${n.href === activeHref ? ' class="active"' : ''}>${esc(n.label)}</a>`
-  ).join('');
+  const link = n =>
+    `<a href="${n.href}"${n.href === activeHref ? ' class="active"' : ''}>${esc(n.label)}</a>`;
+  // Desktop: one <span class="nav-group"> per cluster, dividers come from CSS.
+  const groups = NAV.map(group => `<span class="nav-group">${group.map(link).join('')}</span>`).join('');
+  // Mobile menu: a single flat vertical list (clusters collapse to plain rows).
+  const mobileLinks = NAV.flat().map(link).join('');
   const navClass = isLanding ? '' : ' class="nav-solid"';
-  return `<nav${navClass}><a href="/info/index.html" class="brand">Lolly</a>${links}<div class="gap"></div>${THEME_TOGGLE}${HAM_BTN}<a href="/" class="nav-launch">Launch App ↗</a></nav>
+  return `<nav${navClass}><a href="/info/index.html" class="brand">Lolly</a>${groups}<div class="gap"></div>${THEME_TOGGLE}${HAM_BTN}<a href="/" class="nav-launch">Launch App ↗</a></nav>
 <div class="nav-mobile-menu" id="navMobileMenu">${mobileLinks}<a href="/" class="nav-launch">Launch App ↗</a></div>`;
 }
 
@@ -1367,7 +1373,7 @@ function wrapPage(page, content) {
     <a href="/info/positioning.html"${activeHref.includes('positioning') ? ' class="active"' : ''}>Positioning</a>
     <div class="sidebar-label">Project</div>
     <a href="/info/about.html"${activeHref.includes('about') ? ' class="active"' : ''}>About</a>
-    <a href="/info/architecture.html"${activeHref.includes('architecture') ? ' class="active"' : ''}>Architecture</a>
+    <a href="/info/overview.html"${activeHref.includes('overview') ? ' class="active"' : ''}>Overview</a>
     <div class="sidebar-label">Authoring</div>
     <a href="/info/authoring-tools.html"${activeHref.includes('authoring-tools') ? ' class="active"' : ''}>Tools</a>
     <a href="/info/authoring-assets.html"${activeHref.includes('authoring-assets') ? ' class="active"' : ''}>Assets</a>
