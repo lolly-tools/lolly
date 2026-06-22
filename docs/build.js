@@ -1235,7 +1235,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
       x:x,y:y,
       vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
       rot:rand(-1,1), vrot:rand(-0.06,0.06),
-      w:w, h:h, spr:spr, alpha:rand(0.8,1.0)
+      w:w, h:h, spr:spr, alpha:rand(0.8,1.0), life:1
     };
   }
 
@@ -1273,10 +1273,15 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
       var f=fragments[i];
       f.vx*=0.972; f.vy=f.vy*0.972+0.07;
       f.x+=f.vx; f.y+=f.vy; f.rot+=f.vrot;
-      f.alpha-=0.004;
-      if(f.alpha<=0){fragments.splice(i,1);continue;}
+      f.life-=0.0045;
+      if(f.life<=0){fragments.splice(i,1);continue;}
+      // Hold the chip at full opacity for most of its life, then fall off a cliff
+      // over the last ~18%. A linear fade leaves chips semi-transparent the whole
+      // time, so their solid fill goes translucent and overlapping chips bleed
+      // through (muddy). Squaring the tail makes the late drop bite harder.
+      var t=f.life/0.18, fade=t>=1?1:t*t;
       ctx.save();
-      ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.globalAlpha=f.alpha;
+      ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.globalAlpha=f.alpha*fade;
       ctx.drawImage(f.spr,-f.w/2,-f.h/2,f.w,f.h);
       ctx.restore();
     }
