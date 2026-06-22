@@ -30,7 +30,7 @@
       "id": "orientation",
       "label": "Orientation",
       "type": "select",
-      "default": "horizontal",
+      "default": "vertical",
       "options": [
         { "value": "horizontal", "label": "Horizontal" },
         { "value": "vertical", "label": "Stacked" }

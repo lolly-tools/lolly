@@ -1,0 +1,97 @@
+{
+  "id": "street-map",
+  "name": "Street Map",
+  "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
+  "a11yLabel": "Street map centered on {{city}}",
+  "version": "0.2.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["map", "street", "city", "location", "vector", "offline", "osm"],
+  "render": {
+    "width": 900,
+    "height": 900,
+    "formats": ["svg", "pdf", "png"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "city",
+      "label": "City",
+      "type": "select",
+      "default": "nuremberg",
+      "help": "Add more cities offline with scripts/build-street-clips.js — no API at render time.",
+      "options": [
+        { "value": "nuremberg", "label": "Nuremberg" },
+        { "value": "munich", "label": "Munich" },
+        { "value": "berlin", "label": "Berlin" },
+        { "value": "prague", "label": "Prague" },
+        { "value": "amsterdam", "label": "Amsterdam" },
+        { "value": "dublin", "label": "Dublin" },
+        { "value": "london", "label": "London" },
+        { "value": "paris", "label": "Paris" },
+        { "value": "barcelona", "label": "Barcelona" },
+        { "value": "newyork", "label": "New York" },
+        { "value": "sanfrancisco", "label": "San Francisco" },
+        { "value": "provo", "label": "Provo" },
+        { "value": "tokyo", "label": "Tokyo" },
+        { "value": "singapore", "label": "Singapore" },
+        { "value": "sydney", "label": "Sydney" }
+      ]
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "light",
+      "options": [
+        { "value": "light", "label": "Light" },
+        { "value": "dark", "label": "Dark" }
+      ]
+    },
+    {
+      "id": "roadWeight",
+      "label": "Road weight",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.25,
+      "max": 3,
+      "step": 0.05,
+      "help": "Stroke thickness of the road lines."
+    },
+    {
+      "id": "showWater",
+      "label": "Show water",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "roadColor",
+      "label": "Road color",
+      "type": "color",
+      "default": "",
+      "help": "Leave empty to use the theme's default."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "",
+      "help": "Leave empty to use the theme's default."
+    },
+    {
+      "id": "view",
+      "label": "Map viewport",
+      "type": "text",
+      "default": "",
+      "placeholder": "pan & zoom to set",
+      "help": "Auto-saved when you pan or zoom. Clear to reset to the default framing."
+    }
+  ]
+}

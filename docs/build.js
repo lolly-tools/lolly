@@ -701,7 +701,7 @@ nav a.active:not(.nav-launch){color:#fff}
 /* Double-clicking the hero backdrop shouldn't highlight the heading/subtitle/trust copy; buttons keep normal selection. */
 .hero .btn{user-select:auto;-webkit-user-select:auto}
 .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 90% 55% at 50% -5%,rgba(48,186,120,.13) 0%,transparent 65%);pointer-events:none}
-#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;   mix-blend-mode: color-dodge;;opacity:.4}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;mix-blend-mode:color-dodge;opacity:1}
 .hero h1{font-size:clamp(2.75rem,6vw,5rem);letter-spacing:-.04em;line-height:1.05;margin-bottom:1.5rem;color:#fff;position:relative;padding-left:.3em;font-weight:200}
 .hero-logo-h1{margin:0 0 1.5rem;padding:0;line-height:0;position:relative}
 .hero-logo-link{display:block;width:clamp(180px,32vw,340px);margin:0 auto;border-radius:50%;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 0.5em 1em #0004,0 .1em .2em #0003}
@@ -716,7 +716,7 @@ nav a.active:not(.nav-launch){color:#fff}
 .btn{display:inline-flex;align-items:center;padding:2rem 3rem;border-radius:1rem;font-weight:700;font-size:1rem;transition:all .18s ease;box-shadow:0 .2em 1em #0002}
 .btn-primary{background:rgba(48,186,120,.72);color:#000;mix-blend-mode:plus-lighter}
 .btn-primary:hover{background:var(--light);text-decoration:none;transform:translateY(-2px);box-shadow:0 8px 28px rgba(48,186,120,.35)}
-.btn-secondary{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.22);position:relative}
+.btn-secondary{background:rgba(255,255,255,.05);color:#fff;border:1px solid rgba(255,255,255,.22);position:relative}
 .btn-secondary:hover{background:rgba(255,255,255,.1);text-decoration:none;transform:translateY(-1px)}
 /* Glass baseline — frosted blur so the buttons read as glass even where the JS
    liquid-displacement filter can't render. The buildGlass script overrides this
@@ -1186,7 +1186,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   function rand(a,b){return a+Math.random()*(b-a);}
 
   function makeSpinner(initial){
-    var size=rand(12,26);
+    var size=rand(9,14);
     var explodeY=rand(ch*0.08, ch*0.62);
     var y=initial ? rand(explodeY+size*3, ch+size) : ch+size+10;
     return{
@@ -1207,7 +1207,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     var px=fs*0.75,py=fs*0.75;
     var spd=rand(4.5,11.0);
     var w=tw+px*2, h=fs+py*2, r=Math.round(fs*0.38);
-    // Bake the chip (outlined box + thin label) into one sprite so they fade as a
+    // Bake the chip (filled box + label) into one sprite so they fade as a
     // single group. Drawing them straight onto the canvas fades each over the
     // white backdrop independently, losing contrast mid-fade. A pre-composited
     // sprite blitted at the group alpha keeps the whole chip coherent all the way out.
@@ -1215,13 +1215,12 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     spr.width=Math.ceil(w*dpr); spr.height=Math.ceil(h*dpr);
     var sx=spr.getContext('2d');
     sx.scale(dpr,dpr);
-    var lw=Math.max(1.5,fs*0.16);
     sx.lineJoin='round';
-    rr(sx,lw/2,lw/2,w-lw,h-lw,Math.max(0,r-lw/2));
-    // Solid fill (hero background) so overlapping chips occlude each other cleanly
-    // instead of letting the outlines and labels behind them bleed through.
+    rr(sx,0,0,w,h,r);
+    // Borderless: a solid fill (hero background) so overlapping chips occlude each
+    // other cleanly instead of letting labels behind them bleed through. The old
+    // outline is gone — chips read apart via the soft drop shadow cast at blit time.
     sx.fillStyle='#1c4a2e'; sx.fill();
-    sx.strokeStyle='#30ba78'; sx.lineWidth=lw; sx.stroke();
     sx.fillStyle='#30ba78';
     sx.font=weight+' '+fs+'px SUSE,sans-serif';
     // Centre on the actual glyph box, not the em box: these labels are all-caps
@@ -1234,7 +1233,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     return{
       x:x,y:y,
       vx:Math.cos(angle)*spd, vy:Math.sin(angle)*spd,
-      rot:rand(-1,1), vrot:rand(-0.06,0.06),
+      rot:rand(-0.5,0.5), vrot:rand(-0.022,0.022),
       w:w, h:h, spr:spr, alpha:rand(0.8,1.0), life:1
     };
   }
@@ -1282,6 +1281,14 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
       var t=f.life/0.18, fade=t>=1?1:t*t;
       ctx.save();
       ctx.translate(f.x,f.y); ctx.rotate(f.rot); ctx.globalAlpha=f.alpha*fade;
+      // Soft drop shadow stands in for the old chip border: a dark, blurred
+      // shadow lets overlapping chips read apart and lifts them off the bg.
+      // Requires the canvas off 'color-dodge' (now normal blend) — under
+      // color-dodge a dark shadow dodges to nothing and reads as a glow.
+      // Per-frame shadowBlur is the cost here; if we keep this look, bake the
+      // shadow into the sprite once (in makeFragment) to drop the perf hit.
+      ctx.shadowColor='#0a2823';
+      ctx.shadowBlur=8; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
       ctx.drawImage(f.spr,-f.w/2,-f.h/2,f.w,f.h);
       ctx.restore();
     }

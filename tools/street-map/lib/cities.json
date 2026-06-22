@@ -1,0 +1,122 @@
+{
+  "nuremberg": {
+    "label": "Nuremberg",
+    "center": [
+      11.0767,
+      49.4521
+    ],
+    "data": "roads/nuremberg.json"
+  },
+  "provo": {
+    "label": "Provo",
+    "center": [
+      -111.6586,
+      40.2338
+    ],
+    "data": "roads/provo.json"
+  },
+  "munich": {
+    "label": "Munich",
+    "center": [
+      11.5755,
+      48.1374
+    ],
+    "data": "roads/munich.json"
+  },
+  "berlin": {
+    "label": "Berlin",
+    "center": [
+      13.405,
+      52.52
+    ],
+    "data": "roads/berlin.json"
+  },
+  "prague": {
+    "label": "Prague",
+    "center": [
+      14.4209,
+      50.0875
+    ],
+    "data": "roads/prague.json"
+  },
+  "london": {
+    "label": "London",
+    "center": [
+      -0.1276,
+      51.5072
+    ],
+    "data": "roads/london.json"
+  },
+  "paris": {
+    "label": "Paris",
+    "center": [
+      2.3376,
+      48.8606
+    ],
+    "data": "roads/paris.json"
+  },
+  "barcelona": {
+    "label": "Barcelona",
+    "center": [
+      2.1734,
+      41.3851
+    ],
+    "data": "roads/barcelona.json"
+  },
+  "amsterdam": {
+    "label": "Amsterdam",
+    "center": [
+      4.8952,
+      52.3702
+    ],
+    "data": "roads/amsterdam.json"
+  },
+  "dublin": {
+    "label": "Dublin",
+    "center": [
+      -6.2603,
+      53.3498
+    ],
+    "data": "roads/dublin.json"
+  },
+  "newyork": {
+    "label": "New York",
+    "center": [
+      -73.9857,
+      40.7484
+    ],
+    "data": "roads/newyork.json"
+  },
+  "sanfrancisco": {
+    "label": "San Francisco",
+    "center": [
+      -122.4089,
+      37.7837
+    ],
+    "data": "roads/sanfrancisco.json"
+  },
+  "tokyo": {
+    "label": "Tokyo",
+    "center": [
+      139.7671,
+      35.6812
+    ],
+    "data": "roads/tokyo.json"
+  },
+  "singapore": {
+    "label": "Singapore",
+    "center": [
+      103.8519,
+      1.2897
+    ],
+    "data": "roads/singapore.json"
+  },
+  "sydney": {
+    "label": "Sydney",
+    "center": [
+      151.2093,
+      -33.8688
+    ],
+    "data": "roads/sydney.json"
+  }
+}

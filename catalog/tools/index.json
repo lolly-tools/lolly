@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-21T17:55:14.485Z",
+  "generatedAt": "2026-06-22T11:39:13.419Z",
   "tools": [
     {
       "id": "dynamic-layout",
@@ -135,6 +135,14 @@
       "capabilities": [
         "capture"
       ]
+    },
+    {
+      "id": "street-map",
+      "name": "Street Map",
+      "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
+      "version": "0.2.0",
+      "status": "official",
+      "category": "designer"
     }
   ]
 }

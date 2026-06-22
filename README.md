@@ -113,4 +113,4 @@ See `docs/authoring-tools.md` to build your first tool.
 
 The `engine/`, `shells/`, `schemas/`, and `docs/` directories are designed to be open-sourceable. 
 
-`tools/` and `catalog/assets/` are not under the MPL and should will be replaced with example tools end of August
+`tools/` and `catalog/assets/` are not under the MPL and will be replaced with more example tools by end of August

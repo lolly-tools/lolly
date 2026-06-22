@@ -1,0 +1,216 @@
+<div class="sm-root sm-{{theme}}" id="sm-root">
+  <div class="sm-map-wrap" id="sm-map"></div>
+  <div class="sm-zoom-controls">
+    <button class="sm-zoom-btn" id="sm-zi" type="button" aria-label="Zoom in">+</button>
+    <button class="sm-zoom-btn" id="sm-zo" type="button" aria-label="Zoom out">&minus;</button>
+    <button class="sm-zoom-btn" id="sm-zr" type="button" aria-label="Reset view">&#8962;</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ── Epoch guard — stale async callbacks from a previous render must not draw ─ */
+  window.__smEpoch = (window.__smEpoch || 0) + 1;
+  var _ep = window.__smEpoch;
+  function alive() { return window.__smEpoch === _ep; }
+  clearTimeout(window.__smViewTimer);
+
+  /* ── Inputs (via _-prefixed extras so annotateTemplate leaves them alone) ──── */
+  var city       = '{{_city}}' || 'nuremberg';
+  var theme      = '{{_theme}}' === 'dark' ? 'dark' : 'light';
+  var roadWeight = parseFloat('{{_roadWeight}}') || 1;
+  var showWater  = '{{_showWater}}' === 'yes';
+  var roadColor  = '{{_roadColor}}';
+  var bgColor    = '{{_background}}';
+  var viewIn     = '{{_view}}';
+
+  /* ── Palette (set as SVG attributes so colors survive vector export) ───────── */
+  var PALETTES = {
+    light: { bg: '#f5f2ec', road: '#2e2c29', water: '#bcd6e8', waterLine: '#8fb8d4' },
+    dark:  { bg: '#10131a', road: '#d7dde4', water: '#16323f', waterLine: '#2c5870' },
+  };
+  var pal = PALETTES[theme] || PALETTES.light;
+  if (roadColor) pal = Object.assign({}, pal, { road: roadColor });
+  if (bgColor)   pal = Object.assign({}, pal, { bg: bgColor });
+
+  /* Stroke width (px) per road tier, before the roadWeight multiplier. */
+  var TIER_W = { 0: 0.4, 1: 0.6, 2: 1.0, 3: 1.5, 4: 2.0, 5: 2.6 };
+
+  var mapEl = document.getElementById('sm-map');
+  if (!mapEl) return;
+
+  /* ── Script loader (dedupes concurrent loads across re-renders) ────────────── */
+  function loadScript(src, present) {
+    if (present()) return Promise.resolve();
+    window.__smLoading = window.__smLoading || {};
+    if (!window.__smLoading[src]) {
+      window.__smLoading[src] = new Promise(function (res, rej) {
+        var s = document.createElement('script');
+        s.src = src; s.onload = res;
+        s.onerror = function () { delete window.__smLoading[src]; rej(new Error('Failed: ' + src)); };
+        document.head.appendChild(s);
+      });
+    }
+    return window.__smLoading[src];
+  }
+
+  function message(text) {
+    mapEl.innerHTML = '';
+    var d = document.createElement('div');
+    d.className = 'sm-msg';
+    d.textContent = text;
+    mapEl.appendChild(d);
+  }
+
+  /* ── Projection scale: how many px the canvas width spans on the ground ─────── */
+  function mercatorScale(spanMetres, widthPx, latDeg) {
+    var EQUATOR_M = 40075016.686;
+    var metresPerPx = spanMetres / widthPx;
+    return (EQUATOR_M * Math.cos(latDeg * Math.PI / 180)) / (2 * Math.PI * metresPerPx);
+  }
+
+  var BASE_SPAN_M = 700; /* ~5 city blocks across the canvas at the default view */
+
+  /* ── Draw ──────────────────────────────────────────────────────────────────── */
+  function draw(fc) {
+    if (!alive()) return;
+    mapEl.innerHTML = '';
+
+    var W = mapEl.clientWidth  || 900;
+    var H = mapEl.clientHeight || 900;
+    var center = fc.center || [11.0767, 49.4521];
+
+    var svg = window.d3.select(mapEl).append('svg')
+      .attr('viewBox', '0 0 ' + W + ' ' + H)
+      .attr('preserveAspectRatio', 'xMidYMid meet')
+      .style('width', '100%').style('height', '100%');
+
+    /* Background rect — first child, outside the panned group, so every export
+       format carries the theme background. */
+    svg.append('rect').attr('x', 0).attr('y', 0).attr('width', W).attr('height', H)
+      .attr('fill', pal.bg);
+
+    /* All geometry lives in gMap so d3.zoom transforms it as a unit. */
+    var gMap = svg.append('g').attr('class', 'sm-map-g');
+
+    var proj = window.d3.geoMercator()
+      .center(center)
+      .scale(mercatorScale(BASE_SPAN_M, W, center[1]))
+      .translate([W / 2, H / 2]);
+    var path = window.d3.geoPath(proj);
+
+    function collection(features) { return { type: 'FeatureCollection', features: features }; }
+
+    var feats  = fc.features || [];
+    var waters = feats.filter(function (f) { return f.properties.k === 'water'; });
+    var rivers = feats.filter(function (f) { return f.properties.k === 'waterway'; });
+    var roads  = feats.filter(function (f) { return f.properties.k === 'road'; });
+
+    /* Water bodies (fill) */
+    if (showWater && waters.length) {
+      gMap.append('path').datum(collection(waters))
+        .attr('fill', pal.water).attr('stroke', 'none').attr('d', path);
+    }
+    /* Rivers / streams (center-lines) */
+    if (showWater && rivers.length) {
+      gMap.append('path').datum(collection(rivers))
+        .attr('fill', 'none').attr('stroke', pal.waterLine)
+        .attr('stroke-width', 1.2 * roadWeight)
+        .attr('vector-effect', 'non-scaling-stroke')
+        .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+        .attr('d', path);
+    }
+
+    /* Roads — one path per weight tier, thinnest first so majors sit on top. */
+    var byTier = {};
+    roads.forEach(function (f) {
+      var t = f.properties.w == null ? 2 : f.properties.w;
+      (byTier[t] = byTier[t] || []).push(f);
+    });
+    Object.keys(byTier).map(Number).sort(function (a, b) { return a - b; }).forEach(function (t) {
+      gMap.append('path').datum(collection(byTier[t]))
+        .attr('fill', 'none').attr('stroke', pal.road)
+        .attr('stroke-width', (TIER_W[t] || 1) * roadWeight)
+        .attr('vector-effect', 'non-scaling-stroke')
+        .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
+        .attr('d', path);
+    });
+
+    /* ── Pan + zoom ───────────────────────────────────────────────────────────── */
+    var _applying = false;
+    var zoomFn = window.d3.zoom().scaleExtent([0.3, 8]).on('zoom', function (event) {
+      gMap.attr('transform', event.transform);
+      window.__smView = event.transform;
+      if (_applying) return;
+      /* Debounce-save the viewport to the `view` input so it survives reload and
+         is URL-shareable / part of saved state. */
+      clearTimeout(window.__smViewTimer);
+      window.__smViewTimer = setTimeout(function () {
+        if (!alive()) return;
+        var t = window.__smView; if (!t) return;
+        var encoded = t.k.toFixed(4) + ',' + t.x.toFixed(2) + ',' + t.y.toFixed(2);
+        var inp = document.querySelector('[data-input-id="view"]');
+        if (inp && inp.value !== encoded) {
+          inp.value = encoded;
+          inp.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }, 600);
+    });
+    svg.call(zoomFn);
+
+    /* Restore: prefer live in-session transform (so theme/weight tweaks don't
+       reset the pan), else the saved `view` param from URL / saved slot. */
+    if (!viewIn) window.__smView = null;
+    var restore = window.__smView || (function () {
+      if (!viewIn) return null;
+      var p = viewIn.split(',').map(Number);
+      return (p.length === 3 && p[0] > 0 && p.every(isFinite))
+        ? window.d3.zoomIdentity.translate(p[1], p[2]).scale(p[0]) : null;
+    })();
+    if (restore) {
+      _applying = true;
+      svg.call(zoomFn.transform, restore);
+      _applying = false;
+    }
+
+    /* Zoom buttons */
+    var zi = document.getElementById('sm-zi');
+    var zo = document.getElementById('sm-zo');
+    var zr = document.getElementById('sm-zr');
+    if (zi) zi.onclick = function () { svg.transition().duration(220).call(zoomFn.scaleBy, 1.5); };
+    if (zo) zo.onclick = function () { svg.transition().duration(220).call(zoomFn.scaleBy, 0.667); };
+    if (zr) zr.onclick = function () {
+      window.__smView = null;
+      svg.transition().duration(280).call(zoomFn.transform, window.d3.zoomIdentity);
+    };
+  }
+
+  /* ── Load d3 → city registry → road clip → draw ───────────────────────────── */
+  var LIB = '/tools/street-map/lib/';
+  loadScript(LIB + 'd3.min.js', function () { return !!window.d3; })
+    .then(function () {
+      window.__smCities = window.__smCities ||
+        fetch(LIB + 'cities.json').then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
+        });
+      return window.__smCities;
+    })
+    .then(function (cities) {
+      window.__smCities = Promise.resolve(cities);
+      var entry = cities[city];
+      if (!entry) { message('“' + city + '” isn’t bundled yet. Add it with scripts/build-street-clips.js.'); return; }
+      window.__smClip = window.__smClip || {};
+      if (!window.__smClip[city]) {
+        window.__smClip[city] = fetch(LIB + entry.data).then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status); return r.json();
+        });
+      }
+      return window.__smClip[city].then(function (fc) { draw(fc); });
+    })
+    .catch(function (e) {
+      if (!alive()) return;
+      console.error('[street-map] load error:', e);
+      message('Map failed to load.');
+    });
+})();
+</script>
