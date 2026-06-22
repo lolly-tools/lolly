@@ -10,7 +10,10 @@
  * For SVG we inject an <text> element instead.
  */
 
-import { parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI } from '@lolly/engine';
+import {
+  parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI,
+  iccProfileBytes, rgbToCmyk, cmykCondition,
+} from '@lolly/engine';
 import {
   suseFontFile, SUSE_FONT_DIR,
   resolveSuseFontUrl, canVectoriseText, textBaselineY,
