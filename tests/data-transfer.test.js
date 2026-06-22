@@ -15,7 +15,17 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 import { exportBackup, importBackup, BACKUP_FORMAT } from '../shells/web/src/data-transfer.js';
+
+// Crack a bundle Blob open to its flat path→bytes map (to inspect or tamper with a
+// part), and re-seal a mutated map back into the raw bytes importBackup accepts.
+async function bundleFiles(blob) {
+  return unzipSync(new Uint8Array(await blob.arrayBuffer()));
+}
+function reseal(files) {
+  return new Uint8Array(zipSync(files));
+}
 
 // Minimal in-memory stand-in for the capability bridge. Mirrors the real method
 // shapes: state.save re-derives toolId/label from data.__* and stamps updatedAt;
@@ -111,7 +121,7 @@ test('export → import reproduces all user data on a fresh device', async () =>
   // Fresh, empty "other device".
   const dst = { host: makeHost(), storage: makeStorage() };
   const isum = await importBackup(dst, await blob.arrayBuffer());
-  assert.deepEqual(isum, { profile: true, sessions: 2, userAssets: 2, prefs: 3 });
+  assert.deepEqual(isum, { profile: true, sessions: 2, userAssets: 2, prefs: 3, skipped: 0 });
 
   // Profile.
   const profile = await dst.host.profile.get();
@@ -145,6 +155,31 @@ test('export → import reproduces all user data on a fresh device', async () =>
   assert.equal(dst.storage.getItem('sbt-tool-index'), null);
 });
 
+test('backup filename is named for the profile, with a per-day sequence', async () => {
+  const src = await seedSource(); // profile: Ada Lovelace
+  const today = new Date().toISOString().slice(0, 10);
+
+  const first = await exportBackup({ host: src.host, storage: src.storage });
+  assert.equal(first.filename, `LollyTools-Ada-Lovelace-${today}-1.zip`);
+
+  // Same day, same device → the counter increments so repeat exports don't collide.
+  const second = await exportBackup({ host: src.host, storage: src.storage });
+  assert.equal(second.filename, `LollyTools-Ada-Lovelace-${today}-2.zip`);
+});
+
+test('backup filename omits absent name parts and sanitises the rest', async () => {
+  const host = makeHost();
+  const storage = makeStorage();
+  const today = new Date().toISOString().slice(0, 10);
+
+  // No profile at all → just the app prefix, date and sequence.
+  assert.equal((await exportBackup({ host, storage })).filename, `LollyTools-${today}-1.zip`);
+
+  // First name only, with stray spaces/punctuation stripped to a safe token.
+  await host.profile.set({ firstname: ' Bil bo! ' });
+  assert.equal((await exportBackup({ host, storage })).filename, `LollyTools-Bilbo-${today}-2.zip`);
+});
+
 test('import merges without wiping unrelated existing data', async () => {
   const src = await seedSource();
   const { blob } = await exportBackup({ host: src.host, storage: src.storage });
@@ -170,11 +205,78 @@ test('rejects files that are not Lolly backups', async () => {
   );
 });
 
-test('manifest declares the stable format id + version', async () => {
+test('manifest declares the stable format id, reader version, and per-part integrity', async () => {
   const src = await seedSource();
   const { blob } = await exportBackup({ host: src.host, storage: src.storage });
-  // Round-trips through import, which validates the manifest format id.
-  const summary = await importBackup({ host: makeHost(), storage: makeStorage() }, await blob.arrayBuffer());
-  assert.ok(summary.sessions >= 0);
+  const files = await bundleFiles(blob);
+  const manifest = JSON.parse(strFromU8(files['manifest.json']));
+
+  assert.equal(manifest.format, 'lolly-backup');
   assert.equal(BACKUP_FORMAT, 'lolly-backup');
+  assert.equal(manifest.minReader, 1); // forward-compat gate readers check
+
+  // Every non-manifest part is covered by an SHA-256; the manifest never self-refs.
+  assert.ok(manifest.integrity['profile.json'].startsWith('sha256-'));
+  assert.ok(manifest.integrity['sessions.json'].startsWith('sha256-'));
+  assert.ok(Object.keys(manifest.integrity).some(k => k.startsWith('assets/blobs/')));
+  assert.ok(!('manifest.json' in manifest.integrity));
+});
+
+test('rejects a bundle whose contents were tampered with after signing', async () => {
+  const src = await seedSource();
+  const { blob } = await exportBackup({ host: src.host, storage: src.storage });
+  const files = await bundleFiles(blob);
+  // Swap the profile bytes; the manifest's recorded SHA-256 no longer matches.
+  files['profile.json'] = strToU8(JSON.stringify({ firstname: 'Mallory' }));
+  await assert.rejects(
+    () => importBackup({ host: makeHost(), storage: makeStorage() }, reseal(files)),
+    /integrity|corrupt/i,
+  );
+});
+
+test('rejects a bundle missing a part the manifest vouches for', async () => {
+  const src = await seedSource();
+  const { blob } = await exportBackup({ host: src.host, storage: src.storage });
+  const files = await bundleFiles(blob);
+  const blobPart = Object.keys(files).find(p => p.startsWith('assets/blobs/'));
+  delete files[blobPart];
+  await assert.rejects(
+    () => importBackup({ host: makeHost(), storage: makeStorage() }, reseal(files)),
+    /incomplete|missing/i,
+  );
+});
+
+test('imports a forward-compatible bundle, skipping parts it does not understand', async () => {
+  const src = await seedSource();
+  const { blob } = await exportBackup({ host: src.host, storage: src.storage });
+  const files = await bundleFiles(blob);
+
+  // A newer writer bumped the layout (formatVersion) but kept the change additive
+  // (minReader stays 1) and shipped a part this build has never heard of.
+  const manifest = JSON.parse(strFromU8(files['manifest.json']));
+  manifest.formatVersion = 99;
+  manifest.minReader = 1;
+  files['manifest.json'] = strToU8(JSON.stringify(manifest));
+  files['tokens.json'] = strToU8(JSON.stringify({ color: { brand: { $value: '#30ba78' } } }));
+
+  const dst = { host: makeHost(), storage: makeStorage() };
+  const isum = await importBackup(dst, reseal(files));
+
+  assert.equal(isum.profile, true);   // known parts still restored
+  assert.equal(isum.sessions, 2);
+  assert.equal(isum.skipped, 1);      // tokens.json left for a future build
+  assert.equal((await dst.host.profile.get()).firstname, 'Ada');
+});
+
+test('refuses a bundle that requires a newer reader', async () => {
+  const src = await seedSource();
+  const { blob } = await exportBackup({ host: src.host, storage: src.storage });
+  const files = await bundleFiles(blob);
+  const manifest = JSON.parse(strFromU8(files['manifest.json']));
+  manifest.minReader = 999; // a breaking format this build can't safely read
+  files['manifest.json'] = strToU8(JSON.stringify(manifest));
+  await assert.rejects(
+    () => importBackup({ host: makeHost(), storage: makeStorage() }, reseal(files)),
+    /newer version/i,
+  );
 });

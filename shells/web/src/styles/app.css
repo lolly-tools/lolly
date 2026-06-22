@@ -4128,6 +4128,37 @@ button {
 .plat-kv dd { margin: 0; min-width: 0; }
 .plat-src { font-size: .72rem; word-break: break-all; }
 
+/* "This device" — collapsible runtime snapshot wrapping a grid of grouped
+   key/value cards. The whole panel is a <details>; the title is its <summary>. */
+.plat-device { margin: 0 0 2.75rem; }
+.plat-device-summary {
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: .7rem;
+}
+.plat-device-summary::-webkit-details-marker { display: none; }
+.plat-device-summary .plat-section-title { flex: 1; margin: 0; }
+.plat-device-summary::after {
+  content: ''; flex: none; width: .5rem; height: .5rem; margin-bottom: .5rem;
+  border-right: 2px solid hsl(var(--muted-foreground));
+  border-bottom: 2px solid hsl(var(--muted-foreground));
+  transform: rotate(-45deg); transition: transform .18s ease;
+}
+.plat-device[open] .plat-device-summary::after { transform: rotate(45deg); }
+.plat-device-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 2px; }
+.plat-device-body { margin-top: 1rem; }
+
+/* "This device" runtime snapshot — a grid of grouped key/value cards. */
+.plat-client-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; align-items: start; }
+.plat-client-card { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1rem 1.15rem; }
+.plat-client-title {
+  margin: 0 0 .7rem; padding-bottom: .5rem; border-bottom: 1px solid hsl(var(--border));
+  font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: hsl(var(--muted-foreground));
+}
+.plat-kv--wide dt { flex: 0 0 8rem; }
+.plat-kv--wide dd { word-break: break-word; }
+.plat-kv .is-stacked { flex-direction: column; gap: .15rem; }
+.plat-kv .is-stacked dt { flex: none; }
+.plat-kv dd.is-mono { font-family: 'SUSE Mono', ui-monospace, monospace; font-size: .72rem; word-break: break-all; color: hsl(var(--muted-foreground)); }
+
 .plat-theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .85rem; }
 .plat-theme { padding: 1rem; border-radius: var(--radius); background: hsl(var(--background)); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); }
 .plat-theme-name { font-weight: 600; text-transform: capitalize; }

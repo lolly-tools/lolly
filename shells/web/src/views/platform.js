@@ -95,8 +95,267 @@ function swatch(c) {
     </div>`;
 }
 
+// ---------------------------------------------------------------------------
+// "This device" — a live, read-only snapshot of the browser/runtime this
+// session is running on. Read entirely from the active session; never stored
+// or transmitted. Every value degrades to '—' when the browser doesn't expose
+// it, and whole groups (Network, System Graphics) are omitted when their API is absent.
+// ---------------------------------------------------------------------------
+const DASH = '—';
+const yesNo = (v) => (v === true ? 'Yes' : v === false ? 'No' : DASH);
+
+// Values that can change while the session is live (window resize, device
+// rotation). Read on demand so the same code produces the initial render and
+// every real-time refresh — see the `live` rows in collectClientInfo() and the
+// listener wiring in mountPlatform().
+const LIVE_VALUES = {
+  viewport: () => `${window.innerWidth} × ${window.innerHeight}`,
+  // Orientation derived from the viewport box (not the device): taller → Portrait,
+  // wider → Landscape, equal → Square. Recomputed live on resize like `viewport`.
+  viewportOrientation: () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    return h > w ? 'Portrait' : w > h ? 'Landscape' : 'Square';
+  },
+  orientation: () => screen.orientation?.type || DASH,
+};
+const liveValue = (key) => LIVE_VALUES[key]?.() ?? DASH;
+
+function matchPref(feature, options) {
+  if (typeof window.matchMedia !== 'function') return DASH;
+  for (const opt of options) {
+    try {
+      if (window.matchMedia(`(${feature}: ${opt})`).matches) return opt;
+    } catch {
+      /* feature unsupported by this engine */
+    }
+  }
+  return DASH;
+}
+
+function fmtBytes(n) {
+  if (!Number.isFinite(n)) return DASH;
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let i = 0;
+  while (n >= 1024 && i < units.length - 1) {
+    n /= 1024;
+    i += 1;
+  }
+  return `${i === 0 ? n : n.toFixed(n >= 10 ? 0 : 1)} ${units[i]}`;
+}
+
+function parseBrowser(ua) {
+  const tests = [
+    ['Microsoft Edge', /Edg\/([\d.]+)/],
+    ['Opera', /OPR\/([\d.]+)/],
+    ['Samsung Internet', /SamsungBrowser\/([\d.]+)/],
+    ['Firefox', /Firefox\/([\d.]+)/],
+    ['Chrome', /Chrome\/([\d.]+)/],
+    ['Safari', /Version\/([\d.]+).*Safari/],
+  ];
+  for (const [name, re] of tests) {
+    const m = re.exec(ua);
+    if (m) return `${name} ${m[1]}`;
+  }
+  return DASH;
+}
+
+function engineOf(ua) {
+  if (/Edg\/|OPR\/|Chrome\//.test(ua)) return 'Blink';
+  if (/Firefox\//.test(ua)) return 'Gecko';
+  if (/Version\/[\d.]+.*Safari/.test(ua)) return 'WebKit';
+  return DASH;
+}
+
+function parseOS(ua) {
+  if (/Windows NT 10/.test(ua)) return 'Windows 10/11';
+  if (/Windows/.test(ua)) return 'Windows';
+  const android = /Android ([\d.]+)/.exec(ua);
+  if (android) return `Android ${android[1]}`;
+  if (/(iPhone|iPad|iPod)/.test(ua)) {
+    const m = /OS ([\d_]+)/.exec(ua);
+    return `iOS ${m ? m[1].replace(/_/g, '.') : ''}`.trim();
+  }
+  const mac = /Mac OS X ([\d_]+)/.exec(ua);
+  if (mac) return `macOS ${mac[1].replace(/_/g, '.')}`;
+  if (/CrOS/.test(ua)) return 'ChromeOS';
+  if (/Linux/.test(ua)) return 'Linux';
+  return DASH;
+}
+
+// GPU vendor/renderer via the (unmasked) WebGL debug extension — the most
+// identifiable bit, so it lives in its own group and is omitted when blocked.
+function readGpu() {
+  try {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    if (!gl) return null;
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    return {
+      vendor: dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
+      renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function collectClientInfo() {
+  const nav = navigator;
+  const ua = nav.userAgent || '';
+  const groups = [];
+
+  // High-entropy client hints (Chromium only) — best effort; resolves null elsewhere.
+  let hints = null;
+  try {
+    hints = await nav.userAgentData?.getHighEntropyValues?.([
+      'platform', 'platformVersion', 'architecture', 'bitness', 'model', 'uaFullVersion',
+    ]);
+  } catch {
+    /* unsupported / rejected */
+  }
+
+  const browser = parseBrowser(ua);
+  const browserStr =
+    browser !== DASH && hints?.uaFullVersion ? browser.replace(/[\d.]+$/, hints.uaFullVersion) : browser;
+  const osFromHints = hints?.platform
+    ? `${hints.platform}${hints.platformVersion ? ` ${hints.platformVersion}` : ''}`.trim()
+    : null;
+
+  groups.push({
+    title: 'Browser',
+    rows: [
+      { k: 'Browser', v: browserStr },
+      { k: 'Engine', v: engineOf(ua) },
+      {
+        k: 'Mobile',
+        v: nav.userAgentData
+          ? yesNo(nav.userAgentData.mobile)
+          : /(Mobi|Android|iPhone|iPad)/.test(ua) ? 'Yes' : 'No',
+      },
+      { k: 'Languages', v: nav.languages?.join(', ') || nav.language || DASH },
+      { k: 'User agent', v: ua || DASH, mono: true, stacked: true },
+    ],
+  });
+
+  groups.push({
+    title: 'System',
+    rows: [
+      { k: 'Operating system', v: osFromHints || parseOS(ua) },
+      {
+        k: 'Architecture',
+        v: hints?.architecture
+          ? `${hints.architecture}${hints.bitness ? ` · ${hints.bitness}-bit` : ''}`
+          : DASH,
+      },
+      { k: 'Device model', v: hints?.model || DASH },
+      { k: 'CPU threads', v: nav.hardwareConcurrency ?? DASH },
+      { k: 'Device memory', v: nav.deviceMemory ? `${nav.deviceMemory} GB` : DASH },
+      { k: 'Touch points', v: Number.isFinite(nav.maxTouchPoints) ? nav.maxTouchPoints : DASH },
+    ],
+  });
+
+  const dpr = window.devicePixelRatio;
+  groups.push({
+    title: 'Display',
+    rows: [
+      { k: 'Screen', v: `${screen.width} × ${screen.height}` },
+      { k: 'Available', v: `${screen.availWidth} × ${screen.availHeight}` },
+      // Viewport & Orientation can change mid-session — tagged `live` so the view
+      // refreshes them in real time while the "This device" panel is open.
+      { k: 'Viewport', v: liveValue('viewport'), live: 'viewport' },
+      { k: 'Viewport orientation', v: liveValue('viewportOrientation'), live: 'viewportOrientation' },
+      { k: 'Pixel ratio', v: dpr ? `${Math.round(dpr * 100) / 100}×` : DASH },
+      { k: 'Colour depth', v: screen.colorDepth ? `${screen.colorDepth}-bit` : DASH },
+      { k: 'Orientation', v: liveValue('orientation'), live: 'orientation' },
+    ],
+  });
+
+  let intl = {};
+  try {
+    intl = Intl.DateTimeFormat().resolvedOptions();
+  } catch {
+    /* ignore */
+  }
+  groups.push({
+    title: 'Locale & preferences',
+    rows: [
+      { k: 'Locale', v: intl.locale || nav.language || DASH },
+      { k: 'Time zone', v: intl.timeZone || DASH },
+      { k: 'Colour scheme', v: matchPref('prefers-color-scheme', ['dark', 'light']) },
+      { k: 'Reduced motion', v: matchPref('prefers-reduced-motion', ['reduce', 'no-preference']) },
+      { k: 'Contrast', v: matchPref('prefers-contrast', ['more', 'less', 'custom', 'no-preference']) },
+      { k: 'Display mode', v: matchPref('display-mode', ['standalone', 'minimal-ui', 'fullscreen', 'browser']) },
+    ],
+  });
+
+  const capRows = [
+    { k: 'Cookies', v: yesNo(nav.cookieEnabled) },
+    { k: 'Online', v: yesNo(nav.onLine) },
+    { k: 'Do Not Track', v: nav.doNotTrack === '1' ? 'On' : nav.doNotTrack === '0' ? 'Off' : DASH },
+    { k: 'Service worker', v: yesNo('serviceWorker' in nav) },
+    { k: 'PDF viewer', v: 'pdfViewerEnabled' in nav ? yesNo(nav.pdfViewerEnabled) : DASH },
+  ];
+  try {
+    const est = await nav.storage?.estimate?.();
+    if (est && Number.isFinite(est.quota)) {
+      capRows.push({ k: 'Storage', v: `${fmtBytes(est.usage || 0)} of ${fmtBytes(est.quota)}` });
+    }
+  } catch {
+    /* ignore */
+  }
+  groups.push({ title: 'Capabilities & privacy', rows: capRows });
+
+  const conn = nav.connection || nav.mozConnection || nav.webkitConnection;
+  if (conn) {
+    groups.push({
+      title: 'Network',
+      rows: [
+        { k: 'Effective type', v: conn.effectiveType ? conn.effectiveType.toUpperCase() : DASH },
+        { k: 'Downlink', v: Number.isFinite(conn.downlink) ? `${conn.downlink} Mb/s` : DASH },
+        { k: 'Round trip', v: Number.isFinite(conn.rtt) ? `${conn.rtt} ms` : DASH },
+        { k: 'Data saver', v: 'saveData' in conn ? (conn.saveData ? 'On' : 'Off') : DASH },
+      ],
+    });
+  }
+
+  const gpu = readGpu();
+  if (gpu) {
+    groups.push({
+      title: 'System Graphics',
+      rows: [
+        { k: 'Vendor', v: gpu.vendor || DASH, stacked: true },
+        { k: 'Renderer', v: gpu.renderer || DASH, mono: true, stacked: true },
+      ],
+    });
+  }
+
+  return groups;
+}
+
+function clientCard(group) {
+  return `
+    <article class="plat-client-card">
+      <h3 class="plat-client-title">${escape(group.title)}</h3>
+      <dl class="plat-kv plat-kv--wide">
+        ${group.rows
+          .map(
+            (r) => `
+        <div${r.stacked ? ' class="is-stacked"' : ''}>
+          <dt>${escape(r.k)}</dt>
+          <dd${r.mono ? ' class="is-mono"' : ''}${r.live ? ` data-live="${escape(r.live)}"` : ''}>${escape(String(r.v))}</dd>
+        </div>`,
+          )
+          .join('')}
+      </dl>
+    </article>`;
+}
+
 export async function mountPlatform(viewEl, host) {
   document.title = 'Platform — Lolly';
+
+  // Live client/runtime snapshot for the dashboard card at the top of the page.
+  const clientGroups = await collectClientInfo();
 
   const { brand, spectrum, ramps } = groupPalette(PALETTE);
   const measuredCount = PALETTE.filter((c) => Array.isArray(c.cmyk)).length;
@@ -142,6 +401,16 @@ export async function mountPlatform(viewEl, host) {
           platform-configuration package will make these editable and exportable to shape new builds.
         </p>
       </header>
+
+      <details class="plat-section plat-device" aria-labelledby="plat-client">
+        <summary class="plat-device-summary">
+          <h2 id="plat-client" class="plat-section-title">This device</h2>
+        </summary>
+        <div class="plat-device-body">
+          <p class="plat-section-desc">A live, read-only snapshot of the browser and device this session is running on — handy when reproducing a render or export. Read on the fly from the current session; nothing is stored or sent anywhere.</p>
+          <div class="plat-client-grid">${clientGroups.map(clientCard).join('')}</div>
+        </div>
+      </details>
 
       <section class="plat-section" aria-labelledby="plat-colours">
         <div class="plat-section-head">
@@ -286,4 +555,40 @@ export async function mountPlatform(viewEl, host) {
       }
     });
   });
+
+  // Keep the `live` rows (Viewport, Orientation) current while the "This device"
+  // panel is open — they're the only values that change mid-session. We attach
+  // resize/orientation listeners ONLY while the panel is expanded (and refresh
+  // once on expand to catch changes made while collapsed), so a collapsed panel
+  // costs nothing. rAF-coalesced so a resize drag updates at most once per frame.
+  const device = viewEl.querySelector('.plat-device');
+  const liveEls = [...viewEl.querySelectorAll('[data-live]')];
+  if (device && liveEls.length) {
+    let raf = 0;
+    const refresh = () => {
+      raf = 0;
+      for (const el of liveEls) el.textContent = liveValue(el.dataset.live);
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(refresh);
+    };
+    const orientation = screen.orientation;
+    const onToggle = () => {
+      if (device.open) {
+        refresh(); // sync immediately — values may have changed while collapsed
+        window.addEventListener('resize', schedule);
+        orientation?.addEventListener?.('change', schedule);
+      } else {
+        window.removeEventListener('resize', schedule);
+        orientation?.removeEventListener?.('change', schedule);
+      }
+    };
+    device.addEventListener('toggle', onToggle);
+    viewEl._cleanup = () => {
+      cancelAnimationFrame(raf);
+      device.removeEventListener('toggle', onToggle);
+      window.removeEventListener('resize', schedule);
+      orientation?.removeEventListener?.('change', schedule);
+    };
+  }
 }
