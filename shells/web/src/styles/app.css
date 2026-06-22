@@ -1698,7 +1698,12 @@ background-color:hsl(var(--background) / 1);
 /* Mobile: stack the zoom HUD into a vertical capsule so it fits the narrow stage,
    reading + / NN% / − / Fit top-to-bottom like a map zoom control. */
 @media (max-width: 640px) {
-  .stage-nav { flex-direction: column; align-items: stretch; }
+  .stage-nav {
+    flex-direction: column;
+    align-items: stretch;
+    opacity: 1;                                    /* no hover on touch — keep it visible */
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));  /* clear the home indicator */
+  }
   .stage-nav-btn { width: auto; }                 /* fill the column when stacked */
   .stage-nav [data-nav="in"]  { order: 1; }       /* + */
   .stage-nav [data-nav="pct"] { order: 2; }       /* NN% */
@@ -1706,7 +1711,7 @@ background-color:hsl(var(--background) / 1);
   .stage-nav [data-nav="fit"] { order: 4; }       /* Fit */
 }
 
-/* On touch the canvas uses pinch/drag gestures — the HUD isn't created there. */
+/* On touch the HUD is the primary zoom control; the canvas also keeps pinch/drag. */
 
 /* ── Mobile (≤640px): controls become a drag sheet, preview fills below ──────
    Placed after the base .sidebar / .tool-stage rules so it actually wins the

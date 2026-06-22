@@ -28,9 +28,12 @@
 <script>
 (function () {
   var img = document.getElementById('duo-img');
-  // Resolve the SVG from the image itself so we never grab an unrelated <svg>
-  // (e.g. a sidebar icon) that happens to come first in the document.
-  var svg = (img && img.ownerSVGElement) || document.querySelector('svg');
+  // Resolve the SVG from an element we own so we never grab an unrelated <svg>
+  // (e.g. the shell's Render-button icon) that happens to come first in the
+  // document. #duo-img only exists when a photo is set, so anchor to #duo-bg —
+  // the background rect is always rendered — as the fallback.
+  var anchor = img || document.getElementById('duo-bg');
+  var svg = anchor && anchor.ownerSVGElement;
   if (!svg) return;
 
   // Resolve the target canvas size from the export dimension controls so
