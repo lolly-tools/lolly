@@ -29,3 +29,27 @@ Lolly is an Australian, New Zealand, British term for 'sweets' or 'candy'. Just 
 We're also laughing at the time and bills we are saving with this approach.
 
 Tools specifically because that's what Lolly hosts and supercharges: things that can be put to work.
+
+
+## What makes utilities different from tools?
+
+Tech Answer: Utilities dont alawys need to render and therefore demand a different UX. 
+
+Real Answer: The reason utilities are hostable inside Lolly Tools is to add yet another convenience layer to disincentivise data exfiltration. 
+
+Every day, people take **confidential content they already have** and hand it to a
+random website to perform one small mechanical operation:
+
+- "compress this PDF" → uploads a **contract / payslip / board deck** to unknown entities.
+- "convert HEIC to JPG" → uploads **personal photos** (with GPS EXIF) to an ad-funded host
+- "crop / resize this image" → uploads a **product screenshot or unreleased asset**
+- "format this JSON" / "decode this JWT" → pastes **API responses, tokens, secrets** into a formatter
+- "merge these PDFs" → uploads **two documents that should never share a server**
+
+These sites and their massive clone long tail are **not trustworthy by default** with
+unknown retention, unknown jurisdictions, unknown subprocessors, and an ad/affiliate
+business model that has every incentive to keep what you give them. The operation is
+trivial; the **content is the cost.** The file leaves the building so a free tool can
+do 200ms of work that a browser can do locally. 
+
+We can win all wars with excellent conveinece and service. 

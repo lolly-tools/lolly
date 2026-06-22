@@ -242,6 +242,36 @@ footer{text-align:right;}
 }
 .app-view.gallery-view { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); } /* clear the fixed footer */
 
+/* First-visit privacy notice — a slim transparency strip pinned just above the
+   footer (--footer-h is measured live in privacy-notice.js so it tracks the
+   safe-area inset and any wrapped footer controls). One line, one dismiss; not a
+   consent gate, because all storage is strictly necessary. */
+.privacy-notice {
+  position: fixed;
+  left: var(--vv-left, 0px); right: var(--vv-right, 0px);
+  bottom: calc(var(--vv-bottom, 0px) + var(--footer-h, 3.4rem));
+  z-index: 49; /* just under the footer (50) so they read as one stacked unit */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .5rem 1rem;
+  padding: .45rem 1rem;
+  background: hsl(var(--background) / .92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid hsl(var(--border));
+}
+.privacy-notice-text {
+  margin: 0;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground, var(--foreground)));
+}
+.privacy-notice-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+.privacy-notice-dismiss { padding: 3px 12px; font-size: 12px; }
+/* Extra bottom clearance so the last card row isn't hidden behind both bars. */
+.app-view.gallery-view.has-privacy-notice { padding-bottom: calc(8.5rem + env(safe-area-inset-bottom)); }
+
 /* Subtle translucent-black wash so the cards read as raised on every theme. */
 .gallery-view { background-color: #0001; }
 

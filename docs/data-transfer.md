@@ -103,7 +103,7 @@ The Node CLI shell is intentionally excluded: its state is in-memory and ephemer
 
 ## Reserved extension points
 
-The envelope is deliberately a manifest plus a set of named parts so that new kinds of portable data can ride it later **without a breaking change** — they slot in as additive parts (new `formatVersion`, same `minReader`), and today's reader skips what it doesn't recognise. These are on the [roadmap](/info/architecture.html#roadmap), not yet implemented; the names are reserved here so the format stays coherent when they land.
+The envelope is deliberately a manifest plus a set of named parts so that new kinds of portable data can ride it later **without a breaking change** — they slot in as additive parts (new `formatVersion`, same `minReader`), and today's reader skips what it doesn't recognise. These are on the [roadmap](/info/overview.html#roadmap), not yet implemented; the names are reserved here so the format stays coherent when they land.
 
 - **`tokens.json` — design tokens.** A [W3C DTCG](https://tr.designtokens.org/format/) design-tokens document (the format [Penpot imports and exports](https://help.penpot.app/user-guide/design-systems/design-tokens/) — tokens with `$value`/`$type`/`$description`, organised into groups, sets, and themes). Carrying a token set in the bundle lets a user move their brand primitives between installs alongside their sessions. Longer term, an ingested token set becomes a first-class source that tools and palette assets resolve against.
 - **`penpot/` — ingested Penpot files.** A reserved directory for a Penpot file (or its extracted, Lolly-relevant subset) imported and surfaced *as a tool*. The bundle would carry the ingested definition so it travels with the rest of the user's data.

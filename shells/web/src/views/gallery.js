@@ -10,6 +10,7 @@ import { escape } from '../utils.js';
 import { toolSupport, capabilityLabel } from '../capabilities.js';
 import { hiddenCategories, flagEnabled, PRO_FLAG } from '../feature-flags.js';
 import { syncCatalog } from '../catalog/sync.js';
+import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.js';
 
 const CATEGORY_ORDER = ['everyone', 'designer', 'product', 'utility'];
 
@@ -129,6 +130,7 @@ export async function mountGallery(viewEl, host) {
         </div>
         <a href="/info/" class="gallery-info-link btn" aria-label="What is Lolly? — about &amp; help">What?</a>
       </footer>
+      ${privacyNoticeMarkup()}
     </div>
   `;
 
@@ -151,6 +153,9 @@ export async function mountGallery(viewEl, host) {
   viewEl.classList.toggle('no-saves', sortedSaved.length === 0);
 
   viewEl.querySelectorAll('.gallery-category').forEach(s => categoryObserver.observe(s));
+
+  // First-visit privacy notice — pins itself just above the footer, dismissed once.
+  mountPrivacyNotice(viewEl);
 
   // Catalog failed to load (empty index): let the user re-sync without a full
   // page reload. On success the catalog populates window.__toolIndex and the

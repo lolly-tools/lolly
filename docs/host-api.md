@@ -2,7 +2,7 @@
 
 The **capability bridge** is the versioned contract between a tool and whatever shell it runs in (web PWA, Tauri desktop/mobile, CLI). Tools call `host.*`; each shell implements the same surface its own way. This is what lets one tool run unchanged everywhere.
 
-Tools receive `host` inside their **hooks** (`hooks.js`). They never touch the DOM outside their template, never `fetch` directly, never read storage directly — they go through `host`. See [Authoring Tools](/info/authoring-tools.html) for the tool anatomy and [Architecture](/info/architecture.html) for the bigger picture. The canonical definition lives in `engine/src/bridge/host-v1.ts`.
+Tools receive `host` inside their **hooks** (`hooks.js`). They never touch the DOM outside their template, never `fetch` directly, never read storage directly — they go through `host`. See [Authoring Tools](/info/authoring-tools.html) for the tool anatomy and [Overview](/info/overview.html) for the bigger picture. The canonical definition lives in `engine/src/bridge/host-v1.ts`.
 
 ```js
 function onInit({ model, host }) {

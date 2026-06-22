@@ -4,7 +4,7 @@ Design tokens are Lolly's **single source of truth for brand primitives** — co
 
 This page is the spec. The engine model is [`engine/src/tokens.js`](../engine/src/tokens.js); the format contract is pinned by [`tests/tokens.test.js`](../tests/tokens.test.js).
 
-> **Status.** The **colour** slice is shipped: brand colours are canonical tokens, the picker's swatches come from them, and a chosen brand colour stays *linked* to its token. Other token types (dimension, typography), user import/export, and token-aware tool injection are on the [roadmap](/info/architecture.html#roadmap) — the format below already reserves room for them.
+> **Status.** The **colour** slice is shipped: brand colours are canonical tokens, the picker's swatches come from them, and a chosen brand colour stays *linked* to its token. Other token types (dimension, typography), user import/export, and token-aware tool injection are on the [roadmap](/info/overview.html#roadmap) — the format below already reserves room for them.
 
 ## Why tokens
 
