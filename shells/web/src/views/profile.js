@@ -418,7 +418,10 @@ export async function mountProfile(viewEl, host, params = '') {
       const summary = await importBackup({ host, storage: localStorage }, bytes);
       host.profile.bust();
       applyTheme(localStorage.getItem('theme') || 'light');
-      announce(`Imported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}`);
+      // `skipped` > 0 means the bundle came from a newer app and carried parts this
+      // build doesn't understand yet — surface it rather than pretend a full restore.
+      const skipNote = summary.skipped ? ` · ${summary.skipped} newer item${summary.skipped === 1 ? '' : 's'} skipped` : '';
+      announce(`Imported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}${skipNote}`);
       await mountProfile(viewEl, host);
     });
   });

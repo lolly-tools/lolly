@@ -254,7 +254,7 @@ CLI mode is URL mode under a different transport — the CLI shell builds a URL-
 
 Web shell: IndexedDB. Tauri: filesystem. CLI: in-memory. Tools see only `host.state.save(slot, data)` and `host.state.load(slot)`. `localStorage` is not used — it's too small and can't hold blobs.
 
-Users can save multiple named edit slots per tool and return to each session later. No account creation is required; state is per-device. SUSE ID integration is a future milestone.
+Users can save multiple named edit slots per tool and return to each session later. No account creation is required; state is per-device. Because the bridge is the only seam, that per-device state is also *portable*: `shells/web/src/data-transfer.js` reads everything back out through `host.profile`/`host.state`/`host.assets` into a single `lolly-backup` zip that imports on any other install — the offline answer to "move to a new device" that doesn't need a server (full spec: `docs/data-transfer.md`). SUSE ID integration (multi-device sync) is a future milestone on top of this.
 
 ### 7. Maturity tags answer the "brand approved" risk structurally
 
@@ -321,9 +321,12 @@ The split is enforced now — there are no cross-imports from `engine/` to `tool
 | **Initial tools** | ✅ Done | QR Code, Quote Card, Email Signature, Day Brief, Code Canvas, Countdown Timer, Color Palette, Product Lockup, Bag Video, Film Burn Filter, Chart Creator, Duotone Filter, Meeting Planner — web shell live |
 | **Enhance current tooling** | Mid 2026 ✅ Done  | Downloadable offline app (Tauri); additional employee and event tools; richer export pipeline (text-to-path stability, metadata, extra formats — see `plans.md`) |
 | **Open source the engine** | Late 2026 ✅ Done  | Engine, shells, schemas, docs go public — not the branded tools/assets |
+| **Device-to-device transfer** | ✅ Done | Portable `lolly-backup` bundle carries profile, saved sessions, uploaded images and prefs between any two installs — offline or online, no account. Forward-compatible, integrity-checked envelope (spec: `docs/data-transfer.md`) |
 | **Establish formal tool roadmap** | Late 2026 | Customer reference kits, Claude design ingest, GET/URL request mode |
+| **Design tokens (DTCG) import/export** | 2027+ | Ingest and emit [W3C Design Tokens (DTCG)](https://tr.designtokens.org/format/) files — the format [Penpot imports/exports](https://help.penpot.app/user-guide/design-systems/design-tokens/) — as a portable brand-primitive source that tools and palette assets resolve against. Rides the transfer bundle as a reserved `tokens.json` part |
+| **Penpot file ingest as tools** | 2027+ | Import a Penpot file and surface it *as a Lolly tool* (declarative, constraint-first), turning designs authored in Penpot into deterministic, on-brand generators |
+| **MCP + Penpot extension (online-only authoring)** | 2027+ | A Penpot MCP server articulates new tools with AI — the most visual way to create deterministic templates: a brand-informed first round, perfected with a human in the loop, targeting one-shot new contexts over time. Tool *creation* is online-only; the tools it produces run anywhere |
 | **RBAC + SUSE ID** | 2027+ | Gate specific tools behind SUSE ID; multi-device saved state; Google Drive ingest/export |
-| **MCP + Penpot Extension** the most visual way to create deterministic templates directly with AI kicking off a very brand informed first round. Start with user intervation perfecting all templates, target one shotting new contexts" 
 
 ---
 

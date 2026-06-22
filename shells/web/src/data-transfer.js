@@ -26,6 +26,13 @@
  * already must, since blob: URLs don't survive a page reload), so once the uploaded
  * images are restored the references light back up on their own.
  *
+ * The envelope is built to outlive this version (full spec: docs/data-transfer.md):
+ *   - Forward-compatible — a reader gates on `manifest.minReader`, not the writer's
+ *     `formatVersion`, so a future bundle that merely *adds* a part (e.g. design
+ *     tokens) still imports its known parts on an older app; the rest is skipped.
+ *   - Integrity-checked — `manifest.integrity` carries an SHA-256 per part, verified
+ *     on import so a transfer mangled in transit fails loudly, not halfway.
+ *
  * The `host` and the key/value `storage` (localStorage) are injected so the whole
  * round-trip can be exercised headlessly in tests against an in-memory bridge.
  */
@@ -33,13 +40,60 @@
 import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 
 export const BACKUP_FORMAT = 'lolly-backup';
+
+// `formatVersion` is the layout this build *writes* — bump it on any change to the
+// part set or their shapes. Readers, however, never gate on it directly: they gate
+// on the bundle's `minReader` (below). That split is what makes the envelope
+// forward-compatible — an additive bundle (one that merely adds a new optional part
+// like a future `tokens.json`) keeps `minReader` low, so an older app still imports
+// every part it recognises and simply skips the rest. Only a *breaking* change
+// raises `minReader`. See docs/data-transfer.md for the full version policy.
 export const BACKUP_FORMAT_VERSION = 1;
+
+// The newest bundle this build knows how to read. A bundle is importable when its
+// `minReader` is ≤ this number.
+export const BACKUP_READER_VERSION = 1;
 
 // localStorage keys that are genuinely the user's (vs. re-syncable caches like the
 // catalog 'sbt-tool-index'). theme + sidebarWidth are prefs; ct-metrics is the
 // local-only activity tally shown on the profile page. There is no bridge for these
 // (they're synchronous UI state), and webview localStorage is the same on every shell.
 const PREF_KEYS = ['theme', 'sidebarWidth', 'ct-metrics'];
+
+// The parts this reader understands. Anything else in a bundle is a part from a
+// newer (forward-compatible) writer — left untouched and counted as `skipped` so
+// the round-trip is honest about what it didn't restore rather than silently
+// dropping it. `assets/blobs/*` is the open-ended image payload.
+const KNOWN_PARTS = new Set(['manifest.json', 'profile.json', 'sessions.json', 'assets.json', 'prefs.json']);
+function isKnownPart(path) {
+  return KNOWN_PARTS.has(path) || path.startsWith('assets/blobs/');
+}
+
+// Web Crypto — present in any secure browser context and in modern Node (so the
+// headless round-trip test exercises integrity too). Absent ⇒ integrity is a no-op
+// on both sides: we don't write the map, and we don't fail to verify one we can't.
+const SUBTLE = globalThis.crypto?.subtle ?? null;
+
+// Chunked so a multi-MB image blob doesn't blow the call stack via spread/apply.
+function bytesToBase64(bytes) {
+  let bin = '';
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(bin);
+}
+
+async function sha256(bytes) {
+  const digest = await SUBTLE.digest('SHA-256', bytes);
+  return 'sha256-' + bytesToBase64(new Uint8Array(digest));
+}
+
+// An fflate entry is either a Uint8Array or a [Uint8Array, opts] tuple (we pass the
+// tuple form for already-compressed image bytes, to skip re-deflating). Normalise.
+function entryBytes(v) {
+  return v instanceof Uint8Array ? v : v[0];
+}
 
 // Map a stored asset format / MIME to a file extension for the in-zip blob name.
 // Cosmetic only — import reconstructs the Blob from the recorded MIME, not the name.
@@ -48,6 +102,44 @@ function extFor(record) {
   if (fmt) return fmt === 'jpeg' ? 'jpg' : fmt;
   const mime = record.blob?.type || '';
   return mime.split('/')[1]?.replace('+xml', '') || 'bin';
+}
+
+// Download-name helpers ------------------------------------------------------
+// The exported zip is named for the person it belongs to, so a Downloads folder
+// of backups stays legible: LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip. Name
+// parts come from whatever the profile has (first and/or last, in that order)
+// and are omitted when absent; <n> is a per-day, per-device sequence so repeat
+// exports on the same day don't collide and stay in order.
+const EXPORT_SEQ_KEY = 'lolly-export-seq';
+
+// Reduce a profile name to a filename-safe token: keep Unicode letters/digits
+// (so "Bilbo", "Bjørn", "李雷" all survive), drop spaces/punctuation, cap length.
+function nameToken(value) {
+  return String(value ?? '')
+    .normalize('NFKD')
+    .replace(/[^\p{L}\p{N}]+/gu, '')
+    .slice(0, 32);
+}
+
+// Per-day export counter persisted in the injected key/value store. It is a
+// local download-naming convenience only — kept out of PREF_KEYS so it never
+// travels in a bundle. Best-effort: any storage hiccup just yields 1.
+function nextDailySequence(storage, date) {
+  try {
+    const prev = JSON.parse(storage?.getItem?.(EXPORT_SEQ_KEY) ?? 'null');
+    const n = prev && prev.date === date ? (prev.n | 0) + 1 : 1;
+    storage?.setItem?.(EXPORT_SEQ_KEY, JSON.stringify({ date, n }));
+    return n;
+  } catch {
+    return 1;
+  }
+}
+
+function backupFilename(profile, storage) {
+  const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD (UTC, matches the manifest)
+  const seq = nextDailySequence(storage, date);
+  const parts = ['LollyTools', nameToken(profile?.firstname), nameToken(profile?.lastname), date, seq];
+  return `${parts.filter(Boolean).join('-')}.zip`;
 }
 
 /**
@@ -117,15 +209,30 @@ export async function exportBackup({ host, storage }) {
   const manifest = {
     format: BACKUP_FORMAT,
     formatVersion: BACKUP_FORMAT_VERSION,
+    minReader: BACKUP_READER_VERSION,
     app: 'lolly',
     exportedAt: new Date().toISOString(),
     counts: summary,
   };
+
+  // Per-part integrity (SHA-256, SRI-style), computed over every part *except* the
+  // manifest (which carries the map). A reader verifies these on import, so a bundle
+  // truncated or mangled in transit (USB, email, AirDrop) fails with a clear message
+  // instead of a confusing half-restore. Best-effort: omitted when Web Crypto isn't
+  // available, and an older reader without integrity support ignores it harmlessly.
+  if (SUBTLE) {
+    const integrity = {};
+    for (const [path, value] of Object.entries(entries)) {
+      integrity[path] = await sha256(entryBytes(value));
+    }
+    manifest.integrity = integrity;
+  }
+
   entries['manifest.json'] = strToU8(JSON.stringify(manifest, null, 2));
 
   const zipped = zipSync(entries); // synchronous; fine for a click-time action
   const blob = new Blob([zipped], { type: 'application/zip' });
-  const filename = `lolly-data-${new Date().toISOString().slice(0, 10)}.zip`;
+  const filename = backupFilename(profile, storage);
   return { blob, filename, summary };
 }
 
@@ -137,9 +244,15 @@ export async function exportBackup({ host, storage }) {
  * imported copy. Nothing on the target device is wiped — safe to import onto an
  * install that's already in use.
  *
+ * Before writing anything it (1) gates on the bundle's `minReader` so a genuinely
+ * future format is refused cleanly, (2) verifies per-part integrity when present so
+ * a corrupted transfer fails loudly, and (3) tolerates unrecognised parts from a
+ * forward-compatible writer, reporting them as `skipped` rather than dropping them
+ * silently.
+ *
  * @param {{ host: object, storage: Storage }} deps
  * @param {ArrayBuffer|Uint8Array} bytes  the raw .zip contents
- * @returns {Promise<object>} summary of what was imported
+ * @returns {Promise<object>} summary of what was imported (incl. `skipped`)
  */
 export async function importBackup({ host, storage }, bytes) {
   let files;
@@ -153,11 +266,31 @@ export async function importBackup({ host, storage }, bytes) {
   if (!manifest || manifest.format !== BACKUP_FORMAT) {
     throw new Error("That doesn't look like a Lolly data backup.");
   }
-  if (manifest.formatVersion > BACKUP_FORMAT_VERSION) {
-    throw new Error('This backup was made by a newer version of the app. Update first, then import.');
+
+  // Forward-compatible gate: refuse only when the bundle explicitly demands a newer
+  // reader than this build provides. Bundles that merely added optional parts keep
+  // `minReader` low and import fine here — their unrecognised parts are skipped (and
+  // counted below). Fall back to `formatVersion` for the conservative case of a
+  // future bundle that bumped the layout without declaring `minReader`.
+  const required = manifest.minReader ?? manifest.formatVersion ?? 1;
+  if (required > BACKUP_READER_VERSION) {
+    throw new Error('This backup needs a newer version of the app. Update first, then import.');
   }
 
-  const summary = { profile: false, sessions: 0, userAssets: 0, prefs: 0 };
+  // Integrity — verify any part the manifest vouches for before writing anything.
+  // Only runs when the bundle carries the map and Web Crypto is available; an older
+  // bundle without it imports unchanged (can't-verify is not the same as corrupt).
+  if (manifest.integrity && SUBTLE) {
+    for (const [path, expected] of Object.entries(manifest.integrity)) {
+      const bytes = files[path];
+      if (!bytes) throw new Error(`This backup is incomplete — "${path}" is missing.`);
+      if ((await sha256(bytes)) !== expected) {
+        throw new Error(`This backup appears corrupted — "${path}" failed its integrity check.`);
+      }
+    }
+  }
+
+  const summary = { profile: false, sessions: 0, userAssets: 0, prefs: 0, skipped: 0 };
 
   // Profile.
   const profile = readJson(files, 'profile.json');
@@ -190,6 +323,10 @@ export async function importBackup({ host, storage }, bytes) {
   for (const key of PREF_KEYS) {
     if (prefs[key] != null) { storage.setItem(key, prefs[key]); summary.prefs++; }
   }
+
+  // Parts from a newer, forward-compatible writer that this build doesn't know how
+  // to restore. Reported (not hidden) so the UI can be honest: "imported X, skipped Y".
+  summary.skipped = Object.keys(files).filter(p => !isKnownPart(p)).length;
 
   return summary;
 }
