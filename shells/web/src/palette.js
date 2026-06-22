@@ -5,10 +5,15 @@
  *
  * cmyk: [C, M, Y, K] as integer percentages 0–100.
  * null = not yet specified; export falls back to generic RGB→CMYK conversion.
+ * group: optional bucket override for the Platform view's grouping —
+ *   'spectrum'   = the secondary / infographics palette (NOT a brand colour);
+ *   a family name (e.g. 'Fog') pins the swatch into that tint ramp.
+ *   Omit for brand colours; numbered labels ("Jungle 1") auto-group by family.
  */
 export const PALETTE = [
   { hex: 'transparent', label: 'Transparent', cmyk: null },
 
+  // Brand colours — the primary SUSE palette. Black & White are brand neutrals.
   { hex: '#0c322c', label: 'Pine',       cmyk: [65, 0, 35, 85] },
   { hex: '#30ba78', label: 'Jungle',     cmyk: [70, 0, 65, 0] },
   { hex: '#90ebcd', label: 'Mint',       cmyk: [40, 0, 30, 0] },
@@ -17,6 +22,7 @@ export const PALETTE = [
   { hex: '#2453ff', label: 'Waterhole',  cmyk: [90, 50, 0, 0] },
   { hex: '#efefef', label: 'Fog',        cmyk: [0, 0, 0, 7] },
   { hex: '#ffffff', label: 'White',      cmyk: [0, 0, 0, 0] },
+  { hex: '#000000', label: 'Black',      cmyk: [0, 0, 0, 100] },
 
   { hex: '#0c322c', label: 'Jungle 1',   cmyk: null },
   { hex: '#025937', label: 'Jungle 2',   cmyk: null },
@@ -54,16 +60,21 @@ export const PALETTE = [
   { hex: '#c8dafc', label: 'Blue 7',     cmyk: null },
   { hex: '#e6edfe', label: 'Blue 8',     cmyk: null },
 
-  { hex: '#00bda7', label: 'Teal',       cmyk: null },
-  { hex: '#a1ef8b', label: 'Lime',       cmyk: null },
-  { hex: '#7dc6e2', label: 'Sky',        cmyk: null },
-  { hex: '#e8c1f7', label: 'Lilac',      cmyk: null },
-  { hex: '#5d4f99', label: 'Amethyst',   cmyk: null },
-  { hex: '#f9cabf', label: 'Peach',      cmyk: null },
-  { hex: '#fcb244', label: 'Marigold',   cmyk: null },
-  { hex: '#bd3314', label: 'Rust',       cmyk: null },
-  { hex: '#000000', label: 'Black',      cmyk: [0, 0, 0, 100] },
+  // Spectrum — the secondary / infographics palette. NOT brand colours: it
+  // expands the colour wheel for charts & data viz without replacing them.
+  { hex: '#00bda7', label: 'Teal',       cmyk: null, group: 'spectrum' },
+  { hex: '#a1ef8b', label: 'Lime',       cmyk: null, group: 'spectrum' },
+  { hex: '#7dc6e2', label: 'Sky',        cmyk: null, group: 'spectrum' },
+  { hex: '#e8c1f7', label: 'Lilac',      cmyk: null, group: 'spectrum' },
+  { hex: '#5d4f99', label: 'Amethyst',   cmyk: null, group: 'spectrum' },
+  { hex: '#f9cabf', label: 'Peach',      cmyk: null, group: 'spectrum' },
+  { hex: '#fcb244', label: 'Marigold',   cmyk: null, group: 'spectrum' },
+  { hex: '#bd3314', label: 'Rust',       cmyk: null, group: 'spectrum' },
 
+  // Black & White bookend the Fog grayscale ramp as its true end-points (both
+  // also live in the brand block above, like Pine repeats as a ramp endpoint),
+  // so the ramp reads cleanly and Fog 1 / Fog 8 aren't misread as pure black/white.
+  { hex: '#000000', label: 'Black',      cmyk: [0, 0, 0, 100], group: 'Fog' },
   { hex: '#1d1d1d', label: 'Fog 1',      cmyk: null },
   { hex: '#3e3e3e', label: 'Fog 2',      cmyk: null },
   { hex: '#525252', label: 'Fog 3',      cmyk: null },
@@ -72,5 +83,5 @@ export const PALETTE = [
   { hex: '#bababa', label: 'Fog 6',      cmyk: null },
   { hex: '#dcdbdc', label: 'Fog 7',      cmyk: null },
   { hex: '#efefef', label: 'Fog 8',      cmyk: null },
-  { hex: '#ffffff', label: 'White',      cmyk: [0, 0, 0, 0] },
+  { hex: '#ffffff', label: 'White',      cmyk: [0, 0, 0, 0], group: 'Fog' },
 ];

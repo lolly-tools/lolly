@@ -4064,6 +4064,8 @@ button {
   font-size: .7rem; font-weight: 600; padding: .05rem .45rem; border-radius: 999px; letter-spacing: 0;
   background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
 }
+.plat-ramp-note { margin: -.3rem 0 .8rem; max-width: 74ch; color: hsl(var(--muted-foreground)); font-size: .82rem; line-height: 1.5; }
+.plat-ramp-note strong { color: hsl(var(--foreground)); }
 
 .plat-swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: .75rem; }
 .plat-swatch {
