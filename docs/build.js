@@ -1197,7 +1197,7 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   function makeChip(){
     var ext=extPool[Math.floor(Math.random()*extPool.length)];
     var fs=rand(10,22);
-    var weight='500';
+    var weight='700';
     ctx.font=weight+' '+fs+'px SUSE,sans-serif';
     var tw=ctx.measureText(ext).width;
     var px=fs*0.75,py=fs*0.75;

@@ -15,6 +15,14 @@
 const CATALOG_BASE = '/catalog';
 const LS_PREFIX = 'sbt-catalog:';
 
+// The tool index is the one fetch the whole gallery depends on. A single
+// transient failure on a cold first load would otherwise leave a brand-new user
+// (no localStorage fallback) with an empty gallery and no recovery short of a
+// manual hard refresh — so retry a few times with linear backoff before giving up.
+const CATALOG_FETCH_ATTEMPTS = 3;
+const CATALOG_RETRY_BASE_MS = 400; // waits ~400ms, ~800ms between attempts
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 function getCatalogMeta(key) {
   try {
     const raw = localStorage.getItem(LS_PREFIX + key);
@@ -66,21 +74,30 @@ async function syncTools(host) {
   // Always fetch fresh — window.__toolIndex is in-memory only and must be
   // re-populated on every page load. A 304 would leave it empty.
   // We keep a localStorage copy so the gallery can fall back offline.
-  try {
-    const resp = await fetch(`${CATALOG_BASE}/tools/index.json`);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const index = await resp.json();
-    window.__toolIndex = index;
-    try { localStorage.setItem('sbt-tool-index', JSON.stringify(index)); } catch { /* quota */ }
-    host.log('info', `Tool catalog: ${index.tools.length} tools`);
-  } catch (e) {
-    // Network failure — restore from localStorage cache if available.
-    const cached = localStorage.getItem('sbt-tool-index');
-    if (cached) {
-      window.__toolIndex = JSON.parse(cached);
-      host.log('info', 'Tool catalog loaded from cache (offline)');
-    } else {
-      host.log('warn', `Tool catalog fetch failed: ${e.message}`);
+  for (let attempt = 0; attempt < CATALOG_FETCH_ATTEMPTS; attempt++) {
+    try {
+      // cache: 'no-store' so the HTTP cache can never pin a bad/partial response
+      // — one would survive a normal reload and only clear on a hard refresh.
+      const resp = await fetch(`${CATALOG_BASE}/tools/index.json`, { cache: 'no-store' });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const index = await resp.json();
+      window.__toolIndex = index;
+      try { localStorage.setItem('sbt-tool-index', JSON.stringify(index)); } catch { /* quota */ }
+      host.log('info', `Tool catalog: ${index.tools.length} tools`);
+      return;
+    } catch (e) {
+      if (attempt < CATALOG_FETCH_ATTEMPTS - 1) {
+        await delay(CATALOG_RETRY_BASE_MS * (attempt + 1));
+        continue;
+      }
+      // Every attempt failed — restore from localStorage cache if available.
+      const cached = localStorage.getItem('sbt-tool-index');
+      if (cached) {
+        window.__toolIndex = JSON.parse(cached);
+        host.log('info', 'Tool catalog loaded from cache (offline)');
+      } else {
+        host.log('warn', `Tool catalog fetch failed: ${e.message}`);
+      }
     }
   }
 }

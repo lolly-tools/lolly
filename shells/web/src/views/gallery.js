@@ -9,6 +9,7 @@
 import { escape } from '../utils.js';
 import { toolSupport, capabilityLabel } from '../capabilities.js';
 import { hiddenCategories, flagEnabled, PRO_FLAG } from '../feature-flags.js';
+import { syncCatalog } from '../catalog/sync.js';
 
 const CATEGORY_ORDER = ['everyone', 'designer', 'product', 'utility'];
 
@@ -105,12 +106,17 @@ export async function mountGallery(viewEl, host) {
       <div class="gallery-search-results" hidden role="region" aria-label="Search results" aria-live="polite">
         <div class="tool-grid"></div>
       </div>
-      ${sortedCategories.length === 0 ? `
+      ${sortedCategories.length === 0 ? (index.tools.length === 0 ? `
+        <div class="gallery-empty" role="status">
+          <p class="gallery-empty-title">Couldn't load the tools.</p>
+          <p class="gallery-empty-hint">Check your connection, then <button type="button" class="gallery-retry">retry</button>.</p>
+        </div>
+      ` : `
         <div class="gallery-empty" role="status">
           <p class="gallery-empty-title">It looks like there are no tools available.</p>
           <p class="gallery-empty-hint">Try turning on categories in <a href="#/profile?focus=feature-flags">your feature flags</a>.</p>
         </div>
-      ` : sortedCategories.map(([cat]) => `
+      `) : sortedCategories.map(([cat]) => `
         <section class="gallery-category category-${escape(cat.toLowerCase().replace(/\s+/g, '-'))}" data-cat="${escape(cat)}">
           <h2 class="category-title">${escape(cat)}</h2>
           <div class="tool-grid"></div>
@@ -145,6 +151,17 @@ export async function mountGallery(viewEl, host) {
   viewEl.classList.toggle('no-saves', sortedSaved.length === 0);
 
   viewEl.querySelectorAll('.gallery-category').forEach(s => categoryObserver.observe(s));
+
+  // Catalog failed to load (empty index): let the user re-sync without a full
+  // page reload. On success the catalog populates window.__toolIndex and the
+  // re-mount renders the tools; on failure the retry state simply reappears.
+  viewEl.querySelector('.gallery-retry')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
+    btn.textContent = 'Retrying…';
+    await syncCatalog(host);
+    await mountGallery(viewEl, host);
+  });
 
   const searchInput   = viewEl.querySelector('.gallery-search');
   const searchResults = viewEl.querySelector('.gallery-search-results');

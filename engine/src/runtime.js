@@ -149,6 +149,9 @@ export async function createRuntime(tool, host, initialState = {}) {
         ...opts,
         watermark: opts.watermark ?? isExperimental,
         meta,
+        // Tag output with a colour profile by default (sRGB for raster, the
+        // default press condition for CMYK PDF). Thumbnails stay untagged.
+        colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),
         ...dataExtra,
       });
       if (hooks?.afterExport) {
