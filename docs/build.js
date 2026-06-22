@@ -916,7 +916,7 @@ tr:nth-child(even) td{background:#fafffe}
 
 /* FAQ */
 .faq-section{padding:5rem 2rem;background:#fff}
-.faq-inner{max-width:var(--col-cap);margin:0 auto}
+.faq-inner{margin:0 auto; max-width: calc(var(--col-cap) * 1.4);}
 .faq-section h2{text-align:center;margin-bottom:.5rem}
 .faq-lead{text-align:center;color:var(--muted);font-size:1.0625rem;margin-bottom:2.5rem}
 .faq-list{display:flex;flex-direction:column;gap:.75rem}
@@ -1071,6 +1071,14 @@ footer a:hover{color:var(--dark)}
 .dark .page-lead{border-bottom-color:var(--border)}
 .dark .docs-content h2,.dark .docs-content h3,.dark .page-title{color:var(--text)}
 .dark th{color:var(--text)}
+/* Code in dark mode: the base code/pre rules hardcode light backgrounds, so in
+   dark mode inline code became light-text-on-light-bg (invisible). Give chips a
+   dark surface + light text, and the pre block a dark box. The third rule keeps
+   code inside pre background-free — .dark .docs-content code would otherwise
+   out-specify the base "pre code background none" reset. */
+.dark .docs-content code{background:#112a1e;color:var(--text)}
+.dark .docs-content pre{background:#0d2419;color:var(--text);border:1px solid var(--border)}
+.dark .docs-content pre code{background:none;color:inherit}
 `.trim();
 
 const THEME_SVG_MOON = `<svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
