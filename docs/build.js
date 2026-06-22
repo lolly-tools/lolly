@@ -33,6 +33,7 @@ const pages = [
   { slug: 'host-api',         title: 'Host API',          src: 'host-api.md' },
   { slug: 'url-mode',         title: 'URL Mode',          src: 'url-mode.md' },
   { slug: 'data-transfer',    title: 'Data Transfer',     src: 'data-transfer.md' },
+  { slug: 'design-tokens',    title: 'Design Tokens',     src: 'design-tokens.md' },
   { slug: 'cli',              title: 'CLI',               src: 'cli.md' },
   { slug: 'build-guide',      title: 'Build Guide',       src: 'build-guide.md' },
   { slug: 'privacy',          title: 'Privacy Policy',    src: 'privacy.md' },

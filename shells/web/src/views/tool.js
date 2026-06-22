@@ -15,7 +15,7 @@ import { escape } from '../utils.js';
 import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabilities.js';
 import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
-import { colorFieldHtml, wireColorField } from '../components/color-field.js';
+import { colorFieldHtml, wireColorField, setSwatches } from '../components/color-field.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import flatpickr from 'flatpickr';
@@ -104,6 +104,17 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   if (sup.status === 'install') { mountInstallPrompt(viewEl, tool.manifest); return; }
   if (sup.status === 'unavailable') { mountUnavailable(viewEl, tool.manifest, sup.unmet); return; }
 
+  // Source the colour picker's swatches from design tokens (the canonical brand
+  // colours), so choosing one keeps the value linked to the token. Falls back to
+  // the built-in palette if tokens aren't available (offline first load, or a
+  // shell without host.tokens). Best-effort — never blocks mounting the tool.
+  try {
+    const swatches = await host.tokens?.colors?.();
+    if (swatches?.length) {
+      setSwatches(swatches.map(s => ({ value: s.value, label: s.name, group: s.group, ref: s.ref })));
+    }
+  } catch { /* keep the built-in palette */ }
+
   // Annotate the template once so rendered nodes carry data-canvas-input attrs
   // for click-to-focus. This is purely a shell-side concern; the engine just
   // stores the modified source and hydrates it like any other template.
@@ -111,7 +122,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   tool.template = annotateTemplate(tool.template, inputIds);
   document.title = `${tool.manifest.name} — Lolly`;
 
-  const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi, profile: urlProfile } = parseUrlState(urlParams, tool.manifest);
+  const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi, profile: urlProfile, password: urlPassword } = parseUrlState(urlParams, tool.manifest);
   const urlFlags = new URLSearchParams(urlParams || '');
   const isFull = urlFlags.has('full');
   // `?options` lands the recipient on the export-settings panel expanded (instead
@@ -593,6 +604,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     unit:     urlUnit || initialValues.__export_unit || 'px',
     dpi:      urlDpi || Number(initialValues.__export_dpi) || 300,
     profile:  urlProfile || initialValues.__export_profile || undefined,
+    // Password comes from the URL only — never restored from saved state (we don't
+    // persist passwords at rest in the library; see performSave's __export_* snapshot).
+    password: urlPassword || undefined,
   };
   // Rewrite the URL hash query string to reflect the current tool state so the
   // page is shareable and bookmarkable. Uses replaceState — no history entry.
@@ -672,6 +686,13 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
       const prof = actionsEl?.querySelector('[data-action="cmyk-profile"]')?.value;
       if (fmt === 'pdf-cmyk' && prof && prof !== DEFAULT_CMYK_CONDITION) params.set('profile', prof);
+    }
+    if (dirtyParams.has('password')) {
+      // Open-password for the standard PDF only; carried clear-text by design (a
+      // basic lock for short-lived transactional material). Empty value → omitted.
+      const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
+      const pw = actionsEl?.querySelector('[data-action="pdf-password"]')?.value;
+      if (fmt === 'pdf' && pw) params.set('password', pw);
     }
 
     const base = window.location.hash.split('?')[0];
@@ -825,6 +846,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           expOpts.palette = PALETTE;
           expOpts.colorProfile = urlProfile || DEFAULT_CMYK_CONDITION;
         }
+        // Standard PDF: honour ?password= so a deep link can auto-export a locked
+        // PDF (basic lock; clear-text in the URL by design — see pdfPassRow).
+        if (fmt === 'pdf' && urlPassword) expOpts.password = urlPassword;
         exportUnscaled(() =>
           runtime.export(canvasEl, fmt, expOpts)
             .then(blob => host.export.download(blob, `${name}.${extFor(fmt, blob)}`))
@@ -1878,6 +1902,27 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         <p class="cmyk-hint">Embedded as the PDF's output intent, so a print shop reproduces these CMYK inks accurately.</p>
       </div>` : '';
 
+  // Tier 2.6 — PDF password (standard "PDF" only). A non-empty value locks the
+  // exported PDF on open (jsPDF standard security handler, copy/modify restricted).
+  // Revealed only when "PDF" is chosen — the print-PDF path (pdf-cmyk) re-saves
+  // through pdf-lib, which can't write encrypted PDFs.
+  //
+  // URL-expressible by design: a `?password=` link can pre-set it for quick,
+  // short-lived transactional use (event materials etc). That's clear-text in the
+  // URL — an accepted trade-off for a basic lock, not for confidential material.
+  // It is NOT persisted to the library at rest (see performSave); URL is the only
+  // way it round-trips. The initial value below comes from the URL only.
+  const ICON_LOCK = `<svg class="pdfpass-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
+  const hasPdf = formats.includes('pdf');
+  const pdfPassRow = hasPdf ? `
+      <div class="export-pdfpass" data-pdf-only style="display:${initialFmt === 'pdf' ? 'flex' : 'none'}">
+        <span class="pdfpass-head">${ICON_LOCK}<span>Password protect</span></span>
+        <input type="password" data-action="pdf-password" autocomplete="new-password" spellcheck="false"
+               value="${escape(exportDefaults.password ?? '')}"
+               placeholder="Leave blank for no password" aria-label="PDF open password">
+        <p class="pdfpass-hint">Requires this password to open the PDF. A basic lock, not strong encryption — don't rely on it for highly confidential files.</p>
+      </div>` : '';
+
   // Tier 3 — ancillary settings. Everything optional (transparent bg, timing,
   // dithering) lives in one wrapping chip cluster so the panel reads consistently
   // no matter which controls a given tool/format enables.
@@ -1927,7 +1972,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const downloadRow = downloadBtn ? `<div class="export-action-buttons">${downloadBtn}</div>` : '';
 
   el.innerHTML = `
-    ${actions.includes('download') ? `${filenameRow}${dimsRow}${cmykRow}${settingsRow}` : ''}
+    ${actions.includes('download') ? `${filenameRow}${dimsRow}${cmykRow}${pdfPassRow}${settingsRow}` : ''}
     ${secondaryRow}
     ${downloadRow}
   `;
@@ -1951,6 +1996,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       if (webm60El)     webm60El.style.display      = fmt === 'webm' ? 'flex' : 'none';
       el.querySelectorAll('[data-vector-only]').forEach(c => { c.style.display = isVectorFmt(fmt) ? 'flex' : 'none'; });
       el.querySelectorAll('[data-cmyk-only]').forEach(c => { c.style.display = fmt === 'pdf-cmyk' ? 'flex' : 'none'; });
+      el.querySelectorAll('[data-pdf-only]').forEach(c => { c.style.display = fmt === 'pdf' ? 'flex' : 'none'; });
       onUrlSync?.('format');
     });
   }
@@ -1959,6 +2005,10 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   el.querySelector('[data-action="cmyk-profile"]')?.addEventListener('change', () => onUrlSync?.('profile'));
 
   el.querySelector('[data-action="filename"]')?.addEventListener('input', () => onUrlSync?.('filename'));
+
+  // PDF open-password — clear-text in the URL by design (see pdfPassRow). Syncs on
+  // input so a crafted/edited link round-trips; syncUrl gates it to the pdf format.
+  el.querySelector('[data-action="pdf-password"]')?.addEventListener('input', () => onUrlSync?.('password'));
 
   const dimUnit = () => el.querySelector('[data-action="export-unit"]')?.value || 'px';
   const dimDpi  = () => { const n = parseInt(el.querySelector('[data-action="export-dpi"]')?.value, 10); return n > 0 ? n : 300; };
@@ -2203,6 +2253,9 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
           palette: PALETTE,
           colorProfile: el.querySelector('[data-action="cmyk-profile"]')?.value || DEFAULT_CMYK_CONDITION,
         } : {}),
+        ...(fmt === 'pdf' && el.querySelector('[data-action="pdf-password"]')?.value
+          ? { password: el.querySelector('[data-action="pdf-password"]').value }
+          : {}),
         ...(fmt === 'zip' ? {
           palette: PALETTE,
           colorProfile: el.querySelector('[data-action="cmyk-profile"]')?.value || DEFAULT_CMYK_CONDITION,
@@ -2425,6 +2478,12 @@ function buildShareParams(runtime, exportScope) {
   const prof = exportScope?.querySelector('[data-action="cmyk-profile"]')?.value;
   if (fmtEl?.value === 'pdf-cmyk' && prof && prof !== DEFAULT_CMYK_CONDITION) {
     parts.push(`profile=${encodeURIComponent(prof)}`);
+  }
+  // PDF open-password — only for the standard PDF, only when set. Clear-text by
+  // design so a shared link can carry the lock; never used for confidential files.
+  const pdfPass = exportScope?.querySelector('[data-action="pdf-password"]')?.value;
+  if (fmtEl?.value === 'pdf' && pdfPass) {
+    parts.push(`password=${encodeURIComponent(pdfPass)}`);
   }
 
   return parts;

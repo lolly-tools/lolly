@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brand-tools.suse.com/schemas/tokens.schema.json",
+  "title": "Design Tokens Document (DTCG)",
+  "description": "A W3C Design Tokens (DTCG) document, as imported/exported by Penpot and Tokens Studio. Validates the structural shape: groups nest tokens, a token carries $value (+ optional $type/$description/$extensions). Lenient on $value by design — type-specific value checking lives in engine/src/tokens.js, not here.",
+  "type": "object",
+  "$defs": {
+    "node": {
+      "type": "object",
+      "properties": {
+        "$value": {},
+        "$type": { "type": "string" },
+        "$description": { "type": "string" },
+        "$deprecated": {},
+        "$extensions": { "type": "object" }
+      },
+      "additionalProperties": { "$ref": "#/$defs/node" }
+    }
+  },
+  "properties": {
+    "$description": { "type": "string" },
+    "$themes": {
+      "type": "array",
+      "description": "Tokens-Studio themes: each selects + names a set of token sets.",
+      "items": { "type": "object" }
+    },
+    "$metadata": {
+      "type": "object",
+      "description": "Document metadata. `tokenSetOrder` orders the top-level sets for layering."
+    }
+  },
+  "additionalProperties": { "$ref": "#/$defs/node" }
+}

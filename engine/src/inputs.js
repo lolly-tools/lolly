@@ -10,6 +10,8 @@
  * we keep behaviour consistent across web/Tauri/CLI.
  */
 
+import { isTokenValue } from './tokens.js';
+
 /**
  * @param {ToolManifest} manifest
  * @param {object} opts
@@ -186,5 +188,27 @@ function constrain(input, value) {
 
 /** Flatten the model into a plain { id: value } object for template hydration. */
 export function modelToValues(model) {
-  return Object.fromEntries(model.map(i => [i.id, i.value]));
+  return Object.fromEntries(model.map(i => [i.id, flattenValue(i.value)]));
+}
+
+/**
+ * The model as hooks should see it: token-backed colour values flattened to their
+ * resolved hex string, matching what templates (and CLI/JSON export) receive. The
+ * `{ ref, value }` shape is an engine implementation detail for keeping a colour
+ * linked to a token; leaking it to hooks breaks the common `(inputs.x || '').trim()`
+ * pattern. Other values (incl. AssetRefs, which carry no `ref`) pass through.
+ */
+export function modelForHooks(model) {
+  return model.map(i => {
+    const v = flattenValue(i.value);
+    return v === i.value ? i : { ...i, value: v };
+  });
+}
+
+// A token-backed colour value ({ ref, value }) hydrates as its resolved hex —
+// the template (and CLI/JSON export) only ever sees a plain colour string. The
+// runtime refreshes `.value` from the live token set before this; the cached hex
+// is the fallback. Plain values (incl. AssetRefs, which carry no `ref`) pass through.
+export function flattenValue(v) {
+  return isTokenValue(v) ? (v.value ?? '') : v;
 }

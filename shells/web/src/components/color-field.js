@@ -21,8 +21,27 @@
 import { PALETTE } from '../palette.js';
 import { escape } from '../utils.js';
 
+// The swatch source the picker renders. Defaults to the built-in brand palette
+// (so the picker works before — and without — tokens), and is replaced at runtime
+// by setSwatches() with swatches resolved from design tokens. Shape per swatch:
+//   { value: '#rrggbb' | 'transparent', label, group, ref|null }
+// `ref` is the canonical token reference ('{color.brand.jungle}'); choosing such a
+// swatch stores a token value so the colour stays linked to the token.
+let SWATCHES = PALETTE.map(s => ({ value: s.hex, label: s.label, group: s.group ?? null, ref: null }));
+
+/** Replace the picker's swatches (e.g. with tokens). Ignored if empty/invalid. */
+export function setSwatches(list) {
+  if (Array.isArray(list) && list.length) SWATCHES = list;
+}
+
+// A colour value may be a token value object ({ ref, value }); the field UI works
+// in plain colour strings, so coerce to the (cached) hex for display.
+function toHex(value) {
+  return (value && typeof value === 'object' && typeof value.ref === 'string') ? (value.value ?? '') : value;
+}
+
 export function colorFieldHtml(id, value, { float = false, swatchesOnly = false } = {}) {
-  const rawVal = value ?? '';
+  const rawVal = toHex(value) ?? '';
   const isTransparent = rawVal === 'transparent';
   const isHex8 = /^#[0-9a-fA-F]{8}$/.test(rawVal);
   const isHex6 = /^#[0-9a-fA-F]{6}$/.test(rawVal);
@@ -61,13 +80,15 @@ export function colorFieldHtml(id, value, { float = false, swatchesOnly = false 
 /** The palette swatch buttons for a field — built lazily on first popover open. */
 function swatchButtonsHtml(id) {
   const eid = escape(id);
-  return PALETTE.map(s => {
-    const isTrans = s.hex === 'transparent';
+  return SWATCHES.map(s => {
+    const isTrans = s.value === 'transparent';
+    const refAttr = s.ref ? ` data-swatch-ref="${escape(s.ref)}"` : '';
+    const label = s.group && s.label ? `${s.group} · ${s.label}` : (s.label || s.value);
     return `<button type="button"
       class="color-swatch${isTrans ? ' color-swatch--transparent' : ''}"
-      data-swatch-for="${eid}" data-swatch-value="${escape(s.hex)}"
-      ${isTrans ? '' : `style="background:${escape(s.hex)}"`}
-      title="${escape(s.label)}" aria-label="${escape(s.label)}"></button>`;
+      data-swatch-for="${eid}" data-swatch-value="${escape(s.value)}"${refAttr}
+      ${isTrans ? '' : `style="background:${escape(s.value)}"`}
+      title="${escape(label)}" aria-label="${escape(label)}"></button>`;
   }).join('');
 }
 
@@ -96,7 +117,10 @@ export function wireColorField(scope, { onChange = () => {}, onInteractStart, on
 
   // ── Palette swatches (lazy) ──────────────────────────────────────────────────
   // Apply a swatch's colour to the field, syncing the popover controls + trigger.
-  function applySwatch(field, hex) {
+  // A swatch carrying a token `ref` emits a token value ({ ref, value }) so the
+  // colour stays linked to the token; a plain swatch emits the hex string. Editing
+  // the hex/native/alpha afterwards emits a plain string, de-linking from the token.
+  function applySwatch(field, hex, ref = null) {
     const id = field.dataset.colorField;
     const native = field.querySelector('input.color-popover-native');
     const hexInput = field.querySelector('.color-hex-input');
@@ -107,7 +131,7 @@ export function wireColorField(scope, { onChange = () => {}, onInteractStart, on
     if (alphaSlider) alphaSlider.value = hex === 'transparent' ? 0 : 255;
     if (alphaPctEl) alphaPctEl.textContent = (hex === 'transparent' ? 0 : 100) + '%';
     updateTrigger(field, hex);
-    onChange(id, hex);
+    onChange(id, ref ? { ref, value: hex } : hex);
   }
 
   // Build the swatch grid the first time a field's popover opens — deferring the
@@ -117,7 +141,7 @@ export function wireColorField(scope, { onChange = () => {}, onInteractStart, on
     if (!box || box.childElementCount) return; // already built
     box.innerHTML = swatchButtonsHtml(field.dataset.colorField);
     box.querySelectorAll('[data-swatch-value]').forEach(btn =>
-      btn.addEventListener('click', () => applySwatch(field, btn.dataset.swatchValue)));
+      btn.addEventListener('click', () => applySwatch(field, btn.dataset.swatchValue, btn.dataset.swatchRef || null)));
   }
 
   // ── Trigger: open/close the popover ──────────────────────────────────────────

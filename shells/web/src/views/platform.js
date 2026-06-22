@@ -144,6 +144,84 @@ function fmtBytes(n) {
   return `${i === 0 ? n : n.toFixed(n >= 10 ? 0 : 1)} ${units[i]}`;
 }
 
+// ---------------------------------------------------------------------------
+// Heading icons for the "This device" cards. Two-tier "kind-changing" logic:
+// a generic icon picked from the card *title* (TITLE_ICONS), overridden by a
+// specific icon when we can identify the browser brand or operating system
+// (browserIcon / osIcon). Everything is monochrome `currentColor` so it inherits
+// the heading's accent colour and stays consistent with the rest of the UI.
+// Brand glyphs are simplified, theme-tinted marks — not the vendors' colour logos.
+const ICONS = {
+  // Generic, title-based fallbacks.
+  browser:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 9h20"/><path d="M6 4v5"/><path d="M10 4v5"/></svg>',
+  system:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M9 2v2"/><path d="M15 20v2"/><path d="M9 20v2"/><path d="M20 9h2"/><path d="M20 15h2"/><path d="M2 9h2"/><path d="M2 15h2"/></svg>',
+  display:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>',
+  locale:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 0 20 15.3 15.3 0 0 1 0-20"/></svg>',
+  capabilities:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  network:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.5a16 16 0 0 1 20 0"/><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
+  graphics:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h4"/><path d="M14 14h4"/></svg>',
+  // Browser brands (simplified marks).
+  chrome:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>',
+  firefox:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+  safari:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>',
+  edge:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.6 13.4C3.6 7.8 7.9 4 12.5 4c4 0 6.9 2.4 6.9 5.4 0 2.3-1.9 4-4.7 4-1.8 0-3.1-1-3.1-2.3"/><path d="M4.2 11.8c-.4 1-.7 2.1-.7 3.3 0 3 2.6 5.4 6.2 5.4 3 0 5.6-1.6 7-4.1"/></svg>',
+  opera:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="3.5" ry="6.5"/></svg>',
+  // Operating systems (simplified marks; cut-outs use the card colour).
+  windows:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>',
+  apple:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M17.05 12.54c-.02-2.27 1.85-3.36 1.94-3.41-1.06-1.55-2.7-1.76-3.29-1.79-1.4-.14-2.73.82-3.44.82-.71 0-1.8-.8-2.96-.78-1.52.02-2.93.88-3.71 2.24-1.58 2.75-.4 6.81 1.13 9.04.75 1.09 1.64 2.31 2.81 2.27 1.13-.05 1.56-.73 2.93-.73 1.36 0 1.75.73 2.94.71 1.21-.02 1.98-1.11 2.72-2.21.86-1.26 1.21-2.49 1.23-2.55-.03-.01-2.36-.91-2.38-3.6z"/><path d="M14.78 6.27c.62-.76 1.05-1.8.93-2.85-.9.04-1.99.6-2.64 1.36-.58.67-1.09 1.74-.95 2.76 1 .08 2.03-.51 2.66-1.27z"/></svg>',
+  android:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M6 13a6 6 0 0 1 12 0v4a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z"/><rect x="2.5" y="12.5" width="2.2" height="6" rx="1.1"/><rect x="19.3" y="12.5" width="2.2" height="6" rx="1.1"/><path d="M8 3.5l1.6 2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 3.5l-1.6 2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="9.6" cy="10.5" r=".9" fill="hsl(var(--card))"/><circle cx="14.4" cy="10.5" r=".9" fill="hsl(var(--card))"/></svg>',
+  linux:
+    '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><path d="M12 2c-2.5 0-4 2-4 4.5v3.2c0 1.1-.5 1.9-1.3 2.9C5.3 14.3 4 16 4 17.8c0 .9.6 1.4 1.5 1.2.7-.2 1.3-.7 1.7-1.4-.1.8-.2 1.6-.2 2.2 0 1 .7 1.4 1.7 1.4h6.6c1 0 1.7-.4 1.7-1.4 0-.6-.1-1.4-.2-2.2.4.7 1 1.2 1.7 1.4.9.2 1.5-.3 1.5-1.2 0-1.8-1.3-3.5-2.7-5.2-.8-1-1.3-1.8-1.3-2.9V6.5C16 4 14.5 2 12 2z"/><circle cx="10.3" cy="7" r=".8" fill="hsl(var(--card))"/><circle cx="13.7" cy="7" r=".8" fill="hsl(var(--card))"/><path d="M11 8.7h2l-1 1.5z" fill="hsl(var(--card))"/></svg>',
+};
+
+// Card title → generic icon. The fallback when no brand/OS match is found.
+const TITLE_ICONS = {
+  Browser: ICONS.browser,
+  System: ICONS.system,
+  Display: ICONS.display,
+  'Locale & preferences': ICONS.locale,
+  'Capabilities & privacy': ICONS.capabilities,
+  Network: ICONS.network,
+  'System Graphics': ICONS.graphics,
+};
+
+// Specific browser/OS marks, matched against the strings we already parse for
+// display. Returns null when unknown so the caller falls back to the title icon.
+function browserIcon(name) {
+  if (!name || name === DASH) return null;
+  if (/edge/i.test(name)) return ICONS.edge;
+  if (/opera|opr\b/i.test(name)) return ICONS.opera;
+  if (/samsung/i.test(name)) return null; // no distinct mark → generic browser
+  if (/firefox/i.test(name)) return ICONS.firefox;
+  if (/chrom/i.test(name)) return ICONS.chrome; // Chrome / Chromium
+  if (/safari/i.test(name)) return ICONS.safari;
+  return null;
+}
+function osIcon(os) {
+  if (!os || os === DASH) return null;
+  if (/chrome\s*os|cros/i.test(os)) return ICONS.chrome; // before the generic mac/linux checks
+  if (/windows/i.test(os)) return ICONS.windows;
+  if (/mac|ios|ipad/i.test(os)) return ICONS.apple;
+  if (/android/i.test(os)) return ICONS.android;
+  if (/linux/i.test(os)) return ICONS.linux;
+  return null;
+}
+
 function parseBrowser(ua) {
   const tests = [
     ['Microsoft Edge', /Edg\/([\d.]+)/],
@@ -224,6 +302,7 @@ async function collectClientInfo() {
 
   groups.push({
     title: 'Browser',
+    icon: browserIcon(browser),
     rows: [
       { k: 'Browser', v: browserStr },
       { k: 'Engine', v: engineOf(ua) },
@@ -240,6 +319,7 @@ async function collectClientInfo() {
 
   groups.push({
     title: 'System',
+    icon: osIcon(osFromHints || parseOS(ua)),
     rows: [
       { k: 'Operating system', v: osFromHints || parseOS(ua) },
       {
@@ -334,9 +414,11 @@ async function collectClientInfo() {
 }
 
 function clientCard(group) {
+  // Matched browser/OS mark if we found one, else the generic icon for the title.
+  const icon = group.icon || TITLE_ICONS[group.title] || '';
   return `
     <article class="plat-client-card">
-      <h3 class="plat-client-title">${escape(group.title)}</h3>
+      <h3 class="plat-client-title">${icon ? `<span class="plat-client-icon" aria-hidden="true">${icon}</span>` : ''}<span>${escape(group.title)}</span></h3>
       <dl class="plat-kv plat-kv--wide">
         ${group.rows
           .map(
@@ -353,6 +435,12 @@ function clientCard(group) {
 
 export async function mountPlatform(viewEl, host) {
   document.title = 'Platform — Lolly';
+
+  // QoL deep links: every section is a <details>; the presence of its flag in the
+  // hash query (e.g. `#/platform?print`) forces it open, otherwise its default
+  // applies. Read straight off the hash — no router change.
+  const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+  const isOpen = (flag, defaultOpen) => params.has(flag) || defaultOpen;
 
   // Live client/runtime snapshot for the dashboard card at the top of the page.
   const clientGroups = await collectClientInfo();
@@ -390,6 +478,14 @@ export async function mountPlatform(viewEl, host) {
 
   const stat = (n, label) => `<span class="plat-stat"><strong>${n}</strong>${escape(label)}</span>`;
 
+  // Collapsible section: title becomes the <summary>; everything else the body.
+  // `flag`/`defaultOpen` decide the initial state (overridable via the hash query).
+  const panel = (flag, defaultOpen, id, title, body, extraClass = '') => `
+    <details class="plat-section${extraClass ? ` ${extraClass}` : ''}"${isOpen(flag, defaultOpen) ? ' open' : ''}>
+      <summary class="plat-section-summary"><h2 id="${id}" class="plat-section-title">${title}</h2></summary>
+      <div class="plat-section-body">${body}</div>
+    </details>`;
+
   viewEl.innerHTML = `
     <a href="#/" class="tools-home home-full">Tools</a>
     <div class="platform-layout">
@@ -402,143 +498,118 @@ export async function mountPlatform(viewEl, host) {
         </p>
       </header>
 
-      <details class="plat-section plat-device" aria-labelledby="plat-client">
-        <summary class="plat-device-summary">
-          <h2 id="plat-client" class="plat-section-title">This device</h2>
-        </summary>
-        <div class="plat-device-body">
+      ${panel('device', false, 'plat-client', 'This device', `
           <p class="plat-section-desc">A live, read-only snapshot of the browser and device this session is running on — handy when reproducing a render or export. Read on the fly from the current session; nothing is stored or sent anywhere.</p>
-          <div class="plat-client-grid">${clientGroups.map(clientCard).join('')}</div>
-        </div>
-      </details>
+          <div class="plat-client-grid">${clientGroups.map(clientCard).join('')}</div>`,
+        'plat-device')}
 
-      <section class="plat-section" aria-labelledby="plat-colours">
-        <div class="plat-section-head">
-          <h2 id="plat-colours" class="plat-section-title">Colour palette</h2>
+      ${panel('color', true, 'plat-colours', 'Colour palette', `
           <p class="plat-section-desc">Shown as swatches in every colour picker. ${measuredCount} of ${PALETTE.length} have measured <strong>CMYK</strong> ink values that are substituted directly into CMYK PDF exports; the rest fall back to a generic RGB→CMYK conversion.</p>
-        </div>
-        <div class="plat-legend">
-          <span class="plat-legend-item"><span class="plat-chip-flag is-static">CMYK</span> exact ink substitution</span>
-          <span class="plat-legend-item"><span class="plat-swatch-cmyk is-generic">RGB→CMYK (generic)</span> generic conversion at export</span>
-        </div>
-        <h3 class="plat-ramp-title">Brand colours</h3>
-        <div class="plat-swatch-grid">${brand.map(swatch).join('')}</div>
-        ${
-          spectrum.length
-            ? `<h3 class="plat-ramp-title">Spectrum <span class="plat-ramp-count">${spectrum.length}</span></h3>
-        <p class="plat-ramp-note">Secondary palette for infographics, charts &amp; data viz — it expands the colour wheel but does <strong>not</strong> replace brand colours.</p>
-        <div class="plat-swatch-grid">${spectrum.map(swatch).join('')}</div>`
-            : ''
-        }
-        ${ramps
-          .map(
-            ([fam, cols]) => `
-          <h3 class="plat-ramp-title">${escape(fam)} <span class="plat-ramp-count">${cols.length}</span></h3>
-          <div class="plat-swatch-grid">${cols.map(swatch).join('')}</div>`,
-          )
-          .join('')}
-      </section>
+          <div class="plat-legend">
+            <span class="plat-legend-item"><span class="plat-chip-flag is-static">CMYK</span> exact ink substitution</span>
+            <span class="plat-legend-item"><span class="plat-swatch-cmyk is-generic">RGB→CMYK (generic)</span> generic conversion at export</span>
+          </div>
+          <h3 class="plat-ramp-title">Brand colours</h3>
+          <div class="plat-swatch-grid">${brand.map(swatch).join('')}</div>
+          ${
+            spectrum.length
+              ? `<h3 class="plat-ramp-title">Spectrum <span class="plat-ramp-count">${spectrum.length}</span></h3>
+          <p class="plat-ramp-note">Secondary palette for infographics, charts &amp; data viz — it expands the colour wheel but does <strong>not</strong> replace brand colours.</p>
+          <div class="plat-swatch-grid">${spectrum.map(swatch).join('')}</div>`
+              : ''
+          }
+          ${ramps
+            .map(
+              ([fam, cols]) => `
+            <h3 class="plat-ramp-title">${escape(fam)} <span class="plat-ramp-count">${cols.length}</span></h3>
+            <div class="plat-swatch-grid">${cols.map(swatch).join('')}</div>`,
+            )
+            .join('')}`)}
 
-      <section class="plat-section" aria-labelledby="plat-print">
-        <div class="plat-section-head">
-          <h2 id="plat-print" class="plat-section-title">Print &amp; CMYK</h2>
+      ${panel('print', false, 'plat-print', 'Print &amp; CMYK', `
           <p class="plat-section-desc">Press conditions a CMYK PDF can declare in its <code>OutputIntent</code>. Selected per-export via the <code>colorProfile</code> option; raster &amp; on-screen output stays sRGB.</p>
-        </div>
-        <table class="plat-table">
-          <thead><tr><th>Profile key</th><th>Identifier</th><th>Condition</th></tr></thead>
-          <tbody>
-            ${Object.entries(CMYK_CONDITIONS)
-              .map(
-                ([key, c]) => `
-              <tr${key === DEFAULT_CMYK_CONDITION ? ' class="is-default"' : ''}>
-                <td><code>${escape(key)}</code>${key === DEFAULT_CMYK_CONDITION ? '<span class="plat-pill">default</span>' : ''}</td>
-                <td>${escape(c.identifier)}</td>
-                <td>${escape(c.info)}</td>
-              </tr>`,
-              )
-              .join('')}
-          </tbody>
-        </table>
-      </section>
+          <table class="plat-table">
+            <thead><tr><th>Profile key</th><th>Identifier</th><th>Condition</th></tr></thead>
+            <tbody>
+              ${Object.entries(CMYK_CONDITIONS)
+                .map(
+                  ([key, c]) => `
+                <tr${key === DEFAULT_CMYK_CONDITION ? ' class="is-default"' : ''}>
+                  <td><code>${escape(key)}</code>${key === DEFAULT_CMYK_CONDITION ? '<span class="plat-pill">default</span>' : ''}</td>
+                  <td>${escape(c.identifier)}</td>
+                  <td>${escape(c.info)}</td>
+                </tr>`,
+                )
+                .join('')}
+            </tbody>
+          </table>`)}
 
-      <section class="plat-section" aria-labelledby="plat-type">
-        <div class="plat-section-head">
-          <h2 id="plat-type" class="plat-section-title">Typography</h2>
+      ${panel('type', true, 'plat-type', 'Typography', `
           <p class="plat-section-desc">Bundled (local) variable typefaces — registered via <code>@font-face</code> and available to every tool canvas and the app UI. No webfont/CDN dependency.</p>
-        </div>
-        <div class="plat-font-grid">
-          ${FONTS.map(
-            (f) => `
-            <article class="plat-font">
-              <header class="plat-font-head">
-                <span class="plat-font-name" style="font-family:${f.stack}">${escape(f.family)}</span>
-                <span class="plat-font-role">${escape(f.role)}</span>
-              </header>
-              <div class="plat-font-specimen" style="font-family:${f.stack}">
-                <div class="plat-font-aa">Aa</div>
-                <p class="plat-font-pangram">The quick brown fox jumps over the lazy dog 0123456789</p>
-                <div class="plat-font-weights">
-                  ${WEIGHT_RAMP.map((w) => `<span style="font-weight:${w}">${w}</span>`).join('')}
+          <div class="plat-font-grid">
+            ${FONTS.map(
+              (f) => `
+              <article class="plat-font">
+                <header class="plat-font-head">
+                  <span class="plat-font-name" style="font-family:${f.stack}">${escape(f.family)}</span>
+                  <span class="plat-font-role">${escape(f.role)}</span>
+                </header>
+                <div class="plat-font-specimen" style="font-family:${f.stack}">
+                  <div class="plat-font-aa">Aa</div>
+                  <p class="plat-font-pangram">The quick brown fox jumps over the lazy dog 0123456789</p>
+                  <div class="plat-font-weights">
+                    ${WEIGHT_RAMP.map((w) => `<span style="font-weight:${w}">${w}</span>`).join('')}
+                  </div>
                 </div>
-              </div>
-              <dl class="plat-kv">
-                <div><dt>Type</dt><dd>${f.variable ? 'Variable' : 'Static'} · ${escape(f.weights)}</dd></div>
-                <div><dt>Styles</dt><dd>${f.styles.map(escape).join(', ')}</dd></div>
-                <div><dt>Source</dt><dd><code class="plat-src">${escape(f.source)}</code></dd></div>
-              </dl>
-            </article>`,
-          ).join('')}
-        </div>
-      </section>
+                <dl class="plat-kv">
+                  <div><dt>Type</dt><dd>${f.variable ? 'Variable' : 'Static'} · ${escape(f.weights)}</dd></div>
+                  <div><dt>Styles</dt><dd>${f.styles.map(escape).join(', ')}</dd></div>
+                  <div><dt>Source</dt><dd><code class="plat-src">${escape(f.source)}</code></dd></div>
+                </dl>
+              </article>`,
+            ).join('')}
+          </div>`)}
 
-      <section class="plat-section" aria-labelledby="plat-themes">
-        <div class="plat-section-head">
-          <h2 id="plat-themes" class="plat-section-title">Themes</h2>
+      ${panel('themes', true, 'plat-themes', 'Themes', `
           <p class="plat-section-desc">Selected via <code>[data-theme]</code> on the document. Each preview below is rendered in its own theme tokens.</p>
-        </div>
-        <div class="plat-theme-grid">
-          ${THEMES.map(
-            (t) => `
-            <div class="plat-theme" data-theme="${escape(t)}">
-              <div class="plat-theme-name">${escape(t)}${t === 'light' ? '<span class="plat-pill">default</span>' : ''}</div>
-              <div class="plat-theme-dots">
-                <span style="background:hsl(var(--primary))" title="primary"></span>
-                <span style="background:hsl(var(--card))" title="card"></span>
-                <span style="background:hsl(var(--accent))" title="accent"></span>
-                <span style="background:hsl(var(--muted))" title="muted"></span>
-                <span style="background:hsl(var(--foreground))" title="foreground"></span>
-              </div>
-              <div class="plat-theme-sample">Aa</div>
-            </div>`,
-          ).join('')}
-        </div>
-      </section>
+          <div class="plat-theme-grid">
+            ${THEMES.map(
+              (t) => `
+              <div class="plat-theme" data-theme="${escape(t)}">
+                <div class="plat-theme-name">${escape(t)}${t === 'light' ? '<span class="plat-pill">default</span>' : ''}</div>
+                <div class="plat-theme-dots">
+                  <span style="background:hsl(var(--primary))" title="primary"></span>
+                  <span style="background:hsl(var(--card))" title="card"></span>
+                  <span style="background:hsl(var(--accent))" title="accent"></span>
+                  <span style="background:hsl(var(--muted))" title="muted"></span>
+                  <span style="background:hsl(var(--foreground))" title="foreground"></span>
+                </div>
+                <div class="plat-theme-sample">Aa</div>
+              </div>`,
+            ).join('')}
+          </div>`)}
 
-      <section class="plat-section" aria-labelledby="plat-catalogue">
-        <div class="plat-section-head">
-          <h2 id="plat-catalogue" class="plat-section-title">Catalogue</h2>
+      ${panel('catalog', true, 'plat-catalogue', 'Catalogue', `
           <p class="plat-section-desc">What ships in this build, synced to clients as data.</p>
-        </div>
-        <div class="plat-stat-block">
-          <h3 class="plat-ramp-title">Tools <span class="plat-ramp-count">${tools.length}</span></h3>
-          <div class="plat-stats">
-            ${Object.entries(byCategory).sort((a, b) => b[1] - a[1]).map(([k, v]) => stat(v, k)).join('') || '<span class="plat-muted">none loaded</span>'}
+          <div class="plat-stat-block">
+            <h3 class="plat-ramp-title">Tools <span class="plat-ramp-count">${tools.length}</span></h3>
+            <div class="plat-stats">
+              ${Object.entries(byCategory).sort((a, b) => b[1] - a[1]).map(([k, v]) => stat(v, k)).join('') || '<span class="plat-muted">none loaded</span>'}
+            </div>
+            <div class="plat-stats plat-stats--sub">
+              ${Object.entries(byStatus).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="plat-chip">${v} ${escape(k)}</span>`).join('')}
+            </div>
           </div>
-          <div class="plat-stats plat-stats--sub">
-            ${Object.entries(byStatus).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="plat-chip">${v} ${escape(k)}</span>`).join('')}
-          </div>
-        </div>
-        <div class="plat-stat-block">
-          <h3 class="plat-ramp-title">Brand assets ${assets ? `<span class="plat-ramp-count">${assets.total}</span>` : ''}</h3>
-          <div class="plat-stats">
-            ${
-              assets
-                ? Object.entries(assets.byType).sort((a, b) => b[1] - a[1]).map(([k, v]) => stat(v, k)).join('')
-                : '<span class="plat-muted">unavailable offline</span>'
-            }
-          </div>
-        </div>
-      </section>
+          <div class="plat-stat-block">
+            <h3 class="plat-ramp-title">Brand assets ${assets ? `<span class="plat-ramp-count">${assets.total}</span>` : ''}</h3>
+            <div class="plat-stats">
+              ${
+                assets
+                  ? Object.entries(assets.byType).sort((a, b) => b[1] - a[1]).map(([k, v]) => stat(v, k)).join('')
+                  : '<span class="plat-muted">unavailable offline</span>'
+              }
+            </div>
+          </div>`)}
     </div>
   `;
 
@@ -584,6 +655,7 @@ export async function mountPlatform(viewEl, host) {
       }
     };
     device.addEventListener('toggle', onToggle);
+    if (device.open) onToggle(); // deep-linked open: wire listeners now (no toggle event fires)
     viewEl._cleanup = () => {
       cancelAnimationFrame(raf);
       device.removeEventListener('toggle', onToggle);
