@@ -1127,11 +1127,10 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
   const SNAPS = ['peek', 'half', 'full'];
   const mq = window.matchMedia('(max-width: 640px)');
   let state = 'half';
-  let dragging = false, moved = false, tapMode = false, tapDir = 1, startY = 0, startT = 0, startH = 0;
+  let dragging = false, moved = false, tapMode = false, tapDir = 1, startY = 0, startH = 0;
 
   const vh = () => window.innerHeight;
   const PEEK = 56; // header (48) only — its top padding hides the first input label
-  const heightFor = s => s === 'peek' ? PEEK : s === 'full' ? vh() * 0.9 : vh() * 0.5;
 
   function setState(s) {
     state = s;
@@ -1140,7 +1139,7 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
     onChange?.();
   }
 
-  const endDrag = (e) => {
+  const endDrag = () => {
     if (!dragging) return;
     dragging = false;
     layoutEl.classList.remove('is-sheet-dragging');
@@ -1165,15 +1164,17 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
       }
       return;
     }
-    // Velocity-aware: a quick flick throws the sheet to the far stop in its
-    // direction; a slow drag rests at whichever stop is nearest where you let go.
-    const dir = e ? flickDirection(e.clientY - startY, e.timeStamp - startT) : 0;
-    if (dir === 1)  return setState('peek');
-    if (dir === -1) return setState('full');
-    const h = sidebarEl.getBoundingClientRect().height;   // snap to the nearest stop
-    let best = SNAPS[0], bestD = Infinity;
-    for (const s of SNAPS) { const d = Math.abs(heightFor(s) - h); if (d < bestD) { bestD = d; best = s; } }
-    setState(best);
+    // Positional zones, no velocity: where the divider comes to rest decides the
+    // dock. The screen splits into equal thirds and the divider's resting Y picks
+    // the stop — release in the TOP third → dock to the top (peek, controls
+    // minimised), the BOTTOM third → dock to the bottom (full, controls maximised),
+    // the MIDDLE third → the 50/50 split (half). So a drag to the middle from
+    // either extreme always lands on split, and a drag to the top stays at the top.
+    const dividerY = sidebarEl.getBoundingClientRect().bottom; // grip rides the sheet's bottom edge
+    const third = vh() / 3;
+    if (dividerY < third)     return setState('peek');
+    if (dividerY > third * 2) return setState('full');
+    setState('half');
   };
 
   // Turn an element into a drag handle: the sheet follows the finger and snaps on
@@ -1183,7 +1184,7 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
     handleEl.addEventListener('pointerdown', e => {
       if (!mq.matches || (guard && !guard(e))) return;
       dragging = true; moved = false; tapMode = tapToggles;
-      startY = e.clientY; startT = e.timeStamp;
+      startY = e.clientY;
       startH = sidebarEl.getBoundingClientRect().height;
       layoutEl.classList.add('is-sheet-dragging');
       handleEl.setPointerCapture(e.pointerId);
@@ -1209,28 +1210,11 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
     guard: e => !e.target.closest('a, button, input, select, textarea, label'),
   });
 
-  // Flick the inputs themselves: with the list at the top, a downward flick
-  // collapses to peek so the artwork shows; an upward flick opens it to full.
-  // Gated on scrollTop 0 so scrolling a long input list is never hijacked. (The
-  // header drives the same states via drag, above; this is the body's quick path.)
-  const body = sidebarEl.querySelector('.sidebar-body');
-  if (body) {
-    let fy = 0, ft = 0, fromTop = true, tracking = false;
-    body.addEventListener('touchstart', e => {
-      tracking = mq.matches && e.touches.length === 1;
-      if (!tracking) return;
-      fy = e.touches[0].clientY;
-      ft = e.timeStamp;
-      fromTop = body.scrollTop <= 0;
-    }, { passive: true });
-    body.addEventListener('touchend', e => {
-      if (!tracking) return;
-      tracking = false;
-      const dir = flickDirection((e.changedTouches[0]?.clientY ?? fy) - fy, e.timeStamp - ft);
-      if (dir === 1 && fromTop && state !== 'peek') setState('peek');
-      else if (dir === -1 && state !== 'full') setState('full');
-    }, { passive: true });
-  }
+  // The body is for scrolling the controls — nothing else. It deliberately has NO
+  // drag/flick handler: a touch that lands on the inputs (or the gaps between them)
+  // must only ever scroll the list, never resize or dock the sheet. The grip and
+  // the header are the sole handles, so scrolling the controls can't collapse the
+  // split view out from under you. Resizing happens by dragging the grip/header.
 
   layoutEl.dataset.sheet = state; // define the var; only consumed under the mobile media query
 }
