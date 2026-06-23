@@ -750,6 +750,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           registration: actionsEl?.querySelector('[data-action="mark-reg"]')?.checked,
           bleed:        actionsEl?.querySelector('[data-action="mark-bleed"]')?.checked,
           colorBars:    actionsEl?.querySelector('[data-action="mark-bars"]')?.checked,
+          provenance:   actionsEl?.querySelector('[data-action="mark-prov"]')?.checked,
         });
         if (csv) params.set('marks', csv);
       }
@@ -1745,19 +1746,22 @@ function renderInputs(el, model, runtime, host, onDirty) {
   // click arms the button ("Delete?"); a second click within 3s (or while armed)
   // commits. Clicking elsewhere — or the timeout — disarms it.
   el.querySelectorAll('[data-block-remove]').forEach(btn => {
+    // Confirm only for typed (card) blocks; compact name/value rows keep their
+    // immediate delete (a "Delete?" label would stretch their tight grid cells).
+    const confirms = !!btn.closest('.block-item.is-typed');
+    const commit = () => {
+      const blockId = btn.dataset.blockInput;
+      const idx = parseInt(btn.dataset.blockIndex, 10);
+      const inp = panelModel.find(i => i.id === blockId);
+      if (!inp) return;
+      const arr = (Array.isArray(inp.value) ? [...inp.value] : []).filter((_, i) => i !== idx);
+      runtime.setInput(blockId, arr);
+      onDirty?.(blockId);
+    };
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      if (btn._armed) {
-        btn._disarm?.();
-        const blockId = btn.dataset.blockInput;
-        const idx = parseInt(btn.dataset.blockIndex, 10);
-        const inp = panelModel.find(i => i.id === blockId);
-        if (!inp) return;
-        const arr = (Array.isArray(inp.value) ? [...inp.value] : []).filter((_, i) => i !== idx);
-        runtime.setInput(blockId, arr);
-        onDirty?.(blockId);
-        return;
-      }
+      if (!confirms) { commit(); return; }
+      if (btn._armed) { btn._disarm?.(); commit(); return; }
       btn._armed = true;
       btn.classList.add('is-confirming');
       const original = btn.innerHTML;

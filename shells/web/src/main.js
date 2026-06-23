@@ -14,6 +14,7 @@ import { mountGallery } from './views/gallery.js';
 import { mountTool } from './views/tool.js';
 import { mountProfile } from './views/profile.js';
 import { mountPlatform } from './views/platform.js';
+import { mountCapabilities } from './views/capabilities.js';
 import { initTheme, applyTheme } from './theme.js';
 import { recordTool, recordBatch, bumpMetric, recordFormat } from './metrics.js';
 import { announce } from './a11y.js';
@@ -27,7 +28,7 @@ let _lastRouteName = null;
 // Announce client-side route changes (the view swaps via innerHTML, which
 // assistive tech wouldn't otherwise notice).
 function announceRoute(name) {
-  const labels = { gallery: 'Tools gallery', tool: 'Tool', profile: 'Profile', platform: 'Platform', pro: 'Batch mode' };
+  const labels = { gallery: 'Tools gallery', tool: 'Tool', profile: 'Profile', platform: 'Platform', capabilities: 'Capabilities', pro: 'Batch mode' };
   announce(`${labels[name] ?? 'Page'} loaded`);
 }
 
@@ -49,6 +50,7 @@ async function navigate(host) {
   view.classList.toggle('gallery-view', route.name === 'gallery');
   view.classList.toggle('profile-view', route.name === 'profile');
   view.classList.toggle('platform-view', route.name === 'platform');
+  view.classList.toggle('capabilities-view', route.name === 'capabilities');
   view.classList.toggle('pro-view', route.name === 'pro');
   view.classList.toggle('is-returning', returning);
 
@@ -62,6 +64,9 @@ async function navigate(host) {
       break;
     case 'platform':
       await mountPlatform(view, host);
+      break;
+    case 'capabilities':
+      await mountCapabilities(view, host);
       break;
     // --- /pro batch mode: isolated, lazy-loaded feature. Safe to remove by
     // deleting src/pro/ and this case + the parseRoute branch below. ---
@@ -158,15 +163,17 @@ function parseRoute() {
     }
     if (parts[0] === 'profile') return { name: 'profile', params: query || '' };
     if (parts[0] === 'platform') return { name: 'platform', params: query || '' };
+    if (parts[0] === 'capabilities') return { name: 'capabilities', params: query || '' };
     if (parts[0] === 'pro') return { name: 'pro', params: query || '' }; // /pro batch mode
     return { name: 'gallery' };
   }
 
   const pathParts = window.location.pathname.split('/').filter(Boolean);
   if (pathParts.length === 1) {
-    // /pro and /platform are real routes; everything else is a tool shortcut.
+    // /pro, /platform and /capabilities are real routes; everything else is a tool shortcut.
     if (pathParts[0] === 'pro') { window.location.replace('/#/pro'); return { name: 'pro' }; }
     if (pathParts[0] === 'platform') { window.location.replace('/#/platform'); return { name: 'platform' }; }
+    if (pathParts[0] === 'capabilities') { window.location.replace('/#/capabilities'); return { name: 'capabilities' }; }
     window.location.replace(`/#/tool/${pathParts[0]}${window.location.search}`);
     return { name: 'gallery' };
   }

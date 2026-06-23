@@ -179,14 +179,15 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
   // engine fixes where/orientation, the shell supplies the strings and measures
   // them for right-alignment. `align` is along the (post-rotation) baseline.
   if (m.provenance && reach > 0) {
-    // Top edge, horizontal, baselines near the page top (above the crop ticks,
-    // clear of the centred top mark): the timestamp left-aligned at the artwork
-    // (bleed) left edge, the platform credit right-aligned at the right edge.
-    labels.push({ slot: 'topLeft',  x: bL, y: li + ls, size: ls, rotation: 0, align: 'left',  mark: 'label' });
-    labels.push({ slot: 'topRight', x: bR, y: li + ls, size: ls, rotation: 0, align: 'right', mark: 'label' });
-    // Bottom-left, reading upward (90° CCW): starts low in the left margin band
-    // and climbs — the conventional spot for a tool/author credit.
-    labels.push({ slot: 'bottomLeftUp', x: reach / 2, y: bB, size: ls, rotation: 90, align: 'left', mark: 'label' });
+    // Anchor each credit to the TRIM edge (inset by li), which is always inboard
+    // of both the bleed tick and the crop tick at every corner — so a mark never
+    // overlays the text, and reading order is "bleed/crop line → then the text".
+    // Top edge baselines sit near the page top, clear of the centred top mark.
+    labels.push({ slot: 'topLeft',  x: trimL + li, y: li + ls, size: ls, rotation: 0, align: 'left',  mark: 'label' });
+    labels.push({ slot: 'topRight', x: trimR - li, y: li + ls, size: ls, rotation: 0, align: 'right', mark: 'label' });
+    // Bottom-left, reading upward (90° CCW): starts just inside the trimmed corner
+    // (above the bottom corner ticks) and climbs — the conventional credit spot.
+    labels.push({ slot: 'bottomLeftUp', x: reach / 2, y: trimB - li, size: ls, rotation: 90, align: 'left', mark: 'label' });
   }
 
   return {

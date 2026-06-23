@@ -1,6 +1,6 @@
 # Lolly Tools
 
-Powerfully reproducable asset & tools.
+Powerfully reproducible assets & tools.
 Deterministic, fast, free & open source. 
 
 <img src="https://lolly.tools/info/icon-normal.webp" alt="Lolly Icon - Large green and white lollipop candy" width="350"/>
@@ -22,8 +22,9 @@ Tools can be used via a:
 * Hard-coded constraints of design decisions.
 * 100% Free & Open Source, Unlimited scale, No SaaS fees. 
 * Low-or-Zero server costs: Lolly uses local device compute. 
-* Builds for Mac, Linux, iOS, Android, and web. 
-* Huge media support: SVG, PDF, PNG, JPEG, WEBP, AVIF, WEBM, MP4, GIF, TXT, HTML, MD 
+* Builds for Mac, Linux, iOS, Android, web, and the command line. 
+* Huge format support: SVG · PDF · Print PDF (CMYK) · CMYK TIFF · PNG · JPEG · WebP · AVIF · ICO · WebM · MP4 · GIF · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP 
+* Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars, and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
 * Works 100% Offline.
 * Full command-line support.
@@ -50,8 +51,8 @@ lolly/
 │   ├── tools/        # index.json — tool registry
 │   └── assets/       # index.json + asset files (logos, palettes, etc.)
 ├── schemas/          # JSON Schemas for tool.json, asset manifests, AssetRef, etc.
-├── docs/             # Architecture, contracts, tool-authoring guide
-├── scripts/          # validate-catalog.js
+├── docs/             # Architecture, contracts, tool-authoring guide + the /info site generator
+├── scripts/          # build-catalog-index.js, checksum-assets.js, validate-catalog.js
 └── tests/            # Engine and contract tests
 ```
 
@@ -105,9 +106,11 @@ See `docs/authoring-tools.md` to build your first tool.
 | Code Canvas | everyone | official |
 | Meeting Planner | everyone | official |
 | Dynamic Layout | everyone | official |
+| Color Block | everyone | official |
 | Logo | everyone | official |
 | Chart Creator | designer | official |
 | Duotone Filter | designer | official |
+| Street Map | designer | official |
 | Product Lockup | designer | experimental |
 | Bag Video | designer | experimental |
 | Film Burn Filter | designer | experimental |

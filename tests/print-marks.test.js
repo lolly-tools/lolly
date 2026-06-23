@@ -169,19 +169,26 @@ test('provenance → top-left date + top-right credit + bottom-left (read-up) an
   const tr = labels.find(l => l.slot === 'topRight');
   const bl = labels.find(l => l.slot === 'bottomLeftUp');
   assert.ok(tl && tr && bl);
-  // top-left reads horizontally, left-aligned to the artwork (bleed) left edge.
+  const li = PRINT_MARK_DEFAULTS.labelInsetPt;
+  const t = geo.boxes.trim;
+  // Labels anchor to the TRIM edges (inset li), inboard of the bleed/crop corner
+  // marks so a tick never overlays the text.
+  // top-left reads horizontally, left-aligned just inside the trim left edge.
   assert.equal(tl.rotation, 0);
   assert.equal(tl.align, 'left');
-  assert.ok(close(tl.x, geo.boxes.bleed.x));
-  // top-right reads horizontally, right-aligned to the artwork (bleed) right edge.
+  assert.ok(close(tl.x, t.x + li));
+  assert.ok(tl.x > geo.boxes.bleed.x);             // past the bleed corner tick
+  // top-right reads horizontally, right-aligned just inside the trim right edge.
   assert.equal(tr.rotation, 0);
   assert.equal(tr.align, 'right');
-  assert.ok(close(tr.x, geo.boxes.bleed.x + geo.boxes.bleed.w));
+  assert.ok(close(tr.x, t.x + t.w - li));
+  assert.ok(tr.x < geo.boxes.bleed.x + geo.boxes.bleed.w);
   // the two top labels share a baseline.
   assert.ok(close(tl.y, tr.y));
-  // bottom-left climbs (90° CCW), left-aligned from a low anchor.
+  // bottom-left climbs (90° CCW), left-aligned, starting above the bottom corner ticks.
   assert.equal(bl.rotation, 90);
   assert.equal(bl.align, 'left');
+  assert.ok(close(bl.y, t.y + t.h - li));
   // all sit in the margin, never strictly inside the trimmed artwork.
   for (const l of labels) {
     assert.ok(l.size > 0);
