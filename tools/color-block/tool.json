@@ -73,6 +73,22 @@
           "type": "text",
           "default": "",
           "placeholder": "Type here…",
+          "showFor": ["heading", "subheading", "body", "cta"],
+          "multilineFor": ["body"]
+        },
+        {
+          "id": "scale",
+          "label": "Text scale",
+          "type": "number",
+          "display": "slider",
+          "min": 0.3, "max": 2.5, "step": 0.05, "default": 1
+        },
+        {
+          "id": "weight",
+          "label": "Font weight",
+          "type": "number",
+          "display": "slider",
+          "min": 100, "max": 900, "step": 100, "default": 400,
           "showFor": ["heading", "subheading", "body", "cta"]
         },
         {
@@ -115,21 +131,6 @@
           "type": "number",
           "display": "slider",
           "min": 100, "max": 400, "step": 1, "default": 100
-        },
-        {
-          "id": "scale",
-          "label": "Scale",
-          "type": "number",
-          "display": "slider",
-          "min": 0.3, "max": 2.5, "step": 0.05, "default": 1
-        },
-        {
-          "id": "weight",
-          "label": "Weight",
-          "type": "number",
-          "display": "slider",
-          "min": 100, "max": 900, "step": 100, "default": 400,
-          "showFor": ["heading", "subheading", "body", "cta"]
         }
       ],
       "default": [

@@ -1382,6 +1382,8 @@ background-color:hsl(var(--background) / 1);
   text-transform: uppercase; color: hsl(var(--muted-foreground));
 }
 .block-fields .block-field--full { grid-column: 1 / -1; }
+/* Multi-line block text field (e.g. body copy) — grows downward, vertical resize only. */
+.block-field--textarea { min-height: 52px; line-height: 1.4; resize: vertical; }
 /* The legacy rule forces left-padding on every .block-field; typed cards don't
    want it (selects/ranges read better flush). */
 .block-item.is-typed .block-field { padding: 6px 8px !important; }
@@ -4277,6 +4279,16 @@ button {
 /* "Platform" entry pill — fixed top-right of the profile page, mirroring the
    top-left "Tools" return pill. Secondary treatment so the back button stays the
    primary action. */
+/* The Capabilities + Platform shortcuts share one fixed row in the corner. */
+.profile-meta-links {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 100;
+  display: flex;
+  gap: .5rem;
+}
+.profile-meta-links .profile-platform-link { position: static; top: auto; right: auto; }
 .profile-platform-link {
   position: fixed;
   top: 1.25rem;
@@ -4454,3 +4466,18 @@ button {
   font-size: .75rem; text-transform: capitalize;
 }
 .plat-muted { color: hsl(var(--muted-foreground)); font-size: .85rem; font-style: italic; }
+
+/* Capabilities (features) page — reuses the platform chrome (.plat-*, .platform-layout)
+   with a feature-card list whose feature name leads and its description follows. */
+.capabilities-view { overflow-y: auto; }
+.capabilities-view .platform-layout {
+  width: 100%; max-width: 1080px; margin: 0 auto;
+  padding: 3.25rem 1.25rem 5rem; /* top clears the fixed "Tools" pill */
+}
+.cap-grid { align-items: start; }
+.cap-card { display: flex; flex-direction: column; }
+.cap-feat { margin: 0; display: grid; gap: .85rem; }
+.cap-feat > div { display: block; }
+.cap-feat dt { margin: 0 0 .12rem; font-size: .82rem; font-weight: 650; color: hsl(var(--foreground)); }
+.cap-feat dd { margin: 0; font-size: .8rem; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.cap-feat dd code { font-family: 'SUSE Mono', ui-monospace, monospace; font-size: .92em; }
