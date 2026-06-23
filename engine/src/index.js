@@ -28,4 +28,8 @@ export {
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
 } from './tokens.js';
 
-export const ENGINE_VERSION = '1.0.0';
+// 1.1.0 — additive: `file` input type, the transform output path
+// (host.export.file + the `exportFile` hook + runtime.exportFile), and the
+// `privacy: 'on-device'` utility marker. All backwards-compatible with ^1.0.0
+// tools; no v1 method was removed or changed.
+export const ENGINE_VERSION = '1.1.0';

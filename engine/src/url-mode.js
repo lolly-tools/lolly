@@ -138,6 +138,9 @@ export function serializeUrlState(model, opts = {}) {
   const params = new URLSearchParams();
   for (const input of model) {
     if (input.value === null || input.value === undefined) continue;
+    // A picked file is binary user content — it has no shareable URL form (its
+    // bytes live only in memory on this device). Never serialise it.
+    if (input.type === 'file') continue;
     if (input.type === 'vector') {
       // One flat param per field: "<inputId>.<fieldId>=<value>".
       const v = input.value;
@@ -181,6 +184,12 @@ function coerceFromString(input, raw) {
     case 'asset':
       // Lightweight ref. The runtime resolves it before hydration.
       return { source: 'library', id: raw, _unresolved: true };
+    case 'file':
+      // Files can't ride in a URL as bytes. In CLI transport a file param is a
+      // filesystem path (--photo=./pic.jpg); the CLI loads its bytes into a
+      // FileRef before createRuntime. In the web shell this unresolved ref carries
+      // no bytes, so the runtime treats it as blank (resolveInitialValue).
+      return raw ? { __file: true, path: raw, _unresolved: true } : null;
     case 'blocks':
       // Accept legacy JSON format and compact tilde-delimited format.
       if (raw.startsWith('[')) {

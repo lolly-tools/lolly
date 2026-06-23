@@ -193,6 +193,17 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const noExport    = tool.manifest.render.export === false;
   const hideSidebar = noExport && !hasInputs;   // utility tools with no inputs: pure canvas
 
+  // On-device utilities (privacy:'on-device') carry an honest, prominent badge —
+  // the user's content is processed locally and never uploaded. It's the single
+  // most reassuring thing on screen for someone used to handing files to strangers.
+  const onDevice = tool.manifest.privacy === 'on-device';
+  const privacyBadge = onDevice
+    ? `<div class="on-device-badge" title="This tool runs entirely in your browser. Your file is never uploaded.">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Runs on your device — nothing is uploaded</span>
+      </div>`
+    : '';
+
   // The canvas is the visual OUTPUT (the editable interface is the sidebar), so
   // it's exposed to screen readers as a single role="img" with a text summary.
   // Authors can declare a live Handlebars summary (manifest.a11yLabel); otherwise
@@ -238,6 +249,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
             <button class="fullscreen-toggle" id="fullscreen-toggle" ${sidebarOpen ? 'open' : ''} aria-label="${sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}"></button>
           </div>
           <div class="sidebar-body">
+            ${privacyBadge}
             ${droppedNotice}
             <div id="tool-inputs" class="tool-inputs"></div>
             ${hasInputs ? `
@@ -669,6 +681,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     for (const entry of runtime.getModel()) {
       const { id, type, value } = entry;
       if (!dirtyParams.has(id)) continue;
+      // A picked file is binary, in-memory, device-local content — it has no
+      // shareable URL form. Never write it (would otherwise serialise to junk).
+      if (type === 'file') continue;
       if (type === 'asset') {
         // Library assets are shareable by ID; user uploads are device-local.
         const assetId = value?.id;
@@ -887,6 +902,38 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     });
   }
 
+  // File-utility download: a template [data-export-file] button asks the tool's
+  // exportFile hook to produce the transformed bytes (the file in → file out
+  // shape — EXIF strip, redact, compress, …), then delivers them via
+  // host.export.file (no watermark, no provenance — it's the user's own file).
+  // Delegated on the persistent content container so it survives the innerHTML
+  // rebuild the runtime subscriber does on every input change.
+  if (runtime.hasExportFile && contentEl) {
+    contentEl.addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-export-file]');
+      if (!btn || btn.dataset.busy) return;
+      btn.dataset.busy = '1';
+      btn.dataset.idleLabel ??= btn.textContent.trim();
+      btn.classList.remove('is-error');
+      btn.classList.add('is-busy');
+      btn.textContent = btn.dataset.busyLabel || 'Working…';
+      try {
+        const { bytes, mime, filename } = await runtime.exportFile();
+        const blob = new Blob([bytes], { type: mime || 'application/octet-stream' });
+        await host.export.file(blob, { filename: filename || 'file' });
+        btn.classList.remove('is-busy');
+        btn.textContent = btn.dataset.idleLabel;
+        delete btn.dataset.busy;
+      } catch (err) {
+        console.error('exportFile failed:', err);
+        btn.classList.remove('is-busy');
+        btn.classList.add('is-error');
+        btn.textContent = err?.message || 'Export failed — try again';
+        delete btn.dataset.busy;
+      }
+    });
+  }
+
   // Scripts in template HTML don't execute when set via innerHTML (browser security).
   // Run them once on first render; subsequent renders update data but keep the
   // same script context alive.
@@ -964,8 +1011,11 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       dirtyParams.clear();
       userHasMadeChanges = true;
       for (const input of runtime.getModel()) {
+        // Revoke a picked file's preview URL before clearing it (avoid a leak).
+        if (input.type === 'file' && input.value?.url) URL.revokeObjectURL(input.value.url);
         const blank = input.type === 'boolean' ? false
           : input.type === 'asset' ? null
+          : input.type === 'file' ? null
           : input.type === 'blocks' ? []
           : (input.default ?? '');
         await runtime.setInput(input.id, blank);
@@ -1632,6 +1682,42 @@ function renderInputs(el, model, runtime, host, onDirty) {
       return;
     }
 
+    if (input?.control === 'file-picker') {
+      const native  = control.querySelector('.file-native');
+      const trigger = control.querySelector('.file-trigger');
+      const clearer = control.querySelector('.file-clear');
+      // Revoke the previous preview object URL so picking a new file doesn't leak.
+      const revokePrev = () => {
+        const prev = runtime.getModel().find(i => i.id === id)?.value;
+        if (prev && prev.url) URL.revokeObjectURL(prev.url);
+      };
+      trigger?.addEventListener('click', () => native?.click());
+      clearer?.addEventListener('click', () => { revokePrev(); runtime.setInput(id, null); onDirty?.(id); });
+      native?.addEventListener('change', async () => {
+        const file = native.files && native.files[0];
+        if (!file) return;
+        if (input.maxSize && file.size > input.maxSize) {
+          announce(`That file is too large (max ${fmtBytes(input.maxSize)}).`, { assertive: true });
+          native.value = '';
+          return;
+        }
+        // Read the bytes in-memory and hand them to the model as a FileRef. The
+        // bytes never leave the device — there is no upload, no network call.
+        const bytes = new Uint8Array(await file.arrayBuffer());
+        revokePrev();
+        runtime.setInput(id, {
+          __file: true,
+          name: file.name,
+          mime: file.type || 'application/octet-stream',
+          size: file.size,
+          bytes,
+          url: URL.createObjectURL(file),
+        });
+        onDirty?.(id);
+      });
+      return;
+    }
+
     if (input?.control === 'datetime-local-input') return; // handled by flatpickr onClose
     if (input?.control === 'color-picker') return; // native picker handled by color-popover-native listener
 
@@ -1937,6 +2023,15 @@ function blockFieldDefault(f) {
   }
 }
 
+// Human-readable byte size for the file picker (chosen-file label + size limits).
+function fmtBytes(n) {
+  if (!(n > 0)) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.min(units.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
+  const v = n / Math.pow(1024, i);
+  return `${i === 0 ? v : v.toFixed(v < 10 ? 1 : 0)} ${units[i]}`;
+}
+
 function controlHtml(input) {
   const id  = escape(input.id);
   const val = escape(input.value ?? '');
@@ -1993,6 +2088,20 @@ function controlHtml(input) {
         ${thumb}
         <button type="button" class="asset-picker-trigger" data-input-id="${id}">${escape(currentLabel)}</button>
         ${hasValue ? `<button type="button" class="asset-clear" data-clear-id="${id}" aria-label="Clear selection">&#x2715;</button>` : ''}
+      </div>`;
+    }
+    case 'file-picker': {
+      // A picked file is a FileRef (bytes + metadata) the hook transforms; the
+      // bytes live only in memory and are never uploaded or persisted. The native
+      // <input type=file> is hidden behind a styled trigger; binding (renderInputs)
+      // reads the File into a FileRef on change.
+      const ref = input.value && typeof input.value === 'object' && input.value.__file ? input.value : null;
+      const accept = Array.isArray(input.accept) ? input.accept.join(',') : '';
+      const meta = ref ? `${escape(ref.name)}${ref.size ? ` · ${fmtBytes(ref.size)}` : ''}` : '';
+      return `<div class="file-picker" data-input-id="${id}">
+        <input type="file" class="file-native" ${accept ? `accept="${escape(accept)}"` : ''} hidden>
+        <button type="button" class="file-trigger">${ref ? 'Replace file…' : 'Choose file…'}</button>
+        ${ref ? `<div class="file-chosen"><span class="file-name" title="${escape(ref.name)}">${meta}</span><button type="button" class="file-clear" aria-label="Remove file">&#x2715;</button></div>` : ''}
       </div>`;
     }
     case 'time-input':
@@ -2253,7 +2362,12 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   if (manifest.render.export === false) {
     if (!el) return;
     const hasInputs = (manifest.inputs?.length ?? 0) > 0;
-    if (!hasInputs) { el.innerHTML = ''; return; }
+    // An explicit empty actions list opts out of the default Save+Share bar — for
+    // on-device file utilities that provide their own download button and must
+    // NOT persist the user's file bytes to storage (Save would write them to
+    // IndexedDB, contradicting the "nothing is stored/uploaded" promise).
+    const optedOut = Array.isArray(manifest.render.actions) && manifest.render.actions.length === 0;
+    if (!hasInputs || optedOut) { el.innerHTML = ''; return {}; }
     el.innerHTML = `<div class="export-action-buttons"><button data-action="save" class="save-btn">${SAVE_SVG}<span data-save-label>Save</span></button>${copyUrlBtn}</div>`;
     el.querySelector('[data-action="save"]').addEventListener('click', async function () {
       if (await performSave(this)) setTimeout(() => { window.location.hash = ''; }, 800);

@@ -22,13 +22,15 @@ Anybody can distribute their own apps, the tools and configuration of those apps
 
 ## Why the name "Lolly Tools"?
 
-Because freedom is sweet.
+**Lolly** Because freedom is sweet.
+**Tools** are inactive when not being used. Not spying on you, running secret programs, 
+Put it to work, your orders, actions, and terms.
 
 **Lolly** is an Australian, New Zealand, British term for 'sweets' or 'candy'. Just like lollies, tools are very tasty for people needing them.
 
 We're also laughing at the time and bills we are saving with this approach.
 
-**Tools** specifically because tools are things that can be put to work, most are inactive when not being used, not pinging telemetry data so an unkown product manager can
+
 
 
 ## What makes utilities different from tools?
