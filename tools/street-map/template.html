@@ -18,7 +18,9 @@
   /* ── Inputs (via _-prefixed extras so annotateTemplate leaves them alone) ──── */
   var city       = '{{_city}}' || 'nuremberg';
   var theme      = '{{_theme}}' === 'dark' ? 'dark' : 'light';
-  var roadWeight = parseFloat('{{_roadWeight}}') || 1;
+  var minorWeight = parseFloat('{{_minorRoadWeight}}') || 1;
+  var majorWeight = parseFloat('{{_majorRoadWeight}}') || 1;
+  var waterWeight = parseFloat('{{_waterWeight}}') || 1;
   var showWater  = '{{_showWater}}' === 'yes';
   var roadColor  = '{{_roadColor}}';
   var waterColor = '{{_waterColor}}';
@@ -135,7 +137,7 @@
     if (showWater && rivers.length) {
       gMap.append('path').datum(collection(rivers))
         .attr('fill', 'none').attr('stroke', pal.waterLine)
-        .attr('stroke-width', 1.2 * roadWeight)
+        .attr('stroke-width', 1.2 * waterWeight)
         .attr('vector-effect', 'non-scaling-stroke')
         .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
         .attr('d', path);
@@ -148,9 +150,11 @@
       (byTier[t] = byTier[t] || []).push(f);
     });
     Object.keys(byTier).map(Number).sort(function (a, b) { return a - b; }).forEach(function (t) {
+      /* Tiers 0–2 are minor streets, 3+ are major roads — each scaled by its own slider. */
+      var weight = t <= 2 ? minorWeight : majorWeight;
       gMap.append('path').datum(collection(byTier[t]))
         .attr('fill', 'none').attr('stroke', pal.road)
-        .attr('stroke-width', (TIER_W[t] || 1) * roadWeight)
+        .attr('stroke-width', (TIER_W[t] || 1) * weight)
         .attr('vector-effect', 'non-scaling-stroke')
         .attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round')
         .attr('d', path);

@@ -89,3 +89,68 @@ test('cmykToRgbApprox: primaries and paper white', () => {
   assert.deepEqual(cmykToRgbApprox([0, 0, 0, 1]), [0, 0, 0]);      // black
   assert.deepEqual(cmykToRgbApprox([1, 0, 0, 0]), [0, 1, 1]);      // cyan → (0,1,1)
 });
+
+// ── Brand verification colour bar ────────────────────────────────────────────
+
+const BRAND3 = [
+  { rgb: [0.05, 0.20, 0.17], cmyk: [0.65, 0, 0.35, 0.85], label: 'Pine' },
+  { rgb: [0.19, 0.73, 0.47], cmyk: [0.70, 0, 0.65, 0],    label: 'Jungle' },
+  { rgb: [1.00, 0.49, 0.25], cmyk: [0,    0.60, 0.80, 0], label: 'Persimmon' },
+];
+
+// The four solid process primaries that lead the brand verification bar.
+const CMYK_PRIMARIES = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+
+test('brand bar leads with solid C/M/Y/K, then a gap, then RGB+CMYK pairs', () => {
+  const geo = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: BRAND3 });
+  const bars = geo.primitives.bars;
+  // Process primaries first: four solid DeviceCMYK calibration cells.
+  const primaries = bars.slice(0, 4);
+  primaries.forEach((b, i) => {
+    assert.equal(b.ink, 'cmyk');
+    assert.deepEqual(b.cmyk, CMYK_PRIMARIES[i]);
+  });
+  // Then one RGB-reference + CMYK-substitution pair per brand colour.
+  const pairs = bars.slice(4);
+  assert.equal(pairs.length, 2 * BRAND3.length);
+  for (let i = 0; i < pairs.length; i += 2) {
+    const rgbCell = pairs[i], cmykCell = pairs[i + 1];
+    assert.equal(rgbCell.ink, 'rgb');
+    assert.equal(cmykCell.ink, 'cmyk');
+    assert.deepEqual(rgbCell.rgb, cmykCell.rgb);
+    assert.deepEqual(rgbCell.cmyk, cmykCell.cmyk);
+    assert.equal(rgbCell.label, cmykCell.label);
+    assert.ok(close(rgbCell.x + rgbCell.w, cmykCell.x));   // the pair touches (no inner gap)
+    assert.ok(!strictlyInsideTrim(geo, rgbCell.x, rgbCell.y));
+    assert.ok(!strictlyInsideTrim(geo, cmykCell.x, cmykCell.y));
+  }
+  // A wider gap separates the process primaries from the first brand pair than
+  // separates one brand pair from the next.
+  const groupGap = pairs[0].x - (primaries[3].x + primaries[3].w);
+  const pairGap  = pairs[2].x - (pairs[1].x + pairs[1].w);
+  assert.ok(groupGap > pairGap);
+});
+
+test('verification bar caps brand cells (not the primaries), in whole pairs', () => {
+  const many = Array.from({ length: 20 }, (_, i) =>
+    ({ rgb: [0, 0, 0], cmyk: [0, 0, 0, i / 20], label: `c${i}` }));
+  const bars = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true }, palette: many }).primitives.bars;
+  const brandCells = bars.length - 4;                    // minus the four primaries
+  assert.ok(brandCells <= PRINT_MARK_DEFAULTS.barMaxCells);
+  assert.equal(brandCells % 2, 0);
+});
+
+test('every bar cell stays left of the centred bottom registration target', () => {
+  // Medium trim + registration: some brand pairs fit, the rest are width-capped;
+  // nothing (primary or pair) may cross into the centre mark's lane.
+  const geo = computePrintGeometry({ trimWpt: 320, trimHpt: 320, bleedPt: 8.5, marks: ALL, palette: BRAND3 });
+  const maxX = geo.page.w / 2 - PRINT_MARK_DEFAULTS.regCrossPt - 6;
+  assert.ok(geo.primitives.bars.length >= 4);            // primaries always present
+  for (const b of geo.primitives.bars) assert.ok(b.x + b.w <= maxX + 0.01);
+});
+
+test('no palette → generic process bar (cells follow the page ink space)', () => {
+  const bars = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { colorBars: true } }).primitives.bars;
+  assert.ok(bars.length > 0);
+  assert.ok(bars.every(b => b.ink === 'page'));
+});

@@ -3,7 +3,7 @@
   "name": "Street Map",
   "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
   "a11yLabel": "Street map centered on {{city}}",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -93,21 +93,43 @@
       ]
     },
     {
-      "id": "roadWeight",
-      "label": "Road weight",
+      "id": "minorRoadWeight",
+      "label": "Minor road weight",
       "type": "number",
       "display": "slider",
       "default": 1,
       "min": 0.25,
-      "max": 9,
+      "max": 24,
       "step": 0.01,
-      "help": "Stroke thickness of the road lines."
+      "help": "Stroke thickness of minor streets (service, residential, tertiary)."
+    },
+    {
+      "id": "majorRoadWeight",
+      "label": "Major road weight",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.25,
+      "max": 24,
+      "step": 0.01,
+      "help": "Stroke thickness of major roads (secondary, primary, motorway)."
     },
     {
       "id": "showWater",
       "label": "Show water",
       "type": "boolean",
       "default": true
+    },
+    {
+      "id": "waterWeight",
+      "label": "Waterway weight",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.25,
+      "max": 30,
+      "step": 0.01,
+      "help": "Stroke thickness of rivers and streams. Crank it up to make waterways more prominent."
     },
     {
       "id": "roadColor",

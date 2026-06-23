@@ -1,0 +1,255 @@
+<style>
+/* SUSE variable font — same source the lockup / dynamic-layout tools use. */
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSE[wght].woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSE-Black.woff2') format('woff2');
+  font-weight: 900;
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.cb-root {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+  font-family: 'SUSE', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  /* Baseline grid for the no-JS path (CLI / first paint). The controller below
+     replaces template-columns/rows with the count + aspect-ratio fit. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(45%, 1fr));
+  grid-auto-rows: 1fr;
+}
+
+/* ── A block ──
+   Each block is a self-sizing cell. `container-type: size` lets the text fall
+   back to a cell-relative size (cqmin) when the fit controller can't run; on the
+   web the controller binary-searches an exact fill. The block also exposes its
+   content type as a parent class (heading-block, body-block, …) so authors can
+   make per-type CSS tweaks, e.g. `.cta-block .cb-text { letter-spacing: .1em }`. */
+.cb-block {
+  position: relative;
+  overflow: hidden;
+  container-type: size;
+  display: flex;
+  min-width: 0; min-height: 0;
+}
+
+/* Full-bleed background image (object-fit cover + pan/zoom from the block's
+   bgX / bgY / bgZoom). Sits under the content. */
+.cb-img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.cb-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  font-size: 8cqmin;               /* no-JS baseline; the controller overrides */
+  overflow: hidden;
+}
+
+.cb-text {
+  font-size: calc(1em * var(--scale, 1));
+  font-weight: var(--weight, 400);
+  line-height: 1.06;
+  max-width: 100%;
+}
+.cb-text p { margin: 0 0 0.4em; }
+.cb-text p:last-child { margin-bottom: 0; }
+.cb-text strong { font-weight: 700; }
+.cb-text em { font-style: italic; }
+.cb-text del { text-decoration: line-through; }
+.cb-text ul { list-style: none; margin: 0.1em 0 0; padding: 0; }
+.cb-text li { position: relative; padding-left: 1.1em; margin: 0 0 0.3em; }
+.cb-text li::before {
+  content: ''; position: absolute; left: 0; top: 0.5em;
+  width: 0.38em; height: 0.38em; border-radius: 50%; background: currentColor;
+}
+.cb-text li.md-arrow::before      { content: '\2192'; background: none; left: -0.05em; top: 0; }
+.cb-text li.md-arrow-left::before { content: '\2190'; background: none; left: -0.05em; top: 0; }
+.cb-text li.md-arrow-up::before   { content: '\2191'; background: none; left: -0.05em; top: 0; }
+.cb-text li.md-arrow-down::before { content: '\2193'; background: none; left: -0.05em; top: 0; }
+
+/* ── Per-type defaults (authors override freely via the *-block parent class) ── */
+.heading-block    .cb-text { font-weight: var(--weight, 800); line-height: 0.96; letter-spacing: -0.02em; }
+.subheading-block .cb-text { font-weight: var(--weight, 500); line-height: 1.12; letter-spacing: -0.005em; }
+.body-block       .cb-text { font-weight: var(--weight, 400); line-height: 1.4; }
+
+.cta-block .cb-content { align-items: flex-start; }
+.cta-block .cb-cta {
+  display: inline-flex; align-items: center;
+  font-weight: var(--weight, 600);
+  border: solid currentColor;
+  border-width: calc(var(--weight, 600) / 100 * 0.45px + 1px);
+  border-radius: 999px;
+  padding: 0.5em 1.1em;
+  line-height: 1; white-space: nowrap;
+}
+
+/* Headshot: the block's image, centred as a circle and sized by scale. */
+.headshot-block { align-items: center; justify-content: center; }
+.headshot-block .cb-img {
+  position: static; inset: auto;
+  width: calc(68cqmin * var(--scale, 1));
+  height: calc(68cqmin * var(--scale, 1));
+  max-width: 92%; max-height: 92%;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* ── Corner logo (overlays the grid; variant chosen by the controller) ── */
+.cb-logo {
+  position: absolute;
+  z-index: 3;
+  height: 5.5%;
+  width: auto;
+  max-width: 34%;
+  object-fit: contain;
+  pointer-events: none;
+}
+.cb-logo-top-left     { top: 6%;    left: 6%;  }
+.cb-logo-top-right    { top: 6%;    right: 6%; }
+.cb-logo-bottom-left  { bottom: 6%; left: 6%;  }
+.cb-logo-bottom-right { bottom: 6%; right: 6%; }
+</style>
+
+<div class="cb-root" id="cb-root">
+  {{#each blocks}}
+  <div class="cb-block {{kind}}-block{{#if this.bgImage}} has-img{{/if}}"
+       data-kind="{{kind}}"
+       style="background-color:{{lookup ../blockBg @index}}; color:{{lookup ../blockFg @index}}; --scale:{{default this.scale 1}}; --weight:{{default this.weight 400}};">
+    {{#if this.bgImage}}<img class="cb-img" src="{{asset this.bgImage}}" alt=""
+       style="object-position:{{default this.bgX 50}}% {{default this.bgY 50}}%; transform-origin:{{default this.bgX 50}}% {{default this.bgY 50}}%; transform:scale(calc({{default this.bgZoom 100}} / 100));">{{/if}}
+    {{#if (eq kind "heading")}}<div class="cb-content"><span class="cb-text">{{arrow this.text}}</span></div>{{/if}}
+    {{#if (eq kind "subheading")}}<div class="cb-content"><div class="cb-text">{{{markdown (arrow this.text)}}}</div></div>{{/if}}
+    {{#if (eq kind "body")}}<div class="cb-content"><div class="cb-text">{{{markdown this.text}}}</div></div>{{/if}}
+    {{#if (eq kind "cta")}}<div class="cb-content"><span class="cb-text cb-cta">{{arrow this.text}}</span></div>{{/if}}
+  </div>
+  {{/each}}
+
+  {{#if logo}}{{#unless (eq logo "none")}}
+  <img class="cb-logo cb-logo-{{logo}}" id="cb-logo" data-corner="{{logo}}"
+       data-white="{{asset logoWhite}}" data-black="{{asset logoBlack}}"
+       src="{{asset logoWhite}}" alt="SUSE logo">
+  {{/unless}}{{/if}}
+</div>
+
+<script>
+(function () {
+  var root = document.getElementById('cb-root');
+  if (!root) return;
+  var blocks = Array.prototype.slice.call(root.querySelectorAll('.cb-block'));
+  var logo = document.getElementById('cb-logo');
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // Relative luminance of a CSS "rgb(...)" string (what getComputedStyle returns).
+  function lumOf(css) {
+    var n = (String(css).match(/\d+\.?\d*/g) || []).map(Number);
+    if (n.length < 3) return 1;
+    function ch(v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+    return 0.2126 * ch(n[0]) + 0.7152 * ch(n[1]) + 0.0722 * ch(n[2]);
+  }
+
+  // Columns × rows that best fit `n` cells into an `ar`-wide frame: more columns
+  // as it gets wider, more rows as it gets taller, near-square in between.
+  function grid(n, ar) {
+    if (n <= 0) return { cols: 1, rows: 1 };
+    var cols = clamp(Math.round(Math.sqrt(n * ar)), 1, n);
+    return { cols: cols, rows: Math.ceil(n / cols) };
+  }
+
+  function applyGrid(W, H) {
+    var n = blocks.length;
+    if (!n) return;
+    var g = grid(n, (W && H) ? W / H : 16 / 9);
+    root.style.gridTemplateColumns = 'repeat(' + g.cols + ',1fr)';
+    root.style.gridTemplateRows = 'repeat(' + g.rows + ',1fr)';
+    // Stretch the final (short) row so it spans the full width — no empty cells.
+    blocks.forEach(function (b) { b.style.gridColumn = ''; });
+    var lastCount = n - (g.rows - 1) * g.cols;
+    if (lastCount > 0 && lastCount < g.cols) {
+      var base = Math.floor(g.cols / lastCount), extra = g.cols % lastCount;
+      var start = (g.rows - 1) * g.cols;
+      for (var k = 0; k < lastCount; k++) {
+        if (blocks[start + k]) blocks[start + k].style.gridColumn = 'span ' + (base + (k < extra ? 1 : 0));
+      }
+    }
+  }
+
+  function pad(b) { return Math.round(clamp(Math.min(b.clientWidth, b.clientHeight) * 0.09, 12, 96)); }
+
+  // Binary-search the content font-size so the block's text fills its cell
+  // (minus padding) without overflowing. One size scales the whole stack, so the
+  // per-type ratios and the block's --scale knob hold.
+  function fit(b) {
+    var content = b.querySelector('.cb-content');
+    if (!content) return;
+    var text = content.querySelector('.cb-text');
+    if (!text || !text.textContent.trim()) return;
+    var availW = content.clientWidth, availH = content.clientHeight;
+    if (availW <= 0 || availH <= 0) return;
+    function fits(s) { content.style.fontSize = s + 'px'; return content.scrollHeight <= availH && content.scrollWidth <= availW; }
+    var lo = 6, hi = Math.max(availW, availH);
+    if (fits(hi)) return;
+    while (hi - lo > 0.5) { var m = (lo + hi) / 2; if (fits(m)) lo = m; else hi = m; }
+    content.style.fontSize = lo + 'px';
+  }
+
+  // White mark over dark corners, black over light. The "corner" is the block
+  // whose rect actually contains the logo's inset corner point; over an image we
+  // assume a light mark, since the photo's tone is unknown.
+  function placeLogo() {
+    if (!logo) return;
+    var corner = logo.getAttribute('data-corner') || 'top-right';
+    var r = root.getBoundingClientRect();
+    var ins = 0.08;
+    var px = corner.indexOf('left') >= 0 ? r.left + r.width * ins : r.right - r.width * ins;
+    var py = corner.indexOf('top') === 0 ? r.top + r.height * ins : r.bottom - r.height * ins;
+    var dark = true, target = null;
+    for (var i = 0; i < blocks.length; i++) {
+      var br = blocks[i].getBoundingClientRect();
+      if (px >= br.left && px <= br.right && py >= br.top && py <= br.bottom) { target = blocks[i]; break; }
+    }
+    if (target) dark = target.classList.contains('has-img') ? true : lumOf(getComputedStyle(target).backgroundColor) < 0.5;
+    var white = logo.getAttribute('data-white'), black = logo.getAttribute('data-black');
+    var want = dark ? white : black;
+    if (want && logo.getAttribute('src') !== want) logo.setAttribute('src', want);
+  }
+
+  function layout() {
+    var W = root.clientWidth, H = root.clientHeight;
+    applyGrid(W, H);
+    blocks.forEach(function (b) { b.style.padding = pad(b) + 'px'; });
+    blocks.forEach(fit);
+    placeLogo();
+  }
+
+  layout();
+  // Re-measure with real glyph metrics once the SUSE font loads (export waits on
+  // document.fonts.ready), and whenever the frame is resized for export.
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layout);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(function () { layout(); });
+    ro.observe(root);
+  }
+}());
+</script>

@@ -28,7 +28,7 @@ Because freedom is sweet.
 
 We're also laughing at the time and bills we are saving with this approach.
 
-**Tools** specifically because that's what Lolly hosts and supercharges: things that can be put to work, and are inactive and in your control without instruction. 
+**Tools** specifically because tools are things that can be put to work, most are inactive when not being used, not pinging telemetry data so an unkown product manager can
 
 
 ## What makes utilities different from tools?

@@ -20,6 +20,81 @@
   },
   "inputs": [
     {
+      "id": "logo",
+      "label": "Logo",
+      "section": "Logo",
+      "type": "select",
+      "default": "top-right",
+      "options": [
+        { "value": "none",         "label": "None" },
+        { "value": "top-left",     "label": "Top left" },
+        { "value": "top-right",    "label": "Top right" },
+        { "value": "bottom-left",  "label": "Bottom left" },
+        { "value": "bottom-right", "label": "Bottom right" }
+      ],
+      "help": "Drop the SUSE logo in a corner. The right variant for the theme is chosen automatically."
+    },
+    {
+      "id": "logoStyle",
+      "label": "Logo style",
+      "section": "Logo",
+      "type": "select",
+      "default": "mono",
+      "options": [
+        { "value": "mono",  "label": "Mono (white / black)" },
+        { "value": "brand", "label": "Brand green" }
+      ],
+      "help": "Mono stays legible on any theme; brand green uses the green mark."
+    },
+    {
+      "id": "bgImage",
+      "label": "Background image",
+      "section": "Background",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Optional full-bleed background behind the content."
+    },
+    {
+      "id": "imageFilter",
+      "label": "Image filter",
+      "section": "Background",
+      "type": "select",
+      "default": "none",
+      "options": [
+        { "value": "none",  "label": "None" },
+        { "value": "mono",  "label": "Mono" },
+        { "value": "punch", "label": "Punch" },
+        { "value": "warm",  "label": "Warm" },
+        { "value": "cool",  "label": "Cool" },
+        { "value": "fade",  "label": "Fade" }
+      ]
+    },
+    {
+      "id": "imageFraming",
+      "label": "Position",
+      "section": "Background",
+      "help": "Zoom scales the background image up to crop in; X / Y pan it. Drag a label or type a value.",
+      "type": "vector",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
+      ]
+    },
+    {
+      "id": "bgOpacity",
+      "label": "Overlay",
+      "section": "Background",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 1,
+      "step": 0.01,
+      "default": 0.4,
+      "help": "Tint the image with the theme colour so text stays legible."
+    },
+    {
       "id": "theme",
       "label": "Theme",
       "type": "select",
@@ -180,81 +255,6 @@
       "allowUpload": true,
       "filter": { "namespace": "suse/headshots" },
       "help": "Optional portrait. When set, it anchors its own colour block beside the text."
-    },
-    {
-      "id": "bgImage",
-      "label": "Background image",
-      "section": "Background",
-      "type": "asset",
-      "assetType": "raster",
-      "allowUpload": true,
-      "help": "Optional full-bleed background behind the content."
-    },
-    {
-      "id": "imageFilter",
-      "label": "Image filter",
-      "section": "Background",
-      "type": "select",
-      "default": "none",
-      "options": [
-        { "value": "none",  "label": "None" },
-        { "value": "mono",  "label": "Mono" },
-        { "value": "punch", "label": "Punch" },
-        { "value": "warm",  "label": "Warm" },
-        { "value": "cool",  "label": "Cool" },
-        { "value": "fade",  "label": "Fade" }
-      ]
-    },
-    {
-      "id": "imageFraming",
-      "label": "Position",
-      "section": "Background",
-      "help": "Zoom scales the background image up to crop in; X / Y pan it. Drag a label or type a value.",
-      "type": "vector",
-      "fields": [
-        { "id": "zoom", "label": "Zoom", "symbol": "+", "min": 100, "max": 400, "step": 1, "default": 100 },
-        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50  },
-        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
-      ]
-    },
-    {
-      "id": "bgOpacity",
-      "label": "Overlay",
-      "section": "Background",
-      "type": "number",
-      "display": "slider",
-      "min": 0,
-      "max": 1,
-      "step": 0.01,
-      "default": 0.4,
-      "help": "Tint the image with the theme colour so text stays legible."
-    },
-    {
-      "id": "logo",
-      "label": "Logo",
-      "section": "Logo",
-      "type": "select",
-      "default": "top-right",
-      "options": [
-        { "value": "none",         "label": "None" },
-        { "value": "top-left",     "label": "Top left" },
-        { "value": "top-right",    "label": "Top right" },
-        { "value": "bottom-left",  "label": "Bottom left" },
-        { "value": "bottom-right", "label": "Bottom right" }
-      ],
-      "help": "Drop the SUSE logo in a corner. The right variant for the theme is chosen automatically."
-    },
-    {
-      "id": "logoStyle",
-      "label": "Logo style",
-      "section": "Logo",
-      "type": "select",
-      "default": "mono",
-      "options": [
-        { "value": "mono",  "label": "Mono (white / black)" },
-        { "value": "brand", "label": "Brand green" }
-      ],
-      "help": "Mono stays legible on any theme; brand green uses the green mark."
     }
   ]
 }

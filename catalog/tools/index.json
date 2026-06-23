@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-22T17:29:22.037Z",
+  "generatedAt": "2026-06-23T11:18:10.786Z",
   "tools": [
     {
       "id": "dynamic-layout",
@@ -140,9 +140,17 @@
       "id": "street-map",
       "name": "Street Map",
       "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "status": "official",
       "category": "designer"
+    },
+    {
+      "id": "color-block",
+      "name": "Color Block",
+      "description": "Stack typed colour blocks — heading, text, headshot — and they auto-compose into a grid that fills any frame.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
     }
   ]
 }

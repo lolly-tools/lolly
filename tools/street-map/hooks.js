@@ -10,14 +10,16 @@
  */
 
 function compute(inputs) {
-  const theme      = inputs.theme === 'dark' ? 'dark' : 'light';
-  const city       = (inputs.city || 'nuremberg').trim();
-  const roadWeight = Math.max(0.1, Number(inputs.roadWeight) || 1);
-  const showWater  = inputs.showWater !== false && inputs.showWater !== 'false';
-  const roadColor  = (inputs.roadColor || '').trim();
-  const waterColor = (inputs.waterColor || '').trim();
-  const background = (inputs.background || '').trim();
-  const view       = (inputs.view || '').trim();
+  const theme           = inputs.theme === 'dark' ? 'dark' : 'light';
+  const city            = (inputs.city || 'nuremberg').trim();
+  const minorRoadWeight = Math.max(0.1, Number(inputs.minorRoadWeight) || 1);
+  const majorRoadWeight = Math.max(0.1, Number(inputs.majorRoadWeight) || 1);
+  const waterWeight     = Math.max(0.1, Number(inputs.waterWeight) || 1);
+  const showWater       = inputs.showWater !== false && inputs.showWater !== 'false';
+  const roadColor       = (inputs.roadColor || '').trim();
+  const waterColor      = (inputs.waterColor || '').trim();
+  const background       = (inputs.background || '').trim();
+  const view            = (inputs.view || '').trim();
 
   return {
     // Declared values — only used in attribute context in the markup (safe).
@@ -25,14 +27,16 @@ function compute(inputs) {
     city,
 
     // Extras for the template <script> (keys don't match input IDs → not annotated).
-    _theme:      theme,
-    _city:       city,
-    _roadWeight: String(roadWeight),
-    _showWater:  showWater ? 'yes' : 'no',
-    _roadColor:  roadColor,
-    _waterColor: waterColor,
-    _background: background,
-    _view:       view,
+    _theme:           theme,
+    _city:            city,
+    _minorRoadWeight: String(minorRoadWeight),
+    _majorRoadWeight: String(majorRoadWeight),
+    _waterWeight:     String(waterWeight),
+    _showWater:       showWater ? 'yes' : 'no',
+    _roadColor:       roadColor,
+    _waterColor:      waterColor,
+    _background:      background,
+    _view:            view,
   };
 }
 

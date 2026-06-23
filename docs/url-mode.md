@@ -132,8 +132,8 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `height` / `h` | web + CLI | Output height, as a value in `unit`. Also pre-fills the export dimensions panel. |
 | `unit` | web + CLI | Physical unit for `width`/`height`: `px` (default), `mm`, `cm`, `in`, `pt`, `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
-| `bleed` | web only | Bleed amount for `pdf` / `pdf-cmyk`, as a dimension (e.g. `3mm`, `0.125in`). The artwork is scaled to fill the bleed; `TrimBox`/`BleedBox` are set. |
-| `marks` | web only | Print marks for `pdf` / `pdf-cmyk` — a CSV of `crop`, `reg`, `bleed`, `bars`. Drawn in the page margin (registration prints on all four plates in `pdf-cmyk`). |
+| `bleed` | web only | Bleed amount for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`), as a dimension (e.g. `3mm`, `0.125in`). The artwork is scaled to fill the bleed; the PDF declares `TrimBox`/`BleedBox`, the TIFF is enlarged to the full sheet. |
+| `marks` | web only | Print marks for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`) — a CSV of `crop`, `reg`, `bleed`, `bars`. Drawn in the page margin (PDF) or rasterised into the image margin (TIFF); registration prints on all four plates in `pdf-cmyk` and `cmyk-tiff`. |
 
 `export`, `copy`, `full`, and `options` are **presence flags** — the parameter value is ignored; what matters is whether the key appears in the URL.
 
@@ -155,17 +155,22 @@ brand-tool poster --title=Hello --width=210 --height=297 --unit=mm --export=svg 
 
 ### Print marks & bleed (`bleed=` + `marks=`)
 
-For print-ready PDFs, `bleed=` and `marks=` add the prep a print shop expects to the
-`pdf` (RGB) and `pdf-cmyk` (Print PDF) formats. They're ignored for every other format.
+For print-ready output, `bleed=` and `marks=` add the prep a print shop expects to the
+`pdf` (RGB), `pdf-cmyk` (Print PDF) and `cmyk-tiff` (Print TIFF) formats. They're ignored
+for every other format. The two CMYK formats apply the same engine geometry — the PDF as
+vectors with declared page boxes, the TIFF rasterised onto an enlarged sheet.
 
-- `bleed=3mm` — the design is scaled to fill the bleed (the trim area is unchanged), and the PDF's `TrimBox` (final cut) and `BleedBox` are declared for the RIP.
-- `marks=crop,reg,bleed,bars` — draws, in the margin: **crop** (trim) marks, **reg**istration targets, **bleed** marks, and a CMYK colour **bars**. In `pdf-cmyk` the line marks are DeviceCMYK `1 1 1 1`, so they print on every plate; in the RGB `pdf` they're black. Mark length, gap and stroke weight are fixed to print standards.
+- `bleed=3mm` — the design is scaled to fill the bleed (the trim area is unchanged). The PDF declares its `TrimBox` (final cut) and `BleedBox` for the RIP; the TIFF is enlarged to the full sheet, the artwork composited over white to cover the bleed.
+- `marks=crop,reg,bleed,bars` — draws, in the margin: **crop** (trim) marks, **reg**istration targets, **bleed** marks, and a colour **bars**. In `pdf-cmyk` the line marks are DeviceCMYK `1 1 1 1` so they print on every plate; in `cmyk-tiff` they're written straight into the pixel buffer as all four channels at full ink (`C=M=Y=K=255`, the raster analogue), drawn **after** the RGB→CMYK pass so they aren't remapped; in the RGB `pdf` they're black. Mark length, gap and stroke weight are fixed to print standards.
+  - In `pdf-cmyk` the bar becomes a **brand verification strip**: the four solid process primaries (C, M, Y, K) come first as a fixed calibration reference, then — after a wider gap — each brand colour that actually substituted in this artwork appears as an RGB reference swatch touching its CMYK substitution, so a press operator can confirm the RGB→CMYK swap landed. Only the inks really used are shown (substitution records which palette colours were hit); the pairs are capped by the available margin width and a flat ceiling of 12 brand cells. The RGB `pdf` and the `cmyk-tiff` (which does a flat per-pixel conversion with no exact substitution to verify) show a generic process/overprint/tint control bar instead.
+
+The CMYK press condition (`profile=`, e.g. `fogra51`) is carried for both CMYK formats: the Print PDF embeds it as the document's output intent; the Print TIFF records it as provenance in `ImageDescription` (the pixels stay untagged DeviceCMYK — no embedded profile, so the file is never mislabelled).
 
 ```
-?format=pdf-cmyk&bleed=3mm&marks=crop,reg,bleed,bars&export
+?format=cmyk-tiff&bleed=3mm&marks=crop,reg,bleed,bars&profile=fogra51&export
 ```
 
-> Marks/bleed and the PDF open-`password` are mutually exclusive: print finishing is applied via pdf-lib, which can't write encrypted PDFs, so a `password` is ignored when marks/bleed are on.
+> Marks/bleed and the PDF open-`password` are mutually exclusive: print finishing is applied via pdf-lib, which can't write encrypted PDFs, so a `password` is ignored when marks/bleed are on. (`cmyk-tiff` has no password concept.)
 
 ---
 

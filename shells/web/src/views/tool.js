@@ -27,11 +27,14 @@ const FMT_LABEL = { 'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', 'jpeg': 
   ics: 'Calendar', vcf: 'vCard', ico: 'Icon', zip: 'ZIP', csv: 'CSV', json: 'JSON' };
 const FMT_EXT   = { 'pdf-cmyk': 'pdf', 'cmyk-tiff': 'tiff', 'jpeg': 'jpg' };
 
-// Print marks (pdf / pdf-cmyk only). Defaults when the user turns the card on;
-// the CSV tokens (crop,reg,bleed,bars) match the engine's `marks` URL param
-// (engine/src/url-mode.js parseMarks). Bleed is carried as a dimension string.
+// Print marks & bleed apply to the three print formats (pdf / pdf-cmyk / cmyk-tiff).
+// Defaults when the user turns the card on; the CSV tokens (crop,reg,bleed,bars)
+// match the engine's `marks` URL param (engine/src/url-mode.js parseMarks). Bleed is
+// carried as a dimension string. The Color profile (press condition) card applies to
+// the two CMYK formats.
 const DEFAULT_PRINT_MARKS = { crop: true, registration: true, bleed: true, colorBars: false };
-const isPdfFormat = (f) => f === 'pdf' || f === 'pdf-cmyk';
+const isCmykFmt  = (f) => f === 'pdf-cmyk' || f === 'cmyk-tiff';
+const isPrintFmt = (f) => f === 'pdf' || f === 'pdf-cmyk' || f === 'cmyk-tiff';
 function marksToCsv(m) {
   return m ? [m.crop && 'crop', m.registration && 'reg', m.bleed && 'bleed', m.colorBars && 'bars'].filter(Boolean).join(',') : '';
 }
@@ -715,11 +718,11 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       if (filename) params.set('filename', filename);
     }
     if (dirtyParams.has('profile')) {
-      // Only meaningful for the CMYK print PDF; share it only when that's the
-      // selected format and it isn't the default condition (keeps links clean).
+      // Meaningful for the CMYK print formats (Print PDF / Print TIFF); share it only
+      // when one is selected and it isn't the default condition (keeps links clean).
       const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
       const prof = actionsEl?.querySelector('[data-action="cmyk-profile"]')?.value;
-      if (fmt === 'pdf-cmyk' && prof && prof !== DEFAULT_CMYK_CONDITION) params.set('profile', prof);
+      if (isCmykFmt(fmt) && prof && prof !== DEFAULT_CMYK_CONDITION) params.set('profile', prof);
     }
     if (dirtyParams.has('password')) {
       // Open-password for the standard PDF only; carried clear-text by design (a
@@ -729,10 +732,11 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       if (fmt === 'pdf' && pw) params.set('password', pw);
     }
     if (dirtyParams.has('bleed') || dirtyParams.has('marks')) {
-      // Print marks & bleed — pdf / pdf-cmyk only, and only when the card is on.
+      // Print marks & bleed — print formats (pdf / pdf-cmyk / cmyk-tiff) only, and
+      // only when the card is on.
       const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
       const on  = actionsEl?.querySelector('[data-action="print-enable"]')?.checked;
-      if (isPdfFormat(fmt) && on) {
+      if (isPrintFmt(fmt) && on) {
         const mm = parseFloat(actionsEl?.querySelector('[data-action="print-bleed"]')?.value);
         if (mm > 0) params.set('bleed', `${mm}mm`);
         const csv = marksToCsv({
@@ -890,18 +894,19 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         const dim = (v, native) => (v > 0 ? (u !== 'px' ? `${v}${u}` : v) : native);
         const expOpts = { width: dim(urlWidth, nativeW), height: dim(urlHeight, nativeH) };
         if (u !== 'px') expOpts.dpi = urlDpi || 300;
-        // Print PDF: carry the brand palette (exact ink matches) + the chosen
-        // press condition so a shared ?format=pdf-cmyk link renders correctly.
-        if (fmt === 'pdf-cmyk') {
-          expOpts.palette = PALETTE;
+        // CMYK print formats: carry the chosen press condition (recorded in the
+        // PDF's output intent / the TIFF's metadata). The Print PDF also carries the
+        // brand palette for exact ink matches; the TIFF does a flat per-pixel pass.
+        if (isCmykFmt(fmt)) {
           expOpts.colorProfile = urlProfile || DEFAULT_CMYK_CONDITION;
+          if (fmt === 'pdf-cmyk') expOpts.palette = PALETTE;
         }
         // Standard PDF: honour ?password= so a deep link can auto-export a locked
         // PDF (basic lock; clear-text in the URL by design — see pdfPassRow).
         if (fmt === 'pdf' && urlPassword) expOpts.password = urlPassword;
         // Print prep: honour ?bleed= / ?marks= so a deep link auto-exports a
-        // print-ready PDF. Applied only when the link asks for it (never default).
-        if (isPdfFormat(fmt) && (urlBleed || urlMarks)) {
+        // print-ready file. Applied only when the link asks for it (never default).
+        if (isPrintFmt(fmt) && (urlBleed || urlMarks)) {
           if (urlBleed) expOpts.bleed = urlBleed;
           if (urlMarks) {
             expOpts.cropMarks = urlMarks.crop;
@@ -1645,16 +1650,88 @@ function renderInputs(el, model, runtime, host, onDirty) {
     });
   });
 
+  // "+ Add" (and each typed add-menu option) appends a block. Typed menus carry
+  // data-block-add-type, which seeds the discriminator; fields start at their
+  // declared defaults so a new block renders cleanly rather than all-blank.
   el.querySelectorAll('[data-block-add]').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (btn.disabled) return;
       const blockId = btn.dataset.blockAdd;
       const inp = panelModel.find(i => i.id === blockId);
       if (!inp) return;
       const arr = Array.isArray(inp.value) ? [...inp.value] : [];
-      const empty = Object.fromEntries((inp.fields ?? []).map(f => [f.id, '']));
-      runtime.setInput(blockId, [...arr, empty]);
+      const block = {};
+      for (const f of inp.fields ?? []) block[f.id] = blockFieldDefault(f);
+      const type = btn.dataset.blockAddType;
+      if (inp.addMenu && type !== undefined) block[inp.addMenu.field] = type;
+      runtime.setInput(blockId, [...arr, block]);
       onDirty?.(blockId);
     });
+  });
+
+  // Typed add-menu: toggle the option list; one open at a time.
+  el.querySelectorAll('[data-block-add-toggle]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menu = btn.closest('.block-add-menu')?.querySelector('.block-add-options');
+      if (!menu) return;
+      const willOpen = menu.hidden;
+      el.querySelectorAll('.block-add-options').forEach(m => { if (m !== menu) m.hidden = true; });
+      menu.hidden = !willOpen;
+      btn.setAttribute('aria-expanded', String(willOpen));
+    });
+  });
+
+  // Per-block asset (image) fields delegate to the host picker, mirroring the
+  // top-level asset-picker control but writing into the block array.
+  el.querySelectorAll('[data-block-asset]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const [blockId, idxStr, fId] = btn.dataset.blockAsset.split(':');
+      const idx = parseInt(idxStr, 10);
+      const inp = panelModel.find(i => i.id === blockId);
+      if (!inp) return;
+      const f = (inp.fields ?? []).find(x => x.id === fId) ?? {};
+      const cur = Array.isArray(inp.value) ? inp.value[idx]?.[fId]?.id : undefined;
+      const ref = await host.assets.pick({
+        title:       `Choose ${f.label ?? fId}`,
+        type:        f.assetType === 'any' ? undefined : f.assetType,
+        tags:        f.filter?.tags,
+        namespace:   f.filter?.namespace,
+        allowUpload: f.allowUpload === true,
+        current:     cur,
+      });
+      if (!ref) return;
+      const arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));
+      if (!arr[idx]) arr[idx] = {};
+      arr[idx][fId] = ref;
+      runtime.setInput(blockId, arr);
+      onDirty?.(blockId);
+    });
+  });
+
+  el.querySelectorAll('[data-block-asset-clear]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const [blockId, idxStr, fId] = btn.dataset.blockAssetClear.split(':');
+      const idx = parseInt(idxStr, 10);
+      const inp = panelModel.find(i => i.id === blockId);
+      if (!inp) return;
+      const arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));
+      if (arr[idx]) arr[idx][fId] = null;
+      runtime.setInput(blockId, arr);
+      onDirty?.(blockId);
+    });
+  });
+
+  // Block range sliders: hold the sidebar steady while dragging (the canvas
+  // still updates live), exactly like the top-level custom slider / vector scrub.
+  el.querySelectorAll('.block-range-input').forEach(r => {
+    const hold = () => { _sliderDragging = true; };
+    const release = () => { _sliderDragging = false; };
+    r.addEventListener('pointerdown', hold);
+    r.addEventListener('pointerup', release);
+    r.addEventListener('pointercancel', release);
+    r.addEventListener('blur', release);
+    r.addEventListener('change', release);
   });
 
   el.querySelectorAll('[data-block-remove]').forEach(btn => {
@@ -1678,6 +1755,31 @@ function renderInputs(el, model, runtime, host, onDirty) {
     }
   };
   document.addEventListener('click', el._colorPopoverDismiss, true);
+
+  // Dismiss any open typed add-menu on an outside click. A click inside
+  // .block-add-menu is left alone (the option's own handler appends + rebuilds).
+  if (el._blockMenuDismiss) {
+    document.removeEventListener('click', el._blockMenuDismiss, true);
+  }
+  el._blockMenuDismiss = e => {
+    if (!e.target.closest('.block-add-menu')) {
+      el.querySelectorAll('.block-add-options:not([hidden])').forEach(m => { m.hidden = true; });
+    }
+  };
+  document.addEventListener('click', el._blockMenuDismiss, true);
+}
+
+// Starting value for a freshly-added block field. An explicit `default` wins;
+// otherwise the type picks a sensible empty (number→min, select→first option,
+// asset→null, text/color→'').
+function blockFieldDefault(f) {
+  if (f.default !== undefined) return f.default;
+  switch (f.type) {
+    case 'number': return f.min ?? 0;
+    case 'select': return f.options?.[0]?.value ?? '';
+    case 'asset':  return null;
+    default:       return '';
+  }
 }
 
 function controlHtml(input) {
@@ -1743,10 +1845,27 @@ function controlHtml(input) {
     case 'datetime-local-input':
       return `<input type="text" class="fp-datetime" data-input-id="${id}" data-fp-value="${val}" placeholder="Live — current time" readonly>`;
     case 'blocks': {
-      const items  = Array.isArray(input.value) ? input.value : [];
-      const fields = input.fields ?? [];
-      const blockField = (f, item, idx) => {
+      const items   = Array.isArray(input.value) ? input.value : [];
+      const fields  = input.fields ?? [];
+      // addMenu turns "+ Add" into a typed menu and makes one sub-field the
+      // block's fixed discriminator (shown as a head label, not an editable
+      // control). Other sub-fields can opt into per-type visibility via showFor.
+      const addMenu  = input.addMenu || null;
+      const discr    = addMenu ? fields.find(f => f.id === addMenu.field) : null;
+      const typeOpts = discr?.options ?? [];
+      const typeLabel = v => typeOpts.find(o => o.value === v)?.label ?? (v ?? '');
+
+      // Stack a label above a control inside a typed block; plain controls
+      // (untyped blocks) render bare to keep the legacy compact row layout.
+      const labelled = (f, inner, cls = '') => addMenu
+        ? `<div class="block-control${cls}"><span class="block-control-label">${escape(f.label ?? f.id)}</span>${inner}</div>`
+        : inner;
+
+      const blockField = (f, item, idx, typeVal) => {
         const fieldId = `${id}:${idx}:${escape(f.id)}`;
+        if (addMenu && f.id === addMenu.field) return '';                 // discriminator → head label
+        if (Array.isArray(f.showFor) && !f.showFor.includes(typeVal)) return '';
+
         if (f.type === 'color') {
           const hex = String(item[f.id] ?? '').trim();
           const pickerVal = /^#[0-9a-fA-F]{6}$/.test(hex) ? hex : '#30ba78';
@@ -1754,7 +1873,7 @@ function controlHtml(input) {
             class="color-swatch"
             data-block-swatch-field="${fieldId}" data-swatch-value="${s.hex}"
             style="background:${s.hex}" title="${escape(s.label)}"></button>`).join('');
-          return `<div class="color-picker-field block-color-field" data-color-field="${fieldId}">
+          return labelled(f, `<div class="color-picker-field block-color-field" data-color-field="${fieldId}">
             <button type="button" class="color-trigger" data-color-trigger="${fieldId}"
               aria-label="${escape(f.label ?? f.id)}">
               <span class="color-trigger-preview" style="background:${pickerVal}"></span>
@@ -1765,26 +1884,73 @@ function controlHtml(input) {
               <input type="color" class="color-popover-native"
                 data-field-id="${fieldId}" value="${pickerVal}">
             </div>
-          </div>`;
+          </div>`);
         }
-        return `<input class="block-field"
+
+        if (f.type === 'select') {
+          const cur = String(item[f.id] ?? f.default ?? '');
+          const opts = (f.options ?? []).map(o =>
+            `<option value="${escape(o.value)}" ${String(o.value) === cur ? 'selected' : ''}>${escape(o.label ?? o.value)}</option>`).join('');
+          return labelled(f, `<select class="block-field" data-field-id="${fieldId}" aria-label="${escape(f.label ?? f.id)}">${opts}</select>`);
+        }
+
+        if (f.type === 'number') {
+          const min = f.min ?? 0, max = f.max ?? 1, step = f.step ?? 0.01;
+          const cur = item[f.id] ?? f.default ?? min;
+          return labelled(f, `<input type="range" class="block-field block-range-input" data-field-id="${fieldId}"
+            min="${min}" max="${max}" step="${step}" value="${escape(cur)}" aria-label="${escape(f.label ?? f.id)}">`);
+        }
+
+        if (f.type === 'asset') {
+          const ref = item[f.id];
+          const has = ref && typeof ref === 'object' && ref.url;
+          return labelled(f, `<div class="block-asset">
+            <button type="button" class="block-asset-trigger" data-block-asset="${fieldId}" aria-label="${escape(f.label ?? f.id)}">
+              ${has ? `<img src="${escape(ref.url)}" alt="">` : `<span>&#43; ${escape(f.label ?? 'Image')}</span>`}
+            </button>
+            ${has ? `<button type="button" class="block-asset-clear" data-block-asset-clear="${fieldId}" aria-label="Remove ${escape(f.label ?? 'image')}">&#x2715;</button>` : ''}
+          </div>`, ' block-control--full');
+        }
+
+        return `<input class="block-field${addMenu ? ' block-field--full' : ''}"
           data-field-id="${fieldId}"
           placeholder="${escape(f.placeholder ?? f.label ?? f.id)}"
           value="${escape(String(item[f.id] ?? ''))}"
           aria-label="${escape(f.label ?? f.id)}">`;
       };
-      return `<div class="blocks-input" data-input-id="${id}">
-        <div class="blocks-list">
-          ${items.map((item, idx) => `
-            <div class="block-item">
-              ${fields.map(f => blockField(f, item, idx)).join('')}
-              <button type="button" class="block-remove"
-                data-block-remove data-block-input="${id}" data-block-index="${idx}"
-                aria-label="Remove">&#x2715;</button>
-            </div>
-          `).join('')}
-        </div>
-        <button type="button" class="block-add" data-block-add="${id}">+ Add</button>
+
+      const removeBtn = idx => `<button type="button" class="block-remove"
+        data-block-remove data-block-input="${id}" data-block-index="${idx}" aria-label="Remove">&#x2715;</button>`;
+
+      const itemHtml = (item, idx) => {
+        const typeVal = addMenu ? item[addMenu.field] : null;
+        const inner = fields.map(f => blockField(f, item, idx, typeVal)).join('');
+        if (!addMenu) return `<div class="block-item">${inner}${removeBtn(idx)}</div>`;
+        return `<div class="block-item is-typed" data-block-type="${escape(typeVal ?? '')}">
+          <div class="block-head"><span class="block-type-label">${escape(typeLabel(typeVal))}</span>${removeBtn(idx)}</div>
+          <div class="block-fields">${inner}</div>
+        </div>`;
+      };
+
+      let adder;
+      if (addMenu) {
+        const opts = typeOpts.map(o => {
+          const used = items.some(it => it[addMenu.field] === o.value);
+          const disabled = used && !o.repeatable;
+          return `<button type="button" class="block-add-option" data-block-add="${id}"
+            data-block-add-type="${escape(o.value)}"${disabled ? ' disabled' : ''}>${escape(o.label ?? o.value)}</button>`;
+        }).join('');
+        adder = `<div class="block-add-menu">
+          <button type="button" class="block-add" data-block-add-toggle="${id}" aria-haspopup="true" aria-expanded="false">&#43; ${escape(addMenu.label ?? 'Add')}</button>
+          <div class="block-add-options" hidden>${opts}</div>
+        </div>`;
+      } else {
+        adder = `<button type="button" class="block-add" data-block-add="${id}">+ Add</button>`;
+      }
+
+      return `<div class="blocks-input${addMenu ? ' blocks-input--typed' : ''}" data-input-id="${id}">
+        <div class="blocks-list">${items.map(itemHtml).join('')}</div>
+        ${adder}
       </div>`;
     }
     case 'vector': {
@@ -1949,20 +2115,20 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   // setting reads as deliberate; revealed only when "Print PDF" (pdf-cmyk) is the
   // chosen format. Options come from the engine's CMYK_CONDITIONS registry.
   const ICON_DROP = `<svg class="cmyk-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.7s6.5 7 6.5 11.8a6.5 6.5 0 0 1-13 0C5.5 9.7 12 2.7 12 2.7z"/></svg>`;
-  const hasCmyk     = formats.includes('pdf-cmyk');
+  const hasCmyk     = formats.includes('pdf-cmyk') || formats.includes('cmyk-tiff');
   const initProfile = (exportDefaults.profile && CMYK_CONDITIONS[exportDefaults.profile])
     ? exportDefaults.profile : DEFAULT_CMYK_CONDITION;
   const cmykOptions = Object.entries(CMYK_CONDITIONS)
     .map(([key, c]) => `<option value="${escape(key)}" ${key === initProfile ? 'selected' : ''}>${escape(c.info)}</option>`)
     .join('');
   const cmykRow = hasCmyk ? `
-      <div class="export-cmyk" data-cmyk-only style="display:${initialFmt === 'pdf-cmyk' ? 'flex' : 'none'}">
+      <div class="export-cmyk" data-cmyk-only style="display:${isCmykFmt(initialFmt) ? 'flex' : 'none'}">
         <span class="cmyk-head">${ICON_DROP}<span>Color profile</span></span>
         <select data-action="cmyk-profile" aria-label="CMYK press profile"
-                title="The ICC press condition embedded in the print PDF's output intent. Pick the standard your printer targets.">
+                title="The CMYK press condition your printer targets — embedded as the Print PDF's output intent, recorded in the Print TIFF's metadata.">
           ${cmykOptions}
         </select>
-        <p class="cmyk-hint">Embedded as the PDF's output intent, so a print shop reproduces these CMYK inks accurately.</p>
+        <p class="cmyk-hint">Names the CMYK press standard your printer targets — the Print PDF embeds it as its output intent; the Print TIFF records it in metadata (the pixels stay untagged DeviceCMYK).</p>
       </div>` : '';
 
   // Tier 2.6 — PDF password (standard "PDF" only). A non-empty value locks the
@@ -1994,9 +2160,11 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const hasPrint     = hasPdf || hasCmyk;
   const printInitOn  = Boolean(exportDefaults.bleed || exportDefaults.marks);
   const printInitMm  = exportDefaults.bleed ? (parseFloat(exportDefaults.bleed) || 3) : 3;
-  const pim          = exportDefaults.marks || DEFAULT_PRINT_MARKS;
+  // Colour bars default ON for the CMYK print formats (the press uses them as a
+  // control strip), OFF for the RGB pdf. An explicit marks default (link/save) wins.
+  const pim          = exportDefaults.marks || { ...DEFAULT_PRINT_MARKS, colorBars: isCmykFmt(initialFmt) };
   const printRow = hasPrint ? `
-      <div class="export-print" data-printmarks-only style="display:${isPdfFormat(initialFmt) ? 'flex' : 'none'}">
+      <div class="export-print" data-printmarks-only style="display:${isPrintFmt(initialFmt) ? 'flex' : 'none'}">
         <label class="print-enable">
           <input type="checkbox" data-action="print-enable" ${printInitOn ? 'checked' : ''}>
           <span class="print-head">${ICON_CROP}<span>Print marks &amp; bleed</span></span>
@@ -2013,7 +2181,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
             <label class="export-option"><input type="checkbox" data-action="mark-bleed" ${pim.bleed ? 'checked' : ''}> Bleed</label>
             <label class="export-option"><input type="checkbox" data-action="mark-bars" ${pim.colorBars ? 'checked' : ''}> Color bars</label>
           </div>
-          <p class="print-hint">Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF. (An open-password can't be combined with marks.)</p>
+          <p class="print-hint">Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF and Print TIFF. (An open-password can't be combined with marks.)</p>
         </div>
       </div>` : '';
 
@@ -2081,6 +2249,17 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const webm60El      = el.querySelector('[data-webm-only]');
   const formatEl      = el.querySelector('[data-action="format"]');
 
+  // Colour bars track the format: ON for the CMYK print formats (pdf-cmyk /
+  // cmyk-tiff), OFF for the RGB pdf, re-applied on every format switch — until the
+  // user toggles them, or a shared link set marks explicitly, after which their
+  // choice is left alone.
+  let barsUserSet = Boolean(exportDefaults.marks);
+  const syncBarsDefault = (fmt) => {
+    if (barsUserSet) return;
+    const bars = el.querySelector('[data-action="mark-bars"]');
+    if (bars) bars.checked = isCmykFmt(fmt);
+  };
+
   // Show/hide timing params and format-specific controls when the format selector changes.
   if (formatEl) {
     formatEl.addEventListener('change', () => {
@@ -2089,10 +2268,12 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       if (ditherEl)     ditherEl.style.display     = fmt === 'gif'  ? 'flex' : 'none';
       if (webm60El)     webm60El.style.display      = fmt === 'webm' ? 'flex' : 'none';
       el.querySelectorAll('[data-vector-only]').forEach(c => { c.style.display = isVectorFmt(fmt) ? 'flex' : 'none'; });
-      el.querySelectorAll('[data-cmyk-only]').forEach(c => { c.style.display = fmt === 'pdf-cmyk' ? 'flex' : 'none'; });
-      el.querySelectorAll('[data-printmarks-only]').forEach(c => { c.style.display = isPdfFormat(fmt) ? 'flex' : 'none'; });
+      el.querySelectorAll('[data-cmyk-only]').forEach(c => { c.style.display = isCmykFmt(fmt) ? 'flex' : 'none'; });
+      el.querySelectorAll('[data-printmarks-only]').forEach(c => { c.style.display = isPrintFmt(fmt) ? 'flex' : 'none'; });
+      syncBarsDefault(fmt);
       refreshPrintUi(); // owns [data-pdf-only] (password) visibility — see below
       onUrlSync?.('format');
+      onUrlSync?.('marks');  // bars may have flipped with the format
     });
   }
 
@@ -2110,7 +2291,10 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   });
   el.querySelector('[data-action="print-bleed"]')?.addEventListener('input', () => onUrlSync?.('bleed'));
   ['mark-crop', 'mark-reg', 'mark-bleed', 'mark-bars'].forEach(a =>
-    el.querySelector(`[data-action="${a}"]`)?.addEventListener('change', () => onUrlSync?.('marks')));
+    el.querySelector(`[data-action="${a}"]`)?.addEventListener('change', () => {
+      if (a === 'mark-bars') barsUserSet = true;  // stop auto-tracking once chosen
+      onUrlSync?.('marks');
+    }));
   refreshPrintUi(); // initial state (e.g. card pre-opened from a shared link)
 
   // Colour profile (CMYK press condition) — print-PDF only; persists via URL/save.
@@ -2381,9 +2565,9 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         ...exportDims(),
         ...(isAnimated ? videoParams() : {}),
         ...(isGif ? { dither: el.querySelector('[data-action="gif-dither"]')?.checked ?? false } : {}),
-        ...(isPdfFormat(fmt) ? printOpts() : {}),
-        ...(fmt === 'pdf-cmyk' ? {
-          palette: PALETTE,
+        ...(isPrintFmt(fmt) ? printOpts() : {}),
+        ...(fmt === 'pdf-cmyk' ? { palette: PALETTE } : {}),
+        ...(isCmykFmt(fmt) ? {
           colorProfile: el.querySelector('[data-action="cmyk-profile"]')?.value || DEFAULT_CMYK_CONDITION,
         } : {}),
         ...(fmt === 'pdf' && el.querySelector('[data-action="pdf-password"]')?.value
@@ -2516,7 +2700,14 @@ function encodeBlocksCompact(items, fields) {
   if (!Array.isArray(items) || !items.length || !fields.length) return null;
   return items.map(item =>
     fields.map(f => {
-      const v = String(item[f.id] ?? '');
+      const raw = item[f.id];
+      // Asset sub-fields hold an AssetRef object — encode its id (library assets
+      // only; uploaded user/ refs aren't shareable, same as top-level assets).
+      if (f.type === 'asset') {
+        const id = raw && typeof raw === 'object' ? raw.id : '';
+        return encodeURIComponent(id && !String(id).startsWith('user/') ? id : '');
+      }
+      const v = String(raw ?? '');
       const s = f.type === 'color' ? v.replace(/^#/, '') : v;
       return encodeURIComponent(s);
     }).join(',')
@@ -2607,10 +2798,10 @@ function buildShareParams(runtime, exportScope) {
     const d = parseInt(exportScope?.querySelector('[data-action="export-dpi"]')?.value, 10);
     if (d > 0) parts.push(`dpi=${d}`);
   }
-  // Colour profile is only meaningful for the CMYK print PDF; carry it only when
-  // that format is selected and it isn't the default condition (matches syncUrl).
+  // Colour profile is only meaningful for the CMYK print formats (Print PDF / Print
+  // TIFF); carry it only when one is selected and it isn't the default condition.
   const prof = exportScope?.querySelector('[data-action="cmyk-profile"]')?.value;
-  if (fmtEl?.value === 'pdf-cmyk' && prof && prof !== DEFAULT_CMYK_CONDITION) {
+  if (isCmykFmt(fmtEl?.value) && prof && prof !== DEFAULT_CMYK_CONDITION) {
     parts.push(`profile=${encodeURIComponent(prof)}`);
   }
   // PDF open-password — only for the standard PDF, only when set. Clear-text by
@@ -2619,8 +2810,9 @@ function buildShareParams(runtime, exportScope) {
   if (fmtEl?.value === 'pdf' && pdfPass) {
     parts.push(`password=${encodeURIComponent(pdfPass)}`);
   }
-  // Print marks & bleed — pdf / pdf-cmyk only, and only when the card is on.
-  if (isPdfFormat(fmtEl?.value) && printEnabled(exportScope)) {
+  // Print marks & bleed — print formats (pdf / pdf-cmyk / cmyk-tiff) only, and only
+  // when the card is on.
+  if (isPrintFmt(fmtEl?.value) && printEnabled(exportScope)) {
     const bleed = readBleed(exportScope);
     if (bleed) parts.push(`bleed=${encodeURIComponent(bleed)}`);
     const marks = readMarks(exportScope);
