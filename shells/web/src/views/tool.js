@@ -27,6 +27,36 @@ const FMT_LABEL = { 'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', 'jpeg': 
   ics: 'Calendar', vcf: 'vCard', ico: 'Icon', zip: 'ZIP', csv: 'CSV', json: 'JSON' };
 const FMT_EXT   = { 'pdf-cmyk': 'pdf', 'cmyk-tiff': 'tiff', 'jpeg': 'jpg' };
 
+// Print marks (pdf / pdf-cmyk only). Defaults when the user turns the card on;
+// the CSV tokens (crop,reg,bleed,bars) match the engine's `marks` URL param
+// (engine/src/url-mode.js parseMarks). Bleed is carried as a dimension string.
+const DEFAULT_PRINT_MARKS = { crop: true, registration: true, bleed: true, colorBars: false };
+const isPdfFormat = (f) => f === 'pdf' || f === 'pdf-cmyk';
+function marksToCsv(m) {
+  return m ? [m.crop && 'crop', m.registration && 'reg', m.bleed && 'bleed', m.colorBars && 'bars'].filter(Boolean).join(',') : '';
+}
+function marksFromCsv(csv) {
+  if (!csv) return null;
+  const s = new Set(String(csv).split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
+  return { crop: s.has('crop'), registration: s.has('reg') || s.has('registration'), bleed: s.has('bleed'), colorBars: s.has('bars') || s.has('colorbars') };
+}
+// Read the Print marks card from an export-panel element `el` (empty when off).
+const printEnabled  = (el) => Boolean(el?.querySelector('[data-action="print-enable"]')?.checked);
+function readBleed(el) {
+  if (!printEnabled(el)) return '';
+  const mm = parseFloat(el.querySelector('[data-action="print-bleed"]')?.value);
+  return mm > 0 ? `${mm}mm` : '';
+}
+function readMarks(el) {
+  if (!printEnabled(el)) return '';
+  return marksToCsv({
+    crop:         el.querySelector('[data-action="mark-crop"]')?.checked,
+    registration: el.querySelector('[data-action="mark-reg"]')?.checked,
+    bleed:        el.querySelector('[data-action="mark-bleed"]')?.checked,
+    colorBars:    el.querySelector('[data-action="mark-bars"]')?.checked,
+  });
+}
+
 // Visual formats a ZIP export bundles (data/text and video are excluded). The
 // shell passes these as opts.bundleFormats; the export bridge renders each and
 // archives them (see renderZip).
@@ -122,7 +152,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   tool.template = annotateTemplate(tool.template, inputIds);
   document.title = `${tool.manifest.name} — Lolly`;
 
-  const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi, profile: urlProfile, password: urlPassword } = parseUrlState(urlParams, tool.manifest);
+  const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi, profile: urlProfile, password: urlPassword, bleed: urlBleed, marks: urlMarks } = parseUrlState(urlParams, tool.manifest);
   const urlFlags = new URLSearchParams(urlParams || '');
   const isFull = urlFlags.has('full');
   // `?options` lands the recipient on the export-settings panel expanded (instead
@@ -607,6 +637,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // Password comes from the URL only — never restored from saved state (we don't
     // persist passwords at rest in the library; see performSave's __export_* snapshot).
     password: urlPassword || undefined,
+    // Print prep (pdf / pdf-cmyk): bleed dimension string + a marks toggle map.
+    // Present (from URL or saved state) ⇒ the Print marks card opens pre-filled.
+    bleed:    urlBleed || initialValues.__export_bleed || undefined,
+    marks:    urlMarks || marksFromCsv(initialValues.__export_marks),
   };
   // Rewrite the URL hash query string to reflect the current tool state so the
   // page is shareable and bookmarkable. Uses replaceState — no history entry.
@@ -693,6 +727,22 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
       const pw = actionsEl?.querySelector('[data-action="pdf-password"]')?.value;
       if (fmt === 'pdf' && pw) params.set('password', pw);
+    }
+    if (dirtyParams.has('bleed') || dirtyParams.has('marks')) {
+      // Print marks & bleed — pdf / pdf-cmyk only, and only when the card is on.
+      const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
+      const on  = actionsEl?.querySelector('[data-action="print-enable"]')?.checked;
+      if (isPdfFormat(fmt) && on) {
+        const mm = parseFloat(actionsEl?.querySelector('[data-action="print-bleed"]')?.value);
+        if (mm > 0) params.set('bleed', `${mm}mm`);
+        const csv = marksToCsv({
+          crop:         actionsEl?.querySelector('[data-action="mark-crop"]')?.checked,
+          registration: actionsEl?.querySelector('[data-action="mark-reg"]')?.checked,
+          bleed:        actionsEl?.querySelector('[data-action="mark-bleed"]')?.checked,
+          colorBars:    actionsEl?.querySelector('[data-action="mark-bars"]')?.checked,
+        });
+        if (csv) params.set('marks', csv);
+      }
     }
 
     const base = window.location.hash.split('?')[0];
@@ -849,6 +899,17 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         // Standard PDF: honour ?password= so a deep link can auto-export a locked
         // PDF (basic lock; clear-text in the URL by design — see pdfPassRow).
         if (fmt === 'pdf' && urlPassword) expOpts.password = urlPassword;
+        // Print prep: honour ?bleed= / ?marks= so a deep link auto-exports a
+        // print-ready PDF. Applied only when the link asks for it (never default).
+        if (isPdfFormat(fmt) && (urlBleed || urlMarks)) {
+          if (urlBleed) expOpts.bleed = urlBleed;
+          if (urlMarks) {
+            expOpts.cropMarks = urlMarks.crop;
+            expOpts.registrationMarks = urlMarks.registration;
+            expOpts.bleedMarks = urlMarks.bleed;
+            expOpts.colorBars = urlMarks.colorBars;
+          }
+        }
         exportUnscaled(() =>
           runtime.export(canvasEl, fmt, expOpts)
             .then(blob => host.export.download(blob, `${name}.${extFor(fmt, blob)}`))
@@ -1795,6 +1856,8 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         __export_unit:     el?.querySelector('[data-action="export-unit"]')?.value ?? 'px',
         __export_dpi:      el?.querySelector('[data-action="export-dpi"]')?.value ?? '',
         __export_profile:  el?.querySelector('[data-action="cmyk-profile"]')?.value ?? '',
+        __export_bleed:    readBleed(el),
+        __export_marks:    readMarks(el),
       }, thumb);
       label.textContent = 'Saved';
       announce('Saved');
@@ -1923,6 +1986,37 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         <p class="pdfpass-hint">Requires this password to open the PDF. A basic lock, not strong encryption — don't rely on it for highly confidential files.</p>
       </div>` : '';
 
+  // Tier 2.7 — print marks & bleed (pdf / pdf-cmyk). An opt-in card (master
+  // checkbox) so ordinary PDFs stay trim-sized; turning it on reveals a bleed
+  // field (default 3mm) + the mark toggles at print-standard defaults. Mark size,
+  // gap and stroke weight are fixed in the engine (see print-marks.js).
+  const ICON_CROP = `<svg class="print-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v16h16"/><path d="M2 6h16v16"/></svg>`;
+  const hasPrint     = hasPdf || hasCmyk;
+  const printInitOn  = Boolean(exportDefaults.bleed || exportDefaults.marks);
+  const printInitMm  = exportDefaults.bleed ? (parseFloat(exportDefaults.bleed) || 3) : 3;
+  const pim          = exportDefaults.marks || DEFAULT_PRINT_MARKS;
+  const printRow = hasPrint ? `
+      <div class="export-print" data-printmarks-only style="display:${isPdfFormat(initialFmt) ? 'flex' : 'none'}">
+        <label class="print-enable">
+          <input type="checkbox" data-action="print-enable" ${printInitOn ? 'checked' : ''}>
+          <span class="print-head">${ICON_CROP}<span>Print marks &amp; bleed</span></span>
+        </label>
+        <div class="print-body" data-print-body style="display:${printInitOn ? 'flex' : 'none'}">
+          <label class="print-bleed">
+            <span>Bleed</span>
+            <input type="number" data-action="print-bleed" value="${printInitMm}" min="0" max="25" step="0.5" aria-label="Bleed in millimetres">
+            <span>mm</span>
+          </label>
+          <div class="print-toggles">
+            <label class="export-option"><input type="checkbox" data-action="mark-crop" ${pim.crop ? 'checked' : ''}> Crop</label>
+            <label class="export-option"><input type="checkbox" data-action="mark-reg" ${pim.registration ? 'checked' : ''}> Registration</label>
+            <label class="export-option"><input type="checkbox" data-action="mark-bleed" ${pim.bleed ? 'checked' : ''}> Bleed</label>
+            <label class="export-option"><input type="checkbox" data-action="mark-bars" ${pim.colorBars ? 'checked' : ''}> Color bars</label>
+          </div>
+          <p class="print-hint">Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF. (An open-password can't be combined with marks.)</p>
+        </div>
+      </div>` : '';
+
   // Tier 3 — ancillary settings. Everything optional (transparent bg, timing,
   // dithering) lives in one wrapping chip cluster so the panel reads consistently
   // no matter which controls a given tool/format enables.
@@ -1972,7 +2066,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const downloadRow = downloadBtn ? `<div class="export-action-buttons">${downloadBtn}</div>` : '';
 
   el.innerHTML = `
-    ${actions.includes('download') ? `${filenameRow}${dimsRow}${cmykRow}${pdfPassRow}${settingsRow}` : ''}
+    ${actions.includes('download') ? `${filenameRow}${dimsRow}${cmykRow}${pdfPassRow}${printRow}${settingsRow}` : ''}
     ${secondaryRow}
     ${downloadRow}
   `;
@@ -1996,10 +2090,28 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       if (webm60El)     webm60El.style.display      = fmt === 'webm' ? 'flex' : 'none';
       el.querySelectorAll('[data-vector-only]').forEach(c => { c.style.display = isVectorFmt(fmt) ? 'flex' : 'none'; });
       el.querySelectorAll('[data-cmyk-only]').forEach(c => { c.style.display = fmt === 'pdf-cmyk' ? 'flex' : 'none'; });
-      el.querySelectorAll('[data-pdf-only]').forEach(c => { c.style.display = fmt === 'pdf' ? 'flex' : 'none'; });
+      el.querySelectorAll('[data-printmarks-only]').forEach(c => { c.style.display = isPdfFormat(fmt) ? 'flex' : 'none'; });
+      refreshPrintUi(); // owns [data-pdf-only] (password) visibility — see below
       onUrlSync?.('format');
     });
   }
+
+  // Print marks card: reveal its body when enabled, and hide the open-password
+  // card while it's on (marks/bleed route through pdf-lib, which can't encrypt).
+  function refreshPrintUi() {
+    const on  = el.querySelector('[data-action="print-enable"]')?.checked;
+    const fmt = formatEl?.value ?? initialFmt;
+    const body = el.querySelector('[data-print-body]');
+    if (body) body.style.display = on ? 'flex' : 'none';
+    el.querySelectorAll('[data-pdf-only]').forEach(c => { c.style.display = (fmt === 'pdf' && !on) ? 'flex' : 'none'; });
+  }
+  el.querySelector('[data-action="print-enable"]')?.addEventListener('change', () => {
+    refreshPrintUi(); onUrlSync?.('bleed'); onUrlSync?.('marks');
+  });
+  el.querySelector('[data-action="print-bleed"]')?.addEventListener('input', () => onUrlSync?.('bleed'));
+  ['mark-crop', 'mark-reg', 'mark-bleed', 'mark-bars'].forEach(a =>
+    el.querySelector(`[data-action="${a}"]`)?.addEventListener('change', () => onUrlSync?.('marks')));
+  refreshPrintUi(); // initial state (e.g. card pre-opened from a shared link)
 
   // Colour profile (CMYK press condition) — print-PDF only; persists via URL/save.
   el.querySelector('[data-action="cmyk-profile"]')?.addEventListener('change', () => onUrlSync?.('profile'));
@@ -2039,6 +2151,20 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     const u = dimUnit();
     const toPx = (v) => (v > 0 ? (u === 'px' ? v : toCssPx({ value: v, unit: u })) : undefined);
     return { width: toPx(w), height: toPx(h) };
+  }
+
+  // Print marks & bleed export opts (pdf / pdf-cmyk). Empty when the card is off,
+  // so an ordinary PDF stays trim-sized with no marks.
+  function printOpts() {
+    if (!printEnabled(el)) return {};
+    const mm = parseFloat(el.querySelector('[data-action="print-bleed"]')?.value);
+    return {
+      bleed: mm > 0 ? `${mm}mm` : undefined,
+      cropMarks:         el.querySelector('[data-action="mark-crop"]')?.checked ?? false,
+      registrationMarks: el.querySelector('[data-action="mark-reg"]')?.checked ?? false,
+      bleedMarks:        el.querySelector('[data-action="mark-bleed"]')?.checked ?? false,
+      colorBars:         el.querySelector('[data-action="mark-bars"]')?.checked ?? false,
+    };
   }
 
   function videoParams() {
@@ -2255,6 +2381,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         ...exportDims(),
         ...(isAnimated ? videoParams() : {}),
         ...(isGif ? { dither: el.querySelector('[data-action="gif-dither"]')?.checked ?? false } : {}),
+        ...(isPdfFormat(fmt) ? printOpts() : {}),
         ...(fmt === 'pdf-cmyk' ? {
           palette: PALETTE,
           colorProfile: el.querySelector('[data-action="cmyk-profile"]')?.value || DEFAULT_CMYK_CONDITION,
@@ -2263,6 +2390,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
           ? { password: el.querySelector('[data-action="pdf-password"]').value }
           : {}),
         ...(fmt === 'zip' ? {
+          ...printOpts(),   // bundled pdf / pdf-cmyk get marks & bleed; rasters ignore them
           palette: PALETTE,
           colorProfile: el.querySelector('[data-action="cmyk-profile"]')?.value || DEFAULT_CMYK_CONDITION,
           filename: el.querySelector('[data-action="filename"]')?.value.trim() || manifest.name,
@@ -2490,6 +2618,13 @@ function buildShareParams(runtime, exportScope) {
   const pdfPass = exportScope?.querySelector('[data-action="pdf-password"]')?.value;
   if (fmtEl?.value === 'pdf' && pdfPass) {
     parts.push(`password=${encodeURIComponent(pdfPass)}`);
+  }
+  // Print marks & bleed — pdf / pdf-cmyk only, and only when the card is on.
+  if (isPdfFormat(fmtEl?.value) && printEnabled(exportScope)) {
+    const bleed = readBleed(exportScope);
+    if (bleed) parts.push(`bleed=${encodeURIComponent(bleed)}`);
+    const marks = readMarks(exportScope);
+    if (marks) parts.push(`marks=${encodeURIComponent(marks)}`);
   }
 
   return parts;

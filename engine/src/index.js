@@ -21,6 +21,9 @@ export {
   rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
 } from './color.js';
 export {
+  computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
+} from './print-marks.js';
+export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
 } from './tokens.js';
