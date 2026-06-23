@@ -119,3 +119,9 @@ Flags that prove stable and broadly useful are promoted to default-on in subsequ
 **Tool updates** are separate from engine updates. A tool is just a file — updating it is as simple as merging a change into your tools directory. Your tool library can evolve continuously without touching the platform itself.
 
 This separation means your creative capabilities can grow week to week, without requiring IT to push a software update every time a designer improves a template.
+
+---
+
+### Source code
+
+Lolly is open source. The engine, shells, schemas, and docs live in the official repository at [github.com/lolly-tools/lolly](https://github.com/lolly-tools/lolly) — clone it, build any target with the [Build Guide](/info/build-guide.html), or author your own tools.
