@@ -12,7 +12,18 @@ import { hiddenCategories, flagEnabled, PRO_FLAG } from '../feature-flags.js';
 import { syncCatalog } from '../catalog/sync.js';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.js';
 
-const CATEGORY_ORDER = ['everyone', 'designer', 'product', 'utility'];
+// Section order in the gallery. 'utility' is intentionally absent: the on-device
+// utilities / Handy Apps section always renders last, after every other category
+// (including unknown/future ones) — see categoryRank().
+const CATEGORY_ORDER = ['everyone', 'designer', 'event', 'product'];
+
+// Lower rank sorts first. utility → always last; unknown categories sit between
+// the known ones and utility rather than after it.
+function categoryRank(cat) {
+  if (cat === 'utility') return Infinity;
+  const i = CATEGORY_ORDER.indexOf(cat);
+  return i === -1 ? CATEGORY_ORDER.length : i;
+}
 
 // Mirrors pro/sessions.js BATCH_SLOT_PREFIX. Duplicated as a literal (not
 // imported) so the gallery keeps zero dependency on the removable /pro folder.
@@ -68,14 +79,7 @@ export async function mountGallery(viewEl, host) {
 
   const sortedCategories = Object.entries(grouped)
     .filter(([cat]) => !hidden.has(cat))
-    .sort(([a], [b]) => {
-      const ai = CATEGORY_ORDER.indexOf(a);
-      const bi = CATEGORY_ORDER.indexOf(b);
-      if (ai === -1 && bi === -1) return 0;
-      if (ai === -1) return 1;
-      if (bi === -1) return -1;
-      return ai - bi;
-    });
+    .sort(([a], [b]) => categoryRank(a) - categoryRank(b));
 
   const sortedSaved = [...savedEntries].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 

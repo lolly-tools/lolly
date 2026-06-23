@@ -433,16 +433,23 @@ export async function mountProfile(viewEl, host, params = '') {
   viewEl.querySelector('#profile-form').addEventListener('submit', async e => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
+    const label = btn?.textContent ?? 'Save';
     if (btn) btn.disabled = true;
     const data = Object.fromEntries(new FormData(e.target).entries());
     // Checkboxes aren't reliably in FormData (omitted when unchecked), so read it explicitly.
     const useDetails = e.target.querySelector('[name="useDetails"]')?.checked ?? false;
     delete data.useDetails;
-    const current = await host.profile.get();
-    await host.profile.set({ ...current, ...data, useDetails });
-    if (btn) btn.textContent = 'Saved';
-    announce('Profile saved');
-    setTimeout(() => { window.location.hash = ''; }, 800);
+    try {
+      const current = await host.profile.get();
+      await host.profile.set({ ...current, ...data, useDetails });
+      if (btn) btn.textContent = 'Saved';
+      announce('Profile saved');
+      // Stay on the page; restore the button shortly after so users can keep editing.
+      setTimeout(() => { if (btn) { btn.textContent = label; btn.disabled = false; } }, 1600);
+    } catch {
+      if (btn) { btn.textContent = label; btn.disabled = false; }
+      announce("Couldn't save — try again", { assertive: true });
+    }
   });
 }
 

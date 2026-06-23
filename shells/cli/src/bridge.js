@@ -13,6 +13,9 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseDimension, toCssLength, toCssPx } from '@lolly/engine';
+// PDF metadata inspect/strip is pure pdf-lib (no DOM), so the lean node CLI
+// shares the web shell's implementation rather than duplicating it.
+import { createPdfAPI } from '../../web/src/bridge/pdf.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
@@ -172,6 +175,11 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
       throw new Error('Page capture needs a browser engine — unavailable in the node CLI. Use the desktop app, or a headless-Chromium build.');
     },
   };
+
+  // PDF metadata inspect + strip. Unlike raster/PDF *rendering* (which needs a
+  // browser engine), metadata surgery is pure pdf-lib, which runs fine in node —
+  // so the lean CLI can clean PDFs too.
+  host.pdf = createPdfAPI();
 
   return host;
 }

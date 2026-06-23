@@ -29,7 +29,7 @@
   --secondary-foreground:   224 71% 4%;
 
   --muted:                  210 40% 96%;
-  --muted-foreground:       215 16% 47%;
+  --muted-foreground:       215 20% 38%;      /* darkened for AA on muted/card */
 
   --accent:                 210 40% 94%;
   --accent-foreground:      224 71% 4%;
@@ -37,8 +37,8 @@
   --destructive:            0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
-  --border:                 214 32% 91%;
-  --input:                  214 32% 91%;
+  --border:                 214 28% 84%;
+  --input:                  214 28% 84%;
   --ring:                   171 62% 12%;
 
   --radius:                 1rem;
@@ -99,7 +99,7 @@
   --secondary-foreground:   160 30% 92%;
 
   --muted:                  171 48% 20%;
-  --muted-foreground:       160 20% 68%;
+  --muted-foreground:       160 18% 78%;      /* lightened for AA on dark teal */
 
   --accent:                 171 48% 22%;
   --accent-foreground:      160 30% 92%;
@@ -107,8 +107,8 @@
   --destructive:            0 55% 42%;
   --destructive-foreground: 160 30% 92%;
 
-  --border:                 171 40% 24%;
-  --input:                  171 40% 24%;
+  --border:                 171 36% 33%;
+  --input:                  171 36% 33%;
   --ring:                   151 57% 46%;
 
   --radius:                 1rem;

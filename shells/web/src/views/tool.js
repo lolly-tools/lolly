@@ -2184,7 +2184,7 @@ function controlHtml(input) {
         : '';
       return `<div class="custom-slider" data-input-id="${id}"
           data-min="${min}" data-max="${max}" data-step="${step}"
-          tabindex="0" role="slider"
+          tabindex="0" role="slider" aria-label="${escape(input.label ?? id)}"
           aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${num}">
         <div class="cs-track">
           <div class="cs-fill" style="width:${pct}%"></div>

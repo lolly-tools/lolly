@@ -35,7 +35,7 @@ export function privacyNoticeMarkup() {
   return `
     <aside class="privacy-notice" role="note" aria-label="Privacy">
       <p class="privacy-notice-text">
-        Everything stays on your device — no cookies, no tracking, no servers.
+        Everything stays on your device — no tracking, no accounts.
         <a href="/info/privacy.html" class="privacy-notice-link">What we store</a>
       </p>
       <button type="button" class="privacy-notice-dismiss btn">Got it</button>
