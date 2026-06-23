@@ -1,5 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    brand_tools_desktop_lib::run()
+    lolly_desktop_lib::run()
 }

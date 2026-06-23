@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://brand-tools.suse.com/schemas/asset.schema.json",
+  "$id": "https://lolly.tools/schemas/asset.schema.json",
   "title": "Asset Manifest Entry",
   "description": "One asset in the global catalog. Tools resolve assets by id via host.assets.get(). The id is a forever-stable contract; the version moves.",
   "type": "object",

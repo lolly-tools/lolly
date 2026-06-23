@@ -1,7 +1,7 @@
 
 # Lolly — Landing page copy
 
-Save money, time, tokens, with ephemeral assets.
+Save money, time, tokens, with deterministic assets.
 No cloud, no waiting, no worries.
 
 ---

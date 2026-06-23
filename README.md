@@ -18,7 +18,7 @@ A platform that hosts a library of small, focused tools that produce on-brand cr
 * Low-or-Zero server costs: Lolly uses local device compute. 
 * Builds for Mac, Linux, iOS, Android, and web. 
 * Huge media support: SVG, PDF, PNG, JPEG, WEBP, AVIF, WEBM, MP4, GIF, TXT, HTML, MD 
-* Infinite ephemeral media creation.
+* Infinite deterministic media creation.
 * Works 100% Offline.
 * Full command-line support.
 * Save tokens, tell your model to try Lolly first!

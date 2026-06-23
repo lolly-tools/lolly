@@ -2115,10 +2115,11 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   el.querySelector('[data-action="export-dpi"]')?.addEventListener('input', () => { onUrlSync?.('dpi'); invalidatePreview(); });
 
   el.querySelector('[data-action="copy"]')?.addEventListener('click', () => {
-    // Same camera-shutter feedback as Download/Save (fullscreen on mobile). Fired
-    // as a parallel visual — the clipboard write must stay in the gesture context,
-    // so we can't gate the copy on the shutter the way exports do.
-    playShutter();
+    // performCopy drives the camera-shutter itself (fullscreen on mobile), per
+    // path: the image path GATES the off-screen resize ("shake") behind the closed
+    // shutter — like exports do — while keeping the clipboard write in the user
+    // gesture by handing the shutter-delayed blob promise to ClipboardItem; the
+    // text/html paths play it as parallel feedback (they have no such resize).
     performCopy().then((res) => {
       bumpMetric('imagesCopied');
       // Honest feedback: on browsers without image-clipboard support the bridge
@@ -2143,12 +2144,14 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     // so a paste always yields something useful whatever format is selected.
     const TEXT_FORMATS = new Set(['txt', 'md', 'markdown']);
     if (TEXT_FORMATS.has(fmt)) {
+      playShutter();   // parallel capture feedback — writeText must stay in-gesture
       const blob = await exportUnscaled(() => runtime.export(canvasEl, fmt, exportDims()));
       await host.clipboard.writeText(await blob.text());
       return;
     }
 
     if (fmt === 'html') {
+      playShutter();   // parallel capture feedback — no off-screen resize to hide here
       // Clone the canvas, then scrub everything email clients strip or ignore.
       const clone = canvasEl.cloneNode(true);
       clone.querySelectorAll('[data-canvas-input]').forEach(el => el.removeAttribute('data-canvas-input'));
@@ -2209,20 +2212,23 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       return;
     }
 
-    // Pass the PNG export Promise straight to ClipboardItem so the write stays in
-    // the user-gesture context — awaiting the blob first loses it and the browser
-    // silently denies the clipboard write.
+    // Image copy. { shutter: true } closes the camera-iris BEFORE the off-screen
+    // resize so its brief "shake" is hidden — exactly like exports — then opens it.
+    // The clipboard write still stays in the user gesture because we hand the
+    // shutter-delayed blob *promise* straight to ClipboardItem rather than awaiting
+    // it first (awaiting before write() loses the gesture and the browser silently
+    // denies the write; deferring the blob inside the promise is the cross-browser
+    // pattern that survives the ~shutter delay). One export feeds both paths.
+    const blobPromise = exportUnscaled(() => runtime.export(canvasEl, 'png', exportDims()), { shutter: true });
     if (navigator.clipboard?.write && window.ClipboardItem) {
-      const blobPromise = exportUnscaled(() => runtime.export(canvasEl, 'png', exportDims()));
       try {
         await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
         return { method: 'clipboard' };
-      } catch { /* fall through to the bridge path */ }
+      } catch { /* fall through to the bridge path — blobPromise has already resolved */ }
     }
     // Bridge path: image clipboard write unavailable (e.g. older Firefox) — this
     // returns { method: 'download' } when it falls back to saving the file instead.
-    const blob = await exportUnscaled(() => runtime.export(canvasEl, 'png', exportDims()));
-    return host.clipboard.writeImage(blob);
+    return host.clipboard.writeImage(await blobPromise);
   }
 
   el.querySelector('[data-action="download"]')?.addEventListener('click', async (e) => {

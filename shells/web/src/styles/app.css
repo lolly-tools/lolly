@@ -1765,7 +1765,7 @@ background-color:hsl(var(--background) / 1);
     --sheet-h: 50dvh;                 /* default; overridden per data-sheet state */
     /* Clearance below the peek bar (56px) so the preview doesn't run up under it.
        Static — independent of the sheet height — so the preview never rescales. */
-    --preview-top: calc(56px + 4dvh);
+    --preview-top: calc(56px + 0dvh);
   }
   .tool-layout[data-sheet="peek"] { --sheet-h: 56px; }
   .tool-layout[data-sheet="half"] { --sheet-h: 50dvh; }

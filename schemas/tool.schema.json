@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://brand-tools.suse.com/schemas/tool.schema.json",
+  "$id": "https://lolly.tools/schemas/tool.schema.json",
   "title": "Tool Manifest",
   "description": "Declares everything the engine needs to know about a tool: its identity, its inputs, its render target, and its capabilities. The template consumes inputs by name; this manifest declares them.",
   "type": "object",

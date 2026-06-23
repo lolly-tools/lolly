@@ -1,10 +1,10 @@
 [package]
-name = "brand-tools-mobile"
+name = "lolly-mobile"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "brand_tools_mobile_lib"
+name = "lolly_mobile_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

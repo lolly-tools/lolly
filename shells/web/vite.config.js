@@ -21,8 +21,10 @@ const MIME = {
 };
 
 // Vite resolve.alias only rewrites JS import statements — it has no effect on
-// browser fetch() calls. This plugin adds an actual HTTP handler for /tools/
-// and /catalog/ so that fetch('/tools/qr-code/tool.json') works in dev.
+// browser fetch() calls. This plugin adds an actual HTTP handler for /tools/,
+// /catalog/, and /schemas/ so that fetch('/tools/qr-code/tool.json') works in
+// dev — and so the schema $id URLs (https://lolly.tools/schemas/*.schema.json)
+// resolve to the real files in both dev and the production build.
 function serveRepoStatic() {
   return {
     name: 'serve-repo-static',
@@ -43,7 +45,7 @@ function serveRepoStatic() {
           }
         }
 
-        if (!url?.startsWith('/tools/') && !url?.startsWith('/catalog/')) return next();
+        if (!url?.startsWith('/tools/') && !url?.startsWith('/catalog/') && !url?.startsWith('/schemas/')) return next();
         const filePath = resolve(repoRoot, url.slice(1));
         if (!existsSync(filePath) || !statSync(filePath).isFile()) return next();
         const data = readFileSync(filePath);
@@ -54,7 +56,7 @@ function serveRepoStatic() {
     },
     closeBundle() {
       const outDir = resolve(__dirname, 'dist');
-      for (const dir of ['catalog', 'tools']) {
+      for (const dir of ['catalog', 'tools', 'schemas']) {
         const src = resolve(repoRoot, dir);
         if (existsSync(src)) cpSync(src, resolve(outDir, dir), { recursive: true });
       }

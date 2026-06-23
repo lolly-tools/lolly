@@ -73,7 +73,7 @@ The gap is clear: nothing in the existing landscape gives us constraints-first, 
 ### Repository layout
 
 ```
-brandtools/
+lolly/
 ├── engine/           # Platform-agnostic core. Open-sourceable.
 │   └── src/
 │       ├── index.js          # public surface — loader, runtime, template, inputs, url-mode

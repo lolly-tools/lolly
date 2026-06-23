@@ -2,7 +2,7 @@
 
 The web shell is the primary MVP target. It:
 
-- Hosts the engine at a public URL (`brand-tools.suse.com`)
+- Hosts the engine at a public URL (`lolly.tools`)
 - Implements the capability bridge against browser APIs (IndexedDB, Clipboard API, etc.)
 - Registers a service worker for offline tool caching
 - Renders the gallery, profile, saved-state, and tool UI chrome

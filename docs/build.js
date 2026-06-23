@@ -863,8 +863,7 @@ nav .nav-group + .nav-group{margin-left:.5rem;padding-left:.625rem;border-left:1
 .docs-content h3{font-size:1.15rem;margin-top:1.75rem;margin-bottom:.5rem;color:var(--dark)}
 .docs-content h4{font-size:1rem;margin-top:1.25rem;margin-bottom:.35rem;color:var(--muted)}
 .docs-content ul,.docs-content ol{margin-bottom:1rem}
-.page-title{font-size:2.25rem;color:var(--dark);margin-bottom:.35rem;line-height:1.15}
-.page-lead{color:var(--muted);font-size:1rem;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border)}
+.docs-content h1{font-size:2.25rem;color:var(--dark);line-height:1.15;margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border)}
 
 /* Table */
 .table-wrap{overflow-x:auto;margin-bottom:1.5rem}
@@ -1072,8 +1071,7 @@ footer a:hover{color:var(--dark)}
 .dark .tool-feature strong{color:var(--text)}
 .dark tr:nth-child(even) td{background:#0d2419}
 .dark footer{border-top-color:var(--border)}
-.dark .page-lead{border-bottom-color:var(--border)}
-.dark .docs-content h2,.dark .docs-content h3,.dark .page-title{color:var(--text)}
+.dark .docs-content h1,.dark .docs-content h2,.dark .docs-content h3{color:var(--text)}
 .dark th{color:var(--text)}
 /* Code in dark mode: the base code/pre rules hardcode light backgrounds, so in
    dark mode inline code became light-text-on-light-bg (invisible). Give chips a
@@ -1394,8 +1392,6 @@ function wrapPage(page, content) {
     <a href="/info/build-guide.html"${activeHref.includes('build-guide') ? ' class="active"' : ''}>Build Guide</a>
   </aside>
   <main class="docs-content">
-    <h1 class="page-title">${esc(page.title)}</h1>
-    <p class="page-lead">Lolly documentation</p>
     ${content}
   </main>
 </div>`;
@@ -1419,7 +1415,7 @@ function wrapPage(page, content) {
 <meta property="og:image" content="${esc(OG_IMAGE)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Lolly — SUSE Brand Tools">
+<meta property="og:image:alt" content="Lolly — on-brand creative tools">
 <meta property="og:logo" content="${esc(OG_LOGO)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(ogTitle)}">

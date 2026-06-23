@@ -20,15 +20,15 @@ Lolly produces a large volume of content. We take a strict data minimization app
 
 Anybody can distribute their own apps, the tools and configuration of those apps should vary widely depending on what audience it's intended for. So there's no one app unless you made it or someone relevant gives it to you.
 
-## Why Lolly Tools?
+## Why the name "Lolly Tools"?
 
 Because freedom is sweet.
 
-Lolly is an Australian, New Zealand, British term for 'sweets' or 'candy'. Just like lollies, tools are very tasty for people needing them.
+**Lolly** is an Australian, New Zealand, British term for 'sweets' or 'candy'. Just like lollies, tools are very tasty for people needing them.
 
 We're also laughing at the time and bills we are saving with this approach.
 
-Tools specifically because that's what Lolly hosts and supercharges: things that can be put to work.
+**Tools** specifically because that's what Lolly hosts and supercharges: things that can be put to work, and are inactive and in your control without instruction. 
 
 
 ## What makes utilities different from tools?
