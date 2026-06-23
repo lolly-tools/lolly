@@ -311,15 +311,12 @@ export async function mountCapabilities(viewEl) {
     <div class="platform-layout">
       <header class="plat-header">
         <h1 class="plat-title">Capabilities</h1>
-        <p class="plat-sub">The feature set — what Lolly can make, where it runs, and how it's used.</p>
+        <p class="plat-sub">Feature set: what Lolly can make • where Lolly runs •  how Lolly is used.</p>
         <div class="plat-stats">
           ${toolCount != null ? stat(toolCount, 'tools') : ''}
           ${stat(20, 'export formats')}
           ${stat(6, 'surfaces')}
-          ${chip('Works offline')}
-          ${chip('Open source')}
-          ${chip('No SaaS fees')}
-          ${chip('Zero telemetry')}
+
         </div>
       </header>
 
