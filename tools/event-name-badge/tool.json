@@ -25,15 +25,15 @@
       "label": "Badge size",
       "type": "select",
       "default": "4x6in",
-      "help": "Sets the badge proportions. Set the exact print size in the export bar (mm/in) — the trim size is shown on the badge while you design.",
+      "help": "Sets the badge proportions and the export print size (shown on the badge as you design). Fine-tune the exact dimensions in the export bar if needed.",
       "options": [
-        { "value": "a7", "label": "A7 portrait · 74 × 105 mm (small)" },
-        { "value": "3x4in", "label": "3 × 4 in portrait · 76 × 102 mm" },
-        { "value": "a6", "label": "A6 portrait · 105 × 148 mm" },
-        { "value": "4x6in", "label": "4 × 6 in portrait · 102 × 152 mm (large)" },
-        { "value": "4x3in", "label": "4 × 3 in landscape · 102 × 76 mm" },
-        { "value": "a6land", "label": "A6 landscape · 148 × 105 mm" },
-        { "value": "6x4in", "label": "6 × 4 in landscape · 152 × 102 mm (large)" }
+        { "value": "a7", "label": "A7 portrait · 74 × 105 mm (small)", "width": 74, "height": 105, "unit": "mm" },
+        { "value": "3x4in", "label": "3 × 4 in portrait · 76 × 102 mm", "width": 76.2, "height": 101.6, "unit": "mm" },
+        { "value": "a6", "label": "A6 portrait · 105 × 148 mm", "width": 105, "height": 148, "unit": "mm" },
+        { "value": "4x6in", "label": "4 × 6 in portrait · 102 × 152 mm (large)", "width": 101.6, "height": 152.4, "unit": "mm" },
+        { "value": "4x3in", "label": "4 × 3 in landscape · 102 × 76 mm", "width": 101.6, "height": 76.2, "unit": "mm" },
+        { "value": "a6land", "label": "A6 landscape · 148 × 105 mm", "width": 148, "height": 105, "unit": "mm" },
+        { "value": "6x4in", "label": "6 × 4 in landscape · 152 × 102 mm (large)", "width": 152.4, "height": 101.6, "unit": "mm" }
       ]
     },
     {
