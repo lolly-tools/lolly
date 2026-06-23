@@ -19,7 +19,7 @@ This documentation site (`/info`) is even lighter: it sets **no cookies** and st
 
 ## On-device utilities
 
-Some tools are **utilities** that work on a file *you* provide — for example the **EXIF & Metadata Stripper**, which shows the hidden data in a photo (GPS location, camera, timestamps, author) and hands back a clean copy.
+Some tools are **utilities** that work on a file *you* provide — for example **Strip Hidden Data**, which shows the hidden data in an image or PDF (GPS location, camera, author, editor and document metadata) and hands back a clean copy.
 
 These run **entirely in your browser**. The file you pick is read into memory on your device, transformed locally, and offered back as a download. **It is never uploaded** — there is no server to upload it to. The cleaned copy carries no watermark and none of our own identifying metadata; the whole point is to *remove* data, not add it. Nothing is stored after you leave, and these utilities work offline. You'll see a **"Runs on your device — nothing is uploaded"** badge on every one of them.
 

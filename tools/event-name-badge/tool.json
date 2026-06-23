@@ -1,0 +1,153 @@
+{
+  "id": "event-name-badge",
+  "name": "Event Name Badge",
+  "description": "Conference-ready name badges — event logo, name, title, company, a colour-coded attendee status, tracks and an optional QR. Print-correct sizes from A7 up to 4×6 in, portrait or landscape.",
+  "a11yLabel": "Event name badge for {{default firstName \"attendee\"}} {{default lastName \"\"}}, {{default status \"attendee\"}}",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "event",
+  "tags": ["badge", "name tag", "event", "conference", "lanyard", "qr", "tracks", "speaker", "sponsor"],
+  "render": {
+    "width": 1200,
+    "height": 1800,
+    "formats": ["pdf", "pdf-cmyk", "png", "jpg", "webp"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "size",
+      "label": "Badge size",
+      "type": "select",
+      "default": "4x6in",
+      "help": "Sets the badge proportions. Set the exact print size in the export bar (mm/in) — the trim size is shown on the badge while you design.",
+      "options": [
+        { "value": "a7", "label": "A7 portrait · 74 × 105 mm (small)" },
+        { "value": "3x4in", "label": "3 × 4 in portrait · 76 × 102 mm" },
+        { "value": "a6", "label": "A6 portrait · 105 × 148 mm" },
+        { "value": "4x6in", "label": "4 × 6 in portrait · 102 × 152 mm (large)" },
+        { "value": "4x3in", "label": "4 × 3 in landscape · 102 × 76 mm" },
+        { "value": "a6land", "label": "A6 landscape · 148 × 105 mm" },
+        { "value": "6x4in", "label": "6 × 4 in landscape · 152 × 102 mm (large)" }
+      ]
+    },
+    {
+      "id": "eventLogo",
+      "label": "Event logo",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "help": "Your event's logo. Leave empty to use the SUSE logo (auto light/dark for the card colour)."
+    },
+    {
+      "id": "eventName",
+      "label": "Event name",
+      "type": "text",
+      "default": "SUSECON 2027",
+      "maxLength": 60,
+      "help": "Shown under the logo. Clear it to show the logo alone."
+    },
+    {
+      "id": "firstName",
+      "label": "First name",
+      "type": "text",
+      "default": "Alan",
+      "maxLength": 40,
+      "bindToProfile": "firstname"
+    },
+    {
+      "id": "lastName",
+      "label": "Last name",
+      "type": "text",
+      "default": "Turing",
+      "maxLength": 40,
+      "bindToProfile": "lastname"
+    },
+    {
+      "id": "pronouns",
+      "label": "Pronouns",
+      "type": "text",
+      "default": "",
+      "maxLength": 24,
+      "help": "Optional — shown next to the name."
+    },
+    {
+      "id": "jobTitle",
+      "label": "Title",
+      "type": "text",
+      "default": "Technology Enthusiast",
+      "maxLength": 60
+    },
+    {
+      "id": "company",
+      "label": "Company",
+      "type": "text",
+      "default": "",
+      "maxLength": 60
+    },
+    {
+      "id": "status",
+      "label": "Attendee status",
+      "type": "select",
+      "default": "speaker",
+      "help": "Colour-codes the badge and sets the role band.",
+      "options": [
+        { "value": "attendee", "label": "Attendee" },
+        { "value": "speaker", "label": "Speaker" },
+        { "value": "presenter", "label": "Presenter" },
+        { "value": "sponsor", "label": "Sponsor" },
+        { "value": "exhibitor", "label": "Exhibitor" },
+        { "value": "organizer", "label": "Organizer" },
+        { "value": "staff", "label": "Staff / Employee" },
+        { "value": "press", "label": "Press / Media" },
+        { "value": "vip", "label": "VIP" },
+        { "value": "volunteer", "label": "Volunteer" }
+      ]
+    },
+    {
+      "id": "roleColor",
+      "label": "Role colour override",
+      "type": "color",
+      "default": "",
+      "help": "Optional — replaces the status colour. Leave empty to use the colour for the chosen status."
+    },
+    {
+      "id": "tracks",
+      "label": "Tracks",
+      "type": "blocks",
+      "help": "Optional session tracks, shown as chips. Give a chip its own colour, or leave it to use the role colour outline.",
+      "fields": [
+        { "id": "label", "label": "Track", "type": "text", "placeholder": "e.g. Platform Engineering" },
+        { "id": "color", "label": "Chip colour", "type": "color", "default": "" }
+      ],
+      "default": [
+        { "label": "Platform Engineering", "color": "#30ba78" },
+        { "label": "Observability", "color": "" }
+      ]
+    },
+    {
+      "id": "showQr",
+      "label": "Show QR code",
+      "type": "boolean",
+      "default": true
+    },
+    {
+      "id": "qrUrl",
+      "label": "QR links to",
+      "type": "url",
+      "default": "https://sched.co/profile/alex-rivera",
+      "help": "Attendee profile, schedule or contact page. Hidden when empty."
+    },
+    {
+      "id": "background",
+      "label": "Card background",
+      "type": "color",
+      "default": "#ffffff"
+    }
+  ]
+}

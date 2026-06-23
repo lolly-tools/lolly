@@ -1,7 +1,15 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-23T18:20:12.103Z",
+  "generatedAt": "2026-06-23T19:16:37.526Z",
   "tools": [
+    {
+      "id": "color-block",
+      "name": "Color Block",
+      "description": "Stack typed colour blocks — heading, text, headshot, logo — and they auto-compose into a grid that fills any frame.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone"
+    },
     {
       "id": "dynamic-layout",
       "name": "Dynamic Layout",
@@ -102,14 +110,6 @@
       ]
     },
     {
-      "id": "film-burn-filter",
-      "name": "Film Burn Filter",
-      "description": "A warm film-burn effect for any image.",
-      "version": "0.2.0",
-      "status": "experimental",
-      "category": "designer"
-    },
-    {
       "id": "color-palette",
       "name": "Color Palette",
       "description": "Browse SUSE brand colors — click a swatch to copy it.",
@@ -145,28 +145,28 @@
       "category": "designer"
     },
     {
-      "id": "color-block",
-      "name": "Color Block",
-      "description": "Stack typed colour blocks — heading, text, headshot, logo — and they auto-compose into a grid that fills any frame.",
-      "version": "1.0.0",
-      "status": "official",
-      "category": "everyone"
-    },
-    {
       "id": "exif-stripper",
-      "name": "Strip Data from Images",
-      "description": "See the hidden data in an image — GPS location, camera, author, editor metadata, comments — then download a clean copy. Works with JPEG, PNG and SVG. Runs entirely in your browser; the file is never uploaded.",
+      "name": "Strip Hidden Data",
+      "description": "Reveal and remove hidden metadata — GPS, camera, author, editor info — from JPEG, PNG, SVG and PDF. Runs on your device; nothing is uploaded.",
       "version": "1.0.0",
       "status": "official",
       "category": "utility"
     },
     {
-      "id": "jwt-decoder",
-      "name": "JWT Decoder",
-      "description": "Paste a JSON Web Token to read its header, payload and claims — decoded entirely in your browser. Check expiry, issuer and algorithm without pasting the token into a website you don't control.",
+      "id": "text-tools",
+      "name": "Text Tools",
+      "description": "Format JSON, decode JWTs, Base64/URL encode, hash text — all on your device, so secrets never leave it.",
       "version": "1.0.0",
       "status": "official",
       "category": "utility"
+    },
+    {
+      "id": "event-name-badge",
+      "name": "Event Name Badge",
+      "description": "Conference-ready name badges — event logo, name, title, company, a colour-coded attendee status, tracks and an optional QR. Print-correct sizes from A7 up to 4×6 in, portrait or landscape.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "event"
     }
   ]
 }

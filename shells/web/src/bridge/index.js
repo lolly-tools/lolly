@@ -14,6 +14,7 @@ import { createClipboardAPI } from './clipboard.js';
 import { createExportAPI } from './export.js';
 import { createNetAPI } from './net.js';
 import { createTextAPI } from './text.js';
+import { createPdfAPI } from './pdf.js';
 import { createCaptureAPI } from './capture.js';
 import { hasCaptureExtension, createExtensionCaptureAPI } from './capture-extension.js';
 import { PROVIDED_CAPABILITIES } from './capabilities-provided.js';
@@ -55,6 +56,7 @@ export async function createBridge() {
   host.export = createExportAPI(host);
   host.net = createNetAPI({ allowlist: [] }); // populated per-tool from manifest
   host.text = createTextAPI();
+  host.pdf = createPdfAPI(); // on-device PDF metadata inspect + strip (pdf-lib, lazy-loaded)
   // Extension when installed (real capture in the browser); otherwise the stub
   // that throws a clear error. In Tauri, capture.js is overridden to the native impl.
   host.capture = extCapture ? createExtensionCaptureAPI() : createCaptureAPI();

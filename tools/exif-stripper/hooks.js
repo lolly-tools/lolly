@@ -1,6 +1,6 @@
 /* global onInit, onInput, exportFile */
 /**
- * Strip Data from Images — runs entirely in the sandboxed hook context (no DOM,
+ * Strip Hidden Data — runs entirely in the sandboxed hook context (no DOM,
  * no network). Reads the picked file's bytes (input.value.bytes), reports the
  * hidden / non-rendering data it carries, and produces a clean copy.
  *
@@ -532,11 +532,23 @@ function looksLikeSvg(text) {
   return /<svg[\s>]/i.test(text);
 }
 
+// "%PDF-" magic at the start of the file.
+function isPdf(b) {
+  return b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46 && b[4] === 0x2D;
+}
+
+// Append "-clean" before the extension: report.pdf → report-clean.pdf.
+function cleanName(name) {
+  const dot = name.lastIndexOf('.');
+  return dot > 0 ? `${name.slice(0, dot)}-clean${name.slice(dot)}` : `${name}-clean`;
+}
+
 // Classify the file and surface the text decode for SVG (so it isn't decoded
-// twice). Returns { kind: 'JPEG'|'PNG'|'SVG'|'file', text }.
+// twice). Returns { kind: 'JPEG'|'PNG'|'SVG'|'PDF'|'file', text }.
 function classify(bytes) {
   if (bytes[0] === 0xFF && bytes[1] === 0xD8) return { kind: 'JPEG', text: null };
   if (isPng(bytes)) return { kind: 'PNG', text: null };
+  if (isPdf(bytes)) return { kind: 'PDF', text: null };
   let text = null;
   try { text = decodeText(bytes); } catch (e) { /* not decodable text */ }
   if (text != null && looksLikeSvg(text)) return { kind: 'SVG', text };
@@ -554,11 +566,11 @@ function cleanBytes(bytes, info) {
 
 // ─── lifecycle ───────────────────────────────────────────────────────────────
 
-function patch({ model }) {
+async function patch({ model, host }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
   const f = inputs.source;
   const blank = {
-    hasFile: false, supported: false, findings: [], nothingFound: false,
+    hasFile: false, supported: false, pdfUnavailable: false, findings: [], nothingFound: false,
     fileName: '', fileSize: '', kind: '', metaSummary: '', cleanSize: '',
     tailNote: '', cleanNote: '',
   };
@@ -568,6 +580,30 @@ function patch({ model }) {
   const info = classify(f.bytes);
   if (info.kind === 'file') {
     return { ...base, kind: 'file' }; // supported:false → template shows guidance
+  }
+
+  // PDF can't be cleaned by in-hook byte surgery — it goes through host.pdf (a
+  // real PDF library in the shell). Shells without that capability degrade to a
+  // clear "not available here" rather than a wrong "already clean".
+  if (info.kind === 'PDF') {
+    if (!host || !host.pdf) {
+      return { ...base, kind: 'PDF', supported: true, pdfUnavailable: true };
+    }
+    let findings = [];
+    try { ({ findings } = await host.pdf.analyze(f.bytes)); } catch (e) { findings = []; }
+    return {
+      ...base,
+      supported: true,
+      kind: 'PDF',
+      findings,
+      nothingFound: findings.length === 0,
+      cleanSize: '', // a re-save's size isn't meaningful to preview, so it's omitted
+      tailNote: 'Your PDF is re-saved without its metadata — the pages are preserved; only the document info and any XMP packet are removed. (A re-save isn\'t byte-for-byte and invalidates any digital signature.)',
+      cleanNote: 'You can still download a re-saved copy below.',
+      metaSummary: findings.length
+        ? `Found ${findings.length} item${findings.length > 1 ? 's' : ''} of hidden data — they'll be removed.`
+        : '',
+    };
   }
 
   let findings = [];
@@ -606,13 +642,20 @@ function patch({ model }) {
 function onInit(ctx) { return patch(ctx); }
 function onInput(ctx) { return patch(ctx); }
 
-function exportFile({ model }) {
+async function exportFile({ model, host }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
   const f = inputs.source;
   if (!f || !f.bytes) throw new Error('Choose an image first.');
+
+  // PDF is re-saved (metadata removed) via the shell's PDF capability.
+  if (isPdf(f.bytes)) {
+    if (!host || !host.pdf) throw new Error('PDF cleaning isn\'t available in this app.');
+    const { bytes } = await host.pdf.strip(f.bytes);
+    return { bytes, mime: 'application/pdf', filename: cleanName(f.name) };
+  }
+
+  // JPEG / PNG / SVG: lossless in-hook surgery (unrecognised input passes through).
   let bytes = f.bytes;
   try { bytes = cleanBytes(f.bytes); } catch (e) { bytes = f.bytes; }
-  const dot = f.name.lastIndexOf('.');
-  const filename = dot > 0 ? `${f.name.slice(0, dot)}-clean${f.name.slice(dot)}` : `${f.name}-clean`;
-  return { bytes, mime: f.mime || 'application/octet-stream', filename };
+  return { bytes, mime: f.mime || 'application/octet-stream', filename: cleanName(f.name) };
 }

@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@lolly/engine": "*",
-    "jsdom": "^25.0.0"
+    "jsdom": "^25.0.0",
+    "pdf-lib": "^1.17.1"
   }
 }

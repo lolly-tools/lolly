@@ -3,7 +3,7 @@
  * (host.export.file / the exportFile hook / runtime.exportFile) and the
  * on-device utility guarantees — the Phase-0 infra for content-transform tools.
  *
- * Also exercises the real EXIF & Metadata Stripper tool end-to-end: a crafted
+ * Also exercises the real Strip Hidden Data tool end-to-end: a crafted
  * JPEG (with GPS + camera EXIF) and PNG are run through the actual hooks.js to
  * prove the metadata is found and losslessly stripped.
  *
@@ -16,10 +16,13 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
+import { PDFDocument } from 'pdf-lib';
+
 import { buildInputModel, updateInput } from '../engine/src/inputs.js';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.js';
 import { validateManifest } from '../engine/src/validate.js';
 import { createRuntime } from '../engine/src/runtime.js';
+import { createPdfAPI } from '../shells/web/src/bridge/pdf.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -161,7 +164,7 @@ test('runtime.export: on-device tools embed NO provenance metadata and never wat
   assert.ok(captured.meta && typeof captured.meta === 'object', 'normal tools still embed provenance');
 });
 
-// ─── EXIF & Metadata Stripper — real hooks, end-to-end ─────────────────────────
+// ─── Strip Hidden Data: JPEG/PNG — real hooks, end-to-end ──────────────────────
 
 // Build a TIFF (little-endian) with IFD0 {Make, GPS-pointer} → GPS IFD with a
 // known latitude/longitude, laid out at fixed offsets relative to the TIFF start.
@@ -313,7 +316,7 @@ test('exif-stripper: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', asyn
   assert.ok(bytes.length < png.length);
 });
 
-// ─── Strip Data from Images: SVG — real hooks, end-to-end ──────────────────────
+// ─── Strip Hidden Data: SVG — real hooks, end-to-end ───────────────────────────
 // The converged tool (exifStripperTool) now also cleans SVG, so these drive the
 // same on-disk tool as the JPEG/PNG cases above.
 
@@ -372,4 +375,62 @@ test('strip-data (svg): a non-SVG file is reported as such and handed back untou
   assert.match(rt.getHydrated(), /doesn't look like a supported image/);
   const { bytes } = await rt.exportFile();
   assert.deepEqual(Array.from(bytes), Array.from(original.bytes)); // byte-for-byte passthrough
+});
+
+// ─── Strip Hidden Data: PDF — real hooks via host.pdf, end-to-end ──────────────
+// A PDF can't be cleaned by in-hook byte surgery, so the tool calls host.pdf —
+// the shell's pdf-lib-backed capability. These drive the SAME merged tool with a
+// pdf-capable host built from the web bridge's real pdf.js.
+
+const PDF_HOST = { ...BARE_HOST, pdf: createPdfAPI() };
+
+async function buildMetaPdf() {
+  const doc = await PDFDocument.create();
+  doc.addPage([200, 200]);
+  doc.setTitle('Confidential Plan');
+  doc.setAuthor('Jane Doe');
+  doc.setCreator('Acme Editor 3.0');
+  doc.setProducer('Acme PDF Lib');
+  doc.setSubject('secret');
+  doc.setKeywords(['alpha', 'beta']);
+  return doc.save();
+}
+
+const pdfFile = (bytes, name = 'plan.pdf') =>
+  fileRef({ name, mime: 'application/pdf', size: bytes.length, bytes });
+
+test('strip-data (pdf): reports Info-dict metadata via host.pdf (onInit analysis)', async () => {
+  const pdf = await buildMetaPdf();
+  const rt = await createRuntime(exifStripperTool(), PDF_HOST, { source: pdfFile(pdf) });
+  const html = rt.getHydrated();
+  assert.match(html, /Author/);
+  assert.match(html, /Jane Doe/);            // detail value (CSS-hidden until "Show details")
+  assert.match(html, /Created with/);
+  assert.match(html, /Acme Editor 3\.0/);
+  assert.match(html, /Title/);
+  assert.match(html, /Confidential Plan/);
+});
+
+test('strip-data (pdf): re-saves without metadata, keeps the page', async () => {
+  const pdf = await buildMetaPdf();
+  const rt = await createRuntime(exifStripperTool(), PDF_HOST, { source: pdfFile(pdf, 'plan.pdf') });
+  const { bytes, filename, mime } = await rt.exportFile();
+  assert.equal(mime, 'application/pdf');
+  assert.equal(filename, 'plan-clean.pdf');
+  // The cleaned PDF carries no Info-dict metadata, and the page survives.
+  const cleaned = await PDFDocument.load(bytes, { updateMetadata: false });
+  assert.equal(cleaned.getAuthor() ?? '', '');
+  assert.equal(cleaned.getTitle() ?? '', '');
+  assert.equal(cleaned.getCreator() ?? '', '');
+  assert.equal(cleaned.getProducer() ?? '', '');
+  assert.equal(cleaned.getPageCount(), 1);
+  // The author's name is gone from the raw bytes too.
+  assert.equal(new TextDecoder().decode(bytes).includes('Jane Doe'), false);
+});
+
+test('strip-data (pdf): degrades gracefully when the host has no PDF capability', async () => {
+  const pdf = await buildMetaPdf();
+  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: pdfFile(pdf) });
+  assert.match(rt.getHydrated(), /isn't available/i);   // pdfUnavailable branch
+  await assert.rejects(() => rt.exportFile(), /available/i);
 });

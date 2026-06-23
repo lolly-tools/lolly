@@ -78,6 +78,10 @@ body:has(.app-view.tool-view) .skip-link { display: block; }
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
   }
+  /* The export shutter sweeps via a transition (not an animation), so the rule
+     above doesn't reach it. Cover/uncover instantly for reduced motion — it still
+     hides the export "shake"; the JS waits on a timer, not transitionend. */
+  .export-shutter .flap { transition: none !important; }
 }
 
 /* ─── Reset / base ──────────────────────────────────────────────────────── */
@@ -281,7 +285,7 @@ footer{text-align:right;}
     display: grid;
         grid-template-columns: 1.5fr 4fr;
         gap: 12px;
-        place-content: center;
+  
         align-items: start;
   }
   .gallery-view.no-saves{  grid-template-columns: 1fr;}
@@ -1004,7 +1008,7 @@ footer{text-align:right;}
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-  color: hsl(var(--muted-foreground) / 0.65);
+  color: hsl(var(--muted-foreground) / 0.9);
   pointer-events: none;
   transition:
     top 0.15s ease,
@@ -1614,7 +1618,8 @@ background-color:hsl(var(--background) / 1);
 }
 
 .custom-slider:focus-visible .cs-thumb {
-  box-shadow: 0 0 0 4px hsl(var(--ring) / 0.3), 0 1px 4px hsl(0 0% 0% / 0.25);
+  /* Solid, high-contrast keyboard focus ring on the thumb (was a faint 0.3 glow). */
+  box-shadow: 0 0 0 3px hsl(var(--ring)), 0 1px 4px hsl(0 0% 0% / 0.25);
 }
 
 /* Tactile grab feedback: the thumb swells while the slider is being dragged
@@ -4450,6 +4455,15 @@ button {
   .color-swatch { height: 2.4em; width: 2.4em; }
   .input-row input[type="checkbox"] { width: 20px; height: 20px; }
   .input-row--checkbox { padding: 11px 12px; }
+
+  /* Finger-friendly hit areas for toolbar / nav / dismiss controls. (Corner
+     overlay deletes are left for a visual pass — enlarging them risks stealing
+     taps from the card beneath.) */
+  .nav-btn,
+  .privacy-notice-dismiss { min-height: 44px; }
+  .fullscreen-toggle,
+  .stage-nav-btn,
+  .export-popup-close { min-height: 44px; min-width: 44px; }
 }
 
 /* "Platform" entry pill — fixed top-right of the profile page, mirroring the
@@ -4657,3 +4671,32 @@ button {
 .cap-feat dt { margin: 0 0 .12rem; font-size: .82rem; font-weight: 650; color: hsl(var(--foreground)); }
 .cap-feat dd { margin: 0; font-size: .8rem; line-height: 1.5; color: hsl(var(--muted-foreground)); }
 .cap-feat dd code { font-family: 'SUSE Mono', ui-monospace, monospace; font-size: .92em; }
+
+/* ─── Keyboard focus rings (a11y) ───────────────────────────────────────────
+   Several form controls replace the focus ring with a tinted border + a faint
+   ~0.15 box-shadow glow on :focus (or set outline:none on the base), which is
+   near-invisible for keyboard users and beats the global :focus-visible ring.
+   Restore a real, high-contrast ring on :focus-visible ONLY — mouse focus keeps
+   the subtle styled look (the existing :focus rules are untouched). Selectors
+   mirror each control's :focus rule (same specificity) and are declared last so
+   they win the cascade. */
+.gallery-search:focus-visible,
+.input-row input:focus-visible,
+.input-row textarea:focus-visible,
+.input-row select:focus-visible,
+.time-input-wrap input[type="time"]:focus-visible,
+.block-field:focus-visible,
+.vec-num:focus-visible,
+.dim-unit:focus-visible,
+.export-dims input[type="number"]:focus-visible,
+.video-params input[type="number"]:focus-visible,
+.export-pdfpass input[type="password"]:focus-visible,
+.print-bleed input[type="number"]:focus-visible,
+.export-filename:focus-visible,
+.tool-actions select:focus-visible,
+.profile-view .profile-field input:focus-visible,
+.color-hex-input:focus-visible,
+.profile-view .info-dot:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}

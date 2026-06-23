@@ -1,0 +1,154 @@
+<style>
+/* SUSE variable font — same source the lockup / color-block tools use. */
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSE[wght].woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* The stage fills the canvas; the card sits centred at its true badge aspect.
+   At the default export size the card fills the frame exactly (no margin); pick
+   another size and the surrounding area is just preview mat — export at the
+   matching trim (shown on the badge) for an edge-to-edge file. */
+.ebadge-stage {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  font-family: 'SUSE', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The badge card. container-type:size makes every cqmin below scale with the
+   badge, so one set of sizes works across A7 → 4×6 in and both orientations. */
+.ebadge {
+  width: 100%; max-width: 100%; max-height: 100%;
+  container-type: size;
+  position: relative;
+  overflow: hidden;
+  border-radius: 3.5cqmin;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink, #0c322c);
+}
+
+/* Constrain the card to its aspect within the stage (whichever axis binds). */
+.ebadge-stage { container-type: size; }
+
+.ebadge-accent { flex: none; height: 2.4cqmin; background: var(--accent); }
+
+/* ── Header: logo + event name ── */
+.ebadge-head {
+  flex: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2.2cqmin;
+  padding: 7cqmin 7cqmin 2cqmin;
+  text-align: center;
+}
+.ebadge-logo { max-width: 74%; max-height: 17cqmin; object-fit: contain; }
+.ebadge-event {
+  font-size: 3.5cqmin; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted); line-height: 1.2;
+}
+
+/* ── Identity: name / title / company / tracks ── */
+.ebadge-id {
+  flex: 1; min-height: 0;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 1.6cqmin;
+  padding: 2cqmin 7cqmin;
+  text-align: center;
+  overflow: hidden;
+}
+.ebadge-name {
+  font-size: 10cqmin; font-weight: 800; line-height: 0.98;
+  letter-spacing: -0.015em; color: var(--ink);
+  overflow-wrap: anywhere; text-wrap: balance;
+}
+.ebadge-pron {
+  font-size: 0.4em; font-weight: 500; color: var(--muted);
+  white-space: nowrap; letter-spacing: 0;
+}
+.ebadge-title  { font-size: 4.8cqmin; font-weight: 600; color: var(--ink); line-height: 1.1; }
+.ebadge-company{ font-size: 4.4cqmin; font-weight: 700; color: var(--accent); line-height: 1.1; }
+.ebadge-tracks {
+  list-style: none; display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 1.6cqmin; margin-top: 1.6cqmin;
+}
+.ebadge-track {
+  font-size: 3cqmin; font-weight: 600; line-height: 1;
+  padding: 0.55em 0.95em; border-radius: 999px;
+  border: 0.5cqmin solid var(--chip-outline, var(--accent));
+  background: var(--chip, transparent);
+  color: var(--chip-ink, var(--accent));
+}
+
+/* ── Footer: role band + QR card ── */
+.ebadge-foot {
+  flex: none;
+  display: flex; align-items: center; gap: 4cqmin;
+  padding: 4cqmin 6cqmin;
+  background: var(--accent); color: var(--accent-ink);
+}
+.ebadge-role {
+  flex: 1; font-size: 6cqmin; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.1em; line-height: 1;
+}
+.ebadge-qr {
+  flex: none; width: 22cqmin; height: 22cqmin;
+  background: #ffffff; border-radius: 2cqmin; padding: 1.6cqmin;
+}
+.ebadge-qr svg { display: block; width: 100%; height: 100%; }
+
+/* ── Landscape: use the width — header is a row, identity left-aligns ── */
+.ebadge-landscape .ebadge-head {
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 5cqmin 6cqmin 1cqmin; text-align: left;
+}
+.ebadge-landscape .ebadge-logo { max-width: 48%; max-height: 22cqmin; }
+.ebadge-landscape .ebadge-event { text-align: right; }
+.ebadge-landscape .ebadge-id { text-align: left; padding: 1cqmin 6cqmin; }
+.ebadge-landscape .ebadge-tracks { justify-content: flex-start; }
+.ebadge-landscape .ebadge-name { font-size: 11cqmin; }
+.ebadge-landscape .ebadge-role { font-size: 7cqmin; }
+.ebadge-landscape .ebadge-qr { width: 26cqmin; height: 26cqmin; }
+</style>
+
+<div class="ebadge-stage">
+  <div class="ebadge ebadge-{{orient}}"
+       style="aspect-ratio: {{aspW}} / {{aspH}};
+              --accent: {{statusColor}}; --accent-ink: {{statusInk}};
+              --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
+              background: {{default background '#ffffff'}};">
+
+    <div class="ebadge-accent"></div>
+
+    <header class="ebadge-head">
+      {{#if eventLogo}}
+        <img class="ebadge-logo" src="{{asset eventLogo}}" alt="">
+      {{else}}
+        {{#if defaultLogo}}<img class="ebadge-logo" src="{{asset defaultLogo}}" alt="">{{/if}}
+      {{/if}}
+      {{#if eventName}}<div class="ebadge-event">{{eventName}}</div>{{/if}}
+    </header>
+
+    <main class="ebadge-id">
+      <div class="ebadge-name">{{firstName}} {{lastName}}{{#if pronouns}} <span class="ebadge-pron">{{pronouns}}</span>{{/if}}</div>
+      {{#if jobTitle}}<div class="ebadge-title">{{jobTitle}}</div>{{/if}}
+      {{#if company}}<div class="ebadge-company">{{company}}</div>{{/if}}
+      {{#if tracksOut.length}}
+        <ul class="ebadge-tracks">
+          {{#each tracksOut}}
+            <li class="ebadge-track" style="--chip: {{bg}}; --chip-ink: {{fg}}; --chip-outline: {{outline}};">{{label}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+    </main>
+
+    <footer class="ebadge-foot">
+      <div class="ebadge-role">{{statusLabel}}</div>
+      {{#if qrSvg}}<div class="ebadge-qr">{{{qrSvg}}}</div>{{/if}}
+    </footer>
+  </div>
+</div>

@@ -113,10 +113,14 @@ See `docs/authoring-tools.md` to build your first tool.
 | Street Map | designer | official |
 | Product Lockup | designer | experimental |
 | Bag Video | designer | experimental |
-| Film Burn Filter | designer | experimental |
+| Event Name Badge | event | official |
 | Color Palette | utility | official |
 | Countdown Timer | utility | official |
 | URL Screenshot | utility | experimental |
+| Strip Hidden Data | utility | official |
+| Text Tools | utility | official |
+
+The `utility` "Handy Apps" section always renders last in the gallery.
 
 ## Open-sourcing plan
 

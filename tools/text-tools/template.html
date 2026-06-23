@@ -1,0 +1,466 @@
+<div class="tt" data-tt>
+  <header class="tt-top">
+    <h1 class="tt-title">Text Tools</h1>
+    <p class="tt-sub">Format, decode and hash text right here. Nothing you paste leaves your device.</p>
+  </header>
+
+  <nav class="tt-tabs" role="tablist" aria-label="Operation">
+    <button class="tt-tab is-active" type="button" role="tab" data-op="text">Text</button>
+    <button class="tt-tab" type="button" role="tab" data-op="json">JSON</button>
+    <button class="tt-tab" type="button" role="tab" data-op="base64">Base64</button>
+    <button class="tt-tab" type="button" role="tab" data-op="url">URL</button>
+    <button class="tt-tab" type="button" role="tab" data-op="jwt">JWT</button>
+    <button class="tt-tab" type="button" role="tab" data-op="hash">Hash</button>
+    <button class="tt-tab" type="button" role="tab" data-op="novelty">Novelty</button>
+  </nav>
+
+  <div class="tt-options" data-tt-options></div>
+
+  <div class="tt-panes" data-tt-panes>
+    <section class="tt-pane">
+      <div class="tt-pane-head"><span class="tt-label" data-tt-inlabel>Input</span></div>
+      <textarea class="tt-area" data-tt-in placeholder="Paste text here…" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+    </section>
+    <div class="tt-divider" data-tt-divider role="separator" aria-orientation="vertical" aria-label="Drag to resize the panes"></div>
+    <section class="tt-pane">
+      <div class="tt-pane-head"><span class="tt-label">Output</span></div>
+      <textarea class="tt-area tt-area-out" data-tt-out readonly placeholder="The result appears here" spellcheck="false"></textarea>
+    </section>
+  </div>
+
+  <div class="tt-status" data-tt-status role="status" aria-live="polite"></div>
+
+  <button class="tt-copy" type="button" data-tt-copy disabled>Copy</button>
+</div>
+
+<style>
+.tt {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100%;
+  padding: 56px clamp(16px, 4vw, 48px) 104px;
+  font-family: "SUSE", system-ui, sans-serif;
+  color: #1a1a1a;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tt * { box-sizing: border-box; }
+.tt-top { max-width: 760px; margin: 0 auto; text-align: center; }
+.tt-title { margin: 0 0 4px; font-size: clamp(22px, 3vw, 30px); font-weight: 800; letter-spacing: -0.01em; }
+.tt-sub { margin: 0; font-size: 14px; color: #666; }
+
+.tt-tabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.tt-tab {
+  appearance: none;
+  border: 1px solid #e0e0e0;
+  background: #fff;
+  color: #555;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13.5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .12s, color .12s, border-color .12s;
+}
+.tt-tab:hover { border-color: #30ba78; color: #2a8c5d; }
+.tt-tab.is-active { background: #30ba78; border-color: #30ba78; color: #fff; }
+
+.tt-options { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; min-height: 20px; }
+.tt-options:empty { display: none; }
+.tt-seg { display: inline-flex; border: 1px solid #d8d8d8; border-radius: 8px; overflow: hidden; }
+.tt-seg button {
+  appearance: none; border: 0; background: #fff; color: #555; font: inherit; font-size: 12.5px; font-weight: 600;
+  padding: 6px 14px; cursor: pointer; border-right: 1px solid #ececec;
+}
+.tt-seg button:last-child { border-right: 0; }
+.tt-seg button.is-on { background: #eafaf2; color: #1f7a4d; }
+.tt-opt-label { font-size: 12.5px; color: #555; display: inline-flex; align-items: center; gap: 7px; }
+.tt-opt-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: #30ba78; }
+.tt-select {
+  font: inherit; font-size: 12.5px; padding: 6px 10px; border: 1px solid #d8d8d8; border-radius: 8px;
+  background: #fff; color: #333;
+}
+
+.tt-panes { display: flex; flex: 1; min-height: 320px; align-items: stretch; }
+.tt-pane { display: flex; flex-direction: column; min-width: 0; }
+.tt-panes > .tt-pane:first-child { flex: 0 0 var(--tt-left, 50%); }
+.tt-panes > .tt-pane:last-child  { flex: 1 1 0; }
+.tt-divider {
+  flex: 0 0 18px; align-self: stretch; cursor: col-resize; touch-action: none;
+  display: flex; align-items: center; justify-content: center;
+}
+.tt-divider::before {
+  content: ''; width: 4px; height: 56px; max-height: 55%; border-radius: 4px;
+  background: #d4d4d4; transition: background .12s;
+}
+.tt-divider:hover::before, .tt-divider.is-drag::before { background: #30ba78; }
+.tt-pane-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; min-height: 28px; }
+@media (max-width: 760px) {
+  .tt-panes { flex-direction: column; gap: 14px; }
+  .tt-panes > .tt-pane:first-child, .tt-panes > .tt-pane:last-child { flex: 1 1 auto; }
+  .tt-divider { display: none; }
+}
+.tt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #999; }
+.tt-area {
+  flex: 1; width: 100%; min-height: 280px; resize: none;
+  font-family: "SUSE Mono", ui-monospace, monospace; font-size: 13px; line-height: 1.55;
+  padding: 14px; border: 1px solid #e0e0e0; border-radius: 12px; background: #fff; color: #1a1a1a;
+  white-space: pre; overflow: auto; tab-size: 2;
+}
+.tt-area:focus { outline: 2px solid #30ba78; outline-offset: -1px; border-color: #30ba78; }
+.tt-area-out { background: #f8f8f8; }
+.tt-area-out.is-error { background: #fdf2f2; color: #b3322d; }
+
+.tt-copy {
+  position: fixed; right: 24px; bottom: 24px; z-index: 50;
+  appearance: none; border: none; background: #30ba78; color: #fff; font: inherit;
+  font-size: 15px; font-weight: 700; padding: 14px 30px; border-radius: 14px; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(20, 90, 60, 0.28);
+  transition: background .12s, transform .08s, opacity .12s, box-shadow .12s;
+}
+.tt-copy:hover:not(:disabled) { background: #2aa86c; box-shadow: 0 8px 22px rgba(20, 90, 60, 0.34); }
+.tt-copy:active:not(:disabled) { transform: translateY(1px); }
+.tt-copy:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+.tt-copy.is-done { background: #1f9e63; }
+
+.tt-status { font-size: 12.5px; color: #777; min-height: 18px; font-family: "SUSE Mono", ui-monospace, monospace; }
+.tt-status.ok { color: #2a8c5d; }
+.tt-status.warn { color: #b3322d; }
+.tt-status .tt-pill { display: inline-block; margin-right: 10px; }
+</style>
+
+<script>
+(function () {
+  var root = document.querySelector('[data-tt]');
+  if (!root || root.dataset.ttReady) return;
+  root.dataset.ttReady = '1';
+
+  var inEl = root.querySelector('[data-tt-in]');
+  var outEl = root.querySelector('[data-tt-out]');
+  var statusEl = root.querySelector('[data-tt-status]');
+  var optionsEl = root.querySelector('[data-tt-options]');
+  var copyBtn = root.querySelector('[data-tt-copy]');
+  var inLabel = root.querySelector('[data-tt-inlabel]');
+  var tabs = Array.prototype.slice.call(root.querySelectorAll('.tt-tab'));
+
+  var activeOp = 'text';
+  var state = {
+    json: { mode: 'format' },
+    base64: { dir: 'encode', urlsafe: false },
+    url: { dir: 'encode' },
+    hash: { algo: 'SHA-256' },
+    text: { transform: 'none' },
+    novelty: { kind: 'rot13' }
+  };
+
+  // ── pure helpers ─────────────────────────────────────────────────────────
+  var enc = new TextEncoder();
+  var dec = new TextDecoder('utf-8', { fatal: false });
+
+  function toHex(buf) {
+    var b = new Uint8Array(buf), s = '';
+    for (var i = 0; i < b.length; i++) s += b[i].toString(16).padStart(2, '0');
+    return s;
+  }
+  function fmtBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+    return (n / 1048576).toFixed(2) + ' MB';
+  }
+  function b64FromBytes(bytes, urlsafe) {
+    var bin = '';
+    for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    var s = btoa(bin);
+    if (urlsafe) s = s.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return s;
+  }
+  function bytesFromB64(str) {
+    var s = str.trim().replace(/\s+/g, '').replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    var bin = atob(s);
+    var out = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  function countMembers(v) {
+    if (Array.isArray(v)) return v.length + ' item' + (v.length === 1 ? '' : 's');
+    if (v && typeof v === 'object') {
+      var k = Object.keys(v).length;
+      return k + ' key' + (k === 1 ? '' : 's');
+    }
+    return typeof v;
+  }
+  function relTime(diff) {
+    var a = Math.abs(diff);
+    if (a < 1) return 'now';
+    var u = [['year', 31536000], ['month', 2592000], ['day', 86400], ['hour', 3600], ['minute', 60], ['second', 1]];
+    var label = '';
+    for (var i = 0; i < u.length; i++) {
+      if (a >= u[i][1]) { var nn = Math.floor(a / u[i][1]); label = nn + ' ' + u[i][0] + (nn > 1 ? 's' : ''); break; }
+    }
+    return diff >= 0 ? 'in ' + label : label + ' ago';
+  }
+  function decodeJwt(raw) {
+    var t = raw.trim().replace(/^Bearer\s+/i, '').replace(/^["']|["']$/g, '').trim();
+    var parts = t.split('.');
+    if (parts.length === 5) throw new Error('This is an encrypted token (JWE) — its contents need the decryption key.');
+    if (parts.length !== 3) throw new Error('A JWT has 3 dot-separated parts; this has ' + parts.length + '.');
+    var header, payload;
+    try { header = JSON.parse(dec.decode(bytesFromB64(parts[0]))); }
+    catch (e) { throw new Error('The header is not valid base64url-encoded JSON.'); }
+    try { payload = JSON.parse(dec.decode(bytesFromB64(parts[1]))); }
+    catch (e) { throw new Error('The payload is not valid base64url-encoded JSON.'); }
+    return { header: header, payload: payload };
+  }
+  function jwtStatus(header, payload) {
+    var now = Math.floor(Date.now() / 1000);
+    var alg = header && header.alg != null ? String(header.alg) : '?';
+    var bits = ['alg ' + alg];
+    var tone = 'ok';
+    if (typeof payload.exp === 'number') {
+      if (now >= payload.exp) { bits.push('expired ' + relTime(payload.exp - now)); tone = 'warn'; }
+      else bits.push('expires ' + relTime(payload.exp - now));
+    } else { bits.push('no expiry'); tone = 'warn'; }
+    if (typeof payload.nbf === 'number' && now < payload.nbf) { bits.push('not valid until ' + relTime(payload.nbf - now)); tone = 'warn'; }
+    if (/^none$/i.test(alg)) { bits.push('UNSIGNED — anyone can forge it'); tone = 'warn'; }
+    bits.push('signature not verified');
+    return { text: bits.join(' · '), tone: tone };
+  }
+  function applyCase(s, mode) {
+    var words = function () { return s.match(/[A-Za-z0-9]+/g) || []; };
+    switch (mode) {
+      case 'upper': return s.toUpperCase();
+      case 'lower': return s.toLowerCase();
+      case 'title': return s.replace(/\w\S*/g, function (w) { return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); });
+      case 'kebab': return words().join('-').toLowerCase();
+      case 'snake': return words().join('_').toLowerCase();
+      default: return s;
+    }
+  }
+  // ── novelty transforms ─────────────────────────────────────────────────────
+  function rot13(s) {
+    return s.replace(/[a-zA-Z]/g, function (c) {
+      var base = c <= 'Z' ? 65 : 97;
+      return String.fromCharCode((c.charCodeAt(0) - base + 13) % 26 + base);
+    });
+  }
+  // Substitution by keyboard position: alphabetical order → QWERTY row order.
+  var QW_ALPHA = 'abcdefghijklmnopqrstuvwxyz';
+  var QW_KEYS  = 'qwertyuiopasdfghjklzxcvbnm';
+  function qwertyCipher(s) {
+    return s.replace(/[a-zA-Z]/g, function (c) {
+      var lower = c.toLowerCase();
+      var i = QW_ALPHA.indexOf(lower);
+      if (i < 0) return c;
+      return c === lower ? QW_KEYS[i] : QW_KEYS[i].toUpperCase();
+    });
+  }
+  // Emoji cipher: a fixed, reversible letter+digit → emoji map. Pure fun, zero protection.
+  // Case is not preserved (decodes to lowercase); anything unmapped passes through unchanged.
+  var EMOJI_MAP = {
+    a: '🍎', b: '🐝', c: '🐱', d: '🐬', e: '🥚', f: '🐸', g: '🍇', h: '🌻', i: '🍦',
+    j: '🤹', k: '🔑', l: '🦁', m: '🌙', n: '🎵', o: '🐙', p: '🍕', q: '👑', r: '🌈',
+    s: '🐍', t: '🌴', u: '☂️', v: '🎻', w: '🍉', x: '❌', y: '🪀', z: '⚡',
+    '0': '🌑', '1': '1️⃣', '2': '2️⃣', '3': '3️⃣', '4': '4️⃣', '5': '5️⃣', '6': '6️⃣', '7': '7️⃣', '8': '8️⃣', '9': '9️⃣'
+  };
+  var EMOJI_REV = {};
+  for (var ek in EMOJI_MAP) EMOJI_REV[EMOJI_MAP[ek]] = ek;
+  function graphemes(s) {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      return Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(s),
+        function (x) { return x.segment; });
+    }
+    return Array.from(s); // code-point aware fallback
+  }
+  function emojiCipher(s) {
+    var units = graphemes(s);
+    var hasCipher = units.some(function (g) { return EMOJI_REV[g] != null; });
+    if (hasCipher) {
+      // Decode: turn known cipher emoji back into characters.
+      return { out: units.map(function (g) { return EMOJI_REV[g] != null ? EMOJI_REV[g] : g; }).join(''), dir: 'Decoded' };
+    }
+    // Encode: lowercase letters + digits become emoji; everything else is left alone.
+    var out = s.replace(/[a-z0-9]/gi, function (c) {
+      var k = c.toLowerCase();
+      return EMOJI_MAP[k] != null ? EMOJI_MAP[k] : c;
+    });
+    return { out: out, dir: 'Encoded' };
+  }
+
+  // ── operations: each returns { out, status, tone, error } or a Promise ─────
+  var ops = {
+    json: function (input) {
+      var parsed = JSON.parse(input);
+      var out = JSON.stringify(parsed, null, state.json.mode === 'minify' ? 0 : 2);
+      return { out: out, status: 'Valid JSON · ' + countMembers(parsed) + ' · ' + fmtBytes(enc.encode(out).length), tone: 'ok' };
+    },
+    base64: function (input) {
+      if (state.base64.dir === 'encode') {
+        var out = b64FromBytes(enc.encode(input), state.base64.urlsafe);
+        return { out: out, status: 'Encoded ' + fmtBytes(enc.encode(input).length) + ' → ' + out.length + ' chars', tone: 'ok' };
+      }
+      var bytes = bytesFromB64(input);
+      var text = dec.decode(bytes);
+      return { out: text, status: 'Decoded ' + bytes.length + ' bytes', tone: 'ok' };
+    },
+    url: function (input) {
+      var out = state.url.dir === 'encode' ? encodeURIComponent(input) : decodeURIComponent(input.trim());
+      return { out: out, status: (state.url.dir === 'encode' ? 'Encoded' : 'Decoded') + ' · ' + out.length + ' chars', tone: 'ok' };
+    },
+    jwt: function (input) {
+      var d = decodeJwt(input);
+      var out = '// Header\n' + JSON.stringify(d.header, null, 2) + '\n\n// Payload\n' + JSON.stringify(d.payload, null, 2);
+      var st = jwtStatus(d.header, d.payload);
+      return { out: out, status: st.text, tone: st.tone };
+    },
+    hash: function (input) {
+      return crypto.subtle.digest(state.hash.algo, enc.encode(input)).then(function (buf) {
+        var hex = toHex(buf);
+        return { out: hex, status: state.hash.algo + ' · ' + (hex.length * 4) + '-bit · ' + hex.length + ' hex chars', tone: 'ok' };
+      });
+    },
+    text: function (input) {
+      var out = applyCase(input, state.text.transform);
+      var chars = Array.from(input).length;
+      var words = (input.match(/\S+/g) || []).length;
+      var lines = input.length ? input.split(/\r\n|\r|\n/).length : 0;
+      var bytes = enc.encode(input).length;
+      return { out: out, status: chars + ' chars · ' + words + ' words · ' + lines + ' lines · ' + fmtBytes(bytes), tone: '' };
+    },
+    novelty: function (input) {
+      var kind = state.novelty.kind;
+      if (kind === 'emoji') {
+        var r = emojiCipher(input);
+        return { out: r.out, status: 'Emoji Cipher · ' + r.dir + ' · ' + Array.from(input).length + ' chars in', tone: '' };
+      }
+      var out, label;
+      if (kind === 'qwerty') { out = qwertyCipher(input); label = 'Qwerty Cipher'; }
+      else { out = rot13(input); label = 'ROT13'; }
+      return { out: out, status: label + ' · ' + Array.from(input).length + ' chars', tone: '' };
+    }
+  };
+
+  // ── options bar per operation ──────────────────────────────────────────────
+  function seg(name, current, choices) {
+    var html = '<span class="tt-seg" data-seg="' + name + '">';
+    for (var i = 0; i < choices.length; i++) {
+      html += '<button type="button" data-val="' + choices[i][0] + '" class="' + (choices[i][0] === current ? 'is-on' : '') + '">' + choices[i][1] + '</button>';
+    }
+    return html + '</span>';
+  }
+  function renderOptions() {
+    var s = state[activeOp], html = '';
+    if (activeOp === 'json') html = seg('mode', s.mode, [['format', 'Pretty'], ['minify', 'Minify']]);
+    else if (activeOp === 'base64') html = seg('dir', s.dir, [['encode', 'Encode'], ['decode', 'Decode']]) +
+      '<label class="tt-opt-label"><input type="checkbox" data-chk="urlsafe"' + (s.urlsafe ? ' checked' : '') + '> URL-safe</label>';
+    else if (activeOp === 'url') html = seg('dir', s.dir, [['encode', 'Encode'], ['decode', 'Decode']]);
+    else if (activeOp === 'hash') html = '<label class="tt-opt-label">Algorithm <select class="tt-select" data-sel="algo">' +
+      ['SHA-256', 'SHA-1', 'SHA-384', 'SHA-512'].map(function (a) { return '<option' + (a === s.algo ? ' selected' : '') + '>' + a + '</option>'; }).join('') + '</select></label>';
+    else if (activeOp === 'text') html = '<label class="tt-opt-label">Transform <select class="tt-select" data-sel="transform">' +
+      [['none', 'None'], ['upper', 'UPPERCASE'], ['lower', 'lowercase'], ['title', 'Title Case'], ['kebab', 'kebab-case'], ['snake', 'snake_case']]
+        .map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === s.transform ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
+    else if (activeOp === 'novelty') html = '<label class="tt-opt-label">Novelty <select class="tt-select" data-sel="kind">' +
+      [['rot13', 'ROT13'], ['qwerty', 'Qwerty Cipher'], ['emoji', 'Emoji Cipher']]
+        .map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === s.kind ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
+    optionsEl.innerHTML = html;
+
+    Array.prototype.forEach.call(optionsEl.querySelectorAll('.tt-seg'), function (segEl) {
+      segEl.addEventListener('click', function (e) {
+        var b = e.target.closest('button'); if (!b) return;
+        state[activeOp][segEl.dataset.seg] = b.dataset.val;
+        Array.prototype.forEach.call(segEl.querySelectorAll('button'), function (x) { x.classList.toggle('is-on', x === b); });
+        run();
+      });
+    });
+    Array.prototype.forEach.call(optionsEl.querySelectorAll('[data-chk]'), function (c) {
+      c.addEventListener('change', function () { state[activeOp][c.dataset.chk] = c.checked; run(); });
+    });
+    Array.prototype.forEach.call(optionsEl.querySelectorAll('[data-sel]'), function (sel) {
+      sel.addEventListener('change', function () { state[activeOp][sel.dataset.sel] = sel.value; run(); });
+    });
+  }
+
+  // ── run the active operation ───────────────────────────────────────────────
+  var runToken = 0;
+  function setOutput(text, status, tone, isError) {
+    outEl.value = text;
+    outEl.classList.toggle('is-error', !!isError);
+    statusEl.textContent = status || '';
+    statusEl.className = 'tt-status' + (tone ? ' ' + tone : '');
+    copyBtn.disabled = !text || isError;
+    copyBtn.classList.remove('is-done');
+    copyBtn.textContent = 'Copy';
+  }
+  function run() {
+    var input = inEl.value;
+    var my = ++runToken;
+    if (!input.trim() && activeOp !== 'text') { setOutput('', '', '', false); return; }
+    var result;
+    try { result = ops[activeOp](input); }
+    catch (e) { setOutput(e.message, e.message, 'warn', true); return; }
+    if (result && typeof result.then === 'function') {
+      result.then(function (r) { if (my === runToken) setOutput(r.out, r.status, r.tone, false); })
+            .catch(function (e) { if (my === runToken) setOutput(e.message, e.message, 'warn', true); });
+    } else {
+      setOutput(result.out, result.status, result.tone, false);
+    }
+  }
+
+  // ── wiring ─────────────────────────────────────────────────────────────────
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      activeOp = tab.dataset.op;
+      tabs.forEach(function (t) { t.classList.toggle('is-active', t === tab); t.setAttribute('aria-selected', t === tab ? 'true' : 'false'); });
+      inLabel.textContent = activeOp === 'jwt' ? 'Token' : 'Input';
+      renderOptions();
+      run();
+    });
+  });
+  inEl.addEventListener('input', run);
+  copyBtn.addEventListener('click', function () {
+    if (!outEl.value) return;
+    navigator.clipboard.writeText(outEl.value).then(function () {
+      copyBtn.classList.add('is-done');
+      copyBtn.textContent = 'Copied';
+      setTimeout(function () { copyBtn.classList.remove('is-done'); copyBtn.textContent = 'Copy'; }, 1400);
+    }).catch(function () {});
+  });
+
+  // ── draggable separator between input and output ───────────────────────────
+  var panesEl = root.querySelector('[data-tt-panes]');
+  var dividerEl = root.querySelector('[data-tt-divider]');
+  if (panesEl && dividerEl) {
+    var dragging = false;
+    var endDrag = function () {
+      if (!dragging) return;
+      dragging = false;
+      dividerEl.classList.remove('is-drag');
+      document.body.style.userSelect = '';
+    };
+    dividerEl.addEventListener('pointerdown', function (e) {
+      if (dividerEl.offsetParent === null) return; // hidden in the stacked layout
+      dragging = true;
+      dividerEl.classList.add('is-drag');
+      document.body.style.userSelect = 'none';
+      try { dividerEl.setPointerCapture(e.pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+    dividerEl.addEventListener('pointermove', function (e) {
+      if (!dragging) return;
+      var rect = panesEl.getBoundingClientRect();
+      if (rect.width <= 0) return;
+      var pct = ((e.clientX - rect.left) / rect.width) * 100;
+      pct = Math.max(20, Math.min(80, pct));
+      panesEl.style.setProperty('--tt-left', pct + '%');
+    });
+    dividerEl.addEventListener('pointerup', endDrag);
+    dividerEl.addEventListener('pointercancel', endDrag);
+  }
+
+  renderOptions();
+  run();
+})();
+</script>

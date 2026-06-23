@@ -333,4 +333,3 @@ npm run dev:web
 - `tools/lockup/` — text-to-path via opentype.js in `beforeExport`/`afterExport` (SVG outlining)
 - `tools/tool-logo/` — auto-switching brand logo: a hook picks the right `suse/logo/` SVG by background/orientation; true vector SVG export
 - `tools/bag-video/` — video/gif output with `render.video` timing config
-- `tools/film-burn-filter/` — experimental status; `asset` input with `allowUpload: true`

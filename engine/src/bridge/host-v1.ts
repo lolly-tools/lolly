@@ -64,6 +64,17 @@ export interface HostV1 {
   text?: TextAPI;
 
   /**
+   * PDF metadata inspection + removal. Reads the Info dictionary and any XMP
+   * packet to report what a PDF carries, and produces a re-saved copy with that
+   * metadata stripped (pages preserved; the document is re-serialised, so the
+   * result is NOT byte-for-byte). Backed by a PDF library in the shell — optional
+   * and additive like net/text: a shell that can't provide it just doesn't offer
+   * PDF cleaning, and a tool feature-detects `host.pdf`. Runs locally; the bytes
+   * are never uploaded.
+   */
+  pdf?: PdfAPI;
+
+  /**
    * Page capture — rasterise a live URL to an image. Only shells with a real,
    * authoritative browser engine can fulfil it: Tauri's native webview and the
    * CLI's headless Chromium. The web PWA *cannot* — a page cannot read pixels
@@ -85,6 +96,32 @@ export interface HostV1 {
  */
 export type Capability =
   | 'network' | 'filesystem' | 'clipboard' | 'camera' | 'ffmpeg' | 'wasm' | 'capture';
+
+// ─── PDF (optional) ───────────────────────────────────────────────────────────
+
+export interface PdfAPI {
+  /**
+   * Report the metadata a PDF carries (Info dictionary + XMP packet), for a
+   * "what's hidden" view. Read-only; never mutates the input.
+   */
+  analyze(bytes: Uint8Array): Promise<{ findings: PdfFinding[] }>;
+
+  /**
+   * Re-save the PDF with its Info-dictionary entries and XMP packet removed.
+   * Pages/content are preserved, but the document is re-serialised — the output
+   * is not byte-identical, and any digital signature is invalidated.
+   */
+  strip(bytes: Uint8Array): Promise<{ bytes: Uint8Array }>;
+}
+
+export interface PdfFinding {
+  /** Short category, e.g. 'Author', 'Created with', 'XMP metadata'. */
+  label: string;
+  /** The actual embedded value (revealed behind the tool's "show details" toggle). */
+  detail: string;
+  /** 'warn' flags personally-identifying / fingerprinting data; '' is neutral. */
+  tone: '' | 'warn';
+}
 
 // ─── Profile ────────────────────────────────────────────────────────────────
 

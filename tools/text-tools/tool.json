@@ -1,0 +1,19 @@
+{
+  "id": "text-tools",
+  "name": "Text Tools",
+  "description": "Format JSON, decode JWTs, Base64/URL encode, hash text — all on your device, so secrets never leave it.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["privacy", "json", "jwt", "base64", "url", "hash", "sha256", "developer", "format", "decode", "text"],
+  "a11yLabel": "Text Tools — on-device JSON / JWT / Base64 / URL / hash workbench",
+  "render": {
+    "width": 1100,
+    "height": 820,
+    "formats": ["html"],
+    "export": false
+  },
+  "inputs": []
+}
