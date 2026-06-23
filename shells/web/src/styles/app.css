@@ -1390,6 +1390,37 @@ background-color:hsl(var(--background) / 1);
 .block-item.is-typed .block-color-field { grid-row: auto; grid-column: auto; }
 .block-item.is-typed .color-trigger { width: 100%; }
 
+/* Collapse-to-pill — an icon button in the header folds the block down to a
+   compact pill (type label + colour dot + first line of text). The chevron
+   rotates to point right when collapsed. */
+.block-collapse {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0;
+  border: none; border-radius: 6px; background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: pointer;
+}
+.block-collapse:hover { background: hsl(var(--muted-foreground) / 0.12); color: hsl(var(--foreground)); }
+.block-collapse svg { transition: transform 0.15s ease; }
+.block-item.is-collapsed .block-collapse svg { transform: rotate(-90deg); }
+
+.block-item.is-collapsed { padding: 0; border-radius: 999px; background: hsl(var(--muted) / 0.5); }
+.block-item.is-collapsed .block-head { margin-bottom: 0; padding: 4px 6px 4px 10px; }
+.block-item.is-collapsed .block-fields { display: none; }
+
+/* Pill summary bits — only shown while collapsed. */
+.block-head-swatch, .block-head-preview { display: none; }
+.block-item.is-collapsed .block-type-label { flex: none; }
+.block-item.is-collapsed .block-head-swatch {
+  display: block; flex: none; width: 12px; height: 12px;
+  border-radius: 50%; border: 1px solid hsl(var(--border));
+}
+.block-item.is-collapsed .block-head-preview {
+  display: block; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 12px; font-weight: 400; text-transform: none; letter-spacing: 0;
+  color: hsl(var(--foreground)); opacity: 0.7;
+}
+
 /* Per-block image picker */
 .block-asset { display: flex; gap: 4px; align-items: stretch; }
 .block-asset-trigger {
