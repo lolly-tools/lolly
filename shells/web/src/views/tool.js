@@ -1495,6 +1495,14 @@ function renderInputs(el, model, runtime, host, onDirty) {
     [...el.querySelectorAll('.input-section[open] .input-section-summary')].map(s => s.textContent)
   );
 
+  // Folded blocks carry no model value, so capture which are collapsed (keyed by
+  // blocks-input id + index) and re-apply once the panel HTML is regenerated.
+  const collapsedBlocks = new Set(
+    [...el.querySelectorAll('.block-item.is-collapsed')].map(
+      b => `${b.closest('.blocks-input')?.dataset.inputId}:${b.dataset.blockIndex}`
+    )
+  );
+
   const parts = [];
   let openSection = null;
   for (const input of panelModel) {
@@ -1511,6 +1519,17 @@ function renderInputs(el, model, runtime, host, onDirty) {
   }
   if (openSection !== null) parts.push('</div></details>');
   el.innerHTML = parts.join('');
+
+  if (collapsedBlocks.size) {
+    el.querySelectorAll('.block-item.is-typed').forEach(item => {
+      const inputId = item.closest('.blocks-input')?.dataset.inputId;
+      if (!collapsedBlocks.has(`${inputId}:${item.dataset.blockIndex}`)) return;
+      item.classList.add('is-collapsed');
+      const btn = item.querySelector('[data-block-collapse]');
+      btn?.setAttribute('aria-label', 'Expand block');
+      btn?.setAttribute('title', 'Expand');
+    });
+  }
 
   if (focusId) {
     const restored = el.querySelector(`[data-input-id="${focusId}"]`);
@@ -1821,6 +1840,16 @@ function renderInputs(el, model, runtime, host, onDirty) {
       runtime.setInput(blockId, arr);
       onDirty?.(blockId);
     });
+
+    // Icon button folds this block to a pill — pure DOM toggle, no re-render
+    // (renderInputs re-applies the collapsed state across rebuilds).
+    const collapse = item.querySelector('[data-block-collapse]');
+    collapse?.addEventListener('click', (e) => {
+      e.stopPropagation();                 // don't reach the header's drag/select
+      const folded = item.classList.toggle('is-collapsed');
+      collapse.setAttribute('aria-label', folded ? 'Expand block' : 'Collapse block');
+      collapse.setAttribute('title', folded ? 'Expand' : 'Collapse');
+    });
   });
 
   if (el._colorPopoverDismiss) {
@@ -2016,15 +2045,51 @@ function controlHtml(input) {
         <circle cx="2.5" cy="8" r="1.2"/><circle cx="7.5" cy="8" r="1.2"/>
         <circle cx="2.5" cy="13" r="1.2"/><circle cx="7.5" cy="13" r="1.2"/></svg>`;
 
+      // Icon-only collapse toggle in the header — folds the block to a pill. The
+      // chevron rotates to indicate state (CSS). State carries no model value, so
+      // it's a pure DOM toggle here and re-applied after re-render by renderInputs.
+      const collapseBtn = `<button type="button" class="block-collapse" data-block-collapse draggable="false" aria-label="Collapse block" title="Collapse">
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path d="M4 6.5 8 10l4-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>`;
+
+      // Collapsed-pill summary: the first non-empty text field, plus the first
+      // valid colour field as a dot — so a folded block stays identifiable.
+      // Both respect the active type's showFor visibility.
+      const visibleFor = (f, typeVal) => !(Array.isArray(f.showFor) && !f.showFor.includes(typeVal));
+      const previewOf = (item, typeVal) => {
+        for (const f of fields) {
+          if (addMenu && f.id === addMenu.field) continue;
+          if (!visibleFor(f, typeVal)) continue;
+          if (f.type === 'text' || f.type === 'longtext') {
+            const v = String(item[f.id] ?? '').trim();
+            if (v) return v;
+          }
+        }
+        return '';
+      };
+      const swatchOf = (item, typeVal) => {
+        for (const f of fields) {
+          if (!visibleFor(f, typeVal)) continue;
+          if (f.type === 'color') {
+            const v = String(item[f.id] ?? '').trim();
+            if (/^#[0-9a-fA-F]{3,8}$/.test(v)) return v;
+          }
+        }
+        return '';
+      };
+
       const itemHtml = (item, idx) => {
         const typeVal = addMenu ? item[addMenu.field] : null;
         const inner = fields.map(f => blockField(f, item, idx, typeVal)).join('');
         if (!addMenu) return `<div class="block-item">${inner}${removeBtn(idx)}</div>`;
         const label = typeLabel(typeVal);
+        const sw = swatchOf(item, typeVal);
+        const swatch = sw ? `<span class="block-head-swatch" style="background:${sw}"></span>` : '';
+        const preview = `<span class="block-head-preview">${escape(previewOf(item, typeVal))}</span>`;
         return `<div class="block-item is-typed" data-block-type="${escape(typeVal ?? '')}" data-block-index="${idx}">
           <div class="block-head" data-block-handle draggable="true"
                data-block-input="${id}" data-block-index="${idx}" title="Drag to reorder">
-            ${grip}<span class="block-type-label">${escape(label)}</span>${removeBtn(idx, label)}
+            ${grip}<span class="block-type-label">${escape(label)}</span>${swatch}${preview}${collapseBtn}${removeBtn(idx, label)}
           </div>
           <div class="block-fields">${inner}</div>
         </div>`;

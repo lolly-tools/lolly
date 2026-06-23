@@ -75,7 +75,7 @@ function card({ icon, title, features }) {
 // e.g. #/capabilities?print). Cards are authored facts kept in step with the docs.
 const SECTIONS = [
   {
-    flag: 'experiences', open: true, id: 'cap-experiences', title: 'Experiences',
+    flag: 'experiences', open: false, id: 'cap-experiences', title: 'Experiences',
     desc: 'The ways people actually use Lolly — from a thumb-typed edit on a phone to a one-link share or an automated render. The same tool, met where you are.',
     cards: [
       { icon: ICONS.edit, title: 'Live tool editing', features: [
@@ -112,7 +112,7 @@ const SECTIONS = [
     ],
   },
   {
-    flag: 'platforms', open: true, id: 'cap-platforms', title: 'Platforms & runtimes',
+    flag: 'platforms', open: false, id: 'cap-platforms', title: 'Platforms & runtimes',
     desc: 'One platform-agnostic engine and the same render path on every surface, so a tool — and its output — behaves identically wherever it runs.',
     cards: [
       { icon: ICONS.globe, title: 'Web PWA', features: [
@@ -187,24 +187,6 @@ const SECTIONS = [
     ],
   },
   {
-    flag: 'determinism', open: false, id: 'cap-determinism', title: 'Determinism & reproducibility',
-    desc: 'The same inputs produce the same file — on every device, today and next year. Output is a build artifact, not a stochastic guess.',
-    cards: [
-      { icon: ICONS.repeat, title: 'One render path', features: [
-        { name: 'No surprises', desc: 'Web, mobile, desktop and CLI share the engine; there is one code path that turns inputs into a file.' },
-      ] },
-      { icon: ICONS.url, title: 'URL = state', features: [
-        { name: 'Reproducible from a link', desc: 'Every input is expressible as a URL parameter, so a link reproduces the design exactly — commit it, diff it, regenerate on demand.' },
-      ] },
-      { icon: ICONS.tag, title: 'Version pinning', features: [
-        { name: 'Forward-compatible', desc: 'Pin a tool version with <code>_v</code> so a saved link keeps rendering the way it did when you made it.' },
-      ] },
-      { icon: ICONS.shield, title: 'Auditable', features: [
-        { name: 'Reviewable output', desc: 'No model, no server, no randomness — outputs are inspectable and version-controllable.' },
-      ] },
-    ],
-  },
-  {
     flag: 'automation', open: false, id: 'cap-automation', title: 'Automation & AI',
     desc: 'Built to be driven by scripts, pipelines and agents as easily as by a person.',
     cards: [
@@ -219,6 +201,24 @@ const SECTIONS = [
       ] },
       { icon: ICONS.grid, title: 'Batch', features: [
         { name: 'Many in one pass', desc: 'Render every variant of a design at once from a grid of input sets.' },
+      ] },
+    ],
+  },
+  {
+    flag: 'determinism', open: false, id: 'cap-determinism', title: 'Determinism & reproducibility',
+    desc: 'The same inputs produce the same file — on every device, today and next year. Output is a build artifact, not a stochastic guess.',
+    cards: [
+      { icon: ICONS.repeat, title: 'One render path', features: [
+        { name: 'No surprises', desc: 'Web, mobile, desktop and CLI share the engine; there is one code path that turns inputs into a file.' },
+      ] },
+      { icon: ICONS.url, title: 'URL = state', features: [
+        { name: 'Reproducible from a link', desc: 'Every input is expressible as a URL parameter, so a link reproduces the design exactly — commit it, diff it, regenerate on demand.' },
+      ] },
+      { icon: ICONS.tag, title: 'Version pinning', features: [
+        { name: 'Forward-compatible', desc: 'Pin a tool version with <code>_v</code> so a saved link keeps rendering the way it did when you made it.' },
+      ] },
+      { icon: ICONS.shield, title: 'Auditable', features: [
+        { name: 'Reviewable output', desc: 'No model, no server, no randomness — outputs are inspectable and version-controllable.' },
       ] },
     ],
   },
@@ -311,7 +311,7 @@ export async function mountCapabilities(viewEl) {
     <div class="platform-layout">
       <header class="plat-header">
         <h1 class="plat-title">Capabilities</h1>
-        <p class="plat-sub">The full feature set — what Lolly can make, where it runs, and how it stays on-brand, deterministic and private. A straight inventory, not a pitch.</p>
+        <p class="plat-sub">The feature set — what Lolly can make, where it runs, and how it's used.</p>
         <div class="plat-stats">
           ${toolCount != null ? stat(toolCount, 'tools') : ''}
           ${stat(20, 'export formats')}
