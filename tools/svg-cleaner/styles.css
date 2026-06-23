@@ -1,4 +1,4 @@
-.exif {
+.svgc {
   width: 100%;
   min-height: 100%;
   display: flex;
@@ -14,43 +14,40 @@
 /* The empty state IS the click-to-pick drop zone (the shell wires the picker to
    [data-file-pick] on the box; drag-drop covers the whole canvas), so it reads as
    clickable. Clicks on the dead canvas around it do nothing. */
-.exif-empty { cursor: pointer; }
+.svgc-empty { cursor: pointer; }
 
 /* ── Empty state ── */
-.exif-empty {
+.svgc-empty {
   max-width: 440px;
   text-align: center;
-  border: 4px dashed hsl(var(--input));
-  padding: 4em;
-  border-radius: 2em;
 }
-.exif-empty-icon {
+.svgc-empty-icon {
   display: inline-flex;
   width: 56px;
   height: 56px;
   margin-bottom: 14px;
   color: #30ba78;
 }
-.exif-empty-icon svg { width: 100%; height: 100%; }
-.exif-empty h2 {
+.svgc-empty-icon svg { width: 100%; height: 100%; }
+.svgc-empty h2 {
   margin: 0 0 10px;
   font-size: 22px;
   font-weight: 700;
 }
-.exif-empty p {
+.svgc-empty p {
   margin: 0 0 8px;
   font-size: 14px;
   line-height: 1.5;
   color: #555;
 }
-.exif-empty-note {
+.svgc-empty-note {
   font-weight: 600;
   color: #2a8c5d !important;
 }
 
 /* Secondary CTA in the empty state — the keyboard-reachable way to open the
    native picker (drag-and-drop and click-anywhere are wired by the shell). */
-.exif-pick {
+.svgc-pick {
   margin: 6px 0 14px;
   padding: 10px 18px;
   border: 1px solid #30ba78;
@@ -63,10 +60,10 @@
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
 }
-.exif-pick:hover { background: #30ba78; color: #fff; }
+.svgc-pick:hover { background: #30ba78; color: #fff; }
 
 /* ── Result card ── */
-.exif-card {
+.svgc-card {
   width: 100%;
   max-width: 480px;
   background: #fff;
@@ -75,7 +72,7 @@
   padding: 22px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
-.exif-head {
+.svgc-head {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
@@ -86,8 +83,8 @@
   margin-bottom: 14px;
 }
 
-/* Swap the loaded photo for another — opens the picker (shell-wired). */
-.exif-replace {
+/* Swap the loaded file for another — opens the picker (shell-wired). */
+.svgc-replace {
   flex: none;
   padding: 4px 10px;
   border: 1px solid #d4d4d4;
@@ -100,15 +97,15 @@
   cursor: pointer;
   transition: border-color 0.12s, color 0.12s;
 }
-.exif-replace:hover { border-color: #30ba78; color: #2a8c5d; }
-.exif-file {
+.svgc-replace:hover { border-color: #30ba78; color: #2a8c5d; }
+.svgc-file {
   font-weight: 700;
   font-size: 15px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.exif-kind {
+.svgc-kind {
   flex: none;
   font-family: "SUSE Mono", monospace;
   font-size: 11px;
@@ -117,20 +114,20 @@
   letter-spacing: 0.04em;
 }
 
-.exif-summary {
+.svgc-summary {
   margin: 0 0 14px;
   font-size: 13.5px;
   color: #444;
 }
 
-.exif-findings {
+.svgc-findings {
   list-style: none;
   margin: 0 0 18px;
   padding: 0;
   display: grid;
   gap: 6px;
 }
-.exif-finding {
+.svgc-finding {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -140,16 +137,16 @@
   border-radius: 8px;
   border-left: 3px solid #d4d4d4;
 }
-.exif-finding.warn {
+.svgc-finding.warn {
   background: #fdf2f2;
   border-left-color: #e0524d;
 }
-.exif-finding-label {
+.svgc-finding-label {
   font-weight: 600;
   font-size: 13px;
 }
-.exif-finding.warn .exif-finding-label { color: #b3322d; }
-.exif-finding-detail {
+.svgc-finding.warn .svgc-finding-label { color: #b3322d; }
+.svgc-finding-detail {
   font-family: "SUSE Mono", monospace;
   font-size: 12px;
   color: #666;
@@ -157,9 +154,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 60%;
 }
 
-.exif-download {
+.svgc-download {
   width: 100%;
   padding: 12px 16px;
   border: none;
@@ -172,22 +170,30 @@
   cursor: pointer;
   transition: background 0.12s, opacity 0.12s;
 }
-.exif-download:hover { background: #2aa86c; }
-.exif-download.is-busy { opacity: 0.7; cursor: progress; }
-.exif-download.is-error { background: #e0524d; }
+.svgc-download:hover { background: #2aa86c; }
+.svgc-download.is-busy { opacity: 0.7; cursor: progress; }
+.svgc-download.is-error { background: #e0524d; }
 
-.exif-clean-state { text-align: center; }
-.exif-clean {
+.svgc-clean-state { text-align: center; }
+.svgc-clean {
   margin: 4px 0 8px;
   font-size: 15px;
   font-weight: 700;
   color: #2a8c5d;
 }
 
-.exif-note {
+.svgc-note {
   margin: 12px 0 0;
   font-size: 11.5px;
   line-height: 1.45;
   color: #999;
   text-align: center;
+}
+.svgc-note code {
+  font-family: "SUSE Mono", monospace;
+  font-size: 11px;
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #666;
 }

@@ -297,3 +297,70 @@ test('exif-stripper: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', asyn
   assert.equal(typeAt(bytes, 'IEND'), true);
   assert.ok(bytes.length < png.length);
 });
+
+// ─── SVG Cleaner — real hooks, end-to-end ──────────────────────────────────────
+
+function svgCleanerTool() {
+  return {
+    manifest: JSON.parse(readFileSync(join(ROOT, 'tools/svg-cleaner/tool.json'), 'utf8')),
+    hooksSource: readFileSync(join(ROOT, 'tools/svg-cleaner/hooks.js'), 'utf8'),
+    template: readFileSync(join(ROOT, 'tools/svg-cleaner/template.html'), 'utf8'),
+  };
+}
+
+// An Illustrator/Inkscape-style SVG carrying every kind of cruft the cleaner reports.
+const DIRTY_SVG = `<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generator: Adobe Illustrator 27.0.0, SVG Export Plug-In . SVG Version: 6.00 -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#"
+  xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+  xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.0.dtd"
+  xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+  inkscape:version="1.1 (c68e22c387)" sodipodi:docname="secret-logo.ai" viewBox="0 0 10 10">
+  <metadata><rdf:RDF><cc:Work><dc:creator><dc:title>Jane Doe</dc:title></dc:creator></cc:Work></rdf:RDF></metadata>
+  <sodipodi:namedview inkscape:zoom="2.4"/>
+  <title>Confidential Logo</title>
+  <rect width="10" height="10" fill="#30ba78" data-name="bg" inkscape:label="layer1"/>
+</svg>`;
+
+const svgFile = (text, name = 'logo.svg') => {
+  const bytes = new TextEncoder().encode(text);
+  return fileRef({ name, mime: 'image/svg+xml', size: bytes.length, bytes });
+};
+
+test('svg-cleaner: reports editor, author, original filename + title (onInit analysis)', async () => {
+  const rt = await createRuntime(svgCleanerTool(), BARE_HOST, { svg: svgFile(DIRTY_SVG) });
+  const html = rt.getHydrated();
+  assert.match(html, /Created with/);
+  assert.match(html, /Adobe Illustrator 27\.0\.0/);   // generator, with the "SVG Export" tail trimmed
+  assert.match(html, /Original filename/);
+  assert.match(html, /secret-logo\.ai/);
+  assert.match(html, /Author/);
+  assert.match(html, /Jane Doe/);                       // dug out of the RDF metadata block
+  assert.match(html, /Confidential Logo/);              // <title> reported
+});
+
+test('svg-cleaner: strips metadata/comments/editor cruft, keeps the artwork', async () => {
+  const rt = await createRuntime(svgCleanerTool(), BARE_HOST, { svg: svgFile(DIRTY_SVG) });
+  const { bytes, filename, mime } = await rt.exportFile();
+  assert.equal(mime, 'image/svg+xml');
+  assert.equal(filename, 'logo-clean.svg');
+  const out = new TextDecoder().decode(bytes);
+  // Cruft is gone.
+  assert.doesNotMatch(out, /Generator|Illustrator/);
+  assert.doesNotMatch(out, /<metadata|Jane Doe/);
+  assert.doesNotMatch(out, /sodipodi:|inkscape:|data-name|xmlns:dc/);
+  // Artwork + meaningful structure preserved.
+  assert.match(out, /<rect width="10" height="10" fill="#30ba78"\/?>/);
+  assert.match(out, /<title>Confidential Logo<\/title>/);
+  assert.match(out, /viewBox="0 0 10 10"/);
+  assert.ok(bytes.length < new TextEncoder().encode(DIRTY_SVG).length);
+});
+
+test('svg-cleaner: a non-SVG file is reported as such and handed back untouched', async () => {
+  const original = svgFile('this is not markup at all', 'notes.txt');
+  const rt = await createRuntime(svgCleanerTool(), BARE_HOST, { svg: original });
+  assert.match(rt.getHydrated(), /doesn't look like an SVG/);
+  const { bytes } = await rt.exportFile();
+  assert.deepEqual(Array.from(bytes), Array.from(original.bytes)); // byte-for-byte passthrough
+});

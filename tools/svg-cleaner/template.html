@@ -1,0 +1,54 @@
+<div class="svgc">
+  {{#unless hasFile}}
+    <div class="svgc-empty" data-file-pick>
+      <div class="svgc-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 14.5 5-5"/><path d="M14 3 3 14l7 7 11-11z"/><path d="M3 14 9 8"/><path d="m18 3 3 3"/></svg>
+      </div>
+      <h2>Clean up an SVG before you share it</h2>
+      <p>Drag an SVG anywhere onto this area, or choose one below. We'll show you the editor metadata, comments, author and licence tags it's carrying — then hand back a smaller, cleaner copy that still renders identically.</p>
+      <button type="button" class="svgc-pick" data-file-pick>Choose an SVG…</button>
+      <p class="svgc-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
+    </div>
+  {{/unless}}
+
+  {{#if hasFile}}
+    <div class="svgc-card">
+      <div class="svgc-head">
+        <span class="svgc-file" title="{{fileName}}">{{fileName}}</span>
+        <span class="svgc-kind">{{kind}} · {{fileSize}}</span>
+        <button type="button" class="svgc-replace" data-file-pick>Replace</button>
+      </div>
+
+      {{#unless isSvg}}
+        <div class="svgc-clean-state">
+          <p class="svgc-clean">This doesn't look like an SVG.</p>
+          <p class="svgc-note">Choose a file ending in <code>.svg</code> — XML markup that starts with an <code>&lt;svg&gt;</code> tag.</p>
+        </div>
+      {{/unless}}
+
+      {{#if isSvg}}
+        {{#if nothingFound}}
+          <div class="svgc-clean-state">
+            <p class="svgc-clean">This SVG is already tidy — no editor metadata found.</p>
+            <p class="svgc-note">{{cleanResult}} You can still download the re-saved copy below.</p>
+            <button type="button" class="svgc-download" data-export-file data-busy-label="Saving…">Download copy ({{cleanSize}})</button>
+          </div>
+        {{/if}}
+
+        {{#unless nothingFound}}
+          <p class="svgc-summary">{{metaSummary}}</p>
+          <ul class="svgc-findings">
+            {{#each findings}}
+              <li class="svgc-finding {{tone}}">
+                <span class="svgc-finding-label">{{label}}</span>
+                <span class="svgc-finding-detail" title="{{detail}}">{{detail}}</span>
+              </li>
+            {{/each}}
+          </ul>
+          <button type="button" class="svgc-download" data-export-file data-busy-label="Cleaning…">Download clean SVG ({{cleanSize}})</button>
+          <p class="svgc-note">{{cleanResult}} The artwork renders identically — only metadata, comments and editor cruft are removed.</p>
+        {{/unless}}
+      {{/if}}
+    </div>
+  {{/if}}
+</div>
