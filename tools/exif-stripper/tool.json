@@ -1,18 +1,18 @@
 {
   "id": "exif-stripper",
-  "name": "EXIF & Metadata Stripper",
-  "description": "See the hidden data in a photo — GPS location, camera, timestamps, author — then download a clean copy. Runs entirely in your browser; the file is never uploaded.",
+  "name": "Strip Data from Images",
+  "description": "See the hidden data in an image — GPS location, camera, author, editor metadata, comments — then download a clean copy. Works with JPEG, PNG and SVG. Runs entirely in your browser; the file is never uploaded.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "utility",
   "privacy": "on-device",
-  "tags": ["privacy", "exif", "metadata", "gps", "photo", "strip", "image", "jpeg", "png"],
-  "a11yLabel": "EXIF metadata report for {{fileName}}",
+  "tags": ["privacy", "exif", "metadata", "gps", "image", "photo", "strip", "clean", "jpeg", "png", "svg", "vector", "inkscape", "illustrator"],
+  "a11yLabel": "Hidden-data report for {{fileName}}",
   "render": {
     "width": 760,
     "height": 620,
-    "formats": ["jpg"],
+    "formats": ["jpg", "png", "svg"],
     "export": false,
     "layout": "canvas",
     "actions": []
@@ -24,12 +24,12 @@
   },
   "inputs": [
     {
-      "id": "photo",
-      "label": "Photo",
+      "id": "source",
+      "label": "Image",
       "type": "file",
-      "accept": ["image/jpeg", "image/png", ".jpg", ".jpeg", ".png"],
+      "accept": ["image/jpeg", "image/png", "image/svg+xml", ".jpg", ".jpeg", ".png", ".svg"],
       "maxSize": 52428800,
-      "help": "A JPEG or PNG. It's read in your browser and never leaves your device."
+      "help": "A JPEG, PNG or SVG. It's read in your browser and never leaves your device."
     }
   ]
 }

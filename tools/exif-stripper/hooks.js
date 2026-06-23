@@ -1,17 +1,24 @@
 /* global onInit, onInput, exportFile */
 /**
- * EXIF & Metadata Stripper — runs entirely in the sandboxed hook context (no
- * DOM, no network). Reads the picked file's bytes (input.value.bytes), reports
- * what hidden metadata it carries, and produces a clean copy by *lossless byte
- * surgery* — it removes the metadata segments/chunks and copies the image data
- * through untouched, so pixels are never re-compressed.
+ * Strip Data from Images — runs entirely in the sandboxed hook context (no DOM,
+ * no network). Reads the picked file's bytes (input.value.bytes), reports the
+ * hidden / non-rendering data it carries, and produces a clean copy.
  *
- * JPEG: drop APP1 (EXIF/XMP), APP2 (ICC), APP13 (IPTC/Photoshop) and COM
- *       comment segments; keep APP0 (JFIF) and all image segments.
- * PNG : drop tEXt / zTXt / iTXt / eXIf / tIME chunks; keep everything else.
+ * Three formats, one tool, all by lossless surgery — the image content is copied
+ * through untouched, only metadata is removed:
+ *   JPEG: drop APP1 (EXIF/XMP), APP2 (ICC), APP13 (IPTC/Photoshop) and COM
+ *         comment segments; keep APP0 (JFIF) and all image segments.
+ *   PNG : drop tEXt / zTXt / iTXt / eXIf / tIME chunks; keep everything else.
+ *   SVG : drop comments, <metadata>, editor-private namespaces/attributes
+ *         (Inkscape sodipodi/Adobe i:,x:), DOCTYPE/PI noise, insignificant
+ *         whitespace; every painting tag is emitted byte-for-byte.
+ *
+ * No DOMParser / no canvas: the sandbox has no DOM, and we want identical
+ * behaviour across web, Tauri and (jsdom-free) CLI shells. Everything is done
+ * with hand-rolled byte/segment scanners and a small XML tokenizer.
  */
 
-// ─── byte helpers ────────────────────────────────────────────────────────────
+// ─── shared byte / text helpers ──────────────────────────────────────────────
 
 function concatBytes(parts) {
   let n = 0;
@@ -35,6 +42,15 @@ function matchAscii(bytes, off, str) {
     if (bytes[off + i] !== str.charCodeAt(i)) return false;
   }
   return true;
+}
+
+function decodeText(bytes) {
+  // TextDecoder strips a leading UTF-8 BOM by default; encoding back drops it.
+  return new TextDecoder('utf-8').decode(bytes);
+}
+
+function encodeText(str) {
+  return new TextEncoder().encode(str);
 }
 
 // ─── EXIF / TIFF reader (shared by JPEG APP1 and PNG eXIf) ────────────────────
@@ -203,15 +219,9 @@ function stripPng(bytes) {
   return concatBytes(keep);
 }
 
-// ─── dispatch ────────────────────────────────────────────────────────────────
+// ─── raster analyse (JPEG / PNG) ──────────────────────────────────────────────
 
-function stripBytes(bytes) {
-  if (bytes[0] === 0xFF && bytes[1] === 0xD8) return stripJpeg(bytes);
-  if (isPng(bytes)) return stripPng(bytes);
-  return bytes; // unrecognised — leave untouched rather than risk corruption
-}
-
-function analyze(bytes) {
+function analyzeRaster(bytes) {
   const findings = [];
   let kind = 'file';
   const gpsDetail = (gps) => gps ? `${gps.lat.toFixed(5)}, ${gps.lon.toFixed(5)}` : 'present';
@@ -259,28 +269,336 @@ function analyze(bytes) {
   return { kind, findings };
 }
 
+// ─── SVG tokenizer + clean + analyse ──────────────────────────────────────────
+// No DOM: a small, careful XML tokenizer (same spirit as the JPEG/PNG scanners).
+
+function prefixOf(name) {
+  const c = name.indexOf(':');
+  return c > 0 ? name.slice(0, c).toLowerCase() : '';
+}
+
+// Namespaces that are editor-private or pure metadata and never paint pixels.
+const DROP_EL_PREFIX = new Set(['sodipodi', 'inkscape', 'i', 'x']); // i:/x: = Adobe private
+const DROP_EL_NAME = new Set(['metadata']);
+// Whitespace inside these is content — never collapse it.
+const SPACE_SENSITIVE = new Set(['text', 'tspan', 'textpath', 'tref', 'style', 'title', 'desc', 'script']);
+// Namespace declarations safe to drop — ONLY for prefixes we also strip wholesale
+// (elements + attributes). We must not drop a decl while leaving attributes in that
+// namespace behind (e.g. Affinity's serif:id, Adobe's a:*), so those stay.
+const DROP_XMLNS = new Set([
+  'xmlns:inkscape', 'xmlns:sodipodi', 'xmlns:i', 'xmlns:x', // dropped as element/attr prefixes
+  'xmlns:dc', 'xmlns:cc', 'xmlns:rdf',                      // metadata-only — block is removed
+]);
+
+function shouldDropElement(name) {
+  return DROP_EL_NAME.has(name.toLowerCase()) || DROP_EL_PREFIX.has(prefixOf(name));
+}
+
+function shouldDropAttr(name) {
+  if (name === 'xml:space') return false;           // rendering-relevant — keep
+  if (DROP_EL_PREFIX.has(prefixOf(name))) return true; // inkscape:*, sodipodi:*, i:*, x:*
+  if (DROP_XMLNS.has(name.toLowerCase())) return true;
+  if (name === 'data-name') return true;            // Illustrator layer names (privacy)
+  return false;
+}
+
+function parseAttrs(s) {
+  const attrs = [];
+  const re = /([^\s=/>]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s">]+)))?/g;
+  let m;
+  while ((m = re.exec(s)) && m[0]) {
+    const value = m[2] != null ? m[2] : (m[3] != null ? m[3] : (m[4] != null ? m[4] : null));
+    attrs.push({ name: m[1], value });
+  }
+  return attrs;
+}
+
+function parseTag(raw) {
+  const selfClose = raw.endsWith('/>');
+  const inner = raw.slice(1, selfClose ? -2 : -1);
+  if (inner[0] === '/') return { t: 'close', name: inner.slice(1).trim(), raw };
+  const m = /^\s*([^\s/>]+)/.exec(inner);
+  const name = m ? m[1] : '';
+  const attrs = m ? parseAttrs(inner.slice(m[0].length)) : [];
+  return { t: selfClose ? 'self' : 'open', name, attrs, raw };
+}
+
+function tokenize(s) {
+  const toks = [];
+  let i = 0;
+  const n = s.length;
+  while (i < n) {
+    if (s[i] === '<') {
+      if (s.startsWith('<!--', i)) {
+        const end = s.indexOf('-->', i + 4);
+        const close = end === -1 ? n : end + 3;
+        toks.push({ t: 'comment', raw: s.slice(i, close), text: s.slice(i + 4, end === -1 ? n : end) });
+        i = close;
+      } else if (s.startsWith('<![CDATA[', i)) {
+        const end = s.indexOf(']]>', i + 9);
+        const close = end === -1 ? n : end + 3;
+        toks.push({ t: 'cdata', raw: s.slice(i, close) });
+        i = close;
+      } else if (s.startsWith('<!', i)) {              // DOCTYPE / declaration
+        const end = s.indexOf('>', i);
+        const close = end === -1 ? n : end + 1;
+        toks.push({ t: 'doctype', raw: s.slice(i, close) });
+        i = close;
+      } else if (s.startsWith('<?', i)) {              // PI or xml declaration
+        const end = s.indexOf('?>', i);
+        const close = end === -1 ? n : end + 2;
+        const raw = s.slice(i, close);
+        toks.push({ t: 'pi', raw, isXmlDecl: /^<\?xml\s/i.test(raw) });
+        i = close;
+      } else {                                         // element tag
+        let j = i + 1, q = 0;
+        while (j < n) {
+          const c = s[j];
+          if (q) { if (c === q) q = 0; }
+          else if (c === '"' || c === "'") q = c;
+          else if (c === '>') break;
+          j++;
+        }
+        const close = j < n ? j + 1 : n;
+        toks.push(parseTag(s.slice(i, close)));
+        i = close;
+      }
+    } else {
+      const next = s.indexOf('<', i);
+      const close = next === -1 ? n : next;
+      toks.push({ t: 'text', raw: s.slice(i, close) });
+      i = close;
+    }
+  }
+  return toks;
+}
+
+function rebuildTag(tk) {
+  const kept = [];
+  for (const a of tk.attrs) {
+    if (shouldDropAttr(a.name)) continue;
+    if (a.value == null) { kept.push(a.name); continue; }
+    const quote = a.value.includes('"') ? "'" : '"';
+    kept.push(`${a.name}=${quote}${a.value}${quote}`);
+  }
+  const body = tk.name + (kept.length ? ' ' + kept.join(' ') : '');
+  return tk.t === 'self' ? `<${body}/>` : `<${body}>`;
+}
+
+function clean(toks) {
+  const out = [];
+  const stack = [];          // names of currently-open kept elements
+  let dropName = null, dropDepth = 0;
+
+  for (const tk of toks) {
+    if (dropDepth > 0) {     // inside a dropped subtree — watch only its nesting
+      if (tk.t === 'open' && tk.name === dropName) dropDepth++;
+      else if (tk.t === 'close' && tk.name === dropName) dropDepth--;
+      continue;
+    }
+    switch (tk.t) {
+      case 'comment':
+      case 'doctype':
+        break;               // drop
+      case 'pi':
+        if (tk.isXmlDecl) out.push(tk.raw); // keep the xml declaration, drop other PIs
+        break;
+      case 'cdata':
+        out.push(tk.raw);
+        break;
+      case 'text': {
+        // In SVG, whitespace is only significant inside text-content elements;
+        // xml:space="preserve" on a container (Illustrator stamps it on the root
+        // <svg>) does not make geometry whitespace render. So sensitivity tracks
+        // the nearest open element, not xml:space.
+        const sensitive = stack.length && SPACE_SENSITIVE.has(stack[stack.length - 1]);
+        if (!sensitive && /^\s*$/.test(tk.raw)) break; // drop insignificant whitespace
+        out.push(tk.raw);
+        break;
+      }
+      case 'open':
+      case 'self': {
+        if (shouldDropElement(tk.name)) {
+          if (tk.t === 'open') { dropName = tk.name; dropDepth = 1; }
+          break;
+        }
+        const hasDroppable = tk.attrs.some(a => shouldDropAttr(a.name));
+        out.push(hasDroppable ? rebuildTag(tk) : tk.raw);
+        if (tk.t === 'open') stack.push(tk.name.toLowerCase());
+        break;
+      }
+      case 'close': {
+        for (let k = stack.length - 1; k >= 0; k--) {
+          if (stack[k] === tk.name.toLowerCase()) { stack.length = k; break; }
+        }
+        out.push(tk.raw);
+        break;
+      }
+    }
+  }
+  return out.join('');
+}
+
+function analyzeSvg(toks) {
+  const findings = [];
+  let editor = null, docName = null;
+  let comments = 0, pathInComment = false, stylesheetPI = false, hasDoctype = false;
+  let hasMetadata = false, metaParts = [];
+  let metaDepth = 0;
+  let titleText = '', inTitle = 0, descText = '', inDesc = 0;
+  let editorElements = false, adobePrivate = false;
+  let embeddedImgs = 0, embeddedBytes = 0;
+
+  for (const tk of toks) {
+    if (metaDepth > 0 && tk.raw) metaParts.push(tk.raw);
+
+    if (tk.t === 'comment') {
+      comments++;
+      const g = /Generator:\s*([^\n]*)/i.exec(tk.text);
+      if (g && !editor) {
+        editor = g[1].replace(/-->\s*$/, '').replace(/,?\s*SVG (Export|Version).*$/i, '').trim();
+      }
+      if (/[A-Za-z]:\\|\/Users\/|\/home\/|\.ai\b|\.eps\b|\.psd\b|\.sketch\b/.test(tk.text)) pathInComment = true;
+    } else if (tk.t === 'doctype') {
+      hasDoctype = true;
+    } else if (tk.t === 'pi' && !tk.isXmlDecl && /xml-stylesheet/i.test(tk.raw)) {
+      stylesheetPI = true;
+    } else if (tk.t === 'open' || tk.t === 'self') {
+      const lname = tk.name.toLowerCase();
+      const pre = prefixOf(tk.name);
+      if (lname === 'metadata' && tk.t === 'open') { hasMetadata = true; metaDepth++; }
+      else if (lname === 'metadata' && metaDepth > 0) metaDepth++;
+      if (pre === 'sodipodi' || pre === 'inkscape') editorElements = true;
+      if (pre === 'i' || pre === 'x') adobePrivate = true;
+      if (lname === 'title' && tk.t === 'open') inTitle++;
+      if (lname === 'desc' && tk.t === 'open') inDesc++;
+      for (const a of tk.attrs) {
+        if (a.name === 'inkscape:version' && !editor) editor = 'Inkscape ' + (a.value || '').split(' ')[0];
+        if (a.name === 'sodipodi:docname' && a.value) docName = a.value;
+        if (a.name === 'xmlns:sketch' && !editor) editor = 'Sketch';
+        if (a.name === 'xmlns:figma' && !editor) editor = 'Figma';
+        if ((a.name === 'href' || a.name === 'xlink:href') && a.value && /^data:image\//i.test(a.value)) {
+          embeddedImgs++;
+          const comma = a.value.indexOf(',');
+          if (comma > -1) embeddedBytes += Math.floor((a.value.length - comma - 1) * 0.75);
+        }
+      }
+    } else if (tk.t === 'close') {
+      const lname = tk.name.toLowerCase();
+      if (lname === 'metadata' && metaDepth > 0) metaDepth--;
+      if (lname === 'title' && inTitle > 0) inTitle--;
+      if (lname === 'desc' && inDesc > 0) inDesc--;
+    } else if (tk.t === 'text') {
+      if (inTitle > 0) titleText += tk.raw;
+      if (inDesc > 0) descText += tk.raw;
+    }
+  }
+
+  // Author / licence from the <metadata> block (RDF / Dublin Core).
+  let author = null, licence = null;
+  if (hasMetadata) {
+    const meta = metaParts.join('');
+    const cr = /<dc:(?:creator|rights)[^>]*>([\s\S]*?)<\/dc:(?:creator|rights)>/i.exec(meta);
+    if (cr) { const t = cr[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); if (t) author = t; }
+    const lic = /<cc:license[^>]*rdf:resource=["']([^"']+)["']/i.exec(meta)
+      || /<dc:rights[^>]*>([\s\S]*?)<\/dc:rights>/i.exec(meta);
+    if (lic) { const t = lic[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(); if (t) licence = t; }
+  }
+
+  // Assemble findings, warn-toned for anything personally identifying.
+  if (editor) findings.push({ label: 'Created with', detail: editor, tone: 'warn' });
+  if (docName) findings.push({ label: 'Original filename', detail: docName, tone: 'warn' });
+  if (author) findings.push({ label: 'Author', detail: author, tone: 'warn' });
+  if (licence) findings.push({ label: 'Licence', detail: licence, tone: '' });
+  if (pathInComment) findings.push({ label: 'File path in comment', detail: 'a local path is embedded', tone: 'warn' });
+  if (hasMetadata && !author && !licence) findings.push({ label: 'Metadata block', detail: 'embedded RDF / Dublin Core', tone: '' });
+  if (editorElements) findings.push({ label: 'Editor data', detail: 'Inkscape canvas, guides & settings', tone: '' });
+  if (adobePrivate) findings.push({ label: 'Adobe private data', detail: 'Illustrator graphics format', tone: '' });
+  if (comments) findings.push({ label: 'Comments', detail: `${comments} comment${comments > 1 ? 's' : ''}`, tone: '' });
+  if (stylesheetPI) findings.push({ label: 'External stylesheet', detail: 'xml-stylesheet reference', tone: 'warn' });
+  if (hasDoctype) findings.push({ label: 'Legacy DOCTYPE', detail: 'SVG 1.0 doctype', tone: '' });
+  const titleTrim = titleText.replace(/\s+/g, ' ').trim();
+  if (titleTrim) findings.push({ label: 'Title', detail: titleTrim, tone: '' });
+  const descTrim = descText.replace(/\s+/g, ' ').trim();
+  if (descTrim) findings.push({ label: 'Description', detail: descTrim, tone: '' });
+  if (embeddedImgs) findings.push({ label: 'Embedded images', detail: `${embeddedImgs} image${embeddedImgs > 1 ? 's' : ''}${embeddedBytes ? `, ~${fmtBytes(embeddedBytes)}` : ''} — kept`, tone: '' });
+
+  return findings;
+}
+
+// ─── format dispatch ───────────────────────────────────────────────────────────
+
+function looksLikeSvg(text) {
+  return /<svg[\s>]/i.test(text);
+}
+
+// Classify the file and surface the text decode for SVG (so it isn't decoded
+// twice). Returns { kind: 'JPEG'|'PNG'|'SVG'|'file', text }.
+function classify(bytes) {
+  if (bytes[0] === 0xFF && bytes[1] === 0xD8) return { kind: 'JPEG', text: null };
+  if (isPng(bytes)) return { kind: 'PNG', text: null };
+  let text = null;
+  try { text = decodeText(bytes); } catch (e) { /* not decodable text */ }
+  if (text != null && looksLikeSvg(text)) return { kind: 'SVG', text };
+  return { kind: 'file', text };
+}
+
+// Produce the cleaned bytes for a supported file; unsupported input passes through.
+function cleanBytes(bytes, info) {
+  const { kind, text } = info || classify(bytes);
+  if (kind === 'JPEG') return stripJpeg(bytes);
+  if (kind === 'PNG') return stripPng(bytes);
+  if (kind === 'SVG') return encodeText(clean(tokenize(text)));
+  return bytes; // unrecognised — leave untouched rather than risk corruption
+}
+
 // ─── lifecycle ───────────────────────────────────────────────────────────────
 
 function patch({ model }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
-  const f = inputs.photo;
-  const blank = { hasFile: false, findings: [], nothingFound: false, fileName: '', fileSize: '', kind: '', metaSummary: '', cleanSize: '' };
+  const f = inputs.source;
+  const blank = {
+    hasFile: false, supported: false, findings: [], nothingFound: false,
+    fileName: '', fileSize: '', kind: '', metaSummary: '', cleanSize: '',
+    tailNote: '', cleanNote: '',
+  };
   if (!f || !f.bytes) return blank;
-  let kind = 'file', findings = [];
-  try { ({ kind, findings } = analyze(f.bytes)); } catch (e) { return { ...blank, hasFile: true, fileName: f.name, fileSize: fmtBytes(f.size), kind: 'file' }; }
+
+  const base = { ...blank, hasFile: true, fileName: f.name, fileSize: fmtBytes(f.size) };
+  const info = classify(f.bytes);
+  if (info.kind === 'file') {
+    return { ...base, kind: 'file' }; // supported:false → template shows guidance
+  }
+
+  let findings = [];
+  try {
+    findings = info.kind === 'SVG' ? analyzeSvg(tokenize(info.text)) : analyzeRaster(f.bytes).findings;
+  } catch (e) { findings = []; }
+
   let cleanLen = f.bytes.length;
-  try { cleanLen = stripBytes(f.bytes).length; } catch (e) { /* keep original size */ }
-  const removed = f.bytes.length - cleanLen;
+  try { cleanLen = cleanBytes(f.bytes, info).length; } catch (e) { /* keep original size */ }
+  const removed = Math.max(0, f.bytes.length - cleanLen);
+
+  const isVector = info.kind === 'SVG';
+  const pct = f.bytes.length > 0 ? Math.round((removed / f.bytes.length) * 100) : 0;
+  const sizeNote = removed > 0 ? `That's ${fmtBytes(removed)} smaller${pct >= 1 ? ` (−${pct}%)` : ''}. ` : '';
+  const tailNote = isVector
+    ? `${sizeNote}The artwork renders identically — only metadata, comments and editor cruft are removed.`
+    : 'The clean copy keeps the image pixels byte-for-byte — only the metadata is removed, nothing is re-compressed.';
+
   return {
-    hasFile: true,
-    fileName: f.name,
-    fileSize: fmtBytes(f.size),
-    kind,
+    ...base,
+    supported: true,
+    kind: info.kind,
     findings,
     nothingFound: findings.length === 0,
     cleanSize: fmtBytes(cleanLen),
+    tailNote,
+    cleanNote: isVector
+      ? `${sizeNote}You can still download the re-saved copy below.`
+      : 'You can still download a re-saved copy below.',
     metaSummary: findings.length
-      ? `Found ${findings.length} metadata item${findings.length > 1 ? 's' : ''} — ${fmtBytes(removed)} will be removed.`
+      ? `Found ${findings.length} item${findings.length > 1 ? 's' : ''} of hidden data${removed > 0 ? ` — ${fmtBytes(removed)} will be removed` : ''}.`
       : '',
   };
 }
@@ -290,10 +608,11 @@ function onInput(ctx) { return patch(ctx); }
 
 function exportFile({ model }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
-  const f = inputs.photo;
-  if (!f || !f.bytes) throw new Error('Choose a photo first.');
-  const cleaned = stripBytes(f.bytes);
+  const f = inputs.source;
+  if (!f || !f.bytes) throw new Error('Choose an image first.');
+  let bytes = f.bytes;
+  try { bytes = cleanBytes(f.bytes); } catch (e) { bytes = f.bytes; }
   const dot = f.name.lastIndexOf('.');
   const filename = dot > 0 ? `${f.name.slice(0, dot)}-clean${f.name.slice(dot)}` : `${f.name}-clean`;
-  return { bytes: cleaned, mime: f.mime, filename };
+  return { bytes, mime: f.mime || 'application/octet-stream', filename };
 }

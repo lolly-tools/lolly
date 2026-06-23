@@ -1,0 +1,65 @@
+<div class="jwt">
+  {{#if isEmpty}}
+    <div class="jwt-empty">
+      <div class="jwt-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h2>Inspect a JSON Web Token</h2>
+      <p>Paste a JWT into the box on the left to read its header, payload and claims. Everything is decoded here in your browser — the token is never sent anywhere.</p>
+      <p class="jwt-empty-note">Pasting a live token into a website you don't control hands it the keys. This one has no server to leak it to.</p>
+    </div>
+  {{/if}}
+
+  {{#if isError}}
+    <div class="jwt-card">
+      <div class="jwt-status warn">
+        <span class="jwt-status-dot" aria-hidden="true"></span>
+        <span>{{error}}</span>
+      </div>
+      <p class="jwt-note">Tip: a JWT looks like <code>header.payload.signature</code> — three Base64URL chunks joined by dots, usually starting <code>eyJ</code>.</p>
+    </div>
+  {{/if}}
+
+  {{#if isOk}}
+    <div class="jwt-card">
+      <div class="jwt-status {{statusTone}}">
+        <span class="jwt-status-dot" aria-hidden="true"></span>
+        <span>{{statusLabel}}</span>
+      </div>
+
+      {{#if warnings.length}}
+        <ul class="jwt-warnings">
+          {{#each warnings}}
+            <li class="jwt-warning"><strong>{{label}}</strong> — {{detail}}</li>
+          {{/each}}
+        </ul>
+      {{/if}}
+
+      <section class="jwt-section">
+        <h3 class="jwt-h">Header{{#if alg}} <span class="jwt-alg">{{alg}}</span>{{/if}}</h3>
+        <ul class="jwt-rows">
+          {{#each headerRows}}
+            <li class="jwt-row {{tone}}">
+              <span class="jwt-key">{{label}}</span>
+              <span class="jwt-val">{{value}}</span>
+            </li>
+          {{/each}}
+        </ul>
+      </section>
+
+      <section class="jwt-section">
+        <h3 class="jwt-h">Payload</h3>
+        <ul class="jwt-rows">
+          {{#each payloadRows}}
+            <li class="jwt-row {{tone}}">
+              <span class="jwt-key">{{label}}</span>
+              <span class="jwt-val">{{value}}{{#if detail}}<span class="jwt-detail">{{detail}}</span>{{/if}}</span>
+            </li>
+          {{/each}}
+        </ul>
+      </section>
+
+      <p class="jwt-note">The signature is <strong>not</strong> verified here — decoding a token tells you what it claims, not whether it's authentic.</p>
+    </div>
+  {{/if}}
+</div>

@@ -20,9 +20,6 @@
 .exif-empty {
   max-width: 440px;
   text-align: center;
-  border: 4px dashed hsl(var(--input));
-  padding: 4em;
-  border-radius: 2em;
 }
 .exif-empty-icon {
   display: inline-flex;
@@ -86,7 +83,7 @@
   margin-bottom: 14px;
 }
 
-/* Swap the loaded photo for another — opens the picker (shell-wired). */
+/* Swap the loaded file for another — opens the picker (shell-wired). */
 .exif-replace {
   flex: none;
   padding: 4px 10px;
@@ -118,10 +115,61 @@
 }
 
 .exif-summary {
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   font-size: 13.5px;
   color: #444;
 }
+
+/* ── Show-details toggle ── */
+/* The checkbox is visually hidden but kept in the tab order so it's keyboard-
+   reachable; the label is the visible control. Default unchecked → the actual
+   embedded values (.exif-finding-detail) stay hidden. */
+.exif-reveal-cb {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.exif-reveal-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 14px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  background: #f1f8f4;
+  color: #2a8c5d;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.12s;
+}
+.exif-reveal-toggle:hover { background: #e4f3ea; }
+.exif-reveal-cb:focus-visible ~ .exif-reveal-toggle {
+  outline: 2px solid #30ba78;
+  outline-offset: 2px;
+}
+/* A small caret that points right when collapsed, down when expanded. */
+.exif-reveal-icon {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  transform: rotate(-90deg);
+  transition: transform 0.12s;
+}
+.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-icon { transform: rotate(0deg); }
+.exif-reveal-hide { display: none; }
+.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-show { display: none; }
+.exif-reveal-cb:checked ~ .exif-reveal-toggle .exif-reveal-hide { display: inline; }
 
 .exif-findings {
   list-style: none;
@@ -149,7 +197,9 @@
   font-size: 13px;
 }
 .exif-finding.warn .exif-finding-label { color: #b3322d; }
+/* The actual embedded value — hidden until "Show details" is toggled on. */
 .exif-finding-detail {
+  display: none;
   font-family: "SUSE Mono", monospace;
   font-size: 12px;
   color: #666;
@@ -157,7 +207,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  max-width: 60%;
 }
+.exif-reveal-cb:checked ~ .exif-findings .exif-finding-detail { display: block; }
 
 .exif-download {
   width: 100%;
@@ -190,4 +242,12 @@
   line-height: 1.45;
   color: #999;
   text-align: center;
+}
+.exif-note code {
+  font-family: "SUSE Mono", monospace;
+  font-size: 11px;
+  background: #f0f0f0;
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: #666;
 }

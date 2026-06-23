@@ -1,0 +1,32 @@
+{
+  "id": "jwt-decoder",
+  "name": "JWT Decoder",
+  "description": "Paste a JSON Web Token to read its header, payload and claims — decoded entirely in your browser. Check expiry, issuer and algorithm without pasting the token into a website you don't control.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["privacy", "jwt", "jose", "token", "decode", "auth", "developer", "debug"],
+  "a11yLabel": "Decoded JWT — {{summary}}",
+  "render": {
+    "width": 760,
+    "height": 620,
+    "formats": ["txt"],
+    "export": false,
+    "actions": []
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "token",
+      "label": "Token",
+      "type": "longtext",
+      "rows": 6,
+      "help": "Paste a JWT (eyJhbGci…). It's decoded in your browser and never sent anywhere. The signature is not verified — this reads the token, it doesn't trust it."
+    }
+  ]
+}
