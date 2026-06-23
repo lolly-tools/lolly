@@ -63,6 +63,11 @@ export async function mountPro(viewEl, host, opts = {}) {
 
   const assetPicker = typeof host.assets?.pick === 'function';
   const tools = [...(window.__toolIndex?.tools ?? [])]
+    // Batch renders data → asset, so hide render-only / on-device utilities: they
+    // export themselves via their own exportFile flow, never the batch path, and
+    // would only ever be skipped at run time. (`!== false` fails open if an older
+    // cached index predates the `exportable` flag — see build-catalog-index.js.)
+    .filter(t => t.exportable !== false)
     .filter(t => shellCanRun(t, host))
     .sort((a, b) => (a.name ?? a.id).localeCompare(b.name ?? b.id));
   const toolByName = new Map(tools.map(t => [t.name, t]));

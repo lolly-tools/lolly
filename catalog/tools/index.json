@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-23T19:16:37.526Z",
+  "generatedAt": "2026-06-23T20:14:21.555Z",
   "tools": [
     {
       "id": "color-block",
@@ -8,7 +8,8 @@
       "description": "Stack typed colour blocks — heading, text, headshot, logo — and they auto-compose into a grid that fills any frame.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "dynamic-layout",
@@ -16,7 +17,8 @@
       "description": "A do-anything layout that recomposes around whatever you add, at any size.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "quotes",
@@ -24,7 +26,8 @@
       "description": "On-brand quote cards for social posts and slides.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "meeting-planner",
@@ -32,7 +35,8 @@
       "description": "Plan a global meeting and see the time for every teammate's timezone.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "code-canvas",
@@ -40,7 +44,8 @@
       "description": "Turn code snippets into clean, syntax-highlighted, shareable images.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "qr-code",
@@ -48,7 +53,8 @@
       "description": "On-brand QR codes for any URL, with full color and style control.",
       "version": "2.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "daily-card",
@@ -56,7 +62,8 @@
       "description": "Quote of the day with live weather, time and a map for any city.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "tool-logo",
@@ -64,7 +71,8 @@
       "description": "Place the SUSE logo — it auto-picks the right variant and exports vector.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "email-signature",
@@ -72,7 +80,8 @@
       "description": "An on-brand SUSE email signature, ready to paste into any client.",
       "version": "1.3.0",
       "status": "official",
-      "category": "everyone"
+      "category": "everyone",
+      "exportable": true
     },
     {
       "id": "chart-creator",
@@ -80,7 +89,8 @@
       "description": "On-brand charts from your data — bar, donut, pie or stacked. Exports vector.",
       "version": "1.0.0",
       "status": "official",
-      "category": "designer"
+      "category": "designer",
+      "exportable": true
     },
     {
       "id": "bag-video",
@@ -88,7 +98,8 @@
       "description": "An animated, on-brand video for bag visuals.",
       "version": "0.3.0",
       "status": "experimental",
-      "category": "designer"
+      "category": "designer",
+      "exportable": true
     },
     {
       "id": "duotone-filter",
@@ -96,7 +107,8 @@
       "description": "A two-color duotone for any photo — shadows one color, highlights another.",
       "version": "1.0.0",
       "status": "official",
-      "category": "designer"
+      "category": "designer",
+      "exportable": true
     },
     {
       "id": "lockup",
@@ -107,7 +119,8 @@
       "category": "designer",
       "capabilities": [
         "wasm"
-      ]
+      ],
+      "exportable": true
     },
     {
       "id": "color-palette",
@@ -115,7 +128,8 @@
       "description": "Browse SUSE brand colors — click a swatch to copy it.",
       "version": "1.1.0",
       "status": "official",
-      "category": "utility"
+      "category": "utility",
+      "exportable": false
     },
     {
       "id": "countdown-timer",
@@ -123,7 +137,8 @@
       "description": "A focused countdown with a live progress ring. Click to pause.",
       "version": "1.0.0",
       "status": "official",
-      "category": "utility"
+      "category": "utility",
+      "exportable": false
     },
     {
       "id": "url-shot",
@@ -134,7 +149,8 @@
       "category": "utility",
       "capabilities": [
         "capture"
-      ]
+      ],
+      "exportable": true
     },
     {
       "id": "street-map",
@@ -142,7 +158,8 @@
       "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
       "version": "0.4.0",
       "status": "official",
-      "category": "designer"
+      "category": "designer",
+      "exportable": true
     },
     {
       "id": "exif-stripper",
@@ -150,7 +167,8 @@
       "description": "Reveal and remove hidden metadata — GPS, camera, author, editor info — from JPEG, PNG, SVG and PDF. Runs on your device; nothing is uploaded.",
       "version": "1.0.0",
       "status": "official",
-      "category": "utility"
+      "category": "utility",
+      "exportable": false
     },
     {
       "id": "text-tools",
@@ -158,7 +176,8 @@
       "description": "Format JSON, decode JWTs, Base64/URL encode, hash text — all on your device, so secrets never leave it.",
       "version": "1.0.0",
       "status": "official",
-      "category": "utility"
+      "category": "utility",
+      "exportable": false
     },
     {
       "id": "event-name-badge",
@@ -166,7 +185,8 @@
       "description": "Conference-ready name badges — event logo, name, title, company, a colour-coded attendee status, tracks and an optional QR. Print-correct sizes from A7 up to 4×6 in, portrait or landscape.",
       "version": "1.0.0",
       "status": "official",
-      "category": "event"
+      "category": "event",
+      "exportable": true
     }
   ]
 }

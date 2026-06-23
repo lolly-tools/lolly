@@ -35,6 +35,12 @@ export function entryFromManifest(manifest) {
   for (const f of INDEX_FIELDS) {
     if (manifest[f] !== undefined) entry[f] = manifest[f];
   }
+  // Whether the tool can be rendered to an exportable file at all. Surfaced so
+  // shells can exclude render-only / on-device utilities — which produce their
+  // output via their own exportFile flow, not the batch render path — without
+  // fetching every manifest (/pro batch hides them). Mirrors isExportable() in
+  // shells/web/src/pro/render-export.js and the drift check in validate-catalog.js.
+  entry.exportable = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
   return entry;
 }
 
