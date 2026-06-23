@@ -132,6 +132,8 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `height` / `h` | web + CLI | Output height, as a value in `unit`. Also pre-fills the export dimensions panel. |
 | `unit` | web + CLI | Physical unit for `width`/`height`: `px` (default), `mm`, `cm`, `in`, `pt`, `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
+| `bleed` | web only | Bleed amount for `pdf` / `pdf-cmyk`, as a dimension (e.g. `3mm`, `0.125in`). The artwork is scaled to fill the bleed; `TrimBox`/`BleedBox` are set. |
+| `marks` | web only | Print marks for `pdf` / `pdf-cmyk` — a CSV of `crop`, `reg`, `bleed`, `bars`. Drawn in the page margin (registration prints on all four plates in `pdf-cmyk`). |
 
 `export`, `copy`, `full`, and `options` are **presence flags** — the parameter value is ignored; what matters is whether the key appears in the URL.
 
@@ -150,6 +152,20 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 ```
 brand-tool poster --title=Hello --width=210 --height=297 --unit=mm --export=svg --output=a4.svg
 ```
+
+### Print marks & bleed (`bleed=` + `marks=`)
+
+For print-ready PDFs, `bleed=` and `marks=` add the prep a print shop expects to the
+`pdf` (RGB) and `pdf-cmyk` (Print PDF) formats. They're ignored for every other format.
+
+- `bleed=3mm` — the design is scaled to fill the bleed (the trim area is unchanged), and the PDF's `TrimBox` (final cut) and `BleedBox` are declared for the RIP.
+- `marks=crop,reg,bleed,bars` — draws, in the margin: **crop** (trim) marks, **reg**istration targets, **bleed** marks, and a CMYK colour **bars**. In `pdf-cmyk` the line marks are DeviceCMYK `1 1 1 1`, so they print on every plate; in the RGB `pdf` they're black. Mark length, gap and stroke weight are fixed to print standards.
+
+```
+?format=pdf-cmyk&bleed=3mm&marks=crop,reg,bleed,bars&export
+```
+
+> Marks/bleed and the PDF open-`password` are mutually exclusive: print finishing is applied via pdf-lib, which can't write encrypted PDFs, so a `password` is ignored when marks/bleed are on.
 
 ---
 

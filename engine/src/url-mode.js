@@ -48,7 +48,20 @@
 import { isUnit } from './units.js';
 import { isTokenValue, isAlias } from './tokens.js';
 
-const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'full', 'options']);
+const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options']);
+
+// Parse the `marks` param (csv: crop,reg,bleed,bars) into a print-mark toggle map.
+// Returns null when absent so callers fall back to their own defaults.
+function parseMarks(raw) {
+  if (raw == null) return null;
+  const set = new Set(String(raw).split(',').map(s => s.trim().toLowerCase()).filter(Boolean));
+  return {
+    crop:         set.has('crop'),
+    registration: set.has('reg') || set.has('registration'),
+    bleed:        set.has('bleed'),
+    colorBars:    set.has('bars') || set.has('colorbars'),
+  };
+}
 
 /**
  * Parse URL params into an input-state object the runtime can apply.
@@ -109,6 +122,10 @@ export function parseUrlState(searchParams, manifest) {
     profile:  params.get('profile') || null,
     // Open-password for the standard `pdf` export (basic lock; clear-text by design).
     password: params.get('password') || null,
+    // Print prep for pdf / pdf-cmyk: bleed amount (dimension string) and which
+    // crop / registration / bleed / colour-bar marks to draw (see print-marks.js).
+    bleed:    params.get('bleed') || null,
+    marks:    parseMarks(params.get('marks')),
   };
 }
 
@@ -142,6 +159,8 @@ export function serializeUrlState(model, opts = {}) {
   if (opts.dpi)    params.set('dpi', String(opts.dpi));
   if (opts.profile) params.set('profile', opts.profile);
   if (opts.password) params.set('password', opts.password);
+  if (opts.bleed) params.set('bleed', opts.bleed);
+  if (opts.marks) params.set('marks', opts.marks);
   return params.toString();
 }
 

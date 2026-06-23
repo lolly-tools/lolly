@@ -12,7 +12,7 @@
 
 import {
   parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI,
-  iccProfileBytes, rgbToCmyk, cmykCondition,
+  iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry,
 } from '@lolly/engine';
 import {
   suseFontFile, SUSE_FONT_DIR,
@@ -1291,16 +1291,41 @@ function parseCssColorFull(cssColor) {
   return [+m[1], +m[2], +m[3], a];
 }
 
-async function renderPdf(node, opts) {
+// Resolve the print-marks geometry for a PDF export, or null when no bleed and
+// no marks are requested (the legacy "page == trim, art fills it" path). The
+// geometry (page boxes + mark primitives, in points, top-left origin) is the
+// engine's single source of truth — see engine/src/print-marks.js.
+function printGeometry(node, opts) {
+  const bleedDim = parseDimension(opts.bleed);
+  const bleedPt = bleedDim ? toPoints(bleedDim) : 0;
+  const marks = {
+    crop:         Boolean(opts.cropMarks),
+    registration: Boolean(opts.registrationMarks),
+    bleed:        Boolean(opts.bleedMarks),
+    colorBars:    Boolean(opts.colorBars),
+  };
+  const anyMark = marks.crop || marks.registration || marks.bleed || marks.colorBars;
+  if (bleedPt <= 0 && !anyMark) return null;
+  const d = exportDims(node, opts);
+  return computePrintGeometry({ trimWpt: toPoints(d.w), trimHpt: toPoints(d.h), bleedPt, marks });
+}
+
+// Render the artwork to a jsPDF blob. Without geometry the page is the trim size
+// and the design fills it (unchanged legacy behaviour, incl. optional jsPDF
+// encryption). With geometry the page is the full sheet and the design is drawn
+// (scaled) into the bleed box; page boxes + marks are added later in pdf-lib.
+async function renderArtworkPdf(node, opts, geo) {
   const mod = await import('jspdf');
   const jsPDF = mod.jsPDF ?? mod.default?.jsPDF ?? mod.default;
 
   // Page size in points (1/72"). Physical units convert exactly; px maps via
-  // the CSS 96-DPI convention, preserving existing pixel-based tools. The DOM
-  // content is then scaled to fill this page by drawSvg/HtmlVectors.
+  // the CSS 96-DPI convention, preserving existing pixel-based tools.
   const d = exportDims(node, opts);
-  const pageW = toPoints(d.w);
-  const pageH = toPoints(d.h);
+  const trimW = toPoints(d.w);
+  const trimH = toPoints(d.h);
+  const pageW = geo ? geo.page.w : trimW;
+  const pageH = geo ? geo.page.h : trimH;
+  const art   = geo ? geo.artwork : { x: 0, y: 0, w: trimW, h: trimH };
 
   // orientation must be derived from the actual dimensions — jsPDF's default
   // 'portrait' mode swaps format[0] and format[1] when width > height, which
@@ -1308,12 +1333,12 @@ async function renderPdf(node, opts) {
   const orientation = pageW >= pageH ? 'landscape' : 'portrait';
 
   // A non-empty opts.password locks the PDF on open via jsPDF's standard security
-  // handler. The same secret is the user (open) and owner password; permissions
-  // are restricted to printing only, so copy/modify are flagged off for compliant
-  // readers. Note: only this RGB path encrypts — renderCmykPdf re-saves through
-  // pdf-lib (which can't write encrypted PDFs), so it never passes a password.
-  // Passing `encryption: undefined` is a no-op (jsPDF treats it as unencrypted).
-  const encryption = opts.password
+  // handler (user = owner password; printing-only permissions). Only the plain
+  // RGB path with NO print finishing encrypts — print marks/boxes are applied in
+  // pdf-lib, which can't write encrypted PDFs, so the two are mutually exclusive
+  // (the UI hides the password field when marks/bleed are on). `undefined` is a
+  // no-op (jsPDF treats it as unencrypted).
+  const encryption = (opts.password && !geo)
     ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
     : undefined;
   const pdf = new jsPDF({ unit: 'pt', format: [pageW, pageH], orientation, encryption });
@@ -1335,16 +1360,69 @@ async function renderPdf(node, opts) {
   const svgRoot = node.tagName?.toLowerCase() === 'svg' ? node
     : isSvgRooted(node) ? node.querySelector('svg') : null;
   if (svgRoot) {
-    await drawSvgVectors(pdf, svgRoot, pageW, pageH);
+    await drawSvgVectorsInRegion(pdf, svgRoot, art.x, art.y, art.w, art.h, new Set());
   } else {
-    await drawHtmlVectors(pdf, node, pageW, pageH, opts.convertPaths !== false);
+    await drawHtmlVectors(pdf, node, art.x, art.y, art.w, art.h, opts.convertPaths !== false);
   }
 
   return pdf.output('blob');
 }
 
-async function drawSvgVectors(pdf, svgEl, pageW, pageH) {
-  return drawSvgVectorsInRegion(pdf, svgEl, 0, 0, pageW, pageH, new Set());
+async function renderPdf(node, opts) {
+  const geo = printGeometry(node, opts);
+  const artBlob = await renderArtworkPdf(node, opts, geo);
+  if (!geo) return artBlob;                       // legacy path (may be encrypted)
+  // RGB PDF: marks are black; page boxes declare trim/bleed for the RIP.
+  return finishPrintPdf(artBlob, geo, { space: 'rgb' });
+}
+
+// Re-save a jsPDF artwork blob through pdf-lib to set the print page boxes and
+// draw the marks. Used by the plain RGB pdf path; the CMYK path inlines the same
+// steps after its colour conversion (see renderCmykPdf).
+async function finishPrintPdf(blob, geo, { space, palette } = {}) {
+  const { PDFDocument } = await import('pdf-lib');
+  const pdfDoc = await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()));
+  const page = pdfDoc.getPage(0);
+  setPageBoxes(page, geo);
+  await drawPrintMarks(page, geo, { space, palette });
+  const out = await pdfDoc.save();
+  return new Blob([out], { type: 'application/pdf' });
+}
+
+// Declare the print page boxes so a RIP / print shop knows the cut (trim) and
+// bleed extents: Media ⊇ Bleed ⊇ Trim (= Art); CropBox = Media. The engine's
+// geometry is top-left origin; PDF boxes are bottom-left, so flip y.
+function setPageBoxes(page, geo) {
+  const H = geo.page.h;
+  const box = (b) => [b.x, H - (b.y + b.h), b.w, b.h]; // → [x, y(bottom-left), w, h]
+  page.setMediaBox(...box(geo.boxes.media));
+  page.setCropBox(...box(geo.boxes.media));
+  page.setBleedBox(...box(geo.boxes.bleed));
+  page.setTrimBox(...box(geo.boxes.trim));
+  page.setArtBox(...box(geo.boxes.trim));
+}
+
+// Draw the crop / bleed / registration marks and colour bar in the page margin.
+// Line marks use registration colour (DeviceCMYK 1,1,1,1 on the CMYK path so
+// they print on every plate; black on the RGB path). Colour-bar cells use their
+// per-cell CMYK (or the RGB approximation). Engine coords are top-left; flip y.
+async function drawPrintMarks(page, geo, { space = 'rgb' } = {}) {
+  const { rgb, cmyk } = await import('pdf-lib');
+  const H = geo.page.h;
+  const fy = (y) => H - y;
+  const markColor = space === 'cmyk' ? cmyk(1, 1, 1, 1) : rgb(0, 0, 0);
+  const w = geo.strokeWeight;
+  for (const ln of geo.primitives.lines) {
+    page.drawLine({ start: { x: ln.x1, y: fy(ln.y1) }, end: { x: ln.x2, y: fy(ln.y2) }, thickness: w, color: markColor });
+  }
+  for (const c of geo.primitives.circles) {
+    // borderColor without `color` strokes a ring (no fill) — see pdf-lib drawEllipse.
+    page.drawCircle({ x: c.cx, y: fy(c.cy), size: c.r, borderWidth: w, borderColor: markColor });
+  }
+  for (const b of geo.primitives.bars) {
+    const fill = space === 'cmyk' ? cmyk(...b.cmyk) : rgb(...b.rgb);
+    page.drawRectangle({ x: b.x, y: fy(b.y + b.h), width: b.w, height: b.h, color: fill });
+  }
 }
 
 // Renders an SVG element into a rectangular region of the PDF page.
@@ -1762,13 +1840,23 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
 // still selectable/searchable vector — only the typeface differs from screen.
 // Transparency: jsPDF fills are opaque; semi-transparent CSS colors render at
 // full opacity (acceptable approximation for brand colours).
-async function drawHtmlVectors(pdf, node, pageW, pageH, convertPaths = true) {
-  const rootRect = node.getBoundingClientRect();
-  const scaleX = pageW / rootRect.width;
-  const scaleY = pageH / rootRect.height;
+// Draws the live DOM as PDF vectors into the rectangular region (ox, oy, regionW,
+// regionH) in page points (top-left origin). Callers pass the full page for an
+// ordinary export, or the bleed box for a print export (so the design bleeds).
+async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths = true) {
+  const rect0 = node.getBoundingClientRect();
+  const scaleX = regionW / rect0.width;
+  const scaleY = regionH / rect0.height;
   // CSS px → PDF pt — accounts for the CSS transform scale applied to the
   // canvas node. node.clientWidth is the layout width before the transform.
-  const cssToPt = pageW / (node.clientWidth || rootRect.width);
+  const cssToPt = regionW / (node.clientWidth || rect0.width);
+  // Virtual origin: shifting the reference top-left by the region offset bakes it
+  // into every (rect − rootRect)·scale below, so the artwork lands at (ox, oy)
+  // without touching the inline-text / pseudo-content helpers downstream.
+  const rootRect = {
+    left: rect0.left - ox / scaleX, top: rect0.top - oy / scaleY,
+    width: rect0.width, height: rect0.height, right: rect0.right, bottom: rect0.bottom,
+  };
   // Tracks which font variants have been registered in this PDF instance.
   const registeredFonts = new Set();
 
@@ -2148,7 +2236,10 @@ async function embedSuseFont(pdf, registeredFonts, weight, italic) {
 // exact ink values for registered swatches.
 
 async function renderCmykPdf(node, opts) {
-  const rgbBlob = await renderPdf(node, opts);
+  // Artwork only (no marks/boxes here) — print finishing is applied below, after
+  // the RGB→CMYK conversion, so the marks stay DeviceCMYK (incl. registration).
+  const geo = printGeometry(node, opts);
+  const rgbBlob = await renderArtworkPdf(node, opts, geo);
   const rgbBytes = new Uint8Array(await rgbBlob.arrayBuffer());
 
   const { PDFDocument, PDFName, PDFNumber, PDFString } = await import('pdf-lib');
@@ -2206,6 +2297,14 @@ async function renderCmykPdf(node, opts) {
     obj.contents = recompressed;
     dict.set(PDFName.of('Length'), PDFNumber.of(recompressed.length));
     if (!filter) dict.set(PDFName.of('Filter'), PDFName.of('FlateDecode'));
+  }
+
+  // Print finishing in DeviceCMYK, drawn after the colour swap so registration
+  // marks land on every plate (1 1 1 1) and aren't re-mapped by the RGB→CMYK pass.
+  if (geo) {
+    const page = pdfDoc.getPage(0);
+    setPageBoxes(page, geo);
+    await drawPrintMarks(page, geo, { space: 'cmyk', palette: opts.palette });
   }
 
   const out = await pdfDoc.save();

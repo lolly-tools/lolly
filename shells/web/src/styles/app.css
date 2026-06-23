@@ -249,7 +249,7 @@ footer{text-align:right;}
 .privacy-notice {
   position: fixed;
   left: var(--vv-left, 0px); right: var(--vv-right, 0px);
-  bottom: calc(var(--vv-bottom, 0px) + var(--footer-h, 3.4rem));
+  bottom: calc(var(--vv-bottom, 0px) + var(--footer-h, 3.4rem) - 1px);
   z-index: 49; /* just under the footer (50) so they read as one stacked unit */
   display: flex;
   align-items: center;
@@ -1079,15 +1079,24 @@ footer{text-align:right;}
 
 .input-row select {
   width: 100%;
-  padding: 7px 10px;
-  background: hsl(var(--background));
+  padding: 7px 32px 7px 10px;   /* right room for the custom chevron */
+  background-color: hsl(var(--background));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   font: inherit;
   font-size: 13px;
   transition: border-color 0.12s;
-  appearance: auto;
+  /* appearance:none drops the native menulist widget. The old appearance:auto +
+     transition combo made Chrome re-lay-out the native control on every hover
+     frame, producing a ~1px baseline jitter. A plain box transitions cleanly. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]):hover,
@@ -2253,6 +2262,78 @@ background-color:hsl(var(--background) / 1);
   color: hsl(var(--muted-foreground));
 }
 
+/* Print marks & bleed card — mirrors .export-cmyk; revealed for pdf / pdf-cmyk.
+   A master checkbox (.print-enable) reveals the body so ordinary PDFs stay plain. */
+.export-print {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.45);
+}
+.print-enable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.print-enable input[type="checkbox"] { flex: 0 0 auto; }
+.print-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.print-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: hsl(var(--primary));
+}
+.print-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.print-bleed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: hsl(var(--foreground));
+}
+.print-bleed input[type="number"] {
+  width: 72px;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.print-bleed input[type="number"]:focus { outline: none; border-color: hsl(var(--ring)); }
+/* Mark toggles reuse the .export-option chip; wrap so they pack side by side in a
+   wide sidebar and stack only when there's no room. */
+.print-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.print-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
 /* Filename input */
 .export-filename {
   padding: 9px 12px;
@@ -2277,8 +2358,12 @@ background-color:hsl(var(--background) / 1);
 
 /* Format selector */
 .tool-actions select {
-  padding: 9px 28px 9px 12px;
-  background: hsl(var(--background));
+  padding: 9px 28px 9px 12px;   /* right room for the custom chevron */
+  background-color: hsl(var(--background));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--input));
   border-radius: var(--radius);
@@ -2286,6 +2371,11 @@ background-color:hsl(var(--background) / 1);
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.12s;
+  /* Custom chevron + appearance:none — same native-menulist jitter fix as
+     .input-row select. The 28px right padding already reserved arrow space. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
 .tool-actions select:hover {

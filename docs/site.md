@@ -69,10 +69,11 @@ Build your info-editorial style once, then generate publication-quality assets f
 
 You design systems and solve problems, not one-offs. Lolly is the execution layer that turns your design decisions into tools your whole organization can use — without you in the loop for every asset.
 
+- **This is the frontier.** Advanced filters, compositing, animation, generative design — the platform has no ceiling. Every web technology is available to the template author. Do more than any creative suite would allow - with all the power to get finished production quality.
 - **Author tools, not files.** Build a template that generates 10,000 social cards rather than making 10,000 social cards. Your time goes to the design problem, not the production run.
 - **Eliminate the tedious.** Optimal typesetting, logo placement, map pin positioning, color contrast checks, export sizing — all resolved at the template layer. You define the rules once, leave the repetition to the machine.
 - **Lock what shouldn't change, free what should.** Hard-code the brand constraints. Expose only the variables that are actually meant to vary. The tool becomes the creative guardrail.
-- **This is the frontier.** Advanced filters, compositing, animation, generative design — the platform has no ceiling. Every web technology is available to the template author. Do more than any creative suite would allow.
+
 
 ---
 
@@ -82,7 +83,8 @@ You design systems and solve problems, not one-offs. Lolly is the execution laye
 
 A URL with parameters is a few tokens. A creative brief plus image generation is thousands — and the result still isn't press-quality. Lolly gives your agent a deterministic, reviewable creative layer, ready for production.
 
-- **Quality doesn't drift.** Tools are hard-coded. When your model gets lazy, the layout won't. The typographic rules, the color values, the spacing — they're structural, not prompted.
+
+- **Production Quality doesn't drift.** Tools produce production quality artwork at a fraction of the compute - done locally. Tools are hard-coded. When your model gets lazy, the layout won't. The typographic rules, the color values, the spacing — they're structural, not prompted.
 - **Save tokens at scale.** Generating a custom event card from a URL costs a fraction of what it costs to prompt-engineer the same output through a generative model.
 - **Put data where it belongs.** Structured inputs map to structured templates. Speaker names, session times, product versions — placed precisely where the design expects them, every time.
 - **Deterministic, auditable, version-controlled.** Every output is reproducible from its inputs. No stochastic surprises in production assets.
@@ -106,6 +108,7 @@ Every time someone uploads a file to a third-party service to "just make it look
 - **Reduce vendor surface area.** One open-source platform replaces a sprawl of SaaS subscriptions for creative production. Fewer vendors means fewer contracts, fewer audits, and fewer breach vectors.
 - **Enforce brand governance at the infrastructure level.** Tools are authored once and distributed as data — not files, not manual processes. What goes out the door is exactly what was approved to go out the door.
 - **Get critical information into human-readable formats instantly.** Incident communications, compliance reports, executive briefings — structured data becomes publication-quality output in seconds, no design bottleneck.
+- **Service Automations and Humanans** weather it's always-on report that requires exceptional graphical finish, or your workforce needing customization on the go, it's the same delivery.  Humans get a great mobile or desktop UI to experience, robots get a clean deterministic layer to surface value.
 
 ---
 
