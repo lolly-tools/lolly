@@ -251,7 +251,7 @@ function exifStripperTool() {
 test('exif-stripper: finds GPS coordinates + camera in a JPEG (onInit analysis)', async () => {
   const jpeg = buildExifJpeg();
   const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
-    photo: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
+    source: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
   });
   const html = rt.getHydrated();
   assert.match(html, /GPS location/);
@@ -259,10 +259,25 @@ test('exif-stripper: finds GPS coordinates + camera in a JPEG (onInit analysis)'
   assert.match(html, /TestCam/);                    // camera/device finding
 });
 
+test('strip-data: a Show-details toggle is present and defaults to OFF (collapsed)', async () => {
+  const jpeg = buildExifJpeg();
+  const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
+    source: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
+  });
+  const html = rt.getHydrated();
+  // The toggle exists as a real (keyboard-reachable) checkbox, labelled "Show details".
+  assert.match(html, /id="exif-show-details"/);
+  assert.match(html, /Show details/);
+  // It defaults OFF: the checkbox carries no `checked`, so the CSS keeps the
+  // .exif-finding-detail values hidden until the user toggles it on.
+  assert.doesNotMatch(html, /id="exif-show-details"[^>]*\bchecked\b/);
+  assert.match(html, /class="exif-finding-detail"/);
+});
+
 test('exif-stripper: strips APP1/EXIF from a JPEG losslessly (keeps APP0 + scan data)', async () => {
   const jpeg = buildExifJpeg();
   const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
-    photo: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
+    source: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
   });
   const { bytes, filename, mime } = await rt.exportFile();
   assert.equal(mime, 'image/jpeg');
@@ -283,7 +298,7 @@ test('exif-stripper: strips APP1/EXIF from a JPEG losslessly (keeps APP0 + scan 
 test('exif-stripper: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', async () => {
   const png = buildTextPng();
   const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
-    photo: fileRef({ name: 'art.png', mime: 'image/png', size: png.length, bytes: png }),
+    source: fileRef({ name: 'art.png', mime: 'image/png', size: png.length, bytes: png }),
   });
   const html = rt.getHydrated();
   assert.match(html, /Text chunks/);
@@ -298,15 +313,9 @@ test('exif-stripper: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', asyn
   assert.ok(bytes.length < png.length);
 });
 
-// ─── SVG Cleaner — real hooks, end-to-end ──────────────────────────────────────
-
-function svgCleanerTool() {
-  return {
-    manifest: JSON.parse(readFileSync(join(ROOT, 'tools/svg-cleaner/tool.json'), 'utf8')),
-    hooksSource: readFileSync(join(ROOT, 'tools/svg-cleaner/hooks.js'), 'utf8'),
-    template: readFileSync(join(ROOT, 'tools/svg-cleaner/template.html'), 'utf8'),
-  };
-}
+// ─── Strip Data from Images: SVG — real hooks, end-to-end ──────────────────────
+// The converged tool (exifStripperTool) now also cleans SVG, so these drive the
+// same on-disk tool as the JPEG/PNG cases above.
 
 // An Illustrator/Inkscape-style SVG carrying every kind of cruft the cleaner reports.
 const DIRTY_SVG = `<?xml version="1.0" encoding="UTF-8"?>
@@ -328,8 +337,8 @@ const svgFile = (text, name = 'logo.svg') => {
   return fileRef({ name, mime: 'image/svg+xml', size: bytes.length, bytes });
 };
 
-test('svg-cleaner: reports editor, author, original filename + title (onInit analysis)', async () => {
-  const rt = await createRuntime(svgCleanerTool(), BARE_HOST, { svg: svgFile(DIRTY_SVG) });
+test('strip-data (svg): reports editor, author, original filename + title (onInit analysis)', async () => {
+  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: svgFile(DIRTY_SVG) });
   const html = rt.getHydrated();
   assert.match(html, /Created with/);
   assert.match(html, /Adobe Illustrator 27\.0\.0/);   // generator, with the "SVG Export" tail trimmed
@@ -340,8 +349,8 @@ test('svg-cleaner: reports editor, author, original filename + title (onInit ana
   assert.match(html, /Confidential Logo/);              // <title> reported
 });
 
-test('svg-cleaner: strips metadata/comments/editor cruft, keeps the artwork', async () => {
-  const rt = await createRuntime(svgCleanerTool(), BARE_HOST, { svg: svgFile(DIRTY_SVG) });
+test('strip-data (svg): strips metadata/comments/editor cruft, keeps the artwork', async () => {
+  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: svgFile(DIRTY_SVG) });
   const { bytes, filename, mime } = await rt.exportFile();
   assert.equal(mime, 'image/svg+xml');
   assert.equal(filename, 'logo-clean.svg');
@@ -357,10 +366,10 @@ test('svg-cleaner: strips metadata/comments/editor cruft, keeps the artwork', as
   assert.ok(bytes.length < new TextEncoder().encode(DIRTY_SVG).length);
 });
 
-test('svg-cleaner: a non-SVG file is reported as such and handed back untouched', async () => {
+test('strip-data (svg): a non-SVG file is reported as such and handed back untouched', async () => {
   const original = svgFile('this is not markup at all', 'notes.txt');
-  const rt = await createRuntime(svgCleanerTool(), BARE_HOST, { svg: original });
-  assert.match(rt.getHydrated(), /doesn't look like an SVG/);
+  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: original });
+  assert.match(rt.getHydrated(), /doesn't look like a supported image/);
   const { bytes } = await rt.exportFile();
   assert.deepEqual(Array.from(bytes), Array.from(original.bytes)); // byte-for-byte passthrough
 });
