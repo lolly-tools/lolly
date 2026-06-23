@@ -42,6 +42,11 @@
       "type": "string",
       "description": "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
     },
+    "privacy": {
+      "type": "string",
+      "enum": ["on-device"],
+      "description": "Marks an on-device utility — a tool that processes the user's OWN content (file in → transformed file out) entirely on the device, with nothing uploaded. The host shows a 'Runs on your device — nothing is uploaded' badge. Enforced conventions (validated): status must not be 'experimental' (no watermark on the user's own file) and the tool must not embed provenance metadata into the output. This is the marker for the privacy-flagship utility category (EXIF strip, redact, compress, convert) that replaces content exfiltration to single-purpose SaaS."
+    },
     "tags": {
       "type": "array",
       "items": { "type": "string" },
@@ -136,7 +141,8 @@
         "onInput": { "type": "boolean" },
         "beforeRender": { "type": "boolean" },
         "beforeExport": { "type": "boolean" },
-        "afterExport": { "type": "boolean" }
+        "afterExport": { "type": "boolean" },
+        "exportFile": { "type": "boolean", "description": "The tool produces output via the transform path (file in → transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). Used by on-device utilities." }
       }
     }
   },
@@ -154,7 +160,7 @@
         "help": { "type": "string" },
         "type": {
           "type": "string",
-          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "profile", "blocks", "vector"]
+          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "profile", "blocks", "vector", "file"]
         },
         "required": { "type": "boolean", "default": false },
         "default": { "description": "Type-appropriate default value." },
@@ -245,6 +251,23 @@
                 "type": "boolean",
                 "default": false,
                 "description": "If true, picker offers user upload alongside library."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "file" } } },
+          "then": {
+            "properties": {
+              "accept": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Allowlist of accepted file types — MIME types and/or extensions (e.g. [\"image/jpeg\", \"image/png\", \".heic\"]). Used as the file picker's `accept` attribute. Empty/omitted accepts any file. This is a UX hint, not a security boundary — the hook should still validate bytes."
+              },
+              "maxSize": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Maximum accepted file size in bytes. The host rejects larger files at pick time. Omit for no limit."
               }
             }
           }

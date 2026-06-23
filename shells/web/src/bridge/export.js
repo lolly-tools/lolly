@@ -82,6 +82,15 @@ export function createExportAPI(host) {
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     },
+
+    // Transform-path delivery: a blob the tool produced itself (a transformed
+    // user file from the exportFile hook). On the web this is just a download —
+    // but it's deliberately a distinct verb from render(): no watermark and no
+    // provenance metadata are ever applied, because the bytes are the user's own
+    // content. (Tauri/CLI route this to a real save target.)
+    async file(blob, opts = {}) {
+      await this.download(blob, opts.filename || 'file');
+    },
   };
 }
 

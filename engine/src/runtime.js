@@ -123,6 +123,33 @@ export async function createRuntime(tool, host, initialState = {}) {
     // deferred preview (manifest.render.preview) when the capture geometry changes.
     refresh: emit,
 
+    // Whether this tool produces output via the transform path (a user file in →
+    // transformed file out) rather than the DOM-render path. Shells use it to wire
+    // a "download the result" action to runtime.exportFile instead of export().
+    hasExportFile: Boolean(tool.manifest.hooks?.exportFile),
+
+    /**
+     * Produce a transformed file from the tool's own inputs (the file-utility
+     * shape: bytes in → bytes out). Runs the tool's `exportFile` hook, which
+     * reads the picked file's bytes (input.value.bytes) and returns the result as
+     * a plain { bytes, mime, filename } record. The shell wraps it in a Blob and
+     * delivers it via host.export.file. NEVER watermarked and NO provenance is
+     * embedded — the bytes are the user's own content, not a generated artifact.
+     */
+    async exportFile(opts = {}) {
+      if (!hooks?.exportFile) {
+        throw new Error(`Tool "${tool.manifest.id}" has no exportFile hook`);
+      }
+      const out = await withTimeout(
+        hooks.exportFile({ model: modelForHooks(model), host, opts }),
+        10000, tool.manifest.id,
+      );
+      if (!out || out.bytes == null) {
+        throw new Error(`exportFile produced no bytes (${tool.manifest.id})`);
+      }
+      return out; // { bytes: Uint8Array|ArrayBuffer, mime, filename }
+    },
+
     async export(renderedNode, format, opts = {}) {
       if (hooks?.beforeExport) {
         await hooks.beforeExport({ node: renderedNode, format, opts, host });
@@ -271,7 +298,8 @@ async function loadHooks(tool, host) {
     `onInput: typeof onInput !== 'undefined' ? onInput : null,` +
     `beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,` +
     `beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,` +
-    `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null` +
+    `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,` +
+    `exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null` +
     `};`,
   );
   const mod = factory(host);
@@ -281,6 +309,7 @@ async function loadHooks(tool, host) {
     beforeRender: typeof mod.beforeRender === 'function' ? mod.beforeRender : null,
     beforeExport: typeof mod.beforeExport === 'function' ? mod.beforeExport : null,
     afterExport:  typeof mod.afterExport  === 'function' ? mod.afterExport  : null,
+    exportFile:   typeof mod.exportFile   === 'function' ? mod.exportFile   : null,
   };
 }
 

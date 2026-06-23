@@ -219,6 +219,41 @@ export interface ExportAPI {
   render(node: Element, format: ExportFormat, opts?: ExportOpts): Promise<Blob>;
   /** Trigger the host's download flow with a given blob. */
   download(blob: Blob, filename: string): Promise<void>;
+
+  /**
+   * Deliver a blob the tool produced itself — the transform path (file in →
+   * transformed file out), as opposed to render() which rasterises a DOM node.
+   * Used by on-device utilities (EXIF strip, redact, compress, convert): the
+   * tool's `exportFile` hook returns the transformed bytes, the shell wraps them
+   * in a Blob, and this hands them to the user (download on web, a save target on
+   * Tauri/CLI). UNLIKE render(), this NEVER watermarks and NEVER embeds
+   * provenance metadata — the bytes are the user's own content, not a generated
+   * artifact, so stamping them would be both wrong and self-defeating (a metadata
+   * stripper must not add metadata). Added in v1.1; older shells without it fall
+   * back to download().
+   */
+  file(blob: Blob, opts?: { filename?: string }): Promise<void>;
+}
+
+/**
+ * The value of a `file`-typed input: a user-picked file loaded into memory. The
+ * shell's file picker builds this; the tool's hooks read `bytes` directly (the
+ * hook sandbox has no fetch, so bytes ride in the value rather than behind a
+ * read API). Never persisted and never serialised into a URL — binary user
+ * content lives only in memory on the device, which is the whole privacy point.
+ */
+export interface InputFile {
+  readonly __file: true;
+  /** Original filename, e.g. "holiday.jpg". */
+  name: string;
+  /** MIME type as reported by the platform, e.g. "image/jpeg". */
+  mime: string;
+  /** Size in bytes. */
+  size: number;
+  /** Raw file bytes. The hook transforms these and returns new bytes. */
+  bytes: Uint8Array;
+  /** Object URL for previewing the original in the template; null in headless shells. */
+  url: string | null;
 }
 
 export type ExportFormat = 'png' | 'jpg' | 'svg' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'av1';
