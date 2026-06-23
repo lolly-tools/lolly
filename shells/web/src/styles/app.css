@@ -1348,14 +1348,32 @@ background-color:hsl(var(--background) / 1);
   border-radius: var(--radius);
   background: hsl(var(--muted) / 0.35);
 }
+/* The header doubles as a drag handle (grip + label); the remove button sits at
+   the far end, pushed there by the label's flex-grow. */
 .block-item.is-typed .block-head {
-  display: flex; align-items: center; justify-content: space-between;
+  display: flex; align-items: center; gap: 6px;
   margin-bottom: 8px;
+  cursor: grab;
+  user-select: none;
 }
+.block-item.is-typed .block-head:active { cursor: grabbing; }
+.block-grip { flex: none; fill: hsl(var(--muted-foreground)); opacity: 0.45; }
+.block-item.is-typed .block-head:hover .block-grip { opacity: 0.8; }
 .block-type-label {
+  flex: 1; min-width: 0;
   font-size: 11px; font-weight: 600; text-transform: uppercase;
   letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
 }
+/* Drag-reorder feedback */
+.block-item.is-dragging { opacity: 0.4; }
+.block-item.drag-over { outline: 2px dashed hsl(var(--ring)); outline-offset: 2px; }
+/* Two-step delete confirm — the armed state reads unmistakably destructive. */
+.block-remove.is-confirming {
+  width: auto; height: 22px; padding: 0 9px;
+  background: hsl(var(--destructive, 0 72% 51%)); color: #fff;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.block-remove.is-confirming:hover { background: hsl(var(--destructive, 0 72% 51%)); color: #fff; }
 .block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 8px; align-items: end; }
 .block-control { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .block-control--full { grid-column: 1 / -1; }
@@ -1394,9 +1412,19 @@ background-color:hsl(var(--background) / 1);
 .block-range-input { width: 100%; accent-color: hsl(var(--ring)); cursor: pointer; }
 
 /* Typed add-menu */
-.block-add-menu { position: relative; align-self: flex-start; }
+.block-add-menu { position: relative; align-self: stretch; }
+/* Prominent primary call-to-action for adding a block — full width, brand fill. */
+.block-add--prominent {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  width: 100%; padding: 9px 12px;
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  border: 1px solid transparent; border-radius: var(--radius);
+  font-weight: 600; font-size: 12.5px;
+  transition: filter 0.12s;
+}
+.block-add--prominent:hover { filter: brightness(1.08); border-color: transparent; color: hsl(var(--primary-foreground)); }
 .block-add-options {
-  position: absolute; z-index: 6; top: calc(100% + 4px); left: 0;
+  position: absolute; z-index: 6; top: calc(100% + 4px); left: 0; right: 0;
   display: flex; flex-direction: column; min-width: 150px; padding: 4px;
   background: hsl(var(--background)); border: 1px solid hsl(var(--border));
   border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.14);

@@ -1419,8 +1419,9 @@ function printGeometry(node, opts, paletteSource = opts.palette) {
     registration: Boolean(opts.registrationMarks),
     bleed:        Boolean(opts.bleedMarks),
     colorBars:    Boolean(opts.colorBars),
+    provenance:   Boolean(opts.provenance),
   };
-  const anyMark = marks.crop || marks.registration || marks.bleed || marks.colorBars;
+  const anyMark = marks.crop || marks.registration || marks.bleed || marks.colorBars || marks.provenance;
   if (bleedPt <= 0 && !anyMark) return null;
   const d = exportDims(node, opts);
   // Brand swatches drive the verification half of the colour bar (RGB reference
@@ -1517,20 +1518,39 @@ async function renderPdf(node, opts) {
   const artBlob = await renderArtworkPdf(node, opts, geo);
   if (!geo) return artBlob;                       // legacy path (may be encrypted)
   // RGB PDF: marks are black; page boxes declare trim/bleed for the RIP.
-  return finishPrintPdf(artBlob, geo, { space: 'rgb' });
+  return finishPrintPdf(artBlob, geo, { space: 'rgb', labels: provenanceLabels(opts.meta) });
 }
 
 // Re-save a jsPDF artwork blob through pdf-lib to set the print page boxes and
 // draw the marks. Used by the plain RGB pdf path; the CMYK path inlines the same
 // steps after its colour conversion (see renderCmykPdf).
-async function finishPrintPdf(blob, geo, { space, palette } = {}) {
+async function finishPrintPdf(blob, geo, { space, labels } = {}) {
   const { PDFDocument } = await import('pdf-lib');
   const pdfDoc = await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()));
   const page = pdfDoc.getPage(0);
   setPageBoxes(page, geo);
-  await drawPrintMarks(page, geo, { space, palette });
+  await drawPrintMarks(page, geo, { space, labels });
   const out = await pdfDoc.save();
   return new Blob([out], { type: 'application/pdf' });
+}
+
+// Compose the proof-margin credit strings from the export's provenance metadata.
+// topLeft: export timestamp; topRight: platform attribution; bottomLeftUp: tool
+// + author. Anything missing is dropped, so the line stays clean when the user
+// isn't opted into personal details. Keyed by the engine's label slots (see
+// print-marks.js).
+function provenanceLabels(meta) {
+  if (!meta) return null;
+  const topLeft  = formatStamp(new Date());
+  const topRight = meta.source ? `Made with ${meta.source}` : '';
+  const credit = [meta.tool, meta.author && `by ${meta.author}`].filter(Boolean).join(' ');
+  return { topLeft, topRight, bottomLeftUp: meta.tool ? credit : '' };
+}
+
+// Local export timestamp as "YYYY-MM-DD HH:MM".
+function formatStamp(d) {
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 // Declare the print page boxes so a RIP / print shop knows the cut (trim) and
@@ -1546,15 +1566,16 @@ function setPageBoxes(page, geo) {
   page.setArtBox(...box(geo.boxes.trim));
 }
 
-// Draw the crop / bleed / registration marks and colour bar in the page margin.
-// Line marks use registration colour (DeviceCMYK 1,1,1,1 on the CMYK path so
-// they print on every plate; black on the RGB path). Colour-bar cells follow
-// their own `ink`: brand pairs force 'rgb' (the unconverted reference swatch)
-// and 'cmyk' (the substitution) regardless of page space, so the two sit side
-// by side for comparison; the generic bar's 'page' cells follow the page space.
+// Draw the crop / bleed / registration marks, colour bar and provenance labels
+// in the page margin. Line marks use registration colour (DeviceCMYK 1,1,1,1 on
+// the CMYK path so they print on every plate; black on the RGB path). Colour-bar
+// cells follow their own `ink`: brand pairs force 'rgb' (the unconverted
+// reference swatch) and 'cmyk' (the substitution) regardless of page space, so
+// the two sit side by side for comparison; the generic bar's 'page' cells follow
+// the page space. `labels` (optional) maps each engine label slot → its string.
 // Engine coords are top-left; flip y.
-async function drawPrintMarks(page, geo, { space = 'rgb' } = {}) {
-  const { rgb, cmyk } = await import('pdf-lib');
+async function drawPrintMarks(page, geo, { space = 'rgb', labels } = {}) {
+  const { rgb, cmyk, degrees, StandardFonts } = await import('pdf-lib');
   const H = geo.page.h;
   const fy = (y) => H - y;
   const markColor = space === 'cmyk' ? cmyk(1, 1, 1, 1) : rgb(0, 0, 0);
@@ -1570,6 +1591,22 @@ async function drawPrintMarks(page, geo, { space = 'rgb' } = {}) {
     const ink = b.ink === 'page' || !b.ink ? space : b.ink;
     const fill = ink === 'cmyk' ? cmyk(...b.cmyk) : rgb(...b.rgb);
     page.drawRectangle({ x: b.x, y: fy(b.y + b.h), width: b.w, height: b.h, color: fill });
+  }
+  // Provenance text — only the engine's anchors that the caller supplied a string
+  // for. Helvetica (a standard-14 font: referenced, not embedded) keeps it light.
+  const slots = (geo.primitives.labels ?? []).filter(l => labels?.[l.slot]);
+  if (slots.length) {
+    const font = await page.doc.embedFont(StandardFonts.Helvetica);
+    const textColor = space === 'cmyk' ? cmyk(0, 0, 0, 0.7) : rgb(0.35, 0.35, 0.35);
+    for (const l of slots) {
+      const text = labels[l.slot];
+      // Right-aligned horizontal text shifts left by its measured width; rotated
+      // text (read-up) starts at its anchor and climbs, so no shift needed.
+      const shift = (l.rotation === 0 && l.align === 'right') ? font.widthOfTextAtSize(text, l.size) : 0;
+      page.drawText(text, {
+        x: l.x - shift, y: fy(l.y), size: l.size, font, color: textColor, rotate: degrees(l.rotation),
+      });
+    }
   }
 }
 
@@ -2458,7 +2495,7 @@ async function renderCmykPdf(node, opts) {
     setPageBoxes(page, geo);
     const usedPalette = (opts.palette ?? []).filter(p => usedKeys.has(paletteHitKey(p)));
     const marksGeo = printGeometry(node, opts, usedPalette) ?? geo;
-    await drawPrintMarks(page, marksGeo, { space: 'cmyk' });
+    await drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta) });
   }
 
   const out = await pdfDoc.save();

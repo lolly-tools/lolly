@@ -32,16 +32,16 @@ const FMT_EXT   = { 'pdf-cmyk': 'pdf', 'cmyk-tiff': 'tiff', 'jpeg': 'jpg' };
 // match the engine's `marks` URL param (engine/src/url-mode.js parseMarks). Bleed is
 // carried as a dimension string. The Color profile (press condition) card applies to
 // the two CMYK formats.
-const DEFAULT_PRINT_MARKS = { crop: true, registration: true, bleed: true, colorBars: false };
+const DEFAULT_PRINT_MARKS = { crop: true, registration: true, bleed: true, colorBars: false, provenance: true };
 const isCmykFmt  = (f) => f === 'pdf-cmyk' || f === 'cmyk-tiff';
 const isPrintFmt = (f) => f === 'pdf' || f === 'pdf-cmyk' || f === 'cmyk-tiff';
 function marksToCsv(m) {
-  return m ? [m.crop && 'crop', m.registration && 'reg', m.bleed && 'bleed', m.colorBars && 'bars'].filter(Boolean).join(',') : '';
+  return m ? [m.crop && 'crop', m.registration && 'reg', m.bleed && 'bleed', m.colorBars && 'bars', m.provenance && 'prov'].filter(Boolean).join(',') : '';
 }
 function marksFromCsv(csv) {
   if (!csv) return null;
   const s = new Set(String(csv).split(',').map(x => x.trim().toLowerCase()).filter(Boolean));
-  return { crop: s.has('crop'), registration: s.has('reg') || s.has('registration'), bleed: s.has('bleed'), colorBars: s.has('bars') || s.has('colorbars') };
+  return { crop: s.has('crop'), registration: s.has('reg') || s.has('registration'), bleed: s.has('bleed'), colorBars: s.has('bars') || s.has('colorbars'), provenance: s.has('prov') || s.has('provenance') };
 }
 // Read the Print marks card from an export-panel element `el` (empty when off).
 const printEnabled  = (el) => Boolean(el?.querySelector('[data-action="print-enable"]')?.checked);
@@ -57,6 +57,7 @@ function readMarks(el) {
     registration: el.querySelector('[data-action="mark-reg"]')?.checked,
     bleed:        el.querySelector('[data-action="mark-bleed"]')?.checked,
     colorBars:    el.querySelector('[data-action="mark-bars"]')?.checked,
+    provenance:   el.querySelector('[data-action="mark-prov"]')?.checked,
   });
 }
 
@@ -93,6 +94,11 @@ function extFor(fmt, blob) {
 // doesn't rebuild the sidebar (killing pointer capture mid-drag).
 // The canvas still updates live via contentEl.innerHTML in the subscriber.
 let _sliderDragging = false;
+
+// Active block drag-reorder gesture: { inputId, from } while a block's header is
+// being dragged to a new position. Module-scoped so it survives the closure of a
+// single renderInputs pass (the panel only rebuilds on drop).
+let _blockDrag = null;
 
 export async function mountTool(viewEl, host, toolId, urlParams) {
   // If the catalog is loaded, do a fast existence check before fetching anything.
@@ -640,7 +646,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // Password comes from the URL only — never restored from saved state (we don't
     // persist passwords at rest in the library; see performSave's __export_* snapshot).
     password: urlPassword || undefined,
-    // Print prep (pdf / pdf-cmyk): bleed dimension string + a marks toggle map.
+    // Print prep (pdf / pdf-cmyk / cmyk-tiff): bleed dimension string + a marks toggle map.
     // Present (from URL or saved state) ⇒ the Print marks card opens pre-filled.
     bleed:    urlBleed || initialValues.__export_bleed || undefined,
     marks:    urlMarks || marksFromCsv(initialValues.__export_marks),
@@ -913,6 +919,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
             expOpts.registrationMarks = urlMarks.registration;
             expOpts.bleedMarks = urlMarks.bleed;
             expOpts.colorBars = urlMarks.colorBars;
+            expOpts.provenance = urlMarks.provenance;
           }
         }
         exportUnscaled(() =>
@@ -1734,13 +1741,79 @@ function renderInputs(el, model, runtime, host, onDirty) {
     r.addEventListener('change', release);
   });
 
+  // Remove is a two-step confirm so a stray click can't drop a block: the first
+  // click arms the button ("Delete?"); a second click within 3s (or while armed)
+  // commits. Clicking elsewhere — or the timeout — disarms it.
   el.querySelectorAll('[data-block-remove]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const blockId = btn.dataset.blockInput;
-      const idx = parseInt(btn.dataset.blockIndex, 10);
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (btn._armed) {
+        btn._disarm?.();
+        const blockId = btn.dataset.blockInput;
+        const idx = parseInt(btn.dataset.blockIndex, 10);
+        const inp = panelModel.find(i => i.id === blockId);
+        if (!inp) return;
+        const arr = (Array.isArray(inp.value) ? [...inp.value] : []).filter((_, i) => i !== idx);
+        runtime.setInput(blockId, arr);
+        onDirty?.(blockId);
+        return;
+      }
+      btn._armed = true;
+      btn.classList.add('is-confirming');
+      const original = btn.innerHTML;
+      btn.innerHTML = 'Delete?';
+      const away = (ev) => { if (!btn.contains(ev.target)) btn._disarm(); };
+      const t = setTimeout(() => btn._disarm(), 3000);
+      btn._disarm = () => {
+        btn._armed = false;
+        btn.classList.remove('is-confirming');
+        btn.innerHTML = original;
+        clearTimeout(t);
+        document.removeEventListener('pointerdown', away, true);
+        btn._disarm = null;
+      };
+      // Defer so this very click doesn't immediately count as "clicking away".
+      setTimeout(() => document.addEventListener('pointerdown', away, true), 0);
+    });
+  });
+
+  // Drag a block's header to reorder. Native HTML5 DnD — the header is the
+  // handle; on drop the array is spliced into the new order and committed.
+  el.querySelectorAll('.block-item.is-typed').forEach(item => {
+    const head = item.querySelector('[data-block-handle]');
+    if (!head) return;
+    const blockId = head.dataset.blockInput;
+    const idx = parseInt(head.dataset.blockIndex, 10);
+
+    head.addEventListener('dragstart', (e) => {
+      _blockDrag = { inputId: blockId, from: idx };
+      e.dataTransfer.effectAllowed = 'move';
+      try { e.dataTransfer.setData('text/plain', String(idx)); } catch { /* Safari */ }
+      item.classList.add('is-dragging');
+    });
+    head.addEventListener('dragend', () => {
+      item.classList.remove('is-dragging');
+      el.querySelectorAll('.block-item.drag-over').forEach(n => n.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', (e) => {
+      if (!_blockDrag || _blockDrag.inputId !== blockId) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      item.classList.toggle('drag-over', idx !== _blockDrag.from);
+    });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', (e) => {
+      if (!_blockDrag || _blockDrag.inputId !== blockId) return;
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const from = _blockDrag.from, to = idx;
+      _blockDrag = null;
       const inp = panelModel.find(i => i.id === blockId);
-      if (!inp) return;
-      const arr = (Array.isArray(inp.value) ? [...inp.value] : []).filter((_, i) => i !== idx);
+      if (!inp || from === to || from == null) return;
+      const arr = Array.isArray(inp.value) ? [...inp.value] : [];
+      if (from < 0 || from >= arr.length) return;
+      const [moved] = arr.splice(from, 1);
+      arr.splice(to, 0, moved);
       runtime.setInput(blockId, arr);
       onDirty?.(blockId);
     });
@@ -1919,15 +1992,26 @@ function controlHtml(input) {
           aria-label="${escape(f.label ?? f.id)}">`;
       };
 
-      const removeBtn = idx => `<button type="button" class="block-remove"
-        data-block-remove data-block-input="${id}" data-block-index="${idx}" aria-label="Remove">&#x2715;</button>`;
+      const removeBtn = (idx, label) => `<button type="button" class="block-remove"
+        data-block-remove data-block-input="${id}" data-block-index="${idx}"
+        aria-label="Remove ${escape(label || 'block')}" title="Remove">&#x2715;</button>`;
+
+      // Six-dot grip — signals the header is a drag handle for reordering.
+      const grip = `<svg class="block-grip" viewBox="0 0 10 16" width="10" height="16" aria-hidden="true">
+        <circle cx="2.5" cy="3" r="1.2"/><circle cx="7.5" cy="3" r="1.2"/>
+        <circle cx="2.5" cy="8" r="1.2"/><circle cx="7.5" cy="8" r="1.2"/>
+        <circle cx="2.5" cy="13" r="1.2"/><circle cx="7.5" cy="13" r="1.2"/></svg>`;
 
       const itemHtml = (item, idx) => {
         const typeVal = addMenu ? item[addMenu.field] : null;
         const inner = fields.map(f => blockField(f, item, idx, typeVal)).join('');
         if (!addMenu) return `<div class="block-item">${inner}${removeBtn(idx)}</div>`;
-        return `<div class="block-item is-typed" data-block-type="${escape(typeVal ?? '')}">
-          <div class="block-head"><span class="block-type-label">${escape(typeLabel(typeVal))}</span>${removeBtn(idx)}</div>
+        const label = typeLabel(typeVal);
+        return `<div class="block-item is-typed" data-block-type="${escape(typeVal ?? '')}" data-block-index="${idx}">
+          <div class="block-head" data-block-handle draggable="true"
+               data-block-input="${id}" data-block-index="${idx}" title="Drag to reorder">
+            ${grip}<span class="block-type-label">${escape(label)}</span>${removeBtn(idx, label)}
+          </div>
           <div class="block-fields">${inner}</div>
         </div>`;
       };
@@ -1941,7 +2025,7 @@ function controlHtml(input) {
             data-block-add-type="${escape(o.value)}"${disabled ? ' disabled' : ''}>${escape(o.label ?? o.value)}</button>`;
         }).join('');
         adder = `<div class="block-add-menu">
-          <button type="button" class="block-add" data-block-add-toggle="${id}" aria-haspopup="true" aria-expanded="false">&#43; ${escape(addMenu.label ?? 'Add')}</button>
+          <button type="button" class="block-add block-add--prominent" data-block-add-toggle="${id}" aria-haspopup="true" aria-expanded="false">&#43; ${escape(addMenu.label ?? 'Add')}</button>
           <div class="block-add-options" hidden>${opts}</div>
         </div>`;
       } else {
@@ -2152,10 +2236,10 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         <p class="pdfpass-hint">Requires this password to open the PDF. A basic lock, not strong encryption — don't rely on it for highly confidential files.</p>
       </div>` : '';
 
-  // Tier 2.7 — print marks & bleed (pdf / pdf-cmyk). An opt-in card (master
-  // checkbox) so ordinary PDFs stay trim-sized; turning it on reveals a bleed
-  // field (default 3mm) + the mark toggles at print-standard defaults. Mark size,
-  // gap and stroke weight are fixed in the engine (see print-marks.js).
+  // Tier 2.7 — print marks & bleed (pdf / pdf-cmyk / cmyk-tiff). An opt-in card
+  // (master checkbox) so ordinary output stays trim-sized; turning it on reveals a
+  // bleed field (default 3mm) + the mark toggles at print-standard defaults. Mark
+  // size, gap and stroke weight are fixed in the engine (see print-marks.js).
   const ICON_CROP = `<svg class="print-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v16h16"/><path d="M2 6h16v16"/></svg>`;
   const hasPrint     = hasPdf || hasCmyk;
   const printInitOn  = Boolean(exportDefaults.bleed || exportDefaults.marks);
@@ -2180,6 +2264,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
             <label class="export-option"><input type="checkbox" data-action="mark-reg" ${pim.registration ? 'checked' : ''}> Registration</label>
             <label class="export-option"><input type="checkbox" data-action="mark-bleed" ${pim.bleed ? 'checked' : ''}> Bleed</label>
             <label class="export-option"><input type="checkbox" data-action="mark-bars" ${pim.colorBars ? 'checked' : ''}> Color bars</label>
+            <label class="export-option"><input type="checkbox" data-action="mark-prov" ${pim.provenance ? 'checked' : ''}> Stamp details</label>
           </div>
           <p class="print-hint">Adds bleed and the chosen marks for a print shop; the artwork is scaled to fill the bleed. Registration marks print on all four plates in the Print PDF and Print TIFF. (An open-password can't be combined with marks.)</p>
         </div>
@@ -2290,7 +2375,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     refreshPrintUi(); onUrlSync?.('bleed'); onUrlSync?.('marks');
   });
   el.querySelector('[data-action="print-bleed"]')?.addEventListener('input', () => onUrlSync?.('bleed'));
-  ['mark-crop', 'mark-reg', 'mark-bleed', 'mark-bars'].forEach(a =>
+  ['mark-crop', 'mark-reg', 'mark-bleed', 'mark-bars', 'mark-prov'].forEach(a =>
     el.querySelector(`[data-action="${a}"]`)?.addEventListener('change', () => {
       if (a === 'mark-bars') barsUserSet = true;  // stop auto-tracking once chosen
       onUrlSync?.('marks');
@@ -2337,7 +2422,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     return { width: toPx(w), height: toPx(h) };
   }
 
-  // Print marks & bleed export opts (pdf / pdf-cmyk). Empty when the card is off,
+  // Print marks & bleed export opts (pdf / pdf-cmyk / cmyk-tiff). Empty when the card is off,
   // so an ordinary PDF stays trim-sized with no marks.
   function printOpts() {
     if (!printEnabled(el)) return {};
@@ -2348,6 +2433,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       registrationMarks: el.querySelector('[data-action="mark-reg"]')?.checked ?? false,
       bleedMarks:        el.querySelector('[data-action="mark-bleed"]')?.checked ?? false,
       colorBars:         el.querySelector('[data-action="mark-bars"]')?.checked ?? false,
+      provenance:        el.querySelector('[data-action="mark-prov"]')?.checked ?? false,
     };
   }
 

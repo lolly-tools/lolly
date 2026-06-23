@@ -154,3 +154,43 @@ test('no palette → generic process bar (cells follow the page ink space)', () 
   assert.ok(bars.length > 0);
   assert.ok(bars.every(b => b.ink === 'page'));
 });
+
+// ── Provenance labels ────────────────────────────────────────────────────────
+
+test('no provenance → no label anchors', () => {
+  const geo = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: ALL });
+  assert.equal(geo.primitives.labels.length, 0);
+});
+
+test('provenance → top-left date + top-right credit + bottom-left (read-up) anchors', () => {
+  const geo = computePrintGeometry({ ...TRIM, bleedPt: 8.5, marks: { ...ALL, provenance: true } });
+  const labels = geo.primitives.labels;
+  const tl = labels.find(l => l.slot === 'topLeft');
+  const tr = labels.find(l => l.slot === 'topRight');
+  const bl = labels.find(l => l.slot === 'bottomLeftUp');
+  assert.ok(tl && tr && bl);
+  // top-left reads horizontally, left-aligned to the artwork (bleed) left edge.
+  assert.equal(tl.rotation, 0);
+  assert.equal(tl.align, 'left');
+  assert.ok(close(tl.x, geo.boxes.bleed.x));
+  // top-right reads horizontally, right-aligned to the artwork (bleed) right edge.
+  assert.equal(tr.rotation, 0);
+  assert.equal(tr.align, 'right');
+  assert.ok(close(tr.x, geo.boxes.bleed.x + geo.boxes.bleed.w));
+  // the two top labels share a baseline.
+  assert.ok(close(tl.y, tr.y));
+  // bottom-left climbs (90° CCW), left-aligned from a low anchor.
+  assert.equal(bl.rotation, 90);
+  assert.equal(bl.align, 'left');
+  // all sit in the margin, never strictly inside the trimmed artwork.
+  for (const l of labels) {
+    assert.ok(l.size > 0);
+    assert.ok(!strictlyInsideTrim(geo, l.x, l.y));
+  }
+});
+
+test('provenance alone reserves the margin band (counts as a mark)', () => {
+  const geo = computePrintGeometry({ ...TRIM, bleedPt: 0, marks: { provenance: true } });
+  assert.ok(geo.page.w > TRIM.trimWpt && geo.page.h > TRIM.trimHpt);  // a reach band exists
+  assert.equal(geo.primitives.labels.length, 3);
+});
