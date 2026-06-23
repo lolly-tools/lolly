@@ -817,11 +817,26 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     const target = e.target.closest('[data-canvas-input]');
     if (!target) return;
     const id = target.dataset.canvasInput;
-    const control = inputsEl.querySelector(`[data-input-id="${id}"]`);
+
+    // Most ids map straight to a sidebar row. A "<blocksInputId>:<index>" id
+    // (emitted per rendered block, e.g. data-canvas-input="blocks:0") points at
+    // one block inside a blocks input — focus that block and fold the rest.
+    let control = inputsEl.querySelector(`[data-input-id="${id}"]`);
+    let blockIndex = null;
+    const blockRef = !control && id.match(/^(.+):(\d+)$/);
+    if (blockRef) {
+      const blocksEl = inputsEl.querySelector(`.blocks-input[data-input-id="${blockRef[1]}"]`);
+      if (blocksEl) { control = blocksEl; blockIndex = blockRef[2]; }
+    }
     if (!control) return;
+
     const focus = () => {
-      control.focus();
-      control.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (blockIndex != null) {
+        focusSidebarBlock(control, blockIndex);
+      } else {
+        control.focus();
+        control.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
     };
     if (layout.dataset.sidebar === 'closed') {
       setSidebarWidth(getRestoreWidth());
@@ -1450,6 +1465,40 @@ function armAutoCopy(actionsEl, actionsApi, fmt) {
 
   document.addEventListener('pointerdown', onGesture, true);
   copyBtn.classList.add('copy-armed');
+}
+
+// Click-to-focus for a single block inside a blocks input: expand the target
+// block and fold every other typed block to a pill, then drop the caret in its
+// text field and scroll it into view. Folding mirrors the manual collapse
+// toggle's button state so renderInputs re-applies it across model rebuilds.
+// Triggered when a rendered canvas block is clicked — an "edit one at a time"
+// focus mode. Blocks with no text field (headshot, blank) just expand + scroll.
+function focusSidebarBlock(blocksEl, index) {
+  const items = [...blocksEl.querySelectorAll('.block-item.is-typed')];
+  const target = items.find(b => b.dataset.blockIndex === String(index));
+  if (!target) return;
+
+  for (const b of items) {
+    const fold = b !== target;
+    if (b.classList.contains('is-collapsed') === fold) continue;
+    b.classList.toggle('is-collapsed', fold);
+    const btn = b.querySelector('[data-block-collapse]');
+    btn?.setAttribute('aria-label', fold ? 'Expand block' : 'Collapse block');
+    btn?.setAttribute('title', fold ? 'Expand' : 'Collapse');
+  }
+
+  // Reveal the block if it sits inside a closed section, then bring it into view.
+  target.closest('details.input-section')?.setAttribute('open', '');
+  target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+  const field = target.querySelector(
+    '.block-fields textarea.block-field, .block-fields input.block-field:not([type="range"])'
+  );
+  if (field) {
+    field.focus();
+    const end = field.value?.length ?? 0;
+    try { field.setSelectionRange(end, end); } catch { /* non-text field */ }
+  }
 }
 
 function renderInputs(el, model, runtime, host, onDirty) {
