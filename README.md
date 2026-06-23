@@ -3,13 +3,19 @@
 Powerfully reproducable asset & tools.
 Deterministic, fast, free & open source. 
 
-> **Status:** Working platform. Web shell live; 16 tools shipped; engine, CLI, and catalog all functional.
-
+<img src="https://lolly.tools/info/icon-normal.webp" alt="Lolly Icon - Large green and white lollipop candy" width="350"/>
  
+## What is Lolly Tools
 
-## What this is
+A platform that hosts a library of small, focused tools that produce deterministic creative assets. 
+Users need no design skill, vendor lock-in or internet and the platform is designed to add premium production-quality rendering certainty to variable data. 
 
-A platform that hosts a library of small, focused tools that produce on-brand creative assets without requiring design skill or vendor lock-in. Tools run online, offline, and from the command line through the same engine.
+Tools can be used via a:
+* Web app - installable offline progressive web app 
+* Mobile and Desktop installable packages. 
+* and of course, the Command Line. 
+
+
 
 ## Why deploy Lolly in your organization? 
 
