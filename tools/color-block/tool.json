@@ -68,7 +68,8 @@
           "label": "Text scale",
           "type": "number",
           "display": "slider",
-          "min": 0.3, "max": 2.5, "step": 0.05, "default": 1
+          "min": 0.3, "max": 2.5, "step": 0.05, "default": 1,
+          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
         },
         {
           "id": "weight",
@@ -114,6 +115,15 @@
           ]
         },
         {
+          "id": "logoSize",
+          "label": "Logo size",
+          "type": "number",
+          "display": "slider",
+          "help": "Share of the cell the mark fills — the rest is even clearspace.",
+          "min": 0.4, "max": 0.95, "step": 0.05, "default": 0.8,
+          "showFor": ["logo"]
+        },
+        {
           "id": "bgImage",
           "label": "Image",
           "type": "asset",
@@ -147,7 +157,7 @@
         }
       ],
       "default": [
-        { "kind": "logo",       "logoOrient": "horizontal", "logoColor": "mono", "bgColor": "#0c322c", "scale": 1 },
+        { "kind": "logo",       "logoOrient": "horizontal", "logoColor": "mono", "bgColor": "#0c322c", "logoSize": 0.8 },
         { "kind": "heading",    "text": "Build once.",   "bgColor": "#30ba78", "scale": 1, "weight": 700 },
         { "kind": "subheading", "text": "Ship anywhere.", "bgColor": "#90ebcd", "scale": 1, "weight": 400 },
         { "kind": "blank",      "text": "",              "bgColor": "#01564a", "scale": 1, "weight": 400 }

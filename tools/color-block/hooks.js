@@ -4,7 +4,7 @@
  * color-block hook.
  *
  * One job — compute per-block render data, all data-only (no DOM; the template's
- * controller owns layout). For each block it derives three parallel arrays the
+ * controller owns layout). For each block it derives parallel arrays the
  * template applies by index:
  *
  *   - blockBg:   the block's own background colour, or the next SUSE palette
@@ -17,6 +17,9 @@
  *                positive⇄negative so the mark always contrasts with the cell
  *                background. The logo is its own grid cell, never an overlay, so
  *                it can't break or sit on top of the grid.
+ *   - blockScale: the block's effective --scale — logo blocks read "Logo size"
+ *                (the share of the cell the mark fills); other kinds read the
+ *                text "Text scale". One source so the template stays logic-less.
  *
  * Doing this here (not in the controller) means the colours and logo are correct
  * even where the layout JS can't run (CLI / first paint).
@@ -87,16 +90,27 @@ function logoIdFor(block, bg) {
   return `suse/logo/${orient}-${polarity}-${onDark ? 'white' : 'black'}`;
 }
 
+// The block's effective `--scale`. Logo blocks read their own "Logo size"
+// (logoSize) so it can't be confused with the text "Text scale"; every other
+// kind reads `scale`. Falls back to the per-kind default when unset/invalid.
+function scaleFor(block) {
+  const raw = Number(block && (block.kind === 'logo' ? block.logoSize : block.scale));
+  if (Number.isFinite(raw) && raw > 0) return raw;
+  return block && block.kind === 'logo' ? 0.8 : 1;
+}
+
 function compute(blocks, logos) {
   const blockBg = [];
   const blockFg = [];
   const blockLogo = [];
+  const blockScale = [];
   blocks.forEach((b, i) => {
     const hasImage = !!(b && b.bgImage);
     const bg = (b && String(b.bgColor || '').trim()) || PALETTE[i % PALETTE.length];
     const fg = (b && String(b.fgColor || '').trim()) || (hasImage ? INK_LIGHT : inkFor(bg));
     blockBg.push(bg);
     blockFg.push(fg);
+    blockScale.push(scaleFor(b));
     if (b && b.kind === 'logo') {
       const ref = logos[logoIdFor(b, bg)];
       blockLogo.push(ref ? (ref.url || '') : '');
@@ -104,7 +118,7 @@ function compute(blocks, logos) {
       blockLogo.push('');
     }
   });
-  return { blockBg, blockFg, blockLogo };
+  return { blockBg, blockFg, blockLogo, blockScale };
 }
 
 async function patch({ model }) {

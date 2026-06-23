@@ -143,15 +143,19 @@
    inside the cell preserving its aspect — a horizontal lockup stays wide, a
    stacked one stays tall — with the cell's background colour showing behind it.
    The hook picks the exact asset (orientation × mono/green × pos/neg for the
-   background tone); --scale resizes it. */
+   background tone).
+
+   `--scale` is the block's "Logo size": the share of the cell the mark may fill,
+   so the surrounding clearspace is one predictable knob — even on every cell
+   shape — rather than something that falls out of the cell's aspect ratio. The
+   layout controller skips its generic text padding on logo cells (see below) so
+   this is the only clearspace, and the mark never double-shrinks. */
 .logo-block { align-items: center; justify-content: center; }
 .logo-block .cb-logo-mark {
   position: relative;
   z-index: 1;
-  width:  calc(80% * var(--scale, 1));
-  height: calc(80% * var(--scale, 1));
-  max-width: 90%;
-  max-height: 84%;
+  width:  calc(100% * var(--scale, 0.8));
+  height: calc(100% * var(--scale, 0.8));
   object-fit: contain;
 }
 </style>
@@ -161,7 +165,7 @@
   <div class="cb-block {{kind}}-block{{#if this.bgImage}} has-img{{/if}}"
        data-kind="{{kind}}"
        data-canvas-input="blocks:{{@index}}"
-       style="background-color:{{lookup ../blockBg @index}}; color:{{lookup ../blockFg @index}}; --scale:{{default this.scale 1}}; --weight:{{default this.weight 400}};">
+       style="background-color:{{lookup ../blockBg @index}}; color:{{lookup ../blockFg @index}}; --scale:{{lookup ../blockScale @index}}; --weight:{{default this.weight 400}};">
     {{#if this.bgImage}}<img class="cb-img" src="{{asset this.bgImage}}" alt=""
        style="object-position:{{default this.bgX 50}}% {{default this.bgY 50}}%; transform-origin:{{default this.bgX 50}}% {{default this.bgY 50}}%; transform:scale(calc({{default this.bgZoom 100}} / 100));">{{/if}}
     {{#if (eq kind "heading")}}<div class="cb-content"><span class="cb-text">{{arrow this.text}}</span></div>{{/if}}
@@ -229,7 +233,12 @@
   function layout() {
     var W = root.clientWidth, H = root.clientHeight;
     applyGrid(W, H);
-    blocks.forEach(function (b) { b.style.padding = pad(b) + 'px'; });
+    // Logo cells carry their clearspace in --scale (see .cb-logo-mark), so skip
+    // the generic text padding there — otherwise the two stack and the mark
+    // shrinks unpredictably with the cell's shape.
+    blocks.forEach(function (b) {
+      b.style.padding = (b.classList.contains('logo-block') ? 0 : pad(b)) + 'px';
+    });
     blocks.forEach(fit);
   }
 
