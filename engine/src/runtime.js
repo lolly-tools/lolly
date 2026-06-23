@@ -194,22 +194,44 @@ function buildDataPayload(tool, format, model, getHydratedText) {
 }
 
 async function resolveAssetRefs(model, host, dropped = []) {
+  const resolveOne = async (id, inputId, label) => {
+    // Re-resolve any asset ref that carries an id — this covers both the
+    // _unresolved URL-mode path AND saved-session refs.  Saved sessions store
+    // the full resolved object, but blob: URLs are session-scoped and invalid
+    // after a page reload, so we always re-fetch a fresh blob URL from the cache.
+    try {
+      return await host.assets.get(id);
+    } catch (e) {
+      host.log('warn', `Failed to resolve asset ${id}`, { error: String(e) });
+      dropped.push({ inputId, label, id });
+      return null;
+    }
+  };
+
   return Promise.all(
     model.map(async input => {
       const v = input.value;
       if (v && typeof v === 'object' && input.type === 'asset' && typeof v.id === 'string') {
-        // Re-resolve any asset ref that carries an id — this covers both the
-        // _unresolved URL-mode path AND saved-session refs.  Saved sessions store
-        // the full resolved object, but blob: URLs are session-scoped and invalid
-        // after a page reload, so we always re-fetch a fresh blob URL from the cache.
-        try {
-          const resolved = await host.assets.get(v.id);
-          return { ...input, value: resolved };
-        } catch (e) {
-          host.log('warn', `Failed to resolve asset ${v.id}`, { error: String(e) });
-          dropped.push({ inputId: input.id, label: input.label || input.id, id: v.id });
-          return { ...input, value: null };
-        }
+        return { ...input, value: await resolveOne(v.id, input.id, input.label || input.id) };
+      }
+      // Blocks may carry asset sub-fields (declared type:'asset'); resolve each
+      // block item's ref so per-block images work in URL mode / CLI exactly as
+      // they do via the web picker (which stores an already-resolved ref).
+      if (input.type === 'blocks' && Array.isArray(v)) {
+        const assetFields = (input.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
+        if (!assetFields.length) return input;
+        const value = await Promise.all(v.map(async item => {
+          if (!item || typeof item !== 'object') return item;
+          const next = { ...item };
+          for (const fid of assetFields) {
+            const ref = item[fid];
+            if (ref && typeof ref === 'object' && typeof ref.id === 'string') {
+              next[fid] = await resolveOne(ref.id, `${input.id}.${fid}`, input.label || input.id);
+            }
+          }
+          return next;
+        }));
+        return { ...input, value };
       }
       return input;
     }),

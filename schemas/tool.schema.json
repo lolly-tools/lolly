@@ -253,16 +253,62 @@
           "if": { "properties": { "type": { "const": "blocks" } } },
           "then": {
             "properties": {
+              "addMenu": {
+                "type": "object",
+                "description": "Turns the '+ Add' button into a typed menu. Each option of the named discriminator sub-field becomes a menu entry; an entry already used is disabled unless its option sets repeatable:true. The discriminator is fixed at creation and shown as the block's label rather than an editable control.",
+                "required": ["field"],
+                "properties": {
+                  "field": { "type": "string", "description": "id of the select sub-field whose options drive the menu." },
+                  "label": { "type": "string", "description": "Menu button label (default 'Add')." }
+                }
+              },
               "fields": {
                 "type": "array",
-                "description": "Sub-fields for each repeatable block entry.",
+                "description": "Sub-fields for each repeatable block entry. A field may declare a `type` (text|color|select|asset|number); text is the default. `showFor` limits a field to blocks whose discriminator value is listed.",
                 "items": {
                   "type": "object",
                   "required": ["id"],
                   "properties": {
                     "id": { "type": "string" },
                     "label": { "type": "string" },
-                    "placeholder": { "type": "string" }
+                    "placeholder": { "type": "string" },
+                    "type": {
+                      "type": "string",
+                      "enum": ["text", "color", "select", "asset", "number"],
+                      "default": "text"
+                    },
+                    "default": { "description": "Value a newly-added block's field starts at." },
+                    "showFor": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Render this field only when the block's discriminator value is one of these."
+                    },
+                    "options": {
+                      "type": "array",
+                      "description": "Choices for a select sub-field. An option's repeatable:true lets the add-menu offer it more than once.",
+                      "items": {
+                        "type": "object",
+                        "required": ["value"],
+                        "properties": {
+                          "value": { "type": "string" },
+                          "label": { "type": "string" },
+                          "repeatable": { "type": "boolean" }
+                        }
+                      }
+                    },
+                    "min": { "type": "number" },
+                    "max": { "type": "number" },
+                    "step": { "type": "number" },
+                    "display": { "type": "string", "enum": ["input", "slider"], "default": "input" },
+                    "assetType": { "type": "string", "enum": ["vector", "raster", "video", "any"] },
+                    "allowUpload": { "type": "boolean", "default": false },
+                    "filter": {
+                      "type": "object",
+                      "properties": {
+                        "tags": { "type": "array", "items": { "type": "string" } },
+                        "namespace": { "type": "string" }
+                      }
+                    }
                   }
                 }
               }

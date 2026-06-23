@@ -216,7 +216,15 @@ function decodeBlocksCompact(str, fields) {
     const obj = {};
     fields.forEach((f, i) => {
       const raw = decodeURIComponent(parts[i] ?? '');
-      obj[f.id] = (f.type === 'color' && raw && !raw.startsWith('#')) ? '#' + raw : raw;
+      if (f.type === 'asset') {
+        // Lightweight ref by id; the runtime resolves it before hydration
+        // (resolveAssetRefs descends into block asset fields). Empty → no image.
+        obj[f.id] = raw ? { source: 'library', id: raw, _unresolved: true } : null;
+      } else if (f.type === 'color' && raw && !raw.startsWith('#')) {
+        obj[f.id] = '#' + raw;
+      } else {
+        obj[f.id] = raw;
+      }
     });
     return obj;
   });

@@ -1335,6 +1335,80 @@ background-color:hsl(var(--background) / 1);
 }
 .block-add:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
 
+/* ── Typed blocks (addMenu) ──────────────────────────────────────────────────
+   Each block is a self-contained card with a type label + remove in its head and
+   a two-column field grid below. Opts out of the legacy fixed 3-column row grid
+   used by name/value blocks (meeting-planner, chart-creator). */
+.blocks-input--typed .blocks-list { margin: 0; gap: 8px; }
+.block-item.is-typed {
+  display: block;
+  grid-template-columns: none;
+  padding: 9px 11px 11px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+}
+.block-item.is-typed .block-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px;
+}
+.block-type-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+}
+.block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 8px; align-items: end; }
+.block-control { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.block-control--full { grid-column: 1 / -1; }
+.block-control-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.block-fields .block-field--full { grid-column: 1 / -1; }
+/* The legacy rule forces left-padding on every .block-field; typed cards don't
+   want it (selects/ranges read better flush). */
+.block-item.is-typed .block-field { padding: 6px 8px !important; }
+.block-item.is-typed .block-color-field { grid-row: auto; grid-column: auto; }
+.block-item.is-typed .color-trigger { width: 100%; }
+
+/* Per-block image picker */
+.block-asset { display: flex; gap: 4px; align-items: stretch; }
+.block-asset-trigger {
+  flex: 1; min-width: 0; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; overflow: hidden;
+  border: 1px dashed hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--background)); cursor: pointer;
+  font: inherit; font-size: 11px; color: hsl(var(--muted-foreground));
+  transition: border-color 0.12s, color 0.12s;
+}
+.block-asset-trigger:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+.block-asset-trigger img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.block-asset-clear {
+  flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
+  background: none; cursor: pointer; color: hsl(var(--muted-foreground));
+  font-size: 11px; transition: color 0.12s, background 0.12s;
+}
+.block-asset-clear:hover { color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+
+/* Per-block range slider — native, kept compact */
+.block-range-input { width: 100%; accent-color: hsl(var(--ring)); cursor: pointer; }
+
+/* Typed add-menu */
+.block-add-menu { position: relative; align-self: flex-start; }
+.block-add-options {
+  position: absolute; z-index: 6; top: calc(100% + 4px); left: 0;
+  display: flex; flex-direction: column; min-width: 150px; padding: 4px;
+  background: hsl(var(--background)); border: 1px solid hsl(var(--border));
+  border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.14);
+}
+.block-add-option {
+  text-align: left; padding: 7px 9px; border: none; border-radius: calc(var(--radius) - 2px);
+  background: none; cursor: pointer; font: inherit; font-size: 12px;
+  color: hsl(var(--foreground)); transition: background 0.1s;
+}
+.block-add-option:hover:not(:disabled) { background: hsl(var(--muted)); }
+.block-add-option:disabled { opacity: 0.45; cursor: not-allowed; }
+
 /* Vector input — N Figma-style number scrubbers on one row, one control/column.
    The label doubles as a drag handle (scrub left/right); the number field is
    typeable. */
@@ -4133,17 +4207,19 @@ button {
 
 @media (pointer: coarse) {
   /* 16px is the threshold below which iOS Safari zooms the page on focus — a
-     jarring jump that strands the sticky sidebar header. Match it everywhere a
-     finger can land a caret. */
-  .input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]),
-  .input-row textarea,
-  .input-row select,
-  .block-field,
-  .time-input-wrap input[type="time"],
-  .datetime-local-wrap input[type="datetime-local"],
-  .color-hex-input {
-    font-size: 16px;
+     jarring jump that strands the sticky sidebar header and can lose the user
+     mid-edit. Enforce it on EVERY text-entry control, not just the tool sidebar:
+     <input> never inherits the page font, so search boxes, the export panel,
+     profile onboarding, the date-picker popup and Pro mode all sit at 13–14px
+     and would otherwise trigger the zoom. !important so this usability guarantee
+     wins over each component's cosmetic font-size; the lone opt-out is the
+     oversized Pro batch-name field, whose width is measured against 1.5rem. */
+  input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="image"]),
+  textarea,
+  select {
+    font-size: 16px !important;
   }
+  .pro-zip input { font-size: 1.5rem !important; }
 
   /* Comfortable ~44px tap targets for the tappable controls. */
   .input-row select,

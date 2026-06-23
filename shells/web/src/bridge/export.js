@@ -188,36 +188,77 @@ async function renderBitmap(node, mimeType, opts) {
   });
 }
 
-// ── DeviceCMYK TIFF export ──────────────────────────────────────────────────
+// ── DeviceCMYK TIFF export (print-ready) ────────────────────────────────────
 //
 // A print-grade CMYK TIFF, written by hand (no browser TIFF encoder exists; this
 // is the same hand-rolled-binary approach used for PNG chunks / EXIF / ICC). The
-// canvas is rasterised exactly like the other raster formats, its sRGB pixels are
-// converted per-pixel to *device* CMYK via the engine's rgbToCmyk (Path 1: no ICC
-// transform, no brand-palette substitution — incidental colours only), and the
-// result is stored uncompressed in a single strip.
+// canvas is rasterised like the other raster formats, its sRGB pixels converted
+// per-pixel to *device* CMYK via the engine's rgbToCmyk (Path 1: no ICC transform,
+// no brand-palette substitution — incidental colours only), stored uncompressed in
+// a single strip.
 //
-// Deliberately untagged DeviceCMYK: there is no embedded output profile, so a RIP
-// assigns its own working space. A colour-managed variant (real ICC separation +
-// embedded press profile) is a separate, heavier project — see cmykTiffSupport,
-// which keeps the format off environments where it can't be produced or delivered.
+// Print finishing mirrors the Print PDF, on the same engine geometry
+// (computePrintGeometry): when bleed/marks are requested the design is stretched to
+// COVER the bleed box on an enlarged white sheet, and the crop / bleed / registration
+// marks + colour bar are rasterised straight into the CMYK buffer AFTER the
+// conversion — so the line marks land on every plate (C=M=Y=K=255, the raster
+// analogue of the PDF's 1 1 1 1 registration ink) instead of being remapped by the
+// naive per-pixel pass. The bar is the generic process/overprint/tint control strip
+// (the raster does no exact substitution, so there's nothing to verify).
+//
+// Deliberately untagged DeviceCMYK: there is NO embedded output profile (a real
+// profile over the naive conversion would mislabel the file). The chosen press
+// condition is recorded only as provenance in ImageDescription — naming the intended
+// viewing condition without claiming colour management. A colour-managed variant
+// (real ICC separation + embedded press profile) is a separate, heavier project —
+// see cmykTiffSupport, which keeps the format off environments where it can't be
+// produced or delivered.
 async function renderCmykTiff(node, opts) {
   const lib = await getDomToImage();
   const d = exportDims(node, opts);
-  const dtoOpts = rasterStyle(d, opts);
+  // Print finishing geometry — same engine source of truth as the PDF path. Pass
+  // no palette: the raster is a flat per-pixel conversion with no exact brand
+  // substitution to verify, so the colour bar stays the generic control strip.
+  const geo = printGeometry(node, opts, []);
+  const ptPx  = (v) => Math.round(v * d.dpi / 72);        // points → device px (offset)
+  const ptDim = (v) => Math.max(1, ptPx(v));              // points → device px (size)
+
   const restore = await swapBlobUrls(node);
-  let canvas;
+  let artCanvas;
   try {
+    // With geometry the design is stretched to COVER the bleed box (mirrors the
+    // PDF's scale-to-bleed); without it, the plain trim-size raster as before.
+    const dtoOpts = geo
+      ? coverRasterStyle(d, opts, ptDim(geo.artwork.w), ptDim(geo.artwork.h))
+      : rasterStyle(d, opts);
     const raw = await lib.toCanvas(node, dtoOpts);
-    canvas = normalizeCanvas(raw, dtoOpts.width, dtoOpts.height);
+    artCanvas = normalizeCanvas(raw, dtoOpts.width, dtoOpts.height);
   } finally {
     restore();
   }
+
+  // Compose the artwork onto the full white sheet (print stock) when there's a margin.
+  let canvas = artCanvas;
+  if (geo) {
+    const sheet = document.createElement('canvas');
+    sheet.width  = ptDim(geo.page.w);
+    sheet.height = ptDim(geo.page.h);
+    const sctx = sheet.getContext('2d', { willReadFrequently: true });
+    sctx.fillStyle = '#ffffff';
+    sctx.fillRect(0, 0, sheet.width, sheet.height);
+    sctx.drawImage(artCanvas, ptPx(geo.artwork.x), ptPx(geo.artwork.y), ptDim(geo.artwork.w), ptDim(geo.artwork.h));
+    canvas = sheet;
+  }
+
   const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const rgba = ctx.getImageData(0, 0, W, H).data;   // sRGB, straight (un-premultiplied)
   const cmyk = rgbaToDeviceCmyk(rgba);
-  const tiff = encodeCmykTiff(cmyk, W, H, d.dpi, opts.meta);
+
+  // Marks drawn AFTER conversion → registration/crop/bleed land on every plate.
+  if (geo) drawPrintMarksCmyk(cmyk, W, H, geo, d.dpi);
+
+  const tiff = encodeCmykTiff(cmyk, W, H, d.dpi, opts.meta, pressConditionLabel(opts.colorProfile));
   return new Blob([tiff], { type: 'image/tiff' });
 }
 
@@ -247,7 +288,7 @@ function rgbaToDeviceCmyk(rgba) {
 // values → one uncompressed strip. Entries are gathered, then sorted by tag (a
 // TIFF requirement) with ≤4-byte values inlined and larger ones placed after the
 // IFD. Mirrors buildExifTiff, scaled up to a full image + provenance + DPI.
-function encodeCmykTiff(cmyk, W, H, dpi, meta) {
+function encodeCmykTiff(cmyk, W, H, dpi, meta, condition) {
   const enc = new TextEncoder();
   const SHORT = 3, LONG = 4, RATIONAL = 5, ASCII = 2;
   const TYPE_SIZE = { 2: 1, 3: 2, 4: 4, 5: 8 };
@@ -264,7 +305,7 @@ function encodeCmykTiff(cmyk, W, H, dpi, meta) {
   entries.push({ tag: 258, type: SHORT, count: 4, data: bps }); // BitsPerSample [8,8,8,8]
   num(259, SHORT, 1);                                 // Compression: none
   num(262, SHORT, 5);                                 // PhotometricInterpretation: Separated (CMYK)
-  asciiTag(270, meta?.description);                   // ImageDescription
+  asciiTag(270, [meta?.description, condition].filter(Boolean).join(' · ')); // ImageDescription (+ press condition)
   num(273, LONG, 0);                                  // StripOffsets — patched after layout
   num(277, SHORT, 4);                                 // SamplesPerPixel
   num(278, LONG, H);                                  // RowsPerStrip (single strip)
@@ -309,6 +350,61 @@ function encodeCmykTiff(cmyk, W, H, dpi, meta) {
   dv.setUint32(o, 0, true);                           // next IFD: none
   out.set(cmyk, stripOffset);
   return out;
+}
+
+// Rasterise the print marks (crop / bleed / registration / colour bar) straight
+// into the DeviceCMYK byte buffer, AFTER the RGB→CMYK conversion — so the line
+// marks land on all four plates (C=M=Y=K=255, the raster analogue of the PDF's
+// 1 1 1 1 registration ink) instead of being remapped by the naive per-pixel pass.
+// Engine geometry is points, top-left origin; convert to device pixels at dpi. All
+// crop/bleed/registration lines are axis-aligned (each a filled hairline bar); the
+// registration target is a stroked ring; colour-bar cells are filled rectangles in
+// their own DeviceCMYK value.
+function drawPrintMarksCmyk(cmyk, W, H, geo, dpi) {
+  const pt = (v) => v * dpi / 72;
+  const REG = [255, 255, 255, 255];                       // all plates (registration black)
+  const stroke = Math.max(1, Math.round(pt(geo.strokeWeight)));
+
+  const put = (x, y, ink) => {
+    if (x < 0 || y < 0 || x >= W || y >= H) return;
+    const o = (y * W + x) * 4;
+    cmyk[o] = ink[0]; cmyk[o + 1] = ink[1]; cmyk[o + 2] = ink[2]; cmyk[o + 3] = ink[3];
+  };
+  const fill = (x0, y0, w, h, ink) => {
+    const xs = Math.round(x0), ys = Math.round(y0);
+    const xe = Math.round(x0 + w), ye = Math.round(y0 + h);
+    for (let y = ys; y < ye; y++) for (let x = xs; x < xe; x++) put(x, y, ink);
+  };
+
+  for (const ln of geo.primitives.lines) {
+    const x1 = pt(ln.x1), y1 = pt(ln.y1), x2 = pt(ln.x2), y2 = pt(ln.y2);
+    if (Math.abs(x1 - x2) < 0.5) fill(x1 - stroke / 2, Math.min(y1, y2), stroke, Math.abs(y2 - y1), REG); // vertical
+    else fill(Math.min(x1, x2), y1 - stroke / 2, Math.abs(x2 - x1), stroke, REG);                          // horizontal
+  }
+
+  for (const c of geo.primitives.circles) {
+    const cx = pt(c.cx), cy = pt(c.cy), r = pt(c.r), half = stroke / 2;
+    const x0 = Math.floor(cx - r - half), x1 = Math.ceil(cx + r + half);
+    const y0 = Math.floor(cy - r - half), y1 = Math.ceil(cy + r + half);
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      if (Math.abs(Math.hypot(x + 0.5 - cx, y + 0.5 - cy) - r) <= half) put(x, y, REG);
+    }
+  }
+
+  for (const b of geo.primitives.bars) {
+    const ink = b.cmyk.map(v => Math.round(v * 255));
+    fill(pt(b.x), pt(b.y), pt(b.w), pt(b.h), ink);
+  }
+}
+
+// The human-readable press condition recorded as TIFF provenance (ImageDescription).
+// Mirrors the PDF OutputIntent's purpose — naming the condition the DeviceCMYK values
+// target — but as metadata only: the pixels stay untagged (no embedded profile), so
+// the file is never mislabelled. 'none' opts out; anything else resolves via the
+// engine registry (unknown / 'srgb' fall back to the default condition).
+function pressConditionLabel(profile) {
+  if (profile === 'none') return null;
+  return cmykCondition(profile).info;
 }
 
 // Can this environment both PRODUCE and DELIVER a DeviceCMYK TIFF? Memoised.
@@ -363,6 +459,26 @@ function rasterStyle(d, opts) {
   } else if (opts.background != null) {
     result.bgcolor = opts.background;
   }
+  return result;
+}
+
+// dom-to-image options that stretch the node to exactly cover a target pixel box
+// (the bleed box) — non-uniform scale, matching the PDF's scale-to-bleed. Used by
+// the print-finished CMYK TIFF; any transparency is flattened onto the white sheet
+// by the CMYK pass, so the background is immaterial here.
+function coverRasterStyle(d, opts, targetW, targetH) {
+  const result = {
+    width: targetW,
+    height: targetH,
+    style: {
+      transform: `scale(${targetW / d.node.w}, ${targetH / d.node.h})`,
+      transformOrigin: 'top left',
+      width: `${d.node.w}px`,
+      height: `${d.node.h}px`,
+    },
+  };
+  if (opts.background === 'transparent') result.style.background = 'transparent';
+  else if (opts.background != null) result.bgcolor = opts.background;
   return result;
 }
 
@@ -1295,7 +1411,7 @@ function parseCssColorFull(cssColor) {
 // no marks are requested (the legacy "page == trim, art fills it" path). The
 // geometry (page boxes + mark primitives, in points, top-left origin) is the
 // engine's single source of truth — see engine/src/print-marks.js.
-function printGeometry(node, opts) {
+function printGeometry(node, opts, paletteSource = opts.palette) {
   const bleedDim = parseDimension(opts.bleed);
   const bleedPt = bleedDim ? toPoints(bleedDim) : 0;
   const marks = {
@@ -1307,7 +1423,35 @@ function printGeometry(node, opts) {
   const anyMark = marks.crop || marks.registration || marks.bleed || marks.colorBars;
   if (bleedPt <= 0 && !anyMark) return null;
   const d = exportDims(node, opts);
-  return computePrintGeometry({ trimWpt: toPoints(d.w), trimHpt: toPoints(d.h), bleedPt, marks });
+  // Brand swatches drive the verification half of the colour bar (RGB reference
+  // beside CMYK substitution). The CMYK PDF passes only the inks that actually
+  // substituted (see renderCmykPdf); the plain RGB PDF has no palette and gets
+  // the generic process/overprint/tint bar.
+  const palette = marks.colorBars ? brandSwatchPalette(paletteSource) : [];
+  return computePrintGeometry({ trimWpt: toPoints(d.w), trimHpt: toPoints(d.h), bleedPt, marks, palette });
+}
+
+// Normalise the shell's brand palette (hex + CMYK 0–100) into the engine's
+// colour-bar form: { rgb, cmyk } both 0–1, plus a label. Only entries with a
+// declared CMYK substitution qualify (the others fall back to generic RGB→CMYK
+// at render time and so have nothing to verify). Deduped by hex+ink, since the
+// palette repeats Black/White as ramp endpoints; order is preserved so the
+// primary brand hues lead and survive the flat cell cap.
+function brandSwatchPalette(palette) {
+  const out = [], seen = new Set();
+  for (const { hex, cmyk, label } of palette ?? []) {
+    if (!hex || !cmyk || cmyk.length !== 4) continue;
+    const h = hex.replace('#', '').toLowerCase();
+    if (h.length !== 6) continue;                         // skips 'transparent' etc.
+    const key = `${h}:${cmyk.join(',')}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const r = parseInt(h.slice(0, 2), 16) / 255;
+    const g = parseInt(h.slice(2, 4), 16) / 255;
+    const b = parseInt(h.slice(4, 6), 16) / 255;
+    out.push({ rgb: [r, g, b], cmyk: cmyk.map(v => v / 100), label });
+  }
+  return out;
 }
 
 // Render the artwork to a jsPDF blob. Without geometry the page is the trim size
@@ -1404,8 +1548,11 @@ function setPageBoxes(page, geo) {
 
 // Draw the crop / bleed / registration marks and colour bar in the page margin.
 // Line marks use registration colour (DeviceCMYK 1,1,1,1 on the CMYK path so
-// they print on every plate; black on the RGB path). Colour-bar cells use their
-// per-cell CMYK (or the RGB approximation). Engine coords are top-left; flip y.
+// they print on every plate; black on the RGB path). Colour-bar cells follow
+// their own `ink`: brand pairs force 'rgb' (the unconverted reference swatch)
+// and 'cmyk' (the substitution) regardless of page space, so the two sit side
+// by side for comparison; the generic bar's 'page' cells follow the page space.
+// Engine coords are top-left; flip y.
 async function drawPrintMarks(page, geo, { space = 'rgb' } = {}) {
   const { rgb, cmyk } = await import('pdf-lib');
   const H = geo.page.h;
@@ -1420,7 +1567,8 @@ async function drawPrintMarks(page, geo, { space = 'rgb' } = {}) {
     page.drawCircle({ x: c.cx, y: fy(c.cy), size: c.r, borderWidth: w, borderColor: markColor });
   }
   for (const b of geo.primitives.bars) {
-    const fill = space === 'cmyk' ? cmyk(...b.cmyk) : rgb(...b.rgb);
+    const ink = b.ink === 'page' || !b.ink ? space : b.ink;
+    const fill = ink === 'cmyk' ? cmyk(...b.cmyk) : rgb(...b.rgb);
     page.drawRectangle({ x: b.x, y: fy(b.y + b.h), width: b.w, height: b.h, color: fill });
   }
 }
@@ -2256,6 +2404,7 @@ async function renderCmykPdf(node, opts) {
     if (kw.length) pdfDoc.setKeywords(kw);
   }
   const paletteMap = buildCmykPaletteMap(opts.palette ?? []);
+  const usedKeys = new Set();   // brand palette keys actually hit during substitution
 
   // Declare the press condition the DeviceCMYK values are meant to be read under,
   // so a RIP/print shop knows the intended output. Referenced by registered name
@@ -2286,7 +2435,7 @@ async function renderCmykPdf(node, opts) {
     const text = new TextDecoder('latin1').decode(raw);
     if (!/\brg\b|\bRG\b/.test(text)) continue;
 
-    const modified = substitutePdfRgb(text, paletteMap);
+    const modified = substitutePdfRgb(text, paletteMap, usedKeys);
     if (modified === text) continue;
 
     const modBytes = Uint8Array.from(modified, c => c.charCodeAt(0));
@@ -2301,10 +2450,15 @@ async function renderCmykPdf(node, opts) {
 
   // Print finishing in DeviceCMYK, drawn after the colour swap so registration
   // marks land on every plate (1 1 1 1) and aren't re-mapped by the RGB→CMYK pass.
+  // The verification bar shows pairs for only the brand inks that actually
+  // substituted in this artwork — rebuild the marks geometry from that used set
+  // now that the substitution pass has run (page size is palette-independent).
   if (geo) {
     const page = pdfDoc.getPage(0);
     setPageBoxes(page, geo);
-    await drawPrintMarks(page, geo, { space: 'cmyk', palette: opts.palette });
+    const usedPalette = (opts.palette ?? []).filter(p => usedKeys.has(paletteHitKey(p)));
+    const marksGeo = printGeometry(node, opts, usedPalette) ?? geo;
+    await drawPrintMarks(page, marksGeo, { space: 'cmyk' });
   }
 
   const out = await pdfDoc.save();
@@ -2327,8 +2481,23 @@ function buildCmykPaletteMap(palette) {
   return map;
 }
 
+// Quantise an RGB triple (0–1) to a brand-match key. The precision MUST match
+// what jsPDF writes into the content stream: it emits colour operators at two
+// decimals (254/255 → "1.", 124/255 → "0.49"), so the palette side has to bucket
+// to two decimals too — a 3-decimal key never matches jsPDF's "0.49" against the
+// hex-exact 0.486, and every brand colour silently falls through to the generic
+// conversion. No 0–255 channel lands on a .5 boundary at ×100, so jsPDF's
+// toFixed(2) and Math.round always agree.
 function cmykKey(r, g, b) {
-  return `${Math.round(r * 1000)},${Math.round(g * 1000)},${Math.round(b * 1000)}`;
+  return `${Math.round(r * 100)},${Math.round(g * 100)},${Math.round(b * 100)}`;
+}
+
+// The quantised key a palette entry is matched on (mirrors buildCmykPaletteMap),
+// so usedKeys recorded during substitution can be filtered back to entries.
+function paletteHitKey(p) {
+  const h = (p?.hex ?? '').replace('#', '').toLowerCase();
+  if (h.length !== 6) return null;
+  return cmykKey(parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255);
 }
 
 // Adds an OutputIntent declaring the target CMYK press condition to the document
@@ -2352,9 +2521,14 @@ function addCmykOutputIntent(pdfDoc, name, PDFName, PDFString) {
 }
 
 // Converts PDF-space RGB (0–1) to CMYK (0–1), preferring an exact palette match
-// (measured brand inks) before the engine's generic device-CMYK conversion.
-function pdfRgbToCmyk(r, g, b, paletteMap) {
-  return paletteMap.get(cmykKey(r, g, b)) ?? rgbToCmyk(r, g, b);
+// (measured brand inks) before the engine's generic device-CMYK conversion. On a
+// brand match the matched key is recorded in `used`, so the verification colour
+// bar can show only the inks that were actually substituted.
+function pdfRgbToCmyk(r, g, b, paletteMap, used) {
+  const key = cmykKey(r, g, b);
+  const hit = paletteMap.get(key);
+  if (hit) { used?.add(key); return hit; }
+  return rgbToCmyk(r, g, b);
 }
 
 // Formats a CMYK component (0–1) as a compact decimal string for PDF output.
@@ -2363,16 +2537,17 @@ function cmykN(v) {
 }
 
 // Replaces `r g b rg` and `r g b RG` operators with their CMYK equivalents.
-function substitutePdfRgb(text, paletteMap) {
+// `used` (optional) collects the brand palette keys that matched.
+function substitutePdfRgb(text, paletteMap, used) {
   const N = '([+-]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][+-]?\\d+)?)';
   const W = '[\\s]+';
   return text
     .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\brg\\b`, 'g'), (_, r, g, b) => {
-      const [c, m, y, k] = pdfRgbToCmyk(+r, +g, +b, paletteMap);
+      const [c, m, y, k] = pdfRgbToCmyk(+r, +g, +b, paletteMap, used);
       return `${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} k`;
     })
     .replace(new RegExp(`${N}${W}${N}${W}${N}${W}\\bRG\\b`, 'g'), (_, r, g, b) => {
-      const [c, m, y, k] = pdfRgbToCmyk(+r, +g, +b, paletteMap);
+      const [c, m, y, k] = pdfRgbToCmyk(+r, +g, +b, paletteMap, used);
       return `${cmykN(c)} ${cmykN(m)} ${cmykN(y)} ${cmykN(k)} K`;
     });
 }
