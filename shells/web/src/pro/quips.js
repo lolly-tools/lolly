@@ -14,9 +14,9 @@
 
 export const QUIPS = [
   // ── local compute / privacy ────────────────────────────────────────────────
-  "Do you know where is your data going? Nowhere! it stays here.",
+  "Do you know where your data is going? Nowhere! it stays here.",
   "Your data's whole journey:\nthis device, then this device.",
-  "[Count] images, still yours.\nYour secrets are still your secrets.",
+  "[Count] to go, and they could be anything.\nYour well, specific things too.",
   "All of this is running on your machine.\nYes, that machine. Showoff.",
   "Somewhere a datacentre sits idle,\nfuming that you didn't call",
   "Someone else's datacentre is experiencing a lack of this app.",
@@ -33,8 +33,7 @@ export const QUIPS = [
   "[Count] renders, zero license fees.\nA maintainer out there just nodded a confusing nod.",
 
   // ── raw speed / vs. AI ──────────────────────────────────────────────────────
-  "Spitting out [Count] images, in the time it takes for AI to ruin one.",
-  "Spitting out [Count] images\nin the time it takes AI to ruin one.",
+  "Spitting out [Count] assets\nin the time it takes AI to ruin one.",
   "You think human designers are lazy?\nI literally do nothing when you're not around.",
   "I'm not imagining anything, I'm running a whole game here.",
 

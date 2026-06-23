@@ -44,7 +44,7 @@ Tools expose only the inputs that are meant to vary — everything else (brand c
 
 **Profile** (top-right of the gallery) holds your name, contact details, and an optional **headshot**. Tools that ask for those fields pre-fill them automatically — set them once and your email signature, lockups, and badges fill themselves in. You can still override any field per session. Opt in with **Use my details** so a tool may read them.
 
-Your headshot and details live **only on this device**.
+Your headshot and details live **only on this device**. A profile can be more than just you — a team or a role you step into now and then. See **[Profiles](/info/profile.html)** for the full picture, including keeping more than one.
 
 ## Saving & continuing
 
