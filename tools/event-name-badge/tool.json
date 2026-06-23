@@ -140,14 +140,14 @@
       "id": "qrUrl",
       "label": "QR links to",
       "type": "url",
-      "default": "https://sched.co/profile/alex-rivera",
+      "default": "https://www.suse.com",
       "help": "Attendee profile, schedule or contact page. Hidden when empty."
     },
     {
       "id": "background",
       "label": "Card background",
       "type": "color",
-      "default": "#ffffff"
+      "default": "#0c322c"
     }
   ]
 }

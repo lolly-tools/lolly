@@ -1893,6 +1893,7 @@ function parseSvgPathArgs(str) {
 function drawSvgPathToPdf(pdf, d, tx, ty) {
   const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;
   let cx = 0, cy = 0;
+  let sx = 0, sy = 0;   // current subpath start — Z returns the current point here (SVG spec)
   let lastCmd = '';
   let lastCpx = 0, lastCpy = 0;
   let m;
@@ -1909,7 +1910,8 @@ function drawSvgPathToPdf(pdf, d, tx, ty) {
       case 'M':
         for (let i = 0; i + 1 < nums.length; i += 2) {
           const x = ax(i), y = ay(i + 1);
-          i === 0 ? pdf.moveTo(tx(x), ty(y)) : pdf.lineTo(tx(x), ty(y));
+          if (i === 0) { pdf.moveTo(tx(x), ty(y)); sx = x; sy = y; } // remember subpath start
+          else pdf.lineTo(tx(x), ty(y));
           cx = x; cy = y;
         }
         break;
@@ -1992,6 +1994,10 @@ function drawSvgPathToPdf(pdf, d, tx, ty) {
         break;
       case 'Z':
         pdf.close();
+        // SVG: after closepath the current point returns to the subpath's start, so a
+        // following relative command (`z m…`) is offset from there — not the last drawn
+        // point. Without this the mono-white SUSE wordmark mangled (hourglass 'S').
+        cx = sx; cy = sy;
         break;
     }
 

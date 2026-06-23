@@ -233,7 +233,10 @@
                   "required": ["value"],
                   "properties": {
                     "value": { "type": "string" },
-                    "label": { "type": "string" }
+                    "label": { "type": "string" },
+                    "width": { "type": "number", "exclusiveMinimum": 0, "description": "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override." },
+                    "height": { "type": "number", "exclusiveMinimum": 0, "description": "Export height this option implies, in `unit`." },
+                    "unit": { "type": "string", "enum": ["px", "mm", "cm", "in", "pt"], "description": "Unit for this option's width/height. Defaults to 'mm' when width/height are present." }
                   }
                 }
               }

@@ -663,12 +663,20 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
 
   // ── Wire up ───────────────────────────────────────────────────────────────
 
+  // A size-style select (its options carry width/height) sets the export size, so
+  // the chosen badge/page size actually prints at that size. Seed the export-bar
+  // defaults from the initially-selected option (URL / saved state still win).
+  const sizeDriver = exportSizeDriver(tool.manifest);
+  const sizeDims = sizeDriver
+    ? sizeDriver.dims[runtime.getModel().find(i => i.id === sizeDriver.id)?.value]
+    : null;
+
   const exportDefaults = {
     filename: urlFilename || initialValues.__export_filename,
     format:   urlFormat || initialValues.__export_format,
-    width:    urlWidth  || Number(initialValues.__export_width)  || undefined,
-    height:   urlHeight || Number(initialValues.__export_height) || undefined,
-    unit:     urlUnit || initialValues.__export_unit || 'px',
+    width:    urlWidth  || Number(initialValues.__export_width)  || sizeDims?.width  || undefined,
+    height:   urlHeight || Number(initialValues.__export_height) || sizeDims?.height || undefined,
+    unit:     urlUnit || initialValues.__export_unit || sizeDims?.unit || 'px',
     dpi:      urlDpi || Number(initialValues.__export_dpi) || 300,
     profile:  urlProfile || initialValues.__export_profile || undefined,
     // Password comes from the URL only — never restored from saved state (we don't
@@ -964,15 +972,44 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // skip the full panel rebuild on a keystroke when the edited field already shows
   // the new value (see syncInputs). Null until the first render.
   let prevInputsModel = null;
+  // Track the size-driving select's value so a change pushes the option's physical
+  // dimensions to the export bar (see exportSizeDriver / actionsApi.setDims).
+  let lastDimsSizeVal = sizeDriver ? runtime.getModel().find(i => i.id === sizeDriver.id)?.value : null;
+
+  // Inline canvas error, shown when a template script throws mid-render. Lives on
+  // the stage as a sibling of the canvas, so the per-render innerHTML rebuild
+  // doesn't wipe it; cleared on the next successful render.
+  function showCanvasError() {
+    const stage = stageEl || contentEl?.parentElement;
+    if (!stage || stage.querySelector(':scope > .canvas-error')) return;
+    const box = document.createElement('div');
+    box.className = 'canvas-error';
+    box.setAttribute('role', 'alert');
+    box.textContent = "Couldn't render this preview — check your inputs.";
+    stage.appendChild(box);
+  }
+  function clearCanvasError() {
+    (stageEl || contentEl?.parentElement)?.querySelector(':scope > .canvas-error')?.remove();
+  }
+
   runtime.subscribe(({ model, hydrated }) => {
     if (inputsEl && !_sliderDragging) {
       prevInputsModel = syncInputs(inputsEl, model, prevInputsModel, runtime, host, markUserDirty);
     }
-    contentEl.innerHTML = hydrated;
-    if (!hideSidebar) resolveCanvasAnnotations(contentEl);
-    // Keep the canvas's accessible summary current when it's a live a11yLabel.
-    if (tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', canvasLabel());
-    runTemplateScripts(contentEl);
+    try {
+      contentEl.innerHTML = hydrated;
+      if (!hideSidebar) resolveCanvasAnnotations(contentEl);
+      // Keep the canvas's accessible summary current when it's a live a11yLabel.
+      if (tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', canvasLabel());
+      runTemplateScripts(contentEl);
+      clearCanvasError();
+    } catch (err) {
+      // A throwing template script (charts, QR, fetch-backed tools run in page
+      // context — unlike the sandboxed hooks) would otherwise leave a stale or
+      // half-built canvas with no signal. Surface it; the sidebar stays editable.
+      console.error('Render failed:', err);
+      showCanvasError();
+    }
     syncUrl();
 
     if (pendingAutoExport) {
@@ -2441,6 +2478,29 @@ function controlHtml(input) {
   }
 }
 
+/**
+ * A "size" select can drive the export dimensions: any select input whose options
+ * carry width/height (+ optional unit) maps each option value to a physical export
+ * size, so choosing e.g. "A6 landscape" actually sets the exported page size — not
+ * just the on-canvas proportions. Generic, not tool-specific. Returns
+ * { id, dims: { <optionValue>: { width, height, unit } } } or null.
+ */
+function exportSizeDriver(manifest) {
+  for (const input of manifest.inputs ?? []) {
+    if (input.type !== 'select' || !Array.isArray(input.options)) continue;
+    const dims = {};
+    let any = false;
+    for (const o of input.options) {
+      if (o && o.width > 0 && o.height > 0) {
+        dims[o.value] = { width: o.width, height: o.height, unit: o.unit || 'mm' };
+        any = true;
+      }
+    }
+    if (any) return { id: input.id, dims };
+  }
+  return null;
+}
+
 // fitCanvas and exportUnscaled are passed in so refreshCanvasPreview and the
 // export actions can coordinate with the responsive-scaling logic in mountTool.
 function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportUnscaled, exportDefaults = {}, onUrlSync = null, playShutter = () => {}) {
@@ -2894,6 +2954,26 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     addScrubBehavior(inp, onDimChange);
   });
 
+  // Apply a {width,height,unit} from a size-select option to the export-bar fields,
+  // so choosing a size sets the actual exported page size. Refreshes the preview +
+  // URL just like a manual edit. The user can still override the fields afterwards.
+  function setDims({ width, height, unit } = {}) {
+    if (manifest.render.dims === false) return;
+    const uEl = el.querySelector('[data-action="export-unit"]');
+    if (uEl && unit) {
+      uEl.value = unit;
+      const dpiField = el.querySelector('[data-dpi-field]');
+      if (dpiField) dpiField.style.display = unit === 'px' ? 'none' : 'inline-flex';
+    }
+    const wEl = el.querySelector('[data-action="export-width"]');
+    const hEl = el.querySelector('[data-action="export-height"]');
+    if (wEl && width > 0) wEl.value = String(width);
+    if (hEl && height > 0) hEl.value = String(height);
+    refreshCanvasPreview();
+    invalidatePreview();
+    onUrlSync?.('unit'); onUrlSync?.('w'); onUrlSync?.('h');
+  }
+
   // Unit switch keeps the physical size: convert the typed values to the new
   // unit, toggle the DPI field, refresh the preview, and sync the URL.
   const unitSel = el.querySelector('[data-action="export-unit"]');
@@ -3035,6 +3115,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     const btn  = e.currentTarget;
     const prev = btn.textContent;
     btn.disabled = true;
+    btn.setAttribute('aria-busy', 'true');
 
     const fmt        = formatEl?.value ?? formats[0];
     const isAnimated = isAnimatedFmt(fmt);
@@ -3048,7 +3129,12 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         : fps === 60
           ? `Rendering 60fps… ${totalS}s+`
           : `Recording… ${totalS}s`;
+    } else {
+      // Slow non-animated exports (CMYK TIFF, high-DPI raster, PDF) previously froze
+      // on a disabled button with no signal. Show progress and tell assistive tech.
+      btn.textContent = 'Exporting…';
     }
+    announce('Exporting…');
 
     try {
       const opts = {
@@ -3079,13 +3165,17 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       bumpMetric('filesRendered'); recordFormat(fmt); // local usage metric
     } catch (err) {
       console.error('Export failed:', err);
+      btn.removeAttribute('aria-busy');
       btn.textContent = 'Export failed';
+      announce('Export failed', { assertive: true });
       setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 3000);
       return;
     }
 
+    btn.removeAttribute('aria-busy');
     btn.textContent = prev;
     btn.disabled = false;
+    announce('Export complete');
   });
 
   el.querySelector('[data-action="save"]')?.addEventListener('click', async function () {
@@ -3115,7 +3205,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
 
   // Expose actions the mount scope can trigger programmatically (e.g. `?copy`,
   // and the unsaved-changes dialog's "Save & leave").
-  return { copy: performCopy, preview, save: performSave };
+  return { copy: performCopy, preview, save: performSave, setDims };
 }
 
 function matchesDefault(input, paramVal) {

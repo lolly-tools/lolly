@@ -15,10 +15,13 @@ Effort: **S** <1h · **M** a few hours · **L** a day+.
 
 ## P0 — Critical
 
-1. ⬜ **Tool canvas has no render-failure state.** A bad input or throwing hook leaves
-   the previous (wrong) preview or a blank stage with no message. `tool.js:967`.
-   → Wrap the `innerHTML` assignment, show an inline `role="alert"` naming the bad
-   field, keep the sidebar live. **M**
+1. ✅ **Tool canvas render-failure state.** A throwing template script left a stale/
+   half-built canvas with no signal. `tool.js:967`. → Wrapped the render (innerHTML +
+   `runTemplateScripts`) in try/catch; on failure shows a `.canvas-error` `role="alert"`
+   banner on the stage (sibling of the canvas, survives the per-render rebuild, cleared
+   on next good render). `syncUrl` still runs so the link stays correct. Solid
+   destructive banner — AA in all themes. **Open:** async/network tool scripts still
+   need a `tool:error` channel for Retry (audit #8) — bigger, deferred.
 2. ⬜ **Batch render freezes the tab.** Synchronous per-row loop + `zipSync`
    (`pro/batch.js:47`, `pro/zip.js:101`); Cancel/quip only update between rows.
    → Yield to the event loop between rows; "Packaging…" state before zip; worker later. **M**
@@ -56,9 +59,10 @@ Effort: **S** <1h · **M** a few hours · **L** a day+.
 9. ⬜ **Search buried and weak.** Lives in the fixed bottom footer (`gallery.js:126`),
    matches name only, no-match is a dead end. → Promote to top; match
    name+description+category; add a clear/browse-all recovery. **M**
-10. ⬜ **No export progress for slow formats.** CMYK/large-raster/PDF only disable the
-    button; failures aren't announced. `tool.js:3034`. → "Exporting…" + `aria-busy` +
-    announce start/finish/fail. **M**
+10. ✅ **Export progress for slow formats.** CMYK/large-raster/PDF only disabled the
+    button; failures weren't announced. `tool.js:3034`. → Non-animated exports now show
+    "Exporting…", set `aria-busy`, and announce start/complete/fail. Verified: button
+    flips Download→"Exporting…"→Download with aria-busy toggling correctly.
 11. ⬜ **Destructive actions lack undo `[systemic]`.** "Clear changes" (single confirm,
     no restore, `tool.js:1039`); compact block rows delete instantly with no confirm
     (`tool.js:2047`); Pro row-delete / CSV-import wipe unsaved work (`pro/index.js:465,946`).

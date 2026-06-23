@@ -542,6 +542,7 @@ footer{text-align:right;}
   border-color: hsl(var(--primary) / 0.5);
   color: hsl(var(--primary));
 }
+img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 
 .tool-card-thumb {
   flex-shrink: 0;
@@ -1902,6 +1903,29 @@ background-color:hsl(var(--background) / 1);
 /* Closed: blades swept into the centre, fully covering the stage. */
 .export-shutter.is-closed .flap {
   transform: rotate(-0.25turn) rotate(calc(1turn * var(--p))) skewX(30deg) translateX(0%) translateY(0%);
+}
+
+/* Inline render-failure notice — overlays the stage when a template script throws
+   during render (see the runtime.subscribe catch in tool.js). A sibling of the
+   canvas so the per-render innerHTML rebuild doesn't remove it. z-index sits below
+   the export shutter (6) so an in-progress export still covers it. */
+.canvas-error {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  max-width: min(90%, 420px);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  /* Solid destructive pairing — guaranteed AA in light/dark/suse (unlike red text
+     on the card, which is low-contrast on the SUSE dark-teal card). */
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 6px 20px hsl(0 0% 0% / 0.2);
 }
 
 /* Fullscreen utility tools (no sidebar, no export) */
