@@ -864,6 +864,7 @@ footer{text-align:right;}
   overflow-y: auto;
   overflow-x: hidden;
   padding: 14px;
+  padding-top: 48px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1079,7 +1080,7 @@ footer{text-align:right;}
 
 .input-row select {
   width: 100%;
-  padding: 7px 32px 7px 10px;   /* right room for the custom chevron */
+  padding: 9px 32px 9px 10px;   /* right room for the custom chevron */
   background-color: hsl(var(--background));
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -1258,8 +1259,8 @@ background-color:hsl(var(--background) / 1);
 .input-section-body {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 6px 10px 10px;
+  gap: 8px;
+  padding: 18px 10px 10px;
   border-top: 1px solid hsl(var(--border));
 }
 
@@ -1339,7 +1340,10 @@ background-color:hsl(var(--background) / 1);
    Each block is a self-contained card with a type label + remove in its head and
    a two-column field grid below. Opts out of the legacy fixed 3-column row grid
    used by name/value blocks (meeting-planner, chart-creator). */
-.blocks-input--typed .blocks-list { margin: 0; gap: 8px; }
+.blocks-input--cards .blocks-list { margin: 0; gap: 8px; }
+/* Untyped (compact name/value) blocks reuse the card chrome but have no variant
+   label — the header is a bare drag/collapse handle whose empty `.block-type-label`
+   acts as a flex spacer, and the collapsed pill (preview + swatch) is the identity. */
 .block-item.is-typed {
   display: block;
   grid-template-columns: none;
@@ -1911,6 +1915,29 @@ background-color:hsl(var(--background) / 1);
   min-height: 100%;
 }
 
+/* Canvas-layout file utilities (render.layout:"canvas"): the whole canvas is the
+   drop zone. A click anywhere on bare canvas opens the picker, so hint with a
+   pointer cursor; dragging a file over it draws a clear drop affordance. */
+#tool-content.is-file-dragover {
+  outline: 3px dashed hsl(var(--primary));
+  outline-offset: -12px;
+  background: hsl(var(--primary) / 0.05);
+}
+
+/* On-device reassurance badge, floated onto the stage when there's no sidebar to
+   host it. Pinned bottom-centre, out of the way of the canvas content. */
+.on-device-badge--float {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  margin-bottom: 0;
+  background: hsl(var(--background));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
 
 .tool-canvas {
   background: transparent;
@@ -2053,8 +2080,9 @@ background-color:hsl(var(--background) / 1);
   .tool-layout.is-sheet-dragging .sheet-grip { transition: none; }
 
   /* Preview — a static backdrop offset below the top bar. The controls sheet
-     slides over it (it doesn't rescale as the sheet moves), and Fit fits to this
-     region since fitCanvas reads the stage rect. Collapse to peek to see it whole. */
+     slides over it (it doesn't rescale on half/full), and Fit fits to this region
+     since fitCanvas reads the stage rect. Collapse to peek and it re-fits to fill
+     the freed space (see setupMobileSheet's peek re-fit in tool.js). */
   .tool-stage {
     position: fixed;
     inset: var(--preview-top) 0 0 0;
@@ -2448,21 +2476,49 @@ background-color:hsl(var(--background) / 1);
   border-radius: var(--radius);
   background: hsl(var(--muted) / 0.45);
 }
+/* Clickable disclosure header — resets the button chrome, and carries a CSS caret
+   (same idiom as .input-section-summary) that rotates when the card is open. */
 .pdfpass-head {
   display: flex;
   align-items: center;
   gap: 7px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: hsl(var(--muted-foreground));
+  cursor: pointer;
 }
+.pdfpass-head:hover { color: hsl(var(--primary)); }
+.pdfpass-head::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.export-pdfpass.is-open .pdfpass-head::after { transform: rotate(45deg); }
 .pdfpass-icon {
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
   color: hsl(var(--primary));
+}
+.pdfpass-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .export-pdfpass input[type="password"] {
   width: 100%;

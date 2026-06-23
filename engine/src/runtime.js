@@ -70,21 +70,40 @@ export async function createRuntime(tool, host, initialState = {}) {
   const listeners = new Set();
   const emit = () => listeners.forEach(fn => fn({ model, hydrated: getHydrated() }));
 
+  // The template context (flattened input values + hook extras) is rebuilt only
+  // when `model` or `extras` is replaced. Both are swapped wholesale on every
+  // mutation — updateInput/mergePatch/resolve* return fresh objects, never patch
+  // in place — so reference equality is a sound cache key. This avoids
+  // re-flattening the whole model on every render/emit (one emit per keystroke),
+  // and Handlebars never mutates the data object so the cached one is safe to
+  // share across the main template + data-format (raw) hydrations.
+  let ctxCache = null;
+  let ctxModel = null;
+  let ctxExtras = null;
+  function templateContext() {
+    if (ctxModel !== model || ctxExtras !== extras) {
+      ctxCache = { ...modelToValues(model), ...extras };
+      ctxModel = model;
+      ctxExtras = extras;
+    }
+    return ctxCache;
+  }
+
   function getHydrated() {
-    return hydrate(tool.template, { ...modelToValues(model), ...extras });
+    return hydrate(tool.template, templateContext());
   }
 
   // Hydrate an arbitrary template string against the SAME context as the main
   // template (input values + hook extras). Used by shells for things like a
   // live accessible-label summary of the current render (manifest.a11yLabel).
   function getHydratedString(str) {
-    return str ? hydrate(str, { ...modelToValues(model), ...extras }) : '';
+    return str ? hydrate(str, templateContext()) : '';
   }
 
   // Same context, but WITHOUT HTML escaping — for non-HTML data templates
   // (template.ics/.vcf/.csv). Each data format escapes via its own helper.
   function getHydratedText(str) {
-    return str ? hydrate(str, { ...modelToValues(model), ...extras }, { raw: true }) : '';
+    return str ? hydrate(str, templateContext(), { raw: true }) : '';
   }
 
   return {
@@ -165,11 +184,17 @@ export async function createRuntime(tool, host, initialState = {}) {
         else if (tool.manifest?.render?.convertPaths === false) opts = { ...opts, convertPaths: false };
       }
       const isExperimental = tool.manifest.status === 'experimental';
+      // On-device utilities (privacy:'on-device') process the user's OWN content,
+      // so we must NOT stamp anything into the output: no provenance metadata
+      // (it would be ironic to *add* identifying metadata while claiming to scrub
+      // it) and no watermark. This also covers render-path utilities (crop/resize);
+      // the exportFile transform path never embeds either way.
+      const isOnDevice = tool.manifest.privacy === 'on-device';
       // Provenance: stamp authorship into the asset itself (per-format, in the
       // bridge). Auto-assembled from the host profile + tool unless the caller
       // supplied its own `meta` or opted out (e.g. thumbnails) with embedMeta:false.
       let meta = opts.meta;
-      if (meta === undefined && opts.embedMeta !== false) {
+      if (meta === undefined && opts.embedMeta !== false && !isOnDevice) {
         meta = await buildExportMeta(host, tool.manifest);
       }
       // Data/text formats are produced from the input model (and optional sibling
@@ -180,7 +205,7 @@ export async function createRuntime(tool, host, initialState = {}) {
       const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
       const blob = await host.export.render(renderedNode, format, {
         ...opts,
-        watermark: opts.watermark ?? isExperimental,
+        watermark: opts.watermark ?? (isExperimental && !isOnDevice),
         meta,
         // Tag output with a colour profile by default (sRGB for raster, the
         // default press condition for CMYK PDF). Thumbnails stay untagged.

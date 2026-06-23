@@ -154,6 +154,12 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
     async download() {
       throw new Error('CLI cannot trigger a browser download — pipe the blob to a file via --output');
     },
+    // Transform-path delivery has no browser download in the CLI; the runner
+    // (run.js) writes the exportFile bytes to --output / stdout directly. This
+    // stub keeps the bridge surface complete and fails clearly if a hook calls it.
+    async file() {
+      throw new Error('CLI delivers transformed files via --output (run.js writes the bytes), not host.export.file');
+    },
   };
 
   // Page capture needs a real, authoritative browser engine — navigate a URL and

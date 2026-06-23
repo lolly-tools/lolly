@@ -132,6 +132,8 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `height` / `h` | web + CLI | Output height, as a value in `unit`. Also pre-fills the export dimensions panel. |
 | `unit` | web + CLI | Physical unit for `width`/`height`: `px` (default), `mm`, `cm`, `in`, `pt`, `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
+| `password` | web only | PDF open password (`pdf` only). A basic lock, not strong encryption; it travels in clear text in the URL, so it's a light deterrent, not protection for confidential material. Ignored when `bleed`/`marks` are on (encrypted PDFs can't carry print finishing). |
+| `profile` | web only | CMYK press condition for the print formats (`pdf-cmyk` / `cmyk-tiff`), e.g. `fogra51` — embedded as the PDF's output intent, recorded in the TIFF's provenance. |
 | `bleed` | web only | Bleed amount for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`), as a dimension (e.g. `3mm`, `0.125in`). The artwork is scaled to fill the bleed; the PDF declares `TrimBox`/`BleedBox`, the TIFF is enlarged to the full sheet. |
 | `marks` | web only | Print marks for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`) — a CSV of `crop`, `reg`, `bleed`, `bars`, `prov`. Drawn in the page margin (PDF) or rasterised into the image margin (TIFF); registration prints on all four plates in `pdf-cmyk` and `cmyk-tiff`. `prov` (provenance credit text) is PDF-only. |
 

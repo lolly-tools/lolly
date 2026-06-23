@@ -118,7 +118,7 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # Tool definitions — data, not code. SUSE-specific. Stays private.
+├── tools/            # 19 tool definitions — data, not code. SUSE-specific. Stays private.
 │   ├── qr-code/
 │   ├── quotes/
 │   ├── email-signature/
@@ -126,6 +126,12 @@ lolly/
 │   ├── code-canvas/
 │   ├── countdown-timer/
 │   ├── color-palette/
+│   ├── color-block/
+│   ├── dynamic-layout/
+│   ├── tool-logo/         # "Logo" — auto-switching brand logo
+│   ├── street-map/        # offline vector city-block maps
+│   ├── url-shot/          # "URL Screenshot" (capture capability)
+│   ├── exif-stripper/     # on-device EXIF/metadata strip (file in → clean file out)
 │   ├── lockup/            # opentype.js text-to-path
 │   ├── bag-video/
 │   ├── film-burn-filter/
@@ -179,13 +185,15 @@ Tools are tagged with a `category` in their manifest for gallery grouping.
 
 | Category | Shipped tools | Planned |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Meeting Planner | Employee Image Stationery |
-| `utility` | Countdown Timer, Color Palette | Unit/format converters |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Meeting Planner, Color Block, Dynamic Layout, Logo | Employee Image Stationery |
+| `utility` | Countdown Timer, Color Palette, URL Screenshot, EXIF & Metadata Stripper | Unit/format converters, more on-device privacy utilities |
 | `event` | — | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | — | CVE Alert, Product Release Announcement, Blog OG Image |
-| `designer` | Product Lockup, Bag Video, Film Burn Filter, Chart Creator, Duotone Filter | PDF Smasher, Font Outliner |
+| `designer` | Product Lockup, Bag Video, Film Burn Filter, Chart Creator, Duotone Filter, Street Map | PDF Smasher, Font Outliner |
 
-Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Product Lockup, Bag Video, and Film Burn Filter currently carry `experimental` status.
+Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Product Lockup, Bag Video, Film Burn Filter, and URL Screenshot currently carry `experimental` status.
+
+The **EXIF & Metadata Stripper** is also the first **on-device utility** (`privacy: "on-device"`): a content-transform tool that takes a file *you* supply, processes it entirely in the browser, and hands back a clean copy — never uploaded, never watermarked, no provenance stamped. This is the start of a privacy-utility category that replaces handing confidential files to single-purpose websites.
 
 > Note: `category` and `status` are denormalised into `catalog/tools/index.json` (the registry the gallery reads) from each `tool.json`. The manifest is the source of truth — the index is **generated** by `npm run build:catalog` and `npm run validate:catalog` fails CI if the committed index drifts from the manifests.
 
@@ -323,6 +331,7 @@ The split is enforced now — there are no cross-imports from `engine/` to `tool
 | **Open source the engine** | Late 2026 ✅ Done  | Engine, shells, schemas, docs go public — not the branded tools/assets |
 | **Device-to-device transfer** | ✅ Done | Portable `lolly-backup` bundle carries profile, saved sessions, uploaded images and prefs between any two installs — offline or online, no account. Forward-compatible, integrity-checked envelope (spec: `docs/data-transfer.md`) |
 | **Establish formal tool roadmap** | Late 2026 | Customer reference kits, Claude design ingest, GET/URL request mode |
+| **On-device privacy utilities** | 🚧 In progress | Content-transform tools that process *your own* file locally (file in → clean file out), replacing exfiltration to single-purpose SaaS. **Done:** `file` input type + `exportFile` transform path + `privacy:"on-device"` conventions (no watermark/provenance) + the **EXIF & Metadata Stripper**. **Next:** crop/resize, SVG optimise, image convert/compress; then `host.pdf` / `host.image` codec bridges (spec: `plans/exfiltration-app-content.md`) |
 | **Design tokens (DTCG)** | 🚧 Colour shipped | Brand primitives as canonical [W3C Design Tokens (DTCG)](https://www.designtokens.org/TR/drafts/format/) — the format [Penpot imports/exports](https://help.penpot.app/user-guide/design-systems/design-tokens/). **Done:** colour tokens (`suse/tokens/brand`), `host.tokens` bridge, picker swatches + reference-linked values (spec: `docs/design-tokens.md`). **Next:** dimension/type tokens, Penpot import/export, user tokens in the transfer bundle (`tokens.json`) |
 | **Penpot file ingest as tools** | 2027+ | Import a Penpot file and surface it *as a Lolly tool* (declarative, constraint-first), turning designs authored in Penpot into deterministic, on-brand generators |
 | **MCP + Penpot extension (online-only authoring)** | 2027+ | A Penpot MCP server articulates new tools with AI — the most visual way to create deterministic templates: a brand-informed first round, perfected with a human in the loop, targeting one-shot new contexts over time. Tool *creation* is online-only; the tools it produces run anywhere |

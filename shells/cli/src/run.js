@@ -8,7 +8,7 @@
  */
 
 import { readFile, writeFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { loadTool, createRuntime, parseUrlState } from '@lolly/engine';
@@ -37,6 +37,45 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
     new URLSearchParams(params).toString(),
     tool.manifest,
   );
+
+  // File-typed inputs arrive as a filesystem path (--photo=./pic.jpg → an
+  // {__file, path} ref from parseUrlState). The engine can't read files (it's
+  // platform-agnostic), so the CLI loads the bytes here, into the same FileRef
+  // shape the web picker produces — before createRuntime sees them.
+  for (const input of tool.manifest.inputs ?? []) {
+    if (input.type !== 'file') continue;
+    const ref = values[input.id];
+    const p = ref && typeof ref === 'object' ? ref.path : null;
+    if (!p) { delete values[input.id]; continue; }
+    const abs = resolve(process.cwd(), p);
+    const buf = await readFile(abs);
+    values[input.id] = {
+      __file: true,
+      name: basename(abs),
+      mime: mimeForFile(abs),
+      size: buf.length,
+      bytes: new Uint8Array(buf),
+      url: null,
+    };
+  }
+
+  // Transform-path tools (on-device utilities) produce their output via the
+  // exportFile hook (bytes in → bytes out), not by rendering a DOM node. They
+  // don't use a render format at all — short-circuit before the format checks.
+  if (tool.manifest.hooks?.exportFile) {
+    const runtime = await createRuntime(tool, host, values);
+    const { bytes, filename } = await runtime.exportFile();
+    const buf = Buffer.from(bytes.buffer ?? bytes);
+    const dest = outputPath || (filename ? resolve(process.cwd(), filename) : null);
+    if (dest) {
+      await writeFile(dest, buf);
+      process.stderr.write(`✓ Wrote ${buf.length} bytes to ${dest}\n`);
+    } else {
+      process.stdout.write(buf);
+    }
+    return;
+  }
+
   const targetFormat = format ?? paramExport ?? tool.manifest.render.formats[0];
 
   if (!tool.manifest.render.formats.includes(targetFormat)) {
@@ -71,6 +110,23 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
     process.stderr.write(`✓ Wrote ${buf.length} bytes to ${outputPath}\n`);
   } else {
     process.stdout.write(buf);
+  }
+}
+
+// Extension → MIME for a file-typed input loaded from disk. The hook can read
+// the real bytes; this is the declared type the FileRef carries (best-effort).
+function mimeForFile(path) {
+  switch (extname(path).toLowerCase()) {
+    case '.jpg': case '.jpeg': return 'image/jpeg';
+    case '.png':  return 'image/png';
+    case '.webp': return 'image/webp';
+    case '.gif':  return 'image/gif';
+    case '.svg':  return 'image/svg+xml';
+    case '.heic': return 'image/heic';
+    case '.tif': case '.tiff': return 'image/tiff';
+    case '.pdf':  return 'application/pdf';
+    case '.json': return 'application/json';
+    default: return 'application/octet-stream';
   }
 }
 

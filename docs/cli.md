@@ -36,7 +36,7 @@ If `--output` is given, the file is written and a byte count is reported on stde
 | Flag | Meaning |
 |---|---|
 | `--output=<path>` | Write to a file. Omit to stream to stdout. |
-| `--export=<fmt>` | Output format (`png`, `svg`, `pdf`, `gif`, …). Defaults to the tool's first declared format. |
+| `--export=<fmt>` | Output format (`png`, `svg`, `pdf`, `gif`, …). Defaults to the tool's first declared format. Ignored by on-device transform tools (see below). |
 | `--width=`, `--height=` | Output size (numbers). |
 | `--unit=` | `px` (default), `mm`, `cm`, `in`, `pt`, `pc` — physical sizing. |
 | `--dpi=` | Raster DPI for physical units (default 300). |
@@ -52,6 +52,16 @@ npm run cli -- some-tool --width=210 --height=297 --unit=mm --export=pdf --outpu
 ## What the CLI can render
 
 The CLI renders in a headless DOM (jsdom), so **vector and text** formats — **SVG, HTML, MD, TXT** — work natively and reproducibly. Raster (PNG/JPG/WebP/PDF) and **video/GIF** need a real rendering engine; those are produced by the **desktop app's** bundled binary rather than the bare CLI. (Requesting an unsupported format prints a clear error listing what the tool supports.) See the [Build Guide](/info/build-guide.html) for packaging the desktop binary.
+
+## File inputs & on-device utilities
+
+Some tools take **your own file** as input (a `file`-typed input) and hand back a transformed copy — the on-device "utility" shape (strip EXIF, crop, convert). On the CLI, pass the file as a path; the runner loads its bytes:
+
+```bash
+npm run cli -- exif-stripper --photo=./holiday.jpg --output=./holiday-clean.jpg
+```
+
+These tools produce their output via the `exportFile` transform path (bytes in → bytes out), not a DOM render — so they **ignore `--export`** and there's no render format to choose. The transformed bytes are written to `--output`, or streamed to **stdout** if you omit it. Nothing is ever uploaded; the file is read locally and handed straight back.
 
 ## Scripting & CI
 

@@ -28,8 +28,9 @@ Validated against `schemas/tool.schema.json`. Required fields:
 
 Optional:
 
-- `capabilities` — `["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm"]`. Required for the host to expose those APIs to your tool. Tools without `"network"` cannot call `host.net.fetch`.
-- `hooks` — `{ onInit?, onInput?, beforeExport?, afterExport? }` boolean flags. If any are true, you must ship `hooks.js` with the matching functions.
+- `capabilities` — `["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm", "capture"]`. Required for the host to expose those APIs to your tool. Tools without `"network"` cannot call `host.net.fetch`.
+- `privacy` — `"on-device"`. Marks a content-transform utility that processes the user's own file entirely on the device. Shows the "Runs on your device — nothing is uploaded" badge; enforces (validated) that the tool is never `experimental` and (at runtime) that exports carry no provenance metadata and no watermark. See the `file` input + `exportFile` hook below.
+- `hooks` — `{ onInit?, onInput?, beforeExport?, afterExport?, exportFile? }` boolean flags. If any are true, you must ship `hooks.js` with the matching functions. (`exportFile` is the transform path — file bytes in → transformed bytes out; see below.)
 - `a11yLabel` — accessible description of the rendered output. The preview canvas is exposed to screen readers as a single `role="img"`; this is its label. It's a Handlebars string hydrated with the current input values (same context as the template), so it stays accurate as the user edits — e.g. `"QR code linking to {{url}}"` or `"Meeting plan for {{default count \"a\"}} people"`. Use `{{default x \"fallback\"}}` for empty inputs. Omit it and the label falls back to `"<name> preview"`. Keep it short and factual — it replaces, not supplements, the canvas contents for SR users.
 
 ### Input types
@@ -49,6 +50,7 @@ Optional:
 | `url`            | string                                                    | text input          |
 | `blocks`         | array of objects (repeating field groups)                | add/remove/reorder row editor |
 | `vector`         | object `{ fieldId: number }` (a fixed set of numbers)    | one row of zoom x/y controls |
+| `file`           | a `FileRef` (the user's own file: `name`/`mime`/`size`/`bytes`) | file picker (on-device utilities) |
 
 #### `blocks` — repeating groups
 
@@ -108,6 +110,53 @@ An `asset` input opens the host's asset picker and stores the chosen `AssetRef` 
 When `allowUpload` is `true`, the picker offers the user's **personal image library** alongside the catalog. Users add images from their device; the host downscales each to 3840px on the longest edge, re-encodes it (WebP, with EXIF/GPS metadata stripped), and stores it locally (IndexedDB on web and Tauri). The library is capped (currently 50 images), reusable across tools, and managed in **Profile → Storage → My images**. SVG uploads are sanitised on ingest (script/handler stripping) and pass through without rasterising.
 
 These images are **device-local**: their `AssetRef.source` is `"user"` and their `user/…` id is meaningful only on the device that holds the bytes, so they are **omitted from shareable URLs** (see `docs/url-mode.md`). Tools treat `user` and `library` assets identically — no tool code is involved in the upload.
+
+#### `file` — the user's own file (on-device utilities)
+
+A `file` input takes a file the user picks **into memory** and hands its raw bytes to the tool. It's the input shape for **content-transform utilities** — the "boring file jobs you'd otherwise hand to a stranger's website": strip EXIF, crop, compress, convert. Unlike `asset` (which is for *brand* imagery and goes through the catalog/upload library), a `file` is the user's own content that's processed and handed straight back, never stored or uploaded.
+
+```json
+{
+  "id": "photo",
+  "type": "file",
+  "label": "Photo",
+  "accept": ["image/jpeg", "image/png", ".jpg", ".png"],
+  "maxSize": 52428800
+}
+```
+
+- `accept` — allowlist of MIME types and/or extensions for the picker (a UX hint; still validate bytes in the hook). Omit to accept anything.
+- `maxSize` — max bytes; the host rejects larger files at pick time.
+
+The value is a **`FileRef`**: `{ __file: true, name, mime, size, bytes, url }`. The `bytes` are a `Uint8Array` the hook reads directly (no `host.*` call — the bytes ride in the value because the hook sandbox has no `fetch`). A `file` value is **never serialised into a URL** (binary has no shareable form) and **never persisted** — it lives only in memory on the device, which is the whole privacy point. In CLI transport a file param is a path the runner loads: `--photo=./pic.jpg`.
+
+#### Producing output: the `exportFile` hook + `privacy: "on-device"`
+
+A content-transform utility doesn't rasterise the canvas — it produces a *transformed file*. Declare the `exportFile` hook and mark the tool as an on-device utility:
+
+```json
+{
+  "status": "official",
+  "privacy": "on-device",
+  "render": { "width": 760, "height": 620, "formats": ["jpg"], "export": false, "actions": [] },
+  "hooks": { "onInput": true, "exportFile": true }
+}
+```
+
+- `privacy: "on-device"` shows the **"Runs on your device — nothing is uploaded"** badge and enforces (validated) that the tool is never `experimental`, and (at runtime) that exports carry **no provenance metadata and no watermark** — you must not stamp anything into a user's own file.
+- `render.export: false` hides the standard format/size/download bar; `"actions": []` opts out of the default Save/Share buttons (saving would persist the user's bytes — never do that).
+- The `exportFile` hook reads the picked file and returns the transformed bytes as a plain record:
+
+```js
+function exportFile({ model }) {
+  const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
+  const f = inputs.photo;                       // the FileRef
+  const cleaned = stripMetadata(f.bytes);       // your transform (pure bytes → bytes)
+  return { bytes: cleaned, mime: f.mime, filename: f.name.replace(/(\.\w+)?$/, '-clean$1') };
+}
+```
+
+In the template, a `<button data-export-file>Download…</button>` triggers the hook; the shell wraps the bytes in a Blob and delivers them via `host.export.file` (download on web, `--output` on the CLI). Use `onInput`/`onInit` to return *extras* the template displays (e.g. what metadata was found). `exif-stripper` is the reference implementation.
 
 #### `bindToProfile`
 
@@ -210,6 +259,12 @@ function beforeExport({ node, format, opts, host }) {
 
 function afterExport({ node, format, blob, host }) {
   // Fires after the export blob is produced. Cleanup, telemetry, chaining.
+}
+
+function exportFile({ model }) {
+  // The transform path — for on-device utilities with a `file` input. Read the
+  // picked file's bytes and return the transformed file: { bytes, mime, filename }.
+  // Bypasses the DOM render/export pipeline entirely. See the `file` input above.
 }
 ```
 

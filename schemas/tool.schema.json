@@ -76,6 +76,12 @@
           "default": true,
           "description": "Set false for utility/interactive tools that have no export. Hides download, copy, format, and dimension controls. Shows Save only when the tool has inputs. Hides the sidebar entirely when there are no inputs."
         },
+        "layout": {
+          "type": "string",
+          "enum": ["sidebar", "canvas"],
+          "default": "sidebar",
+          "description": "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area — a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself. For on-device file utilities (e.g. a metadata stripper) where there are no per-property controls and the whole job is 'drop a file → get a file back'. Input semantics are unchanged: the file stays a normal declared input, so CLI/URL mode and the exportFile hook work identically."
+        },
         "dims": {
           "type": "boolean",
           "default": true,

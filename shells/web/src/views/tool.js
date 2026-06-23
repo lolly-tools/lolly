@@ -191,7 +191,13 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const nativeH     = tool.manifest.render.height;
   const hasInputs   = (tool.manifest.inputs?.length ?? 0) > 0;
   const noExport    = tool.manifest.render.export === false;
-  const hideSidebar = noExport && !hasInputs;   // utility tools with no inputs: pure canvas
+  const canvasLayout = tool.manifest.render.layout === 'canvas';
+  // Hide the sidebar for pure-canvas utilities: either no inputs at all, or an
+  // explicit canvas layout — where the tool's single file input becomes a
+  // drag-and-drop / click-to-pick zone on the canvas itself (setupCanvasFileDrop).
+  const hideSidebar = (noExport && !hasInputs) || canvasLayout;
+  // The one declared file input a canvas-layout tool presents as that drop zone.
+  const canvasFileInput = canvasLayout ? tool.manifest.inputs?.find(i => i.type === 'file') : null;
 
   // On-device utilities (privacy:'on-device') carry an honest, prominent badge —
   // the user's content is processed locally and never uploaded. It's the single
@@ -268,6 +274,10 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
       ` : ''}
       <div class="tool-stage" id="tool-stage">
         ${!hideSidebar ? `<button class="fullscreen-toggle-float" id="fullscreen-toggle-float" aria-label="Expand sidebar"></button>` : ''}
+        ${hideSidebar && onDevice ? `<div class="on-device-badge on-device-badge--float" title="This tool runs entirely in your browser. Your file is never uploaded.">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Runs on your device — nothing is uploaded</span>
+        </div>` : ''}
         ${hideSidebar ? `<div id="tool-content" role="img" aria-label="${escape(canvasLabel())}"></div>` : `
         <div class="tool-canvas-outer" id="tool-canvas-outer">
           <div class="tool-canvas" id="tool-canvas" role="img" aria-label="${escape(canvasLabel())}"
@@ -529,9 +539,14 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // the controls (grip tracks the finger), releasing snaps to peek/half/full, and
   // the preview re-fits to whatever space the panel leaves.
   if (!hideSidebar && sheetGrip) {
-    // No onChange: the preview is a static full-screen backdrop, so the sheet
-    // sliding over it doesn't resize or re-fit the canvas.
-    setupMobileSheet(layout, sidebarEl, sheetGrip);
+    // The preview is a static backdrop the sheet slides over, so half/full snaps
+    // leave it untouched. But collapsing to peek (grip dragged to the top) vacates
+    // most of the screen — re-fit there so the canvas grows into the freed space.
+    // fitCanvas no-ops if the user has zoomed/panned, so this only fires at Fit.
+    // Wait out the 0.34s height settle so it measures the final sheet position.
+    setupMobileSheet(layout, sidebarEl, sheetGrip, (snap) => {
+      if (snap === 'peek') setTimeout(fitCanvas, 360);
+    });
   }
 
   // Collapse the export/actions panel behind a "Render" button on BOTH mobile and
@@ -1006,6 +1021,14 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     }
   });
 
+  // Canvas-layout file utilities (render.layout:"canvas"): the whole canvas IS
+  // the file control — drag-and-drop or click anywhere to pick. The picked file
+  // still flows through the normal input model + exportFile hook, so CLI/URL mode
+  // are unaffected; only the presentation moves from the sidebar onto the canvas.
+  if (canvasLayout && canvasFileInput && contentEl) {
+    setupCanvasFileDrop({ viewEl, contentEl, runtime, input: canvasFileInput, onDirty: markUserDirty });
+  }
+
   viewEl.querySelector('#clear-inputs-btn')?.addEventListener('click', () => {
     showClearDialog(async () => {
       dirtyParams.clear();
@@ -1021,6 +1044,91 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         await runtime.setInput(input.id, blank);
       }
     });
+  });
+}
+
+/**
+ * Read a picked / dropped File into the in-memory FileRef the input model carries
+ * (bytes + metadata). The bytes live only in memory and are never uploaded — the
+ * url is a local object URL for previews. Shared by the sidebar file-picker and
+ * the canvas drop zone so both produce an identical model value.
+ */
+async function fileToRef(file) {
+  return {
+    __file: true,
+    name: file.name,
+    mime: file.type || 'application/octet-stream',
+    size: file.size,
+    bytes: new Uint8Array(await file.arrayBuffer()),
+    url: URL.createObjectURL(file),
+  };
+}
+
+/**
+ * Canvas-as-drop-zone for render.layout:"canvas" file utilities. The whole canvas
+ * accepts a drag-and-drop file and a click (anywhere that isn't a real control, or
+ * a [data-file-pick] affordance) opens the native picker. Listeners live on the
+ * stable contentEl container and a hidden <input> parked in viewEl, so they
+ * survive the per-render innerHTML swaps of the canvas content. The picked file is
+ * written straight into the normal input model — no special-casing downstream.
+ */
+function setupCanvasFileDrop({ viewEl, contentEl, runtime, input, onDirty }) {
+  const id = input.id;
+  const accept = Array.isArray(input.accept) ? input.accept.join(',') : '';
+
+  const native = document.createElement('input');
+  native.type = 'file';
+  if (accept) native.accept = accept;
+  native.style.display = 'none';
+  viewEl.appendChild(native);
+
+  const revokePrev = () => {
+    const prev = runtime.getModel().find(i => i.id === id)?.value;
+    if (prev && prev.url) URL.revokeObjectURL(prev.url);
+  };
+  const load = async (file) => {
+    if (!file) return;
+    if (input.maxSize && file.size > input.maxSize) {
+      announce(`That file is too large (max ${fmtBytes(input.maxSize)}).`, { assertive: true });
+      return;
+    }
+    const ref = await fileToRef(file);
+    revokePrev();
+    runtime.setInput(id, ref);
+    onDirty?.(id);
+  };
+
+  native.addEventListener('change', () => { load(native.files && native.files[0]); native.value = ''; });
+
+  // Click to pick: an explicit [data-file-pick] affordance always opens the picker.
+  // A click on bare canvas opens it too, but ONLY while empty — once a file is
+  // loaded, stray clicks (selecting a finding, etc.) must not reopen the dialog;
+  // the user replaces via the Replace button or by dropping a new file.
+  contentEl.addEventListener('click', (e) => {
+    if (e.target.closest('[data-file-pick]')) { native.click(); return; }
+    if (e.target.closest('button, a, input, select, textarea, label')) return;
+    if (runtime.getModel().find(i => i.id === id)?.value) return;
+    native.click();
+  });
+
+  // Drag-and-drop over the whole canvas. A depth counter tracks enter/leave across
+  // child nodes so the highlight doesn't flicker as the pointer crosses them.
+  let depth = 0;
+  const setDrag = (on) => contentEl.classList.toggle('is-file-dragover', on);
+  contentEl.addEventListener('dragenter', (e) => { e.preventDefault(); depth++; setDrag(true); });
+  contentEl.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
+  });
+  contentEl.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    if (--depth <= 0) { depth = 0; setDrag(false); }
+  });
+  contentEl.addEventListener('drop', (e) => {
+    e.preventDefault();
+    depth = 0;
+    setDrag(false);
+    load(e.dataTransfer?.files && e.dataTransfer.files[0]);
   });
 }
 
@@ -1345,7 +1453,7 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
     state = s;
     layoutEl.style.removeProperty('--sheet-h'); // drop any drag override; the per-state var animates in
     layoutEl.dataset.sheet = s;
-    onChange?.();
+    onChange?.(s);
   }
 
   const endDrag = () => {
@@ -1619,14 +1727,24 @@ function renderInputs(el, model, runtime, host, onDirty) {
   if (openSection !== null) parts.push('</div></details>');
   el.innerHTML = parts.join('');
 
-  if (collapsedBlocks.size) {
+  const collapseBlock = (item) => {
+    item.classList.add('is-collapsed');
+    const btn = item.querySelector('[data-block-collapse]');
+    btn?.setAttribute('aria-label', 'Expand block');
+    btn?.setAttribute('title', 'Expand');
+  };
+  // On the first render of a freshly-mounted tool, fold every typed block so the
+  // sidebar opens as a clean, scannable list — the user expands the ones they
+  // want to edit. On later re-renders, preserve whatever the user had folded
+  // (captured above); newly-added blocks stay open.
+  const firstRender = !el.dataset.blocksDefaulted;
+  el.dataset.blocksDefaulted = '1';
+  if (firstRender) {
+    el.querySelectorAll('.block-item.is-typed').forEach(collapseBlock);
+  } else if (collapsedBlocks.size) {
     el.querySelectorAll('.block-item.is-typed').forEach(item => {
       const inputId = item.closest('.blocks-input')?.dataset.inputId;
-      if (!collapsedBlocks.has(`${inputId}:${item.dataset.blockIndex}`)) return;
-      item.classList.add('is-collapsed');
-      const btn = item.querySelector('[data-block-collapse]');
-      btn?.setAttribute('aria-label', 'Expand block');
-      btn?.setAttribute('title', 'Expand');
+      if (collapsedBlocks.has(`${inputId}:${item.dataset.blockIndex}`)) collapseBlock(item);
     });
   }
 
@@ -1701,18 +1819,9 @@ function renderInputs(el, model, runtime, host, onDirty) {
           native.value = '';
           return;
         }
-        // Read the bytes in-memory and hand them to the model as a FileRef. The
-        // bytes never leave the device — there is no upload, no network call.
-        const bytes = new Uint8Array(await file.arrayBuffer());
+        const ref = await fileToRef(file);
         revokePrev();
-        runtime.setInput(id, {
-          __file: true,
-          name: file.name,
-          mime: file.type || 'application/octet-stream',
-          size: file.size,
-          bytes,
-          url: URL.createObjectURL(file),
-        });
+        runtime.setInput(id, ref);
         onDirty?.(id);
       });
       return;
@@ -2218,7 +2327,11 @@ function controlHtml(input) {
         for (const f of fields) {
           if (addMenu && f.id === addMenu.field) continue;
           if (!visibleFor(f, typeVal)) continue;
-          if (f.type === 'text' || f.type === 'longtext') {
+          // A field with no declared type renders as a text input, so treat it as
+          // text here too — otherwise compact name/value blocks (whose fields omit
+          // `type`) would collapse to a blank pill.
+          const ty = f.type || 'text';
+          if (ty === 'text' || ty === 'longtext') {
             const v = String(item[f.id] ?? '').trim();
             if (v) return v;
           }
@@ -2239,15 +2352,21 @@ function controlHtml(input) {
       const itemHtml = (item, idx) => {
         const typeVal = addMenu ? item[addMenu.field] : null;
         const inner = fields.map(f => blockField(f, item, idx, typeVal)).join('');
-        if (!addMenu) return `<div class="block-item">${inner}${removeBtn(idx)}</div>`;
-        const label = typeLabel(typeVal);
         const sw = swatchOf(item, typeVal);
         const swatch = sw ? `<span class="block-head-swatch" style="background:${sw}"></span>` : '';
         const preview = `<span class="block-head-preview">${escape(previewOf(item, typeVal))}</span>`;
-        return `<div class="block-item is-typed" data-block-type="${escape(typeVal ?? '')}" data-block-index="${idx}">
+        // Typed blocks label their header with the variant name; untyped (compact
+        // name/value) blocks have no variant, so the header is a bare handle. The
+        // empty label still holds the flex spacer that right-aligns the controls,
+        // and the collapsed pill (preview + swatch) supplies the identity. Both
+        // kinds carry `is-typed` so they share the card chrome, collapse, drag and
+        // first-render fold; `block-item--row` lets CSS tune the compact variant.
+        const label = addMenu ? typeLabel(typeVal) : '';
+        const rowCls = addMenu ? '' : ' block-item--row';
+        return `<div class="block-item is-typed${rowCls}" data-block-type="${escape(typeVal ?? '')}" data-block-index="${idx}">
           <div class="block-head" data-block-handle draggable="true"
                data-block-input="${id}" data-block-index="${idx}" title="Drag to reorder">
-            ${grip}<span class="block-type-label">${escape(label)}</span>${swatch}${preview}${collapseBtn}${removeBtn(idx, label)}
+            ${grip}<span class="block-type-label">${escape(label)}</span>${swatch}${preview}${collapseBtn}${removeBtn(idx, label || 'block')}
           </div>
           <div class="block-fields">${inner}</div>
         </div>`;
@@ -2269,7 +2388,7 @@ function controlHtml(input) {
         adder = `<button type="button" class="block-add" data-block-add="${id}">+ Add</button>`;
       }
 
-      return `<div class="blocks-input${addMenu ? ' blocks-input--typed' : ''}" data-input-id="${id}">
+      return `<div class="blocks-input blocks-input--cards${addMenu ? ' blocks-input--typed' : ''}" data-input-id="${id}">
         <div class="blocks-list">${items.map(itemHtml).join('')}</div>
         ${adder}
       </div>`;
@@ -2467,15 +2586,23 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   // URL — an accepted trade-off for a basic lock, not for confidential material.
   // It is NOT persisted to the library at rest (see performSave); URL is the only
   // way it round-trips. The initial value below comes from the URL only.
+  // Collapsed by default — a click-to-expand disclosure (mirrors the Print marks
+  // card) so the field + caveat only surface when wanted, keeping the panel tight.
+  // Pre-opened when a value arrives (e.g. ?password=) so it's visible. Collapse is
+  // purely visual: the input remains the source of truth, so a typed value still
+  // applies on export and survives collapse/expand.
   const ICON_LOCK = `<svg class="pdfpass-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`;
   const hasPdf = formats.includes('pdf');
+  const pdfPassInitOpen = Boolean(exportDefaults.password);
   const pdfPassRow = hasPdf ? `
-      <div class="export-pdfpass" data-pdf-only style="display:${initialFmt === 'pdf' ? 'flex' : 'none'}">
-        <span class="pdfpass-head">${ICON_LOCK}<span>Password protect</span></span>
-        <input type="password" data-action="pdf-password" autocomplete="new-password" spellcheck="false"
-               value="${escape(exportDefaults.password ?? '')}"
-               placeholder="Leave blank for no password" aria-label="PDF open password">
-        <p class="pdfpass-hint">Requires this password to open the PDF. A basic lock, not strong encryption — don't rely on it for highly confidential files.</p>
+      <div class="export-pdfpass${pdfPassInitOpen ? ' is-open' : ''}" data-pdf-only style="display:${initialFmt === 'pdf' ? 'flex' : 'none'}">
+        <button type="button" class="pdfpass-head" data-action="pdfpass-toggle" aria-expanded="${pdfPassInitOpen}">${ICON_LOCK}<span>Password protect</span></button>
+        <div class="pdfpass-body" data-pdfpass-body style="display:${pdfPassInitOpen ? 'flex' : 'none'}">
+          <input type="password" data-action="pdf-password" autocomplete="new-password" spellcheck="false"
+                 value="${escape(exportDefaults.password ?? '')}"
+                 placeholder="Leave blank for no password" aria-label="PDF open password">
+          <p class="pdfpass-hint">Requires this password to open the PDF. A basic lock, not strong encryption — don't rely on it for highly confidential files.</p>
+        </div>
       </div>` : '';
 
   // Tier 2.7 — print marks & bleed (pdf / pdf-cmyk / cmyk-tiff). An opt-in card
@@ -2635,6 +2762,17 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   // PDF open-password — clear-text in the URL by design (see pdfPassRow). Syncs on
   // input so a crafted/edited link round-trips; syncUrl gates it to the pdf format.
   el.querySelector('[data-action="pdf-password"]')?.addEventListener('input', () => onUrlSync?.('password'));
+
+  // Password protect disclosure — the header toggles the body open/closed (purely
+  // visual; the input value still drives export). Focus the field on expand.
+  el.querySelector('[data-action="pdfpass-toggle"]')?.addEventListener('click', () => {
+    const card = el.querySelector('.export-pdfpass');
+    const open = card?.classList.toggle('is-open') ?? false;
+    const body = el.querySelector('[data-pdfpass-body]');
+    if (body) body.style.display = open ? 'flex' : 'none';
+    el.querySelector('[data-action="pdfpass-toggle"]')?.setAttribute('aria-expanded', String(open));
+    if (open) el.querySelector('[data-action="pdf-password"]')?.focus();
+  });
 
   const dimUnit = () => el.querySelector('[data-action="export-unit"]')?.value || 'px';
   const dimDpi  = () => { const n = parseInt(el.querySelector('[data-action="export-dpi"]')?.value, 10); return n > 0 ? n : 300; };

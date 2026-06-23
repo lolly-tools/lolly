@@ -54,4 +54,9 @@ business model that has every incentive to keep what you give them. The operatio
 trivial; the **content is the cost.** The file leaves the building so a free tool can
 do 200ms of work that a browser can do locally. 
 
+The first one shipped is the **EXIF & Metadata Stripper** — it reveals the hidden data in
+a photo (GPS location, camera, timestamps, author) and hands back a clean copy, entirely
+in your browser. The file is never uploaded; the clean copy gets no watermark and none of
+our metadata. Every utility carries a **"Runs on your device — nothing is uploaded"** badge.
+
 We can win all wars with excellent conveinece and service. 

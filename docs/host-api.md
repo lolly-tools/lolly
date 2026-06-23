@@ -68,12 +68,13 @@ Per-tool persistent state (IndexedDB on web, filesystem on Tauri, memory on CLI)
 
 The host owns the renderer — tools don't bundle their own.
 
-| Method | Returns |
-|---|---|
-| `render(node, format, opts?)` | `Promise<Blob>` |
-| `download(blob, filename)` | `Promise<void>` |
+| Method | Returns | Notes |
+|---|---|---|
+| `render(node, format, opts?)` | `Promise<Blob>` | Rasterise/serialize a DOM node |
+| `download(blob, filename)` | `Promise<void>` | Trigger a download (throws on CLI — pipe via `--output` instead) |
+| `file(blob, opts?)` | `Promise<void>` | Deliver a blob the **tool** produced (the transform path: file in → transformed file out), with `opts.filename`. Carries no watermark and no provenance — for on-device utilities whose `exportFile` hook returns the bytes |
 
-`format` is one of `png · jpg`/`jpeg` · `webp · avif · svg · pdf · pdf-cmyk · html · md · txt · webm · mp4 · gif` (availability is per-tool via the manifest, and per-browser for video).
+`format` is an `ExportFormat`: `png · jpg · svg · pdf · pdf-cmyk · cmyk-tiff · html · webm · av1` (availability is per-tool via the manifest, and per-browser for video). Separately, tools produce the **text/data formats** `md · txt · json · csv · ics · vcf` from the input model (not a DOM render — see [Exporting & Formats](/info/exporting.html)).
 
 `ExportOpts`:
 
@@ -84,10 +85,17 @@ The host owns the renderer — tools don't bundle their own.
 | `scale` | Raster multiplier when width/height absent (1, 2, 3) |
 | `quality` | JPG quality 0–1 |
 | `background` | Override transparency |
-| `watermark` | Forced `true` for experimental tools by the host |
-| `meta` / `embedMeta` | Provenance metadata (auto-assembled; set `embedMeta:false` to skip) |
+| `watermark` | Forced `true` for experimental tools by the host (never for on-device utilities) |
+| `meta` / `embedMeta` | Provenance metadata (auto-assembled; set `embedMeta:false` to skip — on-device utilities skip it automatically) |
+| `colorProfile` | ICC handling: `'srgb'` (default raster), `'none'` to skip embedding, or a CMYK press condition for `pdf-cmyk` |
+| `filename` | Suggested output filename |
+| `thumbnail` | Hint that this is a low-fidelity preview, not the deliverable (skips provenance) |
 
 See [Exporting & Formats](/info/exporting.html) for the user-facing view, and `engine/src/units.js` for the unit math.
+
+## `host` — file inputs
+
+A `file`-typed input (the user's own file, picked into memory) arrives as an **`InputFile`**: `{ __file: true, name, mime, size, bytes (Uint8Array), url }`. The hook reads `bytes` directly — there's no `host.*` call, because the bytes ride in the input value (the sandbox has no `fetch`). A `file` value never serialises to a URL and is never persisted. The `exportFile` hook transforms those bytes and returns `{ bytes, mime, filename }`, which the shell delivers via `host.export.file`. See [Authoring Tools](/info/authoring-tools.html) for the full pattern; `exif-stripper` is the reference.
 
 ## `host.net` *(capability: `network`)*
 
