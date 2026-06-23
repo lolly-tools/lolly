@@ -104,6 +104,16 @@ for (const dir of toolDirs) {
     errors.push(`[${dir}] manifest declares hooks but hooks.js is missing`);
   }
 
+  // On-device utility conventions (privacy:'on-device'): the tool processes the
+  // user's OWN content, so its output must never be watermarked or stamped with
+  // provenance. An experimental tool force-watermarks its exports, which directly
+  // contradicts that — so the two are mutually exclusive. (The no-metadata side is
+  // enforced at runtime: the exportFile path embeds nothing, and the render path
+  // skips provenance for on-device tools.)
+  if (manifest.privacy === 'on-device' && manifest.status === 'experimental') {
+    errors.push(`[${dir}] privacy:'on-device' tools must not be status:'experimental' (experimental force-watermarks exports, which must never happen to a user's own file)`);
+  }
+
   // bindToProfile checks
   for (const input of manifest.inputs) {
     if (input.bindToProfile && !PROFILE_FIELDS.has(input.bindToProfile)) {

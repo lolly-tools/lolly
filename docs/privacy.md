@@ -17,6 +17,14 @@ None of this is shared, uploaded, or used to identify or track you, so there is 
 
 This documentation site (`/info`) is even lighter: it sets **no cookies** and stores only your light/dark preference on your device.
 
+## On-device utilities
+
+Some tools are **utilities** that work on a file *you* provide — for example the **EXIF & Metadata Stripper**, which shows the hidden data in a photo (GPS location, camera, timestamps, author) and hands back a clean copy.
+
+These run **entirely in your browser**. The file you pick is read into memory on your device, transformed locally, and offered back as a download. **It is never uploaded** — there is no server to upload it to. The cleaned copy carries no watermark and none of our own identifying metadata; the whole point is to *remove* data, not add it. Nothing is stored after you leave, and these utilities work offline. You'll see a **"Runs on your device — nothing is uploaded"** badge on every one of them.
+
+This is the opposite of the typical "compress this PDF" / "convert this HEIC" website, which uploads your file to a stranger's server to do work your browser can do locally.
+
 ## The browser extension
 
 The **Lolly URL Screenshot** browser extension does not collect, store, or transmit any personal data. No analytics, no tracking, no remote server.

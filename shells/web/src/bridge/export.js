@@ -159,16 +159,24 @@ async function renderRaster(node, format, opts) {
       : lib.toPng(node, dtoOpts));
     const res = await fetch(dataUrl);
     let blob = await res.blob();
-    // Stamp the DPI (physical size) + provenance metadata + colour profile.
+    // Stamp the DPI (physical size) + provenance metadata + colour profile in a
+    // SINGLE parse/serialise cycle: read the encoded bytes once, splice every
+    // chunk/segment in order, rebuild the Blob once. (Each stamp was previously
+    // its own arrayBuffer()→Blob round-trip — three full multi-MB copies for a
+    // high-DPI PNG.) Insertion order is preserved, so the output is byte-identical.
     const icc = iccWanted(opts) ? iccProfileBytes(opts.colorProfile) : null;
-    if (format === 'png') {
-      blob = await withPngDpi(blob, d.dpi);
-      blob = await withPngMeta(blob, opts.meta);
-      if (icc) blob = await withPngIcc(blob, icc);
-    } else if (format === 'jpeg') {
-      blob = await withJpegDpi(blob, d.dpi);
-      blob = await withJpegExif(blob, opts.meta);
-      if (icc) blob = await withJpegIcc(blob, icc);
+    if (format === 'png' && (d.dpi > 0 || opts.meta || icc)) {
+      let bytes = new Uint8Array(await blob.arrayBuffer());
+      if (d.dpi > 0) bytes = insertPngPhys(bytes, d.dpi) || bytes;
+      bytes = insertPngMeta(bytes, opts.meta);
+      if (icc) bytes = await insertPngIcc(bytes, icc);
+      blob = new Blob([bytes], { type: 'image/png' });
+    } else if (format === 'jpeg' && (d.dpi > 0 || opts.meta || icc)) {
+      let bytes = new Uint8Array(await blob.arrayBuffer());
+      bytes = patchJpegDpi(bytes, d.dpi);
+      bytes = insertJpegExif(bytes, opts.meta);
+      if (icc) bytes = insertJpegIcc(bytes, icc);
+      blob = new Blob([bytes], { type: 'image/jpeg' });
     }
     return blob;
   } finally {
@@ -529,30 +537,21 @@ function coverRasterStyle(d, opts, targetW, targetH) {
 // ── PNG physical-resolution metadata ────────────────────────────────────────
 //
 // dom-to-image PNGs carry no DPI, so they're assumed 96 — a 2480px-wide A4
-// raster would print ~26 inches wide. Inject a pHYs chunk recording the real
-// DPI so print/layout software places the image at its intended physical size.
-// Best-effort: any parse hiccup returns the original blob untouched.
-async function withPngDpi(blob, dpi) {
-  if (!(dpi > 0)) return blob;
-  try {
-    const png = new Uint8Array(await blob.arrayBuffer());
-    const out = insertPngPhys(png, dpi);
-    return out ? new Blob([out], { type: 'image/png' }) : blob;
-  } catch {
-    return blob;
-  }
-}
+// raster would print ~26 inches wide. insertPngPhys (below) injects a pHYs chunk
+// recording the real DPI so print/layout software places the image at its
+// intended physical size. All the byte-level stampers here take and return a
+// Uint8Array (the caller reads/writes the Blob once) and are best-effort: any
+// parse hiccup returns the input bytes untouched.
 
 // JPEG carries DPI in the JFIF APP0 segment (right after SOI). Browsers emit one
 // with no/72 density; patch the density-unit + X/Y density so placing apps size
-// it physically. Best-effort: anything unexpected returns the blob untouched.
-async function withJpegDpi(blob, dpi) {
-  if (!(dpi > 0)) return blob;
+// it physically. Best-effort: anything unexpected returns the bytes untouched.
+function patchJpegDpi(b, dpi) {
+  if (!(dpi > 0)) return b;
   try {
-    const b = new Uint8Array(await blob.arrayBuffer());
     // FFD8 (SOI) FFE0 (APP0) … "JFIF\0" at byte 6.
-    if (b[0] !== 0xFF || b[1] !== 0xD8 || b[2] !== 0xFF || b[3] !== 0xE0) return blob;
-    if (!(b[6] === 0x4A && b[7] === 0x46 && b[8] === 0x49 && b[9] === 0x46 && b[10] === 0x00)) return blob;
+    if (b[0] !== 0xFF || b[1] !== 0xD8 || b[2] !== 0xFF || b[3] !== 0xE0) return b;
+    if (!(b[6] === 0x4A && b[7] === 0x46 && b[8] === 0x49 && b[9] === 0x46 && b[10] === 0x00)) return b;
     const out = b.slice();
     const d = Math.min(0xFFFF, Math.round(dpi));
     out[13] = 1;                // density units: dots per inch
@@ -560,9 +559,9 @@ async function withJpegDpi(blob, dpi) {
     out[15] = d & 0xFF;
     out[16] = (d >> 8) & 0xFF;  // Ydensity
     out[17] = d & 0xFF;
-    return new Blob([out], { type: 'image/jpeg' });
+    return out;
   } catch {
-    return blob;
+    return b;
   }
 }
 
@@ -639,17 +638,16 @@ function iTXtChunk(keyword, text) {
   return pngChunk('iTXt', data);
 }
 
-async function withPngMeta(blob, meta) {
-  if (!meta) return blob;
+function insertPngMeta(png, meta) {
+  if (!meta) return png;
   try {
-    const png = new Uint8Array(await blob.arrayBuffer());
     const SIG = [137, 80, 78, 71, 13, 10, 26, 10];
-    for (let i = 0; i < 8; i++) if (png[i] !== SIG[i]) return blob;
+    for (let i = 0; i < 8; i++) if (png[i] !== SIG[i]) return png;
     const pairs = [
       ['Software', meta.software], ['Author', meta.author],
       ['Source', meta.source], ['Description', meta.description], ['Comment', meta.contact],
     ].filter(([, v]) => v);
-    if (!pairs.length) return blob;
+    if (!pairs.length) return png;
     const chunks = pairs.map(([k, v]) => iTXtChunk(k, v));
     const at = 8 + 12 + readU32(png, 8); // after IHDR
     const extra = chunks.reduce((n, c) => n + c.length, 0);
@@ -658,9 +656,9 @@ async function withPngMeta(blob, meta) {
     let o = at;
     for (const c of chunks) { out.set(c, o); o += c.length; }
     out.set(png.subarray(at), o);
-    return new Blob([out], { type: 'image/png' });
+    return out;
   } catch {
-    return blob;
+    return png;
   }
 }
 
@@ -696,8 +694,8 @@ function buildExifTiff(fields) {
   return tiff;
 }
 
-async function withJpegExif(blob, meta) {
-  if (!meta) return blob;
+function insertJpegExif(b, meta) {
+  if (!meta) return b;
   try {
     const desc = [meta.description, meta.contact].filter(Boolean).join(' · ');
     const tiff = buildExifTiff([
@@ -705,26 +703,25 @@ async function withJpegExif(blob, meta) {
       { tag: 0x0131, value: meta.software }, // Software
       { tag: 0x013B, value: meta.author },   // Artist
     ].filter(f => f.value));
-    if (!tiff) return blob;
+    if (!tiff) return b;
     const id = [0x45, 0x78, 0x69, 0x66, 0x00, 0x00]; // "Exif\0\0"
     const segLen = 2 + id.length + tiff.length;       // length field includes itself
-    if (segLen > 0xFFFF) return blob;
+    if (segLen > 0xFFFF) return b;
     const app1 = new Uint8Array(2 + segLen);
     app1[0] = 0xFF; app1[1] = 0xE1;
     app1[2] = (segLen >> 8) & 0xFF; app1[3] = segLen & 0xFF;
     app1.set(id, 4); app1.set(tiff, 4 + id.length);
 
-    const b = new Uint8Array(await blob.arrayBuffer());
-    if (b[0] !== 0xFF || b[1] !== 0xD8) return blob; // not JPEG
+    if (b[0] !== 0xFF || b[1] !== 0xD8) return b; // not JPEG
     let at = 2; // after SOI; skip an APP0 (JFIF) if present so order stays valid
     if (b[2] === 0xFF && b[3] === 0xE0) at = 4 + ((b[4] << 8) | b[5]);
     const out = new Uint8Array(b.length + app1.length);
     out.set(b.subarray(0, at), 0);
     out.set(app1, at);
     out.set(b.subarray(at), at + app1.length);
-    return new Blob([out], { type: 'image/jpeg' });
+    return out;
   } catch {
-    return blob;
+    return b;
   }
 }
 
@@ -743,11 +740,10 @@ function iccWanted(opts) {
 
 // PNG: an iCCP chunk (profile name + compression method 0 + zlib-deflated
 // profile) spliced in right after IHDR, before IDAT — where the spec requires it.
-async function withPngIcc(blob, iccBytes) {
+async function insertPngIcc(png, iccBytes) {
   try {
-    const png = new Uint8Array(await blob.arrayBuffer());
     const SIG = [137, 80, 78, 71, 13, 10, 26, 10];
-    for (let i = 0; i < 8; i++) if (png[i] !== SIG[i]) return blob;
+    for (let i = 0; i < 8; i++) if (png[i] !== SIG[i]) return png;
     const name = new TextEncoder().encode('sRGB'); // 1–79 bytes, Latin-1
     const compressed = await deflateBytes(iccBytes);
     const data = new Uint8Array(name.length + 2 + compressed.length);
@@ -761,22 +757,21 @@ async function withPngIcc(blob, iccBytes) {
     out.set(png.subarray(0, at), 0);
     out.set(chunk, at);
     out.set(png.subarray(at), at + chunk.length);
-    return new Blob([out], { type: 'image/png' });
+    return out;
   } catch {
-    return blob;
+    return png;
   }
 }
 
 // JPEG: one or more APP2 "ICC_PROFILE\0" segments (the profile is split across
 // 65 519-byte chunks when large), inserted after the leading APP0/APP1 segments.
-async function withJpegIcc(blob, iccBytes) {
+function insertJpegIcc(b, iccBytes) {
   try {
-    const b = new Uint8Array(await blob.arrayBuffer());
-    if (b[0] !== 0xFF || b[1] !== 0xD8) return blob; // not JPEG
+    if (b[0] !== 0xFF || b[1] !== 0xD8) return b; // not JPEG
     const id = [0x49, 0x43, 0x43, 0x5F, 0x50, 0x52, 0x4F, 0x46, 0x49, 0x4C, 0x45, 0x00]; // "ICC_PROFILE\0"
     const MAX = 0xFFFF - 2 - id.length - 2; // payload room per APP2 (after len + id + seq/count)
     const count = Math.ceil(iccBytes.length / MAX);
-    if (count > 255) return blob; // ICC caps at 255 chunks
+    if (count > 255) return b; // ICC caps at 255 chunks
     const segs = [];
     for (let i = 0; i < count; i++) {
       const part = iccBytes.subarray(i * MAX, i * MAX + MAX);
@@ -801,9 +796,9 @@ async function withJpegIcc(blob, iccBytes) {
     let o = at;
     for (const s of segs) { out.set(s, o); o += s.length; }
     out.set(b.subarray(at), o);
-    return new Blob([out], { type: 'image/jpeg' });
+    return out;
   } catch {
-    return blob;
+    return b;
   }
 }
 
@@ -995,10 +990,35 @@ async function renderSvgFromHtml(node, opts) {
       return;
     }
 
-    // ── Raster image ────────────────────────────────────────────────────────
+    // ── Image (SVG source → inline vector; bitmap → raster <image>) ───────────
     if (tag === 'img') {
       const src = el.src || el.getAttribute('src') || '';
       if (src && w > 0 && h > 0) {
+        // SVG sources stay VECTOR — inline them as a nested <svg>, fitted "meet"
+        // (object-fit: contain), instead of a raster <image>. SVG-ness is sniffed
+        // from the bytes (asset URLs are blob: with no extension/MIME hint). Mirrors
+        // the PDF walker; real bitmaps fall through to the <image> path below.
+        let inlineSvg = null;
+        try { inlineSvg = await inlineSvgFromImg(src); } catch { inlineSvg = null; }
+        if (inlineSvg) {
+          await inlineBlobUrlsInEl(inlineSvg);
+          // Nested-<svg> scaling needs a viewBox; synthesise one from width/height
+          // if the source omitted it, so the mark still fits its box.
+          if (!inlineSvg.getAttribute('viewBox')) {
+            const iw = parseFloat(inlineSvg.getAttribute('width'));
+            const ih = parseFloat(inlineSvg.getAttribute('height'));
+            if (iw > 0 && ih > 0) inlineSvg.setAttribute('viewBox', `0 0 ${iw} ${ih}`);
+          }
+          inlineSvg.setAttribute('x',      String(x));
+          inlineSvg.setAttribute('y',      String(y));
+          inlineSvg.setAttribute('width',  String(w));
+          inlineSvg.setAttribute('height', String(h));
+          if (!inlineSvg.getAttribute('preserveAspectRatio')) {
+            inlineSvg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+          }
+          g.appendChild(inlineSvg);
+          return;
+        }
         try {
           const dataUrl = src.startsWith('data:') ? src
             : src.startsWith('blob:') ? await blobToDataUrl(src) : src;

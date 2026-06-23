@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-23T15:48:12.293Z",
+  "generatedAt": "2026-06-23T16:40:25.977Z",
   "tools": [
     {
       "id": "dynamic-layout",
@@ -151,6 +151,14 @@
       "version": "1.0.0",
       "status": "official",
       "category": "everyone"
+    },
+    {
+      "id": "exif-stripper",
+      "name": "EXIF & Metadata Stripper",
+      "description": "See the hidden data in a photo — GPS location, camera, timestamps, author — then download a clean copy. Runs entirely in your browser; the file is never uploaded.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility"
     }
   ]
 }

@@ -1,0 +1,45 @@
+<div class="exif">
+  {{#unless hasFile}}
+    <div class="exif-empty">
+      <div class="exif-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L7 20"/></svg>
+      </div>
+      <h2>Strip hidden data from a photo</h2>
+      <p>Drag a JPEG or PNG anywhere onto this area, or choose one below. We'll show you the GPS location, camera, timestamps and other metadata it's carrying — then hand back a clean copy.</p>
+      <button type="button" class="exif-pick" data-file-pick>Choose a photo…</button>
+      <p class="exif-empty-note">Everything happens in your browser. Your photo is never uploaded.</p>
+    </div>
+  {{/unless}}
+
+  {{#if hasFile}}
+    <div class="exif-card">
+      <div class="exif-head">
+        <span class="exif-file" title="{{fileName}}">{{fileName}}</span>
+        <span class="exif-kind">{{kind}} · {{fileSize}}</span>
+        <button type="button" class="exif-replace" data-file-pick>Replace</button>
+      </div>
+
+      {{#if nothingFound}}
+        <div class="exif-clean-state">
+          <p class="exif-clean">This {{kind}} is already clean — no hidden metadata found.</p>
+          <p class="exif-note">You can still download a re-saved copy below.</p>
+          <button type="button" class="exif-download" data-export-file data-busy-label="Saving…">Download copy ({{cleanSize}})</button>
+        </div>
+      {{/if}}
+
+      {{#unless nothingFound}}
+        <p class="exif-summary">{{metaSummary}}</p>
+        <ul class="exif-findings">
+          {{#each findings}}
+            <li class="exif-finding {{tone}}">
+              <span class="exif-finding-label">{{label}}</span>
+              <span class="exif-finding-detail">{{detail}}</span>
+            </li>
+          {{/each}}
+        </ul>
+        <button type="button" class="exif-download" data-export-file data-busy-label="Stripping metadata…">Download clean {{kind}} ({{cleanSize}})</button>
+        <p class="exif-note">The clean copy keeps the image pixels byte-for-byte — only the metadata is removed, nothing is re-compressed.</p>
+      {{/unless}}
+    </div>
+  {{/if}}
+</div>
