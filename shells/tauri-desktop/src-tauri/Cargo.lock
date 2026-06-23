@@ -157,7 +157,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "brand-tools-desktop"
+name = "lolly-desktop"
 version = "0.1.0"
 dependencies = [
  "headless_chrome",

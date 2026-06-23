@@ -1,10 +1,10 @@
 [package]
-name = "brand-tools-desktop"
+name = "lolly-desktop"
 version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "brand_tools_desktop_lib"
+name = "lolly_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://brand-tools.suse.com/schemas/asset-ref.schema.json",
+  "$id": "https://lolly.tools/schemas/asset-ref.schema.json",
   "title": "AssetRef",
   "description": "The runtime object representing a resolved asset. Returned by host.assets.get(), host.assets.pick(), and stored in saved tool state. Uniform across library assets and user uploads — tools handle them identically.",
   "type": "object",

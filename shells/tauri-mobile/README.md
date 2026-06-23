@@ -10,7 +10,7 @@ Tools that declare `capabilities: ["filesystem", "ffmpeg", "wasm"]` are not avai
 
 | Concern | Desktop | Mobile |
 |---|---|---|
-| Identifier | `com.suse.brand-tools` | `com.suse.brand-tools.mobile` |
+| Identifier | `tools.lolly.app` | `tools.lolly.app.mobile` |
 | Shell plugin | ✅ (sidecars) | ❌ |
 | Camera | ❌ | Via WebView getUserMedia |
 | Dev port | 5173 | 5174 |

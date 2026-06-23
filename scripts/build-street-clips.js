@@ -183,7 +183,7 @@ async function overpassFetch(b, bCoast, attempt = 1) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'User-Agent': 'lolly-street-map/0.1 (brandtools data-prep)',
+      'User-Agent': 'lolly-street-map/0.1 (lolly data-prep)',
     },
     body: 'data=' + encodeURIComponent(overpassQuery(b, bCoast)),
   });
