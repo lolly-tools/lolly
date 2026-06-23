@@ -75,6 +75,15 @@ function resolveInitialValue(input, profile, initial) {
   // Vector holds a compound { fieldId: number }; merge any initial (URL/saved)
   // over the per-field defaults, clamped to each field's range.
   if (input.type === 'vector') return resolveVectorValue(input, initial[input.id]);
+  // A file input only ever holds a loaded FileRef (bytes + metadata). URL/CLI
+  // can carry an unresolved {__file, path} ref or a stray string — accept only a
+  // ref that actually carries bytes (the shell loaded it); otherwise start blank.
+  // (The CLI resolves path→bytes before createRuntime; the web picker provides the
+  // bytes directly. Binary content is never expressible in a shareable URL.)
+  if (input.type === 'file') {
+    const v = initial[input.id];
+    return v && typeof v === 'object' && v.__file && v.bytes ? v : null;
+  }
   if (input.id in initial) return initial[input.id];
   if (input.bindToProfile && profile[input.bindToProfile] !== undefined) {
     return profile[input.bindToProfile];
@@ -122,6 +131,8 @@ function defaultForType(type) {
       return [];
     case 'vector':
       return {};
+    case 'file':
+      return null;
     default:
       return null;
   }
@@ -139,6 +150,7 @@ function pickControl(input) {
   if (input.type === 'datetime-local') return 'datetime-local-input';
   if (input.type === 'blocks') return 'blocks';
   if (input.type === 'vector') return 'vector';
+  if (input.type === 'file') return 'file-picker';
   return 'text-input';
 }
 
@@ -168,6 +180,13 @@ function constrain(input, value) {
     if (input.min !== undefined && n < input.min) return input.min;
     if (input.max !== undefined && n > input.max) return input.max;
     return n;
+  }
+  if (input.type === 'file') {
+    // A picked file is a FileRef object (bytes + metadata) or null (cleared).
+    // Reject anything else (e.g. a stray string) so the model can't hold garbage.
+    if (value === null) return null;
+    if (value && typeof value === 'object') return value;
+    return input.value;
   }
   if (input.type === 'vector') {
     if (!value || typeof value !== 'object') return input.value;
