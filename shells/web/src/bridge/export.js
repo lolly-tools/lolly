@@ -255,8 +255,9 @@ async function renderCmykTiff(node, opts) {
   const rgba = ctx.getImageData(0, 0, W, H).data;   // sRGB, straight (un-premultiplied)
   const cmyk = rgbaToDeviceCmyk(rgba);
 
-  // Marks drawn AFTER conversion → registration/crop/bleed land on every plate.
-  if (geo) drawPrintMarksCmyk(cmyk, W, H, geo, d.dpi);
+  // Marks drawn AFTER conversion → registration/crop/bleed land on every plate;
+  // provenance credit text is composited as K-only ink (see drawPrintMarksCmyk).
+  if (geo) drawPrintMarksCmyk(cmyk, W, H, geo, d.dpi, provenanceLabels(opts.meta));
 
   const tiff = encodeCmykTiff(cmyk, W, H, d.dpi, opts.meta, pressConditionLabel(opts.colorProfile));
   return new Blob([tiff], { type: 'image/tiff' });
@@ -359,8 +360,9 @@ function encodeCmykTiff(cmyk, W, H, dpi, meta, condition) {
 // Engine geometry is points, top-left origin; convert to device pixels at dpi. All
 // crop/bleed/registration lines are axis-aligned (each a filled hairline bar); the
 // registration target is a stroked ring; colour-bar cells are filled rectangles in
-// their own DeviceCMYK value.
-function drawPrintMarksCmyk(cmyk, W, H, geo, dpi) {
+// their own DeviceCMYK value. `labels` (optional) maps each engine label slot → its
+// provenance string; those are shaped by the browser and composited as K-only ink.
+function drawPrintMarksCmyk(cmyk, W, H, geo, dpi, labels) {
   const pt = (v) => v * dpi / 72;
   const REG = [255, 255, 255, 255];                       // all plates (registration black)
   const stroke = Math.max(1, Math.round(pt(geo.strokeWeight)));
@@ -394,6 +396,39 @@ function drawPrintMarksCmyk(cmyk, W, H, geo, dpi) {
   for (const b of geo.primitives.bars) {
     const ink = b.cmyk.map(v => Math.round(v * 255));
     fill(pt(b.x), pt(b.y), pt(b.w), pt(b.h), ink);
+  }
+
+  // Provenance credit text — only the anchors the caller supplied a string for.
+  // The browser shapes the glyphs on an offscreen canvas (Helvetica, mirroring the
+  // PDF path), then each covered pixel is composited as 70% K ink — the raster
+  // analogue of the PDF's cmyk(0,0,0,0.7) — so the credits sit on the black plate
+  // only, not as registration. Engine coords are points, top-left origin (same as
+  // the canvas) so there's no y-flip; rotation is CCW-positive, hence the negation.
+  const slots = (geo.primitives.labels ?? []).filter(l => labels?.[l.slot]);
+  if (slots.length) {
+    const tcanvas = document.createElement('canvas');
+    tcanvas.width = W; tcanvas.height = H;
+    const tctx = tcanvas.getContext('2d', { willReadFrequently: true });
+    tctx.fillStyle = '#000';
+    tctx.textBaseline = 'alphabetic';
+    for (const l of slots) {
+      tctx.save();
+      tctx.translate(pt(l.x), pt(l.y));
+      if (l.rotation) tctx.rotate(-l.rotation * Math.PI / 180);
+      tctx.textAlign = l.align === 'right' ? 'right' : 'left';
+      tctx.font = `${pt(l.size)}px Helvetica, Arial, sans-serif`;
+      tctx.fillText(labels[l.slot], 0, 0);
+      tctx.restore();
+    }
+    const tpx = tctx.getImageData(0, 0, W, H).data;
+    for (let p = 3, o = 0; p < tpx.length; p += 4, o += 4) {
+      const t = (tpx[p] / 255) * 0.7;                 // glyph coverage → 70% K ink
+      if (!t) continue;
+      cmyk[o]     = (cmyk[o]     * (1 - t) + 0.5) | 0;
+      cmyk[o + 1] = (cmyk[o + 1] * (1 - t) + 0.5) | 0;
+      cmyk[o + 2] = (cmyk[o + 2] * (1 - t) + 0.5) | 0;
+      cmyk[o + 3] = (cmyk[o + 3] * (1 - t) + 255 * t + 0.5) | 0;
+    }
   }
 }
 
