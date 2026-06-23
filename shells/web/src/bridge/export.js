@@ -970,12 +970,38 @@ async function renderSvgFromHtml(node, opts) {
       }
     }
 
-    // ── Border-top (divider lines) ──────────────────────────────────────────
-    const btw  = parseFloat(style.borderTopWidth) || 0;
-    const btRgb = btw > 0 ? parseCssColor(style.borderTopColor) : null;
-    if (btRgb) {
-      g.appendChild(makeSvgRect(NS, x, y, w, btw, 0,
-        `rgb(${btRgb[0]},${btRgb[1]},${btRgb[2]})`));
+    // ── Borders ─────────────────────────────────────────────────────────────
+    // Mirror the PDF walker: a uniform border becomes one stroked <rect> (radius
+    // honoured); a divider (border-top only) or mixed border fills per edge.
+    const bSide = (wKey, cKey) => {
+      const bw = parseFloat(style[wKey]) || 0;
+      return { bw, rgb: bw > 0 ? parseCssColor(style[cKey]) : null };
+    };
+    const bT = bSide('borderTopWidth',    'borderTopColor');
+    const bR = bSide('borderRightWidth',  'borderRightColor');
+    const bB = bSide('borderBottomWidth', 'borderBottomColor');
+    const bL = bSide('borderLeftWidth',   'borderLeftColor');
+    const eqRgb = (a, b) => a && b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+    const rgbStr = c => `rgb(${c[0]},${c[1]},${c[2]})`;
+    const uniformBorder = bT.rgb && bT.bw === bR.bw && bT.bw === bB.bw && bT.bw === bL.bw
+      && eqRgb(bT.rgb, bR.rgb) && eqRgb(bT.rgb, bB.rgb) && eqRgb(bT.rgb, bL.rgb);
+    if (uniformBorder) {
+      const lw = bT.bw;
+      const r = document.createElementNS(NS, 'rect');
+      r.setAttribute('x', String(x + lw / 2));
+      r.setAttribute('y', String(y + lw / 2));
+      r.setAttribute('width',  String(Math.max(0, w - lw)));
+      r.setAttribute('height', String(Math.max(0, h - lw)));
+      if (rx > 0) r.setAttribute('rx', String(Math.max(0, rx - lw / 2)));
+      r.setAttribute('fill', 'none');
+      r.setAttribute('stroke', rgbStr(bT.rgb));
+      r.setAttribute('stroke-width', String(lw));
+      g.appendChild(r);
+    } else {
+      if (bT.rgb) g.appendChild(makeSvgRect(NS, x, y, w, bT.bw, 0, rgbStr(bT.rgb)));
+      if (bB.rgb) g.appendChild(makeSvgRect(NS, x, y + h - bB.bw, w, bB.bw, 0, rgbStr(bB.rgb)));
+      if (bL.rgb) g.appendChild(makeSvgRect(NS, x, y, bL.bw, h, 0, rgbStr(bL.rgb)));
+      if (bR.rgb) g.appendChild(makeSvgRect(NS, x + w - bR.bw, y, bR.bw, h, 0, rgbStr(bR.rgb)));
     }
 
     // ── Inline SVG passthrough ──────────────────────────────────────────────
@@ -2149,12 +2175,35 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
         : pdf.rect(x, y, w, h, 'F');
     }
 
-    // ── Border-top (divider lines, e.g. footer separator) ─────────────────────
-    const btw = parseFloat(style.borderTopWidth) || 0;
-    const btRgb = btw > 0 ? parseCssColor(style.borderTopColor) : null;
-    if (btRgb) {
-      pdf.setFillColor(btRgb[0], btRgb[1], btRgb[2]);
-      pdf.rect(x, y, w, btw * scaleY, 'F');
+    // ── Borders ───────────────────────────────────────────────────────────────
+    // A uniform border is stroked as one rectangle (so a radius is honoured); a
+    // divider (border-top only) or mixed border fills per edge. Previously only
+    // border-top was emitted, so framed elements (e.g. the track chips) lost their
+    // left/right/bottom edges in PDF while bitmap exports drew all four.
+    const bSide = (wKey, cKey) => {
+      const bw = parseFloat(style[wKey]) || 0;
+      return { bw, rgb: bw > 0 ? parseCssColor(style[cKey]) : null };
+    };
+    const bT = bSide('borderTopWidth',    'borderTopColor');
+    const bR = bSide('borderRightWidth',  'borderRightColor');
+    const bB = bSide('borderBottomWidth', 'borderBottomColor');
+    const bL = bSide('borderLeftWidth',   'borderLeftColor');
+    const eqRgb = (a, b) => a && b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+    const uniformBorder = bT.rgb && bT.bw === bR.bw && bT.bw === bB.bw && bT.bw === bL.bw
+      && eqRgb(bT.rgb, bR.rgb) && eqRgb(bT.rgb, bB.rgb) && eqRgb(bT.rgb, bL.rgb);
+    if (uniformBorder) {
+      const lw = bT.bw * scaleY;
+      pdf.setDrawColor(bT.rgb[0], bT.rgb[1], bT.rgb[2]);
+      pdf.setLineWidth(lw);
+      // CSS border-box: the border sits inside w×h; jsPDF strokes centred, so inset by lw/2.
+      rx > 0
+        ? pdf.roundedRect(x + lw / 2, y + lw / 2, w - lw, h - lw, rx, rx, 'S')
+        : pdf.rect(x + lw / 2, y + lw / 2, w - lw, h - lw, 'S');
+    } else {
+      if (bT.rgb) { pdf.setFillColor(bT.rgb[0], bT.rgb[1], bT.rgb[2]); pdf.rect(x, y, w, bT.bw * scaleY, 'F'); }
+      if (bB.rgb) { pdf.setFillColor(bB.rgb[0], bB.rgb[1], bB.rgb[2]); pdf.rect(x, y + h - bB.bw * scaleY, w, bB.bw * scaleY, 'F'); }
+      if (bL.rgb) { pdf.setFillColor(bL.rgb[0], bL.rgb[1], bL.rgb[2]); pdf.rect(x, y, bL.bw * scaleX, h, 'F'); }
+      if (bR.rgb) { pdf.setFillColor(bR.rgb[0], bR.rgb[1], bR.rgb[2]); pdf.rect(x + w - bR.bw * scaleX, y, bR.bw * scaleX, h, 'F'); }
     }
 
     // ── SVG subtree → vector region ───────────────────────────────────────────

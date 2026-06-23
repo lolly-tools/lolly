@@ -17,6 +17,7 @@ import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
 import { colorFieldHtml, wireColorField, setSwatches } from '../components/color-field.js';
 import { canSkipInputsRebuild } from './inputs-sync.js';
+import { exportSizeDriver } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import flatpickr from 'flatpickr';
@@ -1011,6 +1012,17 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       showCanvasError();
     }
     syncUrl();
+
+    // When a size-driving select changes, set the export dimensions to the chosen
+    // option — so picking "A6 landscape" actually exports an A6-landscape page.
+    if (sizeDriver) {
+      const v = model.find(i => i.id === sizeDriver.id)?.value;
+      if (v !== lastDimsSizeVal) {
+        lastDimsSizeVal = v;
+        const d = sizeDriver.dims[v];
+        if (d) actionsApi?.setDims?.(d);
+      }
+    }
 
     if (pendingAutoExport) {
       pendingAutoExport = false;
@@ -2476,29 +2488,6 @@ function controlHtml(input) {
     default:
       return `<input type="text" data-input-id="${id}" value="${val}" maxlength="${input.maxLength ?? ''}" placeholder="${escape(input.placeholder ?? ' ')}">`;
   }
-}
-
-/**
- * A "size" select can drive the export dimensions: any select input whose options
- * carry width/height (+ optional unit) maps each option value to a physical export
- * size, so choosing e.g. "A6 landscape" actually sets the exported page size — not
- * just the on-canvas proportions. Generic, not tool-specific. Returns
- * { id, dims: { <optionValue>: { width, height, unit } } } or null.
- */
-function exportSizeDriver(manifest) {
-  for (const input of manifest.inputs ?? []) {
-    if (input.type !== 'select' || !Array.isArray(input.options)) continue;
-    const dims = {};
-    let any = false;
-    for (const o of input.options) {
-      if (o && o.width > 0 && o.height > 0) {
-        dims[o.value] = { width: o.width, height: o.height, unit: o.unit || 'mm' };
-        any = true;
-      }
-    }
-    if (any) return { id: input.id, dims };
-  }
-  return null;
 }
 
 // fitCanvas and exportUnscaled are passed in so refreshCanvasPreview and the
