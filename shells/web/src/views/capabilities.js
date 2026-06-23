@@ -81,14 +81,14 @@ const SECTIONS = [
       { icon: ICONS.edit, title: 'Live tool editing', features: [
         { name: 'Split view', desc: 'Controls on one side, a live canvas on the other — change any input and the preview updates instantly.' },
         { name: 'The preview is the file', desc: 'What you see is exactly what exports — no separate render step.' },
-        { name: 'Zoom &amp; pan', desc: 'Cmd/Ctrl-scroll or pinch to zoom; <code>Space</code>-drag or middle-drag to pan; <code>0</code> fit, <code>1</code> = 100%.' },
+        { name: 'Zoom & pan', desc: 'Cmd/Ctrl-scroll or pinch to zoom; <code>Space</code>-drag or middle-drag to pan; <code>0</code> fit, <code>1</code> = 100%.' },
       ] },
       { icon: ICONS.mobile, title: 'On a phone', features: [
         { name: 'Controls sheet', desc: 'The inputs become a sheet with a drag grip that snaps to peek / half / full; the preview stays visible while you edit.' },
         { name: 'Render sheet', desc: 'A floating Render button opens every format, size, copy, save and share control — sized for touch.' },
         { name: 'Touch canvas', desc: 'Pinch to zoom, drag to pan, double-tap to fit.' },
       ] },
-      { icon: ICONS.install, title: 'Install &amp; full-screen', features: [
+      { icon: ICONS.install, title: 'Install & full-screen', features: [
         { name: 'Installable PWA', desc: 'Add to home screen / install from the address bar for an app-like, full-screen experience; updates itself when online.' },
         { name: 'Deep-link modes', desc: '<code>full</code> opens fullscreen (sidebar collapsed); <code>options</code> opens with the export panel expanded.' },
       ] },
@@ -96,7 +96,7 @@ const SECTIONS = [
         { name: 'The URL is the design', desc: 'Every input lives in the link — paste it to a colleague, bookmark it, or commit it.' },
         { name: 'Act-on-open flags', desc: 'Add <code>&amp;export</code> to download on open, or <code>&amp;copy</code> to arm copy-to-clipboard.' },
       ] },
-      { icon: ICONS.save, title: 'Save &amp; continue', features: [
+      { icon: ICONS.save, title: 'Save & continue', features: [
         { name: 'Named sessions', desc: 'Keep multiple saved sessions per tool, all device-local; Continue resumes your most recent.' },
         { name: 'Copy to clipboard', desc: 'Paste an image straight into Slack, email or a doc; falls back to a download where the browser can’t.' },
       ] },
