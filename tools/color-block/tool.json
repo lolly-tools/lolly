@@ -1,7 +1,7 @@
 {
   "id": "color-block",
   "name": "Color Block",
-  "description": "Stack typed colour blocks — heading, text, headshot — and they auto-compose into a grid that fills any frame.",
+  "description": "Stack typed colour blocks — heading, text, headshot, logo — and they auto-compose into a grid that fills any frame.",
   "a11yLabel": "Colour-block composition",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
@@ -20,20 +20,6 @@
   },
   "inputs": [
     {
-      "id": "logo",
-      "label": "Logo",
-      "type": "select",
-      "default": "top-right",
-      "options": [
-        { "value": "none",         "label": "None" },
-        { "value": "top-left",     "label": "Top left" },
-        { "value": "top-right",    "label": "Top right" },
-        { "value": "bottom-left",  "label": "Bottom left" },
-        { "value": "bottom-right", "label": "Bottom right" }
-      ],
-      "help": "Drop the SUSE logo in a corner. Mono mark, white or black — chosen automatically from the block behind it."
-    },
-    {
       "id": "blocks",
       "label": "Blocks",
       "type": "blocks",
@@ -50,6 +36,7 @@
             { "value": "body",       "label": "Body text" },
             { "value": "cta",        "label": "Call to action" },
             { "value": "headshot",   "label": "Headshot" },
+            { "value": "logo",       "label": "Logo" },
             { "value": "blank",      "label": "Blank", "repeatable": true }
           ],
           "default": "heading"
@@ -105,38 +92,65 @@
           ]
         },
         {
+          "id": "logoOrient",
+          "label": "Logo lockup",
+          "type": "select",
+          "default": "horizontal",
+          "showFor": ["logo"],
+          "options": [
+            { "value": "horizontal", "label": "Horizontal" },
+            { "value": "stacked",    "label": "Stacked" }
+          ]
+        },
+        {
+          "id": "logoColor",
+          "label": "Logo colour",
+          "type": "select",
+          "default": "mono",
+          "showFor": ["logo"],
+          "options": [
+            { "value": "mono",  "label": "Mono — black / white" },
+            { "value": "green", "label": "Green" }
+          ]
+        },
+        {
           "id": "bgImage",
           "label": "Image",
           "type": "asset",
           "assetType": "raster",
-          "allowUpload": true
+          "allowUpload": true,
+          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
         },
         {
           "id": "bgX",
           "label": "Image X",
           "type": "number",
           "display": "slider",
-          "min": 0, "max": 100, "step": 1, "default": 50
+          "min": 0, "max": 100, "step": 1, "default": 50,
+          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
         },
         {
           "id": "bgY",
           "label": "Image Y",
           "type": "number",
           "display": "slider",
-          "min": 0, "max": 100, "step": 1, "default": 50
+          "min": 0, "max": 100, "step": 1, "default": 50,
+          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
         },
         {
           "id": "bgZoom",
           "label": "Image zoom",
           "type": "number",
           "display": "slider",
-          "min": 100, "max": 400, "step": 1, "default": 100
+          "min": 100, "max": 400, "step": 1, "default": 100,
+          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
         }
       ],
       "default": [
-        { "kind": "heading",    "text": "Build once.",   "bgColor": "#0c322c", "scale": 1, "weight": 700 },
-        { "kind": "subheading", "text": "Ship anywhere.", "bgColor": "#30ba78", "scale": 1, "weight": 400 },
-        { "kind": "blank",      "text": "",              "bgColor": "#90ebcd", "scale": 1, "weight": 400 }
+        { "kind": "logo",       "logoOrient": "horizontal", "logoColor": "mono", "bgColor": "#0c322c", "scale": 1 },
+        { "kind": "heading",    "text": "Build once.",   "bgColor": "#30ba78", "scale": 1, "weight": 700 },
+        { "kind": "subheading", "text": "Ship anywhere.", "bgColor": "#90ebcd", "scale": 1, "weight": 400 },
+        { "kind": "blank",      "text": "",              "bgColor": "#01564a", "scale": 1, "weight": 400 }
       ]
     }
   ]

@@ -3,21 +3,23 @@
 /**
  * color-block hook.
  *
- * Two jobs, both data-only (no DOM — the template's controller owns layout):
+ * One job — compute per-block render data, all data-only (no DOM; the template's
+ * controller owns layout). For each block it derives three parallel arrays the
+ * template applies by index:
  *
- *   1. Resolve the two mono SUSE logo marks (white for dark corners, black for
- *      light) once, cached, and expose them as extras. The controller swaps
- *      between them based on the block actually under the logo's corner.
+ *   - blockBg:   the block's own background colour, or the next SUSE palette
+ *                colour if it set none (so a freshly-added block looks intentional).
+ *   - blockFg:   the user's text-colour override, else black or white — whichever
+ *                has the higher contrast on that background (white over a photo,
+ *                since the image content is unknown).
+ *   - blockLogo: for `logo` blocks only, the URL of the exact SUSE mark — picked
+ *                from orientation (horizontal/stacked) × mono/green, flipping
+ *                positive⇄negative so the mark always contrasts with the cell
+ *                background. The logo is its own grid cell, never an overlay, so
+ *                it can't break or sit on top of the grid.
  *
- *   2. Compute each block's effective background and foreground colour:
- *        - background: the block's own colour, or the next SUSE palette colour
- *          if it set none (so a freshly-added block looks intentional).
- *        - foreground: the user's override, else black or white — whichever has
- *          the higher contrast on that background (white over a photo, since the
- *          image content is unknown).
- *      These land in `blockBg` / `blockFg`, parallel arrays the template applies
- *      by index. Doing it here (not in the controller) means the colours are
- *      correct even where the layout JS can't run.
+ * Doing this here (not in the controller) means the colours and logo are correct
+ * even where the layout JS can't run (CLI / first paint).
  */
 
 // SUSE palette cycled for blocks that haven't picked a background.
@@ -50,47 +52,72 @@ function inkFor(bgHex) {
   return contrast(l, dl) >= contrast(l, ll) ? INK_DARK : INK_LIGHT;
 }
 
-// Module-scoped cache so logo assets resolve once, not on every keystroke.
+// Every SUSE mark this tool can place: orientation × tone. `neg` is the dark-
+// background (light) variant, `pos` the light-background (dark) one.
+const LOGO_ASSET_IDS = [
+  'suse/logo/hor-neg-white',  'suse/logo/hor-pos-black',
+  'suse/logo/hor-neg-green',  'suse/logo/hor-pos-green',
+  'suse/logo/vert-neg-white', 'suse/logo/vert-pos-black',
+  'suse/logo/vert-neg-green', 'suse/logo/vert-pos-green',
+];
+
+// Module-scoped cache so the logo assets resolve once, not on every keystroke.
 let logoCache;
 async function resolveLogos() {
   if (logoCache) return logoCache;
+  logoCache = {};
   try {
-    const [white, black] = await Promise.all([
-      host.assets.get('suse/logo/hor-neg-white'),
-      host.assets.get('suse/logo/hor-pos-black'),
-    ]);
-    logoCache = { logoWhite: white, logoBlack: black };
+    const refs = await Promise.all(LOGO_ASSET_IDS.map(id => host.assets.get(id)));
+    LOGO_ASSET_IDS.forEach((id, i) => { logoCache[id] = refs[i]; });
   } catch (e) {
     host.log('warn', 'color-block: logo assets unavailable', { error: String(e) });
-    logoCache = { logoWhite: null, logoBlack: null };
   }
   return logoCache;
 }
 
-function colours(blocks) {
+// The asset id for a logo block: orientation × tone. Mono → white on a dark
+// background, black on a light one; green stays green but still flips
+// positive⇄negative so it reads against the cell. An image background (should
+// one ever be set) is treated as dark, since the photo's tone is unknown.
+function logoIdFor(block, bg) {
+  const orient = block.logoOrient === 'stacked' ? 'vert' : 'hor';
+  const onDark = !!block.bgImage || inkFor(bg) === INK_LIGHT;
+  const polarity = onDark ? 'neg' : 'pos';
+  if (block.logoColor === 'green') return `suse/logo/${orient}-${polarity}-green`;
+  return `suse/logo/${orient}-${polarity}-${onDark ? 'white' : 'black'}`;
+}
+
+function compute(blocks, logos) {
   const blockBg = [];
   const blockFg = [];
+  const blockLogo = [];
   blocks.forEach((b, i) => {
     const hasImage = !!(b && b.bgImage);
     const bg = (b && String(b.bgColor || '').trim()) || PALETTE[i % PALETTE.length];
     const fg = (b && String(b.fgColor || '').trim()) || (hasImage ? INK_LIGHT : inkFor(bg));
     blockBg.push(bg);
     blockFg.push(fg);
+    if (b && b.kind === 'logo') {
+      const ref = logos[logoIdFor(b, bg)];
+      blockLogo.push(ref ? (ref.url || '') : '');
+    } else {
+      blockLogo.push('');
+    }
   });
-  return { blockBg, blockFg };
+  return { blockBg, blockFg, blockLogo };
 }
 
 async function patch({ model }) {
   const blocksInput = model.find(i => i.id === 'blocks');
   const blocks = Array.isArray(blocksInput?.value) ? blocksInput.value : [];
   const logos = await resolveLogos();
-  return { ...logos, ...colours(blocks) };
+  return compute(blocks, logos);
 }
 
 function onInit(ctx) { return patch(ctx); }
 
 // Recompute only when the blocks themselves change — typing in another control
-// (or moving the logo) leaves the colour arrays intact.
+// leaves the colour / logo arrays intact.
 function onInput(ctx) {
   if (ctx.id === 'blocks') return patch(ctx);
 }
