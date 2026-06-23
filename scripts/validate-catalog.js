@@ -137,6 +137,11 @@ for (const entry of toolsIndex.tools) {
       errors.push(`tools/index.json: "${entry.id}" ${field} "${entry[field]}" ≠ manifest "${manifest[field]}" — run \`npm run build:catalog\``);
     }
   }
+  // Derived flag (mirrors isExportable() / entryFromManifest): keep it honest.
+  const wantExportable = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
+  if (entry.exportable !== wantExportable) {
+    errors.push(`tools/index.json: "${entry.id}" exportable ${entry.exportable} ≠ derived ${wantExportable} — run \`npm run build:catalog\``);
+  }
 }
 // Every tool with a manifest must appear in the index.
 for (const id of toolManifests.keys()) {
