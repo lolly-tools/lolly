@@ -16,6 +16,7 @@ import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabili
 import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
 import { colorFieldHtml, wireColorField, setSwatches } from '../components/color-field.js';
+import { canSkipInputsRebuild } from './inputs-sync.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import flatpickr from 'flatpickr';
@@ -959,8 +960,14 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // deferred render must stay deliberate), and skipped when a ?export is already
   // queued so we don't capture the same page twice on load.
   let pendingAutoPreview = Boolean(previewCfg?.auto) && !autoExport;
+  // The model the sidebar DOM was last built/synced against. syncInputs uses it to
+  // skip the full panel rebuild on a keystroke when the edited field already shows
+  // the new value (see syncInputs). Null until the first render.
+  let prevInputsModel = null;
   runtime.subscribe(({ model, hydrated }) => {
-    if (inputsEl && !_sliderDragging) renderInputs(inputsEl, model, runtime, host, markUserDirty);
+    if (inputsEl && !_sliderDragging) {
+      prevInputsModel = syncInputs(inputsEl, model, prevInputsModel, runtime, host, markUserDirty);
+    }
     contentEl.innerHTML = hydrated;
     if (!hideSidebar) resolveCanvasAnnotations(contentEl);
     // Keep the canvas's accessible summary current when it's a live a11yLabel.
@@ -1066,11 +1073,12 @@ async function fileToRef(file) {
 
 /**
  * Canvas-as-drop-zone for render.layout:"canvas" file utilities. The whole canvas
- * accepts a drag-and-drop file and a click (anywhere that isn't a real control, or
- * a [data-file-pick] affordance) opens the native picker. Listeners live on the
- * stable contentEl container and a hidden <input> parked in viewEl, so they
- * survive the per-render innerHTML swaps of the canvas content. The picked file is
- * written straight into the normal input model — no special-casing downstream.
+ * accepts a drag-and-drop file; a click opens the native picker only via an explicit
+ * [data-file-pick] affordance (the empty-state drop zone and the Replace button both
+ * carry it). Listeners live on the stable contentEl container and a hidden <input>
+ * parked in viewEl, so they survive the per-render innerHTML swaps of the canvas
+ * content. The picked file is written straight into the normal input model — no
+ * special-casing downstream.
  */
 function setupCanvasFileDrop({ viewEl, contentEl, runtime, input, onDirty }) {
   const id = input.id;
@@ -1100,15 +1108,14 @@ function setupCanvasFileDrop({ viewEl, contentEl, runtime, input, onDirty }) {
 
   native.addEventListener('change', () => { load(native.files && native.files[0]); native.value = ''; });
 
-  // Click to pick: an explicit [data-file-pick] affordance always opens the picker.
-  // A click on bare canvas opens it too, but ONLY while empty — once a file is
-  // loaded, stray clicks (selecting a finding, etc.) must not reopen the dialog;
-  // the user replaces via the Replace button or by dropping a new file.
+  // Click to pick: only an explicit [data-file-pick] affordance opens the picker (the
+  // empty-state drop zone and the Replace button both carry it). We deliberately do
+  // NOT treat a click on bare canvas as a pick — the canvas is full-bleed, so the dead
+  // space around the centred drop zone would swallow stray clicks (including near-misses
+  // on the fixed "Tools" return button in the corner) and surprise the user with a file
+  // dialog. Drag-and-drop still covers the whole canvas.
   contentEl.addEventListener('click', (e) => {
-    if (e.target.closest('[data-file-pick]')) { native.click(); return; }
-    if (e.target.closest('button, a, input, select, textarea, label')) return;
-    if (runtime.getModel().find(i => i.id === id)?.value) return;
-    native.click();
+    if (e.target.closest('[data-file-pick]')) native.click();
   });
 
   // Drag-and-drop over the whole canvas. A depth counter tracks enter/leave across
@@ -1657,6 +1664,20 @@ function focusSidebarBlock(blocksEl, index) {
     const end = field.value?.length ?? 0;
     try { field.setSelectionRange(end, end); } catch { /* non-text field */ }
   }
+}
+
+/**
+ * Reflect a model change in the sidebar with the least work. renderInputs()
+ * rebuilds the whole panel's innerHTML and re-wires every listener (and
+ * destroys/recreates each flatpickr) — necessary on first render or a structural
+ * change, but pure waste on a keystroke, where the only change is a value the
+ * edited field already shows. In that case (canSkipInputsRebuild) the rebuild is
+ * skipped entirely. Returns the model to remember as the new baseline.
+ */
+function syncInputs(el, model, prevModel, runtime, host, onDirty) {
+  if (canSkipInputsRebuild(el, model, prevModel)) return model;
+  renderInputs(el, model, runtime, host, onDirty);
+  return model;
 }
 
 function renderInputs(el, model, runtime, host, onDirty) {
