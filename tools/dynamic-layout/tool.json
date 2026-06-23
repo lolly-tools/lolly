@@ -25,14 +25,18 @@
       "type": "select",
       "default": "white",
       "options": [
-        { "value": "pine",      "label": "Pine" },
-        { "value": "jungle",    "label": "Jungle" },
-        { "value": "mint",      "label": "Mint" },
-        { "value": "forest",    "label": "Forest" },
-        { "value": "midnight",  "label": "Midnight" },
-        { "value": "white",     "label": "White" }
+        { "value": "pine",   "label": "Pine" },
+        { "value": "jungle", "label": "Jungle" },
+        { "value": "white",  "label": "White" }
       ],
       "help": "On-brand SUSE colour combinations for the card, text and call-to-action."
+    },
+    {
+      "id": "fgColor",
+      "label": "Text colour",
+      "type": "color",
+      "default": "",
+      "help": "Optional. Overrides the colour of the text and button outline (everything that follows currentColor). Leave unset to use the theme's foreground."
     },
     {
       "id": "heading",

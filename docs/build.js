@@ -14,6 +14,7 @@ const outDir = resolve(repoRoot, 'shells/web/public/info');
 // Canonical site origin — used for absolute URLs in social/Open Graph tags.
 // Social crawlers (Slack, X, Facebook, LinkedIn, iMessage) require absolute og:image URLs.
 const SITE_URL = 'https://lolly.tools';
+const REPO_URL = 'https://github.com/lolly-tools/lolly';
 const OG_IMAGE = `${SITE_URL}/og.png`;
 const OG_LOGO = `${SITE_URL}/info/icon-normal.png`;
 const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating on-brand creative assets at scale.';
@@ -604,7 +605,7 @@ ${whatsLines.length ? `<section class="whats-a-tool">
 <section class="everywhere-section">
   <div class="everywhere-inner reveal">
     <div class="everywhere-copy-col">
-      <h2>Everywhere,<br>on anything</h2>
+      <h2>All of it,<br>as you are,<br>on anything</h2>
       <p class="everywhere-copy">Run offline on your device, be always available hosted online, you decide.<br>Lolly are built to be distributed to those who need them.</p>
       <div class="everywhere-chips">
         ${SURFACES.map(s => `<span class="everywhere-chip">${s.icon}<span>${esc(s.label)}</span></span>`).join('')}
@@ -1369,7 +1370,7 @@ function buildNav(activeHref, isLanding) {
 <div class="nav-mobile-menu" id="navMobileMenu">${mobileLinks}<a href="/" class="nav-launch">Launch App ↗</a></div>`;
 }
 
-const FOOTER = `<footer><p>Lolly — Open Source</p></footer>`;
+const FOOTER = `<footer><p>Lolly — <a href="${REPO_URL}">Open Source</a></p></footer>`;
 
 function wrapPage(page, content) {
   const activeHref = page.slug === 'index' ? '/info/index.html' : `/info/${page.slug}.html`;

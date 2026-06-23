@@ -47,9 +47,6 @@
    is the foreground that sits on the accent block; --scrim tints a photo. */
 .dl-pine      { background: #0c322c; color: #ffffff; --accent: #30ba78; --accent-fg: #0c322c; --muted: #90ebcd; --scrim: #0c322c; }
 .dl-jungle    { background: #30ba78; color: #0c322c; --accent: #0c322c; --accent-fg: #ffffff; --muted: #01564a; --scrim: #30ba78; }
-.dl-mint      { background: #90ebcd; color: #0c322c; --accent: #0c322c; --accent-fg: #90ebcd; --muted: #01564a; --scrim: #90ebcd; }
-.dl-forest    { background: #01564a; color: #ffffff; --accent: #90ebcd; --accent-fg: #01564a; --muted: #30ba78; --scrim: #01564a; }
-.dl-midnight  { background: #192072; color: #ffffff; --accent: #2453ff; --accent-fg: #ffffff; --muted: #81aefc; --scrim: #192072; }
 .dl-white     { background: #ffffff; color: #0c322c; --accent: #30ba78; --accent-fg: #0c322c; --muted: #4b7a70; --scrim: #ffffff; }
 
 /* ── Background image (photo mode) ── */
@@ -223,7 +220,7 @@
 </style>
 
 <div class="dl-root dl-{{theme}} dl-ctafont-{{ctaTypography}}" id="dl-root"
-     style="--bgx:{{imageFraming.x}}%; --bgy:{{imageFraming.y}}%; --bgzoom:{{imageFraming.zoom}}; --bgoverlay:{{bgOpacity}}; --head-scale:{{headingFontSize}}; --head-weight:{{headingFontWeight}}; --sub-scale:{{subheadingFontSize}}; --sub-weight:{{subheadingFontWeight}}; --text-scale:{{bodyFontSize}}; --text-weight:{{bodyFontWeight}}; --cta-scale:{{ctaFontSize}}; --cta-weight:{{ctaFontWeight}}">
+     style="--bgx:{{imageFraming.x}}%; --bgy:{{imageFraming.y}}%; --bgzoom:{{imageFraming.zoom}}; --bgoverlay:{{bgOpacity}}; --head-scale:{{headingFontSize}}; --head-weight:{{headingFontWeight}}; --sub-scale:{{subheadingFontSize}}; --sub-weight:{{subheadingFontWeight}}; --text-scale:{{bodyFontSize}}; --text-weight:{{bodyFontWeight}}; --cta-scale:{{ctaFontSize}}; --cta-weight:{{ctaFontWeight}};{{#if fgColor}} color:{{fgColor}}; --accent-fg:{{fgColor}};{{/if}}">
 
   {{#if bgImage}}
   <div class="dl-bg flt-{{imageFilter}}"><img src="{{asset bgImage}}" alt=""></div>
@@ -250,7 +247,7 @@
     </div></div>
   </div>
 
-  {{#if brandLogo}}<img class="dl-logo dl-logo-{{logo}}" src="{{asset brandLogo}}" alt="SUSE logo">{{/if}}
+  {{#if brandLogo}}<img class="dl-logo dl-logo-{{logo}}" data-corner="{{logo}}" src="{{asset brandLogo}}" alt="SUSE logo">{{/if}}
 </div>
 
 <script>
@@ -259,26 +256,49 @@
   if (!root) return;
   var feature = document.getElementById('dl-feature');
   var content = document.getElementById('dl-content');
+  var logo = root.querySelector('.dl-logo');   // null when no corner logo is set
 
   function hasContent(panel) {
     var fit = panel && panel.querySelector('.dl-fit');
     return !!(fit && (fit.querySelector('img') || fit.textContent.trim().length));
   }
 
-  // Binary-search the font-size so the block's stack fills its space without
-  // overflowing — short copy goes large, long copy shrinks. One size scales the
-  // whole stack, so the per-element em ratios (and the size knobs) hold.
-  function fitText(box, fit) {
-    var maxH = box.clientHeight, maxW = box.clientWidth;
-    if (maxH <= 0 || maxW <= 0) return;
-    function fits(s) { fit.style.fontSize = s + 'px'; return fit.scrollHeight <= maxH && fit.scrollWidth <= maxW; }
-    var lo = 6, hi = Math.max(maxH, maxW);
+  // Which panel owns the logo's corner, and which edges it sits on. A corner of
+  // the canvas always belongs to whichever panel touches that edge — feature is
+  // left (wide) or top (tall); content is the opposite — so pinning the logo into
+  // that panel reproduces a true canvas-corner position while letting that panel's
+  // own content reflow to clear it. Returns null when there's nothing to reflow.
+  function logoOwner() {
+    if (!logo) return null;
+    var corner = logo.getAttribute('data-corner') || 'top-right';
+    var top  = corner.indexOf('top')  === 0;
+    var left = corner.indexOf('left') >= 0;
+    var fEmpty = feature.classList.contains('is-empty');
+    var cEmpty = content.classList.contains('is-empty');
+    if (fEmpty && cEmpty) return null;            // bare photo/colour field — leave on root
+    var panel;
+    if (fEmpty)      panel = content;             // single block: the surviving panel owns it
+    else if (cEmpty) panel = feature;
+    else panel = (root.dataset.orient === 'wide') // both blocks present
+      ? (left ? feature : content)                //  wide: split runs left | right
+      : (top  ? feature : content);               //  tall/photo: split runs top | bottom
+    return { panel: panel, top: top, left: left };
+  }
+
+  // Binary-search the font-size so the block's stack fills the space it's GIVEN
+  // without overflowing — short copy goes large, long copy shrinks. One size
+  // scales the whole stack, so the per-element em ratios (and the size knobs)
+  // hold. availW/availH let the caller carve the logo's band out of the box.
+  function fitText(fit, availW, availH) {
+    if (availH <= 0 || availW <= 0) return;
+    function fits(s) { fit.style.fontSize = s + 'px'; return fit.scrollHeight <= availH && fit.scrollWidth <= availW; }
+    var lo = 6, hi = Math.max(availH, availW);
     if (fits(hi)) return;
     while (hi - lo > 0.4) { var m = (lo + hi) / 2; if (fits(m)) lo = m; else hi = m; }
     fit.style.fontSize = lo + 'px';
   }
 
-  function fitPanel(panel) {
+  function fitPanel(panel, own) {
     // Spacious, panel-relative padding (scales with the block, not the viewport).
     var pw = panel.clientWidth, ph = panel.clientHeight;
     var pad = Math.round(Math.max(22, Math.min(96, Math.min(pw, ph) * 0.09)));
@@ -288,13 +308,35 @@
     var fit = panel.querySelector('.dl-fit');
     if (!box || !fit) return;
 
+    // Reserve the logo's footprint as a band on its edge, so the auto-fit content
+    // SHRINKS and shifts to clear it instead of sliding underneath. The logo is
+    // pinned flush with the content box (same inset as the text), so the band is
+    // simply the logo's height plus a gap. A margin pushes the centred stack out
+    // of the band; the same amount is removed from the height the fit may use.
+    var band = 0;
+    fit.style.marginTop = '';
+    fit.style.marginBottom = '';
+    if (own && own.panel === panel) {
+      var logoH = Math.max(18, Math.round(Math.min(pw, ph) * 0.10));
+      logo.style.height = logoH + 'px';
+      logo.style.width = 'auto';
+      logo.style.top = logo.style.bottom = logo.style.left = logo.style.right = '';
+      logo.style[own.top  ? 'top'  : 'bottom'] = pad + 'px';
+      logo.style[own.left ? 'left' : 'right']  = pad + 'px';
+      band = logoH + Math.round(logoH * 0.5);
+      fit.style[own.top ? 'marginTop' : 'marginBottom'] = band + 'px';
+    }
+
+    var availW = box.clientWidth;
+    var availH = Math.max(0, box.clientHeight - band);
+
     var hs = fit.querySelector('.dl-headshot');
     if (hs) {
-      var d = Math.max(40, Math.round(Math.min(box.clientWidth, box.clientHeight) * 0.66));
+      var d = Math.max(40, Math.round(Math.min(availW, availH) * 0.66));
       hs.style.width = d + 'px';
       hs.style.height = d + 'px';
     }
-    fitText(box, fit);
+    fitText(fit, availW, availH);
   }
 
   function layout() {
@@ -328,8 +370,21 @@
       root.style.removeProperty('--split');
     }
 
-    if (fHas) fitPanel(feature);
-    if (cHas) fitPanel(content);
+    // Move the logo into the panel that owns its corner so that panel's content
+    // reflows around it; with nothing to reflow it stays on root (positioned by
+    // its corner class) over the bare photo or colour field.
+    var own = logoOwner();
+    if (logo) {
+      var dest = own ? own.panel : root;
+      if (logo.parentNode !== dest) dest.appendChild(logo);
+      if (!own) {                                  // root fallback: drop inline sizing/pinning
+        logo.style.height = logo.style.width = '';
+        logo.style.top = logo.style.bottom = logo.style.left = logo.style.right = '';
+      }
+    }
+
+    if (fHas) fitPanel(feature, own);
+    if (cHas) fitPanel(content, own);
   }
 
   // Lay out now for a fast paint, then again once the SUSE font has loaded so the

@@ -10,6 +10,8 @@ How to build Lolly for each distribution target: standalone CLI binary, desktop 
 - Repo checked out, dependencies installed:
 
 ```bash
+git clone https://github.com/lolly-tools/lolly.git
+cd lolly
 npm install
 ```
 

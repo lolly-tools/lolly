@@ -10,8 +10,7 @@
 
 // Mirror the theme background colours defined in template.html's <style>.
 const THEME_BG = {
-  pine: '#0c322c', jungle: '#30ba78', mint: '#90ebcd', forest: '#01564a',
-  midnight: '#192072', white: '#ffffff',
+  pine: '#0c322c', jungle: '#30ba78', white: '#ffffff',
 };
 
 function relLuminance(hex) {
