@@ -1404,7 +1404,7 @@ background-color:hsl(var(--background) / 1);
 .block-item.is-collapsed .block-collapse svg { transform: rotate(-90deg); }
 
 .block-item.is-collapsed { padding: 0; border-radius: 999px; background: hsl(var(--muted) / 0.5); }
-.block-item.is-collapsed .block-head { margin-bottom: 0; padding: 4px 6px 4px 10px; }
+.block-item.is-collapsed .block-head { margin-bottom: 0; padding:9px 6px 9px 10px;}
 .block-item.is-collapsed .block-fields { display: none; }
 
 /* Pill summary bits — only shown while collapsed. */

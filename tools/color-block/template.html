@@ -157,6 +157,7 @@
   {{#each blocks}}
   <div class="cb-block {{kind}}-block{{#if this.bgImage}} has-img{{/if}}"
        data-kind="{{kind}}"
+       data-canvas-input="blocks:{{@index}}"
        style="background-color:{{lookup ../blockBg @index}}; color:{{lookup ../blockFg @index}}; --scale:{{default this.scale 1}}; --weight:{{default this.weight 400}};">
     {{#if this.bgImage}}<img class="cb-img" src="{{asset this.bgImage}}" alt=""
        style="object-position:{{default this.bgX 50}}% {{default this.bgY 50}}%; transform-origin:{{default this.bgX 50}}% {{default this.bgY 50}}%; transform:scale(calc({{default this.bgZoom 100}} / 100));">{{/if}}
