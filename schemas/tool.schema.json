@@ -283,6 +283,12 @@
                       "items": { "type": "string" },
                       "description": "Render this field only when the block's discriminator value is one of these."
                     },
+                    "multilineFor": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Render a text field as a multi-line textarea (rather than a single-line input) when the block's discriminator value is one of these."
+                    },
+                    "rows": { "type": "integer", "description": "Visible rows for a multi-line text field (see multilineFor). Default 3." },
                     "options": {
                       "type": "array",
                       "description": "Choices for a select sub-field. An option's repeatable:true lets the add-menu offer it more than once.",

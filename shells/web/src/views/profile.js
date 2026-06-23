@@ -66,7 +66,10 @@ export async function mountProfile(viewEl, host, params = '') {
 
   viewEl.innerHTML = `
     <a href="#/" class="tools-home home-full">Tools</a>
-    <a href="#/platform" class="profile-platform-link" aria-label="Platform — brand colours, fonts &amp; global settings">Platform</a>
+    <div class="profile-meta-links">
+      <a href="#/capabilities" class="profile-platform-link" aria-label="Capabilities — the full feature set">Capabilities</a>
+      <a href="#/platform" class="profile-platform-link" aria-label="Platform — brand colours, fonts &amp; global settings">Platform</a>
+    </div>
     <div class="profile-layout">
       <h1 class="visually-hidden">Your profile</h1>
 

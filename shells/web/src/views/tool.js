@@ -1989,6 +1989,16 @@ function controlHtml(input) {
           </div>`, ' block-control--full');
         }
 
+        // A field can opt into a multi-line textarea for specific block kinds
+        // (e.g. body text) via `multilineFor`; other kinds keep the single-line
+        // input. Both carry data-field-id, so the generic commit + focus-restore
+        // handlers below treat them identically.
+        if (Array.isArray(f.multilineFor) && f.multilineFor.includes(typeVal)) {
+          return `<textarea class="block-field block-field--textarea${addMenu ? ' block-field--full' : ''}"
+            data-field-id="${fieldId}" rows="${f.rows ?? 3}"
+            placeholder="${escape(f.placeholder ?? f.label ?? f.id)}"
+            aria-label="${escape(f.label ?? f.id)}">${escape(String(item[f.id] ?? ''))}</textarea>`;
+        }
         return `<input class="block-field${addMenu ? ' block-field--full' : ''}"
           data-field-id="${fieldId}"
           placeholder="${escape(f.placeholder ?? f.label ?? f.id)}"
@@ -2250,7 +2260,10 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const printInitMm  = exportDefaults.bleed ? (parseFloat(exportDefaults.bleed) || 3) : 3;
   // Colour bars default ON for the CMYK print formats (the press uses them as a
   // control strip), OFF for the RGB pdf. An explicit marks default (link/save) wins.
-  const pim          = exportDefaults.marks || { ...DEFAULT_PRINT_MARKS, colorBars: isCmykFmt(initialFmt) };
+  // 'Stamp details' (provenance) is always pre-checked: the credit stamp is on by
+  // default whenever the print-marks card is enabled, regardless of any remembered
+  // marks state. The other marks still restore from saved/linked defaults.
+  const pim          = { ...DEFAULT_PRINT_MARKS, colorBars: isCmykFmt(initialFmt), ...(exportDefaults.marks || {}), provenance: true };
   const printRow = hasPrint ? `
       <div class="export-print" data-printmarks-only style="display:${isPrintFmt(initialFmt) ? 'flex' : 'none'}">
         <label class="print-enable">
