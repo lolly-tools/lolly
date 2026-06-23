@@ -1732,6 +1732,95 @@ background-color:hsl(var(--background) / 1);
   border-color: hsl(var(--destructive));
 }
 
+/* ─── File picker (file-typed inputs for on-device utilities) ────────────── */
+
+.file-picker {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.file-trigger {
+  text-align: left;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px dashed hsl(var(--input));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.file-trigger:hover {
+  border-color: hsl(var(--ring) / 0.5);
+  color: hsl(var(--primary));
+}
+
+.file-chosen {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-family: "SUSE Mono", monospace;
+  color: hsl(var(--muted-foreground));
+}
+
+.file-clear {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.file-clear:hover {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive));
+}
+
+/* ─── "Runs on your device" badge (privacy:'on-device' utilities) ─────────── */
+
+.on-device-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding: 8px 10px;
+  border: 1px solid hsl(var(--primary) / 0.3);
+  border-radius: var(--radius);
+  background: hsl(var(--primary) / 0.06);
+  color: hsl(var(--primary));
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.on-device-badge svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
 /* ─── Tool stage & canvas ───────────────────────────────────────────────── */
 
 .tool-stage {
