@@ -50,8 +50,8 @@ import { isTokenValue, isAlias } from './tokens.js';
 
 const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options']);
 
-// Parse the `marks` param (csv: crop,reg,bleed,bars) into a print-mark toggle map.
-// Returns null when absent so callers fall back to their own defaults.
+// Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
+// toggle map. Returns null when absent so callers fall back to their own defaults.
 function parseMarks(raw) {
   if (raw == null) return null;
   const set = new Set(String(raw).split(',').map(s => s.trim().toLowerCase()).filter(Boolean));
@@ -60,6 +60,7 @@ function parseMarks(raw) {
     registration: set.has('reg') || set.has('registration'),
     bleed:        set.has('bleed'),
     colorBars:    set.has('bars') || set.has('colorbars'),
+    provenance:   set.has('prov') || set.has('provenance'),
   };
 }
 

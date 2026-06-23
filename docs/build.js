@@ -1295,14 +1295,12 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
     c.arcTo(x,y,x+r,y,r);c.closePath();
   }
 
-  // Blit a chip sprite with a soft, centred drop shadow. The shadow stands in for
-  // the old chip border so overlapping chips read apart; the canvas blends 'normal'
-  // (a dark shadow would vanish under color-dodge). Per-frame shadowBlur is the
-  // cost; if we keep this, bake the shadow into the sprite once in makeChip.
+  // Blit a chip sprite. No drop shadow: per-frame shadowBlur forces a separate blur
+  // pass on every chip every frame, which dominated the hero's render cost. The
+  // chips' solid fill already occludes cleanly, so overlapping chips still read apart.
   function drawChip(c,alpha){
     ctx.save();
     ctx.translate(c.x,c.y); ctx.rotate(c.rot); ctx.globalAlpha=alpha;
-    ctx.shadowColor='#0a2823'; ctx.shadowBlur=8; ctx.shadowOffsetX=0; ctx.shadowOffsetY=0;
     ctx.drawImage(c.spr,-c.w/2,-c.h/2,c.w,c.h);
     ctx.restore();
   }

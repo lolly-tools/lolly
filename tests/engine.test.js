@@ -12,6 +12,7 @@ import { validateManifest } from '../engine/src/validate.js';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.js';
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.js';
 import { hydrate, annotateTemplate } from '../engine/src/template.js';
+import { createRuntime } from '../engine/src/runtime.js';
 
 // ─── validate ──────────────────────────────────────────────────────────────
 
@@ -385,4 +386,98 @@ test('template: missing values render empty in if-blocks', () => {
     {},
   );
   assert.equal(out, '<p>empty</p>');
+});
+
+// ─── typed blocks (color-block style) ────────────────────────────────────────
+// Blocks whose sub-fields carry a type (select/asset/number/color), a typed
+// add-menu discriminator, and per-type visibility. These power color-block.
+
+const TYPED_BLOCKS_MANIFEST = {
+  inputs: [
+    {
+      id: 'blocks',
+      type: 'blocks',
+      addMenu: { field: 'kind', label: 'Add block' },
+      fields: [
+        { id: 'kind', type: 'select', options: [{ value: 'heading' }, { value: 'blank', repeatable: true }] },
+        { id: 'text', type: 'text', showFor: ['heading'] },
+        { id: 'bgColor', type: 'color' },
+        { id: 'img', type: 'asset', assetType: 'raster', allowUpload: true },
+        { id: 'scale', type: 'number', display: 'slider', min: 0.3, max: 2.5, default: 1 },
+      ],
+    },
+  ],
+};
+
+test('validate: accepts typed blocks (addMenu, select/asset/number/showFor)', () => {
+  const manifest = {
+    id: 'typed-blocks', name: 'TB', version: '1.0.0', engineVersion: '^1.0.0',
+    status: 'official', render: { width: 800, height: 600, formats: ['png'] },
+    ...TYPED_BLOCKS_MANIFEST,
+  };
+  const { valid, errors } = validateManifest(manifest);
+  assert.equal(valid, true, JSON.stringify(errors));
+});
+
+test('url-mode: decodes typed block sub-fields (asset→ref, color→#, number)', () => {
+  // One row: kind,text,bgColor,img,scale — the asset id's "/" arrives as %2F.
+  const { values } = parseUrlState('blocks=heading,Hi,30ba78,suse%2Flogo%2Fprimary,1.5', TYPED_BLOCKS_MANIFEST);
+  const row = values.blocks[0];
+  assert.equal(row.kind, 'heading');
+  assert.equal(row.text, 'Hi');
+  assert.equal(row.bgColor, '#30ba78');                 // # restored for color fields
+  assert.deepEqual(row.img, { source: 'library', id: 'suse/logo/primary', _unresolved: true });
+  assert.equal(row.scale, '1.5');
+});
+
+test('url-mode: empty asset sub-field decodes to null (no phantom ref)', () => {
+  const { values } = parseUrlState('blocks=blank,,0c322c,,1', TYPED_BLOCKS_MANIFEST);
+  assert.equal(values.blocks[0].img, null);
+});
+
+test('template: each + lookup + eq render typed blocks with parent class', () => {
+  const tpl =
+    '{{#each blocks}}<i class="{{kind}}-block" style="color:{{lookup ../fg @index}}">' +
+    '{{#if (eq kind "heading")}}{{this.text}}{{/if}}</i>{{/each}}';
+  const out = hydrate(tpl, {
+    blocks: [{ kind: 'heading', text: 'Hi' }, { kind: 'blank' }],
+    fg: ['#ffffff', '#0c322c'],
+  });
+  assert.match(out, /class="heading-block" style="color:#ffffff"/);
+  assert.match(out, /heading-block[^>]*>Hi</);
+  assert.match(out, /class="blank-block" style="color:#0c322c"></);  // blank → no text
+});
+
+test('runtime: resolves asset sub-fields inside blocks (CLI/URL parity)', async () => {
+  const tool = {
+    manifest: {
+      id: 'cb', name: 'CB', version: '1.0.0', engineVersion: '^1.0.0', status: 'official',
+      render: { width: 100, height: 100, formats: ['png'] },
+      inputs: [{
+        id: 'blocks', type: 'blocks', fields: [
+          { id: 'kind', type: 'select', options: [{ value: 'a' }] },
+          { id: 'img', type: 'asset', assetType: 'raster' },
+        ],
+      }],
+    },
+    template: '{{#each blocks}}[{{asset this.img}}]{{/each}}',
+  };
+  const fetched = [];
+  const host = {
+    version: '1',
+    profile: { get: async () => ({}) },
+    assets: { get: async (id) => { fetched.push(id); return { id, url: 'blob:' + id }; } },
+    log: () => {},
+  };
+  const rt = await createRuntime(tool, host, {
+    blocks: [
+      { kind: 'a', img: { source: 'library', id: 'suse/logo/primary', _unresolved: true } },
+      { kind: 'a', img: null },
+    ],
+  });
+  const val = rt.getModel().find(i => i.id === 'blocks').value;
+  assert.equal(val[0].img.url, 'blob:suse/logo/primary');   // resolved
+  assert.equal(val[1].img, null);                            // left alone
+  assert.deepEqual(fetched, ['suse/logo/primary']);          // only the real ref fetched
+  assert.match(rt.getHydrated(), /\[blob:suse\/logo\/primary\]\[\]/);  // template sees the url
 });

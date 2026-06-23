@@ -55,6 +55,19 @@
           "default": "heading"
         },
         {
+          "id": "bgColor",
+          "label": "Background",
+          "type": "color",
+          "default": ""
+        },
+        {
+          "id": "fgColor",
+          "label": "Text colour",
+          "type": "color",
+          "default": "",
+          "showFor": ["heading", "subheading", "body", "cta"]
+        },
+        {
           "id": "text",
           "label": "Text",
           "type": "text",
@@ -63,10 +76,17 @@
           "showFor": ["heading", "subheading", "body", "cta"]
         },
         {
-          "id": "bgColor",
-          "label": "Background",
-          "type": "color",
-          "default": ""
+          "id": "ctaStyle",
+          "label": "Button style",
+          "type": "select",
+          "default": "none",
+          "showFor": ["cta"],
+          "options": [
+            { "value": "none",  "label": "None — plain text" },
+            { "value": "arrow", "label": "Arrow →" },
+            { "value": "pill",  "label": "Pill" },
+            { "value": "caret", "label": "Caret _" }
+          ]
         },
         {
           "id": "bgImage",
@@ -95,13 +115,6 @@
           "type": "number",
           "display": "slider",
           "min": 100, "max": 400, "step": 1, "default": 100
-        },
-        {
-          "id": "fgColor",
-          "label": "Text colour",
-          "type": "color",
-          "default": "",
-          "showFor": ["heading", "subheading", "body", "cta"]
         },
         {
           "id": "scale",

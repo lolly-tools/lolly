@@ -36,6 +36,8 @@ export const PRINT_MARK_DEFAULTS = {
   barPairGapPt: 6,     // gap between brand RGB/CMYK swatch pairs
   barGroupGapPt: 18,   // wider gap between the process primaries and the brand pairs
   barMaxCells: 12,     // flat ceiling on brand colour-bar cells (width is the real cap)
+  labelSizePt: 6,      // provenance / credit text size (points)
+  labelInsetPt: 5,     // provenance text inset from the page edge
 };
 
 // Colour-bar cells as CMYK (0–1): the four process primaries, the three
@@ -59,7 +61,7 @@ export function cmykToRgbApprox([c, m, y, k]) {
  * @param {number} o.trimWpt  trim (design) width in points
  * @param {number} o.trimHpt  trim (design) height in points
  * @param {number} [o.bleedPt=0]  bleed on each edge, in points
- * @param {object} [o.marks]   { crop, registration, bleed, colorBars } booleans
+ * @param {object} [o.marks]   { crop, registration, bleed, colorBars, provenance } booleans
  * @param {Array<{rgb:number[],cmyk:number[],label?:string}>} [o.palette]
  *   Brand swatches (rgb & cmyk both 0–1). When supplied with colorBars, the bar
  *   becomes one RGB reference cell beside its CMYK substitution per colour, so a
@@ -74,14 +76,15 @@ export function cmykToRgbApprox([c, m, y, k]) {
  *     lines:   Array<{x1,y1,x2,y2,mark}>,                  // crop | bleed | registration
  *     circles: Array<{cx,cy,r,mark}>,                      // registration (stroked)
  *     bars:    Array<{x,y,w,h,cmyk,rgb,ink,label,mark}>,   // colorbar (filled); ink = rgb|cmyk|page
+ *     labels:  Array<{slot,x,y,size,rotation,align,mark}>, // provenance anchors; shell supplies the text
  *   }
  * }}
  */
 export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palette = [] }) {
-  const m = { crop: false, registration: false, bleed: false, colorBars: false, ...marks };
-  const { markLengthPt: L, markReachPt: R, regRadiusPt: rr, regCrossPt: rc, barCellPt: bc, barPairGapPt: bg, barGroupGapPt: bgap, barMaxCells: bmax } = PRINT_MARK_DEFAULTS;
+  const m = { crop: false, registration: false, bleed: false, colorBars: false, provenance: false, ...marks };
+  const { markLengthPt: L, markReachPt: R, regRadiusPt: rr, regCrossPt: rc, barCellPt: bc, barPairGapPt: bg, barGroupGapPt: bgap, barMaxCells: bmax, labelSizePt: ls, labelInsetPt: li } = PRINT_MARK_DEFAULTS;
 
-  const anyMark = m.crop || m.registration || m.bleed || m.colorBars;
+  const anyMark = m.crop || m.registration || m.bleed || m.colorBars || m.provenance;
   const reach = anyMark ? R : 0;            // margin band beyond the bleed for marks
   const M = bleedPt + reach;                // total margin on each edge
   const pageW = trimWpt + 2 * M;
@@ -95,7 +98,7 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
   const trimL = trim.x, trimT = trim.y, trimR = trim.x + trim.w, trimB = trim.y + trim.h;
   const bL = bleed.x, bT = bleed.y, bR = bleed.x + bleed.w, bB = bleed.y + bleed.h;
 
-  const lines = [], circles = [], bars = [];
+  const lines = [], circles = [], bars = [], labels = [];
   const line = (x1, y1, x2, y2, mark) => lines.push({ x1, y1, x2, y2, mark });
 
   // Crop (trim) marks — ticks aligned to the trim edges, sitting beyond the bleed.
@@ -171,11 +174,26 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
     }
   }
 
+  // Provenance labels — small credit text living in the proof margin (the white
+  // reach band; trimmed off at the final cut, like the marks). Anchors only: the
+  // engine fixes where/orientation, the shell supplies the strings and measures
+  // them for right-alignment. `align` is along the (post-rotation) baseline.
+  if (m.provenance && reach > 0) {
+    // Top edge, horizontal, baselines near the page top (above the crop ticks,
+    // clear of the centred top mark): the timestamp left-aligned at the artwork
+    // (bleed) left edge, the platform credit right-aligned at the right edge.
+    labels.push({ slot: 'topLeft',  x: bL, y: li + ls, size: ls, rotation: 0, align: 'left',  mark: 'label' });
+    labels.push({ slot: 'topRight', x: bR, y: li + ls, size: ls, rotation: 0, align: 'right', mark: 'label' });
+    // Bottom-left, reading upward (90° CCW): starts low in the left margin band
+    // and climbs — the conventional spot for a tool/author credit.
+    labels.push({ slot: 'bottomLeftUp', x: reach / 2, y: bB, size: ls, rotation: 90, align: 'left', mark: 'label' });
+  }
+
   return {
     page: { w: pageW, h: pageH },
     boxes: { media, bleed, trim },
     artwork: { ...bleed },
     strokeWeight: PRINT_MARK_DEFAULTS.markStrokePt,
-    primitives: { lines, circles, bars },
+    primitives: { lines, circles, bars, labels },
   };
 }

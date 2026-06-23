@@ -12,6 +12,13 @@
   font-weight: 900;
   font-display: swap;
 }
+/* SUSE Mono — used by the 'caret' call-to-action style. */
+@font-face {
+  font-family: 'SUSE Mono';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSEMono[wght].woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-display: swap;
+}
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -94,15 +101,30 @@
 .body-block       .cb-text { font-weight: var(--weight, 400); line-height: 1.4; }
 
 .cta-block .cb-content { align-items: flex-start; }
-.cta-block .cb-cta {
+/* Base CTA is plain text — no box. The style sub-field opts into the rest. */
+.cb-cta {
   display: inline-flex; align-items: center;
   font-weight: var(--weight, 600);
+  line-height: 1; white-space: nowrap;
+}
+/* arrow — append a trailing arrow, otherwise plain text. */
+.cb-cta.cta-arrow::after { content: ' \2192'; }
+/* pill — outlined rounded button (the former default). */
+.cb-cta.cta-pill {
   border: solid currentColor;
   border-width: calc(var(--weight, 600) / 100 * 0.45px + 1px);
   border-radius: 999px;
   padding: 0.5em 1.1em;
-  line-height: 1; white-space: nowrap;
 }
+/* caret — terminal prompt: near-black box, white SUSE Mono, brand-green cursor. */
+.cb-cta.cta-caret {
+  font-family: 'SUSE Mono', ui-monospace, SFMono-Regular, monospace;
+  background: #0c322c;
+  color: #ffffff;
+  padding: 0.4em 0.7em;
+  border-radius: 3px;
+}
+.cb-cta.cta-caret::after { content: ' _'; color: #30ba78; font-weight: 700; }
 
 /* Headshot: the block's image, centred as a circle and sized by scale. */
 .headshot-block { align-items: center; justify-content: center; }
@@ -141,7 +163,7 @@
     {{#if (eq kind "heading")}}<div class="cb-content"><span class="cb-text">{{arrow this.text}}</span></div>{{/if}}
     {{#if (eq kind "subheading")}}<div class="cb-content"><div class="cb-text">{{{markdown (arrow this.text)}}}</div></div>{{/if}}
     {{#if (eq kind "body")}}<div class="cb-content"><div class="cb-text">{{{markdown this.text}}}</div></div>{{/if}}
-    {{#if (eq kind "cta")}}<div class="cb-content"><span class="cb-text cb-cta">{{arrow this.text}}</span></div>{{/if}}
+    {{#if (eq kind "cta")}}<div class="cb-content"><span class="cb-text cb-cta cta-{{default this.ctaStyle "none"}}">{{arrow this.text}}</span></div>{{/if}}
   </div>
   {{/each}}
 

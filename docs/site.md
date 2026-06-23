@@ -108,7 +108,7 @@ Every time someone uploads a file to a third-party service to "just make it look
 - **Reduce vendor surface area.** One open-source platform replaces a sprawl of SaaS subscriptions for creative production. Fewer vendors means fewer contracts, fewer audits, and fewer breach vectors.
 - **Enforce brand governance at the infrastructure level.** Tools are authored once and distributed as data — not files, not manual processes. What goes out the door is exactly what was approved to go out the door.
 - **Get critical information into human-readable formats instantly.** Incident communications, compliance reports, executive briefings — structured data becomes publication-quality output in seconds, no design bottleneck.
-- **Service Automations and Humanans** weather it's always-on report that requires exceptional graphical finish, or your workforce needing customization on the go, it's the same delivery.  Humans get a great mobile or desktop UI to experience, robots get a clean deterministic layer to surface value.
+- **Automations and Humanans**  It can be an always-on report that requires exceptional graphical finish, or your workforce needing customization on the go, it's the same delivery.  Humans get a great mobile or desktop UI to experience, robots get a clean deterministic layer to surface value.
 
 ---
 
