@@ -608,7 +608,7 @@ ${whatsLines.length ? `<section class="whats-a-tool">
   <div class="everywhere-inner reveal">
     <div class="everywhere-copy-col">
       <h2>All of it,<br>as you are,<br>on anything</h2>
-      <p class="everywhere-copy">Run offline on your device, be always available hosted online, you decide.<br>Lolly are built to be distributed to those who need them.</p>
+      <p class="everywhere-copy">Run offline on your device, be always available hosted online, you decide.<br>Lolly Tools can be available.</p>
       <div class="everywhere-chips">
         ${SURFACES.map(s => `<span class="everywhere-chip">${s.icon}<span>${esc(s.label)}</span></span>`).join('')}
       </div>

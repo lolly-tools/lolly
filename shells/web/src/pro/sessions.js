@@ -13,7 +13,7 @@
  * which never collide with this prefix). Keep this module free of DOM/view
  * concerns so the whole /pro feature stays removable in one folder.
  */
-import { getTool } from './render-export.js';
+import { getTool, isExportable } from './render-export.js';
 
 // Distinctive prefix; single-tool slots are `<toolId>:<timestamp>` so they
 // never start with this. NOTE: gallery.js duplicates this literal (it must not
@@ -55,8 +55,12 @@ export function snapshotFromState(state) {
 
 /**
  * Rebuild live rows from a snapshot, reloading each row's manifest (same path
- * the CSV import uses). A row whose tool no longer loads is kept but cleared to
- * an empty row rather than dropped, so positions stay stable.
+ * the CSV import uses). A row whose tool no longer loads — OR is no longer
+ * batch-renderable (a render-only / on-device utility, now hidden from the
+ * picker) — is kept but cleared to an empty row rather than dropped, so positions
+ * stay stable. Clearing (rather than leaving a dead toolId) keeps the grid honest:
+ * the template cell would otherwise read as blank while the row still contributed
+ * orphan columns and got silently skipped at render.
  *
  * @param {object} data        snapshot produced by snapshotFromState
  * @param {object} deps
@@ -76,7 +80,9 @@ export async function rowsFromSnapshot(data, { newRow }) {
     if (r.dpi) row.dpi = r.dpi;
     if (r.height) row.height = r.height;
     try {
-      row.manifest = (await getTool(r.toolId)).manifest;
+      const manifest = (await getTool(r.toolId)).manifest;
+      if (isExportable(manifest)) row.manifest = manifest;
+      else { row.toolId = ''; row.manifest = null; }
     } catch {
       row.toolId = '';
       row.manifest = null;
