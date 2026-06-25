@@ -186,6 +186,7 @@
   var showNameInPin = '{{_showNameInPin}}' === 'yes';
   var hideCity      = '{{_hideCity}}'      === 'yes';
   var mapZoomIn     = '{{_mapZoom}}';
+  var liveClock     = '{{_liveClock}}'     === 'yes';
 
   if (!meetingTime) {
     var _dn = new Date(); _dn.setDate(_dn.getDate() + 1); _dn.setHours(10, 0, 0, 0);
@@ -363,6 +364,13 @@
     mapEl.innerHTML = '';
     teamEl.innerHTML = '';
 
+    /* Collectors for live-clock ticking — populated as we draw, then replayed by
+       update() on each tick so only the time-dependent bits change (no full
+       redraw → no flicker, zoom/pan preserved). */
+    var nightSel     = null;
+    var pinUpdaters  = [];
+    var timeUpdaters = [];
+
     var W = mapEl.clientWidth  || 1920;
     var H = mapEl.clientHeight || 760;
 
@@ -414,13 +422,15 @@
     }
 
     /* Night overlay */
-    if (showNight && refDate) {
-      var sub  = subsolarPoint(refDate);
+    function nightPathD(rd) {
+      var sub  = subsolarPoint(rd);
       var nlon = sub[0] >= 0 ? sub[0] - 180 : sub[0] + 180;
+      return path(d3.geoCircle().center([nlon, -sub[1]]).radius(90)());
+    }
+    if (showNight && refDate) {
       try {
-        var nightPoly = d3.geoCircle().center([nlon, -sub[1]]).radius(90)();
-        gMap.append('path').datum(nightPoly)
-          .attr('fill', nightFill).attr('d', path);
+        nightSel = gMap.append('path')
+          .attr('fill', nightFill).attr('d', nightPathD(refDate));
       } catch(e) {}
     }
 
@@ -465,6 +475,9 @@
       var xy = proj([geo.lon, geo.lat]);
       if (!xy) return;
 
+      /* Pin color tracks local time-of-day for member pins (good/early/late),
+         unless the user pinned an explicit color. Host always uses the accent. */
+      var dynamic = !pinColorIn && !isHost;
       var color = pinColorIn
         ? pinColorIn
         : (isHost ? accent : qualColor(geo.tz, refDate));
@@ -473,7 +486,7 @@
       var g = pins.append('g').attr('transform','translate('+xy[0]+','+xy[1]+')');
 
       /* Glow halo */
-      g.append('circle').attr('r', (isHost ? 16 : 10) * ps)
+      var halo = g.append('circle').attr('r', (isHost ? 16 : 10) * ps)
         .attr('fill', color).attr('opacity', isHost ? 0.18 : 0.14);
 
       /* Host outer ring */
@@ -485,7 +498,15 @@
 
       /* Main dot */
       var dotR = (isHost ? 5 : 3.5) * ps;
-      drawShape(g, dotR, color);
+      var dot = drawShape(g, dotR, color);
+
+      if (dynamic) {
+        pinUpdaters.push(function(rd) {
+          var c = qualColor(geo.tz, rd);
+          halo.attr('fill', c);
+          dot.attr('fill', c);
+        });
+      }
 
       /* Label with optional background rect */
       if (cityLabel || (showNameInPin && memberName && !isHost)) {
@@ -540,8 +561,11 @@
     
 
     /* ── Header time / date ──────────────────────────────────────────── */
-    if (timeEl && refDate) timeEl.textContent = fmtTime(hostTz || 'UTC', refDate);
-    if (dateEl && refDate) dateEl.textContent = fmtDate(hostTz || 'UTC', refDate) + (hostTz ? '' : ' (local)');
+    timeUpdaters.push(function(rd) {
+      if (!rd) return;
+      if (timeEl) timeEl.textContent = fmtTime(hostTz || 'UTC', rd);
+      if (dateEl) dateEl.textContent = fmtDate(hostTz || 'UTC', rd) + (hostTz ? '' : ' (local)');
+    });
 
     /* ── Team cards ──────────────────────────────────────────────────── */
     var shown = members.filter(function(m) { return m.geo; });
@@ -551,24 +575,41 @@
       hCard.className = 'mp-card';
       hCard.style.setProperty('--card-color', pinColorIn || accent);
       var hnEl = document.createElement('div'); hnEl.className = 'mp-card-name'; hnEl.textContent = hostCity || 'HOST';
-      var htEl = document.createElement('div'); htEl.className = 'mp-card-time'; htEl.textContent = refDate ? fmtTime(hostGeo.tz, refDate) : '--:--';
-      var hdEl = document.createElement('div'); hdEl.className = 'mp-card-date'; hdEl.textContent = refDate ? fmtDate(hostGeo.tz, refDate) : '';
+      var htEl = document.createElement('div'); htEl.className = 'mp-card-time';
+      var hdEl = document.createElement('div'); hdEl.className = 'mp-card-date';
       hCard.append(hnEl, htEl, hdEl);
       teamEl.appendChild(hCard);
+      timeUpdaters.push(function(rd) {
+        htEl.textContent = rd ? fmtTime(hostGeo.tz, rd) : '--:--';
+        hdEl.textContent = rd ? fmtDate(hostGeo.tz, rd) : '';
+      });
     }
 
     shown.forEach(function(m) {
-      var cardColor = qualColor(m.geo.tz, refDate);
       var card  = document.createElement('div');
       card.className = 'mp-card';
-      card.style.setProperty('--card-color', cardColor);
       var nEl = document.createElement('div'); nEl.className = 'mp-card-name'; nEl.textContent = m.name || m.city;
       var cEl = document.createElement('div'); cEl.className = 'mp-card-city'; cEl.textContent = m.city !== m.name ? m.city : '';
-      var tEl = document.createElement('div'); tEl.className = 'mp-card-time'; tEl.textContent = fmtTime(m.geo.tz, refDate);
-      var dEl = document.createElement('div'); dEl.className = 'mp-card-date'; dEl.textContent = fmtDate(m.geo.tz, refDate);
+      var tEl = document.createElement('div'); tEl.className = 'mp-card-time';
+      var dEl = document.createElement('div'); dEl.className = 'mp-card-date';
       card.append(nEl, cEl, tEl, dEl);
       teamEl.appendChild(card);
+      timeUpdaters.push(function(rd) {
+        card.style.setProperty('--card-color', qualColor(m.geo.tz, rd));
+        tEl.textContent = fmtTime(m.geo.tz, rd);
+        dEl.textContent = fmtDate(m.geo.tz, rd);
+      });
     });
+
+    /* Paint the initial frame from refDate. update() replays the same updaters
+       on each live-clock tick — only the time-dependent attrs/text change. */
+    function update(rd) {
+      if (!alive()) return;
+      if (nightSel) { try { nightSel.attr('d', nightPathD(rd)); } catch(e) {} }
+      pinUpdaters.forEach(function(fn) { fn(rd); });
+      timeUpdaters.forEach(function(fn) { fn(rd); });
+    }
+    update(refDate);
 
     /* ── Zoom + pan behavior ─────────────────────────────────────────── */
     var _applyingZoom = false;
@@ -639,6 +680,8 @@
       window.__mpZoom = null;
       svgRef.transition().duration(300).call(zoomFn.transform, d3.zoomIdentity);
     };
+
+    return update;
   }
 
   /* ── Boot ────────────────────────────────────────────────────────────── */
@@ -665,7 +708,17 @@
 
     Promise.all(tasks).then(function() {
       if (!alive()) return;
-      draw(world, hostGeoResult, memberItems, parseInTz(meetingTime, hostTz), hostTz);
+      /* Live clock: ignore the fixed meeting time and track the current moment,
+         ticking every second so the tool can be left open as a world-clock widget. */
+      var refDate = liveClock ? new Date() : parseInTz(meetingTime, hostTz);
+      var update  = draw(world, hostGeoResult, memberItems, refDate, hostTz);
+      if (liveClock && typeof update === 'function') {
+        var iv = setInterval(function() {
+          if (!alive()) { clearInterval(iv); return; }
+          update(new Date());
+        }, 1000);
+        window.__mpIv.push(iv); /* cleared by the epoch guard on the next render */
+      }
     });
   }
 

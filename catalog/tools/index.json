@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-23T20:14:21.555Z",
+  "generatedAt": "2026-06-25T14:46:08.845Z",
   "tools": [
     {
       "id": "color-block",
@@ -173,8 +173,8 @@
     {
       "id": "text-tools",
       "name": "Text Tools",
-      "description": "Format JSON, decode JWTs, Base64/URL encode, hash text — all on your device, so secrets never leave it.",
-      "version": "1.0.0",
+      "description": "Format JSON & YAML, inventory & lint Helm charts, decode JWTs, Base64/URL encode, hash, and de-identify names, companies & locations — all on your device, so secrets never leave it.",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "exportable": false

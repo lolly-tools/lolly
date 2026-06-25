@@ -8,12 +8,14 @@ function compute(inputs) {
   const labelSize     = +inputs.labelSize || 1;
   const fontSize      = +inputs.fontSize  || 1;
   const showNameInPin = inputs.showNameInPin === true || inputs.showNameInPin === 'true';
+  const liveClock     = inputs.liveClock === true || inputs.liveClock === 'true';
   return {
     // Declared input values — used in HTML markup (attribute values are NOT annotated
     // by the shell so {{theme}} and {{layout}} in class="..." are safe)
     heading:       (inputs.heading || '').trim() || 'Team Meeting',
     hostCity:      (inputs.hostCity || '').trim(),
     meetingTime:   inputs.meetingTime || '',
+    liveClock,
     theme:         inputs.theme || 'dark',
     layout:        inputs.layout || 'landscape',
     projection:    inputs.projection || 'geoNaturalEarth1',
@@ -34,6 +36,7 @@ function compute(inputs) {
     _mapZoom:       (inputs.mapZoom || '').trim(),
     _hostCity:      (inputs.hostCity || '').trim(),
     _meetingTime:   inputs.meetingTime || '',
+    _liveClock:     liveClock ? 'yes' : 'no',
     _theme:         inputs.theme || 'dark',
     _projection:    inputs.projection || 'geoNaturalEarth1',
     _showNight:     showNight     ? 'yes' : 'no',

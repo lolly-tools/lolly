@@ -6,7 +6,7 @@
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "everyone",
-  "tags": ["map", "team", "timezone", "world", "time", "meeting", "schedule", "planner", "d3"],
+  "tags": ["map", "team", "timezone", "world", "time", "meeting", "schedule", "planner", "clock", "widget", "d3"],
   "render": {
     "width": 800,
     "height": 600,
@@ -39,7 +39,14 @@
       "label": "Meeting date & time",
       "type": "datetime-local",
       "default": "",
-      "help": "Local date and time in the host city."
+      "help": "Local date and time in the host city. Ignored while Live clock is on."
+    },
+    {
+      "id": "liveClock",
+      "label": "Live clock",
+      "type": "boolean",
+      "default": false,
+      "help": "Show the current time everywhere and keep ticking — leave it open as a world-clock widget."
     },
     {
       "id": "theme",

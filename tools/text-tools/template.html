@@ -7,14 +7,19 @@
   <nav class="tt-tabs" role="tablist" aria-label="Operation">
     <button class="tt-tab is-active" type="button" role="tab" data-op="text">Text</button>
     <button class="tt-tab" type="button" role="tab" data-op="json">JSON</button>
+    <button class="tt-tab" type="button" role="tab" data-op="yaml">YAML</button>
+    <button class="tt-tab" type="button" role="tab" data-op="helm">Helm</button>
     <button class="tt-tab" type="button" role="tab" data-op="base64">Base64</button>
     <button class="tt-tab" type="button" role="tab" data-op="url">URL</button>
     <button class="tt-tab" type="button" role="tab" data-op="jwt">JWT</button>
     <button class="tt-tab" type="button" role="tab" data-op="hash">Hash</button>
+    <button class="tt-tab" type="button" role="tab" data-op="deident">De-identity</button>
     <button class="tt-tab" type="button" role="tab" data-op="novelty">Novelty</button>
   </nav>
 
   <div class="tt-options" data-tt-options></div>
+
+  <div class="tt-deident" data-tt-deident hidden></div>
 
   <div class="tt-panes" data-tt-panes>
     <section class="tt-pane">
@@ -130,6 +135,29 @@
 .tt-status.ok { color: #2a8c5d; }
 .tt-status.warn { color: #b3322d; }
 .tt-status .tt-pill { display: inline-block; margin-right: 10px; }
+
+/* De-identity entity → alias editor */
+.tt-deident { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 12px 14px; max-height: 232px; overflow: auto; }
+.tt-deident[hidden] { display: none; }
+.tt-di-empty { margin: 0; font-size: 13px; color: #888; text-align: center; padding: 10px; }
+.tt-di-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; flex-wrap: wrap; }
+.tt-di-count { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #999; }
+.tt-di-actions button { appearance: none; border: 1px solid #d8d8d8; background: #fff; color: #555; font: inherit; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; margin-left: 6px; }
+.tt-di-actions button:hover { border-color: #30ba78; color: #2a8c5d; }
+.tt-di-rows { display: flex; flex-direction: column; gap: 6px; }
+.tt-di-row { display: flex; align-items: center; gap: 8px; }
+.tt-di-on { display: inline-flex; }
+.tt-di-on input { width: 16px; height: 16px; accent-color: #30ba78; cursor: pointer; }
+.tt-di-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 999px; flex: 0 0 auto; }
+.tt-di-person { background: #eef4ff; color: #3257a8; }
+.tt-di-org { background: #fdf0e6; color: #a35a1f; }
+.tt-di-location { background: #eafaf2; color: #1f7a4d; }
+.tt-di-orig { flex: 0 0 32%; min-width: 0; font-size: 13px; color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tt-di-orig em { color: #aaa; font-style: normal; font-size: 11px; }
+.tt-di-arrow { color: #bbb; flex: 0 0 auto; }
+.tt-di-alias { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid #d8d8d8; border-radius: 8px; background: #fff; color: #1a1a1a; }
+.tt-di-alias:focus { outline: 2px solid #30ba78; outline-offset: -1px; border-color: #30ba78; }
+@media (max-width: 760px) { .tt-di-orig { flex-basis: 40%; } }
 </style>
 
 <script>
@@ -153,8 +181,13 @@
     url: { dir: 'encode' },
     hash: { algo: 'SHA-256' },
     text: { transform: 'none' },
-    novelty: { kind: 'rot13' }
+    novelty: { kind: 'rot13' },
+    yaml: { mode: 'format' },
+    helm: { mode: 'values' },
+    deident: { dir: 'deid', aliases: {}, types: {}, includes: {}, entities: [] }
   };
+  var deidentEl = root.querySelector('[data-tt-deident]');
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
   // ── pure helpers ─────────────────────────────────────────────────────────
   var enc = new TextEncoder();
@@ -290,12 +323,296 @@
     return { out: out, dir: 'Encoded' };
   }
 
+  // ── YAML: compact common-subset parser + emitter (no library in the sandbox) ─
+  // Handles block maps/seqs, nesting by indent, scalars (plain/quoted/number/bool/
+  // null), flow [..]/{..}, block scalars |/>, comments. NOT: anchors, multi-doc, tags.
+  function yErr(line, msg) { return new Error('Line ' + line.n + ': ' + msg); }
+  function yStripComment(s) {
+    var inS = false, inD = false;
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charAt(i);
+      if (c === "'" && !inD) inS = !inS;
+      else if (c === '"' && !inS) inD = !inD;
+      else if (c === '#' && !inS && !inD && (i === 0 || /\s/.test(s.charAt(i - 1)))) return s.slice(0, i).replace(/\s+$/, '');
+    }
+    return s;
+  }
+  function yIsSeq(t) { return t.charAt(0) === '-' && (t.length === 1 || t.charAt(1) === ' '); }
+  function ySplit(t) {
+    var depth = 0, inS = false, inD = false;
+    for (var i = 0; i < t.length; i++) {
+      var c = t.charAt(i);
+      if (inS) { if (c === "'") inS = false; continue; }
+      if (inD) { if (c === '"') inD = false; continue; }
+      if (c === "'") { inS = true; continue; }
+      if (c === '"') { inD = true; continue; }
+      if (c === '[' || c === '{') depth++;
+      else if (c === ']' || c === '}') depth--;
+      else if (c === ':' && depth === 0 && (i === t.length - 1 || t.charAt(i + 1) === ' '))
+        return { key: t.slice(0, i).replace(/\s+$/, ''), value: t.slice(i + 1).replace(/^\s/, '') };
+    }
+    return null;
+  }
+  function yScalar(s, isKey) {
+    s = s.replace(/^\s+|\s+$/g, '');
+    if (s === '') return null;
+    var q = s.charAt(0);
+    if ((q === '"' || q === "'") && s.charAt(s.length - 1) === q && s.length >= 2) {
+      var b = s.slice(1, -1);
+      return q === '"' ? b.replace(/\\n/g, '\n').replace(/\\t/g, '\t').replace(/\\"/g, '"').replace(/\\\\/g, '\\') : b.replace(/''/g, "'");
+    }
+    if (s.charAt(0) === '[' || s.charAt(0) === '{') return yFlow(s);
+    if (isKey) return s;
+    if (s === 'null' || s === '~' || s === 'Null' || s === 'NULL') return null;
+    if (s === 'true' || s === 'True' || s === 'TRUE') return true;
+    if (s === 'false' || s === 'False' || s === 'FALSE') return false;
+    if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(s)) return Number(s);
+    return s;
+  }
+  function yFlow(s) {
+    var i = 0;
+    function ws() { while (i < s.length && /\s/.test(s.charAt(i))) i++; }
+    function tok(stops) { var st = i; while (i < s.length && stops.indexOf(s.charAt(i)) < 0) i++; return s.slice(st, i).replace(/\s+$/, ''); }
+    function val() {
+      ws(); var c = s.charAt(i);
+      if (c === '[') { i++; var a = []; ws(); if (s.charAt(i) === ']') { i++; return a; } while (i < s.length) { a.push(val()); ws(); if (s.charAt(i) === ',') { i++; continue; } if (s.charAt(i) === ']') { i++; break; } break; } return a; }
+      if (c === '{') { i++; var o = {}; ws(); if (s.charAt(i) === '}') { i++; return o; } while (i < s.length) { ws(); var k = tok(':,}'); ws(); if (s.charAt(i) === ':') i++; o[yScalar(k, true)] = val(); ws(); if (s.charAt(i) === ',') { i++; continue; } if (s.charAt(i) === '}') { i++; break; } break; } return o; }
+      if (c === '"' || c === "'") { var st = i++; while (i < s.length && s.charAt(i) !== c) i++; return yScalar(s.slice(st, ++i), false); }
+      return yScalar(tok(',]}'), false);
+    }
+    return val();
+  }
+  function yBlock(ctx, parent, ind) {
+    var fold = ind.charAt(0) === '>', chomp = /-/.test(ind) ? 'strip' : (/\+/.test(ind) ? 'keep' : 'clip');
+    var bi = -1, parts = [];
+    while (ctx.i < ctx.lines.length) {
+      var l = ctx.lines[ctx.i];
+      if (l.indent <= parent) break;
+      if (bi < 0) bi = l.indent;
+      parts.push(' '.repeat(Math.max(0, l.indent - bi)) + l.text); ctx.i++;
+    }
+    var text = parts.join(fold ? ' ' : '\n');
+    if (chomp === 'strip') return text.replace(/\n+$/, '');
+    if (chomp === 'clip') return text + '\n';
+    return text;
+  }
+  function yNode(ctx, ind) {
+    var l = ctx.lines[ctx.i];
+    if (yIsSeq(l.text)) return ySeq(ctx, ind);
+    if (ySplit(l.text)) return yMap(ctx, ind);
+    ctx.i++; return yScalar(yStripComment(l.text), false);
+  }
+  function yChild(ctx, parent) {
+    if (ctx.i >= ctx.lines.length) return null;
+    var n = ctx.lines[ctx.i];
+    if (n.indent > parent) return yNode(ctx, n.indent);
+    if (n.indent === parent && yIsSeq(n.text)) return ySeq(ctx, parent);
+    return null;
+  }
+  function yMap(ctx, ind) {
+    var o = {};
+    while (ctx.i < ctx.lines.length) {
+      var l = ctx.lines[ctx.i];
+      if (l.indent < ind) break;
+      if (l.indent > ind) throw yErr(l, 'unexpected indentation');
+      if (yIsSeq(l.text)) throw yErr(l, 'list item where a "key:" was expected');
+      var kv = ySplit(l.text);
+      if (!kv) throw yErr(l, 'expected "key: value"');
+      var key = yScalar(kv.key, true); ctx.i++;
+      if (kv.value === '') o[key] = yChild(ctx, ind);
+      else if (kv.value === '|' || kv.value === '>' || /^[|>][-+]?$/.test(kv.value)) o[key] = yBlock(ctx, ind, kv.value);
+      else o[key] = yScalar(yStripComment(kv.value), false);
+    }
+    return o;
+  }
+  function ySeq(ctx, ind) {
+    var a = [];
+    while (ctx.i < ctx.lines.length) {
+      var l = ctx.lines[ctx.i];
+      if (l.indent < ind) break;
+      if (l.indent > ind) throw yErr(l, 'unexpected indentation in list');
+      if (!yIsSeq(l.text)) break;
+      var after = l.text.slice(1).replace(/^\s/, '');
+      if (after === '') { ctx.i++; a.push(yChild(ctx, ind)); continue; }
+      if (yIsSeq(after) || ySplit(after)) { var consumed = l.text.length - after.length; l.text = after; l.indent = ind + consumed; a.push(yNode(ctx, ind + consumed)); }
+      else { ctx.i++; a.push(yScalar(yStripComment(after), false)); }
+    }
+    return a;
+  }
+  function yamlParse(src) {
+    var raw = String(src).split(/\r\n|\r|\n/), lines = [];
+    for (var i = 0; i < raw.length; i++) {
+      var wt = raw[i].replace(/\t/g, '  '), nt = wt.replace(/\s+$/, ''), ct = nt.replace(/^\s+/, '');
+      if (ct === '' || ct.charAt(0) === '#' || ct === '---' || ct === '...') continue;
+      lines.push({ indent: nt.length - ct.length, text: ct, n: i + 1 });
+    }
+    if (!lines.length) return null;
+    var ctx = { i: 0, lines: lines };
+    var v = yNode(ctx, lines[0].indent);
+    if (ctx.i < lines.length) throw yErr(lines[ctx.i], 'unexpected content (anchors, multi-doc & tags are not supported)');
+    return v;
+  }
+  function yNeedQuote(s) {
+    if (s === '') return true;
+    if (/^\s|\s$/.test(s)) return true;
+    if (/^[-?:,\[\]{}#&*!|>'"%@`]/.test(s)) return true;
+    if (/^(true|false|null|yes|no|on|off|~)$/i.test(s)) return true;
+    if (/^[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?$/.test(s)) return true;
+    if (/:\s/.test(s) || /\s#/.test(s) || /:$/.test(s)) return true;
+    return false;
+  }
+  function yEmitScalar(v) {
+    if (v === null || v === undefined) return 'null';
+    if (typeof v === 'boolean') return v ? 'true' : 'false';
+    if (typeof v === 'number') return String(v);
+    var s = String(v);
+    if (s.indexOf('\n') >= 0) return null;
+    return yNeedQuote(s) ? '"' + s.replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"' : s;
+  }
+  function yBlockOut(text, indent) {
+    var pad = '  '.repeat(indent), trail = /\n$/.test(text), body = trail ? text.replace(/\n$/, '') : text;
+    return (trail ? '|' : '|-') + '\n' + body.split('\n').map(function (l) { return pad + l; }).join('\n');
+  }
+  function yamlStringify(value, indent) {
+    indent = indent || 0;
+    var pad = '  '.repeat(indent), lines = [];
+    if (Array.isArray(value)) {
+      if (!value.length) return pad + '[]';
+      var cp = '  '.repeat(indent + 1);
+      value.forEach(function (item) {
+        if (item && typeof item === 'object' && (Array.isArray(item) ? item.length : Object.keys(item).length)) {
+          lines.push(pad + '- ' + yamlStringify(item, indent + 1).slice(cp.length));
+        } else if (item && typeof item === 'object') {
+          lines.push(pad + '- ' + (Array.isArray(item) ? '[]' : '{}'));
+        } else {
+          var sc = yEmitScalar(item);
+          lines.push(pad + '- ' + (sc === null ? yBlockOut(String(item), indent + 1) : sc));
+        }
+      });
+      return lines.join('\n');
+    }
+    if (value && typeof value === 'object') {
+      var keys = Object.keys(value);
+      if (!keys.length) return pad + '{}';
+      keys.forEach(function (k) {
+        var v = value[k], key = yNeedQuote(k) ? '"' + k + '"' : k;
+        if (v && typeof v === 'object' && (Array.isArray(v) ? v.length : Object.keys(v).length)) {
+          lines.push(pad + key + ':'); lines.push(yamlStringify(v, indent + 1));
+        } else if (v && typeof v === 'object') {
+          lines.push(pad + key + ': ' + (Array.isArray(v) ? '[]' : '{}'));
+        } else {
+          var sc = yEmitScalar(v);
+          lines.push(pad + key + ': ' + (sc === null ? yBlockOut(String(v), indent + 1) : sc));
+        }
+      });
+      return lines.join('\n');
+    }
+    return pad + yEmitScalar(value);
+  }
+
+  // ── Helm: Go-template-aware helpers over the YAML above ─────────────────────
+  var HELM_DIR = /\{\{-?[\s\S]*?-?\}\}/g;
+  function helmValues(src) {
+    var refs = {}, m; HELM_DIR.lastIndex = 0;
+    while ((m = HELM_DIR.exec(src))) {
+      var r, re = /\.(Values|Release|Chart|Capabilities|Files|Template)((?:\.[A-Za-z0-9_]+)*)/g;
+      while ((r = re.exec(m[0]))) { var key = '.' + r[1] + r[2]; refs[key] = (refs[key] || 0) + 1; }
+    }
+    return Object.keys(refs).sort();
+  }
+  function helmNeutralise(src) {
+    // Blank directive-only lines (control flow), mask inline directives — preserving
+    // line numbers so a YAML error still points at the user's original line.
+    return src.split(/\r\n|\r|\n/).map(function (line) {
+      if (line.replace(HELM_DIR, '').trim() === '') return '';
+      return line.replace(HELM_DIR, '__helmval__');
+    }).join('\n');
+  }
+
+  // ── De-identity: best-effort on-device entity detection (no model) ──────────
+  var DI_SUFFIX = 'Inc|Incorporated|LLC|Ltd|Limited|GmbH|Corp|Corporation|Co|PLC|AG|SA|BV|NV|Group|Holdings|Technologies|Labs|Systems|Solutions|Partners|Ventures|Capital|Industries|Enterprises|Foundation|Institute|Bank|Software|Networks|Media|Studios|Consulting';
+  var DI_ORG = new RegExp('\\b([A-Z][\\w&.\'-]*(?:\\s+(?:[A-Z][\\w&.\'-]*|of|and|the|&))*)\\s+(' + DI_SUFFIX + ')\\b\\.?', 'g');
+  // A middle initial must carry its dot ("John A. Smith") so it can't eat the first
+  // letter of a following surname ("John Smith" → not "John S" + "mith").
+  var DI_PERSON = /\b(?:Mr|Mrs|Ms|Dr|Prof)\.?\s+[A-Z][a-z]+(?:\s+[A-Z]\.)?(?:\s+[A-Z][a-z]+)*|\b[A-Z][a-z]+(?:\s+[A-Z]\.)?(?:\s+[A-Z][a-z]+){1,2}\b/g;
+  // Capitalised function words that should never *start* a detected name (they're
+  // sentence-initial, not part of the entity).
+  var DI_STOP = { The: 1, A: 1, An: 1, This: 1, That: 1, These: 1, Those: 1, It: 1, He: 1, She: 1, We: 1, They: 1, In: 1, On: 1, At: 1, Of: 1, And: 1, But: 1, Or: 1, For: 1, To: 1, From: 1, With: 1, By: 1, As: 1, If: 1, When: 1, Then: 1, Here: 1, There: 1, Our: 1, Their: 1, His: 1, Her: 1, Its: 1, My: 1, Your: 1, Also: 1, Now: 1, Today: 1, Their: 1 };
+  var DI_LOCS = ['United States', 'United Kingdom', 'New York', 'San Francisco', 'Los Angeles', 'New Delhi', 'Hong Kong', 'Cape Town', 'Tel Aviv', 'Abu Dhabi', 'London', 'Paris', 'Berlin', 'Munich', 'Tokyo', 'Sydney', 'Melbourne', 'Toronto', 'Vancouver', 'Chicago', 'Boston', 'Seattle', 'Austin', 'Denver', 'Dublin', 'Amsterdam', 'Rotterdam', 'Singapore', 'Zurich', 'Geneva', 'Vienna', 'Madrid', 'Barcelona', 'Rome', 'Milan', 'Oslo', 'Stockholm', 'Copenhagen', 'Helsinki', 'Warsaw', 'Prague', 'Lisbon', 'Athens', 'Bangalore', 'Mumbai', 'Shanghai', 'Beijing', 'Seoul', 'Dubai', 'India', 'Germany', 'France', 'Spain', 'Italy', 'Canada', 'Australia', 'Brazil', 'Japan', 'China', 'Mexico', 'Norway', 'Sweden', 'Finland', 'Poland', 'Ireland', 'Portugal', 'Greece', 'Switzerland', 'Austria', 'Netherlands', 'Belgium', 'California', 'Texas', 'Florida', 'Washington', 'Oregon', 'Colorado', 'Bavaria', 'Catalonia'];
+  var DI_LOC = new RegExp('\\b(' + DI_LOCS.map(function (l) { return l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).sort(function (a, b) { return b.length - a.length; }).join('|') + ')\\b', 'g');
+  var DI_PRI = { org: 0, location: 1, person: 2 };
+  var DI_POOL = {
+    person: ['Jane Doe', 'John Smith', 'Alex Kim', 'Sam Lee', 'Maria Garcia', 'Chris Brown', 'Pat Taylor', 'Jordan Park', 'Riley Chen', 'Casey Ng', 'Drew Patel', 'Robin Diaz'],
+    org: ['Acme Corp', 'Globex', 'Initech', 'Umbrella Inc', 'Hooli', 'Soylent Corp', 'Vandelay Industries', 'Cyberdyne', 'Wonka Industries', 'Stark Co'],
+    location: ['Springfield', 'Gotham', 'Metropolis', 'Riverdale', 'Smallville', 'Hill Valley', 'Pawnee', 'Eagleton', 'Bedrock', 'Quahog']
+  };
+  function diDetect(text) {
+    var spans = [];
+    function collect(re, type) {
+      var m; re.lastIndex = 0;
+      while ((m = re.exec(text))) {
+        if (m[0].length === 0) { re.lastIndex++; continue; }
+        var txt = m[0].trim().replace(/\.$/, '');
+        if (type === 'person' && DI_STOP[txt.split(/\s+/)[0].replace(/\.$/, '')]) continue; // "The San Francisco" → not a person
+        spans.push({ start: m.index, end: m.index + m[0].length, text: txt, type: type });
+      }
+    }
+    collect(DI_ORG, 'org'); collect(DI_LOC, 'location'); collect(DI_PERSON, 'person');
+    // Claim spans by priority (org > location > person) so a stray name can't swallow
+    // an overlapping place/company, regardless of which starts first in the text.
+    var taken = [];
+    spans.slice().sort(function (a, b) { return DI_PRI[a.type] - DI_PRI[b.type] || a.start - b.start || (b.end - b.start) - (a.end - a.start); })
+      .forEach(function (sp) {
+        if (!sp.text) return;
+        if (taken.some(function (t) { return sp.start < t.end && sp.end > t.start; })) return;
+        taken.push(sp);
+      });
+    // Group identical surfaces, presented in first-appearance order.
+    taken.sort(function (a, b) { return a.start - b.start; });
+    var order = [], seen = {};
+    taken.forEach(function (sp) {
+      if (!seen[sp.text]) { seen[sp.text] = { text: sp.text, type: sp.type, count: 0 }; order.push(seen[sp.text]); }
+      seen[sp.text].count++;
+    });
+    return order;
+  }
+  function diSuggest(type, idx) { var pool = DI_POOL[type] || DI_POOL.person; return idx < pool.length ? pool[idx] : pool[pool.length - 1] + ' ' + (idx - pool.length + 2); }
+  function diApply(text, pairs) {
+    var active = pairs.filter(function (p) { return p.from && p.to; });
+    if (!active.length) return text;
+    active.sort(function (a, b) { return b.from.length - a.from.length; });
+    var lut = {}; active.forEach(function (p) { lut[p.from] = p.to; });
+    var re = new RegExp('\\b(?:' + active.map(function (p) { return p.from.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }).join('|') + ')', 'g');
+    return text.replace(re, function (m) { return lut[m] != null ? lut[m] : m; });
+  }
+
   // ── operations: each returns { out, status, tone, error } or a Promise ─────
   var ops = {
     json: function (input) {
       var parsed = JSON.parse(input);
       var out = JSON.stringify(parsed, null, state.json.mode === 'minify' ? 0 : 2);
       return { out: out, status: 'Valid JSON · ' + countMembers(parsed) + ' · ' + fmtBytes(enc.encode(out).length), tone: 'ok' };
+    },
+    yaml: function (input) {
+      if (state.yaml.mode === 'toYaml') {
+        var obj = JSON.parse(input);
+        var y = yamlStringify(obj);
+        return { out: y, status: 'JSON → YAML · ' + countMembers(obj), tone: 'ok' };
+      }
+      var parsed = yamlParse(input);
+      if (state.yaml.mode === 'toJson') {
+        return { out: JSON.stringify(parsed, null, 2), status: 'YAML → JSON · ' + countMembers(parsed), tone: 'ok' };
+      }
+      return { out: parsed === null ? '' : yamlStringify(parsed), status: 'Valid YAML · ' + countMembers(parsed) + ' · common-subset parser', tone: 'ok' };
+    },
+    helm: function (input) {
+      if (state.helm.mode === 'values') {
+        var refs = helmValues(input);
+        if (!refs.length) return { out: '', status: 'No .Values / .Release / .Chart references found', tone: 'warn' };
+        return { out: refs.join('\n'), status: refs.length + ' unique reference' + (refs.length === 1 ? '' : 's'), tone: 'ok' };
+      }
+      var parsed = yamlParse(helmNeutralise(input)); // throws → run() shows the error at the original line
+      return { out: input, status: 'Valid structure · ' + countMembers(parsed) + ' · Helm directives neutralised', tone: 'ok' };
     },
     base64: function (input) {
       if (state.base64.dir === 'encode') {
@@ -365,6 +682,9 @@
     else if (activeOp === 'novelty') html = '<label class="tt-opt-label">Novelty <select class="tt-select" data-sel="kind">' +
       [['rot13', 'ROT13'], ['qwerty', 'Qwerty Cipher'], ['emoji', 'Emoji Cipher']]
         .map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === s.kind ? ' selected' : '') + '>' + o[1] + '</option>'; }).join('') + '</select></label>';
+    else if (activeOp === 'yaml') html = seg('mode', s.mode, [['format', 'Format / validate'], ['toJson', 'YAML → JSON'], ['toYaml', 'JSON → YAML']]);
+    else if (activeOp === 'helm') html = seg('mode', s.mode, [['values', 'Values inventory'], ['lint', 'Lint structure']]);
+    else if (activeOp === 'deident') html = seg('dir', s.dir, [['deid', 'De-identify'], ['reid', 'Re-identify']]);
     optionsEl.innerHTML = html;
 
     Array.prototype.forEach.call(optionsEl.querySelectorAll('.tt-seg'), function (segEl) {
@@ -394,9 +714,91 @@
     copyBtn.classList.remove('is-done');
     copyBtn.textContent = 'Copy';
   }
+  // ── de-identity panel (its own UI: an editable entity → alias map) ──────────
+  function deidentMap() {
+    var d = state.deident, out = {};
+    (d.entities || []).forEach(function (e) { if (d.includes[e.text]) out[e.text] = { alias: d.aliases[e.text], type: e.type }; });
+    return out;
+  }
+  function computeDeident(text) {
+    var d = state.deident;
+    var pairs = (d.entities || []).filter(function (e) { return d.includes[e.text]; }).map(function (e) {
+      return d.dir === 'reid' ? { from: d.aliases[e.text], to: e.text } : { from: e.text, to: d.aliases[e.text] };
+    });
+    var out = diApply(text, pairs);
+    var n = pairs.filter(function (p) { return p.from && p.to; }).length;
+    var verb = d.dir === 'reid' ? 'Re-identified' : 'De-identified';
+    setOutput(out, text.trim() ? verb + ' · ' + n + ' alias' + (n === 1 ? '' : 'es') + ' applied · best-effort, edit as needed' : '', 'ok', false);
+  }
+  function renderDeidentPanel(text) {
+    var entities = text.trim() ? diDetect(text) : [];
+    var d = state.deident, counters = { person: 0, org: 0, location: 0 };
+    var nA = {}, nT = {}, nI = {};
+    // Aliases must be unique and never equal an original, so distinct entities never
+    // collapse to the same alias. Preserve any alias the user already set.
+    var origins = {}, used = {};
+    entities.forEach(function (e) { origins[e.text.toLowerCase()] = 1; });
+    entities.forEach(function (e) { if (d.aliases[e.text] != null) used[String(d.aliases[e.text]).toLowerCase()] = 1; });
+    entities.forEach(function (e) {
+      nT[e.text] = e.type;
+      var alias;
+      if (d.aliases[e.text] != null) {
+        alias = d.aliases[e.text];
+      } else {
+        var k = counters[e.type]++;
+        alias = diSuggest(e.type, k);
+        var guard = 0;
+        while ((used[alias.toLowerCase()] || origins[alias.toLowerCase()]) && guard < 60) { alias = diSuggest(e.type, ++k); guard++; }
+        counters[e.type] = k + 1;
+        used[alias.toLowerCase()] = 1;
+      }
+      nA[e.text] = alias;
+      nI[e.text] = d.includes[e.text] != null ? d.includes[e.text] : true;
+    });
+    d.aliases = nA; d.types = nT; d.includes = nI; d.entities = entities;
+    if (!entities.length) {
+      deidentEl.innerHTML = '<p class="tt-di-empty">Paste text on the left — detected names, companies and locations appear here for you to alias.</p>';
+      return;
+    }
+    var rows = entities.map(function (e) {
+      return '<div class="tt-di-row">' +
+        '<label class="tt-di-on"><input type="checkbox" data-di-inc="' + esc(e.text) + '"' + (d.includes[e.text] ? ' checked' : '') + ' aria-label="Replace ' + esc(e.text) + '"></label>' +
+        '<span class="tt-di-type tt-di-' + e.type + '">' + e.type + '</span>' +
+        '<span class="tt-di-orig" title="' + esc(e.text) + '">' + esc(e.text) + (e.count > 1 ? ' <em>×' + e.count + '</em>' : '') + '</span>' +
+        '<span class="tt-di-arrow">→</span>' +
+        '<input class="tt-di-alias" data-di-alias="' + esc(e.text) + '" value="' + esc(d.aliases[e.text]) + '" spellcheck="false" aria-label="Alias for ' + esc(e.text) + '">' +
+        '</div>';
+    }).join('');
+    deidentEl.innerHTML =
+      '<div class="tt-di-head"><span class="tt-di-count">' + entities.length + ' entit' + (entities.length === 1 ? 'y' : 'ies') + ' · best-effort</span>' +
+      '<span class="tt-di-actions"><button type="button" data-di-copy>Copy map</button><button type="button" data-di-export>Download map</button></span></div>' +
+      '<div class="tt-di-rows">' + rows + '</div>';
+    Array.prototype.forEach.call(deidentEl.querySelectorAll('[data-di-alias]'), function (inp) {
+      inp.addEventListener('input', function () { state.deident.aliases[inp.getAttribute('data-di-alias')] = inp.value; computeDeident(inEl.value); });
+    });
+    Array.prototype.forEach.call(deidentEl.querySelectorAll('[data-di-inc]'), function (chk) {
+      chk.addEventListener('change', function () { state.deident.includes[chk.getAttribute('data-di-inc')] = chk.checked; computeDeident(inEl.value); });
+    });
+    deidentEl.querySelector('[data-di-copy]').addEventListener('click', function () {
+      var b = this;
+      navigator.clipboard.writeText(JSON.stringify(deidentMap(), null, 2)).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy map'; }, 1200); }).catch(function () {});
+    });
+    deidentEl.querySelector('[data-di-export]').addEventListener('click', function () {
+      var blob = new Blob([JSON.stringify(deidentMap(), null, 2)], { type: 'application/json' });
+      var a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'alias-map.json';
+      document.body.appendChild(a); a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 100);
+    });
+  }
+  function runDeident() {
+    if (state.deident.dir === 'deid') renderDeidentPanel(inEl.value); // re-detect only when de-identifying; reverse reuses the map
+    computeDeident(inEl.value);
+  }
+
   function run() {
     var input = inEl.value;
     var my = ++runToken;
+    if (activeOp === 'deident') { runDeident(); return; }
     if (!input.trim() && activeOp !== 'text') { setOutput('', '', '', false); return; }
     var result;
     try { result = ops[activeOp](input); }
@@ -414,7 +816,8 @@
     tab.addEventListener('click', function () {
       activeOp = tab.dataset.op;
       tabs.forEach(function (t) { t.classList.toggle('is-active', t === tab); t.setAttribute('aria-selected', t === tab ? 'true' : 'false'); });
-      inLabel.textContent = activeOp === 'jwt' ? 'Token' : 'Input';
+      inLabel.textContent = activeOp === 'jwt' ? 'Token' : activeOp === 'yaml' ? 'YAML' : activeOp === 'helm' ? 'Chart / template' : activeOp === 'deident' ? 'Text' : 'Input';
+      deidentEl.hidden = activeOp !== 'deident';
       renderOptions();
       run();
     });
