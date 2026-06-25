@@ -58,7 +58,7 @@ The CLI renders in a headless DOM (jsdom), so **vector and text** formats — **
 Some tools take **your own file** as input (a `file`-typed input) and hand back a transformed copy — the on-device "utility" shape (strip EXIF, crop, convert). On the CLI, pass the file as a path; the runner loads its bytes:
 
 ```bash
-npm run cli -- exif-stripper --photo=./holiday.jpg --output=./holiday-clean.jpg
+npm run cli -- strip-data --source=./holiday.jpg --output=./holiday-clean.jpg
 ```
 
 These tools produce their output via the `exportFile` transform path (bytes in → bytes out), not a DOM render — so they **ignore `--export`** and there's no render format to choose. The transformed bytes are written to `--output`, or streamed to **stdout** if you omit it. Nothing is ever uploaded; the file is read locally and handed straight back.

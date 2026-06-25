@@ -241,19 +241,19 @@ function buildTextPng() {
   return out;
 }
 
-// Synthesise a tool from the real on-disk exif-stripper files so the actual
+// Synthesise a tool from the real on-disk strip-data files so the actual
 // hook logic (analyze + strip) is what's under test.
-function exifStripperTool() {
+function stripDataTool() {
   return {
-    manifest: JSON.parse(readFileSync(join(ROOT, 'tools/exif-stripper/tool.json'), 'utf8')),
-    hooksSource: readFileSync(join(ROOT, 'tools/exif-stripper/hooks.js'), 'utf8'),
-    template: readFileSync(join(ROOT, 'tools/exif-stripper/template.html'), 'utf8'),
+    manifest: JSON.parse(readFileSync(join(ROOT, 'tools/strip-data/tool.json'), 'utf8')),
+    hooksSource: readFileSync(join(ROOT, 'tools/strip-data/hooks.js'), 'utf8'),
+    template: readFileSync(join(ROOT, 'tools/strip-data/template.html'), 'utf8'),
   };
 }
 
-test('exif-stripper: finds GPS coordinates + camera in a JPEG (onInit analysis)', async () => {
+test('strip-data: finds GPS coordinates + camera in a JPEG (onInit analysis)', async () => {
   const jpeg = buildExifJpeg();
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, {
     source: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
   });
   const html = rt.getHydrated();
@@ -264,7 +264,7 @@ test('exif-stripper: finds GPS coordinates + camera in a JPEG (onInit analysis)'
 
 test('strip-data: a Show-details toggle is present and defaults to OFF (collapsed)', async () => {
   const jpeg = buildExifJpeg();
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, {
     source: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
   });
   const html = rt.getHydrated();
@@ -277,9 +277,9 @@ test('strip-data: a Show-details toggle is present and defaults to OFF (collapse
   assert.match(html, /class="exif-finding-detail"/);
 });
 
-test('exif-stripper: strips APP1/EXIF from a JPEG losslessly (keeps APP0 + scan data)', async () => {
+test('strip-data: strips APP1/EXIF from a JPEG losslessly (keeps APP0 + scan data)', async () => {
   const jpeg = buildExifJpeg();
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, {
     source: fileRef({ name: 'beach.jpg', mime: 'image/jpeg', size: jpeg.length, bytes: jpeg }),
   });
   const { bytes, filename, mime } = await rt.exportFile();
@@ -298,9 +298,9 @@ test('exif-stripper: strips APP1/EXIF from a JPEG losslessly (keeps APP0 + scan 
   assert.ok((() => { for (let i = 0; i < bytes.length - 1; i++) if (bytes[i] === 0xAA && bytes[i + 1] === 0xBB) return true; return false; })());
 });
 
-test('exif-stripper: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', async () => {
+test('strip-data: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', async () => {
   const png = buildTextPng();
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, {
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, {
     source: fileRef({ name: 'art.png', mime: 'image/png', size: png.length, bytes: png }),
   });
   const html = rt.getHydrated();
@@ -317,7 +317,7 @@ test('exif-stripper: removes tEXt chunks from a PNG, keeps IHDR/IDAT/IEND', asyn
 });
 
 // ─── Strip Hidden Data: SVG — real hooks, end-to-end ───────────────────────────
-// The converged tool (exifStripperTool) now also cleans SVG, so these drive the
+// The converged tool (stripDataTool) now also cleans SVG, so these drive the
 // same on-disk tool as the JPEG/PNG cases above.
 
 // An Illustrator/Inkscape-style SVG carrying every kind of cruft the cleaner reports.
@@ -341,7 +341,7 @@ const svgFile = (text, name = 'logo.svg') => {
 };
 
 test('strip-data (svg): reports editor, author, original filename + title (onInit analysis)', async () => {
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: svgFile(DIRTY_SVG) });
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, { source: svgFile(DIRTY_SVG) });
   const html = rt.getHydrated();
   assert.match(html, /Created with/);
   assert.match(html, /Adobe Illustrator 27\.0\.0/);   // generator, with the "SVG Export" tail trimmed
@@ -353,7 +353,7 @@ test('strip-data (svg): reports editor, author, original filename + title (onIni
 });
 
 test('strip-data (svg): strips metadata/comments/editor cruft, keeps the artwork', async () => {
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: svgFile(DIRTY_SVG) });
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, { source: svgFile(DIRTY_SVG) });
   const { bytes, filename, mime } = await rt.exportFile();
   assert.equal(mime, 'image/svg+xml');
   assert.equal(filename, 'logo-clean.svg');
@@ -371,7 +371,7 @@ test('strip-data (svg): strips metadata/comments/editor cruft, keeps the artwork
 
 test('strip-data (svg): a non-SVG file is reported as such and handed back untouched', async () => {
   const original = svgFile('this is not markup at all', 'notes.txt');
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: original });
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, { source: original });
   assert.match(rt.getHydrated(), /doesn't look like a supported image/);
   const { bytes } = await rt.exportFile();
   assert.deepEqual(Array.from(bytes), Array.from(original.bytes)); // byte-for-byte passthrough
@@ -401,7 +401,7 @@ const pdfFile = (bytes, name = 'plan.pdf') =>
 
 test('strip-data (pdf): reports Info-dict metadata via host.pdf (onInit analysis)', async () => {
   const pdf = await buildMetaPdf();
-  const rt = await createRuntime(exifStripperTool(), PDF_HOST, { source: pdfFile(pdf) });
+  const rt = await createRuntime(stripDataTool(), PDF_HOST, { source: pdfFile(pdf) });
   const html = rt.getHydrated();
   assert.match(html, /Author/);
   assert.match(html, /Jane Doe/);            // detail value (CSS-hidden until "Show details")
@@ -413,7 +413,7 @@ test('strip-data (pdf): reports Info-dict metadata via host.pdf (onInit analysis
 
 test('strip-data (pdf): re-saves without metadata, keeps the page', async () => {
   const pdf = await buildMetaPdf();
-  const rt = await createRuntime(exifStripperTool(), PDF_HOST, { source: pdfFile(pdf, 'plan.pdf') });
+  const rt = await createRuntime(stripDataTool(), PDF_HOST, { source: pdfFile(pdf, 'plan.pdf') });
   const { bytes, filename, mime } = await rt.exportFile();
   assert.equal(mime, 'application/pdf');
   assert.equal(filename, 'plan-clean.pdf');
@@ -430,7 +430,7 @@ test('strip-data (pdf): re-saves without metadata, keeps the page', async () => 
 
 test('strip-data (pdf): degrades gracefully when the host has no PDF capability', async () => {
   const pdf = await buildMetaPdf();
-  const rt = await createRuntime(exifStripperTool(), BARE_HOST, { source: pdfFile(pdf) });
+  const rt = await createRuntime(stripDataTool(), BARE_HOST, { source: pdfFile(pdf) });
   assert.match(rt.getHydrated(), /isn't available/i);   // pdfUnavailable branch
   await assert.rejects(() => rt.exportFile(), /available/i);
 });

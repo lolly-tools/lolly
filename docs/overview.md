@@ -131,7 +131,7 @@ lolly/
 │   ├── tool-logo/         # "Logo" — auto-switching brand logo
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
-│   ├── exif-stripper/     # on-device EXIF/metadata strip (file in → clean file out)
+│   ├── strip-data/        # on-device metadata strip — JPEG/PNG/SVG/PDF (file in → clean file out)
 │   ├── lockup/            # opentype.js text-to-path
 │   ├── bag-video/
 │   ├── chart-creator/     # SVG charts from structured data

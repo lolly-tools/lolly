@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-25T14:46:08.845Z",
+  "generatedAt": "2026-06-25T15:05:08.313Z",
   "tools": [
     {
       "id": "color-block",
@@ -162,7 +162,7 @@
       "exportable": true
     },
     {
-      "id": "exif-stripper",
+      "id": "strip-data",
       "name": "Strip Hidden Data",
       "description": "Reveal and remove hidden metadata — GPS, camera, author, editor info — from JPEG, PNG, SVG and PDF. Runs on your device; nothing is uploaded.",
       "version": "1.0.0",
