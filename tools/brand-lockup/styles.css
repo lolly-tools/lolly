@@ -1,0 +1,6 @@
+/* The lockup SVG fills the canvas width; height follows its aspect ratio.
+   Scoped automatically to the tool canvas by the shell. */
+#lockup-svg {
+  margin: 0 auto;
+  max-width: 100%;
+}

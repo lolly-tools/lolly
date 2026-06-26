@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-26T17:41:56.548Z",
+  "generatedAt": "2026-06-26T19:40:19.108Z",
   "tools": [
     {
       "id": "color-block",
@@ -198,6 +198,18 @@
       "version": "1.2.0",
       "status": "official",
       "category": "event",
+      "exportable": true
+    },
+    {
+      "id": "brand-lockup",
+      "name": "Brand Lockup",
+      "description": "Official SUSE logo lockups — chameleon + wordmark + a product, program, or team name, in horizontal or stacked layouts.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "designer",
+      "capabilities": [
+        "wasm"
+      ],
       "exportable": true
     }
   ]

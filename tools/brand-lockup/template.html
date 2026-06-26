@@ -1,0 +1,26 @@
+<svg id="lockup-svg" xmlns="http://www.w3.org/2000/svg"
+     width="{{w}}" height="{{h}}" viewBox="0 0 {{w}} {{h}}"
+     data-surface="{{surface}}"
+     style="display:block;width:100%;height:auto;">
+  {{{inner}}}
+</svg>
+<script>
+/* Size the canvas to the SVG's auto-computed height, and paint a preview-only
+   backdrop (so negative/white lockups stay visible). The backdrop lives on the
+   canvas element, never inside the SVG, so it is never part of the export. */
+(function () {
+  var canvas = document.getElementById('tool-canvas');
+  if (!canvas) return;
+  requestAnimationFrame(function () {
+    var svg = canvas.querySelector('#lockup-svg');
+    if (!svg) return;
+    var h = Math.round(svg.getBoundingClientRect().height);
+    if (h > 0 && parseInt(canvas.style.height, 10) !== h) {
+      canvas.style.height = h + 'px';
+      canvas.dispatchEvent(new CustomEvent('canvas-resize'));
+    }
+    var s = svg.getAttribute('data-surface') || 'transparent';
+    canvas.style.background = (s === 'transparent') ? '' : s;
+  });
+}());
+</script>

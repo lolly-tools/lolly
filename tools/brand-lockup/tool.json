@@ -1,0 +1,94 @@
+{
+  "id": "brand-lockup",
+  "name": "Brand Lockup",
+  "description": "Official SUSE logo lockups — chameleon + wordmark + a product, program, or team name, in horizontal or stacked layouts.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "designer",
+  "tags": ["lockup", "logo", "brand", "chameleon", "wordmark", "product", "program", "team"],
+  "render": {
+    "width": 1200,
+    "height": 1200,
+    "formats": ["svg", "png", "pdf", "emf"],
+    "actions": ["copy", "download", "save"]
+  },
+  "inputs": [
+    {
+      "id": "name",
+      "label": "Name",
+      "type": "text",
+      "required": false,
+      "default": "AI",
+      "help": "The text that follows SUSE — e.g. \"Storage\", \"AI Factory\", or \"Data Team\". Leave blank for the SUSE master logo alone."
+    },
+    {
+      "id": "category",
+      "label": "Type",
+      "type": "select",
+      "default": "product",
+      "help": "Products use the simplest title (e.g. SUSE AI). Programs end in \"Program\"; teams end in \"Team\".",
+      "options": [
+        { "value": "product", "label": "Product" },
+        { "value": "program", "label": "Program" },
+        { "value": "team", "label": "Team" }
+      ]
+    },
+    {
+      "id": "orientation",
+      "label": "Layout",
+      "type": "select",
+      "default": "horizontal",
+      "options": [
+        { "value": "horizontal", "label": "Horizontal" },
+        { "value": "stacked", "label": "Stacked" }
+      ]
+    },
+    {
+      "id": "polarity",
+      "label": "Polarity",
+      "type": "select",
+      "default": "positive",
+      "help": "Positive for light backgrounds; negative for dark backgrounds.",
+      "options": [
+        { "value": "positive", "label": "Positive (light background)" },
+        { "value": "negative", "label": "Negative (dark background)" }
+      ]
+    },
+    {
+      "id": "treatment",
+      "label": "Colour",
+      "type": "select",
+      "default": "colour",
+      "help": "Full colour keeps the chameleon green; monochrome renders everything one colour (black on light, white on dark).",
+      "options": [
+        { "value": "colour", "label": "Full colour" },
+        { "value": "mono", "label": "Monochrome" }
+      ]
+    },
+    {
+      "id": "wrapMode",
+      "label": "Name wrapping",
+      "type": "select",
+      "default": "compact",
+      "help": "Stacked only: how the name wraps under SUSE. Compact stacks each long word; balanced and wide keep more words per line.",
+      "options": [
+        { "value": "compact", "label": "Compact" },
+        { "value": "balanced", "label": "Balanced" },
+        { "value": "wide", "label": "Wide" }
+      ]
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "transparent",
+      "help": "Transparent matches the brand source files. Set a colour to bake a background panel into the export."
+    }
+  ],
+  "capabilities": ["wasm"],
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  }
+}
