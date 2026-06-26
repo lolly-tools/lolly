@@ -1,7 +1,7 @@
 {
   "id": "strip-data",
   "name": "Strip Hidden Data",
-  "description": "Reveal and remove hidden metadata — GPS, camera, author, editor info — from JPEG, PNG, SVG and PDF. Runs on your device; nothing is uploaded.",
+  "description": "Reveal and remove hidden metadata from images and PDFs. Runs on your device; nothing is uploaded.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-25T21:34:17.665Z",
+  "generatedAt": "2026-06-26T14:03:10.680Z",
   "tools": [
     {
       "id": "color-block",
@@ -164,7 +164,7 @@
     {
       "id": "strip-data",
       "name": "Strip Hidden Data",
-      "description": "Reveal and remove hidden metadata — GPS, camera, author, editor info — from JPEG, PNG, SVG and PDF. Runs on your device; nothing is uploaded.",
+      "description": "Reveal and remove hidden metadata from images and PDFs. Runs on your device; nothing is uploaded.",
       "version": "1.0.0",
       "status": "official",
       "category": "utility",
@@ -173,7 +173,7 @@
     {
       "id": "text-helper",
       "name": "Text Helper",
-      "description": "Format JSON & YAML, inventory & lint Helm charts, decode JWTs, Base64/URL encode, hash, and de-identify names, companies & locations — all on your device, so secrets never leave it.",
+      "description": "Format, decode, hash and de-identify text — JSON, YAML, Helm, JWT and more. Runs on your device, so secrets never leave it.",
       "version": "1.1.0",
       "status": "official",
       "category": "utility",
@@ -183,6 +183,15 @@
       "id": "event-name-badge",
       "name": "Event Name Badge",
       "description": "Conference-ready name badges — event logo, name, title, company, a colour-coded attendee status, tracks and an optional QR. Print-correct sizes from A7 up to 4×6 in, portrait or landscape.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "event",
+      "exportable": true
+    },
+    {
+      "id": "wayfinding-signage",
+      "name": "Wayfinding Signage",
+      "description": "On-brand directional signs for events — event logo and name on top, then a list of destinations, each with a SUSE-font arrow (any of eight directions) sitting to the left or right of its label. Print-correct A4 → A1 and US poster sizes, portrait or landscape.",
       "version": "1.0.0",
       "status": "official",
       "category": "event",

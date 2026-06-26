@@ -1,7 +1,7 @@
 {
   "id": "text-helper",
   "name": "Text Helper",
-  "description": "Format JSON & YAML, inventory & lint Helm charts, decode JWTs, Base64/URL encode, hash, and de-identify names, companies & locations — all on your device, so secrets never leave it.",
+  "description": "Format, decode, hash and de-identify text — JSON, YAML, Helm, JWT and more. Runs on your device, so secrets never leave it.",
   "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",

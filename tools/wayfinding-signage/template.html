@@ -1,0 +1,124 @@
+<style>
+/* SUSE variable font — same source the badge / lockup / color-block tools use.
+   The directional glyphs (← ↑ → ↓ ↖ ↗ ↘ ↙) are all present in this font. */
+@font-face {
+  font-family: 'SUSE';
+  src: url('/tools/lockup/src/fonts/webfonts/SUSE[wght].woff2') format('woff2-variations');
+  font-weight: 100 800;
+  font-display: swap;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* The stage fills the canvas; the sign sits centred at its true trim aspect.
+   container-type:size makes every cqmin below scale with the sign, so one set
+   of sizes works across A4 → A1 and both orientations. */
+.way-stage {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  container-type: size;
+  background: transparent;
+  font-family: 'SUSE', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.way {
+  width: 100%; max-width: 100%; max-height: 100%;
+  container-type: size;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  color: var(--ink, #0c322c);
+  border-radius: 2.4cqmin;
+}
+
+.way-accent { flex: none; height: 2.2cqmin; background: var(--accent); }
+
+/* ── Header: logo + event name ── */
+.way-head {
+  flex: none;
+  display: flex; flex-direction: column; align-items: center; gap: 2cqmin;
+  padding: 6cqmin 7cqmin 1cqmin;
+  text-align: center;
+}
+.way-logo { max-width: 62%; max-height: 13cqmin; object-fit: contain; }
+.way-event {
+  font-size: 3cqmin; font-weight: 600; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--muted); line-height: 1.2;
+}
+
+.way-heading {
+  flex: none; text-align: center;
+  font-size: 8.5cqmin; font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+  padding: 2.5cqmin 6cqmin 0; color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* ── Directions: a stack of arrow + label rows ── */
+.way-list {
+  flex: 1; min-height: 0; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 0.5cqmin; padding: 4cqmin 7cqmin 6cqmin;
+}
+.way-row {
+  display: flex; align-items: center; gap: 3.5cqmin;
+  padding: 2.6cqmin 0;
+  border-bottom: 0.3cqmin solid var(--hairline);
+}
+.way-row:last-child { border-bottom: 0; }
+/* Arrow on the left → the row hugs the left edge, reads "← Destination".
+   Arrow on the right → row-reverse flips it to the right edge, "Destination →". */
+.way-row--left  { justify-content: flex-start; text-align: left; }
+.way-row--right { flex-direction: row-reverse; justify-content: flex-start; text-align: right; }
+
+.way-arrow {
+  flex: none; font-size: 11cqmin; font-weight: 600; line-height: 0.8;
+  color: var(--row-accent, var(--accent));
+}
+.way-label {
+  font-size: 7cqmin; font-weight: 800; line-height: 1; letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+/* ── Landscape: header is a row; type steps down to use the width ── */
+.way-landscape .way-head {
+  flex-direction: row; align-items: center; justify-content: space-between;
+  padding: 4cqmin 6cqmin 1cqmin; text-align: left;
+}
+.way-landscape .way-logo { max-width: 40%; max-height: 16cqmin; }
+.way-landscape .way-event { text-align: right; }
+.way-landscape .way-heading { font-size: 7cqmin; text-align: left; padding: 1.5cqmin 6cqmin 0; }
+.way-landscape .way-arrow { font-size: 9cqmin; }
+.way-landscape .way-label { font-size: 5.6cqmin; }
+</style>
+
+<div class="way-stage">
+  <div class="way way-{{orient}}"
+       style="aspect-ratio: {{aspW}} / {{aspH}};
+              --accent: {{accent}}; --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
+              background: {{default background '#ffffff'}};">
+
+    <div class="way-accent"></div>
+
+    <header class="way-head">
+      {{#if eventLogo}}
+        <img class="way-logo" src="{{asset eventLogo}}" alt="">
+      {{else}}
+        {{#if defaultLogo}}<img class="way-logo" src="{{asset defaultLogo}}" alt="">{{/if}}
+      {{/if}}
+      {{#if eventName}}<div class="way-event">{{eventName}}</div>{{/if}}
+    </header>
+
+    {{#if heading}}<div class="way-heading">{{heading}}</div>{{/if}}
+
+    <main class="way-list">
+      {{#each directionsOut}}
+        <div class="way-row way-row--{{side}}" style="--row-accent: {{accent}};">
+          <span class="way-arrow">{{glyph}}</span>
+          <span class="way-label">{{label}}</span>
+        </div>
+      {{/each}}
+    </main>
+  </div>
+</div>

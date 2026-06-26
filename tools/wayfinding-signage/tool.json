@@ -1,0 +1,120 @@
+{
+  "id": "wayfinding-signage",
+  "name": "Wayfinding Signage",
+  "description": "On-brand directional signs for events — event logo and name on top, then a list of destinations, each with a SUSE-font arrow (any of eight directions) sitting to the left or right of its label. Print-correct A4 → A1 and US poster sizes, portrait or landscape.",
+  "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} — {{heading}}{{/if}}",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "event",
+  "tags": ["signage", "wayfinding", "directional", "arrow", "event", "conference", "venue", "directory", "poster", "navigation"],
+  "render": {
+    "width": 1240,
+    "height": 1754,
+    "formats": ["pdf", "pdf-cmyk", "png", "jpg", "webp"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "size",
+      "label": "Sign size",
+      "type": "select",
+      "default": "a3",
+      "help": "Sets the sign proportions and the export print size. Fine-tune exact dimensions in the export bar if needed.",
+      "options": [
+        { "value": "a4", "label": "A4 portrait · 210 × 297 mm", "width": 210, "height": 297, "unit": "mm" },
+        { "value": "a3", "label": "A3 portrait · 297 × 420 mm", "width": 297, "height": 420, "unit": "mm" },
+        { "value": "a2", "label": "A2 portrait · 420 × 594 mm", "width": 420, "height": 594, "unit": "mm" },
+        { "value": "a1", "label": "A1 portrait · 594 × 841 mm", "width": 594, "height": 841, "unit": "mm" },
+        { "value": "a3land", "label": "A3 landscape · 420 × 297 mm", "width": 420, "height": 297, "unit": "mm" },
+        { "value": "a2land", "label": "A2 landscape · 594 × 420 mm", "width": 594, "height": 420, "unit": "mm" },
+        { "value": "18x24in", "label": "18 × 24 in poster · 457 × 610 mm", "width": 457.2, "height": 609.6, "unit": "mm" },
+        { "value": "24x36in", "label": "24 × 36 in poster · 610 × 914 mm", "width": 609.6, "height": 914.4, "unit": "mm" }
+      ]
+    },
+    {
+      "id": "eventLogo",
+      "label": "Event logo",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "help": "Your event's logo. Leave empty to use the SUSE logo (auto light/dark for the background)."
+    },
+    {
+      "id": "eventName",
+      "label": "Event name",
+      "type": "text",
+      "default": "SUSECON 2027",
+      "maxLength": 60,
+      "help": "Shown under the logo. Clear it to show the logo alone."
+    },
+    {
+      "id": "heading",
+      "label": "Sign heading",
+      "type": "text",
+      "default": "Welcome",
+      "maxLength": 48,
+      "help": "Big title above the directions — e.g. a level, hall or 'Welcome'. Clear to hide."
+    },
+    {
+      "id": "directions",
+      "label": "Directions",
+      "type": "blocks",
+      "help": "Each row is a destination with an arrow. Pick the arrow direction and whether it sits to the left or right of the label.",
+      "fields": [
+        { "id": "label", "label": "Destination", "type": "text", "placeholder": "e.g. Registration" },
+        {
+          "id": "arrow",
+          "label": "Arrow",
+          "type": "select",
+          "default": "right",
+          "options": [
+            { "value": "up", "label": "↑ Up" },
+            { "value": "up-right", "label": "↗ Up-right" },
+            { "value": "right", "label": "→ Right" },
+            { "value": "down-right", "label": "↘ Down-right" },
+            { "value": "down", "label": "↓ Down" },
+            { "value": "down-left", "label": "↙ Down-left" },
+            { "value": "left", "label": "← Left" },
+            { "value": "up-left", "label": "↖ Up-left" }
+          ]
+        },
+        {
+          "id": "side",
+          "label": "Arrow side",
+          "type": "select",
+          "default": "left",
+          "options": [
+            { "value": "left", "label": "Arrow on left" },
+            { "value": "right", "label": "Arrow on right" }
+          ]
+        },
+        { "id": "color", "label": "Row colour", "type": "color", "default": "" }
+      ],
+      "default": [
+        { "label": "Registration", "arrow": "left", "side": "left", "color": "" },
+        { "label": "Keynote Hall", "arrow": "right", "side": "right", "color": "" },
+        { "label": "Expo & Sponsors", "arrow": "up-right", "side": "right", "color": "" },
+        { "label": "Restrooms", "arrow": "down", "side": "left", "color": "" }
+      ]
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    {
+      "id": "accent",
+      "label": "Arrow colour",
+      "type": "color",
+      "default": "#30ba78",
+      "help": "Default colour for arrows and rules. A row with its own colour overrides it."
+    }
+  ]
+}
