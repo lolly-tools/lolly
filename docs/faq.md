@@ -30,7 +30,35 @@ Put it to work, your orders, actions, and terms.
 
 We're also laughing at the time and bills we are saving with this approach.
 
+## What hurdles could I expect adopting Lolly?
 
+Lolly slots in wherever you already generate files — the CLI is the same engine
+as the App, so a pipeline run at 2am can't drift from what a person previews in a
+browser. The friction to adoption is rarely technical; it's organisational. Expect these:
+
+**Tools and the brand catalog have to be authored.** Lolly is a platform, not a
+finished pack of your templates. Someone has to define the asset catalog (logos,
+palettes, fonts as permanent IDs) and write the manifest + template for each output
+type. It's a one-time cost per output, and it needs design and IT to share a
+backlog — the two groups that often don't.
+
+**Governance runs on git.** "The PR review *is* the moderation" is elegant for
+engineers and unfamiliar to most brand and marketing teams. If the people who own
+brand decisions don't live in git, you'll want a workflow that bridges them — or IT
+quietly becomes the strategic design partner and wider institutional gatekeeper.
+Which is preferred by many in long running production environments. 
+
+**It's deliberately narrow — frame it that way.** Lolly is not an open canvas, not
+a DAM, and not for bespoke or hero content. Judged against Figma or Canva it will
+look limited. Judged as what it is — operationalised, recurring, massive-scale asset
+generation — nothing competes. The wrong framing is the most common set-back,.
+
+**Change management on the producing side.** Existing processes work today, even if
+the output is off-brand. Re-pointing them at the engine means re-testing re-learning,
+and "we can already makes files" becomes the excuse not to migrate. Start by converting
+one high-visibility production quality output and showing the before/after side by side.
+
+Lolly lifts everything up.
 
 
 ## What makes utilities different from tools?
