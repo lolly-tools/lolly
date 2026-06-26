@@ -12,12 +12,13 @@
 
 import {
   parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI,
-  iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry,
+  iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry, emitEmf,
 } from '@lolly/engine';
 import {
   suseFontFile, SUSE_FONT_DIR,
   resolveSuseFontUrl, canVectoriseText, textBaselineY,
 } from './text-svg.js';
+import { svgDomToIr } from './svg-ir.js';
 
 let domToImageMore = null;
 
@@ -112,6 +113,8 @@ async function renderFormat(node, format, opts = {}) {
       return await renderCmykTiff(node, opts);
     case 'svg':
       return await renderSvg(node, opts);
+    case 'emf':
+      return await renderEmf(node, opts);
     case 'pdf':
       return await renderPdf(node, opts);
     case 'pdf-cmyk':
@@ -869,6 +872,32 @@ async function renderSvg(node, opts = {}) {
   await inlineBlobUrlsInEl(clone);
   const xml = injectSvgMeta(new XMLSerializer().serializeToString(clone), opts.meta);
   return new Blob(['<?xml version="1.0" standalone="no"?>\n' + xml], { type: 'image/svg+xml' });
+}
+
+// ── EMF (Enhanced Metafile) — vector, always text-as-paths ──────────────────
+//
+// EMF is a third sink on the SVG vector pipeline (alongside SVG and PDF): obtain
+// an SVG whose text is already outlined — the tool's own <svg>, or an outlined
+// SVG synthesised from an HTML layout via renderSvgFromHtml — walk it into the
+// engine IR (svgDomToIr), and serialize to bytes (emitEmf). Device RGB only;
+// gradients/images/alpha are flattened to solids upstream. See
+// plans/emf-support.md. The text-as-paths guarantee is enforced in svgDomToIr,
+// which throws on any run it can't vectorise rather than dropping it.
+async function renderEmf(node, opts = {}) {
+  let svgEl = node.tagName?.toLowerCase() === 'svg' ? node : node.querySelector?.('svg');
+  if (!svgEl) {
+    // HTML-layout tool with no inline <svg>: synthesise an outlined SVG first.
+    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true });
+    const xml = await svgBlob.text();
+    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
+  }
+  const ir = await svgDomToIr(svgEl, {
+    host: _host,
+    getComputedStyle: (el) => window.getComputedStyle(el),
+    background: opts.background,
+  });
+  const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
+  return new Blob([bytes], { type: 'image/emf' });
 }
 
 // ── SVG from HTML DOM ─────────────────────────────────────────────────────

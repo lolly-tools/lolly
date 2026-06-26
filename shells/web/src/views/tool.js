@@ -27,7 +27,7 @@ import 'flatpickr/dist/flatpickr.min.css';
 // Human-readable labels and file extensions for format identifiers that differ
 // from their raw string (e.g. "pdf-cmyk" → "Print PDF" / ".pdf").
 const FMT_LABEL = { 'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', 'jpeg': 'JPG', 'webm': 'WebM', 'mp4': 'MP4',
-  ics: 'Calendar', vcf: 'vCard', ico: 'Icon', zip: 'ZIP', csv: 'CSV', json: 'JSON' };
+  emf: 'EMF (old)', ics: 'Calendar', vcf: 'vCard', ico: 'Icon', zip: 'ZIP', csv: 'CSV', json: 'JSON' };
 const FMT_EXT   = { 'pdf-cmyk': 'pdf', 'cmyk-tiff': 'tiff', 'jpeg': 'jpg' };
 
 // Print marks & bleed apply to the three print formats (pdf / pdf-cmyk / cmyk-tiff).
@@ -67,7 +67,7 @@ function readMarks(el) {
 // Visual formats a ZIP export bundles (data/text and video are excluded). The
 // shell passes these as opts.bundleFormats; the export bridge renders each and
 // archives them (see renderZip).
-const ZIP_BUNDLE = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'pdf', 'pdf-cmyk', 'cmyk-tiff', 'gif', 'ico']);
+const ZIP_BUNDLE = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'emf', 'pdf', 'pdf-cmyk', 'cmyk-tiff', 'gif', 'ico']);
 
 // Which video containers this browser's MediaRecorder can actually record.
 // Safari/iOS = mp4 only; Firefox = webm only; recent Chrome = both. Used to gate
