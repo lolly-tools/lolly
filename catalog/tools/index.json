@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-26T14:03:10.680Z",
+  "generatedAt": "2026-06-26T14:09:07.112Z",
   "tools": [
     {
       "id": "color-block",
@@ -192,7 +192,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding Signage",
       "description": "On-brand directional signs for events — event logo and name on top, then a list of destinations, each with a SUSE-font arrow (any of eight directions) sitting to the left or right of its label. Print-correct A4 → A1 and US poster sizes, portrait or landscape.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "event",
       "exportable": true

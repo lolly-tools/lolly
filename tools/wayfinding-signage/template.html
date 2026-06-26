@@ -50,7 +50,8 @@
 
 .way-heading {
   flex: none; text-align: center;
-  font-size: 8.5cqmin; font-weight: 800; line-height: 1; letter-spacing: -0.02em;
+  font-size: calc(8.5cqmin * var(--scale, 1)); font-weight: var(--text-weight, 800);
+  line-height: 1; letter-spacing: -0.02em;
   padding: 2.5cqmin 6cqmin 0; color: var(--ink);
   overflow-wrap: anywhere;
 }
@@ -73,11 +74,12 @@
 .way-row--right { flex-direction: row-reverse; justify-content: flex-start; text-align: right; }
 
 .way-arrow {
-  flex: none; font-size: 11cqmin; font-weight: 600; line-height: 0.8;
-  color: var(--row-accent, var(--accent));
+  flex: none; font-size: calc(11cqmin * var(--scale, 1)); font-weight: var(--text-weight, 800);
+  line-height: 0.8; color: var(--row-accent, var(--accent));
 }
 .way-label {
-  font-size: 7cqmin; font-weight: 800; line-height: 1; letter-spacing: -0.01em;
+  font-size: calc(7cqmin * var(--scale, 1)); font-weight: var(--text-weight, 800);
+  line-height: 1; letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 
@@ -88,15 +90,16 @@
 }
 .way-landscape .way-logo { max-width: 40%; max-height: 16cqmin; }
 .way-landscape .way-event { text-align: right; }
-.way-landscape .way-heading { font-size: 7cqmin; text-align: left; padding: 1.5cqmin 6cqmin 0; }
-.way-landscape .way-arrow { font-size: 9cqmin; }
-.way-landscape .way-label { font-size: 5.6cqmin; }
+.way-landscape .way-heading { font-size: calc(7cqmin * var(--scale, 1)); text-align: left; padding: 1.5cqmin 6cqmin 0; }
+.way-landscape .way-arrow { font-size: calc(9cqmin * var(--scale, 1)); }
+.way-landscape .way-label { font-size: calc(5.6cqmin * var(--scale, 1)); }
 </style>
 
 <div class="way-stage">
   <div class="way way-{{orient}}"
        style="aspect-ratio: {{aspW}} / {{aspH}};
               --accent: {{accent}}; --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
+              --scale: {{default textSize 1}}; --text-weight: {{default textWeight 800}};
               background: {{default background '#ffffff'}};">
 
     <div class="way-accent"></div>

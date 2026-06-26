@@ -3,7 +3,7 @@
   "name": "Wayfinding Signage",
   "description": "On-brand directional signs for events — event logo and name on top, then a list of destinations, each with a SUSE-font arrow (any of eight directions) sitting to the left or right of its label. Print-correct A4 → A1 and US poster sizes, portrait or landscape.",
   "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} — {{heading}}{{/if}}",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "event",
@@ -101,6 +101,32 @@
         { "label": "Keynote Hall", "arrow": "right", "side": "right", "color": "" },
         { "label": "Expo & Sponsors", "arrow": "up-right", "side": "right", "color": "" },
         { "label": "Restrooms", "arrow": "down", "side": "left", "color": "" }
+      ]
+    },
+    {
+      "id": "textSize",
+      "label": "Text size",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.6,
+      "max": 1.8,
+      "step": 0.05,
+      "help": "Scales the heading, destination labels and arrows together."
+    },
+    {
+      "id": "textWeight",
+      "label": "Text weight",
+      "type": "select",
+      "default": "800",
+      "help": "Stroke weight of the heading, labels and arrows (SUSE variable font).",
+      "options": [
+        { "value": "300", "label": "Light" },
+        { "value": "400", "label": "Regular" },
+        { "value": "500", "label": "Medium" },
+        { "value": "600", "label": "Semibold" },
+        { "value": "700", "label": "Bold" },
+        { "value": "800", "label": "Extrabold" }
       ]
     },
     {
