@@ -39,9 +39,11 @@ const dataWidthStyle = (key, widths) => (widths?.[key] != null ? `width:${widths
 function headerCell(col, widths) {
   const action = col.bulk
     ? `<button type="button" class="pro-fill-btn" data-bulk-col="${esc(col.key)}" title="Fill “${esc(col.label)}” down every row" aria-label="Fill column">${BUCKET_SVG}</button>`
-    : col.reason
-      ? `<span class="pro-col-flag" title="${esc(col.reason)}" aria-label="${esc(col.reason)}">≠</span>`
-      : '';
+    : col.type === 'blocks'
+      ? `<button type="button" class="pro-fill-btn" data-bulk-blocks="${esc(col.key)}" title="Edit “${esc(col.label)}” for every row" aria-label="Edit column for all rows">${BUCKET_SVG}</button>`
+      : col.reason
+        ? `<span class="pro-col-flag" title="${esc(col.reason)}" aria-label="${esc(col.reason)}">≠</span>`
+        : '';
   // The label itself is the collapse control (distinct from the Fill button).
   return `<th class="pro-col" data-col="${esc(col.key)}" style="${dataWidthStyle(col.key, widths)}">
     <div class="pro-col-head">
@@ -101,6 +103,24 @@ function dataCell(col, row, ctx) {
   if (!input) {
     return `<td class="pro-cell pro-cell--absent" data-col="${esc(col.key)}" data-row="${esc(row.uid)}"
       title="This template has no “${esc(col.label)}” field"></td>`;
+  }
+
+  // Blocks (repeating field groups) are a 2-D value; render a trigger cell that
+  // shows a summary and opens the modal editor (wired in index.js). The structured
+  // array lives in row.values and round-trips through CSV/paste/render unchanged.
+  if (input.type === 'blocks') {
+    const arr = Array.isArray(row.values[col.key]) ? row.values[col.key]
+      : (Array.isArray(input.default) ? input.default : []);
+    const n = arr.length;
+    const firstField = (input.fields ?? [])[0]?.id;
+    const preview = n && firstField
+      ? arr.slice(0, 2).map(r => r?.[firstField]).filter(v => v != null && v !== '').map(String).join(', ')
+      : '';
+    const summary = n ? `${n} row${n === 1 ? '' : 's'}${preview ? ' · ' + preview : ''}` : 'Add…';
+    return `<td class="pro-cell pro-cell--blocks" data-col="${esc(col.key)}" data-row="${esc(row.uid)}">
+      <button type="button" class="pro-control pro-blocks-trigger${n ? '' : ' is-empty'}" data-blocks-trigger data-row="${esc(row.uid)}" data-col="${esc(col.key)}"
+        title="Edit “${esc(col.label)}” — ${n} item${n === 1 ? '' : 's'}">${esc(summary)}</button>
+    </td>`;
   }
 
   const value = row.values[col.key] ?? input.default ?? '';

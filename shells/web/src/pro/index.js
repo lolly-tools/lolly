@@ -24,6 +24,7 @@ import { attachResize, isOnResizeEdge } from './resize.js';
 import { attachReorder } from './reorder.js';
 import { attachScrub } from './scrub.js';
 import { controlHtml, readControlValue } from './controls.js';
+import { openBlocksEditor, closeBlocksPanel } from './blocks-editor.js';
 import { colorFieldHtml, wireColorField } from '../components/color-field.js';
 import { getTool } from './render-export.js';
 import { runBatch, planBatch } from './batch.js';
@@ -348,7 +349,7 @@ export async function mountPro(viewEl, host, opts = {}) {
   function openTemplatePicker(td, row) {
     if (!td || !row) return;
     if (_tplPop && _tplPop._row === row.uid) return; // already open for this cell
-    closeBulkPopover(); closeSessions(); closeTemplatePicker();
+    closeBulkPopover(); closeSessions(); closeTemplatePicker(); closeBlocksPanel();
 
     const pop = document.createElement('div');
     pop.className = 'pro-popover pro-tpl-popover';
@@ -463,6 +464,11 @@ export async function mountPro(viewEl, host, opts = {}) {
   gridHost.addEventListener('click', async (e) => {
     const tpl = e.target.closest('[data-template-trigger]');
     if (tpl) { openTemplatePicker(tpl.closest('td'), rowByUid(tpl.dataset.row)); return; }
+
+    const blkTrigger = e.target.closest('[data-blocks-trigger]');
+    if (blkTrigger) { editBlocksCell(blkTrigger.dataset.row, blkTrigger.dataset.col); return; }
+    const blkBulk = e.target.closest('[data-bulk-blocks]');
+    if (blkBulk) { bulkEditBlocks(blkBulk.dataset.bulkBlocks); return; }
 
     const preview = e.target.closest('[data-preview-row]');
     if (preview) { openPreview(preview.dataset.previewRow); return; }
@@ -579,6 +585,54 @@ export async function mountPro(viewEl, host, opts = {}) {
     if (ref) { row.values[key] = ref; columns = renderGrid(); }
   }
 
+  // ── Blocks (repeating field groups): edit one cell, or fill the column ───────
+  // Per-cell block collapse state, remembered for the session only (NOT serialized
+  // into saved tool sessions). Absent key ⇒ first open ⇒ all blocks collapsed.
+  const blockUI = {};
+  async function editBlocksCell(uid, key) {
+    const row = rowByUid(uid);
+    const col = colByKey(key);
+    const input = row && col && cellInput(col, row);
+    if (!input) return;
+    closeTemplatePicker(); closeBulkPopover(); closeSessions();
+    const value = Array.isArray(row.values[key]) ? row.values[key] : (input.default ?? []);
+    const uiKey = `${uid}~${key}`;
+    await openBlocksEditor({
+      input, value, host, assetPicker,
+      initialExpanded: blockUI[uiKey] ?? null,            // null on first open → all collapsed
+      onUi: (expanded) => { blockUI[uiKey] = expanded; }, // remember collapse state for the session
+      // Live: each edit commits to this row and refreshes ONLY this cell's summary
+      // (no full grid re-render → no scroll churn or focus loss while editing).
+      onChange: (records) => { row.values[key] = records; refreshBlocksCell(uid, key, input, records); },
+    });
+    // The panel held focus; put it back on the cell.
+    gridHost.querySelector(`td[data-row="${uid}"][data-col="${key.replace(/["\\]/g, '\\$&')}"]`)?.focus();
+  }
+  // Update one blocks cell's summary button in place (mirrors grid.js dataCell).
+  function refreshBlocksCell(uid, key, input, arr) {
+    const td = gridHost.querySelector(`td[data-row="${uid}"][data-col="${key.replace(/["\\]/g, '\\$&')}"]`);
+    const btn = td?.querySelector('.pro-blocks-trigger');
+    if (!btn) return;
+    const n = Array.isArray(arr) ? arr.length : 0;
+    const firstField = (input.fields ?? [])[0]?.id;
+    const preview = n && firstField
+      ? arr.slice(0, 2).map(r => r?.[firstField]).filter(v => v != null && v !== '').map(String).join(', ')
+      : '';
+    btn.textContent = n ? `${n} row${n === 1 ? '' : 's'}${preview ? ' · ' + preview : ''}` : 'Add…';
+    btn.classList.toggle('is-empty', n === 0);
+    btn.title = `Edit “${input.label ?? key}” — ${n} item${n === 1 ? '' : 's'}`;
+  }
+  async function bulkEditBlocks(key) {
+    const col = colByKey(key);
+    if (!col || !col.members) return;
+    const input = [...col.members.values()][0]; // representative declaration (fields are shared)
+    const targets = state.rows.filter(r => r.toolId && col.members.has(r.toolId));
+    if (!input || !targets.length) return;
+    closeTemplatePicker(); closeBulkPopover(); closeSessions();
+    const result = await openBlocksEditor({ input, value: input.default ?? [], host, assetPicker, applyLabel: `Apply to ${targets.length}` });
+    if (result !== null) { targets.forEach(r => { r.values[key] = result.map(rec => ({ ...rec })); }); columns = renderGrid(); }
+  }
+
   // ── Bulk column write ───────────────────────────────────────────────────────
   async function openBulkPopover(anchorEl, key) {
     const col = colByKey(key);
@@ -597,7 +651,7 @@ export async function mountPro(viewEl, host, opts = {}) {
       return;
     }
 
-    closeBulkPopover();
+    closeBulkPopover(); closeBlocksPanel();
     // Colour columns fill with the shared SUSE picker; everything else with a
     // plain control read on apply.
     const isColor = col.type === 'color';
@@ -1128,7 +1182,7 @@ export async function mountPro(viewEl, host, opts = {}) {
   }
 
   // ── Cleanup (called by the router on navigation away) ───────────────────────
-  viewEl._cleanup = () => { closeBulkPopover(); closeSessions(); closeTemplatePicker(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zipRO.disconnect(); narrowMq.removeEventListener('change', placeFormat); narrowMq.removeEventListener('change', sizeZip); document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
+  viewEl._cleanup = () => { closeBulkPopover(); closeSessions(); closeTemplatePicker(); closeBlocksPanel(); nav.destroy(); detachResize(); detachReorder(); detachScrub(); zipRO.disconnect(); narrowMq.removeEventListener('change', placeFormat); narrowMq.removeEventListener('change', sizeZip); document.removeEventListener('pointerdown', onDocPointer); document.removeEventListener('keydown', onAddRowKey, true); };
 
   // Deep link: open a saved session if the route asked for one (#/pro?session=…),
   // e.g. resuming a batch from the gallery's Saved-sessions list. Otherwise drop

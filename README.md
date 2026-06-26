@@ -118,7 +118,7 @@ See `docs/authoring-tools.md` to build your first tool.
 | Countdown Timer | utility | official |
 | URL Screenshot | utility | experimental |
 | Strip Hidden Data | utility | official |
-| Text Tools | utility | official |
+| Text Helper | utility | official |
 
 The `utility` "Handy Apps" section always renders last in the gallery.
 

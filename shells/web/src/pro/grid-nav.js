@@ -80,7 +80,7 @@ export function createGridNav(container) {
     if (!c) return false;
     // Trigger cells open their own popover (asset picker / colour swatches /
     // template search) — click to open, or just focus on a quiet vertical move.
-    if (c.matches('[data-asset-pick], .color-trigger, .pro-template-trigger')) {
+    if (c.matches('[data-asset-pick], .color-trigger, .pro-template-trigger, .pro-blocks-trigger')) {
       if (openPicker) c.click(); else c.focus();
       return true;
     }

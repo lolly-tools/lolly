@@ -1713,33 +1713,55 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
   const sx = regionW / vbW;
   const sy = regionH / vbH;
 
-  async function visit(el, dx, dy) {
+  async function visit(el, tx, ty, sX, sY) {
     if (!el.tagName) return;
     const tag = el.tagName.toLowerCase().replace(/^svg:/, '');
+
+    // Map an SVG user-space coord (inside this element's inherited group transform)
+    // into PDF points: apply the accumulated translate+scale, shift by the viewBox
+    // origin, then scale into the target region. LW/LH scale a length.
+    const gAvg = (sX + sY) / 2, rAvg = (sx + sy) / 2;
+    const PX = (v) => ox + ((tx + sX * v) - vbX) * sx;
+    const PY = (v) => oy + ((ty + sY * v) - vbY) * sy;
+    const LW = (v) => v * sX * sx;
+    const LH = (v) => v * sY * sy;
+    // Stroke width / font scaling: group scale × region scale — EXCEPT for
+    // vector-effect:non-scaling-stroke (e.g. street-map roads), whose stroke keeps
+    // its user-unit width through the group transform, so region scale only.
+    const strokeMul = (e) =>
+      ((e.getAttribute('vector-effect') || resolveStyleProp(e, 'vector-effect')) === 'non-scaling-stroke' ? 1 : gAvg) * rAvg;
 
     if (tag === 'defs' || tag === 'clippath' || tag === 'lineargradient' ||
         tag === 'radialgradient' || tag === 'symbol') return;
 
     if (tag === 'g') {
-      let ndx = dx, ndy = dy;
+      // Compose this group's transform onto the inherited one. Supports the
+      // translate(+scale) that d3.zoom emits (street-map pan/zoom lives here): SVG
+      // order is translate-then-scale, so the local translate is taken in the
+      // PARENT's scale and the scales multiply. Rotation/skew are not handled.
+      let ntx = tx, nty = ty, nsX = sX, nsY = sY;
       const t = el.getAttribute('transform') ?? '';
-      const tm = t.match(/translate\(\s*([+-]?\d*\.?\d+)[,\s]\s*([+-]?\d*\.?\d+)\s*\)/) ??
-                 t.match(/translate\(\s*([+-]?\d*\.?\d+)\s*\)/);
-      if (tm) { ndx += parseFloat(tm[1]); ndy += parseFloat(tm[2] ?? '0'); }
-      for (const child of el.children) await visit(child, ndx, ndy);
+      if (t) {
+        const tm = t.match(/translate\(\s*([+-]?\d*\.?\d+)[,\s]\s*([+-]?\d*\.?\d+)\s*\)/) ??
+                   t.match(/translate\(\s*([+-]?\d*\.?\d+)\s*\)/);
+        const sm = t.match(/scale\(\s*([+-]?\d*\.?\d+)(?:[,\s]\s*([+-]?\d*\.?\d+))?\s*\)/);
+        if (tm) { ntx += sX * parseFloat(tm[1]); nty += sY * parseFloat(tm[2] ?? '0'); }
+        if (sm) { nsX = sX * parseFloat(sm[1]); nsY = sY * parseFloat(sm[2] ?? sm[1]); }
+      }
+      for (const child of el.children) await visit(child, ntx, nty, nsX, nsY);
       return;
     }
 
     if (tag === 'rect') {
       const rgb = resolveColor(el);
       if (!rgb) return;
-      const x = ox + (svgLen(el.getAttribute('x'), vbW) - vbX + dx) * sx;
-      const y = oy + (svgLen(el.getAttribute('y'), vbH) - vbY + dy) * sy;
-      const w = svgLen(el.getAttribute('width'), vbW) * sx;
-      const h = svgLen(el.getAttribute('height'), vbH) * sy;
+      const x = PX(svgLen(el.getAttribute('x'), vbW));
+      const y = PY(svgLen(el.getAttribute('y'), vbH));
+      const w = LW(svgLen(el.getAttribute('width'), vbW));
+      const h = LH(svgLen(el.getAttribute('height'), vbH));
       if (w <= 0 || h <= 0) return;
-      const rx = parseFloat(el.getAttribute('rx') || '0') * sx;
-      const ry = parseFloat(el.getAttribute('ry') || el.getAttribute('rx') || '0') * sy;
+      const rx = LW(parseFloat(el.getAttribute('rx') || '0'));
+      const ry = LH(parseFloat(el.getAttribute('ry') || el.getAttribute('rx') || '0'));
       pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
       (rx > 0 || ry > 0)
         ? pdf.roundedRect(x, y, w, h, rx, ry, 'F')
@@ -1750,9 +1772,9 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
     if (tag === 'circle') {
       const rgb = resolveColor(el);
       if (!rgb) return;
-      const cx = ox + (svgLen(el.getAttribute('cx'), vbW) - vbX + dx) * sx;
-      const cy = oy + (svgLen(el.getAttribute('cy'), vbH) - vbY + dy) * sy;
-      const r  = svgLen(el.getAttribute('r'), vbW) * sx;
+      const cx = PX(svgLen(el.getAttribute('cx'), vbW));
+      const cy = PY(svgLen(el.getAttribute('cy'), vbH));
+      const r  = LW(svgLen(el.getAttribute('r'), vbW));
       pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
       pdf.circle(cx, cy, r, 'F');
       return;
@@ -1765,11 +1787,11 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
       const opacity = parseFloat(el.getAttribute('opacity') ?? el.getAttribute('stroke-opacity') ?? '1');
       if (opacity < 0.01) return;
       if (opacity < 0.999) rgb = blendSvgWithWhite(rgb, opacity);
-      const lx1 = ox + (svgLen(el.getAttribute('x1'), vbW) - vbX + dx) * sx;
-      const ly1 = oy + (svgLen(el.getAttribute('y1'), vbH) - vbY + dy) * sy;
-      const lx2 = ox + (svgLen(el.getAttribute('x2'), vbW) - vbX + dx) * sx;
-      const ly2 = oy + (svgLen(el.getAttribute('y2'), vbH) - vbY + dy) * sy;
-      const lw  = parseFloat(el.getAttribute('stroke-width') ?? '1') * ((sx + sy) / 2);
+      const lx1 = PX(svgLen(el.getAttribute('x1'), vbW));
+      const ly1 = PY(svgLen(el.getAttribute('y1'), vbH));
+      const lx2 = PX(svgLen(el.getAttribute('x2'), vbW));
+      const ly2 = PY(svgLen(el.getAttribute('y2'), vbH));
+      const lw  = parseFloat(el.getAttribute('stroke-width') ?? '1') * strokeMul(el);
       pdf.setDrawColor(rgb[0], rgb[1], rgb[2]);
       pdf.setLineWidth(Math.max(0.1, lw));
       pdf.line(lx1, ly1, lx2, ly2, 'S');
@@ -1785,9 +1807,9 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
       if (opacity < 0.999) rgb = blendSvgWithWhite(rgb, opacity);
       const text = (el.textContent ?? '').trim();
       if (!text) return;
-      const xt = ox + (svgLen(el.getAttribute('x'), vbW) - vbX + dx) * sx;
-      const yt = oy + (svgLen(el.getAttribute('y'), vbH) - vbY + dy) * sy;
-      const fs = parseFloat(el.getAttribute('font-size') ?? '16') * ((sx + sy) / 2);
+      const xt = PX(svgLen(el.getAttribute('x'), vbW));
+      const yt = PY(svgLen(el.getAttribute('y'), vbH));
+      const fs = parseFloat(el.getAttribute('font-size') ?? '16') * gAvg * rAvg;
       const fw = parseInt(el.getAttribute('font-weight') ?? '400') || 400;
       const italic  = el.getAttribute('font-style') === 'italic';
       const anchor  = el.getAttribute('text-anchor') ?? 'start';
@@ -1825,11 +1847,11 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
       if (fillRgb)   pdf.setFillColor(fillRgb[0], fillRgb[1], fillRgb[2]);
       if (strokeRgb) {
         pdf.setDrawColor(strokeRgb[0], strokeRgb[1], strokeRgb[2]);
-        const lw = parseFloat(el.getAttribute('stroke-width') ?? '1') * ((sx + sy) / 2);
+        const lw = parseFloat(el.getAttribute('stroke-width') ?? '1') * strokeMul(el);
         pdf.setLineWidth(Math.max(0.1, lw));
       }
-      const ptx = v => ox + (v - vbX + dx) * sx;
-      const pty = v => oy + (v - vbY + dy) * sy;
+      const ptx = v => PX(v);
+      const pty = v => PY(v);
       drawSvgPathToPdf(pdf, d, ptx, pty);
       const fillRule = el.getAttribute('fill-rule') ?? 'nonzero';
       if (fillRgb && strokeRgb) pdf.fillStroke();
@@ -1841,10 +1863,10 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
     if (tag === 'image') {
       const href = el.getAttribute('href') || el.getAttribute('xlink:href') || '';
       if (!href) return;
-      const x = ox + (svgLen(el.getAttribute('x'), vbW) - vbX + dx) * sx;
-      const y = oy + (svgLen(el.getAttribute('y'), vbH) - vbY + dy) * sy;
-      const w = svgLen(el.getAttribute('width'), vbW) * sx;
-      const h = svgLen(el.getAttribute('height'), vbH) * sy;
+      const x = PX(svgLen(el.getAttribute('x'), vbW));
+      const y = PY(svgLen(el.getAttribute('y'), vbH));
+      const w = LW(svgLen(el.getAttribute('width'), vbW));
+      const h = LH(svgLen(el.getAttribute('height'), vbH));
       if (w <= 0 || h <= 0) return;
 
       // An <image> pointing at an SVG (e.g. the brand logo) must stay VECTOR —
@@ -1884,10 +1906,10 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
       return;
     }
 
-    for (const child of el.children) await visit(child, dx, dy);
+    for (const child of el.children) await visit(child, tx, ty, sX, sY);
   }
 
-  await visit(svgEl, 0, 0);
+  await visit(svgEl, 0, 0, 1, 1);
 }
 
 // Reads a CSS property from an element's style attribute (not computed style).

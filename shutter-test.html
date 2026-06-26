@@ -1,0 +1,147 @@
+<!doctype html>
+<!--
+  TEMPORARY inspect harness for the export shutter (camera-iris) in its CLOSED state.
+  Throwaway — delete when done. Touches no app files.
+
+  Faithful copy of the real effect:
+    • DOM built like  shells/web/src/views/tool.js:341  (6 × <span class="flap" style="--i:N">)
+    • CSS copied verbatim from  shells/web/src/styles/app.css:1877-1912
+    • Theme tokens (--card / --secondary / --border) copied from  shells/web/src/styles/tokens.css
+
+  Edit the .flap gradient / box-shadow / border below by sight, then port the final
+  values back into app.css. Open this file directly in a browser (file:// is fine).
+-->
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Export shutter — closed-state inspect harness</title>
+  <style>
+    /* ── Theme tokens (verbatim from tokens.css) ─────────────────────────── */
+    [data-theme="light"] { --card: 0 0% 99%;    --secondary: 210 40% 96%; --border: 214 28% 84%; --stage-bg: #eef1f5; }
+    [data-theme="dark"]  { --card: 222 47% 7%;  --secondary: 217 33% 14%; --border: 217 33% 18%; --stage-bg: #0b1020; }
+    [data-theme="suse"]  { --card: 171 55% 17%; --secondary: 171 48% 21%; --border: 171 36% 33%; --stage-bg: #0c322c; }
+
+    /* ── Harness chrome (NOT part of the effect) ─────────────────────────── */
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+      font-family: system-ui, -apple-system, sans-serif; color: #e7e9ec; background: #15171c;
+    }
+    .bar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px;
+      padding: 12px 18px; background: #1d2027; border-bottom: 1px solid #333a44;
+      font-size: 13px; position: sticky; top: 0; z-index: 10;
+    }
+    .bar strong { font-weight: 700; }
+    .bar .muted { color: #9aa3ad; }
+    .bar code { font-family: ui-monospace, monospace; font-size: 12px; color: #b8c0c9; }
+    .bar button, .bar label {
+      font: inherit; font-size: 12.5px; font-weight: 600; color: #d3d8de;
+      background: #262b34; border: 1px solid #3a414c; border-radius: 8px;
+      padding: 6px 12px; cursor: pointer;
+    }
+    .bar button.on { background: #30ba78; border-color: #30ba78; color: #07140d; }
+    .bar label { display: inline-flex; align-items: center; gap: 7px; }
+    .stage-wrap { flex: 1; display: grid; place-items: center; padding: 28px; }
+    /* The stage mimics the tool stage the shutter is absolutely-positioned over. */
+    .stage {
+      position: relative; width: min(960px, 92vw); height: min(600px, 72vh);
+      background: var(--stage-bg); border-radius: 14px; overflow: hidden;
+      box-shadow: 0 12px 50px #0009;
+    }
+
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* ↓↓↓  VERBATIM from app.css — this is the bit to tweak by sight  ↓↓↓    */
+    /* ════════════════════════════════════════════════════════════════════ */
+    .export-shutter {
+      --flaps: 6;
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      pointer-events: none;
+      overflow: hidden;
+      display: none;             /* only mounted/composited while exporting */
+    }
+    .export-shutter.is-active { display: block; }
+    .export-shutter .flap {
+      position: absolute;
+      width: 150vmax; height: 150vmax;
+      bottom: 50%; right: 50%;                 /* pivot at the stage centre */
+      transform-origin: bottom right;
+      pointer-events: none;
+      will-change: transform;
+      background: linear-gradient(35deg, hsl(var(--card)), hsl(var(--secondary)));
+      border: 1.5px solid hsl(var(--border));
+      /* Directional shadow away from the centre pivot (bottom-right) for blade depth,
+         plus a hairline inset highlight on the trailing edge. */
+      box-shadow: -3px -3px 16px rgba(0, 0, 0, 0.22), inset 0 -1px rgba(255, 255, 255, 0.2);
+      --p: calc(var(--i) / var(--flaps));      /* this blade's share of the circle */
+      transition: transform 0.42s cubic-bezier(0.5, 0, 0.5, 1);
+      /* Resting (open): blades fanned off-screen. */
+      transform: rotate(-0.5turn) rotate(calc(1turn * var(--p))) skewX(30deg) translateX(-100%) translateY(90%);
+    }
+    /* Closed: blades swept into the centre, fully covering the stage. */
+    .export-shutter.is-closed .flap {
+      transform: rotate(-0.25turn) rotate(calc(1turn * var(--p))) skewX(30deg) translateX(0%) translateY(0%);
+    }
+    /* ════════════════════════════════════════════════════════════════════ */
+    /* ↑↑↑  end verbatim app.css                                       ↑↑↑    */
+    /* ════════════════════════════════════════════════════════════════════ */
+
+    /* Harness-only: hold it perfectly still so you can inspect the closed state
+       without it animating. Toggle "Animate" off → this applies. */
+    .frozen .flap { transition: none !important; }
+  </style>
+</head>
+<body>
+  <div class="bar">
+    <strong>Export shutter</strong> <span class="muted">— closed state</span>
+    <span class="muted">edit <code>.export-shutter .flap</code> below · source <code>app.css:1891</code></span>
+    <span style="flex:1"></span>
+    <span class="muted">theme:</span>
+    <button data-theme-btn="light" class="on">Light</button>
+    <button data-theme-btn="dark">Dark</button>
+    <button data-theme-btn="suse">SUSE</button>
+    <button id="toggle">Open ↔ Closed</button>
+    <label><input type="checkbox" id="animate"> Animate</label>
+  </div>
+
+  <div class="stage-wrap">
+    <div class="stage">
+      <!-- starts active + closed + frozen → renders statically in the collapsed state -->
+      <div class="export-shutter is-active is-closed frozen" id="shutter" aria-hidden="true">
+        <span class="flap" style="--i:0"></span>
+        <span class="flap" style="--i:1"></span>
+        <span class="flap" style="--i:2"></span>
+        <span class="flap" style="--i:3"></span>
+        <span class="flap" style="--i:4"></span>
+        <span class="flap" style="--i:5"></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const html = document.documentElement;
+    const shutter = document.getElementById('shutter');
+
+    // Theme switcher — see the gradient/shadow under each token set.
+    document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        html.dataset.theme = btn.dataset.themeBtn;
+        document.querySelectorAll('[data-theme-btn]').forEach(b => b.classList.toggle('on', b === btn));
+      });
+    });
+
+    // Open ↔ closed toggle (defaults to closed).
+    document.getElementById('toggle').addEventListener('click', () => {
+      shutter.classList.toggle('is-closed');
+    });
+
+    // Animate checkbox removes the "frozen" lock so transitions play.
+    document.getElementById('animate').addEventListener('change', e => {
+      shutter.classList.toggle('frozen', !e.target.checked);
+    });
+  </script>
+</body>
+</html>
