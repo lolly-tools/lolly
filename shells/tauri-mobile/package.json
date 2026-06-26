@@ -6,6 +6,7 @@
   "scripts": {
     "dev:android": "tauri android dev",
     "dev:ios": "tauri ios dev",
+    "dev:frontend": "vite",
     "build:frontend": "vite build",
     "build:android": "npm run build:frontend && tauri android build",
     "build:ios": "npm run build:frontend && tauri ios build",

@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "identifier": "tools.lolly.app.mobile",
   "build": {
+    "beforeDevCommand": "npm run dev:frontend",
+    "beforeBuildCommand": "npm run build:frontend",
     "devUrl": "http://localhost:5174",
     "frontendDist": "../dist"
   },
@@ -20,6 +22,9 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "iOS": {
+      "minimumSystemVersion": "14.3"
+    }
   }
 }
