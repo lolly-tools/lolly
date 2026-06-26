@@ -6,7 +6,7 @@ How to get a finished file out of a tool — picking the right format, setting t
 
 The preview *is* the file. When you export, the host renders that canvas to the format you chose and hands you a download (or puts it on your clipboard). A tool only offers the formats its author declared, and the picker hides any your browser can't produce (see [Video](#video)).
 
-Two paths produce a file. Most tools **render the canvas** to the chosen format. Text and data formats (HTML, MD, TXT, JSON, CSV, ICS, VCF) are instead **generated from the tool's content**, not rasterised from the picture. And privacy utilities (e.g. *Strip Hidden Data*) use a third path: the file *you* pick is transformed byte-for-byte on device and handed straight back — no canvas, no watermark, and no provenance metadata added, because it's already your own file.
+Three paths produce a file. Most tools **render the canvas** to the chosen format. Text and data formats (HTML, MD, TXT, JSON, CSV, ICS, VCF) are instead **generated from the tool's content**, not rasterised from the picture. And privacy utilities (e.g. *Strip Hidden Data*) use a third path: the file *you* pick is transformed byte-for-byte on device and handed straight back — no canvas, no watermark, and no provenance metadata added, because it's already your own file.
 
 The actions in the export controls:
 

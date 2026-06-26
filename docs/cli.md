@@ -67,7 +67,7 @@ These tools produce their output via the `exportFile` transform path (bytes in �
 
 Some tools **embed another tool's render** as an asset — declared in the manifest (`composes`) with no tool-to-tool imports. For example, `event-name-badge` composes `qr-code` as an SVG. Composition is transparent on the CLI: the runtime resolves it on mount, so the embedding tool renders headlessly with **no extra flags**.
 
-It follows the same vector/data stance as the rest of the CLI: an **SVG or data child composes end-to-end and stays vector**, while a **raster child is omitted gracefully** (the parent still renders, just without that slot). For full raster-child composition, run the Tauri-bundled build — the same boundary as raster export above.
+It follows the same vector stance as the rest of the CLI: an **SVG child composes end-to-end and stays vector**, while a **raster child is omitted gracefully** (the parent still renders, just without that slot). For full raster-child composition, run the Tauri-bundled build — the same boundary as raster export above.
 
 ## Scripting & CI
 

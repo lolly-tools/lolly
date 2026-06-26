@@ -14,8 +14,8 @@ Effort: **S** <1h · **M** a few hours · **L** a day+.
 
 > Line refs need a refresh pass: `tool.js` is now ~3973 lines and most `tool.js`
 > anchors below have drifted (e.g. `967`→`989` `.canvas-error`, `3034`→`3121`
-> export `aria-busy`, `2047`→`2092` block remove). Each still points at the right
-> construct; the numbers are just off enough to slow a reader.
+> export `aria-busy`, `2047`→`2092` block remove). Treat the line numbers as
+> approximate — grep the named construct rather than trusting the offset.
 
 ---
 
