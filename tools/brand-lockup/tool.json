@@ -4,7 +4,7 @@
   "description": "Official SUSE logo lockups — chameleon + wordmark + a product, program, or team name, in horizontal or stacked layouts.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
-  "status": "community",
+  "status": "official",
   "category": "designer",
   "tags": ["lockup", "logo", "brand", "chameleon", "wordmark", "product", "program", "team"],
   "render": {

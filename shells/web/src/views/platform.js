@@ -32,7 +32,7 @@ const FONTS = [
     variable: true,
     weights: '100–900',
     styles: ['normal', 'italic'],
-    source: '/tools/lockup/src/fonts/variable/SUSE[wght].ttf',
+    source: '/catalog/fonts/variable/SUSE[wght].ttf',
   },
   {
     family: 'SUSE Mono',
@@ -41,7 +41,7 @@ const FONTS = [
     variable: true,
     weights: '100–900',
     styles: ['normal', 'italic'],
-    source: '/tools/lockup/src/fonts/variable/SUSEMono[wght].ttf',
+    source: '/catalog/fonts/variable/SUSEMono[wght].ttf',
   },
 ];
 

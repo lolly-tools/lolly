@@ -22,7 +22,7 @@ export function suseWeightName(weight) {
 
 // Where the SUSE static TTFs live (served by the web shell from the lockup tool).
 // Single source of truth shared by the SVG path emitter and the PDF embedder.
-export const SUSE_FONT_DIR = '/tools/lockup/src/fonts/ttf/';
+export const SUSE_FONT_DIR = '/catalog/fonts/ttf/';
 
 export function suseFontFile(weight, italic) {
   return `SUSE-${suseWeightName(weight)}${italic ? 'Italic' : ''}.ttf`;

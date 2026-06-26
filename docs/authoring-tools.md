@@ -381,6 +381,5 @@ npm run dev:web
 - `tools/meeting-planner/` — `blocks` input for repeating rows; `onInit`/`onInput` shaping; ICS data export
 - `tools/color-block/` — advanced `blocks`: typed `addMenu` discriminator + `showFor` / `multilineFor` heterogeneous rows
 - `tools/wayfinding-signage/` — `blocks` rows that auto-shrink label text to fit (or show a sponsor image), and a `size` select that drives the print page size; CMYK export
-- `tools/lockup/` — text-to-path via opentype.js in `beforeExport`/`afterExport` (SVG outlining)
 - `tools/tool-logo/` — auto-switching brand logo: a hook picks the right `suse/logo/` SVG by background/orientation; true vector SVG export
 - `tools/bag-video/` — video/gif output with `render.video` timing config

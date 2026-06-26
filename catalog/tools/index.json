@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-26T19:40:19.108Z",
+  "generatedAt": "2026-06-26T21:32:11.621Z",
   "tools": [
     {
       "id": "color-block",
@@ -111,18 +111,6 @@
       "exportable": true
     },
     {
-      "id": "lockup",
-      "name": "Product Lockup",
-      "description": "SUSE product lockups as crisp outlined vectors.",
-      "version": "1.1.0",
-      "status": "experimental",
-      "category": "designer",
-      "capabilities": [
-        "wasm"
-      ],
-      "exportable": true
-    },
-    {
       "id": "color-palette",
       "name": "Color Palette",
       "description": "Browse SUSE brand colors — click a swatch to copy it.",
@@ -205,7 +193,7 @@
       "name": "Brand Lockup",
       "description": "Official SUSE logo lockups — chameleon + wordmark + a product, program, or team name, in horizontal or stacked layouts.",
       "version": "1.0.0",
-      "status": "community",
+      "status": "official",
       "category": "designer",
       "capabilities": [
         "wasm"
