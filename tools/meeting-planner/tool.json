@@ -20,7 +20,7 @@
   },
   "inputs": [
     {
-      "id": "heading",
+      "id": "eventName",
       "label": "Event name",
       "type": "text",
       "default": "",

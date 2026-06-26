@@ -251,3 +251,38 @@
   border-radius: 4px;
   color: #666;
 }
+
+@media (prefers-color-scheme: dark) {
+  /* Follows the OS "prefers dark" setting (independent of the in-app theme).
+     scopeCss() leaves the first selector inside an @media block unscoped, so
+     this no-op anchor absorbs that slot; every real rule below is then scoped,
+     matching the light rules and winning on source order. Keep the anchor
+     first. The comment must stay INSIDE the block and nothing may sit between
+     the rule above and @media, or scopeCss would prefix (and break) @media.
+     Brand-green CTAs (Download button, empty-state icon) are unchanged. */
+  .exif-dm-anchor { color: inherit; }
+  .exif { color: #e7e9ec; background: #15171c; }
+  .exif-empty p { color: #9aa3ad; }
+  .exif-empty-note { color: #5fd497 !important; }
+  .exif-pick { border-color: #30ba78; background: #1a1d23; color: #5fd497; }
+
+  .exif-card { background: #1a1d23; border-color: #2c313a; box-shadow: 0 1px 3px rgba(0,0,0,0.4); }
+  .exif-head { border-bottom-color: #2c313a; }
+  .exif-replace { border-color: #333a44; background: #1d2027; color: #b8c0c9; }
+  .exif-replace:hover { border-color: #30ba78; color: #5fd497; }
+  .exif-kind { color: #8a929b; }
+  .exif-summary { color: #c3c9d0; }
+
+  .exif-reveal-toggle { background: #16271e; color: #5fd497; }
+  .exif-reveal-toggle:hover { background: #1c3328; }
+
+  .exif-finding { background: #1d2027; border-left-color: #333a44; }
+  .exif-finding.warn { background: #2a1718; border-left-color: #e0524d; }
+  .exif-finding.warn .exif-finding-label { color: #ff9b95; }
+  .exif-finding-detail { color: #9aa3ad; }
+
+  .exif-clean { color: #5fd497; }
+
+  .exif-note { color: #7d858f; }
+  .exif-note code { background: #1d2027; color: #b8c0c9; }
+}

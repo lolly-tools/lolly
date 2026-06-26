@@ -34,7 +34,7 @@
       "bindToProfile": "lastname"
     },
     {
-      "id": "position",
+      "id": "jobTitle",
       "label": "Job Title, Department",
       "type": "text",
       "default": "",

@@ -2,7 +2,7 @@ BEGIN:VCARD
 VERSION:3.0
 N:{{rfcText lastname}};{{rfcText firstname}};;;
 FN:{{rfcText firstname}} {{rfcText lastname}}
-TITLE:{{rfcText position}}
+TITLE:{{rfcText jobTitle}}
 EMAIL;TYPE=INTERNET,WORK:{{email}}
 TEL;TYPE=WORK,VOICE:{{phone}}
 TEL;TYPE=CELL:{{mobile}}

@@ -12,7 +12,7 @@ function compute(inputs) {
   return {
     // Declared input values — used in HTML markup (attribute values are NOT annotated
     // by the shell so {{theme}} and {{layout}} in class="..." are safe)
-    heading:       (inputs.heading || '').trim() || 'Team Meeting',
+    eventName:     (inputs.eventName || '').trim() || 'Team Meeting',
     hostCity:      (inputs.hostCity || '').trim(),
     meetingTime:   inputs.meetingTime || '',
     liveClock,

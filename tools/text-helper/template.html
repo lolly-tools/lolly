@@ -1,6 +1,6 @@
 <div class="tt" data-tt>
   <header class="tt-top">
-    <h1 class="tt-title">Text Tools</h1>
+    <h1 class="tt-title">Text Helper</h1>
     <p class="tt-sub">Format, decode and hash text right here. Nothing you paste leaves your device.</p>
   </header>
 
@@ -158,6 +158,50 @@
 .tt-di-alias { flex: 1; min-width: 0; font: inherit; font-size: 13px; padding: 6px 10px; border: 1px solid #d8d8d8; border-radius: 8px; background: #fff; color: #1a1a1a; }
 .tt-di-alias:focus { outline: 2px solid #30ba78; outline-offset: -1px; border-color: #30ba78; }
 @media (max-width: 760px) { .tt-di-orig { flex-basis: 40%; } }
+
+/* ── Device-wide dark mode ──────────────────────────────────────────────────
+   Follows the OS "prefers dark" setting (independent of the in-app theme).
+   These rules live in the template's inline <style>, so normal specificity
+   applies and the later source order wins when the media query matches. The
+   brand-green accent (active tab, Copy button, focus ring) is intentionally
+   left unchanged in both modes. */
+@media (prefers-color-scheme: dark) {
+  .tt { background: #15171c; color: #e7e9ec; }
+  .tt-sub { color: #9aa3ad; }
+
+  .tt-tab { border-color: #333a44; background: #1d2027; color: #b8c0c9; }
+  .tt-tab:hover { border-color: #30ba78; color: #4cd494; }
+
+  .tt-seg { border-color: #333a44; }
+  .tt-seg button { background: #1d2027; color: #b8c0c9; border-right-color: #2a2f38; }
+  .tt-seg button.is-on { background: #143124; color: #5fd497; }
+  .tt-opt-label { color: #b8c0c9; }
+  .tt-select { border-color: #333a44; background: #1d2027; color: #e7e9ec; }
+
+  .tt-divider::before { background: #333a44; }
+  .tt-label { color: #7d858f; }
+
+  .tt-area { border-color: #333a44; background: #1a1d23; color: #e7e9ec; }
+  .tt-area-out { background: #15181d; }
+  .tt-area-out.is-error { background: #2a1718; color: #ff9b95; }
+
+  .tt-status { color: #8a929b; }
+  .tt-status.ok { color: #4cd494; }
+  .tt-status.warn { color: #ff9b95; }
+
+  .tt-deident { background: #1a1d23; border-color: #2c313a; }
+  .tt-di-empty { color: #7d858f; }
+  .tt-di-count { color: #7d858f; }
+  .tt-di-actions button { background: #1d2027; color: #b8c0c9; border-color: #333a44; }
+  .tt-di-actions button:hover { border-color: #30ba78; color: #4cd494; }
+  .tt-di-person { background: #1a2742; color: #8fb4ff; }
+  .tt-di-org { background: #33240f; color: #e0a86a; }
+  .tt-di-location { background: #143124; color: #5fd497; }
+  .tt-di-orig { color: #d3d8de; }
+  .tt-di-orig em { color: #6b727c; }
+  .tt-di-arrow { color: #5a626c; }
+  .tt-di-alias { border-color: #333a44; background: #1d2027; color: #e7e9ec; }
+}
 </style>
 
 <script>

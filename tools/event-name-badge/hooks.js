@@ -316,7 +316,7 @@ async function compute(model) {
     });
 
   // Optional QR.
-  var qrUrl = (typeof inputs.qrUrl === 'string') ? inputs.qrUrl.trim() : '';
+  var qrUrl = (typeof inputs.url === 'string') ? inputs.url.trim() : '';
   out.qrSvg = (inputs.showQr !== false && qrUrl) ? makeQr(qrUrl) : '';
 
   // Default logo: when no event logo is chosen, use the SUSE horizontal logo,

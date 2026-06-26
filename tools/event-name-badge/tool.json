@@ -2,7 +2,7 @@
   "id": "event-name-badge",
   "name": "Event Name Badge",
   "description": "Conference-ready name badges — event logo, name, title, company, a colour-coded attendee status, tracks and an optional QR. Print-correct sizes from A7 up to 4×6 in, portrait or landscape.",
-  "a11yLabel": "Event name badge for {{default firstName \"attendee\"}} {{default lastName \"\"}}, {{default status \"attendee\"}}",
+  "a11yLabel": "Event name badge for {{default firstname \"attendee\"}} {{default lastname \"\"}}, {{default status \"attendee\"}}",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",
@@ -53,7 +53,7 @@
       "help": "Shown under the logo. Clear it to show the logo alone."
     },
     {
-      "id": "firstName",
+      "id": "firstname",
       "label": "First name",
       "type": "text",
       "default": "Alan",
@@ -61,7 +61,7 @@
       "bindToProfile": "firstname"
     },
     {
-      "id": "lastName",
+      "id": "lastname",
       "label": "Last name",
       "type": "text",
       "default": "Turing",
@@ -137,7 +137,7 @@
       "default": true
     },
     {
-      "id": "qrUrl",
+      "id": "url",
       "label": "QR links to",
       "type": "url",
       "default": "https://www.suse.com",
