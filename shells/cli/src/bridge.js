@@ -12,10 +12,13 @@
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime } from '@lolly/engine';
+import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf } from '@lolly/engine';
 // PDF metadata inspect/strip is pure pdf-lib (no DOM), so the lean node CLI
 // shares the web shell's implementation rather than duplicating it.
 import { createPdfAPI } from '../../web/src/bridge/pdf.js';
+// SVG→EMF IR walk is DOM-light (attribute reads), so it runs under jsdom for
+// native-SVG tools — the same "no layout engine" constraint as the svg branch.
+import { svgDomToIr } from '../../web/src/bridge/svg-ir.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
 
@@ -152,7 +155,18 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
         const xml = injectSvgMeta(raw, opts.meta); // embed authorship provenance
         return new Blob(['<?xml version="1.0" standalone="no"?>\n' + xml], { type: 'image/svg+xml' });
       }
-      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, json, csv, ics, vcf), or run the Tauri-bundled CLI for raster/pdf/zip.`);
+      if (format === 'emf') {
+        // EMF is pure bytes built from SVG primitives — no rasteriser needed, so
+        // it joins svg as a CLI-native format for native-<svg> tools. Text must
+        // already be outlined: the lean CLI has no host.text, so svgDomToIr throws
+        // on any live <text> (the always-text-as-paths guard surfaced as an error).
+        const svg = node.querySelector('svg') ?? (node.tagName?.toLowerCase() === 'svg' ? node : null);
+        if (!svg) throw new Error('EMF export requires an <svg> in the template (HTML-layout tools need a browser engine — use the desktop app)');
+        const ir = await svgDomToIr(svg, { host, background: opts.background });
+        const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
+        return new Blob([bytes], { type: 'image/emf' });
+      }
+      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, json, csv, ics, vcf), or run the Tauri-bundled CLI for raster/pdf/zip.`);
     },
     async download() {
       throw new Error('CLI cannot trigger a browser download — pipe the blob to a file via --output');
@@ -261,6 +275,7 @@ function mimeFor(format) {
     case 'png': return 'image/png';
     case 'jpg': case 'jpeg': return 'image/jpeg';
     case 'webp': return 'image/webp';
+    case 'emf': return 'image/emf';
     case 'json': return 'application/json';
     default: return 'application/octet-stream';
   }

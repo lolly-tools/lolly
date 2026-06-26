@@ -24,6 +24,8 @@ export {
 export {
   computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
 } from './print-marks.js';
+export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.js';
+export { emitEmf } from './emf.js';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,

@@ -62,7 +62,7 @@
         "height": { "type": "integer", "minimum": 1 },
         "formats": {
           "type": "array",
-          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "pdf", "pdf-cmyk", "cmyk-tiff", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "avif", "webm", "mp4", "gif"] },
+          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "emf", "pdf", "pdf-cmyk", "cmyk-tiff", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "avif", "webm", "mp4", "gif"] },
           "minItems": 1,
           "description": "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
         },
