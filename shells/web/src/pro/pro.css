@@ -259,9 +259,21 @@ body.pro-scrubbing, body.pro-scrubbing * { cursor: ew-resize !important; user-se
 .pro-fill-btn:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
 .pro-fill-btn svg { pointer-events: none; }
 
+/* Left gutter holding the drag grip: a hard fixed width, pinned to the left edge
+   (sticky) right alongside the template column so reordering stays reachable while
+   scrolling horizontally. Border-box (global) means its 2em width is its true
+   footprint, so the template column's sticky `left: 2em` butts exactly against it. */
+.pro-col-drag, .pro-cell-drag {
+  width: 2em; min-width: 2em; max-width: 2em;
+  padding: 0; text-align: center; vertical-align: middle;
+  position: sticky; left: 0; background: hsl(var(--card)); z-index: 1;
+}
+.pro-grid thead .pro-col-drag { z-index: 3; }
+
 /* min-width:0 so the template column can be dragged narrow like any other (the
-   header truncates with an ellipsis); its default width keeps it comfortable. */
-.pro-col-template, .pro-cell-template { min-width: 0; position: sticky; left: 0; background: hsl(var(--card)); z-index: 1; }
+   header truncates with an ellipsis); its default width keeps it comfortable.
+   Sits to the right of the 2em drag gutter, hence the sticky offset. */
+.pro-col-template, .pro-cell-template { min-width: 0; position: sticky; left: 2em; background: hsl(var(--card)); z-index: 1; }
 .pro-grid thead .pro-col-template { z-index: 3; }
 
 /* The remove-row column stays pinned to the right edge, mirroring the sticky
@@ -487,12 +499,24 @@ body.pro-scrubbing, body.pro-scrubbing * { cursor: ew-resize !important; user-se
 .pro-grid .pro-cell--editing .pro-control,
 .pro-grid .pro-cell--editing .pro-template-select { cursor: text; }
 .pro-cell-default { font-size: .75rem; }
-/* Last column holds the reorder grip + close ✕ side by side: a hard fixed width,
-   never grows or shrinks. */
-.pro-cell-actions, .pro-col-actions { width: 3.4em; min-width: 3.4em; max-width: 3.4em; text-align: center; padding: 0; }
-.pro-row-actions { display: flex; align-items: center; justify-content: center; gap: 1px; height: 100%; }
-.pro-row-remove { border: none; background: transparent; cursor: pointer; color: hsl(var(--muted-foreground)); font-size: .9rem; padding: .25rem .25rem; border-radius: 4px; }
+/* Last column holds the close ✕ (the reorder grip now lives in the left gutter):
+   a hard fixed width, never grows or shrinks. */
+.pro-cell-actions, .pro-col-actions { width: 3.4em; min-width: 3.4em; max-width: 3.4em; text-align: center; vertical-align: middle; padding: 0; }
+.pro-row-remove {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; background: transparent; cursor: pointer; color: hsl(var(--muted-foreground));
+  font-size: .9rem; line-height: 1; padding: .3rem .45rem; border-radius: 999px;
+  transition: background .12s, color .12s;
+}
 .pro-row-remove:hover { color: hsl(var(--destructive)); background: hsl(var(--muted)); }
+/* Two-step delete: the first click "arms" the ✕ into a labelled red confirm pill
+   (swapped to "Remove?" in JS); a second click within the window actually deletes,
+   and any other click — or a 3s timeout — disarms it. Prevents stray-click loss. */
+.pro-row-remove.is-armed {
+  background: hsl(var(--destructive)); color: hsl(var(--destructive-foreground));
+  font-size: .68rem; font-weight: 700; padding: .25rem .4rem;
+}
+.pro-row-remove.is-armed:hover { background: hsl(var(--destructive)); filter: brightness(1.08); }
 /* Grip: the grab affordance for drag-to-reorder (see reorder.js). Dimmed until
    the row is hovered, so it's quiet but discoverable. */
 .pro-row-drag {
@@ -674,6 +698,56 @@ body.pro-row-dragging, body.pro-row-dragging * { cursor: grabbing !important; us
   font-size: 1rem; line-height: 1; padding: .25rem .4rem; color: hsl(var(--muted-foreground));
 }
 .pro-blk-x:hover { color: hsl(var(--foreground)); }
+
+/* Head action cluster (eye toggle + close), kept together at the right. */
+.pro-blk-head-actions { display: flex; align-items: center; gap: .15rem; }
+.pro-blk-prev-toggle {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: .25rem .4rem; border-radius: 6px; color: hsl(var(--muted-foreground));
+}
+.pro-blk-prev-toggle:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
+.pro-blk-prev-toggle[aria-pressed="true"] { color: hsl(var(--primary)); }
+
+/* Live-preview pane: pinned between the head and the scrolling card body so it
+   stays in view while editing. A checkerboard backdrop reveals transparency. */
+.pro-blk-preview {
+  flex: 0 0 auto; display: flex; flex-direction: column;
+  max-height: 42%; border-bottom: 1px solid hsl(var(--border));
+}
+.pro-blk-preview[hidden] { display: none; }
+.pro-blk-preview-head {
+  flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between;
+  padding: .4rem .5rem .4rem 1rem;
+}
+.pro-blk-preview-title {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+  color: hsl(var(--muted-foreground));
+}
+.pro-blk-preview-x {
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-size: .85rem; line-height: 1; padding: .2rem .4rem; border-radius: 6px;
+  color: hsl(var(--muted-foreground));
+}
+.pro-blk-preview-x:hover { color: hsl(var(--destructive)); background: hsl(var(--muted)); }
+.pro-blk-preview-stage {
+  flex: 1 1 auto; min-height: 120px; display: flex; align-items: center; justify-content: center;
+  overflow: auto; padding: .6rem; transition: opacity .15s;
+  background-color: hsl(var(--muted) / .35);
+  background-image:
+    linear-gradient(45deg, hsl(var(--border) / .55) 25%, transparent 25%),
+    linear-gradient(-45deg, hsl(var(--border) / .55) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, hsl(var(--border) / .55) 75%),
+    linear-gradient(-45deg, transparent 75%, hsl(var(--border) / .55) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+.pro-blk-preview.is-loading .pro-blk-preview-stage { opacity: .5; }
+.pro-blk-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; box-shadow: 0 2px 10px hsl(0 0% 0% / .18); }
+.pro-blk-preview-frame { width: 100%; height: 100%; min-height: 220px; border: 0; background: #fff; border-radius: 4px; }
+.pro-blk-preview-msg { margin: 0; font-size: .8rem; color: hsl(var(--muted-foreground)); }
+.pro-blk-preview-msg.is-error { color: hsl(var(--destructive)); }
+
 .pro-blk-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 1rem; }
 .pro-blk-cards { display: flex; flex-direction: column; gap: .6rem; }
 

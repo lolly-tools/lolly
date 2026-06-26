@@ -26,7 +26,7 @@ import { attachScrub } from './scrub.js';
 import { controlHtml, readControlValue } from './controls.js';
 import { openBlocksEditor, closeBlocksPanel } from './blocks-editor.js';
 import { colorFieldHtml, wireColorField } from '../components/color-field.js';
-import { getTool } from './render-export.js';
+import { getTool, renderRowToBlob, isExportable } from './render-export.js';
 import { runBatch, planBatch } from './batch.js';
 import { buildZip, saveBlob, saveSequential } from './zip.js';
 import { batchToCsv, csvToBatch, parseClipboardGrid, coerceCell } from './io.js';
@@ -238,8 +238,33 @@ export async function mountPro(viewEl, host, opts = {}) {
   // Spreadsheet keyboard navigation (roving focus + focused/editing states).
   const nav = createGridNav(gridHost);
 
+  // ── Delete-row confirm (two-step) ───────────────────────────────────────────
+  // A row's ✕ arms on first click and confirms on the second; declared before the
+  // first renderGrid() (which clears any pending arm) so there's no TDZ on call.
+  let _armedRemove = null, _armTimer = 0;
+  function clearRemoveArm() {
+    if (_armTimer) { clearTimeout(_armTimer); _armTimer = 0; }
+    if (_armedRemove) {
+      _armedRemove.classList.remove('is-armed');
+      _armedRemove.textContent = '✕';
+      _armedRemove.title = 'Remove row';
+      _armedRemove.setAttribute('aria-label', 'Remove row');
+      _armedRemove = null;
+    }
+  }
+  function armRemove(btn) {
+    clearRemoveArm();
+    _armedRemove = btn;
+    btn.classList.add('is-armed');
+    btn.textContent = 'Remove?';
+    btn.title = 'Click again to remove this row';
+    btn.setAttribute('aria-label', 'Confirm remove row');
+    _armTimer = setTimeout(clearRemoveArm, 3000); // auto-cancel if left untouched
+  }
+
   // ── Render / re-render the grid from state ──────────────────────────────────
   function renderGrid() {
+    clearRemoveArm(); // a re-render replaces the buttons; drop any pending confirm
     // Capture before we blow away the DOM, so nav can restore focus afterwards.
     const hadFocus = gridHost.contains(document.activeElement);
     ctx.unit = state.unit; ctx.dpi = state.dpi; // toolbar defaults that rows inherit
@@ -481,6 +506,10 @@ export async function mountPro(viewEl, host, opts = {}) {
   });
 
   gridHost.addEventListener('click', async (e) => {
+    // Cancel a pending delete-confirm the moment the user clicks anything that
+    // isn't the very button they armed (clicking it again is the confirm path).
+    if (_armedRemove && e.target.closest('[data-action="remove-row"]') !== _armedRemove) clearRemoveArm();
+
     const tpl = e.target.closest('[data-template-trigger]');
     if (tpl) { openTemplatePicker(tpl.closest('td'), rowByUid(tpl.dataset.row)); return; }
 
@@ -492,11 +521,19 @@ export async function mountPro(viewEl, host, opts = {}) {
     const preview = e.target.closest('[data-preview-row]');
     if (preview) { openPreview(preview.dataset.previewRow); return; }
 
+    // Two-step delete: a stray click only arms the ✕; a deliberate second click on
+    // the same (now red "Remove?") button confirms. Any other click — handled by
+    // the disarm guard at the top of this listener — or a 3s timeout cancels it.
     const remove = e.target.closest('[data-action="remove-row"]');
     if (remove) {
-      state.rows = state.rows.filter(r => r.uid !== remove.dataset.row);
-      if (state.rows.length === 0) state.rows.push(newRow());
-      columns = renderGrid();
+      if (remove === _armedRemove) {
+        clearRemoveArm();
+        state.rows = state.rows.filter(r => r.uid !== remove.dataset.row);
+        if (state.rows.length === 0) state.rows.push(newRow());
+        columns = renderGrid();
+      } else {
+        armRemove(remove);
+      }
       return;
     }
     // Clearing an image (the ✕ that the ✓ badge becomes on hover) must be checked
@@ -609,6 +646,25 @@ export async function mountPro(viewEl, host, opts = {}) {
   // Per-cell block collapse state, remembered for the session only (NOT serialized
   // into saved tool sessions). Absent key ⇒ first open ⇒ all blocks collapsed.
   const blockUI = {};
+  // A viewable raster/SVG format for the in-panel preview (png/webp/jpg/svg all
+  // render in an <img>); falls back to whatever the tool supports. Returns null
+  // for render-only tools so the panel shows "nothing to preview".
+  function previewFormat(manifest) {
+    const formats = manifest?.render?.formats ?? [];
+    for (const pref of ['png', 'webp', 'jpg', 'svg']) if (formats.includes(pref)) return pref;
+    return formats[0] ?? null;
+  }
+  // Render `row` at native size with `records` applied to its blocks `key`, for
+  // the blocks panel's live preview. Native size keeps it fast — the block editor
+  // changes content, not dimensions — and the same engine path the batch uses.
+  async function renderBlocksPreview(row, key, records) {
+    if (!row?.toolId || !row.manifest || !isExportable(row.manifest)) return null;
+    const fmt = previewFormat(row.manifest);
+    if (!fmt) return null;
+    const snapshot = { ...row, values: { ...row.values, [key]: records } };
+    return renderRowToBlob(snapshot, host, { format: fmt });
+  }
+
   async function editBlocksCell(uid, key) {
     const row = rowByUid(uid);
     const col = colByKey(key);
@@ -624,6 +680,8 @@ export async function mountPro(viewEl, host, opts = {}) {
       // Live: each edit commits to this row and refreshes ONLY this cell's summary
       // (no full grid re-render → no scroll churn or focus loss while editing).
       onChange: (records) => { row.values[key] = records; refreshBlocksCell(uid, key, input, records); },
+      // Live preview of THIS row as the blocks change (skipped for render-only tools).
+      renderPreview: row.toolId ? (records) => renderBlocksPreview(row, key, records) : undefined,
     });
     // The panel held focus; put it back on the cell.
     gridHost.querySelector(`td[data-row="${uid}"][data-col="${key.replace(/["\\]/g, '\\$&')}"]`)?.focus();
@@ -649,7 +707,13 @@ export async function mountPro(viewEl, host, opts = {}) {
     const targets = state.rows.filter(r => r.toolId && col.members.has(r.toolId));
     if (!input || !targets.length) return;
     closeTemplatePicker(); closeBulkPopover(); closeSessions();
-    const result = await openBlocksEditor({ input, value: input.default ?? [], host, assetPicker, applyLabel: `Apply to ${targets.length}` });
+    // Preview the working value against the first target row, so a bulk edit still
+    // shows what the blocks will look like before applying to all rows.
+    const previewRow = targets.find(r => r.manifest && isExportable(r.manifest));
+    const result = await openBlocksEditor({
+      input, value: input.default ?? [], host, assetPicker, applyLabel: `Apply to ${targets.length}`,
+      renderPreview: previewRow ? (records) => renderBlocksPreview(previewRow, key, records) : undefined,
+    });
     if (result !== null) { targets.forEach(r => { r.values[key] = result.map(rec => ({ ...rec })); }); columns = renderGrid(); }
   }
 

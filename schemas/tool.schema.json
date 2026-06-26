@@ -134,9 +134,50 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm", "capture"]
+        "enum": ["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm", "capture", "compose"]
       },
       "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. ffmpeg-using tool unavailable in web shell)."
+    },
+    "composes": {
+      "type": "array",
+      "description": "Nested renders (tool composition). Each entry renders another tool's output to an embeddable asset, exposed to the template as an extra referenced via {{asset <id>}} (so a logic-less template can embed one tool's render inside another). Requires the 'compose' capability. Recursion is depth- and cycle-guarded by the host.",
+      "items": {
+        "type": "object",
+        "required": ["id", "tool"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+            "description": "Name the composed asset is exposed under. Reference it in the template as {{asset <id>}}; guard with {{#if <id>}} since composition can fail gracefully."
+          },
+          "tool": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+            "description": "id of the tool to render."
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Inputs passed to the composed tool, keyed by the child tool's input ids. String values are Handlebars, hydrated against THIS tool's own context (its input values + extras), so child inputs can bind to parent values, e.g. { \"url\": \"{{url}}\" }."
+          },
+          "format": {
+            "type": "string",
+            "enum": ["png", "jpg", "jpeg", "svg", "pdf", "webp"],
+            "description": "Render format for the composed output. Default: svg when the child supports it (vector embeds stay crisp in svg/pdf exports), else png."
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Render width in px. Defaults to the composed tool's native width."
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Render height in px. Defaults to the composed tool's native height."
+          }
+        }
+      }
     },
     "hooks": {
       "type": "object",

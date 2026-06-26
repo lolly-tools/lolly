@@ -11,6 +11,7 @@ export { createRuntime } from './runtime.js';
 export { hydrate, annotateTemplate } from './template.js';
 export { buildInputModel } from './inputs.js';
 export { parseUrlState, serializeUrlState } from './url-mode.js';
+export { parseEmbedUrl } from './embed.js';
 export { buildExportMeta } from './metadata.js';
 export {
   UNITS, CSS_DPI, isUnit, parseDimension,
@@ -32,4 +33,8 @@ export {
 // (host.export.file + the `exportFile` hook + runtime.exportFile), and the
 // `privacy: 'on-device'` utility marker. All backwards-compatible with ^1.0.0
 // tools; no v1 method was removed or changed.
-export const ENGINE_VERSION = '1.1.0';
+// 1.2.0 — additive: tool composition / nested renders — the optional
+// `host.compose` capability + manifest `composes` (rendered via resolveNestedRenders
+// into `{{asset <id>}}` extras). Backwards-compatible; shells without compose just
+// don't resolve composes (the {{#if}} slot stays empty).
+export const ENGINE_VERSION = '1.2.0';

@@ -8,4 +8,4 @@
  * bridge-overrides (e.g. the Tauri desktop shell adds 'capture' and 'filesystem')
  * so the SAME gallery/tool code gates the right tools per shell.
  */
-export const PROVIDED_CAPABILITIES = ['network', 'clipboard', 'wasm'];
+export const PROVIDED_CAPABILITIES = ['network', 'clipboard', 'wasm', 'compose'];

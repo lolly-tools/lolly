@@ -68,7 +68,7 @@ export function isExportable(manifest) {
  *        in `unit` (px/mm/cm/in/pt); blank falls back to the tool's native size.
  *        `dpi` sets raster resolution for physical units.
  */
-export async function renderRowToBlob(row, host, { format, width, height, unit = 'px', dpi } = {}) {
+export async function renderRowToBlob(row, host, { format, width, height, unit = 'px', dpi, composeStack, watermark, embedMeta, thumbnail } = {}) {
   const tool = await getTool(row.toolId);
   if (!isExportable(tool.manifest)) {
     throw new Error(`"${tool.manifest.name}" is render-only and cannot be exported.`);
@@ -93,7 +93,9 @@ export async function renderRowToBlob(row, host, { format, width, height, unit =
     if (inputIds.has('width')  && seeded.width  == null) seeded.width  = layoutW;
     if (inputIds.has('height') && seeded.height == null) seeded.height = layoutH;
   }
-  const runtime = await createRuntime(tool, host, seeded);
+  // composeStack threads tool-id recursion state down when this render is itself
+  // a composed child (set by the compose bridge); undefined for normal batch rows.
+  const runtime = await createRuntime(tool, host, seeded, { composeStack });
 
   // Export dimension qualified with the unit (px / mm / cm / in / pt) so the
   // engine converts per format; blank falls back to the native canvas size.
@@ -122,7 +124,14 @@ export async function renderRowToBlob(row, host, { format, width, height, unit =
     runTemplateScripts(canvas);
     await waitForQuiescence(canvas);
     const fmt = chooseFormat(tool.manifest, format);
-    const blob = await runtime.export(canvas, fmt, { width: outW, height: outH, dpi });
+    // watermark/embedMeta/thumbnail are forwarded only when set (compose passes
+    // watermark:false + embedMeta:false so an embedded child isn't stamped); batch
+    // rows leave them undefined so runtime.export keeps its normal defaults.
+    const exportOpts = { width: outW, height: outH, dpi };
+    if (watermark !== undefined) exportOpts.watermark = watermark;
+    if (embedMeta !== undefined) exportOpts.embedMeta = embedMeta;
+    if (thumbnail !== undefined) exportOpts.thumbnail = thumbnail;
+    const blob = await runtime.export(canvas, fmt, exportOpts);
     return { blob, format: fmt };
   } finally {
     stage.remove();

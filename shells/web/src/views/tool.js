@@ -20,6 +20,7 @@ import { canSkipInputsRebuild } from './inputs-sync.js';
 import { exportSizeDriver } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
+import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -993,16 +994,23 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     (stageEl || contentEl?.parentElement)?.querySelector(':scope > .canvas-error')?.remove();
   }
 
+  let renderGen = 0;
   runtime.subscribe(({ model, hydrated }) => {
     if (inputsEl && !_sliderDragging) {
       prevInputsModel = syncInputs(inputsEl, model, prevInputsModel, runtime, host, markUserDirty);
     }
+    const gen = ++renderGen;
     try {
-      contentEl.innerHTML = hydrated;
+      // Neutralise any lolly.tools embed URLs BEFORE insertion so the editor never
+      // fires a network request for them; they're resolved to local composed
+      // renders (blob URLs) just after the template's own scripts run. The
+      // generation guard stops a slow embed render from overwriting a newer one.
+      contentEl.innerHTML = neutralizeEmbeds(hydrated);
       if (!hideSidebar) resolveCanvasAnnotations(contentEl);
       // Keep the canvas's accessible summary current when it's a live a11yLabel.
       if (tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', canvasLabel());
       runTemplateScripts(contentEl);
+      hydrateEmbeds(contentEl, { host, isCurrent: () => gen === renderGen });
       clearCanvasError();
     } catch (err) {
       // A throwing template script (charts, QR, fetch-backed tools run in page

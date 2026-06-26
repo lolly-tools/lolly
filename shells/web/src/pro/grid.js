@@ -274,7 +274,17 @@ export function bodyRow(row, columns, ctx) {
   const collapsed = ctx.collapsed ?? new Set();
   const exportCell = (key, html) => (collapsed.has(key) ? '' : html);
 
+  // Left gutter: the drag grip, pinned to the row's left edge (sticky like the
+  // template column beside it) so a row is grabbable wherever you've scrolled.
+  // No data-row/data-col, so keyboard nav skips it; reorder.js finds it by
+  // [data-row-drag] regardless of which cell holds it.
+  const dragCell = `<td class="pro-cell-drag">
+    <button type="button" class="pro-row-drag" data-row-drag data-row="${uid}" tabindex="-1"
+      title="Drag to reorder row" aria-label="Drag to reorder row">${GRIP_SVG}</button>
+  </td>`;
+
   return `<tr data-row="${uid}"${row.height ? ` style="height:${row.height}px"` : ''}>
+    ${dragCell}
     ${templateCell}
     ${exportCell('__filename', filenameCell)}
     ${exportCell('__width', widthCell)}
@@ -283,12 +293,8 @@ export function bodyRow(row, columns, ctx) {
     ${exportCell('__dpi', dpiCell)}
     ${cells}
     <td class="pro-cell-actions">
-      <div class="pro-row-actions">
-        <button type="button" class="pro-row-drag" data-row-drag data-row="${uid}" tabindex="-1"
-          title="Drag to reorder row" aria-label="Drag to reorder row">${GRIP_SVG}</button>
-        <button type="button" class="pro-row-remove" data-action="remove-row" data-row="${uid}"
-          title="Remove row" aria-label="Remove row">✕</button>
-      </div>
+      <button type="button" class="pro-row-remove" data-action="remove-row" data-row="${uid}"
+        title="Remove row" aria-label="Remove row">✕</button>
     </td>
   </tr>`;
 }
@@ -311,6 +317,7 @@ export function renderGridHtml(state, columns, ctx, hidden = []) {
     .map(c => exportHeaderCell(c, widths))
     .join('');
   const head = `<thead><tr>
+    <th class="pro-col-drag" aria-hidden="true"></th>
     <th class="pro-col-template" data-col="__template" style="${widthStyle('__template', widths)}">Template</th>
     ${exportHead}
     ${columns.map(c => headerCell(c, widths)).join('')}

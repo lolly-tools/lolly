@@ -3192,6 +3192,18 @@ a.storage-indicator:hover { opacity: 1; }
 
 .clear-dialog-actions .btn:hover { background: hsl(var(--muted)); }
 .clear-dialog-actions .btn.btn-danger { border-color: transparent; }
+.clear-dialog-actions .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* "Type <word> to confirm" gate on the destructive clear-all dialog. */
+.clear-confirm { display: flex; flex-direction: column; gap: 6px; margin: -8px 0 20px; }
+.clear-confirm-prompt { font-size: 13px; color: hsl(var(--muted-foreground)); }
+.clear-confirm-prompt strong { color: hsl(var(--foreground)); font-weight: 700; letter-spacing: .02em; }
+.clear-confirm-input {
+  font: inherit; font-size: 14px; padding: 9px 12px;
+  border: 1px solid hsl(var(--input)); border-radius: 8px;
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+.clear-confirm-input:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
 
 .saved-label {
   display:grid;
@@ -3422,6 +3434,23 @@ a.storage-indicator:hover { opacity: 1; }
   letter-spacing: .07em;
   color: hsl(var(--muted-foreground));
 }
+
+/* Collapsible sections (Activity / Storage / Feature flags) — collapsed by
+   default. Card chrome sits on the <details>; the <summary> is the header. */
+.profile-view .profile-collapse { padding: 0; }
+.profile-view .profile-collapse > summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem 1.4rem;
+}
+.profile-view .profile-collapse > summary::-webkit-details-marker { display: none; }
+.profile-view .profile-collapse > summary h2 { margin: 0; flex: 1 1 auto; text-align: left; }
+.profile-view .profile-collapse > summary:hover h2 { color: hsl(var(--foreground)); }
+.profile-view .profile-collapse > summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: calc(var(--radius) * 1.25); }
+.profile-view .profile-collapse-chev { flex: 0 0 auto; color: hsl(var(--muted-foreground)); transition: transform .15s ease; }
+.profile-view .profile-collapse[open] > summary .profile-collapse-chev { transform: rotate(90deg); }
+.profile-view .profile-collapse-body { padding: 0 1.4rem 1.25rem; }
+@media (prefers-reduced-motion: reduce) { .profile-view .profile-collapse-chev { transition: none; } }
 
 /* Details card: fields (two columns of three) on the left, theme + headshot
    stacked on the right. Collapses to one column when there isn't room. */
