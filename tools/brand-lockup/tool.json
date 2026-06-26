@@ -70,8 +70,8 @@
       "id": "wrapMode",
       "label": "Name wrapping",
       "type": "select",
-      "default": "compact",
-      "help": "Stacked only: how the name wraps under SUSE. Compact stacks each long word; balanced and wide keep more words per line.",
+      "default": "balanced",
+      "help": "Stacked only: how the name wraps under SUSE. Compact stacks each long word onto its own line; wide keeps more words per line.",
       "options": [
         { "value": "compact", "label": "Compact" },
         { "value": "balanced", "label": "Balanced" },
