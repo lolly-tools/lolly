@@ -27,7 +27,7 @@ User details. Tools read; the user manages them via the host UI.
 | `get()` | `Promise<Profile>` | Current profile |
 | `subscribe(fn)` | `() => void` | Calls `fn(profile)` on change; returns an unsubscribe |
 
-`Profile`: `firstname, lastname, email, phone, city, country, headshot (AssetRef), custom`. Most tools don't call this directly — declare `bindToProfile: "firstname"` on an input and the host pre-fills it for you.
+`Profile`: `firstname, lastname, email, phone, city, country, headshot (AssetRef), custom, featureFlags` (`featureFlags` is the user's local UI flag map, default ON — not a tool concern). Most tools don't call this directly — declare `bindToProfile: "firstname"` on an input and the host pre-fills it for you.
 
 ## `host.assets`
 
@@ -74,7 +74,7 @@ The host owns the renderer — tools don't bundle their own.
 | `download(blob, filename)` | `Promise<void>` | Trigger a download (throws on CLI — pipe via `--output` instead) |
 | `file(blob, opts?)` | `Promise<void>` | Deliver a blob the **tool** produced (the transform path: file in → transformed file out), with `opts.filename`. Carries no watermark and no provenance — for on-device utilities whose `exportFile` hook returns the bytes |
 
-`format` is an `ExportFormat`: `png · jpg · svg · pdf · pdf-cmyk · cmyk-tiff · html · webm · av1` (availability is per-tool via the manifest, and per-browser for video). Separately, tools produce the **text/data formats** `md · txt · json · csv · ics · vcf` from the input model (not a DOM render — see [Exporting & Formats](/info/exporting.html)).
+`format` is an `ExportFormat` — the render formats are `png · jpg/jpeg · webp · avif · svg · pdf · pdf-cmyk · cmyk-tiff · html · ico · zip · webm · mp4 · gif` (availability is per-tool via the manifest, and per-browser for the video formats `webm`/`mp4`/`gif`; `ico`/`zip` are icon/bundle outputs). Separately, tools produce the **text/data formats** `md · txt · json · csv · ics · vcf` from the input model (not a DOM render — see [Exporting & Formats](/info/exporting.html)). This is the same 21-value enum the catalog validator enforces in `schemas/tool.schema.json`. *(The `ExportFormat` union in `engine/src/bridge/host-v1.ts` is itself stale — still `av1`, missing the raster/bundle formats — and is being reconciled with the schema; track the schema, not the type.)*
 
 `ExportOpts`:
 
@@ -154,7 +154,7 @@ Render another tool's output to an embeddable asset — **tool composition** ("n
 |---|---|
 | `render(spec)` | `Promise<AssetRef>` |
 
-`ComposeSpec`: `{ toolId, inputs, format?, width?, height?, dpi? }`. Returns an `AssetRef` whose `url` is a `blob:`/`data:` URL — so the embedded render rasterises (PNG) or inlines as vectors (SVG/PDF) exactly like any other asset. The child render is depth- and cycle-guarded and is never watermarked or provenance-stamped (it's an intermediate). Optional: a shell that can't render a child to bytes (e.g. the no-raster CLI for a raster child) just doesn't provide it, and composition degrades gracefully. See [Authoring Tools](/info/authoring-tools.html) for the `composes` manifest shape.
+`ComposeSpec`: `{ toolId, inputs, format?, width?, height?, unit?, dpi? }` (`width`/`height` are in `unit` — `px` default, or `mm`/`cm`/`in`/`pt`). Returns an `AssetRef` whose `url` is a `blob:`/`data:` URL, so the embedded render behaves like any other asset: an **SVG** child stays a true vector through the parent's SVG and PDF exports (and rasterises crisply for PNG), while **raster** children (`png`/`jpg`/`webp`) embed as images. SVG is the only format used declaratively today — `event-name-badge` composes `qr-code` as `svg`. The child render is depth- and cycle-guarded and is never watermarked or provenance-stamped (it's an intermediate). Optional: a shell that can't render a child to bytes (e.g. the no-raster CLI for a raster child) just doesn't provide it, and composition degrades gracefully. See [Authoring Tools](/info/authoring-tools.html) for the `composes` manifest shape.
 
 ## `host.log`
 

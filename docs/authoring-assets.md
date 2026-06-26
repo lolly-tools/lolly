@@ -1,6 +1,6 @@
 # Authoring Assets
 
-Assets are global, versioned, brand-controlled resources tools draw from. Logos, palettes, mascots, event tiles, fonts.
+Assets are global, versioned, brand-controlled resources tools draw from. Logos and mascots, palettes, design tokens, event tiles, fonts, and video b-roll. The authoritative list of asset types is the `type` enum in `schemas/asset.schema.json`: `vector | raster | video | palette | tokens | font`.
 
 ## Anatomy
 
@@ -54,9 +54,11 @@ Validated against `schemas/asset.schema.json`.
 
 | Tier         | What it means                                                  | When to use |
 |--------------|----------------------------------------------------------------|-------------|
-| `core`       | Bundled with the app. Always available offline. ~30–50 items.  | Logos, primary palette, core mascot poses |
+| `core`       | Bundled with the app. Always available offline.                | Logos, primary palette, design tokens, core mascot poses |
 | `catalog`    | Synced at boot, cached. Available offline once cached.         | Most things — event packs, icon sets |
 | `on-demand`  | Fetched when first used, then cached. Needs net first time.    | Heavy items — hi-res photo, video b-roll |
+
+The `core` tier is meant to stay small (target a few dozen brand essentials); today the catalog ships 10 core assets, the rest `on-demand`. Catalog-tier entries can set `"prefetch": true` (catalog tier only) to fetch their bytes at sync time rather than lazily on first use.
 
 ## Locales
 
@@ -94,7 +96,13 @@ Palettes are a special asset type whose payload is JSON, not an image:
 }
 ```
 
-Tools reference palette swatches through `host.assets.get(id)` → `ref.meta.swatches`. The `color` input type's `palette` field lets a tool constrain a color picker to a specific palette.
+Tools reference palette swatches through `host.assets.get(id)` → `ref.meta.swatches`. Note this is wired up in the **CLI shell** today (its bridge parses the palette JSON and spreads `swatches` into `meta`); the web shell's assets bridge does not yet populate `meta.swatches`, so don't rely on it cross-shell.
+
+The `color` input type also accepts a `palette` field (schema-valid, mapped to a `palette-picker` control in `engine/src/inputs.js`), but the web shell currently renders that control as a **stub**. For a working brand-restricted picker today, use a `color` input with `"swatchesOnly": true` — it renders the real brand swatch picker (no hex/native/alpha).
+
+## Design tokens
+
+`type: "tokens"` is a DTCG (Design Tokens Community Group) JSON document — the canonical brand-color source. The core asset `suse/tokens/brand` feeds the color picker's swatches and the defaults for brand-bound inputs. Beyond the normal asset checks, the validator runs a dedicated DTCG-structure validation against `schemas/tokens.schema.json` (`scripts/validate-catalog.js`). See [Design tokens](/info/design-tokens.html) for the token model and how palettes relate.
 
 ## Workflow
 
@@ -108,4 +116,6 @@ Tools reference palette swatches through `host.assets.get(id)` → `ref.meta.swa
 4. PR review. Approval = brand approval.
 5. Merge → build catalog → deploy. Clients pick it up at next sync.
 
-There is no upload UI, no admin tool, no moderation queue. The git review **is** the moderation.
+For **catalog/brand** assets there is no upload UI, no admin tool, no moderation queue. The git review **is** the moderation. (This is separate from a user's own device-local image library — the web shell lets a person save their own uploads under the `user/` namespace, capped at 50; those never enter the catalog and are not brand-reviewed.)
+
+Composed renders — a tool that embeds another tool's output via `composes` (see [Authoring tools](/info/authoring-tools.html)) — surface as ephemeral `AssetRef`s through the same `{{asset id}}` helper, but they are runtime intermediates, not catalog assets.

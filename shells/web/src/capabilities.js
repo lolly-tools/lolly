@@ -13,6 +13,7 @@
 
 const CAPABILITY_LABELS = {
   capture: 'page capture',
+  compose: 'tool composition',
   camera: 'camera access',
   ffmpeg: 'video encoding',
   filesystem: 'file-system access',

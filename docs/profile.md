@@ -2,7 +2,7 @@
 
 A **profile** is the working identity Lolly creates *as*. It's the small set of details a tool can pull from so you don't retype them every time — your name, contact details, an optional headshot, a few preferences — plus everything you accumulate while you work: saved sessions, uploaded images, and the local activity tally.
 
-Everything in a profile lives **on the device**, in the browser's local database (IndexedDB on the web PWA, the filesystem on the Tauri apps). There's no account and nothing is uploaded. You manage it under **Profile** (top-right of the gallery); tools only *read* it, and only when you let them.
+Everything in a profile lives **on the device**, in the browser's local database (IndexedDB on the web PWA, the filesystem on the Tauri apps). There's no account and nothing is uploaded. You manage it under **Profile** (top-right of the gallery); tools only ever *read* it, and only the specific fields they were built to pre-fill.
 
 > A profile is about *you* (or whoever's creating here). It's distinct from the **Platform** — the brand's colours, fonts, and global settings — and from **Capabilities**, the catalogue of what the app can do. See [Profile vs Platform vs Capabilities](#profile-vs-platform-vs-capabilities) at the end.
 
@@ -13,10 +13,9 @@ Everything in a profile lives **on the device**, in the browser's local database
 | **Name** | First and last name. |
 | **Contact** | Email and phone. |
 | **Location** | City and country. |
-| **Headshot** | An optional photo, cropped to a square and kept as a local image. Used by tools like email signatures, badges, and lockups. |
-| **Custom fields** | Extra named values a profile can carry beyond the built-ins (e.g. a job title, a department, an event name) for tools that ask for them. |
-| **Use my details** | A single opt-in switch. While it's off, tools don't read your details at all; turn it on to let them pre-fill. |
-| **Preferences** | Your theme (light/dark) and which parts of the app you've enabled via **Feature flags**. |
+| **Headshot** | An optional photo, cropped to a square and kept as a local image. Used by tools like email signatures, quote cards, color blocks, and dynamic layouts. |
+| **Use my details** | A single opt-in switch. It controls whether your personal details ride along as **provenance** — the author/credit line embedded in exported files — and as the author on **/pro** batch runs. (It doesn't gate pre-fill: see [How tools use your profile](#how-tools-use-your-profile).) |
+| **Preferences** | Your theme (light, dark, or SUSE) and which parts of the app you've enabled via **Feature flags**. |
 | **Your work** | Saved sessions (with thumbnails), your **My images** library, and the local activity stats — all keyed to this profile. |
 
 None of this is required. A blank profile is a perfectly good profile; you fill in only what saves you typing.
@@ -49,7 +48,7 @@ So if you genuinely juggle several contexts (you, your team, the event-manager h
 - **Layering:** importing *without* clearing first **merges** — the imported profile, sessions, and images land on top of what's already there, replacing anything with the same name and leaving the rest. Handy for pulling one team's saved sessions into your own setup; not what you want if you need a clean role boundary.
 - **Side by side:** because everything is device-scoped, a separate browser profile, a separate user account, or a second installed PWA each carries its own independent Lolly profile. Run your personal install and the event kiosk install at once, no switching.
 
-> Keep a bundle per context and name the files for what they are (`lolly-data-events-2026.zip`, `lolly-data-me.zip`). The file *is* the profile.
+> Keep a bundle per context and rename the files for what they are (`LollyTools-events-2026.zip`, `LollyTools-me.zip`). The file *is* the profile.
 
 ## Moving a profile to a new device
 
@@ -57,7 +56,7 @@ Because a profile is entirely local, the only way to get it onto a blank install
 
 Under **Profile → Storage → Move to another device**:
 
-- **Export my data** downloads one `lolly-data-YYYY-MM-DD.zip`. It contains your profile, every saved session (with its thumbnail), your uploaded images, and your preferences (theme, layout, local activity stats).
+- **Export my data** downloads one `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` — named for the profile it belongs to, with a per-day sequence number so repeat exports don't collide (name parts are dropped when the profile doesn't have them). It contains your profile, every saved session (with its thumbnail), your uploaded images, and your preferences (theme, layout, local activity stats).
 - **Import data…** on the other install reads that file back in and you pick up exactly where you left off.
 
 The bundle is a plain, self-contained zip, so it travels by **any** means — USB, AirDrop, a network share, email-to-yourself — and the target can be completely offline. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. Import **merges** (same-named profile/session/image is overwritten; everything else is kept), so it never wipes a target that was already in use.
@@ -68,12 +67,11 @@ For the exact bundle layout, version policy, and integrity rules, see **[Data Tr
 
 ## How tools use your profile
 
-Tools never reach into your details on their own. Two things gate it:
+A tool only ever sees a profile field it was explicitly built to read:
 
-1. **The opt-in.** Until **Use my details** is on, `host.profile` hands tools an empty record.
-2. **Explicit binding.** A tool author marks an input as drawing from the profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"`, …). When the tool opens, that input pre-fills from your profile — and you can still override it for that one session without changing the profile.
+**Explicit binding.** A tool author marks an input as drawing from the profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"`, …). When the tool opens, that input pre-fills from your profile — and you can still override it for that one session without changing the profile. Pre-fill is a local convenience and happens whether or not **Use my details** is on.
 
-When you export an asset, the same details optionally ride along as **provenance** — an author/credit line embedded in the file's metadata (PNG, PDF, SVG, …) — so a finished asset can say who made it. That, too, follows the active profile. (Tool authors: see [Authoring Tools → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) and [Host API → `host.profile`](/info/host-api.html#host-profile).)
+**The opt-in (provenance).** When you export an asset, your details optionally ride along as **provenance** — an author/credit line embedded in the file's metadata (PNG, PDF, SVG, …) — so a finished asset can say who made it. *This* is what **Use my details** governs: leave it off and the export still carries the "Made with Lolly" tool/platform attribution, but no personal author/contact line is embedded. (The same opt-in sets the author on **/pro** batch runs.) (Tool authors: see [Authoring Tools → `bindToProfile`](/info/authoring-tools.html#bindtoprofile) and [Host API → `host.profile`](/info/host-api.html#host-profile).)
 
 ## Profile vs Platform vs Capabilities
 

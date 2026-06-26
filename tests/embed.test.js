@@ -60,6 +60,13 @@ test('rejects anything that is not the exact shape', () => {
   }
 });
 
+test('normalizes a single FQDN trailing dot (so it agrees with the neutralizer)', () => {
+  const r = parseEmbedUrl('https://lolly.tools./tool/qr-code.svg?url=x');
+  assert.equal(r?.toolId, 'qr-code');
+  // but a host-suffix trick is still rejected
+  assert.equal(parseEmbedUrl('https://lolly.tools.evil.com/tool/qr-code.svg'), null);
+});
+
 test('rejects an absurdly long string without throwing', () => {
   assert.equal(parseEmbedUrl('https://lolly.tools/tool/qr-code.svg?x=' + 'a'.repeat(5000)), null);
 });

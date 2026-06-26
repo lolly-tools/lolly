@@ -49,32 +49,54 @@ export async function resolveNestedRenders(tool, model, extras, host, composeSta
 
     const key = composeKey(spec.tool, inputs, spec.format, spec.width, spec.height);
     const cached = memo.get(spec.id);
-    if (cached && cached.key === key) { out[spec.id] = cached.ref; continue; }
+    if (cached && cached.key === key) { out[spec.id] = cached.ref; ctx[spec.id] = cached.ref; continue; }
 
     try {
-      const ref = await host.compose.render({
+      const ref = await withTimeout(host.compose.render({
         toolId: spec.tool,
         inputs,
         format: spec.format,
         width: spec.width,
         height: spec.height,
         _stack: [...composeStack, tool.manifest.id],
-      });
+      }), COMPOSE_TIMEOUT_MS, spec.tool);
       if (ref && typeof ref.url === 'string') {
         out[spec.id] = ref;
+        // Expose to later specs so a subsequent compose can bind to this one
+        // (e.g. {{asset earlierId}}); composes resolve top-to-bottom.
+        ctx[spec.id] = ref;
         memo.set(spec.id, { key, ref });
       } else {
+        // Authoritative: clear the slot so the runtime's additive merge drops a
+        // previously-successful render instead of leaving it stale.
+        out[spec.id] = null;
         memo.delete(spec.id);
       }
     } catch (e) {
-      // Graceful: log and omit the slot. The template's {{#if <id>}} hides it and
-      // the parent still renders. Covers cycle/depth rejections and child errors.
+      // Graceful: log and CLEAR the slot. The template's {{#if <id>}} then hides
+      // it and the parent still renders. Covers cycle/depth/timeout + child errors.
       host.log?.('warn', `compose "${spec.tool}": ${e.message}`, { toolId: tool.manifest.id });
+      out[spec.id] = null;
       memo.delete(spec.id);
     }
   }
 
   return out;
+}
+
+// Backstop so a hung/slow child render can't block the parent's mount or a
+// keystroke indefinitely; reject → graceful slot clear above. The web bridge has
+// its own inner bound (waitForQuiescence), so this only catches a stuck loadTool.
+const COMPOSE_TIMEOUT_MS = 10000;
+
+function withTimeout(promise, ms, toolId) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
+    Promise.resolve(promise).then(
+      (v) => { clearTimeout(t); resolve(v); },
+      (e) => { clearTimeout(t); reject(e); },
+    );
+  });
 }
 
 /** Stable cache key for a composition (insensitive to input key order). */

@@ -19,7 +19,7 @@ Images are build artifacts. Treat them that way. Lolly runs from the CLI so you 
 
 ```bash
 brand-tool qr-code --url=https://suse.com --output=./og-qr.svg
-brand-tool quote-card --text="Ship it." --output=./quote.png
+brand-tool quotes --quote="Ship it." --output=./quote.png
 ```
 
 ---
@@ -30,7 +30,7 @@ brand-tool quote-card --text="Ship it." --output=./quote.png
 
 Design decisions are locked in at the template level — not in a style guide nobody reads. Every asset your team generates is already on-brand, even if they've never opened a design tool.
 
-- **Infinite permutations, one source of truth.** Localize a quote card into 12 languages, swap a product lockup across 40 campaigns, or generate every size variant for every placement — without touching the design.
+- **Infinite permutations, one source of truth.** Localize a quote card into 12 languages, swap a product lockup across 40 campaigns, or generate every size variant for every placement — without touching the design. Drive it all from a spreadsheet in the batch grid: paste or import a CSV, get one finished asset per row.
 - **No creative agency bottleneck for routine assets.** Email signatures, event countdowns, quote cards, team maps — everything your team needs on a Tuesday at 4pm, self-serve.
 - **Collaborate without compliance risk.** No customer data uploaded to third-party cloud services. No SaaS licensing to audit. Runs entirely on local device compute.
 - **Operationalize production.** Connect structured data — campaign names, dates, stats, speaker details — to templates that output print-ready files. Your operations team can run a campaign without touching design software.
@@ -70,6 +70,7 @@ Build your info-editorial style once, then generate publication-quality assets f
 You design systems and solve problems, not one-offs. Lolly is the execution layer that turns your design decisions into tools your whole organization can use — without you in the loop for every asset.
 
 - **This is the frontier.** Advanced filters, compositing, animation, generative design — the platform has no ceiling. Every web technology is available to the template author. Do more than any creative suite would allow - with all the power to get finished production quality.
+- **Tools compose tools.** One tool can embed another tool's output as an on-brand asset — a name badge that renders its own QR code, a card that drops in a live chart — with no design tool and no manual compositing.
 - **Author tools, not files.** Build a template that generates 10,000 social cards rather than making 10,000 social cards. Your time goes to the design problem, not the production run.
 - **Eliminate the tedious.** Optimal typesetting, logo placement, map pin positioning, color contrast checks, export sizing — all resolved at the template layer. You define the rules once, leave the repetition to the machine.
 - **Lock what shouldn't change, free what should.** Hard-code the brand constraints. Expose only the variables that are actually meant to vary. The tool becomes the creative guardrail.
@@ -103,7 +104,7 @@ Output the file URL.
 
 Every time someone uploads a file to a third-party service to "just make it look right," that's a data exfiltration event waiting to happen. Lolly eliminates the problem at the source — creative production stays on-device, on-premise, and under your control.
 
-- **Data never leaves the device.** By default, nothing is transmitted to any third party — no cloud rendering, no analytics, no telemetry. What colleagues create stays on their machine.
+- **Data never leaves the device.** By default, nothing is transmitted to any third party — no cloud rendering, no analytics, no telemetry. What colleagues create stays on their machine. On-device utilities like Strip Hidden Data scrub EXIF and metadata from images, SVG, and PDF entirely in the browser — nothing is uploaded.
 - **Self-host for full air-gap control.** Deploy on your own infrastructure. No server-side processing, no database, no backend. Operate entirely offline, behind your firewall, with your own access policies.
 - **Reduce vendor surface area.** One open-source platform replaces a sprawl of SaaS subscriptions for creative production. Fewer vendors means fewer contracts, fewer audits, and fewer breach vectors.
 - **Enforce brand governance at the infrastructure level.** Tools are authored once and distributed as data — not files, not manual processes. What goes out the door is exactly what was approved to go out the door.
@@ -120,7 +121,7 @@ Every time someone uploads a file to a third-party service to "just make it look
 
 **Works offline.** Local compute, local storage. No internet required after first sync.
 
-**Huge format support.** SVG · PDF (+CMYK) · PNG · JPEG · WEBP · AVIF · WEBM · MP4 · GIF · HTML · MD
+**Huge format support.** SVG · PDF (+CMYK) · PNG · JPEG · WEBP · AVIF · WEBM · MP4 · GIF · HTML · MD — plus structured exchange formats: ICS · VCF · CSV · JSON · TXT
 
 **Ships new tools without app updates.** Tools are data, not bundled code. New tools appear automatically.
 

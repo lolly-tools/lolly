@@ -111,6 +111,39 @@ The URL updates automatically as block items are added, removed, or edited in th
 
 > Blocks with a JSON representation larger than 8 KB are not written to the URL to avoid exceeding browser URL limits. In that case, use a saved state `slot` for sharing.
 
+### Vector
+
+A `vector` input is a fixed group of numbers edited as one control (e.g. a zoom + x/y offset). It has **no** single-param form — pass each field as a flat dotted param `<inputId>.<fieldId>`:
+
+```
+?transform.zoom=200&transform.x=30&transform.y=70
+```
+
+One readable value per param. Used by tools such as `bag-video`, `chart-creator`, `duotone-filter`, `dynamic-layout`, and `quotes`.
+
+### File
+
+A `file` input (the user's own file, processed in memory) is **never** put in a URL — its bytes live only on the device, so there is nothing shareable to encode. On the CLI a file param is a filesystem path, loaded into memory before rendering:
+
+```bash
+brand-tool strip-data --source=./photo.jpg --format=jpg --output=clean.jpg
+```
+
+In the web shell a `file` input can't be pre-filled from a URL; a link that referenced one resolves as blank, and the recipient picks their own file.
+
+---
+
+## Compact encoding (opt-in)
+
+Tools can opt into a shorter URL form, which the web shell then **writes** to the address bar as you edit. Both the long forms above and the compact forms below parse, so either kind of link works:
+
+- **`urlKey` aliases** — an input (or block field) can declare a short key, e.g. `textColor` → `tc`, so `?tc=ff0000` sets it.
+- **Colors without `#`** — a 6-char hex is stored bare (`?color=0c322c`), restored to `#0c322c` on parse.
+- **Tilde-delimited block arrays** — instead of JSON, blocks serialise as `field,field,field~field,field,field` (one `~`-separated group per item; values URL-encoded, colors `#`-less).
+- **Omitted defaults** — values equal to the input's default are dropped from the URL entirely.
+
+`chart-creator` is a live tool that uses `urlKey`, so a link copied from its address bar won't match the long-form examples in this doc — that's expected.
+
 ---
 
 ## Reserved parameters
@@ -133,7 +166,7 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `unit` | web + CLI | Physical unit for `width`/`height`: `px` (default), `mm`, `cm`, `in`, `pt`, `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
 | `password` | web only | PDF open password (`pdf` only). A basic lock, not strong encryption; it travels in clear text in the URL, so it's a light deterrent, not protection for confidential material. Ignored when `bleed`/`marks` are on (encrypted PDFs can't carry print finishing). |
-| `profile` | web only | CMYK press condition for the print formats (`pdf-cmyk` / `cmyk-tiff`), e.g. `fogra51` — embedded as the PDF's output intent, recorded in the TIFF's provenance. |
+| `profile` | web only | Colour profile, two roles by format. For ordinary raster (`png` / `jpg` / `webp`) it selects the ICC profile: `srgb` (the default) embeds an sRGB profile; `none` omits it. For the print formats (`pdf-cmyk` / `cmyk-tiff`) it is the CMYK press condition, e.g. `fogra51` — embedded as the PDF's output intent, recorded in the TIFF's provenance. |
 | `bleed` | web only | Bleed amount for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`), as a dimension (e.g. `3mm`, `0.125in`). The artwork is scaled to fill the bleed; the PDF declares `TrimBox`/`BleedBox`, the TIFF is enlarged to the full sheet. |
 | `marks` | web only | Print marks for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`) — a CSV of `crop`, `reg`, `bleed`, `bars`, `prov`. Drawn in the page margin (PDF) or rasterised into the image margin (TIFF); registration prints on all four plates in `pdf-cmyk` and `cmyk-tiff`. `prov` (provenance credit text) is PDF-only. |
 
@@ -191,12 +224,19 @@ Supported values:
 | `webp` | Lossy/lossless raster |
 | `avif` | AVIF raster |
 | `pdf` | PDF document |
+| `pdf-cmyk` | Print PDF — CMYK with output intent (see print marks & bleed) |
+| `cmyk-tiff` | Print TIFF — flattened CMYK raster |
+| `ico` | Icon bundle (e.g. `tool-logo`) |
+| `zip` | Multi-file bundle |
 | `html` | Static HTML document |
+| `md` / `txt` | Markdown / plain text |
+| `json` / `csv` | Structured data |
+| `ics` / `vcf` | Calendar event / contact card |
 | `gif` | Animated GIF (animated tools only) |
 | `webm` | WebM video (animated tools only; Chrome/Firefox/Android) |
 | `mp4` | MP4 video (animated tools only; Safari/iOS and recent Chrome) |
 
-Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid. Requesting an unsupported format falls back gracefully.
+Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid (the full set is the 21-value enum in `schemas/tool.schema.json`). Requesting an unsupported format falls back gracefully.
 
 ---
 
@@ -314,6 +354,8 @@ Full example:
 /#/tool/qr-code?url=https://suse.com&color=%230c322c&transparentBg=1&format=png&export&filename=qr-transparent
 ```
 
+The engine injects a second export toggle the same way: `convertPaths` (the **Convert paths** text-to-vector outlining control) is added automatically to tools that export a vector format. It is URL-expressible as any boolean — `?convertPaths=0` to leave text live, `?convertPaths=1` to outline it — and defaults on. A tool that sets `render.convertPaths: false` suppresses it (and the param has no effect).
+
 ---
 
 ## Loading saved state with `slot=`
@@ -370,6 +412,20 @@ Embed the tool in an iframe with inputs pre-filled via URL:
 <iframe src="https://brand.example.com/#/tool/qr-code?url=https://suse.com&full"
         width="900" height="700" frameborder="0"></iframe>
 ```
+
+### Tool composition (portable embed URL)
+
+A tool can embed **another tool's** render with no tool-to-tool imports. The URL-mode face of this is a portable embed URL — a real-looking image URL whose query is ordinary URL-mode params:
+
+```html
+<img src="https://lolly.tools/tool/qr-code.svg?url=https://suse.com&color=0c322c">
+```
+
+**Nothing is ever fetched from `lolly.tools`.** A shell recognises this exact shape and renders the named tool **locally**, substituting the result (a placeholder pixel shows until the local render resolves). Anything that isn't exactly this grammar is treated as an ordinary image — that strict match is the security boundary.
+
+The path extension is the author's fidelity choice. Compose any tool's render: an SVG child stays a **true vector** when the parent exports to SVG or PDF and rasterises crisply for PNG; raster children (`png`, `jpg`/`jpeg`, `webp`) embed as images. (`pdf` appears in the grammar but is not inlined as a child format.)
+
+This is the URL-mode surface of composition. The declarative form — a manifest `composes: [{ id, tool, inputs, format? }]` block resolved by the engine and placed in the template as `{{asset <id>}}` — is not a URL param; see the authoring guide. Either form requires the tool to declare the `compose` capability. `event-name-badge` composes `qr-code` as SVG today.
 
 ### Automation / CI
 

@@ -144,3 +144,100 @@ test('validateManifest rejects a composes entry missing required fields', () => 
   const { valid } = validateManifest(composeManifest({ composes: [{ id: 'x' }] }));
   assert.equal(valid, false, 'composes[].tool is required');
 });
+
+// ─── recursion depth / stack threading (M1) ─────────────────────────────────────
+
+// A chain tool: renders <img> of its one composed child, or "leaf" if none.
+const chainTool = (id, child) => ({
+  manifest: {
+    id, name: id, version: '1.0.0', engineVersion: '^1.0.0', status: 'official',
+    render: { width: 10, height: 10, formats: ['svg'] }, inputs: [],
+    ...(child ? { capabilities: ['compose'], composes: [{ id: 'child', tool: child }] } : {}),
+  },
+  template: '{{#if child}}<img src="{{asset child}}">{{else}}<span>leaf</span>{{/if}}',
+});
+
+// A faithful host.compose mirroring the FIXED bridge: guard on _stack, then render
+// the child with the ANCESTOR stack (the engine re-appends the child's own id).
+function chainHost(tools, MAX = 3) {
+  const calls = [];
+  const rendered = [];
+  const host = {
+    version: '1', profile: { get: async () => ({}) }, log: () => {},
+    compose: {
+      async render(spec) {
+        const { toolId, inputs = {}, _stack = [] } = spec;
+        calls.push({ toolId, stack: [..._stack] });
+        if (_stack.includes(toolId)) throw new Error(`cycle ${[..._stack, toolId].join(' → ')}`);
+        if (_stack.length >= MAX) throw new Error(`max depth ${MAX} (${[..._stack, toolId].join(' → ')})`);
+        const t = tools[toolId];
+        if (!t) throw new Error(`no tool ${toolId}`);
+        await createRuntime(t, host, inputs, { composeStack: _stack }); // ancestor stack (M1)
+        rendered.push(toolId);
+        return { source: 'remote', id: `compose:${toolId}`, type: 'vector', format: 'svg', url: `blob:${toolId}` };
+      },
+    },
+  };
+  return { host, calls, rendered };
+}
+
+test('compose: nesting works to MAX depth (A→B→C); the level past it is rejected — no stack double-count', async () => {
+  const tools = { A: chainTool('A', 'B'), B: chainTool('B', 'C'), C: chainTool('C', 'D'), D: chainTool('D', null) };
+  const { host, calls, rendered } = chainHost(tools, 3);
+  const rt = await createRuntime(tools.A, host, {});
+
+  assert.deepEqual(rendered.sort(), ['B', 'C'], 'B and C compose; D is depth-rejected');
+  const stackFor = (id) => calls.find((c) => c.toolId === id)?.stack;
+  // Exact ancestor stacks — a double-count would inflate these and reject C early.
+  assert.deepEqual(stackFor('B'), ['A']);
+  assert.deepEqual(stackFor('C'), ['A', 'B']);
+  assert.deepEqual(stackFor('D'), ['A', 'B', 'C']);
+  assert.match(rt.getHydrated(), /<img src="blob:B">/, 'the child render propagates up to A');
+});
+
+test('compose: a direct self-embed is caught as a cycle', async () => {
+  const tools = { S: chainTool('S', 'S') };
+  const { host, rendered } = chainHost(tools, 3);
+  const rt = await createRuntime(tools.S, host, {});
+  assert.deepEqual(rendered, [], 'self-embed never renders');
+  assert.match(rt.getHydrated(), /leaf/, 'parent still renders');
+});
+
+// ─── stale-slot clearing (M4) ───────────────────────────────────────────────────
+
+test('compose: a success then a failing re-render CLEARS the slot (no stale embed)', async () => {
+  let fail = false;
+  const host = {
+    version: '1', profile: { get: async () => ({}) }, log: () => {},
+    compose: { render: async (spec) => { if (fail) throw new Error('boom'); return stubRef(`blob:${spec.inputs.url}`); } },
+  };
+  const rt = await createRuntime(composeTool(), host, {});
+  assert.match(rt.getHydrated(), /blob:https:\/\/suse.com/);
+  fail = true;
+  await rt.setInput('url', 'https://changed.example');
+  assert.match(rt.getHydrated(), /no-qr/, 'the previously-shown embed is cleared, not left stale');
+});
+
+// ─── out-of-order render race (M5) ──────────────────────────────────────────────
+
+test('compose: an out-of-order render from an older keystroke does not overwrite a newer value', async () => {
+  const gates = {};
+  const host = {
+    version: '1', profile: { get: async () => ({}) }, log: () => {},
+    compose: { render: (spec) => new Promise((res) => { gates[spec.inputs.url] = () => res(stubRef(`blob:${spec.inputs.url}`)); }) },
+  };
+  const rtP = createRuntime(composeTool(), host, {});
+  await new Promise((r) => setTimeout(r));
+  gates['https://suse.com'](); // let the mount render finish
+  const rt = await rtP;
+
+  const a = rt.setInput('url', 'A');
+  const b = rt.setInput('url', 'B'); // B is the newer value
+  await new Promise((r) => setTimeout(r));
+  gates['B'](); // newer resolves first…
+  gates['A'](); // …older resolves last
+  await Promise.all([a, b]);
+
+  assert.match(rt.getHydrated(), /blob:B/, 'newest value wins');
+  assert.doesNotMatch(rt.getHydrated(), /blob:A/, 'stale older render dropped');
+});

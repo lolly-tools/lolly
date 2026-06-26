@@ -57,6 +57,9 @@ do 200ms of work that a browser can do locally.
 The first one shipped is **Strip Hidden Data** — it reveals the hidden data in
 an image or PDF (GPS location, camera, author, editor and document metadata) and hands
 back a clean copy, entirely in your browser. The file is never uploaded; the clean copy gets no watermark and none of
-our metadata. Every utility carries a **"Runs on your device — nothing is uploaded"** badge.
+our metadata. There are now two shipped on-device utilities: alongside Strip Hidden Data,
+**Text Helper** formats, decodes, hashes, and de-identifies text (JSON, YAML, Helm, JWT,
+Base64) without anything leaving your device. Every on-device privacy utility carries a
+**"Runs on your device — nothing is uploaded"** badge.
 
 We can win all wars with excellent conveinece and service. 

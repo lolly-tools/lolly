@@ -1,15 +1,21 @@
 # UX Audit — web shell
 
 Audit of all web-shell views (gallery, tool runner, profile, capabilities, platform,
-privacy notice, Pro batch mode) plus the shared design system. Findings are in
-priority order. `[systemic]` = surfaced across multiple views, so one fix lands
-everywhere.
+privacy notice, Pro batch mode — including the grid, the side-docked blocks-editor
+panel, and the collapsible export columns / relevance tag bar) plus the shared
+design system. Findings are in priority order. `[systemic]` = surfaced across
+multiple views, so one fix lands everywhere.
 
 Severity: **Critical** blocks a core task or excludes a user group · **High**
 frequent friction or a broken state · **Medium** noticeable · **Low** polish.
 Effort: **S** <1h · **M** a few hours · **L** a day+.
 
 > Status legend: ✅ done in the first quick-wins pass · ⬜ open.
+
+> Line refs need a refresh pass: `tool.js` is now ~3973 lines and most `tool.js`
+> anchors below have drifted (e.g. `967`→`989` `.canvas-error`, `3034`→`3121`
+> export `aria-busy`, `2047`→`2092` block remove). Each still points at the right
+> construct; the numbers are just off enough to slow a reader.
 
 ---
 
@@ -22,9 +28,12 @@ Effort: **S** <1h · **M** a few hours · **L** a day+.
    on next good render). `syncUrl` still runs so the link stays correct. Solid
    destructive banner — AA in all themes. **Open:** async/network tool scripts still
    need a `tool:error` channel for Retry (audit #8) — bigger, deferred.
-2. ⬜ **Batch render freezes the tab.** Synchronous per-row loop + `zipSync`
-   (`pro/batch.js:47`, `pro/zip.js:101`); Cancel/quip only update between rows.
-   → Yield to the event loop between rows; "Packaging…" state before zip; worker later. **M**
+2. ⬜ **Batch render freezes the tab.** The per-row loop now `await`s
+   `renderRowToBlob` each iteration with a per-row `isCancelled()` check
+   (`pro/batch.js:47,62`), so cancel/progress already update between rows — but a
+   heavy synchronous render inside that await, plus the still-synchronous `zipSync`
+   (`pro/zip.js:101`, "synchronous; fine for a click-time action"), still pin the tab.
+   → Yield around the render; add a "Packaging…" state before zip; move to a worker. **M**
 3. ✅ **Profile save ejected you and had no failure path.** Redirected home after 800ms;
    on failure the submit button stayed permanently disabled. `profile.js:433`.
    → Removed the redirect, added try/catch + announced error + button restore.
@@ -56,17 +65,25 @@ Effort: **S** <1h · **M** a few hours · **L** a day+.
    don't exist in the DOM (`main.js:41`). (Skip-link is fine — already scoped to the
    tool route via `:has()`, `app.css:28`.) → Render a real banner/nav or remove the
    orphaned wiring. **M**
-9. ⬜ **Search buried and weak.** Lives in the fixed bottom footer (`gallery.js:126`),
-   matches name only, no-match is a dead end. → Promote to top; match
+9. ⬜ **Search buried and weak.** Lives in the fixed bottom footer
+   (`gallery.js:133`, inside the footer at `:130`). It now auto-focuses on
+   fine-pointer load and renders an `aria-live` results region with a
+   `No tools match "…"` message (`gallery.js:111,224,227`), so it is no longer a
+   silent dead end — but it still matches name only (`index.tools.filter(t => t.name…)`)
+   and offers no browse-all recovery. → Promote to top; match
    name+description+category; add a clear/browse-all recovery. **M**
 10. ✅ **Export progress for slow formats.** CMYK/large-raster/PDF only disabled the
     button; failures weren't announced. `tool.js:3034`. → Non-animated exports now show
     "Exporting…", set `aria-busy`, and announce start/complete/fail. Verified: button
     flips Download→"Exporting…"→Download with aria-busy toggling correctly.
-11. ⬜ **Destructive actions lack undo `[systemic]`.** "Clear changes" (single confirm,
-    no restore, `tool.js:1039`); compact block rows delete instantly with no confirm
-    (`tool.js:2047`); Pro row-delete / CSV-import wipe unsaved work (`pro/index.js:465,946`).
-    → Snapshot + "Undo" toast; run the dirty-guard before CSV/session import. **S–M**
+11. ⬜ **Destructive actions lack undo `[systemic]`.** Two-step confirms now exist for
+    the high-stakes deletes: typed (card) block rows arm a "Delete?" button
+    (`tool.js:2092-2120`; compact name/value rows still delete immediately) and Pro
+    row-delete arms a red "Remove?" with a 3s auto-cancel (`pro/index.js:241-262`).
+    But none of them restore — and "Clear changes" is still a single confirm with no
+    restore (`tool.js:1039`), while CSV/session import bypasses the dirty-guard
+    (`pro/index.js:210-222` guards nav but not import). → Snapshot + "Undo" toast on
+    every delete; run the dirty-guard before CSV/session import. **S–M**
 12. ⬜ **Profile save model is split.** Theme/flags/headshot autosave, identity fields
     need explicit Save → leaving loses them. `profile.js:78,433`. → Autosave identity
     fields on blur (or dirty-guard nav). **M**
@@ -108,6 +125,20 @@ Effort: **S** <1h · **M** a few hours · **L** a day+.
   CSV/paste to export dims silently. `pro/io.js:31`.
 - ⬜ **Empty states missing** — no first-render canvas placeholder; no gallery first-run
   orientation (H1 is visually-hidden).
+- ⬜ **Composed (nested) renders fail silently `[systemic]`** — tools can embed another
+  tool's render (e.g. event-name-badge composes qr-code; `lolly.tools/tool/…` embed URLs
+  are neutralised then hydrated locally at `tool.js:1014,1019` and in batch export at
+  `render-export.js`). When a composed child errors, cycles, or times out, its slot is
+  cleared with no signal (`{{#if id}}` just hides it) — the same silent-failure theme as
+  P0 #1's render work, but with no `role="alert"` equivalent. (Compose UX only; the
+  format-support contract lives in the authoring/compose docs.)
+- ⬜ **File-input drop-zone unaudited** — tools with a `file` input + `render.layout:canvas`
+  (strip-data) present a full-bleed drop zone for an on-device transform. No item covers
+  its drag-drop affordance, keyboard path, or the file-picker/empty UX for these utilities
+  (the "Empty states" and dropped-asset items only graze it).
+- ⬜ **Pro blocks-editor side panel unaudited** — `pro/blocks-editor.js` (wired at
+  `pro/index.js:27`/`676`) is a side-docked panel with a debounced (~400ms) live preview
+  and its own focus handling; never reviewed for focus trap, dismissal, or touch.
 
 ---
 

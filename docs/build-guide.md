@@ -31,13 +31,13 @@ npm run cli
 npm run cli -- qr-code
 
 # Run a tool and write output
-npm run cli -- qr-code --url=https://suse.com --theme=brand --output=./qr.svg
+npm run cli -- qr-code --url=https://suse.com --color=#0c322c --output=./qr.svg
 
 # Explicit format
 npm run cli -- quotes --quote="Open source wins." --name="Andy" --export=png --output=./quote.png
 ```
 
-The CLI supports **SVG and HTML** export natively. PNG, PDF, GIF, and video formats require the desktop app's bundled binary (which has a real WebView renderer).
+The CLI supports **SVG, HTML, and the text/data formats** (JSON, CSV, ICS, VCF) natively — these are hydrated by the engine with no browser engine needed. Raster/PDF/ZIP and video formats (PNG, JPG, PDF, ZIP, GIF, WebM, MP4, …) require a real WebView renderer, so use the desktop app or the Tauri-bundled CLI for those.
 
 ### Standalone binary
 

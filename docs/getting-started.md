@@ -76,7 +76,7 @@ The hybrid model gives users both: a local app that works without internet acces
 
 ### Managing your tool library
 
-Tools are just files — HTML, CSS, and JavaScript — stored in a directory your Lolly instance reads from. You can manage this directory the same way you manage any other code or content.
+Tools are just files — a JSON manifest plus an HTML template, with optional CSS and JavaScript — stored in a directory your Lolly instance reads from. The manifest (`tool.json`) is the source of truth: it declares the tool's inputs, output formats, and capabilities. You can manage this directory the same way you manage any other code or content.
 
 **Using Git to accept tools**
 
@@ -93,22 +93,22 @@ You do not have to give every team access to every tool. Lolly supports building
 - Your IT team sees communication and report templates
 - A subset of power users gets access to experimental tools still in development
 
-This is configured at build time by pointing each instance at a different tool directory, or by using catalogue filters to include or exclude specific tools per deployment.
+This is configured at build time by pointing each instance at a different tool directory. Beyond that, two mechanisms shape what each user actually sees: **capability gating** (a shell hides any tool whose declared capabilities it can't fulfil — for example, a tool that needs page capture won't appear in the web PWA) and **per-user feature flags** (see below), which let each person show or hide whole gallery categories.
 
 ---
 
-### Experimental flags
+### Feature flags
 
-Lolly includes a set of feature flags that let administrators enable functionality that is not yet on by default. These are intended for organisations that want to test upcoming capabilities before they ship to all users, or that need to unlock specific behaviours for particular workflows.
+Lolly has a small set of **per-user feature flags**, surfaced in each person's Profile view. They are stored on the user's own profile (so they ride normal profile persistence and sync) and every flag defaults to **on**. They are personal preferences, not an administrator-configured server setting, and they do exactly two things:
 
-Experimental flags are set in the platform configuration. Examples of what flags may control:
+- **Show or hide gallery categories** — toggle whole sections of the tool gallery ("Tools for Everyone", "Designer Tools", "Handy Apps") so a user only sees the tools relevant to them
+- **Show or hide the Pro / Batch entry** — toggle the "Batch" link in the gallery footer (the batch route still works via a deep link even when the link is hidden)
 
-- **Render formats in preview** — enable output formats (such as AVIF or specific PDF profiles) that are functional but not yet exposed in the default UI
-- **Advanced export options** — unlock higher-resolution outputs, bleed marks, or CMYK colour profiles for print-destined assets
-- **Agent API surface** — expose a local HTTP endpoint so AI agents and automation scripts can call Lolly as a generation service
-- **Developer tooling** — show raw template source, enable hot-reload for tool authoring, expose timing and render diagnostics
+They do not gate output formats, export options, or any kind of API surface — those are always available where a tool and shell support them.
 
-Flags that prove stable and broadly useful are promoted to default-on in subsequent releases. Flags that don't make it are removed cleanly — there is no permanent configuration debt from enabling them.
+### Experimental tools
+
+When a tool itself is still in development, its manifest carries `status: "experimental"`. The engine handles this directly: every export from an experimental tool gets a visible watermark applied automatically, so work-in-progress assets can't be mistaken for finished, on-brand output. This is how you put new capabilities in front of a subset of power users before they're promoted to a normal, watermark-free `official` tool.
 
 ---
 

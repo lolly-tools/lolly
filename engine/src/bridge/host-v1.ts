@@ -471,12 +471,15 @@ export interface ComposeSpec {
   toolId: string;
   /** Inputs for the child tool (already hydrated to concrete values by the runtime). */
   inputs: Record<string, unknown>;
-  /** Child render format. The engine defaults to 'svg' if the child supports it, else 'png'. */
+  /** Child render format. Defaults to the child tool's first declared format (its
+   *  manifest `render.formats[0]`); a `jpg`/`jpeg` request matches either spelling. */
   format?: ExportFormat;
-  /** Render width. A number is CSS px; a string may carry a physical unit. Default: child native. */
-  width?: number | string;
-  /** Render height. Default: child native. */
-  height?: number | string;
+  /** Render width, a number in `unit`. Default: the child's native width. */
+  width?: number;
+  /** Render height, a number in `unit`. Default: the child's native height. */
+  height?: number;
+  /** Unit for width/height: 'px' (default), 'mm', 'cm', 'in', 'pt'. */
+  unit?: string;
   /** Raster DPI for physical units (mirrors ExportOpts.dpi). */
   dpi?: number;
   /** Engine-managed recursion stack of tool ids already on the compose path. */

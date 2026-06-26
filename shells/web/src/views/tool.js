@@ -639,6 +639,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Also strips data-canvas-input attrs so they don't appear in exported files,
   // restoring them after so click-to-focus keeps working post-export.
   async function exportUnscaled(fn, { shutter = false } = {}) {
+    // Embeds (lolly.tools/tool/… URLs) hydrate fire-and-forget on each render;
+    // wait for the latest pass so export reads resolved blobs, not the placeholder.
+    await embedsPending;
     const annotated = [...canvasEl.querySelectorAll('[data-canvas-input]')];
     const saved = annotated.map(el => ({ el, id: el.dataset.canvasInput }));
     annotated.forEach(el => el.removeAttribute('data-canvas-input'));
@@ -995,6 +998,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   }
 
   let renderGen = 0;
+  // Latest embed-hydration promise; exportUnscaled awaits it so an export reads
+  // resolved blob URLs rather than the neutralised 1×1 placeholder.
+  let embedsPending = Promise.resolve();
   runtime.subscribe(({ model, hydrated }) => {
     if (inputsEl && !_sliderDragging) {
       prevInputsModel = syncInputs(inputsEl, model, prevInputsModel, runtime, host, markUserDirty);
@@ -1010,7 +1016,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       // Keep the canvas's accessible summary current when it's a live a11yLabel.
       if (tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', canvasLabel());
       runTemplateScripts(contentEl);
-      hydrateEmbeds(contentEl, { host, isCurrent: () => gen === renderGen });
+      embedsPending = hydrateEmbeds(contentEl, { host, isCurrent: () => gen === renderGen });
       clearCanvasError();
     } catch (err) {
       // A throwing template script (charts, QR, fetch-backed tools run in page

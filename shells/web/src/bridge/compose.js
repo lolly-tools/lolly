@@ -18,7 +18,9 @@
 import { renderRowToBlob } from '../pro/render-export.js';
 
 const MAX_COMPOSE_DEPTH = 3;
-const CACHE_CAP = 40;
+// Comfortably above the manifest `composes` maxItems (24) so one tool's composes
+// can never self-evict (and revoke a still-displayed blob) within a single render.
+const CACHE_CAP = 64;
 
 export function createComposeAPI(host) {
   // Module-scoped per-bridge cache: key → { assetRef, blobUrl }. Insertion order
@@ -26,21 +28,24 @@ export function createComposeAPI(host) {
   const cache = new Map();
 
   async function render(spec) {
-    const { toolId, inputs = {}, format, width, height, dpi, _stack = [] } = spec ?? {};
+    const { toolId, inputs = {}, format, width, height, unit, dpi, _stack = [] } = spec ?? {};
     if (typeof toolId !== 'string' || !toolId) throw new Error('compose: missing toolId');
 
     const path = [..._stack, toolId];
     if (_stack.includes(toolId)) throw new Error(`cycle ${path.join(' → ')}`);
     if (_stack.length >= MAX_COMPOSE_DEPTH) throw new Error(`max depth ${MAX_COMPOSE_DEPTH} (${path.join(' → ')})`);
 
-    const key = cacheKey(toolId, inputs, format, width, height, dpi);
+    const key = cacheKey(toolId, inputs, format, width, height, unit, dpi);
     const hit = cache.get(key);
     if (hit) { cache.delete(key); cache.set(key, hit); return hit.assetRef; } // LRU bump
 
+    // Thread the ANCESTOR stack (_stack), not `path`: the child's own runtime
+    // re-appends its id in resolveNestedRenders, so passing `path` (which already
+    // ends with toolId) would double-count and trip the depth guard a level early.
     const { blob, format: fmt } = await renderRowToBlob(
       { toolId, values: inputs },
       host,
-      { format, width, height, dpi, composeStack: path, watermark: false, embedMeta: false, thumbnail: true },
+      { format, width, height, unit, dpi, composeStack: _stack, watermark: false, embedMeta: false, thumbnail: true },
     );
 
     const url = URL.createObjectURL(blob);
@@ -63,18 +68,11 @@ export function createComposeAPI(host) {
     return assetRef;
   }
 
-  return {
-    render,
-    /** Revoke every cached object URL. Call on full teardown to avoid leaks. */
-    _dispose() {
-      for (const { blobUrl } of cache.values()) { try { URL.revokeObjectURL(blobUrl); } catch {} }
-      cache.clear();
-    },
-  };
+  return { render };
 }
 
-function cacheKey(toolId, inputs, format, width, height, dpi) {
-  return `${toolId}|${stableStringify(inputs)}|${format ?? ''}|${width ?? ''}x${height ?? ''}@${dpi ?? ''}`;
+function cacheKey(toolId, inputs, format, width, height, unit, dpi) {
+  return `${toolId}|${stableStringify(inputs)}|${format ?? ''}|${width ?? ''}${unit ?? ''}x${height ?? ''}@${dpi ?? ''}`;
 }
 
 function stableStringify(value) {
