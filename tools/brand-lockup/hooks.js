@@ -103,7 +103,9 @@ async function descLine(host, words, fontSize, fill, x, Yb) {
 }
 
 // ── Build the lockup SVG inner markup + dimensions ────────────────────────────
-async function buildLockup({ host, name, orientation, variant, wrapMode, background }) {
+// layout: 'horizontal' (one line) | 'ontop' (chameleon over SUSE+name) |
+//         'hybrid' (chameleon inline-left, SUSE+name wrap below — programs/services)
+async function buildLockup({ host, name, layout, variant, wrapMode, background }) {
   const fs = BASE_FONT, k = fs / F;
   const col = COLORS[variant] || COLORS['pos-green'];
   const words = (name || '').trim().split(/\s+/).filter(Boolean);
@@ -116,12 +118,28 @@ async function buildLockup({ host, name, orientation, variant, wrapMode, backgro
   const parts = [];
   let W = 0, H = 0;
 
-  if (orientation === 'stacked') {
-    // chameleon on top, width = SUSE wordmark width
-    const chW = suseInk, chH = chW / CHAM_ASPECT;
+  if (layout === 'horizontal') {
+    // chameleon inline-left, one baseline
+    const chW = CHAM_W * k, chH = CHAM_H * k, Yb = cap; // chameleon top (=cap top) at y=0
     parts.push(`<path fill="${col.mark}" d="${CHAMELEON_D}" transform="scale(${fmt(chW / CHAM_W)})"/>`);
-    const firstBaseline = chH + VGAP_CHAM_SUSE * k + cap;
+    parts.push(placed(suse.d, col.text, chW + GAP_CHAM_SUSE * k - suse.bbox.x1, Yb));
+    let right = chW + GAP_CHAM_SUSE * k + suseInk;
+    let bottom = Math.max(chH, Yb + (suse.bbox ? suse.bbox.y2 : 0));
+    if (words.length) {
+      const r = await descLine(host, words, fs, col.text, right + gap2, Yb);
+      if (r) { parts.push(r.part); right = r.inkRight; bottom = Math.max(bottom, r.bottom); }
+    }
+    W = right; H = bottom;
+  } else {
+    // ontop + hybrid both wrap "SUSE" + name into stacked lines; they differ only
+    // in where the chameleon sits and where the text column begins.
+    const hybrid = layout === 'hybrid';
+    const chW = hybrid ? CHAM_W * k : suseInk;
+    const chH = hybrid ? CHAM_H * k : chW / CHAM_ASPECT;
+    const textX = hybrid ? chW + GAP_CHAM_SUSE * k : 0;        // left edge of every text line
+    const firstBaseline = hybrid ? cap : chH + VGAP_CHAM_SUSE * k + cap;
     const maxW = (WRAP[wrapMode] || WRAP.compact) * k;
+    parts.push(`<path fill="${col.mark}" d="${CHAMELEON_D}" transform="scale(${fmt(chW / CHAM_W)})"/>`);
 
     // per-word advances + Medium space advance, for wrap accounting
     const wordRuns = await Promise.all(words.map(w => shape(host, w, FONT_DESC, fs)));
@@ -139,31 +157,18 @@ async function buildLockup({ host, name, orientation, variant, wrapMode, backgro
     for (let li = 0; li < lines.length; li++) {
       const Yb = firstBaseline + li * LINE_H * k, ln = lines[li];
       if (ln.suse) {
-        parts.push(placed(suse.d, col.text, -suse.bbox.x1, Yb)); // SUSE ink-left at 0
+        parts.push(placed(suse.d, col.text, textX - suse.bbox.x1, Yb)); // SUSE ink-left at textX
         bottom = Math.max(bottom, Yb + suse.bbox.y2);
-        let right = suseInk;
+        let right = textX + suseInk;
         const r = await descLine(host, ln.words, fs, col.text, right + gap2, Yb);
         if (r) { parts.push(r.part); right = r.inkRight; bottom = Math.max(bottom, r.bottom); }
         maxRight = Math.max(maxRight, right);
       } else {
-        const r = await descLine(host, ln.words, fs, col.text, 0, Yb);
+        const r = await descLine(host, ln.words, fs, col.text, textX, Yb);
         if (r) { parts.push(r.part); maxRight = Math.max(maxRight, r.inkRight); bottom = Math.max(bottom, r.bottom); }
       }
     }
-    W = maxRight; H = bottom;
-  } else {
-    // horizontal: chameleon inline-left, one baseline
-    const chW = CHAM_W * k, chH = CHAM_H * k, Yb = cap; // chameleon top (=cap top) at y=0
-    parts.push(`<path fill="${col.mark}" d="${CHAMELEON_D}" transform="scale(${fmt(chW / CHAM_W)})"/>`);
-    const suseX = chW + GAP_CHAM_SUSE * k - suse.bbox.x1;
-    parts.push(placed(suse.d, col.text, suseX, Yb));
-    let right = chW + GAP_CHAM_SUSE * k + suseInk;
-    let bottom = Math.max(chH, Yb + (suse.bbox ? suse.bbox.y2 : 0));
-    if (words.length) {
-      const r = await descLine(host, words, fs, col.text, right + gap2, Yb);
-      if (r) { parts.push(r.part); right = r.inkRight; bottom = Math.max(bottom, r.bottom); }
-    }
-    W = right; H = bottom;
+    W = maxRight; H = Math.max(hybrid ? chH : 0, bottom);
   }
 
   W = Math.ceil(W * 100) / 100;
@@ -193,17 +198,26 @@ function applyCategory(name, category) {
   return n;
 }
 
+// Stacked layout depends on type: products and teams stack the chameleon ON TOP;
+// programs (and program-like services) use the inline-chameleon HYBRID, where the
+// name wraps below SUSE. Horizontal is always a single line.
+function layoutFor(orientation, category) {
+  if (orientation !== 'stacked') return 'horizontal';
+  return category === 'program' ? 'hybrid' : 'ontop';
+}
+
 // ── Hooks ─────────────────────────────────────────────────────────────────────
 function readModel(model) {
   const v = Object.fromEntries(model.map(i => [i.id, i.value]));
   const polarity  = v.polarity  || 'positive';
   const treatment = v.treatment || 'colour';
+  const category  = v.category || 'product';
   return {
-    name:        applyCategory(v.name ?? '', v.category || 'product'),
-    orientation: v.orientation || 'horizontal',
-    variant:     variantFor(polarity, treatment),
-    wrapMode:    v.wrapMode || 'compact',
-    background:  v.background || 'transparent',
+    name:       applyCategory(v.name ?? '', category),
+    layout:     layoutFor(v.orientation || 'horizontal', category),
+    variant:    variantFor(polarity, treatment),
+    wrapMode:   v.wrapMode || 'compact',
+    background: v.background || 'transparent',
   };
 }
 
