@@ -20,6 +20,8 @@ const MIME = {
   '.ttf':  'font/ttf',
 };
 
+// In dev the Vite dev-server middleware handles /tools/ and /catalog/ requests.
+// In production they must be copied into dist/ so the Tauri WebView can reach them.
 function bundleRepoDirs() {
   return {
     name: 'bundle-repo-dirs',
@@ -44,17 +46,48 @@ function bundleRepoDirs() {
   };
 }
 
+// Swap specific web-shell bridge modules for Tauri-native implementations.
+// Implemented as a resolveId plugin rather than resolve.alias because the bridge
+// imports are RELATIVE siblings ("./state.js" from bridge/index.js): a path regex
+// can't match a relative specifier, so resolve.alias silently never fires and the
+// web original loads instead. We match on the source's basename + the importer
+// living in a bridge/ dir, so it works for BOTH the absolute fs importer
+// (`vite build`) and the root-relative URL importer the dev server passes
+// (`/src/bridge/index.js`).
+//
+// Mobile overrides ONLY state.js (filesystem state via tauri-plugin-fs) and
+// capabilities-provided.js (adds 'filesystem'). It deliberately does NOT override
+// capture.js: page capture on desktop is native headless-Chrome, which does not
+// exist on iOS/Android, so mobile inherits the web capture.js stub and the
+// 'capture' capability stays unavailable (url-shot stays gated off).
+function overrideBridgeModules(map) {
+  return {
+    name: 'override-bridge-modules',
+    enforce: 'pre',
+    resolveId(source, importer) {
+      if (!importer) return null;
+      if (!/[\\/]bridge[\\/]/.test(importer.split('?')[0])) return null;
+      const name = source.split('?')[0].replace(/^.*[\\/]/, '');
+      return map[name] ?? null;
+    },
+  };
+}
+
 export default defineConfig({
   root: webShell,
   publicDir: resolve(webShell, 'public'),
-  plugins: [bundleRepoDirs()],
-  resolve: {
-    alias: [
-      {
-        find: /.*\/bridge\/state\.js$/,
-        replacement: resolve(__dirname, 'bridge-overrides/state.js'),
-      },
-    ],
+  plugins: [
+    overrideBridgeModules({
+      'state.js': resolve(__dirname, 'bridge-overrides/state.js'),
+      'capabilities-provided.js': resolve(__dirname, 'bridge-overrides/capabilities-provided.js'),
+    }),
+    bundleRepoDirs(),
+  ],
+  // The dev server pre-bundles deps with esbuild, whose default target rejects
+  // harfbuzzjs's top-level await (text-to-path WASM). Without this the dev server
+  // boots then crashes as soon as a module pulls in harfbuzz.
+  optimizeDeps: {
+    esbuildOptions: { target: 'esnext' },
   },
   server: {
     // Separate port from desktop dev server to allow running both simultaneously.
@@ -64,5 +97,9 @@ export default defineConfig({
   build: {
     outDir: resolve(__dirname, 'dist'),
     emptyOutDir: true,
+    // iOS WKWebView / Android System WebView are modern WebKit/Chromium, so target
+    // esnext. The default (es2020) forbids top-level await, which harfbuzzjs relies
+    // on — without this `vite build` fails in esbuild transpile, breaking build:ios.
+    target: 'esnext',
   },
 });
