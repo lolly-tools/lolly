@@ -1,7 +1,7 @@
 {
   "id": "wayfinding-signage",
   "name": "Wayfinding Signage",
-  "description": "On-brand directional signs for events — event logo and name on top, then a list of destinations, each with a SUSE-font arrow (any of eight directions) sitting to the left or right of its label. Print-correct A4 → A1 and US poster sizes, portrait or landscape.",
+  "description": "Directional signs for events — a list of destinations, each with an arrow pointing the way. Print-ready, portrait or landscape.",
   "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} — {{heading}}{{/if}}",
   "version": "1.1.0",
   "engineVersion": "^1.0.0",

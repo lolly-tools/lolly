@@ -243,6 +243,7 @@ export async function mountPro(viewEl, host, opts = {}) {
     // Capture before we blow away the DOM, so nav can restore focus afterwards.
     const hadFocus = gridHost.contains(document.activeElement);
     ctx.unit = state.unit; ctx.dpi = state.dpi; // toolbar defaults that rows inherit
+    ctx.collapsed = state.collapsed;            // export-column collapse for bodyRow (incl. addRows)
     const all = deriveColumns(state.rows.filter(r => r.manifest));
     // Collapsed columns are hidden from the matrix but keep their data — they're
     // shown as restorable tags below the grid. Visible columns drive everything.
@@ -260,8 +261,26 @@ export async function mountPro(viewEl, host, opts = {}) {
     const filled = state.rows.filter(r => r.toolId).length;
     renderBtn.disabled = filled === 0 || state.running; // count text now lives in the columns bar
     nav.refresh({ restoreFocus: hadFocus });
+    highlightRelevantTags(); // outline the hidden tags the active row actually uses
     return visible;
   }
+
+  // Outline the hidden data-column tags that the row you're on actually uses, so a
+  // Pro scanning row-by-row sees at a glance which collapsed inputs apply here.
+  // Export tags (Save as / size / dpi) apply to every row, so they're never flagged.
+  // Uses state.rows directly (not rowByUid, declared below) so it's safe to call
+  // from the first renderGrid() before that const is initialised.
+  function highlightRelevantTags() {
+    const bar = gridHost.querySelector('.pro-collapsed-bar');
+    if (!bar) return;
+    const focused = gridHost.querySelector('.pro-cell--focused');
+    const row = focused && state.rows.find(r => r.uid === focused.dataset.row);
+    const ids = new Set((row && row.manifest ? row.manifest.inputs ?? [] : []).map(i => i.id));
+    bar.querySelectorAll('.pro-collapsed-tag:not(.pro-collapsed-tag--export)').forEach(tag => {
+      tag.classList.toggle('is-relevant', ids.has(tag.dataset.restoreCol));
+    });
+  }
+
   let columns = renderGrid();
   // The first cell's ring is set by nav.refresh (in renderGrid). Actually OPENING
   // its template search waits until the end of mount (openFirstTemplateSearch) —
@@ -538,6 +557,7 @@ export async function mountPro(viewEl, host, opts = {}) {
   // put — the user hits Enter (or clicks/taps) to change it. The suppress flag
   // stops an immediate reopen when we refocus the cell after closing.
   gridHost.addEventListener('focusin', (e) => {
+    highlightRelevantTags(); // moving onto a new row re-aims the relevance outline
     if (_tplSuppress) return;
     const td = e.target.closest?.('td[data-col="__template"]');
     if (td && e.target === td) {

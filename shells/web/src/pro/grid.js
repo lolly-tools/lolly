@@ -30,6 +30,20 @@ const WARNING_SVG = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none"
 const DEFAULT_COL_W = 116;
 const COL_DEFAULTS = { __template: 210, __filename: 150, __width: 78, __height: 78, __unit: 66, __dpi: 66 };
 
+// Export-dimension columns: Save-as + output size/unit/dpi. Unlike the Template
+// column (always shown) these are collapsible — a Pro who's set them once can hide
+// them to declutter and restore from a distinct tag pinned to the front of the
+// bottom bar. The values live on each row (filename/outWidth/unit/dpi) and survive
+// collapse untouched; collapsing only hides the controls. Order here is the order
+// the columns (and their restore tags) appear in.
+export const EXPORT_COLS = [
+  { key: '__filename', label: 'Save as' },
+  { key: '__width', label: 'Width' },
+  { key: '__height', label: 'Height' },
+  { key: '__unit', label: 'Unit' },
+  { key: '__dpi', label: 'DPI' },
+];
+
 const widthStyle = (key, widths) => `width:${widths?.[key] ?? COL_DEFAULTS[key] ?? DEFAULT_COL_W}px`;
 // Data columns are flexible until the user drags one: no width ⇒ the column
 // shares the table's free space; a stored width ⇒ it's pinned (and may scroll).
@@ -50,6 +64,18 @@ function headerCell(col, widths) {
       <button type="button" class="pro-col-label" data-collapse-col="${esc(col.key)}"
         title="Hide “${esc(col.label)}” — click its tag below to bring it back">${esc(col.label)}</button>
       ${action}
+    </div>
+  </th>`;
+}
+
+/** Header cell for a collapsible export-dimension column (Save as / Width / …).
+ * The label is the collapse control, exactly like a data column, but it carries
+ * no Fill button and its restore tag is styled apart and pinned to the front. */
+function exportHeaderCell(col, widths) {
+  return `<th class="pro-col-fixed" data-col="${esc(col.key)}" style="${widthStyle(col.key, widths)}">
+    <div class="pro-col-head">
+      <button type="button" class="pro-col-label" data-collapse-col="${esc(col.key)}"
+        title="Hide “${esc(col.label)}” — restore it from the tag at the front of the bar below">${esc(col.label)}</button>
     </div>
   </th>`;
 }
@@ -76,14 +102,23 @@ function addRowsHtml(rows) {
   </div>`;
 }
 
-function columnsBarHtml(visible, hidden, queued) {
+function columnsBarHtml(visible, hidden, queued, collapsedExport = []) {
   // "Hide all columns" + "Show all" controls.
   const hideAll = visible.length
     ? `<button type="button" class="pro-cols-action" data-hide-all-cols
         title="Hide every input column — then click the ones you want to edit">Hide all columns</button>`
     : '';
-  const showAll = hidden.length
+  // "Show all" restores everything — data columns AND collapsed export columns.
+  const showAll = (hidden.length || collapsedExport.length)
     ? `<button type="button" class="pro-cols-action" data-show-all-cols title="Show every column">Show all</button>`
+    : '';
+  // Export tags lead the tag list and read as a distinct kind (the "Output" group)
+  // so they never blend into the per-tool input tags. Same restore mechanism.
+  const exportTags = collapsedExport.length
+    ? `<span class="pro-collapsed-bar-label">Output</span>${
+        collapsedExport.map(col => `<button type="button" class="pro-collapsed-tag pro-collapsed-tag--export" data-restore-col="${esc(col.key)}"
+          title="Show the “${esc(col.label)}” export column">${esc(col.label)} <span aria-hidden="true">＋</span></button>`).join('')
+      }`
     : '';
   const restore = hidden.length
     ? `<span class="pro-collapsed-bar-label">Hidden</span>${
@@ -94,7 +129,7 @@ function columnsBarHtml(visible, hidden, queued) {
   const count = queued
     ? `<span class="pro-count">${queued} render${queued === 1 ? '' : 's'} queued</span>`
     : '';
-  return `<div class="pro-collapsed-bar">${hideAll}${showAll}${restore}${count}</div>`;
+  return `<div class="pro-collapsed-bar">${hideAll}${showAll}${exportTags}${restore}${count}</div>`;
 }
 
 /** One data cell: editable control, read-only default, or greyed "not present". */
@@ -233,13 +268,19 @@ export function bodyRow(row, columns, ctx) {
 
   const cells = columns.map(col => dataCell(col, row, ctx)).join('');
 
+  // Collapsed export columns drop their cell entirely, mirroring the header. The
+  // collapse set lives on ctx so the incremental addRow path (which reuses ctx,
+  // not a fresh render) honours the current state too.
+  const collapsed = ctx.collapsed ?? new Set();
+  const exportCell = (key, html) => (collapsed.has(key) ? '' : html);
+
   return `<tr data-row="${uid}"${row.height ? ` style="height:${row.height}px"` : ''}>
     ${templateCell}
-    ${filenameCell}
-    ${widthCell}
-    ${heightCell}
-    ${unitCell}
-    ${dpiCell}
+    ${exportCell('__filename', filenameCell)}
+    ${exportCell('__width', widthCell)}
+    ${exportCell('__height', heightCell)}
+    ${exportCell('__unit', unitCell)}
+    ${exportCell('__dpi', dpiCell)}
     ${cells}
     <td class="pro-cell-actions">
       <div class="pro-row-actions">
@@ -261,13 +302,17 @@ export function bodyRow(row, columns, ctx) {
  */
 export function renderGridHtml(state, columns, ctx, hidden = []) {
   const widths = state.colWidths;
+  const collapsed = state.collapsed ?? new Set();
+  // Export columns the user has collapsed (kept in their fixed order); the header
+  // skips them and they reappear as distinct restore tags at the front of the bar.
+  const collapsedExport = EXPORT_COLS.filter(c => collapsed.has(c.key));
+  const exportHead = EXPORT_COLS
+    .filter(c => !collapsed.has(c.key))
+    .map(c => exportHeaderCell(c, widths))
+    .join('');
   const head = `<thead><tr>
     <th class="pro-col-template" data-col="__template" style="${widthStyle('__template', widths)}">Template</th>
-    <th class="pro-col-fixed" data-col="__filename" style="${widthStyle('__filename', widths)}">Save as</th>
-    <th class="pro-col-fixed" data-col="__width" style="${widthStyle('__width', widths)}">Width</th>
-    <th class="pro-col-fixed" data-col="__height" style="${widthStyle('__height', widths)}">Height</th>
-    <th class="pro-col-fixed" data-col="__unit" style="${widthStyle('__unit', widths)}">Unit</th>
-    <th class="pro-col-fixed" data-col="__dpi" style="${widthStyle('__dpi', widths)}">DPI</th>
+    ${exportHead}
     ${columns.map(c => headerCell(c, widths)).join('')}
     <th class="pro-col-actions"></th>
   </tr></thead>`;
@@ -287,5 +332,5 @@ export function renderGridHtml(state, columns, ctx, hidden = []) {
     : '';
 
   const queued = state.rows.filter(r => r.toolId).length;
-  return `<div class="pro-grid-scroll"><table class="pro-grid">${head}${body}</table>${addRowsHtml(state.rows)}</div>${columnsBarHtml(columns, hidden, queued)}${emptyHint}`;
+  return `<div class="pro-grid-scroll"><table class="pro-grid">${head}${body}</table>${addRowsHtml(state.rows)}</div>${columnsBarHtml(columns, hidden, queued, collapsedExport)}${emptyHint}`;
 }

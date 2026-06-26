@@ -439,6 +439,32 @@ body.pro-scrubbing, body.pro-scrubbing * { cursor: ew-resize !important; user-se
 .pro-collapsed-tag:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
 .pro-collapsed-tag span { opacity: .55; font-weight: 700; }
 
+/* Export-column tags (Save as / Width / Height / Unit / DPI) lead the bar and
+   read as a distinct "Output" kind — a soft accent fill + accent text — so they
+   never blend into the quiet ghost input tags beside them. */
+.pro-collapsed-tag--export {
+  background: hsl(var(--primary) / .1);
+  border-color: hsl(var(--primary) / .45);
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+.pro-collapsed-tag--export:hover {
+  background: hsl(var(--primary) / .18);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+.pro-collapsed-tag--export span { opacity: .7; }
+
+/* Relevance cue: while the cursor sits on a row, the hidden input tags that that
+   row's tool actually declares get an outline ring — a quick "these collapsed
+   fields apply here" hint. Tags the active row doesn't use stay the quiet
+   default. Export tags apply to every row, so they're never flagged. */
+.pro-collapsed-tag.is-relevant {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
+  box-shadow: 0 0 0 2px hsl(var(--primary) / .3);
+}
+
 /* 2 — solid outlined uppercase pill: clearly an action, below the filled +Row. */
 .pro-cols-action {
   font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer;
