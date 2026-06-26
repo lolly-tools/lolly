@@ -89,6 +89,8 @@
   "capabilities": ["wasm"],
   "hooks": {
     "onInit": true,
-    "onInput": true
+    "onInput": true,
+    "beforeExport": true,
+    "afterExport": true
   }
 }

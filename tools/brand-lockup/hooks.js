@@ -43,7 +43,8 @@ const GAP_CHAM_SUSE  = 9.51;  // horizontal: chameleon ink-right → SUSE ink-le
 const GAP_WORD       = 12.60; // SUSE → descriptor (ink gap)
 const VGAP_CHAM_SUSE = 6.40;  // stacked: chameleon bottom → SUSE cap-top
 const LINE_H         = 40;    // stacked: baseline → baseline
-const DESC_PAD       = 2.4;   // bottom breathing room so g/y/p descenders aren't clipped
+const DESC_RESERVE   = 12;    // space reserved below the LAST baseline (font descender
+                              // ~8.4 + margin) so g/y/p clear the edge on every last line
 const WRAP = { compact: 240, balanced: 360, wide: 520 }; // stacked wrap widths (design units)
 
 const COLORS = {
@@ -120,11 +121,12 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
   const gap2 = GAP_WORD * k;
 
   const parts = [];
-  let W = 0, H = 0;
+  let W = 0, H = 0, lastBaseline = 0; // lastBaseline drives reserved descender space
 
   if (layout === 'horizontal') {
     // chameleon inline-left, one baseline
     const chW = CHAM_W * k, chH = CHAM_H * k, Yb = cap; // chameleon top (=cap top) at y=0
+    lastBaseline = Yb;
     parts.push(`<path fill="${col.mark}" d="${CHAMELEON_D}" transform="scale(${fmt(chW / CHAM_W)})"/>`);
     parts.push(placed(suse.d, col.text, chW + GAP_CHAM_SUSE * k - suse.bbox.x1, Yb));
     let right = chW + GAP_CHAM_SUSE * k + suseInk;
@@ -158,6 +160,7 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
       ? [{ suse: true, words: [] }, ...(words.length ? [{ suse: false, words }] : [])]
       : wrapWords(words, advs, spaceAdv, suseInk + gap2, maxW);
     let maxRight = chW, bottom = 0;
+    lastBaseline = firstBaseline + (lines.length - 1) * LINE_H * k;
     for (let li = 0; li < lines.length; li++) {
       const Yb = firstBaseline + li * LINE_H * k, ln = lines[li];
       if (ln.suse) {
@@ -175,7 +178,9 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
     W = maxRight; H = Math.max(hybrid ? chH : 0, bottom);
   }
 
-  H += DESC_PAD * k; // breathing room below the baseline so descenders clear the edge
+  // Reserve descender space below the last line — even when its glyphs have no
+  // descender — so the bottom edge is consistent and g/y/p never clip.
+  H = Math.max(H, lastBaseline + DESC_RESERVE * k);
   W = Math.ceil(W * 100) / 100;
   H = Math.ceil(H * 100) / 100;
 
@@ -188,11 +193,21 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
 }
 
 // ── Canvas / export-dimension sync ────────────────────────────────────────────
+// The export bar defaults to the lockup's natural size, but the user (or a URL
+// width/height param) may override it. We only overwrite a field while it still
+// holds the value WE last wrote — once it differs, the user/URL owns it and we
+// leave it alone (and beforeExport then fits the lockup into those dims).
+let _lastW = null, _lastH = null;
+let _contentW = 0, _contentH = 0; // last natural content box, for export centering
+
 function syncExportDims(w, h) {
+  const rw = Math.round(w), rh = Math.round(h);
+  _contentW = w; _contentH = h;
   const wIn = document.querySelector('[data-action="export-width"]');
   const hIn = document.querySelector('[data-action="export-height"]');
-  if (wIn) wIn.value = Math.round(w);
-  if (hIn) hIn.value = Math.round(h);
+  if (wIn && (wIn.value === '' || wIn.value === String(_lastW))) wIn.value = rw;
+  if (hIn && (hIn.value === '' || hIn.value === String(_lastH))) hIn.value = rh;
+  _lastW = rw; _lastH = rh;
 }
 
 // Team lockups always read "… Team" — append it when the Team type is chosen and
@@ -231,9 +246,54 @@ async function render({ model, host }) {
   host.text.preload(FONT_SUSE).catch(() => {});
   host.text.preload(FONT_DESC).catch(() => {});
   const { inner, w, h, surface } = await buildLockup({ host, ...opts });
+  _contentW = w; _contentH = h;                 // natural box, for export centring
   setTimeout(() => syncExportDims(w, h), 0);
   return { inner, w, h, surface };
 }
 
 async function onInit(ctx)  { return render(ctx); }
 async function onInput(ctx) { return render(ctx); }
+
+// ── Fit + centre into an explicitly-set export size ───────────────────────────
+// With no width/height the export uses the lockup's natural box. When the user or
+// a URL sets dimensions, widen the SVG viewBox to that aspect and centre the
+// artwork inside it (preserveAspectRatio scales it to fit) — so the lockup sits
+// centred within the requested canvas, never cropped or pinned to a corner.
+let _savedVB = null, _savedW = null, _savedH = null;
+
+function lockupSvg(node) {
+  if (!node) return null;
+  if (node.id === 'lockup-svg') return node;
+  return node.querySelector ? node.querySelector('#lockup-svg') : null;
+}
+
+async function beforeExport({ node, opts }) {
+  const svg = lockupSvg(node);
+  if (!svg || !_contentW || !_contentH) return;
+  const rw = parseFloat(opts?.width), rh = parseFloat(opts?.height);
+  if (!(rw > 0) || !(rh > 0)) return;                          // need both dims to reframe
+  const reqAR = rw / rh, contentAR = _contentW / _contentH;
+  if (Math.abs(Math.log(reqAR / contentAR)) < 0.005) return;   // already the right shape
+
+  let vbW, vbH, ox, oy;
+  if (reqAR > contentAR) { vbH = _contentH; vbW = _contentH * reqAR; ox = (vbW - _contentW) / 2; oy = 0; }
+  else                   { vbW = _contentW; vbH = _contentW / reqAR; ox = 0; oy = (vbH - _contentH) / 2; }
+
+  _savedVB = svg.getAttribute('viewBox');
+  _savedW  = svg.getAttribute('width');
+  _savedH  = svg.getAttribute('height');
+  svg.setAttribute('viewBox', `${fmt(-ox)} ${fmt(-oy)} ${fmt(vbW)} ${fmt(vbH)}`);
+  svg.setAttribute('width', fmt(vbW));
+  svg.setAttribute('height', fmt(vbH));
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+}
+
+async function afterExport({ node }) {
+  const svg = lockupSvg(node);
+  if (!svg || _savedVB == null) return;
+  svg.setAttribute('viewBox', _savedVB);
+  if (_savedW != null) svg.setAttribute('width', _savedW);
+  if (_savedH != null) svg.setAttribute('height', _savedH);
+  svg.removeAttribute('preserveAspectRatio');
+  _savedVB = _savedW = _savedH = null;
+}
