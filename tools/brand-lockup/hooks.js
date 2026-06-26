@@ -10,10 +10,13 @@
  *   • SUSE       — SUSE SemiBold, outlined via host.text (HarfBuzz WASM)
  *   • descriptor — SUSE Medium,   outlined via host.text
  *
- * Two layouts, both flush to the bounding box (no padding) like the brand source:
+ * Three layouts, flush to the bounding box like the brand source. Orientation +
+ * type pick the layout: horizontal is always one line; stacked depends on type —
  *   horizontal — chameleon inline-left, SUSE + name on one baseline
- *   stacked    — chameleon on top (width = SUSE wordmark width), SUSE + name flow
- *                below and wrap at a width chosen by `wrapMode`
+ *   ontop      — (product/team stacked) chameleon on top (width = SUSE wordmark),
+ *                SUSE + name flow below and wrap at a width chosen by `wrapMode`
+ *   hybrid     — (program/service stacked) chameleon inline-left, SUSE + name
+ *                wrap below it — the layout SUSE uses for programs and services
  *
  * Four colour variants (the only combinations the brand ships):
  *   positive+colour → green chameleon, midnight text   (pos-green)
