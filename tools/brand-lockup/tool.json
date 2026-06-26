@@ -10,7 +10,7 @@
   "render": {
     "width": 1200,
     "height": 1200,
-    "formats": ["svg", "png", "pdf", "emf"],
+    "formats": ["svg", "png", "emf"],
     "actions": ["copy", "download", "save"]
   },
   "inputs": [
@@ -27,12 +27,21 @@
       "label": "Type",
       "type": "select",
       "default": "product",
-      "help": "Products use the simplest title (e.g. SUSE AI). Programs end in \"Program\"; teams end in \"Team\".",
+      "help": "Products use the simplest title (e.g. SUSE AI). Programs end in \"Program\"; teams end in \"Team\"; events carry a location.",
       "options": [
         { "value": "product", "label": "Product" },
         { "value": "program", "label": "Program" },
-        { "value": "team", "label": "Team" }
+        { "value": "team", "label": "Team" },
+        { "value": "event", "label": "Event" }
       ]
+    },
+    {
+      "id": "location",
+      "label": "Location",
+      "type": "text",
+      "required": false,
+      "default": "",
+      "help": "City or place — sits on its own line (e.g. \"Madrid\"). Shown for events and teams."
     },
     {
       "id": "orientation",
@@ -89,8 +98,6 @@
   "capabilities": ["wasm"],
   "hooks": {
     "onInit": true,
-    "onInput": true,
-    "beforeExport": true,
-    "afterExport": true
+    "onInput": true
   }
 }

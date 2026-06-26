@@ -110,10 +110,11 @@ async function descLine(host, words, fontSize, fill, x, Yb) {
 // ── Build the lockup SVG inner markup + dimensions ────────────────────────────
 // layout: 'horizontal' (one line) | 'ontop' (chameleon over SUSE+name) |
 //         'hybrid' (chameleon inline-left, SUSE+name wrap below — programs/services)
-async function buildLockup({ host, name, layout, variant, wrapMode, background }) {
+async function buildLockup({ host, name, location, layout, variant, wrapMode, background }) {
   const fs = BASE_FONT, k = fs / F;
   const col = COLORS[variant] || COLORS['pos-green'];
   const words = (name || '').trim().split(/\s+/).filter(Boolean);
+  const locWords = (location || '').trim().split(/\s+/).filter(Boolean);
 
   const suse = await shape(host, 'SUSE', FONT_SUSE, fs);
   const suseInk = suse.bbox ? suse.bbox.x2 - suse.bbox.x1 : 0;
@@ -131,8 +132,9 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
     parts.push(placed(suse.d, col.text, chW + GAP_CHAM_SUSE * k - suse.bbox.x1, Yb));
     let right = chW + GAP_CHAM_SUSE * k + suseInk;
     let bottom = Math.max(chH, Yb + (suse.bbox ? suse.bbox.y2 : 0));
-    if (words.length) {
-      const r = await descLine(host, words, fs, col.text, right + gap2, Yb);
+    const inlineWords = [...words, ...locWords];          // horizontal keeps location inline
+    if (inlineWords.length) {
+      const r = await descLine(host, inlineWords, fs, col.text, right + gap2, Yb);
       if (r) { parts.push(r.part); right = r.inkRight; bottom = Math.max(bottom, r.bottom); }
     }
     W = right; H = bottom;
@@ -155,10 +157,13 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
 
     // Brand convention: a single-word name sits on its OWN line under SUSE
     // (SUSE / Storage, SUSE / AI). Multi-word names flow after SUSE and wrap
-    // ("SUSE AI" / Factory, "SUSE Linux" / "Enterprise Server").
-    const lines = words.length <= 1
+    // ("SUSE AI" / Factory, "SUSE Linux" / "Enterprise Server"). But when a
+    // location follows (events: "SUSE Exchange" / "Madrid"), the name stays on
+    // the SUSE line and the location drops to its own line below.
+    const lines = (words.length <= 1 && !locWords.length)
       ? [{ suse: true, words: [] }, ...(words.length ? [{ suse: false, words }] : [])]
       : wrapWords(words, advs, spaceAdv, suseInk + gap2, maxW);
+    if (locWords.length) lines.push({ suse: false, words: locWords }); // location on its own line
     let maxRight = chW, bottom = 0;
     lastBaseline = firstBaseline + (lines.length - 1) * LINE_H * k;
     for (let li = 0; li < lines.length; li++) {
@@ -192,22 +197,40 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
   return { inner: bgRect + parts.join(''), w: W, h: H, surface };
 }
 
-// ── Canvas / export-dimension sync ────────────────────────────────────────────
-// The export bar defaults to the lockup's natural size, but the user (or a URL
-// width/height param) may override it. We only overwrite a field while it still
-// holds the value WE last wrote — once it differs, the user/URL owns it and we
-// leave it alone (and beforeExport then fits the lockup into those dims).
-let _lastW = null, _lastH = null;
-let _contentW = 0, _contentH = 0; // last natural content box, for export centering
+// ── Export-dimension sync ─────────────────────────────────────────────────────
+// The export bar should default to the lockup's natural size, but the user (or a
+// URL width/height param) may override it — and that override must stick and
+// reframe the canvas. The shell sizes the canvas from these fields and the SVG
+// fills it with preserveAspectRatio, so any aspect stays centred (no reframing
+// needed here). We only write a field when it's empty, still holds our last
+// value, or — on first sync — only holds the manifest placeholder; a real
+// user/URL value is left alone. RENDER_DEFAULT must match tool.json render.w/h.
+const RENDER_DEFAULT_W = 1200, RENDER_DEFAULT_H = 1200;
+let _initDone = false, _lastW = null, _lastH = null;
 
 function syncExportDims(w, h) {
-  const rw = Math.round(w), rh = Math.round(h);
-  _contentW = w; _contentH = h;
   const wIn = document.querySelector('[data-action="export-width"]');
   const hIn = document.querySelector('[data-action="export-height"]');
-  if (wIn && (wIn.value === '' || wIn.value === String(_lastW))) wIn.value = rw;
-  if (hIn && (hIn.value === '' || hIn.value === String(_lastH))) hIn.value = rh;
-  _lastW = rw; _lastH = rh;
+  if (!wIn || !hIn) return;
+  const rw = Math.round(w), rh = Math.round(h);
+  const mine = (inp, last, def) =>
+    inp.value === '' || inp.value === String(last) || (!_initDone && inp.value === String(def));
+  let changed = false;
+  if (mine(wIn, _lastW, RENDER_DEFAULT_W) && wIn.value !== String(rw)) { wIn.value = rw; changed = true; }
+  if (mine(hIn, _lastH, RENDER_DEFAULT_H) && hIn.value !== String(rh)) { hIn.value = rh; changed = true; }
+  _initDone = true; _lastW = rw; _lastH = rh;
+  // When WE set the fields (user hasn't overridden), size the canvas to the
+  // natural box and let the shell's fitCanvas scale it to the stage. If the user
+  // owns the fields, their `input` already drove the shell's own canvas sizing,
+  // so we leave it alone. canvas-resize avoids the URL-sync that `input` triggers.
+  if (changed) {
+    const canvas = document.getElementById('tool-canvas');
+    if (canvas) {
+      canvas.style.width = rw + 'px';
+      canvas.style.height = rh + 'px';
+      canvas.dispatchEvent(new CustomEvent('canvas-resize'));
+    }
+  }
 }
 
 // Team lockups always read "… Team" — append it when the Team type is chosen and
@@ -218,12 +241,22 @@ function applyCategory(name, category) {
   return n;
 }
 
+// Location only applies to events and teams (a city/place on its own line).
+const HAS_LOCATION = c => c === 'event' || c === 'team';
+
 // Stacked layout depends on type: products and teams stack the chameleon ON TOP;
-// programs (and program-like services) use the inline-chameleon HYBRID, where the
-// name wraps below SUSE. Horizontal is always a single line.
+// programs and events use the inline-chameleon HYBRID, where the name (and the
+// location) wrap below SUSE. Horizontal is always a single line.
 function layoutFor(orientation, category) {
   if (orientation !== 'stacked') return 'horizontal';
-  return category === 'program' ? 'hybrid' : 'ontop';
+  return (category === 'program' || category === 'event') ? 'hybrid' : 'ontop';
+}
+
+// Show the Location row only for the types that use it.
+function toggleLocationRow(category) {
+  const ctrl = document.querySelector('[data-input-id="location"]');
+  const row = ctrl && ctrl.closest('.input-row');
+  if (row) row.style.display = HAS_LOCATION(category) ? '' : 'none';
 }
 
 // ── Hooks ─────────────────────────────────────────────────────────────────────
@@ -234,10 +267,12 @@ function readModel(model) {
   const category  = v.category || 'product';
   return {
     name:       applyCategory(v.name ?? '', category),
+    location:   HAS_LOCATION(category) ? (v.location || '').trim() : '',
     layout:     layoutFor(v.orientation || 'horizontal', category),
     variant:    variantFor(polarity, treatment),
     wrapMode:   v.wrapMode || 'compact',
     background: v.background || 'transparent',
+    category,
   };
 }
 
@@ -246,54 +281,9 @@ async function render({ model, host }) {
   host.text.preload(FONT_SUSE).catch(() => {});
   host.text.preload(FONT_DESC).catch(() => {});
   const { inner, w, h, surface } = await buildLockup({ host, ...opts });
-  _contentW = w; _contentH = h;                 // natural box, for export centring
-  setTimeout(() => syncExportDims(w, h), 0);
+  setTimeout(() => { syncExportDims(w, h); toggleLocationRow(opts.category); }, 0);
   return { inner, w, h, surface };
 }
 
 async function onInit(ctx)  { return render(ctx); }
 async function onInput(ctx) { return render(ctx); }
-
-// ── Fit + centre into an explicitly-set export size ───────────────────────────
-// With no width/height the export uses the lockup's natural box. When the user or
-// a URL sets dimensions, widen the SVG viewBox to that aspect and centre the
-// artwork inside it (preserveAspectRatio scales it to fit) — so the lockup sits
-// centred within the requested canvas, never cropped or pinned to a corner.
-let _savedVB = null, _savedW = null, _savedH = null;
-
-function lockupSvg(node) {
-  if (!node) return null;
-  if (node.id === 'lockup-svg') return node;
-  return node.querySelector ? node.querySelector('#lockup-svg') : null;
-}
-
-async function beforeExport({ node, opts }) {
-  const svg = lockupSvg(node);
-  if (!svg || !_contentW || !_contentH) return;
-  const rw = parseFloat(opts?.width), rh = parseFloat(opts?.height);
-  if (!(rw > 0) || !(rh > 0)) return;                          // need both dims to reframe
-  const reqAR = rw / rh, contentAR = _contentW / _contentH;
-  if (Math.abs(Math.log(reqAR / contentAR)) < 0.005) return;   // already the right shape
-
-  let vbW, vbH, ox, oy;
-  if (reqAR > contentAR) { vbH = _contentH; vbW = _contentH * reqAR; ox = (vbW - _contentW) / 2; oy = 0; }
-  else                   { vbW = _contentW; vbH = _contentW / reqAR; ox = 0; oy = (vbH - _contentH) / 2; }
-
-  _savedVB = svg.getAttribute('viewBox');
-  _savedW  = svg.getAttribute('width');
-  _savedH  = svg.getAttribute('height');
-  svg.setAttribute('viewBox', `${fmt(-ox)} ${fmt(-oy)} ${fmt(vbW)} ${fmt(vbH)}`);
-  svg.setAttribute('width', fmt(vbW));
-  svg.setAttribute('height', fmt(vbH));
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-}
-
-async function afterExport({ node }) {
-  const svg = lockupSvg(node);
-  if (!svg || _savedVB == null) return;
-  svg.setAttribute('viewBox', _savedVB);
-  if (_savedW != null) svg.setAttribute('width', _savedW);
-  if (_savedH != null) svg.setAttribute('height', _savedH);
-  svg.removeAttribute('preserveAspectRatio');
-  _savedVB = _savedW = _savedH = null;
-}
