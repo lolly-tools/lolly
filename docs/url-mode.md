@@ -135,14 +135,14 @@ In the web shell a `file` input can't be pre-filled from a URL; a link that refe
 
 ## Compact encoding (opt-in)
 
-Tools can opt into a shorter URL form, which the web shell then **writes** to the address bar as you edit. Both the long forms above and the compact forms below parse, so either kind of link works:
+Tools can opt into a shorter URL form, which the web shell emits when you **copy a share link** (the live address bar keeps the readable long form). Both the long forms above and the compact forms below parse, so either kind of link works:
 
 - **`urlKey` aliases** — an input (or block field) can declare a short key, e.g. `textColor` → `tc`, so `?tc=ff0000` sets it.
 - **Colors without `#`** — a 6-char hex is stored bare (`?color=0c322c`), restored to `#0c322c` on parse.
 - **Tilde-delimited block arrays** — instead of JSON, blocks serialise as `field,field,field~field,field,field` (one `~`-separated group per item; values URL-encoded, colors `#`-less).
 - **Omitted defaults** — values equal to the input's default are dropped from the URL entirely.
 
-`chart-creator` is a live tool that uses `urlKey`, so a link copied from its address bar won't match the long-form examples in this doc — that's expected.
+`chart-creator` is a live tool that uses `urlKey`, so a link copied via its Copy URL / share button won't match the long-form examples in this doc — that's expected.
 
 ---
 
@@ -166,7 +166,7 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `unit` | web + CLI | Physical unit for `width`/`height`: `px` (default), `mm`, `cm`, `in`, `pt`, `pc`. |
 | `dpi` | web + CLI | Raster resolution for physical units (default `300`). Ignored for `px` and for vector formats. |
 | `password` | web only | PDF open password (`pdf` only). A basic lock, not strong encryption; it travels in clear text in the URL, so it's a light deterrent, not protection for confidential material. Ignored when `bleed`/`marks` are on (encrypted PDFs can't carry print finishing). |
-| `profile` | web only | Colour profile, two roles by format. For ordinary raster (`png` / `jpg` / `webp`) it selects the ICC profile: `srgb` (the default) embeds an sRGB profile; `none` omits it. For the print formats (`pdf-cmyk` / `cmyk-tiff`) it is the CMYK press condition, e.g. `fogra51` — embedded as the PDF's output intent, recorded in the TIFF's provenance. |
+| `profile` | web only | Colour profile, two roles by format. For ordinary raster (`png` / `jpg`) it selects the ICC profile: `srgb` (the default) embeds an sRGB profile; `none` omits it. For the print formats (`pdf-cmyk` / `cmyk-tiff`) it is the CMYK press condition, e.g. `fogra51` — embedded as the PDF's output intent, recorded in the TIFF's provenance. |
 | `bleed` | web only | Bleed amount for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`), as a dimension (e.g. `3mm`, `0.125in`). The artwork is scaled to fill the bleed; the PDF declares `TrimBox`/`BleedBox`, the TIFF is enlarged to the full sheet. |
 | `marks` | web only | Print marks for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`) — a CSV of `crop`, `reg`, `bleed`, `bars`, `prov`. Drawn in the page margin (PDF) or rasterised into the image margin (TIFF); registration prints on all four plates in `pdf-cmyk` and `cmyk-tiff`. `prov` (provenance credit text) is PDF-only. |
 

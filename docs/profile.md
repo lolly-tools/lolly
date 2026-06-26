@@ -67,7 +67,7 @@ For the exact bundle layout, version policy, and integrity rules, see **[Data Tr
 
 ## How tools use your profile
 
-A tool only ever sees a profile field it was explicitly built to read:
+A tool only ever *pre-fills* the profile fields it was explicitly built to bind:
 
 **Explicit binding.** A tool author marks an input as drawing from the profile (`bindToProfile: "firstname"`, `"email"`, `"headshot"`, …). When the tool opens, that input pre-fills from your profile — and you can still override it for that one session without changing the profile. Pre-fill is a local convenience and happens whether or not **Use my details** is on.
 

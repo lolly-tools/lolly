@@ -113,6 +113,6 @@ Anything outside these reserved names and the parts above is, to a reader, an un
 
 ## Reference
 
-- Module: [`shells/web/src/data-transfer.js`](../shells/web/src/data-transfer.js) (`exportBackup`, `importBackup`, `backupFilename`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`).
+- Module: [`shells/web/src/data-transfer.js`](../shells/web/src/data-transfer.js) (`exportBackup`, `importBackup`, `BACKUP_FORMAT`, `BACKUP_FORMAT_VERSION`, `BACKUP_READER_VERSION`; the `backupFilename()` namer is internal).
 - Contract test: [`tests/data-transfer.test.js`](../tests/data-transfer.test.js) — round-trip, merge, integrity, forward-compat, and reader-gate cases.
 - Bridge surface used: `host.profile`, `host.state`, `host.assets` — see [Host API](/info/host-api.html).
