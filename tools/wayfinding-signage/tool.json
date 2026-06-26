@@ -3,7 +3,7 @@
   "name": "Wayfinding Signage",
   "description": "Directional signs for events — a list of destinations, each with an arrow pointing the way. Print-ready, portrait or landscape.",
   "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} — {{heading}}{{/if}}",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "event",
@@ -20,6 +20,15 @@
     "onInput": true
   },
   "inputs": [
+    {
+      "id": "textWeight",
+      "label": "Text weight",
+      "type": "number",
+      "display": "slider",
+      "min": 100, "max": 900, "step": 100,
+      "default": 800,
+      "help": "Stroke weight of the heading, labels and arrows (SUSE variable font)."
+    },
     {
       "id": "size",
       "label": "Sign size",
@@ -68,6 +77,7 @@
       "help": "Each row is a destination with an arrow. Pick the arrow direction and whether it sits to the left or right of the label.",
       "fields": [
         { "id": "label", "label": "Destination", "type": "text", "placeholder": "e.g. Registration" },
+        { "id": "image", "label": "Image (instead of text)", "type": "asset", "assetType": "any", "allowUpload": true, "help": "Optional — show a logo or sponsor branding in place of the destination text. The text above is used as the image's alt text and as the fallback when no image is set." },
         {
           "id": "arrow",
           "label": "Arrow",
@@ -101,21 +111,6 @@
         { "label": "Keynote Hall", "arrow": "right", "side": "right", "color": "" },
         { "label": "Expo & Sponsors", "arrow": "up-right", "side": "right", "color": "" },
         { "label": "Restrooms", "arrow": "down", "side": "left", "color": "" }
-      ]
-    },
-    {
-      "id": "textWeight",
-      "label": "Text weight",
-      "type": "select",
-      "default": "800",
-      "help": "Stroke weight of the heading, labels and arrows (SUSE variable font).",
-      "options": [
-        { "value": "300", "label": "Light" },
-        { "value": "400", "label": "Regular" },
-        { "value": "500", "label": "Medium" },
-        { "value": "600", "label": "Semibold" },
-        { "value": "700", "label": "Bold" },
-        { "value": "800", "label": "Extrabold" }
       ]
     },
     {

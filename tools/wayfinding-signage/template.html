@@ -92,6 +92,16 @@
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
+/* A row can show an image (e.g. a sponsor's logo) in place of the text label.
+   It takes the label's slot and aligns to the same edge the text would: left for
+   a left-arrow row, right for a right-arrow row (which is row-reversed). */
+.way-img {
+  flex: 1 1 0; min-width: 0;
+  height: 64cqh; max-width: 100%;
+  object-fit: contain; object-position: left center;
+}
+.way-row--right .way-img { object-position: right center; }
+
 /* ── Landscape: header is a row; type steps down to use the width ── */
 .way-landscape .way-head {
   flex-direction: row; align-items: center; justify-content: space-between;
@@ -125,9 +135,13 @@
 
     <main class="way-list">
       {{#each directionsOut}}
-        <div class="way-row way-row--{{side}}" style="--row-accent: {{accent}};">
+        <div class="way-row way-row--{{side}}" data-canvas-input="directions:{{bi}}" style="--row-accent: {{accent}};">
           <span class="way-arrow">{{glyph}}</span>
-          <span class="way-label">{{label}}</span>
+          {{#if imageUrl}}
+            <img class="way-img" src="{{imageUrl}}" alt="{{imageAlt}}">
+          {{else}}
+            <span class="way-label">{{label}}</span>
+          {{/if}}
         </div>
       {{/each}}
     </main>

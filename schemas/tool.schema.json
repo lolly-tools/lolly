@@ -140,7 +140,8 @@
     },
     "composes": {
       "type": "array",
-      "description": "Nested renders (tool composition). Each entry renders another tool's output to an embeddable asset, exposed to the template as an extra referenced via {{asset <id>}} (so a logic-less template can embed one tool's render inside another). Requires the 'compose' capability. Recursion is depth- and cycle-guarded by the host.",
+      "maxItems": 24,
+      "description": "Nested renders (tool composition). Each entry renders another tool's output to an embeddable asset, exposed to the template as an extra referenced via {{asset <id>}} (so a logic-less template can embed one tool's render inside another). Requires the 'compose' capability. Recursion is depth- and cycle-guarded by the host. Capped (maxItems) well under the render cache so a single tool's composes can't self-evict mid-render.",
       "items": {
         "type": "object",
         "required": ["id", "tool"],

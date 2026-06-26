@@ -114,14 +114,20 @@ function trackVisualViewport() {
   let raf = 0;
   const apply = () => {
     raf = 0;
-    // Inset of the visible (zoomed/panned) area from each LAYOUT-viewport edge,
-    // so top/left-anchored AND right/bottom-anchored fixed elements can re-pin.
-    const top = Math.max(0, vv.offsetTop);
-    const left = Math.max(0, vv.offsetLeft);
+    // Only re-pin while genuinely pinch-zoomed (scale > 1). At scale 1 the visual
+    // and layout viewports can still differ — a mobile browser's retractable
+    // toolbar (URL bar) shrinks the visual viewport as it shows/hides on scroll —
+    // but there position:fixed already tracks the layout-viewport edges, so a
+    // computed inset would wrongly float a bottom-pinned bar up above where the
+    // (often hidden) controls sit, and have it drift as you scroll. Zeroing the
+    // offsets at scale 1 hands the un-zoomed case back to native bottom:0.
+    const zoomed = vv.scale > 1.01;
+    const top = zoomed ? Math.max(0, vv.offsetTop) : 0;
+    const left = zoomed ? Math.max(0, vv.offsetLeft) : 0;
     root.style.setProperty('--vv-top', `${top}px`);
     root.style.setProperty('--vv-left', `${left}px`);
-    root.style.setProperty('--vv-right', `${Math.max(0, root.clientWidth - left - vv.width)}px`);
-    root.style.setProperty('--vv-bottom', `${Math.max(0, root.clientHeight - top - vv.height)}px`);
+    root.style.setProperty('--vv-right', `${zoomed ? Math.max(0, root.clientWidth - left - vv.width) : 0}px`);
+    root.style.setProperty('--vv-bottom', `${zoomed ? Math.max(0, root.clientHeight - top - vv.height) : 0}px`);
   };
   const schedule = () => { if (!raf) raf = requestAnimationFrame(apply); };
   vv.addEventListener('resize', schedule);

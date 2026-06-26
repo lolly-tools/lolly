@@ -18,12 +18,14 @@
  */
 
 import { parseEmbedUrl, parseUrlState } from '@lolly/engine';
-import { getTool } from '../pro/render-export.js';
+import { getTool } from './tool-loader.js';
 
 // 1×1 transparent GIF — the placeholder a neutralised embed shows until (and if)
 // it resolves. Inert and self-contained, so no request is ever made.
 export const TRANSPARENT_PX =
   'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+const XLINK_NS = 'http://www.w3.org/1999/xlink';
 
 /** The original embed URL if neutralised, else the live src/href. */
 export function embedSrcOf(el) {
@@ -37,19 +39,28 @@ export function embedSrcOf(el) {
  * request. Cheap-exits when the string can't contain an embed.
  */
 export function neutralizeEmbeds(html) {
-  if (typeof html !== 'string' || !html.includes('lolly.tools/tool/')) return html;
+  // Case-insensitive, host-only cheap-exit (so `LOLLY.TOOLS`, a port, or a trailing
+  // dot can't slip past the matcher's gate). parseEmbedUrl remains the real gate.
+  if (typeof html !== 'string' || !/lolly\.tools/i.test(html)) return html;
   const tpl = document.createElement('template');
   tpl.innerHTML = html;
   let found = false;
   tpl.content.querySelectorAll('img, image').forEach((el) => {
+    // SVG2 `href` / HTML `src`, plus the legacy namespaced `xlink:href` synonym.
     for (const attr of ['src', 'href']) {
       const v = el.getAttribute(attr);
       if (v && parseEmbedUrl(v)) {
         el.setAttribute('data-lolly-embed', v);
         el.setAttribute(attr, TRANSPARENT_PX);
         found = true;
-        break;
+        return;
       }
+    }
+    const xv = el.getAttributeNS?.(XLINK_NS, 'href');
+    if (xv && parseEmbedUrl(xv)) {
+      el.setAttribute('data-lolly-embed', xv);
+      el.setAttributeNS(XLINK_NS, 'href', TRANSPARENT_PX);
+      found = true;
     }
   });
   return found ? tpl.innerHTML : html;
@@ -75,6 +86,7 @@ export async function resolveLollyToolUrl(src, { host, embed } = {}) {
       format: parsed.format,            // the path extension is the explicit choice
       width: st.width ?? undefined,
       height: st.height ?? undefined,
+      unit: st.unit ?? undefined,       // honour ?width=210&unit=mm
       dpi: st.dpi ?? undefined,
       _stack: embed?.stack ?? [],
     });
@@ -90,14 +102,20 @@ export async function resolveLollyToolUrl(src, { host, embed } = {}) {
  * composed blob URL. Fire-and-forget from the render path; `isCurrent()` (if
  * given) guards against a stale render overwriting a newer one.
  */
-export async function hydrateEmbeds(node, { host, isCurrent } = {}) {
+export async function hydrateEmbeds(node, { host, isCurrent, embed } = {}) {
   const els = [...node.querySelectorAll('[data-lolly-embed]')];
   if (!els.length) return;
   await Promise.all(els.map(async (el) => {
-    const url = await resolveLollyToolUrl(el.getAttribute('data-lolly-embed'), { host, embed: { stack: [] } });
+    // Thread the caller's recursion stack so an embed inside a composed child is
+    // still cycle/depth-guarded (defaults to a fresh top-level stack in preview).
+    const url = await resolveLollyToolUrl(el.getAttribute('data-lolly-embed'), { host, embed: embed ?? { stack: [] } });
     if (url && (!isCurrent || isCurrent())) {
-      const attr = el.tagName.toLowerCase() === 'image' ? 'href' : 'src';
-      el.setAttribute(attr, url);
+      if (el.tagName.toLowerCase() === 'image') {
+        el.setAttribute('href', url);
+        el.setAttributeNS?.(XLINK_NS, 'href', url); // cover legacy SVG renderers
+      } else {
+        el.setAttribute('src', url);
+      }
     }
   }));
 }

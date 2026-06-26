@@ -120,6 +120,31 @@ for (const dir of toolDirs) {
       warnings.push(`[${dir}] input "${input.id}" bindToProfile "${input.bindToProfile}" is not a known profile field`);
     }
   }
+
+  // composes: ids must be unique within the manifest (they key {{asset <id>}} +
+  // the render memo, so a duplicate silently shadows the earlier one).
+  if (Array.isArray(manifest.composes)) {
+    const seen = new Set();
+    for (const c of manifest.composes) {
+      if (c && typeof c.id === 'string') {
+        if (seen.has(c.id)) errors.push(`[${dir}] duplicate composes id "${c.id}"`);
+        seen.add(c.id);
+      }
+    }
+    if (manifest.composes.length && !(manifest.capabilities ?? []).includes('compose')) {
+      errors.push(`[${dir}] declares "composes" but is missing the "compose" capability`);
+    }
+  }
+}
+
+// composes must reference real tools — a typo'd child id would only 404 at render
+// time (and silently collapse the embed slot), so catch it here.
+for (const [id, manifest] of toolManifests) {
+  for (const c of manifest.composes ?? []) {
+    if (c?.tool && !toolManifests.has(c.tool)) {
+      errors.push(`[${id}] composes references unknown tool "${c.tool}"`);
+    }
+  }
 }
 
 // Cross-check the tool index references real tools, and that each entry matches

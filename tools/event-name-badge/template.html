@@ -148,7 +148,7 @@
 
     <footer class="ebadge-foot">
       <div class="ebadge-role">{{statusLabel}}</div>
-      {{#if showQr}}{{#if url}}<div class="ebadge-qr"><img src="{{asset badgeQr}}" alt=""></div>{{/if}}{{/if}}
+      {{#if showQr}}{{#if url}}{{#if badgeQr}}<div class="ebadge-qr"><img src="{{asset badgeQr}}" alt=""></div>{{/if}}{{/if}}{{/if}}
     </footer>
   </div>
 </div>

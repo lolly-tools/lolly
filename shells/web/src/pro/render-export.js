@@ -12,52 +12,16 @@
  * Duplicating ~40 lines keeps this feature removable without refactoring the
  * 2000-line single-tool view — a deliberate hygiene trade-off.
  */
-import { loadTool, createRuntime, toCssPx } from '@lolly/engine';
+import { createRuntime, toCssPx } from '@lolly/engine';
+import { getTool, chooseFormat, isExportable } from '../bridge/tool-loader.js';
+import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.js';
+
+// Re-exported for existing importers (pro/batch, pro/index, pro/sessions) that
+// historically pulled these from here. The definitions now live in tool-loader.js
+// so bridge/embed.js can share them without a circular import.
+export { getTool, chooseFormat, isExportable };
 
 const CANVAS_CLASS = 'pro-export-canvas';
-
-// Loaded tools are cached so selecting the same template across many rows — the
-// primary power-user workflow — loads each template only once.
-const toolCache = new Map();
-
-function makeFetchFile(toolId) {
-  return async (path) => {
-    const resp = await fetch(`/tools/${path}`);
-    if (resp.status === 404) throw new Error('tool-not-found');
-    const ct = resp.headers.get('content-type') ?? '';
-    if (!resp.ok || (ct.includes('text/html') && !path.endsWith('.html'))) {
-      throw new Error('tool-not-found');
-    }
-    return resp.text();
-  };
-}
-
-/** Load (and cache) a tool definition. Used both to read inputs and to render. */
-export async function getTool(toolId) {
-  if (toolCache.has(toolId)) return toolCache.get(toolId);
-  const promise = loadTool(toolId, makeFetchFile(toolId));
-  toolCache.set(toolId, promise);
-  try {
-    const tool = await promise;
-    toolCache.set(toolId, tool);
-    return tool;
-  } catch (e) {
-    toolCache.delete(toolId);
-    throw e;
-  }
-}
-
-/** Pick an export format the tool actually supports. */
-export function chooseFormat(manifest, preferred) {
-  const formats = manifest.render?.formats ?? [];
-  if (preferred && formats.includes(preferred)) return preferred;
-  return formats[0] ?? 'png';
-}
-
-/** Whether a tool can be exported at all (render-only tools opt out). */
-export function isExportable(manifest) {
-  return manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
-}
 
 /**
  * Render a single row and return { blob, format }.
@@ -116,13 +80,20 @@ export async function renderRowToBlob(row, host, { format, width, height, unit =
   const canvas = document.createElement('div');
   canvas.className = CANVAS_CLASS;
   canvas.style.cssText = `width:${layoutW}px;height:${layoutH}px;`;
-  canvas.innerHTML = runtime.getHydrated();
+  // Neutralise any lolly.tools embed URLs BEFORE insertion so this off-screen
+  // node (batch row / composed child / single export) never fires a network
+  // request for them — the live-preview wiring in views/tool.js isn't on this path.
+  canvas.innerHTML = neutralizeEmbeds(runtime.getHydrated());
   stage.appendChild(canvas);
   document.body.appendChild(stage);
 
   try {
     runTemplateScripts(canvas);
     await waitForQuiescence(canvas);
+    // Resolve embeds to local blob/data URLs before export so the embedded render
+    // appears in the output (the existing image seams then handle the blob). The
+    // compose stack is threaded so an embed inside a composed child stays guarded.
+    await hydrateEmbeds(canvas, { host, embed: { stack: composeStack ?? [] } });
     const fmt = chooseFormat(tool.manifest, format);
     // watermark/embedMeta/thumbnail are forwarded only when set (compose passes
     // watermark:false + embedMeta:false so an embedded child isn't stamped); batch

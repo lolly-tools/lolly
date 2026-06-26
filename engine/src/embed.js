@@ -37,7 +37,10 @@ export function parseEmbedUrl(src) {
   if (typeof src !== 'string' || src.length > 4096) return null;
   let u;
   try { u = new URL(src); } catch { return null; }
-  if (u.protocol !== 'https:' || u.hostname !== EMBED_HOST) return null;
+  // Normalise a single FQDN trailing dot ("lolly.tools.") so the matcher and the
+  // shell's neutralizer agree on what counts as the embed host.
+  const host = u.hostname.replace(/\.$/, '');
+  if (u.protocol !== 'https:' || host !== EMBED_HOST) return null;
 
   const m = /^\/tool\/([a-z0-9-]+)\.([A-Za-z0-9]+)$/.exec(u.pathname);
   if (!m) return null;

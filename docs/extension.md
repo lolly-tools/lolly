@@ -33,7 +33,12 @@ Reload the Lolly tab. The "Get the extension" prompt disappears and **URL Screen
 
 ## Permissions
 
-It asks for `debugger` and tab access so it can drive a background tab and capture it. It does not read or transmit your browsing data.
+It asks for three things in its `manifest.json`:
+
+- `debugger` and `tabs` — to drive a background tab and capture it via the DevTools Protocol.
+- `host_permissions: ["<all_urls>"]` — host access to *all* sites, because you can point it at any URL you choose. Chrome surfaces this at install time as a broad "read and change all your data on all websites" warning.
+
+Despite that warning, it only reads the single page you ask it to capture, and it does not read or transmit your browsing data — nothing is uploaded anywhere.
 
 ## Troubleshooting
 

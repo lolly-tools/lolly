@@ -190,17 +190,23 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
   const composeFetchFile = async (p) => readFile(join(REPO_ROOT, 'tools', p), 'utf8');
   host.compose = {
     async render(spec) {
-      const { toolId, inputs = {}, format, _stack = [] } = spec ?? {};
+      const { toolId, inputs = {}, format, width, height, unit, dpi, _stack = [] } = spec ?? {};
       if (typeof toolId !== 'string' || !toolId) throw new Error('compose: missing toolId');
       const path = [..._stack, toolId];
       if (_stack.includes(toolId)) throw new Error(`cycle ${path.join(' → ')}`);
       if (_stack.length >= 3) throw new Error(`max compose depth (${path.join(' → ')})`);
       const childTool = await loadTool(toolId, composeFetchFile);
-      const childRuntime = await createRuntime(childTool, host, inputs, { composeStack: path });
+      // Pass the ANCESTOR stack (_stack), not `path`: createRuntime re-appends the
+      // child's id, so `path` would double-count and hit the depth guard early.
+      const childRuntime = await createRuntime(childTool, host, inputs, { composeStack: _stack });
       const el = w.document.createElement('div');
       el.innerHTML = childRuntime.getHydrated();
       const fmt = format ?? childTool.manifest.render.formats[0];
-      const blob = await host.export.render(el, fmt, { embedMeta: false, watermark: false });
+      // Honour requested dimensions — host.export (CLI svg) parses a unit-qualified
+      // width/height via parseDimension; px passes through as a number.
+      const u = unit || 'px';
+      const qual = (v) => (v > 0 ? (u !== 'px' ? `${v}${u}` : v) : undefined);
+      const blob = await host.export.render(el, fmt, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
       const buf = Buffer.from(await blob.arrayBuffer());
       return {
         source: 'remote',

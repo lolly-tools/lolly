@@ -44,6 +44,9 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
   // Per-runtime memo so resolveNestedRenders skips re-rendering a child whose
   // bound inputs are unchanged across keystrokes.
   const composeMemo = new Map();
+  // Monotonic id so an out-of-order (slow) nested render from an earlier
+  // setInput can't overwrite a newer value's render — see setInput below.
+  let setInputSeq = 0;
 
   const profile = await host.profile.get();
   let model = buildInputModel(tool.manifest, { profile, initial: initialState });
@@ -132,6 +135,7 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
 
     async setInput(id, value) {
       model = updateInput(model, id, value);
+      const seq = ++setInputSeq;
       if (hooks?.onInput) {
         try {
           const patch = await withTimeout(hooks.onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }), 2000, tool.manifest.id);
@@ -140,10 +144,20 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
           host.log('warn', `onInput ${e.message}`, { toolId: tool.manifest.id });
         }
       }
-      // Re-resolve nested renders whose bound inputs changed (memoised, so
-      // unchanged composes don't re-render).
-      extras = { ...extras, ...await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo) };
+      // Paint immediately with the latest model + last-known compose extras — a
+      // nested child render must never block the keystroke (M6).
       emit();
+      // Re-resolve nested renders OFF the critical path. Commit + re-emit only if
+      // this is still the latest setInput (so an out-of-order child render can't
+      // clobber a newer value, M5) and the resolved refs actually changed.
+      if (host.compose && tool.manifest.composes?.length) {
+        const composeOut = await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo);
+        const changed = Object.keys(composeOut).some(k => extras[k] !== composeOut[k]);
+        if (seq === setInputSeq && changed) {
+          extras = { ...extras, ...composeOut };
+          emit();
+        }
+      }
     },
 
     subscribe(fn) {

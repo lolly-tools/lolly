@@ -68,18 +68,37 @@ async function compute(model) {
   out.muted = isDark(bg) ? 'rgba(255,255,255,0.66)' : 'rgba(12,50,44,0.60)';
   out.hairline = isDark(bg) ? 'rgba(255,255,255,0.16)' : 'rgba(12,50,44,0.12)';
 
-  // Directions → rows. Drop blank labels; resolve glyph, side and per-row accent.
+  // Directions → rows. Keep a row if it has a label OR an image (a sponsor logo
+  // can stand in for the text). Resolve glyph, side, per-row accent, the optional
+  // image, and carry each row's ORIGINAL block index (bi) so a click on the
+  // rendered row can focus the matching block in the editor (data-canvas-input).
   var dirs = Array.isArray(inputs.directions) ? inputs.directions : [];
+  function rowImage(d) {
+    return (d && d.image && typeof d.image === 'object' && typeof d.image.url === 'string') ? d.image : null;
+  }
   out.directionsOut = dirs
-    .filter(function (d) { return d && typeof d.label === 'string' && d.label.trim(); })
-    .map(function (d) {
+    .map(function (d, i) { return { d: d, i: i }; })
+    .filter(function (x) {
+      var d = x.d;
+      if (!d) return false;
+      var hasLabel = typeof d.label === 'string' && d.label.trim();
+      return hasLabel || rowImage(d);
+    })
+    .map(function (x) {
+      var d = x.d;
       var key = (typeof d.arrow === 'string' && GLYPHS[d.arrow]) ? d.arrow : 'right';
       var c = (typeof d.color === 'string' && d.color.trim()) ? d.color.trim() : accent;
+      var label = (typeof d.label === 'string') ? d.label.trim() : '';
+      var img = rowImage(d);
       return {
-        label: d.label.trim(),
+        label: label,
+        imageUrl: img ? img.url : '',
+        // Alt text keeps the row meaningful to screen readers when it's a logo.
+        imageAlt: label || (img && img.meta && img.meta.name) || 'Destination',
         glyph: GLYPHS[key],
         side: (d.side === 'right') ? 'right' : 'left',
-        accent: c
+        accent: c,
+        bi: x.i
       };
     });
 

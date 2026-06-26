@@ -110,6 +110,9 @@ const SECTIONS = [
       { icon: ICONS.transfer, title: 'Move to another device', features: [
         { name: 'Portable backup', desc: 'Export one checksummed zip — profile, every session + thumbnail, your images and preferences — and import-merge it on another install. No account, no cloud.' },
       ] },
+      { icon: ICONS.cube, title: 'Use Tools like any asset', features: [
+        { name: 'Just an asset URL', desc: 'Tools can become composed renders, just an asset URL from where the user is, so a template can drop it into an <code>&lt;img src&gt;</code> or a CSS <code>url()</code> background exactly like a library image.' },
+      ] },
     ],
   },
   {
@@ -277,7 +280,6 @@ const SECTIONS = [
       ] },
       { icon: ICONS.cube, title: 'Tool composition', features: [
         { name: 'Tools compose tools', desc: 'A tool can embed another tool’s rendered output as an image — declared in the manifest (<code>composes</code>) and placed with <code>{{asset …}}</code>. It renders through the same engine path, so the embed is pixel-identical and on-brand, and recursion is depth- and cycle-guarded. One tool reuses another instead of copying its code.' },
-        { name: 'Use it like any asset', desc: 'A composed render is just an asset URL, so a template can drop it into an <code>&lt;img src&gt;</code> or a CSS <code>url()</code> background exactly like a library image.' },
       ] },
       { icon: ICONS.sync, title: 'Synced as data', features: [
         { name: 'No app update needed', desc: 'Tools and assets sync from a signed manifest; new tools appear automatically on clients.' },

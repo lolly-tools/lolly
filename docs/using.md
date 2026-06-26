@@ -25,6 +25,8 @@ The preview always shows exactly what will export.
 
 - **Pinch** to zoom, **drag** to pan, **double-tap** to reset to fit.
 
+**Click to jump to a control:** click any element in the design and the matching sidebar input gets focus and scrolls into view — for a repeating row group it folds open the exact row you clicked, so editing what you see is one tap away.
+
 A dimension change always snaps the view back to a clean fit.
 
 ## On a phone
@@ -73,7 +75,7 @@ Nothing is transmitted anywhere. No telemetry, no cloud rendering.
 
 Because everything lives on your device, **Profile → Storage → Move to another device** lets you carry it all to a second install — no account, no cloud:
 
-- **Export my data** downloads a single `lolly-data-YYYY-MM-DD.zip` containing your profile, every saved session (with its thumbnail), your uploaded images, and your preferences (theme, sidebar width, local activity stats).
+- **Export my data** downloads a single `LollyTools-<First>-<Last>-<YYYY-MM-DD>-<n>.zip` (the name parts come from your profile and are dropped if unset; `<n>` is a per-day counter so same-day exports don't collide) containing your profile, every saved session (with its thumbnail), your uploaded images, and your preferences (theme, sidebar width, local activity stats).
 - **Import data…** on the other install reads that file back in. It **merges**: anything with the same name (your profile, a session slot, an image) is replaced by the imported copy; everything else on that device is kept. Saved sessions re-link to your imported images automatically.
 
 The catalog cache isn't included — it re-downloads itself on the new device. The bundle is a plain zip (`manifest.json` + `profile.json` + `sessions.json` + `assets.json` + `assets/blobs/…` + `prefs.json`, format id `lolly-backup`), so it survives email, USB, or AirDrop intact and is the same format every shell reads. Each part is checksummed, so a file damaged in transit is caught on import rather than restored half-broken. (Full format spec: [Data Transfer](/info/data-transfer.html).)
@@ -84,7 +86,7 @@ See **[Exporting & Formats](/info/exporting.html)** for the full story — choos
 
 ## Batch (Pro) mode
 
-For power users, **Batch** (linked from the gallery) renders many variations at once — a grid where each row is a set of inputs, exported together. Ideal for localising a card into a dozen languages or generating every size variant in one pass.
+For power users, **Batch** (linked from the gallery, gated behind the Pro feature flag, which defaults on) renders many variations at once — a grid where each row is a set of inputs, exported together. Ideal for localising a card into a dozen languages or generating every size variant in one pass. Fill rows by typing, pasting straight from a spreadsheet, or importing a CSV (you can export one back too), and set per-row format, size, and output filename. Save a whole grid as a named **batch session** that reopens from the gallery, and download every row as a single `.zip`.
 
 ## Offline & install
 

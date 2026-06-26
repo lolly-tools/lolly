@@ -51,7 +51,7 @@ npm run cli -- some-tool --width=210 --height=297 --unit=mm --export=pdf --outpu
 
 ## What the CLI can render
 
-The CLI renders in a headless DOM (jsdom), so **vector and text** formats — **SVG, HTML, MD, TXT** — work natively and reproducibly. Raster (PNG/JPG/WebP/PDF) and **video/GIF** need a real rendering engine; those are produced by the **desktop app's** bundled binary rather than the bare CLI. (Requesting an unsupported format prints a clear error listing what the tool supports.) See the [Build Guide](/info/build-guide.html) for packaging the desktop binary.
+The CLI renders in a headless DOM (jsdom), so **vector and structured** formats — **SVG, HTML, plus the data formats JSON, CSV, ICS, VCF** (the engine hydrates those payloads) — work natively and reproducibly. Everything else needs a real layout/paint engine: **raster (PNG/JPG/WebP), PDF, video/GIF, and ZIP**, but also **MD and TXT** (which the web/desktop shell reads out of the rendered DOM). Those are produced by the **desktop app's** bundled binary rather than the bare node CLI. (Requesting an unsupported format prints a clear error listing what the tool supports.) See the [Build Guide](/info/build-guide.html) for packaging the desktop binary.
 
 ## File inputs & on-device utilities
 
@@ -63,13 +63,19 @@ npm run cli -- strip-data --source=./holiday.jpg --output=./holiday-clean.jpg
 
 These tools produce their output via the `exportFile` transform path (bytes in → bytes out), not a DOM render — so they **ignore `--export`** and there's no render format to choose. The transformed bytes are written to `--output`, or streamed to **stdout** if you omit it. Nothing is ever uploaded; the file is read locally and handed straight back.
 
+## Composed tools
+
+Some tools **embed another tool's render** as an asset — declared in the manifest (`composes`) with no tool-to-tool imports. For example, `event-name-badge` composes `qr-code` as an SVG. Composition is transparent on the CLI: the runtime resolves it on mount, so the embedding tool renders headlessly with **no extra flags**.
+
+It follows the same vector/data stance as the rest of the CLI: an **SVG or data child composes end-to-end and stays vector**, while a **raster child is omitted gracefully** (the parent still renders, just without that slot). For full raster-child composition, run the Tauri-bundled build — the same boundary as raster export above.
+
 ## Scripting & CI
 
 Because output is deterministic — same inputs, same bytes — the CLI fits anywhere you generate other build artifacts:
 
 ```bash
 # Generate an OG image at build time instead of committing a binary:
-npm run cli -- quote-card --text="Ship it." --export=svg --output=./public/og.svg
+npm run cli -- quotes --quote="Ship it." --export=svg --output=./public/og.svg
 
 # Fan out over a data file:
 while IFS=, read -r name url; do
@@ -84,3 +90,4 @@ Exit code is non-zero on error; messages go to stderr (set `DEBUG=1` for a stack
 - [URL Mode](/info/url-mode.html) — the parameter model the CLI shares with the web shell (and the reserved params).
 - [Exporting & Formats](/info/exporting.html) — what each format is for.
 - [AI Agents](/info/ai-agents.html) — driving the same surface from an LLM.
+- **/pro batch** — the web shell's interactive counterpart to the scripted fan-out loop above: a spreadsheet-style grid with CSV round-trip, spreadsheet paste, and per-row output across one or many tools.

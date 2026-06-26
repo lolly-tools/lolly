@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-26T14:58:01.160Z",
+  "generatedAt": "2026-06-26T17:41:56.548Z",
   "tools": [
     {
       "id": "color-block",
@@ -195,7 +195,7 @@
       "id": "wayfinding-signage",
       "name": "Wayfinding Signage",
       "description": "Directional signs for events — a list of destinations, each with an arrow pointing the way. Print-ready, portrait or landscape.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "official",
       "category": "event",
       "exportable": true
