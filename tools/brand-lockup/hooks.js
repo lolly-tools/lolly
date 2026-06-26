@@ -208,12 +208,15 @@ async function buildLockup({ host, name, location, layout, variant, wrapMode, ba
 const RENDER_DEFAULT_W = 1200, RENDER_DEFAULT_H = 1200;
 let _initDone = false, _lastW = null, _lastH = null;
 
-function syncExportDims(w, h) {
+// `force` (used when switching back to Fit) overwrites whatever a size preset left
+// behind; otherwise we only touch a field that's empty, holds our last value, or
+// still shows the manifest placeholder — so manual/URL dims and presets stick.
+function syncExportDims(w, h, force) {
   const wIn = document.querySelector('[data-action="export-width"]');
   const hIn = document.querySelector('[data-action="export-height"]');
   if (!wIn || !hIn) return;
   const rw = Math.round(w), rh = Math.round(h);
-  const mine = (inp, last, def) =>
+  const mine = (inp, last, def) => force ||
     inp.value === '' || inp.value === String(last) || (!_initDone && inp.value === String(def));
   let changed = false;
   if (mine(wIn, _lastW, RENDER_DEFAULT_W) && wIn.value !== String(rw)) { wIn.value = rw; changed = true; }
@@ -272,16 +275,29 @@ function readModel(model) {
     variant:    variantFor(polarity, treatment),
     wrapMode:   v.wrapMode || 'compact',
     background: v.background || 'transparent',
+    size:       v.size || 'fit',
     category,
   };
 }
+
+let _lastSize = null;
 
 async function render({ model, host }) {
   const opts = readModel(model);
   host.text.preload(FONT_SUSE).catch(() => {});
   host.text.preload(FONT_DESC).catch(() => {});
   const { inner, w, h, surface } = await buildLockup({ host, ...opts });
-  setTimeout(() => { syncExportDims(w, h); toggleLocationRow(opts.category); }, 0);
+  // In Fit mode we drive the export box to the lockup's natural size; the fixed
+  // sizes are owned by the shell's size-driver, so we leave the box alone (the SVG
+  // just centres inside it via preserveAspectRatio). Force a re-fit on the switch
+  // back to Fit so a preset's leftover dimensions don't stick.
+  const fit = opts.size === 'fit';
+  const force = fit && _lastSize !== 'fit';
+  _lastSize = opts.size;
+  setTimeout(() => {
+    if (fit) syncExportDims(w, h, force);
+    toggleLocationRow(opts.category);
+  }, 0);
   return { inner, w, h, surface };
 }
 

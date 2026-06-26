@@ -88,6 +88,20 @@
       ]
     },
     {
+      "id": "size",
+      "label": "Export size",
+      "type": "select",
+      "default": "fit",
+      "help": "Fit hugs the lockup tightly. The fixed sizes centre it inside that canvas — the preview shows the box change.",
+      "options": [
+        { "value": "fit", "label": "Fit to lockup" },
+        { "value": "square", "label": "Square — 1080×1080", "width": 1080, "height": 1080, "unit": "px" },
+        { "value": "wide", "label": "Landscape — 1920×1080", "width": 1920, "height": 1080, "unit": "px" },
+        { "value": "portrait", "label": "Portrait — 1080×1350", "width": 1080, "height": 1350, "unit": "px" },
+        { "value": "story", "label": "Story — 1080×1920", "width": 1080, "height": 1920, "unit": "px" }
+      ]
+    },
+    {
       "id": "background",
       "label": "Background",
       "type": "color",
