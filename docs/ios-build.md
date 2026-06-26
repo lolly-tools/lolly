@@ -23,15 +23,15 @@ Verified state (2026-06):
 |---|---|---|
 | Full **Xcode** (`xcodebuild`) | yes | No — only Command Line Tools (`xcode-select -p` -> `/Library/Developer/CommandLineTools`) |
 | iOS **Simulator** (`simctl`) | yes | No — `xcrun simctl` needs full Xcode |
-| **CocoaPods** (`pod`) | yes | No — not installed |
+| **CocoaPods** (`pod`) | yes | Yes — installed (`pod` 1.16.2, via Homebrew) |
 | iOS **Rust targets** | yes | Yes — `aarch64-apple-ios`, `aarch64-apple-ios-sim`, `x86_64-apple-ios` installed |
 | Mobile `node_modules` + Tauri CLI | yes | Yes — installed (`@tauri-apps/cli`, `plugin-fs`, `plugin-http`) |
 | `src-tauri/gen/apple/` (init output) | yes | No — iOS project not initialized |
 
 `tauri ios init`, `npm run dev:ios`, and `npm run build:ios` all require full
 Xcode (plus CocoaPods), so each fails here until the prerequisites below are met.
-The Rust targets and JS dependencies are already in place; the remaining blockers
-are Xcode, CocoaPods, and the one-time project init.
+The Rust targets, JS dependencies, and CocoaPods are already in place; the
+remaining blockers are full Xcode and the one-time project init.
 
 ---
 
@@ -48,7 +48,8 @@ are Xcode, CocoaPods, and the one-time project init.
    Launch Xcode once so it installs the iOS platform and Simulator components.
 
 2. **CocoaPods** (Tauri generates a Podfile and runs `pod install` during init).
-   This can be installed now, before Xcode:
+   Already installed on this machine (`pod` 1.16.2 via Homebrew); the command is
+   idempotent on a fresh checkout, and does not require Xcode:
 
    ```bash
    brew install cocoapods   # Homebrew is already present at /opt/homebrew/bin/brew
