@@ -62,9 +62,11 @@ So a one-shot, ready-to-download link is just:
 - **Headless / server-side automation:** use the **[CLI](/info/cli.html)** — it's the same parameter surface and writes bytes to a file or stdout:
 
   ```bash
-  npm run cli -- event-name-badge --eventName="KubeCon 2026" --firstname=Ada \
-    --lastname=Lovelace --company=SUSE --export=png --output=./badge.png
+  npm run cli -- qr-code --url=https://suse.com/kubecon --color=0c322c \
+    --export=svg --output=./qr.svg
   ```
+
+  (The lean node CLI renders SVG and text/data formats; raster/PDF/video need the desktop-bundled build — see [CLI](/info/cli.html).)
 
   Pipe stdout straight into another step in your pipeline.
 
@@ -88,4 +90,4 @@ A few tools won't hand back a file this way:
 - **Validate against the schema** before emitting a URL; unknown params are ignored and bad input values fall back to defaults, so a malformed call fails quietly rather than loudly.
 - **Device-local images** (user uploads) can't travel in a URL — agents should reference catalog assets by id, not local uploads.
 - **One tool, many outputs:** change `format`/`unit`/`width` to emit the same design as SVG, print PDF, and social MP4 from one set of inputs.
-- **Portable embed URL:** an agent can emit `https://lolly.tools/tool/<id>.<ext>?<inputs>` (extensions `png`, `jpg`, `jpeg`, `webp`, `svg`, `pdf`) and drop it straight into HTML as an `<img src=…>`. It renders locally in the live web view — nothing is fetched from lolly.tools.
+- **Portable embed URL:** an agent can emit `https://lolly.tools/tool/<id>.<ext>?<inputs>` (image extensions `png`, `jpg`, `jpeg`, `webp`, `svg`) and drop it straight into HTML as an `<img src=…>`. It renders locally in the live web view — nothing is fetched from lolly.tools.

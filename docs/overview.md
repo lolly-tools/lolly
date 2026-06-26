@@ -240,7 +240,7 @@ Tools never touch the DOM outside their template area, never call `fetch` direct
 | `host.export` | Rasterise or serialise the render target. Applies watermark for experimental tools. |
 | `host.net` | Allowlisted fetch — only available if the tool declared `"network"` capability. (No shipping tool currently uses it.) |
 
-Optional, additive surfaces appear only when a shell provides them and the tool declares the matching capability: `host.compose` (embed another tool's render — `compose` capability), `host.capture` (page capture for URL Screenshot — `capture` capability), `host.text` (text-to-path via HarfBuzz — `wasm`), `host.pdf` (PDF parsing, used by Strip Hidden Data), and `host.tokens` (DTCG design tokens). The declarable capabilities are: `network`, `filesystem`, `clipboard`, `camera`, `ffmpeg`, `wasm`, `capture`, `compose`.
+Optional, additive surfaces appear only when a shell provides them. Two are **capability-gated** — exposed only when the tool declares the matching flag: `host.compose` (embed another tool's render — `compose`) and `host.capture` (page capture for URL Screenshot — `capture`). The rest are **feature-detected** — present whenever the shell can provide them: `host.text` (text-to-path via HarfBuzz WASM; the `wasm` capability flags tools that rely on it), `host.pdf` (PDF parsing, used by Strip Hidden Data), and `host.tokens` (DTCG design tokens). The declarable capabilities are: `network`, `filesystem`, `clipboard`, `camera`, `ffmpeg`, `wasm`, `capture`, `compose`.
 
 The same tool runs in browser, Tauri, and headless CLI because each shell implements this interface — the tool never knows which it's in.
 

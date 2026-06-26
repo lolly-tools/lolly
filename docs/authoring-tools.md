@@ -41,7 +41,7 @@ Optional:
 - `actions` — which action buttons to show. One or more of `copy`, `download`, `save`, `share`. **Defaults to `['copy','download','save']`** if omitted.
 - `export` — set `false` for utility/interactive tools with no export (hides the download/copy/format/dimension bar; shows **Save** only when the tool has inputs).
 - `layout` — `sidebar` (default) or `canvas`. `canvas` hides the sidebar and presents the tool as a full-bleed working area; a single declared `file` input becomes a drag-and-drop / click-to-pick zone on the canvas itself. Used by `strip-data` (drop a file → get a file back).
-- `convertPaths` — defaults `true`. When the tool exports a vector format, the engine **auto-injects a "Convert paths" toggle** that outlines text to vector paths (in SVG/PDF/PDF-CMYK) so the output renders identically without the fonts installed. Set `false` to suppress it and never outline — e.g. capture tools whose output is raster (`event-name-badge`, `url-shot`, `wayfinding-signage` tune this).
+- `convertPaths` — defaults `true`. When the tool exports a vector format, the engine **auto-injects a "Convert paths" toggle** that outlines text to vector paths (in SVG/PDF/PDF-CMYK) so the output renders identically without the fonts installed. Set `false` to suppress it and never outline — e.g. a capture tool whose output is raster (`url-shot`), or a tool that draws its text as raster/canvas before export (`event-name-badge`, `wayfinding-signage`).
 - `transparentBg` — defaults `false`. Adds a **"No BG"** (transparent background) toggle to the export bar; the engine injects it into the input model so hooks can react via `onInit`/`onInput` (`chart-creator`).
 - `preview` — `{ format?, auto? }`. Marks a tool whose live canvas is a placeholder until an explicit, expensive render runs (e.g. a capture tool that screenshots a page in `beforeExport`); the shell wires a `[data-preview]` control. `auto: true` renders one frame on load. Used by `url-shot`.
 - `video` — `{ wait?, duration? }` (seconds; defaults `1` / `5`). Capture timing used when `webm`/`mp4`/`gif` is in `formats` (`bag-video`).
@@ -261,7 +261,7 @@ END:VEVENT
 END:VCALENDAR
 ```
 
-Reference wirings: `meeting-planner`→ICS, `email-signature`→vCard, `chart-creator`→CSV. Raster (`png`/`jpg`/`webp`/`avif`/`gif`), `svg`, `pdf`, the print/CMYK formats (`pdf-cmyk`, `cmyk-tiff`), video (`webm`/`mp4`), `zip`, and `ico` come from the browser (web shell) or the Tauri-bundled CLI — the node CLI handles only text/data formats. The CMYK formats pair with the `convertPaths` outlining toggle (see [The `render` block](#the-render-block)) for fonts-not-installed print fidelity; `cmyk-tiff` and `pdf-cmyk` ship on nine tools today (e.g. `wayfinding-signage`, `event-name-badge`, `qr-code`).
+Reference wirings: `meeting-planner`→ICS, `email-signature`→vCard, `chart-creator`→CSV. Raster (`png`/`jpg`/`webp`/`avif`/`gif`), `svg`, `pdf`, the print/CMYK formats (`pdf-cmyk`, `cmyk-tiff`), video (`webm`/`mp4`), `zip`, and `ico` come from the browser (web shell) or the Tauri-bundled CLI — the node CLI handles only text/data formats. The CMYK formats pair with the `convertPaths` outlining toggle (see [The `render` block](#the-render-block)) for fonts-not-installed print fidelity; `pdf-cmyk` ships on nine tools today and `cmyk-tiff` on six (a subset) — e.g. `qr-code` offers both, while `wayfinding-signage` and `event-name-badge` ship `pdf-cmyk`.
 
 ## Hooks (`hooks.js`)
 
@@ -326,7 +326,7 @@ A tool can embed **another tool's rendered output** as an image instead of re-im
 - `format` (default `svg` where the child supports it) fixes the child render; `width`/`height` (px) default to the child's native size. **Compose any tool's render: an `svg` child stays a true vector when the parent exports to SVG or PDF and rasterises crisply for PNG; raster children (`png`, `jpg`/`jpeg`, `webp`) embed as images.** `svg` is the only format wired declaratively today (`event-name-badge` composes `qr-code` as `svg`) and is the best-supported. The enum also lists `pdf`, but a **PDF child is not supported as a source** — nothing inlines a PDF blob, so don't set `format: "pdf"`. HTML / Markdown / plain-text composition is **not** supported.
 - The composed value is a **normal asset URL**, so it works in a CSS `url()` background just as well as in an `<img src>` — bring another tool in exactly like a library image.
 - The child renders through the **same engine path** (pixel-identical, on-brand) and is never watermarked or provenance-stamped (it's an intermediate). Recursion is **depth- and cycle-guarded**: `a → b → a` fails gracefully and the slot stays empty, so always `{{#if}}`-guard the reference.
-- Works wherever the shell can render the child to bytes; the lean CLI composes only `svg`/data children. The mechanism is `host.compose` — see [Host API](/info/host-api.html).
+- Works wherever the shell can render the child to bytes; the lean CLI composes `svg` children. The mechanism is `host.compose` — see [Host API](/info/host-api.html).
 
 ## Brand logo (auto-switching)
 

@@ -93,7 +93,7 @@ You do not have to give every team access to every tool. Lolly supports building
 - Your IT team sees communication and report templates
 - A subset of power users gets access to experimental tools still in development
 
-This is configured at build time by pointing each instance at a different tool directory. Beyond that, two mechanisms shape what each user actually sees: **capability gating** (a shell hides any tool whose declared capabilities it can't fulfil — for example, a tool that needs page capture won't appear in the web PWA) and **per-user feature flags** (see below), which let each person show or hide whole gallery categories.
+This is configured at build time by pointing each instance at a different tool directory. Beyond that, two mechanisms shape what each user actually sees: **capability gating** (a shell that can't fulfil a tool's declared capabilities shows it greyed-out as a non-runnable "Desktop only" card rather than letting it run — for example, the page-capture tool can't run in the web PWA itself; on Chromium it offers a browser add-on, otherwise it's marked desktop-only) and **per-user feature flags** (see below), which let each person show or hide whole gallery categories.
 
 ---
 
