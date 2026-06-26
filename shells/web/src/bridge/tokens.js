@@ -27,12 +27,11 @@ export function createTokensAPI(host) {
 
   async function loadDoc() {
     // 1) The core-prefetched blob — present and offline-safe once boot sync ran.
+    //    Read the bytes directly; minting/fetching an object URL just to re-parse
+    //    in-memory JSON would pin an unused URL in the asset bridge's cache.
     try {
-      const ref = await host.assets.get(BRAND_TOKENS_ID);
-      if (ref?.url) {
-        const resp = await fetch(ref.url);
-        if (resp.ok) return await resp.json();
-      }
+      const blob = await host.assets._getBlob(BRAND_TOKENS_ID);
+      if (blob) return JSON.parse(await blob.text());
     } catch { /* not cached yet — fall through to a direct fetch */ }
     // 2) Direct catalog fetch — first load, before the blob is cached.
     try {

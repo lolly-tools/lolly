@@ -136,6 +136,18 @@ export async function csvToBatch(text, { getTool, makeRow }) {
 
   const rows = [];
   const errors = [];
+
+  // Two columns sharing one input id would silently last-write-win on import
+  // (the per-row loop writes each header in order). Warn rather than fail — the
+  // data still imports, just with the rightmost column winning. Reserved/blank
+  // headers and distinct vector sub-columns ("pos.x" vs "pos.y") aren't dupes.
+  const seenHeaders = new Set();
+  for (const h of header) {
+    if (h === '' || RESERVED.has(h)) continue;
+    if (seenHeaders.has(h)) errors.push(`Duplicate column "${h}" — later values overwrite earlier ones.`);
+    else seenHeaders.add(h);
+  }
+
   for (let r = 1; r < grid.length; r++) {
     const cells = grid[r];
     const toolId = (cells[toolIdx] ?? '').trim();
@@ -146,7 +158,10 @@ export async function csvToBatch(text, { getTool, makeRow }) {
     try {
       tool = await getTool(toolId);
     } catch {
-      errors.push(`Row ${r}: unknown tool "${toolId}" — skipped its data.`);
+      // r is 0-based into the parsed grid (row 0 is the header), so the human
+      // line is r + 1. Caveat: parseDelimited drops wholly-empty rows, so this
+      // can under-count if the source file had blank lines above this one.
+      errors.push(`Row ${r + 1}: unknown tool "${toolId}" — skipped its data.`);
       rows.push(row);
       continue;
     }

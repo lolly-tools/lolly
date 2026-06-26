@@ -72,12 +72,14 @@ Handlebars.registerHelper('arrow', text =>
 // them with the matching arrow marker — most authors reach for a keyboard marker
 // rather than hunting for the glyph. Returns a SafeString so double-brace usage
 // ({{markdown field}}) renders without double-escaping.
+const MD_ESCAPE = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
 Handlebars.registerHelper('markdown', text => {
   if (text == null || text === '') return new Handlebars.SafeString('');
+  // Fold the three HTML-escape passes (&, <, >) into a single scan — markdown runs
+  // per block on every keystroke for color-block/dynamic-layout/quotes. Output is
+  // identical to the sequential replaces (the engine doesn't re-scan replacements).
   const inline = raw => raw
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+    .replace(/[&<>]/g, c => MD_ESCAPE[c])
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/~~(.+?)~~/g, '<del>$1</del>')
     .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
@@ -130,23 +132,22 @@ Handlebars.registerHelper('asset', function (ref, field) {
 export function annotateTemplate(source, inputIds) {
   if (!inputIds.length) return source;
 
-  const patterns = inputIds.map(id => {
-    const esc = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return {
-      id,
-      // Triple-brace first so {{{ isn't also caught by the double-brace pattern.
-      triple: new RegExp(`\\{\\{\\{[^}]*\\b${esc}\\b[^}]*\\}\\}\\}`, 'g'),
-      // Double-brace — skip block/comment/partial/nested-brace openers,
-      // and don't match {{ that is part of {{{ … }}} (lookbehind + lookahead).
-      double: new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])([^}]*)\\b${esc}\\b([^}]*)\\}\\}(?!\\})`, 'g'),
-    };
-  });
+  // One combined alternation over every input id (each captured so the matched id
+  // can be read back), instead of a pair of per-id regexes scanned N times per
+  // content segment. Each segment now takes a single triple-brace pass + a single
+  // double-brace pass regardless of how many inputs the tool declares. An
+  // expression referencing several ids is tagged for the first one it mentions
+  // (positionally) — enough for the shell's click-to-focus mapping.
+  const idAlt = inputIds.map(id => id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  // Triple-brace first so {{{ isn't also caught by the double-brace pattern.
+  const triple = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`, 'g');
+  // Double-brace — skip block/comment/partial/nested-brace openers, and don't
+  // match {{ that is part of {{{ … }}} (lookbehind + lookahead).
+  const double = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`, 'g');
 
   function annotateContent(text) {
-    for (const { id, triple, double } of patterns) {
-      text = text.replace(triple, m => `<!-- ci:${id} -->${m}<!-- /ci:${id} -->`);
-      text = text.replace(double, m => `<!-- ci:${id} -->${m}<!-- /ci:${id} -->`);
-    }
+    text = text.replace(triple, (m, id) => `<!-- ci:${id} -->${m}<!-- /ci:${id} -->`);
+    text = text.replace(double, (m, id) => `<!-- ci:${id} -->${m}<!-- /ci:${id} -->`);
     return text;
   }
 
@@ -199,6 +200,12 @@ export function annotateTemplate(source, inputIds) {
   return result.join('');
 }
 
+// Bounded LRU of compiled templates. The key is the (multi-KB) template source,
+// so an unbounded Map would pin every template+raw variant ever hydrated in
+// memory for the session. A Map preserves insertion order, so the oldest live
+// key is always first — re-inserting on hit marks it most-recent, and we evict
+// from the front once over capacity.
+const COMPILE_CACHE_MAX = 50;
 const compileCache = new Map();
 
 /**
@@ -213,9 +220,16 @@ const compileCache = new Map();
 export function hydrate(templateSource, values, { raw = false } = {}) {
   const key = raw ? ' raw ' + templateSource : templateSource;
   let compiled = compileCache.get(key);
-  if (!compiled) {
+  if (compiled) {
+    // Mark most-recently-used: delete + re-insert moves it to the end.
+    compileCache.delete(key);
+    compileCache.set(key, compiled);
+  } else {
     compiled = Handlebars.compile(templateSource, { noEscape: raw });
     compileCache.set(key, compiled);
+    if (compileCache.size > COMPILE_CACHE_MAX) {
+      compileCache.delete(compileCache.keys().next().value); // evict oldest
+    }
   }
   return compiled(values);
 }

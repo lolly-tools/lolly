@@ -126,7 +126,9 @@ function verticalBars(items, lay, cfg) {
           labelGap, valueGap } = cfg;
 
   const total  = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
-  const max    = niceMax(Math.max(...items.map(i => i.value), 0));
+  // Scale bars by magnitude so all-negative (or mixed-sign) data renders at true
+  // size rather than collapsing to the niceMax(<=0)=10 floor as 2px stub bars.
+  const max    = niceMax(Math.max(...items.map(i => Math.abs(i.value)), 0));
   const axisW  = 56;
   const chartX = lay.x + axisW;
   const chartW = lay.w - axisW;
@@ -146,7 +148,7 @@ function verticalBars(items, lay, cfg) {
   }
 
   items.forEach((item, i) => {
-    const bh  = Math.max(2, (item.value / max) * chartH);
+    const bh  = Math.max(2, (Math.abs(item.value) / max) * chartH);
     const bx  = chartX + gap*i + (gap - barW)/2;
     const by  = chartY + chartH - bh;
     const cx  = bx + barW/2;
@@ -201,7 +203,8 @@ function horizontalBars(items, lay, cfg) {
           labelGap, valueGap } = cfg;
 
   const total   = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
-  const max     = niceMax(Math.max(...items.map(i => i.value), 0));
+  // Scale by magnitude (see verticalBars) so negative values render at true size.
+  const max     = niceMax(Math.max(...items.map(i => Math.abs(i.value)), 0));
   const rowH    = Math.min(lay.h / items.length, 120);
   const barH    = rowH * 0.55;
   const chartX  = lay.x;
@@ -217,7 +220,7 @@ function horizontalBars(items, lay, cfg) {
   }
 
   items.forEach((item, i) => {
-    const bw  = Math.max(2, (item.value / max) * chartW);
+    const bw  = Math.max(2, (Math.abs(item.value) / max) * chartW);
     const by  = lay.y + i*rowH + (rowH - barH)/2;
     const tc  = autoText(item.color);
     const pad = 10;

@@ -37,7 +37,9 @@
   gap: 6px;
 }
 .sm-map-wrap:hover + .sm-zoom-controls,
-.sm-zoom-controls:hover {
+.sm-map-wrap:focus-within + .sm-zoom-controls,
+.sm-zoom-controls:hover,
+.sm-zoom-controls:focus-within {
   display: flex;
 }
 .sm-zoom-btn {

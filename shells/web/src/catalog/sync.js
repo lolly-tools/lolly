@@ -8,12 +8,57 @@
  * MVP, which serves from the same origin). In Tauri this will point to the
  * production CDN with checksum verification.
  *
- * Sync is idempotent and resumable. Network failure ≠ broken app — we just
- * use whatever is in cache. The user sees a small "offline" indicator.
+ * Sync is idempotent and resumable. Network failure ≠ broken app — we fall back
+ * to whatever is in cache and flip `networkStatus.offline`, which surfaces a small
+ * self-contained "offline" chip (and is readable by views that want their own
+ * indicator).
  */
+
+import { verifyAssetChecksum } from '../bridge/assets.js';
 
 const CATALOG_BASE = '/catalog';
 const LS_PREFIX = 'sbt-catalog:';
+
+/**
+ * Set true whenever a catalog/asset sync falls back to cache instead of fresh
+ * network data (offline or a failed fetch). Exported as a live, mutable object so
+ * views can read `networkStatus.offline` without importing a getter.
+ */
+export const networkStatus = { offline: false };
+
+function setOffline(value) {
+  networkStatus.offline = value;
+  renderOfflineChip(value);
+}
+
+/**
+ * Minimal, self-contained offline chip. Non-interactive (pointer-events:none) so
+ * it can never steal focus or intercept clicks — a richer indicator belongs in a
+ * view, which can read networkStatus.offline directly.
+ */
+function renderOfflineChip(offline) {
+  if (typeof document === 'undefined' || !document.body) return;
+  let chip = document.getElementById('sbt-offline-chip');
+  if (!offline) {
+    if (chip) chip.hidden = true;
+    return;
+  }
+  if (!chip) {
+    chip = document.createElement('div');
+    chip.id = 'sbt-offline-chip';
+    chip.setAttribute('role', 'status');
+    chip.setAttribute('aria-live', 'polite');
+    chip.textContent = 'Offline — showing saved content';
+    chip.style.cssText = [
+      'position:fixed', 'left:12px', 'bottom:12px', 'z-index:2147483647',
+      'pointer-events:none', 'padding:6px 10px', 'border-radius:999px',
+      'font:500 12px/1.2 system-ui,-apple-system,sans-serif', 'color:#fff',
+      'background:rgba(20,20,20,.82)', 'box-shadow:0 1px 4px rgba(0,0,0,.3)',
+    ].join(';');
+    document.body.appendChild(chip);
+  }
+  chip.hidden = false;
+}
 
 // The tool index is the one fetch the whole gallery depends on. A single
 // transient failure on a cold first load would otherwise leave a brand-new user
@@ -40,13 +85,19 @@ function setCatalogMeta(key, value) {
   }
 }
 
+// Stash the parsed asset index from the most recent fresh (200) fetch so
+// syncCorePrefetch can consume the core subset without re-fetching index.json.
+let cachedAssetIndex = null;
+
 export async function syncCatalog(host) {
+  setOffline(false);
   try {
     await Promise.all([
       syncTools(host),
       syncAssets(host),
     ]);
   } catch (e) {
+    setOffline(true);
     host.log('warn', 'Catalog sync failed; using cached', { error: String(e) });
   }
 }
@@ -91,6 +142,7 @@ async function syncTools(host) {
         continue;
       }
       // Every attempt failed — restore from localStorage cache if available.
+      setOffline(true);
       const cached = localStorage.getItem('sbt-tool-index');
       if (cached) {
         window.__toolIndex = JSON.parse(cached);
@@ -109,6 +161,7 @@ async function syncAssets(host) {
     return;
   }
   const index = await resp.json();
+  cachedAssetIndex = index; // let syncCorePrefetch reuse this fresh fetch
 
   // Write metadata into IndexedDB so host.assets.get(id) can resolve any asset.
   await host.assets._syncFromIndex(index.assets);
@@ -131,15 +184,27 @@ async function prefetchAsset(host, meta) {
     const resp = await fetch(fmt.url);
     if (!resp.ok) continue;
     const blob = await resp.blob();
+    try {
+      await verifyAssetChecksum(blob, fmt);
+    } catch (e) {
+      // Corrupt/tampered bytes — skip caching rather than storing a bad blob.
+      host.log('warn', `Skipping prefetch (checksum mismatch): ${fmt.url}`, { error: String(e) });
+      continue;
+    }
     await host.assets._cacheBlob(key, blob);
   }
 }
 
 export async function syncCorePrefetch(host) {
   try {
-    const resp = await fetch(`${CATALOG_BASE}/assets/index.json`);
-    if (!resp.ok) return;
-    const index = await resp.json();
+    // Reuse the index syncAssets already fetched this boot. Only fall back to a
+    // network fetch if it ran a 304 (unchanged) and never stashed one.
+    let index = cachedAssetIndex;
+    if (!index) {
+      const resp = await fetch(`${CATALOG_BASE}/assets/index.json`);
+      if (!resp.ok) return;
+      index = await resp.json();
+    }
     const core = index.assets.filter(a => a.tier === 'core');
     await Promise.allSettled(core.map(a => prefetchAsset(host, a)));
   } catch (e) {

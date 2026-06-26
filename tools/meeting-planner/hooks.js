@@ -9,12 +9,22 @@ function compute(inputs) {
   const fontSize      = +inputs.fontSize  || 1;
   const showNameInPin = inputs.showNameInPin === true || inputs.showNameInPin === 'true';
   const liveClock     = inputs.liveClock === true || inputs.liveClock === 'true';
+  // Default meeting time = tomorrow 10:00 (local). Computed once here so onInit and
+  // onInput share it and the template doesn't need a duplicate (drift-prone) fallback.
+  let meetingTime = inputs.meetingTime || '';
+  if (!meetingTime) {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    d.setHours(10, 0, 0, 0);
+    const p = n => String(n).padStart(2, '0');
+    meetingTime = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T10:00`;
+  }
   return {
     // Declared input values — used in HTML markup (attribute values are NOT annotated
     // by the shell so {{theme}} and {{layout}} in class="..." are safe)
     eventName:     (inputs.eventName || '').trim() || 'Team Meeting',
     hostCity:      (inputs.hostCity || '').trim(),
-    meetingTime:   inputs.meetingTime || '',
+    meetingTime,
     liveClock,
     theme:         inputs.theme || 'dark',
     layout:        inputs.layout || 'landscape',
@@ -35,7 +45,7 @@ function compute(inputs) {
     // shell's annotateTemplate won't wrap them in <!-- ci:id --> markers.
     _mapZoom:       (inputs.mapZoom || '').trim(),
     _hostCity:      (inputs.hostCity || '').trim(),
-    _meetingTime:   inputs.meetingTime || '',
+    _meetingTime:   meetingTime,
     _liveClock:     liveClock ? 'yes' : 'no',
     _theme:         inputs.theme || 'dark',
     _projection:    inputs.projection || 'geoNaturalEarth1',
@@ -56,17 +66,7 @@ function compute(inputs) {
 }
 
 function onInit({ model }) {
-  const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
-  const result = compute(inputs);
-  if (!result.meetingTime) {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    d.setHours(10, 0, 0, 0);
-    const p = n => String(n).padStart(2, '0');
-    result.meetingTime = `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T10:00`;
-    result._meetingTime = result.meetingTime;
-  }
-  return result;
+  return compute(Object.fromEntries(model.map(i => [i.id, i.value])));
 }
 
 function onInput({ model }) {

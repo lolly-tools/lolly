@@ -106,6 +106,10 @@ export async function hydrateEmbeds(node, { host, isCurrent, embed } = {}) {
   const els = [...node.querySelectorAll('[data-lolly-embed]')];
   if (!els.length) return;
   await Promise.all(els.map(async (el) => {
+    // Bail BEFORE the (expensive) compose render if the preview already moved on —
+    // a mid-render input change makes this hydration stale, so don't waste the work.
+    // The post-await gate below still guards a change that lands during the render.
+    if (isCurrent && !isCurrent()) return;
     // Thread the caller's recursion stack so an embed inside a composed child is
     // still cycle/depth-guarded (defaults to a fresh top-level stack in preview).
     const url = await resolveLollyToolUrl(el.getAttribute('data-lolly-embed'), { host, embed: embed ?? { stack: [] } });

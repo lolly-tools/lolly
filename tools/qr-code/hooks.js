@@ -218,21 +218,35 @@ QRCode.prototype.svg = function(opt) {
 // Module-level flag so beforeExport can read the last known transparent state.
 var _transparentBg = false;
 
-function compute({ url, color, background, ecl, padding, join, transparentBg }) {
+// One-entry memo: building the matrix + 8-pass mask search is O(n²)×8 per call,
+// so cache the last result keyed on the input JSON. An unchanged input (e.g. a
+// re-render that didn't touch any field) returns the cached SVG without rebuilding.
+var _memoKey = null;
+var _memoResult = null;
+
+function compute(args) {
+  var transparentBg = args.transparentBg;
   _transparentBg = Boolean(transparentBg);
-  var content = (typeof url === 'string' && url.trim()) ? url.trim() : 'https://www.suse.com';
+
+  var key = JSON.stringify(args);
+  if (key === _memoKey) return _memoResult;
+
+  var content = (typeof args.url === 'string' && args.url.trim()) ? args.url.trim() : 'https://www.suse.com';
   var qr = new QRCode({
     content:    content,
-    color:      color      || '#0c322c',
-    background: _transparentBg ? 'none' : (background || '#ffffff'),
-    ecl:        ecl        || 'M',
-    padding:    Number.isFinite(Number(padding)) ? Math.max(0, Math.round(Number(padding))) : 4,
-    join:       Boolean(join),
+    color:      args.color || '#0c322c',
+    background: _transparentBg ? 'none' : (args.background || '#ffffff'),
+    ecl:        args.ecl || 'M',
+    padding:    Number.isFinite(Number(args.padding)) ? Math.max(0, Math.round(Number(args.padding))) : 4,
+    join:       Boolean(args.join),
     width:      600,
     height:     600,
     pretty:     false,
   });
-  return { svgContent: qr.svg({ container: 'svg-viewbox' }) };
+
+  _memoKey = key;
+  _memoResult = { svgContent: qr.svg({ container: 'svg-viewbox' }) };
+  return _memoResult;
 }
 
 function onInit({ model }) {

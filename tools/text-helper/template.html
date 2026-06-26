@@ -5,23 +5,23 @@
   </header>
 
   <nav class="tt-tabs" role="tablist" aria-label="Operation">
-    <button class="tt-tab is-active" type="button" role="tab" data-op="text">Text</button>
-    <button class="tt-tab" type="button" role="tab" data-op="json">JSON</button>
-    <button class="tt-tab" type="button" role="tab" data-op="yaml">YAML</button>
-    <button class="tt-tab" type="button" role="tab" data-op="helm">Helm</button>
-    <button class="tt-tab" type="button" role="tab" data-op="base64">Base64</button>
-    <button class="tt-tab" type="button" role="tab" data-op="url">URL</button>
-    <button class="tt-tab" type="button" role="tab" data-op="jwt">JWT</button>
-    <button class="tt-tab" type="button" role="tab" data-op="hash">Hash</button>
-    <button class="tt-tab" type="button" role="tab" data-op="deident">De-identity</button>
-    <button class="tt-tab" type="button" role="tab" data-op="novelty">Novelty</button>
+    <button class="tt-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="tt-result-panel" data-op="text">Text</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="json">JSON</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="yaml">YAML</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="helm">Helm</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="base64">Base64</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="url">URL</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="jwt">JWT</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="hash">Hash</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="deident">De-identify</button>
+    <button class="tt-tab" type="button" role="tab" aria-selected="false" aria-controls="tt-result-panel" data-op="novelty">Novelty</button>
   </nav>
 
   <div class="tt-options" data-tt-options></div>
 
   <div class="tt-deident" data-tt-deident hidden></div>
 
-  <div class="tt-panes" data-tt-panes>
+  <div class="tt-panes" data-tt-panes id="tt-result-panel" role="tabpanel" aria-label="Result">
     <section class="tt-pane">
       <div class="tt-pane-head"><span class="tt-label" data-tt-inlabel>Input</span></div>
       <textarea class="tt-area" data-tt-in placeholder="Paste text here…" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>

@@ -92,12 +92,11 @@ body:has(.app-view.tool-view) .skip-link { display: block; }
   box-sizing: border-box;
 
 }
-*:before,*:after{  font-family: SUSE, ui-sans-serif, system-ui, sans-serif;}
 [hidden]{display:none;visibility:hidden}
 body {
   margin: 0;
   font-family: SUSE, ui-sans-serif, system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.5;
   background: hsl(var(--background));
   color: hsl(var(--foreground));
@@ -172,7 +171,7 @@ body {
   padding: 5px 12px;
   border: none;
   background: transparent;
-
+  border-radius: var(--radius);
   cursor: pointer;
   font: inherit;
   font-size: 13px;
@@ -184,8 +183,12 @@ body {
   background: hsl(var(--accent));
   color: hsl(var(--accent-foreground));
   }
-  
-  .nav-btn--active {}
+
+  .nav-btn--active {
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    font-weight: 600;
+  }
   
   .app-view {
     padding: 24px 4px;
@@ -261,9 +264,10 @@ footer{text-align:right;}
   flex-wrap: wrap;
   gap: .5rem 1rem;
   padding: .45rem 1rem;
-  background: hsl(var(--background) / .92);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  /* Near-solid background instead of a second blur pass: this strip sits directly
+     above the already-blurred footer, so a second adjacent full-width backdrop
+     blur is wasted GPU work. */
+  background: hsl(var(--background) / .96);
   border-top: 1px solid hsl(var(--border));
 }
 .privacy-notice-text {
@@ -2838,12 +2842,6 @@ background-color:hsl(var(--background) / 1);
 
 /* ─── Saved section (gallery page) ─────────────────────────────────────── */
 
-.saved-section {
-
-
-
-}
-
 .section-title {
   font-size: 11px;
   font-weight: 600;
@@ -3314,7 +3312,7 @@ a.storage-indicator:hover { opacity: 1; }
 /* date-time size stamps on hover*/
 .saved-row:hover .saved-label{opacity:1}
 .saved-row:not(:hover) .saved-label{opacity:.5}
-.saved-row:not(:hover) .saved-label small {opacity:0.}
+.saved-row:not(:hover) .saved-label small {opacity:0;}
 
 .saved-delete button:focus{opacity:1 !important}
 
@@ -3954,11 +3952,11 @@ a.storage-indicator:hover { opacity: 1; }
   background: hsl(var(--input) / 0.3);
   color: hsl(var(--foreground));
   border: 1px solid hsl(var(--input));
-  border-radius: calc(var(--radius) *2) !important;
+  border-radius: calc(var(--radius) *2);
   text-align:center;
-  font-family: "SUSE Mono", ui-monospace, monospace !important;
-  font-size: 17px !important;
-  padding:16px !important;  
+  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-size: 17px;
+  padding:16px;
   outline: none;
 }
 .color-hex-input:focus {
@@ -4499,7 +4497,8 @@ button {
   .asset-picker-trigger,
   .asset-clear,
   .color-trigger,
-  .block-add {
+  .block-add,
+  .tool-card-action {
     min-height: 44px;
   }
   .asset-clear {

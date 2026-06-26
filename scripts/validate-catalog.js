@@ -31,6 +31,16 @@ import { fileURLToPath } from 'node:url';
 // Schemas declare the draft 2020-12 dialect, so use Ajv's 2020 build (the
 // default export only knows draft-07 and throws on the unknown meta-schema).
 import Ajv from 'ajv/dist/2020.js';
+// Shared catalog-entry derivation — the single source of truth for how a manifest
+// maps to a tools/index.json entry (including the `exportable` flag). Importing it
+// here (rather than re-deriving) prevents the two scripts from drifting. The build
+// script only writes the index when run directly, so this import has no side effect.
+import { entryFromManifest } from './build-catalog-index.js';
+// Brand palette (pure data — no DOM/browser deps, safe to import in Node). Used
+// below to assert no hex carries two conflicting CMYK ink values, since the PDF
+// export's hex→CMYK lookup (buildCmykPaletteMap) is keyed on hex and would
+// silently resolve such a clash by entry order.
+import { PALETTE } from '../shells/web/src/palette.js';
 
 // Fields tools/index.json mirrors from each manifest — kept in sync with
 // scripts/build-catalog-index.js.
@@ -162,8 +172,9 @@ for (const entry of toolsIndex.tools) {
       errors.push(`tools/index.json: "${entry.id}" ${field} "${entry[field]}" ≠ manifest "${manifest[field]}" — run \`npm run build:catalog\``);
     }
   }
-  // Derived flag (mirrors isExportable() / entryFromManifest): keep it honest.
-  const wantExportable = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
+  // Derived flag (mirrors isExportable()): reuse the shared derivation so the
+  // generator and validator can't drift on what "exportable" means.
+  const wantExportable = entryFromManifest(manifest).exportable;
   if (entry.exportable !== wantExportable) {
     errors.push(`tools/index.json: "${entry.id}" exportable ${entry.exportable} ≠ derived ${wantExportable} — run \`npm run build:catalog\``);
   }
@@ -200,6 +211,28 @@ for (const [toolId, manifest] of toolManifests) {
       if (norm(input.options) !== norm(canon.options)) {
         warnings.push(`[${toolId}] input "${input.id}" options diverge from canonical — breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
       }
+    }
+  }
+}
+
+// ─── Palette consistency ────────────────────────────────────────────────────
+// The CMYK-aware PDF export builds a hex→CMYK lookup (buildCmykPaletteMap in
+// shells/web/src/bridge/export.js) keyed on each swatch's hex. The brand palette
+// deliberately repeats hexes (e.g. Pine/Black/White appear as ramp endpoints),
+// which is fine — but only as long as the repeats agree on their ink values
+// (null = "unspecified" is always compatible). If two entries with the SAME hex
+// declared DIFFERENT non-null CMYK, the lookup's result would depend purely on
+// array order — a silent, order-dependent ink mismatch. Catch that here.
+{
+  const cmykByHex = new Map(); // normalised hex → { cmyk, label }
+  for (const { hex, cmyk, label } of PALETTE) {
+    if (!cmyk) continue; // null = unspecified, never conflicts
+    const key = String(hex).replace('#', '').toLowerCase();
+    const prev = cmykByHex.get(key);
+    if (prev && JSON.stringify(prev.cmyk) !== JSON.stringify(cmyk)) {
+      errors.push(`palette: hex "${hex}" has conflicting CMYK — "${prev.label}" ${JSON.stringify(prev.cmyk)} vs "${label}" ${JSON.stringify(cmyk)} (the PDF export's hex→CMYK lookup would resolve this by entry order)`);
+    } else if (!prev) {
+      cmykByHex.set(key, { cmyk, label });
     }
   }
 }

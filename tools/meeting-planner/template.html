@@ -188,11 +188,8 @@
   var mapZoomIn     = '{{_mapZoom}}';
   var liveClock     = '{{_liveClock}}'     === 'yes';
 
-  if (!meetingTime) {
-    var _dn = new Date(); _dn.setDate(_dn.getDate() + 1); _dn.setHours(10, 0, 0, 0);
-    var _z  = function(n) { return String(n).padStart(2,'0'); };
-    meetingTime = _dn.getFullYear()+'-'+_z(_dn.getMonth()+1)+'-'+_z(_dn.getDate())+'T10:00';
-  }
+  /* meetingTime defaults to tomorrow 10:00 in hooks.js compute() (shared by
+     onInit/onInput), so no template-side fallback is needed here. */
 
   /* ── DOM refs ────────────────────────────────────────────────────────── */
   var root   = document.getElementById('mp-root');
@@ -663,9 +660,9 @@
     var ctrlDiv = document.createElement('div');
     ctrlDiv.className = 'mp-zoom-controls';
     ctrlDiv.innerHTML =
-      '<button class="mp-zoom-btn" id="mp-zi">+</button>' +
-      '<button class="mp-zoom-btn" id="mp-zo">−</button>' +
-      '<button class="mp-zoom-btn" id="mp-zr">⌂</button>';
+      '<button class="mp-zoom-btn" id="mp-zi" type="button" aria-label="Zoom in">+</button>' +
+      '<button class="mp-zoom-btn" id="mp-zo" type="button" aria-label="Zoom out">−</button>' +
+      '<button class="mp-zoom-btn" id="mp-zr" type="button" aria-label="Reset zoom">⌂</button>';
     mapEl.appendChild(ctrlDiv);
 
     var svgRef = svg;

@@ -62,5 +62,11 @@ export function detectDelimiter(text) {
   const firstLine = text.slice(0, text.indexOf('\n') >= 0 ? text.indexOf('\n') : text.length);
   const tabs = (firstLine.match(/\t/g) || []).length;
   const commas = (firstLine.match(/,/g) || []).length;
-  return tabs > commas ? '\t' : ',';
+  // European / Excel locales emit ';'-separated CSVs, so vote tab vs comma vs
+  // semicolon. Most frequent wins; comma breaks ties (the canonical default and
+  // what our own exports use).
+  const semis = (firstLine.match(/;/g) || []).length;
+  if (tabs > commas && tabs > semis) return '\t';
+  if (semis > commas && semis > tabs) return ';';
+  return ',';
 }

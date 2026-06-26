@@ -30,10 +30,15 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
     return readFile(full, 'utf8');
   };
 
-  const tool = await loadTool(toolId, fetchFile);
-  const host = await createCliBridge({ dom });
+  const tool = await loadToolOrExit(toolId, fetchFile);
 
-  const { values, export: paramExport, width, height, unit, dpi, password } = parseUrlState(
+  // --profile=path.json pre-fills bindToProfile inputs from the user's profile
+  // (the bridge serves it via host.profile.get). A missing/invalid file warns
+  // and continues with an empty profile, so the render still runs.
+  const profile = await readProfile(params.profile);
+  const host = await createCliBridge({ dom, profile });
+
+  const { values, format: paramFormat, width, height, unit, dpi, password } = parseUrlState(
     new URLSearchParams(params).toString(),
     tool.manifest,
   );
@@ -76,7 +81,13 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
     return;
   }
 
-  const targetFormat = format ?? paramExport ?? tool.manifest.render.formats[0];
+  // Format resolution mirrors URL mode: an explicit flag wins (--export= arrives
+  // as `format`, --format= as `paramFormat`); otherwise infer it from the
+  // --output extension; otherwise fall back to the tool's first declared format.
+  const targetFormat =
+    format ?? paramFormat ??
+    (outputPath ? formatFromOutput(outputPath, tool.manifest.render.formats) : null) ??
+    tool.manifest.render.formats[0];
 
   if (!tool.manifest.render.formats.includes(targetFormat)) {
     throw new Error(
@@ -113,6 +124,44 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
   }
 }
 
+// Load a tool, turning a missing tool dir (ENOENT on tool.json) into a clean
+// message instead of leaking the internal absolute path + errno from readFile.
+async function loadToolOrExit(toolId, fetchFile) {
+  try {
+    return await loadTool(toolId, fetchFile);
+  } catch (e) {
+    if (e?.code === 'ENOENT') {
+      process.stderr.write(`Tool not found: ${toolId}. Run with no args to list tools.\n`);
+      process.exit(1);
+    }
+    throw e;
+  }
+}
+
+// Read + parse a --profile=path.json file into a profile object. A missing or
+// malformed file is non-fatal: warn and return {} so the render still proceeds.
+async function readProfile(profilePath) {
+  if (!profilePath) return {};
+  try {
+    const raw = await readFile(resolve(process.cwd(), profilePath), 'utf8');
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch (e) {
+    process.stderr.write(`Warning: could not load profile "${profilePath}" (${e.message}); continuing without it.\n`);
+    return {};
+  }
+}
+
+// Infer an export format from an --output filename's extension, but only when it
+// names a format the tool actually declares — otherwise return null so the
+// caller falls back to formats[0]. (.jpeg normalises to the canonical 'jpg'.)
+function formatFromOutput(path, formats) {
+  const ext = extname(path).slice(1).toLowerCase();
+  if (!ext) return null;
+  const norm = ext === 'jpeg' ? 'jpg' : ext;
+  return formats.includes(norm) ? norm : null;
+}
+
 // Extension → MIME for a file-typed input loaded from disk. The hook can read
 // the real bytes; this is the declared type the FileRef carries (best-effort).
 function mimeForFile(path) {
@@ -144,7 +193,7 @@ export async function showToolInputsCli(toolId) {
     const full = join(REPO_ROOT, 'tools', path);
     return readFile(full, 'utf8');
   };
-  const tool = await loadTool(toolId, fetchFile);
+  const tool = await loadToolOrExit(toolId, fetchFile);
   process.stdout.write(`${tool.manifest.name} (${tool.manifest.id} v${tool.manifest.version})\n`);
   process.stdout.write(`Status: ${tool.manifest.status}\n`);
   process.stdout.write(`Formats: ${tool.manifest.render.formats.join(', ')}\n\n`);

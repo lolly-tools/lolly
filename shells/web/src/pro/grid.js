@@ -95,7 +95,7 @@ function addRowsHtml(rows) {
   const hasEmpty = rows.some(r => !r.toolId);
   const fillDisabled = !(hasSource && hasEmpty);
   return `<div class="pro-addrow">
-    <button type="button" class="pro-btn" data-add-rows="1" title="Add one row">+ Row</button>
+    <button type="button" class="pro-btn" data-add-rows="1" title="Add one row (⌘/Ctrl+Enter)">+ Row</button>
     <button type="button" class="pro-btn" data-add-rows="5" title="Add five rows">+5</button>
     <button type="button" class="pro-btn pro-fill-last" data-fill-last${fillDisabled ? ' disabled' : ''}
       title="Copy the last row that has a template into every empty row below">Fill last</button>

@@ -87,7 +87,8 @@
         { "value": "top", "label": "Top" },
         { "value": "left", "label": "Left" },
         { "value": "right", "label": "Right" }
-      ]
+      ],
+      "showIf": { "showLegend": true }
     },
     {
       "id": "legendDotShape", "urlKey": "ld",
@@ -98,7 +99,8 @@
       "options": [
         { "value": "square", "label": "Square" },
         { "value": "circle", "label": "Circle" }
-      ]
+      ],
+      "showIf": { "showLegend": true }
     },
     {
       "id": "legendSize", "urlKey": "ls",
@@ -109,7 +111,8 @@
       "default": 22,
       "min": 8,
       "max": 48,
-      "step": 1
+      "step": 1,
+      "showIf": { "showLegend": true }
     },
     {
       "id": "legendFontWeight", "urlKey": "lf",
@@ -120,7 +123,8 @@
       "default": 500,
       "min": 100,
       "max": 900,
-      "step": 100
+      "step": 100,
+      "showIf": { "showLegend": true }
     },
     {
       "id": "legendWidth", "urlKey": "lw",

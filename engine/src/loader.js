@@ -39,22 +39,32 @@ export async function loadTool(toolId, fetchFile) {
     );
   }
 
-  const template = await fetchFile(`${toolId}/template.html`);
-  const styles = await tryFetch(fetchFile, `${toolId}/styles.css`);
-  const hooksSource = manifest.hooks
-    ? await tryFetch(fetchFile, `${toolId}/hooks.js`)
-    : null;
-
+  // Only the manifest is a true dependency (it tells us which optional files even
+  // apply). Once parsed, fire every declared file concurrently — template (the one
+  // other required file), styles, hooks, and any sibling text templates — so the
+  // mount isn't serialised on a chain of independent fetches.
+  const declared = manifest.render?.formats ?? [];
   // Sibling text templates for data formats (template.ics / .vcf / .csv). Only
   // fetched when the manifest actually declares that format, so most tools incur
   // no extra requests. The runtime hydrates these from the input model on export.
+  const textExts = ['ics', 'vcf', 'csv'].filter(ext => declared.includes(ext));
+
+  const [template, styles, hooksSource, ...textResults] = await Promise.all([
+    fetchFile(`${toolId}/template.html`),                                   // required
+    tryFetch(fetchFile, `${toolId}/styles.css`),                           // optional → null
+    manifest.hooks ? tryFetch(fetchFile, `${toolId}/hooks.js`) : Promise.resolve(null),
+    // Text templates capture their failure reason (vs. a plain null) so the runtime
+    // can tell a transient load failure apart from a genuinely-absent template.
+    ...textExts.map(ext => fetchText(fetchFile, `${toolId}/template.${ext}`)),
+  ]);
+
   const textTemplates = {};
-  const declared = manifest.render?.formats ?? [];
-  for (const ext of ['ics', 'vcf', 'csv']) {
-    if (declared.includes(ext)) {
-      textTemplates[ext] = await tryFetch(fetchFile, `${toolId}/template.${ext}`);
-    }
-  }
+  const textTemplateErrors = {};
+  textExts.forEach((ext, i) => {
+    const { value, error } = textResults[i];
+    textTemplates[ext] = value;
+    if (error != null) textTemplateErrors[ext] = error;
+  });
 
   return {
     manifest,
@@ -62,7 +72,19 @@ export async function loadTool(toolId, fetchFile) {
     styles,
     hooksSource,
     textTemplates,
+    textTemplateErrors,
   };
+}
+
+// Fetch a declared text template, capturing why it failed (rather than collapsing
+// every failure to null) so the runtime can surface a load error distinct from a
+// tool that simply ships no template for the format.
+async function fetchText(fetchFile, path) {
+  try {
+    return { value: await fetchFile(path), error: null };
+  } catch (e) {
+    return { value: null, error: String(e?.message ?? e) };
+  }
 }
 
 async function tryFetch(fetchFile, path) {

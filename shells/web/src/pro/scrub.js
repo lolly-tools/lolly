@@ -19,7 +19,7 @@
 const THRESHOLD = 3;     // px of travel before a press becomes a scrub
 const UNIT_PER_PX = 1;   // base sensitivity
 
-export function attachScrub(container, { selector, onCommit, min = 1, getFallback }) {
+export function attachScrub(container, { selector, onCommit, min = 1, max = Infinity, getFallback }) {
   let drag = null;     // active drag bookkeeping, or null
   let raf = 0;
   let pending = null;  // latest value awaiting an rAF write
@@ -33,11 +33,16 @@ export function attachScrub(container, { selector, onCommit, min = 1, getFallbac
     if (td && e.clientY >= td.getBoundingClientRect().bottom - 6) return;
 
     const base = el.value === '' ? (getFallback?.(el) ?? 0) : parseFloat(el.value);
+    // Honour a per-element [max] (e.g. DPI tops out at 1200); the function's
+    // `max` is the default for fields without one. Caps a fast drag so it can't
+    // drive a pathological canvas size.
+    const maxAttr = parseFloat(el.getAttribute('max'));
     drag = {
       el,
       pointerId: e.pointerId,
       startX: e.clientX,
       base: Number.isFinite(base) ? base : 0,
+      max: Number.isFinite(maxAttr) ? maxAttr : max,
       moved: false,
       value: null,
     };
@@ -60,7 +65,7 @@ export function attachScrub(container, { selector, onCommit, min = 1, getFallbac
       document.body.classList.add('pro-scrubbing');
     }
     const step = e.shiftKey ? UNIT_PER_PX * 10 : e.altKey ? UNIT_PER_PX * 0.1 : UNIT_PER_PX;
-    pending = Math.max(min, Math.round(drag.base + dx * step));
+    pending = Math.min(drag.max, Math.max(min, Math.round(drag.base + dx * step)));
     drag.value = pending;
     if (!raf) raf = requestAnimationFrame(flush);
     e.preventDefault();

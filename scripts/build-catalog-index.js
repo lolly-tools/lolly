@@ -20,7 +20,7 @@
 
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
@@ -85,4 +85,7 @@ function build() {
   console.log(`✓ Wrote catalog/tools/index.json — ${out.tools.length} tools${unchanged ? ' (unchanged)' : ''}`);
 }
 
-build();
+// Only regenerate when run directly (`node scripts/build-catalog-index.js`).
+// validate-catalog.js imports `entryFromManifest` from this module to share the
+// derivation, and must NOT trigger a write as a side effect of the import.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) build();

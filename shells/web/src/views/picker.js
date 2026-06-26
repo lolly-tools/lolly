@@ -235,7 +235,7 @@ function card(ref) {
     <button type="button" class="asset-picker-card" data-asset-id="${escape(ref.id)}">
       ${isPlaceholder
         ? `<div class="asset-picker-thumb asset-picker-thumb-stub">${escape(ref.type)}</div>`
-        : `<img class="asset-picker-thumb" src="${escape(ref.url)}" alt="">`}
+        : `<img class="asset-picker-thumb" src="${escape(ref.url)}" alt="" loading="lazy" decoding="async">`}
       <span class="asset-picker-name" title="${escape(name)}">${escape(name)}</span>
       <span class="asset-picker-id">${escape(ref.id)}</span>
       ${formatBadge(ref)}
@@ -254,7 +254,7 @@ function userCard(ref) {
   return `
     <div class="asset-picker-card asset-picker-card-user">
       <button type="button" class="asset-picker-card-pick" data-asset-id="${escape(ref.id)}">
-        <img class="asset-picker-thumb" src="${escape(ref.url)}" alt="">
+        <img class="asset-picker-thumb" src="${escape(ref.url)}" alt="" loading="lazy" decoding="async">
         <span class="asset-picker-name" title="${escape(name)}">${escape(name)}</span>
       </button>
       <button type="button" class="asset-picker-card-delete" data-delete-id="${escape(ref.id)}" title="Delete" aria-label="Delete ${escape(name)}">×</button>

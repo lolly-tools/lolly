@@ -41,10 +41,9 @@ const PACKAGE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 export async function mountGallery(viewEl, host) {
   document.title = 'Lolly';
   const index = window.__toolIndex ?? { tools: [] };
-  const [savedEntries, profile, storageEst, sessionSizes] = await Promise.all([
+  const [savedEntries, profile, sessionSizes] = await Promise.all([
     host.state.list(),
     host.profile.get(),
-    navigator.storage?.estimate().catch(() => null),
     host.state.sizes().catch(() => ({})),
   ]);
 
@@ -83,6 +82,10 @@ export async function mountGallery(viewEl, host) {
 
   const sortedSaved = [...savedEntries].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 
+  // Tool name lookup for saved rows — built once so rendering the list is O(saved)
+  // rather than O(saved × tools) via repeated .find().
+  const nameById = new Map(index.tools.map(t => [t.id, t.name]));
+
   // Render shell: category sections have empty grids; cards are filled by observer.
   viewEl.innerHTML = `
     <div class="gallery-header">
@@ -95,7 +98,7 @@ export async function mountGallery(viewEl, host) {
         <h2 class="section-title">Saved sessions</h2>
         <ul class="saved-list">
           ${sortedSaved.map((s, i) => {
-            const toolName = index.tools.find(t => t.id === s.toolId)?.name ?? '';
+            const toolName = nameById.get(s.toolId) ?? '';
             return savedItem(s, sessionSizes[s.slot], toolName, i >= INITIAL_SAVED);
           }).join('')}
           ${sortedSaved.length > INITIAL_SAVED ? `
@@ -108,9 +111,10 @@ export async function mountGallery(viewEl, host) {
     <br></div>
 
     <div class="gallery"><a href="#/profile" class="profile-link${headshotUrl ? ' has-avatar' : ''}" aria-label="Open your profile">${headshotUrl ? `<img class="profile-link-avatar" src="${escape(headshotUrl)}" alt="">` : ''}<span class="profile-link-name">${escape(profile.firstname || 'Profile')}</span></a>
-      <div class="gallery-search-results" hidden role="region" aria-label="Search results" aria-live="polite">
+      <div class="gallery-search-results" hidden role="region" aria-label="Search results">
         <div class="tool-grid"></div>
       </div>
+      <p class="gallery-search-status visually-hidden" role="status" aria-live="polite"></p>
       ${sortedCategories.length === 0 ? (index.tools.length === 0 ? `
         <div class="gallery-empty" role="status">
           <p class="gallery-empty-title">Couldn't load the tools.</p>
@@ -175,6 +179,7 @@ export async function mountGallery(viewEl, host) {
   const searchInput   = viewEl.querySelector('.gallery-search');
   const searchResults = viewEl.querySelector('.gallery-search-results');
   const searchGrid    = searchResults.querySelector('.tool-grid');
+  const searchStatus  = viewEl.querySelector('.gallery-search-status');
   const categories    = viewEl.querySelectorAll('.gallery-category');
   const emptyState    = viewEl.querySelector('.gallery-empty');
   const savedSection  = viewEl.querySelector('.saved-section');
@@ -212,24 +217,39 @@ export async function mountGallery(viewEl, host) {
     searchInput.focus({ preventScroll: true });
   }
 
-  searchInput.addEventListener('input', () => {
+  // Debounce the search so a screen reader (which reads the count-only status
+  // node, not the grid) gets a single announcement per pause, and so we don't
+  // rebuild the grid on every keystroke. ~120ms is below the threshold of feeling
+  // laggy while still coalescing fast typing.
+  function runSearch() {
     const q = searchInput.value.trim().toLowerCase();
     syncSaved(q);
     if (emptyState) emptyState.hidden = !!q; // hide the no-tools notice while searching
     if (!q) {
       searchResults.hidden = true;
       categories.forEach(s => { s.hidden = false; });
-    } else {
-      // Filter tool cards
-      const matched = index.tools.filter(t => t.name.toLowerCase().includes(q));
-      searchGrid.innerHTML = matched.length
-        ? matched.sort(byStatus).map(t => toolCard(t, latestByTool[t.id], host.capabilities)).join('')
-        : `<p class="gallery-no-results">No tools match "<strong>${escape(q)}</strong>"</p>`;
-      wireCardEvents(searchResults, host, viewEl);
-      activateLazyThumbs(searchResults);
-      searchResults.hidden = false;
-      categories.forEach(s => { s.hidden = true; });
+      searchStatus.textContent = '';
+      return;
     }
+    // Filter tool cards by name or description.
+    const matched = index.tools.filter(t =>
+      t.name.toLowerCase().includes(q) ||
+      (t.description ?? '').toLowerCase().includes(q)
+    );
+    searchGrid.innerHTML = matched.length
+      ? matched.sort(byStatus).map(t => toolCard(t, latestByTool[t.id], host.capabilities)).join('')
+      : `<p class="gallery-no-results">No tools match "<strong>${escape(q)}</strong>"</p>`;
+    wireCardEvents(searchResults, host, viewEl);
+    activateLazyThumbs(searchResults);
+    searchResults.hidden = false;
+    categories.forEach(s => { s.hidden = true; });
+    searchStatus.textContent = matched.length === 1 ? '1 result' : `${matched.length} results`;
+  }
+
+  let searchDebounce;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchDebounce);
+    searchDebounce = setTimeout(runSearch, 120);
   });
 
   // Lazy-load saved session and continue-button thumbs.
@@ -368,16 +388,6 @@ function unavailableCard(tool, unmet) {
       </div>
     </div>
   `;
-}
-
-function storageBar({ usage = 0, quota = 0 }) {
-  const mb  = usage / 1024 / 1024;
-  const used = mb < 1 ? `${Math.round(usage / 1024)} KB` : `${mb.toFixed(1)} MB`;
-  if (!quota) return used;
-  const pct  = Math.min(100, Math.round((usage / quota) * 100));
-  const quotaMb = quota / 1024 / 1024;
-  const cap = quotaMb >= 1024 ? `${(quotaMb / 1024).toFixed(0)} GB` : `${Math.round(quotaMb)} MB`;
-  return `<span class="storage-bar-wrap"><span class="storage-bar-fill" style="width:${pct}%"></span></span>${used} of ${cap}`;
 }
 
 function savedItem(entry, bytes, toolName = '', hidden = false) {

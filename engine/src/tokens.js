@@ -217,7 +217,10 @@ export function colorToHex(value) {
       const [r, g, b] = value.components; // srgb components, 0–1
       return rgbaToHex(r * 255, g * 255, b * 255, value.alpha == null ? 1 : value.alpha);
     }
-    return value;
+    // An object we can't read as a colour must NOT flow on verbatim — it would
+    // stringify to "[object Object]" in a swatch and render an <input type=color>
+    // blank. Return null so callers treat it as "no colour".
+    return null;
   }
   const s = String(value).trim();
   if (s.toLowerCase() === 'transparent') return 'transparent';

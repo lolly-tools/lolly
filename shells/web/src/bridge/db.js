@@ -34,9 +34,11 @@ export function openDB() {
         db.createObjectStore('user-assets', { keyPath: 'id' });
       }
       if (oldVersion < 2) {
-        // catalog-meta was added in v2; ETag values are now stored in
-        // localStorage instead, but the store must exist for browsers that
-        // already upgraded to v2.
+        // DEPRECATED / RESERVED — 'catalog-meta' was added in v2 to hold catalog
+        // ETags, but those moved to localStorage and no code reads or writes this
+        // store anymore. It is intentionally NOT removed: deleting a store requires
+        // a further version bump + migration, and leaving it costs nothing. Kept so
+        // browsers that already upgraded to v2 still open at the declared schema.
         db.createObjectStore('catalog-meta');
       }
     },

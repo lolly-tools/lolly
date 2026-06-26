@@ -273,7 +273,7 @@ async function renderCmykTiff(node, opts) {
   const W = canvas.width, H = canvas.height;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const rgba = ctx.getImageData(0, 0, W, H).data;   // sRGB, straight (un-premultiplied)
-  const cmyk = rgbaToDeviceCmyk(rgba);
+  const cmyk = await rgbaToDeviceCmyk(rgba, W, H, opts.onProgress);
 
   // Marks drawn AFTER conversion → registration/crop/bleed land on every plate;
   // provenance credit text is composited as K-only ink (see drawPrintMarksCmyk).
@@ -285,23 +285,34 @@ async function renderCmykTiff(node, opts) {
 
 // RGBA (0–255, sRGB) → packed CMYK bytes (0=no ink … 255=full ink), one tight
 // numeric pass over the typed array. Transparency is flattened onto white (CMYK
-// has no alpha channel and print stock is white). ~tens of ms for 1080².
-function rgbaToDeviceCmyk(rgba) {
-  const n = rgba.length / 4;
-  const out = new Uint8Array(n * 4);
-  for (let i = 0, j = 0; i < rgba.length; i += 4, j += 4) {
-    const a = rgba[i + 3];
-    let r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
-    if (a < 255) {                                   // composite over white
-      const t = a / 255, u = 255 * (1 - t);
-      r = r * t + u; g = g * t + u; b = b * t + u;
+// has no alpha channel and print stock is white). ~tens of ms for 1080², but a
+// large print-DPI sheet runs long on the main thread, so the pass yields to the
+// event loop every YIELD_ROWS scanlines (keeping the tab responsive) and reports
+// row progress through opts.onProgress. The arithmetic is unchanged — same bytes.
+const YIELD_ROWS = 256;
+async function rgbaToDeviceCmyk(rgba, W, H, onProgress) {
+  const out = new Uint8Array(W * H * 4);
+  for (let row = 0; row < H; row++) {
+    const base = row * W * 4;
+    for (let i = base, end = base + W * 4; i < end; i += 4) {
+      const a = rgba[i + 3];
+      let r = rgba[i], g = rgba[i + 1], b = rgba[i + 2];
+      if (a < 255) {                                 // composite over white
+        const t = a / 255, u = 255 * (1 - t);
+        r = r * t + u; g = g * t + u; b = b * t + u;
+      }
+      const [c, m, y, k] = rgbToCmyk(r / 255, g / 255, b / 255);
+      out[i]     = (c * 255 + 0.5) | 0;
+      out[i + 1] = (m * 255 + 0.5) | 0;
+      out[i + 2] = (y * 255 + 0.5) | 0;
+      out[i + 3] = (k * 255 + 0.5) | 0;
     }
-    const [c, m, y, k] = rgbToCmyk(r / 255, g / 255, b / 255);
-    out[j]     = (c * 255 + 0.5) | 0;
-    out[j + 1] = (m * 255 + 0.5) | 0;
-    out[j + 2] = (y * 255 + 0.5) | 0;
-    out[j + 3] = (k * 255 + 0.5) | 0;
+    if ((row + 1) % YIELD_ROWS === 0 && row + 1 < H) {
+      onProgress?.(row + 1, H);
+      await new Promise(r => setTimeout(r));         // unblock the UI thread
+    }
   }
+  onProgress?.(H, H);
   return out;
 }
 
@@ -426,28 +437,63 @@ function drawPrintMarksCmyk(cmyk, W, H, geo, dpi, labels) {
   // the canvas) so there's no y-flip; rotation is CCW-positive, hence the negation.
   const slots = (geo.primitives.labels ?? []).filter(l => labels?.[l.slot]);
   if (slots.length) {
-    const tcanvas = document.createElement('canvas');
-    tcanvas.width = W; tcanvas.height = H;
-    const tctx = tcanvas.getContext('2d', { willReadFrequently: true });
-    tctx.fillStyle = '#000';
-    tctx.textBaseline = 'alphabetic';
+    // Stamp the credits onto a canvas no bigger than the labels' union bounding
+    // box, not the full W×H sheet — the old path allocated an image-sized canvas
+    // and ran a second whole-image getImageData + per-pixel loop just to composite
+    // a few glyphs. The bbox is padded generously (ascent/descent + side overhang,
+    // rotation-aware) so no covered pixel is ever clipped → byte-identical output.
+    const measure = document.createElement('canvas').getContext('2d');
+    measure.textBaseline = 'alphabetic';
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const l of slots) {
-      tctx.save();
-      tctx.translate(pt(l.x), pt(l.y));
-      if (l.rotation) tctx.rotate(-l.rotation * Math.PI / 180);
-      tctx.textAlign = l.align === 'right' ? 'right' : 'left';
-      tctx.font = `${pt(l.size)}px Helvetica, Arial, sans-serif`;
-      tctx.fillText(labels[l.slot], 0, 0);
-      tctx.restore();
+      const size = pt(l.size);
+      measure.font = `${size}px Helvetica, Arial, sans-serif`;
+      const tw = measure.measureText(labels[l.slot]).width;
+      const baseX = (l.align === 'right') ? -tw : 0;     // fillText anchor offset
+      const lx0 = baseX - size * 0.3, lx1 = baseX + tw + size * 0.3;
+      const ly0 = -size * 1.3,        ly1 = size * 0.5;  // generous ascent/descent
+      const theta = l.rotation ? -l.rotation * Math.PI / 180 : 0;
+      const cos = Math.cos(theta), sin = Math.sin(theta);
+      const ax = pt(l.x), ay = pt(l.y);
+      for (const [lx, ly] of [[lx0, ly0], [lx1, ly0], [lx1, ly1], [lx0, ly1]]) {
+        const gx = ax + lx * cos - ly * sin;
+        const gy = ay + lx * sin + ly * cos;
+        if (gx < minX) minX = gx; if (gx > maxX) maxX = gx;
+        if (gy < minY) minY = gy; if (gy > maxY) maxY = gy;
+      }
     }
-    const tpx = tctx.getImageData(0, 0, W, H).data;
-    for (let p = 3, o = 0; p < tpx.length; p += 4, o += 4) {
-      const t = (tpx[p] / 255) * 0.7;                 // glyph coverage → 70% K ink
-      if (!t) continue;
-      cmyk[o]     = (cmyk[o]     * (1 - t) + 0.5) | 0;
-      cmyk[o + 1] = (cmyk[o + 1] * (1 - t) + 0.5) | 0;
-      cmyk[o + 2] = (cmyk[o + 2] * (1 - t) + 0.5) | 0;
-      cmyk[o + 3] = (cmyk[o + 3] * (1 - t) + 255 * t + 0.5) | 0;
+    const bx0 = Math.max(0, Math.floor(minX)), by0 = Math.max(0, Math.floor(minY));
+    const bx1 = Math.min(W, Math.ceil(maxX)),  by1 = Math.min(H, Math.ceil(maxY));
+    const bw = bx1 - bx0, bh = by1 - by0;
+    if (bw > 0 && bh > 0) {
+      const tcanvas = document.createElement('canvas');
+      tcanvas.width = bw; tcanvas.height = bh;
+      const tctx = tcanvas.getContext('2d', { willReadFrequently: true });
+      tctx.fillStyle = '#000';
+      tctx.textBaseline = 'alphabetic';
+      tctx.translate(-bx0, -by0);                        // draw in absolute device px
+      for (const l of slots) {
+        tctx.save();
+        tctx.translate(pt(l.x), pt(l.y));
+        if (l.rotation) tctx.rotate(-l.rotation * Math.PI / 180);
+        tctx.textAlign = l.align === 'right' ? 'right' : 'left';
+        tctx.font = `${pt(l.size)}px Helvetica, Arial, sans-serif`;
+        tctx.fillText(labels[l.slot], 0, 0);
+        tctx.restore();
+      }
+      const tpx = tctx.getImageData(0, 0, bw, bh).data;
+      for (let ry = 0; ry < bh; ry++) {
+        let p = ry * bw * 4 + 3;                         // alpha byte, region row ry
+        let o = ((by0 + ry) * W + bx0) * 4;              // matching sheet pixel
+        for (let rx = 0; rx < bw; rx++, p += 4, o += 4) {
+          const t = (tpx[p] / 255) * 0.7;                // glyph coverage → 70% K ink
+          if (!t) continue;
+          cmyk[o]     = (cmyk[o]     * (1 - t) + 0.5) | 0;
+          cmyk[o + 1] = (cmyk[o + 1] * (1 - t) + 0.5) | 0;
+          cmyk[o + 2] = (cmyk[o + 2] * (1 - t) + 0.5) | 0;
+          cmyk[o + 3] = (cmyk[o + 3] * (1 - t) + 255 * t + 0.5) | 0;
+        }
+      }
     }
   }
 }
@@ -1928,9 +1974,8 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
 
       try {
         const dataUrl = href.startsWith('data:') ? href : await blobToDataUrl(href);
-        const fmt = dataUrl.includes('image/png') ? 'PNG'
-                  : dataUrl.includes('image/jpeg') ? 'JPEG' : 'PNG';
-        pdf.addImage(dataUrl, fmt, x, y, w, h);
+        const { src: imgSrc, fmt } = await imageForPdf(dataUrl);
+        pdf.addImage(imgSrc, fmt, x, y, w, h);
       } catch { /* skip unresolvable images */ }
       return;
     }
@@ -2308,9 +2353,8 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
           const isCircle = minR >= halfMin;
 
           const imgUrl = isCircle ? await circularClipImage(el, dataUrl).catch(() => dataUrl) : dataUrl;
-          const fmt = imgUrl.includes('/png') ? 'PNG'
-            : (imgUrl.includes('/jpeg') || imgUrl.includes('/jpg')) ? 'JPEG' : 'PNG';
-          pdf.addImage(imgUrl, fmt, x, y, w, h);
+          const { src: imgSrc, fmt } = await imageForPdf(imgUrl);
+          pdf.addImage(imgSrc, fmt, x, y, w, h);
         } catch { /* skip unloadable images */ }
       }
       return;
@@ -2884,6 +2928,39 @@ async function blobToDataUrl(url) {
   });
 }
 
+// Pick the jsPDF.addImage format from a data: URL's REAL MIME (the previous
+// `.includes('image/png')` guess silently misclassified WebP/AVIF/GIF user images
+// as PNG, so jsPDF dropped them). PNG/JPEG/WebP are passed through as the formats
+// jsPDF accepts; anything else jsPDF can't embed (AVIF/GIF/BMP…) is rasterised to
+// PNG via a canvas first. Non-data / unrecognised sources keep the old PNG fallback.
+async function imageForPdf(src) {
+  const mime = (/^data:([^;,]+)/i.exec(src)?.[1] || '').toLowerCase();
+  if (mime === 'image/png')  return { src, fmt: 'PNG' };
+  if (mime === 'image/jpeg' || mime === 'image/jpg') return { src, fmt: 'JPEG' };
+  if (mime === 'image/webp') return { src, fmt: 'WEBP' };
+  if (mime.startsWith('image/')) {
+    try { return { src: await rasterizeToPng(src), fmt: 'PNG' }; }
+    catch { return { src, fmt: 'PNG' }; }
+  }
+  return { src, fmt: 'PNG' };
+}
+
+// Decode any image source the browser understands and re-encode it as a PNG data
+// URL, so a format jsPDF can't embed natively can still be placed.
+async function rasterizeToPng(src) {
+  const img = await new Promise((res, rej) => {
+    const i = new Image();
+    i.onload = () => res(i);
+    i.onerror = rej;
+    i.src = src;
+  });
+  const canvas = document.createElement('canvas');
+  canvas.width  = img.naturalWidth  || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
 const WEBM_CODECS = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
 const MP4_CODECS  = ['video/mp4;codecs=h264', 'video/mp4;codecs=avc1', 'video/mp4'];
 
@@ -3035,6 +3112,11 @@ async function renderZip(node, opts) {
 //
 // opts.wait     — seconds to let CSS animations settle before recording starts (default 1)
 // opts.duration — length of the recorded clip in seconds (default 5)
+//
+// Hard ceiling on buffered frames (Phase 1 holds one ImageBitmap each). A normal
+// clip is well under this; it exists to bound memory when duration/fps are pushed
+// past the UI limits via the URL, which would otherwise OOM a mobile WebView.
+const MAX_VIDEO_FRAMES = 600;
 async function renderVideo(node, opts, preferred) {
   const mimeType = videoMimeType(preferred);
   if (!mimeType) throw new Error(NO_VIDEO_MSG);
@@ -3050,7 +3132,17 @@ async function renderVideo(node, opts, preferred) {
   const fps        = opts.fps ?? 24;
   const frameMs    = 1000 / fps;
   const durationMs = (opts.duration ?? 5) * 1000;
-  const frameCount = Math.ceil(durationMs / frameMs);
+  let   frameCount = Math.ceil(durationMs / frameMs);
+
+  // Phase 1 buffers every frame as an ImageBitmap before replay, so the frame
+  // count is the memory ceiling. Clamp it so a long/high-fps request (the duration
+  // limit is bypassable via the URL) can't queue hundreds of bitmaps and OOM a
+  // mobile WebView. The cap is generous for normal clips; beyond it the clip is
+  // truncated and we warn through the log channel.
+  if (frameCount > MAX_VIDEO_FRAMES) {
+    _host?.log?.('warn', `Video capped at ${MAX_VIDEO_FRAMES} frames (requested ${frameCount}); lower the duration or frame rate for a longer clip.`);
+    frameCount = MAX_VIDEO_FRAMES;
+  }
 
   // Phase 1: render all frames sequentially through the shared FrameSource.
   // Animation advances in real time between frames, so each captures a unique
@@ -3061,6 +3153,8 @@ async function renderVideo(node, opts, preferred) {
   try {
     for (let i = 0; i < frameCount; i++) {
       frames.push(await createImageBitmap(await source.frame()));
+      // Progress for a slow N-frame render (no-op when no listener is wired).
+      opts.onProgress?.(i + 1, frameCount);
     }
   } finally {
     source.dispose();
@@ -3144,8 +3238,15 @@ async function renderGif(node, opts) {
     const gif = GIFEncoder();
     let palette = null;
 
+    // Dither scratch buffers are allocated ONCE and reused for every frame: the
+    // global palette is fixed after frame 0, so the per-frame ~14MB error buffer
+    // and the 64KB nearest-colour cache (previously re-allocated and re-cleared each
+    // frame) can persist for the whole clip. The cache stays valid because the
+    // palette never changes; output is byte-identical to per-frame allocation.
+    const ditherState = dither ? createDitherState(targetW, targetH) : null;
+
     const encodeFrame = (pixels) => dither
-      ? ditherFloydSteinberg(pixels, targetW, targetH, palette)
+      ? ditherFloydSteinberg(pixels, targetW, targetH, palette, ditherState)
       : applyPalette(pixels, palette);
 
     for (let i = 0; i < frameCount; i++) {
@@ -3161,6 +3262,8 @@ async function renderGif(node, opts) {
       } else {
         gif.writeFrame(encodeFrame(pixels), targetW, targetH, { delay: frameInterval });
       }
+      // Progress for a slow N-frame render (no-op when no listener is wired).
+      opts.onProgress?.(i + 1, frameCount);
     }
 
     gif.finish();
@@ -3175,6 +3278,20 @@ async function renderGif(node, opts) {
   }
 }
 
+// Allocates the reusable scratch buffers for the Floyd-Steinberg path. Hoisted out
+// of ditherFloydSteinberg so an animated GIF can keep ONE set of buffers across all
+// frames: the error buffer is re-seeded from each frame's pixels, and the nearest
+// -colour cache is carried over (the palette is fixed after frame 0, so cached
+// lookups stay correct). `out` is fully overwritten every frame, so no reset needed.
+function createDitherState(width, height) {
+  const n = width * height;
+  return {
+    out:   new Uint8Array(n),
+    buf:   new Float32Array(n * 3),       // diffused error, may exceed [0,255]
+    cache: new Int16Array(32768).fill(-1), // 15-bit (5 bits/channel) nearest cache
+  };
+}
+
 // Floyd-Steinberg ordered dithering.
 // Quantizes pixels to the given palette while propagating quantisation error
 // to neighbouring pixels to reduce colour banding. Returns a Uint8Array of
@@ -3183,20 +3300,26 @@ async function renderGif(node, opts) {
 // Cache note: nearest-palette lookups are memoised by a 15-bit colour key
 // (5 bits per channel). This trades a tiny amount of precision for a large
 // speed improvement — especially effective for flat-colour brand graphics.
-function ditherFloydSteinberg(data, width, height, palette) {
+//
+// `state` (from createDitherState) lets a multi-frame caller reuse the buffers
+// across frames; absent, a fresh set is allocated for this single call.
+function ditherFloydSteinberg(data, width, height, palette, state) {
   const n   = width * height;
-  const out = new Uint8Array(n);
+  const st  = state ?? createDitherState(width, height);
+  const out = st.out;
 
-  // Float RGB buffer — accumulates diffused error beyond [0,255]
-  const buf = new Float32Array(n * 3);
+  // Float RGB buffer — accumulates diffused error beyond [0,255]. Re-seeded from
+  // this frame's pixels (so a reused buffer carries no error from the prior frame).
+  const buf = st.buf;
   for (let i = 0; i < n; i++) {
     buf[i * 3]     = data[i * 4];
     buf[i * 3 + 1] = data[i * 4 + 1];
     buf[i * 3 + 2] = data[i * 4 + 2];
   }
 
-  // Nearest-palette memoisation keyed on a 5-bit-per-channel approximation
-  const cache = new Int16Array(32768).fill(-1);
+  // Nearest-palette memoisation keyed on a 5-bit-per-channel approximation.
+  // Persisted across frames via `state` — valid because the palette is fixed.
+  const cache = st.cache;
   function nearest(r, g, b) {
     const key = (r >> 3) | ((g >> 3) << 5) | ((b >> 3) << 10);
     if (cache[key] >= 0) return cache[key];
