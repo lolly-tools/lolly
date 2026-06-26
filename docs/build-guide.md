@@ -181,9 +181,10 @@ rustup target add \
 
 #### iOS (macOS only)
 
-1. Install Xcode from the App Store
+1. Install Xcode from the App Store (the full app, not just the Command Line Tools)
 2. Accept the license: `sudo xcodebuild -license accept`
-3. Add iOS Rust targets:
+3. Install CocoaPods — `tauri ios init` generates a Podfile and runs `pod install`: `brew install cocoapods`
+4. Add iOS Rust targets:
 
 ```bash
 rustup target add \
@@ -191,6 +192,8 @@ rustup target add \
   aarch64-apple-ios-sim \
   x86_64-apple-ios
 ```
+
+See [`ios-build.md`](ios-build.md) for the full iOS walkthrough — prerequisites, one-time init, the simulator dev loop, code signing, and camera permissions.
 
 ### First-time platform init
 

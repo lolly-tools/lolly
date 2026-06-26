@@ -126,11 +126,11 @@ Set credentials via environment variables — none are committed to the repo.
 
 > **Note — iOS does not build on the current dev machine yet.** This machine has
 > only the Xcode **Command Line Tools** (`xcode-select -p` ->
-> `/Library/Developer/CommandLineTools`); `xcodebuild`, the Simulator
-> (`simctl`), and CocoaPods (`pod`) are absent, and `src-tauri/gen/apple/` has not
-> been initialized. The iOS Rust targets and the mobile `node_modules` are already
-> installed. `tauri ios init` / `dev:ios` / `build:ios` therefore fail here until
-> full Xcode + CocoaPods are installed. The desktop `.app`/`.dmg` build is
+> `/Library/Developer/CommandLineTools`); `xcodebuild` and the Simulator
+> (`simctl`) are absent, and `src-tauri/gen/apple/` has not been initialized.
+> CocoaPods (`pod` 1.16.2), the iOS Rust targets, and the mobile `node_modules`
+> are already installed. `tauri ios init` / `dev:ios` / `build:ios` therefore fail
+> here until **full Xcode** is installed. The desktop `.app`/`.dmg` build is
 > unaffected (it needs only Command Line Tools).
 
 See `docs/ios-build.md` for the full iOS prerequisites, init, simulator loop,
