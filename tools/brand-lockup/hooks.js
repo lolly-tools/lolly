@@ -40,7 +40,8 @@ const GAP_CHAM_SUSE  = 9.51;  // horizontal: chameleon ink-right → SUSE ink-le
 const GAP_WORD       = 12.60; // SUSE → descriptor (ink gap)
 const VGAP_CHAM_SUSE = 6.40;  // stacked: chameleon bottom → SUSE cap-top
 const LINE_H         = 40;    // stacked: baseline → baseline
-const WRAP = { compact: 210, balanced: 300, wide: 460 }; // stacked wrap widths
+const DESC_PAD       = 2.4;   // bottom breathing room so g/y/p descenders aren't clipped
+const WRAP = { compact: 240, balanced: 360, wide: 520 }; // stacked wrap widths (design units)
 
 const COLORS = {
   'pos-green': { mark: '#30ba78', text: '#0c322c' },
@@ -171,6 +172,7 @@ async function buildLockup({ host, name, layout, variant, wrapMode, background }
     W = maxRight; H = Math.max(hybrid ? chH : 0, bottom);
   }
 
+  H += DESC_PAD * k; // breathing room below the baseline so descenders clear the edge
   W = Math.ceil(W * 100) / 100;
   H = Math.ceil(H * 100) / 100;
 
