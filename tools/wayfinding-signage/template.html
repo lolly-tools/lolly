@@ -84,7 +84,10 @@
 }
 .way-label {
   flex: 1 1 0; min-width: 0;
-  font-size: 34cqh; font-weight: var(--text-weight, 800);
+  /* --label-scale (1 = no shrink) is computed once per render by the fit script
+     below so the LONGEST label fits on its line; all rows share it, so they stay
+     the same size. text-overflow:ellipsis is the safety net if the script can't run. */
+  font-size: calc(34cqh * var(--label-scale, 1)); font-weight: var(--text-weight, 800);
   line-height: 1; letter-spacing: -0.01em;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -130,3 +133,44 @@
     </main>
   </div>
 </div>
+
+<script>
+(function () {
+  // Auto-fit the direction labels: shrink EVERY label by one uniform factor so
+  // the longest fits on a single line — no ellipsis truncation, and all rows keep
+  // the same text size. The template is logic-less, so the measuring lives here.
+  //
+  // The factor is resolution-independent: a label's text width and the box it
+  // sits in both scale with the sign, so the ratio (and therefore the needed
+  // shrink) is the same at A4 or A1, portrait or landscape — one measurement holds
+  // for every export size. We measure at the currently-applied scale and back-
+  // solve, so it's exact in a single pass with no reset-to-full-size flash.
+  function fit() {
+    var way = document.querySelector('.way');
+    if (!way) return;
+    var labels = document.querySelectorAll('.way-label');
+    if (!labels.length) return;
+    var cur = parseFloat(way.style.getPropertyValue('--label-scale')) || 1;
+    var scale = 1;
+    for (var i = 0; i < labels.length; i++) {
+      var el = labels[i];
+      var avail = el.clientWidth, need = el.scrollWidth;   // box vs full text width
+      if (avail > 0 && need > avail) {
+        var fitScale = cur * avail / need;
+        if (fitScale < scale) scale = fitScale;
+      }
+    }
+    if (scale < 1) scale *= 0.985;                         // hairline rounding margin
+    way.style.setProperty('--label-scale', String(scale));
+  }
+  function run() { try { fit(); } catch (e) { /* never block the render */ } }
+
+  // Glyph widths are only correct once the SUSE variable font has loaded; measure
+  // then, one frame later so layout has flushed at the sign's final size.
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () { requestAnimationFrame(run); });
+  } else {
+    requestAnimationFrame(run);
+  }
+})();
+</script>
