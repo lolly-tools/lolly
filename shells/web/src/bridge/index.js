@@ -12,6 +12,7 @@ import { createAssetsAPI } from './assets.js';
 import { createTokensAPI } from './tokens.js';
 import { createClipboardAPI } from './clipboard.js';
 import { createExportAPI } from './export.js';
+import { createComposeAPI } from './compose.js';
 import { createNetAPI } from './net.js';
 import { createTextAPI } from './text.js';
 import { createPdfAPI } from './pdf.js';
@@ -54,6 +55,9 @@ export async function createBridge() {
   host.tokens = createTokensAPI(host); // depends on assets (reads the brand tokens asset)
   host.clipboard = createClipboardAPI();
   host.export = createExportAPI(host);
+  // Compose depends on host (it renders child tools through the same bridge), so
+  // it's wired after export — the child render goes through runtime.export.
+  host.compose = createComposeAPI(host);
   host.net = createNetAPI({ allowlist: [] }); // populated per-tool from manifest
   host.text = createTextAPI();
   host.pdf = createPdfAPI(); // on-device PDF metadata inspect + strip (pdf-lib, lazy-loaded)

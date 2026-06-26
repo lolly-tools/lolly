@@ -19,6 +19,22 @@
     "onInit": true,
     "onInput": true
   },
+  "capabilities": ["compose"],
+  "composes": [
+    {
+      "id": "badgeQr",
+      "tool": "qr-code",
+      "format": "svg",
+      "inputs": {
+        "url": "{{url}}",
+        "color": "#0c322c",
+        "background": "#ffffff",
+        "ecl": "M",
+        "padding": 1,
+        "join": true
+      }
+    }
+  ],
   "inputs": [
     {
       "id": "size",

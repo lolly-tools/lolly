@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-26T14:24:24.676Z",
+  "generatedAt": "2026-06-26T14:58:01.160Z",
   "tools": [
     {
       "id": "color-block",
@@ -186,6 +186,9 @@
       "version": "1.0.0",
       "status": "official",
       "category": "event",
+      "capabilities": [
+        "compose"
+      ],
       "exportable": true
     },
     {

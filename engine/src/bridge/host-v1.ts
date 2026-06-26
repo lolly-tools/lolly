@@ -85,6 +85,20 @@ export interface HostV1 {
    */
   capture?: CaptureAPI;
 
+  /**
+   * Compose — render another tool's output to an embeddable asset (tool
+   * composition / "nested exports"). The runtime resolves a tool's manifest
+   * `composes` entries by calling this, then exposes each result as an extra the
+   * template references via `{{asset <id>}}`. The returned AssetRef flows back
+   * through the normal render/export path, so the embedded image rasterises (PNG)
+   * or inlines as vectors (SVG/PDF) exactly like any other asset. Optional and
+   * additive (like net/capture): a shell that can't render a child tool to bytes
+   * (e.g. the no-raster CLI for a raster child) just doesn't provide it, and the
+   * runtime degrades gracefully (the `{{#if}}` slot stays empty). Gated by the
+   * 'compose' capability. The host owns depth/cycle guards — see ComposeSpec._stack.
+   */
+  compose?: ComposeAPI;
+
   /** Logging — goes to console in dev, to a log buffer for support diagnostics. */
   log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, ctx?: object) => void;
 }
@@ -95,7 +109,7 @@ export interface HostV1 {
  * with the enum in schemas/tool.schema.json.
  */
 export type Capability =
-  | 'network' | 'filesystem' | 'clipboard' | 'camera' | 'ffmpeg' | 'wasm' | 'capture';
+  | 'network' | 'filesystem' | 'clipboard' | 'camera' | 'ffmpeg' | 'wasm' | 'capture' | 'compose';
 
 // ─── PDF (optional) ───────────────────────────────────────────────────────────
 
@@ -432,6 +446,41 @@ export interface CaptureSpec {
    * hide cookie banners, restyle elements, etc.
    */
   css?: string;
+}
+
+// ─── Compose ──────────────────────────────────────────────────────────────────
+
+export interface ComposeAPI {
+  /**
+   * Render the named tool with the given inputs to a self-contained AssetRef
+   * (`source: 'remote'`, `url` a `blob:`/`data:` URL). The child render goes
+   * through the same loadTool → createRuntime → host.export.render path, so it is
+   * pixel-identical to rendering that tool directly — but watermark/provenance are
+   * suppressed because the result is an intermediate asset, not the deliverable.
+   *
+   * The host enforces recursion guards: it rejects if `_stack` already contains
+   * `toolId` (a cycle, A→B→A) or exceeds the max compose depth, so a self- or
+   * mutually-embedding tool fails fast instead of looping. The runtime threads and
+   * extends `_stack` automatically; callers outside the runtime may omit it.
+   */
+  render(spec: ComposeSpec): Promise<AssetRef>;
+}
+
+export interface ComposeSpec {
+  /** id of the tool to render. */
+  toolId: string;
+  /** Inputs for the child tool (already hydrated to concrete values by the runtime). */
+  inputs: Record<string, unknown>;
+  /** Child render format. The engine defaults to 'svg' if the child supports it, else 'png'. */
+  format?: ExportFormat;
+  /** Render width. A number is CSS px; a string may carry a physical unit. Default: child native. */
+  width?: number | string;
+  /** Render height. Default: child native. */
+  height?: number | string;
+  /** Raster DPI for physical units (mirrors ExportOpts.dpi). */
+  dpi?: number;
+  /** Engine-managed recursion stack of tool ids already on the compose path. */
+  _stack?: readonly string[];
 }
 
 // Re-export the AssetRef shape from the schema for convenience.

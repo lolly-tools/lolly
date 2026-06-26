@@ -99,7 +99,7 @@
   flex: none; width: 22cqmin; height: 22cqmin;
   background: #ffffff; border-radius: 2cqmin; padding: 1.6cqmin;
 }
-.ebadge-qr svg { display: block; width: 100%; height: 100%; }
+.ebadge-qr svg, .ebadge-qr img { display: block; width: 100%; height: 100%; }
 
 /* ── Landscape: use the width — header is a row, identity left-aligns ── */
 .ebadge-landscape .ebadge-head {
@@ -148,7 +148,7 @@
 
     <footer class="ebadge-foot">
       <div class="ebadge-role">{{statusLabel}}</div>
-      {{#if qrSvg}}<div class="ebadge-qr">{{{qrSvg}}}</div>{{/if}}
+      {{#if showQr}}{{#if url}}<div class="ebadge-qr"><img src="{{asset badgeQr}}" alt=""></div>{{/if}}{{/if}}
     </footer>
   </div>
 </div>

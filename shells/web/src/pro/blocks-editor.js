@@ -33,8 +33,14 @@ import { colorFieldHtml, wireColorField } from '../components/color-field.js';
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+// Stop waiting on a single preview render after this long. The engine's own
+// quiescence cap is ~8s; this is the outer bound for the whole render+export, so
+// a heavy template degrades to a "skipped" message instead of a stuck spinner.
+const PREVIEW_TIMEOUT_MS = 15000;
+
 const GRIP_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>`;
 const CHEV_SVG = `<svg class="pro-blk-chev" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>`;
+const EYE_SVG = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>`;
 
 function emptyRecord(fields) {
   const r = {};
@@ -58,13 +64,18 @@ export function closeBlocksPanel() { _active?.dismiss(); }
  * @param {boolean[]|null} [opts.initialExpanded]  per-block expanded state; null/short ⇒ all collapsed
  * @param {(expanded:boolean[])=>void} [opts.onUi]  called when collapse state changes
  * @param {string} [opts.applyLabel]     explicit mode: apply-button label
+ * @param {(records:Array)=>Promise<{blob:Blob}|null>} [opts.renderPreview]
+ *        when present, the panel shows a live preview pane: on every edit it
+ *        (debounced) calls this with the current records and displays the
+ *        returned image, so the user sees changes without opening the tool.
  * @returns {Promise<Array|null>}        explicit: records / null. live: final records.
  */
-export function openBlocksEditor({ input, value, host, assetPicker = false, onChange, initialExpanded, onUi, applyLabel = 'Save' }) {
+export function openBlocksEditor({ input, value, host, assetPicker = false, onChange, initialExpanded, onUi, applyLabel = 'Save', renderPreview }) {
   return new Promise((resolve) => {
     if (_active) _active.dismiss();
 
     const live = typeof onChange === 'function';
+    const hasPreview = typeof renderPreview === 'function';
     const fields = input.fields ?? [];
     let records = Array.isArray(value) ? value.map((r) => ({ ...r })) : [];
     if (!records.length) records = [emptyRecord(fields)];
@@ -75,7 +86,7 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
       ? initialExpanded.slice()
       : records.map(() => records.length === 1);
 
-    const commit = () => { if (live) onChange(records.map((r) => ({ ...r }))); };
+    const commit = () => { if (live) onChange(records.map((r) => ({ ...r }))); schedulePreview(); };
     const persistUi = () => { onUi?.(expanded.slice()); };
 
     const panel = document.createElement('aside');
@@ -83,12 +94,33 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
     panel.setAttribute('role', 'dialog');
     panel.setAttribute('aria-label', `Edit ${input.label ?? input.id}`);
     if (_panelWidth) panel.style.width = `${_panelWidth}px`;
+    // Live-preview pane: a render of the row as the blocks change, so a user
+    // doesn't have to keep opening the tool. Closable via its own ✕; the head's
+    // eye button re-opens it. Only present when the owner supplies renderPreview.
+    const previewToggle = hasPreview
+      ? `<button type="button" class="pro-blk-prev-toggle" data-blk-prev-toggle title="Show / hide live preview" aria-label="Toggle live preview" aria-pressed="true">${EYE_SVG}</button>`
+      : '';
+    const previewPane = hasPreview
+      ? `<div class="pro-blk-preview" data-blk-preview>
+           <div class="pro-blk-preview-head">
+             <span class="pro-blk-preview-title">Live preview</span>
+             <button type="button" class="pro-blk-preview-x" data-blk-prev-close title="Close preview" aria-label="Close preview">✕</button>
+           </div>
+           <div class="pro-blk-preview-stage" data-blk-prev-stage>
+             <p class="pro-blk-preview-msg">Rendering…</p>
+           </div>
+         </div>`
+      : '';
     panel.innerHTML = `
       <div class="pro-blk-resize" data-blk-resize title="Drag to resize" aria-hidden="true"></div>
       <div class="pro-blk-head">
         <h2 class="pro-blk-title">${esc(input.label ?? input.id)}</h2>
-        <button type="button" class="pro-blk-x" data-blk-close aria-label="Close">✕</button>
+        <div class="pro-blk-head-actions">
+          ${previewToggle}
+          <button type="button" class="pro-blk-x" data-blk-close aria-label="Close">✕</button>
+        </div>
       </div>
+      ${previewPane}
       <div class="pro-blk-body">
         <div class="pro-blk-cards" data-blk-rows></div>
         <button type="button" class="pro-btn pro-blk-add" data-blk-add>+ Add block</button>
@@ -101,6 +133,67 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
       </div>`;
     document.body.appendChild(panel);
     const rowsEl = panel.querySelector('[data-blk-rows]');
+
+    // ── Live preview ─────────────────────────────────────────────────────────
+    // Debounced + single-flight: a burst of keystrokes collapses to one render,
+    // and while one render is in flight further changes mark it dirty and re-run
+    // once on completion (never overlapping). Stale results after close/teardown
+    // are ignored. Renders only while the pane is open, so closing it is free.
+    const previewPaneEl = panel.querySelector('[data-blk-preview]');
+    const previewStageEl = panel.querySelector('[data-blk-prev-stage]');
+    const previewToggleEl = panel.querySelector('[data-blk-prev-toggle]');
+    let previewOpen = hasPreview, previewTimer = 0, previewBusy = false, previewDirty = false, previewUrl = null;
+
+    function setPreviewMsg(text, isErr = false) {
+      if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+      previewStageEl.innerHTML = `<p class="pro-blk-preview-msg${isErr ? ' is-error' : ''}">${esc(text)}</p>`;
+    }
+    function showPreviewBlob(blob) {
+      const url = URL.createObjectURL(blob);
+      previewStageEl.innerHTML = blob.type === 'application/pdf'
+        ? `<iframe class="pro-blk-preview-frame" src="${url}" title="Live preview"></iframe>`
+        : `<img class="pro-blk-preview-img" src="${url}" alt="Live preview of your blocks">`;
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      previewUrl = url;
+    }
+    async function runPreview() {
+      if (!hasPreview || !previewOpen) return;
+      if (previewBusy) { previewDirty = true; return; }    // coalesce: re-run after the current one
+      previewBusy = true;
+      previewPaneEl.classList.add('is-loading');
+      try {
+        // Guard against a slow/heavy tool wedging the preview in "Rendering…"
+        // forever (the underlying render can't be cancelled, but its stage is
+        // self-cleaning, so we just stop waiting and let the user keep editing).
+        const res = await Promise.race([
+          renderPreview(records.map((r) => ({ ...r }))),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), PREVIEW_TIMEOUT_MS)),
+        ]);
+        if (previewOpen) (res && res.blob) ? showPreviewBlob(res.blob) : setPreviewMsg('Nothing to preview yet.');
+      } catch (err) {
+        if (previewOpen) setPreviewMsg(
+          err?.message === 'timeout' ? 'This template is slow to render — preview skipped.'
+            : (err?.message || 'Preview failed to render.'), true);
+      } finally {
+        previewBusy = false;
+        previewPaneEl.classList.remove('is-loading');
+        if (previewDirty && previewOpen) { previewDirty = false; runPreview(); }
+      }
+    }
+    function schedulePreview() {
+      if (!hasPreview || !previewOpen) return;
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(runPreview, 400);
+    }
+    function setPreviewOpen(open) {
+      previewOpen = open;
+      if (previewPaneEl) previewPaneEl.hidden = !open;
+      previewToggleEl?.setAttribute('aria-pressed', open ? 'true' : 'false');
+      if (open) runPreview();
+      else { clearTimeout(previewTimer); }
+    }
+    previewToggleEl?.addEventListener('click', () => setPreviewOpen(!previewOpen));
+    panel.querySelector('[data-blk-prev-close]')?.addEventListener('click', () => setPreviewOpen(false));
 
     const fieldOf = (id) => fields.find((f) => f.id === id);
 
@@ -276,6 +369,9 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
     function teardown() {
       if (_active !== self) return;
       document.removeEventListener('keydown', onKey, true);
+      clearTimeout(previewTimer);
+      if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
+      previewOpen = false; // ignore any in-flight render that resolves after close
       panel.remove();
       _active = null;
     }
@@ -297,5 +393,6 @@ export function openBlocksEditor({ input, value, host, assetPicker = false, onCh
     panel.querySelector('[data-blk-apply]')?.addEventListener('click', apply);
 
     setTimeout(() => { (rowsEl.querySelector('.pro-blk-toggle') ?? rowsEl.querySelector('.pro-control'))?.focus(); }, 0);
+    if (hasPreview) runPreview(); // first paint right away; later edits are debounced
   });
 }

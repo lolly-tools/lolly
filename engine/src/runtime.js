@@ -25,16 +25,25 @@ import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValu
 import { hydrate } from './template.js';
 import { buildExportMeta } from './metadata.js';
 import { isTokenValue, isAlias, colorToHex } from './tokens.js';
+import { resolveNestedRenders } from './compose.js';
 
 /**
  * @param {Tool} tool                 from loader.js
  * @param {HostV1} host               capability bridge implementation
  * @param {object} [initialState]     from URL params or saved slot
+ * @param {object} [opts]
+ * @param {readonly string[]} [opts.composeStack]  tool ids already on the compose
+ *        path — set by the compose bridge when rendering a child, so nested
+ *        composition (A embeds B embeds C) carries cycle/depth detection downward.
  */
-export async function createRuntime(tool, host, initialState = {}) {
+export async function createRuntime(tool, host, initialState = {}, opts = {}) {
   if (host.version !== '1') {
     throw new Error(`Tool requires host bridge v1, got v${host.version}`);
   }
+  const composeStack = opts.composeStack ?? [];
+  // Per-runtime memo so resolveNestedRenders skips re-rendering a child whose
+  // bound inputs are unchanged across keystrokes.
+  const composeMemo = new Map();
 
   const profile = await host.profile.get();
   let model = buildInputModel(tool.manifest, { profile, initial: initialState });
@@ -66,6 +75,11 @@ export async function createRuntime(tool, host, initialState = {}) {
       }
     }
   }
+
+  // Nested renders (manifest `composes`): render referenced tools to embeddable
+  // assets and expose them as extras for `{{asset <id>}}`. Awaited here so the
+  // first paint already carries the embed. A no-op without host.compose.
+  extras = { ...extras, ...await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo) };
 
   const listeners = new Set();
   const emit = () => listeners.forEach(fn => fn({ model, hydrated: getHydrated() }));
@@ -126,6 +140,9 @@ export async function createRuntime(tool, host, initialState = {}) {
           host.log('warn', `onInput ${e.message}`, { toolId: tool.manifest.id });
         }
       }
+      // Re-resolve nested renders whose bound inputs changed (memoised, so
+      // unchanged composes don't re-render).
+      extras = { ...extras, ...await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo) };
       emit();
     },
 

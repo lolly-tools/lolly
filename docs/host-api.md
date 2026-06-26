@@ -15,7 +15,7 @@ function onInit({ model, host }) {
 
 - **Additive only.** Methods may be added in a minor version; never removed or signature-changed without a major bump. When v2 ships, v1 keeps working.
 - **No platform-specific methods.** If only one shell can do something, it sits behind a `capabilities` flag in `tool.json` and shells that can't fulfil it expose a stub/error.
-- **Capabilities gate access.** `net` and `text` are optional and only present when granted. Declare what you need in the manifest's `capabilities`.
+- **Capabilities gate access.** `net` (`network`), `capture` and `compose` require a matching flag in the manifest's `capabilities`. `tokens`, `text` and `pdf` are optional and present only when the shell provides them. Declare what you need.
 - `host.version` is `'1'`; `host.shell` is one of `web` · `tauri-desktop` · `tauri-mobile` · `cli`.
 
 ## `host.profile`
@@ -111,6 +111,50 @@ Shape and outline a text run into an SVG path via HarfBuzz (correct kerning, lig
 | `preload(fontUrl)` | `Promise<void>` |
 
 `TextPathResult`: `{ d, advanceWidth, bbox }` — baseline at `y=0`, Y-down; `bbox` is `null` for whitespace-only runs. The `lockup` tool uses this to outline display type for crisp vector export.
+
+## `host.tokens` *(optional)*
+
+Design tokens (DTCG) for the active theme. The host UI sources colour-picker swatches from these, and the runtime resolves token-referenced input values against them.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `get(opts?)` | `Promise<TokenSet>` | Resolved token set for the active (or `opts.theme`) theme |
+| `colors(opts?)` | `Promise<ColorSwatch[]>` | Colour tokens as picker-ready swatches |
+| `resolve(ref, opts?)` | `Promise<unknown>` | Resolve a `{dotted.path}` alias (or bare path) to a concrete value |
+| `themes()` | `Promise<{ name, group }[]>` | Theme names declared in the document |
+
+Optional and additive — a shell without it just doesn't offer token-driven UI.
+
+## `host.pdf` *(optional)*
+
+On-device PDF metadata inspection + removal (pure pdf-lib, so it runs even in the lean CLI). Used by `strip-data`.
+
+| Method | Returns | Notes |
+|---|---|---|
+| `analyze(bytes)` | `Promise<{ findings }>` | Report the Info-dictionary + XMP metadata a PDF carries; read-only |
+| `strip(bytes)` | `Promise<{ bytes }>` | Re-save with that metadata removed (re-serialised — not byte-identical, and any signature is invalidated) |
+
+Feature-detect `host.pdf`; a shell that can't provide it just doesn't offer PDF cleaning.
+
+## `host.capture` *(capability: `capture`)*
+
+Rasterise a live URL to an image using a real browser engine. Only shells with an authoritative engine fulfil it (Tauri's webview, a headless-Chromium CLI, or the browser extension) — the plain web PWA cannot read cross-origin pixels, so it exposes a stub that throws.
+
+| Method | Returns |
+|---|---|
+| `page(spec)` | `Promise<AssetRef>` |
+
+`CaptureSpec`: `{ url, width, height?, scrollDepth?, waitMs?, dpr?, css? }`. Returns a raster `AssetRef` (`source: 'remote'`) that flows through the normal export path. `url-shot` uses it. Slow and side-effectful — call from an explicit action, not on every keystroke.
+
+## `host.compose` *(capability: `compose`)*
+
+Render another tool's output to an embeddable asset — **tool composition** ("nested exports"). The runtime resolves a manifest's `composes` entries through this and exposes each as `{{asset <id>}}`, so you rarely call it directly.
+
+| Method | Returns |
+|---|---|
+| `render(spec)` | `Promise<AssetRef>` |
+
+`ComposeSpec`: `{ toolId, inputs, format?, width?, height?, dpi? }`. Returns an `AssetRef` whose `url` is a `blob:`/`data:` URL — so the embedded render rasterises (PNG) or inlines as vectors (SVG/PDF) exactly like any other asset. The child render is depth- and cycle-guarded and is never watermarked or provenance-stamped (it's an intermediate). Optional: a shell that can't render a child to bytes (e.g. the no-raster CLI for a raster child) just doesn't provide it, and composition degrades gracefully. See [Authoring Tools](/info/authoring-tools.html) for the `composes` manifest shape.
 
 ## `host.log`
 

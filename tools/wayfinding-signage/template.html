@@ -50,21 +50,26 @@
 
 .way-heading {
   flex: none; text-align: center;
-  font-size: calc(8.5cqmin * var(--scale, 1)); font-weight: var(--text-weight, 800);
+  font-size: 8.5cqmin; font-weight: var(--text-weight, 800);
   line-height: 1; letter-spacing: -0.02em;
   padding: 2.5cqmin 6cqmin 0; color: var(--ink);
   overflow-wrap: anywhere;
 }
 
-/* ── Directions: a stack of arrow + label rows ── */
+/* ── Directions: a stack of arrow + label rows ──
+   Rows share the list height equally (flex: 1), so however many destinations
+   you add they fill the sign — no empty gap below, no overflow. Each row is its
+   own size container, so the arrow + label size to the row's height (cqh): more
+   rows → shorter rows → smaller type; fewer rows → bigger type. */
 .way-list {
   flex: 1; min-height: 0; overflow: hidden;
-  display: flex; flex-direction: column; justify-content: center;
-  gap: 0.5cqmin; padding: 4cqmin 7cqmin 6cqmin;
+  display: flex; flex-direction: column;
+  padding: 4cqmin 7cqmin 6cqmin;
 }
 .way-row {
+  flex: 1 1 0; min-height: 0;
+  container-type: size;
   display: flex; align-items: center; gap: 3.5cqmin;
-  padding: 2.6cqmin 0;
   border-bottom: 0.3cqmin solid var(--hairline);
 }
 .way-row:last-child { border-bottom: 0; }
@@ -74,13 +79,14 @@
 .way-row--right { flex-direction: row-reverse; justify-content: flex-start; text-align: right; }
 
 .way-arrow {
-  flex: none; font-size: calc(11cqmin * var(--scale, 1)); font-weight: var(--text-weight, 800);
-  line-height: 0.8; color: var(--row-accent, var(--accent));
+  flex: none; font-size: 58cqh; font-weight: var(--text-weight, 800);
+  line-height: 1; color: var(--row-accent, var(--accent));
 }
 .way-label {
-  font-size: calc(7cqmin * var(--scale, 1)); font-weight: var(--text-weight, 800);
+  flex: 1 1 0; min-width: 0;
+  font-size: 34cqh; font-weight: var(--text-weight, 800);
   line-height: 1; letter-spacing: -0.01em;
-  overflow-wrap: anywhere;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
 /* ── Landscape: header is a row; type steps down to use the width ── */
@@ -90,16 +96,15 @@
 }
 .way-landscape .way-logo { max-width: 40%; max-height: 16cqmin; }
 .way-landscape .way-event { text-align: right; }
-.way-landscape .way-heading { font-size: calc(7cqmin * var(--scale, 1)); text-align: left; padding: 1.5cqmin 6cqmin 0; }
-.way-landscape .way-arrow { font-size: calc(9cqmin * var(--scale, 1)); }
-.way-landscape .way-label { font-size: calc(5.6cqmin * var(--scale, 1)); }
+.way-landscape .way-heading { font-size: 7cqmin; text-align: left; padding: 1.5cqmin 6cqmin 0; }
+/* Arrow + label auto-fit to each row's height (cqh) in any orientation. */
 </style>
 
 <div class="way-stage">
   <div class="way way-{{orient}}"
        style="aspect-ratio: {{aspW}} / {{aspH}};
               --accent: {{accent}}; --ink: {{ink}}; --muted: {{muted}}; --hairline: {{hairline}};
-              --scale: {{default textSize 1}}; --text-weight: {{default textWeight 800}};
+              --text-weight: {{default textWeight 800}};
               background: {{default background '#ffffff'}};">
 
     <div class="way-accent"></div>

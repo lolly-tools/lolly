@@ -104,17 +104,6 @@
       ]
     },
     {
-      "id": "textSize",
-      "label": "Text size",
-      "type": "number",
-      "display": "slider",
-      "default": 1,
-      "min": 0.6,
-      "max": 1.8,
-      "step": 0.05,
-      "help": "Scales the heading, destination labels and arrows together."
-    },
-    {
       "id": "textWeight",
       "label": "Text weight",
       "type": "select",

@@ -28,9 +28,10 @@ Validated against `schemas/tool.schema.json`. Required fields:
 
 Optional:
 
-- `capabilities` — `["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm", "capture"]`. Required for the host to expose those APIs to your tool. Tools without `"network"` cannot call `host.net.fetch`.
+- `capabilities` — `["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm", "capture", "compose"]`. Required for the host to expose those APIs to your tool. Tools without `"network"` cannot call `host.net.fetch`; tools that use `composes` (below) declare `"compose"`.
 - `privacy` — `"on-device"`. Marks a content-transform utility that processes the user's own file entirely on the device. Shows the "Runs on your device — nothing is uploaded" badge; enforces (validated) that the tool is never `experimental` and (at runtime) that exports carry no provenance metadata and no watermark. See the `file` input + `exportFile` hook below.
 - `hooks` — `{ onInit?, onInput?, beforeExport?, afterExport?, exportFile? }` boolean flags. If any are true, you must ship `hooks.js` with the matching functions. (`exportFile` is the transform path — file bytes in → transformed bytes out; see below.)
+- `composes` — embed another tool's render as an image (tool composition; see below). Requires the `"compose"` capability.
 - `a11yLabel` — accessible description of the rendered output. The preview canvas is exposed to screen readers as a single `role="img"`; this is its label. It's a Handlebars string hydrated with the current input values (same context as the template), so it stays accurate as the user edits — e.g. `"QR code linking to {{url}}"` or `"Meeting plan for {{default count \"a\"}} people"`. Use `{{default x \"fallback\"}}` for empty inputs. Omit it and the label falls back to `"<name> preview"`. Keep it short and factual — it replaces, not supplements, the canvas contents for SR users.
 
 ### Input types
@@ -277,6 +278,30 @@ Declared hooks must be flagged in the manifest's `hooks` object (`{ "onInit": tr
 **What you can't:**
 - `window`, `document`, `fetch`, `localStorage`. They're not in scope.
 - Importing other modules. Hooks are loaded as a single source string.
+
+## Composition (`composes`)
+
+A tool can embed **another tool's rendered output** as an image instead of re-implementing it. Declare it in the manifest and reference it in the template like any asset — no hook code, no copy-paste.
+
+```jsonc
+// tool.json
+"capabilities": ["compose"],
+"composes": [
+  { "id": "badgeQr", "tool": "qr-code", "format": "svg",
+    "inputs": { "url": "{{url}}", "color": "#0c322c", "join": true } }
+]
+```
+```handlebars
+{{!-- template.html — guard it: composition can fail gracefully --}}
+{{#if badgeQr}}<img src="{{asset badgeQr}}" alt="">{{/if}}
+```
+
+- Each entry renders `tool` with `inputs` and exposes the result under `id` as an `{{asset <id>}}` extra (the same store hook-computed values use).
+- String `inputs` values are **Handlebars**, hydrated against your tool's own context (its input values + extras), so a child input can bind to a parent value — e.g. `"url": "{{url}}"`.
+- `format` (default `svg` where the child supports it — vector stays crisp in SVG/PDF exports) fixes the child render; `width`/`height` (px) default to the child's native size.
+- The composed value is a **normal asset URL**, so it works in a CSS `url()` background just as well as in an `<img src>` — bring another tool in exactly like a library image.
+- The child renders through the **same engine path** (pixel-identical, on-brand) and is never watermarked or provenance-stamped (it's an intermediate). Recursion is **depth- and cycle-guarded**: `a → b → a` fails gracefully and the slot stays empty, so always `{{#if}}`-guard the reference.
+- Works wherever the shell can render the child to bytes; the lean CLI composes only `svg`/data children. The mechanism is `host.compose` — see [Host API](/info/host-api.html).
 
 ## Brand logo (auto-switching)
 

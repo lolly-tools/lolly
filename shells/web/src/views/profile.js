@@ -3,6 +3,11 @@
  *
  * Theme selection auto-saves on click (it's a preference, not a form field).
  * The other personal details save on form submit.
+ *
+ * Activity / Storage / Feature flags are collapsible sections, collapsed by
+ * default. Storage is also LAZY: its expensive work (storage estimate, asset
+ * listing/sizes, and the image-thumbnail grid) is deferred until the section is
+ * expanded, so first paint only awaits the profile + headshot.
  */
 
 import { applyTheme, THEMES } from '../theme.js';
@@ -27,6 +32,13 @@ const FIELD_LABELS = {
 // of the "My images" library list.
 const HEADSHOT_ID = 'user/headshot';
 
+// Randomised word the user must type to confirm the irreversible "clear all my
+// data" action — a deliberate speed-bump against an accidental wipe.
+const CLEAR_CONFIRM_WORDS = ['lolly', 'open', 'free', 'privacy', 'security', 'goodbye'];
+
+// Chevron for a collapsible section's summary (rotates 90° when open via CSS).
+const COLLAPSE_CHEV = `<svg class="profile-collapse-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>`;
+
 // A small "i" badge with a hover/focus tooltip — used beside storage headings.
 // A real <button> (not a tabbable span) so its role + keyboard focus are native.
 const infoDot = (text) =>
@@ -34,25 +46,22 @@ const infoDot = (text) =>
 
 export async function mountProfile(viewEl, host, params = '') {
   document.title = 'Profile — Lolly';
-  const [profile, storageEst, sessions, sessionSizes, cacheSize, allUserImages, userImagesSize] = await Promise.all([
-    host.profile.get(),
-    navigator.storage?.estimate().catch(() => null),
-    host.state.list(),
-    host.state.sizes(),
-    host.assets._blobCacheSize().catch(() => 0),
-    host.assets._listUserAssets().catch(() => []),
-    host.assets._userAssetsSize().catch(() => 0),
-  ]);
+  // Only the first-paint-critical reads run upfront. The Storage section's heavy
+  // work is deferred to loadStorage() (run when the section is first expanded).
+  const profile = await host.profile.get();
   const fields = ['firstname', 'lastname', 'email', 'phone', 'city', 'country'];
   const currentTheme = profile.theme ?? localStorage.getItem('theme') ?? 'light';
-  const sortedSessions = [...sessions].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-  const metrics = getMetrics();
-  const toolIndex = window.__toolIndex?.tools ?? [];
-  // The headshot is a user asset; keep it out of the "My images" grid and
-  // re-resolve it (the stored object URL goes stale across reloads).
-  const userImages = allUserImages.filter(a => a.id !== HEADSHOT_ID);
+  // The headshot is a user asset; re-resolve it (the stored object URL goes stale
+  // across reloads).
   const headshotRef = profile.headshot?.id ? await host.assets.get(profile.headshot.id).catch(() => null) : null;
   let headshotUrl = headshotRef?.url || '';
+  const focusFlags = new URLSearchParams(params).get('focus') === 'feature-flags';
+  // Remember which sections were left open, across visits (a UI preference, so it
+  // lives in localStorage like the theme — read synchronously before render).
+  const OPEN_KEY = 'lolly-profile-open';
+  let openState = {};
+  try { openState = JSON.parse(localStorage.getItem(OPEN_KEY) || '{}') || {}; } catch { /* storage blocked */ }
+  const startOpen = (id) => (openState[id] ? ' open' : '');
 
   // One toggle row for a feature flag (closes over `profile` for its checked state).
   const flagRow = (f) => `
@@ -117,66 +126,27 @@ export async function mountProfile(viewEl, host, params = '') {
         </form>
       </section>
 
-      ${renderActivity(metrics, toolIndex)}
+      <details class="profile-card profile-collapse profile-activity" id="activity-section"${startOpen('activity-section')}>
+        <summary class="profile-collapse-summary"><h2>Your activity</h2>${COLLAPSE_CHEV}</summary>
+        <div class="profile-collapse-body">${renderActivity(getMetrics(), window.__toolIndex?.tools ?? [])}</div>
+      </details>
 
-      <section class="profile-card">
-        <h2>Storage</h2>
-        <div class="storage-row">
-          <span class="storage-indicator-profile" id="storage-usage">${storageEst ? storageBar(storageEst) : 'Unavailable'}</span>
+      <details class="profile-card profile-collapse" id="storage-section"${startOpen('storage-section')}>
+        <summary class="profile-collapse-summary"><h2>Storage</h2>${COLLAPSE_CHEV}</summary>
+        <div class="profile-collapse-body" id="storage-body"><p class="storage-hint-text">Loading…</p></div>
+      </details>
+
+      <details class="profile-card profile-collapse" id="feature-flags-section"${(openState['feature-flags-section'] || focusFlags) ? ' open' : ''}>
+        <summary class="profile-collapse-summary"><h2>Feature flags</h2>${COLLAPSE_CHEV}</summary>
+        <div class="profile-collapse-body">
+          <p class="storage-hint-text feature-hint-text">Self-governance, autonomy, choice. Enable or disable parts of the app here</p>
+          <ul class="feature-flags" id="feature-flags">
+            ${CATEGORY_FLAGS.map(flagRow).join('')}
+            <li class="feature-flag-divider" role="separator"></li>
+            ${flagRow(PRO_FLAG)}
+          </ul>
         </div>
-
-        <div class="storage-subsection">
-          <div class="storage-subsection-header">
-            <span>Saved sessions ${infoDot('Delete individual sessions from the gallery.')} <span id="session-count" class="storage-count">${sortedSessions.length}</span> <span id="session-total-size" class="storage-hint">${fmtBytes(Object.values(sessionSizes).reduce((s, n) => s + n, 0))}</span></span>
-          </div>
-        </div>
-
-        <div class="storage-subsection">
-          <div class="storage-subsection-header">
-            <span>My images ${infoDot(`Images saved here are ready to reuse across tools — up to ${MAX_USER_ASSETS}. Add them here or from inside any tool.`)} <span id="userimg-count" class="storage-count">${userImages.length}/${MAX_USER_ASSETS}</span> <span id="userimg-size" class="storage-hint">${fmtBytes(userImagesSize)}</span></span>
-          </div>
-          <div class="userimg-grid" id="userimg-grid">
-            ${userImages.map(userImageThumb).join('')}
-            <button type="button" class="userimg-add" id="userimg-add" aria-label="Add images"${userImages.length >= MAX_USER_ASSETS ? ' hidden' : ''}>
-              <span class="userimg-add-icon" aria-hidden="true">+</span>
-              <span class="userimg-add-text">Add</span>
-            </button>
-          </div>
-          <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/jpeg,image/webp" multiple hidden>
-        </div>
-
-        <div class="storage-subsection">
-          <div class="storage-subsection-header">
-            <span>Asset cache ${infoDot('Downloaded catalog content. On-demand assets not referenced by a saved session are automatically removed on next load.')} <span class="storage-count" id="cache-size-label">${fmtBytes(cacheSize)}</span></span>
-          </div>
-        </div>
-
-        <div class="storage-subsection">
-          <div class="storage-subsection-header">
-            <span>Move to another device ${infoDot('Export everything — profile, saved sessions, uploaded images and preferences — as one file, then import it on another offline install to pick up exactly where you left off. Stays entirely on your devices.')}</span>
-          </div>
-          <div class="storage-actions">
-            <button type="button" id="export-data-btn" class="btn">Export my data</button>
-            <button type="button" id="import-data-btn" class="btn">Import data…</button>
-            <input type="file" id="import-data-input" accept=".zip,application/zip" hidden>
-          </div>
-        </div>
-
-        <div class="storage-actions">
-          <button type="button" id="clear-cache-btn" class="btn-link-danger">Clear cache</button>
-          <button type="button" id="clear-storage-btn" class="btn btn-danger">Clear all my data</button>
-        </div>
-      </section>
-
-      <section class="profile-card" id="feature-flags-section">
-        <h2>Feature flags</h2>
-        <p class="storage-hint-text feature-hint-text">Self-governance, autonomy, choice. Enable or disable parts of the app here</p>
-        <ul class="feature-flags" id="feature-flags">
-          ${CATEGORY_FLAGS.map(flagRow).join('')}
-          <li class="feature-flag-divider" role="separator"></li>
-          ${flagRow(PRO_FLAG)}
-        </ul>
-      </section>
+      </details>
 
     </div>
   `;
@@ -192,8 +162,8 @@ export async function mountProfile(viewEl, host, params = '') {
   });
 
   // Deep-link target: the gallery's empty state links here (#/profile?focus=feature-flags)
-  // to nudge re-enabling categories — scroll the section into view on arrival.
-  if (new URLSearchParams(params).get('focus') === 'feature-flags') {
+  // to nudge re-enabling categories. The section is opened above; scroll it into view.
+  if (focusFlags) {
     requestAnimationFrame(() =>
       viewEl.querySelector('#feature-flags-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
     );
@@ -263,171 +233,13 @@ export async function mountProfile(viewEl, host, params = '') {
     await refreshCounter();
   });
 
-  // Live storage counter helper
+  // Live storage counter — updates the Storage section's usage bar IF it's loaded
+  // (the headshot paths call this; it no-ops while Storage is still collapsed).
   async function refreshCounter() {
     const est = await navigator.storage?.estimate().catch(() => null);
     const el = viewEl.querySelector('#storage-usage');
     if (el && est) el.innerHTML = storageBar(est);
   }
-
-  // Re-query the user image count + size and reflect them in the header and the
-  // "Add" tile (hidden once the cap is reached). Shared by the add and delete
-  // paths so they never drift.
-  const userimgAddBtn = viewEl.querySelector('#userimg-add');
-  async function syncUserImgMeta() {
-    const [list, size] = await Promise.all([
-      host.assets._listUserAssets().catch(() => []),
-      host.assets._userAssetsSize().catch(() => 0),
-    ]);
-    const count = list.filter(a => a.id !== HEADSHOT_ID).length; // exclude the headshot
-    const countEl = viewEl.querySelector('#userimg-count');
-    const sizeEl  = viewEl.querySelector('#userimg-size');
-    if (countEl) countEl.textContent = `${count}/${MAX_USER_ASSETS}`;
-    if (sizeEl)  sizeEl.textContent  = fmtBytes(size);
-    if (userimgAddBtn) userimgAddBtn.hidden = count >= MAX_USER_ASSETS;
-    await refreshCounter();
-  }
-
-  // Add images directly from the profile — same upload path as the in-tool
-  // picker, so files are downscaled/re-encoded and capped identically. New
-  // thumbs prepend (newest-first) ahead of the persistent "Add" tile.
-  const userimgFile = viewEl.querySelector('#userimg-file');
-  userimgAddBtn?.addEventListener('click', () => userimgFile?.click());
-  userimgFile?.addEventListener('change', async () => {
-    const files = [...(userimgFile.files ?? [])];
-    userimgFile.value = '';
-    if (!files.length) return;
-    if (userimgAddBtn) userimgAddBtn.disabled = true;
-    for (const file of files) {
-      try {
-        const ref = await storeUserUpload(host, file);
-        userImages.unshift(ref); // keep the lightbox lookup in sync, newest-first
-        viewEl.querySelector('#userimg-grid')
-          ?.insertAdjacentHTML('afterbegin', userImageThumb(ref));
-      } catch (err) {
-        host.log?.('error', 'Image upload failed', { name: file.name, error: String(err) });
-        alert(String(err?.message ?? err)); // e.g. the cap / storage-full message
-        break; // stop the batch on a cap/quota error
-      }
-    }
-    if (userimgAddBtn) userimgAddBtn.disabled = false;
-    await syncUserImgMeta();
-  });
-
-  // My images — view on thumbnail click, delete on the ✕ (one delegated handler).
-  // Images are a standalone library, independent of sessions, so only delete and
-  // "Clear all my data" remove them.
-  viewEl.querySelector('#userimg-grid')?.addEventListener('click', async e => {
-    const view = e.target.closest('[data-view-userimg]');
-    if (view) {
-      const ref = userImages.find(a => a.id === view.dataset.viewUserimg);
-      if (ref) openImageLightbox(ref);
-      return;
-    }
-
-    const btn = e.target.closest('[data-delete-userimg]');
-    if (!btn) return;
-    const id = btn.dataset.deleteUserimg;
-    btn.disabled = true;
-    try {
-      await host.assets._deleteUserAsset(id);
-    } catch (err) {
-      host.log('error', 'Failed to delete image', { id, error: String(err) });
-      btn.disabled = false;
-      return;
-    }
-    btn.closest('[data-userimg]')?.remove();
-    const i = userImages.findIndex(a => a.id === id);
-    if (i !== -1) userImages.splice(i, 1);
-    // The grid keeps the "Add" tile even when empty, so there's no blank state to
-    // render — just refresh counts and the cap state.
-    await syncUserImgMeta();
-  });
-
-  // Clear asset cache only — update the cache size label after clearing
-  viewEl.querySelector('#clear-cache-btn')?.addEventListener('click', async e => {
-    const btn = e.target;
-    btn.disabled = true;
-    btn.textContent = 'Clearing…';
-    await clearIdbStores(['asset-blob', 'asset-meta']);
-    const sizeEl = viewEl.querySelector('#cache-size-label');
-    if (sizeEl) sizeEl.textContent = fmtBytes(0);
-    btn.textContent = 'Cleared';
-    setTimeout(() => { btn.textContent = 'Clear cache'; btn.disabled = false; }, 1500);
-    await refreshCounter();
-  });
-
-  // Clear all — confirmation dialog
-  viewEl.querySelector('#clear-storage-btn')?.addEventListener('click', () => {
-    const overlay = document.createElement('div');
-    overlay.className = 'clear-dialog-overlay';
-    overlay.innerHTML = `
-      <div class="clear-dialog" role="dialog" aria-modal="true" aria-labelledby="clear-dialog-title">
-        <h3 id="clear-dialog-title">Clear all my data?</h3>
-        <p>This removes your profile, all saved sessions, your uploaded images, and the asset cache. Cannot be undone.</p>
-        <div class="clear-dialog-actions">
-          <button class="btn btn-danger" data-scope="all">Clear everything</button>
-          <button class="btn" data-scope="cancel">Cancel</button>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-
-    overlay.addEventListener('click', async e => {
-      const scope = e.target.closest('[data-scope]')?.dataset.scope;
-      if (!scope || scope === 'cancel') { overlay.remove(); return; }
-
-      const btns = overlay.querySelectorAll('button');
-      btns.forEach(b => (b.disabled = true));
-      e.target.textContent = 'Clearing…';
-
-      localStorage.clear();
-      sessionStorage.clear();
-      await clearIdbStores(['state', 'profile', 'user-assets', 'asset-blob', 'asset-meta']);
-      host.profile.bust();
-      applyTheme('light');
-      overlay.remove();
-      await mountProfile(viewEl, host);
-    });
-  });
-
-  // Export everything to a portable .zip for carrying to another offline install.
-  viewEl.querySelector('#export-data-btn')?.addEventListener('click', async e => {
-    const btn = e.currentTarget;
-    const prev = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = 'Exporting…';
-    try {
-      const { blob, filename, summary } = await exportBackup({ host, storage: localStorage });
-      saveBlob(blob, filename);
-      announce(`Exported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}`);
-      btn.textContent = 'Exported';
-    } catch (err) {
-      host.log('error', 'Data export failed', { error: String(err) });
-      btn.textContent = 'Export failed';
-    }
-    setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1800);
-  });
-
-  // Import a bundle from another install (merge-overwrite), then re-mount to reflect it.
-  const importInput = viewEl.querySelector('#import-data-input');
-  viewEl.querySelector('#import-data-btn')?.addEventListener('click', () => importInput?.click());
-  importInput?.addEventListener('change', () => {
-    const file = importInput.files?.[0];
-    importInput.value = ''; // let the same file be re-picked later
-    if (!file) return;
-    showImportDialog(async () => {
-      const bytes = await file.arrayBuffer();
-      const summary = await importBackup({ host, storage: localStorage }, bytes);
-      host.profile.bust();
-      applyTheme(localStorage.getItem('theme') || 'light');
-      // `skipped` > 0 means the bundle came from a newer app and carried parts this
-      // build doesn't understand yet — surface it rather than pretend a full restore.
-      const skipNote = summary.skipped ? ` · ${summary.skipped} newer item${summary.skipped === 1 ? '' : 's'} skipped` : '';
-      announce(`Imported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}${skipNote}`);
-      await mountProfile(viewEl, host);
-    });
-  });
 
   // Personal details form
   viewEl.querySelector('#profile-form').addEventListener('submit', async e => {
@@ -451,6 +263,258 @@ export async function mountProfile(viewEl, host, params = '') {
       announce("Couldn't save — try again", { assertive: true });
     }
   });
+
+  // Persist each section's open/closed state across visits.
+  for (const id of ['activity-section', 'storage-section', 'feature-flags-section']) {
+    const d = viewEl.querySelector('#' + id);
+    d?.addEventListener('toggle', () => {
+      openState[id] = d.open;
+      try { localStorage.setItem(OPEN_KEY, JSON.stringify(openState)); } catch { /* storage blocked */ }
+    });
+  }
+
+  // ── Storage: lazy. Fetch the data + render the (heavy) image grid only when the
+  // section is first expanded, then wire its handlers. ──────────────────────────
+  const storageDetails = viewEl.querySelector('#storage-section');
+  let storageLoaded = false;
+  async function loadStorage() {
+    if (storageLoaded) return;
+    storageLoaded = true;
+
+    const [storageEst, sessions, sessionSizes, cacheSize, allUserImages, userImagesSize] = await Promise.all([
+      navigator.storage?.estimate().catch(() => null),
+      host.state.list(),
+      host.state.sizes(),
+      host.assets._blobCacheSize().catch(() => 0),
+      host.assets._listUserAssets().catch(() => []),
+      host.assets._userAssetsSize().catch(() => 0),
+    ]);
+    const sortedSessions = [...sessions].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    // Keep the headshot out of the "My images" grid.
+    const userImages = allUserImages.filter(a => a.id !== HEADSHOT_ID);
+
+    const body = viewEl.querySelector('#storage-body');
+    body.innerHTML = `
+      <div class="storage-row">
+        <span class="storage-indicator-profile" id="storage-usage">${storageEst ? storageBar(storageEst) : 'Unavailable'}</span>
+      </div>
+
+      <div class="storage-subsection">
+        <div class="storage-subsection-header">
+          <span>Saved sessions ${infoDot('Delete individual sessions from the gallery.')} <span id="session-count" class="storage-count">${sortedSessions.length}</span> <span id="session-total-size" class="storage-hint">${fmtBytes(Object.values(sessionSizes).reduce((s, n) => s + n, 0))}</span></span>
+        </div>
+      </div>
+
+      <div class="storage-subsection">
+        <div class="storage-subsection-header">
+          <span>My images ${infoDot(`Images saved here are ready to reuse across tools — up to ${MAX_USER_ASSETS}. Add them here or from inside any tool.`)} <span id="userimg-count" class="storage-count">${userImages.length}/${MAX_USER_ASSETS}</span> <span id="userimg-size" class="storage-hint">${fmtBytes(userImagesSize)}</span></span>
+        </div>
+        <div class="userimg-grid" id="userimg-grid">
+          ${userImages.map(userImageThumb).join('')}
+          <button type="button" class="userimg-add" id="userimg-add" aria-label="Add images"${userImages.length >= MAX_USER_ASSETS ? ' hidden' : ''}>
+            <span class="userimg-add-icon" aria-hidden="true">+</span>
+            <span class="userimg-add-text">Add</span>
+          </button>
+        </div>
+        <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/jpeg,image/webp" multiple hidden>
+      </div>
+
+      <div class="storage-subsection">
+        <div class="storage-subsection-header">
+          <span>Asset cache ${infoDot('Downloaded catalog content. On-demand assets not referenced by a saved session are automatically removed on next load.')} <span class="storage-count" id="cache-size-label">${fmtBytes(cacheSize)}</span></span>
+        </div>
+      </div>
+
+      <div class="storage-subsection">
+        <div class="storage-subsection-header">
+          <span>Move to another device ${infoDot('Export everything — profile, saved sessions, uploaded images and preferences — as one file, then import it on another offline install to pick up exactly where you left off. Stays entirely on your devices.')}</span>
+        </div>
+        <div class="storage-actions">
+          <button type="button" id="export-data-btn" class="btn">Export my data</button>
+          <button type="button" id="import-data-btn" class="btn">Import data…</button>
+          <input type="file" id="import-data-input" accept=".zip,application/zip" hidden>
+        </div>
+      </div>
+
+      <div class="storage-actions">
+        <button type="button" id="clear-cache-btn" class="btn-link-danger">Clear cache</button>
+        <button type="button" id="clear-storage-btn" class="btn btn-danger">Clear all my data</button>
+      </div>
+    `;
+
+    // Re-query the user image count + size and reflect them in the header and the
+    // "Add" tile (hidden once the cap is reached). Shared by the add and delete
+    // paths so they never drift.
+    const userimgAddBtn = viewEl.querySelector('#userimg-add');
+    async function syncUserImgMeta() {
+      const [list, size] = await Promise.all([
+        host.assets._listUserAssets().catch(() => []),
+        host.assets._userAssetsSize().catch(() => 0),
+      ]);
+      const count = list.filter(a => a.id !== HEADSHOT_ID).length; // exclude the headshot
+      const countEl = viewEl.querySelector('#userimg-count');
+      const sizeEl  = viewEl.querySelector('#userimg-size');
+      if (countEl) countEl.textContent = `${count}/${MAX_USER_ASSETS}`;
+      if (sizeEl)  sizeEl.textContent  = fmtBytes(size);
+      if (userimgAddBtn) userimgAddBtn.hidden = count >= MAX_USER_ASSETS;
+      await refreshCounter();
+    }
+
+    // Add images directly from the profile — same upload path as the in-tool
+    // picker, so files are downscaled/re-encoded and capped identically. New
+    // thumbs prepend (newest-first) ahead of the persistent "Add" tile.
+    const userimgFile = viewEl.querySelector('#userimg-file');
+    userimgAddBtn?.addEventListener('click', () => userimgFile?.click());
+    userimgFile?.addEventListener('change', async () => {
+      const files = [...(userimgFile.files ?? [])];
+      userimgFile.value = '';
+      if (!files.length) return;
+      if (userimgAddBtn) userimgAddBtn.disabled = true;
+      for (const file of files) {
+        try {
+          const ref = await storeUserUpload(host, file);
+          userImages.unshift(ref); // keep the lightbox lookup in sync, newest-first
+          viewEl.querySelector('#userimg-grid')
+            ?.insertAdjacentHTML('afterbegin', userImageThumb(ref));
+        } catch (err) {
+          host.log?.('error', 'Image upload failed', { name: file.name, error: String(err) });
+          alert(String(err?.message ?? err)); // e.g. the cap / storage-full message
+          break; // stop the batch on a cap/quota error
+        }
+      }
+      if (userimgAddBtn) userimgAddBtn.disabled = false;
+      await syncUserImgMeta();
+    });
+
+    // My images — view on thumbnail click, delete on the ✕ (one delegated handler).
+    viewEl.querySelector('#userimg-grid')?.addEventListener('click', async e => {
+      const view = e.target.closest('[data-view-userimg]');
+      if (view) {
+        const ref = userImages.find(a => a.id === view.dataset.viewUserimg);
+        if (ref) openImageLightbox(ref);
+        return;
+      }
+
+      const btn = e.target.closest('[data-delete-userimg]');
+      if (!btn) return;
+      const id = btn.dataset.deleteUserimg;
+      btn.disabled = true;
+      try {
+        await host.assets._deleteUserAsset(id);
+      } catch (err) {
+        host.log('error', 'Failed to delete image', { id, error: String(err) });
+        btn.disabled = false;
+        return;
+      }
+      btn.closest('[data-userimg]')?.remove();
+      const i = userImages.findIndex(a => a.id === id);
+      if (i !== -1) userImages.splice(i, 1);
+      await syncUserImgMeta();
+    });
+
+    // Clear asset cache only — update the cache size label after clearing.
+    viewEl.querySelector('#clear-cache-btn')?.addEventListener('click', async e => {
+      const btn = e.target;
+      btn.disabled = true;
+      btn.textContent = 'Clearing…';
+      await clearIdbStores(['asset-blob', 'asset-meta']);
+      const sizeEl = viewEl.querySelector('#cache-size-label');
+      if (sizeEl) sizeEl.textContent = fmtBytes(0);
+      btn.textContent = 'Cleared';
+      setTimeout(() => { btn.textContent = 'Clear cache'; btn.disabled = false; }, 1500);
+      await refreshCounter();
+    });
+
+    // Clear all — confirmation dialog gated on typing a randomised word, so an
+    // irreversible wipe can't be fired by reflex (or a stray double-click).
+    viewEl.querySelector('#clear-storage-btn')?.addEventListener('click', () => {
+      const word = CLEAR_CONFIRM_WORDS[Math.floor(Math.random() * CLEAR_CONFIRM_WORDS.length)];
+      const overlay = document.createElement('div');
+      overlay.className = 'clear-dialog-overlay';
+      overlay.innerHTML = `
+        <div class="clear-dialog" role="dialog" aria-modal="true" aria-labelledby="clear-dialog-title">
+          <h3 id="clear-dialog-title">Clear all my data?</h3>
+          <p>This removes your profile, all saved sessions, your uploaded images, and the asset cache. Cannot be undone.</p>
+          <label class="clear-confirm">
+            <span class="clear-confirm-prompt">Type <strong>${word}</strong> to confirm</span>
+            <input type="text" class="clear-confirm-input" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Type ${word} to confirm">
+          </label>
+          <div class="clear-dialog-actions">
+            <button class="btn btn-danger" data-scope="all" disabled>Clear everything</button>
+            <button class="btn" data-scope="cancel">Cancel</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      const confirmInput = overlay.querySelector('.clear-confirm-input');
+      const clearBtn = overlay.querySelector('[data-scope="all"]');
+      const matches = () => confirmInput.value.trim().toLowerCase() === word;
+      confirmInput.addEventListener('input', () => { clearBtn.disabled = !matches(); });
+      confirmInput.addEventListener('keydown', e => { if (e.key === 'Enter' && matches()) { e.preventDefault(); clearBtn.click(); } });
+      confirmInput.focus();
+
+      overlay.addEventListener('click', async e => {
+        const scope = e.target.closest('[data-scope]')?.dataset.scope;
+        if (!scope || scope === 'cancel') { overlay.remove(); return; }
+        if (scope === 'all' && !matches()) return; // guard: the word must match
+
+        const btns = overlay.querySelectorAll('button');
+        btns.forEach(b => (b.disabled = true));
+        clearBtn.textContent = 'Clearing…';
+
+        localStorage.clear();
+        sessionStorage.clear();
+        await clearIdbStores(['state', 'profile', 'user-assets', 'asset-blob', 'asset-meta']);
+        host.profile.bust();
+        applyTheme('light');
+        overlay.remove();
+        await mountProfile(viewEl, host);
+      });
+    });
+
+    // Export everything to a portable .zip for carrying to another offline install.
+    viewEl.querySelector('#export-data-btn')?.addEventListener('click', async e => {
+      const btn = e.currentTarget;
+      const prev = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = 'Exporting…';
+      try {
+        const { blob, filename, summary } = await exportBackup({ host, storage: localStorage });
+        saveBlob(blob, filename);
+        announce(`Exported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}`);
+        btn.textContent = 'Exported';
+      } catch (err) {
+        host.log('error', 'Data export failed', { error: String(err) });
+        btn.textContent = 'Export failed';
+      }
+      setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1800);
+    });
+
+    // Import a bundle from another install (merge-overwrite), then re-mount.
+    const importInput = viewEl.querySelector('#import-data-input');
+    viewEl.querySelector('#import-data-btn')?.addEventListener('click', () => importInput?.click());
+    importInput?.addEventListener('change', () => {
+      const file = importInput.files?.[0];
+      importInput.value = ''; // let the same file be re-picked later
+      if (!file) return;
+      showImportDialog(async () => {
+        const bytes = await file.arrayBuffer();
+        const summary = await importBackup({ host, storage: localStorage }, bytes);
+        host.profile.bust();
+        applyTheme(localStorage.getItem('theme') || 'light');
+        // `skipped` > 0 means the bundle came from a newer app and carried parts this
+        // build doesn't understand yet — surface it rather than pretend a full restore.
+        const skipNote = summary.skipped ? ` · ${summary.skipped} newer item${summary.skipped === 1 ? '' : 's'} skipped` : '';
+        announce(`Imported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}${skipNote}`);
+        await mountProfile(viewEl, host);
+      });
+    });
+  }
+  storageDetails?.addEventListener('toggle', () => { if (storageDetails.open) loadStorage(); });
+  // A persisted-open section renders open from the HTML `open` attribute, which does
+  // NOT fire `toggle`, so kick the lazy load here (runs after first paint).
+  if (storageDetails?.open) loadStorage();
 }
 
 
@@ -571,14 +635,12 @@ function showImportDialog(onConfirm) {
 }
 
 // Local-only usage stats. All derived from a tiny localStorage blob (metrics.js);
-// nothing here is recorded remotely — hence the "0 uploaded" line.
+// nothing here is recorded remotely — hence the "0 uploaded" line. Returns the
+// section's inner content (the heading lives in the collapsible summary).
 function renderActivity(m, tools) {
   const hasAny = m.filesRendered || m.toolOpens || m.linksCopied || m.imagesCopied || m.batchRuns;
   if (!hasAny) {
-    return `<section class="profile-card profile-activity">
-      <h2>Your activity</h2>
-      <p class="storage-hint-text">Nothing here yet — open a tool and make something. It all gets counted right here on your device.</p>
-    </section>`;
+    return `<p class="storage-hint-text">Nothing here yet — open a tool and make something. It all gets counted right here on your device.</p>`;
   }
 
   const num = (n) => Number(n).toLocaleString();
@@ -623,11 +685,7 @@ function renderActivity(m, tools) {
   const stats = `<div class="activity-grid">${tiles.join('')}</div>`;
   const body = bars ? `<div class="activity-split">${stats}${bars}</div>` : stats;
 
-  return `<section class="profile-card profile-activity">
-    <h2>Your activity</h2>
-    ${body}
-    <p class="activity-meta">${meta}</p>
-  </section>`;
+  return `${body}<p class="activity-meta">${meta}</p>`;
 }
 
 // Store the cropped square WebP in the user-assets store (one fixed id, so it

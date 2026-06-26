@@ -82,6 +82,7 @@ const SECTIONS = [
         { name: 'Split view', desc: 'Controls on one side, a live canvas on the other — change any input and the preview updates instantly.' },
         { name: 'The preview is the file', desc: 'What you see is exactly what exports — no separate render step.' },
         { name: 'Zoom & pan', desc: 'Cmd/Ctrl-scroll or pinch to zoom; <code>Space</code>-drag or middle-drag to pan; <code>0</code> fit, <code>1</code> = 100%.' },
+        { name: 'System dark mode', desc: 'Tools that support it adapt their canvas to your device’s light/dark preference.' },
       ] },
       { icon: ICONS.mobile, title: 'On a phone', features: [
         { name: 'Controls sheet', desc: 'The inputs become a sheet with a drag grip that snaps to peek / half / full; the preview stays visible while you edit.' },
@@ -256,6 +257,9 @@ const SECTIONS = [
       { icon: ICONS.image, title: 'Image hygiene', features: [
         { name: 'Stripped & local', desc: 'Images you add are downscaled and stripped of EXIF/GPS, then kept in a local My images library — never uploaded.' },
       ] },
+      { icon: ICONS.shield, title: 'On-device utilities', features: [
+        { name: 'File in → clean file out', desc: 'Content-transform utilities take a file you supply, process it entirely on your device and hand back a cleaned copy — never uploaded, never watermarked. Strip Hidden Data removes EXIF/GPS, camera, author and editor metadata from JPEG, PNG, SVG and PDF. This replaces handing confidential files to single-purpose websites.' },
+      ] },
       { icon: ICONS.lock, title: 'Self-host / air-gap', features: [
         { name: 'No backend', desc: 'No server-side processing or database — deploy on your own infrastructure and run entirely behind your firewall.' },
       ] },
@@ -269,7 +273,11 @@ const SECTIONS = [
         { name: 'Manifest + template + hooks', desc: 'A tool is a manifest, a template and optional hooks; inputs are declared, not inferred. Non-developers can author the template; hooks are the escape hatch for real logic.' },
       ] },
       { icon: ICONS.bridge, title: 'Capability bridge', features: [
-        { name: 'One tool, every shell', desc: 'Tools call a versioned <code>host.*</code> API (profile, assets, state, clipboard, export, text-to-path) and never touch the DOM, filesystem or network directly — which is why one tool runs unchanged in browser, Tauri and CLI.' },
+        { name: 'One tool, every shell', desc: 'Tools call a versioned <code>host.*</code> API — profile, assets, state, clipboard, export and text-to-path, plus optional capability-gated extras (design tokens, PDF tools, page capture, network and tool composition) — and never touch the DOM, filesystem or network directly, which is why one tool runs unchanged in browser, Tauri and CLI.' },
+      ] },
+      { icon: ICONS.cube, title: 'Tool composition', features: [
+        { name: 'Tools compose tools', desc: 'A tool can embed another tool’s rendered output as an image — declared in the manifest (<code>composes</code>) and placed with <code>{{asset …}}</code>. It renders through the same engine path, so the embed is pixel-identical and on-brand, and recursion is depth- and cycle-guarded. One tool reuses another instead of copying its code.' },
+        { name: 'Use it like any asset', desc: 'A composed render is just an asset URL, so a template can drop it into an <code>&lt;img src&gt;</code> or a CSS <code>url()</code> background exactly like a library image.' },
       ] },
       { icon: ICONS.sync, title: 'Synced as data', features: [
         { name: 'No app update needed', desc: 'Tools and assets sync from a signed manifest; new tools appear automatically on clients.' },

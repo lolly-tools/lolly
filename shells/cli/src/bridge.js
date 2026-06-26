@@ -12,7 +12,7 @@
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDimension, toCssLength, toCssPx } from '@lolly/engine';
+import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime } from '@lolly/engine';
 // PDF metadata inspect/strip is pure pdf-lib (no DOM), so the lean node CLI
 // shares the web shell's implementation rather than duplicating it.
 import { createPdfAPI } from '../../web/src/bridge/pdf.js';
@@ -180,6 +180,37 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
   // browser engine), metadata surgery is pure pdf-lib, which runs fine in node —
   // so the lean CLI can clean PDFs too.
   host.pdf = createPdfAPI();
+
+  // Compose — render another tool to an embeddable asset (tool composition).
+  // The lean node CLI has no rasteriser, so it composes only children that export
+  // to svg/data (same stance as host.export above) — a raster child throws and the
+  // runtime omits that slot gracefully. Result is a data: URL (jsdom has no
+  // URL.createObjectURL). Mirrors run.js's render path (hydrate into a node →
+  // host.export.render), with watermark/provenance suppressed (intermediate asset).
+  const composeFetchFile = async (p) => readFile(join(REPO_ROOT, 'tools', p), 'utf8');
+  host.compose = {
+    async render(spec) {
+      const { toolId, inputs = {}, format, _stack = [] } = spec ?? {};
+      if (typeof toolId !== 'string' || !toolId) throw new Error('compose: missing toolId');
+      const path = [..._stack, toolId];
+      if (_stack.includes(toolId)) throw new Error(`cycle ${path.join(' → ')}`);
+      if (_stack.length >= 3) throw new Error(`max compose depth (${path.join(' → ')})`);
+      const childTool = await loadTool(toolId, composeFetchFile);
+      const childRuntime = await createRuntime(childTool, host, inputs, { composeStack: path });
+      const el = w.document.createElement('div');
+      el.innerHTML = childRuntime.getHydrated();
+      const fmt = format ?? childTool.manifest.render.formats[0];
+      const blob = await host.export.render(el, fmt, { embedMeta: false, watermark: false });
+      const buf = Buffer.from(await blob.arrayBuffer());
+      return {
+        source: 'remote',
+        id: `compose:${toolId}`,
+        type: fmt === 'svg' ? 'vector' : 'raster',
+        format: fmt,
+        url: `data:${mimeFor(fmt)};base64,${buf.toString('base64')}`,
+      };
+    },
+  };
 
   return host;
 }
