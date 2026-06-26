@@ -9,7 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { validateManifest } from '../engine/src/validate.js';
-import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.js';
+import { parseUrlState, serializeUrlState, RESERVED } from '../engine/src/url-mode.js';
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.js';
 import { hydrate, annotateTemplate } from '../engine/src/template.js';
 import { createRuntime } from '../engine/src/runtime.js';
@@ -137,6 +137,31 @@ test('url-mode: profile is a reserved export param', () => {
   assert.equal(parseUrlState('heading=Hi', SAMPLE_MANIFEST).profile, null);
   const qs = serializeUrlState([], { profile: 'fogra51' });
   assert.equal(new URLSearchParams(qs).get('profile'), 'fogra51');
+});
+
+test('url-mode: RESERVED set matches the documented reserved-param list', () => {
+  // Mirrors the header doc-comment in engine/src/url-mode.js AND the table in
+  // docs/url-mode.md. The docs aren't programmatically importable, so this inline
+  // list is the guard: if you add/remove a reserved param, update all three.
+  const documented = [
+    'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
+    '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
+    'bleed', 'marks',
+  ];
+  assert.deepEqual([...RESERVED].sort(), [...documented].sort());
+});
+
+test('url-mode: compact blocks fold a raw comma into the last field (no shift)', () => {
+  // The compact encoder percent-encodes ',' inside values, so a raw comma only
+  // appears in a hand-edited URL. It must corrupt at most the LAST field rather
+  // than shifting every field after it (and the tail is absorbed, never dropped).
+  const manifest = { inputs: [{ id: 'rows', type: 'blocks', fields: [
+    { id: 'a', type: 'text' }, { id: 'b', type: 'text' },
+  ] }] };
+  const { values } = parseUrlState('rows=x,y,z', manifest);
+  assert.equal(values.rows.length, 1);
+  assert.equal(values.rows[0].a, 'x');
+  assert.equal(values.rows[0].b, 'y,z'); // overflow folded into the last field
 });
 
 test('url-mode: round-trips', () => {

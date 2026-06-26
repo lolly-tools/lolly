@@ -29,6 +29,13 @@
  *                  strong encryption). Intentionally clear-text in the URL — it
  *                  exists so links can pre-set a password for quick, short-lived
  *                  transactional use; do not use it for confidential material.
+ *   - `bleed`    — bleed amount (dimension string, e.g. `3mm`) for the print
+ *                  formats (`pdf`/`pdf-cmyk`/`cmyk-tiff`); ignored otherwise.
+ *   - `marks`    — print marks for the print formats: a CSV of `crop`, `reg`,
+ *                  `bleed`, `bars`, `prov` drawn in the page/image margin.
+ *
+ * NOTE: this list, the RESERVED set below, and docs/url-mode.md must stay in
+ * sync — tests/engine.test.js asserts the RESERVED set against an inline copy.
  *
  * Compact URL encoding (opt-in per tool via tool.json):
  *   - Inputs can declare a short `urlKey` alias (e.g. "textColor" → "tc")
@@ -48,7 +55,10 @@
 import { isUnit } from './units.js';
 import { isTokenValue, isAlias } from './tokens.js';
 
-const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options']);
+// Param names that are NOT tool inputs (export/render controls). Exported so the
+// engine contract test can assert it stays in lock-step with the documented list
+// (the header comment above + docs/url-mode.md) and nothing drifts silently.
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -222,7 +232,11 @@ function coerceToString(input, value) {
 function decodeBlocksCompact(str, fields) {
   if (!str || !fields.length) return [];
   return str.split('~').filter(Boolean).map(item => {
-    const parts = item.split(',');
+    // Cap to exactly fields.length parts: the encoder percent-encodes ',' and '~'
+    // inside values, so any *raw* comma is a hand-edited URL. Folding the overflow
+    // back into the last field contains the damage — a stray comma can only ever
+    // corrupt the final field instead of shifting every field after it.
+    const parts = splitToFields(item, fields.length);
     const obj = {};
     fields.forEach((f, i) => {
       const raw = decodeURIComponent(parts[i] ?? '');
@@ -238,4 +252,13 @@ function decodeBlocksCompact(str, fields) {
     });
     return obj;
   });
+}
+
+// Split into at most `count` comma-separated parts, joining any overflow back into
+// the final part (so a raw, un-encoded comma can't shift the field alignment past
+// the schema). Unlike String.split(s, limit), the tail is preserved, not dropped.
+function splitToFields(str, count) {
+  const parts = str.split(',');
+  if (parts.length <= count) return parts;
+  return [...parts.slice(0, count - 1), parts.slice(count - 1).join(',')];
 }

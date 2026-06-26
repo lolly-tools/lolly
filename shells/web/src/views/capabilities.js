@@ -294,7 +294,10 @@ const SECTIONS = [
   },
 ];
 
-export async function mountCapabilities(viewEl) {
+// main.js calls mountCapabilities(view, host); this view is read-only and needs
+// no host bridge, so `host` is accepted and intentionally ignored (kept in the
+// signature to document the call contract).
+export async function mountCapabilities(viewEl, _host) {
   document.title = 'Capabilities — Lolly';
 
   // Any section can be force-opened via its flag in the hash query

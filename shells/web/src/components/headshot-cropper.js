@@ -78,19 +78,49 @@ export async function openHeadshotCropper(file) {
     zoomEl.addEventListener('input', () => zoomTo(parseFloat(zoomEl.value)));
     stage.addEventListener('wheel', (e) => { e.preventDefault(); zoomTo(zoom * (e.deltaY < 0 ? 1.06 : 1 / 1.06)); }, { passive: false });
 
-    // Pan via pointer drag.
+    // Pan via single-pointer drag; pinch-zoom with two pointers. The stage sets
+    // touch-action:none (so the page never pans/zooms under the finger), which also
+    // kills the browser's native pinch — so we track the active pointers ourselves
+    // and drive the cropper's own zoomTo, mirroring the canvas pinch in tool.js.
+    const pointers = new Map();   // pointerId -> { x, y }
     let startX = 0, startY = 0, baseTx = 0, baseTy = 0, panning = false;
+    let pinchStartDist = 0, pinchStartZoom = 1;
+    const pinchDist = () => {
+      const [a, b] = [...pointers.values()];
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    };
+    const beginPan = (x, y) => { panning = true; startX = x; startY = y; baseTx = tx; baseTy = ty; };
+
     stage.addEventListener('pointerdown', (e) => {
-      panning = true; startX = e.clientX; startY = e.clientY; baseTx = tx; baseTy = ty;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
       stage.setPointerCapture?.(e.pointerId); e.preventDefault();
+      if (pointers.size === 2) {
+        panning = false;              // hand the gesture off from pan to pinch
+        pinchStartDist = pinchDist();
+        pinchStartZoom = zoom;
+      } else if (pointers.size === 1) {
+        beginPan(e.clientX, e.clientY);
+      }
     });
     stage.addEventListener('pointermove', (e) => {
-      if (!panning) return;
-      tx = baseTx + (e.clientX - startX); ty = baseTy + (e.clientY - startY); apply();
+      if (!pointers.has(e.pointerId)) return;
+      pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (pointers.size >= 2) {
+        if (pinchStartDist > 0) zoomTo(pinchStartZoom * (pinchDist() / pinchStartDist));
+      } else if (panning) {
+        tx = baseTx + (e.clientX - startX); ty = baseTy + (e.clientY - startY); apply();
+      }
     });
-    const endPan = (e) => { panning = false; stage.releasePointerCapture?.(e.pointerId); };
-    stage.addEventListener('pointerup', endPan);
-    stage.addEventListener('pointercancel', endPan);
+    const endPointer = (e) => {
+      pointers.delete(e.pointerId);
+      stage.releasePointerCapture?.(e.pointerId);
+      // Falling from two fingers back to one: resume panning from the survivor so
+      // the image doesn't jump on the next move.
+      if (pointers.size === 1) { const [p] = [...pointers.values()]; beginPan(p.x, p.y); }
+      else if (pointers.size === 0) { panning = false; }
+    };
+    stage.addEventListener('pointerup', endPointer);
+    stage.addEventListener('pointercancel', endPointer);
 
     // Move focus into the dialog (the zoom control), and return it to whatever
     // opened the cropper on close.

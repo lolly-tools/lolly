@@ -51,6 +51,16 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const profile = await host.profile.get();
   let model = buildInputModel(tool.manifest, { profile, initial: initialState });
 
+  // The set of declared input ids is fixed for the life of the runtime (only
+  // values change across keystrokes), so build it once here and reuse it in
+  // mergePatch rather than rebuilding a Set on every hook patch.
+  const inputIds = new Set(model.map(i => i.id));
+
+  // Hook failures recorded for the shell: onInit blanking the canvas was
+  // previously only logged, so a shell had no way to show its error banner.
+  // The array is exposed on the runtime; entries: { hook, message }.
+  const hookErrors = [];
+
   // Resolve any unresolved asset refs (from URL mode or a saved session). Any
   // that no longer resolve (e.g. a user deleted an image a saved design used) are
   // collected so the shell can tell the user the field was left blank.
@@ -72,9 +82,13 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
     if (hooks.onInit) {
       try {
         const patch = await withTimeout(hooks.onInit({ model: modelForHooks(model), host }), 5000, tool.manifest.id);
-        if (patch) ({ model, extras } = mergePatch(model, extras, patch));
+        if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
       } catch (e) {
-        host.log('warn', `onInit ${e.message}`, { toolId: tool.manifest.id });
+        // Record the failure (not just log it) so the shell can show a canvas-error
+        // banner instead of silently hydrating against missing extras. Still don't
+        // throw — the lifecycle stays resilient and the canvas renders what it can.
+        hookErrors.push({ hook: 'onInit', message: e.message });
+        host.log('error', `onInit ${e.message}`, { toolId: tool.manifest.id });
       }
     }
   }
@@ -132,21 +146,30 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // Asset refs (from a saved session / URL) that no longer resolve. The shell
     // reads this once after mount to surface a "left blank" notice.
     droppedAssets,
+    // Hook failures (currently onInit) so a shell can show a canvas-error banner
+    // instead of a silently-blank canvas. Empty when every hook ran cleanly.
+    hookErrors,
 
     async setInput(id, value) {
       model = updateInput(model, id, value);
       const seq = ++setInputSeq;
+      // Paint the keystroke immediately, BEFORE awaiting the onInput hook (which may
+      // do IndexedDB asset reads). Blocking the visible update on the hook made every
+      // keystroke feel laggy. A hook that rewrites the just-typed input (e.g. quote
+      // capitalisation) then triggers a one-frame correction on the re-emit below —
+      // acceptable per the perf plan; the FINAL state is always the post-hook value.
+      emit();
       if (hooks?.onInput) {
         try {
           const patch = await withTimeout(hooks.onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }), 2000, tool.manifest.id);
-          if (patch) ({ model, extras } = mergePatch(model, extras, patch));
+          if (patch) {
+            ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+            emit(); // re-emit with the hook's patch so the final state is correct
+          }
         } catch (e) {
           host.log('warn', `onInput ${e.message}`, { toolId: tool.manifest.id });
         }
       }
-      // Paint immediately with the latest model + last-known compose extras — a
-      // nested child render must never block the keystroke (M6).
-      emit();
       // Re-resolve nested renders OFF the critical path. Commit + re-emit only if
       // this is still the latest setInput (so an out-of-order child render can't
       // clobber a newer value, M5) and the resolved refs actually changed.
@@ -226,7 +249,7 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
       // supplied its own `meta` or opted out (e.g. thumbnails) with embedMeta:false.
       let meta = opts.meta;
       if (meta === undefined && opts.embedMeta !== false && !isOnDevice) {
-        meta = await buildExportMeta(host, tool.manifest);
+        meta = await buildExportMeta(host, tool.manifest, profile);
       }
       // Data/text formats are produced from the input model (and optional sibling
       // text templates), not the rendered DOM. The engine hydrates the text here
@@ -271,12 +294,41 @@ function buildDataPayload(tool, format, model, getHydratedText) {
   }
   const tpl = tool.textTemplates?.[format];
   if (tpl == null) {
-    throw new Error(`Tool "${tool.manifest.id}" declares format "${format}" but ships no template.${format}`);
+    // Distinguish a template that failed to LOAD (transient/CDN) from one that's
+    // genuinely absent, so a shell can map the failure to the right message
+    // (e.g. "try again" vs. "this tool can't produce that format"). Tag both with
+    // a stable code the shell can branch on.
+    const loadError = tool.textTemplateErrors?.[format];
+    const err = new Error(
+      loadError != null
+        ? `Tool "${tool.manifest.id}" couldn't load its template.${format} (${loadError})`
+        : `Tool "${tool.manifest.id}" declares format "${format}" but ships no template.${format}`,
+    );
+    err.code = loadError != null ? 'TEXT_TEMPLATE_LOAD_FAILED' : 'TEXT_TEMPLATE_MISSING';
+    throw err;
   }
   return { dataText: getHydratedText(tpl), dataMime };
 }
 
+// True when an input carries an asset ref that still needs resolving — either a
+// top-level asset value or a block whose declared asset sub-fields hold a ref.
+function inputNeedsAssetResolve(input) {
+  const v = input.value;
+  if (v && typeof v === 'object' && input.type === 'asset' && typeof v.id === 'string') return true;
+  if (input.type === 'blocks' && Array.isArray(v)) {
+    const assetFields = (input.fields ?? []).filter(f => f.type === 'asset');
+    if (!assetFields.length) return false;
+    return v.some(item => item && typeof item === 'object' &&
+      assetFields.some(f => { const r = item[f.id]; return r && typeof r === 'object' && typeof r.id === 'string'; }));
+  }
+  return false;
+}
+
 async function resolveAssetRefs(model, host, dropped = []) {
+  // Nothing to resolve → return the SAME model reference (no array/object churn,
+  // no microtask). Most mounts have no unresolved asset refs at all.
+  if (!model.some(inputNeedsAssetResolve)) return model;
+
   const resolveOne = async (id, inputId, label) => {
     // Re-resolve any asset ref that carries an id — this covers both the
     // _unresolved URL-mode path AND saved-session refs.  Saved sessions store
@@ -328,6 +380,10 @@ async function resolveAssetRefs(model, host, dropped = []) {
 // fallback for when the token is absent on this device.
 async function resolveTokenRefs(model, host) {
   if (!host.tokens) return model; // shell without token support — leave values as-is
+  // No colour input carries a token ref/alias → skip the host.tokens.get() round
+  // trip entirely and keep the same model reference.
+  const needs = model.some(i => i.type === 'color' && (isTokenValue(i.value) || isAlias(i.value)));
+  if (!needs) return model;
   let set;
   try { set = await host.tokens.get(); } catch { return model; }
   return model.map(input => {
@@ -343,21 +399,38 @@ async function resolveTokenRefs(model, host) {
   });
 }
 
+// Compiled hook factories, memoised by tool id@version. `new Function(...)`
+// re-parses the whole hooks.js source (chart-creator is ~525 lines) — but the
+// source is identical for a given tool version, and the factory is host-agnostic
+// (it only takes `host` as an argument), so the compiled factory is safe to reuse
+// across every mount/re-mount of that version.
+const hookFactoryCache = new Map();
+
+function getHookFactory(tool) {
+  const key = `${tool.manifest.id}@${tool.manifest.version}`;
+  let factory = hookFactoryCache.get(key);
+  if (!factory) {
+    // Hooks run in a Function() scope with only the host bridge in reach.
+    // No window, no global fetch — anything tools need goes through host.
+    // typeof guards prevent ReferenceError for hooks that aren't declared.
+    factory = new Function(
+      'host',
+      `${tool.hooksSource}; return {` +
+      `onInit: typeof onInit !== 'undefined' ? onInit : null,` +
+      `onInput: typeof onInput !== 'undefined' ? onInput : null,` +
+      `beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,` +
+      `beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,` +
+      `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,` +
+      `exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null` +
+      `};`,
+    );
+    hookFactoryCache.set(key, factory);
+  }
+  return factory;
+}
+
 async function loadHooks(tool, host) {
-  // Hooks run in a Function() scope with only the host bridge in reach.
-  // No window, no global fetch — anything tools need goes through host.
-  // typeof guards prevent ReferenceError for hooks that aren't declared.
-  const factory = new Function(
-    'host',
-    `${tool.hooksSource}; return {` +
-    `onInit: typeof onInit !== 'undefined' ? onInit : null,` +
-    `onInput: typeof onInput !== 'undefined' ? onInput : null,` +
-    `beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,` +
-    `beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,` +
-    `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,` +
-    `exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null` +
-    `};`,
-  );
+  const factory = getHookFactory(tool);
   const mod = factory(host);
   return {
     onInit:       typeof mod.onInit       === 'function' ? mod.onInit       : null,
@@ -382,18 +455,24 @@ function withTimeout(promise, ms, toolId) {
 /**
  * Split a hook patch into model updates (declared input ids) and extras
  * (computed values with no matching input). Returns updated model + extras.
+ *
+ * `inputIds` is the runtime's stable Set of declared ids (built once at mount).
+ * When the patch touches no declared input (the common extras-only case, e.g. a
+ * hook that only computes QR modules / badge geometry) the SAME model reference
+ * is returned, so templateContext's ref-equality cache isn't needlessly busted.
  */
-function mergePatch(model, extras, patch) {
+function mergePatch(model, extras, patch, inputIds) {
   if (!patch || typeof patch !== 'object') return { model, extras };
-  const inputIds = new Set(model.map(i => i.id));
+  const ids = inputIds ?? new Set(model.map(i => i.id));
   const newExtras = { ...extras };
   const modelPatch = {};
+  let hasModelPatch = false;
   for (const [k, v] of Object.entries(patch)) {
-    if (inputIds.has(k)) modelPatch[k] = v;
+    if (ids.has(k)) { modelPatch[k] = v; hasModelPatch = true; }
     else newExtras[k] = v;
   }
-  const newModel = model.map(input =>
-    input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input,
-  );
+  const newModel = hasModelPatch
+    ? model.map(input => (input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input))
+    : model;
   return { model: newModel, extras: newExtras };
 }

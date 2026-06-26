@@ -12,9 +12,13 @@
  * Personal fields (author/contact) appear only if the user filled in their
  * profile; the "Lolly" software/source tags are always stamped.
  */
-export async function buildExportMeta(host, manifest) {
-  let p = {};
-  try { p = (await host?.profile?.get?.()) ?? {}; } catch { p = {}; }
+export async function buildExportMeta(host, manifest, profile) {
+  // The runtime already resolved the profile at mount; callers pass it through to
+  // avoid a redundant lookup. Fall back to fetching when omitted.
+  let p = profile;
+  if (p == null) {
+    try { p = (await host?.profile?.get?.()) ?? {}; } catch { p = {}; }
+  }
 
   const clean = (s) => (s == null ? '' : String(s).trim());
   // Personal details are embedded only when the user has opted in

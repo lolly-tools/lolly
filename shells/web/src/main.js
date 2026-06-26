@@ -12,9 +12,6 @@ import { createBridge } from './bridge/index.js';
 import { syncCatalog, syncCorePrefetch } from './catalog/sync.js';
 import { mountGallery } from './views/gallery.js';
 import { mountTool } from './views/tool.js';
-import { mountProfile } from './views/profile.js';
-import { mountPlatform } from './views/platform.js';
-import { mountCapabilities } from './views/capabilities.js';
 import { initTheme, applyTheme } from './theme.js';
 import { recordTool, recordBatch, bumpMetric, recordFormat } from './metrics.js';
 import { announce } from './a11y.js';
@@ -59,15 +56,24 @@ async function navigate(host) {
       recordTool(route.toolId); // local usage metric (profile page)
       await mountTool(view, host, route.toolId, route.params);
       break;
-    case 'profile':
+    // Profile / Platform / Capabilities pull in their own (sometimes heavy, e.g.
+    // fflate) deps; lazy-load them so they stay out of the cold-load bundle that
+    // every gallery visitor pays for. Same dynamic-import pattern as /pro below.
+    case 'profile': {
+      const { mountProfile } = await import('./views/profile.js');
       await mountProfile(view, host, route.params);
       break;
-    case 'platform':
+    }
+    case 'platform': {
+      const { mountPlatform } = await import('./views/platform.js');
       await mountPlatform(view, host);
       break;
-    case 'capabilities':
+    }
+    case 'capabilities': {
+      const { mountCapabilities } = await import('./views/capabilities.js');
       await mountCapabilities(view, host);
       break;
+    }
     // --- /pro batch mode: isolated, lazy-loaded feature. Safe to remove by
     // deleting src/pro/ and this case + the parseRoute branch below. ---
     case 'pro': {
@@ -144,9 +150,40 @@ async function boot() {
   const profile = await host.profile.get();
   if (profile.theme) applyTheme(profile.theme, false);
 
-  await syncCatalog(host);
-  await navigate(host);
-  syncCorePrefetch(host); // fire-and-forget; blobs cached after first paint
+  // Prime the in-memory tool index from the last cached copy so the gallery can
+  // paint immediately, before the network catalog sync resolves. syncCatalog
+  // overwrites window.__toolIndex with fresh data when it lands. (Mirrors the
+  // 'sbt-tool-index' fallback key written by catalog/sync.js.)
+  if (!window.__toolIndex) {
+    try {
+      const cached = localStorage.getItem('sbt-tool-index');
+      if (cached) window.__toolIndex = JSON.parse(cached);
+    } catch { /* ignore corrupt/oversized cache */ }
+  }
+
+  const catalogReady = syncCatalog(host);
+  catalogReady.then(() => syncCorePrefetch(host)); // fire-and-forget after sync
+
+  // The gallery tolerates an empty/cached index on first paint (it defaults to
+  // { tools: [] }), so don't block the first render on the network sync — it
+  // always falls back to cache anyway. Deep links to a tool/profile/etc. need
+  // the synced catalog (asset metadata) before their first render, so those keep
+  // the original "sync, then navigate" ordering.
+  if (parseRoute().name === 'gallery') {
+    const before = JSON.stringify(window.__toolIndex ?? null);
+    await navigate(host);
+    catalogReady.then(() => {
+      // Refresh only if still on the gallery and the catalog actually changed,
+      // so we don't needlessly replay the card-in animation on a no-op sync.
+      if (parseRoute().name === 'gallery' &&
+          JSON.stringify(window.__toolIndex ?? null) !== before) {
+        navigate(host).catch(console.error);
+      }
+    });
+  } else {
+    await catalogReady;
+    await navigate(host);
+  }
 
   window.addEventListener('hashchange', () => navigate(host).catch(console.error));
 
@@ -187,12 +224,21 @@ function parseRoute() {
   return { name: 'gallery' };
 }
 
-if ('serviceWorker' in navigator) {
+// Only register the service worker in production builds. In dev it would cache
+// /tools/ files, so a slow reload could serve a stale edit instead of the file
+// just changed on disk.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   navigator.serviceWorker.register('/sw.js').catch(() => {});
 }
 
 boot().catch(err => {
   console.error('Boot failed:', err);
-  document.getElementById('view').innerHTML =
-    `<div class="error">Boot failed: ${err.message}</div>`;
+  // Build the error node with textContent — never interpolate err.message into
+  // innerHTML (it can carry attacker-influenced strings).
+  const view = document.getElementById('view');
+  view.textContent = '';
+  const div = document.createElement('div');
+  div.className = 'error';
+  div.textContent = `Boot failed: ${err.message}`;
+  view.appendChild(div);
 });

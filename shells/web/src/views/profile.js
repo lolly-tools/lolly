@@ -27,6 +27,20 @@ const FIELD_LABELS = {
   phone: 'Phone', city: 'City', country: 'Country',
 };
 
+// Per-field input semantics — the right keyboard on mobile, native validation
+// and autofill where it helps. Anything not listed falls back to a plain text
+// input (autocomplete off, as before).
+const FIELD_ATTRS = {
+  firstname: { type: 'text', autocomplete: 'given-name' },
+  lastname:  { type: 'text', autocomplete: 'family-name' },
+  email:     { type: 'email', inputmode: 'email', autocomplete: 'email' },
+  phone:     { type: 'tel', autocomplete: 'tel' },
+};
+const fieldAttrs = (f) => {
+  const a = FIELD_ATTRS[f] ?? { type: 'text', autocomplete: 'off' };
+  return Object.entries(a).map(([k, v]) => `${k}="${escape(v)}"`).join(' ');
+};
+
 // The headshot lives in the user-assets store under one fixed id (so a new one
 // overwrites the old and it only ever occupies a single slot), and is kept out
 // of the "My images" library list.
@@ -90,7 +104,7 @@ export async function mountProfile(viewEl, host, params = '') {
               <div class="profile-fields">
                 ${fields.map(f => `<label class="profile-field">
                   <span class="profile-field-label">${escape(FIELD_LABELS[f] ?? f)}</span>
-                  <input type="text" name="${f}" value="${escape(profile[f] ?? '')}" autocomplete="off" placeholder=" ">
+                  <input ${fieldAttrs(f)} name="${f}" value="${escape(profile[f] ?? '')}" placeholder=" ">
                 </label>`).join('')}
               </div>
 
@@ -114,10 +128,11 @@ export async function mountProfile(viewEl, host, params = '') {
                   <button type="button" class="headshot-remove" id="headshot-remove" aria-label="Remove headshot" title="Remove"${headshotUrl ? '' : ' hidden'}>&times;</button>
                   <input type="file" id="headshot-file" accept="image/png,image/jpeg,image/webp" hidden>
                 </div>
+                <p class="profile-inline-error" id="headshot-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
               </div>
               <div class="profile-field">
                 <span class="profile-field-label">Theme</span>
-                <div class="segmented-control" id="theme-picker">
+                <div class="segmented-control" id="theme-picker" role="group" aria-label="Theme">
                   ${THEMES.map(t => `<button type="button" class="segmented-btn" data-theme-value="${t}" aria-pressed="${t === currentTheme}">${escape(t.charAt(0).toUpperCase() + t.slice(1))}</button>`).join('')}
                 </div>
               </div>
@@ -142,7 +157,7 @@ export async function mountProfile(viewEl, host, params = '') {
           <p class="storage-hint-text feature-hint-text">Self-governance, autonomy, choice. Enable or disable parts of the app here</p>
           <ul class="feature-flags" id="feature-flags">
             ${CATEGORY_FLAGS.map(flagRow).join('')}
-            <li class="feature-flag-divider" role="separator"></li>
+            <li class="feature-flag-divider" aria-hidden="true"></li>
             ${flagRow(PRO_FLAG)}
           </ul>
         </div>
@@ -215,13 +230,19 @@ export async function mountProfile(viewEl, host, params = '') {
     if (!file) return;
     const cropped = await openHeadshotCropper(file);
     if (!cropped) return; // cancelled or undecodable
+    const errEl = viewEl.querySelector('#headshot-error');
+    if (errEl) errEl.hidden = true;
     try {
       const ref = await saveHeadshot(host, cropped.blob);
       paintHeadshot(ref.url);
       await refreshCounter();
     } catch (err) {
       host.log?.('error', 'Headshot save failed', { error: String(err) });
-      alert(String(err?.message ?? err)); // e.g. the storage-cap message
+      // Inline + announced, matching the import-dialog error pattern — not a
+      // blocking alert(). e.g. the storage-cap message.
+      const msg = String(err?.message ?? err);
+      if (errEl) { errEl.textContent = msg; errEl.hidden = false; }
+      announce(msg, { assertive: true });
     }
   });
   viewEl.querySelector('#headshot-remove')?.addEventListener('click', async () => {
@@ -317,6 +338,7 @@ export async function mountProfile(viewEl, host, params = '') {
           </button>
         </div>
         <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/jpeg,image/webp" multiple hidden>
+        <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
       </div>
 
       <div class="storage-subsection">
@@ -370,6 +392,8 @@ export async function mountProfile(viewEl, host, params = '') {
       userimgFile.value = '';
       if (!files.length) return;
       if (userimgAddBtn) userimgAddBtn.disabled = true;
+      const imgErr = viewEl.querySelector('#userimg-error');
+      if (imgErr) imgErr.hidden = true;
       for (const file of files) {
         try {
           const ref = await storeUserUpload(host, file);
@@ -378,7 +402,10 @@ export async function mountProfile(viewEl, host, params = '') {
             ?.insertAdjacentHTML('afterbegin', userImageThumb(ref));
         } catch (err) {
           host.log?.('error', 'Image upload failed', { name: file.name, error: String(err) });
-          alert(String(err?.message ?? err)); // e.g. the cap / storage-full message
+          // Inline + announced (not a blocking alert) — e.g. the cap / storage-full message.
+          const msg = String(err?.message ?? err);
+          if (imgErr) { imgErr.textContent = msg; imgErr.hidden = false; }
+          announce(msg, { assertive: true });
           break; // stop the batch on a cap/quota error
         }
       }
@@ -402,7 +429,7 @@ export async function mountProfile(viewEl, host, params = '') {
       try {
         await host.assets._deleteUserAsset(id);
       } catch (err) {
-        host.log('error', 'Failed to delete image', { id, error: String(err) });
+        host.log?.('error', 'Failed to delete image', { id, error: String(err) });
         btn.disabled = false;
         return;
       }
@@ -447,6 +474,17 @@ export async function mountProfile(viewEl, host, params = '') {
       `;
       document.body.appendChild(overlay);
 
+      // Escape-to-dismiss + focus-restore, mirroring openImageLightbox. (A full
+      // Tab focus-trap is deferred — see followups.)
+      const opener = document.activeElement;
+      const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); dismiss(); } };
+      const dismiss = () => {
+        document.removeEventListener('keydown', onKey);
+        overlay.remove();
+        if (opener instanceof HTMLElement) opener.focus();
+      };
+      document.addEventListener('keydown', onKey);
+
       const confirmInput = overlay.querySelector('.clear-confirm-input');
       const clearBtn = overlay.querySelector('[data-scope="all"]');
       const matches = () => confirmInput.value.trim().toLowerCase() === word;
@@ -456,7 +494,7 @@ export async function mountProfile(viewEl, host, params = '') {
 
       overlay.addEventListener('click', async e => {
         const scope = e.target.closest('[data-scope]')?.dataset.scope;
-        if (!scope || scope === 'cancel') { overlay.remove(); return; }
+        if (!scope || scope === 'cancel') { dismiss(); return; }
         if (scope === 'all' && !matches()) return; // guard: the word must match
 
         const btns = overlay.querySelectorAll('button');
@@ -468,6 +506,7 @@ export async function mountProfile(viewEl, host, params = '') {
         await clearIdbStores(['state', 'profile', 'user-assets', 'asset-blob', 'asset-meta']);
         host.profile.bust();
         applyTheme('light');
+        document.removeEventListener('keydown', onKey);
         overlay.remove();
         await mountProfile(viewEl, host);
       });
@@ -485,7 +524,7 @@ export async function mountProfile(viewEl, host, params = '') {
         announce(`Exported ${summary.sessions} session${summary.sessions === 1 ? '' : 's'} and ${summary.userAssets} image${summary.userAssets === 1 ? '' : 's'}`);
         btn.textContent = 'Exported';
       } catch (err) {
-        host.log('error', 'Data export failed', { error: String(err) });
+        host.log?.('error', 'Data export failed', { error: String(err) });
         btn.textContent = 'Export failed';
       }
       setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1800);
@@ -613,10 +652,22 @@ function showImportDialog(onConfirm) {
   `;
   document.body.appendChild(overlay);
 
+  // Escape-to-dismiss + focus-restore, mirroring openImageLightbox. (A full
+  // Tab focus-trap is deferred — see followups.)
+  const opener = document.activeElement;
+  const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); dismiss(); } };
+  const dismiss = () => {
+    document.removeEventListener('keydown', onKey);
+    overlay.remove();
+    if (opener instanceof HTMLElement) opener.focus();
+  };
+  document.addEventListener('keydown', onKey);
+  overlay.querySelector('[data-scope="import"]')?.focus();
+
   overlay.addEventListener('click', async e => {
     const scope = e.target.closest('[data-scope]')?.dataset.scope;
     if (!scope) return;
-    if (scope === 'cancel') { overlay.remove(); return; }
+    if (scope === 'cancel') { dismiss(); return; }
 
     const btns = overlay.querySelectorAll('button');
     const errEl = overlay.querySelector('.import-error');
@@ -624,6 +675,7 @@ function showImportDialog(onConfirm) {
     e.target.textContent = 'Importing…';
     try {
       await onConfirm();
+      document.removeEventListener('keydown', onKey);
       overlay.remove(); // success re-mounts the page; drop the (body-level) overlay
     } catch (err) {
       errEl.textContent = err?.message || 'Import failed.';

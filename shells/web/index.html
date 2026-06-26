@@ -45,11 +45,18 @@
   <link rel="icon" href="/favicon.ico" sizes="any" />
   <link rel="icon" href="/icons/icon-192.png" type="image/png" />
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  <!-- Preload the primary upright UI weight so it isn't discovered only after
+       app.css → @import fonts.css resolves (which causes a visible swap). Same
+       woff2 URL fonts.css lists first; crossorigin is required for fonts. -->
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/tools/lockup/src/fonts/webfonts/SUSE[wght].woff2" />
   <link rel="stylesheet" href="/src/styles/app.css" />
-  <!-- Apply saved theme before CSS paints to prevent flash of wrong theme. -->
+  <!-- Apply saved theme before CSS paints to prevent flash of wrong theme.
+       With no saved preference, seed from the OS colour scheme (mirrors
+       initTheme in theme.js) so a dark-OS visitor gets no light flash. -->
   <script>
     (function () {
       var t = localStorage.getItem('theme');
+      if (!t && matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
       if (t === 'dark' || t === 'suse') document.documentElement.dataset.theme = t;
     })();
   </script>

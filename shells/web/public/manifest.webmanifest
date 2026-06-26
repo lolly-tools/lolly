@@ -2,6 +2,7 @@
   "name": "Lolly",
   "short_name": "Lolly",
   "description": "Generate on-brand assets — QR codes, charts, graphics, PDFs and more — from simple inputs.",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -26,5 +27,28 @@
     }
   ],
   "categories": ["productivity", "design"],
+  "shortcuts": [
+    {
+      "name": "New QR code",
+      "short_name": "QR code",
+      "url": "/qr-code",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Batch mode",
+      "short_name": "Batch",
+      "url": "/pro",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Lolly — generate on-brand assets from simple inputs"
+    }
+  ],
   "lang": "en"
 }

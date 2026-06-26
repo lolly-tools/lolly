@@ -562,14 +562,24 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   const exportBody    = viewEl.querySelector('#export-popup-body');
   if (!hideSidebar && renderFab && exportOverlay && exportBody && actionsEl) {
     const mqMobile    = window.matchMedia('(max-width: 640px)');
+    // The popup is aria-modal, so make it truly modal: while it's open, mark every
+    // sibling in the layout inert (canvas/sidebar/FAB behind the sheet) so neither
+    // pointer nor Tab can reach them. Paired with the Tab wrap in onExportKey below.
+    const setBackgroundInert = (on) => {
+      for (const child of layout.children) {
+        if (child !== exportOverlay) child.inert = on;
+      }
+    };
     const closeExport = () => {
       layout.classList.remove('export-open');
       renderFab.setAttribute('aria-expanded', 'false');
+      setBackgroundInert(false);       // un-inert before returning focus to the trigger
       renderFab.focus(); // return focus to the trigger (it reappears on close)
     };
     const openExport = ({ focus = true } = {}) => {
       layout.classList.add('export-open');
       renderFab.setAttribute('aria-expanded', 'true');
+      setBackgroundInert(true);
       // Move focus into the dialog (its close button) for keyboard/SR users — but
       // not when auto-opened from ?options on load, where grabbing focus is jarring.
       if (focus) exportOverlay.querySelector('.export-popup-close')?.focus();
@@ -587,8 +597,23 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     renderFab.addEventListener('click', () => openExport());
     exportOverlay.querySelectorAll('[data-export-close]')
       .forEach(el => el.addEventListener('click', closeExport));
-    // Escape closes the export popup.
-    const onExportKey = (e) => { if (e.key === 'Escape' && layout.classList.contains('export-open')) closeExport(); };
+    // Escape closes the export popup; Tab is wrapped so focus stays within the
+    // sheet (a belt-and-braces companion to the inert background above — inert
+    // alone can let Tab graze the browser chrome between the last and first stop).
+    const onExportKey = (e) => {
+      if (!layout.classList.contains('export-open')) return;
+      if (e.key === 'Escape') { closeExport(); return; }
+      if (e.key !== 'Tab') return;
+      const focusables = [...exportOverlay.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )].filter(el => el.offsetParent !== null || el === document.activeElement);
+      if (focusables.length === 0) return;
+      const first = focusables[0], last = focusables[focusables.length - 1];
+      // Only wrap when focus is already at an edge of the popup — if it's elsewhere
+      // (e.g. an auto-opened panel the user hasn't tabbed into yet) leave Tab alone.
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
     document.addEventListener('keydown', onExportKey);
 
     // Flick-down to dismiss the export popup — the same instinct as swiping a
@@ -633,12 +658,23 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   }
 
   // Cleanup: remove injected <style>, disconnect observer, tear down canvas nav + export.
-  viewEl._cleanup = () => { styleEl.remove(); shutterEl?.remove(); ro.disconnect(); stageZoom?.destroy(); exportTeardown?.(); };
+  viewEl._cleanup = () => {
+    styleEl.remove(); shutterEl?.remove(); ro.disconnect(); stageZoom?.destroy(); exportTeardown?.();
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    // Document-level capture listeners added per renderInputs — drop them so a
+    // detached sidebar tree isn't pinned alive across tool navigation.
+    if (inputsEl?._colorPopoverDismiss) document.removeEventListener('click', inputsEl._colorPopoverDismiss, true);
+    if (inputsEl?._blockMenuDismiss)    document.removeEventListener('click', inputsEl._blockMenuDismiss, true);
+  };
 
   // Temporarily remove the CSS scale so dom-to-image sees native dimensions.
   // Also strips data-canvas-input attrs so they don't appear in exported files,
   // restoring them after so click-to-focus keeps working post-export.
   async function exportUnscaled(fn, { shutter = false } = {}) {
+    // Renders are coalesced behind rAF (see the subscriber below); an export reads
+    // the canvas DOM directly, so force any pending paint to land first — otherwise
+    // we'd capture the frame before the latest keystroke.
+    flushRender();
     // Embeds (lolly.tools/tool/… URLs) hydrate fire-and-forget on each render;
     // wait for the latest pass so export reads resolved blobs, not the placeholder.
     await embedsPending;
@@ -807,7 +843,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
 
   function markUserDirty(id) {
     userHasMadeChanges = true;
-    syncUrl(id);
+    // Just record the param as dirty — the coalesced render's syncUrl() (folded
+    // into the rAF below) writes the URL for every dirty param, so calling it here
+    // too would replaceState twice per keystroke for no benefit.
+    if (id) dirtyParams.add(id);
   }
 
   const actionsApi = renderActions(actionsEl, tool.manifest, runtime, canvasEl, host, resetView, exportUnscaled, exportDefaults, syncUrl, playShutter);
@@ -1001,10 +1040,22 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Latest embed-hydration promise; exportUnscaled awaits it so an export reads
   // resolved blob URLs rather than the neutralised 1×1 placeholder.
   let embedsPending = Promise.resolve();
-  runtime.subscribe(({ model, hydrated }) => {
-    if (inputsEl && !_sliderDragging) {
-      prevInputsModel = syncInputs(inputsEl, model, prevInputsModel, runtime, host, markUserDirty);
-    }
+
+  // The RENDER half of the subscriber is coalesced behind requestAnimationFrame:
+  // a full canvas rebuild swaps innerHTML, re-walks annotations, and re-executes
+  // every template <script> (chart/QR/map libs re-instantiate), so doing it per
+  // keystroke is wasteful. We stash the latest emit and paint at most once per
+  // frame — the sidebar sync (below) stays synchronous so typed values echo with
+  // no lag. The trailing emit is always the one we paint, so the final keystroke
+  // never gets dropped; flushRender() forces it out synchronously before exports.
+  let rafId = 0;
+  let pendingFrame = null;   // latest { model, hydrated } awaiting paint
+
+  function paint() {
+    rafId = 0;
+    if (!pendingFrame) return;
+    const { model, hydrated } = pendingFrame;
+    pendingFrame = null;
     const gen = ++renderGen;
     try {
       // Neutralise any lolly.tools embed URLs BEFORE insertion so the editor never
@@ -1089,6 +1140,23 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         runPreview().catch(err => console.error('Auto-preview failed:', err))
       );
     }
+  }
+
+  // Paint any queued frame right now (cancelling the scheduled rAF). Used by
+  // exportUnscaled so a capture reads the latest keystroke, and harmless if no
+  // frame is pending.
+  function flushRender() {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; paint(); }
+  }
+
+  runtime.subscribe(({ model, hydrated }) => {
+    // Sidebar sync is cheap and must stay responsive, so it runs synchronously on
+    // every emit; only the expensive canvas rebuild is deferred to the next frame.
+    if (inputsEl && !_sliderDragging) {
+      prevInputsModel = syncInputs(inputsEl, model, prevInputsModel, runtime, host, markUserDirty);
+    }
+    pendingFrame = { model, hydrated };
+    if (!rafId) rafId = requestAnimationFrame(paint);
   });
 
   // Canvas-layout file utilities (render.layout:"canvas"): the whole canvas IS
@@ -1833,7 +1901,7 @@ function renderInputs(el, model, runtime, host, onDirty) {
   }
 
   if (focusId) {
-    const restored = el.querySelector(`[data-input-id="${focusId}"]`);
+    const restored = el.querySelector(`[data-input-id="${CSS.escape(focusId)}"]`);
     if (restored) {
       restored.focus();
       if (selStart != null && restored.setSelectionRange) {
@@ -2245,10 +2313,11 @@ function controlHtml(input) {
             ).join('')
           }</div>`
         : '';
+      const unit = input.unit ?? input.suffix ?? '';
       return `<div class="custom-slider" data-input-id="${id}"
-          data-min="${min}" data-max="${max}" data-step="${step}"
+          data-min="${min}" data-max="${max}" data-step="${step}"${unit ? ` data-unit="${escape(unit)}"` : ''}
           tabindex="0" role="slider" aria-label="${escape(input.label ?? id)}"
-          aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${num}">
+          aria-valuemin="${min}" aria-valuemax="${max}" aria-valuenow="${num}" aria-valuetext="${escape(unit ? `${num} ${unit}` : String(num))}">
         <div class="cs-track">
           <div class="cs-fill" style="width:${pct}%"></div>
           <div class="cs-thumb" style="left:${pct}%"></div>
@@ -3623,6 +3692,7 @@ function setupCustomSlider(el, runtime, id, onDirty) {
   const min  = parseFloat(el.dataset.min);
   const max  = parseFloat(el.dataset.max);
   const step = parseFloat(el.dataset.step) || 1;
+  const unit = el.dataset.unit || '';
   const track = el.querySelector('.cs-track');
   const fill  = el.querySelector('.cs-fill');
   const thumb = el.querySelector('.cs-thumb');
@@ -3632,6 +3702,13 @@ function setupCustomSlider(el, runtime, id, onDirty) {
   function snap(raw) {
     const s = Math.round((raw - min) / step) * step + min;
     return +(Math.min(max, Math.max(min, s)).toFixed(10));
+  }
+
+  // Keep aria-valuenow and a human aria-valuetext (with the unit, when one exists)
+  // in lockstep so screen readers announce the value on every change.
+  function setAria(v) {
+    el.setAttribute('aria-valuenow', v);
+    el.setAttribute('aria-valuetext', unit ? `${v} ${unit}` : String(v));
   }
 
   function setThumb(rawVal) {
@@ -3654,7 +3731,7 @@ function setupCustomSlider(el, runtime, id, onDirty) {
       const snapped = snap(raw);
       if (snapped !== lastSnapped) {
         lastSnapped = snapped;
-        el.setAttribute('aria-valuenow', snapped);
+        setAria(snapped);
         runtime.setInput(id, snapped);
       }
     }
@@ -3676,14 +3753,20 @@ function setupCustomSlider(el, runtime, id, onDirty) {
   });
 
   el.addEventListener('keydown', e => {
-    let delta = 0;
-    if (e.key === 'ArrowRight' || e.key === 'ArrowUp')   delta = +step;
-    if (e.key === 'ArrowLeft'  || e.key === 'ArrowDown') delta = -step;
-    if (!delta) return;
+    let next = null;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp')   next = lastSnapped + step;
+    else if (e.key === 'ArrowLeft'  || e.key === 'ArrowDown') next = lastSnapped - step;
+    else if (e.key === 'Home')      next = min;
+    else if (e.key === 'End')       next = max;
+    else if (e.key === 'PageUp')    next = lastSnapped + step * 10;
+    else if (e.key === 'PageDown')  next = lastSnapped - step * 10;
+    if (next === null) return;
     e.preventDefault();
-    lastSnapped = snap(lastSnapped + delta);
+    const snapped = snap(next);
+    if (snapped === lastSnapped) return;
+    lastSnapped = snapped;
     setThumb(lastSnapped);
-    el.setAttribute('aria-valuenow', lastSnapped);
+    setAria(lastSnapped);
     onDirty?.(id);
     runtime.setInput(id, lastSnapped);
   });
@@ -3699,6 +3782,9 @@ function addScrubBehavior(inputEl, onChange) {
   const clamp  = v => Math.min(getMax(), Math.max(getMin(), v));
 
   inputEl.addEventListener('wheel', e => {
+    // Only hijack the wheel to scrub the value when the field is focused; otherwise
+    // let the event bubble so the surrounding panel scrolls past it normally.
+    if (document.activeElement !== inputEl) return;
     e.preventDefault();
     const step = e.shiftKey ? 10 : 1;
     inputEl.value = clamp((parseInt(inputEl.value, 10) || 0) + (e.deltaY < 0 ? step : -step));

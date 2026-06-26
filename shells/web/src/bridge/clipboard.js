@@ -2,6 +2,20 @@
  * ClipboardAPI — text and image clipboard ops with graceful fallback.
  */
 
+// Download extension for an image MIME. A bare `type.split('/')[1]` yields
+// "svg+xml" for SVG (→ a broken "image.svg+xml" name); map the common types and
+// strip any structured-syntax suffix for the rest.
+const IMAGE_EXT = {
+  'image/svg+xml': 'svg',
+  'image/png': 'png',
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/webp': 'webp',
+};
+function imageExt(mime) {
+  return IMAGE_EXT[mime] || (mime?.split('/')[1] || 'png').replace(/\+.*$/, '');
+}
+
 export function createClipboardAPI() {
   return {
     async writeText(text) {
@@ -63,7 +77,7 @@ export function createClipboardAPI() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `image.${blob.type.split('/')[1] || 'png'}`;
+      a.download = `image.${imageExt(blob.type)}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

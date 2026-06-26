@@ -63,10 +63,12 @@ export function createAssetsAPI(db) {
       const all = await db.getAll('asset-meta');
       const filtered = all.filter(m => matchesFilter(m, filter));
       // Don't pre-resolve blob URLs — that forces every cached blob into memory.
-      // For on-demand assets (e.g. headshots), expose the direct catalog URL so
-      // the picker can show thumbnails without needing a cached blob first.
+      // Every format carries a static catalog URL (same-origin for core/catalog,
+      // CDN for on-demand), so the picker can show a thumbnail directly without a
+      // cached blob first. Only flag a placeholder when there's genuinely no URL
+      // to resolve (an unresolved/on-demand tier with no static formats[0].url).
       return filtered.map(m => {
-        const directUrl = m.tier === 'on-demand' ? (m.formats[0]?.url ?? '') : '';
+        const directUrl = m.formats[0]?.url ?? '';
         return {
           source: 'library',
           id: m.id,
@@ -142,13 +144,7 @@ export function createAssetsAPI(db) {
     async _deleteUserAsset(id) {
       await db.delete('user-assets', id);
       // toAssetRef keys user URLs as `user:<id>:<format>:<version>` — evict any.
-      const prefix = `user:${id}:`;
-      for (const [key, url] of OBJECT_URL_CACHE) {
-        if (key.startsWith(prefix)) {
-          URL.revokeObjectURL(url);
-          OBJECT_URL_CACHE.delete(key);
-        }
-      }
+      evictObjectUrlsByPrefix(`user:${id}:`);
     },
 
     /**
@@ -171,6 +167,25 @@ export function createAssetsAPI(db) {
 
     async _hasBlob(key) {
       return (await db.get('asset-blob', key)) !== undefined;
+    },
+
+    /**
+     * Internal: the raw cached Blob for an asset, without minting an object URL.
+     * Used by callers that just want the bytes (e.g. tokens.loadDoc reading a
+     * JSON document) so they don't pin an unused URL in OBJECT_URL_CACHE.
+     * Resolves on-demand tiers the same way get() does. Returns null if absent.
+     */
+    async _getBlob(id, opts = {}) {
+      const meta = await db.get('asset-meta', id);
+      if (!meta) return null;
+      const format = pickFormat(meta, opts.format);
+      const version = opts.version ?? meta.version;
+      const blobKey = `${id}:${format.format}:${version}`;
+      let blob = await db.get('asset-blob', blobKey);
+      if (!blob && meta.tier === 'on-demand') {
+        blob = await fetchAndCache(meta, format, blobKey, db);
+      }
+      return blob ?? null;
     },
 
     async _blobCacheSize() {
@@ -223,6 +238,10 @@ export function createAssetsAPI(db) {
         const tx = db.transaction('asset-blob', 'readwrite');
         await Promise.all(staleBlobs.map(k => tx.store.delete(k)));
         await tx.done;
+        // Revoke any live object URLs minted for these now-deleted blobs.
+        // toAssetRef keys library URLs as `library:<blobKey>` — without this the
+        // OBJECT_URL_CACHE leaks one entry per pruned blob on every sync.
+        for (const k of staleBlobs) evictObjectUrl(`library:${k}`);
       }
       if (staleMeta.length) {
         const tx = db.transaction('asset-meta', 'readwrite');
@@ -247,6 +266,25 @@ export function createAssetsAPI(db) {
       return cached.some(Boolean);
     },
   };
+}
+
+/** Revoke + drop a single object-URL cache entry, if present. */
+function evictObjectUrl(cacheKey) {
+  const url = OBJECT_URL_CACHE.get(cacheKey);
+  if (url) {
+    URL.revokeObjectURL(url);
+    OBJECT_URL_CACHE.delete(cacheKey);
+  }
+}
+
+/** Revoke + drop every object-URL cache entry whose key starts with `prefix`. */
+function evictObjectUrlsByPrefix(prefix) {
+  for (const [key, url] of OBJECT_URL_CACHE) {
+    if (key.startsWith(prefix)) {
+      URL.revokeObjectURL(url);
+      OBJECT_URL_CACHE.delete(key);
+    }
+  }
 }
 
 function userAssetError(message, code) {
@@ -324,7 +362,40 @@ async function fetchAndCache(meta, format, blobKey, db) {
   const resp = await fetch(format.url);
   if (!resp.ok) throw new Error(`Failed to fetch asset: ${resp.status}`);
   const blob = await resp.blob();
-  // TODO: verify checksum against format.checksum before storing.
+  await verifyAssetChecksum(blob, format);
   await db.put('asset-blob', blob, blobKey);
   return blob;
+}
+
+/**
+ * SRI SHA-256 (`sha256-<base64>`) for a blob's bytes, byte-for-byte matching the
+ * build-time format from scripts/checksum-assets.js — there it's
+ * createHash('sha256').digest('base64'); Node's base64 alphabet + `=` padding is
+ * identical to btoa over the raw digest, so the strings compare equal.
+ */
+async function sriForBlob(blob) {
+  const buf = await blob.arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', buf);
+  const bytes = new Uint8Array(digest);
+  let bin = '';
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return `sha256-${btoa(bin)}`;
+}
+
+/**
+ * Verify freshly-fetched bytes against the catalog checksum, throwing on a real
+ * mismatch (tampered/corrupt download). No-ops when the format carries no
+ * checksum or the runtime lacks crypto.subtle (non-secure context) — integrity
+ * is a guard, not a hard gate that should brick loading on edge runtimes. The
+ * deployed catalog's checksums are kept current by validate-catalog.js (CI), so
+ * this never false-positives on a correctly-published asset.
+ */
+export async function verifyAssetChecksum(blob, format) {
+  if (!format?.checksum || !globalThis.crypto?.subtle) return;
+  const actual = await sriForBlob(blob);
+  if (actual !== format.checksum) {
+    throw new Error(
+      `Asset checksum mismatch for ${format.url}: expected ${format.checksum}, got ${actual}`,
+    );
+  }
 }

@@ -37,9 +37,31 @@
  * round-trip can be exercised headlessly in tests against an in-memory bridge.
  */
 
-import { zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
+import { zip, unzip, zipSync, unzipSync, strToU8, strFromU8 } from 'fflate';
 
 export const BACKUP_FORMAT = 'lolly-backup';
+
+// (Un)zipping a backup can be tens of MB of images; on the UI thread the synchronous
+// path froze the tab for seconds. fflate's async zip/unzip offload to a Web Worker,
+// keeping the click responsive. But the worker only exists in a real browser — the
+// headless round-trip test (and any no-Worker context) has no global Worker, where
+// fflate's async would have nothing to offload to. So gate on Worker presence and
+// fall back to the synchronous path there (byte-identical output, just blocking).
+const HAS_WORKER = typeof Worker !== 'undefined';
+
+function zipAsync(entries) {
+  if (!HAS_WORKER) return Promise.resolve(zipSync(entries));
+  return new Promise((resolve, reject) => {
+    zip(entries, (err, data) => (err ? reject(err) : resolve(data)));
+  });
+}
+
+function unzipAsync(bytes) {
+  if (!HAS_WORKER) return Promise.resolve(unzipSync(bytes));
+  return new Promise((resolve, reject) => {
+    unzip(bytes, (err, data) => (err ? reject(err) : resolve(data)));
+  });
+}
 
 // `formatVersion` is the layout this build *writes* — bump it on any change to the
 // part set or their shapes. Readers, however, never gate on it directly: they gate
@@ -230,7 +252,7 @@ export async function exportBackup({ host, storage }) {
 
   entries['manifest.json'] = strToU8(JSON.stringify(manifest, null, 2));
 
-  const zipped = zipSync(entries); // synchronous; fine for a click-time action
+  const zipped = await zipAsync(entries); // off-thread in the browser; sync fallback elsewhere
   const blob = new Blob([zipped], { type: 'application/zip' });
   const filename = backupFilename(profile, storage);
   return { blob, filename, summary };
@@ -257,7 +279,7 @@ export async function exportBackup({ host, storage }) {
 export async function importBackup({ host, storage }, bytes) {
   let files;
   try {
-    files = unzipSync(bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes));
+    files = await unzipAsync(bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes));
   } catch {
     throw new Error("That file isn't a valid backup — it couldn't be unzipped.");
   }

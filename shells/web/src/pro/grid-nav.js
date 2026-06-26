@@ -35,12 +35,18 @@ export function createGridNav(container) {
   const allCells = () => [...container.querySelectorAll(CELL_SEL)];
   const editableIn = (td) => td?.querySelector(CONTROL_SEL) ?? null;
 
-  // The grid as a 2D array of <td>, in DOM (row, column) order. Rebuilt on
-  // demand — cheap, and always correct after re-renders.
+  // The grid as a 2D array of <td>, in DOM (row, column) order. Memoised: a
+  // single arrow keypress queries it several times (posOf + moveFocus), and on a
+  // big grid the querySelectorAll-per-press adds up. The cache is invalidated in
+  // refresh(), which every structural re-render funnels through, so it can never
+  // outlive the DOM it describes (focus/tabindex changes don't alter structure).
+  let _matrix = null;
   function matrix() {
-    return [...container.querySelectorAll('tbody tr')]
+    if (_matrix) return _matrix;
+    _matrix = [...container.querySelectorAll('tbody tr')]
       .map(tr => [...tr.querySelectorAll(':scope > ' + CELL_SEL)])
       .filter(r => r.length);
+    return _matrix;
   }
 
   function posOf(td) {
@@ -237,6 +243,7 @@ export function createGridNav(container) {
    * the render), move focus to the active cell so keyboard flow is unbroken.
    */
   function refresh({ restoreFocus = false } = {}) {
+    _matrix = null; // the DOM was (re)built — drop the cached cell matrix
     container.querySelectorAll(CONTROL_SEL).forEach(c => { c.tabIndex = -1; });
     const cells = allCells();
     if (!cells.length) { activeEl = null; return; }

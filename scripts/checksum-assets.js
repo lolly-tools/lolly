@@ -46,8 +46,9 @@ function run() {
     const formatLists = [asset.formats, ...Object.values(asset.locales ?? {})];
     for (const formats of formatLists) {
       for (const fmt of formats ?? []) {
-        const sri = sriForFile(localPathForUrl(fmt.url));
-        if (!sri) { missing.push(`${asset.id} → ${fmt.url}`); continue; }
+        const absPath = localPathForUrl(fmt.url);
+        const sri = sriForFile(absPath);
+        if (!sri) { missing.push(`${asset.id} → ${fmt.url}  (resolved: ${absPath})`); continue; }
         if (fmt.checksum !== sri.checksum || fmt.size !== sri.size) updated++;
         fmt.checksum = sri.checksum;
         fmt.size = sri.size;

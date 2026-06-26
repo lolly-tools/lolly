@@ -126,8 +126,6 @@
   color: hsl(var(--muted-foreground));
   pointer-events: none;
 }
-.asset-picker-id { padding-right: 2.75rem; } /* keep ids clear of the badge */
-
 .asset-picker-thumb {
   width: 100%;
   height: 100px;
@@ -157,11 +155,10 @@
   text-overflow: ellipsis;
 }
 .asset-picker-id {
- 
+  padding-right: 2.75rem; /* keep ids clear of the badge */
   font-size: 7px;
   color: hsl(var(--muted-foreground));
-  
-      font-family: "SUSE Mono", ui-monospace, monospace;
+  font-family: "SUSE Mono", ui-monospace, monospace;
 }
 
 .asset-picker-empty,

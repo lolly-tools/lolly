@@ -262,11 +262,27 @@ export async function mountPro(viewEl, host, opts = {}) {
     _armTimer = setTimeout(clearRemoveArm, 3000); // auto-cancel if left untouched
   }
 
+  // Colour cells (id is "row~col") write straight back to the row's values.
+  // Shared so the full render and the single-row swap (replaceRow) wire colour
+  // fields identically.
+  const colorOnChange = (id, value) => {
+    const sep = id.indexOf('~');
+    const r = rowByUid(id.slice(0, sep));
+    if (r) r.values[id.slice(sep + 1)] = value;
+  };
+
   // ── Render / re-render the grid from state ──────────────────────────────────
   function renderGrid() {
     clearRemoveArm(); // a re-render replaces the buttons; drop any pending confirm
     // Capture before we blow away the DOM, so nav can restore focus afterwards.
     const hadFocus = gridHost.contains(document.activeElement);
+    // Preserve scroll across the full DOM swap: innerHTML recreates the
+    // overflow:auto container (.pro-grid-scroll), which would otherwise snap a
+    // scrolled grid back to 0,0 on every bulk-fill / paste / delete. Restored
+    // AFTER nav.refresh, so focus-scrolling doesn't fight the restore.
+    const prevScroll = gridHost.querySelector('.pro-grid-scroll');
+    const scrollX = prevScroll?.scrollLeft ?? 0;
+    const scrollY = prevScroll?.scrollTop ?? 0;
     ctx.unit = state.unit; ctx.dpi = state.dpi; // toolbar defaults that rows inherit
     ctx.collapsed = state.collapsed;            // export-column collapse for bodyRow (incl. addRows)
     const all = deriveColumns(state.rows.filter(r => r.manifest));
@@ -276,18 +292,34 @@ export async function mountPro(viewEl, host, opts = {}) {
     const hidden = all.filter(c => state.collapsed.has(c.key));
     gridHost.innerHTML = renderGridHtml(state, visible, ctx, hidden);
     // Wire the shared SUSE colour picker for any colour cells (id is "row~col").
-    wireColorField(gridHost, {
-      onChange: (id, value) => {
-        const sep = id.indexOf('~');
-        const r = rowByUid(id.slice(0, sep));
-        if (r) r.values[id.slice(sep + 1)] = value;
-      },
-    });
+    wireColorField(gridHost, { onChange: colorOnChange });
     const filled = state.rows.filter(r => r.toolId).length;
     renderBtn.disabled = filled === 0 || state.running; // count text now lives in the columns bar
     nav.refresh({ restoreFocus: hadFocus });
+    const nextScroll = gridHost.querySelector('.pro-grid-scroll');
+    if (nextScroll) { nextScroll.scrollLeft = scrollX; nextScroll.scrollTop = scrollY; }
     highlightRelevantTags(); // outline the hidden tags the active row actually uses
     return visible;
+  }
+
+  // Swap a single row's <tr> in place. A per-row format/unit change touches only
+  // that row (the column set is derived from the chosen tools, which don't
+  // change), so a full renderGrid() — with its scroll capture/restore and total
+  // re-wire — is wasted work. Re-wires just this row's colour fields and asks nav
+  // to re-find the active cell inside the fresh <tr>. Falls back to a full render
+  // if the row's gone.
+  function replaceRow(uid) {
+    const row = rowByUid(uid);
+    const tr = gridHost.querySelector(`tbody tr[data-row="${CSS.escape(uid)}"]`);
+    if (!row || !tr) { columns = renderGrid(); return; }
+    const hadFocus = gridHost.contains(document.activeElement);
+    const tmp = document.createElement('template');
+    tmp.innerHTML = bodyRow(row, columns, ctx);
+    const next = tmp.content.firstElementChild;
+    if (!next) { columns = renderGrid(); return; }
+    tr.replaceWith(next);
+    wireColorField(next, { onChange: colorOnChange });
+    nav.refresh({ restoreFocus: hadFocus });
   }
 
   // Outline the hidden data-column tags that the row you're on actually uses, so a
@@ -399,8 +431,8 @@ export async function mountPro(viewEl, host, opts = {}) {
     pop.className = 'pro-popover pro-tpl-popover';
     pop._row = row.uid;
     pop.innerHTML = `
-      <input type="search" class="pro-tpl-search" placeholder="Search templates…" autocomplete="off" spellcheck="false" aria-label="Search templates">
-      <ul class="pro-tpl-list" role="listbox"></ul>`;
+      <input type="search" class="pro-tpl-search" role="combobox" aria-expanded="true" aria-controls="pro-tpl-listbox" aria-autocomplete="list" aria-activedescendant="" placeholder="Search templates…" autocomplete="off" spellcheck="false" aria-label="Search templates">
+      <ul class="pro-tpl-list" id="pro-tpl-listbox" role="listbox"></ul>`;
     document.body.appendChild(pop);
     _tplPop = pop;
 
@@ -416,19 +448,30 @@ export async function mountPro(viewEl, host, opts = {}) {
     let shown = [];
     let active = 0;
 
+    // Point the combobox at its active option so screen readers announce it as
+    // focus moves through the list (the search box keeps DOM focus throughout).
+    const syncActiveDescendant = () => {
+      search.setAttribute('aria-activedescendant', listEl.querySelector('.pro-tpl-opt.is-active')?.id ?? '');
+    };
     const draw = (q) => {
       const ql = q.trim().toLowerCase();
       shown = ql ? tools.filter(t => (t.name ?? t.id).toLowerCase().includes(ql)) : tools;
       active = Math.min(active, Math.max(0, shown.length - 1));
       listEl.innerHTML = shown.length
-        ? shown.map((t, i) => `<li role="option"><button type="button" class="pro-tpl-opt${i === active ? ' is-active' : ''}" data-tool="${escapeHtml(t.name)}">
+        ? shown.map((t, i) => `<li><button type="button" role="option" id="pro-tpl-opt-${i}" aria-selected="${i === active ? 'true' : 'false'}" class="pro-tpl-opt${i === active ? ' is-active' : ''}" data-tool="${escapeHtml(t.name)}">
             <span class="pro-tpl-opt-name">${escapeHtml(t.name)}</span>${t.status === 'experimental' ? '<span class="pro-tpl-opt-exp">exp</span>' : ''}
           </button></li>`).join('')
         : `<li class="pro-tpl-none">No templates match “${escapeHtml(q)}”.</li>`;
+      syncActiveDescendant();
     };
     const highlight = () => {
-      [...listEl.querySelectorAll('.pro-tpl-opt')].forEach((b, i) => b.classList.toggle('is-active', i === active));
+      [...listEl.querySelectorAll('.pro-tpl-opt')].forEach((b, i) => {
+        const on = i === active;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
       listEl.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' });
+      syncActiveDescendant();
     };
     const pick = async (name, advance = false) => {
       closeTemplatePicker();
@@ -467,13 +510,15 @@ export async function mountPro(viewEl, host, opts = {}) {
     const t = e.target;
     if (t.matches('[data-row-format]')) {
       const row = rowByUid(t.dataset.rowFormat);
-      if (row) { row.format = t.value || undefined; columns = renderGrid(); }
+      // Only this row's template-cell format face changes; swap just its <tr>.
+      if (row) { row.format = t.value || undefined; replaceRow(row.uid); }
       return;
     }
     if (t.matches('[data-out-unit]')) {
       const row = rowByUid(t.dataset.row);
-      // Re-render: the DPI cell + the width/height placeholders depend on the unit.
-      if (row) { row.unit = t.value; columns = renderGrid(); }
+      // The DPI cell + width/height placeholders depend on the unit, but all live
+      // in this row — swap just its <tr> (no column-set change).
+      if (row) { row.unit = t.value; replaceRow(row.uid); }
       return;
     }
     const cell = t.closest?.('[data-cell]');
@@ -1146,26 +1191,37 @@ export async function mountPro(viewEl, host, opts = {}) {
     renderGrid();
 
     const total = renderable.length;
-    const log = [];
     const skipNote = skipped.length
       ? `<li class="pro-log-skip">${skipped.length} row${skipped.length === 1 ? '' : 's'} skipped (${escapeHtml(skipped[0].reason)}${skipped.length > 1 ? ', …' : ''})</li>`
       : '';
 
-    // Persistent progress shell: a rotating quip on top, the live log below.
-    // draw() only rewrites the body, so the quip keeps its own cadence instead
-    // of restarting on every per-image redraw.
+    // Persistent progress shell: a rotating quip on top, then a head line + a
+    // single Cancel button, then the live log. The Cancel button and the <ol>
+    // are built ONCE here. draw() rewrites only the head text, and each finished
+    // row appends one <li>. (The old code rebuilt the whole body on every row:
+    // it re-created the Cancel button without re-binding its click — so it went
+    // dead after row 1 — and re-serialised the entire log each time, O(N²) on a
+    // big batch.)
     progressEl.hidden = false;
-    progressEl.innerHTML = `<div class="pro-quip" aria-hidden="true"></div><div class="pro-progress-body"></div>`;
-    const bodyEl = progressEl.querySelector('.pro-progress-body');
-    const quipEl = progressEl.querySelector('.pro-quip');
-    const draw = (head) => {
-      bodyEl.innerHTML = `
+    progressEl.innerHTML = `
+      <div class="pro-quip" aria-hidden="true"></div>
+      <div class="pro-progress-body">
         <div class="pro-progress-head">
-          ${head}
-          ${state.running ? `<button type="button" class="pro-btn" id="pro-cancel">Cancel</button>` : ''}
+          <span class="pro-progress-headtext"></span>
+          <button type="button" class="pro-btn" id="pro-cancel">Cancel</button>
         </div>
-        <ol class="pro-log">${skipNote}${log.join('')}</ol>`;
-    };
+        <ol class="pro-log"></ol>
+      </div>`;
+    const quipEl = progressEl.querySelector('.pro-quip');
+    const headEl = progressEl.querySelector('.pro-progress-headtext');
+    const logEl = progressEl.querySelector('.pro-log');
+    const cancelBtn = progressEl.querySelector('#pro-cancel');
+    if (skipNote) logEl.insertAdjacentHTML('beforeend', skipNote);
+    const draw = (head) => { headEl.innerHTML = head; };
+    const appendLog = (li) => logEl.insertAdjacentHTML('beforeend', li);
+    // One Cancel listener, bound once to the stable button, so even a long batch
+    // stays cancellable (the old per-row rebuild dropped this after row 1).
+    cancelBtn.addEventListener('click', () => { state.cancelRequested = true; cancelBtn.disabled = true; });
 
     // Shuffle the quips and rotate one every few seconds (re-triggering the CSS
     // fade on each swap). Just for fun while a big batch grinds away.
@@ -1182,10 +1238,9 @@ export async function mountPro(viewEl, host, opts = {}) {
     try {
       draw(`<strong>Rendering 0 / ${total}…</strong>`);
       srAnnounce(`Rendering ${total} item${total === 1 ? '' : 's'}…`);
-      bodyEl.querySelector('#pro-cancel')?.addEventListener('click', () => { state.cancelRequested = true; });
 
       let done = 0;
-      const { files } = await runBatch(renderable, host, {
+      const { files, results } = await runBatch(renderable, host, {
         format: state.format,
         // Toolbar defaults; each row may override via its own unit/dpi (batch.js).
         unit: state.unit,
@@ -1193,9 +1248,9 @@ export async function mountPro(viewEl, host, opts = {}) {
         isCancelled: () => state.cancelRequested,
         onProgress: (p) => {
           if (p.status === 'rendering') { draw(`<strong>Rendering ${done + 1} / ${total}…</strong>`); return; }
-          if (p.status === 'done') log.push(`<li class="pro-log-ok">✓ ${escapeHtml(p.name)}</li>`);
-          else if (p.status === 'error') log.push(`<li class="pro-log-err">✕ row ${p.index + 1}: ${escapeHtml(p.error)}</li>`);
-          else if (p.status === 'cancelled') log.push(`<li class="pro-log-skip">Cancelled</li>`);
+          if (p.status === 'done') appendLog(`<li class="pro-log-ok">✓ ${escapeHtml(p.name)}</li>`);
+          else if (p.status === 'error') appendLog(`<li class="pro-log-err">✕ row ${p.index + 1}: ${escapeHtml(p.error)}</li>`);
+          else if (p.status === 'cancelled') appendLog(`<li class="pro-log-skip">Cancelled</li>`);
           done++;
           draw(`<strong>Rendered ${done} / ${total}</strong>`);
         },
@@ -1204,7 +1259,13 @@ export async function mountPro(viewEl, host, opts = {}) {
       state.running = false;
       renderGrid();
       clearInterval(quipTimer);
-      quipEl.remove(); // the job's done talking
+      quipEl.remove();   // the job's done talking
+      cancelBtn.remove(); // …and there's nothing left to cancel
+
+      // Rows that errored mid-run still produce no file — surface the count so a
+      // "Done — 480 files" can't quietly hide 20 failures.
+      const failed = results.filter(r => !r.ok).length;
+      const failNote = failed ? `, ${failed} failed` : '';
 
       if (files.length === 0) {
         draw(`<strong>No files produced.</strong>`);
@@ -1228,14 +1289,19 @@ export async function mountPro(viewEl, host, opts = {}) {
       try {
         const zip = await buildZip(files, { zipName: `${zipBase}.zip`, author, csv });
         saveBlob(zip, `${zipBase}.zip`);
-        draw(`<strong>Done — ${files.length} file${files.length === 1 ? '' : 's'} in one zip.</strong>`);
-        srAnnounce(`Batch complete — ${files.length} file${files.length === 1 ? '' : 's'} in one zip.`);
+        draw(`<strong>Done — ${files.length} file${files.length === 1 ? '' : 's'} in one zip${failNote}.</strong>`);
+        srAnnounce(`Batch complete — ${files.length} file${files.length === 1 ? '' : 's'} in one zip${failNote}.`);
       } catch (zipErr) {
-        log.push(`<li class="pro-log-skip">Zip failed (${escapeHtml(String(zipErr.message ?? zipErr))}); downloading files individually…</li>`);
+        appendLog(`<li class="pro-log-skip">Zip failed (${escapeHtml(String(zipErr.message ?? zipErr))}); downloading files individually…</li>`);
         draw(`<strong>Downloading ${files.length} files individually…</strong>`);
-        await saveSequential(files, { delayMs: 600 });
-        draw(`<strong>Done — ${files.length} files downloaded.</strong>`);
-        srAnnounce(`Batch complete — ${files.length} file${files.length === 1 ? '' : 's'} downloaded.`);
+        // Spaced one-at-a-time saves are slow and silent — surface progress as
+        // each file is dispatched so the run never looks stalled.
+        await saveSequential(files, {
+          delayMs: 600,
+          onSaved: (n, tot) => draw(`<strong>Saving ${n} / ${tot}…</strong>`),
+        });
+        draw(`<strong>Done — ${files.length} files downloaded${failNote}.</strong>`);
+        srAnnounce(`Batch complete — ${files.length} file${files.length === 1 ? '' : 's'} downloaded${failNote}.`);
       }
     } finally {
       clearInterval(quipTimer); // never leave the rotator running
