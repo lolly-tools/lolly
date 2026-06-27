@@ -259,7 +259,7 @@ function dotMarkup(shape, cx, cy, r) {
 
 function buildSvg(args) {
   var img = args.img;
-  var cell = clamp(n(args.gridSize, 10), 4, 40);
+  var cell = clamp(n(args.gridSize, 10), 1, 70);
   var fit = args.fit === 'cover' ? 'cover' : 'contain';
 
   var iw = img.naturalWidth || img.width;
@@ -303,7 +303,7 @@ function buildSvg(args) {
   var offY = (VIEW - regionH) / 2;
   var cellW = regionW / cols;
   var cellH = regionH / rows;
-  var maxR = (Math.min(cellW, cellH) / 2) * clamp(n(args.dotScale, 1), 0.4, 1.5);
+  var maxR = (Math.min(cellW, cellH) / 2) * clamp(n(args.dotScale, 1), 0.2, 3);
   var invert = Boolean(args.invert);
   var shape = args.shape || 'circle';
 

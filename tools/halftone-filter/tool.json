@@ -11,7 +11,7 @@
   "render": {
     "width": 1000,
     "height": 1000,
-    "formats": ["svg", "pdf", "pdf-cmyk", "eps", "png", "webp", "avif"],
+    "formats": ["svg", "pdf", "pdf-cmyk", "emf", "png", "webp", "avif"],
     "actions": ["copy", "download", "save"],
     "transparentBg": false,
     "convertPaths": false
