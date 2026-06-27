@@ -60,6 +60,10 @@ Optional:
 
 **Physical units & print.** `width`/`height` are values in the export's `unit` (`px` default, or `mm`/`cm`/`in`/`pt`), and `dpi` sets raster resolution for physical units. PDF exports a true page size; the CMYK formats (`pdf-cmyk`, `cmyk-tiff`) pair with the `convertPaths` outlining toggle to produce print-ready, fonts-not-installed output. A `select` option can also carry `width`/`height`/`unit` to drive the export page size from a dropdown — e.g. `wayfinding-signage`'s **Sign size** select (A4/A3/A2… in mm) sets the printed page proportions when chosen.
 
+- `printMarks` — defaults `true`. Set `false` to opt a tool out of the single-page print-finishing card (crop/registration/bleed marks). Multi-page PDF tools set this because their output is a paginated RGB document, not a single marked plate.
+
+**Multi-page PDF.** A tool builds a paginated PDF by marking page boxes in its template with `data-pdf-page` — each flagged element becomes one true PDF page sized to its own CSS box, so a cover, content that flows across pages, and a back page render as real pages rather than one tall image. Pages are drawn as vectors (text outlined to paths) and the document can carry an open-`password`. The path falls back to the normal single-page renderer when no `[data-pdf-page]` boxes are present, and it bypasses the crop/bleed print-finishing path (pair it with `printMarks: false`). See the `multi-page-pdf` tool for the reference layout (cover + flowing `blocks` content + back page).
+
 ### Input types
 
 | Type             | What it produces                                          | UI control          |

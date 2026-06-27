@@ -27,14 +27,20 @@ const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
 
 // Fields the index mirrors from each manifest. `capabilities` lets the gallery
 // gate tools a shell can't fulfil (e.g. 'capture' in the web PWA) without
-// fetching every manifest first.
-const INDEX_FIELDS = ['id', 'name', 'description', 'version', 'status', 'category', 'capabilities'];
+// fetching every manifest first. `privacy` surfaces the on-device note in the
+// gallery's tool-info modal.
+const INDEX_FIELDS = ['id', 'name', 'description', 'version', 'status', 'category', 'capabilities', 'privacy'];
 
 export function entryFromManifest(manifest) {
   const entry = {};
   for (const f of INDEX_FIELDS) {
     if (manifest[f] !== undefined) entry[f] = manifest[f];
   }
+  // Output formats the tool supports (tool.json render.formats). Carried so the
+  // gallery's tool-info modal can list them with no per-open manifest fetch.
+  // (For render.export:false utilities this is the set of input types they
+  // accept, not download formats — the modal gates on `exportable` below.)
+  entry.formats = Array.isArray(manifest.render?.formats) ? manifest.render.formats : [];
   // Whether the tool can be rendered to an exportable file at all. Surfaced so
   // shells can exclude render-only / on-device utilities — which produce their
   // output via their own exportFile flow, not the batch render path — without

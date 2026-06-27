@@ -87,6 +87,11 @@
           "default": true,
           "description": "Set false to hide the export dimension inputs in the download bar."
         },
+        "printMarks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it."
+        },
         "transparentBg": {
           "type": "boolean",
           "default": false,

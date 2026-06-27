@@ -47,6 +47,15 @@ To get a higher-resolution raster, enter a larger width/height, or choose a phys
 
 Example: width `210`, height `297`, unit `mm` → an A4 page.
 
+## Multi-page PDF
+
+Some tools build a **multi-page PDF document** instead of a single artwork — a cover, content that flows onto as many pages as it needs, and a back page, all in one file (see the *Multi-Page PDF* tool). Each page is a **true PDF page** sized to that page's box, so readers and printers get real pages, not one tall image.
+
+- **Pages from content.** Add blocks of text and images; new pages are created automatically as the blocks fill, and you can force any block to start a new page.
+- **Real page sizes.** Choose A4, US Letter or A5, portrait or landscape — every page, and the exported PDF, renders at exactly that size.
+
+Multi-page PDFs are RGB documents and don't carry crop/bleed marks — those belong to the single-page **Print PDF** path above.
+
 ## Transparency
 
 Tools that support it offer a **transparent background** toggle (e.g. *No BG*). Transparency is preserved by PNG, WebP, AVIF, and SVG. JPG and PDF are always opaque.

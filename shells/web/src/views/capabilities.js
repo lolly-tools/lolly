@@ -169,6 +169,11 @@ const SECTIONS = [
       { icon: ICONS.ruler, title: 'Physical sizing', features: [
         { name: 'Real units & DPI', desc: 'Set width × height in <code>mm/cm/in/pt/pc</code> at a DPI (default 300). PDF becomes a true page, raster renders the exact pixel count (and embeds the resolution), SVG keeps the physical unit with a px viewBox.' },
       ] },
+      { icon: ICONS.layers, title: 'Multi-page documents', features: [
+        { name: 'Real pages, not one long image', desc: 'A tool can build a paginated PDF — a cover, content, and a back page — where every page is a true, separately-sized PDF page (A4, US Letter or A5; portrait or landscape).' },
+        { name: 'Content that flows', desc: 'Text and image blocks flow onto as many pages as they need; new pages are created automatically, with a manual page break where you want one. See the <strong>Multi-Page PDF</strong> tool.' },
+        { name: 'Vector & lockable', desc: 'Each page is drawn as vectors with text outlined to paths (so it renders without the font), and the document can carry an open-password. These are RGB documents; crop/bleed marks stay on the single-page <em>Print PDF</em> path.' },
+      ] },
       { icon: ICONS.swatch, title: 'CMYK colour', features: [
         { name: 'DeviceCMYK output', desc: 'Print PDF and CMYK TIFF write CMYK, not RGB.' },
         { name: 'Exact brand inks', desc: 'Brand swatches with measured CMYK values are substituted exactly; other colours use a standard device conversion.' },

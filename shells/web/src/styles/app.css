@@ -191,7 +191,7 @@ body {
   }
   
   .app-view {
-    padding: 24px 4px;
+  
     min-height: 100vh;
   }
   
@@ -414,7 +414,8 @@ footer{text-align:right;}
 
 /* Suppress entrance animation when returning from a tool — cards are already known. */
 .gallery-view.is-returning .tool-grid .tool-card,
-.gallery-view.is-returning .saved-list .tool-card {
+.gallery-view.is-returning .saved-list .tool-card,
+.gallery-view.is-returning .tool-masonry .gtile {
   animation: none;
 }
 
@@ -661,6 +662,380 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 .tool-card--unavailable .tool-name {
   color: hsl(var(--muted-foreground));
 }
+
+/* ─── Gallery: preview-forward masonry (cards lead with the most-recent
+   session preview at its natural aspect — portrait shows in full, no crop) ── */
+
+/* The masonry gallery is a single full-width column, not the old saved/grid split. */
+.gallery-view.has-masonry { display: block; background-color: #0001; }
+@media (min-width: 756px) {
+  .gallery-view.has-masonry { display: block; grid-template-columns: none; }
+}
+
+/* Sticky category filter pills. Any flag mix just shortens this row. */
+.gallery-pillbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  /* Right padding reserves space for the fixed history/profile cluster so pills
+     never tuck under it; solid-ish fill so scrolled cards don't bleed through. */
+    padding: 12px clamp(7rem, 14vw, 12rem) 14px 1em;
+  margin-bottom: 4px;
+  background: hsl(var(--background) / 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+.gallery-pill {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.gallery-pill:hover { border-color: hsl(var(--primary) / 0.5); }
+.gallery-pill .ct { opacity: 0.5; margin-left: 5px; font-weight: 600; }
+.gallery-pill.active {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+}
+
+/* CSS multi-column masonry. --cols steps down by width; --items (set in JS)
+   caps it so a short list never stretches into empty columns. */
+.tool-masonry {
+  --cols: 4;
+  column-count: min(var(--cols), var(--items, 99));
+  column-gap: 14px;
+  padding:1rem;
+}
+@media (max-width: 1180px) { .tool-masonry { --cols: 3; } }
+@media (max-width: 820px)  { .tool-masonry { --cols: 2; } }
+@media (max-width: 520px)  { .tool-masonry { --cols: 1; } }
+
+.gtile {
+  break-inside: avoid;
+  -webkit-column-break-inside: avoid;
+  width: 100%;
+  margin: 0 0 14px;
+  display: inline-block;
+  vertical-align: top;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: none;
+  border-radius: calc(var(--radius) * 1.1);
+  overflow: hidden;
+  transition: border-color 0.14s;
+      box-shadow: 0 .1rem .4rem #0002;
+}
+/* Restrained hover — border highlight only, no lift, no glow shadow. */
+.gtile:hover { border-color: hsl(var(--primary) / 0.45); }
+.gtile:hover .tool-card-icon svg { opacity: 1; }
+.gtile:hover .gtile-desc { color: hsl(var(--foreground)); }
+.gtile.is-navigating { opacity: 0.6; }
+@media (prefers-reduced-motion: no-preference) {
+  .gtile { animation: card-in 0.28s ease both; }
+}
+
+/* Hero preview — the most-recent session, natural aspect (no crop/letterbox). */
+.gtile-hero {
+  display: block;
+  position: relative;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  cursor: pointer;
+  background: repeating-conic-gradient(#ffffff06 0% 25%,#00000006 0% 50%) 50%/.5em .5em;
+  line-height: 0;
+}
+.gtile-hero-img { width: 100%; height: auto; display: block; }
+.gtile-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.gtile-stamp {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  line-height: 1;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: #000a;
+  border-radius: 999px;
+  padding: 3px 8px;
+}
+.gtile-continue {
+  position: absolute;
+  /* 12px (not the 8px hero inset) so it right-aligns with the caption's "+ New"
+     chip in the content gutter just below — the two read as a stacked pair. */
+  right: 12px;
+  bottom: 8px;
+  line-height: 1;
+  font-size: 11px;
+  font-weight: 600;
+  /* Theme tokens, not hard-coded #fff — keeps contrast in dark / suse themes. */
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border-radius: 999px;
+  padding: 4px 9px;
+  opacity: 0;
+  transition: opacity 0.14s;
+}
+/* Continue belongs to the saved-session preview — reveal it only when the hero
+   is hovered/focused, not the lower body. It's right-anchored to line up with
+   the caption's "+ New" chip just below, so the two read as a stacked pair. */
+.gtile-hero:hover .gtile-continue,
+.gtile-hero:focus-visible .gtile-continue { opacity: 1; }
+.gtile-hero:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+
+/* Empty tile — tool with no saved session. (Preview cards use .gtile-hero, never
+   .gtile-tile, so these rules can't touch a card that has a preview.) */
+.gtile-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  border-bottom: 1px dashed hsl(var(--border));
+}
+.gtile-tile--static { cursor: default; }
+.gtile-tile-txt { font-size: 12px; line-height: 1.35; color: hsl(var(--muted-foreground) / .5);; font-weight: 400; font-style: italic; }
+/* A saved session whose preview failed to capture — still resumable, so it reads
+   as an action (not the italic "no sessions" note). */
+.gtile-tile--resume { width: 100%; border: 0; cursor: pointer; text-align: left; background: transparent; }
+.gtile-tile--resume .gtile-tile-txt { font-style: normal; font-weight: 600; color: hsl(var(--muted-foreground) / .5);}
+
+/* Clickable text body (caption + description) — the "start a new session"
+   target. A stretched ::after on the title (below) makes this whole block the
+   hit area, so starting fresh is as obvious as the hero's Continue. */
+.gtile-body { position: relative; }
+.gtile-body--link { cursor: pointer; transition: background 0.12s; }
+.gtile-body--link:hover { background: hsl(var(--primary) / 0.05); }
+
+/* Caption row: icon + (name / sub-line / description) + "+ New" chip + badge.
+   Top-aligned so the icon, chip and badge sit beside the title at the top of the
+   text column rather than floating against its vertical centre. */
+.gtile-cap {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px 12px;
+}
+.gtile-cap .tool-card-icon svg { width: 36px; height: 36px; }
+.gtile-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.gtile-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The whole text body is the click target (stretched ::after); hovering it
+   underlines the title and reveals the "+ New" chip. Focus moves the outline
+   from the small title text out to the stretched hit area. */
+.gtile-body--link:hover .gtile-name { text-decoration: underline; }
+a.gtile-name::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+a.gtile-name:focus-visible { outline: none; }
+a.gtile-name:focus-visible::after {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: -2px;
+  border-radius: calc(var(--radius) * 0.8);
+}
+
+/* "+ New" chip — fades in on hover/focus of the body so a tool that already has
+   a saved session keeps an obvious "start fresh" affordance, distinct from the
+   hero's Continue. */
+.gtile-new {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: hsl(var(--primary));
+  border: 1px solid hsl(var(--primary) / 0.5);
+  border-radius: 999px;
+  padding: 4px 9px;
+  opacity: 0;
+  transition: opacity 0.14s;
+}
+.gtile-body--link:hover .gtile-new,
+.gtile-body--link:focus-within .gtile-new { opacity: 1; }
+.gtile-sub {
+  font-size: 11.5px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gtile-cap .badge { position: static; }   /* badge sits inline here, not pinned */
+/* Description lives in the meta column, directly under the title — no horizontal
+   padding of its own (the column already starts past the icon). */
+.gtile-desc {
+  margin: 5px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Per-card (i) info / (h) history buttons. */
+.gtile-actions { display: flex; gap: 6px; padding: 0 12px 12px; justify-content: end;}
+.gtile-iconbtn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: hsl(var(--muted-foreground) / .5);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+.gtile-iconbtn:hover {
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.08);
+}
+.gtile-iconbtn svg { width: 15px; height: 15px; }
+.gtile--unavailable { opacity: 0.6; }
+
+/* Info / history modals — reuse the shared <dialog> chrome (cf. .unsaved-dialog). */
+.tool-meta-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0;
+  max-width: 440px;
+  width: 92vw;
+  max-height: 85vh;
+  overflow: auto;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+}
+.tool-meta-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.meta-dialog-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.meta-dialog-head { display: flex; align-items: center; gap: 12px; }
+.meta-dialog-icon { flex: none; }
+.meta-dialog-icon svg { width: 40px; height: 40px; opacity: 0.6 !important; }
+.meta-dialog-head h2 { margin: 0; font-size: 16px; }
+.meta-dialog-sub { margin: 2px 0 0; font-size: 12px; color: hsl(var(--muted-foreground)); }
+.meta-dialog-desc { margin: 0; font-size: 13px; line-height: 1.5; color: hsl(var(--foreground)); }
+.meta-dialog-facts { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.meta-dialog-facts > div { display: grid; grid-template-columns: 5.5em 1fr; gap: 8px; font-size: 12.5px; }
+.meta-dialog-facts dt { color: hsl(var(--muted-foreground)); font-weight: 600; }
+.meta-dialog-facts dd { margin: 0; }
+.meta-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 2px; }
+.history-list { max-height: 50vh; overflow: auto; margin: 0; padding: 0; }
+
+/* Top-right cluster: history button sits to the LEFT of the profile pill. */
+.gallery-topright {
+  position: fixed;
+  z-index: 99999;
+  right: 2em;
+  top: .5em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Neutralise the profile pill's own fixed positioning when it lives in the cluster. */
+.gallery-topright .profile-link { position: static; right: auto; top: auto; }
+@media (max-width: 640px) {
+  .gallery-topright {
+    top: calc(1.25em + var(--vv-top, 0px));
+    right: calc(2em + var(--vv-right, 0px));
+  }
+}
+.history-fab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.9em;
+  height: 2.9em;
+  padding: 0;
+  border: 1px solid hsl(var(--primary));
+  border-radius: 50%;
+  background: hsl(var(--background) / 0.5);
+  color: hsl(var(--primary));
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  transition: background 0.12s, color 0.12s;
+}
+.history-fab:hover { background: hsl(var(--primary) / 0.12); }
+.history-fab svg { width: 18px; height: 18px; }
+.history-fab-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border-radius: 999px;
+}
+
+/* Right-anchored saved-sessions drawer (a <dialog>, so Esc + backdrop are free). */
+.tool-drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(400px, 92vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  border: 0;
+  border-left: 1px solid hsl(var(--border));
+  border-radius: 0;
+  box-shadow: -8px 0 32px hsl(0 0% 0% / 0.2);
+  overflow: hidden;
+}
+.drawer-body { display: flex; flex-direction: column; height: 100%; }
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.drawer-head h2 { margin: 0; font-size: 15px; }
+.drawer-list { flex: 1; overflow: auto; padding: 10px 12px; margin: 0; list-style: none; }
+.drawer-empty { padding: 40px 18px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }
 
 /* ─── Tool view layout ──────────────────────────────────────────────────── */
 
@@ -1268,7 +1643,9 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
   overflow: hidden;
- 
+  /* No border-color transition: Chromium can leave a :has()-triggered transition
+     stuck at its start value, so the focus-ring border below would never paint.
+     The ring switches instantly instead (the box-shadow halo carries the motion). */
   min-width: 0; /* grid item: allow shrink so inner controls can truncate */
 }
 
@@ -1277,6 +1654,9 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   align-items: center;
   justify-content: space-between;
   padding: 8px 12px;
+  /* Match a sidebar <select>'s height (39.5px) so a collapsed section lines up
+     with the dropdowns in the input list — minus the section's 2px border. */
+  min-height: 37.5px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -1288,10 +1668,19 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 }
 
 .input-section-summary:hover{
-  color:var(--primary); 
+  color:var(--primary);
 background-color:hsl(var(--background) / 1);
 }
 
+/* Keyboard focus ring. The section's overflow:hidden would clip an outline or
+   box-shadow on the focused <summary>, so promote the ring to the section
+   wrapper — its own box-shadow paints outside its border box, unclipped — using
+   the same border + halo idiom as a focused <select> / text field. */
+.input-section-summary:focus-visible { outline: none; }
+.input-section:has(.input-section-summary:focus-visible) {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
 
 .input-section-summary::-webkit-details-marker { display: none; }
 
@@ -1729,9 +2118,9 @@ background-color:hsl(var(--background) / 1);
   min-width: 0;
   max-width: 100%;
 }
-.saved-row.tool-card{font-weight:600;text-transform:capitalize;}
+.saved-row{font-weight:600;text-transform:capitalize;}
 
-.saved-row.tool-card small{    display: grid;
+.saved-row small{    display: grid;
     padding: 2px 4px;
     border-radius: var(--radius);
     color: hsl(var(--primary));
@@ -3959,7 +4348,7 @@ a.storage-indicator:hover { opacity: 1; }
 
 /* Pin the profile link to the viewport on the gallery so it stays put while the
    tool list scrolls (mobile already does this below; this covers desktop too). */
-.gallery-view .profile-link { position: fixed; }
+ 
 
 /* Placeholder dot — shown only when the user has no headshot yet. */
 .profile-link::before {
@@ -4760,6 +5149,11 @@ button {
   text-transform: uppercase; letter-spacing: .04em; vertical-align: middle;
   padding: .12rem .38rem; border-radius: 999px;
   background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+}
+/* Informational, not a highlight — used to qualify a value (e.g. cookies are
+   available but never set). Muted so it reads as a footnote, not a badge. */
+.plat-pill--muted {
+  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
 }
 
 .plat-font-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
