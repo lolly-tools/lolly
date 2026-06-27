@@ -398,6 +398,10 @@ footer{text-align:right;}
   gap: 6px;
 }
 
+@media (max-width:300px){
+  .tool-grid {grid-template-columns: 1fr}
+}
+
 @keyframes card-in {
   from { opacity: 0; translate: 0 6px; }
   to   { opacity: 1; translate: 0 0;   }
@@ -466,13 +470,20 @@ footer{text-align:right;}
    the LEFT of the name + description. Brand accent; inherits currentColor so it
    themes. (Size/opacity tuned on the svg below.) */
 .tool-card-icon {
-  display: block;
-  flex-shrink: 0;
-  color: hsl(var(--primary));
+    display: block;
+    flex-shrink: 0;
+    color: hsl(var(--primary));
+    place-self: start;
+    padding: 6px;
+    border-radius: 8px;
+    box-shadow: inset 0 .1rem .6rem #0001;
 }
+
+
+
 .tool-card-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
   display: block;
   opacity:.5;
 }
@@ -1453,7 +1464,10 @@ background-color:hsl(var(--background) / 1);
 .block-item.is-collapsed .block-collapse svg { transform: rotate(-90deg); }
 
 .block-item.is-collapsed { padding: 0; border-radius: 999px; background: hsl(var(--muted) / 0.5); }
-.block-item.is-collapsed .block-head { margin-bottom: 0; padding:9px 6px 9px 10px;}
+/* The whole collapsed pill is clickable to expand (JS handler), so the header reads as
+   a button rather than a drag handle while folded. */
+.block-item.is-collapsed .block-head { margin-bottom: 0; padding:9px 6px 9px 10px; cursor: pointer; }
+.block-item.is-collapsed .block-head:hover { background: hsl(var(--muted-foreground) / 0.07); border-radius: 999px; }
 .block-item.is-collapsed .block-fields { display: none; }
 
 /* Pill summary bits — only shown while collapsed. */
@@ -2423,6 +2437,65 @@ background-color:hsl(var(--background) / 1);
   border-color: hsl(var(--ring));
   outline: none;
   box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+/* Claim the horizontal gesture on the scrubbable dimension fields so a drag
+   scrubs the value instead of panning the page on touch (mirrors the vector
+   scrub / custom slider). DPI is typed, not scrubbed, so it keeps native
+   behaviour. */
+.export-dims input[data-action="export-width"],
+.export-dims input[data-action="export-height"] {
+  touch-action: none;
+}
+
+/* Floating value indicator shown while a dimension field is dragged-to-scrub.
+   Desktop anchors it above the control (the pointer is locked, cursor hidden);
+   touch tracks it above the finger where the value would otherwise hide.
+   Created + positioned in components/scrub-readout.js. */
+.scrub-readout {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 20px hsl(0 0% 0% / 0.28);
+  opacity: 0;
+  transform: scale(0.92);
+  transform-origin: center bottom;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.scrub-readout.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+.scrub-readout.is-below {
+  transform-origin: center top;
+}
+/* Caret pointing down at the control / finger (above mode). */
+.scrub-readout::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--caret-x, 50%);
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: hsl(var(--primary));
+}
+/* Flipped to point up when the bubble sits below the target. */
+.scrub-readout.is-below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: hsl(var(--primary));
 }
 
 /* Tier 4 — actions. Download is the primary CTA and gets the widest track;
