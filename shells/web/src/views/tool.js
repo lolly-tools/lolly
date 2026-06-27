@@ -562,24 +562,32 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   const exportBody    = viewEl.querySelector('#export-popup-body');
   if (!hideSidebar && renderFab && exportOverlay && exportBody && actionsEl) {
     const mqMobile    = window.matchMedia('(max-width: 640px)');
-    // The popup is aria-modal, so make it truly modal: while it's open, mark every
-    // sibling in the layout inert (canvas/sidebar/FAB behind the sheet) so neither
-    // pointer nor Tab can reach them. Paired with the Tab wrap in onExportKey below.
-    const setBackgroundInert = (on) => {
+    const exportPopup = exportOverlay.querySelector('.export-popup');
+    // The export panel is modal ONLY on mobile, where it's a full bottom sheet over a
+    // scrim. On desktop it's a NON-modal panel anchored to the sidebar bottom — the
+    // inputs above and the resize handle must stay live (users routinely open Export,
+    // then go back to editing before downloading), so we neither inert the background
+    // nor trap Tab there. The markup hard-codes aria-modal; we correct it per
+    // breakpoint here. applyModality reconciles inert + aria-modal with both the open
+    // state and the current breakpoint, so it's safe to re-run on resize too.
+    const isModal = () => mqMobile.matches;
+    const applyModality = () => {
+      const modal = layout.classList.contains('export-open') && isModal();
       for (const child of layout.children) {
-        if (child !== exportOverlay) child.inert = on;
+        if (child !== exportOverlay) child.inert = modal;   // pointer + Tab blocked behind the sheet
       }
+      exportPopup.setAttribute('aria-modal', modal ? 'true' : 'false');
     };
     const closeExport = () => {
       layout.classList.remove('export-open');
       renderFab.setAttribute('aria-expanded', 'false');
-      setBackgroundInert(false);       // un-inert before returning focus to the trigger
+      applyModality();                 // un-inert before returning focus to the trigger
       renderFab.focus(); // return focus to the trigger (it reappears on close)
     };
     const openExport = ({ focus = true } = {}) => {
       layout.classList.add('export-open');
       renderFab.setAttribute('aria-expanded', 'true');
-      setBackgroundInert(true);
+      applyModality();
       // Move focus into the dialog (its close button) for keyboard/SR users — but
       // not when auto-opened from ?options on load, where grabbing focus is jarring.
       if (focus) exportOverlay.querySelector('.export-popup-close')?.focus();
@@ -603,7 +611,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     const onExportKey = (e) => {
       if (!layout.classList.contains('export-open')) return;
       if (e.key === 'Escape') { closeExport(); return; }
-      if (e.key !== 'Tab') return;
+      if (e.key !== 'Tab' || !isModal()) return;   // only trap Tab in the modal (mobile) sheet
       const focusables = [...exportOverlay.querySelectorAll(
         'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       )].filter(el => el.offsetParent !== null || el === document.activeElement);
@@ -620,7 +628,6 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // bottom sheet away. The popup follows the finger; release past a threshold
     // (or a fast flick) closes it, otherwise it springs back. Drags from the
     // (scrollable) body only engage at the top, so the list still scrolls.
-    const exportPopup = exportOverlay.querySelector('.export-popup');
     let py = 0, pt = 0, pdrag = false;
     const popupStart = e => {
       pdrag = mqMobile.matches && e.touches.length === 1;
@@ -653,8 +660,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     placeActions();
     // ?options share-links land with the export panel already open (no focus grab).
     if (showExportPanel) openExport({ focus: false });
-    mqMobile.addEventListener('change', placeActions);
-    exportTeardown = () => { mqMobile.removeEventListener('change', placeActions); document.removeEventListener('keydown', onExportKey); };
+    const onBreakpoint = () => { placeActions(); applyModality(); };
+    mqMobile.addEventListener('change', onBreakpoint);
+    exportTeardown = () => { mqMobile.removeEventListener('change', onBreakpoint); document.removeEventListener('keydown', onExportKey); };
   }
 
   // Cleanup: remove injected <style>, disconnect observer, tear down canvas nav + export.
