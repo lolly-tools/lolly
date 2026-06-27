@@ -3258,7 +3258,7 @@ async function renderGif(node, opts) {
       if (i === 0) {
         // Build global palette from the first frame; reuse for all subsequent frames.
         palette = quantize(pixels, 256);
-        gif.writeFrame(encodeFrame(pixels), targetW, targetH, { palette, delay: frameInterval });
+        gif.writeFrame(encodeFrame(pixels), targetW, targetH, { palette, delay: frameInterval, repeat: opts.repeat != null ? opts.repeat : 0 });
       } else {
         gif.writeFrame(encodeFrame(pixels), targetW, targetH, { delay: frameInterval });
       }

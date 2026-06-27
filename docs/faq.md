@@ -39,8 +39,7 @@ browser. The friction to adoption is rarely technical; it's organisational. Expe
 **Tools and the brand catalog have to be authored.** Lolly is a platform, not a
 finished pack of your templates. Someone has to define the asset catalog (logos,
 palettes, fonts as permanent IDs) and write the manifest + template for each output
-type. It's a one-time cost per output, and it needs design and IT to share a
-backlog — the two groups that often don't.
+type.  
 
 **Governance runs on git.** "The PR review *is* the moderation" is elegant for
 engineers and unfamiliar to most brand and marketing teams. If the people who own
@@ -63,11 +62,11 @@ Lolly lifts everything up.
 
 ## What makes utilities different from tools?
 
-**Basic Answer →** Utilities dont alawys need to render and therefore demand a different UX. 
+**Basic Answer →** Utilities dont alawys need to render and therefore can get a different UX. 
 
-**Real Answer →** The reason utilities are hostable inside Lolly Tools is to add yet another 'convenience layer' of defence to disincentivise data exfiltration. 
+**Real Answer →** The reason utilities are hostable inside Lolly Tools is to add yet-another 'convenience layer' of defence to disincentivise data-exfiltration. 
 
-Every day, people take **confidential content they already have** and hand it to a
+Why? Because it is known that every day, people take **confidential content they already have** and hand it to a
 random website to perform one small mechanical operation:
 
 - "**Compress this PDF**" → uploads a contract / payslip / board deck to unknown entities.
@@ -79,15 +78,6 @@ random website to perform one small mechanical operation:
 These sites and their massive clone long-tail are **not trustworthy by default** with
 unknown retention, unknown jurisdictions, unknown subprocessors, and an ad/affiliate
 business model that has every incentive to keep what you give them. The operation is
-trivial; the **content is the cost.** The file leaves the building so a free tool can
-do 200ms of work that a browser can do locally. 
+trivial; the **content is the cost.** 
 
-The first one shipped is **Strip Hidden Data** — it reveals the hidden data in
-an image or PDF (GPS location, camera, author, editor and document metadata) and hands
-back a clean copy, entirely in your browser. The file is never uploaded; the clean copy gets no watermark and none of
-our metadata. There are now two shipped on-device utilities: alongside Strip Hidden Data,
-**Text Helper** formats, decodes, hashes, and de-identifies text (JSON, YAML, Helm, JWT,
-Base64) without anything leaving your device. Every on-device privacy utility carries a
-**"Runs on your device — nothing is uploaded"** badge.
-
-We can win all wars with excellent conveinece and service. 
+We win the war for governance with excellent conveinece and service. 

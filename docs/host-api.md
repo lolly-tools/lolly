@@ -127,14 +127,15 @@ Optional and additive — a shell without it just doesn't offer token-driven UI.
 
 ## `host.pdf` *(optional)*
 
-On-device PDF metadata inspection + removal (pure pdf-lib, so it runs even in the lean CLI). Used by `strip-data`.
+On-device PDF inspection, metadata removal and compression (pure pdf-lib for the metadata + structural work, so it runs even in the lean CLI; image recompression uses a browser canvas). Used by `strip-data` and `compress-pdf`.
 
 | Method | Returns | Notes |
 |---|---|---|
 | `analyze(bytes)` | `Promise<{ findings }>` | Report the Info-dictionary + XMP metadata a PDF carries; read-only |
 | `strip(bytes)` | `Promise<{ bytes }>` | Re-save with that metadata removed (re-serialised — not byte-identical, and any signature is invalidated) |
+| `compress(bytes, opts?)` | `Promise<{ bytes, before, after, images }>` | Re-save smaller: recompress oversized embedded JPEGs (canvas downsample + re-encode) and re-serialise with object streams. `opts.level` is `'light' \| 'balanced' \| 'strong'`; `opts.grayscale` drops colour. Text/vectors are untouched, and the result is never larger than the input. The lean CLI (no canvas) does the structural pass only |
 
-Feature-detect `host.pdf`; a shell that can't provide it just doesn't offer PDF cleaning.
+Feature-detect each method (e.g. `host.pdf?.compress`) — an older shell may provide `analyze`/`strip` but not `compress`, or no `host.pdf` at all.
 
 ## `host.capture` *(capability: `capture`)*
 
