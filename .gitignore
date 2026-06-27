@@ -46,8 +46,11 @@ CLAUDE.md
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
 
-# future plans 
+# future plans
 plans/
+
+# local scratch working files (untracked going forward; history retained)
+scratch/
 
 # TypeScript cache
 *.tsbuildinfo
