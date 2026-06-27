@@ -55,6 +55,22 @@ export function domReflectsValue(el, input) {
 }
 
 /**
+ * True while the user is mid-typing in a block NUMBER field. Such a field's live
+ * <input> holds the authoritative value — including a half-typed decimal like "1."
+ * that an <input type=number> reports back as "" (validity.badInput). Rebuilding
+ * the panel now recreates that input, and number inputs can't have their caret
+ * restored (setSelectionRange is a no-op on type=number), so the caret jumps and
+ * characters scramble ("1.2" lands as "2.1", and Backspace deletes the wrong end).
+ * Scoped to number fields: text/select/colour block fields restore their caret
+ * fine, so they keep the per-keystroke rebuild that refreshes block header previews
+ * (a number's value never appears in a header preview or swatch).
+ */
+function isEditingBlockNumberField(el) {
+  const active = el && el.ownerDocument && el.ownerDocument.activeElement;
+  return !!(active && active.type === 'number' && active.dataset && active.dataset.fieldId && el.contains(active));
+}
+
+/**
  * Whether a model change needs no sidebar work at all. Safe to skip ONLY when the
  * set of visible rows is unchanged AND every value that changed is already shown
  * by its control (unchanged values keep their object identity, so === detects
@@ -62,6 +78,10 @@ export function domReflectsValue(el, input) {
  */
 export function canSkipInputsRebuild(el, model, prevModel) {
   if (!prevModel) return false;
+  // Defer the rebuild while a block number field is focused (see above). The model
+  // still updates on every keystroke, so the canvas stays live; the panel repaints
+  // from the model on the next interaction, once the field is blurred.
+  if (isEditingBlockNumberField(el)) return true;
   if (model.length !== prevModel.length) return false;
   if (visibleInputKey(model) !== visibleInputKey(prevModel)) return false;
   const prevById = new Map(prevModel.map(i => [i.id, i]));

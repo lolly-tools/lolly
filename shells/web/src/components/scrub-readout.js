@@ -70,8 +70,8 @@ function place(targetX, topAvoid, bottomAvoid) {
 export function showScrubReadout({ text, anchorEl, finger }) {
   const b = ensureBubble();
   b.textContent = text;
-  // Make it measurable before positioning, then reveal once placed.
-  b.classList.add('is-active');
+  // The bubble always has layout (hidden via opacity:0, not display:none), so
+  // place() can read its size right away — position first, then reveal.
   if (finger) {
     place(finger.x, finger.y - FINGER, finger.y + FINGER);
   } else if (anchorEl) {
@@ -83,5 +83,5 @@ export function showScrubReadout({ text, anchorEl, finger }) {
 
 export function hideScrubReadout() {
   if (!bubble) return;
-  bubble.classList.remove('is-visible', 'is-active');
+  bubble.classList.remove('is-visible');
 }
