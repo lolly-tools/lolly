@@ -64,7 +64,7 @@
       "id": "eventName",
       "label": "Event name",
       "type": "text",
-      "default": "SUSECON 2027",
+      "default": "",
       "maxLength": 60,
       "help": "Shown under the logo. Clear it to show the logo alone."
     },

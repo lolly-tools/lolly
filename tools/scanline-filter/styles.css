@@ -1,0 +1,6 @@
+/* The scanline render is a single inline <svg> that fills the canvas frame. */
+svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}

@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",
-  "category": "everyone",
+  "category": "event",
   "tags": ["map", "team", "timezone", "world", "time", "meeting", "schedule", "planner", "clock", "widget", "d3"],
   "render": {
     "width": 800,
@@ -205,7 +205,7 @@
         { "id": "city", "label": "City",  "placeholder": "City" }
       ],
       "default": [
-        {"name":"Linus Torvalds", "city":"Portland"}
+        {"name":"", "city":""}
       ]
     }
   ]

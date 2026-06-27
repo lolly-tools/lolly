@@ -101,7 +101,7 @@ This is configured at build time by pointing each instance at a different tool d
 
 Lolly has a small set of **per-user feature flags**, surfaced in each person's Profile view. They are stored on the user's own profile (so they ride normal profile persistence and sync) and every flag defaults to **on**. They are personal preferences, not an administrator-configured server setting, and they do exactly two things:
 
-- **Show or hide gallery categories** — toggle whole sections of the tool gallery ("Tools for Everyone", "Designer Tools", "Handy Apps") so a user only sees the tools relevant to them
+- **Show or hide gallery categories** — toggle whole sections of the tool gallery ("Tools for Everyone", "Designer Tools", "Event Kit", "Offline Utilities") so a user only sees the tools relevant to them
 - **Show or hide the Pro / Batch entry** — toggle the "Batch" link in the gallery footer (the batch route still works via a deep link even when the link is hidden)
 
 They do not gate output formats, export options, or any kind of API surface — those are always available where a tool and shell support them.

@@ -19,6 +19,12 @@ const OG_IMAGE = `${SITE_URL}/og.png`;
 const OG_LOGO = `${SITE_URL}/info/icon-normal.png`;
 const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating on-brand creative assets at scale.';
 
+// Tool count for the hero badge — read from the generated catalog index so it
+// tracks the real number of tools rather than drifting as a hand-edited literal.
+const TOOL_COUNT = JSON.parse(
+  readFileSync(resolve(repoRoot, 'catalog/tools/index.json'), 'utf8')
+).tools.length;
+
 const pages = [
   { slug: 'index',            title: 'Lolly',     src: 'site.md',            isLanding: true },
   { slug: 'about',            title: 'About',             src: '../README.md' },
@@ -542,7 +548,7 @@ ${cardData.map(({ h2 }, i) => `  <button class="audience-tab" role="tab" aria-se
       <span class="trust-dot">·</span>
       <span>Privacy First</span>
       <span class="trust-dot">·</span>
-      <span>14 tools ready</span>
+      <span>${TOOL_COUNT} Example Tools Loaded</span>
     </div>
   </div>
   </div>

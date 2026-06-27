@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-27T13:54:38.435Z",
+  "generatedAt": "2026-06-27T15:35:24.374Z",
   "tools": [
     {
       "id": "color-block",
@@ -35,7 +35,7 @@
       "description": "Plan a global meeting and see the time for every teammate's timezone.",
       "version": "1.0.0",
       "status": "official",
-      "category": "everyone",
+      "category": "event",
       "exportable": true
     },
     {
@@ -235,6 +235,15 @@
       "status": "official",
       "category": "utility",
       "exportable": false
+    },
+    {
+      "id": "scanline-filter",
+      "name": "Scanline Filter",
+      "description": "Turn any photo into a retro scanline: alternate lines drop out and the rest is posterised into brand tones as a grid of crisp rects. Scalable SVG or transparent PNG/WebP/AVIF.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer",
+      "exportable": true
     }
   ]
 }

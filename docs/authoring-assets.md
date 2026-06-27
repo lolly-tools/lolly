@@ -104,6 +104,20 @@ The `color` input type also accepts a `palette` field (schema-valid, mapped to a
 
 `type: "tokens"` is a DTCG (Design Tokens Community Group) JSON document — the canonical brand-color source. The core asset `suse/tokens/brand` feeds the color picker's swatches and the defaults for brand-bound inputs. Beyond the normal asset checks, the validator runs a dedicated DTCG-structure validation against `schemas/tokens.schema.json` (`scripts/validate-catalog.js`). See [Design tokens](/info/design-tokens.html) for the token model and how palettes relate.
 
+## Fonts
+
+`font` is a valid asset type, but the shared SUSE typefaces don't live in the asset index — they ship as static files under `catalog/fonts/`, a sibling of `catalog/assets/`:
+
+```
+catalog/fonts/
+├── variable/    # variable TTFs (SUSE[wght].ttf, SUSEMono[wght].ttf, + italic axes)
+├── webfonts/    # woff2 — the variable fonts plus per-weight statics
+├── ttf/         # static TTFs
+└── otf/         # static OTFs
+```
+
+The web shell loads them via `@font-face` (`shells/web/src/styles/fonts.css`, with the variable woff2 preloaded from `index.html`); tool templates reference the same `/catalog/fonts/...` URLs directly. The text-to-path step (`host.text`, used when a vector export outlines its text) reads the static TTFs from `catalog/fonts/ttf/`. Because they're plain static files, they aren't versioned or checksummed through `index.json` the way catalog entries are.
+
 ## Workflow
 
 1. Drop the file under `catalog/assets/<namespace>/...`.

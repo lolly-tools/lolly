@@ -51,7 +51,7 @@ npm run cli -- some-tool --width=210 --height=297 --unit=mm --export=pdf --outpu
 
 ## What the CLI can render
 
-The CLI renders in a headless DOM (jsdom), so **vector and structured** formats — **SVG, HTML, plus the data formats JSON, CSV, ICS, VCF** (the engine hydrates those payloads) — work natively and reproducibly. Everything else needs a real layout/paint engine: **raster (PNG/JPG/WebP), PDF, video/GIF, and ZIP**, but also **MD and TXT** (which the web/desktop shell reads out of the rendered DOM). Those are produced by the **desktop app's** bundled binary rather than the bare node CLI. (Requesting an unsupported format prints a clear error listing what the tool supports.) See the [Build Guide](/info/build-guide.html) for packaging the desktop binary.
+The CLI renders in a headless DOM (jsdom), so **vector and structured** formats — **SVG, EMF, HTML, plus the data formats JSON, CSV, ICS, VCF** (the engine hydrates those payloads) — work natively and reproducibly. EMF is emitted straight from the template's vector primitives (no rasteriser), so it joins SVG for native-`<svg>` tools whose text is already outlined. Everything else needs a real layout/paint engine: **raster (PNG/JPG/WebP), PDF, video/GIF, and ZIP**, but also **MD and TXT** (which the web/desktop shell reads out of the rendered DOM). Those are produced by the **desktop app's** bundled binary rather than the bare node CLI. (Requesting an unsupported format prints a clear error listing what the tool supports.) See the [Build Guide](/info/build-guide.html) for packaging the desktop binary.
 
 ## File inputs & on-device utilities
 

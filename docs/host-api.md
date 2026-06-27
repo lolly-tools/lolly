@@ -74,7 +74,7 @@ The host owns the renderer — tools don't bundle their own.
 | `download(blob, filename)` | `Promise<void>` | Trigger a download (throws on CLI — pipe via `--output` instead) |
 | `file(blob, opts?)` | `Promise<void>` | Deliver a blob the **tool** produced (the transform path: file in → transformed file out), with `opts.filename`. Carries no watermark and no provenance — for on-device utilities whose `exportFile` hook returns the bytes |
 
-`format` is an `ExportFormat` — the render formats are `png · jpg/jpeg · webp · avif · svg · pdf · pdf-cmyk · cmyk-tiff · html · ico · zip · webm · mp4 · gif` (availability is per-tool via the manifest, and per-browser for the recorded video formats `webm`/`mp4` — Safari records mp4, Firefox webm; `gif` is encoded in-engine, and `ico`/`zip` are icon/bundle outputs). Separately, tools produce the **text/data formats** `md · txt · json · csv · ics · vcf` from the input model (not a DOM render — see [Exporting & Formats](/info/exporting.html)). This is the same 21-value enum the catalog validator enforces in `schemas/tool.schema.json`. *(The `ExportFormat` union in `engine/src/bridge/host-v1.ts` is itself stale — it carries a defunct token and omits the raster/bundle formats — and is being reconciled with the schema; track the schema, not the type.)*
+`format` is an `ExportFormat` — the render formats are `png · jpg/jpeg · webp · avif · svg · emf · pdf · pdf-cmyk · cmyk-tiff · html · ico · zip · webm · mp4 · gif` (availability is per-tool via the manifest, and per-browser for the recorded video formats `webm`/`mp4` — Safari records mp4, Firefox webm; `gif` is encoded in-engine, and `ico`/`zip` are icon/bundle outputs). Separately, tools produce the **text/data formats** `md · txt · json · csv · ics · vcf` from the input model (not a DOM render — see [Exporting & Formats](/info/exporting.html)). This is the same 22-value enum the catalog validator enforces in `schemas/tool.schema.json`. *(The `ExportFormat` union in `engine/src/bridge/host-v1.ts` is itself stale — it carries a defunct token and omits the raster/bundle formats — and is being reconciled with the schema; track the schema, not the type.)*
 
 `ExportOpts`:
 
@@ -110,7 +110,7 @@ Shape and outline a text run into an SVG path via HarfBuzz (correct kerning, lig
 | `toPath({ text, fontUrl, fontSize, features? })` | `Promise<TextPathResult>` |
 | `preload(fontUrl)` | `Promise<void>` |
 
-`TextPathResult`: `{ d, advanceWidth, bbox }` — baseline at `y=0`, Y-down; `bbox` is `null` for whitespace-only runs. The `lockup` tool uses this to outline display type for crisp vector export.
+`TextPathResult`: `{ d, advanceWidth, bbox }` — baseline at `y=0`, Y-down; `bbox` is `null` for whitespace-only runs. The `brand-lockup` tool uses this to outline display type for crisp vector export.
 
 ## `host.tokens` *(optional)*
 

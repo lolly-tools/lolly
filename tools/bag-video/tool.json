@@ -10,7 +10,7 @@
   "render": {
     "width": 800,
     "height": 800,
-    "formats": ["webm", "mp4", "gif", "png", "svg"],
+    "formats": ["webm", "mp4", "gif", "png", "svg", "pdf"],
     "actions": ["download", "copy", "save"],
     "video": {
       "wait": 1,
@@ -29,40 +29,6 @@
         { "value": "laying",    "label": "Laying" },
         { "value": "dangling",  "label": "Dangling" }
       ]
-    },
-    {
-      "id": "theme",
-      "label": "Theme",
-      "type": "select",
-      "default": "dark",
-      "options": [
-        { "value": "dark",   "label": "Dark" },
-        { "value": "light",  "label": "Light" },
-        { "value": "pine",   "label": "Pine" },
-        { "value": "fresh",  "label": "Fresh" }
-      ]
-    },
-    {
-      "id": "heading",
-      "label": "Heading",
-      "type": "text",
-      "default": "",
-      "placeholder": "Open. Flexible. Secure."
-    },
-    {
-      "id": "body",
-      "label": "Body",
-      "type": "longtext",
-      "default": "",
-      "rows": 3,
-      "placeholder": "Supporting text goes here."
-    },
-    {
-      "id": "cta",
-      "label": "Call to Action",
-      "type": "text",
-      "default": "",
-      "placeholder": "Learn more"
     },
     {
       "id": "geeko",
@@ -104,6 +70,39 @@
       "type": "boolean",
       "section": "Geeko Options",
       "default": false
+    },
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "dark",
+      "options": [
+        { "value": "dark",   "label": "Dark" },
+        { "value": "light",  "label": "Light" },
+        { "value": "pine",   "label": "Pine" }
+      ]
+    },
+    {
+      "id": "heading",
+      "label": "Heading",
+      "type": "text",
+      "default": "",
+      "placeholder": "Open. Flexible. Secure."
+    },
+    {
+      "id": "body",
+      "label": "Body",
+      "type": "longtext",
+      "default": "",
+      "rows": 3,
+      "placeholder": "Supporting text goes here."
+    },
+    {
+      "id": "cta",
+      "label": "Call to Action",
+      "type": "text",
+      "default": "",
+      "placeholder": "Learn more"
     }
   ]
 }

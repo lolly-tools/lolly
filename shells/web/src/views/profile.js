@@ -156,7 +156,11 @@ export async function mountProfile(viewEl, host, params = '') {
         <div class="profile-collapse-body">
           <p class="storage-hint-text feature-hint-text">Self-governance, autonomy, choice. Enable or disable parts of the app here</p>
           <ul class="feature-flags" id="feature-flags">
-            ${CATEGORY_FLAGS.map(flagRow).join('')}
+            ${CATEGORY_FLAGS.map(f =>
+              // Set the on-device Offline Utilities drawer apart from the creative
+              // tool categories above it with its own separator.
+              (f.category === 'utility' ? '<li class="feature-flag-divider" aria-hidden="true"></li>' : '') + flagRow(f)
+            ).join('')}
             <li class="feature-flag-divider" aria-hidden="true"></li>
             ${flagRow(PRO_FLAG)}
           </ul>

@@ -2217,6 +2217,33 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
 // still selectable/searchable vector — only the typeface differs from screen.
 // Transparency: jsPDF fills are opaque; semi-transparent CSS colors render at
 // full opacity (acceptable approximation for brand colours).
+// Rasterise a live <svg> subtree (inner <style> + gradients intact) to a PNG
+// data URL, alpha preserved. The PDF walker uses this for gradient / filter
+// illustrations the vector path can't reproduce faithfully (no shading; CSS-class
+// fills). `flipX` mirrors horizontally to honour a scaleX(-1) CSS transform.
+async function rasterizeSvgElement(svgEl, pxW, pxH, flipX = false) {
+  const clone = svgEl.cloneNode(true);
+  clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  clone.setAttribute('width',  String(pxW));
+  clone.setAttribute('height', String(pxH));
+  await inlineBlobUrlsInEl(clone);
+  const xml = new XMLSerializer().serializeToString(clone);
+  const url = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(xml);
+  const img = new Image();
+  await new Promise((res, rej) => {
+    img.onload = res;
+    img.onerror = () => rej(new Error('svg rasterise failed'));
+    img.src = url;
+  });
+  const canvas = document.createElement('canvas');
+  canvas.width  = pxW;
+  canvas.height = pxH;
+  const ctx = canvas.getContext('2d');
+  if (flipX) { ctx.translate(pxW, 0); ctx.scale(-1, 1); }
+  ctx.drawImage(img, 0, 0, pxW, pxH);
+  return canvas.toDataURL('image/png');
+}
+
 // Draws the live DOM as PDF vectors into the rectangular region (ox, oy, regionW,
 // regionH) in page points (top-left origin). Callers pass the full page for an
 // ordinary export, or the bleed box for a print export (so the design bleeds).
@@ -2302,8 +2329,31 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
       if (bR.rgb) { pdf.setFillColor(bR.rgb[0], bR.rgb[1], bR.rgb[2]); pdf.rect(x + w - bR.bw * scaleX, y, bR.bw * scaleX, h, 'F'); }
     }
 
-    // ── SVG subtree → vector region ───────────────────────────────────────────
+    // ── SVG subtree → vector region (or raster for gradient illustrations) ─────
     if (tag === 'svg') {
+      // Gradient / filter illustrations (e.g. the bag-video Geeko) can't be
+      // reproduced by the vector walker: drawSvgVectorsInRegion has no axial /
+      // radial shading and reads fills only from attributes or inline style, so
+      // url(#gradient) fills disappear and CSS-class fills (declared in an inner
+      // <style>) fall back to black — a solid silhouette. The SVG export keeps
+      // these vector by cloning the node verbatim; for PDF we rasterise just this
+      // subtree to a PNG (alpha preserved) so it keeps its shading, and reserve
+      // the crisp vector walk for solid-fill SVGs (qr, lockup, …).
+      if (el.querySelector('linearGradient, radialGradient, filter, pattern')) {
+        try {
+          // Resolution from the OUTPUT region (points → px at ~150dpi), not the
+          // on-screen box — so it's independent of the preview zoom and bounded.
+          const dpr = 150 / 72;
+          const pxW = Math.max(2, Math.min(2000, Math.round(w * dpr)));
+          const pxH = Math.max(2, Math.min(2000, Math.round(h * dpr)));
+          // Honour a scaleX(-1) flip (computed transform's matrix a-component < 0).
+          const tm = String(style.transform || '').match(/matrix\(\s*(-?[\d.]+)/);
+          const flipX = tm ? parseFloat(tm[1]) < 0 : el.classList.contains('flip');
+          const png = await rasterizeSvgElement(el, pxW, pxH, flipX);
+          pdf.addImage(png, 'PNG', x, y, w, h);
+          return;
+        } catch { /* fall through to the vector walk */ }
+      }
       await drawSvgVectorsInRegion(pdf, el, x, y, w, h, registeredFonts);
       return;
     }

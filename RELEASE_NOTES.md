@@ -272,3 +272,102 @@ Exports now embed authorship/Lolly provenance metadata per format (PNG iTXt, JPE
 
 - Saved state is per-device (no SUSE ID sync). Clearing browser storage loses sessions.
 - URL capture is native-only — fully functional on Tauri and via the Chrome extension on the web; the bare web shell and CLI stub it.
+
+---
+
+# Since v0.01 (2026-06-22 → 2026-06-27)
+
+Eleven new tools — across the Designer, Event, and offline-utility sets — plus tool composition, on-device file utilities, and new vector/data export paths.
+
+---
+
+## What's new
+
+### Color Block tool
+Typed colour blocks that auto-compose into a grid which fills any frame, at any size. (everyone, official)
+
+### Brand Lockup tool
+Official SUSE logo lockups — chameleon, wordmark, and a product or team name — exported as outlined vector. Replaces the earlier Product Lockup tool. (designer, official)
+
+### Street Map tool
+A clean vector street-block map of a bundled city; renders fully offline. (designer, official)
+
+### Halftone Filter tool
+Turns a photo into a vector halftone dot grid, exported as SVG or transparent PNG/WebP/AVIF. (designer, official)
+
+### Animated Ad tool
+Builds a looping digital ad from scenes — exported as a self-contained HTML banner, GIF, MP4, or a still poster. (designer, official)
+
+### Event Name Badge tool
+Print-ready conference name badges with a role colour and an optional QR code. First tool to use **composition** — it renders the QR Code tool inline via the new `compose` capability. (event, official)
+
+### Wayfinding Signage tool
+Directional event signs, each destination paired with an arrow; print-ready. (event, official)
+
+### Calendar ICS tool
+Turns an event into a calendar `.ics` for Outlook, Google, or Apple, alongside a shareable card. (event, official)
+
+### Strip Hidden Data tool
+Reveals and removes hidden metadata from images and PDFs entirely on-device — nothing is uploaded. (utility, official)
+
+### Text Helper tool
+Format, decode, hash, and de-identify text (JSON/YAML/Helm/JWT and more), all on-device. (utility, official)
+
+### Compress PDF tool
+Shrinks a PDF by recompressing its images, on-device. (utility, official)
+
+### Tool composition
+A tool can now render another tool as an image. Manifests declare `composes`, the engine resolves the nested render through `host.compose`, and the result is embedded without its own watermark. Tools are also addressable as portable embed URLs.
+
+### On-device file utilities
+A new `file` input type lets a tool take the user's own file as bytes held in memory. The transform path (`host.export.file` plus the `exportFile` hook, gated by `privacy: "on-device"`) processes the file locally and writes the result straight back — never embedding a watermark or provenance, and never uploading.
+
+---
+
+## Tools shipped
+
+| Tool | Status | Category |
+|---|---|---|
+| Color Block | Official | Everyone |
+| Dynamic Layout | Official | Everyone |
+| Quote Card | Official | Everyone |
+| Code Canvas | Official | Everyone |
+| QR Code Generator | Official | Everyone |
+| Day Brief | Official | Everyone |
+| Logo | Official | Everyone |
+| Email Signature | Official | Everyone |
+| Meeting Planner | Official | Event |
+| Event Name Badge | Official | Event |
+| Wayfinding Signage | Official | Event |
+| Calendar ICS | Official | Event |
+| Chart Creator | Official | Designer |
+| Duotone Filter | Official | Designer |
+| Street Map | Official | Designer |
+| Brand Lockup | Official | Designer |
+| Halftone Filter | Official | Designer |
+| Animated Ad | Official | Designer |
+| Bag Video | Experimental | Designer |
+| Color Palette | Official | Utility |
+| Countdown Timer | Official | Utility |
+| Strip Hidden Data | Official | Utility |
+| Text Helper | Official | Utility |
+| Compress PDF | Official | Utility |
+| URL Screenshot | Experimental | Utility |
+
+---
+
+## Platform changes
+
+| Area | Change |
+|---|---|
+| Engine | Tool composition: `compose` capability + manifest `composes`; nested renders via `host.compose`; portable embed URLs |
+| Engine | `file` input type and an on-device transform path (`host.export.file`, `exportFile` hook, `privacy: "on-device"`) |
+| Bridge | `host.pdf` API: analyze, strip, and compress PDFs on-device |
+| Export bridge | EMF replaces EPS as the vector export for Office; data exports `.ics`, `.vcf`, `.csv`, and `.json` generated from the input model |
+| Catalog | New "Event Kit" category; renames — `exif-stripper` → `strip-data`, `text-tools` → `text-helper`; the Product Lockup tool retired in favour of Brand Lockup |
+
+---
+
+## Known limitations
+
+- Saved state is per-device (no SUSE ID sync). Clearing browser storage loses sessions.

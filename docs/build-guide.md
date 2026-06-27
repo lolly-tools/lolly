@@ -37,7 +37,7 @@ npm run cli -- qr-code --url=https://suse.com --color=#0c322c --output=./qr.svg
 npm run cli -- quotes --quote="Open source wins." --name="Andy" --export=png --output=./quote.png
 ```
 
-The CLI supports **SVG, HTML, and the text/data formats** (JSON, CSV, ICS, VCF) natively — these are hydrated by the engine with no browser engine needed. Raster/PDF/ZIP and video formats (PNG, JPG, PDF, ZIP, GIF, WebM, MP4, …) require a real WebView renderer, so use the desktop app or the Tauri-bundled CLI for those.
+The CLI supports **SVG, EMF, HTML, and the text/data formats** (JSON, CSV, ICS, VCF) natively — these are hydrated by the engine with no browser engine needed (SVG/EMF only for tools with an `<svg>`-based template, since the lean CLI has no layout engine). Raster/PDF/ZIP and video formats (PNG, JPG, PDF, ZIP, GIF, WebM, MP4, …) require a real WebView renderer, so use the desktop app or the Tauri-bundled CLI for those.
 
 ### Standalone binary
 

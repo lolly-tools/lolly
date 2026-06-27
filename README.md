@@ -23,7 +23,7 @@ Tools can be used via a:
 * 100% Free & Open Source, Unlimited scale, No SaaS fees. 
 * Low-or-Zero server costs: Lolly uses local device compute. 
 * Builds for Mac, Linux, iOS, Android, web, and the command line. 
-* Huge format support: SVG · PDF · Print PDF (CMYK) · CMYK TIFF · PNG · JPEG · WebP · AVIF · ICO · WebM · MP4 · GIF · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP 
+* Huge format support: SVG · EMF · PDF · Print PDF (CMYK) · CMYK TIFF · PNG · JPEG · WebP · AVIF · ICO · WebM · MP4 · GIF · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP 
 * Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars, and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
 * Works 100% Offline.
@@ -99,28 +99,33 @@ See `docs/authoring-tools.md` to build your first tool.
 
 | Tool | Category | Status |
 |---|---|---|
-| QR Code Generator | everyone | official |
-| Quote Card | everyone | official |
-| Email Signature | everyone | official |
-| Day Brief | everyone | official |
-| Code Canvas | everyone | official |
-| Meeting Planner | everyone | official |
-| Dynamic Layout | everyone | official |
 | Color Block | everyone | official |
+| Dynamic Layout | everyone | official |
+| Quote Card | everyone | official |
+| Code Canvas | everyone | official |
+| QR Code Generator | everyone | official |
+| Day Brief | everyone | official |
 | Logo | everyone | official |
+| Email Signature | everyone | official |
 | Chart Creator | designer | official |
 | Duotone Filter | designer | official |
 | Street Map | designer | official |
-| Product Lockup | designer | experimental |
+| Brand Lockup | designer | official |
+| Halftone Filter | designer | official |
+| Animated Ad | designer | official |
 | Bag Video | designer | experimental |
+| Meeting Planner | event | official |
 | Event Name Badge | event | official |
+| Wayfinding Signage | event | official |
+| Calendar ICS | event | official |
 | Color Palette | utility | official |
 | Countdown Timer | utility | official |
-| URL Screenshot | utility | experimental |
 | Strip Hidden Data | utility | official |
 | Text Helper | utility | official |
+| Compress PDF | utility | official |
+| URL Screenshot | utility | experimental |
 
-The `utility` "Handy Apps" section always renders last in the gallery.
+The `utility` "Offline Utilities" section always renders last in the gallery.
 
 ## Open-sourcing plan
 

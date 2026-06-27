@@ -1,0 +1,120 @@
+{
+  "id": "scanline-filter",
+  "name": "Scanline Filter",
+  "description": "Turn any photo into a retro scanline: alternate lines drop out and the rest is posterised into brand tones as a grid of crisp rects. Scalable SVG or transparent PNG/WebP/AVIF.",
+  "a11yLabel": "Scanline rendering of the chosen image in brand tones",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["scanline", "crt", "pixel", "retro", "posterize", "halftone", "image", "filter", "effect"],
+  "render": {
+    "width": 1000,
+    "height": 1000,
+    "formats": ["svg", "png", "webp", "avif"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false
+  },
+  "inputs": [
+    {
+      "id": "image",
+      "label": "Image",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Pick a photo or upload your own. It's processed on your device — the pixels never leave the browser."
+    },
+    {
+      "id": "lineSize",
+      "label": "Line size",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": 4,
+      "max": 48,
+      "step": 1,
+      "help": "Thickness of each scanline and the width of each cell. Smaller = finer detail; larger = chunkier pixels."
+    },
+    {
+      "id": "separatePixels",
+      "label": "Separate pixels",
+      "type": "boolean",
+      "default": false,
+      "help": "Add a gap between cells too, so each one is a distinct square — an LED/pixel-matrix look instead of solid scanline bars."
+    },
+    {
+      "id": "fit",
+      "label": "Image fit",
+      "type": "select",
+      "default": "contain",
+      "options": [
+        { "value": "contain", "label": "Contain (whole image)" },
+        { "value": "cover", "label": "Cover (fill, crop edges)" }
+      ]
+    },
+    {
+      "id": "highlight",
+      "label": "Highlight",
+      "type": "color",
+      "default": "#ffffff",
+      "help": "Brightest tone."
+    },
+    {
+      "id": "light",
+      "label": "Light",
+      "type": "color",
+      "default": "#bff1ea"
+    },
+    {
+      "id": "mid",
+      "label": "Mid",
+      "type": "color",
+      "default": "#008878"
+    },
+    {
+      "id": "shade",
+      "label": "Shade",
+      "type": "color",
+      "default": "#01564a"
+    },
+    {
+      "id": "shadow",
+      "label": "Shadow",
+      "type": "color",
+      "default": "#000000",
+      "help": "Darkest tone."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "",
+      "help": "Fills the blank lines and gaps. Leave empty for a transparent background (PNG/WebP/AVIF/SVG keep the transparency)."
+    },
+    {
+      "id": "brightness",
+      "label": "Brightness",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1
+    },
+    {
+      "id": "contrast",
+      "label": "Contrast",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": -100,
+      "max": 100,
+      "step": 1
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  }
+}
