@@ -116,6 +116,36 @@ test('a changed input with no matching control rebuilds', () => {
   assert.equal(canSkipInputsRebuild(el, model, prev), false);
 });
 
+test('a focused block number field defers the rebuild (caret survives mid-decimal)', () => {
+  // Mid-typing "1." in an <input type=number> reports value "" with badInput; a
+  // rebuild would recreate the input and scramble the caret. While it holds focus
+  // the rebuild is deferred so the browser keeps the in-progress text + caret.
+  const dom = new JSDOM(
+    '<!DOCTYPE html><div id="panel"><input type="number" data-field-id="scenes:0:hold" value="1.6"></div>'
+  );
+  if (dom.window.CSS) globalThis.CSS = dom.window.CSS;
+  const el = dom.window.document.getElementById('panel');
+  el.querySelector('input').focus();
+  // The model's block value changed (a keystroke), which would normally rebuild;
+  // because the field is focused, it skips regardless.
+  const prev = [inp('scenes', 'blocks', [{ hold: '1.6' }])];
+  const model = [inp('scenes', 'blocks', [{ hold: '1' }])];
+  assert.equal(canSkipInputsRebuild(el, model, prev), true);
+});
+
+test('a blurred block number field does NOT defer (normal structural rebuild)', () => {
+  // Same panel, but nothing focused — a blocks value change is structural and must
+  // rebuild, so the deferral must not leak into the unfocused case.
+  const dom = new JSDOM(
+    '<!DOCTYPE html><div id="panel"><input type="number" data-field-id="scenes:0:hold" value="1.6"></div>'
+  );
+  if (dom.window.CSS) globalThis.CSS = dom.window.CSS;
+  const el = dom.window.document.getElementById('panel');
+  const prev = [inp('scenes', 'blocks', [{ hold: '1.6' }])];
+  const model = [inp('scenes', 'blocks', [{ hold: '1.2' }])];
+  assert.equal(canSkipInputsRebuild(el, model, prev), false);
+});
+
 test('domReflectsValue: structural controls never report reflected', () => {
   const el = makePanel('<div class="custom-slider" data-input-id="scale"></div>');
   assert.equal(domReflectsValue(el, inp('scale', 'slider', 2)), false);

@@ -2099,6 +2099,14 @@ function renderInputs(el, model, runtime, host, onDirty) {
   // Block field changes
   el.querySelectorAll('[data-field-id]').forEach(field => {
     field.addEventListener('input', () => {
+      // A number field mid-decimal — "1." or just "." — reports value="" with
+      // validity.badInput. Committing that empties the model, which re-renders
+      // the panel (blocks always take the full rebuild path) and wipes the
+      // trailing "." the user is about to complete, so "1.2" lands as "12".
+      // Hold off until the value parses; the field keeps showing the in-progress
+      // text on its own, and the spinner arrows still commit valid steps. badInput
+      // is never true for text/textarea/select, so this only ever guards numbers.
+      if (field.validity?.badInput) return;
       const parts = field.dataset.fieldId.split(':');
       const blockId = parts[0], idx = parseInt(parts[1], 10), fieldId = parts[2];
       const inp = panelModel.find(i => i.id === blockId);
@@ -2484,8 +2492,15 @@ function controlHtml(input) {
         if (f.type === 'number') {
           const min = f.min ?? 0, max = f.max ?? 1, step = f.step ?? 0.01;
           const cur = item[f.id] ?? f.default ?? min;
-          return labelled(f, `<input type="range" class="block-field block-range-input" data-field-id="${fieldId}"
-            min="${min}" max="${max}" step="${step}" value="${escape(cur)}" aria-label="${escape(f.label ?? f.id)}">`);
+          // display:'slider' → range track; otherwise a plain number input that shows
+          // the value and accepts decimals (e.g. 1.3, 0.5). Mirrors the top-level
+          // number-vs-slider convention so block fields read consistently.
+          if (f.display === 'slider') {
+            return labelled(f, `<input type="range" class="block-field block-range-input" data-field-id="${fieldId}"
+              min="${min}" max="${max}" step="${step}" value="${escape(cur)}" aria-label="${escape(f.label ?? f.id)}">`);
+          }
+          return labelled(f, `<input type="number" class="block-field block-number-input" data-field-id="${fieldId}"
+            min="${min}" max="${max}" step="${step}" value="${escape(cur)}" inputmode="decimal" aria-label="${escape(f.label ?? f.id)}">`);
         }
 
         if (f.type === 'asset') {
@@ -3865,9 +3880,14 @@ function addScrubBehavior(inputEl, onChange, opts = {}) {
 
   let dragging    = false;
   let wasDragging = false;
+  let activeId    = null;   // the one pointer currently driving a drag
 
   inputEl.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
+    // One scrub at a time: a second finger landing on the field mustn't reset the
+    // baseline of the drag already in progress (it drove jumpy values on touch).
+    if (activeId !== null) return;
+    activeId = e.pointerId;
     const startX   = e.clientX;
     const startVal = parseInt(inputEl.value, 10) || 0;
     // Touch can't lock the pointer, so the value stays hidden under the finger —
@@ -3885,6 +3905,7 @@ function addScrubBehavior(inputEl, onChange, opts = {}) {
     }
 
     function onMove(e) {
+      if (e.pointerId !== activeId) return;   // ignore any other pointer
       if (!dragging) {
         if (Math.abs(e.clientX - startX) < 4) return;
         dragging = true;
@@ -3916,7 +3937,10 @@ function addScrubBehavior(inputEl, onChange, opts = {}) {
       showReadout(e);
     }
 
-    function onUp() {
+    function onUp(e) {
+      // pointerup/cancel carry an event (ignore other pointers); onLockChange
+      // calls onUp() with no argument to force a release.
+      if (e && e.pointerId !== activeId) return;
       inputEl.removeEventListener('pointermove',   onMove);
       inputEl.removeEventListener('pointerup',     onUp);
       inputEl.removeEventListener('pointercancel', onUp);
@@ -3929,6 +3953,7 @@ function addScrubBehavior(inputEl, onChange, opts = {}) {
         setTimeout(() => { wasDragging = false; }, 50);
       }
       dragging = false;
+      activeId = null;
     }
 
     function onLockChange() {
