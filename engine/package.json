@@ -2,6 +2,7 @@
   "name": "@lolly/engine",
   "version": "0.1.0",
   "description": "Platform-agnostic engine for Lolly. Loads tool manifests, renders inputs, hydrates templates, drives exports through the capability bridge.",
+  "license": "MPL-2.0",
   "type": "module",
   "main": "./src/index.js",
   "exports": {
