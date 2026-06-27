@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Local usage metrics — tiny vanity counters for the profile page.
  *

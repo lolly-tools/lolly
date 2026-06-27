@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — saved batch sessions.
  *

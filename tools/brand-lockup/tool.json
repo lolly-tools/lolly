@@ -10,7 +10,7 @@
   "render": {
     "width": 1200,
     "height": 1200,
-    "formats": ["svg", "png", "emf"],
+    "formats": ["svg", "png", "emf", "eps", "eps-cmyk"],
     "actions": ["copy", "download", "save"]
   },
   "inputs": [

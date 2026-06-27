@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * TokensAPI — design tokens for the host UI and token-aware tools.
  *

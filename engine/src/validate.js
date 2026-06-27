@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Validates a tool manifest against the JSON Schema.
  *

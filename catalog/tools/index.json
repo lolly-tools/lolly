@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-27T22:35:53.226Z",
+  "generatedAt": "2026-06-27T23:07:30.811Z",
   "tools": [
     {
       "id": "color-block",
@@ -110,6 +110,8 @@
       "formats": [
         "svg",
         "emf",
+        "eps",
+        "eps-cmyk",
         "pdf",
         "pdf-cmyk",
         "cmyk-tiff",
@@ -176,7 +178,8 @@
       ],
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7\" /><rect x=\"2\" y=\"4\" width=\"20\" height=\"16\" rx=\"2\" /></svg>",
-      "preview": "/tools/email-signature/preview.png"
+      "preview": "/tools/email-signature/preview.png",
+      "personalized": true
     },
     {
       "id": "chart-creator",
@@ -335,7 +338,8 @@
       ],
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13.5 8h-3\" /><path d=\"m15 2-1 2h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3\" /><path d=\"M16.899 22A5 5 0 0 0 7.1 22\" /><path d=\"m9 2 3 6\" /><circle cx=\"12\" cy=\"15\" r=\"3\" /></svg>",
-      "preview": "/tools/event-name-badge/preview.png"
+      "preview": "/tools/event-name-badge/preview.png",
+      "personalized": true
     },
     {
       "id": "wayfinding-signage",
@@ -368,7 +372,9 @@
       "formats": [
         "svg",
         "png",
-        "emf"
+        "emf",
+        "eps",
+        "eps-cmyk"
       ],
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 13V8.5C14 7 15 7 15 5a3 3 0 0 0-6 0c0 2 1 2 1 3.5V13\" /><path d=\"M20 15.5a2.5 2.5 0 0 0-2.5-2.5h-11A2.5 2.5 0 0 0 4 15.5V17a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1z\" /><path d=\"M5 22h14\" /></svg>",
@@ -435,7 +441,8 @@
       ],
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M15 2H9a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V6z\" /><path d=\"M15 2v4h4\" /><path d=\"M11 10.5h4\" /><path d=\"M11 13.5h4\" /><path d=\"M7 6a2 2 0 0 0-3 1.7V20a2 2 0 0 0 2 2h9a2 2 0 0 0 1.7-1\" /></svg>",
-      "preview": "/tools/multi-page-pdf/preview.png"
+      "preview": "/tools/multi-page-pdf/preview.png",
+      "personalized": true
     },
     {
       "id": "filter-duotone",
@@ -477,7 +484,7 @@
     {
       "id": "filter-scanline",
       "name": "Filter: Scanline",
-      "description": "Retro scanline effect from any photo in brand tones.",
+      "description": "Horizontal 'infinity lines' scanline vector effect from any photo",
       "version": "1.0.0",
       "status": "official",
       "category": "designer",

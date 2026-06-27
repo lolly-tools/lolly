@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Print-marks & bleed geometry — platform-agnostic, no DOM.
  *

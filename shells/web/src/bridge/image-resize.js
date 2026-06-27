@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Raster image downscaling for user uploads (web shell).
  *

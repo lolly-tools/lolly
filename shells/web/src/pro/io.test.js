@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Round-trip tests for the batch CSV (io.js) — focus on unit/DPI fidelity.
  * Run: node --test shells/web/src/pro/io.test.js

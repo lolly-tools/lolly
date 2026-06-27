@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Shared SUSE colour picker — the ONE colour field used across the app.
  *

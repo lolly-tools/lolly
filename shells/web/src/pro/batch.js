@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — render the whole batch, sequentially.
  *
@@ -11,7 +12,7 @@
  */
 import { renderRowToBlob, getTool, isExportable } from './render-export.js';
 
-const FMT_EXT = { 'pdf-cmyk': 'pdf', jpeg: 'jpg' };
+const FMT_EXT = { 'pdf-cmyk': 'pdf', jpeg: 'jpg', 'eps-cmyk': 'eps' };
 const extFor = (fmt) => FMT_EXT[fmt] ?? fmt;
 
 /** Ensure unique, filesystem-safe names within the zip. */

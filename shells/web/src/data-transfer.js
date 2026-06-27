@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Portable user-data bundle — "take everything with you to another install".
  *

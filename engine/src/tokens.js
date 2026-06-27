@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Design tokens — a platform-agnostic DTCG model.
  *

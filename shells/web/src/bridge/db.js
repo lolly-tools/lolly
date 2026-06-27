@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * IndexedDB schema for the web shell.
  *
@@ -16,7 +17,7 @@
 import { openDB as idbOpen, deleteDB as idbDelete } from 'idb';
 
 const DB_NAME = 'lolly';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
 // How long to wait for the DB to open before giving up. A healthy open is
 // near-instant; this only trips when the connection is genuinely wedged.
@@ -26,7 +27,7 @@ const OPEN_TIMEOUT_MS = 8000;
 // current version but is missing any of these, it was left half-initialized by
 // an interrupted upgrade and must be rebuilt (see openDB). 'catalog-meta' is
 // intentionally excluded — it is deprecated/unused, so its absence is harmless.
-const REQUIRED_STORES = ['profile', 'state', 'asset-meta', 'asset-blob', 'user-assets'];
+const REQUIRED_STORES = ['profile', 'state', 'asset-meta', 'asset-blob', 'user-assets', 'generated-previews'];
 
 function openOnce() {
   const opening = idbOpen(DB_NAME, DB_VERSION, {
@@ -50,6 +51,13 @@ function openOnce() {
         // a further version bump + migration, and leaving it costs nothing. Kept so
         // browsers that already upgraded to v2 still open at the declared schema.
         db.createObjectStore('catalog-meta');
+      }
+      if (oldVersion < 3) {
+        // Profile-personalized gallery preview thumbnails, keyed by toolId. Pure
+        // regenerable cache (re-rendered from the tool + current profile on demand;
+        // see shells/web/src/personalize-previews.js), so — like asset-blob — it is
+        // intentionally NOT carried in the portable backup (data-transfer.js).
+        db.createObjectStore('generated-previews', { keyPath: 'toolId' });
       }
     },
     blocking() {

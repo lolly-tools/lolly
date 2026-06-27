@@ -132,4 +132,8 @@ The `utility` "Offline Utilities" section always renders last in the gallery.
 
 The `engine/`, `shells/`, `schemas/`, and `docs/` directories are designed to be open-sourceable. 
 
-`tools/` and `catalog/assets/` are not under the MPL and will be replaced with more example tools by end of August
+`tools/` and `catalog/assets/` are not under the MPL and will be replaced with more example tools by end of August.
+
+`catalog/fonts/` is a third, distinct license regime: it ships the **SUSE** and **SUSE Mono** typefaces under the [SIL Open Font License 1.1](catalog/fonts/OFL.txt) — neither the MPL nor SUSE-proprietary ("SUSE" itself is a SUSE trademark).
+
+Bundled third-party attributions are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

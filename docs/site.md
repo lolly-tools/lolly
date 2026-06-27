@@ -121,7 +121,7 @@ Every time someone uploads a file to a third-party service to "just make it look
 
 **Works offline.** Local compute, local storage. No internet required after first sync.
 
-**Huge format support.** SVG · EMF · PDF (+CMYK) · PNG · JPEG · WEBP · AVIF · WEBM · MP4 · GIF · HTML · MD — plus structured exchange formats (ICS · VCF · CSV · JSON · TXT) and ICO favicons and ZIP bundles.
+**Huge format support.** SVG · EMF · EPS · PDF · TIFF · PNG · JPG · WEBP · AVIF · GIF · WEBM · MP4 · HTML · MD · TXT · CSV · JSON · ICS · VCF · ICO · ZIP
 
 **Ships new tools without app updates.** Tools are data, not bundled code. New tools appear automatically.
 

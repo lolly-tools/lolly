@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Capabilities view — a human-readable map of what Lolly can actually do.
  *

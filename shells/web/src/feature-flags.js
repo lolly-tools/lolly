@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Feature flags — local, per-user toggles that tailor the gallery.
  *

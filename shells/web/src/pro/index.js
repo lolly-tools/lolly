@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — view entry point and orchestrator.
  *
@@ -33,7 +34,7 @@ import { batchToCsv, csvToBatch, parseClipboardGrid, coerceCell } from './io.js'
 import { createSessionStore, rowsFromSnapshot, snapshotFromState } from './sessions.js';
 import { QUIPS, quipLines } from './quips.js';
 
-const FORMAT_OPTIONS = ['png', 'jpg', 'svg', 'emf', 'pdf', 'webp'];
+const FORMAT_OPTIONS = ['png', 'jpg', 'svg', 'emf', 'eps', 'pdf', 'webp'];
 
 // Input columns worth showing by default when a newly-added tool uses them
 // (everything else a tool introduces starts collapsed). Matched by input id;

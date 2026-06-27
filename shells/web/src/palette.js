@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Global brand color palette.
  * Every color-picker input in the platform shows these swatches.

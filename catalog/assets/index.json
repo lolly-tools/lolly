@@ -23,7 +23,7 @@
           "size": 7379
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/palette/brand-core",
@@ -44,7 +44,7 @@
           "size": 901
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/hor-neg-green",
@@ -69,7 +69,7 @@
           "size": 4309
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/hor-neg-white",
@@ -95,7 +95,7 @@
           "size": 6082
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/hor-pos-green",
@@ -120,7 +120,7 @@
           "size": 4254
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/hor-pos-black",
@@ -146,7 +146,7 @@
           "size": 4212
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/vert-neg-green",
@@ -171,7 +171,7 @@
           "size": 4525
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/vert-neg-white",
@@ -197,7 +197,7 @@
           "size": 5399
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/vert-pos-green",
@@ -222,7 +222,7 @@
           "size": 4435
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/logo/vert-pos-black",
@@ -248,7 +248,7 @@
           "size": 4393
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/abhinav-puri",
@@ -268,7 +268,7 @@
           "size": 62761
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/ajay-patel",
@@ -288,7 +288,7 @@
           "size": 68010
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/andreas-prins",
@@ -308,7 +308,7 @@
           "size": 61299
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/andrew-toole",
@@ -328,7 +328,7 @@
           "size": 55315
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/andy-fitzsimon",
@@ -348,7 +348,7 @@
           "size": 132284
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/andy-mcdonald",
@@ -368,7 +368,7 @@
           "size": 64911
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/april-cuthbert",
@@ -388,7 +388,7 @@
           "size": 65917
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/camilla-keighley",
@@ -408,7 +408,7 @@
           "size": 54607
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/casey-woods",
@@ -428,7 +428,7 @@
           "size": 86337
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/charlie-metz",
@@ -448,7 +448,7 @@
           "size": 69644
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/christine-puccio",
@@ -468,7 +468,7 @@
           "size": 86498
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/david-hughes",
@@ -488,7 +488,7 @@
           "size": 68323
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/declan-oatley",
@@ -508,7 +508,7 @@
           "size": 42331
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/diego-akechi",
@@ -528,7 +528,7 @@
           "size": 52538
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/dirk-peter-van-leeuwen",
@@ -548,7 +548,7 @@
           "size": 102562
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/doug-alston",
@@ -568,7 +568,7 @@
           "size": 83119
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/thomas-di-giacomo",
@@ -588,7 +588,7 @@
           "size": 480282
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/emma-willis",
@@ -608,7 +608,7 @@
           "size": 60889
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/frank-feldmann",
@@ -628,7 +628,7 @@
           "size": 219320
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/hayley-wienszczak",
@@ -648,7 +648,7 @@
           "size": 61459
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/holger-pfister",
@@ -668,7 +668,7 @@
           "size": 62143
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/ian-halifax",
@@ -688,7 +688,7 @@
           "size": 83151
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/imran-khan",
@@ -708,7 +708,7 @@
           "size": 399162
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/jamie-rahbany",
@@ -728,7 +728,7 @@
           "size": 97693
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/jason-vaughn",
@@ -748,7 +748,7 @@
           "size": 63949
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/jeff-mahoney",
@@ -768,7 +768,7 @@
           "size": 65149
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/jeff-paul",
@@ -788,7 +788,7 @@
           "size": 54446
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/jochen-jaser",
@@ -808,7 +808,7 @@
           "size": 52747
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/john-lowe",
@@ -828,7 +828,7 @@
           "size": 84104
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/josep-garcia",
@@ -848,7 +848,7 @@
           "size": 57589
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/karthik-prabakaran",
@@ -868,7 +868,7 @@
           "size": 74599
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/keith-basil",
@@ -888,7 +888,7 @@
           "size": 83002
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/kevin-smith",
@@ -908,7 +908,7 @@
           "size": 76164
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/lisa",
@@ -928,7 +928,7 @@
           "size": 83768
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/marcos-lacerda",
@@ -948,7 +948,7 @@
           "size": 63640
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/margaret-dawson",
@@ -968,7 +968,7 @@
           "size": 56741
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/marie-louise-van-deutekom",
@@ -988,7 +988,7 @@
           "size": 68437
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/mark-dando",
@@ -1008,7 +1008,7 @@
           "size": 48769
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/mark-gradwell",
@@ -1028,7 +1028,7 @@
           "size": 76783
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/mike-pallot",
@@ -1048,7 +1048,7 @@
           "size": 54262
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/nadine-pieper",
@@ -1068,7 +1068,7 @@
           "size": 79760
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/naji-almahmoud",
@@ -1088,7 +1088,7 @@
           "size": 56226
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/nicholas-dimotakis",
@@ -1108,7 +1108,7 @@
           "size": 80096
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/oliver-ries",
@@ -1128,7 +1128,7 @@
           "size": 69987
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/owen-lewis",
@@ -1148,7 +1148,7 @@
           "size": 79592
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/peter-lees",
@@ -1168,7 +1168,7 @@
           "size": 88520
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/peter-smails",
@@ -1188,7 +1188,7 @@
           "size": 73845
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/petr-uzel",
@@ -1208,7 +1208,7 @@
           "size": 63444
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/rachel-vowles",
@@ -1228,7 +1228,7 @@
           "size": 60756
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/rhys",
@@ -1248,7 +1248,7 @@
           "size": 70224
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/sabeen-mushtaq",
@@ -1268,7 +1268,7 @@
           "size": 77973
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/stefan-gaiser",
@@ -1288,7 +1288,7 @@
           "size": 45497
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     },
     {
       "id": "suse/headshots/tina-steincke",
@@ -1308,7 +1308,7 @@
           "size": 81256
         }
       ],
-      "license": "internal"
+      "license": "LicenseRef-SUSE-Proprietary"
     }
   ]
 }

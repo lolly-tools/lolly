@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * host.text — text-to-path bridge primitive (HarfBuzz WASM backed).
  *

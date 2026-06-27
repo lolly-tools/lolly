@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — drag-resize for rows and columns.
  *

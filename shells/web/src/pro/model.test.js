@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the pure /pro batch-grid model logic.
  * Run directly:  node --test shells/web/src/pro/model.test.js

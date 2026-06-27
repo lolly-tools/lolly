@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * CLI implementation of the v1 capability bridge.
  *
@@ -12,7 +13,7 @@
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf } from '@lolly/engine';
+import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf, emitEps } from '@lolly/engine';
 // PDF metadata inspect/strip is pure pdf-lib (no DOM), so the lean node CLI
 // shares the web shell's implementation rather than duplicating it.
 import { createPdfAPI } from '../../web/src/bridge/pdf.js';
@@ -166,7 +167,18 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
         const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([bytes], { type: 'image/emf' });
       }
-      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, json, csv, ics, vcf), or run the Tauri-bundled CLI for raster/pdf/zip.`);
+      if (format === 'eps' || format === 'eps-cmyk') {
+        // EPS is vector PostScript built from the same SVG IR as EMF — text is
+        // outlined upstream (svgDomToIr throws on live <text>, as the lean CLI
+        // has no host.text), so the emitter writes no fonts. eps-cmyk is naive
+        // DeviceCMYK (no embedded output intent), same as the web shell.
+        const svg = node.querySelector('svg') ?? (node.tagName?.toLowerCase() === 'svg' ? node : null);
+        if (!svg) throw new Error('EPS export requires an <svg> in the template (HTML-layout tools need a browser engine — use the desktop app)');
+        const ir = await svgDomToIr(svg, { host, background: opts.background, label: 'EPS' });
+        const text = emitEps(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk: format === 'eps-cmyk', meta: opts.meta });
+        return new Blob([text], { type: 'application/postscript' });
+      }
+      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, eps, json, csv, ics, vcf), or run the Tauri-bundled CLI for raster/pdf/zip.`);
     },
     async download() {
       throw new Error('CLI cannot trigger a browser download — pipe the blob to a file via --output');
@@ -276,6 +288,7 @@ function mimeFor(format) {
     case 'jpg': case 'jpeg': return 'image/jpeg';
     case 'webp': return 'image/webp';
     case 'emf': return 'image/emf';
+    case 'eps': case 'eps-cmyk': return 'application/postscript';
     case 'json': return 'application/json';
     default: return 'application/octet-stream';
   }

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Shared tool loader for the web shell's render paths.
  *

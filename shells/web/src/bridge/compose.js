@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Web implementation of the `compose` capability — render another tool to an
  * embeddable AssetRef (tool composition / "nested exports").

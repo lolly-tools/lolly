@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * ClipboardAPI — text and image clipboard ops with graceful fallback.
  */

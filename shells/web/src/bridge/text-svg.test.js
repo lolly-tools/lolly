@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the pure SVG text-vectorisation helpers.
  * Run directly:  node --test shells/web/src/bridge/text-svg.test.js

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * PDF capability (host.pdf) — metadata inspection + removal, backed by pdf-lib.
  *
