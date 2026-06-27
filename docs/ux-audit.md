@@ -69,9 +69,9 @@ Effort: **S** <1h · **M** a few hours · **L** a day+.
    (`gallery.js:133`, inside the footer at `:130`). It now auto-focuses on
    fine-pointer load and renders an `aria-live` results region with a
    `No tools match "…"` message (`gallery.js:111,224,227`), so it is no longer a
-   silent dead end — but it still matches name only (`index.tools.filter(t => t.name…)`)
-   and offers no browse-all recovery. → Promote to top; match
-   name+description+category; add a clear/browse-all recovery. **M**
+   silent dead end — but it still matches name+description only, not category
+   (`index.tools.filter(t => t.name… || t.description…)`), and offers no browse-all
+   recovery. → Promote to top; also match category; add a clear/browse-all recovery. **M**
 10. ✅ **Export progress for slow formats.** CMYK/large-raster/PDF only disabled the
     button; failures weren't announced. `tool.js:3034`. → Non-animated exports now show
     "Exporting…", set `aria-busy`, and announce start/complete/fail. Verified: button

@@ -219,6 +219,7 @@ Supported values:
 | Value | Output |
 |---|---|
 | `svg` | Scalable vector (requires `<svg>` root in the template) |
+| `emf` | Enhanced Metafile vector (for Office apps) |
 | `png` | Lossless raster |
 | `jpg` / `jpeg` | Lossy raster |
 | `webp` | Lossy/lossless raster |
@@ -236,7 +237,7 @@ Supported values:
 | `webm` | WebM video (animated tools only; Chrome/Firefox/Android) |
 | `mp4` | MP4 video (animated tools only; Safari/iOS and recent Chrome) |
 
-Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid (the full set is the 21-value enum in `schemas/tool.schema.json`). Requesting an unsupported format falls back gracefully.
+Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid (the full set is the 22-value enum in `schemas/tool.schema.json`). Requesting an unsupported format falls back gracefully.
 
 ---
 

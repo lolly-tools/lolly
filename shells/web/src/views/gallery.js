@@ -13,7 +13,7 @@ import { syncCatalog } from '../catalog/sync.js';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.js';
 
 // Section order in the gallery. 'utility' is intentionally absent: the on-device
-// utilities / Handy Apps section always renders last, after every other category
+// Offline Utilities section always renders last, after every other category
 // (including unknown/future ones) — see categoryRank().
 const CATEGORY_ORDER = ['everyone', 'designer', 'event', 'product'];
 

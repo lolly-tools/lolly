@@ -14,7 +14,9 @@
 export const CATEGORY_FLAGS = [
   { id: 'cat-everyone',  label: 'Tools for Everyone', category: 'everyone' },
   { id: 'cat-designer',  label: 'Designer Tools',     category: 'designer' },
-  { id: 'cat-developer', label: 'Handy Apps',   category: 'utility'  },
+  { id: 'cat-event',     label: 'Event Kit',          category: 'event'    },
+  // id stays 'cat-developer' (a persisted key); only the user-facing label changed.
+  { id: 'cat-developer', label: 'Offline Utilities',  category: 'utility'  },
 ];
 
 export const PRO_FLAG = { id: 'pro-batch', label: 'Pro', pill: 'batch mode' };

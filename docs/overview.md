@@ -120,7 +120,7 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # 21 tool definitions — data, not code. SUSE-specific. Stays private.
+├── tools/            # 25 tool definitions — data, not code. SUSE-specific. Stays private.
 │   ├── qr-code/
 │   ├── quotes/
 │   ├── email-signature/
@@ -134,11 +134,15 @@ lolly/
 │   ├── street-map/        # offline vector city-block maps
 │   ├── url-shot/          # "URL Screenshot" (capture capability)
 │   ├── strip-data/        # on-device metadata strip — JPEG/PNG/SVG/PDF (file in → clean file out)
-│   ├── lockup/            # opentype.js text-to-path
+│   ├── compress-pdf/      # on-device PDF compressor — recompresses images (file in → smaller file out)
+│   ├── brand-lockup/      # "Brand Lockup" — SUSE logo lockups; HarfBuzz text-to-path (wasm)
 │   ├── bag-video/
 │   ├── chart-creator/     # SVG charts from structured data
 │   ├── duotone-filter/    # two-color photo treatment
+│   ├── halftone-filter/   # photo → vector halftone dot grid
 │   ├── meeting-planner/   # global timezone meeting scheduler
+│   ├── calendar-ics/      # event → .ics calendar file plus a card
+│   ├── digi-ad/           # "Animated Ad" — looping banner from scenes
 │   ├── event-name-badge/  # conference badges — composes qr-code as an SVG
 │   ├── wayfinding-signage/ # event signage; directions blocks auto-fit label text
 │   └── text-helper/       # on-device text workbench (format/decode/hash/de-identify)
@@ -189,19 +193,19 @@ brand-tool qr-code                # lists inputs for that tool
 
 Tools are tagged with a `category` in their manifest for gallery grouping.
 
-Rows are listed in gallery section order. The `utility` section always renders **last** in the gallery (after every other category, including future ones) — it's the on-device "Handy Apps" drawer.
+Rows are listed in gallery section order. The `utility` section always renders **last** in the gallery (after every other category, including future ones) — it's the on-device "Offline Utilities" drawer.
 
 | Category | Shipped tools | Planned |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Meeting Planner, Color Block, Dynamic Layout, Logo | Employee Image Stationery |
-| `designer` | Product Lockup, Bag Video, Chart Creator, Duotone Filter, Street Map | PDF Smasher, Font Outliner |
-| `event` | Event Name Badge, Wayfinding Signage | Event Stationery, Bulk Name Badges, Room Agenda Cards |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Color Block, Dynamic Layout, Logo | Employee Image Stationery |
+| `designer` | Brand Lockup, Bag Video, Chart Creator, Duotone Filter, Street Map, Halftone Filter, Animated Ad | PDF Smasher, Font Outliner |
+| `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | — | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Countdown Timer, Color Palette, URL Screenshot, Strip Hidden Data, Text Helper | Unit/format converters, more on-device privacy utilities |
+| `utility` | Countdown Timer, Color Palette, URL Screenshot, Strip Hidden Data, Text Helper, Compress PDF | Unit/format converters, more on-device privacy utilities |
 
-Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Product Lockup, Bag Video, and URL Screenshot currently carry `experimental` status.
+Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Bag Video and URL Screenshot currently carry `experimental` status.
 
-**Strip Hidden Data** is the first **on-device utility** (`privacy: "on-device"`): a content-transform tool that takes a file *you* supply, processes it entirely in the browser, and hands back a clean copy — never uploaded, never watermarked, no provenance stamped. **Text Helper** is the second — an on-device workbench for everyday paste-into-a-website jobs (JSON format, JWT decode, Base64, URL encode/decode, SHA hashing). Both carry the badge text "Runs on your device — nothing is uploaded". This is the start of a privacy-utility category that replaces handing confidential files to single-purpose websites.
+**Strip Hidden Data** is the first **on-device utility** (`privacy: "on-device"`): a content-transform tool that takes a file *you* supply, processes it entirely in the browser, and hands back a clean copy — never uploaded, never watermarked, no provenance stamped. **Text Helper** is the second — an on-device workbench for everyday paste-into-a-website jobs (JSON format, JWT decode, Base64, URL encode/decode, SHA hashing). **Compress PDF** is the third — it shrinks a PDF by recompressing its images, again entirely on-device. All three carry the badge text "Runs on your device — nothing is uploaded". This is the start of a privacy-utility category that replaces handing confidential files to single-purpose websites.
 
 > Note: `category` and `status` are denormalised into `catalog/tools/index.json` (the registry the gallery reads) from each `tool.json`. The manifest is the source of truth — the index is **generated** by `npm run build:catalog` and `npm run validate:catalog` fails CI if the committed index drifts from the manifests.
 
@@ -240,7 +244,7 @@ Tools never touch the DOM outside their template area, never call `fetch` direct
 | `host.export` | Rasterise or serialise the render target. Applies watermark for experimental tools. |
 | `host.net` | Allowlisted fetch — only available if the tool declared `"network"` capability. (No shipping tool currently uses it.) |
 
-Optional, additive surfaces appear only when a shell provides them. Two are **capability-gated** — exposed only when the tool declares the matching flag: `host.compose` (embed another tool's render — `compose`) and `host.capture` (page capture for URL Screenshot — `capture`). The rest are **feature-detected** — present whenever the shell can provide them: `host.text` (text-to-path via HarfBuzz WASM; the `wasm` capability flags tools that rely on it), `host.pdf` (PDF parsing, used by Strip Hidden Data), and `host.tokens` (DTCG design tokens). The declarable capabilities are: `network`, `filesystem`, `clipboard`, `camera`, `ffmpeg`, `wasm`, `capture`, `compose`.
+Optional, additive surfaces appear only when a shell provides them. Two are **capability-gated** — exposed only when the tool declares the matching flag: `host.compose` (embed another tool's render — `compose`) and `host.capture` (page capture for URL Screenshot — `capture`). The rest are **feature-detected** — present whenever the shell can provide them: `host.text` (text-to-path via HarfBuzz WASM; the `wasm` capability flags tools that rely on it), `host.pdf` (PDF parsing/compression, used by Strip Hidden Data and Compress PDF), and `host.tokens` (DTCG design tokens). The declarable capabilities are: `network`, `filesystem`, `clipboard`, `camera`, `ffmpeg`, `wasm`, `capture`, `compose`.
 
 The same tool runs in browser, Tauri, and headless CLI because each shell implements this interface — the tool never knows which it's in.
 
@@ -285,8 +289,8 @@ This is a structural answer to the perception risk that using any tool implies b
 Inputs declare a `type`: `text`, `longtext`, `number`, `boolean`, `color`, `select`, `asset`, `date`, `time`, `datetime-local`, `url`, `profile`, `blocks`, `vector`, and `file`. The host renders a generic control per type from the manifest — tools write zero control code. Three carry more weight than the rest:
 
 - **`asset`** (with `filter` and `allowUpload`) is the bridge to the global asset system; `allowUpload: false` is the brand-enforceability lever for things like sponsorship-tile logos where only library assets are permitted. User uploads use the same `AssetRef` shape as library assets, so tools handle them identically.
-- **`blocks`** is a repeating field-group — a mini-table inside one input, edited in a side panel, with a typed/discriminated add menu and per-block asset fields. Clicking a rendered block on the canvas focuses that block's row. Used by `meeting-planner`, `wayfinding-signage`, `event-name-badge`, and `color-block`.
-- **`vector`** groups a fixed set of numbers (e.g. a transform) into one compound control; **`file`** holds the user's own file as bytes in memory for on-device transform utilities (e.g. `strip-data`).
+- **`blocks`** is a repeating field-group — a mini-table inside one input, edited in a side panel, with a typed/discriminated add menu and per-block asset fields. Clicking a rendered block on the canvas focuses that block's row. Used by `meeting-planner`, `chart-creator`, `event-name-badge`, `wayfinding-signage`, `color-block`, and `digi-ad`.
+- **`vector`** groups a fixed set of numbers (e.g. a transform) into one compound control; **`file`** holds the user's own file as bytes in memory for on-device transform utilities (e.g. `strip-data` and `compress-pdf`).
 
 ### 9. Templates are logic-less (Handlebars, not EJS)
 
@@ -329,7 +333,7 @@ A user opens `lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H`:
 5. **Runtime.** `createRuntime(tool, host, initialValues)` builds the input model (merging profile data, defaults, and initial values), resolves asset refs via `host.assets.get()`, loads and sandboxes hooks, calls `hooks.onInit`.
 6. **Render.** Shell subscribes to runtime; on every state change it receives `{ model, hydrated }`. It renders input controls from the model and writes the hydrated template HTML into `#tool-canvas`.
 7. **Interact.** User types in an input → `runtime.setInput(id, value)` → constraints applied → `hooks.onInput` called → re-hydrate → re-render. The canvas updates live.
-8. **Export.** User clicks Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterises via dom-to-image-more; SVG/PDF go through dedicated DOM-walking vectorisers) → blob → `host.export.download`. The format range a tool can opt into is broad: `svg`, `png`, `jpg`/`jpeg`, `webp`, `avif`, `pdf`, plus the print/CMYK formats `pdf-cmyk` and `cmyk-tiff`; the video formats `webm`, `mp4`, `gif`; and data/text formats `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, `ico`, `zip`. (Tools that set `render.export: false` — e.g. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper — hide the download/format/dimension controls.) Physical units are converted per format here (PDF → true page points, raster → pixels at DPI with a `pHYs` chunk). Authorship/provenance metadata (author, tool, source — built by `engine/src/metadata.js`) is embedded per format: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Experimental tools get a watermark inserted by the host, not the tool.
+8. **Export.** User clicks Download(PNG) → `runtime.export(canvasNode, 'png')` → `host.export.render` (rasterises via dom-to-image-more; SVG/PDF go through dedicated DOM-walking vectorisers) → blob → `host.export.download`. The format range a tool can opt into is broad: `svg`, `png`, `jpg`/`jpeg`, `webp`, `avif`, `pdf`, plus the print/CMYK formats `pdf-cmyk` and `cmyk-tiff`; the video formats `webm`, `mp4`, `gif`; and data/text formats `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, `ico`, `zip`. (Tools that set `render.export: false` — e.g. Color Palette, Countdown Timer, Strip Hidden Data, Text Helper, Compress PDF — hide the download/format/dimension controls.) Physical units are converted per format here (PDF → true page points, raster → pixels at DPI with a `pHYs` chunk). Authorship/provenance metadata (author, tool, source — built by `engine/src/metadata.js`) is embedded per format: PNG iTXt, JPEG EXIF, PDF info dict, SVG `<metadata>`, GIF comment. Experimental tools get a watermark inserted by the host, not the tool.
 
 Same lifecycle in Tauri. Same lifecycle in CLI — jsdom provides the headless DOM; output goes to a file or stdout.
 
@@ -347,7 +351,7 @@ The split is enforced now — there are no cross-imports from `engine/` to `tool
 
 | Milestone | Target | What |
 |---|---|---|
-| **Initial tools** | ✅ Done | QR Code, Quote Card, Email Signature, Day Brief, Code Canvas, Countdown Timer, Color Palette, Product Lockup, Bag Video, Chart Creator, Duotone Filter, Meeting Planner — web shell live |
+| **Initial tools** | ✅ Done | QR Code, Quote Card, Email Signature, Day Brief, Code Canvas, Countdown Timer, Color Palette, Brand Lockup, Bag Video, Chart Creator, Duotone Filter, Meeting Planner — web shell live |
 | **Enhance current tooling** | Mid 2026 ✅ Done  | Downloadable offline app (Tauri); additional employee and event tools; richer export pipeline (text-to-path stability, metadata, extra formats — see `plans.md`) |
 | **Open source the engine** | Late 2026 ✅ Done  | Engine, shells, schemas, docs go public — not the branded tools/assets |
 | **Device-to-device transfer** | ✅ Done | Portable `lolly-backup` bundle carries profile, saved sessions, uploaded images and prefs between any two installs — offline or online, no account. Forward-compatible, integrity-checked envelope (spec: `docs/data-transfer.md`) |

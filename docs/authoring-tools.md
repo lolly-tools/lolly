@@ -36,7 +36,7 @@ Optional:
 
 ### The `render` block
 
-`render` carries `width`, `height`, `formats` (one or more of `svg`, `pdf`, `pdf-cmyk`, `cmyk-tiff`, `png`, `jpg`/`jpeg`, `webp`, `avif`, `webm`, `mp4`, `gif`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, `ico`, `zip`), plus these optional keys:
+`render` carries `width`, `height`, `formats` (one or more of `svg`, `emf`, `pdf`, `pdf-cmyk`, `cmyk-tiff`, `png`, `jpg`/`jpeg`, `webp`, `avif`, `webm`, `mp4`, `gif`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, `ico`, `zip`), plus these optional keys:
 
 - `actions` — which action buttons to show. One or more of `copy`, `download`, `save`, `share`. **Defaults to `['copy','download','save']`** if omitted.
 - `export` — set `false` for utility/interactive tools with no export (hides the download/copy/format/dimension bar; shows **Save** only when the tool has inputs).
@@ -261,7 +261,7 @@ END:VEVENT
 END:VCALENDAR
 ```
 
-Reference wirings: `meeting-planner`→ICS, `email-signature`→vCard, `chart-creator`→CSV. Raster (`png`/`jpg`/`webp`/`avif`/`gif`), `svg`, `pdf`, the print/CMYK formats (`pdf-cmyk`, `cmyk-tiff`), video (`webm`/`mp4`), `zip`, and `ico` come from the browser (web shell) or the Tauri-bundled CLI — the node CLI handles only text/data formats. The CMYK formats pair with the `convertPaths` outlining toggle (see [The `render` block](#the-render-block)) for fonts-not-installed print fidelity; `pdf-cmyk` ships on nine tools today and `cmyk-tiff` on six (a subset) — e.g. `qr-code` offers both, while `wayfinding-signage` and `event-name-badge` ship `pdf-cmyk`.
+Reference wirings: `meeting-planner`→ICS, `email-signature`→vCard, `chart-creator`→CSV. Raster (`png`/`jpg`/`webp`/`avif`/`gif`), `svg`, `pdf`, the print/CMYK formats (`pdf-cmyk`, `cmyk-tiff`), video (`webm`/`mp4`), `zip`, and `ico` come from the browser (web shell) or the Tauri-bundled CLI — the node CLI handles only text/data formats. The CMYK formats pair with the `convertPaths` outlining toggle (see [The `render` block](#the-render-block)) for fonts-not-installed print fidelity; `pdf-cmyk` ships on ten tools today and `cmyk-tiff` on six (a subset) — e.g. `qr-code` offers both, while `wayfinding-signage` and `event-name-badge` ship `pdf-cmyk`.
 
 ## Hooks (`hooks.js`)
 
@@ -330,7 +330,7 @@ A tool can embed **another tool's rendered output** as an image instead of re-im
 
 ## Brand logo (auto-switching)
 
-The catalog ships the SUSE logo as **8 variants** under `suse/logo/` — `{hor|vert}-{neg|pos}-{green|white|black}` (`hor`/`vert` = wide vs stacked; `neg` = for **dark** backgrounds, `pos` = for **light**; `green` is the brand mark, `white`/`black` are the high-contrast mono pair). A tool shouldn't hard-code one — it should pick the variant that fits the current background and space, and use the **actual SVG image** (this is distinct from `lockup`, which renders the wordmark from the SUSE font via ligatures).
+The catalog ships the SUSE logo as **8 variants** under `suse/logo/` — `{hor|vert}-{neg|pos}-{green|white|black}` (`hor`/`vert` = wide vs stacked; `neg` = for **dark** backgrounds, `pos` = for **light**; `green` is the brand mark, `white`/`black` are the high-contrast mono pair). A tool shouldn't hard-code one — it should pick the variant that fits the current background and space, and use the **actual SVG image** (this is distinct from `brand-lockup`, which renders the wordmark from the SUSE font, outlined via HarfBuzz `host.text`).
 
 The pattern: a hook chooses the id, resolves it with `host.assets.get()`, and hands the template a ready `<image>`/`<img>`:
 

@@ -30,8 +30,8 @@ brand-tool quotes --quote="Ship it." --output=./quote.png
 
 Design decisions are locked in at the template level — not in a style guide nobody reads. Every asset your team generates is already on-brand, even if they've never opened a design tool.
 
-- **Infinite permutations, one source of truth.** Localize a quote card into 12 languages, swap a product lockup across 40 campaigns, or generate every size variant for every placement — without touching the design. Drive it all from a spreadsheet in the batch grid: paste or import a CSV, get one finished asset per row.
-- **No creative agency bottleneck for routine assets.** Email signatures, event countdowns, quote cards, team maps — everything your team needs on a Tuesday at 4pm, self-serve.
+- **Infinite permutations, one source of truth.** Localize a quote card into 12 languages, swap a brand lockup across 40 campaigns, or generate every size variant for every placement — without touching the design. Drive it all from a spreadsheet in the batch grid: paste or import a CSV, get one finished asset per row.
+- **No creative agency bottleneck for routine assets.** Email signatures, event countdowns, quote cards, street maps — everything your team needs on a Tuesday at 4pm, self-serve.
 - **Collaborate without compliance risk.** No customer data uploaded to third-party cloud services. No SaaS licensing to audit. Runs entirely on local device compute.
 - **Operationalize production.** Connect structured data — campaign names, dates, stats, speaker details — to templates that output print-ready files. Your operations team can run a campaign without touching design software.
 
@@ -121,7 +121,7 @@ Every time someone uploads a file to a third-party service to "just make it look
 
 **Works offline.** Local compute, local storage. No internet required after first sync.
 
-**Huge format support.** SVG · PDF (+CMYK) · PNG · JPEG · WEBP · AVIF · WEBM · MP4 · GIF · HTML · MD — plus structured exchange formats (ICS · VCF · CSV · JSON · TXT) and ICO favicons and ZIP bundles.
+**Huge format support.** SVG · EMF · PDF (+CMYK) · PNG · JPEG · WEBP · AVIF · WEBM · MP4 · GIF · HTML · MD — plus structured exchange formats (ICS · VCF · CSV · JSON · TXT) and ICO favicons and ZIP bundles.
 
 **Ships new tools without app updates.** Tools are data, not bundled code. New tools appear automatically.
 
