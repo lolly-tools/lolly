@@ -1,7 +1,7 @@
 {
   "id": "calendar-ics",
   "name": "Calendar ICS",
-  "description": "Turn an event — name, date, time, location — into a calendar (.ics) file that drops straight into Outlook, Google Calendar, or Apple Calendar.",
+  "description": "Turn event details into a calendar (.ics) file for any calendar app.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",

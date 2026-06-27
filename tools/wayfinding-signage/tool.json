@@ -1,7 +1,7 @@
 {
   "id": "wayfinding-signage",
   "name": "Wayfinding Signage",
-  "description": "Directional signs for events — a list of destinations, each with an arrow pointing the way. Print-ready, portrait or landscape.",
+  "description": "Directional event signs — destinations, each with an arrow. Print-ready.",
   "a11yLabel": "Wayfinding sign for {{default eventName \"the event\"}}{{#if heading}} — {{heading}}{{/if}}",
   "version": "1.2.0",
   "engineVersion": "^1.0.0",

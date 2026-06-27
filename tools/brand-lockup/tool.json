@@ -1,7 +1,7 @@
 {
   "id": "brand-lockup",
   "name": "Brand Lockup",
-  "description": "Official SUSE logo lockups — chameleon + wordmark + a product, program, or team name, in horizontal or stacked layouts.",
+  "description": "Official SUSE logo lockups — chameleon, wordmark and a name.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",

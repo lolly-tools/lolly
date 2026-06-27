@@ -1,7 +1,7 @@
 {
   "id": "compress-pdf",
   "name": "Compress PDF",
-  "description": "Shrink a PDF by recompressing its images — on your device. Nothing is uploaded.",
+  "description": "Shrink a PDF by recompressing its images — on your device.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",

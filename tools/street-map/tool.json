@@ -1,7 +1,7 @@
 {
   "id": "street-map",
   "name": "Street Map",
-  "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
+  "description": "Clean vector street-block maps of any city. Works offline.",
   "a11yLabel": "Street map centered on {{city}}",
   "version": "0.4.0",
   "engineVersion": "^1.0.0",

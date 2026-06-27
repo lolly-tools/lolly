@@ -1,7 +1,7 @@
 {
   "id": "halftone-filter",
   "name": "Halftone Filter",
-  "description": "Turn any photo into a vector halftone — a grid of dots whose size follows the image's light and shade. Full colour control and crisp, scalable SVG or transparent PNG/WebP/AVIF output.",
+  "description": "Vector halftone from any photo — dots sized by brightness.",
   "a11yLabel": "Halftone rendering of the chosen image as a grid of single-colour dots",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",

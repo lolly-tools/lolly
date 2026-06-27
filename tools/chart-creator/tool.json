@@ -1,7 +1,7 @@
 {
   "id": "chart-creator",
   "name": "Chart Creator",
-  "description": "On-brand charts from your data — bar, donut, pie or stacked. Exports vector.",
+  "description": "On-brand charts from your data — bar, donut, pie or stacked.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
   "status": "official",

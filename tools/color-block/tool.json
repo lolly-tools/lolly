@@ -1,7 +1,7 @@
 {
   "id": "color-block",
   "name": "Color Block",
-  "description": "Stack typed colour blocks — heading, text, headshot, logo — and they auto-compose into a grid that fills any frame.",
+  "description": "Colour blocks — text, headshot, logo — auto-arranged into a grid.",
   "a11yLabel": "Colour-block composition",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",

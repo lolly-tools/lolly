@@ -1,7 +1,7 @@
 {
   "id": "event-name-badge",
   "name": "Event Name Badge",
-  "description": "Conference name badges — name, title, company, a colour-coded role and an optional QR. Print-ready, portrait or landscape.",
+  "description": "Conference name badges with a colour-coded role and optional QR.",
   "a11yLabel": "Event name badge for {{default firstname \"attendee\"}} {{default lastname \"\"}}, {{default status \"attendee\"}}",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",

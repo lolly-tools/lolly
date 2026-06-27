@@ -1,11 +1,11 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-27T15:35:24.374Z",
+  "generatedAt": "2026-06-27T16:08:22.430Z",
   "tools": [
     {
       "id": "color-block",
       "name": "Color Block",
-      "description": "Stack typed colour blocks — heading, text, headshot, logo — and they auto-compose into a grid that fills any frame.",
+      "description": "Colour blocks — text, headshot, logo — auto-arranged into a grid.",
       "version": "1.0.0",
       "status": "official",
       "category": "everyone",
@@ -86,7 +86,7 @@
     {
       "id": "chart-creator",
       "name": "Chart Creator",
-      "description": "On-brand charts from your data — bar, donut, pie or stacked. Exports vector.",
+      "description": "On-brand charts from your data — bar, donut, pie or stacked.",
       "version": "1.0.0",
       "status": "official",
       "category": "designer",
@@ -143,7 +143,7 @@
     {
       "id": "street-map",
       "name": "Street Map",
-      "description": "A clean, vector street-block map of a city — pan and zoom to frame the exact ~5-block view you want. Works fully offline.",
+      "description": "Clean vector street-block maps of any city. Works offline.",
       "version": "0.4.0",
       "status": "official",
       "category": "designer",
@@ -152,7 +152,7 @@
     {
       "id": "strip-data",
       "name": "Strip Hidden Data",
-      "description": "Reveal and remove hidden metadata from images and PDFs. Runs on your device; nothing is uploaded.",
+      "description": "Reveal and remove hidden metadata from images and PDFs — on your device.",
       "version": "1.0.0",
       "status": "official",
       "category": "utility",
@@ -161,7 +161,7 @@
     {
       "id": "text-helper",
       "name": "Text Helper",
-      "description": "Format, decode, hash and de-identify text — JSON, YAML, Helm, JWT and more. Runs on your device, so secrets never leave it.",
+      "description": "Format, decode, hash and de-identify text — JSON, JWT and more.",
       "version": "1.1.0",
       "status": "official",
       "category": "utility",
@@ -170,7 +170,7 @@
     {
       "id": "event-name-badge",
       "name": "Event Name Badge",
-      "description": "Conference name badges — name, title, company, a colour-coded role and an optional QR. Print-ready, portrait or landscape.",
+      "description": "Conference name badges with a colour-coded role and optional QR.",
       "version": "1.0.0",
       "status": "official",
       "category": "event",
@@ -182,7 +182,7 @@
     {
       "id": "wayfinding-signage",
       "name": "Wayfinding Signage",
-      "description": "Directional signs for events — a list of destinations, each with an arrow pointing the way. Print-ready, portrait or landscape.",
+      "description": "Directional event signs — destinations, each with an arrow. Print-ready.",
       "version": "1.2.0",
       "status": "official",
       "category": "event",
@@ -191,7 +191,7 @@
     {
       "id": "brand-lockup",
       "name": "Brand Lockup",
-      "description": "Official SUSE logo lockups — chameleon + wordmark + a product, program, or team name, in horizontal or stacked layouts.",
+      "description": "Official SUSE logo lockups — chameleon, wordmark and a name.",
       "version": "1.0.0",
       "status": "official",
       "category": "designer",
@@ -203,7 +203,7 @@
     {
       "id": "halftone-filter",
       "name": "Halftone Filter",
-      "description": "Turn any photo into a vector halftone — a grid of dots whose size follows the image's light and shade. Full colour control and crisp, scalable SVG or transparent PNG/WebP/AVIF output.",
+      "description": "Vector halftone from any photo — dots sized by brightness.",
       "version": "1.0.0",
       "status": "official",
       "category": "designer",
@@ -212,7 +212,7 @@
     {
       "id": "digi-ad",
       "name": "Animated Ad",
-      "description": "Build a looping digital ad from a sequence of scenes — each animates in over the last. Exports a self-contained animated HTML banner, GIF, MP4/WebM, or a static poster, in every standard ad size.",
+      "description": "Build animated ads from layered scenes for any standard size.",
       "version": "1.0.0",
       "status": "official",
       "category": "designer",
@@ -221,7 +221,7 @@
     {
       "id": "calendar-ics",
       "name": "Calendar ICS",
-      "description": "Turn an event — name, date, time, location — into a calendar (.ics) file that drops straight into Outlook, Google Calendar, or Apple Calendar.",
+      "description": "Turn event details into a calendar (.ics) file for any calendar app.",
       "version": "1.0.0",
       "status": "official",
       "category": "event",
@@ -230,7 +230,7 @@
     {
       "id": "compress-pdf",
       "name": "Compress PDF",
-      "description": "Shrink a PDF by recompressing its images — on your device. Nothing is uploaded.",
+      "description": "Shrink a PDF by recompressing its images — on your device.",
       "version": "1.0.0",
       "status": "official",
       "category": "utility",
@@ -239,7 +239,7 @@
     {
       "id": "scanline-filter",
       "name": "Scanline Filter",
-      "description": "Turn any photo into a retro scanline: alternate lines drop out and the rest is posterised into brand tones as a grid of crisp rects. Scalable SVG or transparent PNG/WebP/AVIF.",
+      "description": "Retro scanline effect from any photo in brand tones.",
       "version": "1.0.0",
       "status": "official",
       "category": "designer",

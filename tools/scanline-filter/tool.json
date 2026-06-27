@@ -1,7 +1,7 @@
 {
   "id": "scanline-filter",
   "name": "Scanline Filter",
-  "description": "Turn any photo into a retro scanline: alternate lines drop out and the rest is posterised into brand tones as a grid of crisp rects. Scalable SVG or transparent PNG/WebP/AVIF.",
+  "description": "Retro scanline effect from any photo in brand tones.",
   "a11yLabel": "Scanline rendering of the chosen image in brand tones",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",

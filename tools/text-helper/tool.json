@@ -1,7 +1,7 @@
 {
   "id": "text-helper",
   "name": "Text Helper",
-  "description": "Format, decode, hash and de-identify text — JSON, YAML, Helm, JWT and more. Runs on your device, so secrets never leave it.",
+  "description": "Format, decode, hash and de-identify text — JSON, JWT and more.",
   "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",

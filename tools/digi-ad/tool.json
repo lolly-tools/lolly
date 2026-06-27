@@ -1,7 +1,7 @@
 {
   "id": "digi-ad",
   "name": "Animated Ad",
-  "description": "Build a looping digital ad from a sequence of scenes — each animates in over the last. Exports a self-contained animated HTML banner, GIF, MP4/WebM, or a static poster, in every standard ad size.",
+  "description": "Build animated ads from layered scenes for any standard size.",
   "a11yLabel": "Animated ad with {{sceneCount}} scenes",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
