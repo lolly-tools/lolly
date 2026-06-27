@@ -30,9 +30,9 @@ const ICONS = {
   gif: '🎨',
   svg: '📐',
 };
-// Some formats share an extension (pdf-cmyk ships as .pdf), so the render format
-// wins when it's known and distinctive.
-const FORMAT_ICONS = { 'pdf-cmyk': '🖨️' };
+// Some formats share an extension (pdf-cmyk ships as .pdf, eps-cmyk as .eps), so
+// the render format wins when it's known and distinctive.
+const FORMAT_ICONS = { 'pdf-cmyk': '🖨️', 'eps-cmyk': '🖨️' };
 const iconFor = (f) => FORMAT_ICONS[f.fmt] ?? ICONS[extOf(f.name)] ?? '⚠️';
 
 const HEADER = '📐 Lolly  •  ❤️ Made with Love  •  🌏 lolly.tools';

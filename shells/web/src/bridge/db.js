@@ -25,9 +25,13 @@ const OPEN_TIMEOUT_MS = 8000;
 
 // The functional stores every healthy DB must have. If the DB reports the
 // current version but is missing any of these, it was left half-initialized by
-// an interrupted upgrade and must be rebuilt (see openDB). 'catalog-meta' is
-// intentionally excluded — it is deprecated/unused, so its absence is harmless.
-const REQUIRED_STORES = ['profile', 'state', 'asset-meta', 'asset-blob', 'user-assets', 'generated-previews'];
+// an interrupted upgrade and must be rebuilt (see openDB) — a rebuild that wipes
+// the whole DB, so ONLY stores holding irreplaceable user data belong here. Two
+// stores are deliberately excluded: 'catalog-meta' (deprecated/unused) and
+// 'generated-previews' (pure regenerable cache — its absence must never escalate
+// into wiping the user's profile/sessions/assets; host.previews degrades to
+// committed previews if it's missing).
+const REQUIRED_STORES = ['profile', 'state', 'asset-meta', 'asset-blob', 'user-assets'];
 
 function openOnce() {
   const opening = idbOpen(DB_NAME, DB_VERSION, {

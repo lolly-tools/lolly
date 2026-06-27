@@ -835,8 +835,9 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
    target. A stretched ::after on the title (below) makes this whole block the
    hit area, so starting fresh is as obvious as the hero's Continue. */
 .gtile-body { position: relative; }
-.gtile-body--link { cursor: pointer; transition: background 0.12s; }
-.gtile-body--link:hover { background: hsl(var(--primary) / 0.05); }
+/* Hover feedback comes from the title underline + "+ New" chip below — no
+   background tint, which muddied the caption text. */
+.gtile-body--link { cursor: pointer; }
 
 /* Caption row: icon + (name / sub-line / description) + "+ New" chip + badge.
    Top-aligned so the icon, chip and badge sit beside the title at the top of the

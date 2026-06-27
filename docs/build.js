@@ -3,7 +3,7 @@
 // Run: node docs/build.js            build the /info pages once
 //      node docs/build.js --watch    rebuild on every change under docs/ (used by dev:web)
 // Output: shells/web/public/info/
-import { readFileSync, writeFileSync, mkdirSync, copyFileSync, watch } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, copyFileSync, existsSync, watch } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { generateOgImages } from './og-image.js';
@@ -984,14 +984,19 @@ footer a:hover{color:var(--dark)}
   .tool-anatomy{max-width:720px;margin:0 auto 2rem}
   .platform-features{grid-template-columns:repeat(2,1fr)}
 }
-@media(max-width:768px){
-  .docs-wrap{grid-template-columns:1fr}
-  .docs-sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:1rem}
-  .docs-content{padding:1.5rem 1rem}
+/* Collapse the top nav to a hamburger before its links overflow into a horizontal
+   scroll. The full link row needs ~1032px; collapse at 1100px for a cross-browser /
+   font-fallback margin. (The docs grid + content keep reflowing at 768px below.) */
+@media(max-width:1100px){
   nav{overflow-x:visible}
   nav a:not(.brand){display:none}
   nav .nav-group{display:none}
   .nav-hamburger{display:flex}
+}
+@media(max-width:768px){
+  .docs-wrap{grid-template-columns:1fr}
+  .docs-sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border);padding:1rem}
+  .docs-content{padding:1.5rem 1rem}
   .audience-card.tab-active{
     display:flex;flex-direction:column;
     gap:2rem;padding:2.5rem 1.25rem;
@@ -1471,6 +1476,17 @@ function build() {
   try { copyFileSync(resolve(repoRoot, 'icon-normal.png'), resolve(outDir, 'icon-normal.png')); } catch {}
   try { copyFileSync(resolve(repoRoot, 'founded-by.svg'), resolve(outDir, 'founded-by.svg')); } catch {}
 
+  // Which pages actually have a generated OG card *on disk* right now. Derived from
+  // the filesystem rather than generateOgImages()'s return value so the share-tag
+  // wiring is correct even when generation ran in a different process (a stale or
+  // duplicate `--watch`), and so a page only points at its own card when the PNG
+  // truly exists — otherwise it falls back to the canonical og.png.
+  const ogSlugs = new Set(
+    pages
+      .filter((p) => !p.isLanding && p.slug && existsSync(resolve(outDir, 'og', `${p.slug}.png`)))
+      .map((p) => p.slug),
+  );
+
   for (const page of pages) {
     const srcPath = resolve(__dirname, page.src);
     let md;
@@ -1495,7 +1511,19 @@ function build() {
 // (including incremental --watch rebuilds). `ogSlugs` names the slugs that got their
 // own card; the rest fall back to og.png. Best-effort — a missing @resvg/resvg-js
 // (or any rasterise error) just yields an empty set, leaving every page on og.png.
-const ogSlugs = await generateOgImages(pages, outDir, repoRoot, (m) => console.log(m));
+const ogGenerated = await generateOgImages(pages, outDir, repoRoot, (m) => console.log(m));
+const ogExpected = pages.filter((p) => !p.isLanding && p.slug && p.title).length;
+if (ogExpected > 0 && ogGenerated.size < ogExpected) {
+  const onDisk = pages.filter(
+    (p) => !p.isLanding && p.slug && existsSync(resolve(outDir, 'og', `${p.slug}.png`)),
+  ).length;
+  console.warn(
+    `⚠  og: generated ${ogGenerated.size}/${ogExpected} per-page share cards (${onDisk} present on disk).` +
+      (onDisk === 0
+        ? ' Every /info page will use the fallback og.png — is @resvg/resvg-js installed for this platform?'
+        : ''),
+  );
+}
 
 build();
 

@@ -321,9 +321,9 @@ export async function mountGallery(viewEl, host) {
       toolSupport(t, host.capabilities).status !== 'unavailable',
     );
     if (toRegenerate.length) {
-      regeneratePreviews({
+      const cancel = regeneratePreviews({
         host,
-        toolIds: toRegenerate.map(t => t.id),
+        tools: toRegenerate,
         sig: previewSig,
         onThumb: (toolId, dataUrl) => {
           personalizedByTool.set(toolId, dataUrl);   // so later re-renders keep it
@@ -334,6 +334,10 @@ export async function mountGallery(viewEl, host) {
           if (img) img.src = dataUrl;
         },
       });
+      // Stop the idle render queue when the gallery is torn down or re-mounted
+      // (navigate() in main.js calls view._cleanup), so it can't keep rendering
+      // off-screen — or double up — after the user has moved on.
+      viewEl._cleanup = cancel;
     }
   }
 }

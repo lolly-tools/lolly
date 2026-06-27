@@ -343,7 +343,7 @@ export interface InputFile {
   url: string | null;
 }
 
-export type ExportFormat = 'png' | 'jpg' | 'svg' | 'emf' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'av1';
+export type ExportFormat = 'png' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'av1';
 
 export interface ExportOpts {
   scale?: number;        // raster scale (1, 2, 3) — used when width/height absent
