@@ -72,7 +72,7 @@
       "id": "firstname",
       "label": "First name",
       "type": "text",
-      "default": "Alan",
+      "default": "",
       "maxLength": 40,
       "bindToProfile": "firstname"
     },
@@ -80,7 +80,7 @@
       "id": "lastname",
       "label": "Last name",
       "type": "text",
-      "default": "Turing",
+      "default": "",
       "maxLength": 40,
       "bindToProfile": "lastname"
     },
@@ -96,7 +96,7 @@
       "id": "jobTitle",
       "label": "Title",
       "type": "text",
-      "default": "Technology Enthusiast",
+      "default": "",
       "maxLength": 60
     },
     {
@@ -110,7 +110,7 @@
       "id": "status",
       "label": "Attendee status",
       "type": "select",
-      "default": "speaker",
+      "default": "attendee",
       "help": "Colour-codes the badge and sets the role band.",
       "options": [
         { "value": "attendee", "label": "Attendee" },
@@ -137,14 +137,8 @@
       "label": "Tracks",
       "type": "blocks",
       "help": "Optional session tracks, shown as chips. Give a chip its own colour, or leave it to use the role colour outline.",
-      "fields": [
-        { "id": "label", "label": "Track", "type": "text", "placeholder": "e.g. Platform Engineering" },
-        { "id": "color", "label": "Chip colour", "type": "color", "default": "" }
-      ],
-      "default": [
-        { "label": "Platform Engineering", "color": "#30ba78" },
-        { "label": "Observability", "color": "" }
-      ]
+      "fields": "",
+      "default": ""
     },
     {
       "id": "showQr",

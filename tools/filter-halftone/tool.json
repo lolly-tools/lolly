@@ -1,5 +1,5 @@
 {
-  "id": "halftone-filter",
+  "id": "filter-halftone",
   "name": "Halftone Filter",
   "description": "Vector halftone from any photo — dots sized by brightness.",
   "a11yLabel": "Halftone rendering of the chosen image as a grid of single-colour dots",

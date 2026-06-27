@@ -138,9 +138,9 @@ lolly/
 │   ├── brand-lockup/      # "Brand Lockup" — SUSE logo lockups; HarfBuzz text-to-path (wasm)
 │   ├── bag-video/
 │   ├── chart-creator/     # SVG charts from structured data
-│   ├── duotone-filter/    # two-color photo treatment
-│   ├── halftone-filter/   # photo → vector halftone dot grid
-│   ├── scanline-filter/   # photo → retro posterised scanline grid (SVG / transparent raster)
+│   ├── filter-duotone/    # two-color photo treatment
+│   ├── filter-halftone/   # photo → vector halftone dot grid
+│   ├── filter-scanline/   # photo → retro posterised scanline grid (SVG / transparent raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
 │   ├── digi-ad/           # "Animated Ad" — looping banner from scenes

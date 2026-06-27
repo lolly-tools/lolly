@@ -193,7 +193,7 @@ async function compute(model) {
   if (!url) {
     if (!_defaultUrl) {
       try { var def = await host.assets.get(DEFAULT_IMAGE_ID); _defaultUrl = def && def.url; }
-      catch (e) { if (host.log) host.log('warn', 'scanline-filter: default image unavailable', { error: String(e) }); }
+      catch (e) { if (host.log) host.log('warn', 'filter-scanline: default image unavailable', { error: String(e) }); }
     }
     url = _defaultUrl;
   }
@@ -213,7 +213,7 @@ async function compute(model) {
     svgContent = buildSvg(params);
     if (!svgContent) svgContent = placeholder('Preview renders in the browser');
   } catch (e) {
-    if (host.log) host.log('warn', 'scanline-filter: render failed', { error: String(e) });
+    if (host.log) host.log('warn', 'filter-scanline: render failed', { error: String(e) });
     svgContent = placeholder('Could not read this image');
   }
 

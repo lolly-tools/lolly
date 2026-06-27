@@ -6,6 +6,7 @@
 import { readFileSync, writeFileSync, mkdirSync, copyFileSync, watch } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { generateOgImages } from './og-image.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '..');
@@ -1381,9 +1382,14 @@ function buildNav(activeHref, isLanding) {
 
 const FOOTER = `<footer><p>Lolly — <a href="${REPO_URL}">Open Source</a></p></footer>`;
 
-function wrapPage(page, content) {
+function wrapPage(page, content, ogSlugs) {
   const activeHref = page.slug === 'index' ? '/info/index.html' : `/info/${page.slug}.html`;
   const isLanding  = page.isLanding;
+
+  // A page with its own generated card (subtitle = its title) points share tags at
+  // it; the landing page and any page that failed generation keep the canonical og.png.
+  const ogImage    = (!isLanding && ogSlugs?.has(page.slug)) ? `${SITE_URL}/info/og/${page.slug}.png` : OG_IMAGE;
+  const ogImageAlt = isLanding ? 'Lolly — on-brand creative tools' : `Lolly — ${page.title}`;
 
   const body = isLanding ? content : `
 <div class="docs-wrap">
@@ -1422,15 +1428,15 @@ function wrapPage(page, content) {
 <meta property="og:title" content="${esc(pageTitle)}">
 <meta property="og:description" content="${esc(SITE_DESCRIPTION)}">
 <meta property="og:url" content="${esc(canonical)}">
-<meta property="og:image" content="${esc(OG_IMAGE)}">
+<meta property="og:image" content="${esc(ogImage)}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Lolly — on-brand creative tools">
+<meta property="og:image:alt" content="${esc(ogImageAlt)}">
 <meta property="og:logo" content="${esc(OG_LOGO)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(pageTitle)}">
 <meta name="twitter:description" content="${esc(SITE_DESCRIPTION)}">
-<meta name="twitter:image" content="${esc(OG_IMAGE)}">
+<meta name="twitter:image" content="${esc(ogImage)}">
 <link rel="icon" href="/favicon.ico">
 <link rel="icon" type="image/png" href="/icon.png">
 <link rel="apple-touch-icon" href="/icon.png">
@@ -1474,13 +1480,20 @@ function build() {
     }
 
     const content = page.isLanding ? buildLandingContent(md) : mdToHtml(md);
-    const html    = wrapPage(page, content);
+    const html    = wrapPage(page, content, ogSlugs);
     const outFile = page.slug === 'index' ? 'index.html' : `${page.slug}.html`;
     writeFileSync(resolve(outDir, outFile), html, 'utf-8');
     console.log(`✓  /info/${outFile}`);
   }
   console.log(`\nSite built → shells/web/public/info/`);
 }
+
+// Per-page OG share images depend only on the page titles + brand assets (never the
+// docs markdown), so they're rasterised once here and reused by every build()
+// (including incremental --watch rebuilds). `ogSlugs` names the slugs that got their
+// own card; the rest fall back to og.png. Best-effort — a missing @resvg/resvg-js
+// (or any rasterise error) just yields an empty set, leaving every page on og.png.
+const ogSlugs = await generateOgImages(pages, outDir, repoRoot, (m) => console.log(m));
 
 build();
 

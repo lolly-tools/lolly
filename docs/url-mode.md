@@ -119,7 +119,7 @@ A `vector` input is a fixed group of numbers edited as one control (e.g. a zoom 
 ?transform.zoom=200&transform.x=30&transform.y=70
 ```
 
-One readable value per param. Used by tools such as `bag-video`, `chart-creator`, `duotone-filter`, `dynamic-layout`, and `quotes`.
+One readable value per param. Used by tools such as `bag-video`, `chart-creator`, `filter-duotone`, `dynamic-layout`, and `quotes`.
 
 ### File
 

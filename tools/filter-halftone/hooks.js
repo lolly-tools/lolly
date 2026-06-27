@@ -347,7 +347,7 @@ async function compute(model) {
         var def = await host.assets.get(DEFAULT_IMAGE_ID);
         _defaultUrl = def && def.url;
       } catch (e) {
-        if (host.log) host.log('warn', 'halftone-filter: default image unavailable', { error: String(e) });
+        if (host.log) host.log('warn', 'filter-halftone: default image unavailable', { error: String(e) });
       }
     }
     url = _defaultUrl;
@@ -372,7 +372,7 @@ async function compute(model) {
     svgContent = buildSvg(params);
     if (!svgContent) svgContent = placeholder('Preview renders in the browser');
   } catch (e) {
-    if (host.log) host.log('warn', 'halftone-filter: render failed', { error: String(e) });
+    if (host.log) host.log('warn', 'filter-halftone: render failed', { error: String(e) });
     svgContent = placeholder('Could not read this image');
   }
 

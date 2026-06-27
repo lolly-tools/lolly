@@ -1,5 +1,5 @@
 {
-  "id": "scanline-filter",
+  "id": "filter-scanline",
   "name": "Scanline Filter",
   "description": "Retro scanline effect from any photo in brand tones.",
   "a11yLabel": "Scanline rendering of the chosen image in brand tones",
