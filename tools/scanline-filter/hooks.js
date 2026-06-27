@@ -109,7 +109,9 @@ function sampleGrid(img, cols, rows, fit) {
 
 function buildSvg(args) {
   var img = args.img;
-  var cell = clamp(n(args.lineSize, 10), 1, 48);
+  var vis = clamp(n(args.lineSize, 4), 1, 48);       // line height = cell size (square cells)
+  var everyLine = Boolean(args.everyLine);
+  var gap = everyLine ? 0 : clamp(n(args.gapSize, 4), 0, 48); // blank gap below each line
   var fit = args.fit === 'cover' ? 'cover' : 'contain';
 
   var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
@@ -119,8 +121,10 @@ function buildSvg(args) {
   else if (ar >= 1) { regionW = VIEW; regionH = VIEW / ar; }
   else { regionH = VIEW; regionW = VIEW * ar; }
 
-  var cols = Math.max(1, Math.round(regionW / cell));
-  var rows = Math.max(1, Math.round(regionH / cell));
+  // Grid resolution depends only on the line size, never the gap — so changing the
+  // gap re-thins the lines without re-sampling, and the image can't stretch or jump.
+  var cols = Math.max(1, Math.round(regionW / vis));
+  var rows = Math.max(1, Math.round(regionH / vis));
   if (cols * rows > MAX_CELLS) {
     var k = Math.sqrt(MAX_CELLS / (cols * rows));
     cols = Math.max(1, Math.floor(cols * k));
@@ -148,17 +152,19 @@ function buildSvg(args) {
 
   var offX = (VIEW - regionW) / 2, offY = (VIEW - regionH) / 2;
   var cellW = regionW / cols, cellH = regionH / rows;
+  // Each cell paints a band at its top; the blank remainder below is the scanline
+  // gap. The band is the line's "on" fraction vis/(vis+gap) of the fixed cell, so a
+  // bigger gap only thins the band — it never changes the grid. gap 0 → solid image.
+  var bandH = cellH * (vis / (vis + gap));
   // "Separate pixels" insets each cell so it reads as a distinct square; otherwise
-  // cells butt together horizontally (the blank alternate rows give the scanline gap).
+  // cells butt together horizontally (the blank strip below each band is the scanline gap).
   var gx = args.separatePixels ? cellW * 0.16 : 0;
-  var gy = args.separatePixels ? cellH * 0.16 : 0;
-  var rw = f2(cellW - gx), rh = f2(cellH - gy);
+  var gy = args.separatePixels ? bandH * 0.16 : 0;
+  var rw = f2(cellW - gx), rh = f2(bandH - gy);
 
-  var everyLine = Boolean(args.everyLine);
   var paths = ['', '', '', '', ''];
   for (var row = 0; row < rows; row++) {
-    if (!everyLine && row % 2 !== 0) continue; // scanline: blank every other line (unless "fill every line")
-    var y = f2(offY + row * cellH + gy / 2);
+    var y = f2(offY + row * cellH + gy / 2); // band sits at the top of its cell; gap follows below
     for (var col = 0; col < cols; col++) {
       var b = bucket(grid[row * cols + col]);
       var x = f2(offX + col * cellW + gx / 2);
@@ -194,7 +200,7 @@ async function compute(model) {
   if (!url) return { svgContent: placeholder('Choose an image to scan') };
 
   var params = {
-    url: url, lineSize: inputs.lineSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
+    url: url, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
     highlight: inputs.highlight, light: inputs.light, mid: inputs.mid, shade: inputs.shade,
     shadow: inputs.shadow, background: inputs.background, brightness: inputs.brightness, contrast: inputs.contrast,
   };

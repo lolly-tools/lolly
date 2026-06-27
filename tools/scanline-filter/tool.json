@@ -26,14 +26,25 @@
     },
     {
       "id": "lineSize",
-      "label": "Line size",
+      "label": "Line height",
       "type": "number",
       "display": "slider",
       "default": 4,
       "min": 1,
       "max": 48,
       "step": 1,
-      "help": "Thickness of each scanline and the width of each cell. Smaller = finer detail; larger = chunkier pixels."
+      "help": "Height of each scanline and the size of each cell, so smaller means thinner lines and finer detail."
+    },
+    {
+      "id": "gapSize",
+      "label": "Gap height",
+      "type": "number",
+      "display": "slider",
+      "default": 4,
+      "min": 0,
+      "max": 48,
+      "step": 1,
+      "help": "Size of the blank gap below each scanline, relative to the line. Larger = thinner lines with more space between them; 0 makes a solid image with no gaps. Doesn't change the detail or position of the image."
     },
     {
       "id": "separatePixels",
@@ -47,7 +58,7 @@
       "label": "Fill every line",
       "type": "boolean",
       "default": false,
-      "help": "Draw every line instead of leaving a blank scanline between them. Off = classic scanlines; on = a solid posterised image."
+      "help": "Draw every line with no gaps — the same as setting the gap height to zero. Off = classic scanlines; on = a solid posterised image."
     },
     {
       "id": "fit",

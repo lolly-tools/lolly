@@ -200,10 +200,14 @@ async function buildLockup({ host, name, location, layout, variant, wrapMode, ba
     const subLines = [];          // smaller + lighter (loc:true): qualifier, then location
     if (qualWords.length) subLines.push(qualWords);
     if (locWords.length) subLines.push(locWords);
-    // A forced break below (Team suffix, qualifier, or location) PINS the name to
-    // the SUSE line so a narrow wrapMode can't push it off ("SUSE Exchange" / city,
-    // "SUSE Rancher" / "for AWS", "SUSE Content Strategy" / "Team").
-    const pinned = subLines.length > 0 || teamSuffix;
+    // A forced break below the name PINS it whole to the SUSE line so a narrow
+    // wrap can't push it off. A location/qualifier sub-line always pins ("SUSE
+    // Exchange" / city, "SUSE Rancher" / "for AWS"). The Team suffix pins too —
+    // teams read "SUSE Content Strategy" / "Team" by default — EXCEPT under
+    // `compact`, where the name wraps like any long name ("SUSE Sovereign" /
+    // "Solutions" / "Team") so the wrap control actually does something on teams.
+    const pinnedBySub = subLines.length > 0;
+    const pinned = pinnedBySub || (teamSuffix && wrapMode !== 'compact');
 
     let lines;
     if (pinned) {

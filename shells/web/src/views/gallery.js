@@ -366,6 +366,7 @@ function toolCard(tool, latest, shellCaps) {
     <div class="tool-card" data-new-tool="${escape(tool.id)}">
       ${statusBadge}
       <div class="tool-card-body">
+        ${tool.icon ? `<span class="tool-card-icon" aria-hidden="true">${tool.icon}</span>` : ''}
         <a class="tool-card-link tool-name" href="#/tool/${escape(tool.id)}">${escape(tool.name)}</a>
         <span class="tool-desc">${escape(tool.description ?? '')}</span>
       </div>
@@ -383,6 +384,7 @@ function unavailableCard(tool, unmet) {
     <div class="tool-card tool-card--unavailable" title="Desktop only — the web app can’t provide ${escape(why)}">
       <span class="badge badge-desktop">Desktop</span>
       <div class="tool-card-body">
+        ${tool.icon ? `<span class="tool-card-icon" aria-hidden="true">${tool.icon}</span>` : ''}
         <span class="tool-name" aria-disabled="true">${escape(tool.name)}</span>
         <span class="tool-desc">${escape(tool.description ?? '')}</span>
       </div>
