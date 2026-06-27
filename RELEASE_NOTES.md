@@ -295,6 +295,9 @@ A clean vector street-block map of a bundled city; renders fully offline. (desig
 ### Halftone Filter tool
 Turns a photo into a vector halftone dot grid, exported as SVG or transparent PNG/WebP/AVIF. (designer, official)
 
+### Scanline Filter tool
+Turns a photo into a retro scanline grid — alternate lines drop out and the rest is posterised into brand tones as crisp rects, exported as SVG or transparent PNG/WebP/AVIF. (designer, official)
+
 ### Animated Ad tool
 Builds a looping digital ad from scenes — exported as a self-contained HTML banner, GIF, MP4, or a still poster. (designer, official)
 
@@ -345,6 +348,7 @@ A new `file` input type lets a tool take the user's own file as bytes held in me
 | Street Map | Official | Designer |
 | Brand Lockup | Official | Designer |
 | Halftone Filter | Official | Designer |
+| Scanline Filter | Official | Designer |
 | Animated Ad | Official | Designer |
 | Bag Video | Experimental | Designer |
 | Color Palette | Official | Utility |
