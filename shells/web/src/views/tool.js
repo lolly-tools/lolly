@@ -16,6 +16,7 @@ import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabili
 import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
 import { colorFieldHtml, wireColorField, setSwatches } from '../components/color-field.js';
+import { showScrubReadout, hideScrubReadout } from '../components/scrub-readout.js';
 import { canSkipInputsRebuild } from './inputs-sync.js';
 import { exportSizeDriver } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
@@ -1867,16 +1868,24 @@ function renderInputs(el, model, runtime, host, onDirty) {
     // resting to floating position each time the value re-populates and visibly
     // wobble. Pin it to a static label above the field instead.
     const isStaticLabel = input.control === 'datetime-local-input';
+    // Composite controls hold MANY interactive elements. A wrapping <label> makes the
+    // browser forward any dead-space click to the label's first labelable descendant —
+    // so a `blocks` input forwards gap / pill-body / near-miss clicks to block #0's
+    // collapse chevron (the reported "clicking the 2nd scene expands the 1st"), and a
+    // `vector` input forwards to its first number field. Wrap these in a <div role=group>
+    // instead: the caption still names them (aria-labelledby), but it never proxies clicks.
+    const isComposite = ['blocks', 'vector', 'asset-picker', 'file-picker', 'color-picker'].includes(input.control);
     const cls = `input-row${isCheckbox ? ' input-row--checkbox' : ''}${isStaticLabel ? ' input-row--static-label' : ''}`;
     const valueTag = input.control === 'slider'
       ? ` <span class="input-value">${parseFloat(input.value ?? 0)}</span>`
       : '';
-    const label = `<span class="input-label">${escape(input.label ?? input.id)}${valueTag}</span>`;
+    const labelId = `irow-label-${escape(input.id)}`;
+    const label = `<span class="input-label"${isComposite ? ` id="${labelId}"` : ''}>${escape(input.label ?? input.id)}${valueTag}</span>`;
     const control = controlHtml(input);
     const help = input.help ? `<span class="input-help">${escape(input.help)}</span>` : '';
-    return isCheckbox
-      ? `<label class="${cls}">${control}${label}${help}</label>`
-      : `<label class="${cls}">${label}${control}${help}</label>`;
+    if (isCheckbox) return `<label class="${cls}">${control}${label}${help}</label>`;
+    if (isComposite) return `<div class="${cls}" role="group" aria-labelledby="${labelId}">${label}${control}${help}</div>`;
+    return `<label class="${cls}">${label}${control}${help}</label>`;
   };
 
   const openSections = new Set(
@@ -2242,6 +2251,10 @@ function renderInputs(el, model, runtime, host, onDirty) {
     head.addEventListener('dragend', () => {
       item.classList.remove('is-dragging');
       el.querySelectorAll('.block-item.drag-over').forEach(n => n.classList.remove('drag-over'));
+      // A real drag suppresses the trailing click, but flag it anyway so a drag that
+      // the browser rounds to a click can't also expand the pill (see head click below).
+      head._dragJustHappened = true;
+      setTimeout(() => { head._dragJustHappened = false; }, 0);
     });
     item.addEventListener('dragover', (e) => {
       if (!_blockDrag || _blockDrag.inputId !== blockId) return;
@@ -2269,11 +2282,30 @@ function renderInputs(el, model, runtime, host, onDirty) {
     // Icon button folds this block to a pill — pure DOM toggle, no re-render
     // (renderInputs re-applies the collapsed state across rebuilds).
     const collapse = item.querySelector('[data-block-collapse]');
+    const syncChevron = (folded) => {
+      collapse?.setAttribute('aria-label', folded ? 'Expand block' : 'Collapse block');
+      collapse?.setAttribute('title', folded ? 'Expand' : 'Collapse');
+    };
     collapse?.addEventListener('click', (e) => {
-      e.stopPropagation();                 // don't reach the header's drag/select
+      e.stopPropagation();                 // don't reach the header's expand/drag
       const folded = item.classList.toggle('is-collapsed');
-      collapse.setAttribute('aria-label', folded ? 'Expand block' : 'Collapse block');
-      collapse.setAttribute('title', folded ? 'Expand' : 'Collapse');
+      syncChevron(folded);
+      // On expand, bring the revealed fields into view so the click never looks dead
+      // (a lower pill's fields would otherwise open below the scroll fold).
+      if (!folded) item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+
+    // The whole pill is the expand target while collapsed — clicking its body (preview,
+    // swatch, grip, dead space) opens it, not just the 22px chevron. Only acts while
+    // collapsed; ignores the chevron/remove buttons (they handle themselves) and the
+    // click that ends a drag-reorder. Expanded cards are untouched (fields stay editable).
+    head.addEventListener('click', (e) => {
+      if (!item.classList.contains('is-collapsed')) return;
+      if (e.target.closest('button')) return;
+      if (head._dragJustHappened) return;
+      item.classList.remove('is-collapsed');
+      syncChevron(false);
+      item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
   });
 
@@ -3045,6 +3077,9 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   // leave the preview intact.
   const invalidatePreview = manifest.render.preview ? () => runtime.refresh() : () => {};
 
+  // Label the floating scrub readout with the value + current unit (e.g. "1024 px",
+  // "210 mm") so a drag reads clearly even with the cursor/finger over the field.
+  // (dimUnit() is defined above with the other dimension helpers.)
   [
     [el.querySelector('[data-action="export-width"]'),  'w'],
     [el.querySelector('[data-action="export-height"]'), 'h'],
@@ -3052,7 +3087,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     if (!inp) return;
     const onDimChange = () => { onUrlSync?.(key); refreshCanvasPreview(); invalidatePreview(); };
     inp.addEventListener('input', onDimChange);
-    addScrubBehavior(inp, onDimChange);
+    addScrubBehavior(inp, onDimChange, { format: v => `${v} ${dimUnit()}` });
   });
 
   // Apply a {width,height,unit} from a size-select option to the export-bar fields,
@@ -3727,6 +3762,9 @@ function setupCustomSlider(el, runtime, id, onDirty) {
   const thumb = el.querySelector('.cs-thumb');
 
   let lastSnapped = parseFloat(el.getAttribute('aria-valuenow')) || min;
+  // Live numeric readout next to the label. The panel rebuild is suppressed during a
+  // slider drag (_sliderDragging), so update this span directly or it stalls mid-drag.
+  const valueOut = el.closest('.input-row')?.querySelector('.input-value');
 
   function snap(raw) {
     const s = Math.round((raw - min) / step) * step + min;
@@ -3748,6 +3786,7 @@ function setupCustomSlider(el, runtime, id, onDirty) {
 
   el.addEventListener('pointerdown', e => {
     e.preventDefault();
+    el.focus({ preventScroll: true }); // so the keyboard handler is live right after a click
     el.setPointerCapture(e.pointerId);
     _sliderDragging = true;
     el.classList.add('dragging');
@@ -3761,6 +3800,7 @@ function setupCustomSlider(el, runtime, id, onDirty) {
       if (snapped !== lastSnapped) {
         lastSnapped = snapped;
         setAria(snapped);
+        if (valueOut) valueOut.textContent = String(snapped);
         runtime.setInput(id, snapped);
       }
     }
@@ -3805,7 +3845,10 @@ function setupCustomSlider(el, runtime, id, onDirty) {
 // Dragging uses Pointer Lock once the threshold is crossed so the cursor
 // wraps across screen edges and movement is truly unbounded.
 // onChange fires after every value change from either interaction.
-function addScrubBehavior(inputEl, onChange) {
+// opts.format(value) returns the label shown in the floating readout that
+// appears while dragging (defaults to the bare value) — see scrub-readout.js.
+function addScrubBehavior(inputEl, onChange, opts = {}) {
+  const format = opts.format ?? (v => String(v));
   const getMin = () => parseInt(inputEl.min, 10) || 1;
   const getMax = () => parseInt(inputEl.max, 10) || 99999;
   const clamp  = v => Math.min(getMax(), Math.max(getMin(), v));
@@ -3827,9 +3870,19 @@ function addScrubBehavior(inputEl, onChange) {
     if (e.button !== 0) return;
     const startX   = e.clientX;
     const startVal = parseInt(inputEl.value, 10) || 0;
+    // Touch can't lock the pointer, so the value stays hidden under the finger —
+    // track the readout above the touch point; otherwise anchor it to the field.
+    const isTouch  = e.pointerType === 'touch';
     let   accumulated = 0; // total delta once pointer lock is active
     dragging = false;
     inputEl.setPointerCapture(e.pointerId);
+
+    // Float the live value clear of the cursor/finger while dragging.
+    function showReadout(ev) {
+      const text = format(inputEl.value);
+      if (isTouch) showScrubReadout({ text, finger: { x: ev.clientX, y: ev.clientY } });
+      else showScrubReadout({ text, anchorEl: inputEl });
+    }
 
     function onMove(e) {
       if (!dragging) {
@@ -3838,9 +3891,12 @@ function addScrubBehavior(inputEl, onChange) {
         document.body.style.cursor = 'ew-resize';
         // Request pointer lock so the cursor wraps at screen edges.
         // unadjustedMovement removes OS pointer acceleration for 1:1 scrubbing.
-        const req = inputEl.requestPointerLock?.({ unadjustedMovement: true });
-        if (req instanceof Promise) {
-          req.catch(() => inputEl.requestPointerLock?.());
+        // Skipped for touch (unsupported) — the clientX fallback drives it there.
+        if (!isTouch) {
+          const req = inputEl.requestPointerLock?.({ unadjustedMovement: true });
+          if (req instanceof Promise) {
+            req.catch(() => inputEl.requestPointerLock?.());
+          }
         }
       }
 
@@ -3857,14 +3913,17 @@ function addScrubBehavior(inputEl, onChange) {
         accumulated = parseInt(inputEl.value, 10) - startVal;
       }
       onChange();
+      showReadout(e);
     }
 
     function onUp() {
-      inputEl.removeEventListener('pointermove', onMove);
-      inputEl.removeEventListener('pointerup',   onUp);
+      inputEl.removeEventListener('pointermove',   onMove);
+      inputEl.removeEventListener('pointerup',     onUp);
+      inputEl.removeEventListener('pointercancel', onUp);
       document.removeEventListener('pointerlockchange', onLockChange);
       if (document.pointerLockElement === inputEl) document.exitPointerLock();
       document.body.style.cursor = '';
+      hideScrubReadout();
       if (dragging) {
         wasDragging = true;
         setTimeout(() => { wasDragging = false; }, 50);
@@ -3877,8 +3936,9 @@ function addScrubBehavior(inputEl, onChange) {
       if (document.pointerLockElement !== inputEl) onUp();
     }
 
-    inputEl.addEventListener('pointermove', onMove);
-    inputEl.addEventListener('pointerup',   onUp);
+    inputEl.addEventListener('pointermove',   onMove);
+    inputEl.addEventListener('pointerup',     onUp);
+    inputEl.addEventListener('pointercancel', onUp);
     document.addEventListener('pointerlockchange', onLockChange);
   });
 
