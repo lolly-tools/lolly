@@ -1,0 +1,207 @@
+{
+  "id": "digi-ad",
+  "name": "Animated Ad",
+  "description": "Build a looping digital ad from a sequence of scenes — each animates in over the last. Exports a self-contained animated HTML banner, GIF, MP4/WebM, or a static poster, in every standard ad size.",
+  "a11yLabel": "Animated ad with {{sceneCount}} scenes",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["ad", "advertising", "banner", "animation", "video", "social", "scenes", "motion", "gif", "html5"],
+  "render": {
+    "width": 1200,
+    "height": 1920,
+    "formats": ["html", "gif", "webm", "mp4", "png", "svg"],
+    "actions": ["download", "copy", "save"],
+    "video": { "wait": 0, "duration": 6 }
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true,
+    "afterExport": true
+  },
+  "inputs": [
+    {
+      "id": "size",
+      "label": "Ad size",
+      "type": "select",
+      "default": "sq",
+      "help": "Sets the canvas shape and the exported pixel size. The layout reflows for square, portrait, story, wide and skinny banner shapes.",
+      "options": [
+        { "value": "sq",          "label": "Square · 1080 × 1080",        "width": 1080, "height": 1080, "unit": "px" },
+        { "value": "portrait",    "label": "Portrait 4:5 · 1080 × 1350",  "width": 1080, "height": 1350, "unit": "px" },
+        { "value": "story",       "label": "Story 9:16 · 1080 × 1920",     "width": 1080, "height": 1920, "unit": "px" },
+        { "value": "landscape",   "label": "Landscape 1.91:1 · 1200 × 628", "width": 1200, "height": 628, "unit": "px" },
+        { "value": "mrec",        "label": "Medium Rectangle · 300 × 250", "width": 300,  "height": 250,  "unit": "px" },
+        { "value": "halfpage",    "label": "Half Page · 300 × 600",        "width": 300,  "height": 600,  "unit": "px" },
+        { "value": "skyscraper",  "label": "Wide Skyscraper · 160 × 600",  "width": 160,  "height": 600,  "unit": "px" },
+        { "value": "billboard",   "label": "Billboard · 970 × 250",        "width": 970,  "height": 250,  "unit": "px" },
+        { "value": "leaderboard", "label": "Leaderboard · 728 × 90",       "width": 728,  "height": 90,   "unit": "px" },
+        { "value": "mobile",      "label": "Mobile Banner · 320 × 50",     "width": 320,  "height": 50,   "unit": "px" }
+      ]
+    },
+    {
+      "id": "animated",
+      "label": "Animate",
+      "type": "boolean",
+      "default": true,
+      "section": "Animation",
+      "help": "When on, the scenes play in sequence. Turn off to hold the final scene as a still."
+    },
+    {
+      "id": "motion",
+      "label": "Motion style",
+      "type": "select",
+      "default": "fade",
+      "section": "Animation",
+      "help": "The default way each scene enters. A scene can override it.",
+      "options": [
+        { "value": "fade",  "label": "Fade" },
+        { "value": "slide", "label": "Slide up" },
+        { "value": "zoom",  "label": "Zoom" },
+        { "value": "pop",   "label": "Pop" }
+      ]
+    },
+    {
+      "id": "speed",
+      "label": "Speed",
+      "type": "number",
+      "display": "slider",
+      "section": "Animation",
+      "min": 0.5,
+      "max": 2,
+      "step": 0.05,
+      "default": 1,
+      "help": "Plays the whole sequence faster or slower without re-timing each scene."
+    },
+    {
+      "id": "loop",
+      "label": "Loop",
+      "type": "select",
+      "default": "loop",
+      "section": "Animation",
+      "help": "How many times the sequence plays. Display ad networks usually cap at 3 plays.",
+      "options": [
+        { "value": "loop",  "label": "Loop forever" },
+        { "value": "play3", "label": "Play 3 times" },
+        { "value": "once",  "label": "Play once" }
+      ]
+    },
+    {
+      "id": "focusScene",
+      "label": "Pause on scene",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 12,
+      "step": 1,
+      "default": 0,
+      "help": "0 = play. Set to a scene number to freeze the preview there so you can edit it — exports still play (the still poster uses this scene, or the last one)."
+    },
+    {
+      "id": "scenes",
+      "label": "Scenes",
+      "type": "blocks",
+      "help": "Each scene is one segment of the sequence — it animates in over the previous one. Reorder by dragging. The last scene is the resting end card.",
+      "addMenu": { "field": "kind", "label": "Add scene" },
+      "fields": [
+        {
+          "id": "kind",
+          "label": "Scene type",
+          "type": "select",
+          "default": "title",
+          "options": [
+            { "value": "title", "label": "Title",       "repeatable": true },
+            { "value": "text",  "label": "Body text",   "repeatable": true },
+            { "value": "image", "label": "Image",       "repeatable": true },
+            { "value": "cta",   "label": "Call to action", "repeatable": true },
+            { "value": "logo",  "label": "Logo",        "repeatable": true },
+            { "value": "end",   "label": "End card",    "repeatable": true }
+          ]
+        },
+        { "id": "bgColor", "label": "Background", "type": "color", "default": "" },
+        {
+          "id": "fgColor", "label": "Text colour", "type": "color", "default": "",
+          "showFor": ["title", "text", "cta", "logo", "end"]
+        },
+        {
+          "id": "headline", "label": "Headline", "type": "text", "default": "", "placeholder": "Build once.",
+          "showFor": ["title", "end"]
+        },
+        {
+          "id": "subheadline", "label": "Subheadline", "type": "text", "default": "", "placeholder": "Run anywhere.",
+          "showFor": ["title"]
+        },
+        {
+          "id": "body", "label": "Body", "type": "text", "default": "", "placeholder": "Supporting line of copy.",
+          "multilineFor": ["text"], "showFor": ["text"]
+        },
+        {
+          "id": "cta", "label": "Button text", "type": "text", "default": "", "placeholder": "Learn more",
+          "showFor": ["cta", "end"]
+        },
+        {
+          "id": "ctaStyle", "label": "Button style", "type": "select", "default": "pill",
+          "showFor": ["cta", "end"],
+          "options": [
+            { "value": "pill",  "label": "Pill" },
+            { "value": "arrow", "label": "Arrow →" },
+            { "value": "plain", "label": "Plain text" }
+          ]
+        },
+        {
+          "id": "logo", "label": "Logo lockup", "type": "select", "default": "horizontal",
+          "showFor": ["logo", "end"],
+          "options": [
+            { "value": "horizontal", "label": "Horizontal" },
+            { "value": "stacked",    "label": "Stacked" }
+          ]
+        },
+        {
+          "id": "logoColor", "label": "Logo colour", "type": "select", "default": "mono",
+          "showFor": ["logo", "end"],
+          "options": [
+            { "value": "mono",  "label": "Mono — black / white" },
+            { "value": "green", "label": "Green" }
+          ]
+        },
+        {
+          "id": "image", "label": "Image", "type": "asset", "assetType": "raster", "allowUpload": true,
+          "showFor": ["title", "text", "cta", "image", "end"]
+        },
+        {
+          "id": "imageFocus", "label": "Image focus", "type": "select", "default": "center",
+          "showFor": ["title", "text", "cta", "image", "end"],
+          "options": [
+            { "value": "center", "label": "Center" },
+            { "value": "top",    "label": "Top" },
+            { "value": "bottom", "label": "Bottom" },
+            { "value": "left",   "label": "Left" },
+            { "value": "right",  "label": "Right" }
+          ]
+        },
+        {
+          "id": "hold", "label": "Hold (seconds)", "type": "number", "display": "slider",
+          "min": 0.3, "max": 6, "step": 0.1, "default": 1.6
+        },
+        {
+          "id": "transition", "label": "Enter with", "type": "select", "default": "inherit",
+          "options": [
+            { "value": "inherit", "label": "Default" },
+            { "value": "fade",    "label": "Fade" },
+            { "value": "slide",   "label": "Slide up" },
+            { "value": "zoom",    "label": "Zoom" },
+            { "value": "pop",     "label": "Pop" },
+            { "value": "none",    "label": "Cut" }
+          ]
+        }
+      ],
+      "default": [
+        { "kind": "title", "bgColor": "#0c322c", "fgColor": "#ffffff", "headline": "Build once.", "subheadline": "Run anywhere.", "hold": 1.6, "transition": "inherit" },
+        { "kind": "text",  "bgColor": "#30ba78", "fgColor": "#0c322c", "body": "One platform for every cloud, edge and datacenter.", "hold": 1.8, "transition": "inherit" },
+        { "kind": "end",   "bgColor": "#0c322c", "fgColor": "#ffffff", "headline": "Get started", "cta": "suse.com", "ctaStyle": "pill", "logo": "horizontal", "logoColor": "mono", "hold": 2.2, "transition": "inherit" }
+      ]
+    }
+  ]
+}

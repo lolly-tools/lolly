@@ -257,17 +257,24 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
       // per format). This keeps the single export entry point — every shell that
       // calls runtime.export gets these formats for free.
       const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
-      const blob = await host.export.render(renderedNode, format, {
-        ...opts,
-        watermark: opts.watermark ?? (isExperimental && !isOnDevice),
-        meta,
-        // Tag output with a colour profile by default (sRGB for raster, the
-        // default press condition for CMYK PDF). Thumbnails stay untagged.
-        colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),
-        ...dataExtra,
-      });
-      if (hooks?.afterExport) {
-        await hooks.afterExport({ node: renderedNode, format, opts, host });
+      let blob;
+      try {
+        blob = await host.export.render(renderedNode, format, {
+          ...opts,
+          watermark: opts.watermark ?? (isExperimental && !isOnDevice),
+          meta,
+          // Tag output with a colour profile by default (sRGB for raster, the
+          // default press condition for CMYK PDF). Thumbnails stay untagged.
+          colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),
+          ...dataExtra,
+        });
+      } finally {
+        // afterExport is a cleanup guarantee (e.g. tools that mutate the live node
+        // in beforeExport) — run it even if render throws, so a failed export
+        // can't leave hook state / the DOM in the export configuration.
+        if (hooks?.afterExport) {
+          await hooks.afterExport({ node: renderedNode, format, opts, host });
+        }
       }
       return blob;
     },

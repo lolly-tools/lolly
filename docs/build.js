@@ -559,8 +559,8 @@ ${cardData.map(({ h2 }, i) => `  <button class="audience-tab" role="tab" aria-se
 <section class="platform-section">
   <div class="platform-inner">
     <div class="platform-header reveal">
-      <h2>The Creator</h2>
-      <p class="platform-tagline">One engine. Every surface. Zero lock-in.</p>
+      <h2>Lolly</h2>
+      <p class="platform-tagline">Rendering engine. production-quality. Zero lock-in.</p>
     </div>
     <div class="platform-features">
       ${platformFeatures.map((f, i) => renderPlatformFeature(f, i)).join('\n      ')}
@@ -569,8 +569,8 @@ ${cardData.map(({ h2 }, i) => `  <button class="audience-tab" role="tab" aria-se
 </section>
 ${whatsLines.length ? `<section class="whats-a-tool">
   <div class="whats-inner">
-  <h2 class="reveal">The Tools</h2>
-  <p class="tool-lead reveal reveal-1">A self-contained creative template. Give it content — get assets.</p>
+  <h2 class="reveal">Tools</h2>
+  <p class="tool-lead reveal reveal-1">A self-contained template.<br>  Layout rules and style, waiting for data</p>
   ${ANATOMY_HTML}
   <div class="tool-features">
     <div class="tool-feature reveal reveal-2">

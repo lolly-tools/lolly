@@ -1,0 +1,155 @@
+.cmp {
+  width: 100%;
+  height: 100%;
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #18181b;
+}
+
+.cmp-empty {
+  max-width: 480px;
+  text-align: center;
+  padding: 40px 28px;
+  border: 2px dashed #d4d4d8;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.cmp-empty:hover { border-color: #30ba78; background: rgba(48, 186, 120, .05); }
+.cmp-empty-icon { color: #30ba78; margin-bottom: 12px; }
+.cmp-empty-icon svg { width: 48px; height: 48px; }
+.cmp-empty h2 { margin: 0 0 8px; font-size: 22px; font-weight: 650; }
+.cmp-empty p { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #52525b; }
+.cmp-empty-note { font-size: 12px !important; color: #71717a !important; margin: 14px 0 0 !important; }
+
+.cmp-pick {
+  appearance: none;
+  border: none;
+  background: #30ba78;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.cmp-pick:hover { background: #2aa56b; }
+
+.cmp-card {
+  width: 100%;
+  max-width: 520px;
+  background: #fff;
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+}
+.cmp-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f4f4f5;
+}
+.cmp-file { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.cmp-size { font-size: 13px; color: #71717a; flex-shrink: 0; }
+.cmp-replace {
+  appearance: none;
+  border: 1px solid #d4d4d8;
+  background: #fafafa;
+  color: #3f3f46;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.cmp-replace:hover { background: #f4f4f5; }
+
+.cmp-settings { border: none; margin: 18px 0 0; padding: 0; }
+.cmp-settings legend { font-size: 12px; font-weight: 600; color: #71717a; text-transform: uppercase; letter-spacing: .04em; padding: 0; margin-bottom: 8px; }
+
+.cmp-seg { display: flex; gap: 6px; }
+.cmp-seg-opt { flex: 1; position: relative; cursor: pointer; }
+.cmp-seg-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.cmp-seg-opt span {
+  display: block;
+  text-align: center;
+  padding: 9px 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3f3f46;
+  background: #f4f4f5;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.cmp-seg-opt:hover span { background: #ececee; }
+.cmp-seg-opt input:checked + span { background: rgba(48, 186, 120, .12); border-color: #30ba78; color: #15803d; }
+.cmp-seg-opt input:focus-visible + span { outline: 2px solid #30ba78; outline-offset: 2px; }
+
+.cmp-check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 13px; color: #3f3f46; cursor: pointer; }
+.cmp-check input { width: 15px; height: 15px; accent-color: #30ba78; cursor: pointer; }
+
+.cmp-result {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f4f4f5;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cmp-result--win { background: rgba(48, 186, 120, .1); }
+.cmp-result-size { font-size: 17px; font-weight: 700; }
+.cmp-result-saved { font-size: 13px; color: #15803d; font-weight: 600; }
+.cmp-result:not(.cmp-result--win) .cmp-result-saved { color: #52525b; }
+
+.cmp-state { margin-top: 16px; }
+.cmp-lead { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+
+.cmp-note { font-size: 12px; color: #71717a; line-height: 1.5; margin: 8px 0 0; }
+.cmp-note code { background: #f4f4f5; padding: 1px 5px; border-radius: 4px; font-size: 11px; }
+
+.cmp-download {
+  appearance: none;
+  border: none;
+  width: 100%;
+  margin-top: 18px;
+  background: #30ba78;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 650;
+  padding: 12px 18px;
+  border-radius: 11px;
+  cursor: pointer;
+}
+.cmp-download:hover { background: #2aa56b; }
+.cmp-download.is-busy { opacity: .7; cursor: progress; }
+.cmp-download.is-error { background: #dc2626; }
+.cmp-tail { margin-top: 12px; }
+
+@media (prefers-color-scheme: dark) {
+  .cmp { color: #f4f4f5; }
+  .cmp-empty { border-color: #3f3f46; }
+  .cmp-empty p { color: #a1a1aa; }
+  .cmp-card { background: #1c1c1f; border-color: #2e2e33; box-shadow: none; }
+  .cmp-head { border-color: #2e2e33; }
+  .cmp-replace { background: #27272a; border-color: #3f3f46; color: #d4d4d8; }
+  .cmp-replace:hover { background: #2e2e33; }
+  .cmp-seg-opt span { background: #27272a; color: #d4d4d8; }
+  .cmp-seg-opt:hover span { background: #2e2e33; }
+  .cmp-seg-opt input:checked + span { background: rgba(48, 186, 120, .18); color: #4ade80; }
+  .cmp-check { color: #d4d4d8; }
+  .cmp-result { background: #27272a; }
+  .cmp-result--win { background: rgba(48, 186, 120, .16); }
+  .cmp-result-saved { color: #4ade80; }
+  .cmp-result:not(.cmp-result--win) .cmp-result-saved { color: #a1a1aa; }
+  .cmp-note code { background: #27272a; }
+}

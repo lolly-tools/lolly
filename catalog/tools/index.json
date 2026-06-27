@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-27T09:24:00.504Z",
+  "generatedAt": "2026-06-27T13:54:38.435Z",
   "tools": [
     {
       "id": "color-block",
@@ -208,6 +208,33 @@
       "status": "official",
       "category": "designer",
       "exportable": true
+    },
+    {
+      "id": "digi-ad",
+      "name": "Animated Ad",
+      "description": "Build a looping digital ad from a sequence of scenes — each animates in over the last. Exports a self-contained animated HTML banner, GIF, MP4/WebM, or a static poster, in every standard ad size.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer",
+      "exportable": true
+    },
+    {
+      "id": "calendar-ics",
+      "name": "Calendar ICS",
+      "description": "Turn an event — name, date, time, location — into a calendar (.ics) file that drops straight into Outlook, Google Calendar, or Apple Calendar.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "event",
+      "exportable": true
+    },
+    {
+      "id": "compress-pdf",
+      "name": "Compress PDF",
+      "description": "Shrink a PDF by recompressing its images — on your device. Nothing is uploaded.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "exportable": false
     }
   ]
 }

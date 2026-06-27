@@ -126,6 +126,41 @@ export interface PdfAPI {
    * is not byte-identical, and any digital signature is invalidated.
    */
   strip(bytes: Uint8Array): Promise<{ bytes: Uint8Array }>;
+
+  /**
+   * Re-save the PDF smaller. Recompresses oversized embedded JPEG images
+   * (downsample + re-encode on a canvas) and re-serialises with object streams;
+   * text and vector graphics are left untouched. Like strip(), the output is NOT
+   * byte-identical and any digital signature is invalidated. Runs locally — the
+   * bytes are never uploaded. The result is guaranteed never larger than the input
+   * (the original is returned unchanged when recompression wouldn't shrink it).
+   * Image recompression needs a canvas (web/Tauri); a shell without one (the node
+   * CLI) still applies the structural pass. Added after analyze/strip, so a tool
+   * must feature-detect `host.pdf?.compress` — an older shell may lack it.
+   */
+  compress(bytes: Uint8Array, opts?: PdfCompressOpts): Promise<PdfCompressResult>;
+}
+
+export interface PdfCompressOpts {
+  /** Aggressiveness preset; maps to image downsample size + JPEG quality. Default 'balanced'. */
+  level?: 'light' | 'balanced' | 'strong';
+  /** Re-encode images in grayscale for extra savings (e.g. scanned text). Default false. */
+  grayscale?: boolean;
+  /** Override the max image dimension (px) the preset implies. */
+  maxDim?: number;
+  /** Override the JPEG quality (0..1) the preset implies. */
+  imageQuality?: number;
+}
+
+export interface PdfCompressResult {
+  /** The compressed PDF — or the original bytes, if compression wouldn't shrink it. */
+  bytes: Uint8Array;
+  /** Input size in bytes. */
+  before: number;
+  /** Output size in bytes (always <= before). */
+  after: number;
+  /** How many embedded images were recompressed. */
+  images: number;
 }
 
 export interface PdfFinding {

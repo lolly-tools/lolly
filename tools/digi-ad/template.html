@@ -1,0 +1,139 @@
+<div class="{{rootClass}}" style="--dur: {{durSec}}s;">
+  {{#each scenesOut}}
+  <section class="dg-scene dg-scene--{{idx}} dg-kind-{{kind}}{{#if scrim}} dg-scrim{{/if}}" style="{{{style}}}">
+    {{#if hasInner}}
+    <div class="dg-inner">
+      {{#if logoUrl}}<img class="dg-logo" src="{{logoUrl}}" alt="">{{/if}}
+      {{#if headline}}<div class="dg-headline">{{headline}}</div>{{/if}}
+      {{#if subheadline}}<div class="dg-sub">{{subheadline}}</div>{{/if}}
+      {{#if body}}<div class="dg-body">{{body}}</div>{{/if}}
+      {{#if cta}}<div class="dg-cta dg-cta--{{ctaStyle}}">{{cta}}</div>{{/if}}
+    </div>
+    {{/if}}
+  </section>
+  {{/each}}
+
+  <style>
+    /* Everything is namespaced under .digiad — the template <style> is injected raw
+       (NOT engine-scoped), and it is captured verbatim by the HTML export. Never move
+       these rules (especially @keyframes) into styles.css: scopeCss() corrupts
+       multi-step keyframes, and head-injected CSS is dropped from the HTML export. */
+    .digiad {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      container-type: size;
+      background: #0c322c;
+      isolation: isolate;
+      font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .digiad, .digiad * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .dg-scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--fg, #fff);
+      background-color: var(--bg, #0c322c);
+      background-size: cover;
+      background-repeat: no-repeat;
+      will-change: opacity, transform;
+    }
+    .dg-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55em;
+      padding: 9cqmin;
+      max-width: 94%;
+      max-height: 94%;
+    }
+    /* Contrast scrim behind text when a scene has a background photo. */
+    .dg-scrim::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: var(--scrim, rgba(0, 0, 0, 0.45));
+    }
+    .dg-logo {
+      display: block;
+      width: auto;
+      max-width: 66cqmin;
+      max-height: 32cqmin;
+      object-fit: contain;
+    }
+    .dg-headline {
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -0.015em;
+      font-size: clamp(15px, 11cqmin, 132px);
+      overflow-wrap: anywhere;
+    }
+    .dg-sub {
+      font-weight: 500;
+      line-height: 1.12;
+      opacity: 0.92;
+      font-size: clamp(12px, 6.2cqmin, 66px);
+      overflow-wrap: anywhere;
+    }
+    .dg-body {
+      font-weight: 500;
+      line-height: 1.26;
+      white-space: pre-line;
+      max-width: 22ch;
+      font-size: clamp(12px, 5.4cqmin, 52px);
+      overflow-wrap: anywhere;
+    }
+    .dg-cta {
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+      font-size: clamp(12px, 5cqmin, 46px);
+    }
+    .dg-cta--pill {
+      background: var(--fg, #fff);
+      color: var(--bg, #0c322c);
+      border-radius: 999px;
+      padding: 0.58em 1.2em;
+    }
+    .dg-cta--arrow::after { content: "  \2192"; }
+    .dg-cta--plain { text-decoration: underline; text-underline-offset: 0.22em; }
+
+    /* Logo scenes give the mark the stage; end cards keep it modest. */
+    .dg-kind-logo .dg-logo { max-width: 78cqmin; max-height: 46cqmin; }
+    .dg-kind-end  .dg-logo { max-width: 50cqmin; max-height: 22cqmin; margin-bottom: 0.3em; }
+
+    /* ── Responsive layout switches (the layout must survive 11:1 to 1:5) ── */
+
+    /* Wide, short strips: leaderboard / billboard / mobile banner → single row,
+       drop secondary copy, size type to the height. */
+    @container (min-aspect-ratio: 12/5) {
+      .dg-inner { flex-direction: row; flex-wrap: nowrap; gap: 0.5em; padding: 4cqmin 6cqmin; max-width: 97%; }
+      .dg-sub, :not(.dg-kind-text) .dg-body { display: none; }
+      .dg-headline { font-size: clamp(13px, 46cqh, 64px); line-height: 1; white-space: nowrap; }
+      /* a body-text scene's copy IS its message — keep it, sized to the strip */
+      .dg-kind-text .dg-body { display: block; max-width: 94%; white-space: normal; line-height: 1.12; font-size: clamp(12px, 22cqh, 34px); }
+      .dg-cta { font-size: clamp(11px, 34cqh, 44px); }
+      .dg-logo { max-width: 38cqw; max-height: 64cqh; }
+      .dg-kind-logo .dg-logo, .dg-kind-end .dg-logo { max-width: 40cqw; max-height: 70cqh; margin: 0; }
+    }
+
+    /* Tall, skinny strips: skyscrapers → vertical stack, drop secondary copy. */
+    @container (max-aspect-ratio: 1/2) {
+      :not(.dg-kind-text) .dg-body { display: none; }
+      .dg-inner { padding: 7cqmin 5cqmin; gap: 0.7em; }
+      .dg-headline { font-size: clamp(14px, 13cqmin, 64px); }
+      .dg-sub { font-size: clamp(11px, 8cqmin, 40px); }
+      .dg-cta { font-size: clamp(11px, 9cqmin, 40px); white-space: normal; }
+    }
+  </style>
+  <style>{{{animCss}}}</style>
+</div>

@@ -1167,6 +1167,27 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     setupCanvasFileDrop({ viewEl, contentEl, runtime, input: canvasFileInput, onDirty: markUserDirty });
   }
 
+  // Canvas tools can also expose interactive SETTINGS in the template (e.g. a
+  // compression level) as ordinary declared inputs. The sidebar — which normally
+  // binds inputs to the model — is hidden in canvas layout, so wire any in-canvas
+  // control carrying [data-input-id] straight back to runtime.setInput. The values
+  // are declared inputs, so URL/CLI parity is automatic (syncUrl writes the dirty
+  // param). Bind 'change' (not 'input') so the per-render innerHTML rebuild doesn't
+  // fight focus mid-interaction; the template reflects each value so a repaint keeps it.
+  if (canvasLayout && contentEl) {
+    contentEl.addEventListener('change', (e) => {
+      const ctl = e.target.closest('[data-input-id]');
+      if (!ctl) return;
+      const id = ctl.dataset.inputId;
+      if (!id) return;
+      const value = ctl.type === 'checkbox' ? ctl.checked
+        : ctl.type === 'number' ? Number(ctl.value)
+          : ctl.value;
+      runtime.setInput(id, value);
+      markUserDirty(id);
+    });
+  }
+
   viewEl.querySelector('#clear-inputs-btn')?.addEventListener('click', () => {
     showClearDialog(async () => {
       dirtyParams.clear();

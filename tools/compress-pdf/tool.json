@@ -1,0 +1,54 @@
+{
+  "id": "compress-pdf",
+  "name": "Compress PDF",
+  "description": "Shrink a PDF by recompressing its images — on your device. Nothing is uploaded.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "utility",
+  "privacy": "on-device",
+  "tags": ["pdf", "compress", "shrink", "optimize", "reduce", "size", "document", "scan", "image", "downsample", "privacy"],
+  "a11yLabel": "PDF compressor for {{fileName}}",
+  "render": {
+    "width": 760,
+    "height": 620,
+    "formats": ["pdf"],
+    "export": false,
+    "layout": "canvas",
+    "actions": []
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "exportFile": true
+  },
+  "inputs": [
+    {
+      "id": "source",
+      "label": "PDF",
+      "type": "file",
+      "accept": ["application/pdf", ".pdf"],
+      "maxSize": 52428800,
+      "help": "A PDF file. It's read in your browser and never leaves your device."
+    },
+    {
+      "id": "level",
+      "label": "Compression",
+      "type": "select",
+      "default": "balanced",
+      "options": [
+        { "value": "light", "label": "Light — keep quality high" },
+        { "value": "balanced", "label": "Balanced" },
+        { "value": "strong", "label": "Strong — smallest file" }
+      ],
+      "help": "How hard to compress embedded images. Stronger means smaller files and softer images."
+    },
+    {
+      "id": "grayscale",
+      "label": "Convert images to grayscale",
+      "type": "boolean",
+      "default": false,
+      "help": "Drop colour from images for extra savings — useful for scanned text documents."
+    }
+  ]
+}

@@ -96,9 +96,174 @@ export async function stripPdf(bytes) {
   return { bytes: out };
 }
 
+// ─── Compression ──────────────────────────────────────────────────────────────
+// Shrinks a PDF where the bytes almost always are: oversized embedded JPEGs. Each
+// qualifying image XObject is decoded on a canvas, downsampled and re-encoded, then
+// swapped back IN PLACE; the document is re-saved with object streams. Text and
+// vector graphics are never touched. No heavy WASM — pdf-lib (already here) plus the
+// browser's own canvas. The node CLI has no canvas, so it does the structural pass
+// only (object-stream re-save). The result is guaranteed never larger than the input.
+
+const COMPRESS_LEVELS = {
+  light: { maxDim: 2200, quality: 0.82 },
+  balanced: { maxDim: 1600, quality: 0.72 },
+  strong: { maxDim: 1100, quality: 0.58 },
+};
+const MIN_IMAGE_BYTES = 12 * 1024; // re-encoding anything tinier isn't worth it
+
+function clampNum(v, lo, hi, dflt) {
+  const n = Number(v);
+  return isFinite(n) ? Math.min(hi, Math.max(lo, n)) : dflt;
+}
+
+function compressParams(opts = {}) {
+  const base = COMPRESS_LEVELS[opts.level] || COMPRESS_LEVELS.balanced;
+  return {
+    maxDim: clampNum(opts.maxDim, 200, 8000, base.maxDim),
+    quality: clampNum(opts.imageQuality, 0.2, 0.95, base.quality),
+    grayscale: Boolean(opts.grayscale),
+  };
+}
+
+// Can this shell decode + re-encode raster images? Needs a real browser canvas;
+// the node CLI can't, so it skips the image pass and re-saves structurally only.
+function hasImageCodec() {
+  return typeof createImageBitmap === 'function' &&
+    (typeof OffscreenCanvas === 'function' ||
+      (typeof document !== 'undefined' && !!document.createElement));
+}
+
+function makeCanvas(w, h) {
+  if (typeof OffscreenCanvas === 'function') return new OffscreenCanvas(w, h);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  return c;
+}
+
+async function canvasToJpeg(canvas, quality) {
+  if (typeof canvas.convertToBlob === 'function') {
+    return canvas.convertToBlob({ type: 'image/jpeg', quality });
+  }
+  return new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+}
+
+// Decode an embedded JPEG, downsample to `maxDim`, re-encode as JPEG at `quality`.
+// Returns { bytes, width, height } or null when it can't decode / can't help.
+async function recodeJpeg(jpgBytes, { maxDim, quality, grayscale }) {
+  let bmp;
+  try {
+    bmp = await createImageBitmap(new Blob([jpgBytes], { type: 'image/jpeg' }));
+  } catch { return null; } // undecodable here (e.g. CMYK / JPEG2000) — leave it alone
+  const iw = bmp.width, ih = bmp.height;
+  if (!iw || !ih) { if (bmp.close) bmp.close(); return null; }
+  const scale = Math.min(1, maxDim / Math.max(iw, ih));
+  const nw = Math.max(1, Math.round(iw * scale));
+  const nh = Math.max(1, Math.round(ih * scale));
+  const canvas = makeCanvas(nw, nh);
+  const cx = canvas.getContext('2d');
+  if (!cx) { if (bmp.close) bmp.close(); return null; }
+  if (grayscale && 'filter' in cx) cx.filter = 'grayscale(1)';
+  cx.drawImage(bmp, 0, 0, nw, nh);
+  if (bmp.close) bmp.close();
+  let blob;
+  try { blob = await canvasToJpeg(canvas, quality); } catch { return null; }
+  if (!blob) return null;
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), width: nw, height: nh };
+}
+
+// Direct-name colourspaces a canvas JPEG round-trips faithfully. Anything indirect,
+// ICCBased, Indexed or CMYK is skipped (a browser canvas mis-decodes those).
+function isSafeColorSpace(cs) {
+  const s = cs ? String(cs) : '';
+  return s === '/DeviceRGB' || s === '/DeviceGray';
+}
+
+export async function compressPdf(bytes, opts = {}) {
+  const input = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const before = input.length;
+  const params = compressParams(opts);
+
+  const { PDFDocument, PDFName, PDFNumber } = await import('pdf-lib');
+  const doc = await PDFDocument.load(input, PDF_LOAD_OPTS);
+
+  let images = 0;
+  if (hasImageCodec()) {
+    // First pass: an image used as a soft mask (/SMask) or image mask (/Mask) by
+    // another image must NOT be recompressed — masks are DeviceGray, and a canvas
+    // re-encode would force a 3-channel DeviceRGB JPEG, corrupting the transparency.
+    // Collect those target refs ("N G R") so the main pass skips them.
+    const maskRefs = new Set();
+    for (const [, obj] of doc.context.enumerateIndirectObjects()) {
+      const d = obj && obj.dict;
+      if (!d || !d.get) continue;
+      for (const key of ['SMask', 'Mask']) {
+        const ref = String(d.get(PDFName.of(key)) ?? '');
+        if (/^\d+ \d+ R$/.test(ref)) maskRefs.add(ref); // a PDFRef; array (colour-key) /Mask ignored
+      }
+    }
+
+    for (const [ref, obj] of doc.context.enumerateIndirectObjects()) {
+      if (maskRefs.has(String(ref))) continue; // this image masks another — leave it alone
+      // Image XObjects are raw streams; content streams, fonts, etc. are skipped.
+      if (!(obj.contents instanceof Uint8Array)) continue;
+      const dict = obj.dict;
+      if (!dict || !dict.get) continue;
+
+      const sub = dict.get(PDFName.of('Subtype'));
+      if (!sub || !String(sub).includes('Image')) continue;
+
+      // Only baseline single-filter JPEGs (DCTDecode) in a plain RGB/Gray space, with
+      // no soft mask, stencil mask or custom Decode array. Everything else (CMYK JPEG,
+      // ICCBased/Indexed, JPX/JBIG2/CCITT, Flate rasters) a browser canvas decodes
+      // wrong or not at all — so we leave those images untouched.
+      const filter = dict.get(PDFName.of('Filter'));
+      if (!filter || String(filter) !== '/DCTDecode') continue;
+      if (!isSafeColorSpace(dict.get(PDFName.of('ColorSpace')))) continue;
+      if (dict.get(PDFName.of('SMask'))) continue;
+      const imageMask = dict.get(PDFName.of('ImageMask'));
+      if (imageMask && String(imageMask) === 'true') continue;
+      if (dict.get(PDFName.of('Decode'))) continue;
+
+      const jpg = obj.contents;
+      if (jpg.length < MIN_IMAGE_BYTES) continue;
+
+      let res;
+      try { res = await recodeJpeg(jpg, params); } catch { res = null; }
+      if (!res || res.bytes.length >= jpg.length) continue; // keep original unless smaller
+
+      // Swap the bytes IN PLACE on the same indirect object. pdf-lib never garbage
+      // collects, so re-embedding under a new ref would orphan (and re-ship) the old
+      // image; reusing the ref also updates every page that shares this image at once.
+      obj.contents = res.bytes;
+      dict.set(PDFName.of('Width'), PDFNumber.of(res.width));
+      dict.set(PDFName.of('Height'), PDFNumber.of(res.height));
+      dict.set(PDFName.of('ColorSpace'), PDFName.of('DeviceRGB'));
+      dict.set(PDFName.of('BitsPerComponent'), PDFNumber.of(8));
+      dict.set(PDFName.of('Length'), PDFNumber.of(res.bytes.length));
+      images++;
+    }
+  }
+
+  // A light, non-identifying tool credit. The original author/title are left as-is —
+  // metadata scrubbing is the Strip Hidden Data tool's job, not this one's. Producer
+  // gets overwritten by any re-saver anyway; this just makes it a clean value.
+  try {
+    doc.setProducer('Lolly');
+    doc.setCreator('lolly.tools');
+    doc.setSubject('Compressed with lolly.tools');
+  } catch { /* setters are best-effort */ }
+
+  const out = await doc.save({ useObjectStreams: true, updateFieldAppearances: false });
+
+  // Hard guarantee: never hand back something larger than the input.
+  if (out.length < before) return { bytes: out, before, after: out.length, images };
+  return { bytes: input, before, after: before, images: 0 };
+}
+
 export function createPdfAPI() {
   return {
     analyze: (bytes) => analyzePdf(bytes),
     strip: (bytes) => stripPdf(bytes),
+    compress: (bytes, opts) => compressPdf(bytes, opts),
   };
 }

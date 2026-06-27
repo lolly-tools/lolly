@@ -1,0 +1,85 @@
+<div class="cmp">
+  {{#unless hasFile}}
+    <div class="cmp-empty" data-file-pick>
+      <div class="cmp-empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M9 13h6"/><path d="M9 17h3"/></svg>
+      </div>
+      <h2>Compress a PDF</h2>
+      <p>Drag a PDF anywhere onto this area, or choose one below. We recompress its images — bulky photos and scans — and hand back a smaller file.</p>
+      <button type="button" class="cmp-pick" data-file-pick>Choose a PDF…</button>
+      <p class="cmp-empty-note">Everything happens in your browser. Your file is never uploaded.</p>
+    </div>
+  {{/unless}}
+
+  {{#if hasFile}}
+    <div class="cmp-card">
+      <div class="cmp-head">
+        <span class="cmp-file" title="{{fileName}}">{{fileName}}</span>
+        <span class="cmp-size">{{fileSize}}</span>
+        <button type="button" class="cmp-replace" data-file-pick>Replace</button>
+      </div>
+
+      {{#unless supported}}
+        {{#if pdfUnavailable}}
+          <div class="cmp-state">
+            <p class="cmp-lead">PDF compression isn't available here.</p>
+            <p class="cmp-note">Open this tool in the Lolly web or desktop app to compress a PDF.</p>
+          </div>
+        {{else}}
+          <div class="cmp-state">
+            <p class="cmp-lead">This doesn't look like a PDF.</p>
+            <p class="cmp-note">Choose a <code>.pdf</code> file.</p>
+          </div>
+        {{/if}}
+      {{/unless}}
+
+      {{#if supported}}
+        <fieldset class="cmp-settings">
+          <legend>Compression</legend>
+          <div class="cmp-seg" role="radiogroup" aria-label="Compression level">
+            <label class="cmp-seg-opt">
+              <input type="radio" name="cmp-level" value="light" data-input-id="level" {{#if (eq level "light")}}checked{{/if}}>
+              <span>Light</span>
+            </label>
+            <label class="cmp-seg-opt">
+              <input type="radio" name="cmp-level" value="balanced" data-input-id="level" {{#if (eq level "balanced")}}checked{{/if}}>
+              <span>Balanced</span>
+            </label>
+            <label class="cmp-seg-opt">
+              <input type="radio" name="cmp-level" value="strong" data-input-id="level" {{#if (eq level "strong")}}checked{{/if}}>
+              <span>Strong</span>
+            </label>
+          </div>
+          <label class="cmp-check">
+            <input type="checkbox" data-input-id="grayscale" {{#if grayscale}}checked{{/if}}>
+            <span>Convert images to grayscale</span>
+          </label>
+        </fieldset>
+
+        {{#if done}}
+          <div class="cmp-result cmp-result--win">
+            <span class="cmp-result-size">{{fileSize}} → {{compressedSize}}</span>
+            <span class="cmp-result-saved">{{savedText}}</span>
+          </div>
+          {{#if imagesText}}<p class="cmp-note">{{imagesText}}.</p>{{/if}}
+        {{/if}}
+
+        {{#if noGain}}
+          <div class="cmp-result">
+            <span class="cmp-result-saved">Already well-optimised — little to gain at this level.</span>
+          </div>
+          <p class="cmp-note">Try <strong>Strong</strong> or grayscale, or this PDF may simply be mostly text (which is already small).</p>
+        {{/if}}
+
+        {{#if pending}}
+          <div class="cmp-result">
+            <span class="cmp-result-saved">Ready — your compressed PDF is built when you download.</span>
+          </div>
+        {{/if}}
+
+        <button type="button" class="cmp-download" data-export-file data-busy-label="Compressing…">Download compressed PDF</button>
+        <p class="cmp-note cmp-tail">Re-saving rewrites the document (pages preserved), so the result isn't byte-for-byte and any digital signature is invalidated. Text and vector graphics are untouched — only images are recompressed.</p>
+      {{/if}}
+    </div>
+  {{/if}}
+</div>
