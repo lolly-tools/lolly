@@ -14,8 +14,10 @@
  *     export a raster format (so the result is usable as an <img>) are touched.
  *     For the current catalog that's two tools; the other ~24 are never rendered
  *     because their output doesn't change with the profile.
- *   - IDLE + SERIAL: renders run one at a time via requestIdleCallback, so they
- *     never block interaction or pile up on the main thread.
+ *   - IDLE + SERIAL: each render is *started* on a requestIdleCallback and they
+ *     run one at a time, so the queue yields to interaction between renders and
+ *     never piles up. (A single render isn't itself time-sliced — but the set is
+ *     tiny, see SCOPE — and the next is only scheduled once the previous resolves.)
  *   - CACHED: each result is persisted (host.previews) keyed by a profile `sig`,
  *     so the work happens once per profile change, not once per gallery visit.
  *
@@ -53,36 +55,42 @@ export function profileSignature(profile) {
   return JSON.stringify(SIGNATURE_FIELDS.map((f) => profile[f] ?? ''));
 }
 
+// The displayable raster format a tool can render to (the first it declares), or
+// null if it has none. Drives both eligibility and the actual render format, so
+// they can never disagree.
+export function rasterFormatFor(toolEntry) {
+  if (!Array.isArray(toolEntry?.formats)) return null;
+  return toolEntry.formats.find((f) => RASTER_FORMATS.includes(f)) ?? null;
+}
+
 /** Can this catalog index entry yield a profile-personalized <img> thumbnail? */
 export function canPersonalize(toolEntry) {
-  return (
-    !!toolEntry?.personalized &&
-    !!toolEntry?.preview &&
-    Array.isArray(toolEntry.formats) &&
-    toolEntry.formats.some((f) => RASTER_FORMATS.includes(f))
-  );
+  return !!toolEntry?.personalized && !!toolEntry?.preview && !!rasterFormatFor(toolEntry);
 }
 
 /**
- * Render personalized thumbnails for `toolIds`, serially on idle, and report each
- * as a data-URL via onThumb(toolId, dataUrl). Results are persisted via
- * host.previews keyed by `sig`. Returns a cancel() function.
+ * Render personalized thumbnails for `tools` (catalog index entries), serially on
+ * idle, and report each as a data-URL via onThumb(toolId, dataUrl). Results are
+ * persisted via host.previews keyed by `sig`. Returns a cancel() function.
  */
-export function regeneratePreviews({ host, toolIds, sig, onThumb }) {
+export function regeneratePreviews({ host, tools, sig, onThumb }) {
   let cancelled = false;
-  const queue = [...toolIds];
+  const queue = [...tools];
 
   async function step() {
     if (cancelled) return;
-    const toolId = queue.shift();
-    if (toolId === undefined) return;
+    const tool = queue.shift();
+    if (tool === undefined) return;
+    const toolId = tool.id;
     try {
-      // No values → createRuntime fills bindToProfile inputs from the live profile.
-      // watermark/embedMeta off: this is an intermediate thumbnail, not a deliverable.
+      // Render to the same raster format that made the tool eligible (not a
+      // hard-coded 'png'), so chooseFormat never falls back to a non-displayable
+      // format. No values → createRuntime fills bindToProfile inputs from the live
+      // profile. watermark/embedMeta off: an intermediate thumbnail, not a deliverable.
       const { blob } = await renderRowToBlob(
         { toolId, values: {} },
         host,
-        { format: 'png', watermark: false, embedMeta: false, thumbnail: true },
+        { format: rasterFormatFor(tool) ?? 'png', watermark: false, embedMeta: false, thumbnail: true },
       );
       if (cancelled) return;
       const thumb = await rasterToThumbnailDataUrl(blob);

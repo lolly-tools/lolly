@@ -220,6 +220,8 @@ Supported values:
 |---|---|
 | `svg` | Scalable vector (requires `<svg>` root in the template) |
 | `emf` | Enhanced Metafile vector (for Office apps) |
+| `eps` | Encapsulated PostScript vector (RGB) |
+| `eps-cmyk` | Encapsulated PostScript vector — DeviceCMYK (naive conversion, no output intent) |
 | `png` | Lossless raster |
 | `jpg` / `jpeg` | Lossy raster |
 | `webp` | Lossy/lossless raster |

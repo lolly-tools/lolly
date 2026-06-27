@@ -172,11 +172,18 @@ for (const entry of toolsIndex.tools) {
       errors.push(`tools/index.json: "${entry.id}" ${field} "${entry[field]}" ≠ manifest "${manifest[field]}" — run \`npm run build:catalog\``);
     }
   }
-  // Derived flag (mirrors isExportable()): reuse the shared derivation so the
-  // generator and validator can't drift on what "exportable" means.
-  const wantExportable = entryFromManifest(manifest).exportable;
-  if (entry.exportable !== wantExportable) {
-    errors.push(`tools/index.json: "${entry.id}" exportable ${entry.exportable} ≠ derived ${wantExportable} — run \`npm run build:catalog\``);
+  // Derived flags: reuse the shared derivation so the generator and validator
+  // can't drift on what they mean. `exportable` mirrors isExportable();
+  // `personalized` (bindToProfile present) gates profile-aware gallery previews —
+  // both are manifest-derived, so a forgotten `npm run build:catalog` after adding
+  // bindToProfile would otherwise silently leave a tool un-personalized. (icon /
+  // preview are disk-derived and intentionally not checked here.)
+  const derived = entryFromManifest(manifest);
+  if (entry.exportable !== derived.exportable) {
+    errors.push(`tools/index.json: "${entry.id}" exportable ${entry.exportable} ≠ derived ${derived.exportable} — run \`npm run build:catalog\``);
+  }
+  if (!!entry.personalized !== !!derived.personalized) {
+    errors.push(`tools/index.json: "${entry.id}" personalized ${!!entry.personalized} ≠ derived ${!!derived.personalized} — run \`npm run build:catalog\``);
   }
 }
 // Every tool with a manifest must appear in the index.

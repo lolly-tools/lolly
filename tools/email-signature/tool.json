@@ -19,6 +19,34 @@
   },
   "inputs": [
     {
+      "id": "logo",
+      "label": "Logo",
+      "type": "select",
+      "default": "standard",
+      "options": [
+        { "value": "standard", "label": "Standard" },
+        { "value": "grey",     "label": "Grey" }
+      ],
+      "help": "Footer wordmark. Grey suits low-colour or monochrome contexts."
+    },
+    {
+      "id": "headshot",
+      "label": "Headshot",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "filter": { "namespace": "suse/headshots" },
+      "help": "Optional headshot. Displayed as a circle."
+    },
+    {
+      "id": "emailPromo",
+      "label": "Email Promo",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Optional promo banner below the signature. Scaled to fit within 400×200px, aspect preserved."
+    },
+    {
       "id": "firstname",
       "label": "First Name",
       "type": "text",
@@ -91,34 +119,6 @@
       "type": "text",
       "default": "",
       "placeholder": "@handle on Slack"
-    },
-    {
-      "id": "headshot",
-      "label": "Headshot",
-      "type": "asset",
-      "assetType": "raster",
-      "allowUpload": true,
-      "filter": { "namespace": "suse/headshots" },
-      "help": "Optional headshot. Displayed as a circle."
-    },
-    {
-      "id": "logo",
-      "label": "Logo",
-      "type": "select",
-      "default": "standard",
-      "options": [
-        { "value": "standard", "label": "Standard" },
-        { "value": "grey",     "label": "Grey" }
-      ],
-      "help": "Footer wordmark. Grey suits low-colour or monochrome contexts."
-    },
-    {
-      "id": "emailPromo",
-      "label": "Email Promo",
-      "type": "asset",
-      "assetType": "raster",
-      "allowUpload": true,
-      "help": "Optional promo banner below the signature. Scaled to fit within 400×200px, aspect preserved."
     },
     {
       "id": "append",
