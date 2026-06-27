@@ -1,0 +1,228 @@
+<style>
+  /* All CSS lives here (not styles.css): the engine applies it to the canvas DOM
+     for both the live preview and the vector PDF walk, and class names are
+     mpdf-prefixed so the unscoped rules can't leak. drawHtmlVectors skips <style>. */
+
+  .mpdf-doc {
+    --gap: 22px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    background: #9aa0a6;
+    padding: var(--gap) 0;
+    font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* One page box — locked to the export page size so the browser lays content
+     into discrete pages and each [data-pdf-page] exports as one true PDF page. */
+  .mpdf-page {
+    box-sizing: border-box;
+    position: relative;
+    width: var(--pw);
+    height: var(--ph);
+    margin: 0 auto var(--gap);
+    background: #fff;
+    color: var(--ink);
+    overflow: hidden;
+    box-shadow: 0 6px 28px rgba(0, 0, 0, .28);
+  }
+  .mpdf-page:last-child { margin-bottom: 0; }
+
+  /* ── Cover ─────────────────────────────────────────────────────────────── */
+  .mpdf-page--cover {
+    background: var(--cover-bg);
+    color: var(--cover-ink);
+    display: flex;
+    flex-direction: column;
+  }
+  .mpdf-cover-hero {
+    height: 46%;
+    flex: 0 0 auto;
+    overflow: hidden;
+    border-bottom: 6px solid var(--accent);
+  }
+  .mpdf-cover-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mpdf-cover-body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    padding: var(--margin-y) var(--margin-x);
+    min-height: 0;
+  }
+  .mpdf-cover-logo { height: calc(var(--cover-sub-size) * 1.5); width: auto; max-width: 56%; object-fit: contain; object-position: left center; display: block; }
+  .mpdf-cover-fill { flex: 1 1 auto; }
+  .mpdf-cover-band { width: calc(var(--margin-x) * 1.7); height: 8px; background: var(--accent); margin-bottom: calc(var(--margin-y) * .5); }
+  .mpdf-cover-title {
+    font-size: var(--cover-title-size);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+  .mpdf-cover-subtitle {
+    font-size: var(--cover-sub-size);
+    font-weight: 500;
+    color: var(--accent);
+    margin: calc(var(--margin-y) * .35) 0 0;
+  }
+  .mpdf-cover-text {
+    font-size: var(--body-size);
+    line-height: 1.5;
+    margin-top: calc(var(--margin-y) * .6);
+    max-width: 78%;
+    opacity: .92;
+  }
+
+  /* ── Content page ──────────────────────────────────────────────────────── */
+  .mpdf-page--content {
+    padding: var(--margin-y) var(--margin-x) calc(var(--margin-y) + var(--footer-h)) var(--margin-x);
+  }
+  .mpdf-page--content::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 6px;
+    background: var(--accent);
+  }
+  .mpdf-content {
+    height: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(12, var(--row-h));
+    column-gap: var(--col-gap);
+    row-gap: var(--row-gap);
+  }
+  .mpdf-cell { min-width: 0; min-height: 0; overflow: hidden; }
+  .mpdf-cell-heading {
+    font-size: var(--heading-size);
+    line-height: 1.12;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 .4em;
+    padding-bottom: .25em;
+    border-bottom: 2px solid var(--accent);
+  }
+  .mpdf-cell-body { font-size: var(--body-size); line-height: 1.5; color: var(--ink); }
+  .mpdf-cell-img { width: 100%; height: auto; border-radius: 4px; overflow: hidden; background: #eef1f0; }
+  .mpdf-cell-img img { width: 100%; height: auto; display: block; }
+  .mpdf-cell-caption { font-size: var(--caption-size); line-height: 1.4; color: var(--muted); margin-top: .5em; }
+
+  /* ── Back page ─────────────────────────────────────────────────────────── */
+  .mpdf-page--back {
+    display: flex;
+    flex-direction: column;
+    padding: var(--margin-y) var(--margin-x);
+  }
+  .mpdf-back-hero {
+    height: 30%;
+    flex: 0 0 auto;
+    margin: calc(var(--margin-y) * -1) calc(var(--margin-x) * -1) var(--margin-y);
+    overflow: hidden;
+    border-bottom: 6px solid var(--accent);
+  }
+  .mpdf-back-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .mpdf-back-heading { font-size: var(--heading-size); font-weight: 700; margin: 0 0 .35em; color: var(--ink); }
+  .mpdf-back-text { font-size: var(--body-size); line-height: 1.5; color: var(--ink); max-width: 80%; }
+  .mpdf-back-fill { flex: 1 1 auto; }
+  .mpdf-back-details {
+    display: grid;
+    grid-template-columns: repeat(2, auto);
+    gap: .5em calc(var(--col-gap));
+    margin: 0 0 var(--margin-y);
+    font-size: var(--body-size);
+    justify-content: start;
+  }
+  .mpdf-back-details > div { display: flex; flex-direction: column; }
+  .mpdf-back-details dt { font-size: var(--caption-size); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .mpdf-back-details dd { margin: 0; color: var(--ink); font-weight: 500; }
+  .mpdf-back-logo { height: calc(var(--cover-sub-size) * 1.2); width: auto; max-width: 50%; object-fit: contain; object-position: left center; display: block; }
+  .mpdf-back-rule { height: 4px; width: 100%; background: var(--accent); margin-top: calc(var(--margin-y) * .6); }
+
+  /* ── Footer (content + back) ───────────────────────────────────────────── */
+  .mpdf-footer {
+    position: absolute;
+    left: var(--margin-x); right: var(--margin-x);
+    bottom: calc(var(--footer-h) * .35);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: var(--footer-size);
+    color: var(--muted);
+  }
+  .mpdf-footer-title { font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-width: 70%; }
+
+  /* Markdown emitted by the {{{markdown}}} helper. */
+  .mpdf-cell-body p, .mpdf-cover-text p, .mpdf-back-text p { margin: 0 0 .6em; }
+  .mpdf-cell-body p:last-child, .mpdf-cover-text p:last-child, .mpdf-back-text p:last-child { margin-bottom: 0; }
+  .mpdf-cell-body strong, .mpdf-cover-text strong, .mpdf-back-text strong { font-weight: 700; }
+  .mpdf-cell-body em, .mpdf-cover-text em, .mpdf-back-text em { font-style: italic; }
+  .mpdf-cell-body del, .mpdf-cover-text del, .mpdf-back-text del { text-decoration: line-through; }
+  .mpdf-cell-body ul, .mpdf-cover-text ul, .mpdf-back-text ul { margin: .3em 0; padding-left: 1.1em; list-style: none; }
+  .mpdf-cell-body li, .mpdf-cover-text li, .mpdf-back-text li { position: relative; margin: 0 0 .3em; }
+  .mpdf-cell-body li::before, .mpdf-cover-text li::before, .mpdf-back-text li::before {
+    content: ""; position: absolute; left: -1em; top: .55em;
+    width: .38em; height: .38em; border-radius: 50%; background: var(--accent);
+  }
+</style>
+
+<div class="mpdf-doc" style="{{{docStyle}}}">
+  {{#each pages}}
+  <div class="mpdf-page mpdf-page--{{type}}" data-pdf-page>
+
+    {{#if isCover}}
+      {{#if coverImageUrl}}<div class="mpdf-cover-hero" data-canvas-input="coverImage"><img src="{{coverImageUrl}}" alt=""></div>{{/if}}
+      <div class="mpdf-cover-body">
+        {{#if coverLogoUrl}}<img class="mpdf-cover-logo" data-canvas-input="coverLogo" src="{{coverLogoUrl}}" alt="">{{/if}}
+        <div class="mpdf-cover-fill"></div>
+        <div class="mpdf-cover-band"></div>
+        <h1 class="mpdf-cover-title">{{coverTitle}}</h1>
+        {{#if coverSubtitle}}<div class="mpdf-cover-subtitle">{{coverSubtitle}}</div>{{/if}}
+        {{#if coverText}}<div class="mpdf-cover-text">{{{markdown coverText}}}</div>{{/if}}
+      </div>
+    {{/if}}
+
+    {{#if isContent}}
+      <div class="mpdf-content">
+        {{#each cells}}
+        <div class="mpdf-cell mpdf-cell--{{kind}}" style="{{{gridStyle}}}" data-canvas-input="content:{{blockIndex}}">
+          {{#if heading}}<h2 class="mpdf-cell-heading">{{heading}}</h2>{{/if}}
+          {{#if isImage}}
+            {{#if imageUrl}}<div class="mpdf-cell-img"><img src="{{imageUrl}}" alt="{{caption}}"></div>{{/if}}
+            {{#if caption}}<div class="mpdf-cell-caption">{{{markdown caption}}}</div>{{/if}}
+          {{else}}
+            {{#if body}}<div class="mpdf-cell-body">{{{markdown body}}}</div>{{/if}}
+          {{/if}}
+        </div>
+        {{/each}}
+      </div>
+      <div class="mpdf-footer">
+        <span class="mpdf-footer-title">{{docTitle}}</span>
+        <span class="mpdf-footer-page">{{pageNo}} / {{pageTotal}}</span>
+      </div>
+    {{/if}}
+
+    {{#if isBack}}
+      {{#if backImageUrl}}<div class="mpdf-back-hero" data-canvas-input="backImage"><img src="{{backImageUrl}}" alt=""></div>{{/if}}
+      {{#if backHeading}}<h2 class="mpdf-back-heading">{{backHeading}}</h2>{{/if}}
+      {{#if backText}}<div class="mpdf-back-text">{{{markdown backText}}}</div>{{/if}}
+      <div class="mpdf-back-fill"></div>
+      <dl class="mpdf-back-details">
+        {{#if backCompany}}<div><dt>Company</dt><dd>{{backCompany}}</dd></div>{{/if}}
+        {{#if backEmail}}<div><dt>Email</dt><dd>{{backEmail}}</dd></div>{{/if}}
+        {{#if backPhone}}<div><dt>Phone</dt><dd>{{backPhone}}</dd></div>{{/if}}
+        {{#if backWebsite}}<div><dt>Web</dt><dd>{{backWebsite}}</dd></div>{{/if}}
+      </dl>
+      {{#if backLogoUrl}}<img class="mpdf-back-logo" src="{{backLogoUrl}}" alt="">{{/if}}
+      <div class="mpdf-back-rule"></div>
+      <div class="mpdf-footer">
+        <span class="mpdf-footer-title">{{docTitle}}</span>
+        <span class="mpdf-footer-page">{{pageNo}} / {{pageTotal}}</span>
+      </div>
+    {{/if}}
+
+  </div>
+  {{/each}}
+</div>

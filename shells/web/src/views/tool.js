@@ -923,6 +923,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     if (!control) return;
 
     const focus = () => {
+      // Reveal the control if it lives inside a collapsed section (mirrors the
+      // scrollToInput path), so the focused input is actually visible.
+      control.closest('details.input-section')?.setAttribute('open', '');
       if (blockIndex != null) {
         focusSidebarBlock(control, blockIndex);
       } else {
@@ -2679,13 +2682,16 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     try {
       const slot   = `${manifest.id}:${Date.now()}`;
       const values = Object.fromEntries(runtime.getModel().map(i => [i.id, i.value]));
-      const thumb  = await captureThumbnail(manifest, canvasEl, runtime, exportUnscaled);
+      // The effective export format (user-selected, or the tool's default). Drives
+      // a vector (SVG) thumbnail for vector tools — see captureThumbnail.
+      const fmt    = el?.querySelector('[data-action="format"]')?.value ?? '';
+      const thumb  = await captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, fmt);
       await host.state.save(slot, {
         ...values,
         __toolId:          manifest.id,
         __toolVersion:     manifest.version,
         __export_filename: el?.querySelector('[data-action="filename"]')?.value.trim() ?? '',
-        __export_format:   el?.querySelector('[data-action="format"]')?.value ?? '',
+        __export_format:   fmt,
         __export_width:    el?.querySelector('[data-action="export-width"]')?.value ?? '',
         __export_height:   el?.querySelector('[data-action="export-height"]')?.value ?? '',
         __export_unit:     el?.querySelector('[data-action="export-unit"]')?.value ?? 'px',
@@ -2839,7 +2845,10 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   // bleed field (default 3mm) + the mark toggles at print-standard defaults. Mark
   // size, gap and stroke weight are fixed in the engine (see print-marks.js).
   const ICON_CROP = `<svg class="print-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v16h16"/><path d="M2 6h16v16"/></svg>`;
-  const hasPrint     = hasPdf || hasCmyk;
+  // Print finishing applies to a single trim-sized artwork; tools that emit
+  // per-page boxes (multi-page PDF) opt out via render.printMarks:false so the
+  // card isn't shown promising marks the multi-page export path doesn't apply.
+  const hasPrint     = (hasPdf || hasCmyk) && manifest.render.printMarks !== false;
   const printInitOn  = Boolean(exportDefaults.bleed || exportDefaults.marks);
   const printInitMm  = exportDefaults.bleed ? (parseFloat(exportDefaults.bleed) || 3) : 3;
   // Colour bars default ON for the CMYK print formats (the press uses them as a
@@ -3973,12 +3982,40 @@ function addScrubBehavior(inputEl, onChange, opts = {}) {
   });
 }
 
-async function captureThumbnail(manifest, canvasEl, runtime, exportUnscaled) {
+// Cap on a vector thumbnail's raw SVG size. Dense vector output (e.g. a halftone
+// with thousands of dots) can serialise to megabytes; above this we fall back to
+// the raster path so a single thumbnail never bloats storage unbounded.
+const SVG_THUMB_MAX_BYTES = 1_500_000;
+
+async function captureThumbnail(manifest, canvasEl, runtime, exportUnscaled, format = '') {
+  const nw = manifest.render.width  || 600;
+  const nh = manifest.render.height || 600;
+
+  // Vector thumbnail: when the effective export format is SVG (the user picked it,
+  // or it's the tool's default), capture an SVG data-URL instead of a PNG. SVG is
+  // resolution-independent — it renders in the gallery's <img> and stays crisp at
+  // any card size. renderSvg() inlines blob-URLs and vector tools outline their
+  // text, so the SVG is self-contained and safe in an <img> sandbox. Falls through
+  // to the raster path on failure or if the SVG is pathologically large.
+  if (format === 'svg') {
+    try {
+      const blob = await exportUnscaled(
+        () => runtime.export(canvasEl, 'svg', { width: nw, height: nh, embedMeta: false, thumbnail: true }),
+        { shutter: true },
+      );
+      const svg = await blob.text();
+      if (svg && svg.length <= SVG_THUMB_MAX_BYTES) {
+        return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+      }
+    } catch { /* fall through to the raster path */ }
+  }
+
+  // Raster thumbnail (default): a PNG sized for the gallery's preview-forward hero
+  // (shown up to a full card column wide, at 2× for retina). Storage isn't a
+  // concern for the single most-recent session per tool.
   try {
-    const maxW = 350;
-    const maxH = 200;
-    const nw = manifest.render.width  || 600;
-    const nh = manifest.render.height || 600;
+    const maxW = 720;
+    const maxH = 560;
     const scale = Math.min(maxW / nw, maxH / nh);
     const tw = Math.max(1, Math.round(nw * scale));
     const th = Math.max(1, Math.round(nh * scale));

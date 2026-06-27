@@ -1652,15 +1652,7 @@ async function renderArtworkPdf(node, opts, geo) {
     ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
     : undefined;
   const pdf = new jsPDF({ unit: 'pt', format: [pageW, pageH], orientation, encryption });
-  const m = opts.meta;
-  const creator = m?.software || 'Lolly';
-  pdf.setProperties({
-    creator,                               // the producing app always
-    author: m?.author || creator,          // the user if known, else the app
-    title: m?.tool || undefined,
-    subject: m?.description || undefined,
-    keywords: m ? [m.software, m.source, m.contact].filter(Boolean).join(', ') : undefined,
-  });
+  applyPdfMeta(pdf, opts.meta);
 
   // SVG-rooted canvas (the node IS an <svg>, or its only meaningful child is) →
   // walk the SVG element directly as vectors. This avoids drawHtmlVectors, which
@@ -1678,12 +1670,79 @@ async function renderArtworkPdf(node, opts, geo) {
   return pdf.output('blob');
 }
 
+// Stamp the document-info dictionary (creator/author/title/…) onto a jsPDF
+// instance. Shared by the single-page and multi-page paths.
+function applyPdfMeta(pdf, m) {
+  const creator = m?.software || 'Lolly';
+  pdf.setProperties({
+    creator,                               // the producing app always
+    author: m?.author || creator,          // the user if known, else the app
+    title: m?.tool || undefined,
+    subject: m?.description || undefined,
+    keywords: m ? [m.software, m.source, m.contact].filter(Boolean).join(', ') : undefined,
+  });
+}
+
 async function renderPdf(node, opts) {
+  // Multi-page: a tool can flag page boxes with [data-pdf-page]; each becomes its
+  // own PDF page sized to that element's own CSS box. This is independent of the
+  // print-geometry (marks/bleed) path, which stays single-page. Falls through to
+  // the legacy single-page renderer when no page boxes are present.
+  const pageEls = node.querySelectorAll ? [...node.querySelectorAll('[data-pdf-page]')] : [];
+  if (pageEls.length > 0) return await renderMultiPagePdf(pageEls, opts);
+
   const geo = printGeometry(node, opts);
   const artBlob = await renderArtworkPdf(node, opts, geo);
   if (!geo) return artBlob;                       // legacy path (may be encrypted)
   // RGB PDF: marks are black; page boxes declare trim/bleed for the RIP.
   return finishPrintPdf(artBlob, geo, { space: 'rgb', labels: provenanceLabels(opts.meta) });
+}
+
+// Render a sequence of [data-pdf-page] DOM nodes into one multi-page PDF. Each
+// page is sized to its own CSS box (layout px → PDF points at the CSS 96-DPI
+// convention), so a tool that lays out fixed-size page boxes — the height
+// matching the export page height — gets one true PDF page per box. Each box is
+// drawn at (0,0) in its own page via drawHtmlVectors, whose coordinate origin is
+// the node it's handed, so a page is rendered correctly regardless of where it
+// sits in the scrolled/stacked document. A password locks the document on open
+// (this path never goes through pdf-lib, so — unlike the single-page print path —
+// it can always encrypt). Print marks/bleed are not applied here; a tool that
+// emits page boxes opts out of the print-finishing card (render.printMarks:false).
+async function renderMultiPagePdf(pageEls, opts) {
+  const mod = await import('jspdf');
+  const jsPDF = mod.jsPDF ?? mod.default?.jsPDF ?? mod.default;
+  const convert = opts.convertPaths !== false;
+
+  // Page size in points from the element's own box. getBoundingClientRect matches
+  // the reference drawHtmlVectors uses internally (so the px→pt scale is uniform);
+  // the live CSS transform is removed by the shell before export (exportUnscaled).
+  const sizeOf = (el) => {
+    const r = el.getBoundingClientRect();
+    return { w: toPoints({ value: r.width || 1, unit: 'px' }), h: toPoints({ value: r.height || 1, unit: 'px' }) };
+  };
+  const orientOf = (w, h) => (w >= h ? 'landscape' : 'portrait');
+
+  // Lock on open via jsPDF's standard security handler (user = owner password;
+  // printing-only permissions). undefined is a no-op (unencrypted).
+  const encryption = opts.password
+    ? { userPassword: opts.password, ownerPassword: opts.password, userPermissions: ['print'] }
+    : undefined;
+  const first = sizeOf(pageEls[0]);
+  const pdf = new jsPDF({ unit: 'pt', format: [first.w, first.h], orientation: orientOf(first.w, first.h), encryption });
+  applyPdfMeta(pdf, opts.meta);
+
+  for (let i = 0; i < pageEls.length; i++) {
+    const el = pageEls[i];
+    const { w, h } = i === 0 ? first : sizeOf(el);
+    if (i > 0) pdf.addPage([w, h], orientOf(w, h));
+    // An SVG-rooted page walks as vectors (mirrors renderArtworkPdf); otherwise the
+    // HTML page walks via drawHtmlVectors. Common case here is HTML page boxes.
+    const svgRoot = el.tagName?.toLowerCase() === 'svg' ? el
+      : isSvgRooted(el) ? el.querySelector('svg') : null;
+    if (svgRoot) await drawSvgVectorsInRegion(pdf, svgRoot, 0, 0, w, h, new Set());
+    else await drawHtmlVectors(pdf, el, 0, 0, w, h, convert);
+  }
+  return pdf.output('blob');
 }
 
 // Re-save a jsPDF artwork blob through pdf-lib to set the print page boxes and

@@ -370,7 +370,9 @@ async function collectClientInfo() {
   });
 
   const capRows = [
-    { k: 'Cookies', v: yesNo(nav.cookieEnabled) },
+    // The browser reports whether cookies *could* be set; Lolly never sets one,
+    // so we flag it so the "Yes" isn't read as "this app uses cookies".
+    { k: 'Cookies', v: yesNo(nav.cookieEnabled), note: 'not in use' },
     { k: 'Online', v: yesNo(nav.onLine) },
     { k: 'Do Not Track', v: nav.doNotTrack === '1' ? 'On' : nav.doNotTrack === '0' ? 'Off' : DASH },
     { k: 'Service worker', v: yesNo('serviceWorker' in nav) },
@@ -425,7 +427,7 @@ function clientCard(group) {
             (r) => `
         <div${r.stacked ? ' class="is-stacked"' : ''}>
           <dt>${escape(r.k)}</dt>
-          <dd${r.mono ? ' class="is-mono"' : ''}${r.live ? ` data-live="${escape(r.live)}"` : ''}>${escape(String(r.v))}</dd>
+          <dd${r.mono ? ' class="is-mono"' : ''}${r.live ? ` data-live="${escape(r.live)}"` : ''}>${escape(String(r.v))}${r.note ? `<span class="plat-pill plat-pill--muted">${escape(r.note)}</span>` : ''}</dd>
         </div>`,
           )
           .join('')}

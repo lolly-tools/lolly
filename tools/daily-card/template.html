@@ -87,6 +87,38 @@
 .dc-time-sub { font-size: 11px; color: var(--muted); margin-top: 8px; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
 .dc-time-tz  { font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: .04em; }
 
+/* ── Landscape: quote on the left, day details stacked on the right ── */
+/* `dc-landscape` is toggled by the inline script when the card is wider than tall. */
+.dc-landscape { flex-direction: row; }
+
+/* Date header reads over the quote column instead of the details column. */
+.dc-landscape .dc-date { top: 6%; left: 6%; right: auto; }
+
+.dc-landscape .dc-quote-wrap {
+  flex: 1 1 58%;
+  padding: 9% 6%;
+}
+
+/* The 3-up strip becomes a vertical stack down the right edge. */
+.dc-landscape .dc-city-strip {
+  flex: 0 0 42%;
+  display: flex;
+  flex-direction: column;
+  border-top: none;
+  border-left: 1px solid var(--border);
+}
+
+.dc-landscape .dc-strip-panel {
+  padding: 32px 36px;
+  border-bottom: 1px solid var(--border);
+}
+.dc-landscape #dc-time-panel { border-bottom: none; }
+.dc-landscape #dc-weather-panel,
+.dc-landscape #dc-time-panel { flex: 0 0 auto; }
+
+/* Map fills the space between weather (top) and time (bottom). */
+.dc-landscape .dc-map-panel { flex: 1 1 auto; min-height: 0; padding: 0; }
+.dc-landscape .dc-map-canvas { flex: 1; width: 100%; min-height: 0; aspect-ratio: auto; }
 
 </style>
 
@@ -205,6 +237,14 @@
     if (text)   text.innerHTML     = mdToHtml(q.text);
     if (author) author.textContent = '— ' + q.author;
     fitQuote();
+  }
+
+  // ── Orientation: a landscape canvas gets the side-by-side layout ───────
+  // The script re-runs on every render (incl. export-size changes), so this
+  // re-evaluates whenever the canvas aspect ratio changes — no resize listener.
+  var dcRoot = document.getElementById('dc-root');
+  if (dcRoot) {
+    dcRoot.classList.toggle('dc-landscape', dcRoot.clientWidth > dcRoot.clientHeight * 1.15);
   }
 
   showQuote(quoteIndex);

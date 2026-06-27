@@ -187,7 +187,12 @@
 .dl-text li.md-arrow-down::before { content: '\2193'; } /* ↓ */
 
 .dl-cta {
-  display: inline-flex; align-items: center;
+  /* Shrink-wrapped BLOCK, not inline-flex, so the vector exporters (SVG/PDF) draw
+     the pill. The DOM→vector walker only renders box decoration (this ghost
+     outline) for block-level nodes, and an inline-flex blockifies its text child —
+     which the inline-text walker then skips, dropping the label. A fit-content
+     block draws outline + label and is visually identical (one centred line). */
+  display: block; width: fit-content;
   font-size: calc(1.05em * var(--cta-scale, 1)); font-weight: var(--cta-weight, 700); line-height: 1;
   padding: 0.62em 1.2em;
   border-radius: 999px;

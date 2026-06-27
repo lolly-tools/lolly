@@ -1,0 +1,219 @@
+{
+  "id": "multi-page-pdf",
+  "name": "Multi-Page PDF",
+  "description": "Build a multi-page PDF document — a cover, content blocks that flow onto as many pages as needed, and a back page. Blocks sit in a column or span the full width.",
+  "a11yLabel": "{{default coverTitle \"Untitled\"}} — multi-page PDF document",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["pdf", "document", "report", "multi-page", "brochure", "layout", "print"],
+  "render": {
+    "width": 794,
+    "height": 1123,
+    "formats": ["pdf"],
+    "actions": ["download", "save"],
+    "printMarks": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "pageSize",
+      "label": "Page size",
+      "type": "select",
+      "default": "a4",
+      "help": "Sets every page's size and the exported PDF page size. Each page in the document renders at exactly this size.",
+      "options": [
+        { "value": "a4", "label": "A4 portrait · 210 × 297 mm", "width": 210, "height": 297, "unit": "mm" },
+        { "value": "a4l", "label": "A4 landscape · 297 × 210 mm", "width": 297, "height": 210, "unit": "mm" },
+        { "value": "letter", "label": "US Letter · 216 × 279 mm", "width": 216, "height": 279, "unit": "mm" },
+        { "value": "a5", "label": "A5 portrait · 148 × 210 mm", "width": 148, "height": 210, "unit": "mm" }
+      ]
+    },
+    {
+      "id": "theme",
+      "label": "Cover style",
+      "type": "select",
+      "default": "light",
+      "options": [
+        { "value": "light", "label": "Light" },
+        { "value": "dark", "label": "Dark" }
+      ]
+    },
+    {
+      "id": "accent",
+      "label": "Accent colour",
+      "type": "color",
+      "default": "#30ba78",
+      "help": "Used for the cover band, headings and rules."
+    },
+
+    {
+      "id": "coverTitle",
+      "label": "Title",
+      "type": "text",
+      "default": "Annual Report 2026",
+      "maxLength": 90,
+      "section": "Cover"
+    },
+    {
+      "id": "coverSubtitle",
+      "label": "Subtitle",
+      "type": "text",
+      "default": "A year of building in the open",
+      "maxLength": 120,
+      "section": "Cover"
+    },
+    {
+      "id": "coverText",
+      "label": "Cover text",
+      "type": "longtext",
+      "default": "Prepared by the SUSE Brand team.\n\n**Confidential** — for internal review.",
+      "rows": 3,
+      "help": "Supports **bold**, *italic* and - bullet lists.",
+      "section": "Cover"
+    },
+    {
+      "id": "coverLogo",
+      "label": "Logo",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "help": "Your logo for the cover. Leave empty to use the SUSE logo.",
+      "section": "Cover"
+    },
+    {
+      "id": "coverImage",
+      "label": "Cover image",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Optional hero image filling the top of the cover.",
+      "section": "Cover"
+    },
+
+    {
+      "id": "content",
+      "label": "Content blocks",
+      "type": "blocks",
+      "help": "Each block flows onto the pages between the cover and back page. A block sits in one column by default; set it to Wide to span both columns. New pages are created automatically as blocks fill up.",
+      "addMenu": { "field": "kind", "label": "Add block" },
+      "fields": [
+        {
+          "id": "kind",
+          "label": "Block type",
+          "type": "select",
+          "default": "text",
+          "options": [
+            { "value": "text", "label": "Text", "repeatable": true },
+            { "value": "image", "label": "Image", "repeatable": true }
+          ]
+        },
+        { "id": "heading", "label": "Heading", "type": "text", "showFor": ["text"], "placeholder": "Heading (optional)" },
+        {
+          "id": "body", "label": "Body", "type": "text", "showFor": ["text"],
+          "multilineFor": ["text"], "rows": 6,
+          "placeholder": "Body text — supports **bold**, *italic* and - bullet lists"
+        },
+        { "id": "image", "label": "Image", "type": "asset", "assetType": "raster", "allowUpload": true, "showFor": ["image"] },
+        {
+          "id": "caption", "label": "Caption", "type": "text", "showFor": ["image"],
+          "multilineFor": ["image"], "rows": 2, "placeholder": "Caption (optional)"
+        },
+        {
+          "id": "width", "label": "Width", "type": "select", "default": "column",
+          "options": [
+            { "value": "column", "label": "Column" },
+            { "value": "wide", "label": "Wide (full width)" }
+          ]
+        },
+        {
+          "id": "size", "label": "Height", "type": "select", "default": "auto",
+          "options": [
+            { "value": "auto", "label": "Auto (fit content)" },
+            { "value": "short", "label": "Short" },
+            { "value": "medium", "label": "Medium" },
+            { "value": "tall", "label": "Tall" },
+            { "value": "full", "label": "Full page" }
+          ]
+        },
+        {
+          "id": "break", "label": "Page", "type": "select", "default": "auto",
+          "options": [
+            { "value": "auto", "label": "Flow with previous" },
+            { "value": "page", "label": "Start a new page" }
+          ]
+        }
+      ],
+      "default": [
+        { "kind": "text", "heading": "Introduction", "body": "Welcome. This document was generated from a handful of simple inputs — a title, some text blocks, and a couple of images.\n\nEach block flows onto the pages automatically. There is no page-by-page layout to manage: add blocks and the pages appear as they fill.", "width": "wide", "size": "auto", "break": "auto" },
+        { "kind": "text", "heading": "On brand by default", "body": "Headings, rules and the cover band all use your **accent colour**. Body text supports *italic*, **bold** and bullet lists:\n\n- One source of truth\n- Consistent typography\n- Export-ready PDF", "width": "column", "size": "auto", "break": "auto" },
+        { "kind": "text", "heading": "Column or wide", "body": "A block sits in a single column by default. Switch any block to *Wide* and it spans both columns — useful for an opening paragraph, a pull quote, or a full-width image.", "width": "column", "size": "auto", "break": "auto" },
+        { "kind": "text", "heading": "Set the height", "body": "Leave a block on **Auto** to size it to its content, or pin it to Short / Medium / Tall / Full so the grid stays tidy.", "width": "column", "size": "auto", "break": "auto" },
+        { "kind": "text", "heading": "Add as much as you like", "body": "When the blocks outgrow a page, the next page is created for you. The back page always comes last.", "width": "column", "size": "auto", "break": "auto" }
+      ]
+    },
+
+    {
+      "id": "backHeading",
+      "label": "Heading",
+      "type": "text",
+      "default": "Get in touch",
+      "maxLength": 90,
+      "section": "Back page"
+    },
+    {
+      "id": "backText",
+      "label": "Text",
+      "type": "longtext",
+      "default": "Thanks for reading. Reach out to the Brand team for source files, templates and guidelines.",
+      "rows": 3,
+      "section": "Back page"
+    },
+    {
+      "id": "backCompany",
+      "label": "Company",
+      "type": "text",
+      "default": "SUSE",
+      "section": "Back page"
+    },
+    {
+      "id": "backEmail",
+      "label": "Email",
+      "type": "text",
+      "default": "brand@suse.com",
+      "bindToProfile": "email",
+      "section": "Back page"
+    },
+    {
+      "id": "backPhone",
+      "label": "Phone",
+      "type": "text",
+      "default": "",
+      "bindToProfile": "phone",
+      "section": "Back page"
+    },
+    {
+      "id": "backWebsite",
+      "label": "Website",
+      "type": "text",
+      "default": "www.suse.com",
+      "section": "Back page"
+    },
+    {
+      "id": "backImage",
+      "label": "Back image",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Optional image along the top of the back page.",
+      "section": "Back page"
+    },
+
+    { "id": "width", "label": "Page width", "type": "number", "default": 794, "min": 100, "max": 8000, "group": "export" },
+    { "id": "height", "label": "Page height", "type": "number", "default": 1123, "min": 100, "max": 8000, "group": "export" }
+  ]
+}

@@ -9,9 +9,9 @@
   "category": "designer",
   "tags": ["ad", "advertising", "banner", "animation", "video", "social", "scenes", "motion", "gif", "html5"],
   "render": {
-    "width": 1200,
-    "height": 1920,
-    "formats": ["html", "gif", "webm", "mp4", "png", "svg"],
+    "width": 1080,
+    "height": 1080,
+    "formats": ["mp4", "gif", "webm", "png", "svg"],
     "actions": ["download", "copy", "save"],
     "video": { "wait": 0, "duration": 6 }
   },
