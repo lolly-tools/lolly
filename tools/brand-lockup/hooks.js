@@ -147,7 +147,12 @@ async function buildLockup({ host, name, location, layout, variant, wrapMode, ba
   const col = COLORS[variant] || COLORS['pos-green'];
   const chamD = chameleonFor(variant); // positive vs negative/knockout artwork
   const words = (name || '').trim().split(/\s+/).filter(Boolean);
-  const [mainWords, qualWords] = splitQualifier(words, category); // qualifier → smaller sub-line
+  let [mainWords, qualWords] = splitQualifier(words, category); // qualifier → smaller sub-line
+  // Teams set the appended "Team" on its OWN line at full size ("SUSE Content
+  // Strategy" / "Team"), with the name kept whole on the SUSE line above it.
+  const teamSuffix = (category === 'team' && mainWords.length > 1 && /^team$/i.test(mainWords[mainWords.length - 1]))
+    ? mainWords[mainWords.length - 1] : null;
+  if (teamSuffix) mainWords = mainWords.slice(0, -1);
   const locWords = (location || '').trim().split(/\s+/).filter(Boolean);
 
   const suse = await shape(host, 'SUSE', FONT_SUSE, fs);
@@ -192,32 +197,32 @@ async function buildLockup({ host, name, location, layout, variant, wrapMode, ba
     // Smaller + lighter sub-lines (loc:true): the "for …" / "… Program" qualifier
     // first, then the event/team location. Their presence also pins a single-word
     // main name to the SUSE line.
-    const subLines = [];
+    const subLines = [];          // smaller + lighter (loc:true): qualifier, then location
     if (qualWords.length) subLines.push(qualWords);
     if (locWords.length) subLines.push(locWords);
+    // A forced break below (Team suffix, qualifier, or location) PINS the name to
+    // the SUSE line so a narrow wrapMode can't push it off ("SUSE Exchange" / city,
+    // "SUSE Rancher" / "for AWS", "SUSE Content Strategy" / "Team").
+    const pinned = subLines.length > 0 || teamSuffix;
 
-    // Brand convention: a single-word name sits on its OWN line under SUSE
-    // (SUSE / Storage, SUSE / AI). Multi-word names flow after SUSE and wrap
-    // ("SUSE AI" / Factory, "SUSE Linux" / "Enterprise Server"). But when a
-    // sub-line follows ("SUSE Exchange" / "Madrid", "SUSE Rancher" / "for AWS"),
-    // the name stays ON the SUSE line — a short name must NOT be wrapped off it by
-    // a narrow wrapMode (always "SUSE Exchange" / city, never "SUSE" / "Exchange").
     let lines;
-    if (subLines.length) {
-      lines = mainWords.length <= 1
-        ? [{ suse: true, words: mainWords }]                           // "SUSE Exchange" on one line
-        : wrapWords(mainWords, advs, spaceAdv, suseInk + gap2, maxW);  // long names may still wrap
+    if (pinned) {
+      lines = mainWords.length <= 2
+        ? [{ suse: true, words: mainWords }]                           // short name whole on the SUSE line
+        : wrapWords(mainWords, advs, spaceAdv, suseInk + gap2, maxW);  // long names greedy-wrap
     } else if (mainWords.length <= 1) {
+      // single-word name sits on its OWN line under SUSE (SUSE / Storage, SUSE / AI)
       lines = [{ suse: true, words: [] }, ...(mainWords.length ? [{ suse: false, words: mainWords }] : [])];
     } else if (mainWords.length === 2) {
       // Brand wraps two-word stacked names "SUSE word1" / "word2" (measured 10/11
-      // sources: Cloud Observability, Linux Micro, Rancher Prime, Data Team, …),
-      // regardless of wrapMode — so a wide default never keeps them on one line.
+      // sources: Cloud Observability, Linux Micro, Rancher Prime, …), regardless of
+      // wrapMode — so a wide default never keeps them on one line.
       lines = [{ suse: true, words: [mainWords[0]] }, { suse: false, words: [mainWords[1]] }];
     } else {
       lines = wrapWords(mainWords, advs, spaceAdv, suseInk + gap2, maxW); // 3+ words: greedy wrap
     }
-    for (const sw of subLines) lines.push({ suse: false, loc: true, words: sw });
+    if (teamSuffix) lines.push({ suse: false, words: [teamSuffix] });           // "Team" on its own line, full size
+    for (const sw of subLines) lines.push({ suse: false, loc: true, words: sw }); // smaller + lighter
     let maxRight = chW, bottom = 0;
     // Baselines advance line-by-line: full lines by LINE_H, the smaller location
     // line by the tighter LOC_LEAD. The location renders in Light at LOC_SCALE.
