@@ -41,6 +41,12 @@ export function entryFromManifest(manifest) {
   // fetching every manifest (/pro batch hides them). Mirrors isExportable() in
   // shells/web/src/pro/render-export.js and the drift check in validate-catalog.js.
   entry.exportable = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
+  // Inline the tool's icon (tools/<id>/icon.svg) so the gallery can show it on
+  // every card with no per-card fetch. It uses stroke="currentColor", so the
+  // shell themes it via CSS. Read here (not from the manifest) so build:catalog
+  // and validate-catalog's drift check stay in lock-step.
+  const iconPath = join(ROOT, 'tools', manifest.id, 'icon.svg');
+  if (existsSync(iconPath)) entry.icon = readFileSync(iconPath, 'utf8').replace(/\s*[\r\n]+\s*/g, '').trim();
   return entry;
 }
 

@@ -382,7 +382,8 @@ footer{text-align:right;}
   margin: 0 0 12px;
 }
 .saved-row h4{font-weight: 600;
-    font-size: 12px;}
+    font-size: 12px;
+    margin: 0;}
 
 .category-utility{
     background-color: #0001;
@@ -393,7 +394,7 @@ footer{text-align:right;}
 
 .tool-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 6px;
 }
 
@@ -461,7 +462,22 @@ footer{text-align:right;}
   box-shadow: .1rem .2rem .5rem #0002;
   transition: border-color 0.12s, box-shadow 0.12s;
 }
-.tool-name,.tool-desc{margin-left:1em}
+.tool-name,.tool-desc,.tool-card-icon{margin-left:1em}
+
+/* Per-tool icon (tools/<id>/icon.svg, inlined into the catalog index) — the
+   card's main glance anchor. Brand accent; inherits currentColor so it themes. */
+.tool-card-icon {
+  display: block;
+  color: hsl(var(--primary));
+  margin-bottom: 6px;
+}
+.tool-card-icon svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+  opacity:.5;
+}
+.tool-card--unavailable .tool-card-icon { opacity: 0.45; }
 
 
 .tool-card:has(.tool-card-actions){display: grid;
@@ -3230,10 +3246,14 @@ a.storage-indicator:hover { opacity: 1; }
 
 .saved-row {
   position: relative;
- padding:10px;margin:4px 0;
+  margin: 4px 0;
   gap: 12px;
   align-items: center;
-  padding: 6px 10px;
+  /* Keep the row only slightly taller than the 48px .saved-thumb — no dead
+     space above/below. Override .tool-card's min-height:7em (it's reused for
+     the saved-row markup) so the row collapses to the thumb height + padding. */
+  padding: 3px 10px;
+  min-height: 0;
   border-bottom: 0;
   font-size: 13px;
   transition: background 0.12s;
@@ -3255,8 +3275,8 @@ a.storage-indicator:hover { opacity: 1; }
 .saved-show-all {
   width: 100%;
   margin: 4px 0;
-  min-height: 60px;
-  padding: 6px 10px;
+  min-height: 54px;
+  padding: 3px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
