@@ -29,8 +29,8 @@
       "label": "Line size",
       "type": "number",
       "display": "slider",
-      "default": 10,
-      "min": 4,
+      "default": 4,
+      "min": 1,
       "max": 48,
       "step": 1,
       "help": "Thickness of each scanline and the width of each cell. Smaller = finer detail; larger = chunkier pixels."
@@ -43,10 +43,17 @@
       "help": "Add a gap between cells too, so each one is a distinct square — an LED/pixel-matrix look instead of solid scanline bars."
     },
     {
+      "id": "everyLine",
+      "label": "Fill every line",
+      "type": "boolean",
+      "default": false,
+      "help": "Draw every line instead of leaving a blank scanline between them. Off = classic scanlines; on = a solid posterised image."
+    },
+    {
       "id": "fit",
       "label": "Image fit",
       "type": "select",
-      "default": "contain",
+      "default": "cover",
       "options": [
         { "value": "contain", "label": "Contain (whole image)" },
         { "value": "cover", "label": "Cover (fill, crop edges)" }

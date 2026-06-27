@@ -13,7 +13,8 @@
  */
 
 var VIEW = 1000;        // viewBox units (square frame; matches render.width/height)
-var MAX_CELLS = 30000;  // bound the rect count so a tiny line size can't blow up the SVG
+var MAX_CELLS = 100000; // bound the total rect count so a tiny line size can't blow up the SVG
+                        // (this is the real floor on detail at very small line sizes, not the input min)
 var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
 
 var _imgCache = { url: null, promise: null };
@@ -108,7 +109,7 @@ function sampleGrid(img, cols, rows, fit) {
 
 function buildSvg(args) {
   var img = args.img;
-  var cell = clamp(n(args.lineSize, 10), 4, 48);
+  var cell = clamp(n(args.lineSize, 10), 1, 48);
   var fit = args.fit === 'cover' ? 'cover' : 'contain';
 
   var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
@@ -153,9 +154,10 @@ function buildSvg(args) {
   var gy = args.separatePixels ? cellH * 0.16 : 0;
   var rw = f2(cellW - gx), rh = f2(cellH - gy);
 
+  var everyLine = Boolean(args.everyLine);
   var paths = ['', '', '', '', ''];
   for (var row = 0; row < rows; row++) {
-    if (row % 2 !== 0) continue; // blank every other line (1-indexed odd lines show)
+    if (!everyLine && row % 2 !== 0) continue; // scanline: blank every other line (unless "fill every line")
     var y = f2(offY + row * cellH + gy / 2);
     for (var col = 0; col < cols; col++) {
       var b = bucket(grid[row * cols + col]);
@@ -192,7 +194,7 @@ async function compute(model) {
   if (!url) return { svgContent: placeholder('Choose an image to scan') };
 
   var params = {
-    url: url, lineSize: inputs.lineSize, separatePixels: inputs.separatePixels, fit: inputs.fit,
+    url: url, lineSize: inputs.lineSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
     highlight: inputs.highlight, light: inputs.light, mid: inputs.mid, shade: inputs.shade,
     shadow: inputs.shadow, background: inputs.background, brightness: inputs.brightness, contrast: inputs.contrast,
   };

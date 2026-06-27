@@ -120,7 +120,7 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # 25 tool definitions — data, not code. SUSE-specific. Stays private.
+├── tools/            # 26 tool definitions — data, not code. SUSE-specific. Stays private.
 │   ├── qr-code/
 │   ├── quotes/
 │   ├── email-signature/
@@ -140,6 +140,7 @@ lolly/
 │   ├── chart-creator/     # SVG charts from structured data
 │   ├── duotone-filter/    # two-color photo treatment
 │   ├── halftone-filter/   # photo → vector halftone dot grid
+│   ├── scanline-filter/   # photo → retro posterised scanline grid (SVG / transparent raster)
 │   ├── meeting-planner/   # global timezone meeting scheduler
 │   ├── calendar-ics/      # event → .ics calendar file plus a card
 │   ├── digi-ad/           # "Animated Ad" — looping banner from scenes
@@ -198,7 +199,7 @@ Rows are listed in gallery section order. The `utility` section always renders *
 | Category | Shipped tools | Planned |
 |---|---|---|
 | `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Color Block, Dynamic Layout, Logo | Employee Image Stationery |
-| `designer` | Brand Lockup, Bag Video, Chart Creator, Duotone Filter, Street Map, Halftone Filter, Animated Ad | PDF Smasher, Font Outliner |
+| `designer` | Brand Lockup, Bag Video, Chart Creator, Duotone Filter, Street Map, Halftone Filter, Scanline Filter, Animated Ad | PDF Smasher, Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | — | CVE Alert, Product Release Announcement, Blog OG Image |
 | `utility` | Countdown Timer, Color Palette, URL Screenshot, Strip Hidden Data, Text Helper, Compress PDF | Unit/format converters, more on-device privacy utilities |

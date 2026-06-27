@@ -112,6 +112,7 @@ See `docs/authoring-tools.md` to build your first tool.
 | Street Map | designer | official |
 | Brand Lockup | designer | official |
 | Halftone Filter | designer | official |
+| Scanline Filter | designer | official |
 | Animated Ad | designer | official |
 | Bag Video | designer | experimental |
 | Meeting Planner | event | official |
