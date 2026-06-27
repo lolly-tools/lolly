@@ -1,6 +1,6 @@
 {
   "id": "filter-duotone",
-  "name": "Duotone Filter",
+  "name": "Filter: Duotone",
   "description": "A two-color duotone for any photo — shadows one color, highlights another.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",

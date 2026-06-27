@@ -306,9 +306,11 @@ function cardMarkup(tool, latest, sessionCount, shellCaps) {
   const openHref = `#/tool/${escape(tool.id)}`;
   const hasSession = !!latest && !unavailable;          // resumable, with or without a preview
   const hasThumbHero = hasSession && !!latest.thumb;    // resumable AND has a preview image
+  const hasPreview = !unavailable && !hasSession && !!tool.preview; // committed demo preview, no session yet
 
   // Visual: hero preview to resume the latest session; a compact resume tile when
-  // the session has no captured preview; else an "open to start" tile.
+  // the session has no captured preview; a committed demo preview (starts a NEW
+  // session) when there's no session at all; else an "open to start" tile.
   let visual;
   if (unavailable) {
     visual = `<span class="gtile-tile gtile-tile--static"><span class="gtile-tile-txt">Desktop&nbsp;app only</span></span>`;
@@ -324,6 +326,15 @@ function cardMarkup(tool, latest, sessionCount, shellCaps) {
     // Session exists but its preview failed to capture — still resumable from the card.
     visual = `<button class="gtile-tile gtile-tile--resume" data-resume="${escape(latest.toolId)}" data-slot="${escape(latest.slot)}"
               aria-label="Continue ${escape(latest.filename || tool.name)}"><span class="gtile-tile-txt">Continue · ${escape(relativeTime(latest.updatedAt))}</span></button>`;
+  } else if (hasPreview) {
+    // No saved session, but a committed demo preview exists (npm run thumbs) — show
+    // it as a hero that starts a NEW session. Decorative duplicate of the name link
+    // (tabindex/aria-hidden so AT hears one link), matching the empty-tile pattern.
+    visual = `
+      <a class="gtile-hero gtile-hero--preview" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true">
+        <img class="gtile-hero-img" src="${escape(tool.preview)}" alt="" aria-hidden="true" loading="lazy">
+        <span class="gtile-continue">Open</span>
+      </a>`;
   } else {
     // Decorative duplicate of the name link (tabindex/aria-hidden so AT hears one link).
     visual = `<a class="gtile-tile" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true"><span class="gtile-tile-txt">No saved sessions yet.  Open to start</span></a>`;

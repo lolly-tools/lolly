@@ -108,11 +108,11 @@ See `docs/authoring-tools.md` to build your first tool.
 | Logo | everyone | official |
 | Email Signature | everyone | official |
 | Chart Creator | designer | official |
-| Duotone Filter | designer | official |
+| Filter: Duotone | designer | official |
 | Street Map | designer | official |
 | Brand Lockup | designer | official |
-| Halftone Filter | designer | official |
-| Scanline Filter | designer | official |
+| Filter: Halftone | designer | official |
+| Filter: Scanline | designer | official |
 | Animated Ad | designer | official |
 | Bag Video | designer | experimental |
 | Meeting Planner | event | official |

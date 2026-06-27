@@ -470,6 +470,13 @@ scoped to .suse-pl class for easier merging with existing code bases
 </div>
 
 <script>
+// Wrapped in an IIFE: this template script is re-injected and re-executed on
+// every canvas paint (and on every soft re-visit to the tool). Top-level
+// const/function declarations would land in the page's global lexical scope and
+// survive the script node's removal, so a second run would throw
+// "Identifier already declared" and silently abort before the swatches are
+// built — leaving only the static button. Function scope keeps each run clean.
+(function () {
 
 const llmColorInstructions = `SUSE's brand colors are inspired by natural elements, symbolizing the environment where the chameleon thrives. The color palette is a star player in the brand identity and is one way to foster recognition with audiences.
 ## Primary colors
@@ -673,6 +680,5 @@ aioColors.forEach((color) => {
   });
 });
 
-
-
+})();
 </script>

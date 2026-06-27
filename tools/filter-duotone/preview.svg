@@ -1,0 +1,15 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080px" height="1080px" style="width:100%;height:auto;display:block;">
+  <defs>
+    <filter id="duo" color-interpolation-filters="sRGB">
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="0.0471 0.1882"/>
+        <feFuncG type="table" tableValues="0.1961 0.7294"/>
+        <feFuncB type="table" tableValues="0.1725 0.4706"/>
+      </feComponentTransfer>
+    </filter>
+  </defs>
+
+  <rect id="duo-bg" width="100%" height="100%" fill="#30ba78"/>
+
+</svg>

@@ -137,8 +137,11 @@
       "label": "Tracks",
       "type": "blocks",
       "help": "Optional session tracks, shown as chips. Give a chip its own colour, or leave it to use the role colour outline.",
-      "fields": "",
-      "default": ""
+      "fields": [
+        { "id": "label", "label": "Track", "type": "text", "placeholder": "e.g. Platform Engineering" },
+        { "id": "color", "label": "Chip colour", "type": "color", "default": "" }
+      ],
+      "default": []
     },
     {
       "id": "showQr",
