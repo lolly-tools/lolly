@@ -2,6 +2,17 @@
 
 A tool is a folder. Drop it in `tools/`, add a `tool.json` + `template.html`, run `npm run build:catalog` to register it, done. (`catalog/tools/index.json` is **generated** from the manifests — never hand-edited; see Publishing.)
 
+## Authoring with AI Agents
+
+If you have the lolly.tools repo in front of your agents, you can simply ask them to make tools for you using whatever challenge you think will resolve the design solution. 
+
+Sounds hard? not if you have the tokens and any source material. 
+Lolly developers tested 600+ human-created logo lock-up combinations as separate svg files with only paths.  
+They then directed agents to create a tool that could reproduce the source material.
+
+One lunch-break later and the tool became real, and behaved to our satisfaction.
+Even if you rely mostly on this method, it's good to understand how tools operate.
+
 ## Anatomy
 
 ```
