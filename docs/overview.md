@@ -199,7 +199,7 @@ Rows are listed in gallery section order. The `utility` section always renders *
 | Category | Shipped tools | Planned |
 |---|---|---|
 | `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Color Block, Dynamic Layout, Logo | Employee Image Stationery |
-| `designer` | Brand Lockup, Bag Video, Chart Creator, Duotone Filter, Street Map, Halftone Filter, Scanline Filter, Animated Ad | PDF Smasher, Font Outliner |
+| `designer` | Brand Lockup, Bag Video, Chart Creator, Filter: Duotone, Street Map, Filter: Halftone, Filter: Scanline, Animated Ad | PDF Smasher, Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | — | CVE Alert, Product Release Announcement, Blog OG Image |
 | `utility` | Countdown Timer, Color Palette, URL Screenshot, Strip Hidden Data, Text Helper, Compress PDF | Unit/format converters, more on-device privacy utilities |
@@ -352,7 +352,7 @@ The split is enforced now — there are no cross-imports from `engine/` to `tool
 
 | Milestone | Target | What |
 |---|---|---|
-| **Initial tools** | ✅ Done | QR Code, Quote Card, Email Signature, Day Brief, Code Canvas, Countdown Timer, Color Palette, Brand Lockup, Bag Video, Chart Creator, Duotone Filter, Meeting Planner — web shell live |
+| **Initial tools** | ✅ Done | QR Code, Quote Card, Email Signature, Day Brief, Code Canvas, Countdown Timer, Color Palette, Brand Lockup, Bag Video, Chart Creator, Filter: Duotone, Meeting Planner — web shell live |
 | **Enhance current tooling** | Mid 2026 ✅ Done  | Downloadable offline app (Tauri); additional employee and event tools; richer export pipeline (text-to-path stability, metadata, extra formats — see `plans.md`) |
 | **Open source the engine** | Late 2026 ✅ Done  | Engine, shells, schemas, docs go public — not the branded tools/assets |
 | **Device-to-device transfer** | ✅ Done | Portable `lolly-backup` bundle carries profile, saved sessions, uploaded images and prefs between any two installs — offline or online, no account. Forward-compatible, integrity-checked envelope (spec: `docs/data-transfer.md`) |
