@@ -462,14 +462,13 @@ footer{text-align:right;}
   box-shadow: .1rem .2rem .5rem #0002;
   transition: border-color 0.12s, box-shadow 0.12s;
 }
-.tool-name,.tool-desc,.tool-card-icon{margin-left:1em}
-
-/* Per-tool icon (tools/<id>/icon.svg, inlined into the catalog index) — the
-   card's main glance anchor. Brand accent; inherits currentColor so it themes. */
+/* Per-tool icon (tools/<id>/icon.svg, inlined into the catalog index) — sits to
+   the LEFT of the name + description. Brand accent; inherits currentColor so it
+   themes. (Size/opacity tuned on the svg below.) */
 .tool-card-icon {
   display: block;
+  flex-shrink: 0;
   color: hsl(var(--primary));
-  margin-bottom: 6px;
 }
 .tool-card-icon svg {
   width: 24px;
@@ -489,11 +488,25 @@ footer{text-align:right;}
   box-shadow: 0 2px 8px hsl(var(--primary) / 0.08);
 }
 
+.tool-card:hover .tool-card-icon svg {opacity:1}
+.tool-card:hover .tool-desc { color: var(--foreground);}
+
+
+
 .tool-card-body {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+}
+/* Name + description stack to the RIGHT of the icon. */
+.tool-card-text {
   display: flex;
   flex-direction: column;
   gap: 4px;
   flex: 1;
+  min-width: 0;
 }
 
 .tool-card-actions {

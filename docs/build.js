@@ -18,6 +18,9 @@ const REPO_URL = 'https://github.com/lolly-tools/lolly';
 const OG_IMAGE = `${SITE_URL}/og.png`;
 const OG_LOGO = `${SITE_URL}/info/icon-normal.png`;
 const SITE_DESCRIPTION = 'Lolly: constraint-first, template-driven platform for generating on-brand creative assets at scale.';
+// Landing-page <title>/share title — the brand tagline (matches the web shell's
+// index.html). Other pages use "<page title> — Lolly", so this is landing-only.
+const LANDING_TITLE = 'Lolly — assets that stay the same so everything else can change';
 
 // Tool count for the hero badge — read from the generated catalog index so it
 // tracks the real number of tools rather than drifting as a hand-edited literal.
@@ -1403,7 +1406,7 @@ function wrapPage(page, content) {
   </main>
 </div>`;
 
-  const ogTitle    = isLanding ? 'Lolly' : `${page.title} — Lolly`;
+  const pageTitle  = isLanding ? LANDING_TITLE : `${page.title} — Lolly`;
   const canonical  = `${SITE_URL}${activeHref}`;
 
   return `<!doctype html>
@@ -1411,12 +1414,12 @@ function wrapPage(page, content) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>${esc(page.title)} — Lolly</title>
+<title>${esc(pageTitle)}</title>
 <meta name="description" content="${esc(SITE_DESCRIPTION)}">
 <link rel="canonical" href="${esc(canonical)}">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Lolly">
-<meta property="og:title" content="${esc(ogTitle)}">
+<meta property="og:title" content="${esc(pageTitle)}">
 <meta property="og:description" content="${esc(SITE_DESCRIPTION)}">
 <meta property="og:url" content="${esc(canonical)}">
 <meta property="og:image" content="${esc(OG_IMAGE)}">
@@ -1425,7 +1428,7 @@ function wrapPage(page, content) {
 <meta property="og:image:alt" content="Lolly — on-brand creative tools">
 <meta property="og:logo" content="${esc(OG_LOGO)}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="${esc(ogTitle)}">
+<meta name="twitter:title" content="${esc(pageTitle)}">
 <meta name="twitter:description" content="${esc(SITE_DESCRIPTION)}">
 <meta name="twitter:image" content="${esc(OG_IMAGE)}">
 <link rel="icon" href="/favicon.ico">

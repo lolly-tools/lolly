@@ -367,8 +367,10 @@ function toolCard(tool, latest, shellCaps) {
       ${statusBadge}
       <div class="tool-card-body">
         ${tool.icon ? `<span class="tool-card-icon" aria-hidden="true">${tool.icon}</span>` : ''}
-        <a class="tool-card-link tool-name" href="#/tool/${escape(tool.id)}">${escape(tool.name)}</a>
-        <span class="tool-desc">${escape(tool.description ?? '')}</span>
+        <div class="tool-card-text">
+          <a class="tool-card-link tool-name" href="#/tool/${escape(tool.id)}">${escape(tool.name)}</a>
+          <span class="tool-desc">${escape(tool.description ?? '')}</span>
+        </div>
       </div>
       ${continueBtn ? `<div class="tool-card-actions">${continueBtn}</div>` : ''}
     </div>
@@ -385,8 +387,10 @@ function unavailableCard(tool, unmet) {
       <span class="badge badge-desktop">Desktop</span>
       <div class="tool-card-body">
         ${tool.icon ? `<span class="tool-card-icon" aria-hidden="true">${tool.icon}</span>` : ''}
-        <span class="tool-name" aria-disabled="true">${escape(tool.name)}</span>
-        <span class="tool-desc">${escape(tool.description ?? '')}</span>
+        <div class="tool-card-text">
+          <span class="tool-name" aria-disabled="true">${escape(tool.name)}</span>
+          <span class="tool-desc">${escape(tool.description ?? '')}</span>
+        </div>
       </div>
     </div>
   `;
