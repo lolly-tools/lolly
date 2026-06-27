@@ -1,0 +1,152 @@
+{
+  "id": "halftone-filter",
+  "name": "Halftone Filter",
+  "description": "Turn any photo into a vector halftone — a grid of dots whose size follows the image's light and shade. Full colour control and crisp, scalable SVG or transparent PNG/WebP/AVIF output.",
+  "a11yLabel": "Halftone rendering of the chosen image as a grid of single-colour dots",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["halftone", "dots", "photo", "filter", "effect", "newspaper", "comic", "vector", "image"],
+  "render": {
+    "width": 1000,
+    "height": 1000,
+    "formats": ["svg", "png", "webp", "avif"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": false,
+    "convertPaths": false
+  },
+  "inputs": [
+    {
+      "id": "image",
+      "label": "Image",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "Pick a photo or upload your own. It's processed on your device — the pixels never leave the browser."
+    },
+    {
+      "id": "gridSize",
+      "label": "Grid size",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": 4,
+      "max": 40,
+      "step": 1,
+      "help": "Spacing between dots. Smaller = finer detail and more dots; larger = a bolder, coarser screen."
+    },
+    {
+      "id": "dotScale",
+      "label": "Dot size",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.4,
+      "max": 1.5,
+      "step": 0.05,
+      "help": "Scales every dot. Below 1 opens up the screen; above 1 fattens the dots so darks fill in."
+    },
+    {
+      "id": "shape",
+      "label": "Dot shape",
+      "type": "select",
+      "default": "circle",
+      "options": [
+        { "value": "circle", "label": "Circle" },
+        { "value": "square", "label": "Square" },
+        { "value": "diamond", "label": "Diamond" }
+      ]
+    },
+    {
+      "id": "fgColor",
+      "label": "Dot colour",
+      "type": "color",
+      "default": "#0c322c"
+    },
+    {
+      "id": "bgColor",
+      "label": "Background",
+      "type": "color",
+      "default": "#ffffff",
+      "help": "Fill behind the dots. Turn on “No BG” in the export options for a transparent background instead."
+    },
+    {
+      "id": "invert",
+      "label": "Invert",
+      "type": "boolean",
+      "default": false,
+      "help": "Grow dots for the light areas instead of the dark — ideal for a light colour on a dark background."
+    },
+    {
+      "id": "fit",
+      "label": "Image fit",
+      "type": "select",
+      "default": "contain",
+      "options": [
+        { "value": "contain", "label": "Contain (whole image)" },
+        { "value": "cover", "label": "Cover (fill, crop edges)" }
+      ]
+    },
+    {
+      "id": "brightness",
+      "label": "Brightness",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1
+    },
+    {
+      "id": "contrast",
+      "label": "Contrast",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": -100,
+      "max": 100,
+      "step": 1
+    },
+    {
+      "id": "gamma",
+      "label": "Gamma",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.1,
+      "max": 3,
+      "step": 0.1,
+      "help": "Mid-tone weighting. Below 1 darkens mid-tones (denser dots); above 1 lightens them."
+    },
+    {
+      "id": "smoothing",
+      "label": "Smoothing",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 5,
+      "step": 0.5,
+      "help": "Softens the dot grid by blurring neighbouring cells. Tames noisy photos."
+    },
+    {
+      "id": "dither",
+      "label": "Texture",
+      "type": "select",
+      "default": "none",
+      "options": [
+        { "value": "none", "label": "Smooth (none)" },
+        { "value": "floyd", "label": "Diffused (Floyd–Steinberg)" },
+        { "value": "ordered", "label": "Patterned (ordered)" },
+        { "value": "noise", "label": "Grainy (noise)" }
+      ],
+      "help": "Adds a newspaper-style 1-bit texture by snapping cells to full or empty dots."
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  }
+}

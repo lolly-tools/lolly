@@ -19,7 +19,7 @@
       "label": "Name",
       "type": "text",
       "required": false,
-      "default": "AI",
+      "default": "",
       "help": "The text that follows SUSE — e.g. \"Storage\", \"AI Factory\", or \"Data Team\". Leave blank for the SUSE master logo alone."
     },
     {
@@ -47,7 +47,7 @@
       "id": "orientation",
       "label": "Layout",
       "type": "select",
-      "default": "horizontal",
+      "default": "stacked",
       "options": [
         { "value": "horizontal", "label": "Horizontal" },
         { "value": "stacked", "label": "Stacked" }
