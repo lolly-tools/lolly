@@ -386,8 +386,9 @@ footer{text-align:right;}
 
 .category-utility{
     background-color: #0001;
-    border-radius: 1em;
+    border-radius: 2em;
     padding: 2em 1em;
+    padding-bottom:1em;
     box-shadow: inset .1rem .2rem .5rem #0001;}
 
 .tool-grid {
