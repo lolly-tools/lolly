@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Builds a runtime input model from a tool manifest.
  *
@@ -44,7 +45,7 @@ export function buildInputModel(manifest, { profile = {}, initial = {} } = {}) {
   // fonts installed. On by default; the export bridge reads its value as
   // opts.convertPaths. A tool can set render.convertPaths:false to suppress the
   // toggle entirely (e.g. capture tools, where text-outlining doesn't apply).
-  const VECTOR_FORMATS = ['svg', 'emf', 'pdf', 'pdf-cmyk'];
+  const VECTOR_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'pdf', 'pdf-cmyk'];
   if (
     manifest.render?.convertPaths !== false &&
     (manifest.render?.formats ?? []).some(f => VECTOR_FORMATS.includes(f)) &&

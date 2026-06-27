@@ -66,6 +66,11 @@ export function entryFromManifest(manifest) {
       break;
     }
   }
+  // Whether any input pre-fills from the user profile (bindToProfile). The gallery
+  // uses this to scope profile-aware preview regeneration to the tools that actually
+  // change with the profile — see shells/web/src/personalize-previews.js. Without it
+  // the gallery would have to fetch every manifest to find out. Manifest-derived.
+  if ((manifest.inputs ?? []).some(i => i.bindToProfile)) entry.personalized = true;
   return entry;
 }
 

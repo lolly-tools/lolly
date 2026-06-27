@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — drag-to-reorder rows by their grip handle.
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the CSV/TSV primitives.
  * Run: node --test shells/web/src/pro/csv.test.js

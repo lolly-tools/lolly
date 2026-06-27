@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Colour profiles for exports — platform-agnostic, no DOM, no network.
  *

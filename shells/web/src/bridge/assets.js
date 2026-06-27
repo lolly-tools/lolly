@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * AssetsAPI — global catalog + user uploads, presented as one surface.
  *

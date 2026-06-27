@@ -69,13 +69,17 @@ Honesty about the edges is part of the claim. These are real and intentional.
 ## Supply chain: the SBOM
 
 `sbom.cdx.json` is a [CycloneDX 1.5](https://cyclonedx.org/) Software Bill of
-Materials listing every third-party npm package the workspace pulls in, each with
-its resolved version, license, and a verifiable SRI hash. It answers the
+Materials inventorying the third-party components Lolly distributes: the full npm
+dependency graph of the engine + web + CLI workspace, the Tauri shells' npm
+dependencies, the Tauri Rust crates, the two vendored browser libraries (`d3`,
+`topojson-client`), and the bundled **SUSE** / **SUSE Mono** fonts — each with its
+resolved version, license, and a verifiable hash where one exists. It answers the
 supply-chain-transparency question — *what code does this build actually run?* —
-without asking anyone to take our word for it.
+without asking anyone to take our word for it. (See the scope notes below for the
+remaining caveats.)
 
 ```bash
-npm run build:sbom        # regenerate sbom.cdx.json from package-lock.json
+npm run build:sbom        # regenerate sbom.cdx.json (npm locks + Cargo.lock + vendored files + fonts)
 ```
 
 - **Source of truth** is the root `package-lock.json` (lockfileVersion 3). The
@@ -83,7 +87,11 @@ npm run build:sbom        # regenerate sbom.cdx.json from package-lock.json
   own `integrity` and `license` fields verbatim, so the SBOM cannot disagree with
   what npm installed. It is self-contained — no external SBOM tool, no network —
   because adding an opaque generator dependency would undercut the very thing the
-  SBOM is meant to demonstrate.
+  SBOM is meant to demonstrate. The same generator additionally folds in the Tauri
+  shells' own `package-lock.json` files, the Rust crates from
+  `shells/tauri-desktop/src-tauri/Cargo.lock`, the vendored `*.min.js` libraries
+  (hashed on disk), and the OFL fonts — each existence-guarded so the script still
+  runs on a partial checkout.
 - **Complete, not filtered.** Dev-only packages are included and tagged
   `cdx:npm:package:development=true` (CycloneDX convention) rather than dropped,
   so a reviewer can filter to "what runs on a user's device" themselves. The
@@ -95,6 +103,17 @@ npm run build:sbom        # regenerate sbom.cdx.json from package-lock.json
   CI can assert "no diff" as a drift guard, the same way `validate:catalog`
   guards the generated catalog index.
 
+**Scope notes.** Two honest caveats remain *within* that inventory:
+
+- the Rust crates from
+  [`shells/tauri-desktop/src-tauri/Cargo.lock`](shells/tauri-desktop/src-tauri/Cargo.lock)
+  are listed with version + checksum but license `unknown` — `Cargo.lock` carries
+  no license metadata; enrich with `cargo metadata` when a Tauri build actually
+  ships. [`shells/tauri-mobile`](shells/tauri-mobile) has no `Cargo.lock` yet, so
+  its crate graph isn't enumerated.
+- the SUSE-proprietary fonts/assets currently share this single SBOM; a
+  private/overlay SBOM may be cleaner once `tools/` + `catalog/assets/` split out.
+
 Verify any component's hash against what's installed, e.g.:
 
 ```bash
@@ -104,11 +123,12 @@ node -e "console.log(require('./sbom.cdx.json').components.find(c=>c.name==='han
 
 ## What this does and does not protect against
 
-The SBOM gives you **auditability and supply-chain transparency**: a complete,
-hash-pinned inventory of the code in the build, regenerable offline and diffable
-in review. It does **not** by itself authenticate the *catalog* a client syncs
+The SBOM gives you **auditability and supply-chain transparency**: a hash-pinned
+inventory of the components the build distributes — npm, Tauri npm, Rust crates,
+vendored libraries, and fonts (see the scope notes above) — regenerable offline
+and diffable in review. It does **not** by itself authenticate the *catalog* a client syncs
 from — substituting tool code at a malicious or compromised catalog origin is a
 separate threat that requires catalog signing + runtime integrity verification
 (the deferred work noted under Boundaries). Treat this document as the current,
-honest state — strong local-first design, transparent dependencies, and two named
-gaps with a known path to closing them.
+honest state — strong local-first design, transparent dependencies, and the
+remaining caveats named above with a known path to closing them.

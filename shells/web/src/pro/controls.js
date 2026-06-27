@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — input control factory for grid cells and the bulk-write
  * popover. A deliberately small subset of the single-tool view's controls,

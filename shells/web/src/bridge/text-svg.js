@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pure helpers for vectorising HTML text into SVG <path> via host.text.toPath.
  *

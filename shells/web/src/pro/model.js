@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — pure model logic (NO DOM, NO engine, NO host).
  *

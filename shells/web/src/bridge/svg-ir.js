@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * SVG DOM → EMF intermediate representation (IR).
  *
@@ -136,6 +137,9 @@ function pointsPath(str, close) {
  */
 export async function svgDomToIr(svgEl, ctx = {}) {
   const { host, getComputedStyle } = ctx;
+  // User-facing label for log/error text. Defaults to 'EMF' so existing callers
+  // (which pass no label) read exactly as before; the EPS sink passes 'EPS'.
+  const LABEL = ctx.label || 'EMF';
   const bg = ctx.background ? (parseColor(ctx.background) ?? [255, 255, 255]) : [255, 255, 255];
 
   // viewBox: prefer the live SVGRect (browser), fall back to parsing the
@@ -164,14 +168,14 @@ export async function svgDomToIr(svgEl, ctx = {}) {
   const canvasW = pxAttr('width') || vbW;
   const canvasH = pxAttr('height') || vbH;
   if (!(vbW > 0 && vbH > 0)) {
-    throw new Error('EMF export: SVG has no usable size (need a viewBox or width/height)');
+    throw new Error(`${LABEL} export: SVG has no usable size (need a viewBox or width/height)`);
   }
   const regX = canvasW / vbW;
   const regY = canvasH / vbH;
 
   const prims = [];
   const textApi = host?.text || null;
-  const warn = (m) => host?.log?.('warn', `emf: ${m}`);
+  const warn = (m) => host?.log?.('warn', `${LABEL.toLowerCase()}: ${m}`);
 
   // tx/ty/sX/sY accumulate the group transform; the closure maps a user coord to
   // device px (region-scaled).
@@ -289,7 +293,7 @@ export async function svgDomToIr(svgEl, ctx = {}) {
 
     if (!canVectoriseText(fontStyleObj, fontUrl, Boolean(textApi))) {
       throw new Error(
-        `EMF export requires outlined text, but the run "${raw.slice(0, 24)}" could not be ` +
+        `${LABEL} export requires outlined text, but the run "${raw.slice(0, 24)}" could not be ` +
         `vectorized (font-family "${family || 'inherited'}"${textApi ? '' : '; no text-shaping in this shell'}). ` +
         `Use a registered (SUSE) font and avoid letter-spacing, or export SVG/PDF.`);
     }

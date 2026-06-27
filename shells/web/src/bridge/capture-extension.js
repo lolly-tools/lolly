@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * CaptureAPI (web) — backed by the Lolly Chrome extension.
  *

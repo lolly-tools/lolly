@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Capabilities THIS shell's bridge can fulfil — a subset of the tool.json
  * `capabilities` enum (see schemas/tool.schema.json). The host exposes this as

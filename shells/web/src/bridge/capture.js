@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * CaptureAPI (web) — page-to-image capture.
  *

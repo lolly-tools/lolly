@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * ExportAPI — converts a rendered DOM node to a file format.
  *
@@ -12,7 +13,7 @@
 
 import {
   parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI,
-  iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry, emitEmf,
+  iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry, emitEmf, emitEps,
 } from '@lolly/engine';
 import {
   suseFontFile, SUSE_FONT_DIR,
@@ -115,6 +116,10 @@ async function renderFormat(node, format, opts = {}) {
       return await renderSvg(node, opts);
     case 'emf':
       return await renderEmf(node, opts);
+    case 'eps':
+      return await renderEps(node, opts, false);
+    case 'eps-cmyk':
+      return await renderEps(node, opts, true);
     case 'pdf':
       return await renderPdf(node, opts);
     case 'pdf-cmyk':
@@ -944,6 +949,28 @@ async function renderEmf(node, opts = {}) {
   });
   const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
   return new Blob([bytes], { type: 'image/emf' });
+}
+
+// EPS is a fourth sink on the SVG vector pipeline (alongside SVG, PDF, and EMF):
+// same outlined-SVG → engine IR (svgDomToIr) walk, then serialised to PostScript
+// text by emitEps. Device RGB (cmyk=false) or naive DeviceCMYK (cmyk=true, no
+// embedded output intent); gradients/images/alpha are flattened to solids
+// upstream and text is outlined upstream, so the emitter ships no fonts.
+async function renderEps(node, opts = {}, cmyk = false) {
+  let svgEl = node.tagName?.toLowerCase() === 'svg' ? node : node.querySelector?.('svg');
+  if (!svgEl) {
+    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true });
+    const xml = await svgBlob.text();
+    svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
+  }
+  const ir = await svgDomToIr(svgEl, {
+    host: _host,
+    getComputedStyle: (el) => window.getComputedStyle(el),
+    background: opts.background,
+    label: 'EPS',
+  });
+  const text = emitEps(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk, meta: opts.meta });
+  return new Blob([text], { type: 'application/postscript' });
 }
 
 // ── SVG from HTML DOM ─────────────────────────────────────────────────────

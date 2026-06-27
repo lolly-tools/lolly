@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * NetAPI — controlled fetch for tools that declared the 'network' capability.
  *

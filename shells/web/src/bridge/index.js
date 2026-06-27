@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Web implementation of the v1 capability bridge.
  *
@@ -8,6 +9,7 @@
 
 import { createStateAPI } from './state.js';
 import { createProfileAPI } from './profile.js';
+import { createPreviewsAPI } from './previews.js';
 import { createAssetsAPI } from './assets.js';
 import { createTokensAPI } from './tokens.js';
 import { createClipboardAPI } from './clipboard.js';
@@ -51,6 +53,9 @@ export async function createBridge() {
   // Order matters: assets depends on db; export depends on host for watermark style.
   host.state = createStateAPI(db);
   host.profile = createProfileAPI(db);
+  // Web-only host-UI helper (not in the tool-facing contract): cache of
+  // profile-personalized gallery thumbnails. The gallery feature-detects it.
+  host.previews = createPreviewsAPI(db);
   host.assets = createAssetsAPI(db);
   host.tokens = createTokensAPI(host); // depends on assets (reads the brand tokens asset)
   host.clipboard = createClipboardAPI();

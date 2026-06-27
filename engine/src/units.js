@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Physical unit conversions for output dimensions — platform-agnostic, no DOM.
  *

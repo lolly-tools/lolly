@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Web interceptor for the portable embed URL surface (Phase 2 of tool composition).
  *

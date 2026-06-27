@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Compose — resolve a tool's manifest `composes` entries into embeddable assets.
  *

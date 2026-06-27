@@ -1,6 +1,7 @@
 {
   "name": "@lolly/web",
   "version": "0.1.0",
+  "license": "MPL-2.0",
   "type": "module",
   "private": true,
   "scripts": {

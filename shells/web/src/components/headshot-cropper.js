@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Headshot cropper — a small modal for framing an avatar before it's saved.
  *

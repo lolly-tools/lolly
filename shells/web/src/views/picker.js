@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Asset Picker — a host-owned modal UI.
  *

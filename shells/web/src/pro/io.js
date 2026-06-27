@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pro / Batch mode — import/export bridge between the batch state and portable
  * formats, so jobs can be authored in external tools (Sheets, Excel, a script)

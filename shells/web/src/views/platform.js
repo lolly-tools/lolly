@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Platform view — a read-only dashboard of global brand / platform data.
  *

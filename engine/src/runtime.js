@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Runtime — orchestrates the 5-step lifecycle for a single mounted tool.
  *

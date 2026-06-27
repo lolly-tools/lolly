@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Export provenance — the generic authorship record embedded into every exported
  * media file (platform-agnostic; no format/DOM knowledge here).

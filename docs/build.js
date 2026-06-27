@@ -1202,10 +1202,12 @@ const HERO_CANVAS_SCRIPT = `<script>(function(){
   var canvas=document.getElementById('heroCanvas');
   if(!canvas)return;
   var ctx=canvas.getContext('2d');
-  var exts=['.TXT','.MD','.PDF','.SVG','.JPG','.PNG','.WEBM','.MP4','.WEBP','.GIF','.AVIF','.HTML'];
+  // Every distinct file extension Lolly can export — vector, print, raster, video,
+  // markup, structured data and bundles (kept in step with docs/exporting.md).
+  var exts=['.SVG','.EMF','.EPS','.PDF','.TIFF','.PNG','.JPG','.WEBP','.AVIF','.GIF','.WEBM','.MP4','.HTML','.MD','.TXT','.CSV','.JSON','.ICS','.VCF','.ICO','.ZIP'];
   // Headline formats appear ~2x as often as the rest: listing them again weights
   // them double in the pick pool (each favored ext is in the pool twice).
-  var extPool=exts.concat(['.PDF','.SVG','.JPG','.MP4']);
+  var extPool=exts.concat(['.PDF','.SVG','.PNG','.MP4']);
   var floaters=[], fragments=[];
   // Ambient chip population scales with canvas width so wide heroes aren't sparse
   // and narrow/mobile ones aren't crowded.

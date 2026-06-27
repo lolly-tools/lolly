@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * One-time privacy transparency notice (web/PWA shell only).
  *

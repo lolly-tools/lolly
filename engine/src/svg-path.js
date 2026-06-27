@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * SVG path `d` tokenizer — pure, DOM-free, platform-agnostic.
  *

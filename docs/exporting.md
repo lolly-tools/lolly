@@ -23,6 +23,7 @@ The actions in the export controls:
 |---|---|---|
 | Crisp logos / artwork that scales | **SVG** | Vector — infinitely scalable, tiny, editable |
 | Vector for Office / Windows apps | **EMF** | Pastes as editable vector into PowerPoint / Word |
+| Vector for print / design apps | **EPS**, or **EPS (CMYK)** | PostScript vector for Illustrator / press workflows |
 | A photo or general-purpose image | **PNG** (lossless) or **JPG** (smaller) | Universal raster |
 | Smaller modern images | **WebP** / **AVIF** | Better compression, alpha |
 | Print | **PDF**, or **Print PDF** (CMYK) | True page size; CMYK for press |
@@ -67,7 +68,7 @@ So colours reproduce faithfully in colour-managed apps (print shops, Photoshop, 
 - **PNG / JPG** carry an embedded **sRGB** ICC profile — the colour space the preview is actually rendered in — so nothing is left to guess. (Tagging only; the pixels aren't re-encoded.)
 - **Print PDF (CMYK)** declares a target **press condition** in its *OutputIntent* (default *Coated FOGRA39*), telling a RIP/print shop how its CMYK inks are meant to be read. Brand swatches with measured ink values are converted exactly; other colours use a standard device conversion.
 - **Print TIFF (CMYK)** writes untagged **DeviceCMYK** pixels and records the same press condition as provenance in its TIFF metadata (*ImageDescription*) rather than embedding a profile. The same Colour-profile control drives both CMYK formats.
-- **SVG** and **EMF** are resolution- and profile-independent vectors with no embedded profile — SVG's colours are plain sRGB, EMF's are device RGB. (Both, like PDF, outline any text to vector paths, so the result renders even where the font isn't installed.)
+- **SVG**, **EMF** and **EPS** are resolution- and profile-independent vectors with no embedded profile — SVG's colours are plain sRGB, EMF's and EPS's are device RGB (and **EPS (CMYK)** writes naive DeviceCMYK). (All, like PDF, outline any text to vector paths, so the result renders even where the font isn't installed.)
 
 This is automatic — no setting to fiddle with. Thumbnails and previews skip the tag to stay small.
 
@@ -98,4 +99,4 @@ The export controls live behind the floating **Render** button, which opens the 
 
 ## Format reference
 
-`png` · `jpg`/`jpeg` · `webp` · `avif` · `svg` · `emf` · `pdf` · `pdf-cmyk` (Print PDF) · `cmyk-tiff` (Print TIFF) · `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `ico` · `zip` · `webm` · `mp4` · `gif`. These ids are also the values for the URL `format=` parameter and the CLI `--export=` flag — see [URL Mode](/info/url-mode.html) and [CLI](/info/cli.html).
+`png` · `jpg`/`jpeg` · `webp` · `avif` · `svg` · `emf` · `eps` · `eps-cmyk` (EPS CMYK) · `pdf` · `pdf-cmyk` (Print PDF) · `cmyk-tiff` (Print TIFF) · `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `ico` · `zip` · `webm` · `mp4` · `gif`. These ids are also the values for the URL `format=` parameter and the CLI `--export=` flag — see [URL Mode](/info/url-mode.html) and [CLI](/info/cli.html).

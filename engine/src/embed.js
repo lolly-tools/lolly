@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Embed URL grammar — the portable surface of tool composition.
  *

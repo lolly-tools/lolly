@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Gallery view — preview-forward masonry of available tools.
  *
@@ -18,6 +19,7 @@ import { toolSupport, capabilityLabel } from '../capabilities.js';
 import { hiddenCategories, flagEnabled, PRO_FLAG } from '../feature-flags.js';
 import { syncCatalog } from '../catalog/sync.js';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.js';
+import { profileSignature, canPersonalize, regeneratePreviews } from '../personalize-previews.js';
 
 // Section order for the filter pills. 'utility' is intentionally absent: the
 // on-device Offline Utilities pill always sorts last (see categoryRank()).
@@ -38,7 +40,7 @@ const statusLabel = (s) => ({ official: 'Official', community: 'Community', expe
 // Export-format display labels (mirrors the subset used by the tool view).
 const FMT_LABEL = {
   'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', jpeg: 'JPG', jpg: 'JPG',
-  webm: 'WebM', mp4: 'MP4', emf: 'EMF', ics: 'Calendar', vcf: 'vCard', ico: 'Icon',
+  webm: 'WebM', mp4: 'MP4', emf: 'EMF', eps: 'EPS', 'eps-cmyk': 'EPS (CMYK)', ics: 'Calendar', vcf: 'vCard', ico: 'Icon',
   zip: 'ZIP', csv: 'CSV', json: 'JSON', svg: 'SVG', pdf: 'PDF', png: 'PNG',
   webp: 'WebP', avif: 'AVIF', html: 'HTML', md: 'Markdown', txt: 'Text', gif: 'GIF',
 };
@@ -61,11 +63,25 @@ const PACKAGE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 export async function mountGallery(viewEl, host) {
   document.title = 'Lolly';
   const index = window.__toolIndex ?? { tools: [] };
-  const [savedEntries, profile, sessionSizes] = await Promise.all([
+  const [savedEntries, profile, sessionSizes, cachedPreviews] = await Promise.all([
     host.state.list(),
     host.profile.get(),
     host.state.sizes().catch(() => ({})),
+    host.previews?.list().catch(() => []) ?? [],
   ]);
+
+  // Profile-personalized previews (see ../personalize-previews.js). `sig` is empty
+  // unless the user opted in ("use my details"); only cache entries matching the
+  // current sig are fresh — a stale one is ignored and re-rendered below. Held in a
+  // Map so re-renders (search/filter) keep the personalized image, not just the
+  // committed placeholder.
+  const previewSig = profileSignature(profile);
+  const personalizedByTool = new Map();
+  if (previewSig) {
+    for (const rec of cachedPreviews) {
+      if (rec?.sig === previewSig && rec.thumb) personalizedByTool.set(rec.toolId, rec.thumb);
+    }
+  }
 
   // Re-resolve the headshot for the profile pill avatar (the stored object URL
   // goes stale across reloads; fetch a fresh one by id).
@@ -188,7 +204,7 @@ export async function mountGallery(viewEl, host) {
     const tools = matchingTools();
     masonry.style.setProperty('--items', Math.max(tools.length, 1));
     masonry.innerHTML = tools.length
-      ? tools.map(t => cardMarkup(t, latestByTool(t.id), countByTool(t.id), host.capabilities)).join('')
+      ? tools.map(t => cardMarkup(t, latestByTool(t.id), countByTool(t.id), host.capabilities, personalizedByTool.get(t.id))).join('')
       : `<p class="gallery-no-results">${query ? `No tools match "<strong>${escape(query.trim())}</strong>"` : 'No tools to show.'}</p>`;
     wireCards(masonry);
     if (searchStatus) {
@@ -288,11 +304,43 @@ export async function mountGallery(viewEl, host) {
   if (window.matchMedia?.('(pointer: fine)').matches) searchInput.focus({ preventScroll: true });
 
   render();
+
+  // Profile-personalized previews: once the user has opted in to "use my details",
+  // re-render the few profile-bound tools that have no saved session — off the
+  // critical path (idle, serial) — and lazily swap the personalized image into its
+  // card. Feature-detected (host.previews) and scoped via canPersonalize(), so it's
+  // a no-op for shells without the cache and for the ~24 tools whose output doesn't
+  // change with the profile. The committed preview shows until the swap lands; cache
+  // hits were already applied at mount above. See ../personalize-previews.js.
+  if (previewSig && host.previews) {
+    const cssEscape = (s) => (window.CSS && CSS.escape ? CSS.escape(s) : s);
+    const toRegenerate = index.tools.filter(t =>
+      canPersonalize(t) &&
+      !latestByTool(t.id) &&                  // no saved session — only placeholders
+      !personalizedByTool.has(t.id) &&        // not already fresh in cache
+      toolSupport(t, host.capabilities).status !== 'unavailable',
+    );
+    if (toRegenerate.length) {
+      regeneratePreviews({
+        host,
+        toolIds: toRegenerate.map(t => t.id),
+        sig: previewSig,
+        onThumb: (toolId, dataUrl) => {
+          personalizedByTool.set(toolId, dataUrl);   // so later re-renders keep it
+          if (!masonry?.isConnected) return;         // navigated away mid-render
+          const img = masonry.querySelector(
+            `.gtile-hero--preview[data-new-tool="${cssEscape(toolId)}"] .gtile-hero-img`,
+          );
+          if (img) img.src = dataUrl;
+        },
+      });
+    }
+  }
 }
 
 // ── Card markup ───────────────────────────────────────────────────────────
 
-function cardMarkup(tool, latest, sessionCount, shellCaps) {
+function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
   const sup = toolSupport(tool, shellCaps);
   const unavailable = sup.status === 'unavailable';
 
@@ -330,9 +378,11 @@ function cardMarkup(tool, latest, sessionCount, shellCaps) {
     // No saved session, but a committed demo preview exists (npm run thumbs) — show
     // it as a hero that starts a NEW session. Decorative duplicate of the name link
     // (tabindex/aria-hidden so AT hears one link), matching the empty-tile pattern.
+    // When the user has opted in to their profile, a personalized re-render replaces
+    // the committed placeholder (in cache at mount, or lazily swapped in when ready).
     visual = `
       <a class="gtile-hero gtile-hero--preview" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true">
-        <img class="gtile-hero-img" src="${escape(tool.preview)}" alt="" aria-hidden="true" loading="lazy">
+        <img class="gtile-hero-img" src="${escape(personalizedThumb || tool.preview)}" alt="" aria-hidden="true" loading="lazy">
         <span class="gtile-continue">Open</span>
       </a>`;
   } else {

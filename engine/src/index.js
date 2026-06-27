@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Engine public surface.
  *
@@ -26,6 +27,7 @@ export {
 } from './print-marks.js';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.js';
 export { emitEmf } from './emf.js';
+export { emitEps } from './eps.js';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,

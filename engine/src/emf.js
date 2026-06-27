@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic.
  *
