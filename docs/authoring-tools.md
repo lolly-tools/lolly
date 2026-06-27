@@ -128,7 +128,7 @@ Use `vector` when a few related numbers belong together — zoom + pan, an x/y o
 
 The value is an object keyed by field id, so the template reads each part with dot access: `{{imageFraming.zoom}}`, `{{imageFraming.x}}`, `{{imageFraming.y}}`. Each field clamps to its own `min`/`max` and falls back to its `default`.
 
-In URL mode (and `/pro` CSV) each field is its **own flat param/column**, namespaced `"<inputId>.<fieldId>"` — e.g. `?imageFraming.zoom=200&imageFraming.x=30&imageFraming.y=70`, or CSV columns `imageFraming.zoom`, `imageFraming.x`, `imageFraming.y`. There is no `urlKey` on a vector. `duotone-filter` and `quotes` (both `imageFraming`) are the reference implementations.
+In URL mode (and `/pro` CSV) each field is its **own flat param/column**, namespaced `"<inputId>.<fieldId>"` — e.g. `?imageFraming.zoom=200&imageFraming.x=30&imageFraming.y=70`, or CSV columns `imageFraming.zoom`, `imageFraming.x`, `imageFraming.y`. There is no `urlKey` on a vector. `filter-duotone` and `quotes` (both `imageFraming`) are the reference implementations.
 
 `imageFraming` is a **canonical input** (see below) — reuse that id and field set verbatim for any zoom/pan-an-image control rather than inventing a synonym.
 
