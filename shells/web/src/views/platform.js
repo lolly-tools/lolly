@@ -100,7 +100,7 @@ function swatch(c) {
 // "This device" — a live, read-only snapshot of the browser/runtime this
 // session is running on. Read entirely from the active session; never stored
 // or transmitted. Every value degrades to '—' when the browser doesn't expose
-// it, and whole groups (Network, System Graphics) are omitted when their API is absent.
+// it, and whole groups (Network, System/Browser Graphics) are omitted when their API is absent.
 // ---------------------------------------------------------------------------
 const DASH = '—';
 const yesNo = (v) => (v === true ? 'Yes' : v === false ? 'No' : DASH);
@@ -168,6 +168,8 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.5a16 16 0 0 1 20 0"/><path d="M5 13a10 10 0 0 1 14 0"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>',
   graphics:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h4"/><path d="M14 14h4"/></svg>',
+  layers:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
   // Browser brands (simplified marks).
   chrome:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>',
@@ -199,6 +201,7 @@ const TITLE_ICONS = {
   'Capabilities & privacy': ICONS.capabilities,
   Network: ICONS.network,
   'System Graphics': ICONS.graphics,
+  'Browser Graphics': ICONS.layers,
 };
 
 // Specific browser/OS marks, matched against the strings we already parse for
@@ -274,12 +277,17 @@ function parseOS(ua) {
 function readGpu() {
   try {
     const canvas = document.createElement('canvas');
-    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    // Prefer a WebGL2 context — whether the browser grants one is itself a
+    // browser-graphics detail; it serves the debug extension the same way.
+    const gl2 = typeof WebGL2RenderingContext !== 'undefined' ? canvas.getContext('webgl2') : null;
+    const gl = gl2 || canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
     if (!gl) return null;
     const dbg = gl.getExtension('WEBGL_debug_renderer_info');
     return {
       vendor: dbg ? gl.getParameter(dbg.UNMASKED_VENDOR_WEBGL) : gl.getParameter(gl.VENDOR),
       renderer: dbg ? gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER),
+      webgl2: !!gl2,
+      maxTexture: gl.getParameter(gl.MAX_TEXTURE_SIZE) || null,
     };
   } catch {
     return null;
@@ -324,25 +332,39 @@ function describeGpu(rawVendor, rawRenderer) {
   const vendorRaw = (rawVendor || '').trim();
   const rendererRaw = (rawRenderer || '').trim();
 
-  // Real vendor: prefer the parenthetical the ANGLE wrapper appends, e.g.
-  // "Google Inc. (Apple)" → "Apple". Native strings ("Apple Inc.") pass through.
-  let vendor = vendorRaw;
-  const paren = /\(([^)]+)\)\s*$/.exec(vendorRaw);
-  if (paren) vendor = paren[1].trim();
+  // "Google Inc. (Apple)" splits into a *browser* graphics vendor ("Google Inc."
+  // — ANGLE's own vendor) and the *hardware* vendor ("Apple") in the parens.
+  // Native strings ("Apple Inc.") have no parens and pass straight through.
+  let glVendor = vendorRaw;
+  let hwVendor = vendorRaw;
+  const vParen = /^(.*?)\s*\(([^)]+)\)\s*$/.exec(vendorRaw);
+  if (vParen) {
+    glVendor = vParen[1].trim();
+    hwVendor = vParen[2].trim();
+  }
 
-  // Unwrap "ANGLE (<vendor>, <device…>, <backend>)" down to the device field.
+  // Unwrap "ANGLE (<vendor>, <device…>, <backend>)": the wrapper word is the
+  // browser's translation layer, the middle field is the actual device.
+  let translation = 'Native';
   let device = rendererRaw;
-  const angle = /^ANGLE\s*\((.*)\)$/is.exec(rendererRaw);
-  if (angle) {
-    const parts = angle[1].split(',').map((p) => p.trim());
-    if ((!vendor || vendor === vendorRaw) && parts.length) vendor = parts[0];
-    device = parts.length > 2 ? parts.slice(1, -1).join(', ') : parts[parts.length - 1] || rendererRaw;
+  const wrap = /^(\w[\w ]*?)\s*\((.*)\)$/is.exec(rendererRaw);
+  if (wrap && /angle/i.test(wrap[1])) {
+    translation = wrap[1].trim();
+    const parts = wrap[2].split(',').map((p) => p.trim());
+    if (parts.length) {
+      if (!vParen) hwVendor = parts[0]; // no paren vendor → take ANGLE's vendor field
+      device = parts.length > 2 ? parts.slice(1, -1).join(', ') : parts[parts.length - 1] || rendererRaw;
+    }
   }
 
   return {
-    vendor: vendor || DASH,
+    // Hardware (System Graphics card).
     chip: cleanGpuChip(device) || DASH,
+    hwVendor: hwVendor || DASH,
+    // Browser rendering pipeline (Browser Graphics card).
+    translation,
     api: detectGpuApi(rendererRaw),
+    glVendor: glVendor || DASH,
     raw: rendererRaw || DASH,
   };
 }
@@ -473,13 +495,22 @@ async function collectClientInfo() {
   const gpu = readGpu();
   if (gpu) {
     const g = describeGpu(gpu.vendor, gpu.renderer);
+    // The physical GPU — the chip is the whole story, so it stands alone.
     groups.push({
       title: 'System Graphics',
-      icon: gpuIcon(g.vendor),
+      icon: gpuIcon(g.hwVendor),
+      rows: [{ k: 'GPU', v: g.chip, hero: true }],
+    });
+    // How *this browser* draws — the translation layer, backend API and the
+    // vendor/strings that belong to the rendering pipeline, not the hardware.
+    groups.push({
+      title: 'Browser Graphics',
       rows: [
-        { k: 'GPU', v: g.chip, lead: true },
-        { k: 'Vendor', v: g.vendor },
         { k: 'Graphics API', v: g.api },
+        { k: 'Translation', v: g.translation },
+        { k: 'Vendor', v: g.glVendor },
+        { k: 'WebGL', v: gpu.webgl2 ? '2.0' : '1.0' },
+        { k: 'Max texture', v: gpu.maxTexture ? `${gpu.maxTexture} px` : DASH },
         // Verbatim WebGL string, kept for exact reproduction of a render.
         { k: 'Reported', v: g.raw, mono: true, stacked: true },
       ],
@@ -498,9 +529,14 @@ function clientCard(group) {
       <dl class="plat-kv plat-kv--wide">
         ${group.rows
           .map((r) => {
-            const ddClass = [r.mono ? 'is-mono' : '', r.lead ? 'is-lead' : ''].filter(Boolean).join(' ');
+            // A hero row stacks the value below a small eyebrow label and is sized
+            // big (CSS) — used to make the headline datum the focus of the card.
+            const divClass = r.hero ? 'is-hero' : r.stacked ? 'is-stacked' : '';
+            const ddClass = [r.mono ? 'is-mono' : '', r.lead ? 'is-lead' : '', r.hero ? 'is-hero' : '']
+              .filter(Boolean)
+              .join(' ');
             return `
-        <div${r.stacked ? ' class="is-stacked"' : ''}>
+        <div${divClass ? ` class="${divClass}"` : ''}>
           <dt>${escape(r.k)}</dt>
           <dd${ddClass ? ` class="${ddClass}"` : ''}${r.live ? ` data-live="${escape(r.live)}"` : ''}>${escape(String(r.v))}${r.note ? `<span class="plat-pill plat-pill--muted">${escape(r.note)}</span>` : ''}</dd>
         </div>`;
@@ -568,11 +604,13 @@ export async function mountPlatform(viewEl, host) {
     <div class="platform-layout">
       <header class="plat-header">
         <h1 class="plat-title">Platform</h1>
-        <p class="plat-sub">A read-only snapshot of the global brand and platform data — the values defined once and reused across every tool, export and surface.</p>
-        <p class="plat-note" role="note">
-          <strong>Read-only.</strong> Nothing here changes the running app. It is a record of what the platform currently knows; a future
-          platform-configuration package will make these editable and exportable to shape new builds.
-        </p>
+        <div class="plat-header-text">
+          <p class="plat-sub">A read-only snapshot of the global brand and platform data — the values defined once and reused across every tool, export and surface.</p>
+          <p class="plat-note" role="note">
+            <strong>Read-only.</strong> Nothing here changes the running app. It is a record of what the platform currently knows; a future
+            platform-configuration package will make these editable and exportable to shape new builds.
+          </p>
+        </div>
       </header>
 
       ${panel('device', false, 'plat-client', 'This device', `
