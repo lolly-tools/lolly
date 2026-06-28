@@ -27,3 +27,23 @@ export function exportSizeDriver(manifest) {
   }
   return null;
 }
+
+/**
+ * Aspect-ratio guard. A tool may declare render.aspectWarning to flag page sizes
+ * its layout isn't built for (e.g. a portrait-only document set to landscape).
+ * aspect = width ÷ height; the warning fires when it falls outside the declared
+ * [min, max] band (either bound optional). Editor-only — the message is shown
+ * beside the dimension controls and never affects the rendered output.
+ *
+ * Returns the warning message when the given width/height trip the guard, else null.
+ * A tiny epsilon keeps an exactly-on-the-bound size (e.g. a 1:1 square at max:1)
+ * from tripping on floating-point dust.
+ */
+export function aspectWarning(manifest, width, height) {
+  const cfg = manifest?.render?.aspectWarning;
+  if (!cfg || !(width > 0) || !(height > 0)) return null;
+  const aspect = width / height;
+  const tooWide = typeof cfg.max === 'number' && aspect > cfg.max + 1e-6;
+  const tooTall = typeof cfg.min === 'number' && aspect < cfg.min - 1e-6;
+  return (tooWide || tooTall) ? (cfg.message || 'This size may not suit this tool.') : null;
+}

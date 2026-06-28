@@ -67,6 +67,18 @@
       ]
     },
     {
+      "id": "windowStyle",
+      "label": "Window Manager",
+      "type": "select",
+      "default": "nuremberg",
+      "help": "Window chrome look. Nuremberg = GNOME Adwaita, Cupertino = macOS, Redmond = Windows.",
+      "options": [
+        { "value": "cupertino", "label": "Cupertino" },
+        { "value": "redmond",   "label": "Redmond" },
+        { "value": "nuremberg", "label": "Nuremberg" }
+      ]
+    },
+    {
       "id": "lineNumbers",
       "label": "Line Numbers",
       "type": "boolean",

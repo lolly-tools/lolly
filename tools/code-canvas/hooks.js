@@ -28,6 +28,7 @@ function compute(inputs) {
   var code = inputs.code || DEFAULT_CODE;
   var lang = inputs.language === 'auto' ? detectLang(code) : (inputs.language || 'javascript');
   var theme = inputs.theme || 'suse-dark';
+  var windowStyle = inputs.windowStyle || 'nuremberg';
   var lineNumbers = inputs.lineNumbers !== false;
   var showWindow = inputs.showWindow !== false;
   var ext = EXT[lang] || 'txt';
@@ -40,6 +41,7 @@ function compute(inputs) {
     rawCode:     safeJson(code),
     language:    lang,
     theme:       theme,
+    windowStyle: windowStyle,
     lineNumbers: lineNumbers,
     showWindow:  showWindow,
     filename:    filename,

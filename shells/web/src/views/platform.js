@@ -48,6 +48,10 @@ const FONTS = [
 
 const WEIGHT_RAMP = [100, 300, 400, 500, 700, 900];
 
+// Chevron for a collapsible section's summary (rotates 90° when open via CSS).
+// Matches the profile page's collapsible sections.
+const COLLAPSE_CHEV = `<svg class="plat-section-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>`;
+
 const isTransparent = (hex) => !hex || hex.toLowerCase() === 'transparent';
 const cmykText = (cmyk) =>
   Array.isArray(cmyk) ? `C ${cmyk[0]}  M ${cmyk[1]}  Y ${cmyk[2]}  K ${cmyk[3]}` : 'RGB→CMYK (generic)';
@@ -595,7 +599,7 @@ export async function mountPlatform(viewEl, host) {
   // `flag`/`defaultOpen` decide the initial state (overridable via the hash query).
   const panel = (flag, defaultOpen, id, title, body, extraClass = '') => `
     <details class="plat-section${extraClass ? ` ${extraClass}` : ''}"${isOpen(flag, defaultOpen) ? ' open' : ''}>
-      <summary class="plat-section-summary"><h2 id="${id}" class="plat-section-title">${title}</h2></summary>
+      <summary class="plat-section-summary"><h2 id="${id}" class="plat-section-title">${title}</h2>${COLLAPSE_CHEV}</summary>
       <div class="plat-section-body">${body}</div>
     </details>`;
 
