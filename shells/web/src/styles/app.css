@@ -832,9 +832,42 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 /* Tighter side gutters + a little more top room for the cluster on phones. */
 @media (max-width: 640px)  { .tool-masonry { padding: 4.2rem .6rem 1rem; } }
 
-/* "Hide previews" toggle (filter popover): collapse the demo-preview heroes to
-   the compact card body. Saved-session heroes (.gtile-hero, no --preview) stay. */
+/* "Hide previews" toggle (filter popover): drop ALL preview thumbnails for a
+   compact gallery. Demo-preview heroes collapse entirely (the card body's name
+   link already opens the tool). Saved-session heroes keep a slim "Continue" bar —
+   image hidden, resume affordance kept — since the chips are absolutely positioned
+   over the (now hidden) image and would otherwise be stranded on a 0-height box. */
 .tool-masonry.hide-previews .gtile-hero--preview { display: none; }
+.tool-masonry.hide-previews .gtile-hero:not(.gtile-hero--preview) {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 8px 12px;
+  background: none;        /* drop the checkerboard placeholder */
+  line-height: normal;     /* was 0 (for the image) — let the chip size the bar */
+}
+.tool-masonry.hide-previews .gtile-hero:not(.gtile-hero--preview) .gtile-hero-img,
+.tool-masonry.hide-previews .gtile-hero:not(.gtile-hero--preview) .gtile-stamp {
+  display: none;           /* image gone; timestamp is redundant with the caption sub-line */
+}
+.tool-masonry.hide-previews .gtile-hero:not(.gtile-hero--preview) .gtile-continue {
+  position: static;        /* flow inside the bar instead of floating over the image */
+  opacity: 1;              /* normally revealed on hover — always show it here */
+}
+/* The (i)/(h) actions normally float over the preview's top-right; with the image
+   gone they'd be invisible (faint, no contrast) and collide with the Continue bar.
+   Drop them into normal flow at the card's bottom-right, fully opaque. Keep them
+   positioned (relative + z-index) so they stay above the stretched .gtile-name
+   click target and remain clickable. */
+.tool-masonry.hide-previews .gtile-actions {
+  position: relative;
+  top: auto;
+  right: auto;
+  z-index: 2;
+  justify-content: flex-end;
+  padding: 0 12px 10px;
+}
+.tool-masonry.hide-previews .gtile-iconbtn { color: hsl(var(--muted-foreground)); }
 @media (min-width: 1500px) { .tool-masonry { --cols: 5; } }
 @media (min-width: 1800px) { .tool-masonry { --cols: 6; } }
 @media (min-width: 2100px) { .tool-masonry { --cols: 7; } }
@@ -867,8 +900,18 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 .gtile:hover .tool-card-icon svg { opacity: 1; }
 .gtile:hover .gtile-desc { color: hsl(var(--foreground)); }
 .gtile.is-navigating { opacity: 0.6; }
+/* Cold-load entrance: a quick, satisfying cascade. JS arms the reveal
+   (.reveal-armed → tiles start hidden) and an IntersectionObserver adds .is-in
+   per tile with a staggered --reveal-delay. So the above-the-fold batch cascades
+   on load and everything below fades in as it scrolls into view (especially nice
+   on mobile's single column). Without JS — or when returning from a tool, or
+   under reduced motion — tiles are never armed and render instantly. */
 @media (prefers-reduced-motion: no-preference) {
-  .gtile { animation: card-in 0.28s ease both; }
+  .tool-masonry.reveal-armed .gtile { opacity: 0; }
+  .tool-masonry.reveal-armed .gtile.is-in {
+    animation: card-in 0.34s cubic-bezier(.22, .61, .36, 1) both;
+    animation-delay: var(--reveal-delay, 0ms);
+  }
 }
 
 /* Hero preview — the most-recent session, natural aspect (no crop/letterbox). */
@@ -1163,6 +1206,15 @@ a.gtile-name:focus-visible::after {
   box-shadow: -8px 0 32px hsl(0 0% 0% / 0.2);
   overflow: hidden;
 }
+@media (prefers-reduced-motion: no-preference) {
+  /* Quick slide-in from the right, backdrop fading up behind it. Keyframe
+     animations (not transitions) so they play on showModal() without needing
+     @starting-style. Rows cascade in just behind the panel — see .saved-row. */
+  .tool-drawer { animation: drawer-slide-in 0.22s cubic-bezier(.22, .61, .36, 1) both; }
+  .tool-drawer::backdrop { animation: drawer-backdrop-in 0.2s ease both; }
+}
+@keyframes drawer-slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes drawer-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
 .drawer-body { display: flex; flex-direction: column; height: 100%; }
 .drawer-head {
   display: flex;
@@ -3964,10 +4016,26 @@ a.storage-indicator:hover { opacity: 1; }
   background: hsl(var(--accent));
 }
 
-/* date-time size stamps on hover*/
+/* date-time + size stamps: dim at rest, full on hover. */
 .saved-row:hover .saved-label{opacity:1}
 .saved-row:not(:hover) .saved-label{opacity:.5}
-.saved-row:not(:hover) .saved-label small {opacity:0;}
+
+/* Saved rows cascade in behind the drawer's slide (also the per-tool history
+   modal). A tight, quick stagger; capped so a long list stays snappy. */
+@media (prefers-reduced-motion: no-preference) {
+  .saved-list .saved-row { animation: card-in 0.26s cubic-bezier(.22, .61, .36, 1) both; }
+  .saved-list .saved-row:nth-child(1)  { animation-delay: 0.04s; }
+  .saved-list .saved-row:nth-child(2)  { animation-delay: 0.07s; }
+  .saved-list .saved-row:nth-child(3)  { animation-delay: 0.10s; }
+  .saved-list .saved-row:nth-child(4)  { animation-delay: 0.13s; }
+  .saved-list .saved-row:nth-child(5)  { animation-delay: 0.16s; }
+  .saved-list .saved-row:nth-child(6)  { animation-delay: 0.19s; }
+  .saved-list .saved-row:nth-child(7)  { animation-delay: 0.22s; }
+  .saved-list .saved-row:nth-child(8)  { animation-delay: 0.25s; }
+  .saved-list .saved-row:nth-child(9)  { animation-delay: 0.28s; }
+  .saved-list .saved-row:nth-child(10) { animation-delay: 0.31s; }
+  .saved-list .saved-row:nth-child(n+11) { animation-delay: 0.34s; }
+}
 
 .saved-delete button:focus{opacity:1 !important}
 
@@ -5395,6 +5463,7 @@ button {
 .plat-kv .is-stacked { flex-direction: column; gap: .15rem; }
 .plat-kv .is-stacked dt { flex: none; }
 .plat-kv dd.is-mono { font-family: 'SUSE Mono', ui-monospace, monospace; font-size: .72rem; word-break: break-all; color: hsl(var(--muted-foreground)); }
+.plat-kv dd.is-lead { font-size: .95rem; font-weight: 650; line-height: 1.2; }
 
 .plat-theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .85rem; }
 .plat-theme { padding: 1rem; border-radius: var(--radius); background: hsl(var(--background)); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); }

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-28T18:29:57.797Z",
+  "generatedAt": "2026-06-28T19:49:52.008Z",
   "tools": [
     {
       "id": "color-block",
@@ -28,7 +28,7 @@
       "name": "Dynamic Layout",
       "description": "A do-anything layout that recomposes around whatever you add, at any size.",
       "version": "1.0.0",
-      "status": "official",
+      "status": "experimental",
       "category": "everyone",
       "formats": [
         "png",
@@ -206,8 +206,8 @@
       "id": "bag-video",
       "name": "Bag Video",
       "description": "An animated, on-brand video for bag visuals.",
-      "version": "0.4.0",
-      "status": "experimental",
+      "version": "0.4.1",
+      "status": "official",
       "category": "designer",
       "formats": [
         "webm",

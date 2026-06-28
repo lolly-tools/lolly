@@ -5,7 +5,7 @@
   "a11yLabel": "{{default heading cta}} — Dynamic Layout preview",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
-  "status": "official",
+  "status": "experimental",
   "category": "everyone",
   "tags": ["layout", "responsive", "hero", "social", "poster", "cta", "headshot", "text"],
   "render": {

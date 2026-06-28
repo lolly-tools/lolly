@@ -2,9 +2,9 @@
   "id": "bag-video",
   "name": "Bag Video",
   "description": "An animated, on-brand video for bag visuals.",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "engineVersion": "^1.0.0",
-  "status": "experimental",
+  "status": "official",
   "category": "designer",
   "tags": ["video", "bag", "animation"],
   "render": {
