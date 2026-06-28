@@ -15,7 +15,9 @@
 var VIEW = 1000;        // viewBox units (square frame; matches render.width/height)
 var MAX_CELLS = 100000; // bound the total rect count so a tiny line size can't blow up the SVG
                         // (this is the real floor on detail at very small line sizes, not the input min)
-var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
+// Default source image until the user picks one: a Lolly tool URL (bag-video → PNG),
+// resolved via host.compose. A plain catalog id still works (see resolver below).
+var DEFAULT_IMAGE_ID = 'https://lolly.tools/tool/bag-video.png';
 
 var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
@@ -192,7 +194,13 @@ async function compute(model) {
   var url = ref && typeof ref === 'object' ? ref.url : null;
   if (!url) {
     if (!_defaultUrl) {
-      try { var def = await host.assets.get(DEFAULT_IMAGE_ID); _defaultUrl = def && def.url; }
+      try {
+        // Tool URL → render via compose; plain catalog id → host.assets.
+        var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
+          ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
+          : await host.assets.get(DEFAULT_IMAGE_ID);
+        _defaultUrl = def && def.url;
+      }
       catch (e) { if (host.log) host.log('warn', 'filter-scanline: default image unavailable', { error: String(e) }); }
     }
     url = _defaultUrl;

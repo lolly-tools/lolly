@@ -55,7 +55,7 @@
       "id": "coverTitle",
       "label": "Title",
       "type": "text",
-      "default": "Annual Report 2026",
+      "default": "Content Automation Report 2026",
       "maxLength": 90,
       "section": "Cover"
     },
@@ -63,7 +63,7 @@
       "id": "coverSubtitle",
       "label": "Subtitle",
       "type": "text",
-      "default": "A year of building in the open",
+      "default": "A summer of building in the open",
       "maxLength": 120,
       "section": "Cover"
     },
@@ -71,7 +71,7 @@
       "id": "coverText",
       "label": "Cover text",
       "type": "longtext",
-      "default": "Prepared by the SUSE Brand team.\n\n**Confidential** — for internal review.",
+      "default": "Prepared for internal review.\n\n**Confidential** — not for distribution.",
       "rows": 3,
       "help": "Supports **bold**, *italic* and - bullet lists.",
       "section": "Cover"
@@ -169,7 +169,7 @@
       "id": "backText",
       "label": "Text",
       "type": "longtext",
-      "default": "Thanks for reading. Reach out to the Brand team for source files, templates and guidelines.",
+      "default": "Thanks for reading. Reach out for source files, templates and guidelines.",
       "rows": 3,
       "section": "Back page"
     },

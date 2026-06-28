@@ -22,9 +22,11 @@
 var VIEW = 1000;
 // Upper bound on the dot grid so a tiny grid size can't emit a runaway SVG.
 var MAX_CELLS = 26000;
-// A raster library asset used when the user hasn't picked an image yet, so the
-// tool shows a real halftone on first paint (resolved lazily, like the badge tool).
-var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
+// The default source image shown until the user picks one. A Lolly tool URL (the
+// bag-video tool rendered to a PNG), resolved lazily via host.compose so the tool
+// shows a real halftone on first paint. A plain catalog id still works too — the
+// resolver below branches on whether this is a URL (see compute()).
+var DEFAULT_IMAGE_ID = 'https://lolly.tools/tool/bag-video.png';
 
 // Decoded-image cache (keyed by URL). Holds the in-flight PROMISE, not just the
 // resolved image, so re-renders during the first decode share one load instead
@@ -344,7 +346,11 @@ async function compute(model) {
   if (!url) {
     if (!_defaultUrl) {
       try {
-        var def = await host.assets.get(DEFAULT_IMAGE_ID);
+        // A Lolly tool URL ("…://…") means "render that tool as the image" — go
+        // through host.compose; a plain catalog id resolves via host.assets.
+        var def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
+          ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
+          : await host.assets.get(DEFAULT_IMAGE_ID);
         _defaultUrl = def && def.url;
       } catch (e) {
         if (host.log) host.log('warn', 'filter-halftone: default image unavailable', { error: String(e) });

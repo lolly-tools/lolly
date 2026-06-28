@@ -11,7 +11,7 @@
  *   5. Action buttons call runtime.export() / host.clipboard / host.state
  */
 
-import { loadTool, createRuntime, parseUrlState, annotateTemplate, UNITS, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
+import { loadTool, createRuntime, parseUrlState, serializeUrlState, annotateTemplate, UNITS, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, buildEmbedUrl, parseToolUrl, isTokenValue } from '@lolly/engine';
 import { escape } from '../utils.js';
 import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabilities.js';
 import { announce } from '../a11y.js';
@@ -23,6 +23,7 @@ import { exportSizeDriver } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.js';
+import { getTool } from '../bridge/tool-loader.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -785,7 +786,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       }
       if (value == null || value === '') continue;
       if (typeof value === 'boolean' && !value) continue;
-      const str = String(value);
+      // A token-backed colour ({ ref, value }) serialises to its canonical token ref
+      // (mirrors the engine's coerceToString) — never String()'d into the URL as
+      // "[object Object]", which would then ride into a lolly-URL embed of this tool.
+      const str = type === 'color' && isTokenValue(value) ? value.ref : String(value);
       if (str.length > 150) continue;
       params.set(id, str);
     }
@@ -1956,6 +1960,23 @@ function renderInputs(el, model, runtime, host, onDirty) {
     });
   }
 
+  // Reflect the live fold state on each blocks input's "Collapse all" pill: when
+  // every block is already folded it offers "Expand all", otherwise "Collapse all".
+  // Called after the fold-restore pass above and after every fold change (chevron,
+  // header click, the pill itself) so the label never goes stale.
+  const syncCollapseAllPills = () => {
+    el.querySelectorAll('.blocks-input').forEach(wrap => {
+      const pill = wrap.querySelector('[data-blocks-collapse-all]');
+      if (!pill) return;
+      const blocks = [...wrap.querySelectorAll('.block-item.is-typed')];
+      const allFolded = blocks.length > 0 && blocks.every(b => b.classList.contains('is-collapsed'));
+      pill.dataset.mode = allFolded ? 'expand' : 'collapse';
+      pill.textContent = allFolded ? 'Expand all' : 'Collapse all';
+      pill.setAttribute('aria-label', allFolded ? 'Expand all blocks' : 'Collapse all blocks');
+    });
+  };
+  syncCollapseAllPills();
+
   if (focusId) {
     const restored = el.querySelector(`[data-input-id="${CSS.escape(focusId)}"]`);
     if (restored) {
@@ -2086,6 +2107,20 @@ function renderInputs(el, model, runtime, host, onDirty) {
     });
   });
 
+  // Edit a Lolly-sourced image in place: re-open the source tool's own inputs
+  // (pre-filled from the asset's stored embed URL), tweak, and re-apply the new
+  // render to this same slot. Only present when the asset carries meta.toolUrl.
+  el.querySelectorAll('[data-edit-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const editId  = btn.dataset.editId;
+      const cur     = panelModel.find(i => i.id === editId);
+      const toolUrl = cur?.value?.meta?.toolUrl;
+      if (!toolUrl || !host.compose?.renderUrl) return;
+      const ref = await openEmbedEditor(host, { editUrl: toolUrl, slotLabel: cur.label ?? editId });
+      if (ref) { runtime.setInput(editId, ref); onDirty?.(editId); }
+    });
+  });
+
   // Top-level colour inputs use the shared SUSE colour picker (swatches, native,
   // hex, alpha, popover toggle). Block-colour fields below keep their own wiring
   // since they write into a block array, not a top-level input.
@@ -2209,6 +2244,28 @@ function renderInputs(el, model, runtime, host, onDirty) {
     });
   });
 
+  // Edit a Lolly-sourced block image in place (same flow as the top-level
+  // data-edit-id handler, but writing back into the block array).
+  el.querySelectorAll('[data-block-asset-edit]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const [blockId, idxStr, fId] = btn.dataset.blockAssetEdit.split(':');
+      const idx = parseInt(idxStr, 10);
+      const inp = panelModel.find(i => i.id === blockId);
+      if (!inp) return;
+      const cur     = Array.isArray(inp.value) ? inp.value[idx]?.[fId] : null;
+      const toolUrl = cur?.meta?.toolUrl;
+      if (!toolUrl || !host.compose?.renderUrl) return;
+      const f = (inp.fields ?? []).find(x => x.id === fId) ?? {};
+      const ref = await openEmbedEditor(host, { editUrl: toolUrl, slotLabel: f.label ?? fId });
+      if (!ref) return;
+      const arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));
+      if (!arr[idx]) arr[idx] = {};
+      arr[idx][fId] = ref;
+      runtime.setInput(blockId, arr);
+      onDirty?.(blockId);
+    });
+  });
+
   // Block range sliders: hold the sidebar steady while dragging (the canvas
   // still updates live), exactly like the top-level custom slider / vector scrub.
   el.querySelectorAll('.block-range-input').forEach(r => {
@@ -2316,6 +2373,7 @@ function renderInputs(el, model, runtime, host, onDirty) {
       e.stopPropagation();                 // don't reach the header's expand/drag
       const folded = item.classList.toggle('is-collapsed');
       syncChevron(folded);
+      syncCollapseAllPills();
       // On expand, bring the revealed fields into view so the click never looks dead
       // (a lower pill's fields would otherwise open below the scroll fold).
       if (!folded) item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
@@ -2331,7 +2389,28 @@ function renderInputs(el, model, runtime, host, onDirty) {
       if (head._dragJustHappened) return;
       item.classList.remove('is-collapsed');
       syncChevron(false);
+      syncCollapseAllPills();
       item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    });
+  });
+
+  // "Collapse all / Expand all" pill: fold or unfold every block in its group at
+  // once — pure DOM toggle like the per-block chevron (renderInputs re-applies the
+  // fold state across rebuilds), so no model change and no re-render.
+  el.querySelectorAll('[data-blocks-collapse-all]').forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wrap = pill.closest('.blocks-input');
+      const fold = pill.dataset.mode !== 'expand';
+      wrap.querySelectorAll('.block-item.is-typed').forEach(item => {
+        item.classList.toggle('is-collapsed', fold);
+        const btn = item.querySelector('[data-block-collapse]');
+        btn?.setAttribute('aria-label', fold ? 'Expand block' : 'Collapse block');
+        btn?.setAttribute('title', fold ? 'Expand' : 'Collapse');
+      });
+      syncCollapseAllPills();
+      // Expanding many at once: surface the first so the change is visible.
+      if (!fold) wrap.querySelector('.block-item')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
   });
 
@@ -2433,11 +2512,20 @@ function controlHtml(input) {
       const thumb = thumbUrl
         ? `<img class="asset-picker-thumb-inline" src="${escape(thumbUrl)}" alt="">`
         : '';
+      // An image minted from a pasted Lolly link keeps its origin in meta.toolUrl —
+      // the canonical, re-renderable embed URL (see compose.renderUrl). Surface that
+      // provenance and an Edit affordance that re-opens the source tool's own inputs
+      // (openEmbedEditor) so the editor can tweak it and re-apply. Plain library /
+      // uploaded assets have no toolUrl, so they show no badge.
+      const fromTool = input.value?.meta?.toolUrl ? (input.value.meta.name ?? 'a Lolly tool') : null;
       return `<div class="asset-picker-row">
         ${thumb}
         <button type="button" class="asset-picker-trigger" data-input-id="${id}">${escape(currentLabel)}</button>
         ${hasValue ? `<button type="button" class="asset-clear" data-clear-id="${id}" aria-label="Clear selection">&#x2715;</button>` : ''}
-      </div>`;
+      </div>${fromTool ? `<div class="asset-from-tool">
+        <span class="asset-from-tool-label"><span class="asset-from-tool-spark" aria-hidden="true">&#10022;</span> from <strong>${escape(fromTool)}</strong></span>
+        <button type="button" class="asset-edit" data-edit-id="${id}">Edit</button>
+      </div>` : ''}`;
     }
     case 'file-picker': {
       // A picked file is a FileRef (bytes + metadata) the hook transforms; the
@@ -2524,10 +2612,15 @@ function controlHtml(input) {
         if (f.type === 'asset') {
           const ref = item[f.id];
           const has = ref && typeof ref === 'object' && ref.url;
+          // A block image pasted from a Lolly link is re-editable too (mirrors the
+          // top-level asset-picker case): a ✦ Edit button keyed on the same field id
+          // the picker/clear handlers use re-opens the source tool (openEmbedEditor).
+          const fromTool = ref?.meta?.toolUrl ? (ref.meta.name ?? 'a Lolly tool') : null;
           return labelled(f, `<div class="block-asset">
             <button type="button" class="block-asset-trigger" data-block-asset="${fieldId}" aria-label="${escape(f.label ?? f.id)}">
               ${has ? `<img src="${escape(ref.url)}" alt="">` : `<span>&#43; ${escape(f.label ?? 'Image')}</span>`}
             </button>
+            ${fromTool ? `<button type="button" class="block-asset-edit" data-block-asset-edit="${fieldId}" title="Edit — from ${escape(fromTool)}" aria-label="Edit image, from ${escape(fromTool)}">&#10022;</button>` : ''}
             ${has ? `<button type="button" class="block-asset-clear" data-block-asset-clear="${fieldId}" aria-label="Remove ${escape(f.label ?? 'image')}">&#x2715;</button>` : ''}
           </div>`, ' block-control--full');
         }
@@ -2635,7 +2728,14 @@ function controlHtml(input) {
         adder = `<button type="button" class="block-add" data-block-add="${id}">+ Add</button>`;
       }
 
+      // "Collapse all / Expand all" pill — only worth showing once there are
+      // several blocks to fold. Its label is kept in sync with the live fold state
+      // in renderInputs (syncCollapseAllPills); it starts as "Collapse all".
+      const collapseAll = items.length > 1
+        ? `<div class="blocks-toolbar"><button type="button" class="blocks-collapse-all" data-blocks-collapse-all="${id}" data-mode="collapse" aria-label="Collapse all blocks">Collapse all</button></div>`
+        : '';
       return `<div class="blocks-input blocks-input--cards${addMenu ? ' blocks-input--typed' : ''}" data-input-id="${id}">
+        ${collapseAll}
         <div class="blocks-list">${items.map(itemHtml).join('')}</div>
         ${adder}
       </div>`;
@@ -3529,10 +3629,14 @@ function buildShareParams(runtime, exportScope) {
       if (String(value) === String(def)) continue;
     }
 
-    let str = String(value);
+    // A token-backed colour ({ ref, value }) serialises to its canonical token ref
+    // so a shared/embedded link re-resolves against the destination's tokens — and
+    // never leaks "[object Object]" into the URL (mirrors the engine's coerceToString).
+    let str = type === 'color' && isTokenValue(value) ? value.ref : String(value);
     if (str.length > 150) continue;
 
-    // Strip # from hex colors — saves 3 encoded chars (%23) per color param.
+    // Strip # from plain hex colors — saves 3 encoded chars (%23) per color param.
+    // A token ref ({color.brand.jungle}) has no leading # and passes through as-is.
     if (type === 'color' && str.startsWith('#')) str = str.slice(1);
 
     parts.push(`${encodeURIComponent(key)}=${encodeURIComponent(str)}`);
@@ -3582,6 +3686,165 @@ function shareUrlFromParts(parts) {
   const hashBase = window.location.hash.split('?')[0];
   const qs = parts.join('&');
   return window.location.origin + window.location.pathname + hashBase + (qs ? '?' + qs : '');
+}
+
+/**
+ * Edit a Lolly-sourced image in place → Promise<AssetRef | null>.
+ *
+ * An asset minted from a pasted Lolly link records its origin as a canonical,
+ * re-renderable embed URL (meta.toolUrl — see compose.renderUrl). This overlay
+ * re-opens the SOURCE tool's own inputs, pre-filled from that URL, so an editor can
+ * make minor changes (and adjust format/size), preview live, and re-apply the new
+ * render to the same slot. Resolves to a fresh tool-sourced AssetRef (a new
+ * canonical id) or null if cancelled.
+ *
+ * Reuse, not reinvention: the source tool's controls are driven by a throwaway
+ * runtime via the SAME renderInputs/syncInputs the main sidebar uses, and every
+ * preview + the final commit go through host.compose.renderUrl(buildEmbedUrl(…)) —
+ * the SAME minting the paste flow uses. So the re-applied asset round-trips through
+ * URL mode + saved sessions exactly like the original; provenance is just the URL
+ * we already persist, nothing new is stored.
+ */
+async function openEmbedEditor(host, { editUrl, slotLabel } = {}) {
+  if (!host.compose?.renderUrl) return null;
+  const parsed = parseToolUrl(editUrl);
+  if (!parsed) return null;
+
+  let tool, desc, child;
+  try {
+    [tool, desc] = await Promise.all([getTool(parsed.toolId), host.compose._describeUrl(editUrl)]);
+    if (!tool || !desc) return null;
+    const state = parseUrlState(parsed.query, tool.manifest);
+    child = await createRuntime(tool, host, state.values);
+  } catch {
+    return null; // unknown tool / bad link → silently no-op (button shouldn't have shown)
+  }
+
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'embed-editor-overlay';
+    const fmtOptions = desc.formats.map(f =>
+      `<option value="${escape(f)}"${f === desc.format ? ' selected' : ''}>${escape(f.toUpperCase())}</option>`
+    ).join('');
+    const titleSlot = escape(slotLabel ?? 'image');
+    overlay.innerHTML = `
+      <div class="embed-editor-backdrop" aria-hidden="true"></div>
+      <div class="embed-editor-panel" role="dialog" aria-modal="true" aria-label="Edit ${titleSlot}">
+        <header class="embed-editor-head">
+          <span class="embed-editor-spark" aria-hidden="true">&#10022;</span>
+          <h2 class="embed-editor-title">Edit ${titleSlot} <span class="embed-editor-from">from ${escape(desc.name)}</span></h2>
+          <button type="button" class="embed-editor-close" aria-label="Close">&times;</button>
+        </header>
+        <div class="embed-editor-body">
+          <div class="embed-editor-form">
+            <div class="tool-inputs ee-inputs"></div>
+          </div>
+          <div class="embed-editor-side">
+            <div class="asset-picker-toolcard-controls">
+              <label>Format <select class="ee-format" aria-label="Render format">${fmtOptions}</select></label>
+              <label>Width <input type="number" class="ee-w" min="1" inputmode="numeric" placeholder="auto" value="${desc.width ?? ''}"></label>
+              <label>Height <input type="number" class="ee-h" min="1" inputmode="numeric" placeholder="auto" value="${desc.height ?? ''}"></label>
+            </div>
+            <div class="asset-picker-toolcard-preview ee-preview"><div class="asset-picker-loading">Rendering…</div></div>
+            <div class="embed-editor-actions">
+              <button type="button" class="ee-cancel">Cancel</button>
+              <button type="button" class="ee-apply" disabled>Re-apply to slot</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    // Return focus to whatever opened the editor (the Edit button) when it closes —
+    // matches the picker / export-panel convention so keyboard + AT users keep their
+    // place rather than being dropped on <body> behind the (now-removed) scrim.
+    const opener = document.activeElement;
+    document.body.appendChild(overlay);
+
+    const inputsEl  = overlay.querySelector('.ee-inputs');
+    const fmtSel    = overlay.querySelector('.ee-format');
+    const wEl       = overlay.querySelector('.ee-w');
+    const hEl       = overlay.querySelector('.ee-h');
+    const previewEl = overlay.querySelector('.ee-preview');
+    const applyBtn  = overlay.querySelector('.ee-apply');
+    // Move focus into the dialog so it's not stranded on the obscured Edit trigger.
+    overlay.querySelector('.embed-editor-close')?.focus();
+
+    let pending = null;   // the AssetRef "Re-apply" will commit
+    let renderSeq = 0;    // drop a stale render when controls change again
+    let prevModel;
+
+    // Re-serialise the child's inputs to a canonical embed URL and re-render the
+    // preview. width/height/unit/dpi ride in opts (not the query). We use the engine's
+    // LOSSLESS serializeUrlState — NOT buildShareParams, which is the share-LINK
+    // serialiser and silently drops scalars >150 chars, user/ assets and big block
+    // arrays. The original paste keeps the query verbatim, so the edit flow must too,
+    // or a long input (e.g. a QR `url`) would revert to default on re-apply and corrupt
+    // the asset. Reserved width/height inputs that serializeUrlState emits are skipped
+    // on re-parse; the effective size is carried via the opts below. renderUrl mints the id.
+    const renderPreview = async () => {
+      const seq = ++renderSeq;
+      pending = null;
+      applyBtn.disabled = true;
+      previewEl.innerHTML = `<div class="asset-picker-loading">Rendering…</div>`;
+      const query = serializeUrlState(child.getModel());
+      const url = buildEmbedUrl({ toolId: parsed.toolId, format: fmtSel.value, query });
+      const ref = url ? await host.compose.renderUrl(url, {
+        format: fmtSel.value,
+        width:  parseInt(wEl.value, 10) || undefined,
+        height: parseInt(hEl.value, 10) || undefined,
+        unit:   desc.unit ?? undefined,
+        dpi:    desc.dpi ?? undefined,
+      }).catch(() => null) : null;
+      if (seq !== renderSeq) return; // a newer change supersedes this render
+      if (!ref) {
+        previewEl.innerHTML = `<p class="asset-picker-error">Couldn't render this — the inputs may be too large to re-apply as a link.</p>`;
+        return;
+      }
+      pending = ref;
+      previewEl.innerHTML = `<img class="asset-picker-toolcard-img" src="${escape(ref.url)}" alt="Preview of the ${escape(desc.name)} render">`;
+      applyBtn.disabled = false;
+    };
+
+    let debounce;
+    const schedulePreview = () => { clearTimeout(debounce); debounce = setTimeout(renderPreview, 300); };
+
+    // The child runtime drives the source tool's input panel (the very same
+    // renderInputs/syncInputs path as the main sidebar). subscribe fires once
+    // immediately (initial render + first preview) and on every later change.
+    child.subscribe(({ model }) => {
+      if (!_sliderDragging) prevModel = syncInputs(inputsEl, model, prevModel, child, host, () => {});
+      schedulePreview();
+    });
+
+    const close = (value) => {
+      clearTimeout(debounce);
+      renderSeq++; // invalidate any in-flight preview render so it can't write to the detached overlay
+      document.removeEventListener('keydown', onKey);
+      // renderInputs registers two document-level capture listeners on the panel
+      // (colour-popover + block add-menu dismissers); drop them so the detached
+      // overlay tree isn't pinned alive (mirrors mountTool's _cleanup).
+      if (inputsEl._colorPopoverDismiss) document.removeEventListener('click', inputsEl._colorPopoverDismiss, true);
+      if (inputsEl._blockMenuDismiss)    document.removeEventListener('click', inputsEl._blockMenuDismiss, true);
+      // A child datetime input's flatpickr appends its calendar to <body> and registers
+      // its own document/window listeners — removed only by destroy(). overlay.remove()
+      // detaches the input but not the body-level calendar, so tear them down explicitly
+      // (else repeated edits of a date-bearing source tool orphan calendars + retain the
+      // child runtime via flatpickr's listener roots).
+      inputsEl.querySelectorAll('.fp-datetime').forEach(c => c._flatpickr?.destroy());
+      overlay.remove();
+      if (opener instanceof HTMLElement) opener.focus();
+      resolve(value);
+    };
+    const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); close(null); } };
+    document.addEventListener('keydown', onKey);
+
+    overlay.querySelector('.embed-editor-backdrop').addEventListener('click', () => close(null));
+    overlay.querySelector('.embed-editor-close').addEventListener('click', () => close(null));
+    overlay.querySelector('.ee-cancel').addEventListener('click', () => close(null));
+    applyBtn.addEventListener('click', () => { if (pending) close(pending); });
+    fmtSel.addEventListener('change', renderPreview);
+    wEl.addEventListener('input', schedulePreview);
+    hEl.addEventListener('input', schedulePreview);
+  });
 }
 
 // Clipboard write with the legacy textarea fallback (older/locked-down browsers).

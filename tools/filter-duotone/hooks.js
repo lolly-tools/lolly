@@ -3,7 +3,9 @@
 // A raster library asset shown when the user hasn't picked an image yet, so the
 // tool demonstrates the effect on load. Same default as filter-scanline /
 // filter-halftone, kept in sync deliberately.
-var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
+// A Lolly tool URL (bag-video → PNG), resolved via host.compose. A plain catalog
+// id still works (the resolver below branches on whether this is a URL).
+var DEFAULT_IMAGE_ID = 'https://lolly.tools/tool/bag-video.png';
 
 // Resolved URL of the demo default asset, cached so repeated input changes don't
 // re-fetch it. Stays null until the first lookup succeeds.
@@ -41,7 +43,13 @@ async function patch({ model }) {
   // user's own pick and {{defaultImageUrl}} for this fallback.
   if (!inputs.bgImage) {
     if (!_defaultUrl) {
-      try { const def = await host.assets.get(DEFAULT_IMAGE_ID); _defaultUrl = def && def.url; }
+      try {
+        // Tool URL → render via compose; plain catalog id → host.assets.
+        const def = (DEFAULT_IMAGE_ID.indexOf('://') !== -1)
+          ? (host.compose && host.compose.renderUrl ? await host.compose.renderUrl(DEFAULT_IMAGE_ID) : null)
+          : await host.assets.get(DEFAULT_IMAGE_ID);
+        _defaultUrl = def && def.url;
+      }
       catch (e) { if (host.log) host.log('warn', 'filter-duotone: default image unavailable', { error: String(e) }); }
     }
     if (_defaultUrl) out.defaultImageUrl = _defaultUrl;
