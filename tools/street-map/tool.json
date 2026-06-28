@@ -97,7 +97,7 @@
       "label": "Minor road weight",
       "type": "number",
       "display": "slider",
-      "default": 1,
+      "default": 6.02,
       "min": 0.25,
       "max": 24,
       "step": 0.01,
@@ -108,7 +108,7 @@
       "label": "Major road weight",
       "type": "number",
       "display": "slider",
-      "default": 1,
+      "default": 5.46,
       "min": 0.25,
       "max": 24,
       "step": 0.01,
@@ -125,7 +125,7 @@
       "label": "Waterway weight",
       "type": "number",
       "display": "slider",
-      "default": 1,
+      "default": 6.72,
       "min": 0.25,
       "max": 30,
       "step": 0.01,
@@ -135,21 +135,21 @@
       "id": "roadColor",
       "label": "Road color",
       "type": "color",
-      "default": "",
+      "default": "{color.ramp.pine.3}",
       "help": "Leave empty to use the theme's default."
     },
     {
       "id": "waterColor",
       "label": "Water color",
       "type": "color",
-      "default": "",
+      "default": "{color.ramp.pine.7}",
       "help": "Leave empty to use the theme's default."
     },
     {
       "id": "background",
       "label": "Background",
       "type": "color",
-      "default": "",
+      "default": "{color.brand.white}",
       "help": "Leave empty to use the theme's default."
     },
     {

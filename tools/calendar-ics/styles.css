@@ -112,15 +112,14 @@
   min-width: 0;
 }
 
+/* Icon paint (fill/stroke) lives as inline presentation attributes on each
+   <svg> in template.html, not here — so it survives the SVG export's verbatim
+   inline-<svg> clone (CSS rules don't travel into a standalone .svg file). This
+   keeps the SVG export identical to the PNG. Only layout/sizing stays in CSS. */
 .cal-meta svg {
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
-  fill: none;
-  stroke: #30ba78;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 .cal-link span {

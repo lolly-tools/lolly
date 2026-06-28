@@ -225,6 +225,23 @@ export async function mountGallery(viewEl, host) {
 
   const pillbar    = viewEl.querySelector('.filter-pop-pills'); // category pills now live in the filter popover
   const masonry    = viewEl.querySelector('.tool-masonry');
+
+  // A demo preview can be absent — it's a build artifact (catalog/previews/), not
+  // committed, so on a fresh install / before `npm run previews` it 404s. The hero
+  // img then errors; gracefully morph it into the plain "open to start" tile (same
+  // visual as a tool with no preview) so the card never shows a broken image. Error
+  // events don't bubble, so listen in the capture phase. Saved-session thumbs are
+  // data: URLs and never hit this path.
+  masonry?.addEventListener('error', (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || !img.classList.contains('gtile-hero-img')) return;
+    const hero = img.closest('.gtile-hero--preview');
+    if (!hero) return; // a saved-session hero failing is handled elsewhere; only demo previews morph
+    hero.classList.remove('gtile-hero', 'gtile-hero--preview');
+    hero.classList.add('gtile-tile');
+    hero.innerHTML = '<span class="gtile-tile-txt">No saved sessions yet.  Open to start</span>';
+  }, true);
+
   const searchInput = viewEl.querySelector('.gallery-search');
   const searchStatus = viewEl.querySelector('.gallery-search-status');
   const filterFab  = viewEl.querySelector('.filter-fab');

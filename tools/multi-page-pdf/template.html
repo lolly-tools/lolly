@@ -11,7 +11,10 @@
     overflow-y: auto;
     overflow-x: hidden;
     background: transparent;
-    padding: var(--gap) 0;
+    /* No top padding — the first page sits flush at the canvas top, like every other
+       tool. Pages are separated by each page's own margin-bottom; a small bottom gap
+       keeps the last page's shadow / scroll end from clipping. */
+    padding: 0 0 var(--gap);
     font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
   }

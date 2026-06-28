@@ -1582,17 +1582,42 @@ function parseGradientAngle(token) {
   return Math.PI;
 }
 
+// Splits a CSS value on top-level whitespace, respecting nested parens — so the
+// commas/spaces *inside* rgb(48, 186, 120) stay together while the SPACE between a
+// colour and its position separates them. (splitCssArgs only splits commas, which
+// can't separate the space-delimited "<color> <position>" of a computed gradient
+// stop — getComputedStyle serialises stops as e.g. "rgb(48, 186, 120) 0%".)
+function splitTopLevelWs(str) {
+  const out = []; let depth = 0, cur = '';
+  for (const ch of str) {
+    if (ch === '(') { depth++; cur += ch; }
+    else if (ch === ')') { depth--; cur += ch; }
+    else if (depth === 0 && /\s/.test(ch)) { if (cur) { out.push(cur); cur = ''; } }
+    else cur += ch;
+  }
+  if (cur) out.push(cur);
+  return out;
+}
+
 // Parses one gradient colour-stop into { colorStr, opacity, offset }.
 // Supports hex, rgb/rgba, and "transparent". Named colours return colorStr: null.
+// A computed stop is "<color> <position?>" with the position SPACE-separated from
+// the colour (e.g. "rgb(48, 186, 120) 0%"); the colour itself may contain commas
+// and spaces inside its parens, so tokens are split on top-level whitespace and
+// any trailing length/percent tokens are peeled off as the position.
 function parseGradientStop(raw, index, total) {
-  const parts   = splitCssArgs(raw);
-  const last    = parts[parts.length - 1].trim();
-  const hasPos  = /^[\d.]+(px|%)$/.test(last);
-  const colorRaw = (hasPos && parts.length > 1 ? parts.slice(0, -1) : parts).join(',').trim().toLowerCase();
-  const offset  = hasPos
-    ? (last.endsWith('%') ? last : parseFloat(last) + 'px')
+  const tokens = splitTopLevelWs(raw.trim());
+  const positions = [];
+  while (tokens.length && /^-?[\d.]+(px|%)$/.test(tokens[tokens.length - 1])) {
+    positions.unshift(tokens.pop());
+  }
+  const colorRaw = tokens.join(' ').trim().toLowerCase();
+  const pos = positions[0];
+  const offset = pos
+    ? (pos.endsWith('%') ? pos : parseFloat(pos) + 'px')
     : `${((index / Math.max(total - 1, 1)) * 100).toFixed(2)}%`;
 
+  if (!colorRaw)                  return { colorStr: null, opacity: 1, offset }; // bare position = colour hint
   if (colorRaw === 'transparent') return { colorStr: 'rgba(0,0,0,0)', opacity: 0, offset };
   if (colorRaw.startsWith('#'))   return { colorStr: colorRaw, opacity: 1, offset };
   if (colorRaw.startsWith('rgb')) {

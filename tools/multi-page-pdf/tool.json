@@ -184,7 +184,7 @@
       "id": "backEmail",
       "label": "Email",
       "type": "text",
-      "default": "brand@suse.com",
+      "default": "contact@suse.com",
       "bindToProfile": "email",
       "section": "Back page"
     },
