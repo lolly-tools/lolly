@@ -325,14 +325,19 @@ async function render(root, host, opts, resolve) {
   }
 }
 
-// Constrain the offered child-render formats to the slot's asset type — a 'vector'
-// slot only makes sense as SVG, a 'raster' slot as a bitmap. Falls back to the full
-// list if the constraint would leave nothing (an <img> slot still accepts either).
+// Constrain the offered child-render formats to the slot's asset type. A 'vector'
+// slot semantically wants vector (e.g. an inline-recolourable logo) → restrict to
+// SVG. Every OTHER slot — including 'raster' — accepts an SVG render fine: it shows
+// as an <img>, stays crisp and inlines as true vector in SVG/PDF export, and
+// rasterises cleanly for PNG. So offer all image formats and let SVG be the default
+// (describeUrl prefers it). assetType constrains the LIBRARY picker, not what format
+// a tool RENDER should take. Falls back to the full list if a constraint empties it.
 function formatsForType(formats, type) {
-  let out = formats;
-  if (type === 'vector') out = formats.filter(f => f === 'svg');
-  else if (type === 'raster') out = formats.filter(f => f !== 'svg');
-  return out.length ? out : formats;
+  if (type === 'vector') {
+    const svgOnly = formats.filter(f => f === 'svg');
+    return svgOnly.length ? svgOnly : formats;
+  }
+  return formats;
 }
 
 function card(ref) {
