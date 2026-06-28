@@ -313,12 +313,27 @@ footer{text-align:right;}
   justify-content: center;
 }
 
+/* Relative box so the magnifier can sit inside the (centered, max-width) field. */
+.gallery-search-box {
+  position: relative;
+  width: 100%;
+  max-width: 28rem;
+}
+.gallery-search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+.gallery-search-icon svg { width: 16px; height: 16px; }
 
 .gallery-search {
   width: 100%;
   min-width:4em;
-  max-width: 28rem;
-  padding: 8px 12px;
+  padding: 8px 12px 8px 34px;   /* left room for the magnifier */
   font: inherit;
   font-size: 13px;
   background: hsl(var(--background));
@@ -337,6 +352,14 @@ footer{text-align:right;}
   font-size: 13px;
   color: hsl(var(--muted-foreground));
   padding: 8px 0;
+}
+
+/* Phones: stack the footer instead of cramming Pro · search · What? on one row —
+   full-width search on top, the two links sharing the row beneath it. */
+@media (max-width: 640px) {
+  .gallery-footer { flex-wrap: wrap; gap: .5rem .6rem; }
+  .gallery-search-wrap { flex-basis: 100%; order: -1; }
+  .gallery-footer > .btn { flex: 1; }
 }
 
 /* Empty state: every tool category is hidden (or there are none). */
@@ -419,12 +442,13 @@ footer{text-align:right;}
   animation: none;
 }
 
-/* Visual feedback on the element that triggered navigation while the tool loads. */
+/* Visual feedback on the element that triggered navigation while the tool loads.
+   Opacity-only — a transform here (scale) reflows the masonry's column packing,
+   so the card appears to resize/jump on tap rather than fade. */
 .is-navigating {
   opacity: 0.45;
-  scale: 0.97;
   pointer-events: none;
-  transition: opacity 0.15s, scale 0.15s;
+  transition: opacity 0.15s;
 }
 .tool-grid .tool-card:nth-child(1),  .saved-list .tool-card:nth-child(1)  { animation-delay: 0.00s; }
 .tool-grid .tool-card:nth-child(2),  .saved-list .tool-card:nth-child(2)  { animation-delay: 0.05s; }
@@ -672,23 +696,106 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   .gallery-view.has-masonry { display: block; grid-template-columns: none; }
 }
 
-/* Sticky category filter pills. Any flag mix just shortens this row. */
-.gallery-pillbar {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+/* ── Filter control — a FAB in the top-right cluster that opens the category
+   pills + the Hide-previews toggle (replaces the old sticky pill bar). The FAB
+   mirrors .history-fab so the cluster reads as one set. ── */
+.filter-fab {
+  position: relative;
+  display: inline-flex;
   align-items: center;
-  /* Right padding reserves space for the fixed history/profile cluster so pills
-     never tuck under it; solid-ish fill so scrolled cards don't bleed through. */
-    padding: 12px clamp(7rem, 14vw, 12rem) 14px 1em;
-  margin-bottom: 4px;
-  background: hsl(var(--background) / 0.92);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  justify-content: center;
+  width: 2.9em;
+  height: 2.9em;
+  padding: 0;
+  border: 1px solid hsl(var(--primary));
+  border-radius: 50%;
+  background: hsl(var(--background) / 0.5);
+  color: hsl(var(--primary));
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  transition: background 0.12s, color 0.12s;
 }
+.filter-fab:hover,
+.filter-fab[aria-expanded="true"] { background: hsl(var(--primary) / 0.14); }
+.filter-fab svg { width: 18px; height: 18px; }
+/* Dot marking a non-default category filter. */
+.filter-fab.has-active::after {
+  content: "";
+  position: absolute;
+  top: -1px; right: -1px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  border: 2px solid hsl(var(--background));
+}
+
+/* Desktop: anchored dropdown under the cluster (right-aligned so it stays on
+   screen). .gallery-topright is position:fixed, i.e. the containing block. */
+.filter-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 100;
+  width: min(280px, calc(100vw - 3em));
+  padding: 12px;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 10px 28px hsl(0 0% 0% / 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-align: left;
+}
+.filter-popover[hidden] { display: none; }
+.filter-pop-head {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: hsl(var(--muted-foreground));
+}
+.filter-pop-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+.filter-pop-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid hsl(var(--border));
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.filter-pop-check input { width: 18px; height: 18px; flex: none; cursor: pointer; accent-color: hsl(var(--primary)); }
+
+.filter-backdrop { display: none; }
+
+/* Mobile: the popover becomes a bottom sheet with a tap-to-close scrim. */
+@media (max-width: 640px) {
+  .filter-popover {
+    position: fixed;
+    inset: auto 0 0 0;
+    width: auto;
+    z-index: 100000;
+    border-radius: 18px 18px 0 0;
+    padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+    box-shadow: 0 -10px 32px hsl(0 0% 0% / 0.32);
+    animation: filter-sheet-up 0.18s ease both;
+  }
+  .filter-backdrop:not([hidden]) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: hsl(0 0% 0% / 0.4);
+  }
+}
+@keyframes filter-sheet-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
 .gallery-pill {
   border: 1px solid hsl(var(--border));
   background: hsl(var(--card));
@@ -715,11 +822,19 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   --cols: 4;
   column-count: min(var(--cols), var(--items, 99));
   column-gap: 14px;
-  padding:1rem;
+  /* Top padding clears the fixed top-right cluster (filter / saved / profile) now
+     that the sticky pill bar — which used to hold this space — is gone. */
+  padding: 3.6rem 1rem 1rem;
 }
 @media (max-width: 1180px) { .tool-masonry { --cols: 3; } }
 @media (max-width: 820px)  { .tool-masonry { --cols: 2; } }
 @media (max-width: 520px)  { .tool-masonry { --cols: 1; } }
+/* Tighter side gutters + a little more top room for the cluster on phones. */
+@media (max-width: 640px)  { .tool-masonry { padding: 4.2rem .6rem 1rem; } }
+
+/* "Hide previews" toggle (filter popover): collapse the demo-preview heroes to
+   the compact card body. Saved-session heroes (.gtile-hero, no --preview) stay. */
+.tool-masonry.hide-previews .gtile-hero--preview { display: none; }
 @media (min-width: 1500px) { .tool-masonry { --cols: 5; } }
 @media (min-width: 1800px) { .tool-masonry { --cols: 6; } }
 @media (min-width: 2100px) { .tool-masonry { --cols: 7; } }
@@ -1197,10 +1312,9 @@ a.gtile-name:focus-visible::after {
 
 .sidebar-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 8px 0 14px;
-    height: 48px;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 8px 10px;
     border-bottom: 1px solid hsl(var(--border));
     flex-shrink: 0;
     gap: 8px;
@@ -1215,6 +1329,15 @@ a.gtile-name:focus-visible::after {
     backdrop-filter: blur(5px);
     width: 100%;
     box-shadow: inset 0 -1px #fff1, 0 .1em .6em #0002, 0 .1em .2em #0002;
+}
+
+/* Second row of the sidebar header: tool title (left, truncating) + expand toggle
+   (right). The back pill sits centered on the row above this. */
+.sidebar-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .sidebar-title {
@@ -1390,9 +1513,11 @@ a.gtile-name:focus-visible::after {
 }
 
 .home-full {
-  display: block;
-  padding: 10px 12px;
-  position:absolute;
+  /* inline-flex (not block) so it inherits the base .tools-home pill layout —
+     rounded, filled, with the ← / label gap — matching the sidebar back pill. */
+  display: inline-flex;
+  padding: 9px 18px;
+  position: absolute;
 }
 
 /* Shared "← Tools" return pill — fixed top-left corner. Used identically on the
@@ -2510,11 +2635,13 @@ background-color:hsl(var(--background) / 1);
     display: block;
     height: 100dvh;
     --sheet-h: 50dvh;                 /* default; overridden per data-sheet state */
-    /* Clearance below the peek bar (56px) so the preview doesn't run up under it.
+    /* Clearance below the peek bar so the preview doesn't run up under it. Driven
+       by --peek-h (the measured header height, set in setupMobileSheet) so the
+       taller two-row header still fully shows in peek; 56px is the fallback.
        Static — independent of the sheet height — so the preview never rescales. */
-    --preview-top: calc(56px + 0dvh);
+    --preview-top: calc(var(--peek-h, 56px) + 0dvh);
   }
-  .tool-layout[data-sheet="peek"] { --sheet-h: 56px; }
+  .tool-layout[data-sheet="peek"] { --sheet-h: var(--peek-h, 56px); }
   .tool-layout[data-sheet="half"] { --sheet-h: 50dvh; }
   .tool-layout[data-sheet="full"] { --sheet-h: 90dvh; }
 
@@ -4325,22 +4452,36 @@ a.storage-indicator:hover { opacity: 1; }
 }
 
 .tools-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-weight: 600;
+  font-size: 13px;
   cursor: pointer;
-  z-index: 99999;
+  z-index: 9;
   background-color: hsl(var(--foreground));
   color: hsl(var(--primary-foreground));
-  z-index:9;
   top: 2em;
   left: 2em;
-  padding: 7px 20px;
-  border-radius: var(--radius);
+  padding: 8px 18px;
+  border-radius: 999px;            /* pill */
   text-decoration: none;
+  transition: filter 0.12s, background 0.12s;
 }
+.tools-home:hover { filter: brightness(1.12); }
 
 .tools-home:before {
   content: "←";
-  ;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Sidebar back button: a centered pill on its own row above the title/expand row
+   (see .sidebar-header column layout). The filled .tools-home base gives the pill
+   look; this just places it. */
+.tools-home.sidebar-back {
+  align-self: center;
+  flex: none;
 }
 
 .profile-link {
@@ -4857,7 +4998,22 @@ span.flatpickr-weekday {
   .unsaved-cancel:hover {
     background: hsl(var(--accent));
   }
-  
+
+  /* On mobile the three actions wrap awkwardly with space-between (uneven rows,
+     a lone button). Stack them full-width with comfortable tap targets; the
+     primary "Save & leave" stays on top. */
+  @media (max-width: 640px) {
+    .unsaved-dialog-actions {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    .unsaved-dialog-actions button {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
   .clear-inputs-btn {
     appearance: none;
     border: 1px solid hsl(var(--border));
@@ -5042,21 +5198,33 @@ button {
   .fullscreen-toggle,
   .stage-nav-btn,
   .export-popup-close { min-height: 44px; min-width: 44px; }
+
+  /* Gallery touch targets: category pills (in the filter popover), the back
+     pill, the per-card icon buttons, the profile pill, and footer links. */
+  .gallery-pill,
+  .tools-home,
+  .gallery-footer .btn { min-height: 44px; }
+  .gallery-footer .btn { display: inline-flex; align-items: center; justify-content: center; }
+  .gtile-iconbtn { width: 44px; height: 44px; }
+  .profile-link { padding-top: 14px; padding-bottom: 14px; }
+  /* The top-right cluster FABs (2.9em ≈ 39px) need bumping to 44px too. */
+  .filter-fab,
+  .history-fab { min-width: 44px; min-height: 44px; }
 }
 
-/* "Platform" entry pill — fixed top-right of the profile page, mirroring the
-   top-left "Tools" return pill. Secondary treatment so the back button stays the
-   primary action. */
-/* The Capabilities + Platform shortcuts share one fixed row in the corner. */
-.profile-meta-links {
-  position: fixed;
-  top: 1.25rem;
-  right: 1.25rem;
-  z-index: 100;
+/* Capabilities + Platform shortcuts — a centered footer row at the bottom of the
+   profile content (they used to be a fixed top-right cluster). The links default
+   to position:fixed below, so neutralise that inside the row. */
+.profile-bottom-links {
   display: flex;
-  gap: .5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-top: .5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(var(--border));
 }
-.profile-meta-links .profile-platform-link { position: static; top: auto; right: auto; }
+.profile-bottom-links .profile-platform-link { position: static; top: auto; right: auto; }
 .profile-platform-link {
   position: fixed;
   top: 1.25rem;

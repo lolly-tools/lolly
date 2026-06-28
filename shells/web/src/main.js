@@ -240,6 +240,35 @@ boot().catch(err => {
   view.textContent = '';
   const div = document.createElement('div');
   div.className = 'error';
-  div.textContent = `Boot failed: ${err.message}`;
+  const msg = document.createElement('p');
+  msg.style.margin = '0';
+  msg.textContent = `Boot failed: ${err.message}`;
+  div.appendChild(msg);
+
+  // A locked/wedged database is recoverable: once the offending tab (or a page
+  // frozen in the bfcache) closes, a reload boots cleanly. The common trigger is
+  // a DB version upgrade blocked by an older tab. Rather than dead-ending here,
+  // offer a Reload button AND auto-reload once when this page next regains
+  // visibility — i.e. the moment the user switches back after closing the other
+  // tab — so recovery doesn't depend on them knowing to reload manually.
+  if (err && (err.code === 'DB_BLOCKED' || err.code === 'DB_OPEN_TIMEOUT')) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn';
+    btn.textContent = 'Reload';
+    btn.style.marginTop = '10px';
+    btn.addEventListener('click', () => window.location.reload());
+    div.appendChild(btn);
+
+    let retried = false;
+    const retry = () => {
+      if (retried || document.visibilityState !== 'visible') return;
+      retried = true; // one automatic attempt, then leave it to the button
+      window.location.reload();
+    };
+    document.addEventListener('visibilitychange', retry);
+    window.addEventListener('focus', retry);
+  }
+
   view.appendChild(div);
 });

@@ -1,4 +1,13 @@
-/* global onInit, onInput */
+/* global onInit, onInput, host */
+
+// A raster library asset shown when the user hasn't picked an image yet, so the
+// tool demonstrates the effect on load. Same default as filter-scanline /
+// filter-halftone, kept in sync deliberately.
+var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
+
+// Resolved URL of the demo default asset, cached so repeated input changes don't
+// re-fetch it. Stays null until the first lookup succeeds.
+var _defaultUrl = null;
 
 function hexToChannels(hex) {
   const c = (hex || '#000000').replace('#', '');
@@ -23,9 +32,22 @@ function buildDuo(inputs) {
   };
 }
 
-function patch({ model }) {
+async function patch({ model }) {
   const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
-  return buildDuo(inputs);
+  const out = buildDuo(inputs);
+
+  // No image picked → fall back to the shared demo image (resolved once), exposed
+  // to the template as an extra. The template uses {{asset bgImage}} for the
+  // user's own pick and {{defaultImageUrl}} for this fallback.
+  if (!inputs.bgImage) {
+    if (!_defaultUrl) {
+      try { const def = await host.assets.get(DEFAULT_IMAGE_ID); _defaultUrl = def && def.url; }
+      catch (e) { if (host.log) host.log('warn', 'filter-duotone: default image unavailable', { error: String(e) }); }
+    }
+    if (_defaultUrl) out.defaultImageUrl = _defaultUrl;
+  }
+
+  return out;
 }
 
 function onInit(ctx) {

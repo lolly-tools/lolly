@@ -35,7 +35,7 @@
       "id": "colorBg",
       "label": "Highlight color",
       "type": "color",
-      "default": "#30ba78"
+      "default": "#000000"
     },
     {
       "id": "imageFraming",

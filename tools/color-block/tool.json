@@ -96,7 +96,7 @@
           "id": "logoOrient",
           "label": "Logo lockup",
           "type": "select",
-          "default": "horizontal",
+          "default": "stacked",
           "showFor": ["logo"],
           "options": [
             { "value": "horizontal", "label": "Horizontal" },
@@ -107,7 +107,7 @@
           "id": "logoColor",
           "label": "Logo colour",
           "type": "select",
-          "default": "mono",
+          "default": "green",
           "showFor": ["logo"],
           "options": [
             { "value": "mono",  "label": "Mono — black / white" },
@@ -120,7 +120,7 @@
           "type": "number",
           "display": "slider",
           "help": "Share of the cell the mark fills — the rest is even clearspace.",
-          "min": 0.4, "max": 0.95, "step": 0.05, "default": 0.8,
+          "min": 0.4, "max": 0.95, "step": 0.05, "default": 0.9,
           "showFor": ["logo"]
         },
         {
@@ -158,9 +158,8 @@
       ],
       "default": [
         { "kind": "logo",       "logoOrient": "horizontal", "logoColor": "mono", "bgColor": "#0c322c", "logoSize": 0.8 },
-        { "kind": "heading",    "text": "Build once.",   "bgColor": "#30ba78", "scale": 1, "weight": 700 },
-        { "kind": "subheading", "text": "Ship anywhere.", "bgColor": "#90ebcd", "scale": 1, "weight": 400 },
-        { "kind": "blank",      "text": "",              "bgColor": "#01564a", "scale": 1, "weight": 400 }
+        { "kind": "heading",    "text": "Choice.",   "bgColor": "#30ba78", "scale": 1, "weight": 900 },
+        { "kind": "subheading", "text": "", "bgColor": "#90ebcd", "scale": 1, "weight": 400 }
       ]
     }
   ]

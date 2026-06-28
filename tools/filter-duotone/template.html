@@ -12,17 +12,28 @@
 
   <rect id="duo-bg" width="100%" height="100%" fill="{{colorBg}}"/>
 
-  {{#if bgImage}}
   <!-- Declarative default = a centred "cover" fill of the whole canvas. The script
        below upgrades this to object-fit:cover + object-position (Zoom / Position
        X / Position Y) once the image's natural size is known (browser only); in
-       headless renders it stays a centred cover. -->
+       headless renders it stays a centred cover. The user's own pick wins;
+       otherwise the shared demo image ({{defaultImageUrl}}, resolved in hooks.js)
+       fills in so the effect shows on load. -->
+  {{#if bgImage}}
   <image id="duo-img"
     filter="url(#duo)"
     preserveAspectRatio="xMidYMid slice"
     href="{{asset bgImage}}"
     x="0" y="0" width="100%" height="100%"
     data-zoom="{{imageFraming.zoom}}" data-posx="{{imageFraming.x}}" data-posy="{{imageFraming.y}}"/>
+  {{else}}
+  {{#if defaultImageUrl}}
+  <image id="duo-img"
+    filter="url(#duo)"
+    preserveAspectRatio="xMidYMid slice"
+    href="{{defaultImageUrl}}"
+    x="0" y="0" width="100%" height="100%"
+    data-zoom="{{imageFraming.zoom}}" data-posx="{{imageFraming.x}}" data-posy="{{imageFraming.y}}"/>
+  {{/if}}
   {{/if}}
 </svg>
 <script>
