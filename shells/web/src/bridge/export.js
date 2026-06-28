@@ -1046,13 +1046,8 @@ async function renderSvgFromHtml(node, opts) {
     if (opacity < 0.999) g.setAttribute('opacity', opacity.toFixed(4));
     parentG.appendChild(g);
 
-    // ── Border radius ───────────────────────────────────────────────────────
-    const rx = Math.max(
-      parseCssLen(style.borderTopLeftRadius,     w),
-      parseCssLen(style.borderTopRightRadius,    w),
-      parseCssLen(style.borderBottomLeftRadius,  w),
-      parseCssLen(style.borderBottomRightRadius, w),
-    );
+    // ── Border radius (CSS corner-overlap clamped → pill, not ellipse) ───────
+    const [rx, ry] = effectiveRadius(style, w, h);
 
     // ── Background ──────────────────────────────────────────────────────────
     const bgImg = style.backgroundImage;
@@ -1060,7 +1055,7 @@ async function renderSvgFromHtml(node, opts) {
       const gradEl = buildLinearGradientEl(NS, bgImg, x, y, w, h, ++uid);
       if (gradEl) {
         defs.appendChild(gradEl);
-        g.appendChild(makeSvgRect(NS, x, y, w, h, rx, `url(#svggrad-${uid})`));
+        g.appendChild(makeSvgRect(NS, x, y, w, h, rx, `url(#svggrad-${uid})`, ry));
       }
     } else {
       const bgRgb = parseCssColorFull(style.backgroundColor);
@@ -1068,7 +1063,7 @@ async function renderSvgFromHtml(node, opts) {
         const fill = bgRgb[3] < 1
           ? `rgba(${bgRgb[0]},${bgRgb[1]},${bgRgb[2]},${bgRgb[3]})`
           : `rgb(${bgRgb[0]},${bgRgb[1]},${bgRgb[2]})`;
-        g.appendChild(makeSvgRect(NS, x, y, w, h, rx, fill));
+        g.appendChild(makeSvgRect(NS, x, y, w, h, rx, fill, ry));
       }
     }
 
@@ -1094,7 +1089,9 @@ async function renderSvgFromHtml(node, opts) {
       r.setAttribute('y', String(y + lw / 2));
       r.setAttribute('width',  String(Math.max(0, w - lw)));
       r.setAttribute('height', String(Math.max(0, h - lw)));
+      // Border-box radius for the centred stroke = corner radius − half border.
       if (rx > 0) r.setAttribute('rx', String(Math.max(0, rx - lw / 2)));
+      if (ry > 0) r.setAttribute('ry', String(Math.max(0, ry - lw / 2)));
       r.setAttribute('fill', 'none');
       r.setAttribute('stroke', rgbStr(bT.rgb));
       r.setAttribute('stroke-width', String(lw));
@@ -1372,12 +1369,9 @@ function pseudoDescriptor(el, name) {
   const oy = cbRect.top  + (parseFloat(cbStyle.paddingTop)  || 0);
   const left = parseFloat(ps.left);
   const top  = parseFloat(ps.top);
-  const rx = Math.max(
-    parseCssLen(ps.borderTopLeftRadius,     w), parseCssLen(ps.borderTopRightRadius,    w),
-    parseCssLen(ps.borderBottomLeftRadius,  w), parseCssLen(ps.borderBottomRightRadius, w),
-  );
+  const [rx, ry] = effectiveRadius(ps, w, h);
   return {
-    text, bg, rx, w, h, ps,
+    text, bg, rx, ry, w, h, ps,
     x: ox + (isFinite(left) ? left : 0),
     y: oy + (isFinite(top)  ? top  : 0),
   };
@@ -1394,7 +1388,7 @@ async function svgPseudoContent(NS, parentG, rootRect, el, vectorText) {
       const f = ds.bg[3] < 1
         ? `rgba(${ds.bg[0]},${ds.bg[1]},${ds.bg[2]},${ds.bg[3]})`
         : `rgb(${ds.bg[0]},${ds.bg[1]},${ds.bg[2]})`;
-      parentG.appendChild(makeSvgRect(NS, x, y, ds.w, ds.h, ds.rx, f));
+      parentG.appendChild(makeSvgRect(NS, x, y, ds.w, ds.h, ds.rx, f, ds.ry));
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
@@ -1437,13 +1431,15 @@ async function svgPseudoContent(NS, parentG, rootRect, el, vectorText) {
   }
 }
 
-function makeSvgRect(NS, x, y, w, h, rx, fill) {
+function makeSvgRect(NS, x, y, w, h, rx, fill, ry = rx) {
   const r = document.createElementNS(NS, 'rect');
   r.setAttribute('x',      String(x));
   r.setAttribute('y',      String(y));
   r.setAttribute('width',  String(w));
   r.setAttribute('height', String(h));
-  if (rx > 0) { r.setAttribute('rx', String(rx)); r.setAttribute('ry', String(rx)); }
+  // rx/ry are already CSS-clamped by effectiveRadius (rx≤w/2, ry≤h/2), so the SVG
+  // renderer won't re-clamp them per-axis into an ellipse. Emit both axes.
+  if (rx > 0 || ry > 0) { r.setAttribute('rx', String(rx)); r.setAttribute('ry', String(ry)); }
   r.setAttribute('fill', fill);
   return r;
 }
@@ -2368,19 +2364,20 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
     const h = rect.height * scaleY;
 
     // ── Background fill ───────────────────────────────────────────────────────
-    const rTL = parseCssLen(style.borderTopLeftRadius,     rect.width)  * scaleX;
-    const rTR = parseCssLen(style.borderTopRightRadius,    rect.width)  * scaleX;
-    const rBL = parseCssLen(style.borderBottomLeftRadius,  rect.width)  * scaleX;
-    const rBR = parseCssLen(style.borderBottomRightRadius, rect.width)  * scaleX;
-    const rx  = Math.max(rTL, rTR, rBL, rBR);
+    // CSS corner-overlap clamped (rx≤w/2, ry≤h/2) so a huge border-radius renders
+    // as a pill, not an ellipse — jsPDF.roundedRect would otherwise clamp each
+    // axis independently. Resolved in CSS px then scaled per axis.
+    const [rxCss, ryCss] = effectiveRadius(style, rect.width, rect.height);
+    const rx = rxCss * scaleX;
+    const ry = ryCss * scaleY;
     const bgImg = style.backgroundImage;
     const bgRgb = (bgImg && bgImg !== 'none')
       ? sampleGradientMidpoint(bgImg)
       : parseCssColor(style.backgroundColor);
     if (bgRgb) {
       pdf.setFillColor(bgRgb[0], bgRgb[1], bgRgb[2]);
-      rx > 0
-        ? pdf.roundedRect(x, y, w, h, rx, rx, 'F')
+      (rx > 0 || ry > 0)
+        ? pdf.roundedRect(x, y, w, h, rx, ry, 'F')
         : pdf.rect(x, y, w, h, 'F');
     }
 
@@ -2405,8 +2402,8 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
       pdf.setDrawColor(bT.rgb[0], bT.rgb[1], bT.rgb[2]);
       pdf.setLineWidth(lw);
       // CSS border-box: the border sits inside w×h; jsPDF strokes centred, so inset by lw/2.
-      rx > 0
-        ? pdf.roundedRect(x + lw / 2, y + lw / 2, w - lw, h - lw, rx, rx, 'S')
+      (rx > 0 || ry > 0)
+        ? pdf.roundedRect(x + lw / 2, y + lw / 2, w - lw, h - lw, Math.max(0, rx - lw / 2), Math.max(0, ry - lw / 2), 'S')
         : pdf.rect(x + lw / 2, y + lw / 2, w - lw, h - lw, 'S');
     } else {
       if (bT.rgb) { pdf.setFillColor(bT.rgb[0], bT.rgb[1], bT.rgb[2]); pdf.rect(x, y, w, bT.bw * scaleY, 'F'); }
@@ -2597,9 +2594,10 @@ async function pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, regi
     const x = (ds.x - rootRect.left) * scaleX;
     const y = (ds.y - rootRect.top)  * scaleY;
     if (ds.bg && ds.w > 0.5 && ds.h > 0.5) {
-      const w = ds.w * scaleX, h = ds.h * scaleY, rx = ds.rx * scaleX;
+      const w = ds.w * scaleX, h = ds.h * scaleY;
+      const rx = ds.rx * scaleX, ry = ds.ry * scaleY;
       pdf.setFillColor(ds.bg[0], ds.bg[1], ds.bg[2]);
-      rx > 0 ? pdf.roundedRect(x, y, w, h, rx, rx, 'F') : pdf.rect(x, y, w, h, 'F');
+      (rx > 0 || ry > 0) ? pdf.roundedRect(x, y, w, h, rx, ry, 'F') : pdf.rect(x, y, w, h, 'F');
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
@@ -2659,6 +2657,44 @@ function parseCssLen(val, refPx) {
   const s = String(val).trim();
   if (s.endsWith('%')) return (parseFloat(s) / 100) * refPx;
   return parseFloat(s) || 0;
+}
+
+// CSS-correct effective corner radius for a w×h box, as a [rx, ry] pair.
+//
+// Browsers don't render a huge `border-radius: 999px` as an ellipse — they apply
+// the CSS "corner overlap" rule (CSS Backgrounds & Borders §5.5): a SINGLE scale
+// factor f shrinks every corner radius together so adjacent radii never overlap.
+// For a uniform radius that collapses both axes to min(w,h)/2 → a stadium/pill
+// with flat sides. The hand-rolled vector renderers (SVG <rect>, jsPDF
+// roundedRect) instead clamp each axis INDEPENDENTLY (rx→w/2, ry→h/2), which for
+// a huge radius yields a full ellipse — the bug this fixes. We pre-clamp here so
+// the emitted radii already fit (rx≤w/2, ry≤h/2) and no downstream renderer
+// re-clamps them into an ellipse.
+//
+// Each corner's horizontal component resolves % against width, vertical against
+// height (so a genuine `border-radius: 50%` on a non-square box stays an ellipse,
+// and on a square box a circle). Corners are collapsed to one radius per axis
+// (max), matching the rest of these walkers; this is exact for the uniform case
+// every tool actually uses (pill / ellipse / circle / plain rounded-rect).
+function effectiveRadius(style, w, h) {
+  const corner = (val) => {
+    const s = String(val || '').trim();
+    // A computed radius is "10px" or "10px 20px" (horizontal vertical). CSS math
+    // functions (calc/min/max/clamp) carry internal spaces and can't be split that
+    // way; no tool uses them in border-radius, so resolve to 0 (sharp) rather than
+    // mangling the value into wrong geometry.
+    const t = s.includes('(') ? [s] : s.split(/\s+/);
+    return [parseCssLen(t[0], w), parseCssLen(t[1] ?? t[0], h)];
+  };
+  const [tlh, tlv] = corner(style.borderTopLeftRadius);
+  const [trh, trv] = corner(style.borderTopRightRadius);
+  const [blh, blv] = corner(style.borderBottomLeftRadius);
+  const [brh, brv] = corner(style.borderBottomRightRadius);
+  const rx = Math.max(tlh, trh, blh, brh);
+  const ry = Math.max(tlv, trv, blv, brv);
+  if (rx <= 0 && ry <= 0) return [0, 0];
+  const f = Math.min(1, rx > 0 ? w / (2 * rx) : 1, ry > 0 ? h / (2 * ry) : 1);
+  return [rx * f, ry * f];
 }
 
 // Clips an image to a circle via an offscreen canvas. Used for headshots that

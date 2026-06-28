@@ -255,9 +255,11 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
       ${!hideSidebar ? `
         <aside class="sidebar" id="tool-sidebar">
           <div class="sidebar-header">
-            <a href="/" class="tools-home nav-btn">Tools</a>
-            <span class="sidebar-title">${escape(tool.manifest.name)}</span>
-            <button class="fullscreen-toggle" id="fullscreen-toggle" ${sidebarOpen ? 'open' : ''} aria-label="${sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}"></button>
+            <a href="/" class="tools-home sidebar-back">Tools</a>
+            <div class="sidebar-header-row">
+              <span class="sidebar-title">${escape(tool.manifest.name)}</span>
+              <button class="fullscreen-toggle" id="fullscreen-toggle" ${sidebarOpen ? 'open' : ''} aria-label="${sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}"></button>
+            </div>
           </div>
           <div class="sidebar-body">
             ${privacyBadge}
@@ -1619,7 +1621,11 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
   let dragging = false, moved = false, tapMode = false, tapDir = 1, startY = 0, startH = 0;
 
   const vh = () => window.innerHeight;
-  const PEEK = 56; // header (48) only — its top padding hides the first input label
+  // Peek = the sheet's minimized height, which must equal the real header height
+  // so the whole header (centered Tools pill + title row) shows, not just row 1.
+  // Measured from headerEl below (it varies — e.g. 44px tap targets on touch);
+  // 56 is only the pre-measurement fallback.
+  let PEEK = 56;
 
   function setState(s) {
     state = s;
@@ -1695,9 +1701,17 @@ function setupMobileSheet(layoutEl, sidebarEl, gripEl, onChange) {
   // the sheet through its three stops.
   addDragHandle(gripEl, { tapToggles: true });
   const headerEl = sidebarEl.querySelector('.sidebar-header');
-  if (headerEl) addDragHandle(headerEl, {
-    guard: e => !e.target.closest('a, button, input, select, textarea, label'),
-  });
+  if (headerEl) {
+    addDragHandle(headerEl, {
+      guard: e => !e.target.closest('a, button, input, select, textarea, label'),
+    });
+    // Drive the peek height from the header's real height so the minimized sheet
+    // shows the full two-row header (pill + title). Header height is content-based
+    // and effectively constant per device, so a one-time measure suffices; --peek-h
+    // feeds the CSS peek/preview-top vars (see the mobile sheet block).
+    const h = Math.ceil(headerEl.getBoundingClientRect().height);
+    if (h > 0) { PEEK = h; layoutEl.style.setProperty('--peek-h', h + 'px'); }
+  }
 
   // The body is for scrolling the controls — nothing else. It deliberately has NO
   // drag/flick handler: a touch that lands on the inputs (or the gaps between them)

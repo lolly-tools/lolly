@@ -34,6 +34,11 @@ const OPEN_TIMEOUT_MS = 8000;
 const REQUIRED_STORES = ['profile', 'state', 'asset-meta', 'asset-blob', 'user-assets'];
 
 function openOnce() {
+  // Set when the browser tells us our open is queued behind an older connection
+  // (a version upgrade blocked by another tab / a bfcache-frozen page). Lets the
+  // timeout below mark the error as recoverable so boot() can offer a retry
+  // instead of a dead end — the open succeeds the moment that connection closes.
+  let wasBlocked = false;
   const opening = idbOpen(DB_NAME, DB_VERSION, {
     upgrade(db, oldVersion) {
       if (oldVersion < 1) {
@@ -73,6 +78,7 @@ function openOnce() {
       // Our open is queued behind an older connection (usually another Lolly tab
       // that didn't close, or one stuck mid-upgrade). Without this it would just
       // hang silently; the timeout below turns that into an actionable error.
+      wasBlocked = true;
       console.warn('[db] IndexedDB open is blocked — another Lolly tab/window is holding the database open.');
     },
     terminated() {
@@ -88,10 +94,17 @@ function openOnce() {
   // harmless: the page is reloaded after the user clears the offending tab.
   let timer;
   const timeout = new Promise((_, reject) => {
-    timer = setTimeout(() => reject(new Error(
-      'Local database is locked — another Lolly tab or window may be open. ' +
-      'Close other Lolly/localhost tabs (or fully restart your browser) and reload.'
-    )), OPEN_TIMEOUT_MS);
+    timer = setTimeout(() => {
+      const err = new Error(
+        'Local database is locked — another Lolly tab or window may be open. ' +
+        'Close other Lolly/localhost tabs (or fully restart your browser) and reload.'
+      );
+      // Tag recoverability so boot() can offer a retry. A blocked open clears as
+      // soon as the holding connection closes; a non-blocked timeout is a wedged
+      // open that a reload may still shake loose.
+      err.code = wasBlocked ? 'DB_BLOCKED' : 'DB_OPEN_TIMEOUT';
+      reject(err);
+    }, OPEN_TIMEOUT_MS);
   });
   return Promise.race([opening, timeout]).finally(() => clearTimeout(timer));
 }

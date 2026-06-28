@@ -49,7 +49,7 @@ const HEADSHOT_ID = 'user/headshot';
 
 // Randomised word the user must type to confirm the irreversible "clear all my
 // data" action — a deliberate speed-bump against an accidental wipe.
-const CLEAR_CONFIRM_WORDS = ['lolly', 'open', 'free', 'privacy', 'security', 'goodbye'];
+const CLEAR_CONFIRM_WORDS = ['lolly', 'open', 'free', 'privacy', 'choice', 'thank you', 'security', 'goodbye'];
 
 // Chevron for a collapsible section's summary (rotates 90° when open via CSS).
 const COLLAPSE_CHEV = `<svg class="profile-collapse-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>`;
@@ -90,10 +90,6 @@ export async function mountProfile(viewEl, host, params = '') {
 
   viewEl.innerHTML = `
     <a href="#/" class="tools-home home-full">Tools</a>
-    <div class="profile-meta-links">
-      <a href="#/capabilities" class="profile-platform-link" aria-label="Capabilities — the full feature set">Capabilities</a>
-      <a href="#/platform" class="profile-platform-link" aria-label="Platform — brand colours, fonts &amp; global settings">Platform</a>
-    </div>
     <div class="profile-layout">
       <h1 class="visually-hidden">Your profile</h1>
 
@@ -167,6 +163,11 @@ export async function mountProfile(viewEl, host, params = '') {
           </ul>
         </div>
       </details>
+
+      <nav class="profile-bottom-links" aria-label="More">
+        <a href="#/capabilities" class="profile-platform-link" aria-label="Capabilities — the full feature set">Capabilities</a>
+        <a href="#/platform" class="profile-platform-link" aria-label="Platform — brand colours, fonts &amp; global settings">Platform</a>
+      </nav>
 
     </div>
   `;

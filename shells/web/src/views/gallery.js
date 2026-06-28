@@ -56,6 +56,12 @@ const isBatchSlot = (slot) => String(slot).startsWith(BATCH_SLOT_PREFIX);
 const INFO_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
 const HISTORY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>';
 
+// Lucide "sliders-horizontal" — the filter trigger (collapses the category pills).
+const FILTER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>';
+
+// Magnifier — search affordance inside the footer field.
+const SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>';
+
 // lucide "package" — placeholder thumbnail for batch sessions, which have no
 // single render to show (they resume into #/pro).
 const PACKAGE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>';
@@ -126,9 +132,20 @@ export async function mountGallery(viewEl, host) {
     <div class="gallery">
       <h1 class="visually-hidden">Lolly — tools gallery</h1>
       <div class="gallery-topright">
+        ${visibleCats.length ? `<button type="button" class="filter-fab" aria-label="Filter tools" aria-haspopup="true" aria-expanded="false" aria-controls="filter-popover" title="Filter">${FILTER_ICON}</button>` : ''}
         ${sortedSaved.length ? `<button type="button" class="history-fab" title="Saved sessions" aria-label="Saved sessions (${sortedSaved.length})">${HISTORY_ICON}<span class="history-fab-count" aria-hidden="true">${sortedSaved.length}</span></button>` : ''}
         <a href="#/profile" class="profile-link${headshotUrl ? ' has-avatar' : ''}" aria-label="Open your profile">${headshotUrl ? `<img class="profile-link-avatar" src="${escape(headshotUrl)}" alt="">` : ''}<span class="profile-link-name">${escape(profile.firstname || 'Profile')}</span></a>
+        ${visibleCats.length ? `
+        <div class="filter-popover" id="filter-popover" role="group" aria-label="Filter tools" hidden>
+          <p class="filter-pop-head">Filter</p>
+          <div class="filter-pop-pills" aria-label="Filter tools by category"></div>
+          <label class="filter-pop-check">
+            <input type="checkbox" class="filter-hide-previews">
+            <span>Hide previews</span>
+          </label>
+        </div>` : ''}
       </div>
+      ${visibleCats.length ? `<div class="filter-backdrop" hidden></div>` : ''}
 
       ${visibleCats.length === 0 ? (index.tools.length === 0 ? `
         <div class="gallery-empty" role="status">
@@ -141,7 +158,6 @@ export async function mountGallery(viewEl, host) {
           <p class="gallery-empty-hint">Try turning on categories in <a href="#/profile?focus=feature-flags">your feature flags</a>.</p>
         </div>
       `) : `
-        <nav class="gallery-pillbar" aria-label="Filter tools by category"></nav>
         <p class="gallery-search-status visually-hidden" role="status" aria-live="polite"></p>
         <div class="tool-masonry"></div>
       `}
@@ -149,7 +165,10 @@ export async function mountGallery(viewEl, host) {
       <footer class="gallery-footer">
         ${proEnabled ? `<a href="#/pro" class="gallery-batch-link btn" aria-label="Open Batch mode — for power users">Pro</a>` : ''}
         <div class="gallery-search-wrap">
-          <input class="gallery-search" type="search" placeholder="Search tools…" autocomplete="off" spellcheck="false" aria-label="Search tools">
+          <div class="gallery-search-box">
+            <span class="gallery-search-icon" aria-hidden="true">${SEARCH_ICON}</span>
+            <input class="gallery-search" type="search" placeholder="Search tools…" autocomplete="off" spellcheck="false" aria-label="Search tools">
+          </div>
         </div>
         <a href="/info/" class="gallery-info-link btn" aria-label="What is Lolly? — about &amp; help">What?</a>
       </footer>
@@ -168,10 +187,13 @@ export async function mountGallery(viewEl, host) {
     await mountGallery(viewEl, host);
   });
 
-  const pillbar    = viewEl.querySelector('.gallery-pillbar');
+  const pillbar    = viewEl.querySelector('.filter-pop-pills'); // category pills now live in the filter popover
   const masonry    = viewEl.querySelector('.tool-masonry');
   const searchInput = viewEl.querySelector('.gallery-search');
   const searchStatus = viewEl.querySelector('.gallery-search-status');
+  const filterFab  = viewEl.querySelector('.filter-fab');
+  const filterPop  = viewEl.querySelector('.filter-popover');
+  const filterBackdrop = viewEl.querySelector('.filter-backdrop');
 
   let activeCat = 'all';   // active category pill
   let query = '';          // current search text (lowercased)
@@ -201,6 +223,8 @@ export async function mountGallery(viewEl, host) {
   function render() {
     if (!masonry) return;
     renderPills();
+    // Dot on the filter trigger whenever a non-default category is selected.
+    filterFab?.classList.toggle('has-active', activeCat !== 'all');
     const tools = matchingTools();
     masonry.style.setProperty('--items', Math.max(tools.length, 1));
     masonry.innerHTML = tools.length
@@ -268,10 +292,56 @@ export async function mountGallery(viewEl, host) {
       if (query) { query = ''; searchInput.value = ''; }
       render();
       // render() rebuilds the pills, dropping focus — restore it to the active one
-      // so keyboard users aren't bounced to the top of the tab order.
+      // so keyboard users aren't bounced to the top of the tab order. The popover
+      // stays open so the choice (and the Hide-previews toggle) remain in reach.
       pillbar.querySelector('.gallery-pill.active')?.focus();
     });
   }
+
+  // ── Filter popover: anchored dropdown on desktop, bottom sheet on mobile. ──
+  // Matches the color-field popover conventions (Escape + outside-pointerdown
+  // close, focus returns to the trigger).
+  let filterOutside = null;
+  function openFilter() {
+    if (!filterPop || !filterPop.hidden) return;
+    filterPop.hidden = false;
+    if (filterBackdrop) filterBackdrop.hidden = false;       // CSS shows it on mobile only
+    filterFab?.setAttribute('aria-expanded', 'true');
+    filterPop.querySelector('.gallery-pill.active, .gallery-pill')?.focus();
+    filterOutside = (e) => {
+      if (!filterPop.contains(e.target) && !filterFab.contains(e.target)) closeFilter();
+    };
+    // Defer so the opening click's own pointerdown doesn't immediately close it.
+    setTimeout(() => document.addEventListener('pointerdown', filterOutside), 0);
+  }
+  function closeFilter(returnFocus = false) {
+    if (!filterPop || filterPop.hidden) return;
+    filterPop.hidden = true;
+    if (filterBackdrop) filterBackdrop.hidden = true;
+    filterFab?.setAttribute('aria-expanded', 'false');
+    if (filterOutside) { document.removeEventListener('pointerdown', filterOutside); filterOutside = null; }
+    if (returnFocus) filterFab?.focus();
+  }
+  filterFab?.addEventListener('click', () => { filterPop.hidden ? openFilter() : closeFilter(); });
+  filterPop?.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.stopPropagation(); closeFilter(true); }
+  });
+  filterBackdrop?.addEventListener('click', () => closeFilter());
+
+  // "Hide previews" — collapse the demo-preview heroes (.gtile-hero--preview) to
+  // their compact text body. Saved-session previews are untouched. Device-level
+  // view preference, persisted like the theme (localStorage, applied via a class).
+  const HIDE_PREVIEWS_KEY = 'lolly-hide-previews';
+  const hideCheckbox = viewEl.querySelector('.filter-hide-previews');
+  let hidePreviews = false;
+  try { hidePreviews = localStorage.getItem(HIDE_PREVIEWS_KEY) === '1'; } catch { /* storage off */ }
+  if (hideCheckbox) hideCheckbox.checked = hidePreviews;
+  masonry?.classList.toggle('hide-previews', hidePreviews);
+  hideCheckbox?.addEventListener('change', () => {
+    hidePreviews = hideCheckbox.checked;
+    try { localStorage.setItem(HIDE_PREVIEWS_KEY, hidePreviews ? '1' : '0'); } catch { /* storage off */ }
+    masonry?.classList.toggle('hide-previews', hidePreviews);
+  });
 
   let searchDebounce;
   searchInput.addEventListener('input', () => {
