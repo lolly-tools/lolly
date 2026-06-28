@@ -330,12 +330,13 @@ export async function mountCapabilities(viewEl, _host) {
     <div class="platform-layout">
       <header class="plat-header">
         <h1 class="plat-title">Capabilities</h1>
-        <p class="plat-sub">Feature set: what Lolly can make • where Lolly runs •  how Lolly is used.</p>
-        <div class="plat-stats">
-          ${toolCount != null ? stat(toolCount, 'tools') : ''}
-          ${stat(20, 'export formats')}
-          ${stat(6, 'surfaces')}
-
+        <div class="plat-header-text">
+          <p class="plat-sub">Feature set: what Lolly can make • where Lolly runs •  how Lolly is used.</p>
+          <div class="plat-stats">
+            ${toolCount != null ? stat(toolCount, 'tools') : ''}
+            ${stat(20, 'export formats')}
+            ${stat(6, 'surfaces')}
+          </div>
         </div>
       </header>
 

@@ -478,6 +478,7 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
   const hasSession = !!latest && !unavailable;          // resumable, with or without a preview
   const hasThumbHero = hasSession && !!latest.thumb;    // resumable AND has a preview image
   const hasPreview = !unavailable && !hasSession && !!tool.preview; // committed demo preview, no session yet
+  const hasImageHero = hasThumbHero || hasPreview;     // the card leads with a real preview image
 
   // Visual: hero preview to resume the latest session; a compact resume tile when
   // the session has no captured preview; a committed demo preview (starts a NEW
@@ -492,6 +493,7 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
         <img class="gtile-hero-img" src="${escape(latest.thumb)}" alt="" aria-hidden="true">
         <span class="gtile-stamp">${escape(relativeTime(latest.updatedAt))}</span>
         <span class="gtile-continue">Continue</span>
+        ${statusBadge}
       </button>`;
   } else if (hasSession) {
     // Session exists but its preview failed to capture — still resumable from the card.
@@ -507,6 +509,7 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
       <a class="gtile-hero gtile-hero--preview" href="${openHref}" data-new-tool="${escape(tool.id)}" tabindex="-1" aria-hidden="true">
         <img class="gtile-hero-img" src="${escape(personalizedThumb || tool.preview)}" alt="" aria-hidden="true" loading="lazy">
         <span class="gtile-continue">Open</span>
+        ${statusBadge}
       </a>`;
   } else {
     // Decorative duplicate of the name link (tabindex/aria-hidden so AT hears one link).
@@ -545,7 +548,11 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
             <p class="gtile-desc">${escape(tool.description ?? '')}</p>
           </span>
           ${hasSession ? '<span class="gtile-new" aria-hidden="true">+ New</span>' : ''}
-          ${statusBadge}
+          ${hasImageHero
+            // Badge moved onto the preview image (see the hero markup), but that
+            // hero is aria-hidden / aria-labelled, so keep the status announced.
+            ? (statusBadge ? `<span class="visually-hidden">${escape(statusLabel(tool.status))}</span>` : '')
+            : statusBadge}
         </div>
       </div>
       <div class="gtile-actions">

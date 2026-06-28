@@ -650,6 +650,16 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   font-family:"SUSE Mono";
   z-index: 1;
 }
+/* On cards that lead with a preview image, the status badge (experimental /
+   community) is injected into the hero and sits over the image at the bottom-left
+   — the one corner free of the stamp (top-left), actions (top-right) and the
+   Continue chip (bottom-right). Same size as the body badge. */
+.gtile-hero .badge {
+  top: auto;
+  right: auto;
+  bottom: 8px;
+  left: 8px;
+}
 
 .badge-experimental {
   background: hsl(var(--background) / .9);
@@ -5329,15 +5339,46 @@ button {
   padding: 3.25rem 1.25rem 5rem; /* top clears the fixed "Tools" pill */
 }
 
-.plat-header { margin: .5rem 0 2.25rem; }
-.plat-title { margin: 0 0 .4rem; font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; letter-spacing: -.02em; }
+.plat-header { margin: .5rem 0 1.85rem; }
+.plat-title { margin: 0 0 .4rem; font-size: clamp(1.7rem, 3.4vw, 2.3rem); font-weight: 700; letter-spacing: -.02em; }
 .plat-sub { margin: 0 0 1rem; max-width: 62ch; color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.55; }
+.plat-header-text { min-width: 0; }
+.plat-header-text > :last-child { margin-bottom: 0; }
 .plat-note {
   margin: 0; max-width: 72ch; padding: .75rem .9rem;
   font-size: .85rem; line-height: 1.55; color: hsl(var(--muted-foreground));
   background: hsl(var(--muted) / .5); border: 1px solid hsl(var(--border)); border-radius: var(--radius);
 }
 .plat-note strong { color: hsl(var(--foreground)); }
+
+/* Desktop: set the title beside its supporting copy so the header stays compact
+   and the content starts higher up the page. Stacks again on narrow screens. */
+@media (min-width: 820px) {
+  .plat-header { display: flex; align-items: center; gap: 2.5rem; margin-bottom: 2rem; }
+  .plat-title { flex: 0 0 auto; max-width: 16ch; margin: 0; }
+  .plat-header-text { flex: 1 1 auto; }
+  .plat-header-text .plat-sub { margin-bottom: .7rem; }
+}
+
+/* Entrance: sections and cards fade+rise in on load, reusing the gallery's
+   `card-in` keyframe but quicker — this is a dense dashboard, not a hero gallery.
+   Closed <details> reveal their cards (display:none → block) on expand, so the
+   same build-up replays when a section is opened. The reduced-motion rule near
+   the top of this file zeroes all of this for users who ask for less. */
+.platform-view .plat-section,
+.capabilities-view .plat-section { animation: card-in 0.18s ease both; }
+.platform-view .plat-section:nth-of-type(1), .capabilities-view .plat-section:nth-of-type(1) { animation-delay: .02s; }
+.platform-view .plat-section:nth-of-type(2), .capabilities-view .plat-section:nth-of-type(2) { animation-delay: .05s; }
+.platform-view .plat-section:nth-of-type(3), .capabilities-view .plat-section:nth-of-type(3) { animation-delay: .08s; }
+.platform-view .plat-section:nth-of-type(4), .capabilities-view .plat-section:nth-of-type(4) { animation-delay: .11s; }
+.platform-view .plat-section:nth-of-type(n+5), .capabilities-view .plat-section:nth-of-type(n+5) { animation-delay: .14s; }
+
+.plat-client-grid .plat-client-card { animation: card-in 0.18s ease both; }
+.plat-client-grid .plat-client-card:nth-child(1) { animation-delay: .02s; }
+.plat-client-grid .plat-client-card:nth-child(2) { animation-delay: .05s; }
+.plat-client-grid .plat-client-card:nth-child(3) { animation-delay: .08s; }
+.plat-client-grid .plat-client-card:nth-child(4) { animation-delay: .11s; }
+.plat-client-grid .plat-client-card:nth-child(n+5) { animation-delay: .14s; }
 
 .plat-section { margin: 0 0 2.75rem; }
 .plat-section-title {
@@ -5448,8 +5489,16 @@ button {
 .plat-section-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 2px; }
 .plat-section-body { margin-top: 1rem; }
 
-/* "This device" runtime snapshot — a grid of grouped key/value cards. */
-.plat-client-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; align-items: stretch; }
+/* "This device" runtime snapshot — a grid of grouped key/value cards. Cards sit
+   at their natural height (`start`, not `stretch`) so a short card like the
+   single-row System Graphics one doesn't balloon to match its row. */
+.plat-client-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; align-items: start; }
+/* Where the browser supports grid masonry, pack the columns tightly while
+   KEEPING left-to-right reading order — unlike column-count masonry, which runs
+   top-to-bottom down each column. Falls back to the top-aligned grid above. */
+@supports (grid-template-rows: masonry) {
+  .plat-client-grid { grid-template-rows: masonry; }
+}
 .plat-client-card { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1rem 1.15rem; }
 .plat-client-title {
   display: flex; align-items: center; gap: .5rem;
@@ -5464,6 +5513,9 @@ button {
 .plat-kv .is-stacked dt { flex: none; }
 .plat-kv dd.is-mono { font-family: 'SUSE Mono', ui-monospace, monospace; font-size: .72rem; word-break: break-all; color: hsl(var(--muted-foreground)); }
 .plat-kv dd.is-lead { font-size: .95rem; font-weight: 650; line-height: 1.2; }
+.plat-kv .is-hero { flex-direction: column; align-items: flex-start; gap: .25rem; }
+.plat-kv .is-hero dt { flex: none; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
+.plat-kv dd.is-hero { font-size: 1.6rem; font-weight: 700; line-height: 1.1; color: hsl(var(--card-foreground)); word-break: break-word; }
 
 .plat-theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .85rem; }
 .plat-theme { padding: 1rem; border-radius: var(--radius); background: hsl(var(--background)); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); }
