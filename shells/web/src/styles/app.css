@@ -650,15 +650,30 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   font-family:"SUSE Mono";
   z-index: 1;
 }
-/* On cards that lead with a preview image, the status badge (experimental /
-   community) is injected into the hero and sits over the image at the bottom-left
-   — the one corner free of the stamp (top-left), actions (top-right) and the
-   Continue chip (bottom-right). Same size as the body badge. */
+/* On cards that lead with a preview image, the status badge is injected into the
+   hero and pinned bottom-right with the same typography, size and padding as the
+   Continue/Open chip (just a little more breathing room top/bottom, and a solid
+   fill). It's persistent — it stays put on hover; the Open/Continue chip stacks
+   just above it (see below) rather than the badge ceding the slot. */
 .gtile-hero .badge {
   top: auto;
-  right: auto;
+  left: auto;
+  right: 12px;                 /* line up with .gtile-continue's gutter, not the 8px inset */
   bottom: 8px;
-  left: 8px;
+  font-family: inherit;        /* the Open chip uses the UI font, not SUSE Mono */
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: capitalize;  /* "Experimental", echoing the Open chip's case */
+  padding: 6px 9px;            /* Open's side padding, a touch more above/below */
+}
+/* Experimental over a hero is a solid red sibling of the primary Open chip — same
+   shape, the warning colour as its fill. (The inline body badge on preview-less
+   cards keeps its lighter, outlined treatment below.) */
+.gtile-hero .badge-experimental {
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  border: none;
 }
 
 .badge-experimental {
@@ -864,6 +879,12 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   position: static;        /* flow inside the bar instead of floating over the image */
   opacity: 1;              /* normally revealed on hover — always show it here */
 }
+/* Likewise the status badge: flow it inline in the slim bar (and keep it visible
+   on hover) instead of floating bottom-right over the now-hidden image. */
+.tool-masonry.hide-previews .gtile-hero:not(.gtile-hero--preview) .badge {
+  position: static;
+  opacity: 1;
+}
 /* The (i)/(h) actions normally float over the preview's top-right; with the image
    gone they'd be invisible (faint, no contrast) and collide with the Continue bar.
    Drop them into normal flow at the card's bottom-right, fully opaque. Keep them
@@ -978,6 +999,11 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
    the caption's "+ New" chip just below, so the two read as a stacked pair. */
 .gtile-hero:hover .gtile-continue,
 .gtile-hero:focus-visible .gtile-continue { opacity: 1; }
+/* When a persistent status badge already holds the bottom-right slot, lift the
+   Continue/Open chip to stack just above it so the two don't overlap on hover.
+   Only badged cards (experimental/community) are affected; official tiles keep
+   the chip at the bottom edge. */
+.gtile-hero:has(.badge) .gtile-continue { bottom: 44px; }
 .gtile-hero:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
 /* Committed demo preview (no session yet) — same hero treatment, but it's an
    anchor that starts a new session, so suppress the default link underline. */
@@ -1991,6 +2017,22 @@ background-color:hsl(var(--background) / 1);
 }
 .block-add:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
 
+/* "Collapse all / Expand all" — a small pill above a multi-block list so a long
+   stack of opened blocks folds back in one tap. Right-aligned, deliberately quiet
+   (it's a tidy-up affordance, not a primary action like the brand-fill Add pill). */
+.blocks-toolbar { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+.blocks-collapse-all {
+  padding: 3px 10px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 11px; font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.blocks-collapse-all:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+
 /* ── Typed blocks (addMenu) ──────────────────────────────────────────────────
    Each block is a self-contained card with a type label + remove in its head and
    a two-column field grid below. Opts out of the legacy fixed 3-column row grid
@@ -2102,6 +2144,13 @@ background-color:hsl(var(--background) / 1);
   font-size: 11px; transition: color 0.12s, background 0.12s;
 }
 .block-asset-clear:hover { color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+/* ✦ Edit — shown only for a block image that came from a Lolly link. */
+.block-asset-edit {
+  flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
+  background: none; cursor: pointer; color: hsl(var(--primary));
+  font-size: 12px; transition: background 0.12s, filter 0.12s;
+}
+.block-asset-edit:hover { background: hsl(var(--primary) / 0.1); filter: brightness(1.1); }
 
 /* Per-block range slider — native, kept compact */
 .block-range-input { width: 100%; accent-color: hsl(var(--ring)); cursor: pointer; }
@@ -2393,6 +2442,124 @@ background-color:hsl(var(--background) / 1);
 .asset-clear:hover {
   color: hsl(var(--destructive));
   border-color: hsl(var(--destructive));
+}
+
+/* Provenance line for an image that came from a pasted Lolly link: a "✦ from
+   <tool>" badge + an Edit button that re-opens the source tool (openEmbedEditor).
+   Rendered below the asset-picker-row, only when the asset carries meta.toolUrl. */
+.asset-from-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+.asset-from-tool-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asset-from-tool-label strong { color: hsl(var(--foreground)); font-weight: 600; }
+.asset-from-tool-spark { color: hsl(var(--primary)); }
+.asset-edit {
+  flex: none;
+  padding: 3px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  transition: border-color 0.12s, color 0.12s;
+}
+.asset-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }
+
+/* ─── Edit-a-Lolly-image overlay (openEmbedEditor) ────────────────────────────
+   Body-mounted modal: the source tool's own inputs on the left, format/size +
+   live preview on the right. Reuses the picker's .asset-picker-toolcard-* control
+   and preview styling for the right column. */
+.embed-editor-overlay { position: fixed; inset: 0; z-index: 1100; }
+.embed-editor-backdrop {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+}
+.embed-editor-panel {
+  position: absolute; inset: 5vh 5vw;
+  display: flex; flex-direction: column;
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+.embed-editor-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 20px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.embed-editor-spark { color: hsl(var(--primary)); font-size: 16px; flex: none; }
+.embed-editor-title { margin: 0; font-size: 15px; font-weight: 600; flex: 1; min-width: 0; }
+.embed-editor-from { color: hsl(var(--muted-foreground)); font-weight: 400; }
+.embed-editor-close {
+  flex: none; background: none; border: none;
+  font-size: 22px; line-height: 1; cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  padding: 2px 6px; border-radius: var(--radius);
+  transition: color 0.12s, background 0.12s;
+}
+.embed-editor-close:hover { color: hsl(var(--foreground)); background: hsl(var(--accent)); }
+.embed-editor-body {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 0;
+}
+.embed-editor-form {
+  overflow-y: auto;
+  padding: 18px 20px;
+  border-right: 1px solid hsl(var(--border));
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
+.embed-editor-side {
+  display: flex; flex-direction: column; gap: 14px;
+  overflow-y: auto;
+  padding: 18px 20px;
+}
+.embed-editor-side .asset-picker-toolcard-preview { flex: 1; }
+.embed-editor-actions {
+  display: flex; justify-content: flex-end; gap: 10px;
+}
+.embed-editor-actions .ee-cancel,
+.embed-editor-actions .ee-apply {
+  padding: 7px 16px;
+  border-radius: var(--radius);
+  font: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s, border-color 0.12s;
+}
+.embed-editor-actions .ee-cancel {
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+}
+.embed-editor-actions .ee-cancel:hover { border-color: hsl(var(--ring) / 0.4); }
+.embed-editor-actions .ee-apply {
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  border: 1px solid hsl(var(--primary));
+}
+.embed-editor-actions .ee-apply:hover { opacity: 0.9; }
+.embed-editor-actions .ee-apply:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* On a narrow viewport stack the form above the preview. */
+@media (max-width: 720px) {
+  .embed-editor-body { grid-template-columns: minmax(0, 1fr); grid-auto-rows: min-content; overflow-y: auto; }
+  .embed-editor-form { border-right: none; border-bottom: 1px solid hsl(var(--border)); }
 }
 
 /* ─── File picker (file-typed inputs for on-device utilities) ────────────── */
