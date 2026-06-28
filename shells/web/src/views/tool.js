@@ -19,7 +19,7 @@ import { PALETTE } from '../palette.js';
 import { colorFieldHtml, wireColorField, setSwatches } from '../components/color-field.js';
 import { showScrubReadout, hideScrubReadout } from '../components/scrub-readout.js';
 import { canSkipInputsRebuild } from './inputs-sync.js';
-import { exportSizeDriver } from './export-size.js';
+import { exportSizeDriver, aspectWarning } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.js';
@@ -2905,6 +2905,14 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         </label>
       </div>` : '';
 
+  // Editor-only aspect-ratio guard (manifest.render.aspectWarning). A hidden alert
+  // beside the dimension controls, shown when the chosen page size falls outside the
+  // tool's supported orientation band — see updateAspectWarning(). Never exported.
+  const ICON_WARN = `<svg class="aspect-warn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+  const aspectWarnRow = (manifest.render.aspectWarning && manifest.render.dims !== false)
+    ? `<div class="export-aspect-warning" data-aspect-warning role="alert" hidden>${ICON_WARN}<span data-aspect-warning-text></span></div>`
+    : '';
+
   // Tier 2.5 — colour profile (Print PDF only). The CMYK press condition embedded
   // in the PDF's OutputIntent. A self-contained card so this professional/print
   // setting reads as deliberate; revealed only when "Print PDF" (pdf-cmyk) is the
@@ -3044,7 +3052,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const downloadRow = downloadBtn ? `<div class="export-action-buttons">${downloadBtn}</div>` : '';
 
   el.innerHTML = `
-    ${actions.includes('download') ? `${filenameRow}${dimsRow}${cmykRow}${pdfPassRow}${printRow}${settingsRow}` : ''}
+    ${actions.includes('download') ? `${filenameRow}${dimsRow}${aspectWarnRow}${cmykRow}${pdfPassRow}${printRow}${settingsRow}` : ''}
     ${secondaryRow}
     ${downloadRow}
   `;
@@ -3058,6 +3066,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const ditherEl      = el.querySelector('[data-gif-only]');
   const webm60El      = el.querySelector('[data-webm-only]');
   const formatEl      = el.querySelector('[data-action="format"]');
+  const aspectWarnEl  = el.querySelector('[data-aspect-warning]');
 
   // Colour bars track the format: ON for the CMYK print formats (pdf-cmyk /
   // cmyk-tiff), OFF for the RGB pdf, re-applied on every format switch — until the
@@ -3158,6 +3167,18 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     return { width: toPx(w), height: toPx(h) };
   }
 
+  // Editor-only aspect-ratio guard. Evaluate the current page size (in px, so the
+  // unit drops out of the ratio) against the tool's declared band and show/hide the
+  // warning beside the dimension fields. Driven from refreshCanvasPreview, so it
+  // tracks both typed dimensions and a size-select change. Never touches the canvas.
+  function updateAspectWarning() {
+    if (!aspectWarnEl) return;
+    const { width, height } = previewPx();
+    const msg = aspectWarning(manifest, width, height);
+    aspectWarnEl.querySelector('[data-aspect-warning-text]').textContent = msg ?? '';
+    aspectWarnEl.hidden = !msg;
+  }
+
   // Print marks & bleed export opts (pdf / pdf-cmyk / cmyk-tiff). Empty when the card is off,
   // so an ordinary PDF stays trim-sized with no marks.
   function printOpts() {
@@ -3186,6 +3207,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
 
   // Preview the export aspect ratio on the canvas, then re-fit to the stage.
   function refreshCanvasPreview() {
+    updateAspectWarning(); // first, so it reflects current fields even when dims are incomplete
     const { width: w, height: h } = previewPx();
     if (!(w > 0 && h > 0)) return;
     const previewScale = Math.min(1, manifest.render.width / w, manifest.render.height / h);

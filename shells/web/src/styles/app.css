@@ -3398,6 +3398,33 @@ background-color:hsl(var(--background) / 1);
   color: hsl(var(--muted-foreground));
 }
 
+/* Editor-only aspect-ratio warning (render.aspectWarning), shown beside the
+   dimension fields when the page size leaves the tool's supported orientation.
+   Amber caution rather than destructive red — the export still works, it just
+   won't lay out as intended. No --warning token exists, so the hue is inline. */
+.export-aspect-warning {
+  --aspect-warn: 38 92% 45%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -2px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--aspect-warn) / 0.5);
+  border-radius: var(--radius);
+  background: hsl(var(--aspect-warn) / 0.12);
+  color: hsl(var(--foreground));
+  font-size: 12px;
+  line-height: 1.45;
+}
+.export-aspect-warning[hidden] { display: none; }
+.aspect-warn-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: hsl(var(--aspect-warn));
+}
+
 /* PDF password card — mirrors .export-cmyk; revealed only for the "PDF" format. */
 .export-pdfpass {
   display: flex;
@@ -4485,8 +4512,11 @@ a.storage-indicator:hover { opacity: 1; }
 .profile-view .profile-btn-primary { padding: 1em 2em;   border-radius: 3em;background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary)); }
 .profile-view .profile-btn-primary:hover { filter: brightness(1.08); }
 .headshot-heading{text-align:center;}
-/* Appearance segmented control — a fixed-ish pill, not the full card width */
-.profile-view .segmented-control { display: flex; width: 100%; max-width: 22rem; }
+/* Appearance segmented control — a fixed-ish pill, not the full card width.
+   Height matches the Save Profile button (padding 1em 2em @ .85rem + 1.4 line-
+   height + 1px borders = 2.89rem + 2px); buttons stretch and centre their label. */
+.profile-view .segmented-control { display: flex; width: 100%; max-width: 22rem; height: calc(2.89rem + 2px); }
+.profile-view .segmented-btn { display: flex; align-items: center; justify-content: center; }
 
 /* Activity — stat tiles, a format leaderboard (proportional bars), meta line */
 /* On desktop the stat tiles sit beside the format leaderboard; they stack below. */
@@ -5557,10 +5587,17 @@ button {
 .plat-client-grid .plat-client-card:nth-child(4) { animation-delay: .11s; }
 .plat-client-grid .plat-client-card:nth-child(n+5) { animation-delay: .14s; }
 
-.plat-section { margin: 0 0 2.75rem; }
+/* Collapsible sections are profile-style cards: card chrome lives on the
+   <details>, the title is its <summary>, and an SVG chevron rotates 90° on open. */
+.plat-section {
+  margin: 0 0 1.1rem;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.25);
+}
 .plat-section-title {
   margin: 0; font-size: 1.25rem; font-weight: 650;
-  padding-bottom: .45rem; border-bottom: 1px solid hsl(var(--border));
 }
 .plat-section-desc { margin: .55rem 0 0; max-width: 74ch; color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.5; }
 .plat-section-desc code, .plat-note code,
@@ -5586,7 +5623,7 @@ button {
 .plat-swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: .75rem; }
 .plat-swatch {
   display: flex; flex-direction: column;
-  background: hsl(var(--card)); border: 1px solid hsl(var(--border));
+  background: hsl(var(--background)); border: 1px solid hsl(var(--border));
   border-radius: var(--radius); overflow: hidden;
 }
 .plat-swatch-chip {
@@ -5635,7 +5672,7 @@ button {
 }
 
 .plat-font-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
-.plat-font { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1.1rem 1.2rem; }
+.plat-font { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1.1rem 1.2rem; }
 .plat-font-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .5rem; }
 .plat-font-name { font-size: 1.4rem; font-weight: 600; }
 .plat-font-role { font-size: .75rem; color: hsl(var(--muted-foreground)); }
@@ -5650,21 +5687,21 @@ button {
 .plat-src { font-size: .72rem; word-break: break-all; }
 
 /* Collapsible sections — every platform section is a <details>; the title is its
-   <summary>, with a chevron that rotates when open. */
+   <summary>, with an SVG chevron that rotates 90° when open. Mirrors the profile
+   page's collapsible cards (style + .15s ease transition). */
 .plat-section-summary {
-  list-style: none; cursor: pointer; display: flex; align-items: center; gap: .7rem;
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem 1.4rem;
 }
 .plat-section-summary::-webkit-details-marker { display: none; }
-.plat-section-summary .plat-section-title { flex: 1; margin: 0; }
-.plat-section-summary::after {
-  content: ''; flex: none; width: .5rem; height: .5rem; margin-bottom: .5rem;
-  border-right: 2px solid hsl(var(--muted-foreground));
-  border-bottom: 2px solid hsl(var(--muted-foreground));
-  transform: rotate(-45deg); transition: transform .18s ease;
-}
-.plat-section[open] .plat-section-summary::after { transform: rotate(45deg); }
-.plat-section-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 2px; }
-.plat-section-body { margin-top: 1rem; }
+.plat-section-summary .plat-section-title { flex: 1 1 auto; margin: 0; text-align: left; }
+.plat-section-chev { flex: 0 0 auto; color: hsl(var(--muted-foreground)); transition: transform .15s ease; }
+.plat-section-summary:hover .plat-section-chev { color: hsl(var(--foreground)); }
+.plat-section[open] .plat-section-summary .plat-section-chev { transform: rotate(90deg); }
+.plat-section-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: calc(var(--radius) * 1.25); }
+.plat-section-body { padding: 0 1.4rem 1.4rem; }
+@media (prefers-reduced-motion: reduce) { .plat-section-chev { transition: none; } }
 
 /* "This device" runtime snapshot — a grid of grouped key/value cards. Cards sit
    at their natural height (`start`, not `stretch`) so a short card like the
@@ -5676,7 +5713,9 @@ button {
 @supports (grid-template-rows: masonry) {
   .plat-client-grid { grid-template-rows: masonry; }
 }
-.plat-client-card { background: hsl(var(--card)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1rem 1.15rem; }
+/* Sub-cards sit on the cleanest base background so they read as distinct panels
+   nested inside the section card (which uses --card). */
+.plat-client-card { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1rem 1.15rem; }
 .plat-client-title {
   display: flex; align-items: center; gap: .5rem;
   margin: 0 0 .7rem; padding-bottom: .5rem; border-bottom: 1px solid hsl(var(--border));

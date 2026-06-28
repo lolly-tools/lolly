@@ -15,7 +15,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { exportSizeDriver } from '../shells/web/src/views/export-size.js';
+import { exportSizeDriver, aspectWarning } from '../shells/web/src/views/export-size.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -70,6 +70,48 @@ test('picks the first qualifying select (one size driver per tool)', () => {
     ],
   });
   assert.equal(d.id, 'first');
+});
+
+// ── aspectWarning ────────────────────────────────────────────────────────────
+
+const GUARD = { render: { aspectWarning: { max: 1, message: 'portrait only' } } };
+
+test('aspectWarning fires when the aspect ratio exceeds max (landscape)', () => {
+  assert.equal(aspectWarning(GUARD, 297, 210), 'portrait only'); // A4 landscape, aspect 1.41
+});
+
+test('aspectWarning stays silent for an in-band (portrait) size', () => {
+  assert.equal(aspectWarning(GUARD, 210, 297), null); // A4 portrait, aspect 0.71
+});
+
+test('aspectWarning tolerates an exactly-on-the-bound size (1:1 at max 1)', () => {
+  assert.equal(aspectWarning(GUARD, 500, 500), null); // epsilon keeps a square from tripping max:1
+});
+
+test('aspectWarning honours a min bound (too tall)', () => {
+  const g = { render: { aspectWarning: { min: 0.5, message: 'too tall' } } };
+  assert.equal(aspectWarning(g, 100, 300), 'too tall'); // aspect 0.33 < 0.5
+  assert.equal(aspectWarning(g, 100, 150), null);        // aspect 0.67 ok
+});
+
+test('aspectWarning returns null with no config or invalid dimensions', () => {
+  assert.equal(aspectWarning({ render: {} }, 297, 210), null);
+  assert.equal(aspectWarning(GUARD, 0, 210), null);
+  assert.equal(aspectWarning(GUARD, 297, 0), null);
+  assert.equal(aspectWarning(GUARD, undefined, undefined), null);
+});
+
+test('the real multi-page-pdf manifest warns on landscape but not portrait', () => {
+  const manifest = JSON.parse(readFileSync(join(ROOT, 'tools/multi-page-pdf/tool.json'), 'utf8'));
+  assert.ok(manifest.render.aspectWarning, 'manifest declares an aspect guard');
+  // The removed A4-landscape size (297 × 210) is exactly what the guard should catch.
+  assert.ok(aspectWarning(manifest, 297, 210));
+  // Every remaining page-size preset is portrait, so none should trip the guard.
+  const pageSize = manifest.inputs.find(i => i.id === 'pageSize');
+  assert.equal(pageSize.options.some(o => o.value === 'a4l'), false, 'A4 landscape preset is gone');
+  for (const o of pageSize.options) {
+    assert.equal(aspectWarning(manifest, o.width, o.height), null, `${o.value} should not warn`);
+  }
 });
 
 test('the real event-name-badge manifest wires its size select to export dims', () => {

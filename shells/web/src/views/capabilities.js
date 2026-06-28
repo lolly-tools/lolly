@@ -59,6 +59,10 @@ const ICONS = {
   open:     I('<path d="M7 11V7a5 5 0 0 1 10 0M4 11h16v9H4z"/>'),
 };
 
+// Chevron for a collapsible section's summary (rotates 90° when open via CSS).
+// Matches the profile page's collapsible sections.
+const COLLAPSE_CHEV = `<svg class="plat-section-chev" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>`;
+
 // One feature card: an icon + group title, then a stacked list of named features.
 // `desc` strings may carry safe inline <code>/<strong> (authored here, not user input).
 function card({ icon, title, features }) {
@@ -318,7 +322,7 @@ export async function mountCapabilities(viewEl, _host) {
 
   const panel = (flag, defaultOpen, id, title, desc, body) => `
     <details class="plat-section"${isOpen(flag, defaultOpen) ? ' open' : ''}>
-      <summary class="plat-section-summary"><h2 id="${id}" class="plat-section-title">${escape(title)}</h2></summary>
+      <summary class="plat-section-summary"><h2 id="${id}" class="plat-section-title">${escape(title)}</h2>${COLLAPSE_CHEV}</summary>
       <div class="plat-section-body">
         ${desc ? `<p class="plat-section-desc">${desc}</p>` : ''}
         <div class="plat-client-grid cap-grid">${body}</div>

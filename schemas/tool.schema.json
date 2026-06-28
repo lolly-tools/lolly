@@ -127,6 +127,17 @@
             "wait":     { "type": "number", "minimum": 0, "description": "Seconds to wait before recording starts. Default 1." },
             "duration": { "type": "number", "minimum": 0.5, "description": "Length of the recorded clip in seconds. Default 5." }
           }
+        },
+        "aspectWarning": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "description": "Editor-only guard for tools whose layout only suits a certain orientation (e.g. a portrait-only document). Shows a prominent warning beside the dimension controls when the current page aspect ratio (width ÷ height) falls outside [min, max]. Never affects — or appears in — the rendered/exported output.",
+          "properties": {
+            "min":     { "type": "number", "exclusiveMinimum": 0, "description": "Minimum acceptable aspect ratio (width ÷ height). Below this, the warning shows. Omit to leave the low end unbounded." },
+            "max":     { "type": "number", "exclusiveMinimum": 0, "description": "Maximum acceptable aspect ratio (width ÷ height). Above this, the warning shows. Omit to leave the high end unbounded." },
+            "message": { "type": "string", "description": "The warning text shown to the editor." }
+          }
         }
       }
     },
