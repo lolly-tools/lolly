@@ -288,11 +288,16 @@ export async function mountGallery(viewEl, host) {
 
   function matchingTools() {
     const q = query.trim();
-    return index.tools.filter(t => {
-      if (hidden.has(t.category)) return false;
-      if (q) return t.name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q);
-      return activeCat === 'all' || t.category === activeCat;
-    });
+    // Alphabetical by name (case-insensitive). With category pills + search making
+    // any tool easy to reach, a stable A–Z order is more predictable to scan than
+    // the catalog's authoring order. Sorts the filtered copy, not index.tools.
+    return index.tools
+      .filter(t => {
+        if (hidden.has(t.category)) return false;
+        if (q) return t.name.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q);
+        return activeCat === 'all' || t.category === activeCat;
+      })
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
   }
 
   function renderPills() {

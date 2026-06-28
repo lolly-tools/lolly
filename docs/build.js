@@ -953,6 +953,7 @@ tr:nth-child(even) td{background:#fafffe}
   .about-items{grid-template-columns:1fr}
 }
 .quokka{max-width:320px;}
+@media(max-width:768px){.quokka{max-height:260px;width:auto;max-width:60vw}}
 /* Footer */
 footer{border-top:1px solid var(--border);padding:2rem 1.5rem;text-align:center;color:var(--muted);font-size:.8125rem;background:var(--pale)}
 footer a{color:var(--muted);text-decoration:underline}
