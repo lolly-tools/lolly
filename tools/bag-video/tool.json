@@ -2,7 +2,7 @@
   "id": "bag-video",
   "name": "Bag Video",
   "description": "An animated, on-brand video for bag visuals.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "designer",
@@ -81,28 +81,6 @@
         { "value": "light",  "label": "Light" },
         { "value": "pine",   "label": "Pine" }
       ]
-    },
-    {
-      "id": "heading",
-      "label": "Heading",
-      "type": "text",
-      "default": "",
-      "placeholder": "Open. Flexible. Secure."
-    },
-    {
-      "id": "body",
-      "label": "Body",
-      "type": "longtext",
-      "default": "",
-      "rows": 3,
-      "placeholder": "Supporting text goes here."
-    },
-    {
-      "id": "cta",
-      "label": "Call to Action",
-      "type": "text",
-      "default": "",
-      "placeholder": "Learn more"
     }
   ]
 }

@@ -124,8 +124,15 @@ export function createComposeAPI(host) {
 
     const format = normFmt(opts.format) || normFmt(parsed.format)
       || (supported.includes('svg') ? 'svg' : (supported[0] || 'png'));
-    const width = opts.width ?? state.width ?? undefined;
-    const height = opts.height ?? state.height ?? undefined;
+    // An SVG render with no explicit size keeps the tool's width="100%", which is
+    // fine to DISPLAY (CSS sizes the <img>) but leaves the SVG with no intrinsic
+    // pixel size — so a consuming tool that reads the image's pixels (canvas
+    // getImageData) can't measure it. Fall back to the child's native render size
+    // for SVG so the embedded image always carries real dimensions. (Rasters always
+    // have a natural size, so they need no fallback.)
+    const svgNative = format === 'svg' ? tool.manifest.render : null;
+    const width = opts.width ?? state.width ?? svgNative?.width ?? undefined;
+    const height = opts.height ?? state.height ?? svgNative?.height ?? undefined;
     const unit = opts.unit ?? state.unit ?? undefined;
     const dpi = opts.dpi ?? state.dpi ?? undefined;
 

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-27T23:07:30.811Z",
+  "generatedAt": "2026-06-28T18:29:57.797Z",
   "tools": [
     {
       "id": "color-block",
@@ -206,7 +206,7 @@
       "id": "bag-video",
       "name": "Bag Video",
       "description": "An animated, on-brand video for bag visuals.",
-      "version": "0.3.0",
+      "version": "0.4.0",
       "status": "experimental",
       "category": "designer",
       "formats": [
