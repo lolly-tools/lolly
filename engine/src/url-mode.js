@@ -55,6 +55,7 @@
 
 import { isUnit } from './units.js';
 import { isTokenValue, isAlias } from './tokens.js';
+import { isToolUrl } from './tool-url.js';
 
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
@@ -193,8 +194,11 @@ function coerceFromString(input, raw) {
       if (raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw)) return '#' + raw;
       return raw;
     case 'asset':
-      // Lightweight ref. The runtime resolves it before hydration.
-      return { source: 'library', id: raw, _unresolved: true };
+      // Lightweight ref. The runtime resolves it before hydration. A Lolly tool
+      // URL (a share link the user dropped into the picker) is a 'remote' asset
+      // the runtime re-renders via host.compose.renderUrl; a plain id is a
+      // 'library' asset resolved via host.assets.get.
+      return { source: isToolUrl(raw) ? 'remote' : 'library', id: raw, _unresolved: true };
     case 'file':
       // Files can't ride in a URL as bytes. In CLI transport a file param is a
       // filesystem path (--photo=./pic.jpg); the CLI loads its bytes into a
@@ -243,8 +247,10 @@ function decodeBlocksCompact(str, fields) {
       const raw = decodeURIComponent(parts[i] ?? '');
       if (f.type === 'asset') {
         // Lightweight ref by id; the runtime resolves it before hydration
-        // (resolveAssetRefs descends into block asset fields). Empty → no image.
-        obj[f.id] = raw ? { source: 'library', id: raw, _unresolved: true } : null;
+        // (resolveAssetRefs descends into block asset fields). A tool URL is a
+        // 'remote' compose-rendered ref; a plain id is a 'library' asset. Empty
+        // → no image.
+        obj[f.id] = raw ? { source: isToolUrl(raw) ? 'remote' : 'library', id: raw, _unresolved: true } : null;
       } else if (f.type === 'color' && raw && !raw.startsWith('#')) {
         obj[f.id] = '#' + raw;
       } else {

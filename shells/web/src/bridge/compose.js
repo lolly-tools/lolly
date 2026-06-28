@@ -16,9 +16,16 @@
  * and bounds object-URL memory (oldest URL revoked on eviction).
  */
 
+import { parseToolUrl, buildEmbedUrl, parseUrlState, RESERVED } from '@lolly/engine';
 import { renderRowToBlob } from '../pro/render-export.js';
+import { getTool } from './tool-loader.js';
 
 const MAX_COMPOSE_DEPTH = 3;
+
+// Child render formats that make sense as an image dropped into a picker slot.
+// (Compose itself can also produce pdf, but a picker is choosing an *image*.)
+const IMAGE_FORMATS = ['svg', 'png', 'jpg', 'webp'];
+const normFmt = (f) => { const x = String(f || '').toLowerCase(); return x === 'jpeg' ? 'jpg' : x; };
 // Comfortably above the manifest `composes` maxItems (24) so one tool's composes
 // can never self-evict (and revoke a still-displayed blob) within a single render.
 const CACHE_CAP = 64;
@@ -69,7 +76,89 @@ export function createComposeAPI(host) {
     return assetRef;
   }
 
-  return { render };
+  // Resolve a tool URL to the child's manifest + parsed state. Shared by
+  // describeUrl (UI metadata) and renderUrl (the actual render). Returns null for
+  // a non-tool URL or an id with no matching local tool.
+  async function resolveSpec(url) {
+    const parsed = parseToolUrl(url);
+    if (!parsed) return null;
+    let tool;
+    try { tool = await getTool(parsed.toolId); } catch { return null; } // unknown id → 404 → null
+    return { parsed, tool, state: parseUrlState(parsed.query, tool.manifest) };
+  }
+
+  // Describe a pasted tool URL for the picker UI (the "✦ Detected: <tool>" card):
+  // the tool's name, the image formats it supports, and the size/format implied by
+  // the link. No render — cheap enough to call as the user types. Null when the URL
+  // isn't a renderable local tool, so the picker falls back to a plain search.
+  async function describeUrl(url) {
+    const r = await resolveSpec(url);
+    if (!r) return null;
+    const supported = (r.tool.manifest.render?.formats ?? []).map(normFmt);
+    const formats = IMAGE_FORMATS.filter(f => supported.includes(f));
+    const pick = formats.length ? formats : ['svg'];
+    const def = (r.parsed.format && pick.includes(normFmt(r.parsed.format)))
+      ? normFmt(r.parsed.format)
+      : (pick.includes('svg') ? 'svg' : pick[0]);
+    return {
+      toolId: r.parsed.toolId,
+      name: r.tool.manifest.name ?? r.parsed.toolId,
+      formats: pick,
+      format: def,
+      width: r.state.width ?? null,
+      height: r.state.height ?? null,
+      unit: r.state.unit ?? null,
+      dpi: r.state.dpi ?? null,
+    };
+  }
+
+  // Render a pasted tool URL to a usable AssetRef whose `id` is the CANONICAL
+  // embed URL — the portable identity that persists through URL mode + saved
+  // sessions and is fed back here by the runtime to re-render on load. `opts`
+  // (format/size, set by the picker) override what the link specifies.
+  async function renderUrl(url, opts = {}) {
+    const r = await resolveSpec(url);
+    if (!r) return null;
+    const { parsed, tool, state } = r;
+    const supported = (tool.manifest.render?.formats ?? []).map(normFmt);
+
+    const format = normFmt(opts.format) || normFmt(parsed.format)
+      || (supported.includes('svg') ? 'svg' : (supported[0] || 'png'));
+    const width = opts.width ?? state.width ?? undefined;
+    const height = opts.height ?? state.height ?? undefined;
+    const unit = opts.unit ?? state.unit ?? undefined;
+    const dpi = opts.dpi ?? state.dpi ?? undefined;
+
+    let ref;
+    try {
+      ref = await render({
+        toolId: parsed.toolId, inputs: state.values,
+        format, width, height, unit, dpi, _stack: opts._stack ?? [],
+      });
+    } catch (e) {
+      host.log?.('warn', `renderUrl "${parsed.toolId}": ${e.message}`);
+      return null;
+    }
+    if (!ref || typeof ref.url !== 'string') return null;
+
+    // Canonical identity: keep the user's own child input params verbatim (already
+    // compact/encoded), drop any export-control params, then fold in the effective
+    // size. The strict embed form re-parses everywhere (parseEmbedUrl is host-locked).
+    const q = new URLSearchParams(parsed.query);
+    for (const k of RESERVED) q.delete(k);
+    if (width) q.set('w', String(width));
+    if (height) q.set('h', String(height));
+    if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
+    const id = buildEmbedUrl({ toolId: parsed.toolId, format, query: q.toString() });
+
+    return {
+      ...ref,
+      id: id ?? ref.id,
+      meta: { ...(ref.meta || {}), tool: parsed.toolId, name: tool.manifest.name ?? parsed.toolId, toolUrl: id ?? undefined },
+    };
+  }
+
+  return { render, renderUrl, describeUrl };
 }
 
 function cacheKey(toolId, inputs, format, width, height, unit, dpi) {

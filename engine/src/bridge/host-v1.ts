@@ -500,6 +500,43 @@ export interface ComposeAPI {
    * extends `_stack` automatically; callers outside the runtime may omit it.
    */
   render(spec: ComposeSpec): Promise<AssetRef>;
+
+  /**
+   * Render a tool *URL* (a link a user pasted) to an embeddable AssetRef — the
+   * end-user counterpart to render(). The host parses the URL (manifest-aware, so
+   * typed inputs coerce exactly as URL mode would), renders the named tool, and
+   * returns an AssetRef whose `id` is the CANONICAL embed URL
+   * (`https://lolly.tools/tool/<id>.<ext>?…`, see tool-url.js buildEmbedUrl).
+   *
+   * That canonical id is the asset's persistent identity: it round-trips through
+   * URL mode + saved sessions, and the runtime feeds it back here to re-render the
+   * asset on load — so a tool-sourced image survives reload and travels inside a
+   * shared link, exactly as a library asset id does. `opts` overrides (format /
+   * size) take precedence over anything parsed from the URL and are folded into
+   * the returned id. Returns null when the URL isn't a recognised tool URL or the
+   * tool can't be rendered (the caller then leaves the slot empty).
+   *
+   * Accepts every shape the app hands a user (embed URL, hash share route, pretty
+   * path); the toolId must resolve to a real local tool, so a pasted link can only
+   * render a tool that already ships in this build. Optional/additive (v1.3) —
+   * older shells lack it, so callers feature-detect `host.compose?.renderUrl`.
+   */
+  renderUrl?(url: string, opts?: ComposeUrlOpts): Promise<AssetRef | null>;
+}
+
+export interface ComposeUrlOpts {
+  /** Override the child render format (else the URL's, else the child default). */
+  format?: ExportFormat;
+  /** Override render width (a number in `unit`). Default: the URL's, else native. */
+  width?: number;
+  /** Override render height (a number in `unit`). Default: the URL's, else native. */
+  height?: number;
+  /** Unit for width/height: 'px' (default), 'mm', 'cm', 'in', 'pt'. */
+  unit?: string;
+  /** Raster DPI for physical units (mirrors ExportOpts.dpi). */
+  dpi?: number;
+  /** Engine-managed recursion stack — threaded by the runtime on re-resolve. */
+  _stack?: readonly string[];
 }
 
 export interface ComposeSpec {
