@@ -66,6 +66,42 @@ const SEARCH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" 
 // single render to show (they resume into #/pro).
 const PACKAGE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>';
 
+// Entrance reveal. Cold load wants "wow, instant" with a quick build-up; an
+// IntersectionObserver gives us both: the above-the-fold tiles fire in the first
+// callback and cascade by a tiny per-tile delay, while everything below fades in
+// only as it scrolls into view (the mobile single-column win). The CSS does the
+// actual fade — JS just arms it (.reveal-armed) and toggles .is-in per tile.
+// Returns the observer so the caller can disconnect it before the next render.
+const REVEAL_STEP_MS = 30;  // delay between tiles within one reveal batch
+function revealCards(masonry, animate) {
+  // Not animating — returning from a tool, reduced motion, or no IO support:
+  // leave tiles un-armed so the CSS renders them at full opacity immediately.
+  if (!animate || typeof IntersectionObserver === 'undefined') {
+    masonry.classList.remove('reveal-armed');
+    return null;
+  }
+  masonry.classList.add('reveal-armed');
+  const io = new IntersectionObserver((entries, obs) => {
+    const batch = entries.filter(e => e.isIntersecting).map(e => e.target);
+    // Reveal top-to-bottom, then left-to-right — a gentle wave down the page,
+    // independent of how the masonry columns packed the DOM order. Each batch
+    // re-starts the stagger at 0, so a scroll batch never inherits a big delay.
+    batch.sort((a, b) => {
+      const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      return (Math.round(ra.top / 8) - Math.round(rb.top / 8)) || (ra.left - rb.left);
+    });
+    batch.forEach((el, i) => {
+      el.style.setProperty('--reveal-delay', `${i * REVEAL_STEP_MS}ms`);
+      el.classList.add('is-in');
+      obs.unobserve(el);
+    });
+  // Pull the trigger up a touch from the bottom edge so scroll reveals read as
+  // "fades in as it arrives" rather than only once fully on-screen.
+  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.02 });
+  masonry.querySelectorAll('.gtile').forEach(el => io.observe(el));
+  return io;
+}
+
 export async function mountGallery(viewEl, host) {
   document.title = 'Lolly';
   const index = window.__toolIndex ?? { tools: [] };
@@ -198,6 +234,14 @@ export async function mountGallery(viewEl, host) {
   let activeCat = 'all';   // active category pill
   let query = '';          // current search text (lowercased)
 
+  // Entrance reveal runs the cascade once, on the cold mount — not when returning
+  // from a tool (cards are already known) nor on filter/search re-renders (those
+  // show instantly). Tracked here so render() can decide and disconnect cleanly.
+  const isReturning = viewEl.classList.contains('is-returning');
+  const prefersReduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+  let firstPaint = true;
+  let revealObserver = null;
+
   function matchingTools() {
     const q = query.trim();
     return index.tools.filter(t => {
@@ -231,6 +275,11 @@ export async function mountGallery(viewEl, host) {
       ? tools.map(t => cardMarkup(t, latestByTool(t.id), countByTool(t.id), host.capabilities, personalizedByTool.get(t.id))).join('')
       : `<p class="gallery-no-results">${query ? `No tools match "<strong>${escape(query.trim())}</strong>"` : 'No tools to show.'}</p>`;
     wireCards(masonry);
+    // Arm the entrance cascade on the first cold paint only; tear down any prior
+    // observer first since innerHTML just replaced every tile it was watching.
+    revealObserver?.disconnect();
+    revealObserver = revealCards(masonry, firstPaint && !isReturning && !prefersReduced);
+    firstPaint = false;
     if (searchStatus) {
       searchStatus.textContent = query
         ? (tools.length === 1 ? '1 result' : `${tools.length} results`)

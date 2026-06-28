@@ -223,6 +223,13 @@ function osIcon(os) {
   return null;
 }
 
+// Brand mark for the GPU card. Only Apple silicon has a distinct house glyph;
+// everything else falls back to the generic graphics icon for the card title.
+function gpuIcon(vendor) {
+  if (vendor && vendor !== DASH && /apple/i.test(vendor)) return ICONS.apple;
+  return null;
+}
+
 function parseBrowser(ua) {
   const tests = [
     ['Microsoft Edge', /Edg\/([\d.]+)/],
@@ -277,6 +284,67 @@ function readGpu() {
   } catch {
     return null;
   }
+}
+
+// Chromium runs WebGL through ANGLE, which buries the real hardware inside a
+// translation wrapper: the vendor reads "Google Inc. (Apple)" and the renderer
+// reads "ANGLE (Apple, ANGLE Metal Renderer: Apple M4, Unspecified Version)".
+// describeGpu() pulls the parts that actually identify the machine — vendor,
+// chip and graphics backend — so they can be the headline, and keeps the raw
+// string as a detail row for reproducing an exact render. Degrades gracefully
+// for non-ANGLE strings (Safari/Firefox report the chip directly).
+const GPU_APIS = [
+  [/\bmetal\b/i, 'Metal'],
+  [/\bvulkan\b/i, 'Vulkan'],
+  [/direct3d\s*11|\bd3d11\b/i, 'Direct3D 11'],
+  [/direct3d\s*9|\bd3d9\b/i, 'Direct3D 9'],
+  [/opengl\s*es/i, 'OpenGL ES'],
+  [/\bopengl\b/i, 'OpenGL'],
+];
+
+function detectGpuApi(s) {
+  for (const [re, name] of GPU_APIS) if (re.test(s)) return name;
+  return DASH;
+}
+
+// Strip the ANGLE/driver cruft around a device name, leaving just the chip:
+// "ANGLE Metal Renderer: Apple M4" → "Apple M4";
+// "NVIDIA GeForce RTX 3070 (0x00002484) Direct3D11 vs_5_0 ps_5_0" → "NVIDIA GeForce RTX 3070".
+function cleanGpuChip(s) {
+  return s
+    .replace(/^ANGLE\s+[\w ]*Renderer:\s*/i, '')
+    .replace(/\s*\(0x[0-9a-f]+\)/i, '')
+    .replace(/\s*Direct3D\d.*$/i, '')
+    .replace(/\s*OpenGL(\s*ES)?\b.*$/i, '')
+    .replace(/\s+vs_\d.*$/i, '')
+    .trim();
+}
+
+function describeGpu(rawVendor, rawRenderer) {
+  const vendorRaw = (rawVendor || '').trim();
+  const rendererRaw = (rawRenderer || '').trim();
+
+  // Real vendor: prefer the parenthetical the ANGLE wrapper appends, e.g.
+  // "Google Inc. (Apple)" → "Apple". Native strings ("Apple Inc.") pass through.
+  let vendor = vendorRaw;
+  const paren = /\(([^)]+)\)\s*$/.exec(vendorRaw);
+  if (paren) vendor = paren[1].trim();
+
+  // Unwrap "ANGLE (<vendor>, <device…>, <backend>)" down to the device field.
+  let device = rendererRaw;
+  const angle = /^ANGLE\s*\((.*)\)$/is.exec(rendererRaw);
+  if (angle) {
+    const parts = angle[1].split(',').map((p) => p.trim());
+    if ((!vendor || vendor === vendorRaw) && parts.length) vendor = parts[0];
+    device = parts.length > 2 ? parts.slice(1, -1).join(', ') : parts[parts.length - 1] || rendererRaw;
+  }
+
+  return {
+    vendor: vendor || DASH,
+    chip: cleanGpuChip(device) || DASH,
+    api: detectGpuApi(rendererRaw),
+    raw: rendererRaw || DASH,
+  };
 }
 
 async function collectClientInfo() {
@@ -404,11 +472,16 @@ async function collectClientInfo() {
 
   const gpu = readGpu();
   if (gpu) {
+    const g = describeGpu(gpu.vendor, gpu.renderer);
     groups.push({
       title: 'System Graphics',
+      icon: gpuIcon(g.vendor),
       rows: [
-        { k: 'Vendor', v: gpu.vendor || DASH, stacked: true },
-        { k: 'Renderer', v: gpu.renderer || DASH, mono: true, stacked: true },
+        { k: 'GPU', v: g.chip, lead: true },
+        { k: 'Vendor', v: g.vendor },
+        { k: 'Graphics API', v: g.api },
+        // Verbatim WebGL string, kept for exact reproduction of a render.
+        { k: 'Reported', v: g.raw, mono: true, stacked: true },
       ],
     });
   }
@@ -424,13 +497,14 @@ function clientCard(group) {
       <h3 class="plat-client-title">${icon ? `<span class="plat-client-icon" aria-hidden="true">${icon}</span>` : ''}<span>${escape(group.title)}</span></h3>
       <dl class="plat-kv plat-kv--wide">
         ${group.rows
-          .map(
-            (r) => `
+          .map((r) => {
+            const ddClass = [r.mono ? 'is-mono' : '', r.lead ? 'is-lead' : ''].filter(Boolean).join(' ');
+            return `
         <div${r.stacked ? ' class="is-stacked"' : ''}>
           <dt>${escape(r.k)}</dt>
-          <dd${r.mono ? ' class="is-mono"' : ''}${r.live ? ` data-live="${escape(r.live)}"` : ''}>${escape(String(r.v))}${r.note ? `<span class="plat-pill plat-pill--muted">${escape(r.note)}</span>` : ''}</dd>
-        </div>`,
-          )
+          <dd${ddClass ? ` class="${ddClass}"` : ''}${r.live ? ` data-live="${escape(r.live)}"` : ''}>${escape(String(r.v))}${r.note ? `<span class="plat-pill plat-pill--muted">${escape(r.note)}</span>` : ''}</dd>
+        </div>`;
+          })
           .join('')}
       </dl>
     </article>`;
