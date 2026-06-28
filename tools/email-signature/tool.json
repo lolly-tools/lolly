@@ -27,7 +27,7 @@
         { "value": "standard", "label": "Standard" },
         { "value": "grey",     "label": "Grey" }
       ],
-      "help": "Footer wordmark. Grey suits low-colour or monochrome contexts."
+      "help": "Select Grey if you think most of your audience prefers dark mode"
     },
     {
       "id": "headshot",

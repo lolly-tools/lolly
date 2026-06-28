@@ -14,6 +14,7 @@
 import {
   parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI,
   iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry, emitEmf, emitEps,
+  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath,
 } from '@lolly/engine';
 import {
   suseFontFile, SUSE_FONT_DIR,
@@ -1047,7 +1048,7 @@ async function renderSvgFromHtml(node, opts) {
     parentG.appendChild(g);
 
     // ── Border radius (CSS corner-overlap clamped → pill, not ellipse) ───────
-    const [rx, ry] = effectiveRadius(style, w, h);
+    const { radii, uniform } = resolveRadii(style, w, h);
 
     // ── Background ──────────────────────────────────────────────────────────
     const bgImg = style.backgroundImage;
@@ -1055,7 +1056,7 @@ async function renderSvgFromHtml(node, opts) {
       const gradEl = buildLinearGradientEl(NS, bgImg, x, y, w, h, ++uid);
       if (gradEl) {
         defs.appendChild(gradEl);
-        g.appendChild(makeSvgRect(NS, x, y, w, h, rx, `url(#svggrad-${uid})`, ry));
+        g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, `url(#svggrad-${uid})`));
       }
     } else {
       const bgRgb = parseCssColorFull(style.backgroundColor);
@@ -1063,44 +1064,51 @@ async function renderSvgFromHtml(node, opts) {
         const fill = bgRgb[3] < 1
           ? `rgba(${bgRgb[0]},${bgRgb[1]},${bgRgb[2]},${bgRgb[3]})`
           : `rgb(${bgRgb[0]},${bgRgb[1]},${bgRgb[2]})`;
-        g.appendChild(makeSvgRect(NS, x, y, w, h, rx, fill, ry));
+        g.appendChild(makeRoundedFill(NS, x, y, w, h, radii, uniform, fill));
       }
     }
 
     // ── Borders ─────────────────────────────────────────────────────────────
-    // Mirror the PDF walker: a uniform border becomes one stroked <rect> (radius
+    // Mirror the PDF walker: a uniform border becomes one stroked rect/path (radius
     // honoured); a divider (border-top only) or mixed border fills per edge.
+    // Colours keep their alpha (stroke-opacity / fill-opacity) — svg-ir flattens
+    // it over the background for EMF/EPS — so hairline rgba() borders don't go opaque.
     const bSide = (wKey, cKey) => {
       const bw = parseFloat(style[wKey]) || 0;
-      return { bw, rgb: bw > 0 ? parseCssColor(style[cKey]) : null };
+      return { bw, rgb: bw > 0 ? parseCssColorFull(style[cKey]) : null };
     };
     const bT = bSide('borderTopWidth',    'borderTopColor');
     const bR = bSide('borderRightWidth',  'borderRightColor');
     const bB = bSide('borderBottomWidth', 'borderBottomColor');
     const bL = bSide('borderLeftWidth',   'borderLeftColor');
-    const eqRgb = (a, b) => a && b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+    const eqRgb = (a, b) => a && b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
     const rgbStr = c => `rgb(${c[0]},${c[1]},${c[2]})`;
     const uniformBorder = bT.rgb && bT.bw === bR.bw && bT.bw === bB.bw && bT.bw === bL.bw
       && eqRgb(bT.rgb, bR.rgb) && eqRgb(bT.rgb, bB.rgb) && eqRgb(bT.rgb, bL.rgb);
     if (uniformBorder) {
       const lw = bT.bw;
-      const r = document.createElementNS(NS, 'rect');
-      r.setAttribute('x', String(x + lw / 2));
-      r.setAttribute('y', String(y + lw / 2));
-      r.setAttribute('width',  String(Math.max(0, w - lw)));
-      r.setAttribute('height', String(Math.max(0, h - lw)));
-      // Border-box radius for the centred stroke = corner radius − half border.
-      if (rx > 0) r.setAttribute('rx', String(Math.max(0, rx - lw / 2)));
-      if (ry > 0) r.setAttribute('ry', String(Math.max(0, ry - lw / 2)));
-      r.setAttribute('fill', 'none');
+      // Centred stroke: inset the box by lw/2 and the radius by lw/2 (border-box
+      // radius minus half the border). Uniform corners → <rect>; else a <path>.
+      const r = uniform
+        ? makeSvgRect(NS, x + lw / 2, y + lw / 2, Math.max(0, w - lw), Math.max(0, h - lw),
+            Math.max(0, uniform[0] - lw / 2), 'none', Math.max(0, uniform[1] - lw / 2))
+        : (() => {
+            const p = document.createElementNS(NS, 'path');
+            p.setAttribute('d', roundedRectPath(x + lw / 2, y + lw / 2,
+              Math.max(0, w - lw), Math.max(0, h - lw), insetCorners(radii, lw / 2)));
+            p.setAttribute('fill', 'none');
+            return p;
+          })();
       r.setAttribute('stroke', rgbStr(bT.rgb));
       r.setAttribute('stroke-width', String(lw));
+      if (bT.rgb[3] < 1) r.setAttribute('stroke-opacity', String(bT.rgb[3]));
       g.appendChild(r);
     } else {
-      if (bT.rgb) g.appendChild(makeSvgRect(NS, x, y, w, bT.bw, 0, rgbStr(bT.rgb)));
-      if (bB.rgb) g.appendChild(makeSvgRect(NS, x, y + h - bB.bw, w, bB.bw, 0, rgbStr(bB.rgb)));
-      if (bL.rgb) g.appendChild(makeSvgRect(NS, x, y, bL.bw, h, 0, rgbStr(bL.rgb)));
-      if (bR.rgb) g.appendChild(makeSvgRect(NS, x + w - bR.bw, y, bR.bw, h, 0, rgbStr(bR.rgb)));
+      const edge = (rect) => { if (rect.rgb[3] < 1) rect.el.setAttribute('fill-opacity', String(rect.rgb[3])); g.appendChild(rect.el); };
+      if (bT.rgb) edge({ rgb: bT.rgb, el: makeSvgRect(NS, x, y, w, bT.bw, 0, rgbStr(bT.rgb)) });
+      if (bB.rgb) edge({ rgb: bB.rgb, el: makeSvgRect(NS, x, y + h - bB.bw, w, bB.bw, 0, rgbStr(bB.rgb)) });
+      if (bL.rgb) edge({ rgb: bL.rgb, el: makeSvgRect(NS, x, y, bL.bw, h, 0, rgbStr(bL.rgb)) });
+      if (bR.rgb) edge({ rgb: bR.rgb, el: makeSvgRect(NS, x + w - bR.bw, y, bR.bw, h, 0, rgbStr(bR.rgb)) });
     }
 
     // ── Inline SVG passthrough ──────────────────────────────────────────────
@@ -1145,8 +1153,12 @@ async function renderSvgFromHtml(node, opts) {
           return;
         }
         try {
-          const dataUrl = src.startsWith('data:') ? src
+          const dataUrl0 = src.startsWith('data:') ? src
             : src.startsWith('blob:') ? await blobToDataUrl(src) : src;
+          // CSS filter() (e.g. grayscale/contrast presets) is baked into the bitmap
+          // via the browser so the vector image matches screen/PNG instead of
+          // exporting full-colour. No-op + graceful fallback when filter is none.
+          const dataUrl = await bakeImageFilter(el, dataUrl0, style.filter);
           const rMin = Math.min(
             parseCssLen(style.borderTopLeftRadius,     w),
             parseCssLen(style.borderTopRightRadius,    w),
@@ -1223,6 +1235,7 @@ async function emitInlineTextSvg(NS, blockEl, blockStyle, rootRect, parentG, vec
 
       // Emit one run, positioned at its own line box `r`. Used per visual line.
       const placeLine = async (lineText, r) => {
+        lineText = applyTextTransform(lineText, nodeStyle.textTransform);
         const x = r.left - rootRect.left;
         const top = r.top - rootRect.top;
         if (vectorise) {
@@ -1357,7 +1370,7 @@ function pseudoDescriptor(el, name) {
   // getComputedStyle returns the resolved string with real chars (e.g. '"→"'),
   // already quoted; unwrap it. counter()/attr() values won't match and are skipped.
   const m = content.match(/^["'](.*)["']$/s);
-  const text = m ? m[1] : '';
+  const text = applyTextTransform(m ? m[1] : '', ps.textTransform);
   if (!text.trim() && !(bg && w > 0.5 && h > 0.5)) return null;
 
   let cb = el;
@@ -1369,9 +1382,9 @@ function pseudoDescriptor(el, name) {
   const oy = cbRect.top  + (parseFloat(cbStyle.paddingTop)  || 0);
   const left = parseFloat(ps.left);
   const top  = parseFloat(ps.top);
-  const [rx, ry] = effectiveRadius(ps, w, h);
+  const { radii, uniform } = resolveRadii(ps, w, h);
   return {
-    text, bg, rx, ry, w, h, ps,
+    text, bg, radii, uniform, w, h, ps,
     x: ox + (isFinite(left) ? left : 0),
     y: oy + (isFinite(top)  ? top  : 0),
   };
@@ -1388,7 +1401,7 @@ async function svgPseudoContent(NS, parentG, rootRect, el, vectorText) {
       const f = ds.bg[3] < 1
         ? `rgba(${ds.bg[0]},${ds.bg[1]},${ds.bg[2]},${ds.bg[3]})`
         : `rgb(${ds.bg[0]},${ds.bg[1]},${ds.bg[2]})`;
-      parentG.appendChild(makeSvgRect(NS, x, y, ds.w, ds.h, ds.rx, f, ds.ry));
+      parentG.appendChild(makeRoundedFill(NS, x, y, ds.w, ds.h, ds.radii, ds.uniform, f));
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
@@ -1437,7 +1450,7 @@ function makeSvgRect(NS, x, y, w, h, rx, fill, ry = rx) {
   r.setAttribute('y',      String(y));
   r.setAttribute('width',  String(w));
   r.setAttribute('height', String(h));
-  // rx/ry are already CSS-clamped by effectiveRadius (rx≤w/2, ry≤h/2), so the SVG
+  // rx/ry are already CSS-clamped by resolveRadii/css-box (rx≤w/2, ry≤h/2), so the SVG
   // renderer won't re-clamp them per-axis into an ellipse. Emit both axes.
   if (rx > 0 || ry > 0) { r.setAttribute('rx', String(rx)); r.setAttribute('ry', String(ry)); }
   r.setAttribute('fill', fill);
@@ -2091,6 +2104,30 @@ function parseSvgPathArgs(str) {
   return m ? m.map(Number) : [];
 }
 
+// Fill ('F') or stroke ('S') a rounded rect into the PDF using the fast
+// jsPDF.roundedRect when corners are uniform (or sharp), else a four-corner path
+// (so e.g. top-only rounding keeps square bottom corners). Coords are already in
+// pt; the caller sets fill/draw colour, line width and any GState first.
+function pdfRoundedRect(pdf, x, y, w, h, radii, uniform, op) {
+  if (uniform) {
+    if (uniform[0] > 0 || uniform[1] > 0) pdf.roundedRect(x, y, w, h, uniform[0], uniform[1], op);
+    else pdf.rect(x, y, w, h, op);
+  } else {
+    drawSvgPathToPdf(pdf, roundedRectPath(x, y, w, h, radii), v => v, v => v);
+    op === 'S' ? pdf.stroke() : pdf.fill();
+  }
+}
+
+// Run `draw` with a uniform fill+stroke alpha applied via jsPDF GState, then
+// reset to opaque (GState is sticky and would otherwise leak onto every later
+// element). No-op when alpha is 1 or GState is unavailable.
+function withPdfAlpha(pdf, a, draw) {
+  const on = a < 1 && typeof pdf.GState === 'function' && typeof pdf.setGState === 'function';
+  if (on) pdf.setGState(new pdf.GState({ opacity: a, 'stroke-opacity': a }));
+  try { draw(); }
+  finally { if (on) pdf.setGState(new pdf.GState({ opacity: 1, 'stroke-opacity': 1 })); }
+}
+
 // Emits jsPDF path operations (moveTo/lineTo/curveTo/close) for an SVG `d` string.
 // tx/ty are coordinate-transform functions: SVG user units → jsPDF pt (top-left origin).
 // Caller must call fill()/stroke()/fillStroke() after this returns.
@@ -2364,37 +2401,40 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
     const h = rect.height * scaleY;
 
     // ── Background fill ───────────────────────────────────────────────────────
-    // CSS corner-overlap clamped (rx≤w/2, ry≤h/2) so a huge border-radius renders
-    // as a pill, not an ellipse — jsPDF.roundedRect would otherwise clamp each
-    // axis independently. Resolved in CSS px then scaled per axis.
-    const [rxCss, ryCss] = effectiveRadius(style, rect.width, rect.height);
-    const rx = rxCss * scaleX;
-    const ry = ryCss * scaleY;
+    // CSS corner-overlap clamped (→ pill, not ellipse) via the shared engine math,
+    // resolved in CSS px then scaled per axis. Uniform corners take jsPDF's fast
+    // roundedRect; differing corners take a four-corner path.
+    const { radii: radiiCss, uniform: uniformCss } = resolveRadii(style, rect.width, rect.height);
+    const scaleRadii = (r) => ({
+      topLeft:     [r.topLeft[0]     * scaleX, r.topLeft[1]     * scaleY],
+      topRight:    [r.topRight[0]    * scaleX, r.topRight[1]    * scaleY],
+      bottomRight: [r.bottomRight[0] * scaleX, r.bottomRight[1] * scaleY],
+      bottomLeft:  [r.bottomLeft[0]  * scaleX, r.bottomLeft[1]  * scaleY],
+    });
+    const radii = scaleRadii(radiiCss);
+    const uniform = uniformCss ? [uniformCss[0] * scaleX, uniformCss[1] * scaleY] : null;
     const bgImg = style.backgroundImage;
     const bgRgb = (bgImg && bgImg !== 'none')
       ? sampleGradientMidpoint(bgImg)
       : parseCssColor(style.backgroundColor);
     if (bgRgb) {
       pdf.setFillColor(bgRgb[0], bgRgb[1], bgRgb[2]);
-      (rx > 0 || ry > 0)
-        ? pdf.roundedRect(x, y, w, h, rx, ry, 'F')
-        : pdf.rect(x, y, w, h, 'F');
+      pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F');
     }
 
     // ── Borders ───────────────────────────────────────────────────────────────
-    // A uniform border is stroked as one rectangle (so a radius is honoured); a
-    // divider (border-top only) or mixed border fills per edge. Previously only
-    // border-top was emitted, so framed elements (e.g. the track chips) lost their
-    // left/right/bottom edges in PDF while bitmap exports drew all four.
+    // A uniform border is stroked as one rect/path (so a radius is honoured); a
+    // divider (border-top only) or mixed border fills per edge. Colours keep their
+    // alpha via GState (jsPDF GState is sticky, so withPdfAlpha resets it).
     const bSide = (wKey, cKey) => {
       const bw = parseFloat(style[wKey]) || 0;
-      return { bw, rgb: bw > 0 ? parseCssColor(style[cKey]) : null };
+      return { bw, rgb: bw > 0 ? parseCssColorFull(style[cKey]) : null };
     };
     const bT = bSide('borderTopWidth',    'borderTopColor');
     const bR = bSide('borderRightWidth',  'borderRightColor');
     const bB = bSide('borderBottomWidth', 'borderBottomColor');
     const bL = bSide('borderLeftWidth',   'borderLeftColor');
-    const eqRgb = (a, b) => a && b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2];
+    const eqRgb = (a, b) => a && b && a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3];
     const uniformBorder = bT.rgb && bT.bw === bR.bw && bT.bw === bB.bw && bT.bw === bL.bw
       && eqRgb(bT.rgb, bR.rgb) && eqRgb(bT.rgb, bB.rgb) && eqRgb(bT.rgb, bL.rgb);
     if (uniformBorder) {
@@ -2402,14 +2442,18 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
       pdf.setDrawColor(bT.rgb[0], bT.rgb[1], bT.rgb[2]);
       pdf.setLineWidth(lw);
       // CSS border-box: the border sits inside w×h; jsPDF strokes centred, so inset by lw/2.
-      (rx > 0 || ry > 0)
-        ? pdf.roundedRect(x + lw / 2, y + lw / 2, w - lw, h - lw, Math.max(0, rx - lw / 2), Math.max(0, ry - lw / 2), 'S')
-        : pdf.rect(x + lw / 2, y + lw / 2, w - lw, h - lw, 'S');
+      const innerUniform = uniform ? [Math.max(0, uniform[0] - lw / 2), Math.max(0, uniform[1] - lw / 2)] : null;
+      withPdfAlpha(pdf, bT.rgb[3], () =>
+        pdfRoundedRect(pdf, x + lw / 2, y + lw / 2, w - lw, h - lw,
+          insetCorners(radii, lw / 2), innerUniform, 'S'));
     } else {
-      if (bT.rgb) { pdf.setFillColor(bT.rgb[0], bT.rgb[1], bT.rgb[2]); pdf.rect(x, y, w, bT.bw * scaleY, 'F'); }
-      if (bB.rgb) { pdf.setFillColor(bB.rgb[0], bB.rgb[1], bB.rgb[2]); pdf.rect(x, y + h - bB.bw * scaleY, w, bB.bw * scaleY, 'F'); }
-      if (bL.rgb) { pdf.setFillColor(bL.rgb[0], bL.rgb[1], bL.rgb[2]); pdf.rect(x, y, bL.bw * scaleX, h, 'F'); }
-      if (bR.rgb) { pdf.setFillColor(bR.rgb[0], bR.rgb[1], bR.rgb[2]); pdf.rect(x + w - bR.bw * scaleX, y, bR.bw * scaleX, h, 'F'); }
+      const edge = (rgb, dx, dy, ew, eh) => withPdfAlpha(pdf, rgb[3], () => {
+        pdf.setFillColor(rgb[0], rgb[1], rgb[2]); pdf.rect(dx, dy, ew, eh, 'F');
+      });
+      if (bT.rgb) edge(bT.rgb, x, y, w, bT.bw * scaleY);
+      if (bB.rgb) edge(bB.rgb, x, y + h - bB.bw * scaleY, w, bB.bw * scaleY);
+      if (bL.rgb) edge(bL.rgb, x, y, bL.bw * scaleX, h);
+      if (bR.rgb) edge(bR.rgb, x + w - bR.bw * scaleX, y, bR.bw * scaleX, h);
     }
 
     // ── SVG subtree → vector region (or raster for gradient illustrations) ─────
@@ -2473,8 +2517,11 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
 
       {
         try {
-          const dataUrl = src.startsWith('data:') ? src
+          const dataUrl0 = src.startsWith('data:') ? src
             : src.startsWith('blob:') ? await blobToDataUrl(src) : src;
+          // Bake any CSS filter() into the bitmap (browser canvas) so PDF matches
+          // screen/PNG; no-op + graceful fallback when filter is none.
+          const dataUrl = await bakeImageFilter(el, dataUrl0, style.filter);
 
           // Clip circular images (headshots with border-radius: 50%)
           const rTL = parseCssLen(style.borderTopLeftRadius,     rect.width);
@@ -2485,7 +2532,11 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
           const halfMin = Math.min(rect.width, rect.height) * 0.45;
           const isCircle = minR >= halfMin;
 
-          const imgUrl = isCircle ? await circularClipImage(el, dataUrl).catch(() => dataUrl) : dataUrl;
+          // circularClipImage prefers the live (unfiltered) <img>; when a filter was
+          // baked, clip the filtered data URL instead so the treatment survives.
+          const imgUrl = isCircle
+            ? await circularClipImage(style.filter && style.filter !== 'none' ? null : el, dataUrl).catch(() => dataUrl)
+            : dataUrl;
           const { src: imgSrc, fmt } = await imageForPdf(imgUrl);
           pdf.addImage(imgSrc, fmt, x, y, w, h);
         } catch { /* skip unloadable images */ }
@@ -2550,10 +2601,11 @@ async function renderInlineContent(pdf, blockEl, blockStyle, rootRect, scaleX, s
             if (r.width < 0.5 || r.height < 0.5) continue;
             const x = (r.left - rootRect.left) * scaleX;
             const top = (r.top - rootRect.top) * scaleY;
+            const shown = applyTextTransform(line.text, nodeStyle.textTransform);
             let drawn = false;
             if (outline) {
               try {
-                const { d } = await _host.text.toPath({ text: line.text, fontUrl, fontSize: fontSizePx });
+                const { d } = await _host.text.toPath({ text: shown, fontUrl, fontSize: fontSizePx });
                 if (d) {
                   pdf.setFillColor(textRgb[0], textRgb[1], textRgb[2]);
                   drawSvgPathToPdf(pdf, d,
@@ -2566,7 +2618,7 @@ async function renderInlineContent(pdf, blockEl, blockStyle, rootRect, scaleX, s
                 _host?.log?.('warn', `pdf: text-to-path failed, using embedded text — ${e.message}`);
               }
             }
-            if (!drawn) pdf.text(line.text, x, top, { baseline: 'top' });
+            if (!drawn) pdf.text(shown, x, top, { baseline: 'top' });
           }
         }
         offset += seg.length + 1; // +1 for the '\n'
@@ -2595,9 +2647,15 @@ async function pdfPseudoContent(pdf, el, rootRect, scaleX, scaleY, cssToPt, regi
     const y = (ds.y - rootRect.top)  * scaleY;
     if (ds.bg && ds.w > 0.5 && ds.h > 0.5) {
       const w = ds.w * scaleX, h = ds.h * scaleY;
-      const rx = ds.rx * scaleX, ry = ds.ry * scaleY;
+      const radii = {
+        topLeft:     [ds.radii.topLeft[0]     * scaleX, ds.radii.topLeft[1]     * scaleY],
+        topRight:    [ds.radii.topRight[0]    * scaleX, ds.radii.topRight[1]    * scaleY],
+        bottomRight: [ds.radii.bottomRight[0] * scaleX, ds.radii.bottomRight[1] * scaleY],
+        bottomLeft:  [ds.radii.bottomLeft[0]  * scaleX, ds.radii.bottomLeft[1]  * scaleY],
+      };
+      const uniform = ds.uniform ? [ds.uniform[0] * scaleX, ds.uniform[1] * scaleY] : null;
       pdf.setFillColor(ds.bg[0], ds.bg[1], ds.bg[2]);
-      (rx > 0 || ry > 0) ? pdf.roundedRect(x, y, w, h, rx, ry, 'F') : pdf.rect(x, y, w, h, 'F');
+      pdfRoundedRect(pdf, x, y, w, h, radii, uniform, 'F');
     }
     if (!ds.text.trim()) continue;
     const fontSizePx = parseFloat(ds.ps.fontSize) || 16;
@@ -2652,55 +2710,93 @@ function parseCssColor(cssColor) {
 }
 
 // Parse a CSS length value (px or %). refPx is used for percentage resolution.
+// Delegates to the engine's DOM-free parser (single source of truth).
 function parseCssLen(val, refPx) {
-  if (!val || val === '0' || val === '0px') return 0;
-  const s = String(val).trim();
-  if (s.endsWith('%')) return (parseFloat(s) / 100) * refPx;
-  return parseFloat(s) || 0;
+  return parseCssLength(val, refPx);
 }
 
-// CSS-correct effective corner radius for a w×h box, as a [rx, ry] pair.
+// Resolve a computed style's four border-radius corners for a w×h box into the
+// CSS §5.5 corner-overlap-clamped geometry, via the engine (the single source of
+// truth shared by the SVG and PDF walkers — see engine/src/css-box.js).
 //
-// Browsers don't render a huge `border-radius: 999px` as an ellipse — they apply
-// the CSS "corner overlap" rule (CSS Backgrounds & Borders §5.5): a SINGLE scale
-// factor f shrinks every corner radius together so adjacent radii never overlap.
-// For a uniform radius that collapses both axes to min(w,h)/2 → a stadium/pill
-// with flat sides. The hand-rolled vector renderers (SVG <rect>, jsPDF
-// roundedRect) instead clamp each axis INDEPENDENTLY (rx→w/2, ry→h/2), which for
-// a huge radius yields a full ellipse — the bug this fixes. We pre-clamp here so
-// the emitted radii already fit (rx≤w/2, ry≤h/2) and no downstream renderer
-// re-clamps them into an ellipse.
-//
-// Each corner's horizontal component resolves % against width, vertical against
-// height (so a genuine `border-radius: 50%` on a non-square box stays an ellipse,
-// and on a square box a circle). Corners are collapsed to one radius per axis
-// (max), matching the rest of these walkers; this is exact for the uniform case
-// every tool actually uses (pill / ellipse / circle / plain rounded-rect).
-function effectiveRadius(style, w, h) {
-  const corner = (val) => {
-    const s = String(val || '').trim();
-    // A computed radius is "10px" or "10px 20px" (horizontal vertical). CSS math
-    // functions (calc/min/max/clamp) carry internal spaces and can't be split that
-    // way; no tool uses them in border-radius, so resolve to 0 (sharp) rather than
-    // mangling the value into wrong geometry.
-    const t = s.includes('(') ? [s] : s.split(/\s+/);
-    return [parseCssLen(t[0], w), parseCssLen(t[1] ?? t[0], h)];
-  };
-  const [tlh, tlv] = corner(style.borderTopLeftRadius);
-  const [trh, trv] = corner(style.borderTopRightRadius);
-  const [blh, blv] = corner(style.borderBottomLeftRadius);
-  const [brh, brv] = corner(style.borderBottomRightRadius);
-  const rx = Math.max(tlh, trh, blh, brh);
-  const ry = Math.max(tlv, trv, blv, brv);
-  if (rx <= 0 && ry <= 0) return [0, 0];
-  const f = Math.min(1, rx > 0 ? w / (2 * rx) : 1, ry > 0 ? h / (2 * ry) : 1);
-  return [rx * f, ry * f];
+// Returns { radii, uniform }: `radii` is the four clamped [h,v] corners; `uniform`
+// is a single [rx,ry] pair when all four corners are equal (the common pill /
+// ellipse / circle / rounded-rect case — emit a fast <rect rx ry> / jsPDF
+// roundedRect) or null when they differ (emit a four-corner path so e.g. a
+// top-only-rounded card keeps its square bottom corners instead of rounding all
+// four). The uniform path is byte-identical to before, preserving the pill fix.
+function resolveRadii(style, w, h) {
+  const radii = cornerRadii({
+    topLeft:     style.borderTopLeftRadius,
+    topRight:    style.borderTopRightRadius,
+    bottomRight: style.borderBottomRightRadius,
+    bottomLeft:  style.borderBottomLeftRadius,
+  }, w, h);
+  return { radii, uniform: uniformRadius(radii) };
+}
+
+// SVG fill element for a (possibly four-corner) rounded rect: a fast <rect rx ry>
+// when corners are uniform, else a <path>. `fillOpacity` < 1 emits fill-opacity
+// (which svg-ir flattens over the background for EMF/EPS).
+function makeRoundedFill(NS, x, y, w, h, radii, uniform, fill, fillOpacity = 1) {
+  let el;
+  if (uniform) {
+    el = makeSvgRect(NS, x, y, w, h, uniform[0], fill, uniform[1]);
+  } else {
+    el = document.createElementNS(NS, 'path');
+    el.setAttribute('d', roundedRectPath(x, y, w, h, radii));
+    el.setAttribute('fill', fill);
+  }
+  if (fillOpacity < 1) el.setAttribute('fill-opacity', String(fillOpacity));
+  return el;
+}
+
+// Bake a CSS filter() into a raster image via the browser's OWN canvas filter, so
+// vector exports (which embed photos as bitmaps anyway) match the on-screen / PNG
+// result instead of dropping the treatment. Used for tools that expose an image
+// filter (e.g. dynamic-layout's mono/punch/warm/cool/fade). Returns a filtered PNG
+// data URL, or the original on any failure (filter:none, headless/no-canvas,
+// tainted cross-origin canvas) — so it can never make output worse.
+async function bakeImageFilter(imgEl, dataUrl, filterStr) {
+  if (!filterStr || filterStr === 'none') return dataUrl;
+  try {
+    let img = (imgEl && imgEl.naturalWidth > 0) ? imgEl : null;
+    if (!img) {
+      img = await new Promise((res, rej) => {
+        const i = new Image();
+        i.onload = () => res(i); i.onerror = rej; i.src = dataUrl;
+      });
+    }
+    const w = img.naturalWidth, h = img.naturalHeight;
+    if (!(w > 0 && h > 0)) return dataUrl;
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || !('filter' in ctx)) return dataUrl;   // jsdom / old browsers
+    ctx.filter = filterStr;
+    ctx.drawImage(img, 0, 0, w, h);
+    return canvas.toDataURL('image/png');
+  } catch { return dataUrl; }
+}
+
+// Apply CSS text-transform to a display string. CSS transforms text only at paint
+// time (textContent is unchanged), so the vector walkers — which read textContent
+// — must apply it themselves or vector exports show the original case. upper/lower
+// are 1:1 so they don't disturb per-line substring offsets; capitalize upcases the
+// first letter of each whitespace-separated word (locale-default).
+function applyTextTransform(str, transform) {
+  switch (transform) {
+    case 'uppercase': return str.toUpperCase();
+    case 'lowercase': return str.toLowerCase();
+    case 'capitalize': return str.replace(/(^|[\s ])([^\s ])/gu, (_, p, c) => p + c.toUpperCase());
+    default: return str;
+  }
 }
 
 // Clips an image to a circle via an offscreen canvas. Used for headshots that
 // carry border-radius: 50%. Returns a PNG data URL.
 async function circularClipImage(imgEl, dataUrl) {
-  const img = (imgEl.naturalWidth > 0) ? imgEl : await new Promise((res, rej) => {
+  const img = (imgEl && imgEl.naturalWidth > 0) ? imgEl : await new Promise((res, rej) => {
     const i = new Image();
     i.onload = () => res(i);
     i.onerror = rej;

@@ -169,6 +169,108 @@
 }
 .asset-picker-error { color: hsl(var(--destructive)); }
 
+.asset-picker-loading {
+  text-align: center;
+  color: hsl(var(--muted-foreground));
+  padding: 28px 0;
+  font-size: 13px;
+}
+
+/* ── Paste-a-Lolly-link render card ────────────────────────────────────────
+   Shown in the library region when a tool URL is pasted into the search box.
+   The tool becomes an image: choose format + size, preview, then commit. */
+.asset-picker-toolcard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-width: 460px;
+  margin: 4px auto;
+  padding: 16px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.5);
+}
+
+.asset-picker-toolcard-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: hsl(var(--card-foreground));
+}
+.asset-picker-toolcard-head strong { font-weight: 700; }
+.asset-picker-toolcard-spark { color: hsl(var(--primary)); font-size: 15px; }
+
+.asset-picker-toolcard-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.asset-picker-toolcard-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+.asset-picker-toolcard-controls select,
+.asset-picker-toolcard-controls input {
+  height: 30px;
+  padding: 0 8px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  outline: none;
+}
+.asset-picker-toolcard-controls input { width: 5.5rem; }
+.asset-picker-toolcard-controls select:focus,
+.asset-picker-toolcard-controls input:focus { border-color: hsl(var(--primary)); }
+
+.asset-picker-toolcard-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  padding: 10px;
+  background: hsl(var(--muted));
+  border-radius: var(--radius);
+  /* Checkerboard so transparent renders read clearly against the panel. */
+  background-image:
+    linear-gradient(45deg, hsl(var(--border) / 0.5) 25%, transparent 25%),
+    linear-gradient(-45deg, hsl(var(--border) / 0.5) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, hsl(var(--border) / 0.5) 75%),
+    linear-gradient(-45deg, transparent 75%, hsl(var(--border) / 0.5) 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+.asset-picker-toolcard-img {
+  max-width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+}
+
+.asset-picker-toolcard-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.asset-picker-toolcard-actions .tc-use {
+  padding: 7px 16px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: none;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.asset-picker-toolcard-actions .tc-use:hover { opacity: 0.9; }
+.asset-picker-toolcard-actions .tc-use:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .asset-picker-footer {
   padding: 12px 20px;
   border-top: 1px solid hsl(var(--border));

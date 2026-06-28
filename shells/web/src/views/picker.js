@@ -36,12 +36,20 @@ async function render(root, host, opts, resolve) {
   const showUserAssets = opts.allowUpload === true;
   let userAssets = [];
 
+  // Smart-paste: any image slot can take a Lolly tool URL (a share link) and
+  // render that tool as the image — available whenever the shell can compose and
+  // the slot isn't video-only. The toolId in a pasted link must resolve to a real
+  // local tool, so this can only ever render a tool that ships in this build.
+  const allowToolUrl = Boolean(host.compose?.renderUrl && host.compose?.describeUrl)
+    && opts.type !== 'video';
+  const searchPlaceholder = allowToolUrl ? 'Search, or paste a Lolly link…' : 'Search…';
+
   root.innerHTML = `
     <div class="asset-picker-backdrop" aria-hidden="true"></div>
     <div class="asset-picker-panel" role="dialog" aria-modal="true" aria-labelledby="asset-picker-title">
       <header class="asset-picker-header">
         <h2 id="asset-picker-title">${escape(opts.title ?? 'Choose an asset')}</h2>
-        <input type="search" class="asset-picker-search" placeholder="Search…" autocomplete="off" spellcheck="false" aria-label="Search assets">
+        <input type="search" class="asset-picker-search" placeholder="${escape(searchPlaceholder)}" autocomplete="off" spellcheck="false" aria-label="Search assets">
         <button type="button" class="asset-picker-close" aria-label="Close">×</button>
       </header>
       <div class="asset-picker-body">
@@ -109,6 +117,12 @@ async function render(root, host, opts, resolve) {
   root.querySelector('.asset-picker-panel').addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { e.preventDefault(); close(null); return; }
     if (e.target === searchInput) {
+      // Enter commits a ready tool-render card (paste link → ↵ → use).
+      if (e.key === 'Enter') {
+        const use = root.querySelector('.asset-picker-toolcard .tc-use');
+        if (use && !use.disabled) { e.preventDefault(); use.click(); }
+        return;
+      }
       // Down out of the search field drops into the grid.
       if (e.key === 'ArrowDown') { e.preventDefault(); focusCard(navCards()[0]); }
       return;
@@ -208,6 +222,67 @@ async function render(root, host, opts, resolve) {
       .catch(e => host.log('warn', 'Failed to list user images', { error: String(e) }));
   }
 
+  // Build the "paste a Lolly link" render card in the library region: detected-tool
+  // header, format + size controls, a live preview, and a commit button. "Use this
+  // render" resolves the picker with a tool-sourced AssetRef whose id is the
+  // canonical embed URL, so it persists + re-renders exactly like a library asset.
+  function showToolCard(desc, url) {
+    if (userEl) userEl.hidden = true;
+    const allowed = formatsForType(desc.formats, opts.type);
+    const fmtOptions = allowed.map(f =>
+      `<option value="${escape(f)}"${f === desc.format ? ' selected' : ''}>${escape(f.toUpperCase())}</option>`
+    ).join('');
+    libraryEl.innerHTML = `
+      <div class="asset-picker-toolcard">
+        <div class="asset-picker-toolcard-head">
+          <span class="asset-picker-toolcard-spark" aria-hidden="true">✦</span>
+          <span>Render the <strong>${escape(desc.name)}</strong> tool as your image</span>
+        </div>
+        <div class="asset-picker-toolcard-controls">
+          <label>Format <select class="tc-format" aria-label="Render format">${fmtOptions}</select></label>
+          <label>Width <input type="number" class="tc-w" min="1" inputmode="numeric" placeholder="auto" value="${desc.width ?? ''}"></label>
+          <label>Height <input type="number" class="tc-h" min="1" inputmode="numeric" placeholder="auto" value="${desc.height ?? ''}"></label>
+        </div>
+        <div class="asset-picker-toolcard-preview"><div class="asset-picker-loading">Rendering…</div></div>
+        <div class="asset-picker-toolcard-actions">
+          <button type="button" class="tc-use" disabled>Use this render</button>
+        </div>
+      </div>`;
+    const cardEl    = libraryEl.querySelector('.asset-picker-toolcard');
+    const fmtSel    = cardEl.querySelector('.tc-format');
+    const wEl       = cardEl.querySelector('.tc-w');
+    const hEl       = cardEl.querySelector('.tc-h');
+    const previewEl = cardEl.querySelector('.asset-picker-toolcard-preview');
+    const useBtn    = cardEl.querySelector('.tc-use');
+
+    let pending = null;     // the AssetRef the Use button will commit
+    let renderSeq = 0;      // drop a stale render when controls change again
+    const renderPreview = async () => {
+      const seq = ++renderSeq;
+      pending = null;
+      useBtn.disabled = true;
+      previewEl.innerHTML = `<div class="asset-picker-loading">Rendering…</div>`;
+      const ref = await host.compose.renderUrl(url, {
+        format: fmtSel.value,
+        width:  parseInt(wEl.value, 10) || undefined,
+        height: parseInt(hEl.value, 10) || undefined,
+      }).catch(() => null);
+      if (seq !== renderSeq) return; // a newer change supersedes this render
+      if (!ref) { previewEl.innerHTML = `<p class="asset-picker-error">Couldn't render this link.</p>`; return; }
+      pending = ref;
+      previewEl.innerHTML = `<img class="asset-picker-toolcard-img" src="${escape(ref.url)}" alt="Preview of the ${escape(desc.name)} render">`;
+      useBtn.disabled = false;
+    };
+
+    let debounce;
+    const onSize = () => { clearTimeout(debounce); debounce = setTimeout(renderPreview, 350); };
+    fmtSel.addEventListener('change', renderPreview);
+    wEl.addEventListener('input', onSize);
+    hEl.addEventListener('input', onSize);
+    useBtn.addEventListener('click', () => { if (pending) close(pending); });
+    renderPreview();
+  }
+
   try {
     const candidates = await host.assets.query(opts);
     renderLibrary(candidates);
@@ -217,16 +292,47 @@ async function render(root, host, opts, resolve) {
     const libCards = [...libraryEl.querySelectorAll('[data-asset-id]')];
     (libCards.find(c => c.dataset.assetId === opts.current) || libCards[0])?.focus({ preventScroll: true });
 
-    searchInput?.addEventListener('input', () => {
-      const q = searchInput.value.trim().toLowerCase();
+    // Restore the normal library (+ user images), optionally filtered by `q`.
+    const restoreLibrary = (q) => {
+      renderUserAssets();
       if (!q) { renderLibrary(candidates); return; }
       renderLibrary(candidates.filter(c =>
         (c.meta?.name ?? c.id).toLowerCase().includes(q) || c.id.toLowerCase().includes(q)
       ));
+    };
+
+    // A Lolly tool URL pasted into the search box flips the picker into a "render
+    // this tool" card; anything else filters the library as before. The seq guard
+    // drops a stale describeUrl (async tool load) when the user keeps typing.
+    let detectSeq = 0;
+    searchInput?.addEventListener('input', async () => {
+      const raw = searchInput.value.trim();
+      if (allowToolUrl && /^https?:\/\//i.test(raw)) {
+        const seq = ++detectSeq;
+        if (userEl) userEl.hidden = true;
+        libraryEl.innerHTML = `<div class="asset-picker-loading">Checking link…</div>`;
+        const desc = await host.compose.describeUrl(raw).catch(() => null);
+        if (seq !== detectSeq) return; // superseded by a newer keystroke
+        if (desc) showToolCard(desc, raw);
+        else libraryEl.innerHTML = `<p class="asset-picker-empty">That isn't a Lolly tool link this app can open.</p>`;
+        return;
+      }
+      detectSeq++; // invalidate any in-flight detection now that it's not a URL
+      restoreLibrary(raw.toLowerCase());
     });
   } catch (e) {
     libraryEl.innerHTML = `<p class="asset-picker-error">Failed to load: ${escape(e.message)}</p>`;
   }
+}
+
+// Constrain the offered child-render formats to the slot's asset type — a 'vector'
+// slot only makes sense as SVG, a 'raster' slot as a bitmap. Falls back to the full
+// list if the constraint would leave nothing (an <img> slot still accepts either).
+function formatsForType(formats, type) {
+  let out = formats;
+  if (type === 'vector') out = formats.filter(f => f === 'svg');
+  else if (type === 'raster') out = formats.filter(f => f !== 'svg');
+  return out.length ? out : formats;
 }
 
 function card(ref) {

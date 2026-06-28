@@ -27,6 +27,7 @@ import { hydrate } from './template.js';
 import { buildExportMeta } from './metadata.js';
 import { isTokenValue, isAlias, colorToHex } from './tokens.js';
 import { resolveNestedRenders } from './compose.js';
+import { isToolUrl } from './tool-url.js';
 
 /**
  * @param {Tool} tool                 from loader.js
@@ -66,7 +67,7 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
   // that no longer resolve (e.g. a user deleted an image a saved design used) are
   // collected so the shell can tell the user the field was left blank.
   const droppedAssets = [];
-  model = await resolveAssetRefs(model, host, droppedAssets);
+  model = await resolveAssetRefs(model, host, droppedAssets, composeStack);
 
   // Resolve token-referenced colour values (from URL mode or a saved session)
   // against the live token set, refreshing each cached hex so a token edit
@@ -332,7 +333,7 @@ function inputNeedsAssetResolve(input) {
   return false;
 }
 
-async function resolveAssetRefs(model, host, dropped = []) {
+async function resolveAssetRefs(model, host, dropped = [], composeStack = []) {
   // Nothing to resolve → return the SAME model reference (no array/object churn,
   // no microtask). Most mounts have no unresolved asset refs at all.
   if (!model.some(inputNeedsAssetResolve)) return model;
@@ -343,6 +344,20 @@ async function resolveAssetRefs(model, host, dropped = []) {
     // the full resolved object, but blob: URLs are session-scoped and invalid
     // after a page reload, so we always re-fetch a fresh blob URL from the cache.
     try {
+      // A Lolly tool URL as an asset id means "render this tool as my image" —
+      // an end user pasted a share link into the picker. Re-render it through
+      // compose (not the catalog), so the embedded render is reproduced on every
+      // load (saved session, shared parent link). The _stack carries cycle/depth
+      // guards downward (a tool whose image input points at itself fails fast).
+      // Graceful-null if this shell can't compose (renderUrl absent / child error).
+      if (isToolUrl(id)) {
+        const ref = host.compose?.renderUrl
+          ? await host.compose.renderUrl(id, { _stack: composeStack })
+          : null;
+        if (ref) return ref;
+        dropped.push({ inputId, label, id });
+        return null;
+      }
       return await host.assets.get(id);
     } catch (e) {
       host.log('warn', `Failed to resolve asset ${id}`, { error: String(e) });

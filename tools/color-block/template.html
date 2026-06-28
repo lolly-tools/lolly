@@ -215,7 +215,15 @@
 
   // Binary-search the content font-size so the block's text fills its cell
   // (minus padding) without overflowing. One size scales the whole stack, so the
-  // per-type ratios and the block's --scale knob hold.
+  // per-type ratios hold.
+  //
+  // The block's "Text scale" (--scale) must read on top of this fill. Since
+  // .cb-text is `1em * var(--scale)`, the fill measurement already includes the
+  // scale, so the search would silently cancel it out (the text always fills
+  // regardless of the knob). So we neutralise --scale while measuring the
+  // natural fill size, then re-apply it — the text renders at fill × scale
+  // (under 1 = shrinks with whitespace; over 1 overflows and is clipped by the
+  // cell, matching the no-JS `8cqmin * var(--scale)` path).
   function fit(b) {
     var content = b.querySelector('.cb-content');
     if (!content) return;
@@ -223,11 +231,14 @@
     if (!text || !text.textContent.trim()) return;
     var availW = content.clientWidth, availH = content.clientHeight;
     if (availW <= 0 || availH <= 0) return;
+    text.style.setProperty('--scale', '1');   // measure the natural fill, scale-free
     function fits(s) { content.style.fontSize = s + 'px'; return content.scrollHeight <= availH && content.scrollWidth <= availW; }
     var lo = 6, hi = Math.max(availW, availH);
-    if (fits(hi)) return;
-    while (hi - lo > 0.5) { var m = (lo + hi) / 2; if (fits(m)) lo = m; else hi = m; }
-    content.style.fontSize = lo + 'px';
+    if (!fits(hi)) {
+      while (hi - lo > 0.5) { var m = (lo + hi) / 2; if (fits(m)) lo = m; else hi = m; }
+      content.style.fontSize = lo + 'px';
+    }
+    text.style.removeProperty('--scale');      // restore the block's knob: fill × scale
   }
 
   function layout() {

@@ -13,7 +13,7 @@
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf, emitEps } from '@lolly/engine';
+import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf, emitEps, parseToolUrl, buildEmbedUrl, parseUrlState, RESERVED } from '@lolly/engine';
 // PDF metadata inspect/strip is pure pdf-lib (no DOM), so the lean node CLI
 // shares the web shell's implementation rather than duplicating it.
 import { createPdfAPI } from '../../web/src/bridge/pdf.js';
@@ -241,6 +241,41 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
         format: fmt,
         url: `data:${mimeFor(fmt)};base64,${buf.toString('base64')}`,
       };
+    },
+
+    // Render a pasted/stored Lolly tool URL to an AssetRef whose id is the
+    // canonical embed URL — the same contract as the web bridge, so a tool-sourced
+    // asset re-resolves in CLI/headless runs too (svg works; a raster child throws
+    // and the caller leaves the slot empty, matching host.compose.render's stance).
+    async renderUrl(url, opts = {}) {
+      const parsed = parseToolUrl(url);
+      if (!parsed) return null;
+      let childTool;
+      try { childTool = await loadTool(parsed.toolId, composeFetchFile); } catch { return null; }
+      const st = parseUrlState(parsed.query, childTool.manifest);
+      const supported = (childTool.manifest.render?.formats ?? []).map(f => String(f).toLowerCase());
+      const norm = (f) => { const x = String(f || '').toLowerCase(); return x === 'jpeg' ? 'jpg' : x; };
+      const format = norm(opts.format) || norm(parsed.format)
+        || (supported.includes('svg') ? 'svg' : supported[0]);
+      const width = opts.width ?? st.width ?? undefined;
+      const height = opts.height ?? st.height ?? undefined;
+      const unit = opts.unit ?? st.unit ?? undefined;
+      const dpi = opts.dpi ?? st.dpi ?? undefined;
+      let ref;
+      try {
+        ref = await host.compose.render({
+          toolId: parsed.toolId, inputs: st.values,
+          format, width, height, unit, dpi, _stack: opts._stack ?? [],
+        });
+      } catch { return null; }
+      if (!ref) return null;
+      const q = new URLSearchParams(parsed.query);
+      for (const k of RESERVED) q.delete(k);
+      if (width) q.set('w', String(width));
+      if (height) q.set('h', String(height));
+      if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
+      const id = buildEmbedUrl({ toolId: parsed.toolId, format, query: q.toString() });
+      return { ...ref, id: id ?? ref.id };
     },
   };
 
