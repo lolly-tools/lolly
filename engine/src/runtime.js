@@ -67,7 +67,7 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
   // that no longer resolve (e.g. a user deleted an image a saved design used) are
   // collected so the shell can tell the user the field was left blank.
   const droppedAssets = [];
-  model = await resolveAssetRefs(model, host, droppedAssets, composeStack);
+  model = await resolveAssetRefs(model, host, droppedAssets, composeStack, tool.manifest.id);
 
   // Resolve token-referenced colour values (from URL mode or a saved session)
   // against the live token set, refreshing each cached hex so a token edit
@@ -333,7 +333,7 @@ function inputNeedsAssetResolve(input) {
   return false;
 }
 
-async function resolveAssetRefs(model, host, dropped = [], composeStack = []) {
+async function resolveAssetRefs(model, host, dropped = [], composeStack = [], toolId = '') {
   // Nothing to resolve → return the SAME model reference (no array/object churn,
   // no microtask). Most mounts have no unresolved asset refs at all.
   if (!model.some(inputNeedsAssetResolve)) return model;
@@ -347,12 +347,17 @@ async function resolveAssetRefs(model, host, dropped = [], composeStack = []) {
       // A Lolly tool URL as an asset id means "render this tool as my image" —
       // an end user pasted a share link into the picker. Re-render it through
       // compose (not the catalog), so the embedded render is reproduced on every
-      // load (saved session, shared parent link). The _stack carries cycle/depth
-      // guards downward (a tool whose image input points at itself fails fast).
-      // Graceful-null if this shell can't compose (renderUrl absent / child error).
+      // load (saved session, shared parent link). Push THIS tool's id onto the
+      // stack (mirroring resolveNestedRenders) so a tool whose image input points
+      // at itself — or an A↔B pair — trips the bridge's cycle/depth guard and fails
+      // fast instead of recursing. withTimeout bounds a hung child render so it
+      // can't block this mount. Graceful-null if the shell can't compose.
       if (isToolUrl(id)) {
         const ref = host.compose?.renderUrl
-          ? await host.compose.renderUrl(id, { _stack: composeStack })
+          ? await withTimeout(
+              host.compose.renderUrl(id, { _stack: [...composeStack, toolId] }),
+              COMPOSE_TIMEOUT_MS, id,
+            )
           : null;
         if (ref) return ref;
         dropped.push({ inputId, label, id });
@@ -464,6 +469,11 @@ async function loadHooks(tool, host) {
     exportFile:   typeof mod.exportFile   === 'function' ? mod.exportFile   : null,
   };
 }
+
+// Backstop for re-rendering a tool-URL asset on mount — mirrors the same bound on
+// the manifest-composes path (compose.js) so a hung child render can't block the
+// parent's first paint. On timeout the resolve rejects → the slot is dropped.
+const COMPOSE_TIMEOUT_MS = 10000;
 
 function withTimeout(promise, ms, toolId) {
   return new Promise((resolve, reject) => {

@@ -87,6 +87,45 @@ export function insetCorners(radii, inset) {
   };
 }
 
+// Split a comma-separated CSS list at top level (commas inside parens — e.g.
+// rgba(0,0,0,.5) — are not separators).
+function splitTopLevel(str) {
+  const out = [];
+  let depth = 0, cur = '';
+  for (const ch of String(str)) {
+    if (ch === '(') depth++;
+    else if (ch === ')') depth = Math.max(0, depth - 1);
+    if (ch === ',' && depth === 0) { out.push(cur); cur = ''; }
+    else cur += ch;
+  }
+  if (cur.trim()) out.push(cur);
+  return out;
+}
+
+// Parse a computed CSS `box-shadow` into a list of OUTER shadows (inset shadows
+// are skipped — they can't be expressed as a single vector primitive). The color
+// is returned as the raw CSS token (always rgb/rgba in a computed value) for the
+// shell to resolve; lengths are px. Order matches CSS paint order (first listed is
+// topmost). Returns [] for 'none' / empty.
+//   getComputedStyle form per shadow: "<color> <offX> <offY> [blur] [spread] [inset]"
+export function parseBoxShadow(value) {
+  if (!value || value === 'none') return [];
+  const shadows = [];
+  for (const raw of splitTopLevel(value)) {
+    const part = raw.trim();
+    if (!part || /\binset\b/.test(part)) continue;
+    const colorMatch = part.match(/rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+/);
+    const color = colorMatch ? colorMatch[0] : 'rgb(0,0,0)';
+    const rest = colorMatch ? part.replace(colorMatch[0], ' ') : part;
+    const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || [])
+      .map((s) => parseFloat(s)).filter(Number.isFinite);
+    if (nums.length < 2) continue;
+    const [x, y, blur = 0, spread = 0] = nums;
+    shadows.push({ x, y, blur: Math.max(0, blur), spread, color });
+  }
+  return shadows;
+}
+
 const n3 = (v) => {
   const r = Math.round(v * 1000) / 1000;
   return Object.is(r, -0) ? 0 : r;

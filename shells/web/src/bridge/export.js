@@ -14,7 +14,7 @@
 import {
   parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI,
   iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry, emitEmf, emitEps,
-  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath,
+  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
 } from '@lolly/engine';
 import {
   suseFontFile, SUSE_FONT_DIR,
@@ -939,7 +939,7 @@ async function renderEmf(node, opts = {}) {
   let svgEl = node.tagName?.toLowerCase() === 'svg' ? node : node.querySelector?.('svg');
   if (!svgEl) {
     // HTML-layout tool with no inline <svg>: synthesise an outlined SVG first.
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true });
+    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
     const xml = await svgBlob.text();
     svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
   }
@@ -960,7 +960,7 @@ async function renderEmf(node, opts = {}) {
 async function renderEps(node, opts = {}, cmyk = false) {
   let svgEl = node.tagName?.toLowerCase() === 'svg' ? node : node.querySelector?.('svg');
   if (!svgEl) {
-    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true });
+    const svgBlob = await renderSvgFromHtml(node, { ...opts, convertPaths: true, noBoxShadow: true });
     const xml = await svgBlob.text();
     svgEl = new DOMParser().parseFromString(xml, 'image/svg+xml').documentElement;
   }
@@ -1049,6 +1049,47 @@ async function renderSvgFromHtml(node, opts) {
 
     // ── Border radius (CSS corner-overlap clamped → pill, not ellipse) ───────
     const { radii, uniform } = resolveRadii(style, w, h);
+
+    // ── Box shadow ────────────────────────────────────────────────────────────
+    // Each outer shadow is the box's own shape, offset + grown by spread, filled
+    // with the shadow colour and Gaussian-blurred, painted BEHIND the background.
+    // Skipped for EMF/EPS (opts.noBoxShadow) — those formats have no blur primitive
+    // and would emit an ugly hard-edged offset shape. Painted back-to-front so the
+    // first-listed shadow ends up on top, matching CSS.
+    if (!opts.noBoxShadow && tag !== 'img' && tag !== 'svg') {
+      for (const sh of parseBoxShadow(style.boxShadow).reverse()) {
+        const col = parseCssColorFull(sh.color);
+        if (!col) continue;
+        const sw = Math.max(0, w + 2 * sh.spread);
+        const sh2 = Math.max(0, h + 2 * sh.spread);
+        if (sw <= 0 || sh2 <= 0) continue;
+        const sRadii = insetCorners(radii, -sh.spread);   // negative inset = outset
+        const fill = col[3] < 1
+          ? `rgba(${col[0]},${col[1]},${col[2]},${col[3]})`
+          : `rgb(${col[0]},${col[1]},${col[2]})`;
+        const shape = makeRoundedFill(NS, x + sh.x - sh.spread, y + sh.y - sh.spread,
+          sw, sh2, sRadii, uniformRadius(sRadii), fill);
+        if (sh.blur > 0) {
+          const fId = `shadow-${++uid}`;
+          const filt = document.createElementNS(NS, 'filter');
+          filt.setAttribute('id', fId);
+          // userSpaceOnUse region padded for the blur so it isn't clipped.
+          const pad = sh.blur * 1.5 + Math.abs(sh.spread) + 8;
+          filt.setAttribute('filterUnits', 'userSpaceOnUse');
+          filt.setAttribute('x',      String(x + sh.x - sh.spread - pad));
+          filt.setAttribute('y',      String(y + sh.y - sh.spread - pad));
+          filt.setAttribute('width',  String(sw + 2 * pad));
+          filt.setAttribute('height', String(sh2 + 2 * pad));
+          const fe = document.createElementNS(NS, 'feGaussianBlur');
+          fe.setAttribute('in', 'SourceGraphic');
+          fe.setAttribute('stdDeviation', String(sh.blur / 2));
+          filt.appendChild(fe);
+          defs.appendChild(filt);
+          shape.setAttribute('filter', `url(#${fId})`);
+        }
+        g.appendChild(shape);
+      }
+    }
 
     // ── Background ──────────────────────────────────────────────────────────
     const bgImg = style.backgroundImage;

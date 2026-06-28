@@ -90,6 +90,14 @@ Pass the asset's library ID — the runtime resolves it to the full asset object
 
 To discover asset IDs, open the asset picker in the tool UI and inspect the value shown when an asset is selected.
 
+**An asset value can also be another tool's render.** When a user pastes a Lolly tool link into the asset picker (a share link or an embed URL), the chosen value's "id" is the **canonical embed URL** of that render, so it round-trips through the URL exactly like a library id — just longer:
+
+```
+?hero=https%3A%2F%2Flolly.tools%2Ftool%2Fqr-code.svg%3Furl%3Dhttps%3A%2F%2Fsuse.com%26w%3D600%26h%3D600
+```
+
+On load the runtime re-renders it via `host.compose.renderUrl` instead of looking it up in the catalog. This is how one tool's output (a QR code, a filtered hero graphic) flows into another tool's image slot through a plain shareable link. See [Tool composition](#tool-composition-portable-embed-url) and the authoring guide.
+
 > **User-uploaded images are device-local and not URL-shareable.** Images a user adds from their own device (`AssetRef.source: "user"`, ids like `user/upload/…`) live only in that device's local storage. There is no shareable id to encode, so they are deliberately omitted from the URL — a link that referenced one would not resolve on another device. To share a layout that uses a personal image, the recipient must select their own. (Avoiding this would require cloud hosting, which the platform intentionally does not do.)
 
 ### Blocks

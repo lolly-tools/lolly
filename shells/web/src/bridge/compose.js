@@ -150,15 +150,39 @@ export function createComposeAPI(host) {
     if (height) q.set('h', String(height));
     if (unit && unit !== 'px') { q.set('unit', String(unit)); if (dpi) q.set('dpi', String(dpi)); }
     const id = buildEmbedUrl({ toolId: parsed.toolId, format, query: q.toString() });
+    // No re-parseable identity (too long) → don't persist a dead slot; the picker
+    // reports it couldn't render rather than committing an asset that breaks on load.
+    if (!id) return null;
+
+    // Hand back a SELF-CONTAINED data: URL: this ref is committed into the input
+    // model and persisted, so it must not depend on the compose LRU's blob (revoked
+    // on eviction). Also matches the CLI bridge, which returns a data: URL.
+    const dataUrl = await blobUrlToDataUrl(ref.url).catch(() => ref.url);
 
     return {
       ...ref,
-      id: id ?? ref.id,
-      meta: { ...(ref.meta || {}), tool: parsed.toolId, name: tool.manifest.name ?? parsed.toolId, toolUrl: id ?? undefined },
+      url: dataUrl,
+      id,
+      meta: { ...(ref.meta || {}), tool: parsed.toolId, name: tool.manifest.name ?? parsed.toolId, toolUrl: id },
     };
   }
 
-  return { render, renderUrl, describeUrl };
+  // _describeUrl is web-only host-UI chrome (the picker's detected-tool card), not
+  // part of the v1 ComposeAPI contract — underscore-prefixed like assets._* helpers.
+  return { render, renderUrl, _describeUrl: describeUrl };
+}
+
+// Convert a blob: URL to a self-contained data: URL (see renderUrl). Falls back to
+// the blob URL on read failure rather than losing the render.
+async function blobUrlToDataUrl(blobUrl) {
+  const resp = await fetch(blobUrl);
+  const blob = await resp.blob();
+  return await new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result);
+    fr.onerror = () => reject(fr.error);
+    fr.readAsDataURL(blob);
+  });
 }
 
 function cacheKey(toolId, inputs, format, width, height, unit, dpi) {

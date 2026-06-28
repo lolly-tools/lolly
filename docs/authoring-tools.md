@@ -150,6 +150,8 @@ When `allowUpload` is `true`, the picker offers the user's **personal image libr
 
 These images are **device-local**: their `AssetRef.source` is `"user"` and their `user/…` id is meaningful only on the device that holds the bytes, so they are **omitted from shareable URLs** (see `docs/url-mode.md`). Tools treat `user` and `library` assets identically — no tool code is involved in the upload.
 
+**Use any tool as an image (paste a Lolly link).** Every `asset` input also accepts a **Lolly tool link** pasted into the picker's search box — a share link copied from another tool (`…/#/tool/qr-code?url=…`) or an embed URL (`…/tool/qr-code.svg?…`). The host renders that tool (via `host.compose`) and drops the result into the slot; the user can pick the render format and size before committing. This is the **end-user** counterpart to authored `composes` (below) — no manifest declaration needed, and it works in every tool's image inputs by default. The picker constrains the offered formats to the input's `assetType` (a `vector` slot offers SVG; a `raster` slot offers bitmaps). The chosen asset's identity is the canonical embed URL, so it **persists in saved sessions and shareable links** and re-renders on load — exactly like a library id. (The picker offers this whenever the shell can compose; the `compose` *capability* gates only authored `composes`, not this end-user path.)
+
 #### `file` — the user's own file (on-device utilities)
 
 A `file` input takes a file the user picks **into memory** and hands its raw bytes to the tool. It's the input shape for **content-transform utilities** — the "boring file jobs you'd otherwise hand to a stranger's website": strip EXIF, crop, compress, convert. Unlike `asset` (which is for *brand* imagery and goes through the catalog/upload library), a `file` is the user's own content that's processed and handed straight back, never stored or uploaded.
@@ -342,6 +344,7 @@ A tool can embed **another tool's rendered output** as an image instead of re-im
 - The composed value is a **normal asset URL**, so it works in a CSS `url()` background just as well as in an `<img src>` — bring another tool in exactly like a library image.
 - The child renders through the **same engine path** (pixel-identical, on-brand) and is never watermarked or provenance-stamped (it's an intermediate). Recursion is **depth- and cycle-guarded**: `a → b → a` fails gracefully and the slot stays empty, so always `{{#if}}`-guard the reference.
 - Works wherever the shell can render the child to bytes; the lean CLI composes `svg` children. The mechanism is `host.compose` — see [Host API](/info/host-api.html).
+- **End users get this too, without a manifest.** Any `asset` input can take a pasted Lolly tool link (see [`asset` — library or device upload](#asset--library-or-device-upload) above); the host renders it through the same `host.compose` path. `composes` is for renders *you* wire into the layout; the pasted-link path is for the user to choose which tool fills an image slot.
 
 ## Brand logo (auto-switching)
 

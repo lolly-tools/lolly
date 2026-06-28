@@ -846,6 +846,8 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   -webkit-column-break-inside: avoid;
   width: 100%;
   margin: 0 0 14px;
+  /* Anchor for the action overlay that floats on the preview (.gtile-actions). */
+  position: relative;
   /* Block-level, NOT inline-block: as inline-block the tile sat in a line box, and
      WebKit (Safari) carries that line-height strut to the top of every column after
      the first at the column break — pushing those first tiles down so the column-1
@@ -891,7 +893,8 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 .gtile-stamp {
   position: absolute;
   top: 8px;
-  right: 8px;
+  /* Top-left so the action overlay can sit just "after" it on the top-right. */
+  left: 8px;
   line-height: 1;
   font-size: 10px;
   font-weight: 700;
@@ -1022,8 +1025,16 @@ a.gtile-name:focus-visible::after {
   color: hsl(var(--muted-foreground));
 }
 
-/* Per-card (i) info / (h) history buttons. */
-.gtile-actions { display: flex; gap: 6px; padding: 0 12px 12px; justify-content: end;}
+/* Per-card (i) info / (h) history buttons — floated over the top-right of the
+   preview, reading just after the timestamp stamp (which sits top-left). */
+.gtile-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+}
 .gtile-iconbtn {
   width: 26px;
   height: 26px;
