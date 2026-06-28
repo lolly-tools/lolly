@@ -16,6 +16,10 @@ With the opt-in selected, we embed some of your profile information as provenanc
 
 Lolly produces a large volume of content. We take a strict data minimization approach to prevent risk.
 
+### What are the feature flags?
+
+Feature flags turn parts of Lolly on or off. Usually an administrator controls these — with Lolly, you are in control.
+
 ## How do I get the mobile or desktop apps?
 
 Anybody can distribute their own apps, the tools and configuration of those apps should vary widely depending on what audience it's intended for. So there's no one app unless you made it or someone relevant gives it to you.
