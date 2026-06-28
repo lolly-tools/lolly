@@ -102,6 +102,23 @@ function revealCards(masonry, animate) {
   return io;
 }
 
+// Demo-preview heroes (a tool with no saved session yet) start hidden on the cold
+// paint and fade in per-card as each image decodes — so the first view never shows a
+// broken/blank preview, and they "appear as they are" ready. Armed only on the first
+// cold paint: when returning from a tool or re-rendering on a filter/search, previews
+// must show instantly, and reduced motion opts out entirely (animate is false in all
+// those cases, mirroring revealCards). Images already complete (warm cache / a
+// re-arm) are revealed at once; the delegated load listener catches the rest and a
+// cached 404 is left to the error handler, which morphs the hero to a text tile.
+function armPreviewReveal(masonry, animate) {
+  if (!animate) { masonry.classList.remove('previews-armed'); return; }
+  masonry.classList.add('previews-armed');
+  masonry.querySelectorAll('.gtile-hero--preview').forEach(hero => {
+    const img = hero.querySelector('.gtile-hero-img');
+    if (img?.complete && img.naturalWidth > 0) hero.classList.add('is-ready');
+  });
+}
+
 export async function mountGallery(viewEl, host) {
   document.title = 'Lolly';
   const index = window.__toolIndex ?? { tools: [] };
@@ -237,9 +254,19 @@ export async function mountGallery(viewEl, host) {
     if (!(img instanceof HTMLImageElement) || !img.classList.contains('gtile-hero-img')) return;
     const hero = img.closest('.gtile-hero--preview');
     if (!hero) return; // a saved-session hero failing is handled elsewhere; only demo previews morph
-    hero.classList.remove('gtile-hero', 'gtile-hero--preview');
+    hero.classList.remove('gtile-hero', 'gtile-hero--preview'); // sheds the armed opacity:0 too → tile shows
     hero.classList.add('gtile-tile');
     hero.innerHTML = '<span class="gtile-tile-txt">No saved sessions yet.  Open to start</span>';
+  }, true);
+
+  // Demo previews start hidden on the cold paint (the masonry is "previews-armed" —
+  // see armPreviewReveal) and fade in only once their image has actually decoded, so
+  // the first view never flashes a blank or half-loaded preview — each appears on its
+  // own as it arrives. Like the error handler above, load doesn't bubble → capture.
+  masonry?.addEventListener('load', (e) => {
+    const img = e.target;
+    if (!(img instanceof HTMLImageElement) || !img.classList.contains('gtile-hero-img')) return;
+    img.closest('.gtile-hero--preview')?.classList.add('is-ready');
   }, true);
 
   const searchInput = viewEl.querySelector('.gallery-search');
@@ -295,7 +322,9 @@ export async function mountGallery(viewEl, host) {
     // Arm the entrance cascade on the first cold paint only; tear down any prior
     // observer first since innerHTML just replaced every tile it was watching.
     revealObserver?.disconnect();
-    revealObserver = revealCards(masonry, firstPaint && !isReturning && !prefersReduced);
+    const animateReveal = firstPaint && !isReturning && !prefersReduced;
+    revealObserver = revealCards(masonry, animateReveal);
+    armPreviewReveal(masonry, animateReveal);
     firstPaint = false;
     if (searchStatus) {
       searchStatus.textContent = query
