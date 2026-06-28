@@ -1009,6 +1009,16 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
    anchor that starts a new session, so suppress the default link underline. */
 .gtile-hero--preview { text-decoration: none; }
 
+/* First-paint progressive reveal: on the cold paint JS arms the masonry
+   (.previews-armed) so demo previews start hidden and each fades in only once its
+   image has decoded (.is-ready, added by the delegated load handler). The card
+   shell cascades in immediately; its preview "appears as it is" ready, so the first
+   view never flashes a blank or half-loaded image. Un-armed (returning, filtered,
+   reduced motion) → previews are full-opacity at once. A 404'd preview sheds
+   .gtile-hero--preview when morphed to a tile, so it's never left invisible. */
+.tool-masonry.previews-armed .gtile-hero--preview { opacity: 0; transition: opacity .34s ease; }
+.tool-masonry.previews-armed .gtile-hero--preview.is-ready { opacity: 1; }
+
 /* Empty tile — tool with no saved session. (Preview cards use .gtile-hero, never
    .gtile-tile, so these rules can't touch a card that has a preview.) */
 .gtile-tile {
