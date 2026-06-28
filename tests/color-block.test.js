@@ -83,8 +83,11 @@ test('color-block: "logo" is a block kind that can be added like any other', () 
 // ─── structure: one cell per block, logo is a cell (never an overlay) ─────────
 
 test('color-block: renders exactly one grid cell per block', async () => {
-  const { html } = await mount();                       // ships 4 default blocks
-  assert.equal(cellCount(html), 4);
+  // Derive the expected count from the manifest's own default list, so trimming
+  // (or growing) the default block set never silently breaks this assertion.
+  const defaultBlocks = tool.manifest.inputs[0].default.length;
+  const { html } = await mount();                       // ships the manifest default blocks
+  assert.equal(cellCount(html), defaultBlocks);
 
   const { html: six } = await mount({
     blocks: Array.from({ length: 6 }, (_, i) => ({ kind: 'blank', bgColor: '', text: '' + i })),

@@ -1,0 +1,42 @@
+# Quality gate — runs on every push to main and every PR.
+# Nothing here was enforced before (no CI), so a red test or a drifted catalog
+# could ship; this is the meta-gate the QA audit (plans/qa-audit-2026-06-28.md #1)
+# called for. Both commands already exit non-zero on failure.
+#
+# Deliberately NOT running `typecheck` yet — it's a broken no-op (no engine
+# tsconfig); wire it in once that's fixed. A build smoke / e2e can follow.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+# Cancel an in-flight run when new commits land on the same ref.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test + validate catalog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (workspaces)
+        run: npm ci
+
+      - name: Engine contract tests
+        run: npm test
+
+      - name: Validate catalog (no manifest/index drift, asset checksums)
+        run: npm run validate:catalog
