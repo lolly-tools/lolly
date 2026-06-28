@@ -38,6 +38,11 @@ const FORMAT_EXT = { png: 'png', jpg: 'jpg', jpeg: 'jpg', webp: 'webp', svg: 'sv
 // Top-level app routes that share the pretty-path shape but are NOT tools.
 const APP_ROUTES = new Set(['tool', 'pro', 'platform', 'capabilities', 'profile', 'gallery']);
 
+// Max URL length. Matches parseEmbedUrl's cap so a URL we ACCEPT here and the
+// canonical embed id we MINT from it (buildEmbedUrl) share one bound — the minted
+// id must re-parse through parseEmbedUrl on load (the persistent-identity invariant).
+const MAX_URL = 4096;
+
 /**
  * Recognise any Lolly tool URL a user might paste. Returns
  * `{ toolId, format, query }` — `format` is the explicit choice from an embed-form
@@ -49,7 +54,7 @@ const APP_ROUTES = new Set(['tool', 'pro', 'platform', 'capabilities', 'profile'
 export function parseToolUrl(src) {
   if (typeof src !== 'string') return null;
   const s = src.trim();
-  if (!s || s.length > 8192) return null;
+  if (!s || s.length > MAX_URL) return null;
 
   // 1) Strict embed form (…/tool/<id>.<ext>?…) — reuse the canonical parser, so
   //    the host-locked security shape stays authoritative for that form.
@@ -103,7 +108,11 @@ export function buildEmbedUrl({ toolId, format, query = '' } = {}) {
   if (typeof toolId !== 'string' || !ID_RE.test(toolId)) return null;
   const ext = FORMAT_EXT[String(format || '').toLowerCase()] || 'svg';
   const q = String(query || '').replace(/^\?/, '');
-  return q
+  const url = q
     ? `https://lolly.tools/tool/${toolId}.${ext}?${q}`
     : `https://lolly.tools/tool/${toolId}.${ext}`;
+  // Refuse to mint an identity longer than parseEmbedUrl will accept — an id that
+  // can't re-parse on load is worse than no asset (renderUrl then returns null and
+  // the picker reports it couldn't render, rather than persisting a dead slot).
+  return url.length > MAX_URL ? null : url;
 }

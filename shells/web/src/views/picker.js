@@ -40,7 +40,7 @@ async function render(root, host, opts, resolve) {
   // render that tool as the image — available whenever the shell can compose and
   // the slot isn't video-only. The toolId in a pasted link must resolve to a real
   // local tool, so this can only ever render a tool that ships in this build.
-  const allowToolUrl = Boolean(host.compose?.renderUrl && host.compose?.describeUrl)
+  const allowToolUrl = Boolean(host.compose?.renderUrl && host.compose?._describeUrl)
     && opts.type !== 'video';
   const searchPlaceholder = allowToolUrl ? 'Search, or paste a Lolly link…' : 'Search…';
 
@@ -311,7 +311,7 @@ async function render(root, host, opts, resolve) {
         const seq = ++detectSeq;
         if (userEl) userEl.hidden = true;
         libraryEl.innerHTML = `<div class="asset-picker-loading">Checking link…</div>`;
-        const desc = await host.compose.describeUrl(raw).catch(() => null);
+        const desc = await host.compose._describeUrl(raw).catch(() => null);
         if (seq !== detectSeq) return; // superseded by a newer keystroke
         if (desc) showToolCard(desc, raw);
         else libraryEl.innerHTML = `<p class="asset-picker-empty">That isn't a Lolly tool link this app can open.</p>`;

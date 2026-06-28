@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath,
+  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
 } from '../engine/src/css-box.js';
 
 const close = (a, b, eps = 1e-3) => Math.abs(a - b) <= eps;
@@ -104,4 +104,37 @@ test('roundedRectPath: square (zero) corners emit no arcs', () => {
   const r = cornerRadii(corners('0'), 100, 50);
   const d = roundedRectPath(0, 0, 100, 50, r);
   assert.equal((d.match(/A/g) || []).length, 0);
+});
+
+test('parseBoxShadow: none / empty → []', () => {
+  assert.deepEqual(parseBoxShadow('none'), []);
+  assert.deepEqual(parseBoxShadow(''), []);
+  assert.deepEqual(parseBoxShadow(null), []);
+});
+
+test('parseBoxShadow: single shadow (Chrome computed form, color first)', () => {
+  const s = parseBoxShadow('rgba(0, 0, 0, 0.55) 0px 32px 80px 0px');
+  assert.equal(s.length, 1);
+  assert.deepEqual({ x: s[0].x, y: s[0].y, blur: s[0].blur, spread: s[0].spread }, { x: 0, y: 32, blur: 80, spread: 0 });
+  assert.equal(s[0].color, 'rgba(0, 0, 0, 0.55)');
+});
+
+test('parseBoxShadow: multiple shadows, commas inside rgba() are not separators', () => {
+  const s = parseBoxShadow('rgba(0, 0, 0, 0.55) 0px 32px 80px, rgba(0, 0, 0, 0.35) 0px 8px 24px');
+  assert.equal(s.length, 2);
+  assert.equal(s[1].y, 8);
+  assert.equal(s[1].blur, 24);
+});
+
+test('parseBoxShadow: blur/spread optional; negative spread kept; blur clamped ≥0', () => {
+  const s = parseBoxShadow('rgb(0,0,0) 4px 4px');
+  assert.deepEqual({ blur: s[0].blur, spread: s[0].spread }, { blur: 0, spread: 0 });
+  const sp = parseBoxShadow('rgb(0,0,0) 0px 2px 6px -2px');
+  assert.equal(sp[0].spread, -2);
+});
+
+test('parseBoxShadow: inset shadows are skipped (not vector-expressible)', () => {
+  assert.deepEqual(parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px inset'), []);
+  const mixed = parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px, rgba(0,0,0,0.3) 0px 1px 2px inset');
+  assert.equal(mixed.length, 1);
 });

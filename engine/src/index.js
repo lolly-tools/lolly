@@ -28,7 +28,7 @@ export {
 } from './print-marks.js';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.js';
 export {
-  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath,
+  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
 } from './css-box.js';
 export { emitEmf } from './emf.js';
 export { emitEps } from './eps.js';

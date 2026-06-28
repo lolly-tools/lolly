@@ -95,6 +95,14 @@ test('buildEmbedUrl defaults to svg, maps jpeg→jpg, and tolerates an empty que
   assert.equal(buildEmbedUrl({ toolId: 'bad_id' }), null);  // invalid id → no junk identity
 });
 
+test('buildEmbedUrl refuses to mint an id longer than parseEmbedUrl will accept', () => {
+  const huge = buildEmbedUrl({ toolId: 'qr-code', format: 'svg', query: 'x=' + 'a'.repeat(5000) });
+  assert.equal(huge, null, 'an un-re-parseable identity must not be minted');
+  // And whatever parseToolUrl accepts always re-parses through parseEmbedUrl.
+  const ok = buildEmbedUrl({ toolId: 'qr-code', format: 'png', query: 'x=' + 'a'.repeat(3000) });
+  assert.ok(ok && parseEmbedUrl(ok), 'a within-bounds id round-trips');
+});
+
 test('a pasted hash route canonicalises into a re-parseable embed id', () => {
   // The flow renderUrl performs: parse a share link, then mint the canonical id.
   const parsed = parseToolUrl('https://lolly.tools/#/tool/qr-code?url=https://suse.com');
