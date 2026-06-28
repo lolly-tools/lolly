@@ -17,7 +17,7 @@
     "test": "node --test \"tests/**/*.test.js\"",
     "build:catalog": "node scripts/build-catalog-index.js && node scripts/checksum-assets.js",
     "validate:catalog": "node scripts/validate-catalog.js",
-    "thumbs": "node scripts/build-thumbs.js",
+    "previews": "node scripts/build-previews.js",
     "build:sbom": "node scripts/build-sbom.js",
     "build:licenses": "node scripts/build-licenses.js",
     "cli": "node shells/cli/bin/brand-tool.js",

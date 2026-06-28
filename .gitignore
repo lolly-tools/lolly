@@ -157,6 +157,11 @@ vite.config.ts.timestamp-*
 # Web build output (Vercel/CI regenerate via `npm run build:web`)
 shells/web/dist/
 
+# Generated tool preview thumbnails (rebuilt via `npm run previews`; a committed
+# tools/<id>/card.svg|png overrides per tool). Not committed — the gallery falls
+# back to a plain tile when one is absent.
+catalog/previews/
+
 # Generated docs/info site (rebuilt at deploy via `npm run build:info`)
 # NOTE: mascots/ are committed assets — build:info does NOT regenerate them, so keep them tracked.
 shells/web/public/info/*.html

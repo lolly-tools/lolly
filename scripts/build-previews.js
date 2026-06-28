@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 /**
- * Demo preview generator — "the shortcut".
+ * Tool preview generator.
  *
- * Run as: npm run thumbs   (or: node scripts/build-thumbs.js [options])
+ * Run as: npm run previews   (or: node scripts/build-previews.js [options])
  *
- * Renders every tool with its defaults in a REAL browser and writes a committed
- * preview image per tool:
- *   • tools/<id>/preview.svg   for tools that export vector (svg in render.formats)
- *   • tools/<id>/preview.png   for raster / HTML-layout tools
- * so the gallery shows a full, pretty masonry on a fresh install — no saved
- * sessions required. This is a run-once-before-a-demo nicety, not essential to
- * the app: tools render fine without a preview (the card just shows a text tile).
+ * Renders every tool with its defaults in a REAL browser and writes a BUILD preview
+ * image per tool into the git-ignored catalog/previews/ dir:
+ *   • catalog/previews/<id>.svg   for tools that export vector (svg in render.formats)
+ *   • catalog/previews/<id>.png   for raster / HTML-layout tools
+ * so the gallery shows a full, pretty masonry — no saved sessions required. These are
+ * generated artifacts, NOT committed; the gallery falls back to a plain "open to start"
+ * tile when one is absent (dev, or before this has run). A tool can ship a committed
+ * AUTHORED override instead — tools/<id>/card.svg or card.png — which wins over the
+ * generated preview (and is skipped here). Run before serving/deploying.
  *
  * Why a browser (not the node CLI): the lean CLI has no layout engine, so it
  * can't render the HTML-layout tools or rasterise. Full coverage of every tool
@@ -22,8 +24,11 @@
  * capture keeps a preview byte-identical to a real saved session's thumbnail —
  * no second rendering path to drift.
  *
- * After writing previews it regenerates catalog/tools/index.json so each entry
- * gains its `preview` path (see entryFromManifest in build-catalog-index.js).
+ * The catalog index does NOT need regenerating afterward: entryFromManifest derives
+ * each tool's preview path deterministically (card override → else /catalog/previews/
+ * <id>.<ext>), so the path is stable whether or not the image has been generated yet.
+ * Generated previews are also copied into shells/web/dist/catalog/previews/ so a build
+ * served straight from dist already carries them.
  *
  * Options:
  *   --url=http://host:port   render against an already-running server (skips the
@@ -36,12 +41,15 @@
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
 import { readFile, writeFile, unlink, mkdir, stat } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, cpSync } from 'node:fs';
 import { join, dirname, resolve, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DIST = join(ROOT, 'shells', 'web', 'dist');
+// Generated previews land here (git-ignored). Served by the shell's /catalog static
+// handler in dev + prod, exactly like the committed catalog assets/index.
+const PREVIEWS_DIR = join(ROOT, 'catalog', 'previews');
 // Sidebar tools render into #tool-canvas; full-bleed/display tools into #tool-content.
 const CANVAS_SEL = '#tool-canvas, #tool-content';
 
@@ -102,6 +110,13 @@ async function main() {
   const results = [];
   try {
     for (const tool of tools) {
+      // A committed authored override (tools/<id>/card.svg|png) wins over a generated
+      // preview (see entryFromManifest), so there's nothing to render here — skip it.
+      if (tool.hasCard) {
+        results.push({ ok: false, reason: 'card override' });
+        console.log(`  · ${tool.id.padEnd(20)} skipped (card override)`);
+        continue;
+      }
       const r = await captureTool(context, baseUrl, tool);
       results.push(r);
       const mark = r.ok ? '✓' : '·';
@@ -114,16 +129,19 @@ async function main() {
   }
 
   const wrote = results.filter((r) => r.ok);
-  console.log(`\nWrote ${wrote.length} preview${wrote.length === 1 ? '' : 's'}.`);
+  console.log(`\nWrote ${wrote.length} preview${wrote.length === 1 ? '' : 's'} to ${rel(PREVIEWS_DIR)}.`);
 
-  // Refresh the index so each tool entry picks up its new `preview` path.
-  if (wrote.length) {
-    console.log('Regenerating catalog index…');
-    await run('node', [join('scripts', 'build-catalog-index.js')], { cwd: ROOT });
-    console.log('\nDone. Run `npm run validate:catalog` to confirm, then commit the previews + index.');
-  } else {
-    console.log('\nNothing written — no index regeneration needed.');
+  // Mirror the generated previews into the built dist: the vite build copied catalog/
+  // into dist BEFORE these existed, so a deploy served straight from shells/web/dist
+  // would otherwise miss them. The catalog index path is deterministic, so no index
+  // regeneration is needed (unlike the old committed-preview flow).
+  if (wrote.length && existsSync(join(DIST, 'index.html'))) {
+    const distPreviews = join(DIST, 'catalog', 'previews');
+    await mkdir(distPreviews, { recursive: true });
+    cpSync(PREVIEWS_DIR, distPreviews, { recursive: true });
+    console.log(`Copied previews into ${rel(distPreviews)}.`);
   }
+  console.log('\nDone.');
 }
 
 // ── Capture one tool ────────────────────────────────────────────────────────
@@ -209,13 +227,13 @@ async function captureTool(context, baseUrl, tool) {
   }
 }
 
-// Write tools/<id>/preview.<ext> and remove a stale preview in the other format
-// so a tool never has both. Returns the path written.
+// Write catalog/previews/<id>.<ext> and remove a stale preview in the other format
+// so a tool never has both (e.g. after a tool gains an svg format). Returns the path.
 async function writePreview(toolId, ext, bytes) {
-  const file = join(ROOT, 'tools', toolId, `preview.${ext}`);
+  const file = join(PREVIEWS_DIR, `${toolId}.${ext}`);
   await mkdir(dirname(file), { recursive: true });
   await writeFile(file, bytes);
-  const otherFile = join(ROOT, 'tools', toolId, `preview.${ext === 'svg' ? 'png' : 'svg'}`);
+  const otherFile = join(PREVIEWS_DIR, `${toolId}.${ext === 'svg' ? 'png' : 'svg'}`);
   if (existsSync(otherFile)) await unlink(otherFile);
   return file;
 }
@@ -284,6 +302,8 @@ async function toolList() {
   let tools = index.tools.map((t) => ({
     id: t.id,
     formats: Array.isArray(t.formats) ? t.formats : [],
+    // A committed override (tools/<id>/card.svg|png) short-circuits generation.
+    hasCard: existsSync(join(ROOT, 'tools', t.id, 'card.svg')) || existsSync(join(ROOT, 'tools', t.id, 'card.png')),
   }));
   if (opts.only.length) {
     const want = new Set(opts.only);
