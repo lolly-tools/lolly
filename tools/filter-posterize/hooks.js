@@ -369,7 +369,7 @@ function buildPoster(url, img, W, H, grid, thr, palette) {
   // never the palette — so cache the traced paths and re-stitch fills on a recolour
   // or background toggle instead of re-running N marching-squares passes.
   var geomKey = url + '|' + grid.cols + 'x' + grid.rows + '|' + tp.detail
-    + '|' + f2(tp.eps) + '|' + f2(tp.cornerCos) + '|' + thr.join(',');
+    + '|' + f2(tp.eps) + '|' + f2(tp.cornerCos) + '|' + (grid.invert ? 'i' : '') + thr.join(',');
   var paths;
   if (_bandCache.key === geomKey) {
     paths = _bandCache.paths;
@@ -475,7 +475,7 @@ async function compute(model) {
 
   // Memoise the SVG on everything that changes the pixels — palette, steps, size,
   // quality, transparency, photo — so dragging an unrelated control is cheap.
-  var memoKey = JSON.stringify({ url: url, steps: steps, q: inputs.quality, W: W, H: H, t: _transparent, pal: palette });
+  var memoKey = JSON.stringify({ url: url, steps: steps, q: inputs.quality, sm: inputs.smoothing, inv: invert, W: W, H: H, t: _transparent, pal: palette });
   if (memoKey === _memoKey) { patch.posterSvg = _memoResult; return patch; }
 
   var svg;
