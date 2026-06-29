@@ -24,6 +24,7 @@ import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.js';
 import { getTool } from '../bridge/tool-loader.js';
+import { storeUserUpload } from './picker.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 
@@ -636,6 +637,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     let py = 0, pt = 0, pdrag = false;
     const popupStart = e => {
       pdrag = mqMobile.matches && e.touches.length === 1;
+      // Never engage the flick-to-dismiss when the touch lands on a scrubbable
+      // control — the export-size fields own the full horizontal drag of their
+      // value, so a diagonal scrub must not also drag the sheet down.
+      if (pdrag && e.target.closest?.('[data-scrub]')) pdrag = false;
       if (pdrag && exportBody.contains(e.target) && exportBody.scrollTop > 0) pdrag = false;
       if (!pdrag) return;
       py = e.touches[0].clientY;
@@ -1863,6 +1868,12 @@ function syncInputs(el, model, prevModel, runtime, host, onDirty) {
   return model;
 }
 
+// Serialises drop-to-add commits per blocks-input id across re-renders (see the
+// dropToAdd wiring below): each multi-file drop waits for the previous one to
+// commit before reading the live array, so two quick drops can't both read the
+// same base and clobber one another.
+const _dropChains = new Map();
+
 function renderInputs(el, model, runtime, host, onDirty) {
   const modelValues = Object.fromEntries(model.map(i => [i.id, i.value]));
   const panelModel = model.filter(i => {
@@ -2189,6 +2200,107 @@ function renderInputs(el, model, runtime, host, onDirty) {
       runtime.setInput(blockId, [...arr, block]);
       onDirty?.(blockId);
     });
+  });
+
+  // Drop-to-add: a blocks input that declares `dropToAdd` turns its list into a
+  // drop zone — dragging or selecting several image files at once uploads each
+  // and appends one block per file (the image in the named asset field, every
+  // other field at its default). It reuses the picker's upload path, so SVGs are
+  // sanitised and big rasters downscaled exactly like a single "+ Add" upload.
+  panelModel.filter(i => i.control === 'blocks' && i.dropToAdd?.field).forEach(input => {
+    const blockId = input.id;
+    const field = input.dropToAdd.field;
+    if (!(input.fields ?? []).some(f => f.id === field && f.type === 'asset')) return;
+    const wrap = el.querySelector(`.blocks-input[data-input-id="${CSS.escape(blockId)}"]`);
+    const list = wrap?.querySelector('.blocks-list');
+    if (!wrap || !list) return;
+    wrap.classList.add('blocks-input--droppable');
+
+    // Accept filter: "image/*" (default) matches any image; a trailing /* matches
+    // a whole MIME group; an exact type matches itself. Files with no MIME type
+    // (some OS drag sources report none) are allowed when accept has a wildcard
+    // group, so they're not silently dropped — the upload path validates bytes.
+    const accept = (input.dropToAdd.accept || 'image/*').trim();
+    const accepted = (file) => {
+      const t = (file.type || '').toLowerCase();
+      if (!accept || accept === '*' || accept === '*/*') return true;
+      if (!t) return accept.includes('/*');
+      return accept.split(',').some(a => {
+        a = a.trim().toLowerCase();
+        return a.endsWith('/*') ? t.startsWith(a.slice(0, -1)) : t === a;
+      });
+    };
+
+    // The noun for prompts/announcements comes from the input label, so this stays
+    // generic — a future "Documents"/"Videos" blocks input reads correctly.
+    const plural = (input.label || 'files').toLowerCase();
+    const singular = plural.replace(/s$/, '');
+
+    const commit = async (fileList) => {
+      const all = Array.from(fileList || []);
+      const files = all.filter(accepted);
+      if (all.length && !files.length) { announce(`Those don't look like ${plural}.`, { assertive: true }); return; }
+      if (!files.length) return;
+      const made = [];
+      for (const file of files) {
+        try {
+          const ref = await storeUserUpload(host, file);
+          const block = {};
+          for (const f of input.fields ?? []) block[f.id] = f.id === field ? ref : blockFieldDefault(f);
+          made.push(block);
+        } catch (e) {
+          host.log?.('warn', `drop-to-add: couldn't add ${file.name}`, { error: String(e) });
+          announce(`Couldn't add ${file.name}.`, { assertive: true });
+        }
+      }
+      if (!made.length) return;
+      // Re-read the live array at commit time: an earlier drop (or another edit)
+      // may have changed it while our uploads were in flight.
+      const live = runtime.getModel().find(i => i.id === blockId)?.value;
+      const base = Array.isArray(live) ? live : [];
+      runtime.setInput(blockId, [...base, ...made]);
+      onDirty?.(blockId);
+      announce(`Added ${made.length} ${made.length === 1 ? singular : plural}.`);
+    };
+
+    // Chain commits for this input so concurrent drops/selections serialise —
+    // each reads the live array only after the previous one has committed.
+    const addFiles = (fileList) => {
+      const next = (_dropChains.get(blockId) || Promise.resolve()).then(() => commit(fileList));
+      _dropChains.set(blockId, next.catch(() => {}));
+      return next;
+    };
+
+    // Hidden multi-file input, opened by the drop hint — so "select several files"
+    // works alongside drag-and-drop.
+    const native = document.createElement('input');
+    native.type = 'file';
+    native.multiple = true;
+    native.accept = accept;
+    native.style.display = 'none';
+    wrap.appendChild(native);
+    native.addEventListener('change', () => { addFiles(native.files); native.value = ''; });
+
+    // A persistent drop hint that doubles as a "choose files" button — it stays
+    // put once blocks exist (just with shorter text) so adding more is always one
+    // drop or click away, alongside the per-row "+ Add".
+    const hasItems = !!list.querySelector('.block-item');
+    const hint = document.createElement('button');
+    hint.type = 'button';
+    hint.className = 'blocks-drop-hint';
+    hint.textContent = hasItems
+      ? `Drop or click to add more ${plural}`
+      : `Drop ${plural} here, or click to choose files`;
+    hint.addEventListener('click', () => native.click());
+    list.appendChild(hint);
+
+    let depth = 0;
+    const setDrag = (on) => wrap.classList.toggle('is-file-dragover', on);
+    const hasFiles = (e) => Array.from(e.dataTransfer?.types || []).includes('Files');
+    list.addEventListener('dragenter', (e) => { if (!hasFiles(e)) return; e.preventDefault(); depth++; setDrag(true); });
+    list.addEventListener('dragover', (e) => { if (!hasFiles(e)) return; e.preventDefault(); if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'; });
+    list.addEventListener('dragleave', (e) => { e.preventDefault(); if (--depth <= 0) { depth = 0; setDrag(false); } });
+    list.addEventListener('drop', (e) => { e.preventDefault(); depth = 0; setDrag(false); addFiles(e.dataTransfer?.files); });
   });
 
   // Typed add-menu: toggle the option list; one open at a time.
@@ -2885,13 +2997,13 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       <div class="export-dims">
         <div class="dim-field">
           ${ICON_W}
-          <input type="number" data-action="export-width" aria-label="Width"
+          <input type="number" data-action="export-width" data-scrub aria-label="Width"
                  value="${exportDefaults.width ?? manifest.render.width}" min="1" max="100000" step="any">
         </div>
         <span class="dim-x">×</span>
         <div class="dim-field">
           ${ICON_H}
-          <input type="number" data-action="export-height" aria-label="Height"
+          <input type="number" data-action="export-height" data-scrub aria-label="Height"
                  value="${exportDefaults.height ?? manifest.render.height}" min="1" max="100000" step="any">
         </div>
         <select class="dim-unit" data-action="export-unit" aria-label="Units"
@@ -3238,6 +3350,20 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   // leave the preview intact.
   const invalidatePreview = manifest.render.preview ? () => runtime.refresh() : () => {};
 
+  // Brief, editor-only outline pulse on the canvas while the export size is being
+  // changed (scrub / scroll / type), so a resize reads as deliberate. Applied to
+  // the OUTER wrapper — never the exported #tool-canvas — so it can't bleed into
+  // output, and removed shortly after the last change; the CSS handles the fade.
+  // Re-armed on every change, so a continuous drag holds it on, then it lapses.
+  const canvasOuterEl = canvasEl?.closest('.tool-canvas-outer') ?? canvasEl?.parentElement ?? null;
+  let dimPulseTimer = 0;
+  function pulseCanvasResize() {
+    if (!canvasOuterEl) return;
+    canvasOuterEl.classList.add('is-resizing');
+    clearTimeout(dimPulseTimer);
+    dimPulseTimer = setTimeout(() => canvasOuterEl.classList.remove('is-resizing'), 450);
+  }
+
   // Label the floating scrub readout with the value + current unit (e.g. "1024 px",
   // "210 mm") so a drag reads clearly even with the cursor/finger over the field.
   // (dimUnit() is defined above with the other dimension helpers.)
@@ -3246,7 +3372,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     [el.querySelector('[data-action="export-height"]'), 'h'],
   ].forEach(([inp, key]) => {
     if (!inp) return;
-    const onDimChange = () => { onUrlSync?.(key); refreshCanvasPreview(); invalidatePreview(); };
+    const onDimChange = () => { onUrlSync?.(key); refreshCanvasPreview(); invalidatePreview(); pulseCanvasResize(); };
     inp.addEventListener('input', onDimChange);
     addScrubBehavior(inp, onDimChange, { format: v => `${v} ${dimUnit()}` });
   });
@@ -3268,6 +3394,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     if (hEl && height > 0) hEl.value = String(height);
     refreshCanvasPreview();
     invalidatePreview();
+    pulseCanvasResize();
     onUrlSync?.('unit'); onUrlSync?.('w'); onUrlSync?.('h');
   }
 
@@ -3288,6 +3415,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     onUrlSync?.('unit'); onUrlSync?.('w'); onUrlSync?.('h');
     refreshCanvasPreview();
     invalidatePreview();
+    pulseCanvasResize();
   });
   el.querySelector('[data-action="export-dpi"]')?.addEventListener('input', () => { onUrlSync?.('dpi'); invalidatePreview(); });
 

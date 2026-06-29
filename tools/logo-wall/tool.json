@@ -1,0 +1,147 @@
+{
+  "id": "logo-wall",
+  "name": "Logo Wall",
+  "description": "Drop in a pile of logos and arrange them into a clean, even wall — size, fade or grayscale each, or threshold them all into flat vector shapes. Your images stay on your device.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "experimental",
+  "category": "designer",
+  "tags": ["logo", "wall", "grid", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "on-device"],
+  "a11yLabel": "A wall of {{logos.length}} logos",
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "formats": ["png", "svg", "pdf", "jpg", "webp"],
+    "actions": ["copy", "download", "save"],
+    "layout": "sidebar",
+    "transparentBg": true,
+    "convertPaths": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "columns",
+      "label": "Columns",
+      "type": "number",
+      "display": "slider",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 4,
+      "help": "How many logos sit in each row."
+    },
+    {
+      "id": "gap",
+      "label": "Spacing",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 160,
+      "step": 1,
+      "default": 32,
+      "help": "Gap between logos."
+    },
+    {
+      "id": "padding",
+      "label": "Padding",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "default": 48,
+      "help": "Breathing room around the whole wall."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    {
+      "id": "balance",
+      "label": "Balance sizes",
+      "type": "boolean",
+      "default": true,
+      "help": "Auto-size each logo by its optical weight — heavier logos shrink, lighter ones grow — so the wall reads as evenly weighted. Each logo's own Size % still applies on top. Turn off for uniform sizing."
+    },
+    {
+      "id": "vectorize",
+      "label": "Render as vector",
+      "type": "boolean",
+      "default": false,
+      "help": "Threshold each logo into flat vector shapes — one ink colour, crisp at any size, true vector in SVG and PDF. Renders in the browser."
+    },
+    {
+      "id": "inkColor",
+      "label": "Ink colour",
+      "type": "color",
+      "default": "#0c322c",
+      "showIf": { "vectorize": true }
+    },
+    {
+      "id": "threshold",
+      "label": "Threshold",
+      "type": "number",
+      "display": "slider",
+      "min": 1,
+      "max": 99,
+      "step": 1,
+      "default": 55,
+      "showIf": { "vectorize": true },
+      "help": "Brightness cut-off. Higher keeps more of each logo. Use Invert for white or pale logos."
+    },
+    {
+      "id": "invert",
+      "label": "Invert",
+      "type": "boolean",
+      "default": false,
+      "showIf": { "vectorize": true },
+      "help": "Swap which side of the threshold becomes ink — needed for white or pale logos."
+    },
+    {
+      "id": "detail",
+      "label": "Detail",
+      "type": "number",
+      "display": "slider",
+      "min": 80,
+      "max": 320,
+      "step": 10,
+      "default": 200,
+      "showIf": { "vectorize": true },
+      "help": "Tracing resolution per logo. Higher captures finer shapes but is heavier."
+    },
+    {
+      "id": "smoothing",
+      "label": "Smoothing",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 60,
+      "showIf": { "vectorize": true },
+      "help": "How much the traced outlines are rounded into curves. Low keeps edges faithful and crisp; high flows them into smooth Bézier curves."
+    },
+    {
+      "id": "logos",
+      "label": "Logos",
+      "type": "blocks",
+      "dropToAdd": { "field": "logo", "accept": "image/*" },
+      "fields": [
+        { "id": "logo", "label": "Image", "type": "asset", "assetType": "any", "allowUpload": true },
+        { "id": "scale", "label": "Size %", "type": "number", "display": "slider", "min": 25, "max": 300, "step": 5, "default": 100 },
+        { "id": "opacity", "label": "Opacity", "type": "number", "display": "slider", "min": 0, "max": 1, "step": 0.05, "default": 1 },
+        { "id": "filter", "label": "Filter", "type": "select", "default": "none", "options": [
+          { "value": "none", "label": "None" },
+          { "value": "grayscale", "label": "Grayscale" }
+        ] }
+      ],
+      "default": []
+    }
+  ]
+}

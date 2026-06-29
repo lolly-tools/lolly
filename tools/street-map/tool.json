@@ -149,7 +149,7 @@
       "id": "background",
       "label": "Background",
       "type": "color",
-      "default": "{color.brand.white}",
+      "default": "transparent",
       "help": "Leave empty to use the theme's default."
     },
     {

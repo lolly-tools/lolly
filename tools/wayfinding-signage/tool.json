@@ -52,15 +52,15 @@
       "type": "asset",
       "assetType": "any",
       "allowUpload": true,
-      "help": "Your event's logo. Leave empty to use the SUSE logo (auto light/dark for the background)."
+      "help": "Your event's logo. Optional — leave empty for no logo."
     },
     {
       "id": "eventName",
       "label": "Event name",
       "type": "text",
-      "default": "SUSECON 2027",
+      "default": "",
       "maxLength": 60,
-      "help": "Shown under the logo. Clear it to show the logo alone."
+      "help": "Shown under the logo. Leave empty to hide it."
     },
     {
       "id": "heading",

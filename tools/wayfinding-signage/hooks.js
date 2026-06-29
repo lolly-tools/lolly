@@ -5,8 +5,7 @@
  *   • sign proportions + orientation from the chosen standard size,
  *   • the ink / muted / hairline contrast colours from the background,
  *   • each direction row: its arrow glyph (a SUSE-font character), which side
- *     the arrow sits, and a resolved accent colour, and
- *   • the default SUSE logo (auto light/dark) when no event logo is supplied.
+ *     the arrow sits, and a resolved accent colour.
  *
  * No imports, no globals beyond ECMAScript built-ins + the host bridge.
  */
@@ -102,13 +101,11 @@ async function compute(model) {
       };
     });
 
-  // Default logo: when no event logo is chosen, use the SUSE horizontal logo,
-  // reversed for dark backgrounds. A user-selected eventLogo resolves in-template.
-  if (!inputs.eventLogo) {
-    var id = 'suse/logo/hor-' + (isDark(bg) ? 'neg-white' : 'pos-green');
-    try { out.defaultLogo = await host.assets.get(id); }
-    catch (e) { if (host.log) host.log('warn', 'wayfinding-signage: logo not found', { id: id }); }
-  }
+  // Header (logo + event name) collapses entirely when both are empty, so the
+  // default state isn't left with a gap where the logo would be. No logo is shown
+  // unless the user supplies one — there is no SUSE-logo fallback.
+  var hasEventName = typeof inputs.eventName === 'string' && inputs.eventName.trim();
+  out.hasHeader = Boolean(inputs.eventLogo) || Boolean(hasEventName);
 
   return out;
 }

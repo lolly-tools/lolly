@@ -35,6 +35,9 @@
  *                            build + static server; e.g. point at `npm run dev:web`)
  *   --only=id1,id2           limit to these tool ids (comma-separated)
  *   --no-build               reuse the existing shells/web/dist (skip vite build)
+ *   --skip-existing          only generate previews that are missing (a tool with an
+ *                            existing catalog/previews/<id>.* or a committed card is
+ *                            skipped). Makes repeat runs cheap — used by `npm run dev:web`.
  *   --headed                 show the browser (default: headless)
  */
 
@@ -83,7 +86,15 @@ main().catch((e) => {
 
 async function main() {
   const tools = await toolList();
-  if (!tools.length) throw new Error('No exportable tools found in catalog/tools/index.json.');
+  if (!tools.length) {
+    // With --skip-existing an empty list just means everything is already covered
+    // (every dev:web start hits this once the previews exist) — not an error.
+    if (opts.skipExisting) {
+      console.log('All tools already have a preview or card — nothing to generate.');
+      return;
+    }
+    throw new Error('No exportable tools found in catalog/tools/index.json.');
+  }
   console.log(`Generating previews for ${tools.length} tool${tools.length === 1 ? '' : 's'}…`);
 
   const { chromium } = await loadPlaywright();
@@ -101,6 +112,9 @@ async function main() {
     console.log(`Serving ${rel(DIST)} at ${baseUrl}`);
   } else {
     console.log(`Rendering against ${baseUrl}`);
+    // A supplied server (e.g. the dev server launched alongside us by dev:web)
+    // may still be starting — wait for it to answer before driving the browser.
+    await waitForServer(baseUrl);
   }
 
   const browser = await chromium.launch({ headless: !opts.headed });
@@ -302,14 +316,50 @@ async function toolList() {
   let tools = index.tools.map((t) => ({
     id: t.id,
     formats: Array.isArray(t.formats) ? t.formats : [],
+    capabilities: Array.isArray(t.capabilities) ? t.capabilities : [],
     // A committed override (tools/<id>/card.svg|png) short-circuits generation.
     hasCard: existsSync(join(ROOT, 'tools', t.id, 'card.svg')) || existsSync(join(ROOT, 'tools', t.id, 'card.png')),
+    // A previously generated preview (catalog/previews/<id>.svg|png).
+    hasPreview: existsSync(join(PREVIEWS_DIR, `${t.id}.svg`)) || existsSync(join(PREVIEWS_DIR, `${t.id}.png`)),
   }));
   if (opts.only.length) {
     const want = new Set(opts.only);
     tools = tools.filter((t) => want.has(t.id));
   }
+  // Capture-gated tools (e.g. url-shot) rasterise a live URL via the `capture`
+  // bridge, which isn't available in this headless render path — they can never
+  // produce a static preview, so skip them up front instead of eating a guaranteed
+  // ~20s waitForSelector timeout per run.
+  const gated = tools.filter((t) => t.capabilities.includes('capture'));
+  if (gated.length) console.log(`Skipping ${gated.map((t) => t.id).join(', ')} (capture-gated — no static preview).`);
+  tools = tools.filter((t) => !t.capabilities.includes('capture'));
+  // --skip-existing: only fill in the gaps. A tool that already has a generated
+  // preview (or a committed card) needs no work — drop it so repeat runs, e.g. on
+  // every `npm run dev:web`, are near-instant instead of re-rendering everything.
+  if (opts.skipExisting) tools = tools.filter((t) => !t.hasPreview && !t.hasCard);
   return tools;
+}
+
+// Poll an already-running server (the --url target) until it answers. dev:web
+// launches this alongside the dev server, so the server may not be up yet.
+async function waitForServer(baseUrl, { tries = 60, delayMs = 1000 } = {}) {
+  const { get } = await import('node:http');
+  for (let i = 0; i < tries; i++) {
+    const ok = await new Promise((resolve) => {
+      const req = get(baseUrl, (res) => {
+        res.resume();
+        resolve((res.statusCode ?? 500) < 500);
+      });
+      req.on('error', () => resolve(false));
+      req.setTimeout(2000, () => {
+        req.destroy();
+        resolve(false);
+      });
+    });
+    if (ok) return;
+    await new Promise((r) => setTimeout(r, delayMs));
+  }
+  throw new Error(`Server at ${baseUrl} did not become reachable.`);
 }
 
 // ── Build + serve ─────────────────────────────────────────────────────────────
@@ -365,10 +415,11 @@ async function loadPlaywright() {
 }
 
 function parseOpts(argv) {
-  const o = { url: null, only: [], noBuild: false, headed: false };
+  const o = { url: null, only: [], noBuild: false, headed: false, skipExisting: false };
   for (const a of argv) {
     if (a === '--no-build') o.noBuild = true;
     else if (a === '--headed') o.headed = true;
+    else if (a === '--skip-existing') o.skipExisting = true;
     else if (a.startsWith('--url=')) o.url = a.slice(6).replace(/\/$/, '');
     else if (a.startsWith('--only=')) o.only = a.slice(7).split(',').map((s) => s.trim()).filter(Boolean);
   }

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-28T21:15:53.511Z",
+  "generatedAt": "2026-06-28T23:38:03.914Z",
   "tools": [
     {
       "id": "color-block",
@@ -498,6 +498,24 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 12h10\" /></svg>",
       "preview": "/catalog/previews/filter-scanline.svg"
+    },
+    {
+      "id": "logo-wall",
+      "name": "Logo Wall",
+      "description": "Drop in a pile of logos and arrange them into a clean, even wall — size, fade or grayscale each, or threshold them all into flat vector shapes. Your images stay on your device.",
+      "version": "1.0.0",
+      "status": "experimental",
+      "category": "designer",
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpg",
+        "webp"
+      ],
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"9.5\" y=\"4\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"16\" y=\"4\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"3\" y=\"14\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"9.5\" y=\"14\" width=\"5\" height=\"6\" rx=\"1\"/><rect x=\"16\" y=\"14\" width=\"5\" height=\"6\" rx=\"1\"/></svg>",
+      "preview": "/catalog/previews/logo-wall.svg"
     }
   ]
 }

@@ -122,14 +122,12 @@
 
     <div class="way-accent"></div>
 
+    {{#if hasHeader}}
     <header class="way-head">
-      {{#if eventLogo}}
-        <img class="way-logo" src="{{asset eventLogo}}" alt="">
-      {{else}}
-        {{#if defaultLogo}}<img class="way-logo" src="{{asset defaultLogo}}" alt="">{{/if}}
-      {{/if}}
+      {{#if eventLogo}}<img class="way-logo" src="{{asset eventLogo}}" alt="">{{/if}}
       {{#if eventName}}<div class="way-event">{{eventName}}</div>{{/if}}
     </header>
+    {{/if}}
 
     {{#if heading}}<div class="way-heading">{{heading}}</div>{{/if}}
 
