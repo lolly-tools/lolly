@@ -110,8 +110,8 @@ let _blockDrag = null;
 
 // Undo/redo glyphs for the history toast (Lucide undo-2 / redo-2). App chrome,
 // not exported, so currentColor is safe here (unlike tool-template SVGs).
-const ICON_UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg>';
-const ICON_REDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg>';
+const ICON_UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg>';
+const ICON_REDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg>';
 
 export async function mountTool(viewEl, host, toolId, urlParams) {
   // If the catalog is loaded, do a fast existence check before fetching anything.
@@ -210,32 +210,52 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   // and the onInput hook re-derives any computed inputs (we never store those).
   const HISTORY_LIMIT = 100;
   const COALESCE_MS = 500;
-  const undoStack = [];   // { id, before, after, time }
+  const undoStack = [];   // { id, label, before, after }
   const redoStack = [];
   let applyingHistory = false;
+  let historyControls = null;   // header ↶/↷ buttons (set once the header mounts)
+  let historyToastEl = null, historyToastTimer = 0;
+  // Gesture continuity for coalescing, tracked SEPARATELY from stack entries: an
+  // undo/redo leaves an old entry on top still carrying its original time, so if we
+  // keyed coalescing off the entry the next edit could wrongly merge into it (losing
+  // a state). applyHistory resets this, so a post-undo edit always starts fresh.
+  let lastRecordId = null, lastRecordTime = 0;
+  const refreshHistoryUI = () => historyControls?.sync(undoStack.length > 0, redoStack.length > 0);
 
   const cloneValue = v => { try { return structuredClone(v); } catch { return v; } };
   const sameValue = (a, b) => {
     if (a === b) return true;
     try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
   };
+  // A value carrying raw file bytes / a blob: URL (a file input, or a `blocks` array
+  // with an embedded image). We DON'T record these: the source blob URL is revoked
+  // when the input is replaced/cleared, so a restored ref would point at a dead URL
+  // (broken preview), and deep-cloning megabytes per history entry is wasteful.
+  const carriesBytes = v => {
+    if (!v || typeof v !== 'object') return false;
+    if (v.bytes instanceof Uint8Array || v.bytes instanceof ArrayBuffer) return true;
+    if (typeof v.url === 'string' && v.url.startsWith('blob:')) return true;
+    return (Array.isArray(v) ? v : Object.values(v)).some(carriesBytes);
+  };
 
   const baseSetInput = runtime.setInput.bind(runtime);
   runtime.setInput = (id, value) => {
     if (!applyingHistory) {
       const cur = runtime.getModel().find(i => i.id === id);
-      if (cur && !sameValue(cur.value, value)) {
+      if (cur && !sameValue(cur.value, value) && !carriesBytes(value) && !carriesBytes(cur.value)) {
         const now = Date.now();
         const last = undoStack[undoStack.length - 1];
-        if (last && last.id === id && now - last.time < COALESCE_MS) {
+        if (last && lastRecordId === id && now - lastRecordTime < COALESCE_MS) {
           last.after = cloneValue(value);   // extend the gesture, keep its original `before`
-          last.time = now;
         } else {
           // `label` (the input's human name) is what the toast shows on undo/redo.
-          undoStack.push({ id, label: cur.label || cur.id, before: cloneValue(cur.value), after: cloneValue(value), time: now });
+          undoStack.push({ id, label: cur.label || cur.id, before: cloneValue(cur.value), after: cloneValue(value) });
           if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
         }
+        lastRecordId = id; lastRecordTime = now;
         redoStack.length = 0;   // a fresh edit breaks the redo chain
+        historyToastEl?.classList.remove('is-visible');   // dismiss a now-stale undo/redo toast
+        refreshHistoryUI();
       }
     }
     return baseSetInput(id, value);
@@ -243,6 +263,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
 
   const applyHistory = (id, value) => {
     applyingHistory = true;
+    lastRecordId = null;   // an undo/redo ends any gesture — the next edit starts a new step
     try { runtime.setInput(id, cloneValue(value)); }
     finally { applyingHistory = false; }
   };
@@ -253,6 +274,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     redoStack.push(entry);
     applyHistory(entry.id, entry.before);
     showHistoryToast({ kind: 'undo', label: entry.label });
+    refreshHistoryUI();
   };
   const redoHistory = () => {
     const entry = redoStack[redoStack.length - 1];
@@ -261,6 +283,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     undoStack.push(entry);
     applyHistory(entry.id, entry.after);
     showHistoryToast({ kind: 'redo', label: entry.label });
+    refreshHistoryUI();
   };
 
   // Transient bottom-centre toast confirming what was undone/redone, with a
@@ -268,11 +291,10 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   // doubles as the redo path on touch, where there's no keyboard. Reuses
   // announce() for the screen-reader side (the toast itself is aria-hidden to
   // avoid a double read). A single reused element; the timer resets on each call.
-  let historyToastEl = null, historyToastTimer = 0;
   const showHistoryToast = ({ kind, label, empty }) => {
     if (!historyToastEl) {
       historyToastEl = document.createElement('div');
-      historyToastEl.className = 'toast toast--history';
+      historyToastEl.className = 'toast';
       historyToastEl.setAttribute('aria-hidden', 'true');
       document.body.appendChild(historyToastEl);
     }
@@ -290,7 +312,9 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
       el.innerHTML =
         `<span class="toast-icon" aria-hidden="true">${kind === 'undo' ? ICON_UNDO : ICON_REDO}</span>` +
         `<span class="toast-message">${verb}<span class="toast-label"> ${escape(String(label))}</span></span>` +
-        `<button type="button" class="toast-action">${counter}</button>`;
+        // tabindex=-1: the toast is aria-hidden (announce() drives SR) so this button
+        // must not become a phantom tab stop; it stays pointer-clickable for touch/mouse.
+        `<button type="button" class="toast-action" tabindex="-1">${counter}</button>`;
       el.querySelector('.toast-action').addEventListener('click', () => {
         kind === 'undo' ? redoHistory() : undoHistory();
       });
@@ -462,6 +486,46 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   const outerEl   = hideSidebar ? null : viewEl.querySelector('#tool-canvas-outer');
   const contentEl = hideSidebar ? viewEl.querySelector('#tool-content') : canvasEl;
   const stageEl   = viewEl.querySelector('#tool-stage');
+
+  // Undo / redo buttons in the header — the tappable counterpart to Cmd+Z/Cmd+Y,
+  // and the primary way to trigger history on touch (no keyboard). Centred in the
+  // back-row between Tools (left) and the theme toggle (right). Each button stays
+  // disabled while its stack is empty (refreshHistoryUI), and clicks route through
+  // the same undoHistory/redoHistory the keyboard uses (so they show the toast too).
+  // Only sidebar tools get the buttons; hideSidebar/canvas-layout tools (file
+  // utilities with minimal inputs) have no back-row, so there they're keyboard-only.
+  const backRow = viewEl.querySelector('.sidebar-back-row');
+  if (backRow) {
+    const group = document.createElement('div');
+    group.className = 'history-controls';
+    const mkBtn = (label, icon, onClick) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'history-btn';
+      b.setAttribute('aria-label', label);
+      b.title = label;
+      b.innerHTML = icon;
+      b.addEventListener('click', onClick);
+      group.appendChild(b);
+      return b;
+    };
+    const undoBtn = mkBtn('Undo', ICON_UNDO, undoHistory);
+    const redoBtn = mkBtn('Redo', ICON_REDO, redoHistory);
+    historyControls = {
+      sync: (canUndo, canRedo) => {
+        // If the button that ran the action is about to disable itself (e.g. the
+        // last undo via keyboard), hand focus to its now-enabled sibling so a
+        // disabled button doesn't drop focus to <body>.
+        const active = document.activeElement;
+        if (active === undoBtn && !canUndo && canRedo) redoBtn.focus();
+        else if (active === redoBtn && !canRedo && canUndo) undoBtn.focus();
+        undoBtn.disabled = !canUndo;
+        redoBtn.disabled = !canRedo;
+      },
+    };
+    backRow.appendChild(group);
+    refreshHistoryUI();   // start disabled (empty history)
+  }
 
   // Theme cycle toggle, sitting to the right of the sidebar's Tools button.
   viewEl.querySelector('.sidebar-back-row')?.appendChild(createThemeToggle(host));
@@ -2304,6 +2368,9 @@ function renderInputs(el, model, runtime, host, onDirty) {
           namespace:   input.filter?.namespace,
           allowUpload: input.allowUpload === true,
           current:     input.value?.id,
+          // Picking a tool in the picker opens its inputs first (configure → insert),
+          // reusing the same in-place editor the "from <tool>" Edit badge uses.
+          editTool:    (toolUrl) => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: input.label ?? input.id, mode: 'insert' }),
         });
         if (ref) { runtime.setInput(id, ref); onDirty?.(id); }
       });
@@ -2553,6 +2620,7 @@ function renderInputs(el, model, runtime, host, onDirty) {
         namespace:   f.filter?.namespace,
         allowUpload: f.allowUpload === true,
         current:     cur,
+        editTool:    (toolUrl) => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: f.label ?? fId, mode: 'insert' }),
       });
       if (!ref) return;
       const arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));
@@ -3577,9 +3645,13 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     const hasW = model.some(i => i.id === 'width');
     const hasH = model.some(i => i.id === 'height');
     if (hasW || hasH) {
-      // Chain to avoid concurrent hook executions on the shared model.
-      const p = hasW ? runtime.setInput('width', w) : Promise.resolve();
-      p.then(() => { if (hasH) runtime.setInput('height', h); });
+      // Chain to avoid concurrent hook executions on the shared model. Use
+      // baseSetInput (not the history-wrapped runtime.setInput) so this PROGRAMMATIC
+      // px sync — fired at mount and on every unit/dimension change — never lands in
+      // the undo history or wipes the redo chain. The user's own edits to a width/
+      // height field still go through the wrapped setInput and stay undoable.
+      const p = hasW ? baseSetInput('width', w) : Promise.resolve();
+      p.then(() => { if (hasH) baseSetInput('height', h); });
       // subscriber fires runTemplateScripts + syncUrl after each setInput
     } else {
       runTemplateScripts(canvasEl);
@@ -4101,7 +4173,7 @@ function shareUrlFromParts(parts) {
  * URL mode + saved sessions exactly like the original; provenance is just the URL
  * we already persist, nothing new is stored.
  */
-async function openEmbedEditor(host, { editUrl, slotLabel } = {}) {
+async function openEmbedEditor(host, { editUrl, slotLabel, mode = 'edit' } = {}) {
   if (!host.compose?.renderUrl) return null;
   const parsed = parseToolUrl(editUrl);
   if (!parsed) return null;
@@ -4123,12 +4195,16 @@ async function openEmbedEditor(host, { editUrl, slotLabel } = {}) {
       `<option value="${escape(f)}"${f === desc.format ? ' selected' : ''}>${escape(f.toUpperCase())}</option>`
     ).join('');
     const titleSlot = escape(slotLabel ?? 'image');
+    // 'insert' = filling an empty slot from the picker's Tools/Saved list; 'edit' =
+    // re-opening an already-placed Lolly asset via its "from <tool>" badge.
+    const titleVerb  = mode === 'insert' ? 'New' : 'Edit';
+    const applyLabel = mode === 'insert' ? 'Insert' : 'Re-apply to slot';
     overlay.innerHTML = `
       <div class="embed-editor-backdrop" aria-hidden="true"></div>
       <div class="embed-editor-panel" role="dialog" aria-modal="true" aria-label="Edit ${titleSlot}">
         <header class="embed-editor-head">
           <span class="embed-editor-spark" aria-hidden="true">&#10022;</span>
-          <h2 class="embed-editor-title">Edit ${titleSlot} <span class="embed-editor-from">from ${escape(desc.name)}</span></h2>
+          <h2 class="embed-editor-title">${titleVerb} ${titleSlot} <span class="embed-editor-from">from ${escape(desc.name)}</span></h2>
           <button type="button" class="embed-editor-close" aria-label="Close">&times;</button>
         </header>
         <div class="embed-editor-body">
@@ -4144,7 +4220,7 @@ async function openEmbedEditor(host, { editUrl, slotLabel } = {}) {
             <div class="asset-picker-toolcard-preview ee-preview"><div class="asset-picker-loading">Rendering…</div></div>
             <div class="embed-editor-actions">
               <button type="button" class="ee-cancel">Cancel</button>
-              <button type="button" class="ee-apply" disabled>Re-apply to slot</button>
+              <button type="button" class="ee-apply" disabled>${applyLabel}</button>
             </div>
           </div>
         </div>

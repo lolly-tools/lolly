@@ -38,7 +38,27 @@
       "max": 12,
       "step": 1,
       "default": 8,
+      "showIf": { "threshold": false },
       "help": "How many tonal separations to trace. Changing this re-samples the colours from the photo."
+    },
+    {
+      "id": "threshold",
+      "label": "Threshold (1 ink)",
+      "type": "boolean",
+      "default": false,
+      "help": "Collapse the photo to a single ink over paper — one hard cut between dark and light instead of graded separations. Pair with Transparent background for ink on nothing."
+    },
+    {
+      "id": "thresholdLevel",
+      "label": "Threshold level",
+      "type": "number",
+      "display": "slider",
+      "min": 1,
+      "max": 99,
+      "step": 1,
+      "default": 50,
+      "showIf": { "threshold": true },
+      "help": "Where the cut between ink and paper falls. Higher turns more of the photo into ink; lower keeps only the deepest shadows."
     },
     {
       "id": "brightness",

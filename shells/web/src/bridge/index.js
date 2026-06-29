@@ -19,6 +19,7 @@ import { createNetAPI } from './net.js';
 import { createTextAPI } from './text.js';
 import { createPdfAPI } from './pdf.js';
 import { createCaptureAPI } from './capture.js';
+import { createMediaAPI } from './media.js';
 import { hasCaptureExtension, createExtensionCaptureAPI } from './capture-extension.js';
 import { PROVIDED_CAPABILITIES } from './capabilities-provided.js';
 import { openDB } from './db.js';
@@ -69,6 +70,10 @@ export async function createBridge() {
   // Extension when installed (real capture in the browser); otherwise the stub
   // that throws a clear error. In Tauri, capture.js is overridden to the native impl.
   host.capture = extCapture ? createExtensionCaptureAPI() : createCaptureAPI();
+  // Live camera frames (v1.4) for motion-reactive tools. Progressive enhancement,
+  // NOT a gated capability: a tool with an onFrame hook offers a "live" toggle only
+  // where the camera is available, and runs as a still tool otherwise.
+  host.media = createMediaAPI();
 
   // pick is a bridge-level concern: it needs the full host (logging, assets.get,
   // assets._uploadUserAsset). Defined here after all sub-APIs are wired so the

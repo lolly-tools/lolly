@@ -50,4 +50,10 @@ export {
 // embed URL; the runtime re-renders it on load via the new optional
 // `host.compose.renderUrl` (see tool-url.js). Backwards-compatible; a shell
 // without renderUrl simply leaves such an asset blank.
-export const ENGINE_VERSION = '1.3.0';
+// 1.4.0 — additive: live media. The optional `host.media` capability (a camera
+// frame source) plus a new `onFrame` hook + runtime.startLive/stopLive let a tool
+// react to a live camera stream frame-by-frame (e.g. a filter that responds to
+// motion). Pure progressive enhancement: the hook is only driven where the shell
+// provides host.media; a shell without it (or a tool without onFrame) is unaffected,
+// and such tools keep working as ordinary still-image tools. No v1 method changed.
+export const ENGINE_VERSION = '1.4.0';

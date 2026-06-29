@@ -100,8 +100,65 @@ export interface HostV1 {
    */
   compose?: ComposeAPI;
 
+  /**
+   * Live media — a camera frame source for motion-reactive tools. Only shells with
+   * a real camera + canvas can fulfil it: the web PWA and Tauri's webview (both via
+   * getUserMedia) provide it; the headless CLI does not. The shell owns the
+   * MediaStream, the <video>, and the grab loop entirely — it hands the runtime
+   * plain pixel frames (a typed array, no DOM types), so the engine stays DOM-free
+   * exactly as it does for `capture`/`compose`. The runtime drives the tool's
+   * `onFrame` hook per frame (see runtime.startLive). Optional/additive (v1.4): a
+   * tool feature-degrades to a still-image tool where `host.media` is absent, so
+   * this is NOT gated by a `capabilities` flag — it's pure progressive enhancement.
+   */
+  media?: MediaAPI;
+
   /** Logging — goes to console in dev, to a log buffer for support diagnostics. */
   log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, ctx?: object) => void;
+}
+
+// ─── Live media (optional) ─────────────────────────────────────────────────────
+
+export interface MediaAPI {
+  /**
+   * Whether a camera is usable right now (a secure context exposing
+   * getUserMedia). Sync + cheap — the shell uses it to decide whether to offer a
+   * "live" affordance. A `true` here does not pre-grant permission; the prompt
+   * happens on start().
+   */
+  isAvailable(): boolean;
+
+  /**
+   * Begin the camera and the frame loop (prompting for permission the first time).
+   * Resolves once frames are flowing; rejects if the user denies or there's no
+   * camera. Reference-counted + idempotent: concurrent callers share one stream,
+   * and the camera stops only when the matching number of stop() calls arrive.
+   */
+  start(): Promise<void>;
+
+  /** Release one start() reference; the camera + loop stop when the last is released. */
+  stop(): void;
+
+  /**
+   * Subscribe to camera frames. The callback receives a MediaFrame whose `data`
+   * is valid only for the synchronous duration of the call (the shell may reuse or
+   * release the buffer afterwards), so read the pixels synchronously. Returns an
+   * unsubscribe function. Frames flow only while the camera is start()ed, are
+   * throttled by the shell, and pause while the document is hidden.
+   */
+  subscribe(cb: (frame: MediaFrame) => void): () => void;
+}
+
+/** One camera frame as raw RGBA pixels — DOM-free, so the engine can pass it to a hook. */
+export interface MediaFrame {
+  /** Frame width in pixels (the shell may downscale the source for performance). */
+  width: number;
+  /** Frame height in pixels. */
+  height: number;
+  /** Tightly-packed RGBA bytes, length width*height*4 (as from CanvasRenderingContext2D.getImageData). */
+  data: Uint8ClampedArray;
+  /** Monotonic timestamp (ms) of the grab, for a tool that wants frame timing. */
+  t: number;
 }
 
 /**

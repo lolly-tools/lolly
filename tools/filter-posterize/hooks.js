@@ -449,7 +449,14 @@ async function compute(model) {
   var invert = Boolean(inputs.invert);
   var brightness = clamp(Math.round(num(inputs.brightness, 0)), -100, 100);
   var contrast = clamp(Math.round(num(inputs.contrast, 0)), -100, 100);
-  var toneKey = brightness + ',' + contrast;
+  // Threshold mode collapses the posterise to ONE ink over paper (2 tones) at a MANUAL
+  // cut instead of the auto quantile bands — so `steps` is overridden to 2, and the cut
+  // level joins the tone signature so moving it reseeds swatches + busts caches like a
+  // re-tone. `steps` is hidden in this mode (tool.json showIf) but kept for toggling back.
+  var threshold = Boolean(inputs.threshold);
+  var thresholdLevel = clamp(Math.round(num(inputs.thresholdLevel, 50)), 1, 99);
+  var effSteps = threshold ? 2 : steps;
+  var toneKey = brightness + ',' + contrast + (threshold ? '|t' + thresholdLevel : '');
   var W = clamp(Math.round(num(inputs.width, 1080)), 1, 8000);
   var H = clamp(Math.round(num(inputs.height, 1080)), 1, 8000);
 
@@ -491,8 +498,12 @@ async function compute(model) {
     gEff = { lum: iv, alpha: gTone.alpha, r: gTone.r, g: gTone.g, b: gTone.b, cols: gTone.cols, rows: gTone.rows };
   }
 
-  var thr = quantileThresholds(gEff, steps);
-  var auto = autoPalette(gEff, thr, steps);
+  // In threshold mode the single interior cut is the user's level (lum < cut → ink),
+  // clamped to [1,254] like the quantile invariant so neither ink nor paper is empty.
+  var thr = threshold
+    ? [clamp(Math.round(thresholdLevel / 100 * 255), 1, 254)]
+    : quantileThresholds(gEff, effSteps);
+  var auto = autoPalette(gEff, thr, effSteps);
 
   // ── Auto-then-manual palette ────────────────────────────────────────────────
   // Seed every separation's colour from the photo, then let the user recolour any
@@ -504,7 +515,7 @@ async function compute(model) {
   // re-pins the count instead of wiping every colour.
   var blocks = Array.isArray(inputs.colors) ? inputs.colors : [];
   var resample = Boolean(inputs.resample);
-  var stepsChanged = _prevSteps !== null && _prevSteps !== steps;
+  var stepsChanged = _prevSteps !== null && _prevSteps !== effSteps;   // incl. entering/leaving threshold
   var photoChanged = _seedUrl !== null && _seedUrl !== url;
   var toneChanged = _seedTone !== null && _seedTone !== toneKey;       // brightness/contrast moved
   var untouched = !!_seedPalette && blocks.length === _seedPalette.length
@@ -520,17 +531,17 @@ async function compute(model) {
     _seedTone = toneKey;                                                // …and the tone it was sampled at
   } else {
     palette = [];
-    for (var pi = 0; pi < steps; pi++) palette.push(color(blocks[pi] && blocks[pi].color, auto[pi]));
-    if (blocks.length !== steps) patch.colors = palette.map(function (c) { return { color: c }; }); // re-pin count, keep edits
+    for (var pi = 0; pi < effSteps; pi++) palette.push(color(blocks[pi] && blocks[pi].color, auto[pi]));
+    if (blocks.length !== effSteps) patch.colors = palette.map(function (c) { return { color: c }; }); // re-pin count, keep edits
   }
   _seedUrl = url;
-  _prevSteps = steps;
+  _prevSteps = effSteps;
 
   var grid = { g: gEff, cols: g.cols, rows: g.rows, tp: tp, invert: invert, tone: toneKey };
 
   // Memoise the SVG on everything that changes the pixels — palette, steps, size,
   // quality, tone, transparency, photo — so dragging an unrelated control is cheap.
-  var memoKey = JSON.stringify({ url: url, steps: steps, q: inputs.quality, sm: inputs.smoothing, inv: invert, tone: toneKey, W: W, H: H, t: _transparent, pal: palette });
+  var memoKey = JSON.stringify({ url: url, steps: effSteps, thr: thr.join(','), q: inputs.quality, sm: inputs.smoothing, inv: invert, tone: toneKey, W: W, H: H, t: _transparent, pal: palette });
   if (memoKey === _memoKey) { patch.posterSvg = _memoResult; return patch; }
 
   var svg;

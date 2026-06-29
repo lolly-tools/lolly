@@ -1491,6 +1491,36 @@ a.gtile-name:focus-visible::after {
   .theme-toggle-name { display: none; }
 }
 
+/* Undo / redo buttons in the sidebar header — compact icon buttons centred
+   between Tools (left) and the theme toggle (right). The tappable counterpart to
+   Cmd+Z/Cmd+Y and the primary history trigger on touch. Dimmed + non-interactive
+   at the ends of history (disabled reflects empty undo/redo stacks). */
+.history-controls { display: inline-flex; align-items: center; gap: 2px; }
+.history-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, opacity 0.12s;
+}
+.history-btn svg { flex: none; width: 16px; height: 16px; }
+.history-btn:hover:not(:disabled) { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+.history-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Touch: larger tap targets for the header undo/redo (44px guideline). */
+@media (pointer: coarse) {
+  .history-btn { width: 40px; height: 40px; }
+  .history-btn svg { width: 18px; height: 18px; }
+}
+
 /* Second row of the sidebar header: tool title (left, truncating) + expand toggle
    (right). */
 .sidebar-header-row {
@@ -3045,10 +3075,14 @@ background-color:hsl(var(--background) / 1);
 .toast-action:hover { filter: brightness(1.08); }
 .toast-action:active { filter: brightness(0.95); }
 
-/* Mobile: lift the toast above the bottom-centre Render FAB (z55) so they don't
-   stack on top of each other. */
+/* Mobile: lift the toast above the bottom-centre Render FAB (z55), and cap its
+   width so its right edge can't reach (and steal taps from) the bottom-right zoom
+   HUD. A long label ellipsises rather than spanning edge-to-edge. */
 @media (max-width: 640px) {
-  .toast { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+  .toast {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100vw - 6rem);
+  }
 }
 
 /* ── Mobile (≤640px): controls become a drag sheet, preview fills below ──────

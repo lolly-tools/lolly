@@ -103,6 +103,18 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
   const listeners = new Set();
   const emit = () => listeners.forEach(fn => fn({ model, hydrated: getHydrated() }));
 
+  // ── Live media (onFrame) ────────────────────────────────────────────────────
+  // When a shell drives a camera (host.media) AND the tool declares an `onFrame`
+  // hook, the runtime can run that hook once per camera frame so the render reacts
+  // to live motion. The SHELL owns the camera + the grab loop and hands us plain
+  // RGBA frames (no DOM types), so the engine stays platform-agnostic; we just run
+  // onFrame → merge its patch → emit, exactly like a keystroke. Overlapping frames
+  // are DROPPED (a new frame is processed only once the previous onFrame settled),
+  // so a slow per-frame trace self-throttles instead of piling up.
+  let liveUnsub = null;
+  let framePending = false;
+  const isLive = () => liveUnsub != null;
+
   // The template context (flattened input values + hook extras) is rebuilt only
   // when `model` or `extras` is replaced. Both are swapped wholesale on every
   // mutation — updateInput/mergePatch/resolve* return fresh objects, never patch
@@ -197,6 +209,48 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // one render path instead of mutating the DOM itself. Used to invalidate a
     // deferred preview (manifest.render.preview) when the capture geometry changes.
     refresh: emit,
+
+    // True when this tool declares an `onFrame` hook — i.e. it CAN react to a live
+    // camera. The shell still gates the actual "go live" affordance on host.media
+    // being present, so a tool without a camera shell just runs as a still tool.
+    hasFrameHook: Boolean(hooks?.onFrame),
+
+    /** Whether the camera-driven loop is currently running. */
+    isLive,
+
+    /**
+     * Start driving the tool's `onFrame` hook from the host camera. Resolves once
+     * the camera is live; rejects if permission is denied or there's no camera (the
+     * shell shows that error). No-op (returns false) if already live, the tool has
+     * no onFrame, or the shell provides no host.media.
+     */
+    async startLive() {
+      if (liveUnsub || !hooks?.onFrame || !host.media) return false;
+      await host.media.start(); // may reject (permission/no camera) — the shell catches
+      liveUnsub = host.media.subscribe((frame) => {
+        if (framePending) return; // still tracing the previous frame → drop this one
+        framePending = true;
+        Promise.resolve(hooks.onFrame({ frame, model: modelForHooks(model), host }))
+          .then((patch) => {
+            // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
+            if (patch && liveUnsub) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); emit(); }
+          })
+          .catch((e) => host.log('warn', `onFrame ${e.message}`, { toolId: tool.manifest.id }))
+          .finally(() => { framePending = false; });
+      });
+      return true;
+    },
+
+    /**
+     * Stop the camera-driven loop (idempotent). The shell calls this on toggle-off
+     * AND on unmount, so no camera track ever outlives the tool.
+     */
+    stopLive() {
+      if (!liveUnsub) return;
+      liveUnsub();
+      liveUnsub = null;
+      try { host.media?.stop(); } catch { /* already torn down */ }
+    },
 
     // Whether this tool produces output via the transform path (a user file in →
     // transformed file out) rather than the DOM-render path. Shells use it to wire
@@ -446,6 +500,7 @@ function getHookFactory(tool) {
       `${tool.hooksSource}; return {` +
       `onInit: typeof onInit !== 'undefined' ? onInit : null,` +
       `onInput: typeof onInput !== 'undefined' ? onInput : null,` +
+      `onFrame: typeof onFrame !== 'undefined' ? onFrame : null,` +
       `beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,` +
       `beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,` +
       `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,` +
@@ -463,6 +518,7 @@ async function loadHooks(tool, host) {
   return {
     onInit:       typeof mod.onInit       === 'function' ? mod.onInit       : null,
     onInput:      typeof mod.onInput      === 'function' ? mod.onInput      : null,
+    onFrame:      typeof mod.onFrame      === 'function' ? mod.onFrame      : null,
     beforeRender: typeof mod.beforeRender === 'function' ? mod.beforeRender : null,
     beforeExport: typeof mod.beforeExport === 'function' ? mod.beforeExport : null,
     afterExport:  typeof mod.afterExport  === 'function' ? mod.afterExport  : null,
