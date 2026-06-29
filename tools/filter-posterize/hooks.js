@@ -18,11 +18,15 @@
  * The whole pipeline needs a real browser <canvas>; in a headless shell (CLI/jsdom)
  * it degrades to a friendly placeholder rather than throwing — a browser effect.
  *
- * Shared demo image matches the other filter tools (filter-duotone/-halftone/
- * -scanline), kept in sync deliberately, so the effect shows on first load.
+ * Demo image: unlike the sibling filters (filter-duotone/-halftone/-scanline),
+ * which share the flat bag-video graphic, posterise splits LUMINANCE into bands
+ * and fills each with its band's mean colour — so a tonally flat source (the
+ * Geeko on a solid dark-green field) collapses to a muddy near-monochrome poster.
+ * It needs a tonally rich, high-contrast PHOTO (cf. tool.json: "Headshots and
+ * high-contrast photos trace best"), so it defaults to a catalog headshot instead.
  */
 
-var DEFAULT_IMAGE_ID = 'https://lolly.tools/tool/bag-video.png';
+var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
 var _defaultUrl = null;
 
 // Sampling grid is capped so a high quality on a big photo can't blow up tracing
