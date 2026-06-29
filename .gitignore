@@ -1,3 +1,7 @@
+# Throwaway test fixtures (e.g. logo-wall live-test logos copied into public/)
+_testlogos/
+shells/web/public/_testlogos/
+
 # Logs
 logs
 *.log
@@ -160,10 +164,10 @@ vite.config.ts.timestamp-*
 # Web build output (Vercel/CI regenerate via `npm run build:web`)
 shells/web/dist/
 
-# Generated tool preview thumbnails (rebuilt via `npm run previews`; a committed
-# tools/<id>/card.svg|png overrides per tool). Not committed — the gallery falls
-# back to a plain tile when one is absent.
-catalog/previews/
+# Tool preview thumbnails — generated via `npm run previews`, but COMMITTED so a
+# plain git-based web deploy ships them (otherwise build:web drops them and the
+# gallery falls back to bare tiles). A committed tools/<id>/card.svg|png still
+# overrides per tool. Regenerate + commit when a tool's look changes.
 
 # Generated docs/info site (rebuilt at deploy via `npm run build:info`)
 # NOTE: mascots/ are committed assets — build:info does NOT regenerate them, so keep them tracked.

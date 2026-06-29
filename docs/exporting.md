@@ -68,7 +68,7 @@ So colours reproduce faithfully in colour-managed apps (print shops, Photoshop, 
 - **PNG / JPG** carry an embedded **sRGB** ICC profile — the colour space the preview is actually rendered in — so nothing is left to guess. (Tagging only; the pixels aren't re-encoded.)
 - **Print PDF (CMYK)** declares a target **press condition** in its *OutputIntent* (default *Coated FOGRA39*), telling a RIP/print shop how its CMYK inks are meant to be read. Brand swatches with measured ink values are converted exactly; other colours use a standard device conversion.
 - **Print TIFF (CMYK)** writes untagged **DeviceCMYK** pixels and records the same press condition as provenance in its TIFF metadata (*ImageDescription*) rather than embedding a profile. The same Colour-profile control drives both CMYK formats.
-- **SVG**, **EMF** and **EPS** are resolution- and profile-independent vectors with no embedded profile — SVG's colours are plain sRGB, EMF's and EPS's are device RGB (and **EPS (CMYK)** writes naive DeviceCMYK). (All, like PDF, outline any text to vector paths, so the result renders even where the font isn't installed.)
+- **SVG**, **EMF** and **EPS** are resolution- and profile-independent vectors with no embedded profile — SVG's colours are plain sRGB, EMF's and EPS's are device RGB (and **EPS (CMYK)** writes naive DeviceCMYK). (All, like PDF, outline any text to vector paths, so the result renders even where the font isn't installed.) **SVG** also reproduces CSS `box-shadow` from the HTML — each outer shadow is painted behind the box, offset/spread and Gaussian-blurred to match the browser (inset shadows are skipped).
 
 This is automatic — no setting to fiddle with. Thumbnails and previews skip the tag to stay small.
 

@@ -199,12 +199,12 @@ Rows are listed in gallery section order. The `utility` section always renders *
 | Category | Shipped tools | Planned |
 |---|---|---|
 | `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Color Block, Dynamic Layout, Logo | Employee Image Stationery |
-| `designer` | Brand Lockup, Bag Video, Chart Creator, Filter: Duotone, Street Map, Filter: Halftone, Filter: Scanline, Animated Ad | PDF Smasher, Font Outliner |
+| `designer` | Brand Lockup, Bag Video, Chart Creator, Filter: Duotone, Street Map, Filter: Halftone, Filter: Scanline, Animated Ad, Multi-Page PDF, Logo Wall | PDF Smasher, Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | — | CVE Alert, Product Release Announcement, Blog OG Image |
 | `utility` | Countdown Timer, Color Palette, URL Screenshot, Strip Hidden Data, Text Helper, Compress PDF | Unit/format converters, more on-device privacy utilities |
 
-Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Bag Video and URL Screenshot currently carry `experimental` status.
+Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Dynamic Layout, URL Screenshot, and Logo Wall currently carry `experimental` status.
 
 **Strip Hidden Data** is the first **on-device utility** (`privacy: "on-device"`): a content-transform tool that takes a file *you* supply, processes it entirely in the browser, and hands back a clean copy — never uploaded, never watermarked, no provenance stamped. **Text Helper** is the second — an on-device workbench for everyday paste-into-a-website jobs (JSON format, JWT decode, Base64, URL encode/decode, SHA hashing). **Compress PDF** is the third — it shrinks a PDF by recompressing its images, again entirely on-device. All three carry the badge text "Runs on your device — nothing is uploaded". This is the start of a privacy-utility category that replaces handing confidential files to single-purpose websites.
 

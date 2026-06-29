@@ -18,6 +18,7 @@ import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
 import { colorFieldHtml, wireColorField, setSwatches } from '../components/color-field.js';
 import { showScrubReadout, hideScrubReadout } from '../components/scrub-readout.js';
+import { createThemeToggle } from '../components/theme-toggle.js';
 import { canSkipInputsRebuild } from './inputs-sync.js';
 import { exportSizeDriver, aspectWarning } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
@@ -257,7 +258,9 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
       ${!hideSidebar ? `
         <aside class="sidebar" id="tool-sidebar">
           <div class="sidebar-header">
-            <a href="/" class="tools-home sidebar-back">Tools</a>
+            <div class="sidebar-back-row">
+              <a href="/" class="tools-home sidebar-back">Tools</a>
+            </div>
             <div class="sidebar-header-row">
               <span class="sidebar-title">${escape(tool.manifest.name)}</span>
               <button class="fullscreen-toggle" id="fullscreen-toggle" ${sidebarOpen ? 'open' : ''} aria-label="${sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}"></button>
@@ -329,6 +332,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   const outerEl   = hideSidebar ? null : viewEl.querySelector('#tool-canvas-outer');
   const contentEl = hideSidebar ? viewEl.querySelector('#tool-content') : canvasEl;
   const stageEl   = viewEl.querySelector('#tool-stage');
+
+  // Theme cycle toggle, sitting to the right of the sidebar's Tools button.
+  viewEl.querySelector('.sidebar-back-row')?.appendChild(createThemeToggle(host));
 
   // Removed-image notice: announce it (live region) and let the user dismiss it.
   if (dropped.length) {
@@ -2265,8 +2271,11 @@ function renderInputs(el, model, runtime, host, onDirty) {
 
     // Chain commits for this input so concurrent drops/selections serialise —
     // each reads the live array only after the previous one has committed.
+    // Snapshot the files NOW: commit runs a microtask later, by which time the
+    // change handler's `native.value = ''` has already emptied the live FileList.
     const addFiles = (fileList) => {
-      const next = (_dropChains.get(blockId) || Promise.resolve()).then(() => commit(fileList));
+      const snapshot = Array.from(fileList || []);
+      const next = (_dropChains.get(blockId) || Promise.resolve()).then(() => commit(snapshot));
       _dropChains.set(blockId, next.catch(() => {}));
       return next;
     };
