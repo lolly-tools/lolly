@@ -1,6 +1,6 @@
 # Build Guide
 
-How to build Lolly for each distribution target: standalone CLI binary, desktop app (macOS / Windows / Linux), and mobile apps (iOS / Android).
+How to build Lolly for each distribution target: standalone CLI binary, desktop app (macOS / Windows / Linux), mobile apps (iOS / Android), and the web shell as a container image for Kubernetes.
 
 ---
 
@@ -377,6 +377,265 @@ modules:
 ```
 
 For readers wiring this up for real, see the [OBS documentation](https://openbuildservice.org/help/) and the [openSUSE packaging guidelines](https://en.opensuse.org/openSUSE:Packaging_guidelines).
+
+---
+
+## Web shell on Kubernetes (Helm)
+
+The web shell is a **static site** — `npm run build:web` produces a `dist/` folder of HTML, CSS, JS, the service worker, the HarfBuzz WASM, fonts, the bundled tool catalog, and the `/info` site. Anything that can serve static files can host it (which is why the production site runs behind a CDN). To run it **inside your own Kubernetes cluster** — air-gapped, on-prem, or alongside the rest of your platform — bake `dist/` into a container image built on a SUSE-maintained nginx base and deploy it with Helm.
+
+> **These are example charts, not a published product.** Lolly does not ship an official Helm chart, and the SUSE Application Collection does not contain one for it. The Dockerfile, `nginx.conf`, and chart below are a complete, self-contained example that *should actually deploy* — but treat them as a starting point to adapt, and pin the image tags and chart versions you verify yourself. Where a curated image or chart exists in the [SUSE Application Collection](https://apps.rancher.io), this section prefers it.
+
+### Why the SUSE Application Collection
+
+[The SUSE Application Collection](https://apps.rancher.io) is a curated, signed, continuously-rebuilt catalog of open-source container images and Helm charts, all based on SUSE Linux Enterprise Base Container Images (BCI). Pulling the nginx runtime from it — rather than an arbitrary upstream tag — gets you a hardened, attested base with a known CVE posture.
+
+| Host | Role |
+|---|---|
+| `apps.rancher.io` | Browse / catalog UI (and where you mint credentials) |
+| `docs.apps.rancher.io` | Documentation |
+| `dp.apps.rancher.io` | **OCI distribution registry you pull from** — images under `/containers/<name>`, Helm charts under `/charts/<name>` |
+
+Access needs a free **SUSE Customer Center** account (`scc.suse.com`); sign in to `apps.rancher.io` and create either a personal **access token** (Settings → Access tokens) or an organization **service account** (Settings → Service accounts). Pulls are never anonymous.
+
+> **Free-tier gotcha for clusters.** A *user* access token on the Free tier allows pulls (≈100/24h), but a Free **service account is allowed 0 pulls** — so unattended in-cluster pulls through a service-account `imagePullSecret` realistically need a paid (Prime or higher) organization subscription. For builds on your own laptop a personal token on the Free tier is fine. If you can't subscribe, use the SUSE BCI nginx image from `registry.suse.com` instead (see the *Fallback* note under step 2) — it's free and needs no login.
+
+Log in — the same host for every client. The username/password pairing differs by credential type: a **user account** uses your username + an **access token**; a **service account** uses its username + a **secret** (never your account password):
+
+```bash
+helm registry login dp.apps.rancher.io -u <username-or-sa-username> -p <access-token-or-sa-secret>
+docker login        dp.apps.rancher.io -u <username-or-sa-username> -p <access-token-or-sa-secret>
+```
+
+### 1. Build the static site
+
+```bash
+npm install
+npm run build:web      # → shells/web/dist/
+```
+
+### 2. Containerise it on a SUSE nginx base
+
+A multi-stage build compiles `dist/` in a Node stage, then copies it into an nginx runtime pulled from the Application Collection.
+
+`Dockerfile`:
+
+```dockerfile
+# ---- build stage ----
+FROM node:22-alpine AS build
+WORKDIR /app
+COPY . .
+RUN npm ci && npm run build:web          # → /app/shells/web/dist
+
+# ---- runtime stage: SUSE Application Collection nginx ----
+# Pin the current tag from https://apps.rancher.io/applications/nginx
+FROM dp.apps.rancher.io/containers/nginx:1.29.4
+COPY --from=build /app/shells/web/dist /usr/share/nginx/html
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 8080
+```
+
+> **Fallback without an Application Collection subscription:** swap the runtime line for the free SUSE BCI image `FROM registry.suse.com/suse/nginx:1.27` (no login required). Its default document root is `/srv/www/htdocs/` — copy there instead, or just keep your own `root` directive in `nginx.conf`, which wins regardless of the base image's default.
+
+### 3. Serve it like a PWA
+
+Lolly is a single-page PWA: client-side URL-mode deep links (`/?tool=qr-code`) must fall back to `index.html`, the service worker (`/sw.js`) must never be cached, and the HarfBuzz `.wasm` and `.webmanifest` need correct MIME types. SUSE/BCI nginx images run **rootless on port 8080**, so the config listens there.
+
+`deploy/nginx.conf`:
+
+```nginx
+server {
+  listen 8080;                       # rootless SUSE/BCI nginx; use 80 if your base runs as root
+  server_name _;
+  root /usr/share/nginx/html;        # set explicitly — the default doc root varies by base image
+  index index.html;
+
+  # nginx 1.21+ already maps these; harmless to restate for older bases
+  types { application/wasm wasm; application/manifest+json webmanifest; }
+
+  # content-hashed, immutable build assets (includes harfbuzz-<hash>.wasm)
+  location /assets/ {
+    add_header Cache-Control "public, max-age=31536000, immutable";
+    try_files $uri =404;
+  }
+
+  # the service worker must revalidate so redeploys roll out
+  location = /sw.js       { add_header Cache-Control "no-cache, no-store, must-revalidate"; expires off; }
+  location = /index.html  { add_header Cache-Control "no-cache"; }
+
+  # SPA fallback — unknown paths serve the app shell
+  location / { try_files $uri $uri/ /index.html; }
+}
+```
+
+Build and push to a registry your cluster can reach:
+
+```bash
+docker build -t <your-registry>/lolly-web:1.0.0 .
+docker push     <your-registry>/lolly-web:1.0.0
+```
+
+### 4. An example Helm chart
+
+The Application Collection ships charts for stateful services (redis, postgresql, prometheus, cert-manager, …) but **not** a generic static-web-server chart — nginx lives there as a *container image only*. So the chart below is a small, self-contained one of your own; it's deliberately minimal and should deploy as-is.
+
+```
+deploy/lolly-chart/
+├── Chart.yaml
+├── values.yaml
+└── templates/
+    ├── deployment.yaml
+    ├── service.yaml
+    └── ingress.yaml
+```
+
+`Chart.yaml`:
+
+```yaml
+apiVersion: v2
+name: lolly-web
+description: Lolly web shell (static PWA) served by SUSE nginx
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+```
+
+`values.yaml`:
+
+```yaml
+image:
+  repository: <your-registry>/lolly-web
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+replicaCount: 2
+
+# Only needed if your image (or its base layer) is pulled from an authenticated
+# registry such as dp.apps.rancher.io. Create the secret first (see step 5); the
+# SUSE Application Collection convention names it "application-collection".
+imagePullSecrets:
+  - name: application-collection
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080          # matches the nginx `listen` above
+
+ingress:
+  enabled: true
+  className: ""             # e.g. "nginx", or your cluster's ingress class
+  host: lolly.example.com
+  tls: false               # flip to true + a secretName once cert-manager issues a cert
+  tlsSecretName: lolly-tls
+```
+
+`templates/deployment.yaml`:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: { app: {{ .Release.Name }} }
+  template:
+    metadata:
+      labels: { app: {{ .Release.Name }} }
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: web
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          readinessProbe:
+            httpGet: { path: /index.html, port: {{ .Values.service.targetPort }} }
+```
+
+`templates/service.yaml`:
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  type: {{ .Values.service.type }}
+  selector: { app: {{ .Release.Name }} }
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+```
+
+`templates/ingress.yaml`:
+
+```yaml
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  {{- with .Values.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts: [ {{ .Values.ingress.host | quote }} ]
+      secretName: {{ .Values.ingress.tlsSecretName }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Release.Name }}
+                port: { number: {{ .Values.service.port }} }
+{{- end }}
+```
+
+### 5. Install
+
+If the image (or its base) is pulled from `dp.apps.rancher.io`, create the pull secret the chart references, then install:
+
+```bash
+kubectl create namespace lolly
+
+# the SUSE Application Collection pull secret (skip if your image is on a public registry)
+kubectl create secret docker-registry application-collection \
+  --docker-server=dp.apps.rancher.io \
+  --docker-username=<username-or-sa-username> \
+  --docker-password=<access-token-or-sa-secret> \
+  -n lolly
+
+helm upgrade --install lolly ./deploy/lolly-chart -n lolly \
+  --set image.repository=<your-registry>/lolly-web \
+  --set image.tag=1.0.0 \
+  --set ingress.host=lolly.example.com
+```
+
+### TLS, the SUSE-curated way (optional)
+
+For HTTPS, pull **cert-manager** — which *is* a real chart in the Application Collection — and let it issue the Ingress certificate:
+
+```bash
+helm install cert-manager oci://dp.apps.rancher.io/charts/cert-manager \
+  -n cert-manager --create-namespace \
+  --set crds.enabled=true \
+  --set 'global.imagePullSecrets={application-collection}'
+```
+
+Then add a `ClusterIssuer` (e.g. Let's Encrypt), set `ingress.tls=true` with a `tlsSecretName`, and annotate the Ingress for cert-manager. Every Application Collection chart accepts the same `--set 'global.imagePullSecrets={application-collection}'`, so the pattern carries across redis, postgresql, prometheus, and the rest if Lolly ever grows backing services.
+
+> For the authoritative, current registry paths, tags, chart versions, and value keys, see the [SUSE Application Collection docs](https://docs.apps.rancher.io) and run `helm show values oci://dp.apps.rancher.io/charts/<chart>` before relying on any default.
 
 ---
 
