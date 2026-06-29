@@ -2048,7 +2048,7 @@ function renderInputs(el, model, runtime, host, onDirty) {
       : '';
     const labelId = `irow-label-${escape(input.id)}`;
     const label = `<span class="input-label"${isComposite ? ` id="${labelId}"` : ''}>${escape(input.label ?? input.id)}${valueTag}</span>`;
-    const control = controlHtml(input);
+    const control = controlHtml(input, modelValues);
     const help = input.help ? `<span class="input-help">${escape(input.help)}</span>` : '';
     if (isCheckbox) return `<label class="${cls}">${control}${label}${help}</label>`;
     if (isComposite) return `<div class="${cls}" role="group" aria-labelledby="${labelId}">${label}${control}${help}</div>`;
@@ -2311,7 +2311,7 @@ function renderInputs(el, model, runtime, host, onDirty) {
       if (!inp) return;
       const arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));
       if (!arr[idx]) arr[idx] = {};
-      arr[idx][fieldId] = field.value;
+      arr[idx][fieldId] = field.type === 'checkbox' ? field.checked : field.value;
       runtime.setInput(blockId, arr);
       onDirty?.(blockId);
     });
@@ -2639,10 +2639,11 @@ function renderInputs(el, model, runtime, host, onDirty) {
 function blockFieldDefault(f) {
   if (f.default !== undefined) return f.default;
   switch (f.type) {
-    case 'number': return f.min ?? 0;
-    case 'select': return f.options?.[0]?.value ?? '';
-    case 'asset':  return null;
-    default:       return '';
+    case 'number':  return f.min ?? 0;
+    case 'select':  return f.options?.[0]?.value ?? '';
+    case 'boolean': return false;
+    case 'asset':   return null;
+    default:        return '';
   }
 }
 
@@ -2655,7 +2656,7 @@ function fmtBytes(n) {
   return `${i === 0 ? v : v.toFixed(v < 10 ? 1 : 0)} ${units[i]}`;
 }
 
-function controlHtml(input) {
+function controlHtml(input, modelValues = {}) {
   const id  = escape(input.id);
   const val = escape(input.value ?? '');
   switch (input.control) {
@@ -2753,15 +2754,39 @@ function controlHtml(input) {
       const typeLabel = v => typeOpts.find(o => o.value === v)?.label ?? (v ?? '');
 
       // Stack a label above a control inside a typed block; plain controls
-      // (untyped blocks) render bare to keep the legacy compact row layout.
-      const labelled = (f, inner, cls = '') => addMenu
-        ? `<div class="block-control${cls}"><span class="block-control-label">${escape(f.label ?? f.id)}</span>${inner}</div>`
+      // (untyped blocks) render bare to keep the legacy compact row layout —
+      // unless the input opts in with `labelledFields` (e.g. logo-wall, whose
+      // optional per-logo controls aren't self-evident).
+      const labelEach = !!(addMenu || input.labelledFields);
+      const labelled = (f, inner, cls = '') => labelEach
+        ? `<div class="block-control${cls}"><span class="block-control-label">${escape(f.label ?? f.id)}</span>${inner}${f.help ? `<span class="block-control-help">${escape(f.help)}</span>` : ''}</div>`
         : inner;
+
+      // A sub-field's `showIf` is matched first against sibling fields of the same
+      // block, then against top-level input values (modelValues) — so a per-block
+      // control can depend on both another block field and a global toggle.
+      const blockShowIf = (f, item) => {
+        if (!f.showIf) return true;
+        return Object.entries(f.showIf).every(([k, v]) =>
+          ((item && k in item) ? item[k] : modelValues[k]) === v);
+      };
 
       const blockField = (f, item, idx, typeVal) => {
         const fieldId = `${id}:${idx}:${escape(f.id)}`;
         if (addMenu && f.id === addMenu.field) return '';                 // discriminator → head label
         if (Array.isArray(f.showFor) && !f.showFor.includes(typeVal)) return '';
+        if (!blockShowIf(f, item)) return '';
+
+        if (f.type === 'boolean') {
+          const on = !!item[f.id];
+          // Checkbox + inline label (always labelled — a bare checkbox is opaque),
+          // spanning the full row so it reads as its own line.
+          return `<label class="block-control block-control--checkbox block-control--full">
+            <input type="checkbox" class="block-field block-field--checkbox" data-field-id="${fieldId}"${on ? ' checked' : ''}>
+            <span class="block-control-label">${escape(f.label ?? f.id)}</span>
+            ${f.help ? `<span class="block-control-help">${escape(f.help)}</span>` : ''}
+          </label>`;
+        }
 
         if (f.type === 'color') {
           const hex = String(item[f.id] ?? '').trim();
@@ -2858,11 +2883,12 @@ function controlHtml(input) {
       // Collapsed-pill summary: the first non-empty text field, plus the first
       // valid colour field as a dot — so a folded block stays identifiable.
       // Both respect the active type's showFor visibility.
-      const visibleFor = (f, typeVal) => !(Array.isArray(f.showFor) && !f.showFor.includes(typeVal));
+      const visibleFor = (f, typeVal, item) =>
+        !(Array.isArray(f.showFor) && !f.showFor.includes(typeVal)) && blockShowIf(f, item);
       const previewOf = (item, typeVal) => {
         for (const f of fields) {
           if (addMenu && f.id === addMenu.field) continue;
-          if (!visibleFor(f, typeVal)) continue;
+          if (!visibleFor(f, typeVal, item)) continue;
           // A field with no declared type renders as a text input, so treat it as
           // text here too — otherwise compact name/value blocks (whose fields omit
           // `type`) would collapse to a blank pill.
@@ -2876,7 +2902,7 @@ function controlHtml(input) {
       };
       const swatchOf = (item, typeVal) => {
         for (const f of fields) {
-          if (!visibleFor(f, typeVal)) continue;
+          if (!visibleFor(f, typeVal, item)) continue;
           if (f.type === 'color') {
             const v = String(item[f.id] ?? '').trim();
             if (/^#[0-9a-fA-F]{3,8}$/.test(v)) return v;

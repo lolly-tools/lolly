@@ -361,9 +361,14 @@
                   "label": { "type": "string", "description": "Menu button label (default 'Add')." }
                 }
               },
+              "labelledFields": {
+                "type": "boolean",
+                "default": false,
+                "description": "Show a text label above each sub-field (the layout typed/addMenu blocks always use). Turn on for untyped blocks whose controls aren't self-evident, or that carry several optional fields."
+              },
               "fields": {
                 "type": "array",
-                "description": "Sub-fields for each repeatable block entry. A field may declare a `type` (text|color|select|asset|number); text is the default. `showFor` limits a field to blocks whose discriminator value is listed.",
+                "description": "Sub-fields for each repeatable block entry. A field may declare a `type` (text|color|select|asset|number|boolean); text is the default. `showFor` limits a field to blocks whose discriminator value is listed; `showIf` limits it by sibling-field and/or top-level input values.",
                 "items": {
                   "type": "object",
                   "required": ["id"],
@@ -373,14 +378,19 @@
                     "placeholder": { "type": "string" },
                     "type": {
                       "type": "string",
-                      "enum": ["text", "color", "select", "asset", "number"],
+                      "enum": ["text", "color", "select", "asset", "number", "boolean"],
                       "default": "text"
                     },
                     "default": { "description": "Value a newly-added block's field starts at." },
+                    "help": { "type": "string", "description": "Short hint shown under the sub-field (labelledFields blocks only)." },
                     "showFor": {
                       "type": "array",
                       "items": { "type": "string" },
                       "description": "Render this field only when the block's discriminator value is one of these."
+                    },
+                    "showIf": {
+                      "type": "object",
+                      "description": "Render this field only when the named values all match. Keys are looked up first among sibling fields of the same block, then among top-level input ids (e.g. { \"vectorize\": true, \"tune\": true })."
                     },
                     "multilineFor": {
                       "type": "array",
