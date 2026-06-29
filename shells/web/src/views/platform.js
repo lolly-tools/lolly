@@ -174,6 +174,9 @@ const ICONS = {
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="8" cy="12" r="2.5"/><path d="M14 10h4"/><path d="M14 14h4"/></svg>',
   layers:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>',
+  // Rendering stack — a "type" mark (the part of the pipeline that shapes glyphs & vectors).
+  render:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>',
   // Browser brands (simplified marks).
   chrome:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="12" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>',
@@ -204,6 +207,7 @@ const TITLE_ICONS = {
   'Locale & preferences': ICONS.locale,
   'Capabilities & privacy': ICONS.capabilities,
   Network: ICONS.network,
+  'Rendering stack': ICONS.render,
   'System Graphics': ICONS.graphics,
   'Browser Graphics': ICONS.layers,
 };
@@ -259,6 +263,30 @@ function engineOf(ua) {
   if (/Version\/[\d.]+.*Safari/.test(ua)) return 'WebKit';
   return DASH;
 }
+
+// The native libraries that actually rasterise vectors and shape text are NOT
+// exposed by any web API — but they're a deterministic function of (engine × OS),
+// so we infer them. This is the layer that decides how a glyph edge or a curved
+// stroke lands on the canvas, which is exactly what matters when reproducing an
+// export, so it's worth surfacing even though it's inferred (the card says so).
+// Kept current: Blink/Gecko bundle Skia + HarfBuzz cross-platform; WebKit uses
+// Apple's Core Graphics / Core Text on Apple OSes and Skia (Cairo before
+// WebKitGTK 2.46) + HarfBuzz elsewhere.
+function renderStack(engine, os) {
+  const apple = /mac|ios|ipad/i.test(os || '');
+  if (engine === 'Blink') return { raster: 'Skia', text: 'HarfBuzz', compositor: 'Viz (GPU)' };
+  if (engine === 'Gecko') return { raster: 'Skia', text: 'HarfBuzz', compositor: 'WebRender' };
+  if (engine === 'WebKit') {
+    return apple
+      ? { raster: 'Core Graphics (Quartz)', text: 'Core Text', compositor: 'Core Animation' }
+      : { raster: 'Skia / Cairo', text: 'HarfBuzz', compositor: DASH };
+  }
+  return null;
+}
+
+// Display colour gamut (`color-gamut` media query) → human label. Queried widest
+// first, since a P3 panel also reports matching srgb.
+const GAMUT_LABELS = { rec2020: 'Rec. 2020', p3: 'Display P3', srgb: 'sRGB' };
 
 function parseOS(ua) {
   if (/Windows NT 10/.test(ua)) return 'Windows 10/11';
@@ -391,16 +419,18 @@ async function collectClientInfo() {
   const browser = parseBrowser(ua);
   const browserStr =
     browser !== DASH && hints?.uaFullVersion ? browser.replace(/[\d.]+$/, hints.uaFullVersion) : browser;
+  const engine = engineOf(ua);
   const osFromHints = hints?.platform
     ? `${hints.platform}${hints.platformVersion ? ` ${hints.platformVersion}` : ''}`.trim()
     : null;
+  const os = osFromHints || parseOS(ua);
 
   groups.push({
     title: 'Browser',
     icon: browserIcon(browser),
     rows: [
       { k: 'Browser', v: browserStr },
-      { k: 'Engine', v: engineOf(ua) },
+      { k: 'Engine', v: engine },
       {
         k: 'Mobile',
         v: nav.userAgentData
@@ -414,9 +444,9 @@ async function collectClientInfo() {
 
   groups.push({
     title: 'System',
-    icon: osIcon(osFromHints || parseOS(ua)),
+    icon: osIcon(os),
     rows: [
-      { k: 'Operating system', v: osFromHints || parseOS(ua) },
+      { k: 'Operating system', v: os },
       {
         k: 'Architecture',
         v: hints?.architecture
@@ -442,6 +472,11 @@ async function collectClientInfo() {
       { k: 'Viewport orientation', v: liveValue('viewportOrientation'), live: 'viewportOrientation' },
       { k: 'Pixel ratio', v: dpr ? `${Math.round(dpr * 100) / 100}×` : DASH },
       { k: 'Colour depth', v: screen.colorDepth ? `${screen.colorDepth}-bit` : DASH },
+      { k: 'Colour gamut', v: GAMUT_LABELS[matchPref('color-gamut', ['rec2020', 'p3', 'srgb'])] || DASH },
+      {
+        k: 'Dynamic range',
+        v: { high: 'High (HDR)', standard: 'Standard' }[matchPref('dynamic-range', ['high', 'standard'])] || DASH,
+      },
       { k: 'Orientation', v: liveValue('orientation'), live: 'orientation' },
     ],
   });
@@ -496,6 +531,22 @@ async function collectClientInfo() {
     });
   }
 
+  // Rendering stack — the engine's native 2D/text libraries. Inferred (engine × OS),
+  // not probed; the card note says so. Sits beside the two GPU cards: this is the
+  // CPU-side half of the pipeline (geometry + glyphs) the GPU cards don't show.
+  const stack = renderStack(engine, os);
+  if (stack) {
+    groups.push({
+      title: 'Rendering stack',
+      note: 'The engine’s native 2D and text libraries — inferred from engine + OS, not reported by any web API.',
+      rows: [
+        { k: '2D rasteriser', v: stack.raster },
+        { k: 'Text shaping', v: stack.text },
+        { k: 'Compositor', v: stack.compositor },
+      ],
+    });
+  }
+
   const gpu = readGpu();
   if (gpu) {
     const g = describeGpu(gpu.vendor, gpu.renderer);
@@ -514,6 +565,7 @@ async function collectClientInfo() {
         { k: 'Translation', v: g.translation },
         { k: 'Vendor', v: g.glVendor },
         { k: 'WebGL', v: gpu.webgl2 ? '2.0' : '1.0' },
+        { k: 'WebGPU', v: 'gpu' in navigator ? 'Supported' : DASH },
         { k: 'Max texture', v: gpu.maxTexture ? `${gpu.maxTexture} px` : DASH },
         // Verbatim WebGL string, kept for exact reproduction of a render.
         { k: 'Reported', v: g.raw, mono: true, stacked: true },
@@ -530,6 +582,7 @@ function clientCard(group) {
   return `
     <article class="plat-client-card">
       <h3 class="plat-client-title">${icon ? `<span class="plat-client-icon" aria-hidden="true">${icon}</span>` : ''}<span>${escape(group.title)}</span></h3>
+      ${group.note ? `<p class="plat-client-note">${escape(group.note)}</p>` : ''}
       <dl class="plat-kv plat-kv--wide">
         ${group.rows
           .map((r) => {
