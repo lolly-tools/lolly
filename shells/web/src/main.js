@@ -41,6 +41,7 @@ async function navigate(host) {
   });
 
   // Track returns from tool → gallery so card-in animation doesn't replay.
+  const prevRouteName = _lastRouteName;
   const returning = _lastRouteName === 'tool' && route.name === 'gallery';
   _lastRouteName = route.name;
 
@@ -51,6 +52,12 @@ async function navigate(host) {
   view.classList.toggle('capabilities-view', route.name === 'capabilities');
   view.classList.toggle('pro-view', route.name === 'pro');
   view.classList.toggle('is-returning', returning);
+
+  // The platform/capabilities dashboards lean on SUSE Mono (hex/CMYK rows, code,
+  // the device user-agent). It isn't preloaded globally — that would tax the
+  // mono-light gallery cold-load — so warm it here, before the view chunk imports
+  // and paints, to head off a post-paint reflow when the woff2 lands late. Idempotent.
+  if (route.name === 'platform' || route.name === 'capabilities') ensureMonoPreload();
 
   switch (route.name) {
     case 'tool':
@@ -101,12 +108,50 @@ async function navigate(host) {
   // BUT if the view's own mount already placed focus on something meaningful
   // (e.g. /pro focuses its template search, which lives in a body-mounted
   // popover), don't yank it back to the container.
+  // Land a newly-entered view at the top. A route-NAME change swaps the whole
+  // view via innerHTML, so inheriting the previous page's scroll offset would
+  // drop you mid-content (e.g. a scrolled gallery → capabilities). Skip the
+  // tool→gallery "return" so that path keeps its current feel, and skip same-name
+  // updates (those go through replaceState, not navigate, so they never reach here).
+  if (route.name !== prevRouteName && !returning) {
+    window.scrollTo(0, 0);
+    view.scrollTop = 0;
+  }
+
   announceRoute(route.name);
   const af = document.activeElement;
   if (!af || af === document.body || af === view) {
     view.setAttribute('tabindex', '-1');
     view.focus({ preventScroll: true });
   }
+}
+
+// Route-scoped font preload for the mono-heavy dashboards (see navigate). Added
+// once; the browser dedupes against the @font-face request that follows.
+function ensureMonoPreload() {
+  if (document.getElementById('preload-suse-mono')) return;
+  const l = document.createElement('link');
+  l.id = 'preload-suse-mono';
+  l.rel = 'preload';
+  l.as = 'font';
+  l.type = 'font/woff2';
+  l.crossOrigin = 'anonymous';
+  l.href = '/catalog/fonts/webfonts/SUSEMono[wght].woff2';
+  document.head.appendChild(l);
+}
+
+// Update a dashboard's "N tools" stat in place after a cold fast-path paint, once
+// the synced catalog carries a (newer) count. Patching beats re-navigating, which
+// would replay the whole entrance cascade just to change a number. The view marks
+// the stat with [data-tool-count] and hides it while the count is unknown.
+function patchDashboardToolCount() {
+  const n = window.__toolIndex?.tools?.length;
+  if (n == null) return;
+  document.querySelectorAll('[data-tool-count]').forEach((el) => {
+    const strong = el.querySelector('strong');
+    if (strong) strong.textContent = String(n);
+    el.hidden = false;
+  });
 }
 
 // Publish the visual viewport's offset (how far the zoomed/panned visible area
@@ -119,6 +164,12 @@ function trackVisualViewport() {
   if (!vv) return;
   const root = document.documentElement;
   let raf = 0;
+  // Last values written, to skip redundant setProperty calls. The common case —
+  // ordinary momentum scroll at scale 1, where the mobile URL bar fires
+  // visualViewport scroll/resize — recomputes the same `0px` every frame;
+  // re-writing inherited root custom props each time invalidates style document-
+  // wide and shows up as micro-stutter on long pages. Memoising makes it a no-op.
+  let lastTop, lastLeft, lastRight, lastBottom;
   const apply = () => {
     raf = 0;
     // Only re-pin while genuinely pinch-zoomed (scale > 1). At scale 1 the visual
@@ -131,10 +182,14 @@ function trackVisualViewport() {
     const zoomed = vv.scale > 1.01;
     const top = zoomed ? Math.max(0, vv.offsetTop) : 0;
     const left = zoomed ? Math.max(0, vv.offsetLeft) : 0;
+    const right = zoomed ? Math.max(0, root.clientWidth - left - vv.width) : 0;
+    const bottom = zoomed ? Math.max(0, root.clientHeight - top - vv.height) : 0;
+    if (top === lastTop && left === lastLeft && right === lastRight && bottom === lastBottom) return;
+    lastTop = top; lastLeft = left; lastRight = right; lastBottom = bottom;
     root.style.setProperty('--vv-top', `${top}px`);
     root.style.setProperty('--vv-left', `${left}px`);
-    root.style.setProperty('--vv-right', `${zoomed ? Math.max(0, root.clientWidth - left - vv.width) : 0}px`);
-    root.style.setProperty('--vv-bottom', `${zoomed ? Math.max(0, root.clientHeight - top - vv.height) : 0}px`);
+    root.style.setProperty('--vv-right', `${right}px`);
+    root.style.setProperty('--vv-bottom', `${bottom}px`);
   };
   const schedule = () => { if (!raf) raf = requestAnimationFrame(apply); };
   vv.addEventListener('resize', schedule);
@@ -174,20 +229,51 @@ async function boot() {
   // so the first paint is real data, not a false error. Deep links to a
   // tool/profile/etc. need the synced catalog (asset metadata) before their first
   // render, so those keep the original "sync, then navigate" ordering.
-  if (parseRoute().name === 'gallery' && window.__toolIndex) {
+  // Paint instantly from cache instead of blocking on the full catalog network
+  // sync, then reconcile when it lands. The gallery and platform need a CACHED
+  // index (gallery would otherwise flash its load-failure empty state mid-sync;
+  // platform would briefly show "none loaded" for its catalogue breakdown).
+  // Capabilities tolerates a missing index — its one live value is a tool count
+  // that's gracefully hidden when absent and patched in place once synced — so it
+  // fast-paths even on a cold first visit. Deep-linked /tool and /profile keep the
+  // sync-then-navigate ordering: they genuinely need synced asset metadata first.
+  const routeName = parseRoute().name;
+  const fastPath =
+    ((routeName === 'gallery' || routeName === 'platform') && window.__toolIndex) ||
+    routeName === 'capabilities';
+
+  if (fastPath) {
     const before = JSON.stringify(window.__toolIndex ?? null);
     await navigate(host);
     catalogReady.then(() => {
-      // Refresh only if still on the gallery and the catalog actually changed,
-      // so we don't needlessly replay the card-in animation on a no-op sync.
-      if (parseRoute().name === 'gallery' &&
-          JSON.stringify(window.__toolIndex ?? null) !== before) {
+      const now = parseRoute().name;
+      if (JSON.stringify(window.__toolIndex ?? null) === before) return; // no-op sync
+      if (now === 'gallery') {
+        // Re-render from fresh data — the gallery's cascade only replays because
+        // the data actually changed (guarded above), not on every sync.
         navigate(host).catch(console.error);
+      } else if (now === 'capabilities') {
+        // Patch the tool count in place. Re-navigating would replay the entrance
+        // cascade just to update a number — the exact jitter we're removing.
+        patchDashboardToolCount();
       }
+      // platform: its catalogue breakdown refreshes on the next visit (no cascade
+      // replay), and it only fast-paths with a cached index anyway.
     });
   } else {
     await catalogReady;
     await navigate(host);
+  }
+
+  // Warm the likely-next view chunks once idle so the first tap to Platform /
+  // Capabilities doesn't pay a cold dynamic-import fetch. Scheduled after first
+  // paint so it never contends with the catalog network work. import() promises
+  // are cached, so the later route reuses these.
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(() => {
+      import('./views/platform.js').catch(() => {});
+      import('./views/capabilities.js').catch(() => {});
+    });
   }
 
   window.addEventListener('hashchange', () => navigate(host).catch(console.error));

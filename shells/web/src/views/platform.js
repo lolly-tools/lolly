@@ -19,6 +19,7 @@
  */
 
 import { escape } from '../utils.js';
+import { armViewEnter } from '../view-enter.js';
 import { PALETTE } from '../palette.js';
 import { THEMES } from '../theme.js';
 import { CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION } from '@lolly/engine';
@@ -612,8 +613,11 @@ export async function mountPlatform(viewEl, host) {
   const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
   const isOpen = (flag, defaultOpen) => params.has(flag) || defaultOpen;
 
-  // Live client/runtime snapshot for the dashboard card at the top of the page.
-  const clientGroups = await collectClientInfo();
+  // The live "This device" snapshot (collectClientInfo) and the brand-asset
+  // summary are filled AFTER first paint — see the deferred hydration block at
+  // the end of this function. Keeping them off the synchronous path lets the page
+  // paint + cascade immediately instead of waiting on a WebGL probe and a network
+  // round-trip for content that is collapsed (device) or at the page foot (assets).
 
   const { brand, spectrum, ramps } = groupPalette(PALETTE);
   const measuredCount = PALETTE.filter((c) => Array.isArray(c.cmyk)).length;
@@ -626,24 +630,6 @@ export async function mountPlatform(viewEl, host) {
     const st = t.status ?? 'official';
     byCategory[cat] = (byCategory[cat] || 0) + 1;
     byStatus[st] = (byStatus[st] || 0) + 1;
-  }
-
-  // Brand asset catalogue — best-effort; absent offline is fine (we just omit it).
-  let assets = null;
-  try {
-    const resp = await fetch('/catalog/assets/index.json', { cache: 'no-store' });
-    if (resp.ok) {
-      const idx = await resp.json();
-      const arr = Array.isArray(idx) ? idx : idx.assets ?? [];
-      const byType = {};
-      for (const a of arr) {
-        const ty = a.type ?? 'other';
-        byType[ty] = (byType[ty] || 0) + 1;
-      }
-      assets = { total: arr.length, byType };
-    }
-  } catch {
-    /* offline — skip the asset summary */
   }
 
   const stat = (n, label) => `<span class="plat-stat"><strong>${n}</strong>${escape(label)}</span>`;
@@ -672,7 +658,7 @@ export async function mountPlatform(viewEl, host) {
 
       ${panel('device', false, 'plat-client', 'This device', `
           <p class="plat-section-desc">A live, read-only snapshot of the browser and device this session is running on — handy when reproducing a render or export. Read on the fly from the current session; nothing is stored or sent anywhere.</p>
-          <div class="plat-client-grid">${clientGroups.map(clientCard).join('')}</div>`,
+          <div class="plat-client-grid" data-client-grid></div>`,
         'plat-device')}
 
       ${panel('color', true, 'plat-colours', 'Colour palette', `
@@ -772,18 +758,17 @@ export async function mountPlatform(viewEl, host) {
               ${Object.entries(byStatus).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<span class="plat-chip">${v} ${escape(k)}</span>`).join('')}
             </div>
           </div>
-          <div class="plat-stat-block">
-            <h3 class="plat-ramp-title">Brand assets ${assets ? `<span class="plat-ramp-count">${assets.total}</span>` : ''}</h3>
-            <div class="plat-stats">
-              ${
-                assets
-                  ? Object.entries(assets.byType).sort((a, b) => b[1] - a[1]).map(([k, v]) => stat(v, k)).join('')
-                  : '<span class="plat-muted">unavailable offline</span>'
-              }
-            </div>
+          <div class="plat-stat-block" data-asset-block>
+            <h3 class="plat-ramp-title">Brand assets <span class="plat-ramp-count" data-asset-count hidden></span></h3>
+            <div class="plat-stats" data-asset-stats><span class="plat-muted">reading…</span></div>
           </div>`)}
     </div>
   `;
+
+  // Arm the entrance cascade synchronously (nothing is awaited between innerHTML
+  // and here) so the first paint already carries the hidden state — back-link →
+  // header → each section reveal as one wave.
+  armViewEnter(viewEl);
 
   // Read-only convenience: click a swatch chip to copy its hex. Doesn't touch app
   // state — purely a clipboard nicety. Degrades silently where clipboard is absent.
@@ -804,9 +789,12 @@ export async function mountPlatform(viewEl, host) {
   // resize/orientation listeners ONLY while the panel is expanded (and refresh
   // once on expand to catch changes made while collapsed), so a collapsed panel
   // costs nothing. rAF-coalesced so a resize drag updates at most once per frame.
-  const device = viewEl.querySelector('.plat-device');
-  const liveEls = [...viewEl.querySelectorAll('[data-live]')];
-  if (device && liveEls.length) {
+  // Called AFTER the device grid is filled (its [data-live] rows don't exist
+  // until then), so it re-queries rather than capturing at mount time.
+  function wireDevice() {
+    const device = viewEl.querySelector('.plat-device');
+    const liveEls = [...viewEl.querySelectorAll('[data-live]')];
+    if (!device || !liveEls.length) return;
     let raf = 0;
     const refresh = () => {
       raf = 0;
@@ -834,5 +822,67 @@ export async function mountPlatform(viewEl, host) {
       window.removeEventListener('resize', schedule);
       orientation?.removeEventListener?.('change', schedule);
     };
+  }
+
+  // ── Deferred hydration ─────────────────────────────────────────────────────
+  // Fill the two pieces we kept off the first-paint path. Each .then is guarded
+  // twice: a per-mount token (so a stale fill from a SUPERSEDED same-view re-mount
+  // can't wire listeners onto the current one — viewEl is the persistent #view, so
+  // contains() alone can't tell two platform mounts apart) and viewEl.contains()
+  // (so a fill resolving after navigation to a DIFFERENT view writes nothing).
+  // `.plat-hydrated` is added in the same tick the content lands, so it fades in
+  // rather than popping into the already-revealed section.
+  const myMount = (viewEl._platMount = (viewEl._platMount || 0) + 1);
+  const isCurrent = (node) => viewEl._platMount === myMount && node && viewEl.contains(node);
+
+  collectClientInfo()
+    .then((groups) => {
+      const grid = viewEl.querySelector('[data-client-grid]');
+      if (!isCurrent(grid)) return;
+      grid.innerHTML = groups.map(clientCard).join('');
+      grid.classList.add('plat-hydrated');
+      wireDevice();
+    })
+    .catch(() => { /* device snapshot is best-effort */ });
+
+  fetchAssetSummary()
+    .then((assets) => {
+      const block = viewEl.querySelector('[data-asset-block]');
+      if (!isCurrent(block)) return;
+      const stats = block.querySelector('[data-asset-stats]');
+      if (!assets) {
+        if (stats) stats.innerHTML = '<span class="plat-muted">unavailable offline</span>';
+        return;
+      }
+      const count = block.querySelector('[data-asset-count]');
+      if (count) { count.textContent = assets.total; count.hidden = false; }
+      if (stats) {
+        stats.innerHTML = Object.entries(assets.byType)
+          .sort((a, b) => b[1] - a[1])
+          .map(([k, v]) => stat(v, k))
+          .join('');
+        stats.classList.add('plat-hydrated');
+      }
+    })
+    .catch(() => { /* offline — leave the placeholder */ });
+}
+
+// Brand asset catalogue summary — best-effort; absent offline is fine. No
+// `cache: 'no-store'` so a repeat visit reuses the HTTP cache instead of a fresh
+// round-trip (the figures only feed the foot-of-page counts).
+async function fetchAssetSummary() {
+  try {
+    const resp = await fetch('/catalog/assets/index.json');
+    if (!resp.ok) return null;
+    const idx = await resp.json();
+    const arr = Array.isArray(idx) ? idx : idx.assets ?? [];
+    const byType = {};
+    for (const a of arr) {
+      const ty = a.type ?? 'other';
+      byType[ty] = (byType[ty] || 0) + 1;
+    }
+    return { total: arr.length, byType };
+  } catch {
+    return null;
   }
 }

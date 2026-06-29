@@ -14,6 +14,7 @@
  */
 
 import { escape } from '../utils.js';
+import { armViewEnter } from '../view-enter.js';
 
 // Small, monochrome line icons (inherit the heading colour via currentColor).
 const I = (p) =>
@@ -337,7 +338,7 @@ export async function mountCapabilities(viewEl, _host) {
         <div class="plat-header-text">
           <p class="plat-sub">Feature set: what Lolly can make • where Lolly runs •  how Lolly is used.</p>
           <div class="plat-stats">
-            ${toolCount != null ? stat(toolCount, 'tools') : ''}
+            <span class="plat-stat" data-tool-count${toolCount == null ? ' hidden' : ''}><strong>${escape(String(toolCount ?? ''))}</strong>tools</span>
             ${stat(20, 'export formats')}
             ${stat(6, 'surfaces')}
           </div>
@@ -347,4 +348,9 @@ export async function mountCapabilities(viewEl, _host) {
       ${SECTIONS.map((s) => panel(s.flag, s.open, s.id, s.title, s.desc, s.cards.map(card).join(''))).join('')}
     </div>
   `;
+
+  // Arm the entrance cascade synchronously (no await above between innerHTML and
+  // here) so the first paint already carries the hidden state — back-link →
+  // header → each section reveal as one wave.
+  armViewEnter(viewEl);
 }

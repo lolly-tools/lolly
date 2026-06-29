@@ -89,7 +89,11 @@ export function createMediaAPI() {
       videoEl.muted = true;
       videoEl.playsInline = true;
       videoEl.srcObject = s;
-      await videoEl.play().catch(() => { /* some browsers resolve frames without an explicit play */ });
+      // Kick playback but DON'T await it: a detached <video> (and autoplay policies)
+      // can leave play() pending indefinitely, and the grab loop already waits for the
+      // first frame (it no-ops until videoWidth is set). So start() resolves as soon as
+      // the stream + loop are wired, not when the first frame decodes.
+      videoEl.play().catch(() => { /* autoplay blocked — frames still arrive via the loop */ });
       canvas = document.createElement('canvas');
       ctx = canvas.getContext('2d', { willReadFrequently: true });
       rafId = requestAnimationFrame(loop);

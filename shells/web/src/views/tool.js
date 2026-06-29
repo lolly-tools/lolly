@@ -239,6 +239,10 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   };
 
   const baseSetInput = runtime.setInput.bind(runtime);
+  // Expose the UNWRAPPED setter on the runtime so other scopes (notably renderActions'
+  // programmatic width/height px-sync) can set inputs without the change landing in the
+  // undo history. baseSetInput itself is local to mountTool; this is the shared handle.
+  runtime.setInputNoHistory = baseSetInput;
   runtime.setInput = (id, value) => {
     if (!applyingHistory) {
       const cur = runtime.getModel().find(i => i.id === id);
@@ -3680,13 +3684,17 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     const hasW = model.some(i => i.id === 'width');
     const hasH = model.some(i => i.id === 'height');
     if (hasW || hasH) {
-      // Chain to avoid concurrent hook executions on the shared model. Use
-      // baseSetInput (not the history-wrapped runtime.setInput) so this PROGRAMMATIC
-      // px sync — fired at mount and on every unit/dimension change — never lands in
-      // the undo history or wipes the redo chain. The user's own edits to a width/
-      // height field still go through the wrapped setInput and stay undoable.
-      const p = hasW ? baseSetInput('width', w) : Promise.resolve();
-      p.then(() => { if (hasH) baseSetInput('height', h); });
+      // Chain to avoid concurrent hook executions on the shared model. Use the UNWRAPPED
+      // setter (runtime.setInputNoHistory, installed by mountTool) — NOT the history-
+      // wrapped runtime.setInput — so this PROGRAMMATIC px sync, fired at mount and on
+      // every unit/dimension change, never lands in the undo history or wipes the redo
+      // chain. The user's own edits to a width/height field still go through the wrapped
+      // setInput and stay undoable. baseSetInput is local to mountTool and out of scope
+      // here; fall back to the wrapped setter if no wrapper was installed (e.g. a child
+      // runtime) so this can never throw at boot.
+      const setDims = runtime.setInputNoHistory || runtime.setInput;
+      const p = hasW ? setDims('width', w) : Promise.resolve();
+      p.then(() => { if (hasH) setDims('height', h); });
       // subscriber fires runTemplateScripts + syncUrl after each setInput
     } else {
       runTemplateScripts(canvasEl);

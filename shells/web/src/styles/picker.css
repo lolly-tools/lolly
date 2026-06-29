@@ -283,29 +283,31 @@
   object-fit: contain;
 }
 
-/* Tool tiles (the "Make an image from a tool" grid) — icon, name, blurb. */
+/* Tool tiles (the "Make an image from a tool" grid) — preview-forward like the
+   gallery, with the inline icon as the fallback when a preview 404s. */
 .asset-picker-toolgrid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .asset-picker-toolitem { align-items: stretch; }
-.asset-picker-toolitem-icon {
+.asset-picker-toolitem-preview {
+  width: 100%;
+  height: 84px;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+}
+/* The icon is always in the DOM but shown ONLY when there's no usable preview
+   (none declared, or the <img> errored → .no-preview added in JS). */
+.asset-picker-toolitem-icon { display: none; }
+.asset-picker-toolitem.no-preview .asset-picker-toolitem-preview { display: none; }
+.asset-picker-toolitem.no-preview .asset-picker-toolitem-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 56px;
+  height: 84px;
   border-radius: var(--radius);
   background: hsl(var(--muted));
   color: hsl(var(--primary));
 }
 .asset-picker-toolitem-icon svg { width: 26px; height: 26px; }
-.asset-picker-toolitem-desc {
-  font-size: 11px;
-  line-height: 1.35;
-  color: hsl(var(--muted-foreground));
-  /* Two lines, ellipsis on overflow. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
 
 /* Saved-creation tiles reuse the asset card; just the relative-time line is new. */
 .asset-picker-sessitem-when {
