@@ -123,7 +123,7 @@ function verticalBars(items, lay, cfg) {
           labelWeight, valueWeight, labelPosition, valuePosition, valueFormat,
           labelAlign, valueAlign,
           labelOffsetX, labelOffsetY, valueOffsetX, valueOffsetY,
-          labelGap, valueGap } = cfg;
+          labelGap, valueGap, labelMaxChars } = cfg;
 
   const total  = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
   // Scale bars by magnitude so all-negative (or mixed-sign) data renders at true
@@ -178,13 +178,13 @@ function verticalBars(items, lay, cfg) {
       const lx = cx + labelOffsetX;
       if (labelPosition === 'outside') {
         const ly = chartY + chartH + labelSize*1.2 + labelGap + labelOffsetY;
-        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(textColor)}" text-anchor="middle" opacity="0.65">${esc(trunc(item.label, 10))}</text>`;
+        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(textColor)}" text-anchor="middle" opacity="0.65">${esc(trunc(item.label, labelMaxChars || 10))}</text>`;
       } else if (roomForBoth || (!dataLabels && roomForOne)) {
         const ly = alignedY(by, bh, labelSize, labelAlign) + labelOffsetY;
-        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(tc)}" text-anchor="middle">${esc(trunc(item.label, 10))}</text>`;
+        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(tc)}" text-anchor="middle">${esc(trunc(item.label, labelMaxChars || 10))}</text>`;
       } else {
         const ly = chartY + chartH + labelSize*1.2 + labelGap + labelOffsetY;
-        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(textColor)}" text-anchor="middle" opacity="0.65">${esc(trunc(item.label, 10))}</text>`;
+        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(textColor)}" text-anchor="middle" opacity="0.65">${esc(trunc(item.label, labelMaxChars || 10))}</text>`;
       }
     }
   });
@@ -200,7 +200,7 @@ function horizontalBars(items, lay, cfg) {
           labelWeight, valueWeight, labelPosition, valuePosition, valueFormat,
           labelAlign, valueAlign,
           labelOffsetX, labelOffsetY, valueOffsetX, valueOffsetY,
-          labelGap, valueGap } = cfg;
+          labelGap, valueGap, labelMaxChars } = cfg;
 
   const total   = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
   // Scale by magnitude (see verticalBars) so negative values render at true size.
@@ -240,7 +240,7 @@ function horizontalBars(items, lay, cfg) {
       const ly      = alignedY(by, barH, labelSize, labelAlign) + labelOffsetY;
       const fill    = labelInside ? esc(tc) : esc(textColor);
       const opacity = labelInside ? '1' : '0.75';
-      out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${fill}" text-anchor="start" opacity="${opacity}">${esc(trunc(item.label, 16))}</text>`;
+      out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${fill}" text-anchor="start" opacity="${opacity}">${esc(trunc(item.label, labelMaxChars || 16))}</text>`;
     }
 
     if (dataLabels) {
@@ -264,7 +264,7 @@ function pieDonut(items, lay, isDonut, cfg) {
           labelWeight, valueWeight, legendFontWeight, legendSize, legendDotShape, legendPosition,
           labelPosition, valuePosition, valueFormat,
           labelOffsetX, labelOffsetY, valueOffsetX, valueOffsetY,
-          labelGap, valueGap } = cfg;
+          labelGap, valueGap, labelMaxChars, legendMaxChars } = cfg;
 
   const total      = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
   const legendRowH = legendSize * 1.6;
@@ -354,7 +354,7 @@ function pieDonut(items, lay, isDonut, cfg) {
       if (showLabels && !showLegend) {
         const lblY = (showBoth && bothInside) ? lyLabel - labelSize*0.9 : lyLabel + labelSize*0.35;
         const fill = labelPosition === 'outside' ? esc(textColor) : esc(tc);
-        out += `<text x="${lxLabel}" y="${lblY}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${fill}" text-anchor="${anchorLabel}">${esc(trunc(item.label, 10))}</text>`;
+        out += `<text x="${lxLabel}" y="${lblY}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${fill}" text-anchor="${anchorLabel}">${esc(trunc(item.label, labelMaxChars || 10))}</text>`;
       }
     }
 
@@ -372,7 +372,7 @@ function pieDonut(items, lay, isDonut, cfg) {
         out += legendDot(lx, ly, legendSize, item.color, legendDotShape);
         if (showLabels) {
           const sw = legendSize * 0.9;
-          out += `<text x="${lx+sw+8}" y="${ly+legendSize*0.85}" font-size="${legendSize}" font-weight="${legendFontWeight}" fill="${esc(textColor)}" opacity="0.85">${esc(trunc(item.label, maxChars))}</text>`;
+          out += `<text x="${lx+sw+8}" y="${ly+legendSize*0.85}" font-size="${legendSize}" font-weight="${legendFontWeight}" fill="${esc(textColor)}" opacity="0.85">${esc(trunc(item.label, legendMaxChars || maxChars))}</text>`;
         }
       });
     } else {
@@ -386,7 +386,7 @@ function pieDonut(items, lay, isDonut, cfg) {
         out += legendDot(lx, ly, legendSize, item.color, legendDotShape);
         if (showLabels) {
           const sw = legendSize * 0.9;
-          out += `<text x="${lx+sw+8}" y="${ly+legendSize*0.85}" font-size="${legendSize}" font-weight="${legendFontWeight}" fill="${esc(textColor)}" opacity="0.85">${esc(trunc(item.label, 18))}</text>`;
+          out += `<text x="${lx+sw+8}" y="${ly+legendSize*0.85}" font-size="${legendSize}" font-weight="${legendFontWeight}" fill="${esc(textColor)}" opacity="0.85">${esc(trunc(item.label, legendMaxChars || 18))}</text>`;
         }
       });
     }
@@ -403,7 +403,7 @@ function stackedBar(items, lay, cfg) {
           labelWeight, valueWeight, legendFontWeight, legendSize, legendDotShape, legendPosition,
           valueFormat,
           labelAlign, valueAlign,
-          labelOffsetX, labelOffsetY, valueOffsetX, valueOffsetY } = cfg;
+          labelOffsetX, labelOffsetY, valueOffsetX, valueOffsetY, labelMaxChars, legendMaxChars } = cfg;
 
   const total      = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
   const legendRowH = legendSize * 1.6;
@@ -442,7 +442,7 @@ function stackedBar(items, lay, cfg) {
       if (showLabels) {
         const lx = curX + sw / 2 + labelOffsetX;
         const ly = alignedY(barY, barH, labelSize, labelAlign) + labelOffsetY;
-        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(tc)}" text-anchor="middle">${esc(trunc(item.label, Math.floor(sw / (labelSize*0.55))))}</text>`;
+        out += `<text x="${lx}" y="${ly}" font-size="${labelSize}" font-weight="${labelWeight}" fill="${esc(tc)}" text-anchor="middle">${esc(trunc(item.label, labelMaxChars || Math.floor(sw / (labelSize*0.55))))}</text>`;
       }
     }
     curX += sw;
@@ -460,7 +460,7 @@ function stackedBar(items, lay, cfg) {
       if (showLabels) {
         const sw  = legendSize * 0.9;
         const val = dataLabels ? ` (${fmtValue(item.value, total, valueFormat)})` : '';
-        out += `<text x="${lx+sw+8}" y="${ly+legendSize*0.85}" font-size="${legendSize}" font-weight="${legendFontWeight}" fill="${esc(textColor)}" opacity="0.85">${esc(trunc(item.label, 18)+val)}</text>`;
+        out += `<text x="${lx+sw+8}" y="${ly+legendSize*0.85}" font-size="${legendSize}" font-weight="${legendFontWeight}" fill="${esc(textColor)}" opacity="0.85">${esc(trunc(item.label, legendMaxChars || 18)+val)}</text>`;
       }
     });
   }
@@ -510,6 +510,8 @@ function buildChart(inputs) {
     valueOffsetY:    parseInt(inputs.valueOffset?.y, 10) || 0,
     labelGap:        Math.max(0, parseInt(inputs.labelGap,  10) || 0),
     valueGap:        Math.max(0, parseInt(inputs.valueGap,  10) || 0),
+    labelMaxChars:   Math.max(0, parseInt(inputs.labelMaxChars, 10) || 0),
+    legendMaxChars:  Math.max(0, parseInt(inputs.legendMaxChars, 10) || 0),
     valueFormat:     resolvedValueFormat,
     donutRadius:     parseFloat(inputs.donutRadius) || 0.55,
     legendWidth:     clamp(parseInt(inputs.legendWidth, 10) || 40, 15, 65),

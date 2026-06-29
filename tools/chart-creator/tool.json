@@ -127,6 +127,19 @@
       "showIf": { "showLegend": true }
     },
     {
+      "id": "legendMaxChars", "urlKey": "lm",
+      "label": "Max label length",
+      "section": "Legend",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "showIf": { "showLegend": true },
+      "help": "Characters shown before a legend label is shortened with “…”. 0 = automatic."
+    },
+    {
       "id": "legendWidth", "urlKey": "lw",
       "label": "Legend width %",
       "section": "Legend",
@@ -166,6 +179,18 @@
       "min": 100,
       "max": 900,
       "step": 100
+    },
+    {
+      "id": "labelMaxChars", "urlKey": "lbm",
+      "label": "Max label length",
+      "section": "Labels",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 60,
+      "step": 1,
+      "help": "Characters shown before a label is shortened with “…”. 0 = automatic."
     },
     {
       "id": "labelPosition", "urlKey": "lbp",
