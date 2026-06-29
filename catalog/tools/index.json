@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-29T10:11:06.353Z",
+  "generatedAt": "2026-06-29T15:49:09.564Z",
   "tools": [
     {
       "id": "color-block",
@@ -534,6 +534,22 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"/><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"/><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"/></svg>",
       "preview": "/catalog/previews/filter-posterize.svg"
+    },
+    {
+      "id": "diagram-builder",
+      "name": "Diagram Builder",
+      "description": "Build org charts and layered \"layercake\" architecture diagrams from structured cards. Auto-connectors plus optional flow arrows, in the SUSE palette and type.",
+      "version": "1.0.0",
+      "status": "experimental",
+      "category": "designer",
+      "formats": [
+        "svg",
+        "pdf",
+        "png"
+      ],
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"9\" y=\"2\" width=\"6\" height=\"5\" rx=\"1\" /><rect x=\"2\" y=\"17\" width=\"6\" height=\"5\" rx=\"1\" /><rect x=\"16\" y=\"17\" width=\"6\" height=\"5\" rx=\"1\" /><path d=\"M12 7v3\" /><path d=\"M5 17v-2a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2\" /></svg>",
+      "preview": "/catalog/previews/diagram-builder.svg"
     }
   ]
 }

@@ -1475,8 +1475,15 @@ a.gtile-name:focus-visible::after {
   color: hsl(var(--accent-foreground));
   border-color: hsl(var(--primary));
 }
-.theme-toggle svg { flex: none; }
-.theme-toggle-name { white-space: nowrap; }
+/* Explicit CSS size, not just the inline width/height attrs: iOS Safari ignores
+   an inline SVG's presentation attributes when it's a flex child with a viewBox
+   and stretches it to the flex line — the icon balloons on mobile. CSS px wins. */
+.theme-toggle svg { flex: none; width: 16px; height: 16px; }
+/* Reserve room for the widest label ("SUSE" ≈ 2.4em at 12px/600) so the button
+   keeps a constant width as it cycles Light → Dark → SUSE — no jitter on click.
+   Left-aligned so the icon-to-text gap stays put; the slack sits before the
+   right padding. (Hidden entirely in the icon-only @container mode below.) */
+.theme-toggle-name { white-space: nowrap; min-width: 2.75em; text-align: left; }
 
 /* Reduce to an icon-only button when the header row is tight. */
 @container (max-width: 200px) {
@@ -2977,6 +2984,72 @@ background-color:hsl(var(--background) / 1);
 }
 
 /* On touch the HUD is the primary zoom control; the canvas also keeps pinch/drag. */
+
+/* ─── Toast — transient feedback (undo/redo) ────────────────────────────────
+   Body-mounted, fixed bottom-centre pill in the .stage-nav idiom (translucent
+   card + blur + hairline border, theme-aware via tokens). Sits above page chrome
+   (z 900) but below modals (1000+). pointer-events:none so canvas clicks fall
+   through — only the action button re-enables them. Entrance is a TRANSITION
+   (not a keyframe) so it still plays under prefers-reduced-motion, matching the
+   .export-popup philosophy. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(92vw, 30rem);
+  padding: 6px 6px 6px 14px;
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  color: hsl(var(--foreground));
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(8px);
+  transition: opacity 0.16s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.16s;
+}
+.toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.toast-icon { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.toast-icon svg { width: 16px; height: 16px; display: block; }
+.toast-message { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toast-label { color: hsl(var(--muted-foreground)); }
+.toast.is-muted { padding: 6px 14px; }
+.toast.is-muted .toast-message { color: hsl(var(--muted-foreground)); }
+.toast-action {
+  pointer-events: auto;            /* the one part of the toast that takes clicks */
+  flex: none;
+  border: none;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 999px;
+  transition: filter 0.12s;
+}
+.toast-action:hover { filter: brightness(1.08); }
+.toast-action:active { filter: brightness(0.95); }
+
+/* Mobile: lift the toast above the bottom-centre Render FAB (z55) so they don't
+   stack on top of each other. */
+@media (max-width: 640px) {
+  .toast { bottom: calc(72px + env(safe-area-inset-bottom, 0px)); }
+}
 
 /* ── Mobile (≤640px): controls become a drag sheet, preview fills below ──────
    Placed after the base .sidebar / .tool-stage rules so it actually wins the

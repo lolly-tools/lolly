@@ -1,0 +1,115 @@
+{
+  "id": "diagram-builder",
+  "name": "Diagram Builder",
+  "description": "Build org charts and layered \"layercake\" architecture diagrams from structured cards. Auto-connectors plus optional flow arrows, in the SUSE palette and type.",
+  "a11yLabel": "{{default title \"Untitled\"}} — {{diagramType}} diagram",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "experimental",
+  "category": "designer",
+  "tags": ["diagram", "org-chart", "org chart", "architecture", "layercake", "flowchart", "hierarchy", "cards", "arrows"],
+  "render": {
+    "width": 1600,
+    "height": 1000,
+    "formats": ["svg", "pdf", "png"],
+    "actions": ["copy", "download", "save"],
+    "transparentBg": true
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true
+  },
+  "inputs": [
+    {
+      "id": "diagramType",
+      "label": "Diagram type",
+      "type": "select",
+      "default": "org",
+      "help": "Org chart builds a top-down tree from each card's “Reports to”. Layercake stacks cards into horizontal layer bands.",
+      "options": [
+        { "value": "org", "label": "Org chart (hierarchy)" },
+        { "value": "layercake", "label": "Layercake (layered architecture)" }
+      ]
+    },
+    {
+      "id": "title",
+      "label": "Title",
+      "type": "text",
+      "default": "",
+      "placeholder": "Optional heading shown above the diagram"
+    },
+    {
+      "id": "nodes",
+      "label": "Cards",
+      "type": "blocks",
+      "labelledFields": true,
+      "help": "One card per row. Give each a short ID so arrows and reporting lines can point at it. Drag to reorder — order sets sibling order (org) and left-to-right order within a layer (layercake).",
+      "addMenu": { "field": "shape", "label": "Add card" },
+      "fields": [
+        {
+          "id": "shape",
+          "label": "Shape",
+          "type": "select",
+          "default": "rounded",
+          "options": [
+            { "value": "box", "label": "Box", "repeatable": true },
+            { "value": "rounded", "label": "Rounded", "repeatable": true },
+            { "value": "pill", "label": "Pill", "repeatable": true }
+          ]
+        },
+        { "id": "nodeId", "label": "ID", "type": "text", "placeholder": "e.g. ceo", "help": "Short unique handle. Auto-derived from the label if left blank." },
+        { "id": "label", "label": "Label", "type": "text", "placeholder": "Card text" },
+        { "id": "detail", "label": "Detail", "type": "text", "placeholder": "Subtitle (optional)" },
+        { "id": "parent", "label": "Reports to (ID)", "type": "text", "placeholder": "ID of the card above", "showIf": { "diagramType": "org" }, "help": "Leave blank for a top-level card." },
+        { "id": "layer", "label": "Layer (ID)", "type": "text", "placeholder": "ID of a layer below", "showIf": { "diagramType": "layercake" } },
+        { "id": "fill", "label": "Card colour", "type": "color", "default": "", "help": "Overrides the global card fill for this card only." }
+      ],
+      "default": [
+        { "shape": "rounded", "nodeId": "web", "label": "Web App", "detail": "PWA", "parent": "", "layer": "experience", "fill": "" },
+        { "shape": "rounded", "nodeId": "api", "label": "API Gateway", "detail": "", "parent": "web", "layer": "services", "fill": "" },
+        { "shape": "rounded", "nodeId": "auth", "label": "Auth Service", "detail": "", "parent": "api", "layer": "services", "fill": "" },
+        { "shape": "rounded", "nodeId": "db", "label": "Database", "detail": "Postgres", "parent": "api", "layer": "data", "fill": "" }
+      ]
+    },
+    {
+      "id": "layers",
+      "label": "Layers (top → bottom)",
+      "type": "blocks",
+      "labelledFields": true,
+      "showIf": { "diagramType": "layercake" },
+      "help": "Each band of the layercake, stacked in this order. Cards reference a band by its ID.",
+      "addMenu": { "field": "kind", "label": "Add layer" },
+      "fields": [
+        { "id": "kind", "label": "Kind", "type": "select", "default": "layer", "options": [ { "value": "layer", "label": "Layer", "repeatable": true } ] },
+        { "id": "layerId", "label": "ID", "type": "text", "placeholder": "e.g. experience" },
+        { "id": "label", "label": "Label", "type": "text", "placeholder": "e.g. Experience" },
+        { "id": "bandFill", "label": "Band colour", "type": "color", "default": "#efefef" }
+      ],
+      "default": [
+        { "kind": "layer", "layerId": "experience", "label": "Experience", "bandFill": "#90ebcd" },
+        { "kind": "layer", "layerId": "services", "label": "Services", "bandFill": "#bff1ea" },
+        { "kind": "layer", "layerId": "data", "label": "Data", "bandFill": "#efefef" }
+      ]
+    },
+    {
+      "id": "arrows",
+      "label": "Flow arrows (optional)",
+      "type": "blocks",
+      "labelledFields": true,
+      "help": "Custom arrows on top of the automatic connectors. From/To reference a card ID (or, in layercake, a layer ID).",
+      "fields": [
+        { "id": "from", "label": "From (ID)", "type": "text", "placeholder": "card or layer ID" },
+        { "id": "to", "label": "To (ID)", "type": "text", "placeholder": "card or layer ID" },
+        { "id": "label", "label": "Label", "type": "text", "placeholder": "optional" },
+        { "id": "style", "label": "Line", "type": "select", "default": "solid", "options": [ { "value": "solid", "label": "Solid" }, { "value": "dashed", "label": "Dashed" } ] },
+        { "id": "color", "label": "Colour", "type": "color", "default": "#0c322c" }
+      ],
+      "default": []
+    },
+    { "id": "nodeFill", "label": "Card fill", "type": "color", "default": "#ffffff", "group": "Style" },
+    { "id": "nodeStroke", "label": "Card border", "type": "color", "default": "#0c322c", "group": "Style" },
+    { "id": "nodeText", "label": "Card text", "type": "color", "default": "#0c322c", "group": "Style" },
+    { "id": "edgeColor", "label": "Connectors", "type": "color", "default": "#0c322c", "group": "Style" },
+    { "id": "background", "label": "Background", "type": "color", "default": "#ffffff", "group": "Style", "help": "Set to Transparent for a knock-out background." }
+  ]
+}

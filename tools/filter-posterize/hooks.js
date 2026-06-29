@@ -30,8 +30,10 @@ var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
 var _defaultUrl = null;
 
 // Sampling grid is capped so a high quality on a big photo can't blow up tracing
-// time/output (≈ a 460×460 grid across all layers, since one decode feeds them all).
-var MAX_CELLS = 210000;
+// time/output (≈ a 640×640 grid across all layers, since one decode feeds them all).
+// Raised with the Quality slider's reach to 200 so a top-quality square photo isn't
+// immediately clamped back down below its requested detail.
+var MAX_CELLS = 410000;
 
 // Caches (per render, survive slider drags). Pruned to the active photo each
 // compute (see compute) so swapping photos / sweeping Quality never accumulates
@@ -45,7 +47,7 @@ var _transparent = false, _paper = '#ffffff';
 // so we can tell an untouched seed from a real manual edit (and reseed on a photo
 // change only when the user hasn't recoloured). _prevSteps distinguishes a Colour-
 // steps change (reseed) from a stray +Add/remove (reconcile, don't wipe).
-var _seedUrl = null, _seedPalette = null, _prevSteps = null;
+var _seedUrl = null, _seedPalette = null, _prevSteps = null, _seedTone = null;
 
 // ── small helpers (mirrors logo-wall) ─────────────────────────────────────────
 function inputsFrom(model) { var o = {}; model.forEach(function (i) { o[i.id] = i.value; }); return o; }
@@ -118,6 +120,38 @@ function sampleRGBA(url, img, cols, rows) {
   var out = { lum: lum, alpha: alpha, r: r, g: g, b: b, cols: cols, rows: rows };
   _sampleCache[key] = out;
   return out;
+}
+
+// ── tone adjust: brightness + contrast (pre-separation) ───────────────────────
+
+// A 256-entry tone curve combining Brightness (additive) and Contrast (scale about
+// mid-grey). Both sliders are -100…100, 0 = identity. Contrast uses a tan() ramp so
+// 0 leaves tones untouched, negatives flatten toward grey, positives push them apart
+// (and near +100 approach a hard threshold — fitting for a screenprint look).
+function toneLUT(brightness, contrast) {
+  var b = clamp(num(brightness, 0), -100, 100) * 2.55;          // ±255 px offset
+  var c = clamp(num(contrast, 0), -100, 100);
+  var f = Math.tan(clamp(c / 100 + 1, 0, 1.98) * Math.PI / 4);  // 0 (flat) … 1 (none) … ~64 (max)
+  var lut = new Uint8Array(256);
+  for (var i = 0; i < 256; i++) {
+    var v = (i - 128) * f + 128 + b;                            // contrast about mid-grey, then brightness
+    lut[i] = v < 0 ? 0 : v > 255 ? 255 : v | 0;
+  }
+  return lut;
+}
+
+// Apply the tone curve to every channel and recompute luminance, so adjustments move
+// BOTH which band a pixel falls into (thresholds/geometry) and the auto-sampled
+// separation colours. Built fresh — the decoded sample cache stays the raw photo.
+function applyTone(g, lut) {
+  var n = g.lum.length;
+  var r = new Uint8Array(n), gg = new Uint8Array(n), b = new Uint8Array(n), lum = new Uint8Array(n);
+  for (var i = 0; i < n; i++) {
+    var R = lut[g.r[i]], G = lut[g.g[i]], B = lut[g.b[i]];
+    r[i] = R; gg[i] = G; b[i] = B;
+    lum[i] = (0.299 * R + 0.587 * G + 0.114 * B) | 0;
+  }
+  return { lum: lum, alpha: g.alpha, r: r, g: gg, b: b, cols: g.cols, rows: g.rows };
 }
 
 // ── posterise: thresholds + per-band mean colour ──────────────────────────────
@@ -312,14 +346,19 @@ function tracePath(grid, cutoff, eps, cornerCos, minArea) {
 
 // ── compose the poster SVG ────────────────────────────────────────────────────
 
-// Quality (90–100) → sampling RESOLUTION only; Smoothing (0–100) → curve fitting,
+// Quality (90–200) → sampling RESOLUTION only; Smoothing (0–100) → curve fitting,
 // using the same mapping as logo-wall so the two controls are independent (one for
-// detail, one for how flowing the outlines are).
+// detail, one for how flowing the outlines are). The 90–100 band is left exactly as
+// it was (256..368 longest edge) so existing sessions/URLs don't shift; 100–200
+// extends the reach for much finer traces (368..640, gated by MAX_CELLS).
 function traceParams(quality, smoothing) {
-  var q = clamp((num(quality, 95) - 90) / 10, 0, 1);   // 0..1 across the 90–100 band
+  var Q = clamp(num(quality, 95), 90, 200);
+  var detail;
+  if (Q <= 100) detail = Math.round(256 + (Q - 90) / 10 * 112);    // 256..368 (unchanged)
+  else detail = Math.round(368 + (Q - 100) / 100 * 272);           // 368..640 longest edge
   var sm = clamp(num(smoothing, 60), 0, 100) / 100;    // 0..1 smoothing (matches logo-wall)
   return {
-    detail: Math.round(256 + q * 112),                  // 256..368 longest edge
+    detail: detail,
     eps: 0.4 + sm * 1.8,                                // faithful (low) … flowing (high)
     cornerCos: 0.92 - sm * 1.25,                         // low smoothing keeps every turn crisp
   };
@@ -373,7 +412,8 @@ function buildPoster(url, img, W, H, grid, thr, palette) {
   // never the palette — so cache the traced paths and re-stitch fills on a recolour
   // or background toggle instead of re-running N marching-squares passes.
   var geomKey = url + '|' + grid.cols + 'x' + grid.rows + '|' + tp.detail
-    + '|' + f2(tp.eps) + '|' + f2(tp.cornerCos) + '|' + (grid.invert ? 'i' : '') + thr.join(',');
+    + '|' + f2(tp.eps) + '|' + f2(tp.cornerCos) + '|' + (grid.invert ? 'i' : '')
+    + '|' + (grid.tone || '0,0') + '|' + thr.join(',');
   var paths;
   if (_bandCache.key === geomKey) {
     paths = _bandCache.paths;
@@ -407,6 +447,9 @@ async function compute(model) {
   _transparent = Boolean(inputs.transparentBg);
   var steps = clamp(Math.round(num(inputs.steps, 8)), 2, 12);
   var invert = Boolean(inputs.invert);
+  var brightness = clamp(Math.round(num(inputs.brightness, 0)), -100, 100);
+  var contrast = clamp(Math.round(num(inputs.contrast, 0)), -100, 100);
+  var toneKey = brightness + ',' + contrast;
   var W = clamp(Math.round(num(inputs.width, 1080)), 1, 8000);
   var H = clamp(Math.round(num(inputs.height, 1080)), 1, 8000);
 
@@ -433,15 +476,19 @@ async function compute(model) {
   var g = sampleRGBA(url, img, gs.cols, gs.rows);
   if (!g) return { posterSvg: placeholder('Could not read that image (cross-origin).') };
 
-  // Invert tones: trace from a negative of the photo's luminance, so its bright
+  // Brightness/Contrast: re-tone the photo before separating. Skip the pass entirely
+  // when both are neutral so the common case stays a no-op on the cached sample grid.
+  var gTone = (brightness || contrast) ? applyTone(g, toneLUT(brightness, contrast)) : g;
+
+  // Invert tones: trace from a negative of the (toned) luminance, so its bright
   // regions become the foreground separations. RGB is untouched (separations keep
   // their real photo colours), so it only reorders which tones group/stack. Built
   // fresh rather than mutating the cached sample grid.
-  var gEff = g;
+  var gEff = gTone;
   if (invert) {
-    var iv = new Uint8Array(g.lum.length);
-    for (var ii = 0; ii < iv.length; ii++) iv[ii] = 255 - g.lum[ii];
-    gEff = { lum: iv, alpha: g.alpha, r: g.r, g: g.g, b: g.b, cols: g.cols, rows: g.rows };
+    var iv = new Uint8Array(gTone.lum.length);
+    for (var ii = 0; ii < iv.length; ii++) iv[ii] = 255 - gTone.lum[ii];
+    gEff = { lum: iv, alpha: gTone.alpha, r: gTone.r, g: gTone.g, b: gTone.b, cols: gTone.cols, rows: gTone.rows };
   }
 
   var thr = quantileThresholds(gEff, steps);
@@ -459,14 +506,18 @@ async function compute(model) {
   var resample = Boolean(inputs.resample);
   var stepsChanged = _prevSteps !== null && _prevSteps !== steps;
   var photoChanged = _seedUrl !== null && _seedUrl !== url;
+  var toneChanged = _seedTone !== null && _seedTone !== toneKey;       // brightness/contrast moved
   var untouched = !!_seedPalette && blocks.length === _seedPalette.length
     && blocks.every(function (b, i) { return color(b && b.color, '').toLowerCase() === String(_seedPalette[i]).toLowerCase(); });
   var palette, patch = {};
-  if (resample || blocks.length === 0 || stepsChanged || (photoChanged && untouched)) {
+  // Re-tone is treated like editing the photo: reseed the swatches from the newly
+  // toned image when they're still the untouched auto seed; keep manual recolours.
+  if (resample || blocks.length === 0 || stepsChanged || ((photoChanged || toneChanged) && untouched)) {
     palette = auto.slice();
     patch.colors = palette.map(function (c) { return { color: c }; });  // seed/replace the editable swatches
     if (resample) patch.resample = false;                               // one-shot button
     _seedPalette = palette.slice();                                     // remember this auto seed
+    _seedTone = toneKey;                                                // …and the tone it was sampled at
   } else {
     palette = [];
     for (var pi = 0; pi < steps; pi++) palette.push(color(blocks[pi] && blocks[pi].color, auto[pi]));
@@ -475,11 +526,11 @@ async function compute(model) {
   _seedUrl = url;
   _prevSteps = steps;
 
-  var grid = { g: gEff, cols: g.cols, rows: g.rows, tp: tp, invert: invert };
+  var grid = { g: gEff, cols: g.cols, rows: g.rows, tp: tp, invert: invert, tone: toneKey };
 
   // Memoise the SVG on everything that changes the pixels — palette, steps, size,
-  // quality, transparency, photo — so dragging an unrelated control is cheap.
-  var memoKey = JSON.stringify({ url: url, steps: steps, q: inputs.quality, sm: inputs.smoothing, inv: invert, W: W, H: H, t: _transparent, pal: palette });
+  // quality, tone, transparency, photo — so dragging an unrelated control is cheap.
+  var memoKey = JSON.stringify({ url: url, steps: steps, q: inputs.quality, sm: inputs.smoothing, inv: invert, tone: toneKey, W: W, H: H, t: _transparent, pal: palette });
   if (memoKey === _memoKey) { patch.posterSvg = _memoResult; return patch; }
 
   var svg;

@@ -41,15 +41,37 @@
       "help": "How many tonal separations to trace. Changing this re-samples the colours from the photo."
     },
     {
+      "id": "brightness",
+      "label": "Brightness",
+      "type": "number",
+      "display": "slider",
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "help": "Lighten or darken the photo before it is separated — shifts every tone up or down, moving detail between the light and dark separations."
+    },
+    {
+      "id": "contrast",
+      "label": "Contrast",
+      "type": "number",
+      "display": "slider",
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "default": 0,
+      "help": "Push the tones apart (higher) or flatten them together (lower) before separating. More contrast gives bolder, more graphic separations."
+    },
+    {
       "id": "quality",
       "label": "Quality",
       "type": "number",
       "display": "slider",
       "min": 90,
-      "max": 100,
+      "max": 200,
       "step": 1,
       "default": 95,
-      "help": "Tracing resolution — higher samples the photo at a finer grid and captures more detail (heavier)."
+      "help": "Tracing resolution — higher samples the photo at a finer grid and captures more detail. Above 100 pushes into very fine, slower traces."
     },
     {
       "id": "smoothing",
