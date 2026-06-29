@@ -7,6 +7,6 @@
     {{#if url}}<img class="lw-img{{#unless (eq filter 'none')}} lw-f-{{filter}}{{/unless}}" src="{{url}}" alt="{{name}}" style="width:{{size}}%; height:{{size}}%; opacity:{{opacity}};">{{/if}}
   </div>
   {{/each}}
-  {{#unless wallItems}}<div class="lw-empty">Drop your logos here — or use the “＋ Add” button — to build your wall.</div>{{/unless}}
+  {{#unless wallItems}}<div class="lw-empty" data-file-pick role="button" tabindex="0">Drop your logos here — or click to choose files — to build your wall. Add as many as you like.</div>{{/unless}}
 </div>
 {{/if}}

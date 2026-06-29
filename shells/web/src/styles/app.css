@@ -2860,10 +2860,13 @@ background-color:hsl(var(--background) / 1);
   min-height: 100%;
 }
 
-/* Canvas-layout file utilities (render.layout:"canvas"): the whole canvas is the
-   drop zone. A click anywhere on bare canvas opens the picker, so hint with a
-   pointer cursor; dragging a file over it draws a clear drop affordance. */
-#tool-content.is-file-dragover {
+/* Canvas-layout file utilities (render.layout:"canvas") put the drop zone on
+   #tool-content; sidebar tools with a dropToAdd blocks input (e.g. logo-wall) put
+   it on the #tool-canvas preview. Either way, dragging files over the canvas draws
+   a clear drop affordance. The outline is transient (only while dragging, removed
+   before export), so it never bleeds into output. */
+#tool-content.is-file-dragover,
+#tool-canvas.is-file-dragover {
   outline: 3px dashed hsl(var(--primary));
   outline-offset: -12px;
   background: hsl(var(--primary) / 0.05);
@@ -5816,6 +5819,8 @@ button {
 }
 .plat-client-icon { display: inline-flex; flex: 0 0 auto; color: hsl(var(--card-foreground)); }
 .plat-client-icon svg { display: block; width: 32px; height: 32px; }
+/* Card-level caption (e.g. the "inferred, not probed" note on Rendering stack). */
+.plat-client-note { margin: -.35rem 0 .7rem; font-size: .72rem; line-height: 1.4; color: hsl(var(--muted-foreground)); }
 .plat-kv--wide dt { flex: 0 0 8rem; }
 .plat-kv--wide dd { word-break: break-word; }
 .plat-kv .is-stacked { flex-direction: column; gap: .15rem; }

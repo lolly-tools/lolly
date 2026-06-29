@@ -36,9 +36,22 @@
 .lw-empty {
   grid-column: 1 / -1;
   align-self: center;
+  justify-self: center;
+  max-width: 30ch;
+  padding: 28px 32px;
   text-align: center;
   color: #9ca3af;
   font: 500 18px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  border: 2px dashed #d4d4d8;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.lw-empty:hover,
+.lw-empty:focus-visible {
+  color: #6b7280;
+  border-color: #a1a1aa;
+  outline: none;
 }
 
 /* Vector mode: the hook returns one SVG that fills the canvas. */
