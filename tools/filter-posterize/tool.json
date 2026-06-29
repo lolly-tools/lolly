@@ -1,0 +1,100 @@
+{
+  "id": "filter-posterize",
+  "name": "Filter: Posterise Bitmap",
+  "description": "Trace any photo into flat vector colour separations — a screenprint-style poster. Colours are auto-sampled from the image, then editable per tone. True vector in SVG and PDF. Your photo stays on your device.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "experimental",
+  "category": "designer",
+  "tags": ["photo", "filter", "posterize", "posterise", "vector", "trace", "screenprint", "separations", "halftone", "portrait", "headshot", "on-device"],
+  "a11yLabel": "{{steps}}-colour posterised vector of the photo",
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["png", "svg", "pdf", "jpg", "webp"],
+    "actions": ["copy", "download", "save"],
+    "convertPaths": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "photo",
+      "label": "Photo",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "help": "The image to posterise. Headshots and high-contrast photos trace best."
+    },
+    {
+      "id": "steps",
+      "label": "Colour steps",
+      "type": "number",
+      "display": "slider",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 8,
+      "help": "How many tonal separations to trace. Changing this re-samples the colours from the photo."
+    },
+    {
+      "id": "quality",
+      "label": "Quality",
+      "type": "number",
+      "display": "slider",
+      "min": 90,
+      "max": 100,
+      "step": 1,
+      "default": 95,
+      "help": "Tracing resolution — higher samples the photo at a finer grid and captures more detail (heavier)."
+    },
+    {
+      "id": "smoothing",
+      "label": "Smoothing",
+      "type": "number",
+      "display": "slider",
+      "min": 0,
+      "max": 100,
+      "step": 5,
+      "default": 60,
+      "help": "How much the traced outlines round into curves. Low keeps edges faithful and crisp; high flows them into smooth Bézier curves."
+    },
+    {
+      "id": "invert",
+      "label": "Invert tones",
+      "type": "boolean",
+      "default": false,
+      "help": "Trace from inverted tones — the photo's bright areas become the foreground separations (a tonal negative). Useful for a light subject on a dark background."
+    },
+    {
+      "id": "colors",
+      "label": "Separation colours",
+      "type": "blocks",
+      "labelledFields": true,
+      "help": "One swatch per tone, darkest first and the lightest (paper) last. Auto-sampled from your photo — edit any swatch to recolour that separation.",
+      "fields": [
+        { "id": "color", "label": "Colour", "type": "color", "default": "#808080" }
+      ],
+      "default": []
+    },
+    {
+      "id": "resample",
+      "label": "Re-sample colours from photo",
+      "type": "boolean",
+      "default": false,
+      "help": "Discard manual edits and re-derive every separation colour from the current photo."
+    },
+    {
+      "id": "transparentBg",
+      "label": "Transparent background",
+      "type": "boolean",
+      "default": false,
+      "help": "Drop the lightest 'paper' separation so the background is transparent (PNG / SVG)."
+    },
+    { "id": "width",  "label": "Width",  "type": "number", "default": 1080, "min": 1, "max": 8000, "group": "export" },
+    { "id": "height", "label": "Height", "type": "number", "default": 1080, "min": 1, "max": 8000, "group": "export" }
+  ]
+}

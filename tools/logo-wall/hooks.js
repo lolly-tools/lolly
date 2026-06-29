@@ -8,47 +8,46 @@
  * reproduces faithfully. Pixels are only sampled when balancing is on (a small
  * weight measurement), not for the visual itself.
  *
- * Vector mode ("Render as vector") flattens every logo to one ink colour:
- *   - a raster logo is decoded on an offscreen <canvas>, thresholded to 1-bit,
- *     and traced — marching-squares boundary → Douglas–Peucker simplify →
- *     corner-aware cubic Béziers (smooth real paths, holes via even-odd fill);
+ * "Render as vector" is a PER-LOGO block setting: each logo is independently an
+ * <img> (raster) or flattened to one ink colour. The wall is always the same CSS
+ * grid of cells; a vectorised cell holds a small inline <svg> instead of an <img>,
+ * sized identically (the balanced size%) so toggling a logo never reflows the wall.
+ *   - a raster logo is decoded on an offscreen <canvas>, thresholded to 1-bit (the
+ *     background dropped first so a solid tile never traces as a square), and traced —
+ *     marching-squares boundary → Douglas–Peucker simplify → corner-aware cubic
+ *     Béziers (smooth real paths, holes via even-odd fill);
  *   - an SVG logo is inlined verbatim and recoloured (no trace), so it stays
- *     pixel-perfect.
- * Every logo is composed into ONE inline <svg> laid out as the same grid; the
- * template is then SVG-rooted ({{{vectorSvg}}}), so SVG/PDF export is true vector.
+ *     pixel-perfect; <style>/class paint is stripped so the single ink always wins.
+ * Each cell's inline <svg> is solid-fill, so SVG export keeps it vector and the PDF
+ * walker draws it as true vector (only gradient/filter SVGs would rasterise).
  *
- * Efficiency, since a wall can hold many logos:
- *   - decoded images, traced paths, inlined SVGs and weights are each cached per
- *     URL, so dragging a size/opacity slider re-composes but never re-traces;
- *   - the whole SVG is memoised on every render-affecting input;
- *   - each logo's traced grid is capped (MAX_CELLS_PER_LOGO);
- *   - stale caches are pruned to the logos currently on the wall.
+ * Each logo is fitted to its own CONTENT box (margins trimmed, measured at a fixed
+ * sample size) so huge and tiny copies normalise alike; optical-weight balancing
+ * then sizes by artwork footprint so the wall reads evenly.
+ *
+ * Efficiency: decoded images, traced paths, inlined SVGs and content boxes are each
+ * cached per URL; each logo's traced grid is capped (MAX_CELLS_PER_LOGO); stale
+ * caches are pruned to the logos currently on the wall.
  *
  * Pixel decoding needs a real browser <canvas>. In a headless shell (CLI/jsdom)
- * there's none, so vector mode degrades to a friendly placeholder rather than
- * throwing — this is a browser-rendered effect.
+ * there's none, so a vectorised logo falls back to its raster <img>.
  */
 
-// The wall's coordinate space — matches render.width/height so vector and raster
-// modes frame the logos identically.
-var WALL_W = 1280, WALL_H = 720;
 // Upper bound on a single logo's sampling grid, so a high Detail on a big logo
 // can't blow up tracing time/output (≈ a 330×330 grid).
 var MAX_CELLS_PER_LOGO = 110000;
-// Floor on a computed cell size, so a huge column/row count can't invert geometry.
-var MIN_CELL = 8;
 
 // Decoded-image cache: url -> in-flight Promise<Image> (shared across re-renders).
 var _imgCache = {};
 // Traced-path cache: key -> { d, cols, rows } in grid-unit coords.
 var _traceCache = {};
-// Optical-weight cache: url -> density (0..1), for size balancing.
-var _weightCache = {};
+// Content-box cache: url -> { fx, fy, fw, fh, weight } — the artwork's bounding box
+// as fractions of the image (margins trimmed) plus its ink coverage, both measured
+// at a fixed sample size so source resolution doesn't matter. Drives layout + balance.
+var _boxCache = {};
 // Inlined-SVG cache: url -> Promise<{ inner, vbx, vby, vbw, vbh }> for vector
 // logos, which are inlined (and recoloured) rather than traced.
 var _svgCache = {};
-// One-entry memo of the last SVG, keyed on every render-affecting input.
-var _memoKey = null, _memoResult = null;
 // Remembered for beforeExport (which only sees format/opts).
 var _transparent = false, _bg = '#ffffff';
 
@@ -111,31 +110,97 @@ function sampleRGBA(img, cols, rows) {
   try { data = ctx.getImageData(0, 0, cols, rows).data; }
   catch (e) { return null; } // tainted canvas (cross-origin asset)
   var lum = new Uint8Array(cols * rows), alpha = new Uint8Array(cols * rows);
+  var r = new Uint8Array(cols * rows), g2 = new Uint8Array(cols * rows), b2 = new Uint8Array(cols * rows);
   for (var i = 0, p = 0; i < lum.length; i++, p += 4) {
+    r[i] = data[p]; g2[i] = data[p + 1]; b2[i] = data[p + 2];
     lum[i] = (0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2]) | 0;
     alpha[i] = data[p + 3];
   }
-  return { lum: lum, alpha: alpha, cols: cols, rows: rows };
+  return { lum: lum, alpha: alpha, r: r, g: g2, b: b2, cols: cols, rows: rows };
 }
 
-// Optical weight of a logo: mean over a small aspect-correct sample of
-// (opacity × darkness), i.e. how much ink-mass it carries (0 = blank, 1 = solid
-// black). Used to balance sizes — heavier logos shrink, lighter ones grow.
-// Independent of the vector threshold, so dragging Threshold doesn't re-weigh.
-function measureWeight(url, img) {
-  if (_weightCache[url] != null) return _weightCache[url];
+// Resolution-independent CONTENT box + optical weight of a logo.
+//
+// Samples the image at a fixed longest edge S (so a 4000px and an 80px copy of the
+// same logo measure identically), then finds the artwork's bounding box — trimming
+// transparent margins, or, when the logo sits on a flat colour, margins matching
+// that background. Returns the box as fractions of the image plus the ink coverage
+// over that box (mean opacity×darkness), so layout fits each logo by its real
+// content and balancing weighs heavy vs light artwork fairly regardless of how the
+// source was cropped or exported. Weight is independent of the vector threshold, so
+// dragging Threshold doesn't re-weigh. Cached per url.
+function measureContent(url, img) {
+  if (_boxCache[url]) return _boxCache[url];
+  if (typeof document === 'undefined' || !document.createElement) return null;
   var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
   if (!iw || !ih) return null;
-  var cols, rows, S = 72;                   // small fixed sample, longest edge S
+  var S = 96, cols, rows;                   // fixed sample, longest edge S
   if (iw >= ih) { cols = S; rows = Math.max(1, Math.round(S * ih / iw)); }
   else { rows = S; cols = Math.max(1, Math.round(S * iw / ih)); }
-  var g = sampleRGBA(img, cols, rows);
-  if (!g) return null;
-  var lum = g.lum, alpha = g.alpha, sum = 0;
-  for (var i = 0; i < lum.length; i++) sum += (alpha[i] / 255) * (1 - lum[i] / 255);
-  var den = sum / lum.length;
-  _weightCache[url] = den;
-  return den;
+
+  var c = document.createElement('canvas');
+  c.width = cols; c.height = rows;
+  var ctx = c.getContext && c.getContext('2d', { willReadFrequently: true });
+  if (!ctx) return null;
+  ctx.imageSmoothingEnabled = true;
+  if (ctx.imageSmoothingQuality) ctx.imageSmoothingQuality = 'high';
+  ctx.clearRect(0, 0, cols, rows);
+  ctx.drawImage(img, 0, 0, cols, rows);
+  var data;
+  try { data = ctx.getImageData(0, 0, cols, rows).data; }
+  catch (e) { return null; }                // tainted canvas (cross-origin asset)
+
+  // A flat background fills every edge, so its colour shows in ALL four corners; if
+  // even one corner is (near-)transparent the logo is alpha-keyed and alpha alone
+  // marks content. The colour reference is the per-channel MEDIAN of the corners, so
+  // a logo that runs into one corner doesn't poison it the way a mean would.
+  function corner(x, y) { var p = (y * cols + x) * 4; return [data[p], data[p + 1], data[p + 2], data[p + 3]]; }
+  var cs = [corner(0, 0), corner(cols - 1, 0), corner(0, rows - 1), corner(cols - 1, rows - 1)];
+  function med4(a) { var s = a.slice().sort(function (m, n) { return m - n; }); return (s[1] + s[2]) / 2; }
+  var bgOpaque = cs.filter(function (q) { return q[3] >= 32; }).length === 4;
+  var bg = [0, 1, 2].map(function (k) { return med4([cs[0][k], cs[1][k], cs[2][k], cs[3][k]]); });
+
+  var minX = cols, minY = rows, maxX = -1, maxY = -1, presence = 0, lumSum = 0;
+  for (var y = 0; y < rows; y++) {
+    for (var x = 0; x < cols; x++) {
+      var p = (y * cols + x) * 4, a = data[p + 3];
+      if (a < 24) continue;                 // transparent → background
+      var content;
+      if (!bgOpaque) {
+        content = true;                     // any opaque pixel is artwork
+      } else {
+        var dr = data[p] - bg[0], dg = data[p + 1] - bg[1], db = data[p + 2] - bg[2];
+        content = (dr * dr + dg * dg + db * db) > 1200;  // differs from the flat bg
+      }
+      if (!content) continue;
+      if (x < minX) minX = x;
+      if (x > maxX) maxX = x;
+      if (y < minY) minY = y;
+      if (y > maxY) maxY = y;
+      var cov = a / 255;
+      presence += cov;                      // footprint of the artwork (any colour)
+      lumSum += cov * (0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2]);
+    }
+  }
+
+  var box;
+  if (maxX < minX) {                        // nothing distinct from the bg → whole image
+    box = { fx: 0, fy: 0, fw: 1, fh: 1, weight: 0.01, contentLum: 128, bgOpaque: bgOpaque, bg: bg };
+  } else {
+    var bw = maxX - minX + 1, bh = maxY - minY + 1, sq = Math.max(bw, bh);
+    box = {
+      fx: minX / cols, fy: minY / rows, fw: bw / cols, fh: bh / rows,
+      // Optical weight = how much of the bounding SQUARE the artwork covers, by ANY
+      // colour (not just darkness) — so a thin/tall mark reads light and a white or
+      // reverse (light-on-dark) mark is weighed by its real footprint, fair under
+      // invert and on dark backgrounds.
+      weight: Math.max(0.01, presence / (sq * sq)),
+      contentLum: presence ? lumSum / presence : 128,   // mean brightness of the artwork
+      bgOpaque: bgOpaque, bg: bg,                        // reused by the trace to drop the background
+    };
+  }
+  _boxCache[url] = box;
+  return box;
 }
 
 // ── SVG logos: inline instead of trace ───────────────────────────────────────
@@ -144,19 +209,29 @@ function measureWeight(url, img) {
 // uploaded SVG was sanitised at ingest (DOMPurify, scripts stripped), so the
 // markup is safe to inline.
 
-// Drop fill/stroke paint from every element so the wrapping group's ink fill
-// shows through (a flat monochrome logo). Geometry is left untouched.
+// Drop fill/stroke paint from every element so the wrapping group's single ink
+// shows through (a flat monochrome logo). Geometry is left untouched. Two shapes
+// are preserved: a `fill:none` stays none (so an open line-art path doesn't flood
+// into a blob), and an element that WAS stroked keeps a stroke set to currentColor
+// (which the wrapper resolves to the ink) so stroke-only marks don't vanish.
 function stripPaint(el) {
   var all = el.querySelectorAll('*');
   for (var i = 0; i < all.length; i++) {
     var e = all[i];
+    var style = e.getAttribute('style') || '';
+    var fillNone = /(?:^|;)\s*fill\s*:\s*none/i.test(style)
+      || (e.getAttribute('fill') || '').trim().toLowerCase() === 'none';
+    var strokeStyled = /(?:^|;)\s*stroke\s*:/i.test(style) && !/(?:^|;)\s*stroke\s*:\s*none/i.test(style);
+    var strokeAttr = e.hasAttribute('stroke') && (e.getAttribute('stroke') || '').trim().toLowerCase() !== 'none';
+    var hadStroke = strokeStyled || strokeAttr;
     e.removeAttribute('fill');
     e.removeAttribute('stroke');
-    var st = e.getAttribute('style');
-    if (st) {
-      st = st.replace(/(?:^|;)\s*(?:fill|stroke)\s*:[^;]*/gi, '');
-      if (st.replace(/[;\s]/g, '')) e.setAttribute('style', st); else e.removeAttribute('style');
+    if (style) {
+      style = style.replace(/(?:^|;)\s*(?:fill|stroke)\s*:[^;]*/gi, '');
+      if (style.replace(/[;\s]/g, '')) e.setAttribute('style', style); else e.removeAttribute('style');
     }
+    if (fillNone) e.setAttribute('fill', 'none');
+    if (hadStroke) e.setAttribute('stroke', 'currentColor');
   }
 }
 
@@ -209,11 +284,17 @@ function svgDim(v) {
 // its source (uploads are DOMPurify-sanitised at ingest; this also covers library
 // SVGs and any post-ingest tampering). We only ever inline static geometry.
 function hardenSvg(svg) {
-  var bad = svg.querySelectorAll('script, foreignObject, animate, animateTransform, animateMotion, set');
+  // <style> is dropped too: a class-based fill (the common Illustrator/Inkscape
+  // "CSS"/"Style Elements" export, e.g. .st0{fill:#e2231a}) would otherwise beat the
+  // wrapping group's ink and leak the source colour — breaking the one-ink wall — and
+  // an @import / url() inside it would fetch off-device. Removing <style> + every
+  // class attribute leaves the group ink the only paint source.
+  var bad = svg.querySelectorAll('script, foreignObject, animate, animateTransform, animateMotion, set, style');
   for (var i = bad.length - 1; i >= 0; i--) { if (bad[i].parentNode) bad[i].parentNode.removeChild(bad[i]); }
   var all = svg.querySelectorAll('*');
   for (var j = 0; j < all.length; j++) {
     var e = all[j], attrs = e.attributes;
+    e.removeAttribute('class');
     for (var k = attrs.length - 1; k >= 0; k--) {
       var name = attrs[k].name, low = name.toLowerCase(), val = attrs[k].value || '';
       if (low.indexOf('on') === 0) { e.removeAttribute(name); continue; }              // event handlers
@@ -304,16 +385,25 @@ function getSvg(url) {
 // fitting. Output is real M / L / C / Z path data, with holes handled by
 // even-odd fill — so it stays crisp at any size.
 
-// Threshold the sampled image into a 1-bit ink mask (1 = ink).
-function binarize(img, cols, rows, cutoff, invert) {
+// Threshold the sampled image into a 1-bit ink mask (1 = ink). Only the artwork can
+// become ink: transparent pixels never do, and on an opaque flat background, pixels
+// matching that background colour never do either — so a logo delivered on a solid
+// tile (white, black or a brand colour) traces to its mark, never a filled square.
+function binarize(img, cols, rows, cutoff, invert, bgOpaque, bg) {
   var g = sampleRGBA(img, cols, rows);
   if (!g) return null;
-  var lum = g.lum, alpha = g.alpha;
+  var lum = g.lum, alpha = g.alpha, r = g.r, gg = g.g, b = g.b;
   var mask = new Uint8Array(cols * rows);
   for (var i = 0; i < mask.length; i++) {
-    var present = alpha[i] >= 128;          // (near-)transparent pixels are never ink
+    var content;
+    if (alpha[i] < 128) content = false;            // (near-)transparent → background
+    else if (bgOpaque) {
+      var dr = r[i] - bg[0], dg = gg[i] - bg[1], db = b[i] - bg[2];
+      content = (dr * dr + dg * dg + db * db) > 1200; // differs from the flat background
+    } else content = true;
+    if (!content) { mask[i] = 0; continue; }
     var dark = lum[i] < cutoff;             // ink where darker than the cut-off
-    mask[i] = (present && (invert ? !dark : dark)) ? 1 : 0;
+    mask[i] = (invert ? !dark : dark) ? 1 : 0;
   }
   return mask;
 }
@@ -466,7 +556,10 @@ function traceLogo(url, img, detail, cutoff, invert, eps, cornerCos) {
     + '|' + f2(eps) + '|' + f2(cornerCos);
   if (_traceCache[key]) return _traceCache[key];
 
-  var mask = binarize(img, cols, rows, cutoff, invert);
+  // Drop the background (transparent, or a flat opaque tile) so it never traces as a
+  // filled square. The reference comes from measureContent, cached per url.
+  var mc = measureContent(url, img);
+  var mask = binarize(img, cols, rows, cutoff, invert, mc ? mc.bgOpaque : false, mc ? mc.bg : [0, 0, 0]);
   if (!mask) return null;
   var loops = traceContours(mask, cols, rows);
   // Speck floor scales with grid resolution so low-detail logos don't lose small
@@ -490,7 +583,7 @@ function pruneCaches(activeUrls) {
   var keep = {};
   activeUrls.forEach(function (u) { if (u) keep[u] = true; });
   Object.keys(_imgCache).forEach(function (u) { if (!keep[u]) delete _imgCache[u]; });
-  Object.keys(_weightCache).forEach(function (u) { if (!keep[u]) delete _weightCache[u]; });
+  Object.keys(_boxCache).forEach(function (u) { if (!keep[u]) delete _boxCache[u]; });
   Object.keys(_svgCache).forEach(function (u) { if (!keep[u]) delete _svgCache[u]; });
   Object.keys(_traceCache).forEach(function (k) {
     var u = k.slice(0, k.indexOf('|'));
@@ -498,82 +591,69 @@ function pruneCaches(activeUrls) {
   });
 }
 
-function svgOpen() {
-  return '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" '
-    + 'viewBox="0 0 ' + WALL_W + ' ' + WALL_H + '" preserveAspectRatio="xMidYMid meet">';
-}
-
-function placeholder(message) {
-  return svgOpen()
-    + '<rect width="' + WALL_W + '" height="' + WALL_H + '" fill="#f4f4f5"/>'
-    + '<text x="' + (WALL_W / 2) + '" y="' + (WALL_H / 2) + '" text-anchor="middle" '
-    + 'dominant-baseline="middle" font-family="sans-serif" font-size="34" fill="#9ca3af">'
-    + esc(message) + '</text></svg>';
-}
-
 // ── compose the vector wall ──────────────────────────────────────────────────
 
-async function buildVectorWall(inputs, items) {
-  var used = items.filter(function (it) { return it.url; });
-  if (!used.length) return placeholder('Pick a logo image for each row to build your wall.');
+// Resolve one logo's tracing parameters from threshold (1–99), invert, detail and
+// smoothing. Smoothing → simplification tolerance + the angle past which a vertex
+// stays a hard corner. Low: faithful, near-polygonal, every turn kept crisp. High:
+// flowing curves, only steep turns survive as corners. Used for the wall-wide
+// defaults and, per logo, when a block opts into its own "tune" settings.
+function traceParams(threshold, invert, detail, smoothing) {
+  var sm = clamp(num(smoothing, 60), 0, 100) / 100;
+  return {
+    cutoff: clamp(num(threshold, 55), 1, 99) / 100 * 255,
+    invert: Boolean(invert),
+    detail: clamp(Math.round(num(detail, 200)), 24, 360),
+    eps: 0.4 + sm * 1.8,
+    cornerCos: 0.92 - sm * 1.25,
+  };
+}
 
-  var cols = clamp(Math.round(num(inputs.columns, 4)), 1, 12);
-  var rows = Math.max(1, Math.ceil(used.length / cols));
-  var gap = clamp(num(inputs.gap, 32), 0, 400);
-  var pad = clamp(num(inputs.padding, 48), 0, 400);
-  var ink = color(inputs.inkColor, '#0c322c');
-  var cutoff = clamp(num(inputs.threshold, 55), 1, 99) / 100 * 255;
-  var invert = Boolean(inputs.invert);
-  var detail = clamp(Math.round(num(inputs.detail, 200)), 24, 360);
-  // Smoothing → simplification tolerance + the angle past which a vertex stays a
-  // hard corner. Low: faithful, near-polygonal, every turn kept crisp. High:
-  // flowing curves, only steep turns survive as corners.
-  var sm = clamp(num(inputs.smoothing, 60), 0, 100) / 100;
-  var eps = 0.4 + sm * 1.8;
-  var cornerCos = 0.92 - sm * 1.25;
-
-  var cellW = Math.max(MIN_CELL, (WALL_W - 2 * pad - (cols - 1) * gap) / cols);
-  var cellH = Math.max(MIN_CELL, (WALL_H - 2 * pad - (rows - 1) * gap) / rows);
-
-  // Resolve each logo to a placed <g> in parallel: SVG logos are inlined and
-  // recoloured (no trace); rasters are decoded, thresholded and traced. Each
-  // group carries data-canvas-input so a click on the canvas focuses its block.
-  function fit(aspect, scale) {
-    var ca = cellW / cellH, dw, dh;
-    if (aspect >= ca) { dw = cellW; dh = cellW / aspect; } else { dh = cellH; dw = cellH * aspect; }
-    return { w: dw * scale, h: dh * scale };
+// Build the inline one-ink <svg> for ONE vectorised logo. It's sized by the balanced
+// size% and fitted (preserveAspectRatio) exactly like the raster <img>, so vector and
+// raster cells lay out identically through the same CSS grid. The viewBox is the
+// logo's own content box (margins trimmed), so huge, tiny, tightly- or loosely-cropped
+// logos all fill their cell consistently. A raster logo is thresholded + contour-
+// traced; an SVG logo is inlined verbatim and recoloured. Returns '' when it can't be
+// produced (the caller then keeps the raster <img>); pixel work needs a browser canvas.
+async function buildVectorLogo(it, ink, globalTP) {
+  var sizeStyle = 'width:' + f2(it.size) + '%;height:' + f2(it.size) + '%'
+    + (it.opacity < 1 ? ';opacity:' + f2(it.opacity) : '');
+  function wrap(vbx, vby, vbw, vbh, inner) {
+    return '<svg class="lw-vec" xmlns="http://www.w3.org/2000/svg" style="' + sizeStyle + '" '
+      + 'viewBox="' + f2(vbx) + ' ' + f2(vby) + ' ' + f2(vbw) + ' ' + f2(vbh) + '" '
+      + 'preserveAspectRatio="xMidYMid meet">' + inner + '</svg>';
   }
-  var pieces = await Promise.all(used.map(async function (it, i) {
-    var rowI = Math.floor(i / cols), colI = i % cols;
-    var cellX = pad + colI * (cellW + gap), cellY = pad + rowI * (cellH + gap);
-    var scale = clamp(num(it.size, 100), 5, 600) / 100;
-    var op = it.opacity;
-    var tag = '<g data-canvas-input="logos:' + it.index + '"' + (op < 1 ? ' opacity="' + f2(op) + '"' : '');
 
-    if (it.vector) {
-      var svg = await getSvg(it.url).catch(function () { return null; });
-      if (!svg || !svg.inner) return '';
-      var f = fit(svg.vbw / svg.vbh, scale), s = f.w / svg.vbw;
-      var ox = cellX + (cellW - f.w) / 2, oy = cellY + (cellH - f.h) / 2;
-      return tag + ' transform="translate(' + f2(ox) + ' ' + f2(oy) + ') scale(' + f2(s) + ') '
-        + 'translate(' + f2(-svg.vbx) + ' ' + f2(-svg.vby) + ')">' + svg.inner + '</g>';
+  if (it.isSvg) {
+    var svg = await getSvg(it.url).catch(function () { return null; });
+    if (!svg || !svg.inner) return '';
+    var simg = await getImage(it.url).catch(function () { return null; });
+    var sbox = simg ? measureContent(it.url, simg) : null;
+    var cbx = svg.vbx, cby = svg.vby, cbw = svg.vbw, cbh = svg.vbh;
+    if (sbox) {
+      cbx = svg.vbx + sbox.fx * svg.vbw; cby = svg.vby + sbox.fy * svg.vbh;
+      cbw = Math.max(1e-3, sbox.fw * svg.vbw); cbh = Math.max(1e-3, sbox.fh * svg.vbh);
     }
+    // `color` carries the ink so any stroke="currentColor" (preserved line art) inks too.
+    return wrap(cbx, cby, cbw, cbh, '<g fill="' + esc(ink) + '" color="' + esc(ink) + '">' + svg.inner + '</g>');
+  }
 
-    var img = await getImage(it.url).catch(function () { return null; });
-    if (!img) return '';
-    var tr = traceLogo(it.url, img, detail, cutoff, invert, eps, cornerCos);
-    if (!tr || !tr.d) return '';
-    var fr = fit(tr.cols / tr.rows, scale);
-    var oxr = cellX + (cellW - fr.w) / 2, oyr = cellY + (cellH - fr.h) / 2;
-    return tag + ' fill-rule="evenodd" transform="translate(' + f2(oxr) + ' ' + f2(oyr) + ') scale('
-      + f2(fr.w / tr.cols) + ' ' + f2(fr.h / tr.rows) + ')"><path d="' + tr.d + '"/></g>';
-  }));
-
-  var bg = _transparent ? null : color(inputs.background, '#ffffff');
-  var out = svgOpen();
-  if (bg) out += '<rect width="' + WALL_W + '" height="' + WALL_H + '" fill="' + esc(bg) + '"/>';
-  out += '<g fill="' + esc(ink) + '">' + pieces.join('') + '</g></svg>';
-  return out;
+  var img = await getImage(it.url).catch(function () { return null; });
+  if (!img) return '';
+  var box = measureContent(it.url, img) || { fx: 0, fy: 0, fw: 1, fh: 1, contentLum: 0 };
+  var tp = it.tune ? traceParams(it.oThreshold, it.oInvert, it.oDetail, it.oSmoothing) : globalTP;
+  // Auto-invert a logo whose artwork is, on average, lighter than the cut-off (a white
+  // / reversed mark) so it doesn't trace to nothing — unless it's tuned or global
+  // Invert is already on.
+  var inv = tp.invert || (!it.tune && box.contentLum != null && box.contentLum > tp.cutoff);
+  var tr = traceLogo(it.url, img, tp.detail, tp.cutoff, inv, tp.eps, tp.cornerCos);
+  if (!tr || !tr.d) return '';
+  var bx = box.fx * tr.cols, by = box.fy * tr.rows;
+  var bw = Math.max(1e-3, box.fw * tr.cols), bh = Math.max(1e-3, box.fh * tr.rows);
+  // Ink on the path itself so the PDF path-walker (which reads the fill attribute) inks
+  // it too rather than falling back to black.
+  return wrap(bx, by, bw, bh, '<path fill="' + esc(ink) + '" fill-rule="evenodd" d="' + tr.d + '"/>');
 }
 
 // Build the per-logo render list: url, name, opacity, filter, vector-ness, and an
@@ -590,11 +670,18 @@ async function buildItems(inputs, balance) {
       index: i,
       url: ref && ref.url ? ref.url : '',
       name: ref && ref.meta && ref.meta.name ? ref.meta.name : '',
-      vector: !!(ref && (ref.type === 'vector' || ref.format === 'svg')),
+      isSvg: !!(ref && (ref.type === 'vector' || ref.format === 'svg')),
+      vectorize: !!(b && b.vectorize),          // per-logo "Render as vector"
       opacity: clamp(num(b && b.opacity, 1), 0, 1),
       filter: (b && b.filter) || 'none',
       scale: s,
       size: s,
+      // Per-logo vector overrides (only applied when `tune` is on; see buildVectorLogo).
+      tune: !!(b && b.tune),
+      oThreshold: clamp(num(b && b.threshold, 55), 1, 99),
+      oInvert: !!(b && b.invert),
+      oDetail: clamp(Math.round(num(b && b.detail, 200)), 24, 360),
+      oSmoothing: clamp(num(b && b.smoothing, 60), 0, 100),
     };
   });
 
@@ -605,16 +692,21 @@ async function buildItems(inputs, balance) {
   var imgs = await Promise.all(withUrl.map(function (it) {
     return getImage(it.url).catch(function () { return null; });
   }));
-  var n = 0, logSum = 0;
+  var dens = [];
   for (var i = 0; i < withUrl.length; i++) {
-    var d = imgs[i] ? measureWeight(withUrl[i].url, imgs[i]) : null;
-    // Floor a measured density so a white / very pale logo (density ≈ 0) counts as
-    // "very light" and grows, rather than being treated as unknown (factor 1).
-    withUrl[i]._den = (d != null) ? Math.max(d, 0.01) : null;
-    if (withUrl[i]._den) { n++; logSum += Math.log(withUrl[i]._den); }
+    var box = imgs[i] ? measureContent(withUrl[i].url, imgs[i]) : null;
+    // Weight is the artwork's footprint over its bounding square (any colour), so a
+    // sparse mark is "light" and a solid one "heavy" regardless of margin, colour or
+    // invert. Floor it so a near-empty logo still counts as light and grows.
+    withUrl[i]._den = (box && box.weight != null) ? Math.max(box.weight, 0.01) : null;
+    if (withUrl[i]._den) dens.push(withUrl[i]._den);
   }
-  if (n < 2) { withUrl.forEach(function (it) { delete it._den; }); return items; }
-  var refDen = Math.exp(logSum / n);              // geometric mean
+  if (dens.length < 2) { withUrl.forEach(function (it) { delete it._den; }); return items; }
+  // Reference = MEDIAN weight, so one mis-measured logo can't drag the whole wall the
+  // way a geometric mean would.
+  dens.sort(function (a, b) { return a - b; });
+  var mid = dens.length >> 1;
+  var refDen = dens.length % 2 ? dens[mid] : (dens[mid - 1] + dens[mid]) / 2;
   withUrl.forEach(function (it) {
     var factor = it._den ? clamp(Math.sqrt(refDen / it._den), 0.55, 1.7) : 1;
     it.size = clamp(it.scale * factor, 5, 600);
@@ -631,37 +723,27 @@ async function compute(model) {
   _bg = color(inputs.background, '#ffffff');
   var balance = inputs.balance !== false;         // optical-weight balancing, default on
 
-  // Per-logo items (size folds in balancing). Raster mode renders these directly
-  // from the template; vector mode feeds them to the SVG wall builder.
+  // One render list for both modes — the template lays them out in a single CSS grid,
+  // each cell an <img> (raster) or a one-ink inline <svg> (per-logo "Render as vector").
   var items = await buildItems(inputs, balance);
 
-  if (!inputs.vectorize) {
-    pruneCaches(items.map(function (it) { return it.url; }));
-    return { wallItems: items };
-  }
-
-  if (!canRaster()) {
-    return { wallItems: items, vectorSvg: placeholder('Vector preview renders in the browser.') };
-  }
-
-  var memoKey = JSON.stringify({
-    c: inputs.columns, g: inputs.gap, p: inputs.padding, bg: _bg, ink: inputs.inkColor,
-    th: inputs.threshold, inv: inputs.invert, det: inputs.detail, sm: inputs.smoothing, tr: _transparent, bal: balance,
-    L: items.map(function (it) { return { u: it.url, v: it.vector, s: f2(it.size), o: it.opacity, i: it.index }; }),
-  });
-  if (memoKey === _memoKey) return _memoResult;
-
-  var svg;
-  try { svg = await buildVectorWall(inputs, items); }
-  catch (e) {
-    if (host.log) host.log('warn', 'logo-wall: vector build failed', { error: String(e) });
-    svg = placeholder('Could not vectorise these logos.');
+  // Build the inline SVG for each vectorised logo. Pixel tracing needs a real browser
+  // canvas; in a headless shell (or on failure) the logo keeps its <img>.
+  if (canRaster()) {
+    var ink = color(inputs.inkColor, '#0c322c');
+    var globalTP = traceParams(inputs.threshold, inputs.invert, inputs.detail, inputs.smoothing);
+    await Promise.all(items.map(async function (it) {
+      if (!it.vectorize || !it.url) return;
+      try { it.cellSvg = await buildVectorLogo(it, ink, globalTP); }
+      catch (e) { if (host.log) host.log('warn', 'logo-wall: vectorise failed', { error: String(e) }); }
+    }));
   }
 
   pruneCaches(items.map(function (it) { return it.url; }));
-  _memoKey = memoKey;
-  _memoResult = { wallItems: items, vectorSvg: svg };
-  return _memoResult;
+  // Only blocks with an image occupy a cell (each keeps its original index for
+  // canvas click-to-focus), so an imageless block never leaves a gap and both modes
+  // lay out the same.
+  return { wallItems: items.filter(function (it) { return it.url; }) };
 }
 
 function onInit(ctx) { return compute(ctx.model); }

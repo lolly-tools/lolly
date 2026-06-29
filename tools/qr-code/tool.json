@@ -1,7 +1,7 @@
 {
   "id": "qr-code",
   "name": "QR Code Generator",
-  "description": "On-brand QR codes for any URL, with full color and style control.",
+  "description": "QR codes for any URL, with full color and style control.",
   "a11yLabel": "QR code linking to {{default url \"(no URL set)\"}}",
   "version": "2.0.0",
   "engineVersion": "^1.0.0",

@@ -1,15 +1,11 @@
 {{#if wallItems}}
-{{#if vectorize}}
-{{{vectorSvg}}}
-{{else}}
 <div class="lw-wall" style="--lw-cols:{{default columns 4}}; --lw-gap:{{default gap 32}}px; --lw-pad:{{default padding 48}}px; --lw-bg:{{#if transparentBg}}transparent{{else}}{{default background '#ffffff'}}{{/if}};">
   {{#each wallItems}}
   <div class="lw-cell" data-canvas-input="logos:{{index}}">
-    {{#if url}}<img class="lw-img{{#unless (eq filter 'none')}} lw-f-{{filter}}{{/unless}}" src="{{url}}" alt="{{name}}" style="width:{{size}}%; height:{{size}}%; opacity:{{opacity}};">{{/if}}
+    {{#if cellSvg}}{{{cellSvg}}}{{else}}<img class="lw-img{{#unless (eq filter 'none')}} lw-f-{{filter}}{{/unless}}" src="{{url}}" alt="{{name}}" style="width:{{size}}%; height:{{size}}%; opacity:{{opacity}};">{{/if}}
   </div>
   {{/each}}
 </div>
-{{/if}}
 {{else}}
 <div class="lw-wall" style="--lw-pad:{{default padding 48}}px; --lw-bg:{{#if transparentBg}}transparent{{else}}{{default background '#ffffff'}}{{/if}};">
   <div class="lw-empty" data-file-pick role="button" tabindex="0">Drop your logos here — or click to choose files — to build your wall. Add as many as you like.</div>

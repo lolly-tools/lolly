@@ -59,9 +59,10 @@
   outline-offset: 3px;
 }
 
-/* Vector mode: the hook returns one SVG that fills the canvas. */
-svg {
+/* A vectorised logo is a per-cell inline <svg> sized (width/height %) and fitted
+   exactly like the raster <img>, so vector and raster cells lay out identically.
+   The cell's overflow:hidden clips a balance-grown logo the same in both modes. */
+.lw-vec {
   display: block;
-  width: 100%;
-  height: 100%;
+  object-fit: contain;
 }

@@ -2159,6 +2159,20 @@ background-color:hsl(var(--background) / 1);
   text-transform: uppercase; color: hsl(var(--muted-foreground));
 }
 .block-fields .block-field--full { grid-column: 1 / -1; }
+/* Checkbox sub-field (e.g. logo-wall's per-logo "Tune this logo" / "Invert"):
+   a checkbox + inline label on its own full-width row. */
+.block-control--checkbox { flex-direction: row; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; }
+.block-control--checkbox .block-control-label {
+  text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; color: hsl(var(--foreground));
+}
+.block-field--checkbox { width: auto; flex: none; margin: 0; cursor: pointer; }
+.block-item.is-typed .block-field--checkbox { padding: 0 !important; }
+/* Optional hint under a labelled sub-field. */
+.block-control-help {
+  flex-basis: 100%;
+  font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none;
+  color: hsl(var(--muted-foreground)); line-height: 1.35;
+}
 /* Multi-line block text field (e.g. body copy) — grows downward, vertical resize only. */
 .block-field--textarea { min-height: 52px; line-height: 1.4; resize: vertical; }
 /* The legacy rule forces left-padding on every .block-field; typed cards don't

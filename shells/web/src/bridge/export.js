@@ -2035,7 +2035,8 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
     }
 
     if (tag === 'text') {
-      const fillStr = el.getAttribute('fill') ?? '#000000';
+      let fillStr = el.getAttribute('fill');
+      if (!fillStr || fillStr === 'currentColor') fillStr = computedPaint(el, 'fill') || '#000000';
       let rgb = parseSvgColor(fillStr);
       if (!rgb) return;
       const opacity = parseFloat(el.getAttribute('opacity') ?? el.getAttribute('fill-opacity') ?? '1');
@@ -2068,8 +2069,14 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
     if (tag === 'path') {
       const d = el.getAttribute('d') ?? '';
       if (!d.trim()) return;
-      const fillStr   = el.getAttribute('fill')   ?? resolveStyleProp(el, 'fill')   ?? 'black';
-      const strokeStr = el.getAttribute('stroke') ?? resolveStyleProp(el, 'stroke') ?? 'none';
+      // Fill/stroke fall back to the COMPUTED paint (not a literal black), so a path
+      // that inherits its colour from an ancestor group (e.g. logo-wall's one-ink
+      // <g fill="ink">) or uses currentColor resolves correctly in PDF instead of
+      // rendering black. getComputedStyle resolves SVG inheritance on the live DOM.
+      let fillStr = el.getAttribute('fill') ?? resolveStyleProp(el, 'fill');
+      if (!fillStr || fillStr === 'currentColor') fillStr = computedPaint(el, 'fill') || 'black';
+      let strokeStr = el.getAttribute('stroke') ?? resolveStyleProp(el, 'stroke') ?? 'none';
+      if (strokeStr === 'currentColor') strokeStr = computedPaint(el, 'stroke') || 'none';
       const elemOp  = parseFloat(el.getAttribute('opacity') ?? '1');
       const fillOp  = elemOp * parseFloat(el.getAttribute('fill-opacity')   ?? '1');
       const strkOp  = elemOp * parseFloat(el.getAttribute('stroke-opacity') ?? '1');
@@ -2574,7 +2581,8 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
             const vbH = (vb && vb.height > 0) ? vb.height : rect.height;
             const s  = Math.min(w / vbW, h / vbH);            // meet: fit whole mark
             const fw = vbW * s, fh = vbH * s;
-            await drawSvgVectorsInRegion(pdf, svgEl, x + (w - fw) / 2, y + (h - fh) / 2, fw, fh, registeredFonts);
+            const [px, py] = objectPositionFractions(style.objectPosition);
+            await drawSvgVectorsInRegion(pdf, svgEl, x + (w - fw) * px, y + (h - fh) * py, fw, fh, registeredFonts);
           }
         } catch { /* fall through to the raster path */ }
         finally { svgEl?.remove(); }
@@ -2604,7 +2612,17 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
             ? await circularClipImage(style.filter && style.filter !== 'none' ? null : el, dataUrl).catch(() => dataUrl)
             : dataUrl;
           const { src: imgSrc, fmt } = await imageForPdf(imgUrl);
-          pdf.addImage(imgSrc, fmt, x, y, w, h);
+          // Honour object-fit:contain (e.g. logo-wall raster tiles): meet-fit the
+          // image's natural aspect into the box, centred, rather than stretching it
+          // to the cell. Other object-fit values keep the stretch (the prior default).
+          const nw = el.naturalWidth || 0, nh = el.naturalHeight || 0;
+          if (!isCircle && style.objectFit === 'contain' && nw > 0 && nh > 0) {
+            const s = Math.min(w / nw, h / nh), fw = nw * s, fh = nh * s;
+            const [px, py] = objectPositionFractions(style.objectPosition);
+            pdf.addImage(imgSrc, fmt, x + (w - fw) * px, y + (h - fh) * py, fw, fh);
+          } else {
+            pdf.addImage(imgSrc, fmt, x, y, w, h);
+          }
         } catch { /* skip unloadable images */ }
       }
       return;
@@ -3171,6 +3189,33 @@ function svgLen(val, total) {
   const s = String(val);
   if (s.endsWith('%')) return (parseFloat(s) / 100) * total;
   return parseFloat(s) || 0;
+}
+
+// The computed fill/stroke of a live-DOM SVG element — resolves SVG inheritance
+// (an ancestor group's paint) and currentColor. Empty for a detached element, so
+// callers keep their own literal fallback.
+function computedPaint(el, prop) {
+  try {
+    return (typeof window !== 'undefined' && el.isConnected) ? (window.getComputedStyle(el)[prop] || '') : '';
+  } catch { return ''; }
+}
+
+// Parse a CSS object-position into [x, y] fractions (0..1), so a meet-fitted image
+// hugs the same edge in PDF as on screen (e.g. wayfinding rows use "left center" /
+// "right center"). Handles keywords + percentages; falls back to centred.
+function objectPositionFractions(val) {
+  const toks = String(val || '50% 50%').trim().toLowerCase().split(/\s+/).slice(0, 2);
+  let px = 0.5, py = 0.5;
+  const pct = [];
+  for (const t of toks) {
+    if (t === 'left') px = 0; else if (t === 'right') px = 1;
+    else if (t === 'top') py = 0; else if (t === 'bottom') py = 1;
+    else if (t === 'center') { /* leave default */ }
+    else if (t.endsWith('%')) { const p = parseFloat(t); if (isFinite(p)) pct.push(p / 100); }
+  }
+  if (pct.length === 1) px = pct[0];
+  else if (pct.length === 2) { px = pct[0]; py = pct[1]; }
+  return [px, py];
 }
 
 function resolveColor(el) {

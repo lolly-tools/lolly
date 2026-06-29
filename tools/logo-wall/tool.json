@@ -70,67 +70,57 @@
       "help": "Auto-size each logo by its optical weight — heavier logos shrink, lighter ones grow — so the wall reads as evenly weighted. Each logo's own Size % still applies on top. Turn off for uniform sizing."
     },
     {
-      "id": "vectorize",
-      "label": "Render as vector",
-      "type": "boolean",
-      "default": false,
-      "help": "Threshold each logo into flat vector shapes — one ink colour, crisp at any size, true vector in SVG and PDF. Renders in the browser."
-    },
-    {
       "id": "inkColor",
       "label": "Ink colour",
       "type": "color",
       "default": "#0c322c",
-      "showIf": { "vectorize": true }
+      "help": "The single ink for any logo set to “Render as vector” (per logo, below)."
     },
     {
       "id": "threshold",
-      "label": "Threshold",
+      "label": "Vector threshold",
       "type": "number",
       "display": "slider",
       "min": 1,
       "max": 99,
       "step": 1,
       "default": 55,
-      "showIf": { "vectorize": true },
-      "help": "Brightness cut-off. Higher keeps more of each logo. Use Invert for white or pale logos."
+      "help": "Default brightness cut-off for vector logos. Higher keeps more of each logo; tune a finnicky one per logo below."
     },
     {
       "id": "invert",
-      "label": "Invert",
+      "label": "Vector invert",
       "type": "boolean",
       "default": false,
-      "showIf": { "vectorize": true },
-      "help": "Swap which side of the threshold becomes ink — needed for white or pale logos."
+      "help": "Default for vector logos — swap which side of the threshold becomes ink. White / pale logos are auto-inverted, so you rarely need this; tune per logo below if one needs it."
     },
     {
       "id": "detail",
-      "label": "Detail",
+      "label": "Vector detail",
       "type": "number",
       "display": "slider",
       "min": 80,
-      "max": 320,
+      "max": 600,
       "step": 10,
-      "default": 200,
-      "showIf": { "vectorize": true },
-      "help": "Tracing resolution per logo. Higher captures finer shapes but is heavier."
+      "default": 300,
+      "help": "Default tracing resolution for vector logos. Higher captures finer shapes but is heavier."
     },
     {
       "id": "smoothing",
-      "label": "Smoothing",
+      "label": "Vector smoothing",
       "type": "number",
       "display": "slider",
       "min": 0,
       "max": 100,
       "step": 5,
       "default": 60,
-      "showIf": { "vectorize": true },
-      "help": "How much the traced outlines are rounded into curves. Low keeps edges faithful and crisp; high flows them into smooth Bézier curves."
+      "help": "Default for vector logos: how much traced outlines round into curves. Low keeps edges crisp; high flows them into smooth Bézier curves."
     },
     {
       "id": "logos",
       "label": "Logos",
       "type": "blocks",
+      "labelledFields": true,
       "dropToAdd": { "field": "logo", "accept": "image/*" },
       "fields": [
         { "id": "logo", "label": "Image", "type": "asset", "assetType": "any", "allowUpload": true },
@@ -139,7 +129,17 @@
         { "id": "filter", "label": "Filter", "type": "select", "default": "none", "options": [
           { "value": "none", "label": "None" },
           { "value": "grayscale", "label": "Grayscale" }
-        ] }
+        ] },
+        { "id": "vectorize", "label": "Render as vector", "type": "boolean", "default": false,
+          "help": "Flatten this logo to the single ink colour (crisp vector). Off keeps it as its original image." },
+        { "id": "tune", "label": "Tune this logo", "type": "boolean", "default": false, "showIf": { "vectorize": true },
+          "help": "Give this logo its own vector settings — for finnicky marks that need a different threshold or inverting." },
+        { "id": "threshold", "label": "Threshold", "type": "number", "display": "slider", "min": 1, "max": 99, "step": 1, "default": 55, "showIf": { "vectorize": true, "tune": true },
+          "help": "Brightness cut-off for this logo. Higher keeps more of it." },
+        { "id": "invert", "label": "Invert", "type": "boolean", "default": false, "showIf": { "vectorize": true, "tune": true },
+          "help": "For a white or pale logo." },
+        { "id": "detail", "label": "Detail", "type": "number", "display": "slider", "min": 80, "max": 320, "step": 10, "default": 200, "showIf": { "vectorize": true, "tune": true } },
+        { "id": "smoothing", "label": "Smoothing", "type": "number", "display": "slider", "min": 0, "max": 100, "step": 5, "default": 60, "showIf": { "vectorize": true, "tune": true } }
       ],
       "default": []
     }
