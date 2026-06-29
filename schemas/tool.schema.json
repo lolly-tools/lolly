@@ -231,6 +231,15 @@
         "bindToProfile": {
           "type": "string",
           "description": "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."
+        },
+        "group": {
+          "type": "string",
+          "description": "Optional grouping tag. The reserved value 'export' moves an input out of the sidebar into the export panel; the engine injects its own export-group toggles (transparentBg, convertPaths). Any other value is a free-form label for related controls."
+        },
+        "showIf": {
+          "type": "object",
+          "description": "Conditional visibility: the input renders in the sidebar only while every { otherInputId: value } pair here matches the current model (e.g. { \"vectorize\": true }).",
+          "additionalProperties": true
         }
       },
       "allOf": [
@@ -406,6 +415,15 @@
                       }
                     }
                   }
+                }
+              },
+              "dropToAdd": {
+                "type": "object",
+                "description": "Turns the blocks list into a drop zone: dragging or selecting several image files at once creates one block per file, each with the file uploaded into the named asset sub-field. Every other field of a new block starts at its declared default.",
+                "required": ["field"],
+                "properties": {
+                  "field": { "type": "string", "description": "id of the block's `asset` sub-field that each dropped file is uploaded into." },
+                  "accept": { "type": "string", "description": "MIME accept filter for dropped files (default \"image/*\"). A trailing /* matches a whole type group." }
                 }
               }
             }

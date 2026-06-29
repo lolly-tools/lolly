@@ -2027,6 +2027,28 @@ background-color:hsl(var(--background) / 1);
 }
 .block-add:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
 
+/* Drop-to-add: a blocks input that declares `dropToAdd` (e.g. logo-wall) becomes
+   a drop zone. The empty-state prompt doubles as a "choose files" button; the
+   whole list highlights while files are dragged over it. */
+.blocks-input--droppable .blocks-list { min-height: 8px; }
+.blocks-drop-hint {
+  display: block; width: 100%; box-sizing: border-box;
+  margin: 2px 0; padding: 18px 12px;
+  background: none;
+  border: 1.5px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 13px; text-align: center; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.blocks-drop-hint:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+.blocks-input--droppable.is-file-dragover .blocks-list,
+.blocks-input--droppable.is-file-dragover .blocks-drop-hint {
+  outline: 2px dashed hsl(var(--primary));
+  outline-offset: 3px;
+  border-color: hsl(var(--primary));
+}
+
 /* "Collapse all / Expand all" — a small pill above a multi-block list so a long
    stack of opened blocks folds back in one tap. Right-aligned, deliberately quiet
    (it's a tidy-up affordance, not a primary action like the brand-fill Add pill). */
@@ -2690,6 +2712,26 @@ background-color:hsl(var(--background) / 1);
   overflow: hidden;
   flex-shrink: 0;
   box-shadow: 0 .5em 3em #0002;
+  /* Slow default transition = the gentle fade-OUT after a resize ends. */
+  transition: box-shadow 0.4s ease;
+}
+
+/* Editor-only outline pulsed onto the canvas WHILE the export size is being
+   changed (scrub / scroll / type) and removed shortly after — see
+   pulseCanvasResize() in tool.js. Lives on the OUTER wrapper, never the exported
+   #tool-canvas, so it can't bleed into output; box-shadow (not outline/border)
+   so it sits OUTSIDE the canvas and never draws over its content. A faster
+   transition here makes it appear quickly; the base rule fades it out slowly. */
+.tool-canvas-outer.is-resizing {
+  box-shadow: 0 .5em 3em #0002,
+              0 0 0 2px hsl(var(--ring) / 0.32),
+              0 0 16px hsl(var(--ring) / 0.10);
+  transition: box-shadow 0.09s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-canvas-outer,
+  .tool-canvas-outer.is-resizing { transition: none; }
 }
 
 /* Export shutter — a CSS camera-iris that sweeps in to COVER the whole stage
@@ -5596,8 +5638,15 @@ button {
   border: 1px solid hsl(var(--border));
   border-radius: calc(var(--radius) * 1.25);
 }
+/* Section headings match the profile cards: small uppercase muted labels
+   (nothing in either view is case-sensitive, so uppercasing is safe). */
 .plat-section-title {
-  margin: 0; font-size: 1.25rem; font-weight: 650;
+  margin: 0;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: hsl(var(--muted-foreground));
 }
 .plat-section-desc { margin: .55rem 0 0; max-width: 74ch; color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.5; }
 .plat-section-desc code, .plat-note code,
@@ -5697,6 +5746,7 @@ button {
 .plat-section-summary::-webkit-details-marker { display: none; }
 .plat-section-summary .plat-section-title { flex: 1 1 auto; margin: 0; text-align: left; }
 .plat-section-chev { flex: 0 0 auto; color: hsl(var(--muted-foreground)); transition: transform .15s ease; }
+.plat-section-summary:hover .plat-section-title,
 .plat-section-summary:hover .plat-section-chev { color: hsl(var(--foreground)); }
 .plat-section[open] .plat-section-summary .plat-section-chev { transform: rotate(90deg); }
 .plat-section-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: calc(var(--radius) * 1.25); }

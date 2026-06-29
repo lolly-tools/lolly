@@ -165,12 +165,16 @@ async function boot() {
   const catalogReady = syncCatalog(host);
   catalogReady.then(() => syncCorePrefetch(host)); // fire-and-forget after sync
 
-  // The gallery tolerates an empty/cached index on first paint (it defaults to
-  // { tools: [] }), so don't block the first render on the network sync — it
-  // always falls back to cache anyway. Deep links to a tool/profile/etc. need
-  // the synced catalog (asset metadata) before their first render, so those keep
-  // the original "sync, then navigate" ordering.
-  if (parseRoute().name === 'gallery') {
+  // The gallery can paint instantly from a CACHED index, then silently refresh
+  // when the network sync lands. But a brand-new user has no cache, and painting
+  // { tools: [] } would flash the gallery's *failure* empty-state ("couldn't
+  // load the tools — check your connection") during a sync that's actually
+  // succeeding. So only take the fast path when we already have an index;
+  // otherwise wait for the sync (it resolves even offline, falling back to cache)
+  // so the first paint is real data, not a false error. Deep links to a
+  // tool/profile/etc. need the synced catalog (asset metadata) before their first
+  // render, so those keep the original "sync, then navigate" ordering.
+  if (parseRoute().name === 'gallery' && window.__toolIndex) {
     const before = JSON.stringify(window.__toolIndex ?? null);
     await navigate(host);
     catalogReady.then(() => {

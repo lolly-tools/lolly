@@ -5,16 +5,19 @@
   "description": "Constraint-first, template-driven on-brand asset generation for SUSE.",
   "license": "MPL-2.0",
   "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "workspaces": [
     "engine",
     "shells/web",
     "shells/cli"
   ],
   "scripts": {
-    "dev:web": "node docs/build.js --watch & npm --workspace shells/web run dev",
+    "dev:web": "node scripts/dev-web.js",
     "build:web": "npm run build:info && npm --workspace shells/web run build",
     "build:info": "node docs/build.js",
-    "test": "node --test \"tests/**/*.test.js\"",
+    "test": "node --test \"tests/**/*.test.js\" \"shells/web/src/**/*.test.js\"",
     "build:catalog": "node scripts/build-catalog-index.js && node scripts/checksum-assets.js",
     "validate:catalog": "node scripts/validate-catalog.js",
     "previews": "node scripts/build-previews.js",

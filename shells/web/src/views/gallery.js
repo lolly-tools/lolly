@@ -73,6 +73,17 @@ const PACKAGE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 // actual fade — JS just arms it (.reveal-armed) and toggles .is-in per tile.
 // Returns the observer so the caller can disconnect it before the next render.
 const REVEAL_STEP_MS = 30;  // delay between tiles within one reveal batch
+// Reading order: top-to-bottom, then left-to-right within a row — a gentle wave that
+// reads left-to-right regardless of the column-major order the masonry packs the DOM
+// into. The 8px top-bucket tolerates sub-pixel row misalignment between columns.
+function byRowThenColumn(a, b) {
+  const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+  return (Math.round(ra.top / 8) - Math.round(rb.top / 8)) || (ra.left - rb.left);
+}
+function reveal(el, i) {
+  el.style.setProperty('--reveal-delay', `${i * REVEAL_STEP_MS}ms`);
+  el.classList.add('is-in');
+}
 function revealCards(masonry, animate) {
   // Not animating — returning from a tool, reduced motion, or no IO support:
   // leave tiles un-armed so the CSS renders them at full opacity immediately.
@@ -81,24 +92,34 @@ function revealCards(masonry, animate) {
     return null;
   }
   masonry.classList.add('reveal-armed');
+  const all = [...masonry.querySelectorAll('.gtile')];
+
+  // First screen: reveal every currently-visible tile in ONE deterministic,
+  // geometry-ordered pass. The old code leaned on the IntersectionObserver to deliver
+  // the whole above-the-fold set in a single callback and sorted *that* — but on a cold
+  // load the preview images decode and reflow the column masonry, so the set arrived
+  // split across several callbacks, each restarting the stagger at 0. The top-right
+  // cards (late in the column-major DOM order) landed in a later batch and animated
+  // last. Ordering the visible set ourselves, up front, makes the left-to-right cascade
+  // reliable and works even before the IO would have fired (e.g. a backgrounded tab).
+  const vh = window.innerHeight || document.documentElement.clientHeight;
+  const inView = [], below = [];
+  for (const el of all) {
+    const r = el.getBoundingClientRect();
+    (r.top < vh && r.bottom > 0 ? inView : below).push(el);
+  }
+  inView.sort(byRowThenColumn).forEach(reveal);
+
+  // Below the fold: fade in per tile as it scrolls into view. Each batch re-starts the
+  // stagger at 0 so a late scroll never inherits a big delay.
+  if (!below.length) return null;
   const io = new IntersectionObserver((entries, obs) => {
-    const batch = entries.filter(e => e.isIntersecting).map(e => e.target);
-    // Reveal top-to-bottom, then left-to-right — a gentle wave down the page,
-    // independent of how the masonry columns packed the DOM order. Each batch
-    // re-starts the stagger at 0, so a scroll batch never inherits a big delay.
-    batch.sort((a, b) => {
-      const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
-      return (Math.round(ra.top / 8) - Math.round(rb.top / 8)) || (ra.left - rb.left);
-    });
-    batch.forEach((el, i) => {
-      el.style.setProperty('--reveal-delay', `${i * REVEAL_STEP_MS}ms`);
-      el.classList.add('is-in');
-      obs.unobserve(el);
-    });
+    entries.filter(e => e.isIntersecting).map(e => e.target).sort(byRowThenColumn)
+      .forEach((el, i) => { reveal(el, i); obs.unobserve(el); });
   // Pull the trigger up a touch from the bottom edge so scroll reveals read as
   // "fades in as it arrives" rather than only once fully on-screen.
   }, { rootMargin: '0px 0px -6% 0px', threshold: 0.02 });
-  masonry.querySelectorAll('.gtile').forEach(el => io.observe(el));
+  below.forEach(el => io.observe(el));
   return io;
 }
 
