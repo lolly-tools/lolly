@@ -18,6 +18,16 @@
        headless renders it stays a centred cover. The user's own pick wins;
        otherwise the shared demo image ({{defaultImageUrl}}, resolved in hooks.js)
        fills in so the effect shows on load. -->
+  {{#if liveSrc}}
+  <!-- Live camera (engine v1.4): the frame IS the filtered image. Uses id duo-live
+       (not duo-img) so the framing <script> below skips it — no per-frame data-URL
+       probe/leak; the declarative xMidYMid slice gives a cover fit. -->
+  <image id="duo-live"
+    filter="url(#duo)"
+    preserveAspectRatio="xMidYMid slice"
+    href="{{liveSrc}}"
+    x="0" y="0" width="100%" height="100%"/>
+  {{else}}
   {{#if bgImage}}
   <image id="duo-img"
     filter="url(#duo)"
@@ -33,6 +43,7 @@
     href="{{defaultImageUrl}}"
     x="0" y="0" width="100%" height="100%"
     data-zoom="{{imageFraming.zoom}}" data-posx="{{imageFraming.x}}" data-posy="{{imageFraming.y}}"/>
+  {{/if}}
   {{/if}}
   {{/if}}
 </svg>

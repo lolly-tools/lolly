@@ -15,7 +15,8 @@
   },
   "hooks": {
     "onInit": true,
-    "onInput": true
+    "onInput": true,
+    "onFrame": true
   },
   "inputs": [
     {

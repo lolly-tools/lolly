@@ -18,6 +18,7 @@
   "hooks": {
     "onInit": true,
     "onInput": true,
+    "onFrame": true,
     "beforeExport": true
   },
   "inputs": [

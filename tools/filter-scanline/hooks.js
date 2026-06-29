@@ -233,6 +233,32 @@ async function compute(model) {
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
 
+// Live camera (engine v1.4): the runtime calls this once per frame with raw RGBA
+// pixels. Wrap the frame in a canvas the existing buildSvg pipeline samples like a
+// decoded image, so a live frame runs the SAME tone-bucket + scanline path and the
+// bands track motion. No URL load, no memo (every frame is new). null = no patch.
+function onFrame(ctx) {
+  var frame = ctx.frame;
+  if (!frame || !frame.data || !frame.width || !frame.height) return null;
+  if (!canRaster() || typeof ImageData === 'undefined') return null;
+  var inputs = inputsFrom(ctx.model);
+  _bgTransparent = !colour(inputs.background, '');
+  var src;
+  try {
+    src = document.createElement('canvas');
+    src.width = frame.width; src.height = frame.height;
+    src.getContext('2d').putImageData(new ImageData(frame.data, frame.width, frame.height), 0, 0);
+  } catch (e) { return null; }
+  var svg = buildSvg({
+    img: src, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels,
+    everyLine: inputs.everyLine, fit: inputs.fit, highlight: inputs.highlight, light: inputs.light,
+    mid: inputs.mid, shade: inputs.shade, shadow: inputs.shadow, background: inputs.background,
+    brightness: inputs.brightness, contrast: inputs.contrast,
+  });
+  _memoKey = null; // a live frame supersedes the still memo
+  return { svgContent: svg || placeholder('Preview renders in the browser') };
+}
+
 function beforeExport(ctx) {
   // Alpha-capable rasters: when the background is empty, export with real
   // transparency (the SVG has no background rect). SVG is transparent by construction.

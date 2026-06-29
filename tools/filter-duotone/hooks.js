@@ -1,4 +1,4 @@
-/* global onInit, onInput, host */
+/* global onInit, onInput, onFrame, host */
 
 // A raster library asset shown when the user hasn't picked an image yet, so the
 // tool demonstrates the effect on load. Same default as filter-scanline /
@@ -64,4 +64,25 @@ function onInit(ctx) {
 
 function onInput(ctx) {
   return patch(ctx);
+}
+
+// Live camera (engine v1.4): the runtime calls this once per frame with raw RGBA
+// pixels. Unlike the pixel-tracing filters, duotone is a browser SVG filter on an
+// <image>, so we just hand the frame back as the image source (a data URL) plus the
+// current colour tables — the browser applies the #duo filter to it (GPU-fast). The
+// template renders it as #duo-live (see template.html), so the framing script skips
+// re-probing a fresh data URL every frame. null = no patch (last frame stays).
+function onFrame({ frame, model }) {
+  if (!frame || !frame.data || !frame.width || !frame.height) return null;
+  if (typeof document === 'undefined' || typeof ImageData === 'undefined') return null;
+  const inputs = Object.fromEntries(model.map(i => [i.id, i.value]));
+  let liveSrc;
+  try {
+    const c = document.createElement('canvas');
+    c.width = frame.width; c.height = frame.height;
+    c.getContext('2d').putImageData(new ImageData(frame.data, frame.width, frame.height), 0, 0);
+    // JPEG: cheap to encode and the duotone filter discards colour fidelity anyway.
+    liveSrc = c.toDataURL('image/jpeg', 0.85);
+  } catch (e) { return null; }
+  return Object.assign(buildDuo(inputs), { liveSrc });
 }

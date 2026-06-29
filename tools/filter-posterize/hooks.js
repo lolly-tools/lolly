@@ -1,4 +1,4 @@
-/* global onInit, onInput, beforeExport, host */
+/* global onInit, onInput, onFrame, beforeExport, host */
 
 /**
  * Filter: Posterise Bitmap — trace a photo into flat vector colour separations.
@@ -557,6 +557,90 @@ async function compute(model) {
 
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
+
+// ── live camera (engine v1.4) ──────────────────────────────────────────────────
+
+// Decode a live RGBA frame into the {lum,alpha,r,g,b,cols,rows} grid the tracer
+// wants — downscaled to `maxDetail` longest edge (no URL cache; every frame is new).
+function gridFromFrame(frame, maxDetail) {
+  var fw = frame.width, fh = frame.height;
+  var scale = Math.min(1, maxDetail / Math.max(fw, fh));
+  var cols = Math.max(1, Math.round(fw * scale)), rows = Math.max(1, Math.round(fh * scale));
+  var src = document.createElement('canvas'); src.width = fw; src.height = fh;
+  src.getContext('2d').putImageData(new ImageData(frame.data, fw, fh), 0, 0);
+  var c = document.createElement('canvas'); c.width = cols; c.height = rows;
+  var ctx = c.getContext('2d', { willReadFrequently: true });
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(src, 0, 0, cols, rows);
+  var data = ctx.getImageData(0, 0, cols, rows).data;
+  var n = cols * rows;
+  var lum = new Uint8Array(n), alpha = new Uint8Array(n), r = new Uint8Array(n), g = new Uint8Array(n), b = new Uint8Array(n);
+  for (var i = 0, p = 0; i < n; i++, p += 4) {
+    r[i] = data[p]; g[i] = data[p + 1]; b[i] = data[p + 2];
+    lum[i] = (0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2]) | 0;
+    alpha[i] = data[p + 3];
+  }
+  return { lum: lum, alpha: alpha, r: r, g: g, b: b, cols: cols, rows: rows };
+}
+
+// Cap the live trace resolution WELL below the still path's reach (up to 640) so the
+// marching-squares trace stays responsive frame-to-frame — motion over fidelity. This
+// is the heaviest of the live filters (real-time vector tracing); the runtime drops
+// overlapping frames so it self-throttles rather than piling up.
+var LIVE_DETAIL = 180;
+
+function onFrame(ctx) {
+  var frame = ctx.frame;
+  if (!frame || !frame.data || !frame.width || !frame.height) return null;
+  if (!canRaster() || typeof ImageData === 'undefined') return null;
+  var inputs = inputsFrom(ctx.model);
+  _transparent = Boolean(inputs.transparentBg);
+  var steps = clamp(Math.round(num(inputs.steps, 8)), 2, 12);
+  var invert = Boolean(inputs.invert);
+  var brightness = clamp(Math.round(num(inputs.brightness, 0)), -100, 100);
+  var contrast = clamp(Math.round(num(inputs.contrast, 0)), -100, 100);
+  var threshold = Boolean(inputs.threshold);
+  var thresholdLevel = clamp(Math.round(num(inputs.thresholdLevel, 50)), 1, 99);
+  var effSteps = threshold ? 2 : steps;
+  var toneKey = brightness + ',' + contrast + (threshold ? '|t' + thresholdLevel : '');
+  var W = clamp(Math.round(num(inputs.width, 1080)), 1, 8000);
+  var H = clamp(Math.round(num(inputs.height, 1080)), 1, 8000);
+
+  var g;
+  try { g = gridFromFrame(frame, LIVE_DETAIL); } catch (e) { return null; }
+
+  var gTone = (brightness || contrast) ? applyTone(g, toneLUT(brightness, contrast)) : g;
+  var gEff = gTone;
+  if (invert) {
+    var iv = new Uint8Array(gTone.lum.length);
+    for (var ii = 0; ii < iv.length; ii++) iv[ii] = 255 - gTone.lum[ii];
+    gEff = { lum: iv, alpha: gTone.alpha, r: gTone.r, g: gTone.g, b: gTone.b, cols: gTone.cols, rows: gTone.rows };
+  }
+  var thr = threshold
+    ? [clamp(Math.round(thresholdLevel / 100 * 255), 1, 254)]
+    : quantileThresholds(gEff, effSteps);
+
+  // FREEZE the palette: use the user's current swatches; derive from THIS frame only
+  // for any swatch not yet set. NEVER patch `colors` — reseeding the auto palette every
+  // frame would make the poster's colours shimmer and churn the swatch UI ~30×/sec.
+  var blocks = Array.isArray(inputs.colors) ? inputs.colors : [];
+  var auto = null, palette = [];
+  for (var pi = 0; pi < effSteps; pi++) {
+    var bc = color(blocks[pi] && blocks[pi].color, '');
+    if (bc) palette.push(bc);
+    else { if (!auto) auto = autoPalette(gEff, thr, effSteps); palette.push(auto[pi]); }
+  }
+
+  var tp = traceParams(inputs.quality, inputs.smoothing);
+  var grid = { g: gEff, cols: g.cols, rows: g.rows, tp: tp, invert: invert, tone: toneKey };
+  var svg;
+  // A unique per-frame url makes the geometry _bandCache never hit (every frame
+  // retraces) and busts the still-path memo, so stopping live re-renders the still cleanly.
+  try { svg = buildPoster('live:' + frame.t, null, W, H, grid, thr, palette); }
+  catch (e) { return null; }
+  _memoKey = null;
+  return { posterSvg: svg };
+}
 
 function beforeExport(ctx) {
   // Raster formats: honour "No background" for alpha-capable formats, else flat the
