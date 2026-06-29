@@ -1225,6 +1225,12 @@ async function renderSvgFromHtml(node, opts) {
             defs.appendChild(cp);
             img.setAttribute('clip-path',           `url(#${clipId})`);
             img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+          } else if (style.objectFit === 'cover') {
+            // Fill the box, cropping the overflow — `slice` clips to the image's own
+            // x/y/width/height viewport, so no extra clipPath is needed (matches the
+            // on-screen hero/masthead). Other object-fit values keep the SVG default
+            // (xMidYMid meet = contain), unchanged.
+            img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
           }
           g.appendChild(img);
         } catch { /* skip unloadable images */ }
@@ -2201,6 +2207,19 @@ function withPdfAlpha(pdf, a, draw) {
   finally { if (on) pdf.setGState(new pdf.GState({ opacity: 1, 'stroke-opacity': 1 })); }
 }
 
+// Run `draw` with drawing clipped to the rect (x, y, w, h) in pt, then restore.
+// `rect(...,null)` adds the path with no paint op; clip()+discardPath() set it as
+// the clip region (W n). Used for object-fit: cover, where the fitted image/SVG
+// overflows the box and the spill must be cropped. `draw` may be async.
+async function withPdfClipRect(pdf, x, y, w, h, draw) {
+  pdf.saveGraphicsState();
+  pdf.rect(x, y, w, h, null);
+  pdf.clip();
+  pdf.discardPath();
+  try { await draw(); }
+  finally { pdf.restoreGraphicsState(); }
+}
+
 // Emits jsPDF path operations (moveTo/lineTo/curveTo/close) for an SVG `d` string.
 // tx/ty are coordinate-transform functions: SVG user units → jsPDF pt (top-left origin).
 // Caller must call fill()/stroke()/fillStroke() after this returns.
@@ -2565,8 +2584,9 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
 
       // SVG images (e.g. the corner brand logo) must stay VECTOR — rasterising
       // them breaks true CMYK output and looks soft. Inline the SVG and draw it
-      // through the same vector path as an inline <svg>, fitted "meet" (aspect
-      // preserved, centred) so the whole mark shows — matching object-fit: contain.
+      // through the same vector path as an inline <svg>, honouring object-fit:
+      // "cover" slice-fits (fills the box, clipping the overflow — e.g. an SVG
+      // hero/masthead), everything else "meet"-fits (whole mark, centred = contain).
       // SVG-ness is detected from the bytes (asset URLs are blob: with no hint).
       {
         let svgEl = null;
@@ -2579,10 +2599,16 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
             const vb = svgEl.viewBox?.baseVal;
             const vbW = (vb && vb.width  > 0) ? vb.width  : rect.width;
             const vbH = (vb && vb.height > 0) ? vb.height : rect.height;
-            const s  = Math.min(w / vbW, h / vbH);            // meet: fit whole mark
+            const cover = style.objectFit === 'cover';
+            const s = cover ? Math.max(w / vbW, h / vbH) : Math.min(w / vbW, h / vbH);
             const fw = vbW * s, fh = vbH * s;
             const [px, py] = objectPositionFractions(style.objectPosition);
-            await drawSvgVectorsInRegion(pdf, svgEl, x + (w - fw) * px, y + (h - fh) * py, fw, fh, registeredFonts);
+            const dx = x + (w - fw) * px, dy = y + (h - fh) * py;
+            if (cover) {
+              await withPdfClipRect(pdf, x, y, w, h, () => drawSvgVectorsInRegion(pdf, svgEl, dx, dy, fw, fh, registeredFonts));
+            } else {
+              await drawSvgVectorsInRegion(pdf, svgEl, dx, dy, fw, fh, registeredFonts);
+            }
           }
         } catch { /* fall through to the raster path */ }
         finally { svgEl?.remove(); }
@@ -2612,14 +2638,27 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
             ? await circularClipImage(style.filter && style.filter !== 'none' ? null : el, dataUrl).catch(() => dataUrl)
             : dataUrl;
           const { src: imgSrc, fmt } = await imageForPdf(imgUrl);
-          // Honour object-fit:contain (e.g. logo-wall raster tiles): meet-fit the
-          // image's natural aspect into the box, centred, rather than stretching it
-          // to the cell. Other object-fit values keep the stretch (the prior default).
+          // Honour object-fit against the image's natural aspect (matches screen/PNG):
+          //   contain → meet-fit the whole image into the box, centred (logo-wall tiles);
+          //   cover   → fill the box, scaling up by the LARGER ratio and clipping the
+          //             overflow (hero/masthead images — see multi-page-pdf);
+          //   else    → stretch to the box (the prior default).
+          // objectPosition fractions place the fitted image; the same `(box-fit)*frac`
+          // offset works for both: it's a positive inset for contain, a negative one
+          // (the cropped overflow) for cover.
           const nw = el.naturalWidth || 0, nh = el.naturalHeight || 0;
-          if (!isCircle && style.objectFit === 'contain' && nw > 0 && nh > 0) {
-            const s = Math.min(w / nw, h / nh), fw = nw * s, fh = nh * s;
+          const fit = style.objectFit;
+          if (!isCircle && (fit === 'contain' || fit === 'cover') && nw > 0 && nh > 0) {
+            const r = w / nw, R = h / nh;
+            const s = fit === 'cover' ? Math.max(r, R) : Math.min(r, R);
+            const fw = nw * s, fh = nh * s;
             const [px, py] = objectPositionFractions(style.objectPosition);
-            pdf.addImage(imgSrc, fmt, x + (w - fw) * px, y + (h - fh) * py, fw, fh);
+            const dx = x + (w - fw) * px, dy = y + (h - fh) * py;
+            if (fit === 'cover') {
+              await withPdfClipRect(pdf, x, y, w, h, () => pdf.addImage(imgSrc, fmt, dx, dy, fw, fh));
+            } else {
+              pdf.addImage(imgSrc, fmt, dx, dy, fw, fh);
+            }
           } else {
             pdf.addImage(imgSrc, fmt, x, y, w, h);
           }
