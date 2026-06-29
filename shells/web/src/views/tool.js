@@ -108,6 +108,11 @@ let _sliderDragging = false;
 // single renderInputs pass (the panel only rebuilds on drop).
 let _blockDrag = null;
 
+// Undo/redo glyphs for the history toast (Lucide undo-2 / redo-2). App chrome,
+// not exported, so currentColor is safe here (unlike tool-template SVGs).
+const ICON_UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5 5.5 5.5 0 0 1-5.5 5.5H11"/></svg>';
+const ICON_REDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/></svg>';
+
 export async function mountTool(viewEl, host, toolId, urlParams) {
   // If the catalog is loaded, do a fast existence check before fetching anything.
   const catalog = window.__toolIndex;
@@ -194,6 +199,123 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   }
 
   const runtime = await createRuntime(tool, host, initialValues);
+
+  // ── Undo / redo (Cmd+Z / Cmd+Shift+Z / Cmd+Y) ──────────────────────────────
+  // Lets an accidental slider nudge — or any control edit — be reverted. There's
+  // no shell-level chokepoint for edits: every control calls runtime.setInput
+  // directly, so we wrap it once here to record before/after values. A slider
+  // drag fires 'input' on every pixel, so rapid same-input changes coalesce (by
+  // id + time) into a single step — one gesture, one undo. Restoring just replays
+  // setInput, so the existing subscriber refreshes the sidebar + canvas for free
+  // and the onInput hook re-derives any computed inputs (we never store those).
+  const HISTORY_LIMIT = 100;
+  const COALESCE_MS = 500;
+  const undoStack = [];   // { id, before, after, time }
+  const redoStack = [];
+  let applyingHistory = false;
+
+  const cloneValue = v => { try { return structuredClone(v); } catch { return v; } };
+  const sameValue = (a, b) => {
+    if (a === b) return true;
+    try { return JSON.stringify(a) === JSON.stringify(b); } catch { return false; }
+  };
+
+  const baseSetInput = runtime.setInput.bind(runtime);
+  runtime.setInput = (id, value) => {
+    if (!applyingHistory) {
+      const cur = runtime.getModel().find(i => i.id === id);
+      if (cur && !sameValue(cur.value, value)) {
+        const now = Date.now();
+        const last = undoStack[undoStack.length - 1];
+        if (last && last.id === id && now - last.time < COALESCE_MS) {
+          last.after = cloneValue(value);   // extend the gesture, keep its original `before`
+          last.time = now;
+        } else {
+          // `label` (the input's human name) is what the toast shows on undo/redo.
+          undoStack.push({ id, label: cur.label || cur.id, before: cloneValue(cur.value), after: cloneValue(value), time: now });
+          if (undoStack.length > HISTORY_LIMIT) undoStack.shift();
+        }
+        redoStack.length = 0;   // a fresh edit breaks the redo chain
+      }
+    }
+    return baseSetInput(id, value);
+  };
+
+  const applyHistory = (id, value) => {
+    applyingHistory = true;
+    try { runtime.setInput(id, cloneValue(value)); }
+    finally { applyingHistory = false; }
+  };
+  const undoHistory = () => {
+    const entry = undoStack[undoStack.length - 1];
+    if (!entry) { showHistoryToast({ empty: 'undo' }); return; }
+    undoStack.pop();
+    redoStack.push(entry);
+    applyHistory(entry.id, entry.before);
+    showHistoryToast({ kind: 'undo', label: entry.label });
+  };
+  const redoHistory = () => {
+    const entry = redoStack[redoStack.length - 1];
+    if (!entry) { showHistoryToast({ empty: 'redo' }); return; }
+    redoStack.pop();
+    undoStack.push(entry);
+    applyHistory(entry.id, entry.after);
+    showHistoryToast({ kind: 'redo', label: entry.label });
+  };
+
+  // Transient bottom-centre toast confirming what was undone/redone, with a
+  // one-tap counter-action (Redo after an undo, and vice-versa) — that button
+  // doubles as the redo path on touch, where there's no keyboard. Reuses
+  // announce() for the screen-reader side (the toast itself is aria-hidden to
+  // avoid a double read). A single reused element; the timer resets on each call.
+  let historyToastEl = null, historyToastTimer = 0;
+  const showHistoryToast = ({ kind, label, empty }) => {
+    if (!historyToastEl) {
+      historyToastEl = document.createElement('div');
+      historyToastEl.className = 'toast toast--history';
+      historyToastEl.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(historyToastEl);
+    }
+    const el = historyToastEl;
+    const wasVisible = el.classList.contains('is-visible');
+    clearTimeout(historyToastTimer);
+    if (empty) {
+      el.classList.add('is-muted');
+      el.innerHTML = `<span class="toast-message">Nothing to ${empty}</span>`;
+      announce(`Nothing to ${empty}`);
+    } else {
+      el.classList.remove('is-muted');
+      const verb = kind === 'undo' ? 'Undid' : 'Redid';
+      const counter = kind === 'undo' ? 'Redo' : 'Undo';
+      el.innerHTML =
+        `<span class="toast-icon" aria-hidden="true">${kind === 'undo' ? ICON_UNDO : ICON_REDO}</span>` +
+        `<span class="toast-message">${verb}<span class="toast-label"> ${escape(String(label))}</span></span>` +
+        `<button type="button" class="toast-action">${counter}</button>`;
+      el.querySelector('.toast-action').addEventListener('click', () => {
+        kind === 'undo' ? redoHistory() : undoHistory();
+      });
+      announce(`${verb} ${label}`);
+    }
+    // Animate the slide-in only when coming from hidden; if it's already showing
+    // (rapid undo/redo), just swap the content and reset the timer — no flicker.
+    if (!wasVisible) void el.offsetWidth;   // flush the base state so the transition plays
+    el.classList.add('is-visible');
+    historyToastTimer = setTimeout(() => el.classList.remove('is-visible'), empty ? 1400 : 2200);
+  };
+
+  const onHistoryKey = e => {
+    if (!(e.metaKey || e.ctrlKey) || e.altKey) return;
+    const k = e.key.toLowerCase();
+    const redo = k === 'y' || (k === 'z' && e.shiftKey);
+    const undo = k === 'z' && !e.shiftKey;
+    if (!undo && !redo) return;
+    // Free-text fields keep their own per-character undo; sliders, selects,
+    // colours and checkboxes have no useful native undo, so we own those.
+    if (isTextEditing()) return;
+    e.preventDefault();
+    redo ? redoHistory() : undoHistory();
+  };
+  window.addEventListener('keydown', onHistoryKey);
 
   const nativeW     = tool.manifest.render.width;
   const nativeH     = tool.manifest.render.height;
@@ -692,6 +814,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Cleanup: remove injected <style>, disconnect observer, tear down canvas nav + export.
   viewEl._cleanup = () => {
     styleEl.remove(); shutterEl?.remove(); ro.disconnect(); stageZoom?.destroy(); exportTeardown?.();
+    window.removeEventListener('keydown', onHistoryKey);
+    clearTimeout(historyToastTimer); historyToastEl?.remove();
     if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
     // Document-level capture listeners added per renderInputs — drop them so a
     // detached sidebar tree isn't pinned alive across tool navigation.
@@ -1665,6 +1789,18 @@ function isTyping() {
   if (!el) return false;
   const tag = el.tagName;
   return tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el.isContentEditable;
+}
+
+// True only when focus is in a genuinely text-editable field (so Cmd+Z falls
+// through to the browser's per-character undo). Deliberately NARROWER than
+// isTyping: a focused range slider / colour / checkbox / number IS an <input>
+// but has no native undo, so our input-history undo should still fire there.
+function isTextEditing() {
+  const el = document.activeElement;
+  if (!el) return false;
+  if (el.isContentEditable || el.tagName === 'TEXTAREA') return true;
+  if (el.tagName !== 'INPUT') return false;
+  return ['text', 'search', 'url', 'tel', 'email', 'password'].includes((el.type || 'text').toLowerCase());
 }
 
 // Mobile only: drive the top-anchored controls panel via the grip on its bottom

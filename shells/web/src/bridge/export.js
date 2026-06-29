@@ -1973,6 +1973,29 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
     const strokeMul = (e) =>
       ((e.getAttribute('vector-effect') || resolveStyleProp(e, 'vector-effect')) === 'non-scaling-stroke' ? 1 : gAvg) * rAvg;
 
+    // Resolve fill + stroke (with opacity) for a basic shape, mirroring the
+    // <path> branch — so a stroked <rect>/<circle> keeps its border in PDF.
+    // (Previously rect/circle were fill-only: a card whose fill matches the page,
+    // distinguished only by its border, exported as an invisible box. The EMF/EPS
+    // walker in svg-ir.js already routes rect/circle through its path logic, so
+    // this brings the PDF sink to parity.) Returns null when nothing is paintable.
+    const shapePaint = (e) => {
+      let fillRgb = resolveColor(e);                 // own-attr → inline style → computed
+      let strokeStr = e.getAttribute('stroke') ?? resolveStyleProp(e, 'stroke') ?? 'none';
+      if (strokeStr === 'currentColor') strokeStr = computedPaint(e, 'stroke') || 'none';
+      let strokeRgb = (strokeStr && strokeStr !== 'none') ? parseSvgColor(strokeStr) : null;
+      const elemOp = parseFloat(e.getAttribute('opacity') ?? '1');
+      const fillOp = elemOp * parseFloat(e.getAttribute('fill-opacity') ?? '1');
+      const strkOp = elemOp * parseFloat(e.getAttribute('stroke-opacity') ?? '1');
+      if (fillOp < 0.01) fillRgb = null;
+      if (strkOp < 0.01) strokeRgb = null;
+      if (!fillRgb && !strokeRgb) return null;
+      if (fillRgb   && fillOp < 0.999) fillRgb   = blendSvgWithWhite(fillRgb,   fillOp);
+      if (strokeRgb && strkOp < 0.999) strokeRgb = blendSvgWithWhite(strokeRgb, strkOp);
+      const lw = Math.max(0.1, parseFloat(e.getAttribute('stroke-width') ?? '1') * strokeMul(e));
+      return { fillRgb, strokeRgb, lw };
+    };
+
     if (tag === 'defs' || tag === 'clippath' || tag === 'lineargradient' ||
         tag === 'radialgradient' || tag === 'symbol') return;
 
@@ -1995,30 +2018,35 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
     }
 
     if (tag === 'rect') {
-      const rgb = resolveColor(el);
-      if (!rgb) return;
       const x = PX(svgLen(el.getAttribute('x'), vbW));
       const y = PY(svgLen(el.getAttribute('y'), vbH));
       const w = LW(svgLen(el.getAttribute('width'), vbW));
       const h = LH(svgLen(el.getAttribute('height'), vbH));
       if (w <= 0 || h <= 0) return;
-      const rx = LW(parseFloat(el.getAttribute('rx') || '0'));
+      const paint = shapePaint(el);
+      if (!paint) return;
+      const rx = LW(parseFloat(el.getAttribute('rx') || el.getAttribute('ry') || '0'));
       const ry = LH(parseFloat(el.getAttribute('ry') || el.getAttribute('rx') || '0'));
-      pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
+      if (paint.fillRgb)   pdf.setFillColor(paint.fillRgb[0], paint.fillRgb[1], paint.fillRgb[2]);
+      if (paint.strokeRgb) { pdf.setDrawColor(paint.strokeRgb[0], paint.strokeRgb[1], paint.strokeRgb[2]); pdf.setLineWidth(paint.lw); }
+      const style = (paint.fillRgb && paint.strokeRgb) ? 'FD' : (paint.fillRgb ? 'F' : 'S');
       (rx > 0 || ry > 0)
-        ? pdf.roundedRect(x, y, w, h, rx, ry, 'F')
-        : pdf.rect(x, y, w, h, 'F');
+        ? pdf.roundedRect(x, y, w, h, rx, ry, style)
+        : pdf.rect(x, y, w, h, style);
       return;
     }
 
     if (tag === 'circle') {
-      const rgb = resolveColor(el);
-      if (!rgb) return;
       const cx = PX(svgLen(el.getAttribute('cx'), vbW));
       const cy = PY(svgLen(el.getAttribute('cy'), vbH));
       const r  = LW(svgLen(el.getAttribute('r'), vbW));
-      pdf.setFillColor(rgb[0], rgb[1], rgb[2]);
-      pdf.circle(cx, cy, r, 'F');
+      if (r <= 0) return;
+      const paint = shapePaint(el);
+      if (!paint) return;
+      if (paint.fillRgb)   pdf.setFillColor(paint.fillRgb[0], paint.fillRgb[1], paint.fillRgb[2]);
+      if (paint.strokeRgb) { pdf.setDrawColor(paint.strokeRgb[0], paint.strokeRgb[1], paint.strokeRgb[2]); pdf.setLineWidth(paint.lw); }
+      const style = (paint.fillRgb && paint.strokeRgb) ? 'FD' : (paint.fillRgb ? 'F' : 'S');
+      pdf.circle(cx, cy, r, style);
       return;
     }
 
