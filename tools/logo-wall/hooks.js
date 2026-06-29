@@ -515,7 +515,7 @@ function placeholder(message) {
 
 async function buildVectorWall(inputs, items) {
   var used = items.filter(function (it) { return it.url; });
-  if (!used.length) return placeholder('Drop logos, then turn on “Render as vector”.');
+  if (!used.length) return placeholder('Pick a logo image for each row to build your wall.');
 
   var cols = clamp(Math.round(num(inputs.columns, 4)), 1, 12);
   var rows = Math.max(1, Math.ceil(used.length / cols));

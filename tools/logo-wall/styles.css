@@ -47,11 +47,16 @@
   cursor: pointer;
 }
 
-.lw-empty:hover,
+.lw-empty:hover {
+  color: #6b7280;
+  border-color: #a1a1aa;
+}
+
 .lw-empty:focus-visible {
   color: #6b7280;
   border-color: #a1a1aa;
-  outline: none;
+  outline: 2px solid #1d4ed8;
+  outline-offset: 3px;
 }
 
 /* Vector mode: the hook returns one SVG that fills the canvas. */
