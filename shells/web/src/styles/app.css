@@ -1440,8 +1440,52 @@ a.gtile-name:focus-visible::after {
     box-shadow: inset 0 -1px #fff1, 0 .1em .6em #0002, 0 .1em .2em #0002;
 }
 
+/* Top row of the sidebar header: the Tools back pill (left) + theme toggle
+   (right). container-type lets the theme toggle reduce to an icon when the row
+   gets narrow (resized / collapsing sidebar) — see the @container rule below. */
+.sidebar-back-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  container-type: inline-size;
+}
+
+/* Compact theme cycle toggle — steps light → dark → suse on click; shows the
+   active theme's icon + name (createThemeToggle in components/theme-toggle.js). */
+.theme-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  background: hsl(var(--card));
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.theme-toggle:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  border-color: hsl(var(--primary));
+}
+.theme-toggle svg { flex: none; }
+.theme-toggle-name { white-space: nowrap; }
+
+/* Reduce to an icon-only button when the header row is tight. */
+@container (max-width: 200px) {
+  .theme-toggle { padding: 6px; }
+  .theme-toggle-name { display: none; }
+}
+
 /* Second row of the sidebar header: tool title (left, truncating) + expand toggle
-   (right). The back pill sits centered on the row above this. */
+   (right). */
 .sidebar-header-row {
   display: flex;
   align-items: center;
@@ -4814,11 +4858,10 @@ a.storage-indicator:hover { opacity: 1; }
   line-height: 1;
 }
 
-/* Sidebar back button: a centered pill on its own row above the title/expand row
-   (see .sidebar-header column layout). The filled .tools-home base gives the pill
-   look; this just places it. */
+/* Sidebar back button: sits at the left of the back row (with the theme toggle on
+   the right — see .sidebar-back-row). The filled .tools-home base gives the pill
+   look; this just keeps it from stretching. */
 .tools-home.sidebar-back {
-  align-self: center;
   flex: none;
 }
 

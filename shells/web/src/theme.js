@@ -10,6 +10,29 @@
 
 export const THEMES = ['light', 'dark', 'suse'];
 
+// Display names for the cycle toggle (brand cased — 'SUSE', not 'Suse').
+export const THEME_LABELS = { light: 'Light', dark: 'Dark', suse: 'SUSE' };
+
+// One compact glyph per theme (Lucide house style, 16px, currentColor). Distinct
+// enough to read at a glance when the toggle reduces to icon-only: sun / crescent
+// moon / a droplet for the SUSE brand theme.
+export const THEME_ICONS = {
+  light: `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+  dark:  `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`,
+  suse:  `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
+};
+
+/** The next theme in the cycle (wraps light → dark → suse → light). */
+export function nextTheme(theme) {
+  const i = THEMES.indexOf(theme);
+  return THEMES[(i + 1) % THEMES.length] ?? THEMES[0];
+}
+
+/** The active theme — from the applied [data-theme], falling back to storage. */
+export function currentTheme() {
+  return document.documentElement.dataset.theme || localStorage.getItem('theme') || 'light';
+}
+
 // Per-theme address-bar / PWA chrome colour, matching each theme's page
 // background (tokens.css --background). Keeps mobile/PWA chrome in step with the
 // active theme instead of pinning it to the SUSE dark-green.
