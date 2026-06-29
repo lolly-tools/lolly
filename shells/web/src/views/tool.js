@@ -1188,7 +1188,6 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   }
 
   runtime.subscribe(({ model, hydrated }) => {
-    if (tool.manifest.id === 'logo-wall') console.log('[lw-debug] ' + JSON.stringify({ vectorize: model.find(i => i.id === 'vectorize')?.value, logos: (model.find(i => i.id === 'logos')?.value || []).length, hlen: (hydrated || '').length, head: (hydrated || '').slice(0, 220) }));
     // Sidebar sync is cheap and must stay responsive, so it runs synchronously on
     // every emit; only the expensive canvas rebuild is deferred to the next frame.
     if (inputsEl && !_sliderDragging) {
@@ -1363,6 +1362,10 @@ function setupCanvasBlocksDrop({ viewEl, contentEl, runtime, host, input, onDirt
   contentEl.addEventListener('keydown', (e) => {
     if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('[data-file-pick]')) {
       e.preventDefault();
+      // Stop Space from also reaching setupStageNav's window-level keydown, which
+      // would arm Space-to-pan; the file dialog steals focus before the keyup, so
+      // it'd otherwise stay stuck on.
+      e.stopPropagation();
       native.click();
     }
   });
