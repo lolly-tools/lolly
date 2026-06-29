@@ -390,6 +390,41 @@ async function compute(model) {
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
 
+// Live camera (engine v1.4): when the shell drives a camera, the runtime calls this
+// once per frame with raw RGBA pixels. We wrap the frame in a canvas the existing
+// buildSvg pipeline can sample exactly like a decoded image — so a live frame goes
+// through the SAME tone/blur/dither/dot path as a still, and the dots track motion.
+// No memo (every frame is new pixels) and no URL load; degrades to null (no patch,
+// last frame stays) on a headless shell or a malformed frame.
+function onFrame(ctx) {
+  var frame = ctx.frame;
+  if (!frame || !frame.data || !frame.width || !frame.height) return null;
+  if (!canRaster() || typeof ImageData === 'undefined') return null;
+  var inputs = inputsFrom(ctx.model);
+  _transparent = Boolean(inputs.transparentBg);
+  _bgColor = color(inputs.bgColor, '#ffffff');
+
+  var src;
+  try {
+    src = document.createElement('canvas');
+    src.width = frame.width;
+    src.height = frame.height;
+    var sctx = src.getContext('2d');
+    sctx.putImageData(new ImageData(frame.data, frame.width, frame.height), 0, 0);
+  } catch (e) { return null; }
+
+  var svg = buildSvg({
+    img: src, gridSize: inputs.gridSize, dotScale: inputs.dotScale, shape: inputs.shape,
+    fgColor: inputs.fgColor, bgColor: inputs.bgColor, invert: inputs.invert, fit: inputs.fit,
+    brightness: inputs.brightness, contrast: inputs.contrast, gamma: inputs.gamma,
+    smoothing: inputs.smoothing, dither: inputs.dither, transparent: _transparent,
+  });
+  // A live frame supersedes the still memo, so a later still re-render (e.g. after
+  // stopping) recomputes rather than returning a stale cached frame.
+  _memoKey = null;
+  return { svgContent: svg || placeholder('Preview renders in the browser') };
+}
+
 function beforeExport(ctx) {
   // Alpha-capable raster formats: for "No BG" clear the canvas so it exports with
   // real transparency (the SVG already omits its background rect); otherwise fill
