@@ -877,6 +877,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
 
   // Cleanup: remove injected <style>, disconnect observer, tear down canvas nav + export.
   viewEl._cleanup = () => {
+    runtime.stopLive?.(); // release the camera if a live session is running
     styleEl.remove(); shutterEl?.remove(); ro.disconnect(); stageZoom?.destroy(); exportTeardown?.();
     window.removeEventListener('keydown', onHistoryKey);
     clearTimeout(historyToastTimer); historyToastEl?.remove();
@@ -1384,6 +1385,40 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     pendingFrame = { model, hydrated };
     if (!rafId) rafId = requestAnimationFrame(paint);
   });
+
+  // Live camera (engine v1.4): a tool that declares an `onFrame` hook can react to a
+  // live camera stream. Pure progressive enhancement — the toggle appears only when
+  // the tool has the hook AND this shell exposes a camera (host.media); otherwise the
+  // tool just runs as a still-image tool. The runtime owns the frame→onFrame→repaint
+  // loop; here we only drive the toggle and surface permission errors.
+  if (stageEl && runtime.hasFrameHook && host.media?.isAvailable?.()) {
+    const liveBtn = document.createElement('button');
+    liveBtn.type = 'button';
+    liveBtn.className = 'canvas-live-toggle';
+    liveBtn.setAttribute('aria-pressed', 'false');
+    liveBtn.title = 'React to your camera in real time';
+    liveBtn.innerHTML = '<span class="canvas-live-dot" aria-hidden="true"></span><span class="canvas-live-label">Go live</span>';
+    stageEl.appendChild(liveBtn);
+    const setLiveUi = (on) => {
+      liveBtn.classList.toggle('is-live', on);
+      liveBtn.setAttribute('aria-pressed', String(on));
+      liveBtn.querySelector('.canvas-live-label').textContent = on ? 'Live' : 'Go live';
+    };
+    liveBtn.addEventListener('click', async () => {
+      if (runtime.isLive()) { runtime.stopLive(); setLiveUi(false); announce('Live camera stopped'); return; }
+      liveBtn.disabled = true;
+      try {
+        await runtime.startLive();
+        setLiveUi(true);
+        announce('Live camera started — the canvas now reacts to your camera');
+      } catch (e) {
+        announce(e?.name === 'NotAllowedError' ? 'Camera permission was declined.' : 'Couldn’t start the camera.', { assertive: true });
+        host.log('warn', 'startLive failed', { error: String(e) });
+      } finally {
+        liveBtn.disabled = false;
+      }
+    });
+  }
 
   // Canvas-layout file utilities (render.layout:"canvas"): the whole canvas IS
   // the file control — drag-and-drop or click anywhere to pick. The picked file

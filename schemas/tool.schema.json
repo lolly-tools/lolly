@@ -203,6 +203,7 @@
       "properties": {
         "onInit": { "type": "boolean" },
         "onInput": { "type": "boolean" },
+        "onFrame": { "type": "boolean", "description": "The tool reacts to a live camera stream. When the shell provides host.media (a camera) the runtime drives this hook once per frame with { frame, model, host }, where frame is { width, height, data (RGBA), t }; the returned patch updates the render exactly like onInit/onInput. Pure progressive enhancement — the tool still runs as a still-image tool where no camera is available, so it must NOT be declared as a required 'camera' capability." },
         "beforeRender": { "type": "boolean" },
         "beforeExport": { "type": "boolean" },
         "afterExport": { "type": "boolean" },

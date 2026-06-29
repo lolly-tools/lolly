@@ -2801,6 +2801,54 @@ background-color:hsl(var(--background) / 1);
      50% / 2em 2em;
 }
 
+/* Live-camera toggle — top-left of the stage (zoom controls sit bottom-right).
+   Only present for tools with an onFrame hook on a camera-capable shell. */
+.canvas-live-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: hsl(var(--card) / 0.92);
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.canvas-live-toggle:hover { border-color: hsl(var(--primary)); }
+.canvas-live-toggle:disabled { opacity: 0.6; cursor: progress; }
+.canvas-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+.canvas-live-toggle.is-live {
+  border-color: hsl(var(--destructive));
+  color: hsl(var(--destructive));
+}
+.canvas-live-toggle.is-live .canvas-live-dot {
+  background: hsl(var(--destructive));
+  animation: canvas-live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes canvas-live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.5); }
+  50%      { opacity: 0.6; box-shadow: 0 0 0 4px hsl(var(--destructive) / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-live-toggle.is-live .canvas-live-dot { animation: none; }
+}
+
 /* Clips the canvas to its visual (scaled) size so the stage doesn't leave
    a gap when transform: scale() reduces the canvas below its DOM dimensions. */
 .tool-canvas-outer {
