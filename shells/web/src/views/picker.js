@@ -244,6 +244,18 @@ async function render(root, host, opts, resolve) {
     }
   });
 
+  // A tool preview is a build artifact that can 404 (catalog/previews/ isn't committed
+  // and build:web doesn't generate it) — when one fails, reveal the tool's inline icon
+  // instead of a broken image. Error events don't bubble, so listen in the capture
+  // phase, scoped to tool previews so library/session thumbs are untouched (mirrors
+  // gallery.js).
+  body.addEventListener('error', (e) => {
+    const img = e.target;
+    if (img instanceof HTMLImageElement && img.classList.contains('asset-picker-toolitem-preview')) {
+      img.closest('.asset-picker-toolitem')?.classList.add('no-preview');
+    }
+  }, true);
+
   function setFooter(show) { footerEl?.toggleAttribute('hidden', !show); }
 
   // Show/hide panes for the chosen tab, dismiss any tool-render takeover, re-filter
@@ -655,14 +667,19 @@ function card(ref) {
   `;
 }
 
-// A tool the user can render to an image. The index ships the icon as trusted inline
-// SVG (built from tools/<id>/icon.svg) — inlined so it themes via currentColor.
+// A tool the user can render to an image. Preview-forward like the gallery: show the
+// tool's rendered preview thumbnail, falling back to its inline icon. The `preview` is
+// a build artifact (catalog/previews/) that can 404 (not committed, not built by
+// build:web) — so the icon is always rendered too, revealed by a capture-phase error
+// handler (see render). The index ships the icon as trusted inline SVG (built from
+// tools/<id>/icon.svg) — inlined so it themes via currentColor.
 function toolCard(t) {
+  const hasPreview = Boolean(t.preview);
   return `
-    <button type="button" class="asset-picker-card asset-picker-toolitem" data-tool-id="${escape(t.id)}" title="${escape(t.description ?? t.name)}">
+    <button type="button" class="asset-picker-card asset-picker-toolitem${hasPreview ? '' : ' no-preview'}" data-tool-id="${escape(t.id)}" title="${escape(t.description ?? t.name)}">
+      ${hasPreview ? `<img class="asset-picker-toolitem-preview" src="${escape(t.preview)}" alt="" loading="lazy" decoding="async">` : ''}
       <span class="asset-picker-toolitem-icon" aria-hidden="true">${t.icon ?? ''}</span>
       <span class="asset-picker-name">${escape(t.name)}</span>
-      <span class="asset-picker-toolitem-desc">${escape(t.description ?? '')}</span>
     </button>
   `;
 }

@@ -4,8 +4,10 @@
  * Diagram Builder — org charts + layered "layercake" architecture diagrams.
  *
  * SVG-rooted tool: the whole scene is built as an <svg> STRING here and rendered
- * verbatim by the template ({{{diagramSvg}}}). Pure JS — no <canvas>, no Image —
- * so it renders identically in the browser and headless in the CLI.
+ * verbatim by the template ({{{diagramSvg}}}). Layout is pure JS, so it renders
+ * identically in the browser and headless in the CLI. The one browser-only touch is
+ * optional card images (headshot / icon / logo): in a browser they're embedded as a
+ * self-contained data URL and measured for aspect; headless degrades gracefully.
  *
  * Two modes share one set of card/arrow primitives:
  *   • org       — a tidy top-down tree laid out from each card's `parent` (ID ref).
@@ -138,8 +140,45 @@ function shaft(x1, y1, x2, y2, dashed, col, width) {
   return out;
 }
 
+// ── card images: embed as a data URL (so the image is self-contained in EVERY
+// export — SVG/PNG/PDF) and measure its aspect (the PDF raster path fills the box
+// rather than letterboxing, so the box must match the image's own aspect). All
+// browser-only; headless resolves to the bare url + aspect 0 (square fallback).
+var _imgCache = {};
+function resolveImage(url) {
+  if (_imgCache[url]) return _imgCache[url];
+  var p = (async function () {
+    var dataUrl = url, aspect = 0;
+    try {
+      if (typeof fetch !== 'undefined' && String(url).indexOf('data:') !== 0) {
+        var blob = await (await fetch(url)).blob();
+        dataUrl = await new Promise(function (res, rej) {
+          var fr = new FileReader();
+          fr.onload = function () { res(fr.result); };
+          fr.onerror = function () { rej(new Error('read failed')); };
+          fr.readAsDataURL(blob);
+        });
+      }
+    } catch (e) { dataUrl = url; }
+    try {
+      if (typeof Image !== 'undefined') {
+        aspect = await new Promise(function (res) {
+          var im = new Image();
+          im.onload = function () { res(im.naturalHeight ? im.naturalWidth / im.naturalHeight : 0); };
+          im.onerror = function () { res(0); };
+          im.src = dataUrl;
+        });
+      }
+    } catch (e) { aspect = 0; }
+    return { dataUrl: dataUrl, aspect: aspect };
+  })();
+  _imgCache[url] = p;
+  return p;
+}
+
 // ── card geometry ──────────────────────────────────────────────────────────────
 var LABEL_SIZE = 15, LABEL_LH = 20, DETAIL_SIZE = 12, DETAIL_LH = 16, CARD_PAD_V = 12;
+var IMG_H = 52, IMG_GAP = 10; // top image band reserved on every card when any card has an image
 
 function rectRx(shape, w, h) {
   var lim = Math.min(w, h) / 2;
@@ -152,6 +191,28 @@ function rectRx(shape, w, h) {
 function renderCard(n, S) {
   var rx = rectRx(n.shape, n.w, n.h);
   var fill = color(n.fill, S.nodeFill);
+  var cx = n.x + n.w / 2;
+
+  var g = '<g data-canvas-input="nodes:' + n.idx + '">';
+  // Card body as a stroked path so the border survives PDF export.
+  g += '<path d="' + roundedRectPath(n.x, n.y, n.w, n.h, rx) + '" fill="' + esc(fill)
+    + '" stroke="' + esc(S.nodeStroke) + '" stroke-width="1.5"/>';
+
+  // Optional image (headshot / icon / logo) in a reserved top band; text sits below.
+  // Raster boxes are sized to the measured aspect (the PDF raster path fills the box,
+  // so a mismatched box would stretch it); SVG/unknown use the full band + meet-fit.
+  if (n.image && S.imgBand > 0) {
+    var areaW = Math.max(8, n.w - CARD_PAD_V * 2), areaH = IMG_H;
+    var dispW = areaW, dispH = areaH;
+    if (!n._imgIsSvg && n._imgAspect > 0) {
+      var bw = areaH * n._imgAspect;
+      if (bw <= areaW) { dispH = areaH; dispW = bw; } else { dispW = areaW; dispH = areaW / n._imgAspect; }
+    }
+    var imgX = n.x + (n.w - dispW) / 2, imgY = n.y + CARD_PAD_V + (areaH - dispH) / 2;
+    g += '<image href="' + esc(n.image) + '" x="' + f2(imgX) + '" y="' + f2(imgY) + '"'
+      + ' width="' + f2(dispW) + '" height="' + f2(dispH) + '" preserveAspectRatio="xMidYMid meet"/>';
+  }
+
   var lines = wrapLines(n.label, maxCharsFor(n.w, LABEL_SIZE), S.labelLines);
   var detail = trim(n.detail);
   if (detail) {
@@ -159,13 +220,16 @@ function renderCard(n, S) {
     detail = dl.length ? dl[0] : '';
   }
   var blockH = lines.length * LABEL_LH + (detail ? DETAIL_LH + 3 : 0);
-  var top = n.y + (n.h - blockH) / 2;
-  var cx = n.x + n.w / 2;
-
-  var g = '<g data-canvas-input="nodes:' + n.idx + '">';
-  // Card body as a stroked path so the border survives PDF export.
-  g += '<path d="' + roundedRectPath(n.x, n.y, n.w, n.h, rx) + '" fill="' + esc(fill)
-    + '" stroke="' + esc(S.nodeStroke) + '" stroke-width="1.5"/>';
+  // With an image band, text is centred in the region BELOW it (so baselines line up
+  // across imaged and image-less cards in the same row); otherwise centred in the card.
+  var top;
+  if (S.imgBand > 0) {
+    var textTop = n.y + CARD_PAD_V + IMG_H + IMG_GAP;
+    var region = (n.y + n.h - CARD_PAD_V) - textTop;
+    top = textTop + Math.max(0, (region - blockH) / 2);
+  } else {
+    top = n.y + (n.h - blockH) / 2;
+  }
   for (var i = 0; i < lines.length; i++) {
     g += textEl(cx, top + i * LABEL_LH + LABEL_SIZE * 0.8, lines[i], LABEL_SIZE, 500, S.nodeText, 'middle');
   }
@@ -185,12 +249,17 @@ function normaliseNodes(rawNodes) {
     var id = slug(b.nodeId) || slug(label) || ('node-' + (i + 1));
     if (used[id]) { var k = 2; while (used[id + '-' + k]) k++; id = id + '-' + k; } // dedupe
     used[id] = 1;
+    var ref = b.image; // resolved asset ref { url, type, format, meta } — visual editor only
+    var imgUrl = (ref && ref.url) ? ref.url : '';
     nodes.push({
       idx: i, id: id,
       shape: (b.shape === 'box' || b.shape === 'pill') ? b.shape : 'rounded',
       label: label, detail: detail,
       parentId: slug(b.parent), layerId: slug(b.layer),
       fill: trim(b.fill),
+      image: imgUrl,
+      _imgIsSvg: !!(ref && (ref.type === 'vector' || ref.format === 'svg' || /\.svg(\?|$)/i.test(imgUrl))),
+      _imgAspect: 0,
       x: 0, y: 0, w: 0, h: 0
     });
   });
@@ -307,7 +376,7 @@ function layoutLayercake(nodes, rawLayers, S) {
       if (trim(c.detail)) hasDetail = true;
     });
   });
-  var cardH = Math.max(46, CARD_PAD_V * 2 + maxLines * LABEL_LH + (hasDetail ? DETAIL_LH + 3 : 0));
+  var cardH = Math.max(46, CARD_PAD_V * 2 + (S.imgBand || 0) + maxLines * LABEL_LH + (hasDetail ? DETAIL_LH + 3 : 0));
   S.cardH = cardH; S.labelLines = maxLines;
 
   var bandH = cardH + padY * 2, y = 0, maxRight = gutter + innerW + padX;
@@ -329,6 +398,60 @@ function layoutLayercake(nodes, rawLayers, S) {
   layers.forEach(function (L) { L.w = bandW; });
 
   return { autoEdges: [], bands: layers, layerById: layerById, gutter: gutter };
+}
+
+// ── process layout: ranked flow (a DAG layered by longest path) ──────────────────
+// Steps are positioned by their distance from a start node; the explicit `arrows`
+// list IS the flow and is drawn by renderArrows (no auto connectors). dir 'right'
+// lays ranks left→right (siblings spread vertically); otherwise 'down' top→bottom
+// (siblings spread horizontally). Cycle-safe: ranks are relaxed a bounded number of
+// times and capped, so a loop can't run the layout away.
+function layoutProcess(nodes, rawArrows, S, dir) {
+  var byId = {};
+  nodes.forEach(function (n) { if (byId[n.id] === undefined) byId[n.id] = n; });
+
+  // Real edges only (both endpoints resolve to distinct cards).
+  var edges = [];
+  arr(rawArrows).forEach(function (a) {
+    if (!a) return;
+    var f = slug(a.from), t = slug(a.to);
+    if (byId[f] === undefined || byId[t] === undefined || f === t) return;
+    edges.push([f, t]);
+  });
+
+  // Longest-path ranking by bounded relaxation (|nodes| passes max → cycle-safe).
+  var rank = {};
+  nodes.forEach(function (n) { rank[n.id] = 0; });
+  for (var iter = 0; iter < nodes.length; iter++) {
+    var changed = false;
+    for (var e = 0; e < edges.length; e++) {
+      if (rank[edges[e][1]] < rank[edges[e][0]] + 1) { rank[edges[e][1]] = rank[edges[e][0]] + 1; changed = true; }
+    }
+    if (!changed) break;
+  }
+  nodes.forEach(function (n) { if (rank[n.id] > nodes.length) rank[n.id] = nodes.length; });
+
+  // Bucket by rank, preserving input order within a rank.
+  var ranks = {};
+  nodes.forEach(function (n) { (ranks[rank[n.id]] || (ranks[rank[n.id]] = [])).push(n); });
+  var keys = Object.keys(ranks).map(Number).sort(function (a, b) { return a - b; });
+
+  var cardW = 200, cardH = S.cardH, right = dir === 'right';
+  var mainGap = right ? 88 : 72;    // gap between ranks (along the flow)
+  var crossGap = right ? 26 : 40;   // gap between siblings within a rank
+  keys.forEach(function (rk, ri) {
+    var row = ranks[rk], n = row.length;
+    var crossSize = right ? cardH : cardW;
+    var start = -(n * crossSize + crossGap * (n - 1)) / 2;   // centre the rank on 0
+    row.forEach(function (c, ci) {
+      c.w = cardW; c.h = cardH;
+      var cross = start + ci * (crossSize + crossGap);
+      var main = ri * ((right ? cardW : cardH) + mainGap);
+      if (right) { c.x = main; c.y = cross; } else { c.x = cross; c.y = main; }
+    });
+  });
+
+  return { autoEdges: [], bands: [], layerById: {} };
 }
 
 // ── explicit arrows ──────────────────────────────────────────────────────────────
@@ -413,15 +536,230 @@ function placeholder(msg) {
     + textEl(600, 390, msg, 22, 500, '#8a9a95', 'middle') + '</svg>';
 }
 
+// ── text DSL → raw {nodes, layers, arrows} (the same shape the blocks produce) ────
+// Type-aware and forgiving: ORG uses indentation for hierarchy, LAYERCAKE uses '#'
+// layer headings with cards listed below, PROCESS uses 'A -> B -> C' flow lines.
+// Shared niceties: '::' adds a card subtitle, a trailing ' : text' labels an arrow,
+// '//' (and, outside layercake, a leading '#') is a comment, and a leading -, * or •
+// bullet is ignored. Parsed here, then fed through the EXACT same normaliseNodes +
+// layout + renderArrows path as the visual editor — so output stays identical.
+var BAND_PALETTE = ['#90ebcd', '#bff1ea', '#d8f3ec', '#efefef'];
+
+function dslLines(text) { return String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n'); }
+function isComment(t) { return !t || t.indexOf('//') === 0; }
+function leadIndent(s) { var n = 0; for (var i = 0; i < s.length; i++) { var c = s.charAt(i); if (c === ' ') n++; else if (c === '\t') n += 4; else break; } return n; }
+function stripBullet(s) { return s.replace(/^[-*•]\s+/, ''); }
+function splitDetail(s) { var i = s.indexOf('::'); return i >= 0 ? { label: s.slice(0, i).trim(), detail: s.slice(i + 2).trim() } : { label: s.trim(), detail: '' }; }
+function splitArrowLabel(s) { var m = s.match(/\s:\s+(.+)$/); return m ? { body: s.slice(0, m.index), label: m[1].trim() } : { body: s, label: '' }; }
+
+// Push the arrows of a `A -> B -> C` chain. addNode (process) creates/returns a node
+// id per endpoint; without it (org/layercake) endpoints resolve by slug to existing
+// cards. A trailing ' : label' applies to the chain's last edge.
+function collectArrows(content, arrows, addNode) {
+  var al = splitArrowLabel(content);
+  var parts = al.body.split('->').map(function (s) { return s.trim(); }).filter(Boolean);
+  if (parts.length < 2) { if (addNode && parts.length === 1) addNode(parts[0]); return; }
+  for (var i = 0; i < parts.length - 1; i++) {
+    var aId = addNode ? addNode(parts[i]) : slug(splitDetail(parts[i]).label);
+    var bId = addNode ? addNode(parts[i + 1]) : slug(splitDetail(parts[i + 1]).label);
+    arrows.push({ from: aId, to: bId, label: (i === parts.length - 2 ? al.label : ''), style: 'solid', color: '' });
+  }
+}
+
+function parseOrg(lines) {
+  var nodes = [], arrows = [], used = {}, stack = [];
+  function uid(label) { var b = slug(label) || 'node', id = b, k = 2; while (used[id]) { id = b + '-' + k; k++; } used[id] = 1; return id; }
+  lines.forEach(function (raw) {
+    var t = raw.trim();
+    if (isComment(t) || t.charAt(0) === '#') return;
+    if (t.indexOf('->') >= 0) { collectArrows(stripBullet(t), arrows, null); return; }
+    var indent = leadIndent(raw), d = splitDetail(stripBullet(t));
+    if (!d.label) return;
+    var id = uid(d.label);
+    while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
+    nodes.push({ shape: 'rounded', nodeId: id, label: d.label, detail: d.detail, parent: stack.length ? stack[stack.length - 1].id : '', layer: '', fill: '' });
+    stack.push({ indent: indent, id: id });
+  });
+  return { nodes: nodes, layers: [], arrows: arrows };
+}
+
+function parseLayercake(lines) {
+  var nodes = [], layers = [], arrows = [], usedN = {}, usedL = {}, cur = '', bi = 0;
+  function uid(used, label, pre) { var b = slug(label) || pre, id = b, k = 2; while (used[id]) { id = b + '-' + k; k++; } used[id] = 1; return id; }
+  lines.forEach(function (raw) {
+    var t = raw.trim();
+    if (isComment(t)) return;
+    if (t.charAt(0) === '#') {
+      var lab = t.replace(/^#+\s*/, '').trim();
+      if (!lab) return;
+      var lid = uid(usedL, lab, 'layer');
+      layers.push({ kind: 'layer', layerId: lid, label: lab, bandFill: BAND_PALETTE[bi % BAND_PALETTE.length] });
+      bi++; cur = lid; return;
+    }
+    var c = stripBullet(t);
+    if (c.indexOf('->') >= 0) { collectArrows(c, arrows, null); return; }
+    var d = splitDetail(c);
+    if (!d.label) return;
+    nodes.push({ shape: 'rounded', nodeId: uid(usedN, d.label, 'node'), label: d.label, detail: d.detail, parent: '', layer: cur, fill: '' });
+  });
+  return { nodes: nodes, layers: layers, arrows: arrows };
+}
+
+function parseProcess(lines) {
+  var nodes = [], arrows = [], seen = {};
+  function addNode(rawPart) {
+    var d = splitDetail(rawPart), key = slug(d.label) || 'step';
+    if (seen[key]) { if (d.detail && !seen[key].detail) seen[key].detail = d.detail; return key; } // a later line can annotate
+    var node = { shape: 'rounded', nodeId: key, label: d.label, detail: d.detail, parent: '', layer: '', fill: '' };
+    seen[key] = node; nodes.push(node);
+    return key;
+  }
+  lines.forEach(function (raw) {
+    var t = stripBullet(raw.trim());
+    if (isComment(t) || t.charAt(0) === '#') return;
+    if (t.indexOf('->') >= 0) collectArrows(t, arrows, addNode);
+    else addNode(t);
+  });
+  return { nodes: nodes, layers: [], arrows: arrows };
+}
+
+function parseDsl(text, mode) {
+  var lines = dslLines(text);
+  if (mode === 'layercake') return parseLayercake(lines);
+  if (mode === 'process') return parseProcess(lines);
+  return parseOrg(lines);
+}
+
+// ── literal ASCII-art tracing → raw {nodes, arrows} + drawn positions ─────────────
+// Detects +--+ / | | rectangles as cards, reads their interior text as label/detail,
+// and walks the connecting - | + / \ runs (with > < ^ v arrowheads) into flow arrows.
+// The drawn arrangement is PRESERVED — positions come straight from the character
+// grid, then re-styled as clean cards: "what you sketch is where it goes".
+function parseAscii(text) {
+  var rows = String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n').slice(0, 240);
+  var H = rows.length, W = 0, i;
+  for (i = 0; i < H; i++) { if (rows[i].length > W) W = rows[i].length; }
+  W = Math.min(W, 400);
+  function ch(r, c) { if (r < 0 || r >= H || c < 0) return ' '; var ln = rows[r]; return c < ln.length ? ln.charAt(c) : ' '; }
+  function K(r, c) { return r + ',' + c; }
+
+  // 1) rectangles: a '+' whose +--+ / | | / +--+ traces closed back to itself.
+  var boxes = [], owner = {}, r, c, cc, rr;
+  for (r = 0; r < H; r++) {
+    for (c = 0; c < W; c++) {
+      if (ch(r, c) !== '+') continue;
+      var c2 = c + 1; while (c2 < W && ch(r, c2) === '-') c2++;
+      if (c2 >= W || c2 === c + 1 || ch(r, c2) !== '+') continue;
+      var r2 = r + 1; while (r2 < H && ch(r2, c2) === '|') r2++;
+      if (r2 >= H || r2 === r + 1 || ch(r2, c2) !== '+' || ch(r2, c) !== '+') continue;
+      var ok = true;
+      for (cc = c + 1; cc < c2 && ok; cc++) if (ch(r2, cc) !== '-') ok = false;
+      for (rr = r + 1; rr < r2 && ok; rr++) if (ch(rr, c) !== '|') ok = false;
+      if (!ok) continue;
+      var bi = boxes.length;
+      boxes.push({ r0: r, c0: c, r1: r2, c1: c2, label: '', detail: '', id: '' });
+      for (cc = c; cc <= c2; cc++) { owner[K(r, cc)] = bi; owner[K(r2, cc)] = bi; }
+      for (rr = r; rr <= r2; rr++) { owner[K(rr, c)] = bi; owner[K(rr, c2)] = bi; }
+    }
+  }
+  if (!boxes.length) return { nodes: [], arrows: [], pos: [] };
+
+  // 2) interior text → label (first non-blank line) + detail (the rest joined).
+  boxes.forEach(function (b) {
+    var lines = [], s, rr2, cc2;
+    for (rr2 = b.r0 + 1; rr2 < b.r1; rr2++) {
+      s = '';
+      for (cc2 = b.c0 + 1; cc2 < b.c1; cc2++) s += ch(rr2, cc2);
+      s = s.trim();
+      if (s) lines.push(s);
+    }
+    b.label = lines[0] || '';
+    b.detail = lines.slice(1).join(' ');
+  });
+
+  // 3) nodes (stable slug ids) + drawn positions scaled from the grid.
+  var CW = 11, CH = 26, nodes = [], pos = [], used = {};
+  boxes.forEach(function (b, bi) {
+    var base = slug(b.label) || ('box-' + (bi + 1)), id = base, k = 2;
+    while (used[id]) { id = base + '-' + k; k++; }
+    used[id] = 1; b.id = id;
+    nodes.push({ shape: 'rounded', nodeId: id, label: b.label, detail: b.detail, parent: '', layer: '', fill: '' });
+    pos.push({ x: b.c0 * CW, y: b.r0 * CH, w: Math.max(96, (b.c1 - b.c0) * CW), h: Math.max(44, (b.r1 - b.r0) * CH) });
+  });
+
+  // 4) connectors: 8-connected runs of wire chars (not owned by a box) become arrows
+  // between the boxes they reach. A box is "reached" by touching (incl. diagonally)
+  // OR across a single in-line space gap — diagrams routinely write "| a | -> | b |"
+  // with padding. A > < ^ v head, if present, names the target end.
+  function isWire(rr3, cc3) { var x = ch(rr3, cc3); return '-|+/\\><^v'.indexOf(x) >= 0 && owner[K(rr3, cc3)] === undefined; }
+  function isHead(x) { return x === '>' || x === '<' || x === '^' || x === 'v'; }
+  var OFF = [[-1, 0], [1, 0], [0, -1], [0, 1], [-1, -1], [-1, 1], [1, -1], [1, 1]];
+  var CARD = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+  function boxAt(pr, pc) {
+    var d, o;
+    for (d = 0; d < 8; d++) { o = owner[K(pr + OFF[d][0], pc + OFF[d][1])]; if (o !== undefined) return o; }
+    for (d = 0; d < 4; d++) {                                  // across one space, in line
+      var mr = pr + CARD[d][0], mc = pc + CARD[d][1];
+      if (ch(mr, mc) === ' ' && owner[K(mr, mc)] === undefined) { o = owner[K(mr + CARD[d][0], mc + CARD[d][1])]; if (o !== undefined) return o; }
+    }
+    return undefined;
+  }
+  var seen = {}, arrows = [], pairSeen = {};
+  for (r = 0; r < H; r++) {
+    for (c = 0; c < W; c++) {
+      if (!isWire(r, c) || seen[K(r, c)]) continue;
+      var stack = [[r, c]], comp = [], heads = [];
+      while (stack.length) {
+        var p = stack.pop(), pr = p[0], pc = p[1];
+        if (seen[K(pr, pc)] || !isWire(pr, pc)) continue;
+        seen[K(pr, pc)] = 1;
+        comp.push(p);
+        if (isHead(ch(pr, pc))) heads.push(p);
+        for (var d = 0; d < 8; d++) { var nr = pr + OFF[d][0], nc = pc + OFF[d][1]; if (isWire(nr, nc) && !seen[K(nr, nc)]) stack.push([nr, nc]); }
+      }
+      var touch = {};
+      comp.forEach(function (cell) { var o = boxAt(cell[0], cell[1]); if (o !== undefined) touch[o] = 1; });
+      var tb = Object.keys(touch).map(Number);
+      if (tb.length < 2) continue;
+      var fromI = tb[0], toI = tb[1];
+      if (heads.length) { var hb = boxAt(heads[heads.length - 1][0], heads[heads.length - 1][1]); if (hb !== undefined) { toI = hb; fromI = (tb[0] === hb ? tb[1] : tb[0]); } }
+      if (fromI === toI) continue;
+      var pkey = fromI + '>' + toI;
+      if (pairSeen[pkey]) continue;
+      pairSeen[pkey] = 1;
+      arrows.push({ from: nodes[fromI].nodeId, to: nodes[toI].nodeId, label: '', style: 'solid', color: '' });
+    }
+  }
+  return { nodes: nodes, arrows: arrows, pos: pos };
+}
+
 // ── compose the whole scene ─────────────────────────────────────────────────────
-function buildDiagram(inp) {
-  var mode = inp.diagramType === 'layercake' ? 'layercake' : 'org';
+async function buildDiagram(inp) {
+  var mode = (inp.diagramType === 'layercake' || inp.diagramType === 'process') ? inp.diagramType : 'org';
   var bg = color(inp.background, WHITE);
-  var nodes = normaliseNodes(arr(inp.nodes));
+  var source = inp.source === 'text' ? 'text' : (inp.source === 'ascii' ? 'ascii' : 'visual');
+
+  // Three ways in, ONE renderer. Visual blocks and the text DSL both parse to the
+  // same raw {nodes,layers,arrows}; ASCII art additionally carries drawn positions
+  // (its layout is the sketch itself), which we apply instead of running a layouter.
+  var src, asciiPos = null;
+  if (source === 'text') {
+    src = parseDsl(inp.dsl, mode);
+  } else if (source === 'ascii') {
+    var pa = parseAscii(inp.asciiArt);
+    src = { nodes: pa.nodes, layers: [], arrows: pa.arrows };
+    asciiPos = pa.pos;
+  } else {
+    src = { nodes: arr(inp.nodes), layers: arr(inp.layers), arrows: arr(inp.arrows) };
+  }
+
+  var nodes = normaliseNodes(src.nodes);
 
   if (!nodes.length) {
-    return placeholder(mode === 'layercake'
-      ? 'Add cards and layers to build your layercake'
+    if (source === 'text') return placeholder('Type a diagram — the field shows the syntax');
+    if (source === 'ascii') return placeholder('Draw boxes with +  -  | and arrows with ->  ^  v');
+    return placeholder(mode === 'layercake' ? 'Add cards and layers to build your layercake'
+      : mode === 'process' ? 'Add cards and flow arrows to build your process'
       : 'Add cards to build your org chart');
   }
 
@@ -431,18 +769,43 @@ function buildDiagram(inp) {
     nodeText: color(inp.nodeText, PINE),
     edgeColor: color(inp.edgeColor, PINE),
     detailColor: DETAIL,
-    cardH: 46, labelLines: 1
+    cardH: 46, labelLines: 1, imgBand: 0
   };
 
+  // Reserve a uniform top image-band on every card when any card carries an image,
+  // so rows (org), bands (layercake) and ranks (process) stay aligned. Embed each
+  // image as a data URL and measure its aspect (browser only) before layout, since
+  // the band height feeds cardH below.
+  var anyImage = nodes.some(function (n) { return n.image; });
+  S.imgBand = anyImage ? (IMG_H + IMG_GAP) : 0;
+  if (anyImage) {
+    await Promise.all(nodes.filter(function (n) { return n.image; }).map(function (n) {
+      return resolveImage(n.image).then(function (r) { n.image = r.dataUrl; n._imgAspect = r.aspect; }, function () { });
+    }));
+  }
+
   var layout;
-  if (mode === 'layercake') {
-    layout = layoutLayercake(nodes, arr(inp.layers), S); // sets S.cardH / S.labelLines
+  if (source === 'ascii') {
+    // Preserve the sketch: positions come straight from the grid (no layouter),
+    // and labels may wrap to fit whatever box the user drew.
+    S.labelLines = 3;
+    nodes.forEach(function (n, i) { var p = asciiPos[i]; if (p) { n.x = p.x; n.y = p.y; n.w = p.w; n.h = p.h; } });
+    layout = { autoEdges: [], bands: [], layerById: {} };
+  } else if (mode === 'layercake') {
+    layout = layoutLayercake(nodes, src.layers, S); // sets S.cardH / S.labelLines
+  } else if (mode === 'process') {
+    // process: ranked flow; uniform card width like org, so the wrap estimate is exact.
+    var pChars = maxCharsFor(200, LABEL_SIZE);
+    S.labelLines = nodes.some(function (n) { return estLineCount(n.label, pChars) > 1; }) ? 2 : 1;
+    var pDetail = nodes.some(function (n) { return trim(n.detail); });
+    S.cardH = Math.max(46, CARD_PAD_V * 2 + S.imgBand + S.labelLines * LABEL_LH + (pDetail ? DETAIL_LH + 3 : 0));
+    layout = layoutProcess(nodes, src.arrows, S, inp.flowDir === 'right' ? 'right' : 'down');
   } else {
     // org: fixed card width, so the wrap estimate is exact up front.
     var orgChars = maxCharsFor(196, LABEL_SIZE);
     S.labelLines = nodes.some(function (n) { return estLineCount(n.label, orgChars) > 1; }) ? 2 : 1;
     var hasDetail = nodes.some(function (n) { return trim(n.detail); });
-    S.cardH = Math.max(46, CARD_PAD_V * 2 + S.labelLines * LABEL_LH + (hasDetail ? DETAIL_LH + 3 : 0));
+    S.cardH = Math.max(46, CARD_PAD_V * 2 + S.imgBand + S.labelLines * LABEL_LH + (hasDetail ? DETAIL_LH + 3 : 0));
     layout = layoutOrg(nodes, S);
   }
 
@@ -472,7 +835,7 @@ function buildDiagram(inp) {
     cardsSvg += renderCard(n, S);
   });
 
-  var arrows = renderArrows(arr(inp.arrows), nodeById, layout.layerById, bg, bb);
+  var arrows = renderArrows(src.arrows, nodeById, layout.layerById, bg, bb);
   if (host && host.log) {
     if (arrows.unresolved) host.log('warn', 'diagram-builder: ' + arrows.unresolved + ' arrow(s) skipped — unresolved From/To ID');
     if (arrows.degenerate) host.log('warn', 'diagram-builder: ' + arrows.degenerate + ' arrow(s) skipped — endpoints coincide or one contains the other');
@@ -507,9 +870,9 @@ function buildDiagram(inp) {
 }
 
 // ── lifecycle ────────────────────────────────────────────────────────────────────
-function compute(model) {
+async function compute(model) {
   var svg;
-  try { svg = buildDiagram(inputsFrom(model)); }
+  try { svg = await buildDiagram(inputsFrom(model)); }
   catch (e) {
     if (host && host.log) host.log('warn', 'diagram-builder: build failed', { error: String(e) });
     svg = placeholder('Could not build this diagram.');

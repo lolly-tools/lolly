@@ -425,6 +425,18 @@ footer{text-align:right;}
   .tool-grid {grid-template-columns: 1fr}
 }
 
+/* One entrance language. Every mount-time reveal in the app (gallery cards,
+   saved rows, the platform/capabilities cascade) shares this duration + curve
+   so nothing reads as faster/snappier than its neighbour — the cross-view
+   timing spread was itself a source of the "jittery" feel. Each surface keeps
+   its OWN stagger ladder (densities differ); only the curve + duration unify.
+   The curve is a gentle decel — long enough to read as a settle, not a
+   single-frame pop. Theme-agnostic, so it lives here, not in tokens.css. */
+:root {
+  --enter-dur: 0.32s;
+  --enter-ease: cubic-bezier(.22, .61, .36, 1);
+}
+
 @keyframes card-in {
   from { opacity: 0; translate: 0 6px; }
   to   { opacity: 1; translate: 0 0;   }
@@ -432,7 +444,7 @@ footer{text-align:right;}
 
 .tool-grid .tool-card,
 .saved-list .tool-card {
-  animation: card-in 0.25s ease both;
+  animation: card-in var(--enter-dur) var(--enter-ease) both;
 }
 
 /* Suppress entrance animation when returning from a tool — cards are already known. */
@@ -940,7 +952,7 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 @media (prefers-reduced-motion: no-preference) {
   .tool-masonry.reveal-armed .gtile { opacity: 0; }
   .tool-masonry.reveal-armed .gtile.is-in {
-    animation: card-in 0.34s cubic-bezier(.22, .61, .36, 1) both;
+    animation: card-in var(--enter-dur) var(--enter-ease) both;
     animation-delay: var(--reveal-delay, 0ms);
   }
 }
@@ -4495,7 +4507,7 @@ a.storage-indicator:hover { opacity: 1; }
 /* Saved rows cascade in behind the drawer's slide (also the per-tool history
    modal). A tight, quick stagger; capped so a long list stays snappy. */
 @media (prefers-reduced-motion: no-preference) {
-  .saved-list .saved-row { animation: card-in 0.26s cubic-bezier(.22, .61, .36, 1) both; }
+  .saved-list .saved-row { animation: card-in var(--enter-dur) var(--enter-ease) both; }
   .saved-list .saved-row:nth-child(1)  { animation-delay: 0.04s; }
   .saved-list .saved-row:nth-child(2)  { animation-delay: 0.07s; }
   .saved-list .saved-row:nth-child(3)  { animation-delay: 0.10s; }
@@ -5824,25 +5836,46 @@ button {
   .plat-header-text .plat-sub { margin-bottom: .7rem; }
 }
 
-/* Entrance: sections and cards fade+rise in on load, reusing the gallery's
-   `card-in` keyframe but quicker — this is a dense dashboard, not a hero gallery.
-   Closed <details> reveal their cards (display:none → block) on expand, so the
-   same build-up replays when a section is opened. The reduced-motion rule near
-   the top of this file zeroes all of this for users who ask for less. */
-.platform-view .plat-section,
-.capabilities-view .plat-section { animation: card-in 0.18s ease both; }
-.platform-view .plat-section:nth-of-type(1), .capabilities-view .plat-section:nth-of-type(1) { animation-delay: .02s; }
-.platform-view .plat-section:nth-of-type(2), .capabilities-view .plat-section:nth-of-type(2) { animation-delay: .05s; }
-.platform-view .plat-section:nth-of-type(3), .capabilities-view .plat-section:nth-of-type(3) { animation-delay: .08s; }
-.platform-view .plat-section:nth-of-type(4), .capabilities-view .plat-section:nth-of-type(4) { animation-delay: .11s; }
-.platform-view .plat-section:nth-of-type(n+5), .capabilities-view .plat-section:nth-of-type(n+5) { animation-delay: .14s; }
+/* Entrance cascade — ONE continuous ladder over the page's top-level nodes:
+   the "Tools" back-link (i=0) → the header band (i=1) → each section (i=2,3…).
+   The header rides the SAME motion as the cards, so the page reveals as one
+   wave instead of the old behaviour where the header snapped in at full opacity
+   while only the sections faded under it (that split read as a flicker). Inner
+   cards do NOT animate independently — they ride their section's single fade,
+   which kills the old parent×child double-stagger.
 
-.plat-client-grid .plat-client-card { animation: card-in 0.18s ease both; }
-.plat-client-grid .plat-client-card:nth-child(1) { animation-delay: .02s; }
-.plat-client-grid .plat-client-card:nth-child(2) { animation-delay: .05s; }
-.plat-client-grid .plat-client-card:nth-child(3) { animation-delay: .08s; }
-.plat-client-grid .plat-client-card:nth-child(4) { animation-delay: .11s; }
-.plat-client-grid .plat-client-card:nth-child(n+5) { animation-delay: .14s; }
+   JS (mountPlatform/mountCapabilities) arms this by adding `.is-entering` to the
+   view and an inline `--enter-i` index on each node, synchronously right after
+   innerHTML so the FIRST paint already has the hidden `from` state — no flash.
+   The class is removed once the wave finishes, so it never replays when a user
+   later expands a <details> section.
+
+   Gated behind `no-preference`: under reduced motion the hidden `from` state is
+   never authored and `.is-entering` is never added, so content renders
+   instantly — no specificity fight with the global !important reduce rule and
+   none of the "held-invisible-by-a-surviving-delay then pop" that zeroing only
+   the duration would cause. (Mirrors the masonry pattern above.) */
+@media (prefers-reduced-motion: no-preference) {
+  .platform-view.is-entering > .tools-home,
+  .platform-view.is-entering > .platform-layout > .plat-header,
+  .platform-view.is-entering > .platform-layout > .plat-section,
+  .capabilities-view.is-entering > .tools-home,
+  .capabilities-view.is-entering > .platform-layout > .plat-header,
+  .capabilities-view.is-entering > .platform-layout > .plat-section {
+    animation: card-in var(--enter-dur) var(--enter-ease) both;
+    animation-delay: calc(var(--enter-i, 0) * 0.05s);
+  }
+}
+
+/* Deferred content (the "This device" grid + brand-asset counts on Platform) is
+   filled AFTER first paint, so it would otherwise pop into an already-revealed
+   section. The view adds `.plat-hydrated` in the same tick it injects the
+   content, so this opacity-only fade (no translate — the box is already in place)
+   carries it in. No-preference gated; under reduced motion it just appears. */
+@keyframes plat-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  .plat-hydrated { animation: plat-fade 0.28s var(--enter-ease) both; }
+}
 
 /* Collapsible sections are profile-style cards: card chrome lives on the
    <details>, the title is its <summary>, and an SVG chevron rotates 90° on open. */
@@ -6016,6 +6049,13 @@ button {
   background: hsl(var(--muted) / .6); font-size: .82rem; text-transform: capitalize;
 }
 .plat-stat strong { font-size: 1rem; }
+/* `.plat-stat` sets display:inline-flex, which out-specifies the global
+   [hidden]{display:none} (a (0,1,0) tie that source order hands to .plat-stat),
+   leaving only visibility:hidden — so a hidden stat (the cold "N tools" pill
+   before its count syncs in) would still reserve layout and reflow when shown.
+   This (0,2,0) override restores display:none. Mirrors the same fix elsewhere
+   in this file (e.g. the gallery's hidden-state rules). */
+.plat-stat[hidden] { display: none; }
 .plat-chip {
   display: inline-block; padding: .25rem .55rem; border-radius: 999px;
   background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground));

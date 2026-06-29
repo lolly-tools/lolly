@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-29T15:49:09.564Z",
+  "generatedAt": "2026-06-29T18:29:19.564Z",
   "tools": [
     {
       "id": "color-block",
@@ -538,8 +538,8 @@
     {
       "id": "diagram-builder",
       "name": "Diagram Builder",
-      "description": "Build org charts and layered \"layercake\" architecture diagrams from structured cards. Auto-connectors plus optional flow arrows, in the SUSE palette and type.",
-      "version": "1.0.0",
+      "description": "Build org charts, layered \"layercake\" architecture diagrams, and process flowcharts — from visual cards, a typed text description, or ASCII art you draw. Clean export-safe output in the SUSE palette and type.",
+      "version": "1.2.0",
       "status": "experimental",
       "category": "designer",
       "formats": [
