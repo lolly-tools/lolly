@@ -371,6 +371,10 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const nativeH     = tool.manifest.render.height;
   const hasInputs   = (tool.manifest.inputs?.length ?? 0) > 0;
   const noExport    = tool.manifest.render.export === false;
+  // Whether this tool persists a saved session — drives the Save half of the
+  // render pill. Mirrors renderActions: the default action set includes 'save',
+  // and an explicit empty actions list (opted-out file utilities) excludes it.
+  const canSaveSession = (tool.manifest.render.actions ?? ['copy', 'download', 'save']).includes('save');
   const canvasLayout = tool.manifest.render.layout === 'canvas';
   // Hide the sidebar for pure-canvas utilities: either no inputs at all, or an
   // explicit canvas layout — where the tool's single file input becomes a
@@ -477,10 +481,18 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
         </div>`}
       </div>
       ${!hideSidebar ? `
-        <button type="button" class="render-fab" id="render-fab" aria-label="Export options">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span>Render</span>
-        </button>
+        <div class="render-pill" id="render-pill" role="group" aria-label="Export and save">
+          <button type="button" class="render-pill-btn render-pill-get" id="render-fab" aria-label="Export options">
+            <svg class="render-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+            <span>Get</span>
+          </button>
+          ${canSaveSession ? `
+          <span class="render-pill-sep" aria-hidden="true"></span>
+          <button type="button" class="render-pill-btn render-pill-save" id="render-save" aria-label="Save to your library" title="Save to your library">
+            <svg class="render-pill-icon render-pill-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span data-save-label>Save</span>
+          </button>` : ''}
+        </div>
         <div class="export-overlay" id="export-overlay">
           <div class="export-overlay-scrim" data-export-close></div>
           <div class="export-popup" role="dialog" aria-modal="true" aria-label="Export">
@@ -799,7 +811,13 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // survive the move). Mobile presents it as a full-screen sheet; desktop as a
   // non-modal panel anchored to the sidebar bottom — pure CSS difference (app.css).
   let exportTeardown = null;
-  const renderFab     = viewEl.querySelector('#render-fab');
+  // The "Save" half of the render pill — assigned just below, but declared out here
+  // so the dirty-state helpers (markSessionDirty / markSessionSaved, defined later)
+  // can flash and clear it from the input-change chokepoint.
+  let renderSaveBtn   = null;
+  const renderPill    = viewEl.querySelector('#render-pill');
+  const renderFab     = viewEl.querySelector('#render-fab');   // the "Get" half (opens export)
+  renderSaveBtn       = viewEl.querySelector('#render-save');  // the "Save" half (outer-scoped)
   const exportOverlay = viewEl.querySelector('#export-overlay');
   const exportBody    = viewEl.querySelector('#export-popup-body');
   if (!hideSidebar && renderFab && exportOverlay && exportBody && actionsEl) {
@@ -834,13 +852,13 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       // not when auto-opened from ?options on load, where grabbing focus is jarring.
       if (focus) exportOverlay.querySelector('.export-popup-close')?.focus();
     };
-    // Actions live in the Render popup on every breakpoint. The Render button
+    // Actions live in the Render popup on every breakpoint. The Get|Save pill
     // lives INSIDE the sidebar on desktop (a centred footer) but must sit OUTSIDE
     // it on mobile, where it's a viewport FAB the sheet's overflow would clip.
     const placeActions = () => {
       if (actionsEl.parentElement !== exportBody) exportBody.appendChild(actionsEl);
       const fabDest = mqMobile.matches ? layout : sidebarEl;
-      if (renderFab.parentElement !== fabDest) fabDest.appendChild(renderFab);
+      if (renderPill.parentElement !== fabDest) fabDest.appendChild(renderPill);
     };
     renderFab.setAttribute('aria-haspopup', 'dialog');
     renderFab.setAttribute('aria-expanded', 'false');
@@ -995,6 +1013,24 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Pre-seeded from any params already in the URL so shared/bookmarked links
   // are preserved across the first subscribe callback.
   let userHasMadeChanges = false;
+  // The render pill's Save half goes amber (with a one-shot flash) the moment the
+  // first un-saved edit lands, and reverts to its resting state on save. We flash
+  // only on the clean→dirty edge so it's an attention cue, not a strobe; the
+  // animation is restarted by removing+re-adding the class (a no-op re-add wouldn't
+  // replay it), so it fires again after each subsequent save→edit cycle.
+  function markSessionDirty() {
+    if (userHasMadeChanges) return;          // already dirty — keep the resting amber
+    userHasMadeChanges = true;
+    if (renderSaveBtn) {
+      renderSaveBtn.classList.remove('is-unsaved');
+      void renderSaveBtn.offsetWidth;        // force reflow so the flash animation restarts
+      renderSaveBtn.classList.add('is-unsaved');
+    }
+  }
+  function markSessionSaved() {
+    userHasMadeChanges = false;
+    renderSaveBtn?.classList.remove('is-unsaved');
+  }
   // Seed from the params this mount was routed with (form-agnostic — works whether the
   // bar arrived as /t/<id>?… or #/tool/<id>?…) so shared/bookmarked links survive the
   // first subscribe callback.
@@ -1113,7 +1149,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   }
 
   function markUserDirty(id) {
-    userHasMadeChanges = true;
+    markSessionDirty();   // sets userHasMadeChanges + flashes the Save pill on the first edit
     // Just record the param as dirty — the coalesced render's syncUrl() (folded
     // into the rAF below) writes the URL for every dirty param, so calling it here
     // too would replaceState twice per keystroke for no benefit.
@@ -1125,6 +1161,29 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Copy-URL now lives in the actions bar (renderActions), alongside the export
   // buttons — its format/filename/dimension inputs are in the same element.
   if (actionsEl) wireUpCopyUrl(actionsEl, runtime, actionsEl, tool.manifest);
+
+  // The render pill's Save half: an in-place quick-save. It reuses the exact same
+  // export-aware save routine as the popup's Save button (performSave), but unlike
+  // that button it does NOT navigate away — it's a checkpoint affordance. performSave
+  // leaves the button disabled with a "Saved" label for its own navigate-away caller,
+  // so we restore it here and clear the unsaved cue, briefly holding "Saved" as
+  // confirmation before reverting to "Save".
+  if (renderSaveBtn && actionsApi?.save) {
+    const saveLabel = renderSaveBtn.querySelector('[data-save-label]');
+    renderSaveBtn.addEventListener('click', async () => {
+      if (renderSaveBtn.dataset.saving) return;          // guard double-taps mid-save
+      const ok = await actionsApi.save(renderSaveBtn);   // performSave handles the label/disabled swap
+      if (!ok) return;                                   // failure path already reverted the button
+      delete renderSaveBtn.dataset.saving;
+      renderSaveBtn.disabled = false;
+      markSessionSaved();                                // drop the amber unsaved cue
+      renderSaveBtn.classList.add('is-just-saved');
+      setTimeout(() => {
+        if (saveLabel) saveLabel.textContent = 'Save';
+        renderSaveBtn.classList.remove('is-just-saved');
+      }, 1500);
+    });
+  }
 
   // Wire up the remaining sidebar utility buttons (Shrink URL, Clear changes).
   const sidebarUtilsEl = viewEl.querySelector('#sidebar-utils');
@@ -1525,7 +1584,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   viewEl.querySelector('#clear-inputs-btn')?.addEventListener('click', () => {
     showClearDialog(async () => {
       dirtyParams.clear();
-      userHasMadeChanges = true;
+      markSessionDirty();   // clearing is an edit — flag unsaved + flash the Save pill
       for (const input of runtime.getModel()) {
         // Revoke a picked file's preview URL before clearing it (avoid a leak).
         if (input.type === 'file' && input.value?.url) URL.revokeObjectURL(input.value.url);

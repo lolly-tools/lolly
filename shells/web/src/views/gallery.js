@@ -22,6 +22,7 @@ import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.js';
 import { profileSignature, canPersonalize, regeneratePreviews } from '../personalize-previews.js';
 import { openFolderOverlay } from '../folder-overlay.js';
 import { viewToggle } from '../components/view-toggle.js';
+import { attachProfileMenu } from '../components/profile-menu.js';
 
 // Section order for the filter pills. 'utility' is intentionally absent: the
 // on-device Offline Utilities pill always sorts last (see categoryRank()).
@@ -47,6 +48,16 @@ const FMT_LABEL = {
   webp: 'WebP', avif: 'AVIF', html: 'HTML', md: 'Markdown', txt: 'Text', gif: 'GIF',
 };
 const fmtLabel = (f) => FMT_LABEL[f] ?? String(f).toUpperCase();
+
+// "1080 × 1080 px" — the tool's intended output canvas (render.width/height carried
+// into the index entry, at the manifest unit; px when unset). Empty when a tool
+// declares no size, so callers can drop the line entirely.
+function dimText(tool) {
+  const w = tool?.width, h = tool?.height;
+  if (!w || !h) return '';
+  const u = tool.unit && tool.unit !== 'px' ? tool.unit : 'px';
+  return `${w} × ${h} ${u}`;
+}
 
 // Mirrors pro/sessions.js BATCH_SLOT_PREFIX — duplicated as a literal so the
 // gallery keeps zero dependency on the removable /pro folder.
@@ -207,20 +218,22 @@ export async function mountGallery(viewEl, host) {
   viewEl.innerHTML = `
     <div class="gallery">
       <h1 class="visually-hidden">Lolly — tools gallery</h1>
-      <div class="view-toggle-wrap">${viewToggle('tools')}</div>
-      <div class="gallery-topright">
-        ${visibleCats.length ? `<button type="button" class="filter-fab" aria-label="Filter tools" aria-haspopup="true" aria-expanded="false" aria-controls="filter-popover" title="Filter">${FILTER_ICON}</button>` : ''}
-        ${sortedSaved.length ? `<button type="button" class="history-fab" title="Saved sessions" aria-label="Saved sessions (${sortedSaved.length})">${HISTORY_ICON}<span class="history-fab-count" aria-hidden="true">${sortedSaved.length}</span></button>` : ''}
-        <a href="#/profile" class="profile-link${headshotUrl ? ' has-avatar' : ''}" aria-label="Open your profile">${headshotUrl ? `<img class="profile-link-avatar" src="${escape(headshotUrl)}" alt="">` : ''}<span class="profile-link-name">${escape(profile.firstname || 'Profile')}</span></a>
-        ${visibleCats.length ? `
-        <div class="filter-popover" id="filter-popover" role="group" aria-label="Filter tools" hidden>
-          <p class="filter-pop-head">Filter</p>
-          <div class="filter-pop-pills" aria-label="Filter tools by category"></div>
-          <label class="filter-pop-check">
-            <input type="checkbox" class="filter-hide-previews">
-            <span>Hide previews</span>
-          </label>
-        </div>` : ''}
+      <div class="gallery-topbar">
+        <div class="view-toggle-wrap">${viewToggle('tools')}</div>
+        <div class="gallery-topright">
+          ${visibleCats.length ? `<button type="button" class="filter-fab" aria-label="Filter tools" aria-haspopup="true" aria-expanded="false" aria-controls="filter-popover" title="Filter">${FILTER_ICON}</button>` : ''}
+          ${sortedSaved.length ? `<button type="button" class="history-fab" title="Saved sessions" aria-label="Saved sessions (${sortedSaved.length})">${HISTORY_ICON}<span class="history-fab-count" aria-hidden="true">${sortedSaved.length}</span></button>` : ''}
+          <a href="#/profile" class="profile-link${headshotUrl ? ' has-avatar' : ''}" aria-label="Open your profile">${headshotUrl ? `<img class="profile-link-avatar" src="${escape(headshotUrl)}" alt="">` : ''}<span class="profile-link-name">${escape(profile.firstname || 'Profile')}</span></a>
+          ${visibleCats.length ? `
+          <div class="filter-popover" id="filter-popover" role="group" aria-label="Filter tools" hidden>
+            <p class="filter-pop-head">Filter</p>
+            <div class="filter-pop-pills" aria-label="Filter tools by category"></div>
+            <label class="filter-pop-check">
+              <input type="checkbox" class="filter-hide-previews">
+              <span>Hide previews</span>
+            </label>
+          </div>` : ''}
+        </div>
       </div>
       ${visibleCats.length ? `<div class="filter-backdrop" hidden></div>` : ''}
 
@@ -474,10 +487,11 @@ export async function mountGallery(viewEl, host) {
   });
 
   // Global saved-sessions overlay (folders over all tool + batch sessions),
-  // opened from the history button beside the profile pill. User images are
-  // loaded lazily so folders that also hold images render here too.
+  // opened from the history button beside the profile pill — and, on mobile, from
+  // the consolidated profile menu (the standalone history button is hidden there).
+  // User images are loaded lazily so folders that also hold images render here too.
   const historyFab = viewEl.querySelector('.history-fab');
-  historyFab?.addEventListener('click', async () => {
+  async function openHistoryOverlay() {
     const imageRefs = await host.assets._listUserAssets?.().catch(() => []) ?? [];
     openFolderOverlay(host, {
       context: 'gallery',
@@ -499,12 +513,21 @@ export async function mountGallery(viewEl, host) {
           const j = arr.findIndex(s => s.slot === ref);
           if (j >= 0) { arr.splice(j, 1); break; }
         }
-        const count = historyFab.querySelector('.history-fab-count');
+        const count = historyFab?.querySelector('.history-fab-count');
         if (count) count.textContent = String(sortedSaved.length);
-        if (sortedSaved.length === 0) historyFab.hidden = true;
+        if (historyFab && sortedSaved.length === 0) historyFab.hidden = true;
         render();
       },
     });
+  }
+  historyFab?.addEventListener('click', openHistoryOverlay);
+
+  // Mobile: tapping the avatar opens a single menu gathering the theme switcher,
+  // saved sessions and a Settings link (the history button + "Profile" wordmark
+  // are hidden by CSS at that width). On desktop the avatar stays a plain link.
+  attachProfileMenu(viewEl.querySelector('.profile-link'), host, {
+    savedCount: sortedSaved.length,
+    onHistory: openHistoryOverlay,
   });
 
   // Focus the search box on fine-pointer devices for type-to-find (skip touch so
@@ -612,6 +635,15 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
     ? `Last opened · ${escape(relativeTime(latest.updatedAt))}`
     : '';
 
+  // Intended output — primary format + canvas size — so a browser sees "what you'll
+  // get" before opening. Describes the tool (not the session), so it shows on every
+  // exportable card, with or without a saved session. On-device transforms (and tools
+  // that declare no size) have no fixed output, so the line is dropped for them.
+  const dims = dimText(tool);
+  const primaryFmt = (Array.isArray(tool.formats) && tool.formats.length) ? fmtLabel(tool.formats[0]) : '';
+  const specText = tool.exportable === false ? '' : [primaryFmt, dims].filter(Boolean).join(' · ');
+  const spec = specText ? `<p class="gtile-spec">${escape(specText)}</p>` : '';
+
   // The title is the "start a new session" link. A stretched ::after (see CSS)
   // makes the whole text body — caption + description — its click target, so a
   // fresh session is as easy to hit as the hero's Continue. On a tool that
@@ -635,6 +667,7 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
             ${name}
             ${sub ? `<span class="gtile-sub">${sub}</span>` : ''}
             <p class="gtile-desc">${escape(tool.description ?? '')}</p>
+            ${spec}
           </span>
           ${hasSession ? '<span class="gtile-new" aria-hidden="true">+ New</span>' : ''}
           ${hasImageHero
@@ -665,6 +698,10 @@ function showInfoDialog(tool) {
   const formatsText = tool.exportable === false
     ? 'On-device transform (no file export)'
     : (formats.length ? formats.join(', ') : '—');
+  // Intended canvas size — paired with the format list so the modal answers both
+  // "what file" and "how big". Omitted for transforms (size isn't meaningful) and for
+  // any tool that declares no render size.
+  const dims = tool.exportable === false ? '' : dimText(tool);
 
   const dialog = document.createElement('dialog');
   dialog.className = 'tool-meta-dialog';
@@ -681,6 +718,7 @@ function showInfoDialog(tool) {
       <p class="meta-dialog-desc">${escape(tool.description ?? '')}</p>
       <dl class="meta-dialog-facts">
         <div><dt>Exports</dt><dd>${escape(formatsText || '—')}</dd></div>
+        ${dims ? `<div><dt>Size</dt><dd>${escape(dims)}</dd></div>` : ''}
         ${caps.length ? `<div><dt>Uses</dt><dd>${caps.map(c => escape(capabilityLabel(c))).join(', ')}</dd></div>` : ''}
         ${tool.privacy === 'on-device' ? `<div><dt>Privacy</dt><dd>Runs entirely on your device</dd></div>` : ''}
         ${tool.version ? `<div><dt>Version</dt><dd>${escape(tool.version)}</dd></div>` : ''}

@@ -41,6 +41,13 @@ export function entryFromManifest(manifest) {
   // (For render.export:false utilities this is the set of input types they
   // accept, not download formats — the modal gates on `exportable` below.)
   entry.formats = Array.isArray(manifest.render?.formats) ? manifest.render.formats : [];
+  // The tool's intended output size — render.width/height in render.unit (px when
+  // unset). Carried so the gallery can show "what you'll get" (size + format) on the
+  // card and in the info modal with no per-tool manifest fetch. `unit` is included only
+  // when it's a physical unit (mm/cm/in/pt); px is the default and stays implicit.
+  if (typeof manifest.render?.width === 'number') entry.width = manifest.render.width;
+  if (typeof manifest.render?.height === 'number') entry.height = manifest.render.height;
+  if (manifest.render?.unit && manifest.render.unit !== 'px') entry.unit = manifest.render.unit;
   // Whether the tool can be rendered to an exportable file at all. Surfaced so
   // shells can exclude render-only / on-device utilities — which produce their
   // output via their own exportFile flow, not the batch render path — without
