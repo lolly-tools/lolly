@@ -227,6 +227,9 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
     async startLive() {
       if (liveUnsub || !hooks?.onFrame || !host.media) return false;
       await host.media.start(); // may reject (permission/no camera) — the shell catches
+      // A raster-output tool can ask for higher-resolution frames than the shell's
+      // default vector-trace working size (render.liveMaxEdge); the shell clamps it
+      // to the native camera frame. Shells that ignore the opt fall back to default.
       liveUnsub = host.media.subscribe((frame) => {
         if (framePending) return; // still tracing the previous frame → drop this one
         framePending = true;
@@ -237,7 +240,7 @@ export async function createRuntime(tool, host, initialState = {}, opts = {}) {
           })
           .catch((e) => host.log('warn', `onFrame ${e.message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
-      });
+      }, { maxEdge: tool.manifest.render?.liveMaxEdge });
       return true;
     },
 

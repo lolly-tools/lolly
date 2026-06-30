@@ -97,6 +97,11 @@
           "default": false,
           "description": "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
         },
+        "liveMaxEdge": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "For onFrame (live camera) tools only: the requested longest edge, in pixels, of the working camera frame handed to the hook. The shell downscales the source camera to a small default that suits a vector trace; a raster-output tool (whose result is a bitmap, not traced shapes — e.g. pixel-stretch) sets this higher for sharper output. The shell clamps it to the native camera frame (never upscales) and to its own ceiling. Ignored by tools without onFrame and by shells without a camera."
+        },
         "convertPaths": {
           "type": "boolean",
           "default": true,
