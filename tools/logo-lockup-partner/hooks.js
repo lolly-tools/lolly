@@ -38,6 +38,12 @@ function presenceMul(v) { return PRESENCE[v] != null ? PRESENCE[v] : 1; }
 
 var SYMBOLS = { times: '×', plus: '+', amp: '&' };
 
+// The artboard (matches render.width/height in tool.json) and its CSS padding, so the
+// hook can fit the lockup to the available area. Kept here as the single source.
+var CANVAS_W = 1200, CANVAS_H = 360, PAD_X = 56, PAD_Y = 40;
+var AVAIL_W = CANVAS_W - 2 * PAD_X;   // usable width  (1088)
+var AVAIL_H = CANVAS_H - 2 * PAD_Y;   // usable height (280)
+
 // ── small helpers ────────────────────────────────────────────────────────────
 function inputsFrom(model) { var o = {}; model.forEach(function (i) { o[i.id] = i.value; }); return o; }
 function num(v, d) { var x = Number(v); return isFinite(x) ? x : d; }
@@ -219,6 +225,8 @@ function makeItem(ref, opts) {
     filterClass: opts.mono ? 'll-f-grayscale' : filterClass(opts.filter),
     isLead: !!opts.isLead,
     canvasId: opts.canvasId,
+    aspect: 1,    // content width / height — measured below, drives fit-to-width
+    box: null,    // content box + optical weight
     h: 0,
   };
 }
@@ -255,65 +263,83 @@ async function compute(model) {
     }));
   });
 
-  // Content-trim raster logos (browser only); SVG keeps its viewBox.
+  // Decode each logo once: content box (optical weight + aspect) and a content-trimmed
+  // src for rasters (so an <img> fits tightly and embeds faithfully in every export).
+  // Needs a browser canvas; a headless shell keeps originals and assumes a square aspect.
   if (canRaster()) {
     await Promise.all(items.map(async function (it) {
-      if (!it.url || it.isSvg) return;
+      if (!it.url) return;
       var img = await getImage(it.url).catch(function () { return null; });
       if (!img) return;
-      it.displayUrl = getTrimmedRaster(it.url, img, measureContent(it.url, img));
+      var box = measureContent(it.url, img);
+      it.box = box;
+      var nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
+      if (box && nw && nh) it.aspect = (box.fw * nw) / (box.fh * nh);
+      else if (nw && nh) it.aspect = nw / nh;
+      if (!it.isSvg) it.displayUrl = getTrimmedRaster(it.url, img, box);
     }));
   }
 
-  // Optical-weight balancing across every logo, so the lead and partners read equally.
+  // Optical-weight balancing: equalise each logo's footprint so the lead and partners
+  // read equally. Reference = median weight (robust to one odd logo).
   var factors = items.map(function () { return 1; });
-  if (balance && canRaster() && items.length >= 2) {
-    var imgs = await Promise.all(items.map(function (it) {
-      return it.url ? getImage(it.url).catch(function () { return null; }) : Promise.resolve(null);
-    }));
-    var dens = [], denByIdx = [];
-    for (var i = 0; i < items.length; i++) {
-      var box = imgs[i] ? measureContent(items[i].url, imgs[i]) : null;
-      var den = (box && box.weight != null) ? Math.max(box.weight, 0.01) : null;
-      denByIdx[i] = den;
-      if (den) dens.push(den);
-    }
+  if (balance && items.length >= 2) {
+    var dens = [];
+    items.forEach(function (it) { if (it.box && it.box.weight != null) dens.push(Math.max(it.box.weight, 0.01)); });
     if (dens.length >= 2) {
       dens.sort(function (a, b) { return a - b; });
       var mid = dens.length >> 1;
       var refDen = dens.length % 2 ? dens[mid] : (dens[mid - 1] + dens[mid]) / 2;
-      for (var j = 0; j < items.length; j++) {
-        factors[j] = denByIdx[j] ? clamp(Math.sqrt(refDen / denByIdx[j]), 0.55, 1.7) : 1;
-      }
+      items.forEach(function (it, i) {
+        var den = it.box && it.box.weight != null ? Math.max(it.box.weight, 0.01) : null;
+        factors[i] = den ? clamp(Math.sqrt(refDen / den), 0.55, 1.7) : 1;
+      });
     }
   }
 
-  // Lead emphasis in the "lead + partners" layout, on top of its presence.
+  // Raw target height per logo: base × balance × presence × lead emphasis.
   var leadEmphasis = layout === 'lead' ? 1.45 : 1;
   items.forEach(function (it, i) {
     var emph = it.isLead ? leadEmphasis : 1;
-    it.h = Math.round(clamp(baseH * factors[i] * it.pmul * emph, 12, 320));
+    it.h = clamp(baseH * factors[i] * it.pmul * emph, 12, 600);
   });
+
+  // Connector kind (needed before fitting so its width counts).
+  var connKind = inputs.connector || 'bar';
+  var connectorOn = connKind !== 'none' && items.length >= 2 && items.some(function (it) { return it.isLead; });
+
+  // Fit the whole lockup to the artboard: the row of logos (each width = height × aspect)
+  // plus the connector and the gaps between elements must fit AVAIL_W, and nothing may
+  // exceed AVAIL_H. Scale every logo uniformly so a wide wordmark or many partners never
+  // spill off the canvas (which would clip on export).
+  var connWEst = !connectorOn ? 0 : (connKind === 'symbol' ? baseH * 0.5 : connKind === 'text' ? baseH * 1.6 : 4);
+  var elemCount = items.length + (connectorOn ? 1 : 0);
+  var fixedW = connWEst + Math.max(0, elemCount - 1) * gap;
+  var logosW = items.reduce(function (s, it) { return s + it.h * (it.aspect || 1); }, 0);
+  var fitW = (logosW > 0 && (AVAIL_W - fixedW) > 0 && logosW > AVAIL_W - fixedW)
+    ? (AVAIL_W - fixedW) / logosW : 1;
+  fitW = clamp(fitW, 0.1, 1);
+  var tallest = items.reduce(function (m, it) { return Math.max(m, it.h * fitW); }, 0);
+  var fit = fitW * (tallest > AVAIL_H ? AVAIL_H / tallest : 1);
+  items.forEach(function (it) { it.h = Math.round(clamp(it.h * fit, 8, AVAIL_H)); });
 
   pruneCaches(items.map(function (it) { return it.url; }));
 
   var leadCell = items.filter(function (it) { return it.isLead; })[0] || null;
   var partnerCells = items.filter(function (it) { return !it.isLead; });
 
-  // Connector — only meaningful between a lead and at least one partner.
-  var connKind = inputs.connector || 'bar';
-  var connectorOn = connKind !== 'none' && !!leadCell && partnerCells.length >= 1;
-  var connText = '';
-  var connStyle = '';
+  // Connector sizing keyed to the FITTED lead height, so it scales with the lockup.
+  var effH = leadCell ? leadCell.h : (items[0] ? items[0].h : baseH);
+  var connText = '', connStyle = '';
   if (connectorOn) {
     if (connKind === 'symbol') {
       connText = SYMBOLS[inputs.symbol] || SYMBOLS.times;
-      connStyle = 'font-size:' + Math.round(baseH * 0.52) + 'px';
+      connStyle = 'font-size:' + Math.round(effH * 0.52) + 'px';
     } else if (connKind === 'text') {
       connText = String(inputs.connectorText == null ? '' : inputs.connectorText);
-      connStyle = 'font-size:' + clamp(Math.round(baseH * 0.17), 11, 40) + 'px';
+      connStyle = 'font-size:' + clamp(Math.round(effH * 0.16), 11, 40) + 'px';
     } else { // bar
-      connStyle = 'height:' + Math.round((leadCell ? leadCell.h : baseH) * 0.9) + 'px';
+      connStyle = 'height:' + Math.round(effH * 0.9) + 'px';
     }
   }
 

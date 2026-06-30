@@ -14,7 +14,7 @@
     "formats": ["svg", "png", "pdf", "jpg", "webp"],
     "actions": ["copy", "download", "save"],
     "layout": "sidebar",
-    "transparentBg": true,
+    "transparentBg": false,
     "convertPaths": true
   },
   "hooks": {

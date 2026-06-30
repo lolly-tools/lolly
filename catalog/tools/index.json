@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-30T00:54:10.187Z",
+  "generatedAt": "2026-06-30T01:18:11.506Z",
   "tools": [
     {
       "id": "color-block",
@@ -551,8 +551,8 @@
     {
       "id": "diagram-builder",
       "name": "Diagram Builder",
-      "description": "Build org charts, layered \"layercake\" architecture diagrams, and process flowcharts — from visual cards, a typed text description, or ASCII art you draw. Clean export-safe output in the SUSE palette and type.",
-      "version": "1.3.0",
+      "description": "Build org charts, mind maps, layered \"layercake\" architecture, process flowcharts, timelines, cycles, pyramids/funnels, kanban boards, 2×2 matrices and Gantt roadmaps — from visual cards, a typed text description, ASCII art you draw, pasted Mermaid, or a CSV table. Clean export-safe output in the SUSE palette and type.",
+      "version": "1.4.0",
       "status": "experimental",
       "category": "designer",
       "formats": [

@@ -1,13 +1,13 @@
 {
   "id": "diagram-builder",
   "name": "Diagram Builder",
-  "description": "Build org charts, layered \"layercake\" architecture diagrams, and process flowcharts — from visual cards, a typed text description, or ASCII art you draw. Clean export-safe output in the SUSE palette and type.",
+  "description": "Build org charts, mind maps, layered \"layercake\" architecture, process flowcharts, timelines, cycles, pyramids/funnels, kanban boards, 2×2 matrices and Gantt roadmaps — from visual cards, a typed text description, ASCII art you draw, pasted Mermaid, or a CSV table. Clean export-safe output in the SUSE palette and type.",
   "a11yLabel": "{{default title \"Untitled\"}} — {{diagramType}} diagram",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "designer",
-  "tags": ["diagram", "org-chart", "org chart", "architecture", "layercake", "flowchart", "process", "hierarchy", "cards", "arrows", "ascii", "text", "mermaid"],
+  "tags": ["diagram", "org-chart", "org chart", "architecture", "layercake", "flowchart", "process", "hierarchy", "mind map", "mindmap", "timeline", "roadmap", "cycle", "pyramid", "funnel", "kanban", "matrix", "quadrant", "gantt", "cards", "arrows", "ascii", "text", "mermaid", "csv"],
   "render": {
     "width": 1600,
     "height": 1000,
@@ -21,15 +21,37 @@
   },
   "inputs": [
     {
+      "id": "preset",
+      "label": "Preset",
+      "type": "select",
+      "default": "custom",
+      "help": "A one-click starting point that seeds the type, theme and spacing. Pick one, then fine-tune anything — your later edits are kept.",
+      "options": [
+        { "value": "custom", "label": "Custom" },
+        { "value": "org-classic", "label": "Org — classic" },
+        { "value": "layercake-mint", "label": "Layercake — SUSE mint" },
+        { "value": "process-lr", "label": "Process — left to right" },
+        { "value": "blueprint", "label": "Blueprint" },
+        { "value": "mono", "label": "Minimal mono" }
+      ]
+    },
+    {
       "id": "diagramType",
       "label": "Diagram type",
       "type": "select",
       "default": "org",
-      "help": "Org builds a top-down tree from each card's “Reports to”. Layercake stacks cards into horizontal layer bands. Process lays steps out along their flow arrows.",
+      "help": "Org/Mind map build a tree from each card's parent. Layercake/Kanban group cards by their “Group” ID (stacked bands vs side-by-side columns). Process/Timeline/Cycle lay cards out along flow/order. Pyramid, Matrix and Gantt have their own controls below.",
       "options": [
         { "value": "org", "label": "Org chart (hierarchy)" },
+        { "value": "mindmap", "label": "Mind map" },
         { "value": "layercake", "label": "Layercake (layered architecture)" },
-        { "value": "process", "label": "Process (flowchart)" }
+        { "value": "kanban", "label": "Kanban / columns" },
+        { "value": "process", "label": "Process (flowchart)" },
+        { "value": "timeline", "label": "Timeline" },
+        { "value": "cycle", "label": "Cycle (loop)" },
+        { "value": "pyramid", "label": "Pyramid / funnel" },
+        { "value": "matrix", "label": "Matrix (2×2 quadrant)" },
+        { "value": "gantt", "label": "Gantt / roadmap" }
       ]
     },
     {
@@ -37,11 +59,13 @@
       "label": "Build from",
       "type": "select",
       "default": "visual",
-      "help": "Visual edits cards as form rows. Text renders a typed diagram description. ASCII art traces boxes you draw with + - | characters.",
+      "help": "Visual edits cards as form rows. Text renders a typed description. ASCII art traces boxes you draw. Mermaid pastes a graph TD/LR subset. Table reads a pasted CSV.",
       "options": [
         { "value": "visual", "label": "Visual editor" },
         { "value": "text", "label": "Text (type it)" },
-        { "value": "ascii", "label": "ASCII art (draw it)" }
+        { "value": "ascii", "label": "ASCII art (draw it)" },
+        { "value": "mermaid", "label": "Mermaid (paste it)" },
+        { "value": "table", "label": "Table / CSV (paste it)" }
       ]
     },
     {
@@ -51,21 +75,37 @@
       "default": "",
       "placeholder": "Optional heading shown above the diagram"
     },
+
     {
-      "id": "dsl",
-      "label": "Diagram text",
-      "type": "longtext",
-      "showIf": { "source": "text" },
-      "help": "Org: indent for hierarchy. Layercake: “# Layer” headings with cards listed below. Process: “A -> B -> C” (add “ : label” for an arrow label). “::” adds a card subtitle; “@ https://…/logo.png” adds an image to a card; “//” starts a comment.",
-      "default": "CEO\n  CTO :: Technology\n    Eng Lead\n    QA Lead\n  CFO :: Finance\n  COO :: Operations"
+      "id": "orgDir",
+      "label": "Direction",
+      "type": "select",
+      "default": "down",
+      "showIf": { "diagramType": "org" },
+      "help": "Lay the tree top-to-bottom, or left-to-right for deep hierarchies.",
+      "options": [
+        { "value": "down", "label": "Top to bottom" },
+        { "value": "right", "label": "Left to right" }
+      ]
     },
     {
-      "id": "asciiArt",
-      "label": "ASCII art",
-      "type": "longtext",
-      "showIf": { "source": "ascii" },
-      "help": "Draw boxes with + - | and connect them with - | and arrowheads > < ^ v. Keep each box's | sides lined up with its +---+ borders. The first line inside a box is its title, the rest its subtitle, and a line of “@ https://…/logo.png” adds an image. Your layout is preserved — we just render it as clean cards.",
-      "default": "+--------+          +-------+\n| Client |--------->|  API  |\n+--------+          +-------+\n                        |\n                        v\n                  +----------+\n                  | Database |\n                  +----------+"
+      "id": "mindmapStyle",
+      "label": "Branch layout",
+      "type": "select",
+      "default": "balanced",
+      "showIf": { "diagramType": "mindmap" },
+      "options": [
+        { "value": "balanced", "label": "Balanced (both sides)" },
+        { "value": "right", "label": "Right only" }
+      ]
+    },
+    {
+      "id": "branchColors",
+      "label": "Colour by branch",
+      "type": "boolean",
+      "default": true,
+      "showIf": { "diagramType": "mindmap" },
+      "help": "Tint each top-level branch with its own palette colour."
     },
     {
       "id": "flowDir",
@@ -80,12 +120,139 @@
       ]
     },
     {
+      "id": "timelineDir",
+      "label": "Direction",
+      "type": "select",
+      "default": "right",
+      "showIf": { "diagramType": "timeline" },
+      "options": [
+        { "value": "right", "label": "Left to right" },
+        { "value": "down", "label": "Top to bottom" }
+      ]
+    },
+    {
+      "id": "cycleArrows",
+      "label": "Show loop arrows",
+      "type": "boolean",
+      "default": true,
+      "showIf": { "diagramType": "cycle" }
+    },
+    {
+      "id": "cycleCurved",
+      "label": "Curved arrows",
+      "type": "boolean",
+      "default": true,
+      "showIf": { "diagramType": "cycle" },
+      "help": "Bow the ring arrows outward instead of straight chords."
+    },
+    {
+      "id": "pyramidStyle",
+      "label": "Style",
+      "type": "select",
+      "default": "pyramid",
+      "showIf": { "diagramType": "pyramid" },
+      "help": "Cards are listed top→bottom. Pyramid widens downward, funnel narrows, inverted widens upward.",
+      "options": [
+        { "value": "pyramid", "label": "Pyramid (wide base)" },
+        { "value": "funnel", "label": "Funnel (narrowing)" },
+        { "value": "inverted", "label": "Inverted pyramid" }
+      ]
+    },
+    {
+      "id": "kanbanCount",
+      "label": "Show card counts",
+      "type": "boolean",
+      "default": false,
+      "showIf": { "diagramType": "kanban" }
+    },
+    {
+      "id": "matrixXHigh",
+      "label": "X axis — high",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. High impact",
+      "showIf": { "diagramType": "matrix" }
+    },
+    {
+      "id": "matrixXLow",
+      "label": "X axis — low",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. Low impact",
+      "showIf": { "diagramType": "matrix" }
+    },
+    {
+      "id": "matrixYHigh",
+      "label": "Y axis — high",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. High effort",
+      "showIf": { "diagramType": "matrix" }
+    },
+    {
+      "id": "matrixYLow",
+      "label": "Y axis — low",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. Low effort",
+      "showIf": { "diagramType": "matrix" }
+    },
+    {
+      "id": "ganttGrid",
+      "label": "Show time grid",
+      "type": "boolean",
+      "default": true,
+      "showIf": { "diagramType": "gantt" }
+    },
+    {
+      "id": "ganttUnit",
+      "label": "Time unit label",
+      "type": "text",
+      "default": "",
+      "placeholder": "e.g. wk",
+      "showIf": { "diagramType": "gantt" }
+    },
+
+    {
+      "id": "dsl",
+      "label": "Diagram text",
+      "type": "longtext",
+      "showIf": { "source": "text" },
+      "help": "Org/Mind map: indent for hierarchy. Layercake/Kanban: “# Group” headings with cards below. Process/Gantt: “A -> B” (Gantt adds “ : 0..3”). Timeline/Cycle/Pyramid: one item per line, in order. Matrix: “# top-right” sections or “Item @ (0.8,0.3)”. Shared: “:: subtitle”, “#hex” fill, “(Rounded)”/“[Box]”/“([Pill])” shape, “@ https://…/logo.png” image, edge styles --> -.-> ==> <->, “// comment”.",
+      "default": "CEO\n  CTO :: Technology\n    Eng Lead\n    QA Lead\n  CFO :: Finance\n  COO :: Operations"
+    },
+    {
+      "id": "asciiArt",
+      "label": "ASCII art",
+      "type": "longtext",
+      "showIf": { "source": "ascii" },
+      "help": "Draw boxes with + - | and connect them with - | and arrowheads > < ^ v. Keep each box's | sides lined up with its +---+ borders. The first line inside a box is its title, the rest its subtitle, and a line of “@ https://…/logo.png” adds an image. Your layout is preserved — we just render it as clean cards.",
+      "default": "+--------+          +-------+\n| Client |--------->|  API  |\n+--------+          +-------+\n                        |\n                        v\n                  +----------+\n                  | Database |\n                  +----------+"
+    },
+    {
+      "id": "mermaid",
+      "label": "Mermaid",
+      "type": "longtext",
+      "showIf": { "source": "mermaid" },
+      "help": "Paste a Mermaid flowchart subset. “graph TD/LR” sets direction; A[Box], A(Rounded), A([Pill]), A{Diamond} define nodes; A-->B, A---B, A-.->B, A==>B, A-->|label|B are edges; subgraph Name … end becomes layer bands. Unsupported lines (classDef, click, style…) are skipped, never run.",
+      "default": "graph LR\n  A[Client] --> B(API Gateway)\n  B --> C[(Database)]\n  B -.-> D{{Cache}}"
+    },
+    {
+      "id": "table",
+      "label": "Table / CSV",
+      "type": "longtext",
+      "showIf": { "source": "table" },
+      "help": "Paste comma- or tab-separated rows. Org/Mind map: id,label,detail,parent. Process: from,to,label (an edge list — ids are created automatically). Timeline/Cycle/Pyramid: label,detail. A header row (id/label/from/…) is detected and skipped.",
+      "default": "id,label,parent\nceo,CEO,\ncto,CTO,ceo\ncfo,CFO,ceo\neng,Eng Lead,cto\nqa,QA Lead,cto"
+    },
+
+    {
       "id": "nodes",
       "label": "Cards",
       "type": "blocks",
       "labelledFields": true,
       "showIf": { "source": "visual" },
-      "help": "One card per row. Give each a short ID so arrows and reporting lines can point at it. Drag to reorder — order sets sibling order (org) and left-to-right order within a layer (layercake).",
+      "help": "One card per row. Give each a short ID so arrows, reporting lines, layers and columns can point at it. Drag to reorder — order sets sibling order, layer/column order, and the sequence for timeline/cycle/pyramid/gantt.",
       "addMenu": { "field": "shape", "label": "Add card" },
       "fields": [
         {
@@ -102,9 +269,12 @@
         { "id": "nodeId", "label": "ID", "type": "text", "placeholder": "e.g. ceo", "help": "Short unique handle. Auto-derived from the label if left blank." },
         { "id": "label", "label": "Label", "type": "text", "placeholder": "Card text" },
         { "id": "detail", "label": "Detail", "type": "text", "placeholder": "Subtitle (optional)" },
-        { "id": "image", "label": "Image", "type": "asset", "assetType": "any", "allowUpload": true, "help": "Optional headshot, icon, or product logo shown on the card. Upload your own or pick from the library." },
-        { "id": "parent", "label": "Reports to (ID)", "type": "text", "placeholder": "ID of the card above", "showIf": { "diagramType": "org" }, "help": "Leave blank for a top-level card." },
-        { "id": "layer", "label": "Layer (ID)", "type": "text", "placeholder": "ID of a layer below", "showIf": { "diagramType": "layercake" } },
+        { "id": "image", "label": "Image", "type": "asset", "assetType": "any", "allowUpload": true, "help": "Optional headshot, icon, or product logo shown on the card." },
+        { "id": "parent", "label": "Parent (ID)", "type": "text", "placeholder": "ID of the card above", "help": "Org / mind map: the card this one reports to / branches from. Leave blank for a top-level card." },
+        { "id": "layer", "label": "Group (ID)", "type": "text", "placeholder": "layer or column ID", "help": "Layercake: which band. Kanban: which column. Cards with the same ID group together." },
+        { "id": "quadrant", "label": "Quadrant", "type": "select", "default": "tr", "showIf": { "diagramType": "matrix" }, "options": [ { "value": "tr", "label": "Top-right" }, { "value": "tl", "label": "Top-left" }, { "value": "br", "label": "Bottom-right" }, { "value": "bl", "label": "Bottom-left" } ] },
+        { "id": "ganttStart", "label": "Start", "type": "number", "min": 0, "max": 1000, "step": 0.5, "showIf": { "diagramType": "gantt" }, "help": "Bar start on the time axis." },
+        { "id": "ganttLen", "label": "Length", "type": "number", "min": 0.5, "max": 1000, "step": 0.5, "showIf": { "diagramType": "gantt" }, "help": "Bar length in the same units." },
         { "id": "fill", "label": "Card colour", "type": "color", "default": "", "help": "Overrides the global card fill for this card only." }
       ],
       "default": [
@@ -116,11 +286,11 @@
     },
     {
       "id": "layers",
-      "label": "Layers (top → bottom)",
+      "label": "Layers / columns (in order)",
       "type": "blocks",
       "labelledFields": true,
       "showIf": { "source": "visual", "diagramType": "layercake" },
-      "help": "Each band of the layercake, stacked in this order. Cards reference a band by its ID.",
+      "help": "Each band of the layercake, stacked in this order. Cards reference a band by its ID. (Kanban columns are created automatically from each card's Group ID.)",
       "addMenu": { "field": "kind", "label": "Add layer" },
       "fields": [
         { "id": "kind", "label": "Kind", "type": "select", "default": "layer", "options": [ { "value": "layer", "label": "Layer", "repeatable": true } ] },
@@ -140,20 +310,41 @@
       "type": "blocks",
       "labelledFields": true,
       "showIf": { "source": "visual" },
-      "help": "In process diagrams these arrows ARE the flow (they lay out the steps). In org/layercake they're extra arrows on top of the automatic connectors. From/To reference a card ID (or, in layercake, a layer ID).",
+      "help": "In process/gantt these arrows ARE the flow / dependencies. In org/layercake/etc they're extra arrows on top of the automatic connectors. From/To reference a card ID (or, in layercake, a layer ID).",
       "fields": [
         { "id": "from", "label": "From (ID)", "type": "text", "placeholder": "card or layer ID" },
         { "id": "to", "label": "To (ID)", "type": "text", "placeholder": "card or layer ID" },
         { "id": "label", "label": "Label", "type": "text", "placeholder": "optional" },
-        { "id": "style", "label": "Line", "type": "select", "default": "solid", "options": [ { "value": "solid", "label": "Solid" }, { "value": "dashed", "label": "Dashed" } ] },
+        { "id": "style", "label": "Line", "type": "select", "default": "solid", "options": [ { "value": "solid", "label": "Solid" }, { "value": "dashed", "label": "Dashed" }, { "value": "dotted", "label": "Dotted" } ] },
+        { "id": "head", "label": "Arrowhead", "type": "select", "default": "", "options": [ { "value": "", "label": "Default" }, { "value": "triangle", "label": "Triangle" }, { "value": "open", "label": "Open" }, { "value": "diamond", "label": "Diamond" }, { "value": "circle", "label": "Circle" }, { "value": "bar", "label": "Bar" }, { "value": "double", "label": "Double-ended" }, { "value": "none", "label": "None" } ] },
+        { "id": "width", "label": "Width", "type": "number", "display": "slider", "min": 0, "max": 8, "step": 0.5, "default": 0, "help": "0 = use the global arrow width." },
         { "id": "color", "label": "Colour", "type": "color", "default": "#0c322c" }
       ],
       "default": []
     },
-    { "id": "nodeFill", "label": "Card fill", "type": "color", "default": "#ffffff", "group": "Style" },
-    { "id": "nodeStroke", "label": "Card border", "type": "color", "default": "#0c322c", "group": "Style" },
-    { "id": "nodeText", "label": "Card text", "type": "color", "default": "#0c322c", "group": "Style" },
-    { "id": "edgeColor", "label": "Connectors", "type": "color", "default": "#0c322c", "group": "Style" },
-    { "id": "background", "label": "Background", "type": "color", "default": "#ffffff", "group": "Style", "help": "Set to Transparent for a knock-out background." }
+
+    { "id": "density", "label": "Density", "type": "select", "default": "custom", "section": "Layout", "help": "Seeds the spacing + card scale below. Pick one, then nudge the sliders.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "compact", "label": "Compact" }, { "value": "cozy", "label": "Cozy" }, { "value": "comfortable", "label": "Comfortable" }, { "value": "spacious", "label": "Spacious" } ] },
+    { "id": "cardWidth", "label": "Card width", "type": "number", "display": "slider", "min": 120, "max": 320, "step": 4, "default": 196, "section": "Layout" },
+    { "id": "cardScale", "label": "Card scale", "type": "number", "display": "slider", "min": 0.6, "max": 1.6, "step": 0.05, "default": 1, "section": "Layout", "help": "Scales card size, padding and text together." },
+    { "id": "rowGap", "label": "Row / layer gap", "type": "number", "display": "slider", "min": 0, "max": 200, "step": 4, "default": 56, "section": "Layout", "help": "Spacing along the flow (levels, ranks, bands)." },
+    { "id": "siblingGap", "label": "Sibling gap", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 2, "default": 30, "section": "Layout", "help": "Spacing between neighbours within a level." },
+    { "id": "cornerRadius", "label": "Corner radius", "type": "number", "display": "slider", "min": 0, "max": 28, "step": 1, "default": 14, "section": "Layout", "help": "Roundness of “Rounded” cards (Box and Pill keep their shape)." },
+    { "id": "canvasPadding", "label": "Canvas padding", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 4, "default": 44, "section": "Layout", "help": "Whitespace around the diagram." },
+
+    { "id": "theme", "label": "Theme", "type": "select", "default": "custom", "section": "Style", "help": "Seeds the colours below. Pick one, then override any individual colour.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "suse-light", "label": "SUSE light" }, { "value": "suse-dark", "label": "SUSE dark" }, { "value": "blueprint", "label": "Blueprint" }, { "value": "mono", "label": "Mono" }, { "value": "mint", "label": "Mint" } ] },
+    { "id": "nodeFill", "label": "Card fill", "type": "color", "default": "#ffffff", "section": "Style" },
+    { "id": "nodeStroke", "label": "Card border", "type": "color", "default": "#0c322c", "section": "Style" },
+    { "id": "cardBorderWidth", "label": "Card border width", "type": "number", "display": "slider", "min": 0, "max": 6, "step": 0.5, "default": 1.5, "section": "Style", "help": "0 = borderless cards." },
+    { "id": "nodeText", "label": "Card text", "type": "color", "default": "#0c322c", "section": "Style" },
+    { "id": "labelSize", "label": "Label size", "type": "number", "display": "slider", "min": 10, "max": 28, "step": 1, "default": 15, "section": "Style" },
+    { "id": "edgeColor", "label": "Connectors", "type": "color", "default": "#0c322c", "section": "Style", "help": "Colour of the automatic connectors / spines." },
+    { "id": "connectorWidth", "label": "Connector width", "type": "number", "display": "slider", "min": 0.3, "max": 6, "step": 0.1, "default": 1.6, "section": "Style" },
+    { "id": "background", "label": "Background", "type": "color", "default": "#ffffff", "section": "Style", "help": "Set to Transparent for a knock-out background." },
+    { "id": "gridBg", "label": "Background pattern", "type": "select", "default": "none", "section": "Style", "options": [ { "value": "none", "label": "None" }, { "value": "dots", "label": "Dots" }, { "value": "grid", "label": "Grid" } ] },
+
+    { "id": "arrowStyle", "label": "Arrow line", "type": "select", "default": "solid", "section": "Arrows", "help": "Default line style for arrows that don't set their own.", "options": [ { "value": "solid", "label": "Solid" }, { "value": "dashed", "label": "Dashed" }, { "value": "dotted", "label": "Dotted" } ] },
+    { "id": "arrowHead", "label": "Arrowhead", "type": "select", "default": "triangle", "section": "Arrows", "help": "Default arrowhead for arrows that don't set their own.", "options": [ { "value": "triangle", "label": "Triangle" }, { "value": "open", "label": "Open" }, { "value": "diamond", "label": "Diamond" }, { "value": "circle", "label": "Circle" }, { "value": "bar", "label": "Bar" }, { "value": "double", "label": "Double-ended" }, { "value": "none", "label": "None" } ] },
+    { "id": "arrowWidth", "label": "Arrow width", "type": "number", "display": "slider", "min": 0.5, "max": 8, "step": 0.5, "default": 2, "section": "Arrows" },
+    { "id": "arrowHeadSize", "label": "Arrowhead size", "type": "number", "display": "slider", "min": 6, "max": 28, "step": 1, "default": 11, "section": "Arrows" }
   ]
 }
