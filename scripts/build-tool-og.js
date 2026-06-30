@@ -10,10 +10,20 @@
  * server and never execute JS for. So every shared tool link previewed as the one
  * generic og.png. This generates, per tool, a crawler-visible landing stub — the exact
  * static file shells/web/public/t/<id>.html — whose <head> carries that tool's own
- * title, description and a 1200×630 share card (brand field + tool name + tool icon).
- * A human visitor's browser then runs the stub's inline redirect into the SPA at
- * /#/tool/<id> (carrying any shared ?params); crawlers ignore the script and read the
- * tags.
+ * title, description and 1200×630 share image. A human visitor's browser then runs the
+ * stub's inline redirect into the SPA at /#/tool/<id> (carrying any shared ?params);
+ * crawlers ignore the script and read the tags.
+ *
+ * Share image, in priority order:
+ *   1. Author override — tools/<id>/og.{png,jpg,jpeg,webp} (committed, raster). Lets a
+ *      tool ship its own preferred art; it WINS over the generated default.
+ *   2. Generated default — a gallery-tile card (tool icon + name + description + a
+ *      framed preview of the tool's own output) rendered by docs/og-image.js into the
+ *      git-ignored shells/web/public/og/tools/<id>.png. Needs @resvg/resvg-js, which is
+ *      a real (non-dev) dependency so it installs in the Vercel build — if it were a
+ *      devDependency the build's production install would drop it and every card would
+ *      silently fall back to og.png (the bug this guards against).
+ *   3. Fallback — the generic /og.png when resvg is somehow unavailable.
  *
  * Serving: this deploy's catch-all rewrite (/(.*) → /index.html, no cleanUrls) serves
  * ONLY exact static file paths — extensionless/directory paths fall through to the SPA
@@ -39,6 +49,20 @@ import { createToolCardRenderer } from '../docs/og-image.js';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = 'https://lolly.tools';
 
+// Author override: a tool may ship its own preferred share image as
+// tools/<id>/og.{png,jpg,jpeg,webp} (committed, served at /tools/<id>/og.<ext>).
+// When present it WINS over the generated default — authors force their own art.
+// Raster only: crawlers don't take SVG, and an SVG would need resvg at serve time.
+const AUTHOR_EXTS = ['png', 'jpg', 'jpeg', 'webp'];
+function authorOgImage(id) {
+  for (const ext of AUTHOR_EXTS) {
+    if (existsSync(resolve(ROOT, 'tools', id, `og.${ext}`))) {
+      return `${SITE_URL}/tools/${id}/og.${ext}`;
+    }
+  }
+  return null;
+}
+
 const PUBLIC  = resolve(ROOT, 'shells/web/public');
 // Flat files, NOT <id>/index.html: this deploy's catch-all rewrite (/(.*) →
 // /index.html, no cleanUrls) serves ONLY exact static file paths — a directory or
@@ -54,10 +78,15 @@ const esc = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // id is a validated slug ([a-z0-9-]); safe to embed raw in JS strings / attributes.
-function stubHtml({ id, name, description, image }) {
+// `sized` declares the 1200×630 dimensions — true for our generated card and the
+// og.png fallback (both 1200×630), false for an author override of unknown size.
+function stubHtml({ id, name, description, image, sized }) {
   const title = `${name} — Lolly`;
   const url   = `${SITE_URL}/t/${id}`;
   const desc  = description || FALLBACK_DESC;
+  const dims  = sized
+    ? `\n<meta property="og:image:width" content="1200" />\n<meta property="og:image:height" content="630" />`
+    : '';
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,9 +101,7 @@ function stubHtml({ id, name, description, image }) {
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(desc)}" />
 <meta property="og:url" content="${esc(url)}" />
-<meta property="og:image" content="${esc(image)}" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+<meta property="og:image" content="${esc(image)}" />${dims}
 <meta property="og:image:alt" content="${esc(name)} — a Lolly tool" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${esc(title)}" />
@@ -143,29 +170,42 @@ async function main() {
   mkdirSync(STUB_DIR, { recursive: true });
   if (renderer) mkdirSync(IMG_DIR, { recursive: true });
 
-  let cards = 0, stubs = 0, withPreview = 0;
+  let cards = 0, stubs = 0, withPreview = 0, overrides = 0;
   for (const t of tools) {
     if (!t.id || !t.name) continue;
 
-    let image = FALLBACK_IMG;
-    if (renderer) {
+    // Resolve the share image: author override (forced) → generated default card →
+    // generic og.png. `sized` is true only when we know the image is 1200×630.
+    const override = authorOgImage(t.id);
+    let image, sized;
+    if (override) {
+      image = override;            // author forces their own art; skip the default render
+      sized = false;
+      overrides++;
+    } else if (renderer) {
       try {
         const preview = previewDataUri(t.preview, Resvg, previewFonts);
         if (preview) withPreview++;
         const png = renderer.render({ name: t.name, description: t.description, iconSvg: t.icon, previewDataUri: preview });
         writeFileSync(resolve(IMG_DIR, `${t.id}.png`), png);
         image = `${SITE_URL}/og/tools/${t.id}.png`;
+        sized = true;
         cards++;
       } catch (e) {
         console.log(`tool-og: ${t.id} card failed (${e.message}); falls back to og.png`);
+        image = FALLBACK_IMG;
+        sized = true;
       }
+    } else {
+      image = FALLBACK_IMG;        // resvg unavailable → generic card (1200×630)
+      sized = true;
     }
 
-    writeFileSync(resolve(STUB_DIR, `${t.id}.html`), stubHtml({ id: t.id, name: t.name, description: t.description, image }));
+    writeFileSync(resolve(STUB_DIR, `${t.id}.html`), stubHtml({ id: t.id, name: t.name, description: t.description, image, sized }));
     stubs++;
   }
 
-  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} (${withPreview} with preview)`);
+  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'})`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

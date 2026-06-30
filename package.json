@@ -31,8 +31,10 @@
     "build:android": "cd shells/tauri-mobile && npm run build:android",
     "build:ios": "cd shells/tauri-mobile && npm run build:ios"
   },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  },
   "devDependencies": {
-    "@resvg/resvg-js": "^2.6.2",
     "playwright": "^1.49.0"
   }
 }
