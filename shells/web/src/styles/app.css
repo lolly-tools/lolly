@@ -1126,6 +1126,17 @@ a.gtile-name:focus-visible::after {
   line-height: 1.45;
   color: hsl(var(--muted-foreground));
 }
+/* Intended output (primary format + canvas size) — the card answers "what will I
+   get?" at a glance. Sits under the description, set smaller with tabular figures so
+   the dimensions stay legible. */
+.gtile-spec {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
 
 /* Per-card (i) info / (h) history buttons — floated over the top-right of the
    preview, reading just after the timestamp stamp (which sits top-left). */
@@ -1434,8 +1445,16 @@ a.gtile-name:focus-visible::after {
    .projects top padding) — the toggle is now position:fixed, out of flow. */
 .gallery { padding-top: 52px; }
 
-/* Fixed-width tiles packed top-left (no 1fr stretch) — file-manager convention. */
-.projects-grid { grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px; align-items: start; }
+/* Fixed-width tiles packed top-left (no 1fr stretch) — file-manager convention.
+   `grid-auto-rows: 1fr` + `align-items: stretch` makes every tile the SAME height as
+   its tallest sibling (folders, sessions and the create tiles all line up), so a row of
+   folders reads as one even band instead of ragged cards. The cover keeps its 4/3
+   aspect-ratio (it sizes off width, not the stretched height); only the card body grows
+   to fill, so nothing distorts — the extra space is just card background under the meta. */
+.projects-grid {
+  grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px;
+  align-items: stretch; grid-auto-rows: 1fr;
+}
 
 /* List view mode — reflow the same tiles into compact full-width rows. */
 .projects-grid.projects-list { display: flex; flex-direction: column; gap: 6px; max-width: 760px; }
@@ -1592,41 +1611,86 @@ a.gtile-name:focus-visible::after {
    would override it at equal specificity. */
 .sheet-grip { display: none; }
 
-/* "Render" button + export popup. Shared visual styling here; each breakpoint
-   positions it — a bottom-centre FAB + full-screen sheet on mobile, a bottom-left
-   sidebar pill + non-modal sticky panel on desktop. Hidden until a breakpoint
-   shows it. The export controls (#tool-actions) are moved into the popup on both. */
-.render-fab {
+/* The "Get | Save" render pill + export popup. Shared visual styling here; each
+   breakpoint positions the pill — a bottom-centre FAB + full-screen sheet on
+   mobile, a bottom-left sidebar pill + non-modal sticky panel on desktop. Hidden
+   until a breakpoint shows it. The export controls (#tool-actions) move into the
+   popup on both. The pill is a two-half control: "Get" (left, an up-arrow) opens
+   the export popup; "Save" (right, a checkmark) quick-saves the session in place. */
+.render-pill {
   display: none;            /* shown per breakpoint */
-  align-items: center;
-  gap: 8px;
-  border: none;
+  align-items: stretch;
   border-radius: 999px;
-  padding: 13px 24px;
   background: hsl(var(--primary));
   color: hsl(var(--primary-foreground));
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+  overflow: hidden;         /* clip the two halves to the pill's rounded ends */
+  isolation: isolate;
+}
+.render-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: none;
+  background: transparent;
+  color: inherit;
   font: inherit;
   font-size: 15px;
   font-weight: 700;
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3);
+  padding: 13px 22px;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
-.render-fab svg { width: 18px; height: 18px; }
+.render-pill-btn:hover { background: rgba(255, 255, 255, 0.14); }
+.render-pill-btn:active { background: rgba(0, 0, 0, 0.12); }
+.render-pill-btn:focus-visible { outline: 2px solid hsl(var(--primary-foreground)); outline-offset: -4px; border-radius: 999px; }
+.render-pill-icon { width: 18px; height: 18px; flex-shrink: 0; }
+/* Hairline divider between the two halves. */
+.render-pill-sep {
+  width: 1px;
+  align-self: stretch;
+  margin: 9px 0;
+  background: rgba(255, 255, 255, 0.3);
+  flex-shrink: 0;
+}
+
+/* Unsaved cue: the Save half goes amber the instant the first un-saved edit
+   lands, with a one-shot flash to draw the eye. The resting amber persists until
+   the user saves (markSessionSaved removes the class). */
+.render-pill-save.is-unsaved {
+  background: #f5a524;
+  color: #2a1c00;
+  animation: renderSaveFlash 0.9s ease-out 1;
+}
+.render-pill-save.is-unsaved:hover { background: #ffb73d; }
+@keyframes renderSaveFlash {
+  0%   { background: #ffffff; color: #2a1c00; }
+  18%  { background: #fff0c2; }
+  45%  { background: #ffd166; }
+  100% { background: #f5a524; }
+}
+/* Brief confirmation after a save completes. */
+.render-pill-save.is-just-saved { background: rgba(255, 255, 255, 0.16); }
+@media (prefers-reduced-motion: reduce) {
+  .render-pill-save.is-unsaved { animation: none; }
+  .render-pill-btn { transition: none; }
+}
 .export-overlay { display: none; }
 
 /* Desktop (>640px): the Render button lives bottom-left of the sidebar and the
    export panel expands as a NON-MODAL sticky sheet over the sidebar bottom — no
    scrim, so the inputs above stay live. Sized to the (resizable) sidebar width. */
 @media (min-width: 641px) {
-  /* Render button is a centred footer INSIDE the sidebar (JS reparents it there
+  /* The Get|Save pill is a centred footer INSIDE the sidebar (JS reparents it there
      on desktop; on mobile it's a viewport FAB outside the sheet). */
-  .render-fab {
+  .render-pill {
     display: inline-flex;
     align-self: center;
     flex-shrink: 0;
     margin: 6px auto 14px;
   }
-  .tool-layout.export-open .render-fab { display: none; }
+  .tool-layout.export-open .render-pill { display: none; }
 
   .export-overlay {
     display: block;
@@ -1678,7 +1742,7 @@ a.gtile-name:focus-visible::after {
   /* Let the last input scroll clear of the open export panel. */
   .tool-layout.export-open .sidebar-body { padding-bottom: 45vh; }
   /* No export affordance while the sidebar is collapsed (fullscreen preview). */
-  .tool-layout[data-sidebar="closed"] .render-fab,
+  .tool-layout[data-sidebar="closed"] .render-pill,
   .tool-layout[data-sidebar="closed"] .export-overlay { display: none; }
 }
 
@@ -3675,30 +3739,19 @@ background-color:hsl(var(--background) / 1);
   /* The sheet is full-width; don't pin the body to the desktop open width. */
   .sidebar-body { min-width: 0; }
 
-  /* "Render" button — the primary export CTA, floating bottom-centre over the
+  /* Get|Save pill — the primary export/save CTA, floating bottom-centre over the
      preview, always reachable regardless of the controls-sheet position. */
-  .render-fab {
+  .render-pill {
     display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    align-items: stretch;
     position: fixed;
     left: 50%;
     bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     transform: translateX(-50%);
     z-index: 55;
-    padding: 13px 24px;
-    border: none;
-    border-radius: 999px;
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    font: inherit;
-    font-size: 15px;
-    font-weight: 700;
-    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3),inset 0 .1px #fff6;
-    cursor: pointer;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3), inset 0 .1px #fff6;
   }
-  .render-fab svg { width: 18px; height: 18px; }
-  .tool-layout.export-open .render-fab { display: none; }
+  .tool-layout.export-open .render-pill { display: none; }
 
   /* Export popup — a bottom sheet holding the (moved) actions panel. Hidden until
      Render is tapped; dismiss via the scrim or the ✕. */
