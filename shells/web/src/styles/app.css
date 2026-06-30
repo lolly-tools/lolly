@@ -1406,14 +1406,17 @@ a.gtile-name:focus-visible::after {
 /* Full-bleed like the gallery so the window uses all the space; the top-right
    profile/history cluster reuses .gallery-topright (position:fixed; right:2em) verbatim,
    so the profile button sits in the SAME window spot when toggling Tools ↔ Projects. */
-.projects { padding: 12px 20px 64px; }
+.projects { padding: 52px 20px 64px; } /* top clears the fixed toggle band */
 
-/* Tools | Projects segmented toggle (shared with the gallery header). Sticky like the
-   fixed profile/history cluster — stays pinned at the top on scroll. pointer-events:none
-   on the full-width wrap so only the pill catches clicks (content scrolls past on either
-   side); z-index matches .gallery-topright so they share the pinned top band. */
-.view-toggle-wrap { position: sticky; top: 8px; z-index: 99999; display: flex; justify-content: center; margin: 8px 0 22px; pointer-events: none; }
-.view-toggle { pointer-events: auto; }
+/* Tools | Projects segmented toggle — FIXED at the SAME top as the profile/history
+   cluster (.gallery-topright top:.5em) and horizontally centred, so it's vertically
+   centred with those icons AND sits identically on the gallery and Projects views
+   (in-flow positioning made it drift between the two). Shrinks to the pill so it
+   never blocks clicks elsewhere in the top band. */
+.view-toggle-wrap {
+  position: fixed; top: .5em; left: 50%; transform: translateX(-50%);
+  z-index: 99999; display: flex; justify-content: center; margin: 0;
+}
 .view-toggle {
   display: inline-flex; gap: 2px; padding: 3px;
   border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted) / 0.5);
@@ -1427,7 +1430,9 @@ a.gtile-name:focus-visible::after {
   background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px hsl(0 0% 0% / 0.12);
 }
 /* In the gallery the toggle floats above the masonry; keep it clear of the topright cluster. */
-.gallery .view-toggle-wrap { margin-top: 2px; }
+/* Clear the fixed Tools|Projects toggle band at the top of the gallery (matches the
+   .projects top padding) — the toggle is now position:fixed, out of flow. */
+.gallery { padding-top: 52px; }
 
 /* Fixed-width tiles packed top-left (no 1fr stretch) — file-manager convention. */
 .projects-grid { grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px; align-items: start; }
@@ -1447,6 +1452,11 @@ a.gtile-name:focus-visible::after {
 
 /* Active option in the view-options popover. */
 .projects-viewmenu .folder-menu-item.is-on { font-weight: 700; }
+
+/* "Render folder" progress toast — pin top-right UNDER the profile/history row (not the
+   default bottom-right) so the rotating quip + per-render log read at a glance. Two
+   classes outrank the base .pro-toast positioning from run-overlay.css. */
+.pro-toast.projects-toast { top: 56px; right: 2em; bottom: auto; left: auto; }
 
 /* "Create new" tiles (dashed, + icon). */
 .folder-tile--create { border-style: dashed; background: transparent; }
@@ -1545,6 +1555,26 @@ a.gtile-name:focus-visible::after {
   font-size: 11px; color: hsl(var(--muted-foreground)); line-height: 1.3;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
+
+/* Folder-actions overflow button in the folder-view header (rename / render / delete).
+   It's not inside a .folder-tile, so undo the tile-menu's absolute, hover-to-reveal styling. */
+.projects-head-menu { position: static; opacity: 1; flex: none; width: 32px; height: 32px; }
+
+/* Confirmation modal for destructive actions (delete folder + contents, delete session). */
+.projects-confirm {
+  border: 0; padding: 22px; width: min(420px, 92vw);
+  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4);
+}
+.projects-confirm::backdrop { background: hsl(0 0% 0% / 0.42); }
+.projects-confirm-title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.projects-confirm-msg { margin: 0 0 18px; font-size: 13px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.projects-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Scoped (two-class) so it beats the generic .btn background rule that comes later. */
+.projects-confirm .projects-confirm-danger {
+  background: hsl(var(--destructive, 0 70% 50%)); border-color: hsl(var(--destructive, 0 70% 50%)); color: #fff;
+}
+.projects-confirm .projects-confirm-danger:hover { filter: brightness(0.94); }
 
 /* ─── Tool view layout ──────────────────────────────────────────────────── */
 
