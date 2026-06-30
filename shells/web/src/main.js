@@ -276,7 +276,22 @@ async function boot() {
     });
   }
 
-  window.addEventListener('hashchange', () => navigate(host).catch(console.error));
+  // Re-render on any route change. hashchange covers legacy #/… links and external
+  // deep links; popstate covers History-API back/forward across /t/<id> tool entries;
+  // 'lolly:navigate' is fired by navigateTo() for in-app links that leave a tool.
+  // Collapse a same-tick burst — back across a hash change fires popstate AND
+  // hashchange — into a single navigate so a tool isn't re-mounted (and its state
+  // lost) twice. Explicit navigate(host) calls elsewhere (boot, gallery refresh)
+  // bypass this and still run.
+  let navQueued = false;
+  const onRouteChange = () => {
+    if (navQueued) return;
+    navQueued = true;
+    Promise.resolve().then(() => { navQueued = false; navigate(host).catch(console.error); });
+  };
+  window.addEventListener('hashchange', onRouteChange);
+  window.addEventListener('popstate', onRouteChange);
+  window.addEventListener('lolly:navigate', onRouteChange);
 
   document.querySelectorAll('[data-route]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -303,13 +318,15 @@ function parseRoute() {
   }
 
   const pathParts = window.location.pathname.split('/').filter(Boolean);
-  // A shared tool link uses the crawler-visible path form /t/<id> (served in
-  // production as a static OG stub that redirects here itself). This covers a human
-  // who reaches /t/<id> without that stub — dev, or an SPA fall-through — by
-  // re-entering the hash route with any shared params intact.
+  // /t/<id> is a tool's canonical address-bar URL (path form, so a copied link
+  // carries the per-tool OG preview — see scripts/build-tool-og.js); params ride in
+  // the query string. Returned as a first-class tool route — NOT redirected to the
+  // hash — so History-API back/forward to a /t/<id> entry re-mounts correctly. In
+  // production the server serves the static OG stub at this exact path and the stub
+  // bounces a human into #/tool/<id>, which mounts and then syncUrl rewrites the bar
+  // back to /t/<id>; this branch is what re-mounts on client-side popstate to it.
   if (pathParts.length === 2 && pathParts[0] === 't') {
-    window.location.replace(`/#/tool/${pathParts[1]}${window.location.search}`);
-    return { name: 'gallery' };
+    return { name: 'tool', toolId: pathParts[1], params: window.location.search.slice(1) };
   }
   if (pathParts.length === 1) {
     // /pro, /platform and /capabilities are real routes; everything else is a tool shortcut.

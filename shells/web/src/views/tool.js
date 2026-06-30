@@ -13,6 +13,7 @@
 
 import { loadTool, createRuntime, parseUrlState, serializeUrlState, annotateTemplate, UNITS, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, buildEmbedUrl, parseToolUrl, isTokenValue } from '@lolly/engine';
 import { escape } from '../utils.js';
+import { navigateTo } from '../nav.js';
 import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabilities.js';
 import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
@@ -411,7 +412,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     </div>` : '';
 
   viewEl.innerHTML = `
-    ${hideSidebar ? `<a href="#/" class="tools-home home-full">Tools</a>` : ''}
+    ${hideSidebar ? `<a href="/" class="tools-home home-full">Tools</a>` : ''}
     <div class="tool-layout" id="tool-layout" data-sidebar="${hideSidebar ? 'hidden' : (sidebarOpen ? 'open' : 'closed')}">
       ${!hideSidebar ? `
         <aside class="sidebar" id="tool-sidebar">
@@ -613,22 +614,32 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     if (save) localStorage.setItem('sidebarWidth', snapped);
   }
 
+  // Canonical address-bar URL for this open tool: the path form /t/<id> (so a copied
+  // link carries the per-tool OG preview — see scripts/build-tool-og.js). All in-tool
+  // URL writers (syncUrl, updateFullParam) build on this; the bar is rewritten from
+  // the boot-time #/tool/<id> hash to this on the first syncUrl.
+  const TOOL_URL_BASE = `/t/${toolId}`;
+
+  // The live param string, whichever URL form the bar is in: the path's ?search once
+  // syncUrl has prettified it, or the hash's #…?query in the instant after boot.
+  function currentQuery() {
+    if (window.location.search) return window.location.search.slice(1);
+    const qi = window.location.hash.indexOf('?');
+    return qi >= 0 ? window.location.hash.slice(qi + 1) : '';
+  }
+
   function getRestoreWidth() {
     const v = Number(localStorage.getItem('sidebarWidth'));
     return v > SIDEBAR_MIN ? v : SIDEBAR_DEFAULT;
   }
 
   function updateFullParam(shouldBeFull) {
-    const raw  = window.location.hash.slice(1);
-    const qIdx = raw.indexOf('?');
-    const path = qIdx >= 0 ? raw.slice(0, qIdx) : raw;
-    const qs   = qIdx >= 0 ? raw.slice(qIdx + 1) : '';
-    const sp   = new URLSearchParams(qs);
+    const sp = new URLSearchParams(currentQuery());
     if (shouldBeFull) sp.set('full', ''); else sp.delete('full');
     const parts = [];
     for (const [k, v] of sp.entries()) parts.push(v ? `${k}=${encodeURIComponent(v)}` : k);
     const q = parts.join('&');
-    history.replaceState(null, '', `#${path}${q ? '?' + q : ''}`);
+    history.replaceState(null, '', q ? `${TOOL_URL_BASE}?${q}` : TOOL_URL_BASE);
   }
 
   // Canvas pan/zoom handle for the stage, assigned once the canvas is wired
@@ -959,9 +970,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Pre-seeded from any params already in the URL so shared/bookmarked links
   // are preserved across the first subscribe callback.
   let userHasMadeChanges = false;
-  const dirtyParams = new Set(
-    new URLSearchParams(window.location.hash.split('?')[1] ?? '').keys()
-  );
+  // Seed from the params this mount was routed with (form-agnostic — works whether the
+  // bar arrived as /t/<id>?… or #/tool/<id>?…) so shared/bookmarked links survive the
+  // first subscribe callback.
+  const dirtyParams = new Set(new URLSearchParams(urlParams || '').keys());
 
   function syncUrl(dirtyId) {
     if (dirtyId) dirtyParams.add(dirtyId);
@@ -1064,9 +1076,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       }
     }
 
-    const base = window.location.hash.split('?')[0];
     const qs = params.toString();
-    history.replaceState(null, '', qs ? `${base}?${qs}` : base);
+    history.replaceState(null, '', qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
   }
 
   function markUserDirty(id) {
@@ -1103,8 +1114,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         // Offer "Save & leave" only when the tool actually has a save action.
         const canSave = !!actionsEl?.querySelector('[data-action="save"]') && !!actionsApi?.save;
         showUnsavedDialog(
-          canSave ? async () => { if (await actionsApi.save()) window.location.hash = ''; } : null,
-          () => { window.location.hash = ''; },
+          canSave ? async () => { if (await actionsApi.save()) navigateTo('/'); } : null,
+          () => { navigateTo('/'); },
         );
       });
     });
@@ -1118,6 +1129,26 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       if (id) markUserDirty(id);
     })
   );
+
+  // QOL: step a focused <select> with ↑/↓ and apply each value instantly, without
+  // opening the dropdown. macOS opens the native menu on Arrow keys (Windows/Linux
+  // cycle the value); intercepting it makes the behaviour consistent and lets the user
+  // tab to a select and audition options one keypress at a time. Delegated on the
+  // container so it covers top-level AND block-field selects and survives re-renders;
+  // while the native menu is open the element doesn't receive these keydowns.
+  inputsEl?.addEventListener('keydown', e => {
+    if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || e.metaKey || e.ctrlKey || e.altKey) return;
+    const sel = e.target;
+    if (!sel || sel.tagName !== 'SELECT' || sel.disabled) return;
+    e.preventDefault(); // stop macOS popping the native menu on Arrow
+    const opts = sel.options, dir = e.key === 'ArrowDown' ? 1 : -1;
+    let next = sel.selectedIndex + dir;
+    while (next >= 0 && next < opts.length && opts[next].disabled) next += dir; // skip disabled
+    if (next < 0 || next >= opts.length || next === sel.selectedIndex) return;  // clamp at the ends
+    sel.selectedIndex = next;
+    sel.dispatchEvent(new Event('input', { bubbles: true }));
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  });
 
   // Click-to-focus: clicking a rendered canvas element that represents an input
   // focuses the corresponding sidebar control. Tools can suppress this per-element
@@ -3304,7 +3335,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     if (!hasInputs || optedOut) { el.innerHTML = ''; return {}; }
     el.innerHTML = `<div class="export-action-buttons"><button data-action="save" class="save-btn">${SAVE_SVG}<span data-save-label>Save</span></button>${copyUrlBtn}</div>`;
     el.querySelector('[data-action="save"]').addEventListener('click', async function () {
-      if (await performSave(this)) setTimeout(() => { window.location.hash = ''; }, 800);
+      if (await performSave(this)) setTimeout(() => { navigateTo('/'); }, 800);
     });
     return { save: performSave };
   }
@@ -3966,7 +3997,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   });
 
   el.querySelector('[data-action="save"]')?.addEventListener('click', async function () {
-    if (await performSave(this)) setTimeout(() => { window.location.hash = ''; }, 800);
+    if (await performSave(this)) setTimeout(() => { navigateTo('/'); }, 800);
   });
 
   // Apply the initial (or restored) dimensions to the canvas preview immediately.
@@ -4010,11 +4041,13 @@ function matchesDefault(input, paramVal) {
  * Operates on the raw query string to preserve compact encodings (e.g. ~,).
  */
 function shrinkUrl(runtime, manifest) {
-  const raw  = window.location.hash.slice(1);
-  const qIdx = raw.indexOf('?');
-  if (qIdx < 0) return;
-  const path = raw.slice(0, qIdx);
-  const qs   = raw.slice(qIdx + 1);
+  // The bar is normally the path form /t/<id>?… by now; tolerate the boot-time hash
+  // form too. Keep the route part, rewrite only the query.
+  const hashQ = window.location.hash.indexOf('?');
+  const qs = window.location.search ? window.location.search.slice(1)
+           : (hashQ >= 0 ? window.location.hash.slice(hashQ + 1) : '');
+  if (!qs) return;
+  const base = window.location.pathname + window.location.hash.split('?')[0];
 
   const model = runtime.getModel();
   const inputsByKey = {};
@@ -4053,7 +4086,7 @@ function shrinkUrl(runtime, manifest) {
   }
 
   const newQs = kept.join('&');
-  history.replaceState(null, '', `#${path}${newQs ? '?' + newQs : ''}`);
+  history.replaceState(null, '', newQs ? `${base}?${newQs}` : base);
 }
 
 /**
@@ -4199,15 +4232,16 @@ function buildShareParams(runtime, exportScope) {
 // in-app fragment (#/tool/<id>): the fragment is never sent to the server, so social
 // crawlers only ever saw the generic og.png. /t/<id> is served as a static per-tool
 // OG stub (scripts/build-tool-og.js) that carries the tool's own title/image, then
-// redirects a human visitor — with these params — back into the SPA. Non-tool routes
-// keep the hash form.
+// redirects a human visitor — with these params — back into the SPA. The bar is
+// normally already the path form, but resolve the id from EITHER form so the share
+// link is the /t/<id> shape regardless. Non-tool routes keep the hash form.
 function shareUrlFromParts(parts) {
-  const hashBase = window.location.hash.split('?')[0];   // e.g. "#/tool/qr-code"
   const qs = parts.join('&');
   const query = qs ? '?' + qs : '';
-  const tool = hashBase.match(/^#\/tool\/([^/?]+)/);
-  if (tool) return `${window.location.origin}/t/${tool[1]}${query}`;
-  return window.location.origin + window.location.pathname + hashBase + query;
+  const id = window.location.pathname.match(/^\/t\/([^/?]+)/)?.[1]
+          ?? window.location.hash.match(/^#\/tool\/([^/?]+)/)?.[1];
+  if (id) return `${window.location.origin}/t/${id}${query}`;
+  return window.location.origin + window.location.pathname + window.location.hash.split('?')[0] + query;
 }
 
 /**
