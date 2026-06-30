@@ -19,6 +19,7 @@ import {
   blockSubtree,
   blockReparentMove,
   buildRefOptions,
+  materializeRefTarget,
 } from '../shells/web/src/views/block-tree.js';
 
 const CFG = { parentField: 'parent', keyField: 'nodeId', labelField: 'label', prefix: 'node-' };
@@ -163,6 +164,90 @@ test('buildRefOptions excludes self and descendants for a parent picker', () => 
   const values = options.map(o => o.value);
   assert.deepEqual(values, ['ceo', 'cfo']); // not cto/eng/qa
   assert.equal(options.find(o => o.value === 'ceo').label, 'CEO');
+});
+
+// ── Regression tests for the adversarial-review findings ─────────────────────
+
+test('blockSubtree is cycle-safe (terminates on a 2-cycle parentIdx)', () => {
+  // a.parent=b, b.parent=a → parentIdx [1,0]. Must not stack-overflow.
+  assert.deepEqual(blockSubtree(0, [1, 0]).sort(), [0, 1]);
+  assert.deepEqual(blockSubtree(5, [1, 0]), []); // out-of-range idx
+});
+
+test('buildRefOptions does not throw on cyclic owner data (excludeDescendants)', () => {
+  const rows = [
+    { nodeId: 'a', parent: 'b' },
+    { nodeId: 'b', parent: 'a' }, // mutual cycle
+  ];
+  assert.doesNotThrow(() => buildRefOptions({
+    of: { input: 'nodes', value: 'nodeId', label: 'label', excludeSelf: true, excludeDescendants: true },
+    ownerInputId: 'nodes', idx: 0,
+    getRows: (id) => (id === 'nodes' ? rows : []),
+    ownerNestingCfg: CFG,
+  }));
+});
+
+test('buildRefOptions tolerates a getRows that returns non-array', () => {
+  assert.doesNotThrow(() => buildRefOptions({
+    of: { input: 'missing', value: 'nodeId', label: 'label' },
+    ownerInputId: 'arrows', idx: 0,
+    getRows: () => undefined,
+  }));
+});
+
+test('blockReparentMove refuses to drop into its own subtree even on cyclic input', () => {
+  // a is a real child of b (a.parent=b); b.parent=c, c.parent=b is a side cycle.
+  const rows = [
+    { nodeId: 'a', parent: 'b' },
+    { nodeId: 'b', parent: 'c' },
+    { nodeId: 'c', parent: 'b' },
+  ];
+  // Dropping b (idx1) inside a (idx0) — a is b's descendant, so it must be refused.
+  assert.equal(blockReparentMove(rows, 1, 0, 'inside', CFG), null);
+});
+
+test('drag-to-nest onto a blank-id card anchors the reference durably (no drift)', () => {
+  // Two blank cards (no id, no label) — keys are position-derived. After nesting,
+  // the reference must still resolve, i.e. the dragged card is a child of the target.
+  const rows = [{ nodeId: '', label: '' }, { nodeId: '', label: '' }];
+  const out = blockReparentMove(rows, 0, 1, 'inside', CFG);
+  const keys = deriveBlockKeys(out, CFG);
+  const pIdx = blockParentIndex(out, keys, 'parent');
+  // exactly one root and one child (the drag actually nested something)
+  assert.equal(pIdx.filter(p => p === -1).length, 1);
+  assert.equal(pIdx.filter(p => p >= 0).length, 1);
+  // the target carries an explicit id now (durable across future reorders)
+  const targetPos = pIdx.indexOf(-1);
+  assert.ok(slugRef(out[targetPos].nodeId), 'target nodeId was materialised');
+});
+
+test('reparent keeps duplicate-label references unambiguous after reorder', () => {
+  // P with two children both labelled "Lead" (ids lead, lead-2). Drag the 2nd Lead
+  // inside the 1st. The 1st gets an explicit id so the link survives.
+  const rows = [
+    { nodeId: 'p', label: 'P', parent: '' },
+    { nodeId: '', label: 'Lead', parent: 'p' },
+    { nodeId: '', label: 'Lead', parent: 'p' },
+  ];
+  const out = blockReparentMove(rows, 2, 1, 'inside', CFG);
+  const keys = deriveBlockKeys(out, CFG);
+  const pIdx = blockParentIndex(out, keys, 'parent');
+  // C2 must be a child of C1 (not of P, not orphaned)
+  const c1Pos = out.findIndex(r => r.parent === 'p' && slugRef(r.label) === 'lead');
+  const c2 = out.find(r => slugRef(r.parent) !== 'p' && slugRef(r.label) === 'lead');
+  assert.ok(c2, 'second Lead exists');
+  assert.equal(blockParentIndex(out, keys, 'parent')[out.indexOf(c2)], c1Pos);
+  assert.ok(slugRef(out[c1Pos].nodeId), 'first Lead got a durable id');
+});
+
+test('materializeRefTarget writes a durable key onto a referenced blank row', () => {
+  const rows = [{ nodeId: '', label: 'Eng Lead' }, { nodeId: 'qa', label: 'QA' }];
+  const out = materializeRefTarget(rows, 'eng-lead', CFG);
+  assert.equal(out[0].nodeId, 'eng-lead');           // materialised
+  assert.equal(out[1].nodeId, 'qa');                 // untouched
+  // already-explicit / unknown refs are no-ops (same array returned)
+  assert.equal(materializeRefTarget(rows, 'qa', CFG), rows);
+  assert.equal(materializeRefTarget(rows, 'ghost', CFG), rows);
 });
 
 test('buildRefOptions merges multiple sources and dedupes by value', () => {
