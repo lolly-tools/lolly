@@ -1431,6 +1431,22 @@ a.gtile-name:focus-visible::after {
 /* Fixed-width tiles packed top-left (no 1fr stretch) — file-manager convention. */
 .projects-grid { grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px; align-items: start; }
 
+/* List view mode — reflow the same tiles into compact full-width rows. */
+.projects-grid.projects-list { display: flex; flex-direction: column; gap: 6px; max-width: 760px; }
+.projects-list .folder-tile { width: 100%; }
+.projects-list .folder-tile .tile-primary { flex-direction: row; align-items: center; gap: 14px; padding: 8px 12px; }
+.projects-list .tile-cover, .projects-list .folder-mosaic, .projects-list .tile-cover--create, .projects-list .tile-cover--batch {
+  width: 52px; height: 40px; aspect-ratio: auto; flex: none; overflow: hidden;
+  border-radius: calc(var(--radius) / 1.6); border: 1px solid hsl(var(--border));
+}
+.projects-list .tile-cover--create svg, .projects-list .tile-cover--batch svg { width: 20px; height: 20px; }
+.projects-list .tile-meta { padding: 0; flex: 1; min-width: 0; }
+.projects-list .tile-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.projects-list .tile-menu-btn { top: 50%; right: 10px; transform: translateY(-50%); }
+
+/* Active option in the view-options popover. */
+.projects-viewmenu .folder-menu-item.is-on { font-weight: 700; }
+
 /* "Create new" tiles (dashed, + icon). */
 .folder-tile--create { border-style: dashed; background: transparent; }
 .folder-tile--create:hover { border-color: hsl(var(--primary) / 0.7); background: hsl(var(--primary) / 0.04); }
