@@ -18,9 +18,14 @@ import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabili
 import { announce } from '../a11y.js';
 import { PALETTE } from '../palette.js';
 import { colorFieldHtml, wireColorField, setSwatches } from '../components/color-field.js';
+import { helpTip, wireHelpTips, linkHelpDescriptions } from '../components/help-tip.js';
 import { showScrubReadout, hideScrubReadout } from '../components/scrub-readout.js';
 import { createThemeToggle } from '../components/theme-toggle.js';
 import { canSkipInputsRebuild } from './inputs-sync.js';
+import {
+  nestingActive, nestingConfig, deriveBlockKeys, blockParentIndex,
+  blockTreeOrder, blockReparentMove, buildRefOptions,
+} from './block-tree.js';
 import { exportSizeDriver, aspectWarning } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
@@ -178,6 +183,9 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi, profile: urlProfile, password: urlPassword, bleed: urlBleed, marks: urlMarks } = parseUrlState(urlParams, tool.manifest);
   const urlFlags = new URLSearchParams(urlParams || '');
   const isFull = urlFlags.has('full');
+  // `?nostage` pre-checks the export panel's "Full page" toggle (HTML export only):
+  // the saved page drops the fixed-size canvas frame and fills the whole window.
+  const urlNostage = urlFlags.has('nostage');
   // `?options` lands the recipient on the export-settings panel expanded (instead
   // of the collapsed Render button). `full` collapses ALL chrome to the bare
   // preview — the opposite intent — so it wins when both are present, matching the
@@ -901,6 +909,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // detached sidebar tree isn't pinned alive across tool navigation.
     if (inputsEl?._colorPopoverDismiss) document.removeEventListener('click', inputsEl._colorPopoverDismiss, true);
     if (inputsEl?._blockMenuDismiss)    document.removeEventListener('click', inputsEl._blockMenuDismiss, true);
+    if (inputsEl?._helpTipDismiss)      document.removeEventListener('click', inputsEl._helpTipDismiss, true);
   };
 
   // Temporarily remove the CSS scale so dom-to-image sees native dimensions.
@@ -963,6 +972,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // Present (from URL or saved state) ⇒ the Print marks card opens pre-filled.
     bleed:    urlBleed || initialValues.__export_bleed || undefined,
     marks:    urlMarks || marksFromCsv(initialValues.__export_marks),
+    // Full-page HTML export ("no stage"). URL-driven — like `password`, it isn't
+    // persisted to the library at rest, only round-tripped through the URL.
+    nostage:  urlNostage || undefined,
   };
   // Rewrite the URL hash query string to reflect the current tool state so the
   // page is shareable and bookmarkable. Uses replaceState — no history entry.
@@ -1075,6 +1087,13 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         if (csv) params.set('marks', csv);
       }
     }
+    if (dirtyParams.has('nostage')) {
+      // Full-page HTML export — a presence flag, written only while HTML is the
+      // selected format and the toggle is on (so it drops off other formats).
+      const fmt = actionsEl?.querySelector('[data-action="format"]')?.value;
+      const on  = actionsEl?.querySelector('[data-action="full-page"]')?.checked;
+      if (fmt === 'html' && on) params.set('nostage', '');
+    }
 
     const qs = params.toString();
     history.replaceState(null, '', qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
@@ -1179,8 +1198,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       if (blockIndex != null) {
         focusSidebarBlock(control, blockIndex);
       } else {
-        control.focus();
-        control.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        control.focus();              // lights the CSS :focus-within spotlight
+        scrollToControl(control);     // header-aware, reduce-motion-safe, with arrival pulse
       }
     };
     if (layout.dataset.sidebar === 'closed') {
@@ -1368,6 +1387,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
           expOpts.colorProfile = urlProfile || DEFAULT_CMYK_CONDITION;
           if (fmt === 'pdf-cmyk') expOpts.palette = PALETTE;
         }
+        // HTML: honour ?nostage so a deep link auto-exports the full-page document
+        // (no fixed-size canvas frame) — mirrors the panel's "Full page" toggle.
+        if (fmt === 'html' && urlNostage) expOpts.fullPage = true;
         // Standard PDF: honour ?password= so a deep link can auto-export a locked
         // PDF (basic lock; clear-text in the URL by design — see pdfPassRow).
         if (fmt === 'pdf' && urlPassword) expOpts.password = urlPassword;
@@ -2154,6 +2176,64 @@ function armAutoCopy(actionsEl, actionsApi, fmt) {
   copyBtn.classList.add('copy-armed');
 }
 
+// Honour the OS "reduce motion" setting for the JS-driven scroll/reveal below.
+// The global CSS reset zeroes CSS animations + scroll-behavior, but it can't reach
+// an explicit JS scrollIntoView({behavior:'smooth'}) or a WAAPI tween — those have
+// to be gated here.
+function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// Bring a sidebar control into view and flash a one-shot "you are here" pulse on
+// its row. The single entry point for every canvas-click and block-expand scroll,
+// so arrival is consistent: top-aligned (clear of the sticky header via the row's
+// scroll-margin), smooth unless reduce-motion. `control` may be the control itself
+// or any node inside its row/block.
+function scrollToControl(control, { pulse = true } = {}) {
+  if (!control) return;
+  const row = control.closest('.input-row, .block-item') || control;
+  row.scrollIntoView({ block: 'start', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  if (!pulse) return;
+  row.classList.remove('is-target');
+  void row.offsetWidth;                       // restart the keyframe if it's mid-flight
+  row.classList.add('is-target');
+  const done = () => row.classList.remove('is-target');
+  row.addEventListener('animationend', done, { once: true });
+  setTimeout(done, 700);                       // fallback if the keyframe is reduce-motion-zeroed
+}
+
+// Reveal a block's fields with a brief height tween when it expands. The resting
+// collapsed state stays `display:none` (so folded fields keep out of the Tab order
+// and the a11y tree) — only the open is animated, and only when motion is allowed.
+function revealBlockFields(item) {
+  if (prefersReducedMotion()) return;
+  const fields = item.querySelector('.block-fields');
+  if (!fields || typeof fields.animate !== 'function') return;
+  fields.style.height = '0px';
+  fields.style.overflow = 'hidden';
+  const h = fields.scrollHeight;               // full content height even while clamped to 0
+  if (!h) { fields.style.height = ''; fields.style.overflow = ''; return; }
+  const anim = fields.animate(
+    [{ height: '0px', opacity: 0.4 }, { height: `${h}px`, opacity: 1 }],
+    { duration: 180, easing: 'ease' }
+  );
+  const clear = () => { fields.style.height = ''; fields.style.overflow = ''; };
+  anim.onfinish = anim.oncancel = clear;
+}
+
+// Single seam for folding/unfolding a block: keeps the collapse class, the chevron
+// button's aria-label/title, and the open animation in lockstep wherever a block is
+// toggled (chevron, pill body, collapse-all, canvas click). renderInputs re-applies
+// the collapse state across model rebuilds via the captured collapsedBlocks set.
+function toggleBlock(item, collapsed) {
+  if (item.classList.contains('is-collapsed') === collapsed) return;
+  item.classList.toggle('is-collapsed', collapsed);
+  const btn = item.querySelector('[data-block-collapse]');
+  btn?.setAttribute('aria-label', collapsed ? 'Expand block' : 'Collapse block');
+  btn?.setAttribute('title', collapsed ? 'Expand' : 'Collapse');
+  if (!collapsed) revealBlockFields(item);
+}
+
 // Click-to-focus for a single block inside a blocks input: expand the target
 // block and fold every other typed block to a pill, then drop the caret in its
 // text field and scroll it into view. Folding mirrors the manual collapse
@@ -2165,18 +2245,11 @@ function focusSidebarBlock(blocksEl, index) {
   const target = items.find(b => b.dataset.blockIndex === String(index));
   if (!target) return;
 
-  for (const b of items) {
-    const fold = b !== target;
-    if (b.classList.contains('is-collapsed') === fold) continue;
-    b.classList.toggle('is-collapsed', fold);
-    const btn = b.querySelector('[data-block-collapse]');
-    btn?.setAttribute('aria-label', fold ? 'Expand block' : 'Collapse block');
-    btn?.setAttribute('title', fold ? 'Expand' : 'Collapse');
-  }
+  for (const b of items) toggleBlock(b, b !== target);
 
   // Reveal the block if it sits inside a closed section, then bring it into view.
   target.closest('details.input-section')?.setAttribute('open', '');
-  target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  scrollToControl(target);
 
   const field = target.querySelector(
     '.block-fields textarea.block-field, .block-fields input.block-field:not([type="range"])'
@@ -2317,9 +2390,13 @@ function renderInputs(el, model, runtime, host, onDirty) {
       ? ` <span class="input-value">${parseFloat(input.value ?? 0)}</span>`
       : '';
     const labelId = `irow-label-${escape(input.id)}`;
-    const label = `<span class="input-label"${isComposite ? ` id="${labelId}"` : ''}>${escape(input.label ?? input.id)}${valueTag}</span>`;
+    // Help moves behind an info button (see help-tip.js). The label id rides on the
+    // text span only, so a composite's aria-labelledby never absorbs "More info".
+    const ht = input.help ? helpTip(input.help) : null;
+    const labelText = `<span class="input-label-text"${isComposite ? ` id="${labelId}"` : ''}>${escape(input.label ?? input.id)}${valueTag}</span>`;
+    const label = `<span class="input-label">${labelText}${ht ? ht.button : ''}</span>`;
     const control = controlHtml(input, modelValues);
-    const help = input.help ? `<span class="input-help">${escape(input.help)}</span>` : '';
+    const help = ht ? ht.pop : '';
     if (isCheckbox) return `<label class="${cls}">${control}${label}${help}</label>`;
     if (isComposite) return `<div class="${cls}" role="group" aria-labelledby="${labelId}">${label}${control}${help}</div>`;
     return `<label class="${cls}">${label}${control}${help}</label>`;
@@ -2547,6 +2624,11 @@ function renderInputs(el, model, runtime, host, onDirty) {
     onInteractStart: () => { _sliderDragging = true; },
     onInteractEnd: () => { _sliderDragging = false; },
   });
+
+  // On-demand help: delegated tap/Escape/outside-click wiring is attached once and
+  // survives rebuilds; the aria-describedby links are (re)applied every render.
+  wireHelpTips(el);
+  linkHelpDescriptions(el);
 
   el.querySelectorAll('[data-block-swatch-field]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2787,23 +2869,39 @@ function renderInputs(el, model, runtime, host, onDirty) {
     });
   });
 
-  // Drag a block's header to reorder. Native HTML5 DnD — the header is the
-  // handle; on drop the array is spliced into the new order and committed.
+  // Drag a block's header to reorder. Native HTML5 DnD — the header is the handle.
+  // For a plain blocks input the array is spliced into the new order. For a TREE
+  // input (input.nesting active) the drop zone splits into before / after / inside,
+  // so a card can be moved, re-nested or reordered in one gesture; the dragged
+  // card's parent reference is updated and its whole subtree travels with it.
+  const clearDropMarks = () => el
+    .querySelectorAll('.drag-over, .drop-before, .drop-after, .drop-inside')
+    .forEach(n => n.classList.remove('drag-over', 'drop-before', 'drop-after', 'drop-inside'));
+
   el.querySelectorAll('.block-item.is-typed').forEach(item => {
     const head = item.querySelector('[data-block-handle]');
     if (!head) return;
     const blockId = head.dataset.blockInput;
     const idx = parseInt(head.dataset.blockIndex, 10);
+    const treeInp = panelModel.find(i => i.id === blockId);
+    const treeMode = nestingActive(treeInp, modelValues);
+
+    // Which of the three zones the pointer is over, by vertical position in the row.
+    const zoneIntent = (e) => {
+      const r = item.getBoundingClientRect();
+      const rel = (e.clientY - r.top) / Math.max(1, r.height);
+      return rel < 0.30 ? 'before' : rel > 0.70 ? 'after' : 'inside';
+    };
 
     head.addEventListener('dragstart', (e) => {
-      _blockDrag = { inputId: blockId, from: idx };
+      _blockDrag = { inputId: blockId, from: idx, intent: null, over: null };
       e.dataTransfer.effectAllowed = 'move';
       try { e.dataTransfer.setData('text/plain', String(idx)); } catch { /* Safari */ }
       item.classList.add('is-dragging');
     });
     head.addEventListener('dragend', () => {
       item.classList.remove('is-dragging');
-      el.querySelectorAll('.block-item.drag-over').forEach(n => n.classList.remove('drag-over'));
+      clearDropMarks();
       // A real drag suppresses the trailing click, but flag it anyway so a drag that
       // the browser rounds to a click can't also expand the pill (see head click below).
       head._dragJustHappened = true;
@@ -2813,40 +2911,52 @@ function renderInputs(el, model, runtime, host, onDirty) {
       if (!_blockDrag || _blockDrag.inputId !== blockId) return;
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
-      item.classList.toggle('drag-over', idx !== _blockDrag.from);
+      if (!treeMode) { item.classList.toggle('drag-over', idx !== _blockDrag.from); return; }
+      if (idx === _blockDrag.from) { item.classList.remove('drop-before', 'drop-after', 'drop-inside'); return; }
+      const intent = zoneIntent(e);
+      _blockDrag.intent = intent;
+      _blockDrag.over = idx;
+      item.classList.toggle('drop-before', intent === 'before');
+      item.classList.toggle('drop-after', intent === 'after');
+      item.classList.toggle('drop-inside', intent === 'inside');
     });
-    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over', 'drop-before', 'drop-after', 'drop-inside'));
     item.addEventListener('drop', (e) => {
       if (!_blockDrag || _blockDrag.inputId !== blockId) return;
       e.preventDefault();
-      item.classList.remove('drag-over');
-      const from = _blockDrag.from, to = idx;
+      const from = _blockDrag.from, to = idx, intent = _blockDrag.intent || zoneIntent(e);
+      clearDropMarks();
       _blockDrag = null;
       const inp = panelModel.find(i => i.id === blockId);
-      if (!inp || from === to || from == null) return;
-      const arr = Array.isArray(inp.value) ? [...inp.value] : [];
+      if (!inp || from == null) return;
+      const arr = Array.isArray(inp.value) ? inp.value : [];
       if (from < 0 || from >= arr.length) return;
-      const [moved] = arr.splice(from, 1);
-      arr.splice(to, 0, moved);
-      runtime.setInput(blockId, arr);
+      let next;
+      if (treeMode) {
+        next = blockReparentMove(arr, from, to, intent, nestingConfig(inp));
+        if (!next) return;                      // no-op / illegal (e.g. into own subtree)
+      } else {
+        if (from === to) return;
+        next = [...arr];
+        const [moved] = next.splice(from, 1);
+        next.splice(to, 0, moved);
+      }
+      runtime.setInput(blockId, next);
       onDirty?.(blockId);
     });
 
     // Icon button folds this block to a pill — pure DOM toggle, no re-render
-    // (renderInputs re-applies the collapsed state across rebuilds).
+    // (renderInputs re-applies the collapsed state across rebuilds). toggleBlock
+    // keeps the chevron's aria/title and the open animation in lockstep.
     const collapse = item.querySelector('[data-block-collapse]');
-    const syncChevron = (folded) => {
-      collapse?.setAttribute('aria-label', folded ? 'Expand block' : 'Collapse block');
-      collapse?.setAttribute('title', folded ? 'Expand' : 'Collapse');
-    };
     collapse?.addEventListener('click', (e) => {
       e.stopPropagation();                 // don't reach the header's expand/drag
-      const folded = item.classList.toggle('is-collapsed');
-      syncChevron(folded);
+      const folded = !item.classList.contains('is-collapsed');
+      toggleBlock(item, folded);
       syncCollapseAllPills();
       // On expand, bring the revealed fields into view so the click never looks dead
       // (a lower pill's fields would otherwise open below the scroll fold).
-      if (!folded) item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (!folded) scrollToControl(item, { pulse: false });
     });
 
     // The whole pill is the expand target while collapsed — clicking its body (preview,
@@ -2857,10 +2967,9 @@ function renderInputs(el, model, runtime, host, onDirty) {
       if (!item.classList.contains('is-collapsed')) return;
       if (e.target.closest('button')) return;
       if (head._dragJustHappened) return;
-      item.classList.remove('is-collapsed');
-      syncChevron(false);
+      toggleBlock(item, false);
       syncCollapseAllPills();
-      item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      scrollToControl(item, { pulse: false });
     });
   });
 
@@ -2872,15 +2981,13 @@ function renderInputs(el, model, runtime, host, onDirty) {
       e.stopPropagation();
       const wrap = pill.closest('.blocks-input');
       const fold = pill.dataset.mode !== 'expand';
-      wrap.querySelectorAll('.block-item.is-typed').forEach(item => {
-        item.classList.toggle('is-collapsed', fold);
-        const btn = item.querySelector('[data-block-collapse]');
-        btn?.setAttribute('aria-label', fold ? 'Expand block' : 'Collapse block');
-        btn?.setAttribute('title', fold ? 'Expand' : 'Collapse');
-      });
+      wrap.querySelectorAll('.block-item.is-typed').forEach(item => toggleBlock(item, fold));
       syncCollapseAllPills();
       // Expanding many at once: surface the first so the change is visible.
-      if (!fold) wrap.querySelector('.block-item')?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      if (!fold) {
+        const first = wrap.querySelector('.block-item');
+        if (first) scrollToControl(first, { pulse: false });
+      }
     });
   });
 
@@ -3032,9 +3139,11 @@ function controlHtml(input, modelValues = {}) {
       // unless the input opts in with `labelledFields` (e.g. logo-wall, whose
       // optional per-logo controls aren't self-evident).
       const labelEach = !!(addMenu || input.labelledFields);
-      const labelled = (f, inner, cls = '') => labelEach
-        ? `<div class="block-control${cls}"><span class="block-control-label">${escape(f.label ?? f.id)}</span>${inner}${f.help ? `<span class="block-control-help">${escape(f.help)}</span>` : ''}</div>`
-        : inner;
+      const labelled = (f, inner, cls = '') => {
+        if (!labelEach) return inner;
+        const ht = f.help ? helpTip(f.help) : null;
+        return `<div class="block-control${cls}"><span class="block-control-label">${escape(f.label ?? f.id)}${ht ? ht.button : ''}</span>${inner}${ht ? ht.pop : ''}</div>`;
+      };
 
       // A sub-field's `showIf` is matched first against sibling fields of the same
       // block, then against top-level input values (modelValues) — so a per-block
@@ -3051,14 +3160,48 @@ function controlHtml(input, modelValues = {}) {
         if (Array.isArray(f.showFor) && !f.showFor.includes(typeVal)) return '';
         if (!blockShowIf(f, item)) return '';
 
+        // A reference picker: choices come from the rows of another blocks input
+        // (e.g. "parent" lists the other cards). The value stored is each target
+        // row's derived id, which the tool's hook resolves — so this replaces the
+        // old "type the matching ID by hand" text boxes without any data change.
+        if (f.optionsFrom) {
+          const cur = String(item[f.id] ?? f.default ?? '');
+          const { options, emptyLabel, freeText } = buildRefOptions({
+            of: f.optionsFrom,
+            ownerInputId: input.id,
+            idx,
+            getRows: (inId) => (Array.isArray(modelValues[inId]) ? modelValues[inId] : []),
+            ownerNestingCfg: input.nesting ? nestingConfig(input) : null,
+          });
+          if (freeText) {
+            // Combobox — pick an existing target or type a new id (kanban columns).
+            const listId = `dl-${id}-${idx}-${escape(f.id)}`;
+            const dlOpts = options.map(o => `<option value="${escape(o.value)}">${escape(o.label)}</option>`).join('');
+            return labelled(f, `<input class="block-field block-field--ref" list="${listId}" data-field-id="${fieldId}"
+              value="${escape(cur)}" placeholder="${escape(f.placeholder ?? emptyLabel ?? '— none —')}"
+              aria-label="${escape(f.label ?? f.id)}"><datalist id="${listId}">${dlOpts}</datalist>`);
+          }
+          // Strict select. A stored value matching no current row is surfaced as a
+          // selected "(unknown)" option rather than silently dropped — so a stale or
+          // mistyped reference is visible instead of just "the link didn't work".
+          const known = options.some(o => o.value === cur);
+          const empty = `<option value=""${cur === '' ? ' selected' : ''}>${escape(emptyLabel ?? '— none —')}</option>`;
+          const unknown = (cur !== '' && !known)
+            ? `<option value="${escape(cur)}" selected>${escape(cur)} (unknown)</option>` : '';
+          const opts = options.map(o =>
+            `<option value="${escape(o.value)}"${o.value === cur ? ' selected' : ''}>${escape(o.label)}</option>`).join('');
+          return labelled(f, `<select class="block-field block-field--ref" data-field-id="${fieldId}" aria-label="${escape(f.label ?? f.id)}">${empty}${unknown}${opts}</select>`);
+        }
+
         if (f.type === 'boolean') {
           const on = !!item[f.id];
+          const ht = f.help ? helpTip(f.help) : null;
           // Checkbox + inline label (always labelled — a bare checkbox is opaque),
           // spanning the full row so it reads as its own line.
           return `<label class="block-control block-control--checkbox block-control--full">
             <input type="checkbox" class="block-field block-field--checkbox" data-field-id="${fieldId}"${on ? ' checked' : ''}>
-            <span class="block-control-label">${escape(f.label ?? f.id)}</span>
-            ${f.help ? `<span class="block-control-help">${escape(f.help)}</span>` : ''}
+            <span class="block-control-label">${escape(f.label ?? f.id)}${ht ? ht.button : ''}</span>
+            ${ht ? ht.pop : ''}
           </label>`;
         }
 
@@ -3185,7 +3328,15 @@ function controlHtml(input, modelValues = {}) {
         return '';
       };
 
-      const itemHtml = (item, idx) => {
+      // Tree mode: when the input declares `nesting` and it's active for the
+      // current model (e.g. diagramType ∈ org|mindmap), render the flat array as an
+      // indented outline in pre-order, and let the header drag drop above / below /
+      // inside another card (see the drag handlers in renderInputs). The DATA stays
+      // a flat reference-by-id array — only the presentation is tree-shaped.
+      const nesting = nestingActive(input, modelValues);
+      const nestCfg = nesting ? nestingConfig(input) : null;
+
+      const itemHtml = (item, idx, depth = 0) => {
         const typeVal = addMenu ? item[addMenu.field] : null;
         const inner = fields.map(f => blockField(f, item, idx, typeVal)).join('');
         const sw = swatchOf(item, typeVal);
@@ -3199,14 +3350,30 @@ function controlHtml(input, modelValues = {}) {
         // first-render fold; `block-item--row` lets CSS tune the compact variant.
         const label = addMenu ? typeLabel(typeVal) : '';
         const rowCls = addMenu ? '' : ' block-item--row';
-        return `<div class="block-item is-typed${rowCls}" data-block-type="${escape(typeVal ?? '')}" data-block-index="${idx}">
+        const nestAttrs = nesting
+          ? ` data-block-nested style="--block-depth:${depth}"` : '';
+        const nestCls = nesting ? ` is-nestable${depth > 0 ? ' is-child' : ''}` : '';
+        const title = nesting ? 'Drag to move, nest or reorder' : 'Drag to reorder';
+        return `<div class="block-item is-typed${rowCls}${nestCls}" data-block-type="${escape(typeVal ?? '')}" data-block-index="${idx}"${nestAttrs}>
           <div class="block-head" data-block-handle draggable="true"
-               data-block-input="${id}" data-block-index="${idx}" title="Drag to reorder">
+               data-block-input="${id}" data-block-index="${idx}" title="${title}">
             ${grip}<span class="block-type-label">${escape(label)}</span>${swatch}${preview}${collapseBtn}${removeBtn(idx, label || 'block')}
           </div>
           <div class="block-fields">${inner}</div>
         </div>`;
       };
+
+      // In tree mode the list renders in pre-order (parent immediately above its
+      // children) with each row carrying its TRUE array index, so the drag handlers
+      // operate on the real array regardless of display order.
+      let itemsHtml;
+      if (nesting) {
+        const keys = deriveBlockKeys(items, nestCfg);
+        const order = blockTreeOrder(items, blockParentIndex(items, keys, nestCfg.parentField));
+        itemsHtml = order.map(e => itemHtml(items[e.idx], e.idx, e.depth)).join('');
+      } else {
+        itemsHtml = items.map((it, i) => itemHtml(it, i)).join('');
+      }
 
       let adder;
       if (addMenu) {
@@ -3230,9 +3397,9 @@ function controlHtml(input, modelValues = {}) {
       const collapseAll = items.length > 1
         ? `<div class="blocks-toolbar"><button type="button" class="blocks-collapse-all" data-blocks-collapse-all="${id}" data-mode="collapse" aria-label="Collapse all blocks">Collapse all</button></div>`
         : '';
-      return `<div class="blocks-input blocks-input--cards${addMenu ? ' blocks-input--typed' : ''}" data-input-id="${id}">
+      return `<div class="blocks-input blocks-input--cards${addMenu ? ' blocks-input--typed' : ''}${nesting ? ' blocks-input--tree' : ''}" data-input-id="${id}">
         ${collapseAll}
-        <div class="blocks-list">${items.map(itemHtml).join('')}</div>
+        <div class="blocks-list">${itemsHtml}</div>
         ${adder}
       </div>`;
     }
@@ -3531,8 +3698,17 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
           </label>
           ${runtime.hasFrameHook ? `<span class="vp-live-hint" style="flex-basis:100%;font-size:11px;opacity:.7;margin-top:2px">Records the live feed — start <strong>Go&nbsp;live</strong> on the canvas first.</span>` : ''}
         </div>` : '';
-  const settingsRow = (optionChips || videoChip)
-    ? `<div class="export-settings">${optionChips}${videoChip}</div>`
+  // Full-page chip — HTML export only. Drops the fixed-size tool-canvas frame so
+  // the saved page fills the whole browser window instead of a centred card.
+  const hasHtml  = formats.includes('html');
+  const htmlChip = hasHtml ? `
+        <label class="export-option" data-html-only style="display:${initialFmt === 'html' ? 'flex' : 'none'}"
+               title="Drop the fixed-size canvas frame so the saved page fills the whole window.">
+          <input type="checkbox" data-action="full-page" ${exportDefaults.nostage ? 'checked' : ''}>
+          Full page
+        </label>` : '';
+  const settingsRow = (optionChips || videoChip || htmlChip)
+    ? `<div class="export-settings">${optionChips}${htmlChip}${videoChip}</div>`
     : '';
 
   // Tier 4 — actions. Copy · Save · Share share one equal-width row; Download is
@@ -3584,6 +3760,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
       if (ditherEl)     ditherEl.style.display     = fmt === 'gif'  ? 'flex' : 'none';
       if (webm60El)     webm60El.style.display      = fmt === 'webm' ? 'flex' : 'none';
       el.querySelectorAll('[data-vector-only]').forEach(c => { c.style.display = isVectorFmt(fmt) ? 'flex' : 'none'; });
+      el.querySelectorAll('[data-html-only]').forEach(c => { c.style.display = fmt === 'html' ? 'flex' : 'none'; });
       el.querySelectorAll('[data-cmyk-only]').forEach(c => { c.style.display = isCmykFmt(fmt) ? 'flex' : 'none'; });
       el.querySelectorAll('[data-printmarks-only]').forEach(c => { c.style.display = isPrintFmt(fmt) ? 'flex' : 'none'; });
       syncBarsDefault(fmt);
@@ -3617,6 +3794,9 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   el.querySelector('[data-action="cmyk-profile"]')?.addEventListener('change', () => onUrlSync?.('profile'));
 
   el.querySelector('[data-action="filename"]')?.addEventListener('input', () => onUrlSync?.('filename'));
+
+  // Full-page HTML export toggle ("no stage") — round-trips through the URL as ?nostage.
+  el.querySelector('[data-action="full-page"]')?.addEventListener('change', () => onUrlSync?.('nostage'));
 
   // PDF open-password — clear-text in the URL by design (see pdfPassRow). Syncs on
   // input so a crafted/edited link round-trips; syncUrl gates it to the pdf format.
@@ -3959,6 +4139,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         ...exportDims(),
         ...(isAnimated ? videoParams() : {}),
         ...(isGif ? { dither: el.querySelector('[data-action="gif-dither"]')?.checked ?? false } : {}),
+        ...(fmt === 'html' ? { fullPage: el.querySelector('[data-action="full-page"]')?.checked ?? false } : {}),
         ...(isPrintFmt(fmt) ? printOpts() : {}),
         ...(fmt === 'pdf-cmyk' ? { palette: PALETTE } : {}),
         ...(isCmykFmt(fmt) ? {
@@ -4056,7 +4237,7 @@ function shrinkUrl(runtime, manifest) {
     if (input.urlKey) inputsByKey[input.urlKey] = input;
   }
 
-  const RESERVED_KEEP = new Set(['format', 'export', 'copy', 'slot', 'output', 'full', '_v']);
+  const RESERVED_KEEP = new Set(['format', 'export', 'copy', 'slot', 'output', 'full', '_v', 'nostage']);
 
   const kept = [];
   for (const part of qs.split('&')) {
@@ -4384,6 +4565,7 @@ async function openEmbedEditor(host, { editUrl, slotLabel, mode = 'edit' } = {})
       // overlay tree isn't pinned alive (mirrors mountTool's _cleanup).
       if (inputsEl._colorPopoverDismiss) document.removeEventListener('click', inputsEl._colorPopoverDismiss, true);
       if (inputsEl._blockMenuDismiss)    document.removeEventListener('click', inputsEl._blockMenuDismiss, true);
+      if (inputsEl._helpTipDismiss)      document.removeEventListener('click', inputsEl._helpTipDismiss, true);
       // A child datetime input's flatpickr appends its calendar to <body> and registers
       // its own document/window listeners — removed only by destroy(). overlay.remove()
       // detaches the input but not the body-level calendar, so tear them down explicitly

@@ -2193,6 +2193,30 @@ background-color:hsl(var(--background) / 1);
 /* Drag-reorder feedback */
 .block-item.is-dragging { opacity: 0.4; }
 .block-item.drag-over { outline: 2px dashed hsl(var(--ring)); outline-offset: 2px; }
+
+/* Tree (nested) blocks — diagram-builder org / mind map. The flat reference-by-id
+   array is rendered as an indented outline (one step per depth level); drop
+   feedback splits into before / after (reorder as a sibling) and inside (re-nest
+   as a child). Data stays flat: only this presentation is tree-shaped. */
+.blocks-input--tree .block-item.is-nestable {
+  position: relative;
+  margin-left: calc(var(--block-depth, 0) * 16px);
+  transition: margin-left 0.12s ease;
+}
+/* Elbow connector tying a child card back up toward its parent's indent. */
+.blocks-input--tree .block-item.is-child::before {
+  content: ""; position: absolute; left: -10px; top: -6px; height: calc(50% + 6px); width: 9px;
+  border-left: 1.5px solid hsl(var(--border));
+  border-bottom: 1.5px solid hsl(var(--border));
+  border-bottom-left-radius: 6px;
+  pointer-events: none;
+}
+.block-item.drop-before { box-shadow: inset 0 2px 0 0 hsl(var(--ring)); }
+.block-item.drop-after  { box-shadow: inset 0 -2px 0 0 hsl(var(--ring)); }
+.block-item.drop-inside {
+  outline: 2px solid hsl(var(--ring)); outline-offset: 1px;
+  background: hsl(var(--ring) / 0.10);
+}
 /* Two-step delete confirm — the armed state reads unmistakably destructive. */
 .block-remove.is-confirming {
   width: auto; height: 22px; padding: 0 9px;
@@ -3383,7 +3407,7 @@ background-color:hsl(var(--background) / 1);
 .export-dims {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 1px;
   font-size: 13px;
   color: hsl(var(--muted-foreground));
 }

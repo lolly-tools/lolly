@@ -112,6 +112,26 @@ In the template, iterate with `{{#each people}}…{{/each}}`. The value round-tr
 
 **Drop files to add rows.** A `blocks` input may declare `dropToAdd: { field, accept }` — dropping one or more files onto the blocks list appends one row per file, uploading each into the named `asset` sub-`field` (the row's other fields start at their defaults). `accept` is a MIME filter (default `image/*`). `logo-wall` is the reference: drop many logos → one block each.
 
+**Reference pickers (`optionsFrom`).** A sub-field can be a dropdown whose choices are the *rows of another blocks input* — so a row references another row by a friendly name instead of a hand-typed id. Declare `optionsFrom` on the field:
+
+```json
+{ "id": "parent", "label": "Reports to",
+  "optionsFrom": { "input": "nodes", "value": "nodeId", "label": "label",
+                   "excludeSelf": true, "excludeDescendants": true, "emptyLabel": "— Top level —" } }
+```
+
+The value **stored** is the target row's *derived id* — `slug(value field)`, else `slug(label)`, else an ordinal, de-duplicated — i.e. exactly the id a hook resolves with (your hook should slug both a row's id and the back-reference, so the two agree). A stored value matching no current row is shown as a selected **"(unknown)"** option rather than vanishing, so a stale reference is visible. Options: `value`/`label`/`prefix` (the source sub-fields + ordinal prefix), `sources: [{input,value,label}]` to merge several inputs (e.g. cards **and** layers, de-duped by value), `freeText: true` for a combobox (datalist) that also accepts a typed-in value (e.g. a new kanban column), `excludeSelf`, `excludeDescendants` (needs `nesting`, below), and `emptyLabel`.
+
+**Tree blocks (`nesting`).** A `blocks` input can be edited as a tree: the sidebar renders the flat array as an **indented outline** (pre-order) and the header drag drops a card **above / below** (sibling) or **inside** (child) another, updating its parent reference — the whole subtree travels with it. The data stays a flat reference-by-id array, so it serialises and renders exactly as before (the renderer still walks the parent pointers). Declare `nesting` on the input:
+
+```json
+{ "id": "nodes", "type": "blocks", "nesting": {
+    "parentField": "parent", "keyField": "nodeId", "labelField": "label",
+    "activeWhen": { "diagramType": ["org", "mindmap"] } } }
+```
+
+`activeWhen` gates tree mode by top-level input values (an array value matches by membership); omit it to always nest. `diagram-builder` is the reference for both `optionsFrom` and `nesting` (org / mind map nest; process / kanban / layercake stay flat and reference by picker).
+
 #### `vector` — a group of numbers as one control
 
 Use `vector` when a few related numbers belong together — zoom + pan, an x/y offset, padding, margins. Instead of separate `number` inputs (one column each in `/pro` bulk mode), a `vector` is **one input, one control, one column**: a row of compact number fields where each label can be dragged to scrub the value (Figma-style) or typed into. Declare the numeric sub-fields under `fields`:
