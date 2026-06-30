@@ -6,6 +6,10 @@
  * you see in dev is what ships. It runs three things:
  *
  *   1. docs/build.js --watch  — rebuilds the /info site on docs changes
+ *   1b. build-tool-og.js      — one-shot: refreshes the committed per-tool OG cards
+ *                               (catalog/og/<id>.png) + /t/<id>.html share stubs from
+ *                               the catalog. resvg runs here (local), unlike the Vercel
+ *                               build, so the committed cards stay fresh for deploy.
  *   2. vite (shells/web)      — the web shell dev server (HMR)
  *   3. build-previews.js      — once the dev server answers, generates any MISSING
  *                               tool previews (catalog/previews/<id>.svg|png) against
@@ -57,6 +61,11 @@ process.on('SIGTERM', () => shutdown(0));
 
 // 1. /info site watcher.
 start('node', ['docs/build.js', '--watch']);
+
+// 1b. Per-tool OG cards + share stubs (one-shot). Refreshes committed catalog/og cards
+// and /t/<id>.html stubs so dev serves real share images and the committed bytes stay
+// current for the (resvg-less) Vercel deploy. Tool metadata rarely changes mid-session.
+start('node', ['scripts/build-tool-og.js']);
 
 // 2. vite dev server — pipe stdout so we can discover the port, but forward every
 // byte so vite's own pretty output still shows.
