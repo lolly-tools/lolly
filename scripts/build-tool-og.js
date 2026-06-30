@@ -31,10 +31,10 @@
  * build-time-only dep: if it's missing, stubs still emit but point at og.png.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createOgRenderer } from '../docs/og-image.js';
+import { createToolCardRenderer } from '../docs/og-image.js';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = 'https://lolly.tools';
@@ -96,16 +96,43 @@ function stubHtml({ id, name, description, image }) {
 `;
 }
 
+// The tool's preview thumbnail (catalog index `preview` path), turned into a PNG
+// data-URI the card can embed. PNG previews are inlined as-is; SVG previews are
+// rasterised through resvg first (they're self-contained brand vectors — verified to
+// render — but a crawler only takes raster). Returns null when there's no preview
+// file, so the card falls back to a placeholder icon.
+function previewDataUri(previewPath, Resvg, fontBuffers) {
+  if (!previewPath) return null;
+  const file = resolve(ROOT, previewPath.replace(/^\//, ''));
+  if (!existsSync(file)) return null;
+  if (file.endsWith('.png')) {
+    return `data:image/png;base64,${readFileSync(file).toString('base64')}`;
+  }
+  if (file.endsWith('.svg')) {
+    try {
+      const r = new Resvg(readFileSync(file, 'utf8'), {
+        font: { fontBuffers, loadSystemFonts: false, defaultFontFamily: 'SUSE' },
+        fitTo: { mode: 'width', value: 820 },   // ~2× the card's preview box for crispness
+        background: 'white',                     // letterbox blends into the white frame
+      });
+      return `data:image/png;base64,${r.render().asPng().toString('base64')}`;
+    } catch { return null; }
+  }
+  return null;
+}
+
 async function main() {
   const index = JSON.parse(readFileSync(resolve(ROOT, 'catalog/tools/index.json'), 'utf8'));
   const tools = Array.isArray(index.tools) ? index.tools : [];
 
   // Renderer is best-effort: a missing build-time resvg degrades stubs to og.png
   // rather than failing the whole web build (mirrors docs/og-image.js).
-  let renderer = null;
+  let renderer = null, Resvg = null, previewFonts = [];
   try {
-    const { Resvg } = await import('@resvg/resvg-js');
-    renderer = createOgRenderer(Resvg, ROOT);
+    ({ Resvg } = await import('@resvg/resvg-js'));
+    renderer = createToolCardRenderer(Resvg, ROOT);
+    // Fonts for rasterising SVG previews that carry live text.
+    previewFonts = ['Medium', 'Regular'].map((w) => readFileSync(resolve(ROOT, `catalog/fonts/ttf/SUSE-${w}.ttf`)));
   } catch (e) {
     console.log(`tool-og: card generation skipped (${e.message}); stubs fall back to og.png`);
   }
@@ -116,14 +143,17 @@ async function main() {
   mkdirSync(STUB_DIR, { recursive: true });
   if (renderer) mkdirSync(IMG_DIR, { recursive: true });
 
-  let cards = 0, stubs = 0;
+  let cards = 0, stubs = 0, withPreview = 0;
   for (const t of tools) {
     if (!t.id || !t.name) continue;
 
     let image = FALLBACK_IMG;
     if (renderer) {
       try {
-        writeFileSync(resolve(IMG_DIR, `${t.id}.png`), renderer.render(t.name, { iconSvg: t.icon }));
+        const preview = previewDataUri(t.preview, Resvg, previewFonts);
+        if (preview) withPreview++;
+        const png = renderer.render({ name: t.name, description: t.description, iconSvg: t.icon, previewDataUri: preview });
+        writeFileSync(resolve(IMG_DIR, `${t.id}.png`), png);
         image = `${SITE_URL}/og/tools/${t.id}.png`;
         cards++;
       } catch (e) {
@@ -135,7 +165,7 @@ async function main() {
     stubs++;
   }
 
-  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'}`);
+  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} (${withPreview} with preview)`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

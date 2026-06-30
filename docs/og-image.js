@@ -1,20 +1,22 @@
-// Build-time generator for per-page Open Graph (share preview) images.
+// Build-time generators for Open Graph (share preview) images.
 //
-// Every /info page gets its own 1200×630 card that reproduces the standard Lolly
-// OG image — the pine field, the 3D lollipop, the "Lolly" wordmark — but swaps the
-// subtitle line for that page's own title. So a link to /info/authoring-tools.html
-// previews as the brand card captioned "Authoring Tools".
+// Two cards share the brand pine field + SUSE type, rasterised with @resvg/resvg-js
+// (a build-time-only dependency — a missing dep degrades to the static og.png):
+//
+//   • createOgRenderer  — the /info pages. Reproduces the standard Lolly OG image
+//     (pine field, 3D lollipop, "Lolly" wordmark) and swaps the subtitle for the
+//     page title. So /info/authoring-tools.html previews as the brand card captioned
+//     "Authoring Tools". The original og.png is embedded as the background and only
+//     its subtitle band is repainted, so the lollipop + wordmark stay byte-faithful.
+//
+//   • createToolCardRenderer — per-tool share cards (scripts/build-tool-og.js). A
+//     gallery-tile look rather than the lollipop card: the tool's icon, name and
+//     description on the pine field, with a smaller framed preview of the tool's own
+//     output on the right. So a link to /t/qr-code previews as that tool's card.
 //
 // Why generate rather than reuse one static og.png: social crawlers (Slack, X,
 // Facebook, LinkedIn, iMessage) cache one image per URL and only reliably render
-// raster (PNG/JPEG), never SVG — so each page needs its own pre-rendered PNG.
-//
-// How: the original og.png is embedded as the background and only its subtitle band
-// is repainted, so the lollipop + wordmark + colours stay byte-faithful to the
-// brand card; the new title is drawn in the SUSE typeface. The composite SVG is
-// rasterised with @resvg/resvg-js — a build-time-only dependency. Nothing here
-// ships to the browser bundle or the engine; if the dependency is missing the
-// caller falls back to the static og.png (see docs/build.js).
+// raster (PNG/JPEG), never SVG — so each page/tool needs its own pre-rendered PNG.
 
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -24,6 +26,7 @@ const OG_W = 1200, OG_H = 630;
 // Sampled from the original og.png so the repaint is seamless.
 const FIELD   = '#1c4a2e';   // the flat pine background
 const SUBTLE  = '#e4e9e6';   // the subtitle's soft off-white
+const MUTED   = '#a7bcb0';   // dimmer green-grey for the tool card's description / footer
 
 // The subtitle sits in a left-aligned column under the wordmark. The band below is
 // repainted with the field colour to clear the original two-line tagline; the new
@@ -34,36 +37,14 @@ const TITLE_MAXW = OG_W - COL_X - 64;         // keep a right margin
 const TITLE_SIZE = 54;                        // matches the original tagline weighting
 const TITLE_MIN  = 34;                        // floor for very long titles
 
-// A tool card (createOgRenderer's render(title, { iconSvg })) draws the tool's own
-// icon to the left of the title, then starts the title past it. /info cards pass no
-// icon and keep the full-width title — so their output is unchanged.
-const ICON_SIZE = 104;
-const ICON_GAP  = 28;
-const ICON_X    = COL_X;
-const ICON_Y    = Math.round(BAND.y + (BAND.h - ICON_SIZE) / 2);   // vertically centred in the band
-
 const xmlEsc = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // Rough text width (no shaping at build time) → shrink only when a long title would
 // overrun the right margin. SUSE Medium averages ~0.54em advance across mixed text.
-function fitTitle(title, maxW = TITLE_MAXW) {
+function fitTitle(title) {
   const est = title.length * 0.54 * TITLE_SIZE;
-  return est <= maxW ? TITLE_SIZE : Math.max(TITLE_MIN, Math.floor(TITLE_SIZE * maxW / est));
-}
-
-// Position the catalog's inlined icon SVG (lucide-style: 24×24 viewBox,
-// stroke="currentColor") as a nested <svg> viewport on the card. resvg has no
-// colour context for currentColor, so bind it to an explicit colour first. Some
-// icons also set width/height on the root <svg>; strip those on the opening tag
-// only (inner <rect width=…> stays) so they don't collide with the ones we inject
-// — a duplicate attribute is invalid SVG and resvg rejects the whole card.
-function placeIcon(iconSvg, color) {
-  return iconSvg
-    .replace(/currentColor/g, color)
-    .replace(/^<svg\b[^>]*>/, (tag) => tag
-      .replace(/\s(?:width|height)\s*=\s*"[^"]*"/g, '')
-      .replace(/^<svg\b/, `<svg x="${ICON_X}" y="${ICON_Y}" width="${ICON_SIZE}" height="${ICON_SIZE}"`));
+  return est <= TITLE_MAXW ? TITLE_SIZE : Math.max(TITLE_MIN, Math.floor(TITLE_SIZE * TITLE_MAXW / est));
 }
 
 /**
@@ -73,30 +54,149 @@ function placeIcon(iconSvg, color) {
  * "keep og.png" rather than crashing the whole site build). Throws if the brand
  * assets are missing.
  */
-export function createOgRenderer(Resvg, repoRoot) {
+function createOgRenderer(Resvg, repoRoot) {
   const ogBase = readFileSync(resolve(repoRoot, 'shells/web/public/og.png')).toString('base64');
   const font   = readFileSync(resolve(repoRoot, 'catalog/fonts/ttf/SUSE-Medium.ttf'));
 
-  const svgFor = (title, opts = {}) => {
-    const hasIcon = !!opts.iconSvg;
-    const titleX  = hasIcon ? COL_X + ICON_SIZE + ICON_GAP : COL_X;
-    const size    = fitTitle(title, OG_W - titleX - 64);
+  const svgFor = (title) => {
+    const size = fitTitle(title);
     // Centre the single line in the repainted band (cap height ≈ 0.7em).
     const baseline = Math.round(BAND.y + BAND.h / 2 + size * 0.35);
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${OG_W}" height="${OG_H}" viewBox="0 0 ${OG_W} ${OG_H}">`
       + `<image x="0" y="0" width="${OG_W}" height="${OG_H}" href="data:image/png;base64,${ogBase}"/>`
       + `<rect x="${BAND.x}" y="${BAND.y}" width="${BAND.w}" height="${BAND.h}" fill="${FIELD}"/>`
-      + (hasIcon ? placeIcon(opts.iconSvg, SUBTLE) : '')
-      + `<text x="${titleX}" y="${baseline}" font-family="SUSE" font-weight="500" font-size="${size}"`
+      + `<text x="${COL_X}" y="${baseline}" font-family="SUSE" font-weight="500" font-size="${size}"`
       + ` fill="${SUBTLE}">${xmlEsc(title)}</text>`
       + `</svg>`;
   };
 
   return {
-    /** Render one card to PNG bytes. Pass { iconSvg } to draw a tool icon. */
-    render(title, opts) {
-      const resvg = new Resvg(svgFor(title, opts), {
+    /** Render one page's card to PNG bytes. */
+    render(title) {
+      const resvg = new Resvg(svgFor(title), {
         font: { fontBuffers: [font], defaultFontFamily: 'SUSE', loadSystemFonts: false },
+        background: FIELD,
+      });
+      return resvg.render().asPng();
+    },
+  };
+}
+
+// ── Per-tool share card (gallery-tile style) ─────────────────────────────────
+
+const CARD_MARGIN = 72;
+// Framed preview panel on the right; the left column is everything to its left.
+const CARD_PANEL  = { x: 696, y: 96, w: 432, h: 438, r: 28, pad: 26 };
+
+// Position the catalog's inlined icon SVG (lucide-style: 24×24 viewBox,
+// stroke="currentColor") as a nested <svg> viewport. resvg has no colour context for
+// currentColor, so bind it to an explicit colour first. Some icons also set
+// width/height on the root <svg>; strip those on the opening tag only (inner
+// <rect width=…> stays) so they don't collide with the ones we inject — a duplicate
+// attribute is invalid SVG and resvg rejects the whole card.
+function placeIcon(iconSvg, x, y, size, color) {
+  return iconSvg
+    .replace(/currentColor/g, color)
+    .replace(/^<svg\b[^>]*>/, (tag) => tag
+      .replace(/\s(?:width|height)\s*=\s*"[^"]*"/g, '')
+      .replace(/^<svg\b/, `<svg x="${x}" y="${y}" width="${size}" height="${size}"`));
+}
+
+// Greedy word-wrap to <= maxLines, char width estimated from the font size (resvg's
+// <text> doesn't auto-wrap). The last line is ellipsised when text remains.
+function wrapLines(text, fontSize, boxWidth, maxLines) {
+  const maxChars = Math.max(8, Math.floor(boxWidth / (0.52 * fontSize)));
+  const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let cur = '';
+  let i = 0;
+  for (; i < words.length; i++) {
+    const trial = cur ? `${cur} ${words[i]}` : words[i];
+    if (trial.length <= maxChars) { cur = trial; continue; }
+    if (cur) lines.push(cur);
+    cur = words[i];
+    if (lines.length === maxLines) break;          // all lines filled, words remain
+  }
+  if (lines.length < maxLines && cur) { lines.push(cur); cur = ''; i = words.length; }
+  if (i < words.length || (cur && lines.length === maxLines)) {
+    let last = lines[lines.length - 1] || '';
+    while (last.length && last.length + 1 > maxChars) last = last.slice(0, -1);
+    lines[lines.length - 1] = `${last.replace(/[\s,.;:]+$/, '')}…`;
+  }
+  return lines;
+}
+
+// Shrink the tool name only when it would overrun the text column at the base size.
+function fitName(name, boxWidth) {
+  const BASE = 58, MIN = 40;
+  const est = String(name).length * 0.55 * BASE;
+  return est <= boxWidth ? BASE : Math.max(MIN, Math.floor(BASE * boxWidth / est));
+}
+
+/**
+ * Build a per-tool card renderer. `render({ name, description, iconSvg, previewDataUri })`
+ * returns PNG bytes: the tool's icon + name + description on the pine field, with the
+ * (already-rasterised) preview framed in a white panel on the right. With no preview,
+ * a large tinted icon stands in. Same dynamic-import / degrade contract as createOgRenderer.
+ */
+export function createToolCardRenderer(Resvg, repoRoot) {
+  const fonts = ['Bold', 'Medium', 'Regular']
+    .map((w) => readFileSync(resolve(repoRoot, `catalog/fonts/ttf/SUSE-${w}.ttf`)));
+
+  const svgFor = ({ name, description, iconSvg, previewDataUri }) => {
+    const M = CARD_MARGIN;
+    const P = CARD_PANEL;
+    const textW = P.x - M - 40;                  // left column width
+
+    const nameSize = fitName(name, textW);
+    const nameLines = wrapLines(name, nameSize, textW, 2);
+
+    const out = [];
+    out.push(`<svg xmlns="http://www.w3.org/2000/svg" width="${OG_W}" height="${OG_H}" viewBox="0 0 ${OG_W} ${OG_H}">`);
+    out.push(`<rect width="${OG_W}" height="${OG_H}" fill="${FIELD}"/>`);
+
+    // Brand wordmark, top-left.
+    out.push(`<text x="${M}" y="98" font-family="SUSE" font-weight="700" font-size="34" fill="${SUBTLE}">Lolly</text>`);
+
+    // Preview panel: soft shadow → white card → contain-fit preview (or a tinted
+    // placeholder icon when the tool has no preview yet).
+    out.push(`<rect x="${P.x + 6}" y="${P.y + 12}" width="${P.w}" height="${P.h}" rx="${P.r}" fill="rgba(0,0,0,0.22)"/>`);
+    out.push(`<rect x="${P.x}" y="${P.y}" width="${P.w}" height="${P.h}" rx="${P.r}" fill="#ffffff"/>`);
+    if (previewDataUri) {
+      const ix = P.x + P.pad, iy = P.y + P.pad, iw = P.w - 2 * P.pad, ih = P.h - 2 * P.pad;
+      out.push(`<image x="${ix}" y="${iy}" width="${iw}" height="${ih}" preserveAspectRatio="xMidYMid meet" href="${previewDataUri}"/>`);
+    } else if (iconSvg) {
+      const s = 190;
+      out.push(placeIcon(iconSvg, P.x + (P.w - s) / 2, P.y + (P.h - s) / 2, s, FIELD));
+    }
+
+    // Tool icon (left column).
+    if (iconSvg) out.push(placeIcon(iconSvg, M, 148, 60, SUBTLE));
+
+    // Tool name (1–2 lines), then description (≤3 lines).
+    let y = 250;
+    for (const line of nameLines) {
+      out.push(`<text x="${M}" y="${y}" font-family="SUSE" font-weight="700" font-size="${nameSize}" fill="${SUBTLE}">${xmlEsc(line)}</text>`);
+      y += Math.round(nameSize * 1.06);
+    }
+    y += 16;
+    for (const line of wrapLines(description, 26, textW, 3)) {
+      out.push(`<text x="${M}" y="${y}" font-family="SUSE" font-weight="400" font-size="26" fill="${MUTED}">${xmlEsc(line)}</text>`);
+      y += 36;
+    }
+
+    // Footer.
+    out.push(`<text x="${M}" y="${OG_H - 54}" font-family="SUSE" font-weight="500" font-size="24" fill="${MUTED}">lolly.tools</text>`);
+
+    out.push(`</svg>`);
+    return out.join('');
+  };
+
+  return {
+    /** Render one tool's card to PNG bytes. */
+    render(card) {
+      const resvg = new Resvg(svgFor(card), {
+        font: { fontBuffers: fonts, defaultFontFamily: 'SUSE', loadSystemFonts: false },
         background: FIELD,
       });
       return resvg.render().asPng();
