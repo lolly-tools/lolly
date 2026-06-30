@@ -565,7 +565,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       : folders.find(f => f.id === id);
     if (!folder || !folder.items.length) return;
     const toast = document.createElement('div');
-    toast.className = 'pro-toast';
+    toast.className = 'pro-toast projects-toast'; // top-right under the profile row (see app.css)
     toast.innerHTML = `<button type="button" class="pro-toast-close" aria-label="Close">✕</button><div class="pro-toast-mount"></div>`;
     document.body.appendChild(toast);
     toasts.add(toast); // tracked so navigating away tears it down (see _cleanup)
