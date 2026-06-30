@@ -429,7 +429,51 @@
                         "tags": { "type": "array", "items": { "type": "string" } },
                         "namespace": { "type": "string" }
                       }
+                    },
+                    "optionsFrom": {
+                      "type": "object",
+                      "description": "Render this sub-field as a reference picker whose choices are the rows of another blocks input (or several). The stored value is each target row's derived id (slug of its key field, else its label, else an ordinal) — the same id a tool's hook resolves — so it replaces hand-typed ID cross-references with a dropdown. A stored value matching no current row is surfaced as an '(unknown)' option rather than silently dropped.",
+                      "properties": {
+                        "input": { "type": "string", "description": "id of the blocks input to draw rows from (single-source form)." },
+                        "value": { "type": "string", "default": "nodeId", "description": "Source-row sub-field used as the stored id (slugged + de-duplicated to match the tool's resolution)." },
+                        "label": { "type": "string", "default": "label", "description": "Source-row sub-field shown to the user (falls back to the derived id)." },
+                        "prefix": { "type": "string", "default": "node-", "description": "Ordinal id prefix for rows with neither key nor label." },
+                        "sources": {
+                          "type": "array",
+                          "description": "Several source inputs merged into one option list (e.g. cards AND layers). De-duplicated by value, first wins.",
+                          "items": {
+                            "type": "object",
+                            "required": ["input"],
+                            "properties": {
+                              "input": { "type": "string" },
+                              "value": { "type": "string", "default": "nodeId" },
+                              "label": { "type": "string", "default": "label" },
+                              "prefix": { "type": "string" }
+                            }
+                          }
+                        },
+                        "freeText": { "type": "boolean", "default": false, "description": "Render as a combobox (datalist) that also accepts a typed value not in the list — e.g. a kanban column invented on the spot." },
+                        "excludeSelf": { "type": "boolean", "default": false, "description": "Omit the current row from its own options (a card can't be its own parent)." },
+                        "excludeDescendants": { "type": "boolean", "default": false, "description": "Omit the current row's descendants (requires the input's `nesting`) so a node can't reparent into its own subtree." },
+                        "emptyLabel": { "type": "string", "description": "Label for the blank/none option (default '— none —')." }
+                      }
                     }
+                  }
+                }
+              },
+              "nesting": {
+                "type": "object",
+                "description": "Treat this blocks array as an editable TREE: the sidebar renders it as an indented outline and the header drag lets a card be dropped above, below, or INSIDE another, updating the dragged card's parent reference (its whole subtree travels with it). The data stays a flat reference-by-id array — only the presentation is tree-shaped — so it serialises and renders exactly as before.",
+                "required": ["parentField"],
+                "properties": {
+                  "parentField": { "type": "string", "description": "Sub-field holding each row's parent reference (the id of another row)." },
+                  "keyField": { "type": "string", "default": "nodeId", "description": "Sub-field used as a row's id (what parentField points at)." },
+                  "labelField": { "type": "string", "default": "label", "description": "Fallback id source when keyField is blank, and the human label for indentation." },
+                  "prefix": { "type": "string", "default": "node-", "description": "Ordinal id prefix for rows with neither key nor label." },
+                  "activeWhen": {
+                    "type": "object",
+                    "description": "Only treat the input as a tree when these top-level input values match (an array value matches by membership), e.g. { \"diagramType\": [\"org\", \"mindmap\"] }. Omit to always nest.",
+                    "additionalProperties": true
                   }
                 }
               },

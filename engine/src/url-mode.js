@@ -60,7 +60,7 @@ import { isToolUrl } from './tool-url.js';
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options', 'nostage']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.

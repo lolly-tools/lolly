@@ -126,7 +126,7 @@ async function renderFormat(node, format, opts = {}) {
     case 'pdf-cmyk':
       return await renderCmykPdf(node, opts);
     case 'html':
-      return renderStaticHtml(node);
+      return renderStaticHtml(node, opts);
     case 'md':
       return renderMarkdown(node);
     case 'txt':
@@ -3849,10 +3849,23 @@ function addWatermarkOverlay(node) {
 
 // Standalone HTML document with the tool's template CSS and baked-in content.
 // The fitting script is stripped — the computed font-size is already on the element.
-function renderStaticHtml(node) {
+//
+// opts.fullPage drops the fixed-size tool-canvas frame: the canvas div is the
+// shell's preview box, so we promote its content straight into the document body
+// and let it fill the whole page (no centring, no neutral backdrop). The default
+// keeps the canvas as a centred, fixed-size card on a grey backdrop.
+function renderStaticHtml(node, opts = {}) {
   const styles = [...node.querySelectorAll('style')].map(s => s.textContent).join('\n');
   const clone = node.cloneNode(true);
   clone.querySelectorAll('style, script').forEach(el => el.remove());
+  // Full-page: give html/body a definite full-viewport height so a promoted root
+  // that sizes itself to height:100% (e.g. bag-video's .scene) resolves against the
+  // viewport instead of collapsing to zero (which rendered a blank white page);
+  // min-height keeps taller, flowing content able to extend the page.
+  const modeCss = opts.fullPage
+    ? `html, body { height: 100%; }\nbody { min-height: 100dvh; }`
+    : `body { display: flex; align-items: center; justify-content: center; min-height: 100dvh; background: #555; padding: 16px; }`;
+  const content = opts.fullPage ? clone.innerHTML : clone.outerHTML;
   const doc = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3860,12 +3873,13 @@ function renderStaticHtml(node) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 *, *::before, *::after { box-sizing: border-box; }
-body { margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100dvh; background: #555; padding: 16px; }
+html, body { margin: 0; }
+${modeCss}
 ${styles}
 </style>
 </head>
 <body>
-${clone.outerHTML}
+${content}
 </body>
 </html>`;
   return new Blob([doc], { type: 'text/html' });
