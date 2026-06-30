@@ -700,15 +700,20 @@ function gridFromFrame(frame, maxDetail) {
   return { lum: lum, alpha: alpha, r: r, g: g, b: b, cols: cols, rows: rows };
 }
 
-// Live trace resolution is driven by the Quality slider too (so the knob isn't inert in
-// "Go live" mode), but capped WELL below the still path's reach (up to 640) so the
-// marching-squares trace stays responsive frame-to-frame — motion over fidelity. This is
-// the heaviest of the live filters (real-time vector tracing); the runtime drops
-// overlapping frames so a high Quality just traces fewer fps rather than piling up.
-// Half the still-path detail, clamped to [LIVE_MIN, LIVE_MAX] (Quality 90→130 … 200→300,
-// default 95 ≈ 156, near the previous fixed 180).
-var LIVE_MIN = 130, LIVE_MAX = 300;
-function liveDetailFor(tp) { return clamp(Math.round(tp.detail * 0.5), LIVE_MIN, LIVE_MAX); }
+// Live trace resolution scales with BOTH the Quality slider (via tp.detail) and the band
+// count. Each separation is one marching-squares pass, so cost ≈ passes · cells: a 1-band
+// threshold / low colour-step trace has spare per-frame budget and can run at a far finer
+// grid than a 12-band one. factor ≈ 1.4/√passes (clamped 0.5…1) keeps the default 8-band
+// trace near the old ~180 while letting threshold reach the photo's full Quality detail.
+// This is the heaviest of the live filters (real-time vector tracing); the runtime drops
+// overlapping frames, so a high Quality on a dense trace just lowers fps — motion over
+// fidelity — rather than piling up. LIVE_MAX bounds the pathological (single-pass, max-Q)
+// end so one frame can't take seconds (onFrame is not time-boxed).
+var LIVE_MIN = 130, LIVE_MAX = 600;
+function liveDetailFor(tp, passes) {
+  var factor = clamp(1.4 / Math.sqrt(Math.max(1, passes)), 0.5, 1);
+  return clamp(Math.round(tp.detail * factor), LIVE_MIN, LIVE_MAX);
+}
 
 function onFrame(ctx) {
   var frame = ctx.frame;
@@ -731,9 +736,10 @@ function onFrame(ctx) {
   var H = clamp(Math.round(num(inputs.height, 1080)), 1, 8000);
 
   // Quality (+ smoothing) up front so it can size the live grid, not just the curve fit.
+  // Fewer bands → fewer trace passes → a finer grid fits the frame budget (esp. threshold).
   var tp = traceParams(inputs.quality, inputs.smoothing);
   var g;
-  try { g = gridFromFrame(frame, liveDetailFor(tp)); } catch (e) { return null; }
+  try { g = gridFromFrame(frame, liveDetailFor(tp, effSteps - 1)); } catch (e) { return null; }
 
   var gTone = (brightness || contrast) ? applyTone(g, toneLUT(brightness, contrast)) : g;
   // HSL: hue rotate / saturation / lightness on the toned grid. No-op at defaults
