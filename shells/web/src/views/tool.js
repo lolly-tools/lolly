@@ -198,31 +198,34 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     if (saved) initialValues = { ...saved, ...values };
   }
 
-  // "+ New tool" from the Projects view leaves a one-shot sessionStorage marker so the
-  // first FRESH session saved here files into the folder it launched from. Claim it ONLY
-  // on a fresh open (no resume `slot`) and clear it immediately — otherwise a diverted
-  // "open the gallery, resume an unrelated old session, save it" flow would capture the
-  // still-armed marker and misfile that session. Consumed in performSave below.
+  // "+ New tool" from the Projects view leaves a sessionStorage marker so the first
+  // FRESH session saved here files into the folder it launched from. Read it ONLY on a
+  // fresh open (no resume `slot`) — otherwise a diverted "open the gallery, resume an
+  // unrelated old session, save it" flow would capture it and misfile that session.
+  // We READ (not remove) the marker: a hash navigation can mount the tool twice (a
+  // browser fires popstate AND hashchange, which the router debounce can't fully
+  // collapse), and a consume-on-mount would let the first mount swallow the marker
+  // while the SECOND mount owns the live Save button. The marker is cleared instead
+  // when the user lands on any non-tool view (main.js navigate). Used in performSave.
   let fileIntoFolder = null;
   if (!slot) {
     try {
       const into = sessionStorage.getItem('lolly:fileInto');
-      if (into !== null) { sessionStorage.removeItem('lolly:fileInto'); fileIntoFolder = into || null; }
+      if (into !== null) fileIntoFolder = into || null;
     } catch (e) { /* sessionStorage unavailable (private mode) */ }
   }
 
-  // Where the Save button returns to when it leaves. The Projects view arms a one-shot
-  // marker (the folder it launched from, e.g. `/#/p/<folderId>`) so a tool opened or
-  // resumed from a folder saves and lands BACK in that folder; opening straight from the
-  // gallery leaves no marker, so we fall back to '/' (the gallery). Consumed once here on
-  // mount — claimed for resume AND fresh opens (a session resumed from a folder should
-  // return to that folder too). The explicit "Tools" back-link stays gallery-bound.
+  // Where the Save button returns to when it leaves. The Projects view arms a marker
+  // (the folder it launched from, e.g. `/#/p/<folderId>`) so a tool opened or resumed
+  // from a folder saves and lands BACK in that folder; opening straight from the gallery
+  // leaves no marker, so we fall back to '/' (the gallery). Read (not removed) here for
+  // the same double-mount reason as fileIntoFolder above; cleared on the next non-tool
+  // mount. The explicit "Tools" back-link stays gallery-bound by design.
   let returnTo = '/';
   try {
     const back = sessionStorage.getItem('lolly:returnTo');
-    if (back) { sessionStorage.removeItem('lolly:returnTo'); returnTo = back; }
+    if (back) returnTo = back;
   } catch (e) { /* sessionStorage unavailable (private mode) */ }
-  console.log('[MOUNT-DEBUG] mountTool', toolId, 'slot=', slot, 'returnTo=', returnTo, 'fileInto=', fileIntoFolder, 'urlParams=', JSON.stringify(urlParams), 'STACK=', new Error().stack?.split('\n').slice(1,6).join(' <<< '));
 
   // Populate inputs from user profile if they match profile field names
   const profile = await host.profile.get();
@@ -3582,7 +3585,6 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         } catch (e) { /* filing is best-effort */ }
         fileIntoFolder = null;
       }
-      console.log('[SAVE-DEBUG] saved; fileIntoFolder=', fileIntoFolder, 'returnTo=', returnTo);
       label.textContent = 'Saved';
       announce('Saved');
       return true;                              // leave the button as-is; the caller navigates away

@@ -36,6 +36,15 @@ async function navigate(host) {
   delete view._cleanup;
   const route = parseRoute();
 
+  // The Projects "+ New tool" / resume flow arms one-shot sessionStorage markers
+  // (lolly:fileInto, lolly:returnTo) that the tool view READS on mount (it can't
+  // remove them — a single hash navigation may mount the tool twice, and the second
+  // mount owns the live Save button). Clear them the moment we land on any NON-tool
+  // view so a marker can't leak into the next, unrelated tool a user opens.
+  if (route.name !== 'tool') {
+    try { sessionStorage.removeItem('lolly:fileInto'); sessionStorage.removeItem('lolly:returnTo'); } catch { /* private mode */ }
+  }
+
   document.querySelectorAll('.nav-btn[data-route]').forEach(btn => {
     btn.classList.toggle('nav-btn--active', btn.dataset.route === route.name);
   });
