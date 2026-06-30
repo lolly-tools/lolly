@@ -3,7 +3,7 @@
   "name": "Filter: Pixel Stretch",
   "description": "Freeze a photo at a threshold line and smear that column of pixels across the frame — set where it starts, how far it spreads, and which way it runs. Works live.",
   "a11yLabel": "Pixel-stretch smear of the chosen image",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -63,6 +63,53 @@
       "max": 100,
       "step": 1,
       "help": "How far the smear reaches from the threshold toward the edge. 0 leaves the photo untouched; 100 stretches all the way to the edge."
+    },
+    {
+      "id": "feather",
+      "label": "Feather",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "Softens the seam where the photo meets the smear, blending them over a band. 0 keeps a hard edge."
+    },
+    {
+      "id": "hue",
+      "label": "Hue",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -180,
+      "max": 180,
+      "step": 1,
+      "help": "Rotate every colour around the wheel."
+    },
+    {
+      "id": "saturation",
+      "label": "Saturation",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "help": "0 = greyscale · 100 = original · 200 = vivid."
+    },
+    {
+      "id": "lightness",
+      "label": "Lightness",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "help": "Lift toward white or sink toward black."
     },
     {
       "id": "imageFraming",

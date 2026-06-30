@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-30T01:18:11.506Z",
+  "generatedAt": "2026-06-30T13:43:40.502Z",
   "tools": [
     {
       "id": "color-block",
@@ -568,7 +568,7 @@
       "id": "filter-pixel-stretch",
       "name": "Filter: Pixel Stretch",
       "description": "Freeze a photo at a threshold line and smear that column of pixels across the frame — set where it starts, how far it spreads, and which way it runs. Works live.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "designer",
       "formats": [
