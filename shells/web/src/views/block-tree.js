@@ -18,8 +18,15 @@
  *
  * Keep `slugRef` in lockstep with the tool-side `slug()` (e.g. diagram-builder
  * hooks.js): same normalisation ⇒ the id a picker stores matches the id a hook
- * resolves. If they ever drift, the worst case is cosmetic (an indent or a
- * dropdown label looks off) — never data corruption, since the tool re-slugs.
+ * resolves.
+ *
+ * Durable references: a row's effective id can be POSITION-derived when it has no
+ * explicit key and no label (`node-${i}`) or order-dependent when labels collide
+ * (`lead-2`). Such a key would drift if the array is reordered, breaking any stored
+ * reference to that row. So whenever a reference is created (drag-reparent, or a
+ * dropdown pick), we MATERIALISE the target's current effective id onto its
+ * `keyField` (see freezeReferencedKeys / materializeRefTarget), so the reference is
+ * anchored to a durable, explicit id and survives later reorders.
  */
 
 /** Lowercase, collapse non-alphanumerics to single hyphens, trim hyphens. */
@@ -113,13 +120,18 @@ export function blockTreeOrder(rows, parentIdx) {
   return out;
 }
 
-/** Pre-order list of indices in the subtree rooted at `idx` (idx first). */
+/**
+ * Pre-order list of indices in the subtree rooted at `idx` (idx first).
+ * Cycle-safe (a `seen` guard) and range-safe, so malformed/cyclic parent data
+ * yields a finite, de-duplicated subtree rather than overflowing the stack.
+ */
 export function blockSubtree(idx, parentIdx) {
   const n = parentIdx.length;
+  if (idx < 0 || idx >= n) return [];
   const children = Array.from({ length: n }, () => []);
   parentIdx.forEach((p, i) => { if (p >= 0 && p < n) children[p].push(i); });
-  const out = [];
-  const walk = i => { out.push(i); children[i].forEach(walk); };
+  const out = [], seen = new Array(n).fill(false);
+  const walk = i => { if (seen[i]) return; seen[i] = true; out.push(i); children[i].forEach(walk); };
   walk(idx);
   return out;
 }
@@ -143,8 +155,13 @@ export function blockReparentMove(rows, fromIdx, targetIdx, intent, cfg) {
 
   const keys = deriveBlockKeys(rows, cfg);
   const parentIdx = blockParentIndex(rows, keys, cfg.parentField);
-  const D = blockTreeOrder(rows, parentIdx);            // [{idx, depth}] pre-order
 
+  // Refuse to drop a node into its own subtree (would orphan it). Use the
+  // cycle-safe descendant set, not the pre-order run — under malformed/cyclic
+  // input a real descendant can fall outside the contiguous run.
+  if (blockSubtree(fromIdx, parentIdx).includes(targetIdx)) return null;
+
+  const D = blockTreeOrder(rows, parentIdx);            // [{idx, depth}] pre-order
   const dpos = D.findIndex(e => e.idx === fromIdx);
   if (dpos < 0) return null;
   const dDepth = D[dpos].depth;
@@ -153,7 +170,6 @@ export function blockReparentMove(rows, fromIdx, targetIdx, intent, cfg) {
   let dEnd = dpos + 1;
   while (dEnd < D.length && D[dEnd].depth > dDepth) dEnd++;
   const run = D.slice(dpos, dEnd);
-  if (run.some(e => e.idx === targetIdx)) return null;  // into own subtree
 
   const restD = [...D.slice(0, dpos), ...D.slice(dEnd)];
   const tp = restD.findIndex(e => e.idx === targetIdx);
@@ -172,12 +188,48 @@ export function blockReparentMove(rows, fromIdx, targetIdx, intent, cfg) {
   }
 
   const newD = [...restD.slice(0, insertAt), ...run, ...restD.slice(insertAt)];
-  const out = newD.map(e => ({ ...rows[e.idx] }));
+  const order = newD.map(e => e.idx);
+  const out = order.map(i => ({ ...rows[i] }));
   // The dragged root is run[0], now sitting at position `insertAt` in `out`.
-  out[insertAt][cfg.parentField] = intent === 'inside'
-    ? keys[targetIdx]
-    : (rows[targetIdx]?.[cfg.parentField] ?? '');
+  const newParentOrig = intent === 'inside' ? targetIdx : parentIdx[targetIdx];
+  out[insertAt][cfg.parentField] = newParentOrig >= 0 ? keys[newParentOrig] : '';
+
+  // The reorder above can change a position-derived key. Anchor every row that is
+  // now referenced as a parent to its ORIGINAL effective id (which the references
+  // already hold) by writing it onto keyField — so the move can't silently orphan
+  // a card whose id was auto-derived. Leaf/unreferenced rows keep their blank id.
+  return freezeReferencedKeys(out, order, keys, cfg);
+}
+
+/**
+ * Write each referenced parent's original effective id onto its keyField, so the
+ * id is explicit and survives reordering. `out` is the reordered clone array,
+ * `order` maps out-position → original index, `origKeys` are the pre-move keys.
+ */
+function freezeReferencedKeys(out, order, origKeys, cfg) {
+  const referenced = new Set();
+  out.forEach(r => { const ref = slugRef(r?.[cfg.parentField]); if (ref) referenced.add(ref); });
+  order.forEach((origIdx, pos) => {
+    const key = origKeys[origIdx];
+    if (!referenced.has(key)) return;
+    if (slugRef(out[pos]?.[cfg.keyField]) !== key) out[pos] = { ...out[pos], [cfg.keyField]: key };
+  });
   return out;
+}
+
+/**
+ * Materialise a single reference target's effective id onto its keyField, so a
+ * dropdown-picked reference is anchored to a durable id. Returns a new rows array
+ * (or the same one if nothing to do). Used on the dropdown commit path, mirroring
+ * what blockReparentMove does for the drag path.
+ */
+export function materializeRefTarget(rows, refKey, cfg) {
+  if (!Array.isArray(rows) || !refKey) return rows;
+  const keys = deriveBlockKeys(rows, cfg);
+  const i = keys.indexOf(refKey);
+  if (i < 0) return rows;                                   // unknown ref — leave as-is
+  if (slugRef(rows[i]?.[cfg.keyField]) === refKey) return rows; // already explicit
+  return rows.map((r, j) => (j === i ? { ...r, [cfg.keyField]: refKey } : r));
 }
 
 /**
@@ -214,9 +266,10 @@ export function normalizeOptionsFrom(of) {
  */
 export function buildRefOptions({ of, ownerInputId, idx, getRows, ownerNestingCfg }) {
   const norm = normalizeOptionsFrom(of);
+  const rowsOf = (inId) => { const r = getRows(inId); return Array.isArray(r) ? r : []; };
   let selfSubtree = null;
   if (norm.excludeDescendants && ownerNestingCfg) {
-    const rows = getRows(ownerInputId);
+    const rows = rowsOf(ownerInputId);
     const keys = deriveBlockKeys(rows, ownerNestingCfg);
     const pIdx = blockParentIndex(rows, keys, ownerNestingCfg.parentField);
     selfSubtree = new Set(blockSubtree(idx, pIdx));
@@ -224,7 +277,7 @@ export function buildRefOptions({ of, ownerInputId, idx, getRows, ownerNestingCf
   const seen = new Set();
   const opts = [];
   for (const s of norm.sources) {
-    const rows = getRows(s.input);
+    const rows = rowsOf(s.input);
     const keys = deriveBlockKeys(rows, { keyField: s.value, labelField: s.label, prefix: s.prefix });
     rows.forEach((r, ri) => {
       const isOwner = s.input === ownerInputId;
