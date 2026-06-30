@@ -20,6 +20,7 @@ import { hiddenCategories, flagEnabled, PRO_FLAG } from '../feature-flags.js';
 import { syncCatalog } from '../catalog/sync.js';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.js';
 import { profileSignature, canPersonalize, regeneratePreviews } from '../personalize-previews.js';
+import { openFolderOverlay } from '../folder-overlay.js';
 
 // Section order for the filter pills. 'utility' is intentionally absent: the
 // on-device Offline Utilities pill always sorts last (see categoryRank()).
@@ -470,16 +471,30 @@ export async function mountGallery(viewEl, host) {
     searchDebounce = setTimeout(() => { query = searchInput.value.toLowerCase(); render(); }, 120);
   });
 
-  // Global saved-sessions drawer (all tools + batch sessions), opened from the
-  // history button beside the profile pill.
+  // Global saved-sessions overlay (folders over all tool + batch sessions),
+  // opened from the history button beside the profile pill. User images are
+  // loaded lazily so folders that also hold images render here too.
   const historyFab = viewEl.querySelector('.history-fab');
-  historyFab?.addEventListener('click', () => {
-    showSessionsDrawer(sortedSaved, sessionSizes, nameById, host, {
-      onDelete: (slot) => {
-        const i = sortedSaved.findIndex(s => s.slot === slot);
+  historyFab?.addEventListener('click', async () => {
+    const imageRefs = await host.assets._listUserAssets?.().catch(() => []) ?? [];
+    openFolderOverlay(host, {
+      context: 'gallery',
+      sessionEntries: sortedSaved,
+      imageRefs,
+      sessionSizes,
+      nameById,
+      showCreateFolder: true,
+      allowBatchExport: proEnabled,
+      onResume: (entry) => {
+        window.location.hash = isBatchSlot(entry.slot)
+          ? `#/pro?session=${encodeURIComponent(entry.slot)}`
+          : `#/tool/${entry.toolId}?slot=${encodeURIComponent(entry.slot)}`;
+      },
+      onDelete: (ref) => {
+        const i = sortedSaved.findIndex(s => s.slot === ref);
         if (i >= 0) sortedSaved.splice(i, 1);
         for (const arr of entriesByTool.values()) {
-          const j = arr.findIndex(s => s.slot === slot);
+          const j = arr.findIndex(s => s.slot === ref);
           if (j >= 0) { arr.splice(j, 1); break; }
         }
         const count = historyFab.querySelector('.history-fab-count');
@@ -727,47 +742,6 @@ function showHistoryDialog(tool, entries, sizes, host, { onDelete, onClose } = {
       const countEl = dialog.querySelector('.history-count');
       if (countEl) countEl.textContent = countText(left);
       if (left === 0) closeDialog(dialog);
-    });
-  });
-}
-
-// ── Global saved-sessions drawer (all tools + batch) ────────────────────────
-
-function showSessionsDrawer(entries, sizes, nameById, host, { onDelete } = {}) {
-  const dialog = document.createElement('dialog');
-  dialog.className = 'tool-meta-dialog tool-drawer';
-  dialog.setAttribute('aria-labelledby', 'drawer-title');
-  dialog.innerHTML = `
-    <div class="drawer-body">
-      <header class="drawer-head">
-        <h2 id="drawer-title">Saved sessions</h2>
-        <button type="button" class="gtile-iconbtn meta-dialog-close" aria-label="Close">&#x2715;</button>
-      </header>
-      <ul class="saved-list drawer-list">
-        ${entries.map(e => savedItem(e, sizes[e.slot], nameById.get(e.toolId) ?? '')).join('')}
-      </ul>
-      ${entries.length ? '' : '<p class="drawer-empty">No saved sessions yet.</p>'}
-    </div>`;
-  openDialog(dialog);
-
-  dialog.querySelectorAll('[data-resume], [data-batch]').forEach(el => {
-    el.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeDialog(dialog);
-      window.location.hash = el.hasAttribute('data-batch')
-        ? `#/pro?session=${encodeURIComponent(el.dataset.slot)}`
-        : `#/tool/${el.dataset.resume}?slot=${encodeURIComponent(el.dataset.slot)}`;
-    });
-  });
-  dialog.querySelectorAll('[data-delete]').forEach(el => {
-    el.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      await host.state.delete(el.dataset.delete);
-      el.closest('.saved-row')?.remove();
-      onDelete?.(el.dataset.delete);
-      if (!dialog.querySelector('.saved-row') && !dialog.querySelector('.drawer-empty')) {
-        dialog.querySelector('.drawer-list')?.insertAdjacentHTML('afterend', '<p class="drawer-empty">No saved sessions yet.</p>');
-      }
     });
   });
 }

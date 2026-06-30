@@ -1,0 +1,80 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+/*
+ * Styles for the mount-agnostic batch-progress shell (run-overlay.js).
+ *
+ * These mirror the .pro-quip / .pro-log / .pro-progress-* rules in pro.css, but
+ * live here too because the shell also renders in a floating toast launched from
+ * the gallery's folder overlay — a context where pro.css is NOT loaded. Importing
+ * this file from run-overlay.js guarantees the shell is styled wherever it runs.
+ * The duplicated rules are identical to pro.css, so the docked path is unaffected.
+ */
+
+/* Floating toast (folder/group export from the shared overlay). */
+.pro-toast {
+  position: fixed;
+  z-index: 100000;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  width: min(420px, 92vw);
+  max-height: 70vh;
+  overflow: auto;
+  padding: 1rem 1.1rem 1.1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  box-shadow: 0 10px 36px hsl(0 0% 0% / 0.28);
+}
+.pro-toast-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.pro-toast-close:hover { background: hsl(var(--muted)); }
+
+/* Minimal, self-contained button styling for the Cancel button inside the toast,
+   since pro.css's full .pro-btn may not be present in the gallery context. */
+.pro-toast .pro-btn {
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  border-radius: calc(var(--radius) * 0.4);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+.pro-toast .pro-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Progress shell (shared with the docked #pro-progress; see pro.css) ── */
+.pro-progress-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.6rem; }
+.pro-progress-msg { color: hsl(var(--muted-foreground)); font-size: 0.9rem; margin: 0; }
+
+.pro-quip {
+  text-align: center;
+  margin: 0.2rem 0 1rem;
+  line-height: 1.45;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+  animation: pro-quip-in 0.45s ease both;
+}
+.pro-quip span { display: block; }
+.pro-quip span:first-child { color: hsl(var(--foreground)); font-style: normal; }
+@keyframes pro-quip-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pro-quip { animation: none; } }
+
+.pro-log { list-style: none; margin: 0; padding: 0; font-size: 0.8rem; max-height: 16rem; overflow-y: auto; font-family: var(--font-mono, ui-monospace, monospace); }
+.pro-log li { padding: 0.15rem 0; }
+.pro-log-ok { color: hsl(var(--muted-foreground)); }
+.pro-log-err { color: hsl(var(--destructive)); }
+.pro-log-skip { color: hsl(var(--muted-foreground)); font-style: italic; }

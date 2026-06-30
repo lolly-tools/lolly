@@ -15,9 +15,19 @@ import { renderRowToBlob, getTool, isExportable } from './render-export.js';
 const FMT_EXT = { 'pdf-cmyk': 'pdf', jpeg: 'jpg', 'eps-cmyk': 'eps' };
 const extFor = (fmt) => FMT_EXT[fmt] ?? fmt;
 
-/** Ensure unique, filesystem-safe names within the zip. */
-function uniqueName(used, base, ext) {
-  const safe = base.replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '') || 'render';
+const sanitizeSeg = (s) => s.replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '');
+
+/**
+ * Ensure unique, filesystem-safe names within the zip. With `pathAware`, the
+ * base may carry `/` separators (a grouped/folder export wants nested zip
+ * directories) — each path segment is sanitized but the separators are kept, so
+ * fflate writes a real folder tree. Without it, slashes are flattened to `-`
+ * exactly as before, so ordinary grid runs are unchanged.
+ */
+function uniqueName(used, base, ext, pathAware = false) {
+  const safe = pathAware
+    ? (base.split('/').map(sanitizeSeg).filter(Boolean).join('/') || 'render')
+    : (base.replace(/[^\w.-]+/g, '-').replace(/^-+|-+$/g, '') || 'render');
   let name = `${safe}.${ext}`;
   let n = 2;
   while (used.has(name)) name = `${safe}-${n++}.${ext}`;
@@ -34,7 +44,7 @@ function uniqueName(used, base, ext) {
  * @param {()=>boolean} [opts.isCancelled]       cooperative cancel check
  * @returns {Promise<{files:Array<{name,blob}>, results:Array}>}
  */
-export async function runBatch(rows, host, { format, unit, dpi, onProgress, isCancelled } = {}) {
+export async function runBatch(rows, host, { format, unit, dpi, onProgress, isCancelled, pathAware = false } = {}) {
   const files = [];
   const results = [];
   const usedNames = new Set();
@@ -70,8 +80,14 @@ export async function runBatch(rows, host, { format, unit, dpi, onProgress, isCa
       const stem = row.filename?.trim()
         ? row.filename.trim().replace(/\.[a-z0-9]{1,5}$/i, '')
         : row.toolId;
-      const base = `${String(i + 1).padStart(seqWidth, '0')}-${stem}`;
-      const name = uniqueName(usedNames, base, extFor(fmt));
+      // The seq prefix goes on the basename only so files sort within their
+      // folder when the stem carries a nested path (e.g. "event/badges/badge").
+      const seq = String(i + 1).padStart(seqWidth, '0');
+      const slash = pathAware ? stem.lastIndexOf('/') : -1;
+      const base = slash >= 0
+        ? `${stem.slice(0, slash + 1)}${seq}-${stem.slice(slash + 1)}`
+        : `${seq}-${stem}`;
+      const name = uniqueName(usedNames, base, extFor(fmt), pathAware);
       files.push({ name, blob, ms, fmt }); // fmt distinguishes pdf-cmyk from pdf
       results.push({ index: i, row, ok: true, name, size: blob.size, ms });
       onProgress?.({ index: i, total, status: 'done', row, name });

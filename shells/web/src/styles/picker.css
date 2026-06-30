@@ -550,6 +550,22 @@
   font-weight: 500;
   letter-spacing: 0;
 }
+/* Folder grouping heading within "Your images" (browse-only; organized in the
+   gallery's folder overlay). */
+.asset-picker-folder-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+.asset-picker-folder-head::before {
+  content: "📁";
+  font-size: 12px;
+  opacity: 0.8;
+}
 
 /* Padding lives on the pick button, not here, so the button fills the whole
    card and its focus ring matches the card's width/height (not an inset box). */

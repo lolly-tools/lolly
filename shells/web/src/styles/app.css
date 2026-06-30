@@ -1286,6 +1286,120 @@ a.gtile-name:focus-visible::after {
 .drawer-list { flex: 1; overflow: auto; padding: 10px 12px; margin: 0; list-style: none; }
 .drawer-empty { padding: 40px 18px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }
 
+/* ─── Folder overlay (file-manager for saved sessions / images) ──────────── */
+/* A wider <dialog> than the meta modal; reuses .tool-meta-dialog chrome. */
+.folder-overlay { max-width: 760px; width: 94vw; }
+.folder-overlay-body { padding: 18px 20px 22px; position: relative; }
+.folder-overlay-loading { padding: 40px; text-align: center; color: hsl(var(--muted-foreground)); }
+.folder-overlay-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.folder-overlay-head h2 { margin: 0; font-size: 16px; }
+.folder-overlay-head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.folder-overlay-crumb { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.folder-crumb-icon svg { width: 18px; height: 18px; opacity: 0.6; }
+.folder-back {
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background));
+  color: hsl(var(--foreground)); border-radius: calc(var(--radius) / 1.5);
+  width: 28px; height: 28px; cursor: pointer; font-size: 15px; line-height: 1;
+}
+.folder-back:hover { background: hsl(var(--muted)); }
+.folder-overlay-empty { padding: 28px 12px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }
+
+.folder-grid {
+  display: grid; gap: 12px; margin: 0 0 14px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+.folder-grid--folders { margin-bottom: 18px; }
+
+.folder-tile {
+  position: relative; border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1); background: hsl(var(--card));
+  overflow: hidden; transition: border-color 0.12s, box-shadow 0.12s;
+}
+.folder-tile:hover { border-color: hsl(var(--primary) / 0.6); box-shadow: 0 3px 14px hsl(0 0% 0% / 0.08); }
+.tile-primary {
+  display: flex; flex-direction: column; width: 100%; padding: 0;
+  border: 0; background: none; color: inherit; cursor: pointer; text-align: left;
+}
+.tile-cover, .folder-mosaic {
+  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+  background: hsl(var(--muted)); border-bottom: 1px solid hsl(var(--border));
+}
+.tile-cover--batch, .tile-cover--empty {
+  display: flex; align-items: center; justify-content: center;
+  color: hsl(var(--muted-foreground));
+}
+.tile-cover--batch svg { width: 34px; height: 34px; opacity: 0.55; }
+.folder-mosaic {
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px;
+}
+.folder-cell { width: 100%; height: 100%; object-fit: cover; background: hsl(var(--muted)); }
+.folder-cell--batch, .folder-cell--empty {
+  display: flex; align-items: center; justify-content: center; color: hsl(var(--muted-foreground));
+}
+.folder-cell--batch svg { width: 20px; height: 20px; opacity: 0.5; }
+.tile-meta { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px 10px; min-width: 0; }
+.tile-title {
+  font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tile-sub { font-size: 11px; color: hsl(var(--muted-foreground)); }
+.tile-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.tile-badge {
+  font-size: 10px; font-weight: 600; line-height: 1; padding: 3px 5px;
+  border-radius: 999px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+}
+.tile-badge--type { background: hsl(var(--primary) / 0.14); color: hsl(var(--primary)); }
+.tile-badge--rows { background: hsl(var(--primary) / 0.1); color: hsl(var(--primary)); }
+
+.tile-menu-btn {
+  position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  border: 1px solid hsl(var(--border)); border-radius: 50%;
+  background: hsl(var(--background) / 0.85); color: hsl(var(--foreground));
+  cursor: pointer; opacity: 0; transition: opacity 0.12s, background 0.12s;
+}
+.folder-tile:hover .tile-menu-btn, .tile-menu-btn:focus-visible { opacity: 1; }
+.tile-menu-btn:hover { background: hsl(var(--muted)); }
+.tile-menu-btn svg { width: 15px; height: 15px; }
+
+/* Per-tile action popover (move / rename / delete). */
+.folder-menu {
+  position: absolute; z-index: 5; min-width: 180px; padding: 5px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card)); box-shadow: 0 8px 28px hsl(0 0% 0% / 0.22);
+  display: flex; flex-direction: column; gap: 1px;
+}
+.folder-menu-item {
+  display: block; width: 100%; text-align: left; padding: 7px 10px;
+  border: 0; background: none; color: hsl(var(--foreground)); cursor: pointer;
+  font-size: 12.5px; border-radius: calc(var(--radius) / 1.5);
+}
+.folder-menu-item:hover { background: hsl(var(--muted)); }
+.folder-menu-item--danger { color: hsl(var(--destructive, 0 70% 50%)); }
+.folder-menu-sep {
+  padding: 8px 10px 3px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: hsl(var(--muted-foreground));
+}
+
+/* Inline name prompt (create / rename), centered over the dialog. */
+.folder-ask {
+  position: absolute; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center;
+  background: hsl(0 0% 0% / 0.18); border-radius: inherit;
+}
+.folder-ask-card {
+  display: flex; flex-direction: column; gap: 10px; width: min(320px, 80%); padding: 16px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card)); box-shadow: 0 10px 30px hsl(0 0% 0% / 0.25);
+}
+.folder-ask-label { font-size: 13px; font-weight: 600; }
+.folder-ask-input {
+  padding: 8px 10px; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) / 1.5);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); font-size: 13px;
+}
+.folder-ask-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
 /* ─── Tool view layout ──────────────────────────────────────────────────── */
 
 .tool-layout {
