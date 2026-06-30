@@ -1,7 +1,7 @@
 /* global onInit, onInput, onFrame, beforeExport, host */
 
 /**
- * Filter: Posterise Bitmap — trace a photo into flat vector colour separations.
+ * Filter: Posterize Bitmap — trace a photo into flat vector colour separations.
  *
  * Reuses the logo-wall tracer wholesale (decode on an offscreen <canvas> →
  * marching-squares boundary → Douglas–Peucker simplify → corner-aware cubic
@@ -18,15 +18,19 @@
  * The whole pipeline needs a real browser <canvas>; in a headless shell (CLI/jsdom)
  * it degrades to a friendly placeholder rather than throwing — a browser effect.
  *
- * Demo image: unlike the sibling filters (filter-duotone/-halftone/-scanline),
- * which share the flat bag-video graphic, posterise splits LUMINANCE into bands
- * and fills each with its band's mean colour — so a tonally flat source (the
- * Geeko on a solid dark-green field) collapses to a muddy near-monochrome poster.
- * It needs a tonally rich, high-contrast PHOTO (cf. tool.json: "Headshots and
- * high-contrast photos trace best"), so it defaults to a catalog headshot instead.
+ * Demo image: shares the same default as the sibling filters (filter-duotone/
+ * -halftone/-scanline) — the bag-video render — so every filter opens on the same
+ * graphic. Note posterize splits LUMINANCE into bands and fills each with its
+ * band's mean colour, so a tonally flat source (the Geeko on a solid dark-green
+ * field) separates into fewer, closer tones than a photo would; high-contrast
+ * PHOTOS (cf. tool.json: "Headshots and high-contrast photos trace best") still
+ * give the richest separations.
  */
 
-var DEFAULT_IMAGE_ID = 'suse/headshots/andy-fitzsimon';
+// A Lolly tool URL (bag-video → PNG), resolved via host.compose.renderUrl — matches
+// the sibling filters so every filter opens on the same demo graphic. A plain
+// catalog id still works (resolveDefault branches on '://').
+var DEFAULT_IMAGE_ID = 'https://lolly.tools/tool/bag-video.png';
 var _defaultUrl = null;
 
 // Sampling grid is capped so a high quality on a big photo can't blow up tracing
@@ -259,11 +263,11 @@ function applyTone(g, lut) {
   return { lum: lum, alpha: g.alpha, r: r, g: gg, b: b, cols: g.cols, rows: g.rows };
 }
 
-// ── posterise: thresholds + per-band mean colour ──────────────────────────────
+// ── posterize: thresholds + per-band mean colour ──────────────────────────────
 
 // Split luminance into `steps` bands by HISTOGRAM QUANTILE (equal opaque-pixel
 // count per band), so tonal regions with more information get more separations —
-// faces posterise far better this way than with evenly-spaced cut-offs. Returns
+// faces posterize far better this way than with evenly-spaced cut-offs. Returns
 // the steps-1 interior thresholds (ascending). Falls back to even spacing if the
 // image is (near-)flat.
 function quantileThresholds(grid, steps) {
@@ -557,7 +561,7 @@ async function compute(model) {
   var hueDeg = clamp(num(inputs.hue, 0), -180, 180);
   var sat = clamp(num(inputs.saturation, 100), 0, 200) / 100;
   var light = clamp(num(inputs.lightness, 0), -100, 100) / 100;
-  // Threshold mode collapses the posterise to ONE ink over paper (2 tones) at a MANUAL
+  // Threshold mode collapses the posterize to ONE ink over paper (2 tones) at a MANUAL
   // cut instead of the auto quantile bands — so `steps` is overridden to 2, and the cut
   // level joins the tone signature so moving it reseeds swatches + busts caches like a
   // re-tone. `steps` is hidden in this mode (tool.json showIf) but kept for toggling back.
@@ -571,9 +575,9 @@ async function compute(model) {
   // Resolve the photo: the user's pick, else the shared demo image.
   var ref = inputs.photo;
   var url = (ref && ref.url) ? ref.url : await resolveDefault();
-  if (!url) return { posterSvg: placeholder('Pick a photo to posterise.') };
+  if (!url) return { posterSvg: placeholder('Pick a photo to posterize.') };
 
-  if (!canRaster()) return { posterSvg: placeholder('Posterise renders in the browser.') };
+  if (!canRaster()) return { posterSvg: placeholder('Posterize renders in the browser.') };
 
   // Keep only the active photo's decoded image + sample grids (Quality sweeps reuse
   // same-photo grids); drop every prior photo so a session of swaps can't accumulate
@@ -665,7 +669,7 @@ async function compute(model) {
   try { svg = buildPoster(url, img, W, H, grid, thr, paletteEff); }
   catch (e) {
     if (host.log) host.log('warn', 'filter-posterize: build failed', { error: String(e) });
-    svg = placeholder('Could not posterise this photo.');
+    svg = placeholder('Could not posterize this photo.');
   }
   _memoKey = memoKey; _memoResult = svg;
   patch.posterSvg = svg;

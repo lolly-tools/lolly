@@ -26,7 +26,7 @@ let _lastRouteName = null;
 // Announce client-side route changes (the view swaps via innerHTML, which
 // assistive tech wouldn't otherwise notice).
 function announceRoute(name) {
-  const labels = { gallery: 'Tools gallery', tool: 'Tool', profile: 'Profile', platform: 'Platform', capabilities: 'Capabilities', pro: 'Batch mode' };
+  const labels = { gallery: 'Tools gallery', tool: 'Tool', profile: 'Profile', platform: 'Platform', capabilities: 'Capabilities', pro: 'Batch mode', projects: 'Projects' };
   announce(`${labels[name] ?? 'Page'} loaded`);
 }
 
@@ -51,6 +51,7 @@ async function navigate(host) {
   view.classList.toggle('platform-view', route.name === 'platform');
   view.classList.toggle('capabilities-view', route.name === 'capabilities');
   view.classList.toggle('pro-view', route.name === 'pro');
+  view.classList.toggle('projects-view', route.name === 'projects');
   view.classList.toggle('is-returning', returning);
 
   // The platform/capabilities dashboards lean on SUSE Mono (hex/CMYK rows, code,
@@ -98,6 +99,19 @@ async function navigate(host) {
         for (const f of files) recordFormat(String(f.name).split('.').pop());
       };
       await mountPro(view, host, { sessionSlot, onBatchRendered, openFolderOverlay });
+      break;
+    }
+    // --- Projects: a gallery-style view of folders of saved sessions. Shares the
+    // pro-free folder store + folder-export (gated import); safe to keep even if /pro
+    // is removed. ---
+    case 'projects': {
+      const { mountProjects } = await import('./views/projects.js');
+      const onBatchRendered = (files) => {
+        recordBatch(files.length);
+        bumpMetric('filesRendered', files.length);
+        for (const f of files) recordFormat(String(f.name).split('.').pop());
+      };
+      await mountProjects(view, host, route.folderId, { onBatchRendered });
       break;
     }
     case 'gallery':
@@ -276,6 +290,7 @@ async function boot() {
     requestIdleCallback(() => {
       import('./views/platform.js').catch(() => {});
       import('./views/capabilities.js').catch(() => {});
+      import('./views/projects.js').catch(() => {});
     });
   }
 
@@ -317,6 +332,7 @@ function parseRoute() {
     if (parts[0] === 'platform') return { name: 'platform', params: query || '' };
     if (parts[0] === 'capabilities') return { name: 'capabilities', params: query || '' };
     if (parts[0] === 'pro') return { name: 'pro', params: query || '' }; // /pro batch mode
+    if (parts[0] === 'p') return { name: 'projects', folderId: parts[1] || null, params: query || '' };
     return { name: 'gallery' };
   }
 
@@ -330,6 +346,15 @@ function parseRoute() {
   // back to /t/<id>; this branch is what re-mounts on client-side popstate to it.
   if (pathParts.length === 2 && pathParts[0] === 't') {
     return { name: 'tool', toolId: pathParts[1], params: window.location.search.slice(1) };
+  }
+  // /p (Projects root) and /p/<folderId> deep links → redirect into the canonical
+  // hash form so all in-app projects navigation stays hash-based (folders are private
+  // profile data — no OG stub / first-class path needed, unlike /t/). Same redirect
+  // style as /pro|/platform|/capabilities. Must precede the length===1 tool-shortcut
+  // block so a bare /p isn't treated as a tool id.
+  if (pathParts[0] === 'p') {
+    window.location.replace(`/#/p${pathParts[1] ? '/' + pathParts[1] : ''}${window.location.search}`);
+    return { name: 'projects', folderId: pathParts[1] || null };
   }
   if (pathParts.length === 1) {
     // /pro, /platform and /capabilities are real routes; everything else is a tool shortcut.

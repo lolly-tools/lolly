@@ -93,6 +93,19 @@ export function createFolderStore(host) {
       });
     },
 
+    /**
+     * Reorder folders to match a list of ids (drag-to-reorder in the Projects view).
+     * Ids not present keep their relative order after the listed ones; unknown ids
+     * are ignored. Persists the new stored order.
+     */
+    async reorder(orderedIds) {
+      const rank = new Map(orderedIds.map((id, i) => [id, i]));
+      await mutate(folders => {
+        folders.sort((a, b) =>
+          (rank.has(a.id) ? rank.get(a.id) : Infinity) - (rank.has(b.id) ? rank.get(b.id) : Infinity));
+      });
+    },
+
     // ── Membership ───────────────────────────────────────────────────────────
 
     /** Add an item to a folder, removing it from any other folder first. */

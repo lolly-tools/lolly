@@ -1,7 +1,7 @@
 {
   "id": "multi-page-pdf",
   "name": "Multi-Page PDF",
-  "description": "Build a multi-page PDF document — a cover, content blocks that flow onto as many pages as needed, and a back page. Blocks sit in a column or span the full width.",
+  "description": "Build a multi-page PDF — a cover, flowing content blocks, and a back page.",
   "a11yLabel": "{{default coverTitle \"Untitled\"}} — multi-page PDF document",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",

@@ -198,6 +198,19 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     if (saved) initialValues = { ...saved, ...values };
   }
 
+  // "+ New tool" from the Projects view leaves a one-shot sessionStorage marker so the
+  // first FRESH session saved here files into the folder it launched from. Claim it ONLY
+  // on a fresh open (no resume `slot`) and clear it immediately — otherwise a diverted
+  // "open the gallery, resume an unrelated old session, save it" flow would capture the
+  // still-armed marker and misfile that session. Consumed in performSave below.
+  let fileIntoFolder = null;
+  if (!slot) {
+    try {
+      const into = sessionStorage.getItem('lolly:fileInto');
+      if (into !== null) { sessionStorage.removeItem('lolly:fileInto'); fileIntoFolder = into || null; }
+    } catch (e) { /* sessionStorage unavailable (private mode) */ }
+  }
+
   // Populate inputs from user profile if they match profile field names
   const profile = await host.profile.get();
   const profileInputIds = (tool.manifest.inputs ?? []).map(i => i.id);
@@ -3487,6 +3500,16 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         __export_bleed:    readBleed(el),
         __export_marks:    readMarks(el),
       }, thumb);
+      // File a freshly-created session into the folder the Projects "+ New tool" flow
+      // launched from (claimed at mount into fileIntoFolder — empty value = root/uncat
+      // = null = no filing). One-shot, best-effort, never blocks the save.
+      if (fileIntoFolder) {
+        try {
+          const { createFolderStore } = await import('../folders.js');
+          await createFolderStore(host).moveItem(slot, fileIntoFolder, 'session');
+        } catch (e) { /* filing is best-effort */ }
+        fileIntoFolder = null;
+      }
       label.textContent = 'Saved';
       announce('Saved');
       return true;                              // leave the button as-is; the caller navigates away

@@ -1,7 +1,7 @@
 {
   "id": "diagram-builder",
   "name": "Diagram Builder",
-  "description": "Build org charts, mind maps, layered \"layercake\" architecture, process flowcharts, timelines, cycles, pyramids/funnels, kanban boards, 2×2 matrices and Gantt roadmaps — from visual cards, a typed text description, ASCII art you draw, pasted Mermaid, or a CSV table. Clean export-safe output in the SUSE palette and type.",
+  "description": "Org charts, flowcharts, timelines and more — from cards, text, Mermaid or CSV.",
   "a11yLabel": "{{default title \"Untitled\"}} — {{diagramType}} diagram",
   "version": "1.4.0",
   "engineVersion": "^1.0.0",
@@ -68,6 +68,26 @@
         { "value": "table", "label": "Table / CSV (paste it)" }
       ]
     },
+
+    { "id": "theme", "label": "Theme", "type": "select", "default": "custom", "section": "Style", "help": "Seeds the colours below. Pick one, then override any individual colour.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "suse-light", "label": "SUSE light" }, { "value": "suse-dark", "label": "SUSE dark" }, { "value": "blueprint", "label": "Blueprint" }, { "value": "mono", "label": "Mono" }, { "value": "mint", "label": "Mint" } ] },
+    { "id": "nodeFill", "label": "Card fill", "type": "color", "default": "#ffffff", "section": "Style" },
+    { "id": "nodeStroke", "label": "Card border", "type": "color", "default": "#0c322c", "section": "Style" },
+    { "id": "cardBorderWidth", "label": "Card border width", "type": "number", "display": "slider", "min": 0, "max": 6, "step": 0.5, "default": 1.5, "section": "Style", "help": "0 = borderless cards." },
+    { "id": "nodeText", "label": "Card text", "type": "color", "default": "#0c322c", "section": "Style" },
+    { "id": "labelSize", "label": "Label size", "type": "number", "display": "slider", "min": 10, "max": 28, "step": 1, "default": 15, "section": "Style" },
+    { "id": "edgeColor", "label": "Connectors", "type": "color", "default": "#0c322c", "section": "Style", "help": "Colour of the automatic connectors / spines." },
+    { "id": "connectorWidth", "label": "Connector width", "type": "number", "display": "slider", "min": 0.3, "max": 6, "step": 0.1, "default": 1.6, "section": "Style" },
+    { "id": "background", "label": "Background", "type": "color", "default": "#ffffff", "section": "Style", "help": "Set to Transparent for a knock-out background." },
+    { "id": "gridBg", "label": "Background pattern", "type": "select", "default": "none", "section": "Style", "options": [ { "value": "none", "label": "None" }, { "value": "dots", "label": "Dots" }, { "value": "grid", "label": "Grid" } ] },
+
+    { "id": "density", "label": "Density", "type": "select", "default": "custom", "section": "Layout", "help": "Seeds the spacing + card scale below. Pick one, then nudge the sliders.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "compact", "label": "Compact" }, { "value": "cozy", "label": "Cozy" }, { "value": "comfortable", "label": "Comfortable" }, { "value": "spacious", "label": "Spacious" } ] },
+    { "id": "cardWidth", "label": "Card width", "type": "number", "display": "slider", "min": 120, "max": 320, "step": 4, "default": 196, "section": "Layout" },
+    { "id": "cardScale", "label": "Card scale", "type": "number", "display": "slider", "min": 0.6, "max": 1.6, "step": 0.05, "default": 1, "section": "Layout", "help": "Scales card size, padding and text together." },
+    { "id": "rowGap", "label": "Row / layer gap", "type": "number", "display": "slider", "min": 0, "max": 200, "step": 4, "default": 56, "section": "Layout", "help": "Spacing along the flow (levels, ranks, bands)." },
+    { "id": "siblingGap", "label": "Sibling gap", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 2, "default": 30, "section": "Layout", "help": "Spacing between neighbours within a level." },
+    { "id": "cornerRadius", "label": "Corner radius", "type": "number", "display": "slider", "min": 0, "max": 28, "step": 1, "default": 14, "section": "Layout", "help": "Roundness of “Rounded” cards (Box and Pill keep their shape)." },
+    { "id": "canvasPadding", "label": "Canvas padding", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 4, "default": 44, "section": "Layout", "help": "Whitespace around the diagram." },
+
     {
       "id": "title",
       "label": "Title",
@@ -323,25 +343,6 @@
       ],
       "default": []
     },
-
-    { "id": "density", "label": "Density", "type": "select", "default": "custom", "section": "Layout", "help": "Seeds the spacing + card scale below. Pick one, then nudge the sliders.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "compact", "label": "Compact" }, { "value": "cozy", "label": "Cozy" }, { "value": "comfortable", "label": "Comfortable" }, { "value": "spacious", "label": "Spacious" } ] },
-    { "id": "cardWidth", "label": "Card width", "type": "number", "display": "slider", "min": 120, "max": 320, "step": 4, "default": 196, "section": "Layout" },
-    { "id": "cardScale", "label": "Card scale", "type": "number", "display": "slider", "min": 0.6, "max": 1.6, "step": 0.05, "default": 1, "section": "Layout", "help": "Scales card size, padding and text together." },
-    { "id": "rowGap", "label": "Row / layer gap", "type": "number", "display": "slider", "min": 0, "max": 200, "step": 4, "default": 56, "section": "Layout", "help": "Spacing along the flow (levels, ranks, bands)." },
-    { "id": "siblingGap", "label": "Sibling gap", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 2, "default": 30, "section": "Layout", "help": "Spacing between neighbours within a level." },
-    { "id": "cornerRadius", "label": "Corner radius", "type": "number", "display": "slider", "min": 0, "max": 28, "step": 1, "default": 14, "section": "Layout", "help": "Roundness of “Rounded” cards (Box and Pill keep their shape)." },
-    { "id": "canvasPadding", "label": "Canvas padding", "type": "number", "display": "slider", "min": 0, "max": 160, "step": 4, "default": 44, "section": "Layout", "help": "Whitespace around the diagram." },
-
-    { "id": "theme", "label": "Theme", "type": "select", "default": "custom", "section": "Style", "help": "Seeds the colours below. Pick one, then override any individual colour.", "options": [ { "value": "custom", "label": "Custom" }, { "value": "suse-light", "label": "SUSE light" }, { "value": "suse-dark", "label": "SUSE dark" }, { "value": "blueprint", "label": "Blueprint" }, { "value": "mono", "label": "Mono" }, { "value": "mint", "label": "Mint" } ] },
-    { "id": "nodeFill", "label": "Card fill", "type": "color", "default": "#ffffff", "section": "Style" },
-    { "id": "nodeStroke", "label": "Card border", "type": "color", "default": "#0c322c", "section": "Style" },
-    { "id": "cardBorderWidth", "label": "Card border width", "type": "number", "display": "slider", "min": 0, "max": 6, "step": 0.5, "default": 1.5, "section": "Style", "help": "0 = borderless cards." },
-    { "id": "nodeText", "label": "Card text", "type": "color", "default": "#0c322c", "section": "Style" },
-    { "id": "labelSize", "label": "Label size", "type": "number", "display": "slider", "min": 10, "max": 28, "step": 1, "default": 15, "section": "Style" },
-    { "id": "edgeColor", "label": "Connectors", "type": "color", "default": "#0c322c", "section": "Style", "help": "Colour of the automatic connectors / spines." },
-    { "id": "connectorWidth", "label": "Connector width", "type": "number", "display": "slider", "min": 0.3, "max": 6, "step": 0.1, "default": 1.6, "section": "Style" },
-    { "id": "background", "label": "Background", "type": "color", "default": "#ffffff", "section": "Style", "help": "Set to Transparent for a knock-out background." },
-    { "id": "gridBg", "label": "Background pattern", "type": "select", "default": "none", "section": "Style", "options": [ { "value": "none", "label": "None" }, { "value": "dots", "label": "Dots" }, { "value": "grid", "label": "Grid" } ] },
 
     { "id": "arrowStyle", "label": "Arrow line", "type": "select", "default": "solid", "section": "Arrows", "help": "Default line style for arrows that don't set their own.", "options": [ { "value": "solid", "label": "Solid" }, { "value": "dashed", "label": "Dashed" }, { "value": "dotted", "label": "Dotted" } ] },
     { "id": "arrowHead", "label": "Arrowhead", "type": "select", "default": "triangle", "section": "Arrows", "help": "Default arrowhead for arrows that don't set their own.", "options": [ { "value": "triangle", "label": "Triangle" }, { "value": "open", "label": "Open" }, { "value": "diamond", "label": "Diamond" }, { "value": "circle", "label": "Circle" }, { "value": "bar", "label": "Bar" }, { "value": "double", "label": "Double-ended" }, { "value": "none", "label": "None" } ] },

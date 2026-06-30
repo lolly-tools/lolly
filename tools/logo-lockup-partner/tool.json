@@ -1,10 +1,10 @@
 {
   "id": "logo-lockup-partner",
   "name": "Logo Lockup: Partner",
-  "description": "A co-branding lockup: the SUSE logo beside a partner's, with a vertical bar (or symbol, or “in partnership with” text) between them. Light or dark, optically balanced so both marks read equally, with sponsor-tier presence per logo. Add more partners for a “lead + partners” row. Your images stay on your device.",
+  "description": "The SUSE logo beside a partner's, with a divider between — light or dark.",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
-  "status": "experimental",
+  "status": "official",
   "category": "designer",
   "tags": ["logo", "lockup", "partner", "co-brand", "brand", "suse", "partnership", "sponsor", "powered-by", "on-device"],
   "a11yLabel": "SUSE partner lockup with {{partners.length}} partner logos",

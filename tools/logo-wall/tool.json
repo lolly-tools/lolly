@@ -1,7 +1,7 @@
 {
   "id": "logo-wall",
   "name": "Logo Lockup: Grid (NASCAR)",
-  "description": "Drop in a pile of logos and arrange them into a clean, even grid — the classic sponsor / partner “NASCAR” wall. Balance them to equal optical weight, dial each one's presence up or down, fade or grayscale them, or flatten any logo to a single ink colour. Your images stay on your device.",
+  "description": "Arrange a pile of logos into a clean, even sponsor grid — the “NASCAR” wall.",
   "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "experimental",

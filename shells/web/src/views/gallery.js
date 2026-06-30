@@ -21,6 +21,7 @@ import { syncCatalog } from '../catalog/sync.js';
 import { privacyNoticeMarkup, mountPrivacyNotice } from './privacy-notice.js';
 import { profileSignature, canPersonalize, regeneratePreviews } from '../personalize-previews.js';
 import { openFolderOverlay } from '../folder-overlay.js';
+import { viewToggle } from '../components/view-toggle.js';
 
 // Section order for the filter pills. 'utility' is intentionally absent: the
 // on-device Offline Utilities pill always sorts last (see categoryRank()).
@@ -206,6 +207,7 @@ export async function mountGallery(viewEl, host) {
   viewEl.innerHTML = `
     <div class="gallery">
       <h1 class="visually-hidden">Lolly — tools gallery</h1>
+      <div class="view-toggle-wrap">${viewToggle('tools')}</div>
       <div class="gallery-topright">
         ${visibleCats.length ? `<button type="button" class="filter-fab" aria-label="Filter tools" aria-haspopup="true" aria-expanded="false" aria-controls="filter-popover" title="Filter">${FILTER_ICON}</button>` : ''}
         ${sortedSaved.length ? `<button type="button" class="history-fab" title="Saved sessions" aria-label="Saved sessions (${sortedSaved.length})">${HISTORY_ICON}<span class="history-fab-count" aria-hidden="true">${sortedSaved.length}</span></button>` : ''}

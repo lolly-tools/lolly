@@ -1,0 +1,140 @@
+{
+  "id": "web-icon",
+  "name": "Web Icon Maker",
+  "description": "Favicon and app-icon maker — a multi-size .ico, plus PNG and SVG.",
+  "a11yLabel": "Web icon labelled {{default text \"untitled\"}}",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "everyone",
+  "tags": ["favicon", "icon", "ico", "app icon", "web", "logo"],
+  "render": {
+    "width": 512,
+    "height": 512,
+    "formats": ["ico", "png", "svg"],
+    "actions": ["download", "copy", "save"],
+    "transparentBg": false,
+    "printMarks": false
+  },
+  "inputs": [
+    {
+      "id": "text",
+      "label": "Label",
+      "type": "text",
+      "default": "ICO",
+      "maxLength": 8,
+      "help": "Up to ~4 characters reads best in a browser tab. The label auto-sizes to fill the icon."
+    },
+    {
+      "id": "image",
+      "label": "Image",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "help": "Optional logo or glyph shown above the label. Leave empty for a text-only icon."
+    },
+    {
+      "id": "imageZoom",
+      "label": "Image zoom",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 25,
+      "max": 300,
+      "step": 5,
+      "help": "Scale the image. 100% fills the icon width; go higher to crop in tighter, lower to add a margin."
+    },
+    {
+      "id": "imageX",
+      "label": "Image X",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "help": "Nudge the image left or right."
+    },
+    {
+      "id": "imageY",
+      "label": "Image Y",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "help": "Nudge the image up or down."
+    },
+    {
+      "id": "background",
+      "label": "Background",
+      "type": "color",
+      "default": "#0c322c"
+    },
+    {
+      "id": "color",
+      "label": "Label color",
+      "type": "color",
+      "default": "#ffffff"
+    },
+    {
+      "id": "shape",
+      "label": "Shape",
+      "type": "select",
+      "default": "rounded",
+      "options": [
+        { "value": "rounded", "label": "Rounded" },
+        { "value": "circle", "label": "Circle" },
+        { "value": "square", "label": "Square" }
+      ]
+    },
+    {
+      "id": "weight",
+      "label": "Weight",
+      "type": "select",
+      "default": "800",
+      "options": [
+        { "value": "800", "label": "Extra bold" },
+        { "value": "700", "label": "Bold" },
+        { "value": "600", "label": "Semibold" }
+      ],
+      "help": "Heavier weights hold up better at tiny sizes. (SUSE Mono's heaviest face is Extra bold.)"
+    },
+    {
+      "id": "tracking",
+      "label": "Letter spacing",
+      "type": "number",
+      "display": "slider",
+      "default": -4,
+      "min": -40,
+      "max": 8,
+      "step": 1,
+      "help": "Negative values tuck the letters together — essential for fitting 3–4 monospace caps into a 16 px tile. Mono is wide, so push it well into the negatives."
+    },
+    {
+      "id": "labelScale",
+      "label": "Label size",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 50,
+      "max": 130,
+      "step": 5,
+      "help": "Nudge the auto-fitted label size up or down (percent)."
+    },
+    {
+      "id": "showGrid",
+      "label": "16 px preview",
+      "type": "boolean",
+      "default": true,
+      "group": "export",
+      "help": "Show the icon at its real 16 and 32 px favicon sizes on the canvas so you can judge legibility. An editor aid only — never included in exports."
+    }
+  ],
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  }
+}

@@ -1,0 +1,148 @@
+<style>
+/* SUSE Mono static heavy weights — favicon labels live or die on weight + spacing,
+   and a monospaced face keeps a 3–4 letter label evenly packed at 16 px. Mono's
+   heaviest static face is Extra-bold (800); there is no Black, so the weight
+   control tops out there. */
+@font-face { font-family: 'SUSE Mono'; src: url('/catalog/fonts/webfonts/SUSEMono-ExtraBold.woff2') format('woff2'); font-weight: 800; font-display: swap; }
+@font-face { font-family: 'SUSE Mono'; src: url('/catalog/fonts/webfonts/SUSEMono-Bold.woff2')      format('woff2'); font-weight: 700; font-display: swap; }
+@font-face { font-family: 'SUSE Mono'; src: url('/catalog/fonts/webfonts/SUSEMono-SemiBold.woff2')  format('woff2'); font-weight: 600; font-display: swap; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* The stage stays transparent so a rounded / circular icon exports with see-
+   through corners (no white box behind it in a browser tab). It's ALSO a size
+   container: the tile fills it and carries container-type itself, so without a
+   container on the stage the tile's OWN cqmin units (border-radius, padding)
+   would resolve against the viewport instead of the icon.
+   The design tokens (--fg / --tile-bg / --label-size / --tracking / --weight)
+   live here and cascade down, so the full-size tile and the little 16/32 px
+   preview clones below all read the same values. */
+.favx-stage {
+  width: 100%; height: 100%;
+  position: relative;
+  container-type: size;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent;
+  font-family: 'SUSE Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The icon tile fills the square canvas. container-type:size makes every cqmin
+   below scale with the tile, so the SAME design renders crisply whether it's
+   rasterised at 512 px or packed into the .ico at 16 px. */
+.favx-tile {
+  width: 100%; height: 100%;
+  container-type: size;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--tile-bg);
+  color: var(--fg);
+}
+.favx-tile.shape-rounded { border-radius: 20cqmin; }
+.favx-tile.shape-circle  { border-radius: 50%; }
+.favx-tile.shape-square  { border-radius: 0; }
+
+/* With an image: glyph fills the upper area, label pins to the lower edge.
+   No side padding — the image fills the tile width edge-to-edge (zoom out to add
+   margin); the label carries its own inset so text never touches the corners. */
+.favx-tile.has-art { justify-content: flex-start; padding: 8cqmin 0 0; }
+.favx-art {
+  flex: 1; min-height: 0; width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; /* clip the zoomed / panned image to its band */
+}
+/* Fill the width by default (height follows the aspect ratio); the zoom + X/Y
+   sliders feed a transform so the user can scale and reposition. Vars are set on
+   the stage so the 16/32 px previews inherit the exact same framing. */
+.favx-art img {
+  width: 100%;
+  height: auto;
+  display: block;
+  transform: translate(calc(var(--img-x, 0) * 1%), calc(var(--img-y, 0) * 1%))
+             scale(calc(var(--img-zoom, 100) / 100));
+  transform-origin: center center;
+}
+
+/* The label. Size + tracking are computed by the hook so any 1–4 char string
+   fills the tile without overflowing — see hooks.js. */
+.favx-label {
+  flex: none;
+  width: 100%;
+  text-align: center;
+  font-weight: var(--weight, 800);
+  font-size: calc(var(--label-size, 40) * 1cqmin);
+  letter-spacing: var(--tracking, -0.04em);
+  line-height: 0.9;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.favx-tile.has-art .favx-label { padding: 0 6cqmin 11cqmin; }
+
+/* ── 16 px preview ─────────────────────────────────────────────────────────
+   Editor-only aid: the same icon rendered at its real favicon sizes so you can
+   judge legibility before exporting. [data-export-hide] keeps it out of EVERY
+   export (the web export bridge detaches it for the render); never printed. */
+.favx-preview {
+  position: absolute;
+  left: 4cqmin; bottom: 4cqmin;
+  z-index: 5;
+  display: flex; align-items: flex-end; gap: 4cqmin;
+  padding: 3cqmin 4cqmin;
+  border-radius: 3cqmin;
+  background: rgba(250, 250, 250, 0.9);
+  box-shadow: 0 1cqmin 4cqmin rgba(0, 0, 0, 0.22);
+  pointer-events: none;
+}
+.favx-chip { display: flex; flex-direction: column; align-items: center; gap: 1.4cqmin; }
+/* The chip is its OWN size container so the cloned tile's cqmin (border-radius,
+   padding, label size) resolve against 16/32 px — NOT the 512 px stage. */
+.favx-chip-box {
+  display: block;
+  width: var(--px); height: var(--px);
+  container-type: size;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.22);
+}
+.favx-chip figcaption {
+  font: 700 2.4cqmin/1 ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: 0.02em;
+  color: #444;
+}
+</style>
+
+<div class="favx-stage"
+     style="--fg:{{color}}; --tile-bg:{{default tileBg background}}; --label-size:{{default labelSize 40}}; --tracking:{{default trackingEm "-0.04"}}em; --weight:{{default weight 800}}; --img-zoom:{{default imageZoom 100}}; --img-x:{{default imageX 0}}; --img-y:{{default imageY 0}};">
+  <div class="favx-tile shape-{{default shape "rounded"}} {{#if image}}has-art{{/if}}">
+    {{#if image}}
+    <div class="favx-art"><img src="{{asset image}}" alt=""></div>
+    {{/if}}
+    {{#if text}}<div class="favx-label">{{text}}</div>{{/if}}
+  </div>
+
+  {{#if showGrid}}
+  <div class="favx-preview" data-export-hide aria-hidden="true">
+    <div class="favx-chip" style="--px:16px">
+      <div class="favx-chip-box">
+        <div class="favx-tile shape-{{default shape "rounded"}} {{#if image}}has-art{{/if}}">
+          {{#if image}}<div class="favx-art"><img src="{{asset image}}" alt=""></div>{{/if}}
+          {{#if text}}<div class="favx-label">{{text}}</div>{{/if}}
+        </div>
+      </div>
+      <figcaption>16</figcaption>
+    </div>
+    <div class="favx-chip" style="--px:32px">
+      <div class="favx-chip-box">
+        <div class="favx-tile shape-{{default shape "rounded"}} {{#if image}}has-art{{/if}}">
+          {{#if image}}<div class="favx-art"><img src="{{asset image}}" alt=""></div>{{/if}}
+          {{#if text}}<div class="favx-label">{{text}}</div>{{/if}}
+        </div>
+      </div>
+      <figcaption>32</figcaption>
+    </div>
+  </div>
+  {{/if}}
+</div>

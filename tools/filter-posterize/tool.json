@@ -1,13 +1,13 @@
 {
   "id": "filter-posterize",
-  "name": "Filter: Posterise Bitmap",
-  "description": "Trace any photo into flat vector colour separations — a screenprint-style poster. Colours are auto-sampled from the image, then editable per tone. True vector in SVG and PDF. Your photo stays on your device.",
+  "name": "Filter: Posterize Bitmap",
+  "description": "Trace any photo into flat, screenprint-style vector colour separations.",
   "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "designer",
   "tags": ["photo", "filter", "posterize", "posterise", "vector", "trace", "screenprint", "separations", "halftone", "portrait", "headshot", "on-device"],
-  "a11yLabel": "{{steps}}-colour posterised vector of the photo",
+  "a11yLabel": "{{steps}}-colour posterized vector of the photo",
   "render": {
     "width": 1080,
     "height": 1080,
@@ -29,7 +29,7 @@
       "type": "asset",
       "assetType": "raster",
       "allowUpload": true,
-      "help": "The image to posterise. Headshots and high-contrast photos trace best."
+      "help": "The image to posterize. Headshots and high-contrast photos trace best."
     },
     {
       "id": "steps",
