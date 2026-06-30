@@ -90,6 +90,11 @@ const SECTIONS = [
         { name: 'Zoom & pan', desc: 'Cmd/Ctrl-scroll or pinch to zoom; <code>Space</code>-drag or middle-drag to pan; <code>0</code> fit, <code>1</code> = 100%.' },
         { name: 'System dark mode', desc: 'Tools that support it adapt their canvas to your device’s light/dark preference.' },
       ] },
+      { icon: I('<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>'), title: 'Live camera', features: [
+        { name: 'Motion-reactive filters', desc: 'Hit “Go live” on a photo filter — halftone, scanline, posterise or duotone — and it tracks your webcam in real time, so the effect responds to movement.' },
+        { name: 'Stays on your device', desc: 'Frames are read and processed locally and never leave the device; the camera is released the moment you stop or leave the tool.' },
+        { name: 'Or just a snapshot', desc: '“Take a photo” in any image picker grabs a single frame as an on-device image — no upload, no camera roll.' },
+      ] },
       { icon: ICONS.mobile, title: 'On a phone', features: [
         { name: 'Controls sheet', desc: 'The inputs become a sheet with a drag grip that snaps to peek / half / full; the preview stays visible while you edit.' },
         { name: 'Render sheet', desc: 'A floating Render button opens every format, size, copy, save and share control — sized for touch.' },

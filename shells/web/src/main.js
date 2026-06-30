@@ -303,6 +303,14 @@ function parseRoute() {
   }
 
   const pathParts = window.location.pathname.split('/').filter(Boolean);
+  // A shared tool link uses the crawler-visible path form /t/<id> (served in
+  // production as a static OG stub that redirects here itself). This covers a human
+  // who reaches /t/<id> without that stub — dev, or an SPA fall-through — by
+  // re-entering the hash route with any shared params intact.
+  if (pathParts.length === 2 && pathParts[0] === 't') {
+    window.location.replace(`/#/tool/${pathParts[1]}${window.location.search}`);
+    return { name: 'gallery' };
+  }
   if (pathParts.length === 1) {
     // /pro, /platform and /capabilities are real routes; everything else is a tool shortcut.
     if (pathParts[0] === 'pro') { window.location.replace('/#/pro'); return { name: 'pro' }; }

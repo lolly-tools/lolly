@@ -101,7 +101,8 @@ lolly/
 │   │       │   ├── assets.js     # host.assets — catalog + user uploads
 │   │       │   ├── clipboard.js  # host.clipboard
 │   │       │   ├── export.js     # host.export — rasterise/serialize
-│   │       │   └── net.js        # host.net — allowlisted fetch
+│   │       │   ├── net.js        # host.net — allowlisted fetch
+│   │       │   └── media.js      # host.media — live camera frames (onFrame)
 │   │       ├── catalog/
 │   │       │   └── sync.js       # boot-time catalog sync + offline cache
 │   │       ├── styles/           # app-wide CSS (app.css, picker.css, tokens.css)
@@ -222,7 +223,7 @@ A tool is a manifest (`tool.json`) + a template (`template.html`) + optional `ho
 
 **The manifest declares inputs.** Not the template. Inputs are not inferred from Handlebars tokens. The manifest is the contract; the template consumes named variables by `{{id}}`.
 
-**Hooks are optional.** Most tools are pure declarative — manifest + template is enough. Tools needing computed values (QR encoding, chart data shaping) provide `hooks.js` exposing named lifecycle functions (`onInit`, `onInput`, `beforeRender`, `beforeExport`, `afterExport`, and `exportFile` — the file-in/file-out transform path used by on-device utilities like Strip Hidden Data). The host loads hooks in a sandboxed `Function()` scope with only the capability bridge in reach — no `window`, no `fetch`, no globals.
+**Hooks are optional.** Most tools are pure declarative — manifest + template is enough. Tools needing computed values (QR encoding, chart data shaping) provide `hooks.js` exposing named lifecycle functions (`onInit`, `onInput`, `onFrame` — the per-frame live-camera hook for motion-reactive tools — `beforeRender`, `beforeExport`, `afterExport`, and `exportFile` — the file-in/file-out transform path used by on-device utilities like Strip Hidden Data). The host loads hooks in a sandboxed `Function()` scope with only the capability bridge in reach — no `window`, no `fetch`, no globals.
 
 This matters because: declarative tools can be authored by non-developers. If every tool were a web app, the risk note "limited skills to create/maintain workhorse templates" becomes a permanent bottleneck.
 

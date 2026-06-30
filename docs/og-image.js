@@ -34,14 +34,36 @@ const TITLE_MAXW = OG_W - COL_X - 64;         // keep a right margin
 const TITLE_SIZE = 54;                        // matches the original tagline weighting
 const TITLE_MIN  = 34;                        // floor for very long titles
 
+// A tool card (createOgRenderer's render(title, { iconSvg })) draws the tool's own
+// icon to the left of the title, then starts the title past it. /info cards pass no
+// icon and keep the full-width title — so their output is unchanged.
+const ICON_SIZE = 104;
+const ICON_GAP  = 28;
+const ICON_X    = COL_X;
+const ICON_Y    = Math.round(BAND.y + (BAND.h - ICON_SIZE) / 2);   // vertically centred in the band
+
 const xmlEsc = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // Rough text width (no shaping at build time) → shrink only when a long title would
 // overrun the right margin. SUSE Medium averages ~0.54em advance across mixed text.
-function fitTitle(title) {
+function fitTitle(title, maxW = TITLE_MAXW) {
   const est = title.length * 0.54 * TITLE_SIZE;
-  return est <= TITLE_MAXW ? TITLE_SIZE : Math.max(TITLE_MIN, Math.floor(TITLE_SIZE * TITLE_MAXW / est));
+  return est <= maxW ? TITLE_SIZE : Math.max(TITLE_MIN, Math.floor(TITLE_SIZE * maxW / est));
+}
+
+// Position the catalog's inlined icon SVG (lucide-style: 24×24 viewBox,
+// stroke="currentColor") as a nested <svg> viewport on the card. resvg has no
+// colour context for currentColor, so bind it to an explicit colour first. Some
+// icons also set width/height on the root <svg>; strip those on the opening tag
+// only (inner <rect width=…> stays) so they don't collide with the ones we inject
+// — a duplicate attribute is invalid SVG and resvg rejects the whole card.
+function placeIcon(iconSvg, color) {
+  return iconSvg
+    .replace(/currentColor/g, color)
+    .replace(/^<svg\b[^>]*>/, (tag) => tag
+      .replace(/\s(?:width|height)\s*=\s*"[^"]*"/g, '')
+      .replace(/^<svg\b/, `<svg x="${ICON_X}" y="${ICON_Y}" width="${ICON_SIZE}" height="${ICON_SIZE}"`));
 }
 
 /**
@@ -51,26 +73,29 @@ function fitTitle(title) {
  * "keep og.png" rather than crashing the whole site build). Throws if the brand
  * assets are missing.
  */
-function createOgRenderer(Resvg, repoRoot) {
+export function createOgRenderer(Resvg, repoRoot) {
   const ogBase = readFileSync(resolve(repoRoot, 'shells/web/public/og.png')).toString('base64');
   const font   = readFileSync(resolve(repoRoot, 'catalog/fonts/ttf/SUSE-Medium.ttf'));
 
-  const svgFor = (title) => {
-    const size = fitTitle(title);
+  const svgFor = (title, opts = {}) => {
+    const hasIcon = !!opts.iconSvg;
+    const titleX  = hasIcon ? COL_X + ICON_SIZE + ICON_GAP : COL_X;
+    const size    = fitTitle(title, OG_W - titleX - 64);
     // Centre the single line in the repainted band (cap height ≈ 0.7em).
     const baseline = Math.round(BAND.y + BAND.h / 2 + size * 0.35);
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${OG_W}" height="${OG_H}" viewBox="0 0 ${OG_W} ${OG_H}">`
       + `<image x="0" y="0" width="${OG_W}" height="${OG_H}" href="data:image/png;base64,${ogBase}"/>`
       + `<rect x="${BAND.x}" y="${BAND.y}" width="${BAND.w}" height="${BAND.h}" fill="${FIELD}"/>`
-      + `<text x="${COL_X}" y="${baseline}" font-family="SUSE" font-weight="500" font-size="${size}"`
+      + (hasIcon ? placeIcon(opts.iconSvg, SUBTLE) : '')
+      + `<text x="${titleX}" y="${baseline}" font-family="SUSE" font-weight="500" font-size="${size}"`
       + ` fill="${SUBTLE}">${xmlEsc(title)}</text>`
       + `</svg>`;
   };
 
   return {
-    /** Render one page's card to PNG bytes. */
-    render(title) {
-      const resvg = new Resvg(svgFor(title), {
+    /** Render one card to PNG bytes. Pass { iconSvg } to draw a tool icon. */
+    render(title, opts) {
+      const resvg = new Resvg(svgFor(title, opts), {
         font: { fontBuffers: [font], defaultFontFamily: 'SUSE', loadSystemFonts: false },
         background: FIELD,
       });
