@@ -281,7 +281,8 @@ footer{text-align:right;}
 .app-view.gallery-view.has-privacy-notice { padding-bottom: calc(8.5rem + env(safe-area-inset-bottom)); }
 
 /* Subtle translucent-black wash so the cards read as raised on every theme. */
-.gallery-view { background-color: #0001; }
+/* Subtle page tint shared by the tools gallery and the Projects view. */
+.gallery-view, .projects-view { background-color: #0001; }
 
 
 @media (min-width:756px) {
@@ -728,7 +729,7 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
    session preview at its natural aspect — portrait shows in full, no crop) ── */
 
 /* The masonry gallery is a single full-width column, not the old saved/grid split. */
-.gallery-view.has-masonry { display: block; background-color: #0001; }
+.gallery-view.has-masonry { display: block; }
 @media (min-width: 756px) {
   .gallery-view.has-masonry { display: block; grid-template-columns: none; }
 }
