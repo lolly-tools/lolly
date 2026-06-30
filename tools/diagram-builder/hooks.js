@@ -445,7 +445,9 @@ function layoutLayercake(nodes, rawLayers, S) {
   var layers = [], layerById = {};
   rawLayers.forEach(function (b, i) {
     if (!b) return;
-    var id = slug(b.layerId) || ('layer-' + (i + 1));
+    // slug(layerId) || slug(label) || ordinal — mirrors the shell reference picker
+    // (deriveBlockKeys) so a band's id matches whatever a card's Group dropdown stored.
+    var id = slug(b.layerId) || slug(b.label) || ('layer-' + (i + 1));
     if (layerById[id] !== undefined) return;
     var L = { idx: i, id: id, label: trim(b.label) || id, bandFill: color(b.bandFill, FOG), _cards: [] };
     layerById[id] = L; layers.push(L);

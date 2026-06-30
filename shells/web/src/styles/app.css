@@ -1741,6 +1741,97 @@ a.gtile-name:focus-visible::after {
   min-width: 0; /* shrink below content (grid/flex item) so children can truncate */
 }
 
+/* ─── Sidebar focus, navigation & on-demand help ──────────────────────────────
+   Make a long sidebar guide the eye. Web-shell presentation only — none of this
+   touches the engine, the render path, or the CLI/headless export.
+     · clicking the canvas glides the matching row into view (scrollToControl, tool.js)
+     · focus spotlights the active control and dims the rest (pure :focus-within)
+     · per-input help collapses behind an info button (components/help-tip.js)
+   Costs nothing at render/paint time: the dim is CSS state toggled by focus, not
+   recomputed per frame, and stays off the live-camera onFrame path entirely. */
+
+/* Land a canvas-targeted row just clear of the sidebar's top edge (block:'start'). */
+.input-row, .block-item { scroll-margin-block: 16px; }
+
+/* One-shot "you are here" ping on arrival. Inset box-shadow so the sidebar's
+   clipped right edge can't crop it and the row's own background is undisturbed;
+   the global reduce-motion reset zeroes the animation, and tool.js clears
+   .is-target on a timer regardless of whether animationend fires. */
+@keyframes spotlight-pulse {
+  from { box-shadow: inset 0 0 0 100px hsl(var(--ring) / 0.15); }
+  to   { box-shadow: inset 0 0 0 100px hsl(var(--ring) / 0); }
+}
+.input-row.is-target, .block-item.is-target { animation: spotlight-pulse 0.7s ease; }
+
+/* Focus spotlight — when the panel holds focus, anything not containing it recedes
+   so the active control reads as the single target. Pure :focus-within: no JS
+   state, survives the per-keystroke innerHTML rebuild (focus is restored after it),
+   and releases the instant focus leaves the panel. Opacity only, so dimmed controls
+   stay keyboard- and screen-reader-reachable. The selectors deliberately never dim
+   two nested elements at once (which would multiply opacities and over-darken): a
+   non-focused section dims as a whole; its rows are not dimmed again. */
+.input-row, .input-section, .block-item, .block-control { transition: opacity 0.15s ease; }
+.tool-inputs:focus-within > .input-row:not(:focus-within),
+.tool-inputs:focus-within .input-section:not(:focus-within) { opacity: 0.45; }
+.input-section:focus-within .input-row:not(:focus-within) { opacity: 0.45; }
+.blocks-list:focus-within .block-item:not(:focus-within) { opacity: 0.45; }
+.block-fields:focus-within .block-control:not(:focus-within) { opacity: 0.6; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The global reset covers animations + scroll-behavior but not transitions. */
+  .input-row, .input-section, .block-item, .block-control { transition: none; }
+}
+
+/* On-demand help: a small info button by the label reveals the help text on hover
+   (desktop), tap (touch), or keyboard focus, instead of printing it under every
+   control. The text stays in the DOM, wired to its control via aria-describedby. */
+.input-label-text { display: inline; }
+.help-tip-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: middle; margin-left: 4px;
+  width: 16px; height: 16px; padding: 0;
+  border: none; border-radius: 50%; background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: help;
+  opacity: 0.55; transition: opacity 0.12s ease, color 0.12s ease;
+}
+.help-tip-btn:hover, .help-tip-btn:focus-visible { opacity: 1; color: var(--primary); }
+.help-tip-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: 50%; }
+/* The focus ring sits a few px outside the 16px button. The floating-label rule
+   clips .input-label (overflow:hidden, for long-label ellipsis), which would crop
+   that ring top/bottom — so un-clip the label when it hosts a help button and move
+   the truncation onto the text span, which keeps long labels ellipsised. */
+.input-label:has(.help-tip-btn) { overflow: visible; }
+.input-label:has(.help-tip-btn) > .input-label-text {
+  display: inline-block; max-width: 100%; vertical-align: middle;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.help-tip-btn svg { display: block; }
+.block-control { position: relative; }
+.help-tip-pop {
+  position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; z-index: 30;
+  padding: 7px 9px; border-radius: var(--radius);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 22px hsl(var(--foreground) / 0.16);
+  font-size: 11px; font-weight: 400; line-height: 1.4;
+  letter-spacing: 0; text-transform: none; white-space: normal;
+}
+/* Block sub-field cells are narrow — let their tip take its own width. */
+.block-control > .help-tip-pop { right: auto; width: max-content; min-width: 140px; max-width: 210px; }
+.help-tip-pop[hidden] { display: none; }
+/* Sections clip their contents (overflow:hidden, for rounded corners). Un-clip only
+   while a help tip in them is active so the popover isn't cut off at the section edge. */
+.input-section:has(.help-tip-btn:hover),
+.input-section:has(.help-tip-btn:focus-visible),
+.input-section:has(.help-tip-pop:not([hidden])) { overflow: visible; }
+/* Desktop reveal on hover / keyboard focus of the trigger. Touch toggles via JS. */
+@media (hover: hover) {
+  .input-row:has(.help-tip-btn:hover) > .help-tip-pop,
+  .input-row:has(.help-tip-btn:focus-visible) > .help-tip-pop,
+  .block-control:has(.help-tip-btn:hover) > .help-tip-pop,
+  .block-control:has(.help-tip-btn:focus-visible) > .help-tip-pop { display: block; }
+}
+
 /* Base label — used for selects, checkboxes, asset-pickers, etc. */
 .input-label {
   font-size: 11px;

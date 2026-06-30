@@ -24,7 +24,7 @@ import { createThemeToggle } from '../components/theme-toggle.js';
 import { canSkipInputsRebuild } from './inputs-sync.js';
 import {
   nestingActive, nestingConfig, deriveBlockKeys, blockParentIndex,
-  blockTreeOrder, blockReparentMove, buildRefOptions,
+  blockTreeOrder, blockReparentMove, buildRefOptions, materializeRefTarget,
 } from './block-tree.js';
 import { exportSizeDriver, aspectWarning } from './export-size.js';
 import { bumpMetric, recordFormat } from '../metrics.js';
@@ -2406,12 +2406,13 @@ function renderInputs(el, model, runtime, host, onDirty) {
     [...el.querySelectorAll('.input-section[open] .input-section-summary')].map(s => s.textContent)
   );
 
-  // Folded blocks carry no model value, so capture which are collapsed (keyed by
-  // blocks-input id + index) and re-apply once the panel HTML is regenerated.
+  // Folded blocks carry no model value, so capture which are collapsed and re-apply
+  // once the panel HTML is regenerated. Tree blocks key by their stable derived id
+  // (data-block-key) so fold state follows a card across a drag-reparent reorder;
+  // others key by array index as before.
+  const foldKey = b => `${b.closest('.blocks-input')?.dataset.inputId}:${b.dataset.blockKey || b.dataset.blockIndex}`;
   const collapsedBlocks = new Set(
-    [...el.querySelectorAll('.block-item.is-collapsed')].map(
-      b => `${b.closest('.blocks-input')?.dataset.inputId}:${b.dataset.blockIndex}`
-    )
+    [...el.querySelectorAll('.block-item.is-collapsed')].map(foldKey)
   );
 
   const parts = [];
@@ -2447,8 +2448,7 @@ function renderInputs(el, model, runtime, host, onDirty) {
     el.querySelectorAll('.block-item.is-typed').forEach(collapseBlock);
   } else if (collapsedBlocks.size) {
     el.querySelectorAll('.block-item.is-typed').forEach(item => {
-      const inputId = item.closest('.blocks-input')?.dataset.inputId;
-      if (collapsedBlocks.has(`${inputId}:${item.dataset.blockIndex}`)) collapseBlock(item);
+      if (collapsedBlocks.has(foldKey(item))) collapseBlock(item);
     });
   }
 
@@ -2664,9 +2664,17 @@ function renderInputs(el, model, runtime, host, onDirty) {
       const blockId = parts[0], idx = parseInt(parts[1], 10), fieldId = parts[2];
       const inp = panelModel.find(i => i.id === blockId);
       if (!inp) return;
-      const arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));
+      let arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));
       if (!arr[idx]) arr[idx] = {};
-      arr[idx][fieldId] = field.type === 'checkbox' ? field.checked : field.value;
+      const value = field.type === 'checkbox' ? field.checked : field.value;
+      arr[idx][fieldId] = value;
+      // Picking a parent from a reference dropdown anchors the target to a durable
+      // id, so the link can't drift if rows are later reordered/added (same as the
+      // drag-reparent path). Only for a same-input tree parent ref.
+      const fdef = (inp.fields ?? []).find(f => f.id === fieldId);
+      if (value && fdef?.optionsFrom && inp.nesting && fieldId === nestingConfig(inp).parentField) {
+        arr = materializeRefTarget(arr, String(value), nestingConfig(inp));
+      }
       runtime.setInput(blockId, arr);
       onDirty?.(blockId);
     });
@@ -2902,6 +2910,7 @@ function renderInputs(el, model, runtime, host, onDirty) {
     head.addEventListener('dragend', () => {
       item.classList.remove('is-dragging');
       clearDropMarks();
+      _blockDrag = null;   // clear even on a cancelled drag (no drop fired) so it can't go stale
       // A real drag suppresses the trailing click, but flag it anyway so a drag that
       // the browser rounds to a click can't also expand the pill (see head click below).
       head._dragJustHappened = true;
@@ -3336,7 +3345,7 @@ function controlHtml(input, modelValues = {}) {
       const nesting = nestingActive(input, modelValues);
       const nestCfg = nesting ? nestingConfig(input) : null;
 
-      const itemHtml = (item, idx, depth = 0) => {
+      const itemHtml = (item, idx, depth = 0, key = null) => {
         const typeVal = addMenu ? item[addMenu.field] : null;
         const inner = fields.map(f => blockField(f, item, idx, typeVal)).join('');
         const sw = swatchOf(item, typeVal);
@@ -3351,7 +3360,7 @@ function controlHtml(input, modelValues = {}) {
         const label = addMenu ? typeLabel(typeVal) : '';
         const rowCls = addMenu ? '' : ' block-item--row';
         const nestAttrs = nesting
-          ? ` data-block-nested style="--block-depth:${depth}"` : '';
+          ? ` data-block-nested data-block-key="${escape(key ?? '')}" style="--block-depth:${depth}"` : '';
         const nestCls = nesting ? ` is-nestable${depth > 0 ? ' is-child' : ''}` : '';
         const title = nesting ? 'Drag to move, nest or reorder' : 'Drag to reorder';
         return `<div class="block-item is-typed${rowCls}${nestCls}" data-block-type="${escape(typeVal ?? '')}" data-block-index="${idx}"${nestAttrs}>
@@ -3370,7 +3379,7 @@ function controlHtml(input, modelValues = {}) {
       if (nesting) {
         const keys = deriveBlockKeys(items, nestCfg);
         const order = blockTreeOrder(items, blockParentIndex(items, keys, nestCfg.parentField));
-        itemsHtml = order.map(e => itemHtml(items[e.idx], e.idx, e.depth)).join('');
+        itemsHtml = order.map(e => itemHtml(items[e.idx], e.idx, e.depth, keys[e.idx])).join('');
       } else {
         itemsHtml = items.map((it, i) => itemHtml(it, i)).join('');
       }
