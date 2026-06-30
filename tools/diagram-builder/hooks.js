@@ -289,7 +289,7 @@ function normaliseNodes(rawNodes) {
       _imgIsSvg: !!(ref && (ref.type === 'vector' || ref.format === 'svg' || /\.svg(\?|$)/i.test(imgUrl))),
       _imgAspect: 0,
       quadrant: slug(b.quadrant),
-      score: (Array.isArray(b.score) && b.score.length === 2) ? b.score : null,
+      score: (Array.isArray(b.score) && b.score.length === 2 && isFinite(b.score[0]) && isFinite(b.score[1])) ? b.score : null,
       _start: num(b.ganttStart, NaN), _len: num(b.ganttLen, NaN),
       x: 0, y: 0, w: 0, h: 0
     });
@@ -444,37 +444,43 @@ function layoutLayercake(nodes, rawLayers, S) {
     L._cards.push(n);
   });
 
-  var gutter = 168, padX = 20, padY = 18, bandGap = Math.round(S.rowGap * 0.29), cardGap = Math.round(S.siblingGap * 0.53), innerW = 1120;
-  var capMax = Math.max(140, S.cardWidth + 68);
-  function cwFor(n) { return n > 0 ? Math.max(1, Math.min(capMax, (innerW - cardGap * (n - 1)) / n)) : capMax; }
+  // Bands fit their CONTENT: cards keep a uniform width and the inner area is sized
+  // to the busiest band — so a sparse layercake isn't stretched to a fixed width.
+  // Cards only shrink if the busiest band would exceed capW.
+  var padX = 20, padY = 18, bandGap = Math.round(S.rowGap * 0.29), cardGap = Math.round(S.siblingGap * 0.53);
+  var maxLabelW = 0;
+  layers.forEach(function (L) { maxLabelW = Math.max(maxLabelW, textWidth(L.label, 15)); });
+  var gutter = clamp(maxLabelW + 44, 120, 240);
+  var maxN = 0;
+  layers.forEach(function (L) { if (L._cards.length > maxN) maxN = L._cards.length; });
+  var capW = 1320, cw = S.cardWidth;
+  if (maxN > 0) {
+    var totalDesired = maxN * cw + cardGap * (maxN - 1);
+    if (totalDesired > capW) cw = Math.max(120, (capW - cardGap * (maxN - 1)) / maxN);
+  }
+  var innerW = maxN > 0 ? (maxN * cw + cardGap * (maxN - 1)) : cw;
 
   var maxLines = 1, hasDetail = false;
   layers.forEach(function (L) {
-    L._cw = cwFor(L._cards.length);
     L._cards.forEach(function (c) {
-      if (estLineCount(c.label, maxCharsFor(L._cw, S.labelSize)) > 1) maxLines = 2;
+      if (estLineCount(c.label, maxCharsFor(cw, S.labelSize)) > 1) maxLines = 2;
       if (trim(c.detail)) hasDetail = true;
     });
   });
   var cardH = computeCardH(S, maxLines, hasDetail);
   S.cardH = cardH; S.labelLines = maxLines;
 
-  var bandH = cardH + padY * 2, y = 0, maxRight = gutter + innerW + padX;
+  var bandH = cardH + padY * 2, y = 0, bandW = gutter + innerW + padX * 2;
   layers.forEach(function (L) {
-    L.x = 0; L.y = y; L.h = bandH;
-    var cards = L._cards, n = cards.length, cw = L._cw;
+    L.x = 0; L.y = y; L.h = bandH; L.w = bandW;
+    var cards = L._cards, n = cards.length;
     if (n > 0) {
-      var areaX = gutter + padX, areaW = innerW;
       var totalW = cw * n + cardGap * (n - 1);
-      var startX = areaX + Math.max(0, (areaW - totalW) / 2);
+      var startX = gutter + padX + Math.max(0, (innerW - totalW) / 2);
       cards.forEach(function (c, ci) { c.w = cw; c.h = cardH; c.x = startX + ci * (cw + cardGap); c.y = y + padY; });
-      var right = startX + totalW;
-      if (right > maxRight) maxRight = right;
     }
     y += bandH + bandGap;
   });
-  var bandW = Math.max(gutter + innerW + padX * 2, maxRight + padX);
-  layers.forEach(function (L) { L.w = bandW; });
   return { autoEdges: [], bands: layers, layerById: layerById, gutter: gutter };
 }
 
@@ -602,8 +608,14 @@ function layoutCycle(nodes, S, inp, bb) {
       var B = { cx: bn.x + bn.w / 2, cy: bn.y + bn.h / 2, hw: bn.w / 2, hh: bn.h / 2 };
       var p1 = borderPoint(A, B.cx, B.cy), p2 = borderPoint(B, A.cx, A.cy);
       if (curved) {
-        var mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2, rn = Math.hypot(mx, my) || 1, bow = R * 0.18;
-        var cxp = mx + (mx / rn) * bow, cyp = my + (my / rn) * bow;
+        var mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2, bow = R * 0.18;
+        // Bow outward along the radius from the ring centre. For a 2-stage ring the
+        // chord midpoint IS the centre (radius ≈ 0), so the two opposing edges would
+        // collapse onto the same arc — fall back to a per-edge horizontal offset.
+        var radial = Math.hypot(mx, my), bx, by;
+        if (radial > 1e-6) { bx = (mx / radial) * bow; by = (my / radial) * bow; }
+        else { bx = (i % 2 === 0 ? bow : -bow); by = 0; }
+        var cxp = mx + bx, cyp = my + by;
         front += '<path d="M' + f2(p1.x) + ' ' + f2(p1.y) + 'Q' + f2(cxp) + ' ' + f2(cyp) + ' ' + f2(p2.x) + ' ' + f2(p2.y) + '" fill="none" stroke="' + esc(col) + '" stroke-width="' + f2(S.arrowWidth) + '"/>';
         var tx = p2.x - cxp, ty = p2.y - cyp, tl = Math.hypot(tx, ty) || 1;
         front += arrowHead({ x: p2.x, y: p2.y }, tx / tl, ty / tl, s, col, kind, S.arrowWidth);
@@ -891,7 +903,13 @@ function splitToken(s) {
   var image = '', m = s.match(/\s@\s*([^@]+)$/);
   if (m) { var ref = imageRef(m[1]); if (ref) { image = ref; s = s.slice(0, m.index); } }
   var fill = '', fm = s.match(/\s(#[0-9a-fA-F]{3,8})\s*$/);
-  if (fm) { fill = fm[1]; s = s.slice(0, fm.index); }
+  if (fm) {
+    // Only treat a trailing #hex as a card fill if it's a real colour length (6/8) or
+    // a 3/4 shorthand containing a hex letter — so "Issue #1234" / "Room #500" stay as
+    // labels instead of being eaten as a colour.
+    var hx = fm[1].slice(1), hl = hx.length, hasLetter = /[a-f]/i.test(hx);
+    if (hl === 6 || hl === 8 || ((hl === 3 || hl === 4) && hasLetter)) { fill = fm[1]; s = s.slice(0, fm.index); }
+  }
   var shape = '', t = s.trim();
   if (/^\(\[[\s\S]*\]\)$/.test(t)) { shape = 'pill'; t = t.slice(2, -2); }
   else if (/^\[\([\s\S]*\)\]$/.test(t)) { shape = 'rounded'; t = t.slice(2, -2); }
@@ -908,7 +926,9 @@ function edgeOp(op) {
   if (op.indexOf('<') >= 0) o.double = true;
   if (op.indexOf('.') >= 0) o.style = 'dotted';
   if (op.indexOf('=') >= 0) o.width = 3.5;
-  if (op.indexOf('>') < 0 && !o.double) o.head = 'none'; // --- or -.-
+  if (op.indexOf('o') >= 0) o.head = 'circle';        // mermaid circle edge --o
+  else if (op.indexOf('x') >= 0) o.head = 'none';     // mermaid cross edge --x (no cross head)
+  else if (op.indexOf('>') < 0 && !o.double) o.head = 'none'; // --- or -.-
   return o;
 }
 // Parse a chain like `A --> B -.-> C : label` (or mermaid `A -->|x| B`) into arrows.
@@ -917,7 +937,7 @@ function parseEdges(content, resolve, arrows) {
   var al = splitArrowLabel(content), body = al.body, chainLabel = al.label;
   // mermaid `-- text -->` / `-. text .->` → normalise to `-->|text|`
   body = body.replace(/--\s+([^|>][^>]*?)\s+-->/g, '-->|$1|').replace(/-\.\s+([^|>][^>]*?)\s+\.->/g, '-.->|$1|');
-  var OPRE = /(<-->|<-+>|<->|-\.->|-\.\.->|\.\.>|===>|==>|=>|--->|-->|->|---|-\.-)/g;
+  var OPRE = /(<-->|<-+>|<->|-\.->|-\.\.->|\.\.>|===>|==>|=>|o--o|x--x|--->|-->|->|--o|--x|o--|x--|---|-\.-)/g;
   var parts = [], ops = [], last = 0, m;
   while ((m = OPRE.exec(body))) { parts.push(body.slice(last, m.index)); ops.push(m[1]); last = m.index + m[1].length; }
   parts.push(body.slice(last));
@@ -1084,9 +1104,13 @@ function parseMermaid(text) {
     var sg = t.match(/^subgraph\s+(.+)$/i);
     if (sg) {
       diagramType = 'layercake';
-      var lab = sg[1].replace(/\[[\s\S]*\]$/, '').replace(/^["']|["']$/g, '').trim();
-      var lid = slug(lab) || ('layer-' + (layers.length + 1));
-      if (!usedL[lid]) { usedL[lid] = 1; layers.push({ kind: 'layer', layerId: lid, label: lab, bandFill: BAND_PALETTE[layers.length % BAND_PALETTE.length] }); }
+      // Mermaid "subgraph id[Title]" — id is referenced by edges, the bracket is the
+      // display title. Bare "subgraph Title" uses the whole token as the label.
+      var sgRaw = sg[1].replace(/^["']|["']$/g, '').trim();
+      var mb = sgRaw.match(/^([A-Za-z0-9_]+)\s*\[([\s\S]*)\]$/);
+      var lab = mb ? mb[2].replace(/^["']|["']$/g, '').trim() : sgRaw.replace(/\[[\s\S]*\]$/, '').trim();
+      var lid = slug(mb ? mb[1] : lab) || ('layer-' + (layers.length + 1));
+      if (!usedL[lid]) { usedL[lid] = 1; layers.push({ kind: 'layer', layerId: lid, label: lab || titleize(lid), bandFill: BAND_PALETTE[layers.length % BAND_PALETTE.length] }); }
       sub = lid; return;
     }
     if (/^end$/i.test(t)) { sub = null; return; }
@@ -1399,34 +1423,39 @@ function parseAscii(text) {
   return { nodes: nodes, arrows: arrows, pos: pos };
 }
 
-// ── preset / theme / density seeding (one-shot hook patches) ──────────────────────
-var _applied = { preset: null, theme: null, density: null };
-function resolvePatches(inp) {
+// ── preset / theme / density seeding ─────────────────────────────────────────────
+// Seeds run ONLY in reaction to the user changing the preset/theme/density select
+// (compute is told the changed input id) — never on reload/onInit. So a seed never
+// clobbers a manual edit the user made afterwards: re-opening a saved/shared diagram
+// renders the persisted values as-is. The preset→theme→density cascade still resolves
+// in a single change because each step reads `patch.X || inp.X`.
+function resolvePatches(inp, changedId) {
   var patch = {};
-  if (inp.preset && inp.preset !== 'custom' && inp.preset !== _applied.preset) {
+  if (changedId === 'preset' && inp.preset && inp.preset !== 'custom') {
     var p = PRESETS[inp.preset];
     if (p) Object.keys(p).forEach(function (k) { patch[k] = p[k]; });
-    _applied.preset = inp.preset;
   }
-  var theme = patch.theme || inp.theme;
-  if (theme && theme !== 'custom' && theme !== _applied.theme) {
-    var t = THEMES[theme];
-    if (t) { patch.nodeFill = t.nodeFill; patch.nodeStroke = t.nodeStroke; patch.nodeText = t.nodeText; patch.edgeColor = t.edgeColor; patch.background = t.background; }
-    _applied.theme = theme;
+  if (changedId === 'preset' || changedId === 'theme') {
+    var theme = patch.theme || inp.theme;
+    if (theme && theme !== 'custom') {
+      var t = THEMES[theme];
+      if (t) { patch.nodeFill = t.nodeFill; patch.nodeStroke = t.nodeStroke; patch.nodeText = t.nodeText; patch.edgeColor = t.edgeColor; patch.background = t.background; }
+    }
   }
-  var density = patch.density || inp.density;
-  if (density && density !== 'custom' && density !== _applied.density) {
-    var d = DENSITY[density];
-    if (d) { patch.rowGap = d.rowGap; patch.siblingGap = d.siblingGap; patch.cardScale = d.cardScale; }
-    _applied.density = density;
+  if (changedId === 'preset' || changedId === 'density') {
+    var density = patch.density || inp.density;
+    if (density && density !== 'custom') {
+      var d = DENSITY[density];
+      if (d) { patch.rowGap = d.rowGap; patch.siblingGap = d.siblingGap; patch.cardScale = d.cardScale; }
+    }
   }
   return patch;
 }
 
 // ── lifecycle ────────────────────────────────────────────────────────────────────
-async function compute(model) {
+async function compute(model, changedId) {
   var inp = inputsFrom(model);
-  var patch = resolvePatches(inp);
+  var patch = (changedId === 'preset' || changedId === 'theme' || changedId === 'density') ? resolvePatches(inp, changedId) : {};
   Object.keys(patch).forEach(function (k) { inp[k] = patch[k]; });
   var svg;
   try { svg = await buildDiagram(inp); }
@@ -1437,5 +1466,5 @@ async function compute(model) {
   return Object.assign({ diagramSvg: svg }, patch);
 }
 
-function onInit(ctx) { return compute(ctx.model); }
-function onInput(ctx) { return compute(ctx.model); }
+function onInit(ctx) { return compute(ctx.model, null); }
+function onInput(ctx) { return compute(ctx.model, ctx.id); }

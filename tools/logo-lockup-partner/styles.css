@@ -62,22 +62,19 @@
   line-height: 1;
 }
 
+/* Connector colour/background is set inline by the hook — a solid colour pre-blended
+   toward the theme background, NOT CSS opacity (the PDF vector walker drops opacity, so
+   a 0.32 hairline would export as a solid ink bar). These rules carry only structure. */
 .ll-conn-bar {
   width: 2px;
-  background: var(--ll-ink, #16181d);
-  opacity: 0.32;
   border-radius: 2px;
 }
 
 .ll-conn-symbol {
-  color: var(--ll-ink, #16181d);
-  opacity: 0.5;
   font: 300 1em/1 system-ui, -apple-system, "Segoe UI", sans-serif;
 }
 
 .ll-conn-text {
-  color: var(--ll-ink, #16181d);
-  opacity: 0.72;
   max-width: 9ch;
   text-align: center;
   font: 500 1em/1.25 system-ui, -apple-system, "Segoe UI", sans-serif;

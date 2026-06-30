@@ -157,7 +157,7 @@
             { "value": "small", "label": "Small" }
           ] },
         { "id": "filter", "label": "Treatment", "type": "select", "default": "none",
-          "help": "Grayscale unifies mismatched partner colours; invert rescues a dark logo on a dark theme. Both survive every export format.",
+          "help": "Grayscale unifies mismatched partner colours; invert rescues a dark logo on a dark theme. Bitmap logos keep the treatment in every format; an SVG-file logo keeps it in PNG only.",
           "options": [
             { "value": "none", "label": "None" },
             { "value": "grayscale", "label": "Grayscale" },

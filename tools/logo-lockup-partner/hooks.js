@@ -14,7 +14,9 @@
  * equally prominent) and by each logo's Presence tier. Raster logos are cropped to
  * their content box as a real <img> src so they fit exactly and survive every export
  * format; SVG logos keep their (tight) viewBox. Partner treatments (grayscale/invert)
- * are CSS filters on the <img>, which the SVG/PDF export walker bakes in faithfully.
+ * are CSS filters on the <img>: PNG honours them on any logo, and the SVG/PDF walker
+ * bakes them into raster logos — but an SVG-source logo keeps its colour in SVG/PDF
+ * (the SUSE mono lead avoids this by swapping to real one-colour artwork).
  *
  * Pixel work (content trim, weight) needs a browser canvas; a headless shell keeps the
  * original artwork and equal heights.
@@ -49,6 +51,22 @@ function inputsFrom(model) { var o = {}; model.forEach(function (i) { o[i.id] = 
 function num(v, d) { var x = Number(v); return isFinite(x) ? x : d; }
 function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
 function color(v, fallback) { var s = (typeof v === 'string' ? v : '').trim(); return s ? s : fallback; }
+
+// Hex → [r,g,b]. Used to pre-blend connector colours so they don't rely on CSS
+// opacity (which the SVG/PDF export walker drops — a 0.32 hairline would otherwise
+// export as a solid ink bar). Blending toward the theme background here makes the
+// muted look identical on screen, in PNG, and in vector export.
+function hexToRgb(h) {
+  h = String(h || '').replace('#', '');
+  if (h.length === 3) h = h.charAt(0) + h.charAt(0) + h.charAt(1) + h.charAt(1) + h.charAt(2) + h.charAt(2);
+  var n = parseInt(h, 16);
+  return isFinite(n) ? [(n >> 16) & 255, (n >> 8) & 255, n & 255] : [0, 0, 0];
+}
+function mix(fg, bg, a) {
+  var f = hexToRgb(fg), b = hexToRgb(bg);
+  function ch(i) { return Math.round(f[i] * a + b[i] * (1 - a)); }
+  return 'rgb(' + ch(0) + ',' + ch(1) + ',' + ch(2) + ')';
+}
 
 function canRaster() {
   if (typeof document === 'undefined' || !document.createElement) return false;
@@ -177,24 +195,27 @@ function pruneCaches(activeUrls) {
 }
 
 // ── lead (SUSE) variant resolution ───────────────────────────────────────────
-// The SUSE library logos come in on-light/on-dark × colour/mono variants. Map the
-// chosen theme + treatment to the right id.
-function suseVariantId(theme, mono) {
+// The SUSE library logos come in horizontal/vertical × on-light/on-dark × colour/mono
+// variants. Map the chosen orientation + theme + treatment to the right id. Orientation
+// is taken from whatever SUSE logo the user picked, so a vertical pick stays vertical.
+function suseVariantId(orient, theme, mono) {
+  var o = orient === 'vert' ? 'vert' : 'hor';
   var pol = theme === 'dark' ? 'neg' : 'pos';
   var col = mono ? (theme === 'dark' ? 'white' : 'black') : 'green';
-  return 'suse/logo/hor-' + pol + '-' + col;
+  return 'suse/logo/' + o + '-' + pol + '-' + col;
 }
 function isSuseLogo(ref) {
   return !!(ref && typeof ref.id === 'string' && ref.id.indexOf('suse/logo/') === 0);
 }
 
 // Resolve the lead to the artwork actually used. A SUSE logo is swapped to the variant
-// matching the theme/treatment (no desaturation needed — there's real on-dark and mono
-// artwork). A user's own lead is used as-is, desaturated via a filter when mono.
+// matching its orientation + the theme/treatment (no desaturation needed — there's real
+// on-dark and mono artwork). A user's own lead is used as-is, desaturated when mono.
 async function resolveLead(ref, theme, mono) {
   if (!ref || !ref.url) return null;
   if (isSuseLogo(ref)) {
-    var want = suseVariantId(theme, mono);
+    var orient = ref.id.indexOf('vert-') !== -1 ? 'vert' : 'hor';
+    var want = suseVariantId(orient, theme, mono);
     if (ref.id !== want && typeof host !== 'undefined' && host.assets && host.assets.get) {
       try {
         var v = await host.assets.get(want);
@@ -274,7 +295,11 @@ async function compute(model) {
       var box = measureContent(it.url, img);
       it.box = box;
       var nw = img.naturalWidth || img.width, nh = img.naturalHeight || img.height;
-      if (box && nw && nh) it.aspect = (box.fw * nw) / (box.fh * nh);
+      // Aspect must match how the element actually lays out: a raster <img> renders the
+      // TRIMMED crop (content aspect), an SVG <img> renders its FULL viewBox (intrinsic
+      // aspect). Using the wrong one skews the fit-to-width budget for padded SVGs.
+      if (it.isSvg) it.aspect = (nw && nh) ? nw / nh : 1;
+      else if (box && nw && nh) it.aspect = (box.fw * nw) / (box.fh * nh);
       else if (nw && nh) it.aspect = nw / nh;
       if (!it.isSvg) it.displayUrl = getTrimmedRaster(it.url, img, box);
     }));
@@ -308,20 +333,22 @@ async function compute(model) {
   var connKind = inputs.connector || 'bar';
   var connectorOn = connKind !== 'none' && items.length >= 2 && items.some(function (it) { return it.isLead; });
 
-  // Fit the whole lockup to the artboard: the row of logos (each width = height × aspect)
-  // plus the connector and the gaps between elements must fit AVAIL_W, and nothing may
-  // exceed AVAIL_H. Scale every logo uniformly so a wide wordmark or many partners never
-  // spill off the canvas (which would clip on export).
+  // Fit the whole lockup to the artboard: the row of logos (each width = height × aspect),
+  // the connector and the gaps between elements must all fit AVAIL_W, and nothing may
+  // exceed AVAIL_H. Everything scales by ONE factor — logos, gaps, and the connector
+  // (which keys off the fitted height below) — so a wide wordmark, many partners, OR a
+  // large gap can never spill off the canvas (which would clip on export). Scaling the
+  // gaps too is what makes the dense / big-spacing cases stay inside the artboard.
   var connWEst = !connectorOn ? 0 : (connKind === 'symbol' ? baseH * 0.5 : connKind === 'text' ? baseH * 1.6 : 4);
   var elemCount = items.length + (connectorOn ? 1 : 0);
-  var fixedW = connWEst + Math.max(0, elemCount - 1) * gap;
   var logosW = items.reduce(function (s, it) { return s + it.h * (it.aspect || 1); }, 0);
-  var fitW = (logosW > 0 && (AVAIL_W - fixedW) > 0 && logosW > AVAIL_W - fixedW)
-    ? (AVAIL_W - fixedW) / logosW : 1;
-  fitW = clamp(fitW, 0.1, 1);
-  var tallest = items.reduce(function (m, it) { return Math.max(m, it.h * fitW); }, 0);
-  var fit = fitW * (tallest > AVAIL_H ? AVAIL_H / tallest : 1);
+  var rawW = logosW + connWEst + Math.max(0, elemCount - 1) * gap;
+  var fit = rawW > AVAIL_W ? AVAIL_W / rawW : 1;
+  var tallest = items.reduce(function (m, it) { return Math.max(m, it.h * fit); }, 0);
+  if (tallest > AVAIL_H) fit *= AVAIL_H / tallest;          // also cap height
+  fit = clamp(fit, 0.04, 1);
   items.forEach(function (it) { it.h = Math.round(clamp(it.h * fit, 8, AVAIL_H)); });
+  var gapPx = Math.round(gap * fit);                        // gaps shrink with the lockup
 
   pruneCaches(items.map(function (it) { return it.url; }));
 
@@ -331,15 +358,17 @@ async function compute(model) {
   // Connector sizing keyed to the FITTED lead height, so it scales with the lockup.
   var effH = leadCell ? leadCell.h : (items[0] ? items[0].h : baseH);
   var connText = '', connStyle = '';
+  // Colours are pre-blended toward the background (not CSS opacity) so the muted look
+  // survives PDF export, where the vector walker drops element opacity.
   if (connectorOn) {
     if (connKind === 'symbol') {
       connText = SYMBOLS[inputs.symbol] || SYMBOLS.times;
-      connStyle = 'font-size:' + Math.round(effH * 0.52) + 'px';
+      connStyle = 'font-size:' + Math.round(effH * 0.52) + 'px;color:' + mix(ink, _bg, 0.5);
     } else if (connKind === 'text') {
       connText = String(inputs.connectorText == null ? '' : inputs.connectorText);
-      connStyle = 'font-size:' + clamp(Math.round(effH * 0.16), 11, 40) + 'px';
+      connStyle = 'font-size:' + clamp(Math.round(effH * 0.16), 11, 40) + 'px;color:' + mix(ink, _bg, 0.72);
     } else { // bar
-      connStyle = 'height:' + Math.round(effH * 0.9) + 'px';
+      connStyle = 'height:' + Math.round(effH * 0.9) + 'px;background:' + mix(ink, _bg, 0.32);
     }
   }
 
@@ -349,7 +378,9 @@ async function compute(model) {
     layoutClass: 'll-layout-' + layout,
     stageBg: _transparent ? 'transparent' : _bg,
     ink: ink,
-    gap: gap,
+    // NB: key must NOT be 'gap' — that's a declared input id, and a returned key matching
+    // an input id overwrites that input (clobbering the user's slider in a feedback loop).
+    rowGap: gapPx,
     leadCell: leadCell,
     partnerCells: partnerCells,
     connectorOn: connectorOn,

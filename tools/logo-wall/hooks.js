@@ -747,7 +747,9 @@ async function buildItems(inputs, balance) {
   // fills its cell exactly like the vector path does — toggling "Render as vector" no
   // longer changes the apparent size. Needs a browser canvas; headless keeps the
   // original src. SVG logos can't be canvas-cropped without rasterising, so they keep
-  // their (already-tight) viewBox in both modes.
+  // their viewBox in BOTH modes (so toggling an SVG is also jump-free). Trade-off: an
+  // SVG authored with generous clear-space padding reads a touch smaller than a trimmed
+  // raster beside it — fine for the usual tight viewBoxes; nudge its Size % if needed.
   if (canRaster()) {
     await Promise.all(items.map(async function (it) {
       if (!it.url || it.isSvg) return;
