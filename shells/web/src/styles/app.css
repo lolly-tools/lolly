@@ -1797,10 +1797,14 @@ a.gtile-name:focus-visible::after {
 .help-tip-btn:hover, .help-tip-btn:focus-visible { opacity: 1; color: var(--primary); }
 .help-tip-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: 50%; }
 /* The focus ring sits a few px outside the 16px button. The floating-label rule
-   clips .input-label (overflow:hidden, for long-label ellipsis), which would crop
-   that ring top/bottom — so un-clip the label when it hosts a help button and move
-   the truncation onto the text span, which keeps long labels ellipsised. */
-.input-label:has(.help-tip-btn) { overflow: visible; }
+   clips .input-label (overflow:hidden, for long-label ellipsis), which crops that
+   ring top/bottom — so un-clip the label when it hosts a help button (selectors
+   mirror the floating-label rule's so this wins specificity) and move the
+   truncation onto the text span, which keeps long labels ellipsised. */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])):has(.help-tip-btn) .input-label,
+.input-row:not(.input-row--static-label):has(textarea):has(.help-tip-btn) .input-label {
+  overflow: visible;
+}
 .input-label:has(.help-tip-btn) > .input-label-text {
   display: inline-block; max-width: 100%; vertical-align: middle;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

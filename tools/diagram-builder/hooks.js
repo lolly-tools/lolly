@@ -513,7 +513,8 @@ function layoutKanban(nodes, rawColumns, S, inp) {
   var cols = [], byId = {};
   arr(rawColumns).forEach(function (b, i) {
     if (!b) return;
-    var id = slug(b.layerId) || ('col-' + (i + 1));
+    // slug(layerId) || slug(label) || ordinal — mirror the shell picker (deriveBlockKeys).
+    var id = slug(b.layerId) || slug(b.label) || ('col-' + (i + 1));
     if (byId[id]) return;
     byId[id] = { idx: i, id: id, label: trim(b.label) || titleize(id), bandFill: color(b.bandFill, S.bandPalette[cols.length % S.bandPalette.length]), _cards: [] };
     cols.push(byId[id]);
