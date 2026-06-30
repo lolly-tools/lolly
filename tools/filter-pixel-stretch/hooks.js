@@ -24,7 +24,9 @@
 
 var STILL_MAX = 1440; // cap the working-canvas long edge for stills — snappy on slider
                       // drag; the SVG <image> scales it up to the export size.
-var LIVE_MAX = 720;   // smaller working size per live frame so toDataURL keeps up.
+var LIVE_MAX = 1080;  // raster output, so keep the live working canvas near the export
+                      // size — the camera frame is requested at high res (render.liveMaxEdge)
+                      // and overlapping frames are dropped, so this trades fps for sharpness.
 
 // Default source image until the user picks one: a Lolly tool URL (bag-video → PNG),
 // resolved via host.compose. A plain catalog id still works (see resolver below).
@@ -114,10 +116,44 @@ function hueSatMatrix(hueDeg, sat) {
   ];
   return mul3(satM, hueM); // hue first, then saturation
 }
-// Adjust hue/saturation/lightness in place. No-op at defaults; silently skips a
-// tainted canvas (cross-origin asset) so the still/live render still shows.
+
+// ── colour-treatment blend (separable modes; matches CSS/SVG feBlend keywords) ──
+function _bl(mode, b, s) {
+  switch (mode) {
+    case 'multiply': return b * s;
+    case 'screen': return b + s - b * s;
+    case 'overlay': return b < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'hard-light': return s < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'soft-light': return s <= 0.5 ? b - (1 - 2 * s) * b * (1 - b)
+      : b + (2 * s - 1) * ((b <= 0.25 ? ((16 * b - 12) * b + 4) * b : Math.sqrt(b)) - b);
+    case 'darken': return b < s ? b : s;
+    case 'lighten': return b > s ? b : s;
+    case 'color-dodge': return s >= 1 ? 1 : Math.min(1, b / (1 - s));
+    case 'color-burn': return s <= 0 ? 0 : Math.max(0, 1 - (1 - b) / s);
+    case 'difference': return b > s ? b - s : s - b;
+    case 'exclusion': return b + s - 2 * b * s;
+    default: return s; // normal
+  }
+}
+function _hex2rgb(hex) {
+  var s = (typeof hex === 'string' ? hex : '').trim().replace(/^#/, '');
+  if (s.length === 3) s = s[0]+s[0]+s[1]+s[1]+s[2]+s[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return { r: parseInt(s.slice(0,2),16), g: parseInt(s.slice(2,4),16), b: parseInt(s.slice(4,6),16) };
+}
+// Treatment state parsed once from inputs. ov=null or amt<=0 ⇒ treatment off.
+function treatmentFrom(inputs) {
+  var ov = _hex2rgb(inputs.treatmentColor);
+  var amt = clamp(n(inputs.treatmentIntensity, 20), 0, 100) / 100;
+  var mode = typeof inputs.blendMode === 'string' ? inputs.blendMode : 'multiply';
+  return { ov: ov, amt: amt, mode: mode, on: !!(ov && amt > 0) };
+}
+
+// Adjust hue/saturation/lightness in place, then blend the colour treatment over the
+// result (same pass). No-op at defaults; silently skips a tainted canvas (cross-origin
+// asset) so the still/live render still shows.
 function applyHsl(ctx, W, H, p) {
-  if (p.hue === 0 && p.sat === 1 && p.light === 0) return;
+  if (p.hue === 0 && p.sat === 1 && p.light === 0 && !(p.treat && p.treat.on)) return;
   var image;
   try { image = ctx.getImageData(0, 0, W, H); } catch (e) { return; }
   var d = image.data, light = p.light;
@@ -130,6 +166,12 @@ function applyHsl(ctx, W, H, p) {
     var nb = m20 * r + m21 * g + m22 * b;
     if (light > 0) { nr += (255 - nr) * light; ng += (255 - ng) * light; nb += (255 - nb) * light; }
     else if (light < 0) { var k = 1 + light; nr *= k; ng *= k; nb *= k; }
+    if (p.treat && p.treat.on) {
+      var A = p.treat.amt, ov = p.treat.ov, mo = p.treat.mode;
+      nr = (nr/255*(1-A) + _bl(mo, nr/255, ov.r/255)*A) * 255;
+      ng = (ng/255*(1-A) + _bl(mo, ng/255, ov.g/255)*A) * 255;
+      nb = (nb/255*(1-A) + _bl(mo, nb/255, ov.b/255)*A) * 255;
+    }
     d[i]     = nr < 0 ? 0 : nr > 255 ? 255 : nr;
     d[i + 1] = ng < 0 ? 0 : ng > 255 ? 255 : ng;
     d[i + 2] = nb < 0 ? 0 : nb > 255 ? 255 : nb;
@@ -204,6 +246,7 @@ function paramsFrom(inputs) {
     hue: clamp(n(inputs.hue, 0), -180, 180),
     sat: clamp(n(inputs.saturation, 100), 0, 200) / 100,
     light: clamp(n(inputs.lightness, 0), -100, 100) / 100,
+    treat: treatmentFrom(inputs),
     zoom: clamp(n(fr.zoom, 100), 100, 800) / 100,
     px: clamp(n(fr.x, 50), 0, 100) / 100,
     py: clamp(n(fr.y, 50), 0, 100) / 100,
@@ -248,7 +291,7 @@ async function compute(model) {
 
     // Cache the colour-adjusted base so tweaking only the smear (threshold / spread /
     // feather / direction) skips the expensive cover + HSL re-render.
-    var srcKey = JSON.stringify({ url: url, d: dims, zoom: p.zoom, px: p.px, py: p.py, hue: p.hue, sat: p.sat, light: p.light });
+    var srcKey = JSON.stringify({ url: url, d: dims, zoom: p.zoom, px: p.px, py: p.py, hue: p.hue, sat: p.sat, light: p.light, treat: p.treat });
     var src;
     if (_srcCache.key === srcKey && _srcCache.canvas) { src = _srcCache.canvas; }
     else { src = makeSrc(img, iw, ih, dims.w, dims.h, p); _srcCache = { key: srcKey, canvas: src }; }

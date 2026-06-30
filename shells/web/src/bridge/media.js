@@ -17,9 +17,13 @@
  *     balanced by a stop().
  */
 
-// Cap the working frame's longest edge — plenty for a dot/line raster, and keeps
-// getImageData + the downstream trace cheap. The source camera is usually 720p.
-const WORK_MAX_EDGE = 480;
+// Default cap for the working frame's longest edge — plenty for a dot/line vector
+// trace, and keeps getImageData + the downstream trace cheap. A subscriber can ask
+// for more (subscribe opts.maxEdge) when its output is a bitmap rather than a vector
+// trace — e.g. filter-pixel-stretch — and the grab loop produces frames at the
+// largest size any live subscriber requested (clamped to the native frame).
+const DEFAULT_MAX_EDGE = 480;
+const MAX_EDGE_CAP = 1920; // ceiling so a tool can't request an absurd working frame
 const MAX_FPS = 30;
 const MIN_INTERVAL = 1000 / MAX_FPS;
 
@@ -32,7 +36,7 @@ export function createMediaAPI() {
   let refcount = 0;
   let starting = null;        // in-flight start() promise (so concurrent starts share one stream)
   let lastGrab = 0;
-  const subscribers = new Set();
+  const subscribers = new Map(); // cb → requested maxEdge
 
   const isAvailable = () =>
     typeof navigator !== 'undefined' && Boolean(navigator.mediaDevices?.getUserMedia);
@@ -51,7 +55,11 @@ export function createMediaAPI() {
     if (typeof document !== 'undefined' && document.hidden) return;
     const vw = videoEl.videoWidth, vh = videoEl.videoHeight;
     if (!vw || !vh) return; // stream not yet producing frames
-    const scale = Math.min(1, WORK_MAX_EDGE / Math.max(vw, vh));
+    // Working size = the largest edge any live subscriber asked for (a raster tool
+    // wants more than a vector trace), clamped to the native frame so we never upscale.
+    let want = DEFAULT_MAX_EDGE;
+    for (const e of subscribers.values()) if (e > want) want = e;
+    const scale = Math.min(1, want / Math.max(vw, vh));
     const cw = Math.max(1, Math.round(vw * scale));
     const ch = Math.max(1, Math.round(vh * scale));
     if (canvas.width !== cw) canvas.width = cw;
@@ -60,8 +68,8 @@ export function createMediaAPI() {
       ctx.drawImage(videoEl, 0, 0, cw, ch);
       const img = ctx.getImageData(0, 0, cw, ch);
       const frame = { width: cw, height: ch, data: img.data, t: now };
-      // Snapshot the set so a subscriber that unsubscribes mid-iteration is safe.
-      for (const cb of [...subscribers]) {
+      // Snapshot the keys so a subscriber that unsubscribes mid-iteration is safe.
+      for (const cb of [...subscribers.keys()]) {
         try { cb(frame); } catch { /* one bad subscriber must not kill the loop */ }
       }
     } catch { /* tainted canvas etc. — skip this frame */ }
@@ -115,8 +123,9 @@ export function createMediaAPI() {
     if (refcount === 0) teardown();
   }
 
-  function subscribe(cb) {
-    subscribers.add(cb);
+  function subscribe(cb, opts) {
+    const want = Math.max(1, Math.min(MAX_EDGE_CAP, Math.round(Number(opts?.maxEdge) || DEFAULT_MAX_EDGE)));
+    subscribers.set(cb, want);
     return () => subscribers.delete(cb);
   }
 

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-06-30T13:43:40.502Z",
+  "generatedAt": "2026-06-30T14:16:46.756Z",
   "tools": [
     {
       "id": "color-block",
@@ -450,7 +450,7 @@
       "id": "filter-duotone",
       "name": "Filter: Duotone",
       "description": "A two-color duotone for any photo — shadows one color, highlights another.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "designer",
       "formats": [
@@ -470,7 +470,7 @@
       "id": "filter-halftone",
       "name": "Filter: Halftone",
       "description": "Vector halftone from any photo — dots sized by brightness.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "designer",
       "formats": [
@@ -493,7 +493,7 @@
       "id": "filter-scanline",
       "name": "Filter: Scanline",
       "description": "Horizontal 'infinity lines' scanline vector effect from any photo",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "official",
       "category": "designer",
       "formats": [
@@ -531,7 +531,7 @@
       "id": "filter-posterize",
       "name": "Filter: Posterise Bitmap",
       "description": "Trace any photo into flat vector colour separations — a screenprint-style poster. Colours are auto-sampled from the image, then editable per tone. True vector in SVG and PDF. Your photo stays on your device.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "experimental",
       "category": "designer",
       "formats": [
@@ -568,7 +568,7 @@
       "id": "filter-pixel-stretch",
       "name": "Filter: Pixel Stretch",
       "description": "Freeze a photo at a threshold line and smear that column of pixels across the frame — set where it starts, how far it spreads, and which way it runs. Works live.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "official",
       "category": "designer",
       "formats": [

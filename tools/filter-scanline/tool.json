@@ -3,7 +3,7 @@
   "name": "Filter: Scanline",
   "description": "Horizontal 'infinity lines' scanline vector effect from any photo",
   "a11yLabel": "Scanline rendering of the chosen image in brand tones",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -129,6 +129,84 @@
       "min": -100,
       "max": 100,
       "step": 1
+    },
+    {
+      "id": "hue",
+      "label": "Hue",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -180,
+      "max": 180,
+      "step": 1,
+      "help": "Rotate every colour around the wheel."
+    },
+    {
+      "id": "saturation",
+      "label": "Saturation",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "help": "0 = greyscale · 100 = original · 200 = vivid."
+    },
+    {
+      "id": "lightness",
+      "label": "Lightness",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "help": "Lift toward white or sink toward black."
+    },
+    {
+      "id": "treatmentColor",
+      "label": "Colour treatment",
+      "section": "Colour",
+      "type": "color",
+      "default": "",
+      "help": "Blend a colour over the result. Leave empty for none."
+    },
+    {
+      "id": "blendMode",
+      "label": "Blend mode",
+      "section": "Colour",
+      "type": "select",
+      "default": "multiply",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "multiply", "label": "Multiply" },
+        { "value": "screen", "label": "Screen" },
+        { "value": "overlay", "label": "Overlay" },
+        { "value": "darken", "label": "Darken" },
+        { "value": "lighten", "label": "Lighten" },
+        { "value": "color-dodge", "label": "Colour dodge" },
+        { "value": "color-burn", "label": "Colour burn" },
+        { "value": "hard-light", "label": "Hard light" },
+        { "value": "soft-light", "label": "Soft light" },
+        { "value": "difference", "label": "Difference" },
+        { "value": "exclusion", "label": "Exclusion" }
+      ],
+      "help": "How the treatment colour mixes with the image."
+    },
+    {
+      "id": "treatmentIntensity",
+      "label": "Intensity",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "Opacity of the colour overlay."
     }
   ],
   "hooks": {

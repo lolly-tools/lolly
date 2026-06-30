@@ -114,7 +114,9 @@ function canRaster() {
   } catch (e) { return false; }
 }
 
-// Downsample the image into a cols×rows grid of luminance values (0..255).
+// Downsample the image into a cols×rows grid. Returns an object carrying the
+// per-cell luminance (0..255, transparency composited over white — drives dot
+// size) AND the raw per-cell RGB (drives dot colour for the "from image" path).
 // Returns null when there's no usable 2D canvas (headless shells).
 function sampleGrid(img, cols, rows, fit) {
   if (typeof document === 'undefined' || !document.createElement) return null;
@@ -144,15 +146,20 @@ function sampleGrid(img, cols, rows, fit) {
   try { data = ctx.getImageData(0, 0, cols, rows).data; }
   catch (e) { return null; } // tainted canvas (cross-origin asset)
 
-  var g = new Float32Array(cols * rows);
-  for (var i = 0, p = 0; i < g.length; i++, p += 4) {
+  var lumArr = new Float32Array(cols * rows);
+  var rArr = new Uint8ClampedArray(cols * rows);
+  var gArr = new Uint8ClampedArray(cols * rows);
+  var bArr = new Uint8ClampedArray(cols * rows);
+  for (var i = 0, p = 0; i < lumArr.length; i++, p += 4) {
     var a = data[p + 3] / 255;
-    var lum = 0.299 * data[p] + 0.587 * data[p + 1] + 0.114 * data[p + 2];
+    var R = data[p], G = data[p + 1], B = data[p + 2];
+    var lum = 0.299 * R + 0.587 * G + 0.114 * B;
     // Composite transparency onto white so cut-out PNGs don't read as pure black.
     if (a < 1) lum = lum * a + 255 * (1 - a);
-    g[i] = lum;
+    lumArr[i] = lum;
+    rArr[i] = R; gArr[i] = G; bArr[i] = B;
   }
-  return g;
+  return { lum: lumArr, r: rArr, g: gArr, b: bArr, cols: cols, rows: rows };
 }
 
 // ── tone + texture (ported from the reference canvas halftone) ────────────────
@@ -259,6 +266,80 @@ function dotMarkup(shape, cx, cy, r) {
   return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '"/>';
 }
 
+// ── HSL: luma-preserving hue∘saturation matrices (sRGB .213/.715/.072) + lightness ─
+function _mul3(a, b) {
+  var o = new Array(9);
+  for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++)
+    o[r * 3 + c] = a[r * 3] * b[c] + a[r * 3 + 1] * b[3 + c] + a[r * 3 + 2] * b[6 + c];
+  return o;
+}
+function _hueSatMatrix(hueDeg, sat) {
+  var h = hueDeg * Math.PI / 180, c = Math.cos(h), s = Math.sin(h);
+  var hm = [
+    0.213 + c * 0.787 - s * 0.213, 0.715 - c * 0.715 - s * 0.715, 0.072 - c * 0.072 + s * 0.928,
+    0.213 - c * 0.213 + s * 0.143, 0.715 + c * 0.285 + s * 0.140, 0.072 - c * 0.072 - s * 0.283,
+    0.213 - c * 0.213 - s * 0.787, 0.715 - c * 0.715 + s * 0.715, 0.072 + c * 0.928 + s * 0.072,
+  ];
+  var sm = [
+    0.213 + 0.787 * sat, 0.715 - 0.715 * sat, 0.072 - 0.072 * sat,
+    0.213 - 0.213 * sat, 0.715 + 0.285 * sat, 0.072 - 0.072 * sat,
+    0.213 - 0.213 * sat, 0.715 - 0.715 * sat, 0.072 + 0.928 * sat,
+  ];
+  return _mul3(sm, hm);
+}
+function hslIdentity(hueDeg, sat, light) { return hueDeg === 0 && sat === 1 && light === 0; }
+// Transform the sample's r/g/b in place AND recompute lum from them, so lightness
+// affects dot SIZE too. No-op when HSL is at its identity (hue 0 · sat 1 · light 0).
+function applyHslSample(sm, hueDeg, sat, light) {
+  if (hslIdentity(hueDeg, sat, light)) return;
+  var m = _hueSatMatrix(hueDeg, sat), m00=m[0],m01=m[1],m02=m[2],m10=m[3],m11=m[4],m12=m[5],m20=m[6],m21=m[7],m22=m[8];
+  for (var i=0;i<sm.lum.length;i++){var R=sm.r[i],G=sm.g[i],B=sm.b[i];var nr=m00*R+m01*G+m02*B,ng=m10*R+m11*G+m12*B,nb=m20*R+m21*G+m22*B;
+    if(light>0){nr+=(255-nr)*light;ng+=(255-ng)*light;nb+=(255-nb)*light;}else if(light<0){var k=1+light;nr*=k;ng*=k;nb*=k;}
+    R=nr<0?0:nr>255?255:nr;G=ng<0?0:ng>255?255:ng;B=nb<0?0:nb>255?255:nb;sm.r[i]=R;sm.g[i]=G;sm.b[i]=B;sm.lum[i]=0.299*R+0.587*G+0.114*B;}
+}
+
+// ── colour-treatment blend (separable modes; matches CSS/SVG feBlend keywords) ──
+function _bl(mode, b, s) {
+  switch (mode) {
+    case 'multiply': return b * s;
+    case 'screen': return b + s - b * s;
+    case 'overlay': return b < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'hard-light': return s < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'soft-light': return s <= 0.5 ? b - (1 - 2 * s) * b * (1 - b)
+      : b + (2 * s - 1) * ((b <= 0.25 ? ((16 * b - 12) * b + 4) * b : Math.sqrt(b)) - b);
+    case 'darken': return b < s ? b : s;
+    case 'lighten': return b > s ? b : s;
+    case 'color-dodge': return s >= 1 ? 1 : Math.min(1, b / (1 - s));
+    case 'color-burn': return s <= 0 ? 0 : Math.max(0, 1 - (1 - b) / s);
+    case 'difference': return b > s ? b - s : s - b;
+    case 'exclusion': return b + s - 2 * b * s;
+    default: return s; // normal
+  }
+}
+function _hex2rgb(hex) {
+  var s = (typeof hex === 'string' ? hex : '').trim().replace(/^#/, '');
+  if (s.length === 3) s = s[0]+s[0]+s[1]+s[1]+s[2]+s[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return { r: parseInt(s.slice(0,2),16), g: parseInt(s.slice(2,4),16), b: parseInt(s.slice(4,6),16) };
+}
+function _hx(v) { v = v < 0 ? 0 : v > 255 ? 255 : Math.round(v); var h = v.toString(16); return h.length < 2 ? '0' + h : h; }
+// Reduce a channel to L evenly-spaced levels (L<2 ⇒ untouched / full colour).
+function _q(c, L) { return L >= 2 ? Math.round(Math.round(c / 255 * (L - 1)) / (L - 1) * 255) : c; }
+// Treatment state parsed once from inputs. ov=null or amt<=0 ⇒ treatment off.
+function treatmentFrom(inputs) {
+  var ov = _hex2rgb(inputs.treatmentColor);
+  var amt = clamp(n(inputs.treatmentIntensity, 20), 0, 100) / 100;
+  var mode = typeof inputs.blendMode === 'string' ? inputs.blendMode : 'multiply';
+  return { ov: ov, amt: amt, mode: mode, on: !!(ov && amt > 0) };
+}
+// Blend the treatment colour over a base hex → new hex (or unchanged if off / unparseable).
+function treatHex(baseHex, t) {
+  if (!t || !t.on) return baseHex;
+  var b = _hex2rgb(baseHex); if (!b) return baseHex;
+  function ch(bc, sc) { var B = bc / 255, S = sc / 255; return (B * (1 - t.amt) + _bl(t.mode, B, S) * t.amt) * 255; }
+  return '#' + _hx(ch(b.r, t.ov.r)) + _hx(ch(b.g, t.ov.g)) + _hx(ch(b.b, t.ov.b));
+}
+
 function buildSvg(args) {
   var img = args.img;
   var cell = clamp(n(args.gridSize, 10), 1, 70);
@@ -288,9 +369,14 @@ function buildSvg(args) {
     rows = Math.max(1, Math.floor(rows * k));
   }
 
-  var grid = sampleGrid(img, cols, rows, fit);
-  if (!grid) return null; // headless / tainted — caller falls back to placeholder
+  var sm = sampleGrid(img, cols, rows, fit);
+  if (!sm) return null; // headless / tainted — caller falls back to placeholder
 
+  // HSL colour-grade the sampled RGB first; this also recomputes per-cell lum so
+  // lightness flows through to dot SIZE. Identity HSL leaves the sample untouched.
+  applyHslSample(sm, args.hueDeg, args.sat, args.light);
+
+  var grid = sm.lum; // luminance drives dot size; sm.r/g/b drive dot colour
   applyTone(grid, clamp(n(args.brightness, 0), -100, 100),
     clamp(n(args.contrast, 0), -100, 100), clamp(n(args.gamma, 1), 0.1, 3));
 
@@ -309,22 +395,49 @@ function buildSvg(args) {
   var invert = Boolean(args.invert);
   var shape = args.shape || 'circle';
 
-  var dots = [];
+  // Colour source + reduction + treatment. Default 'image' tints each dot with the
+  // photo pixel under it (optionally reduced to `levels` per channel); 'solid'
+  // reproduces the original single-ink halftone.
+  var colorSource = args.colorSource === 'solid' ? 'solid' : 'image';
+  var levels = parseInt(args.colorLevels, 10) || 0;
+  var _t = treatmentFrom(args);
+  var solidHex = colorSource === 'solid' ? treatHex(color(args.fgColor, '#0c322c'), _t) : null;
+
+  // Group dots by fill colour: one <g fill> for solid, many for a full-colour photo.
+  var groups = {};
+  var order = [];
+  function push(hex, markup) {
+    var arr = groups[hex];
+    if (!arr) { arr = groups[hex] = []; order.push(hex); }
+    arr.push(markup);
+  }
+
   for (var row = 0; row < rows; row++) {
     for (var col = 0; col < cols; col++) {
-      var norm = clamp(grid[row * cols + col] / 255, 0, 1);
+      var idx = row * cols + col;
+      var norm = clamp(grid[idx] / 255, 0, 1);
       var coverage = invert ? norm : (1 - norm); // dark → big dot (unless inverted)
       var r = maxR * coverage;
       if (r < 0.3) continue;                      // skip invisibly small dots
-      dots.push(dotMarkup(shape, offX + (col + 0.5) * cellW, offY + (row + 0.5) * cellH, r));
+      var markup = dotMarkup(shape, offX + (col + 0.5) * cellW, offY + (row + 0.5) * cellH, r);
+      var hex;
+      if (colorSource === 'solid') {
+        hex = solidHex;
+      } else {
+        hex = treatHex('#' + _hx(_q(sm.r[idx], levels)) + _hx(_q(sm.g[idx], levels)) + _hx(_q(sm.b[idx], levels)), _t);
+      }
+      push(hex, markup);
     }
   }
 
-  var fg = color(args.fgColor, '#0c322c');
   var bg = args.transparent ? null : color(args.bgColor, '#ffffff');
+  if (bg) bg = treatHex(bg, _t);
   var out = svgOpen();
   if (bg) out += '<rect width="' + VIEW + '" height="' + VIEW + '" fill="' + esc(bg) + '"/>';
-  out += '<g fill="' + esc(fg) + '">' + dots.join('') + '</g></svg>';
+  for (var gi = 0; gi < order.length; gi++) {
+    out += '<g fill="' + esc(order[gi]) + '">' + groups[order[gi]].join('') + '</g>';
+  }
+  out += '</svg>';
   return out;
 }
 
@@ -333,7 +446,11 @@ function buildSvg(args) {
 async function compute(model) {
   var inputs = inputsFrom(model);
   _transparent = Boolean(inputs.transparentBg);
-  _bgColor = color(inputs.bgColor, '#ffffff');
+  // Bake any colour treatment into the remembered bg so beforeExport fills a
+  // non-square export's margins with the SAME colour as the SVG's own bg rect
+  // (buildSvg treats the bg too) — no seam when a treatment is active. No-op when
+  // the treatment is off (treatHex returns the bg unchanged).
+  _bgColor = treatHex(color(inputs.bgColor, '#ffffff'), treatmentFrom(inputs));
 
   // No canvas pixel access (headless CLI/jsdom): skip image loading (its <img>
   // would never resolve) and show the placeholder. This is a browser tool.
@@ -368,6 +485,12 @@ async function compute(model) {
     fgColor: inputs.fgColor, bgColor: inputs.bgColor, invert: inputs.invert, fit: inputs.fit,
     brightness: inputs.brightness, contrast: inputs.contrast, gamma: inputs.gamma,
     smoothing: inputs.smoothing, dither: inputs.dither, transparent: _transparent,
+    colorSource: inputs.colorSource, colorLevels: inputs.colorLevels,
+    hueDeg: clamp(n(inputs.hue, 0), -180, 180),
+    sat: clamp(n(inputs.saturation, 100), 0, 200) / 100,
+    light: clamp(n(inputs.lightness, 0), -100, 100) / 100,
+    treatmentColor: inputs.treatmentColor, blendMode: inputs.blendMode,
+    treatmentIntensity: inputs.treatmentIntensity,
   };
   var memoKey = JSON.stringify(params);
   if (memoKey === _memoKey) return _memoResult;
@@ -402,7 +525,8 @@ function onFrame(ctx) {
   if (!canRaster() || typeof ImageData === 'undefined') return null;
   var inputs = inputsFrom(ctx.model);
   _transparent = Boolean(inputs.transparentBg);
-  _bgColor = color(inputs.bgColor, '#ffffff');
+  // Match the still path: bake the treatment into the export-margin bg colour.
+  _bgColor = treatHex(color(inputs.bgColor, '#ffffff'), treatmentFrom(inputs));
 
   var src;
   try {
@@ -418,6 +542,12 @@ function onFrame(ctx) {
     fgColor: inputs.fgColor, bgColor: inputs.bgColor, invert: inputs.invert, fit: inputs.fit,
     brightness: inputs.brightness, contrast: inputs.contrast, gamma: inputs.gamma,
     smoothing: inputs.smoothing, dither: inputs.dither, transparent: _transparent,
+    colorSource: inputs.colorSource, colorLevels: inputs.colorLevels,
+    hueDeg: clamp(n(inputs.hue, 0), -180, 180),
+    sat: clamp(n(inputs.saturation, 100), 0, 200) / 100,
+    light: clamp(n(inputs.lightness, 0), -100, 100) / 100,
+    treatmentColor: inputs.treatmentColor, blendMode: inputs.blendMode,
+    treatmentIntensity: inputs.treatmentIntensity,
   });
   // A live frame supersedes the still memo, so a later still re-render (e.g. after
   // stopping) recomputes rather than returning a stale cached frame.

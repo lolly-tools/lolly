@@ -145,8 +145,17 @@ export interface MediaAPI {
    * release the buffer afterwards), so read the pixels synchronously. Returns an
    * unsubscribe function. Frames flow only while the camera is start()ed, are
    * throttled by the shell, and pause while the document is hidden.
+   *
+   * `opts.maxEdge` (added v1.4, optional) requests the working frame's longest edge
+   * in pixels: the shell downscales the source camera frame to a small default that
+   * suits a vector trace, but a raster-output tool (whose result is a bitmap, not
+   * traced shapes) can ask for more for sharper output. The shell clamps the request
+   * to the native camera frame (never upscales) and to its own ceiling, and — when
+   * several tools are live — uses the largest requested edge. The runtime forwards a
+   * tool's `render.liveMaxEdge` manifest hint here. A shell predating this opt simply
+   * ignores it and keeps its default size.
    */
-  subscribe(cb: (frame: MediaFrame) => void): () => void;
+  subscribe(cb: (frame: MediaFrame) => void, opts?: { maxEdge?: number }): () => void;
 }
 
 /** One camera frame as raw RGBA pixels — DOM-free, so the engine can pass it to a hook. */

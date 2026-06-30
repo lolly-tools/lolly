@@ -66,6 +66,83 @@ function color(v, fallback) {
 function hex2(n) { var h = clamp(Math.round(n), 0, 255).toString(16); return h.length < 2 ? '0' + h : h; }
 function rgbHex(r, g, b) { return '#' + hex2(r) + hex2(g) + hex2(b); }
 
+// ── HSL: luma-preserving hue∘saturation matrices (sRGB .213/.715/.072) + lightness ─
+function _mul3(a, b) {
+  var o = new Array(9);
+  for (var r = 0; r < 3; r++) for (var c = 0; c < 3; c++)
+    o[r * 3 + c] = a[r * 3] * b[c] + a[r * 3 + 1] * b[3 + c] + a[r * 3 + 2] * b[6 + c];
+  return o;
+}
+function _hueSatMatrix(hueDeg, sat) {
+  var h = hueDeg * Math.PI / 180, c = Math.cos(h), s = Math.sin(h);
+  var hm = [
+    0.213 + c * 0.787 - s * 0.213, 0.715 - c * 0.715 - s * 0.715, 0.072 - c * 0.072 + s * 0.928,
+    0.213 - c * 0.213 + s * 0.143, 0.715 + c * 0.285 + s * 0.140, 0.072 - c * 0.072 - s * 0.283,
+    0.213 - c * 0.213 - s * 0.787, 0.715 - c * 0.715 + s * 0.715, 0.072 + c * 0.928 + s * 0.072,
+  ];
+  var sm = [
+    0.213 + 0.787 * sat, 0.715 - 0.715 * sat, 0.072 - 0.072 * sat,
+    0.213 - 0.213 * sat, 0.715 + 0.285 * sat, 0.072 - 0.072 * sat,
+    0.213 - 0.213 * sat, 0.715 - 0.715 * sat, 0.072 + 0.928 * sat,
+  ];
+  return _mul3(sm, hm);
+}
+function hslIdentity(hueDeg, sat, light) { return hueDeg === 0 && sat === 1 && light === 0; }
+
+// Apply HSL (hue rotate ∘ saturation ∘ lightness) to a sample grid → a NEW grid.
+// Mirrors applyTone: recomputes luminance so a lightness shift moves which band a
+// pixel lands in (and the auto-sampled separation colours follow). Built fresh — the
+// decoded sample cache stays the raw photo.
+function applyHslGrid(g, hueDeg, sat, light) {
+  var m = _hueSatMatrix(hueDeg, sat);
+  var m00=m[0],m01=m[1],m02=m[2],m10=m[3],m11=m[4],m12=m[5],m20=m[6],m21=m[7],m22=m[8];
+  var nn = g.lum.length, r=new Uint8Array(nn), gg=new Uint8Array(nn), b=new Uint8Array(nn), lum=new Uint8Array(nn);
+  for (var i=0;i<nn;i++){var R=g.r[i],G=g.g[i],B=g.b[i];var nr=m00*R+m01*G+m02*B,ng=m10*R+m11*G+m12*B,nb=m20*R+m21*G+m22*B;
+    if(light>0){nr+=(255-nr)*light;ng+=(255-ng)*light;nb+=(255-nb)*light;}else if(light<0){var k=1+light;nr*=k;ng*=k;nb*=k;}
+    R=nr<0?0:nr>255?255:nr;G=ng<0?0:ng>255?255:ng;B=nb<0?0:nb>255?255:nb;r[i]=R;gg[i]=G;b[i]=B;lum[i]=(0.299*R+0.587*G+0.114*B)|0;}
+  return { lum:lum, alpha:g.alpha, r:r, g:gg, b:b, cols:g.cols, rows:g.rows };
+}
+
+// ── colour-treatment blend (separable modes; matches CSS/SVG feBlend keywords) ──
+function _bl(mode, b, s) {
+  switch (mode) {
+    case 'multiply': return b * s;
+    case 'screen': return b + s - b * s;
+    case 'overlay': return b < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'hard-light': return s < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'soft-light': return s <= 0.5 ? b - (1 - 2 * s) * b * (1 - b)
+      : b + (2 * s - 1) * ((b <= 0.25 ? ((16 * b - 12) * b + 4) * b : Math.sqrt(b)) - b);
+    case 'darken': return b < s ? b : s;
+    case 'lighten': return b > s ? b : s;
+    case 'color-dodge': return s >= 1 ? 1 : Math.min(1, b / (1 - s));
+    case 'color-burn': return s <= 0 ? 0 : Math.max(0, 1 - (1 - b) / s);
+    case 'difference': return b > s ? b - s : s - b;
+    case 'exclusion': return b + s - 2 * b * s;
+    default: return s; // normal
+  }
+}
+function _hex2rgb(hex) {
+  var s = (typeof hex === 'string' ? hex : '').trim().replace(/^#/, '');
+  if (s.length === 3) s = s[0]+s[0]+s[1]+s[1]+s[2]+s[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return { r: parseInt(s.slice(0,2),16), g: parseInt(s.slice(2,4),16), b: parseInt(s.slice(4,6),16) };
+}
+function _hx(v) { v = v < 0 ? 0 : v > 255 ? 255 : Math.round(v); var h = v.toString(16); return h.length < 2 ? '0' + h : h; }
+// Treatment state parsed once from inputs. ov=null or amt<=0 ⇒ treatment off.
+function treatmentFrom(inputs) {
+  var ov = _hex2rgb(inputs.treatmentColor);
+  var amt = clamp(num(inputs.treatmentIntensity, 20), 0, 100) / 100;
+  var mode = typeof inputs.blendMode === 'string' ? inputs.blendMode : 'multiply';
+  return { ov: ov, amt: amt, mode: mode, on: !!(ov && amt > 0) };
+}
+// Blend the treatment colour over a base hex → new hex (or unchanged if off / unparseable).
+function treatHex(baseHex, t) {
+  if (!t || !t.on) return baseHex;
+  var b = _hex2rgb(baseHex); if (!b) return baseHex;
+  function ch(bc, sc) { var B = bc / 255, S = sc / 255; return (B * (1 - t.amt) + _bl(t.mode, B, S) * t.amt) * 255; }
+  return '#' + _hx(ch(b.r, t.ov.r)) + _hx(ch(b.g, t.ov.g)) + _hx(ch(b.b, t.ov.b));
+}
+
 function canRaster() {
   if (typeof document === 'undefined' || !document.createElement) return false;
   try { var c = document.createElement('canvas'); return !!(c.getContext && c.getContext('2d')); }
@@ -449,6 +526,9 @@ async function compute(model) {
   var invert = Boolean(inputs.invert);
   var brightness = clamp(Math.round(num(inputs.brightness, 0)), -100, 100);
   var contrast = clamp(Math.round(num(inputs.contrast, 0)), -100, 100);
+  var hueDeg = clamp(num(inputs.hue, 0), -180, 180);
+  var sat = clamp(num(inputs.saturation, 100), 0, 200) / 100;
+  var light = clamp(num(inputs.lightness, 0), -100, 100) / 100;
   // Threshold mode collapses the posterise to ONE ink over paper (2 tones) at a MANUAL
   // cut instead of the auto quantile bands — so `steps` is overridden to 2, and the cut
   // level joins the tone signature so moving it reseeds swatches + busts caches like a
@@ -456,7 +536,7 @@ async function compute(model) {
   var threshold = Boolean(inputs.threshold);
   var thresholdLevel = clamp(Math.round(num(inputs.thresholdLevel, 50)), 1, 99);
   var effSteps = threshold ? 2 : steps;
-  var toneKey = brightness + ',' + contrast + (threshold ? '|t' + thresholdLevel : '');
+  var toneKey = brightness + ',' + contrast + (threshold ? '|t' + thresholdLevel : '') + '|h' + hueDeg + 's' + sat + 'l' + light;
   var W = clamp(Math.round(num(inputs.width, 1080)), 1, 8000);
   var H = clamp(Math.round(num(inputs.height, 1080)), 1, 8000);
 
@@ -486,16 +566,19 @@ async function compute(model) {
   // Brightness/Contrast: re-tone the photo before separating. Skip the pass entirely
   // when both are neutral so the common case stays a no-op on the cached sample grid.
   var gTone = (brightness || contrast) ? applyTone(g, toneLUT(brightness, contrast)) : g;
+  // HSL: hue rotate / saturation / lightness on the toned grid. No-op at defaults
+  // (hue 0, sat 100, light 0) so a freshly-loaded tool is byte-identical to before.
+  var gCol = hslIdentity(hueDeg, sat, light) ? gTone : applyHslGrid(gTone, hueDeg, sat, light);
 
   // Invert tones: trace from a negative of the (toned) luminance, so its bright
   // regions become the foreground separations. RGB is untouched (separations keep
   // their real photo colours), so it only reorders which tones group/stack. Built
   // fresh rather than mutating the cached sample grid.
-  var gEff = gTone;
+  var gEff = gCol;
   if (invert) {
-    var iv = new Uint8Array(gTone.lum.length);
-    for (var ii = 0; ii < iv.length; ii++) iv[ii] = 255 - gTone.lum[ii];
-    gEff = { lum: iv, alpha: gTone.alpha, r: gTone.r, g: gTone.g, b: gTone.b, cols: gTone.cols, rows: gTone.rows };
+    var iv = new Uint8Array(gCol.lum.length);
+    for (var ii = 0; ii < iv.length; ii++) iv[ii] = 255 - gCol.lum[ii];
+    gEff = { lum: iv, alpha: gCol.alpha, r: gCol.r, g: gCol.g, b: gCol.b, cols: gCol.cols, rows: gCol.rows };
   }
 
   // In threshold mode the single interior cut is the user's level (lum < cut → ink),
@@ -539,13 +622,19 @@ async function compute(model) {
 
   var grid = { g: gEff, cols: g.cols, rows: g.rows, tp: tp, invert: invert, tone: toneKey };
 
+  // Colour treatment: blend a colour over the OUTPUT separations + paper, non-
+  // destructively — the stored `colors` swatches stay the true sampled colours, so
+  // editing/reseeding still shows them. Off ⇒ paletteEff === palette (a no-op).
+  var _t = treatmentFrom(inputs);
+  var paletteEff = _t.on ? palette.map(function (c) { return treatHex(c, _t); }) : palette;
+
   // Memoise the SVG on everything that changes the pixels — palette, steps, size,
-  // quality, tone, transparency, photo — so dragging an unrelated control is cheap.
-  var memoKey = JSON.stringify({ url: url, steps: effSteps, thr: thr.join(','), q: inputs.quality, sm: inputs.smoothing, inv: invert, tone: toneKey, W: W, H: H, t: _transparent, pal: palette });
+  // quality, tone, transparency, photo, treatment — so dragging an unrelated control is cheap.
+  var memoKey = JSON.stringify({ url: url, steps: effSteps, thr: thr.join(','), q: inputs.quality, sm: inputs.smoothing, inv: invert, tone: toneKey, W: W, H: H, t: _transparent, pal: palette, tc: (_t.on ? _t.ov : null), tm: _t.mode, ti: _t.amt });
   if (memoKey === _memoKey) { patch.posterSvg = _memoResult; return patch; }
 
   var svg;
-  try { svg = buildPoster(url, img, W, H, grid, thr, palette); }
+  try { svg = buildPoster(url, img, W, H, grid, thr, paletteEff); }
   catch (e) {
     if (host.log) host.log('warn', 'filter-posterize: build failed', { error: String(e) });
     svg = placeholder('Could not posterise this photo.');
@@ -599,10 +688,13 @@ function onFrame(ctx) {
   var invert = Boolean(inputs.invert);
   var brightness = clamp(Math.round(num(inputs.brightness, 0)), -100, 100);
   var contrast = clamp(Math.round(num(inputs.contrast, 0)), -100, 100);
+  var hueDeg = clamp(num(inputs.hue, 0), -180, 180);
+  var sat = clamp(num(inputs.saturation, 100), 0, 200) / 100;
+  var light = clamp(num(inputs.lightness, 0), -100, 100) / 100;
   var threshold = Boolean(inputs.threshold);
   var thresholdLevel = clamp(Math.round(num(inputs.thresholdLevel, 50)), 1, 99);
   var effSteps = threshold ? 2 : steps;
-  var toneKey = brightness + ',' + contrast + (threshold ? '|t' + thresholdLevel : '');
+  var toneKey = brightness + ',' + contrast + (threshold ? '|t' + thresholdLevel : '') + '|h' + hueDeg + 's' + sat + 'l' + light;
   var W = clamp(Math.round(num(inputs.width, 1080)), 1, 8000);
   var H = clamp(Math.round(num(inputs.height, 1080)), 1, 8000);
 
@@ -610,11 +702,14 @@ function onFrame(ctx) {
   try { g = gridFromFrame(frame, LIVE_DETAIL); } catch (e) { return null; }
 
   var gTone = (brightness || contrast) ? applyTone(g, toneLUT(brightness, contrast)) : g;
-  var gEff = gTone;
+  // HSL: hue rotate / saturation / lightness on the toned grid. No-op at defaults
+  // (hue 0, sat 100, light 0) so a freshly-loaded tool is byte-identical to before.
+  var gCol = hslIdentity(hueDeg, sat, light) ? gTone : applyHslGrid(gTone, hueDeg, sat, light);
+  var gEff = gCol;
   if (invert) {
-    var iv = new Uint8Array(gTone.lum.length);
-    for (var ii = 0; ii < iv.length; ii++) iv[ii] = 255 - gTone.lum[ii];
-    gEff = { lum: iv, alpha: gTone.alpha, r: gTone.r, g: gTone.g, b: gTone.b, cols: gTone.cols, rows: gTone.rows };
+    var iv = new Uint8Array(gCol.lum.length);
+    for (var ii = 0; ii < iv.length; ii++) iv[ii] = 255 - gCol.lum[ii];
+    gEff = { lum: iv, alpha: gCol.alpha, r: gCol.r, g: gCol.g, b: gCol.b, cols: gCol.cols, rows: gCol.rows };
   }
   var thr = threshold
     ? [clamp(Math.round(thresholdLevel / 100 * 255), 1, 254)]
@@ -633,10 +728,13 @@ function onFrame(ctx) {
 
   var tp = traceParams(inputs.quality, inputs.smoothing);
   var grid = { g: gEff, cols: g.cols, rows: g.rows, tp: tp, invert: invert, tone: toneKey };
+  // Colour treatment over the live output, identical to the still path.
+  var _t = treatmentFrom(inputs);
+  var paletteEff = _t.on ? palette.map(function (c) { return treatHex(c, _t); }) : palette;
   var svg;
   // A unique per-frame url makes the geometry _bandCache never hit (every frame
   // retraces) and busts the still-path memo, so stopping live re-renders the still cleanly.
-  try { svg = buildPoster('live:' + frame.t, null, W, H, grid, thr, palette); }
+  try { svg = buildPoster('live:' + frame.t, null, W, H, grid, thr, paletteEff); }
   catch (e) { return null; }
   _memoKey = null;
   return { posterSvg: svg };

@@ -3,7 +3,7 @@
   "name": "Filter: Halftone",
   "description": "Vector halftone from any photo — dots sized by brightness.",
   "a11yLabel": "Halftone rendering of the chosen image as a grid of single-colour dots",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -60,10 +60,39 @@
       ]
     },
     {
+      "id": "colorSource",
+      "label": "Colour source",
+      "type": "select",
+      "default": "image",
+      "options": [
+        { "value": "image", "label": "From image" },
+        { "value": "solid", "label": "Solid colour" }
+      ],
+      "help": "Colour the dots from the photo underneath, or a single ink."
+    },
+    {
+      "id": "colorLevels",
+      "label": "Colour levels",
+      "type": "select",
+      "default": "0",
+      "showIf": { "colorSource": "image" },
+      "options": [
+        { "value": "0", "label": "Full colour" },
+        { "value": "8", "label": "8 levels" },
+        { "value": "6", "label": "6 levels" },
+        { "value": "4", "label": "4 levels" },
+        { "value": "3", "label": "3 levels" },
+        { "value": "2", "label": "2 levels" }
+      ],
+      "help": "Reduce the dot colours to a limited palette (levels per channel). Full keeps the photo's colours."
+    },
+    {
       "id": "fgColor",
       "label": "Dot colour",
       "type": "color",
-      "default": "#0c322c"
+      "default": "#0c322c",
+      "showIf": { "colorSource": "solid" },
+      "help": "Dot colour when Colour source is Solid."
     },
     {
       "id": "bgColor",
@@ -143,6 +172,84 @@
         { "value": "noise", "label": "Grainy (noise)" }
       ],
       "help": "Adds a newspaper-style 1-bit texture by snapping cells to full or empty dots."
+    },
+    {
+      "id": "hue",
+      "label": "Hue",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -180,
+      "max": 180,
+      "step": 1,
+      "help": "Rotate every colour around the wheel."
+    },
+    {
+      "id": "saturation",
+      "label": "Saturation",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 100,
+      "min": 0,
+      "max": 200,
+      "step": 1,
+      "help": "0 = greyscale · 100 = original · 200 = vivid."
+    },
+    {
+      "id": "lightness",
+      "label": "Lightness",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "help": "Lift toward white or sink toward black."
+    },
+    {
+      "id": "treatmentColor",
+      "label": "Colour treatment",
+      "section": "Colour",
+      "type": "color",
+      "default": "",
+      "help": "Blend a colour over the result. Leave empty for none."
+    },
+    {
+      "id": "blendMode",
+      "label": "Blend mode",
+      "section": "Colour",
+      "type": "select",
+      "default": "multiply",
+      "options": [
+        { "value": "normal", "label": "Normal" },
+        { "value": "multiply", "label": "Multiply" },
+        { "value": "screen", "label": "Screen" },
+        { "value": "overlay", "label": "Overlay" },
+        { "value": "darken", "label": "Darken" },
+        { "value": "lighten", "label": "Lighten" },
+        { "value": "color-dodge", "label": "Colour dodge" },
+        { "value": "color-burn", "label": "Colour burn" },
+        { "value": "hard-light", "label": "Hard light" },
+        { "value": "soft-light", "label": "Soft light" },
+        { "value": "difference", "label": "Difference" },
+        { "value": "exclusion", "label": "Exclusion" }
+      ],
+      "help": "How the treatment colour mixes with the image."
+    },
+    {
+      "id": "treatmentIntensity",
+      "label": "Intensity",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 20,
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "help": "Opacity of the colour overlay."
     }
   ],
   "hooks": {

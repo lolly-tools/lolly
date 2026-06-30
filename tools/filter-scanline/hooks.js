@@ -78,8 +78,53 @@ function getImage(url) {
   return promise;
 }
 
+// ── HSL colour grade (operates on the small grid canvas, before getImageData) ──
+function _mul3(a,b){var o=new Array(9);for(var r=0;r<3;r++)for(var c=0;c<3;c++)o[r*3+c]=a[r*3]*b[c]+a[r*3+1]*b[3+c]+a[r*3+2]*b[6+c];return o;}
+function _hueSatMatrix(hueDeg,sat){var h=hueDeg*Math.PI/180,c=Math.cos(h),s=Math.sin(h);var hm=[0.213+c*0.787-s*0.213,0.715-c*0.715-s*0.715,0.072-c*0.072+s*0.928,0.213-c*0.213+s*0.143,0.715+c*0.285+s*0.140,0.072-c*0.072-s*0.283,0.213-c*0.213-s*0.787,0.715-c*0.715+s*0.715,0.072+c*0.928+s*0.072];var sm=[0.213+0.787*sat,0.715-0.715*sat,0.072-0.072*sat,0.213-0.213*sat,0.715+0.285*sat,0.072-0.072*sat,0.213-0.213*sat,0.715-0.715*sat,0.072+0.928*sat];return _mul3(sm,hm);}
+function applyHslCtx(ctx,W,H,hueDeg,sat,light){if(hueDeg===0&&sat===1&&light===0)return;var img;try{img=ctx.getImageData(0,0,W,H);}catch(e){return;}var d=img.data,m=_hueSatMatrix(hueDeg,sat),m00=m[0],m01=m[1],m02=m[2],m10=m[3],m11=m[4],m12=m[5],m20=m[6],m21=m[7],m22=m[8];for(var i=0;i<d.length;i+=4){var r=d[i],g=d[i+1],b=d[i+2];var nr=m00*r+m01*g+m02*b,ng=m10*r+m11*g+m12*b,nb=m20*r+m21*g+m22*b;if(light>0){nr+=(255-nr)*light;ng+=(255-ng)*light;nb+=(255-nb)*light;}else if(light<0){var k=1+light;nr*=k;ng*=k;nb*=k;}d[i]=nr<0?0:nr>255?255:nr;d[i+1]=ng<0?0:ng>255?255:ng;d[i+2]=nb<0?0:nb>255?255:nb;}ctx.putImageData(img,0,0);}
+
+// ── colour-treatment blend (separable modes; matches CSS/SVG feBlend keywords) ──
+function _bl(mode, b, s) {
+  switch (mode) {
+    case 'multiply': return b * s;
+    case 'screen': return b + s - b * s;
+    case 'overlay': return b < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'hard-light': return s < 0.5 ? 2 * b * s : 1 - 2 * (1 - b) * (1 - s);
+    case 'soft-light': return s <= 0.5 ? b - (1 - 2 * s) * b * (1 - b)
+      : b + (2 * s - 1) * ((b <= 0.25 ? ((16 * b - 12) * b + 4) * b : Math.sqrt(b)) - b);
+    case 'darken': return b < s ? b : s;
+    case 'lighten': return b > s ? b : s;
+    case 'color-dodge': return s >= 1 ? 1 : Math.min(1, b / (1 - s));
+    case 'color-burn': return s <= 0 ? 0 : Math.max(0, 1 - (1 - b) / s);
+    case 'difference': return b > s ? b - s : s - b;
+    case 'exclusion': return b + s - 2 * b * s;
+    default: return s; // normal
+  }
+}
+function _hex2rgb(hex) {
+  var s = (typeof hex === 'string' ? hex : '').trim().replace(/^#/, '');
+  if (s.length === 3) s = s[0]+s[0]+s[1]+s[1]+s[2]+s[2];
+  if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+  return { r: parseInt(s.slice(0,2),16), g: parseInt(s.slice(2,4),16), b: parseInt(s.slice(4,6),16) };
+}
+function _hx(v) { v = v < 0 ? 0 : v > 255 ? 255 : Math.round(v); var h = v.toString(16); return h.length < 2 ? '0' + h : h; }
+// Treatment state parsed once from inputs. ov=null or amt<=0 ⇒ treatment off.
+function treatmentFrom(inputs) {
+  var ov = _hex2rgb(inputs.treatmentColor);
+  var amt = clamp(n(inputs.treatmentIntensity, 20), 0, 100) / 100;
+  var mode = typeof inputs.blendMode === 'string' ? inputs.blendMode : 'multiply';
+  return { ov: ov, amt: amt, mode: mode, on: !!(ov && amt > 0) };
+}
+// Blend the treatment colour over a base hex → new hex (or unchanged if off / unparseable).
+function treatHex(baseHex, t) {
+  if (!t || !t.on) return baseHex;
+  var b = _hex2rgb(baseHex); if (!b) return baseHex;
+  function ch(bc, sc) { var B = bc / 255, S = sc / 255; return (B * (1 - t.amt) + _bl(t.mode, B, S) * t.amt) * 255; }
+  return '#' + _hx(ch(b.r, t.ov.r)) + _hx(ch(b.g, t.ov.g)) + _hx(ch(b.b, t.ov.b));
+}
+
 // Downsample to a cols×rows grid of luminance (0..255). null on headless/tainted.
-function sampleGrid(img, cols, rows, fit) {
+function sampleGrid(img, cols, rows, fit, hueDeg, sat, light) {
   if (typeof document === 'undefined') return null;
   var c = document.createElement('canvas');
   c.width = cols; c.height = rows;
@@ -95,6 +140,7 @@ function sampleGrid(img, cols, rows, fit) {
   } else {
     ctx.drawImage(img, 0, 0, cols, rows);
   }
+  applyHslCtx(ctx, cols, rows, hueDeg, sat, light); // HSL grade before luminance read
   var data;
   try { data = ctx.getImageData(0, 0, cols, rows).data; } catch (e) { return null; }
   var g = new Float32Array(cols * rows);
@@ -116,6 +162,11 @@ function buildSvg(args) {
   var gap = everyLine ? 0 : clamp(n(args.gapSize, 4), 0, 48); // blank gap below each line
   var fit = args.fit === 'cover' ? 'cover' : 'contain';
 
+  // HSL colour grade — normalized so defaults (hue 0 / sat 100 / lightness 0) are a no-op.
+  var hueDeg = clamp(n(args.hue, 0), -180, 180);
+  var sat = clamp(n(args.saturation, 100), 0, 200) / 100;
+  var light = clamp(n(args.lightness, 0), -100, 100) / 100;
+
   var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
   var ar = iw / ih;
   var regionW, regionH;
@@ -133,7 +184,7 @@ function buildSvg(args) {
     rows = Math.max(1, Math.floor(rows * k));
   }
 
-  var grid = sampleGrid(img, cols, rows, fit);
+  var grid = sampleGrid(img, cols, rows, fit, hueDeg, sat, light);
   if (!grid) return null;
 
   // Tone bucketing on brightness/contrast-adjusted luminance → 5 brand tones.
@@ -147,6 +198,9 @@ function buildSvg(args) {
     colour(args.light, '#bff1ea'),    // 3
     colour(args.highlight, '#ffffff'),// 4  brightest
   ];
+  // Colour treatment: blend the chosen colour over every brand tone (no-op when empty).
+  var _t = treatmentFrom(args);
+  for (var fi = 0; fi < fills.length; fi++) fills[fi] = treatHex(fills[fi], _t);
   function bucket(lum) {
     var v = clamp(cf * (lum - 128) + 128 + brightness, 0, 255);
     return v >= 204 ? 4 : v >= 153 ? 3 : v >= 102 ? 2 : v >= 51 ? 1 : 0;
@@ -175,6 +229,7 @@ function buildSvg(args) {
   }
 
   var bg = _bgTransparent ? null : colour(args.background, '');
+  bg = bg ? treatHex(bg, _t) : bg; // treatment also tints the background fill
   var out = svgOpen();
   if (bg) out += '<rect width="' + VIEW + '" height="' + VIEW + '" fill="' + bg + '"/>';
   for (var t = 0; t < 5; t++) if (paths[t]) out += '<path fill="' + fills[t] + '" d="' + paths[t] + '"/>';
@@ -211,6 +266,8 @@ async function compute(model) {
     url: url, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
     highlight: inputs.highlight, light: inputs.light, mid: inputs.mid, shade: inputs.shade,
     shadow: inputs.shadow, background: inputs.background, brightness: inputs.brightness, contrast: inputs.contrast,
+    hue: inputs.hue, saturation: inputs.saturation, lightness: inputs.lightness,
+    treatmentColor: inputs.treatmentColor, blendMode: inputs.blendMode, treatmentIntensity: inputs.treatmentIntensity,
   };
   var memoKey = JSON.stringify(params);
   if (memoKey === _memoKey) return _memoResult;
@@ -254,6 +311,8 @@ function onFrame(ctx) {
     everyLine: inputs.everyLine, fit: inputs.fit, highlight: inputs.highlight, light: inputs.light,
     mid: inputs.mid, shade: inputs.shade, shadow: inputs.shadow, background: inputs.background,
     brightness: inputs.brightness, contrast: inputs.contrast,
+    hue: inputs.hue, saturation: inputs.saturation, lightness: inputs.lightness,
+    treatmentColor: inputs.treatmentColor, blendMode: inputs.blendMode, treatmentIntensity: inputs.treatmentIntensity,
   });
   _memoKey = null; // a live frame supersedes the still memo
   return { svgContent: svg || placeholder('Preview renders in the browser') };

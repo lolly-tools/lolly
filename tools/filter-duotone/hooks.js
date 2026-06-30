@@ -24,13 +24,43 @@ function ch(n) {
   return parseFloat(n.toFixed(4));
 }
 
+function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+
 function buildDuo(inputs) {
   const fg = hexToChannels(inputs.colorFg);
   const bg = hexToChannels(inputs.colorBg);
+
+  // Colour grade — applied as SVG filter primitives upstream of the duotone table
+  // (hueRotate → saturate → lightness), then a colour-treatment overlay after it.
+  // Defaults are a strict no-op: hue 0, saturation 100, lightness 0, no treatment.
+  var hueDeg = clamp(parseFloat(inputs.hue) || 0, -180, 180);
+  var sat = clamp(parseFloat(inputs.saturation == null ? 100 : inputs.saturation) || 0, 0, 200) / 100;
+  var lightV = clamp(parseFloat(inputs.lightness) || 0, -100, 100) / 100;
+  var liteSlope = lightV >= 0 ? (1 - lightV) : (1 + lightV);
+  var liteIntercept = lightV >= 0 ? lightV : 0;
+  // treatment: feFlood + feBlend after the duotone table, opacity = intensity.
+  // Off (empty / invalid colour) ⇒ amt 0, so the overlay contributes nothing.
+  var tc = (typeof inputs.treatmentColor === 'string' ? inputs.treatmentColor.trim() : '');
+  var tOn = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(tc);
+  var treatAmt = tOn ? clamp(parseFloat(inputs.treatmentIntensity == null ? 20 : inputs.treatmentIntensity) || 0, 0, 100) / 100 : 0;
+  var treatColor = tOn ? tc : '#000000';
+  var blendMode = (typeof inputs.blendMode === 'string' && inputs.blendMode) ? inputs.blendMode : 'multiply';
+
   return {
     tableR: `${ch(fg.r)} ${ch(bg.r)}`,
     tableG: `${ch(fg.g)} ${ch(bg.g)}`,
     tableB: `${ch(fg.b)} ${ch(bg.b)}`,
+    hueDeg: String(hueDeg),
+    satFrac: String(sat),
+    liteSlope: String(liteSlope),
+    liteIntercept: String(liteIntercept),
+    treatColor: treatColor,
+    // Returned as `treatBlend` (NOT `blendMode`) on purpose: a patch key equal to a
+    // declared input id is treated by the runtime as a write-back to that input
+    // (mergePatch), which is redundant and opens a stale-overwrite window. Keep it
+    // an extra so the template reads a computed value, never the input echoed back.
+    treatBlend: blendMode,
+    treatAmt: String(treatAmt),
   };
 }
 

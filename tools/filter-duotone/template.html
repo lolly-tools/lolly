@@ -2,11 +2,22 @@
      style="width:100%;height:auto;display:block;">
   <defs>
     <filter id="duo" color-interpolation-filters="sRGB">
-      <feComponentTransfer>
+      <feColorMatrix type="hueRotate" values="{{hueDeg}}" result="h"/>
+      <feColorMatrix type="saturate" values="{{satFrac}}" in="h" result="s"/>
+      <feComponentTransfer in="s" result="lit">
+        <feFuncR type="linear" slope="{{liteSlope}}" intercept="{{liteIntercept}}"/>
+        <feFuncG type="linear" slope="{{liteSlope}}" intercept="{{liteIntercept}}"/>
+        <feFuncB type="linear" slope="{{liteSlope}}" intercept="{{liteIntercept}}"/>
+      </feComponentTransfer>
+      <feComponentTransfer in="lit" result="duo">
         <feFuncR type="table" tableValues="{{tableR}}"/>
         <feFuncG type="table" tableValues="{{tableG}}"/>
         <feFuncB type="table" tableValues="{{tableB}}"/>
       </feComponentTransfer>
+      <feFlood flood-color="{{treatColor}}" result="tcol"/>
+      <feBlend in="duo" in2="tcol" mode="{{treatBlend}}" result="tb"/>
+      <feComponentTransfer in="tb" result="tba"><feFuncA type="linear" slope="{{treatAmt}}"/></feComponentTransfer>
+      <feMerge><feMergeNode in="duo"/><feMergeNode in="tba"/></feMerge>
     </filter>
   </defs>
 
