@@ -1400,6 +1400,135 @@ a.gtile-name:focus-visible::after {
 }
 .folder-ask-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
+/* ─── Projects view (/p) — gallery-style page over folders of saved sessions ─ */
+.projects-view { display: block; }
+/* Full-bleed like the gallery so the window uses all the space; the top-right
+   profile/history cluster reuses .gallery-topright (position:fixed; right:2em) verbatim,
+   so the profile button sits in the SAME window spot when toggling Tools ↔ Projects. */
+.projects { padding: 12px 20px 64px; }
+
+/* Tools | Projects segmented toggle (shared with the gallery header). Sticky like the
+   fixed profile/history cluster — stays pinned at the top on scroll. pointer-events:none
+   on the full-width wrap so only the pill catches clicks (content scrolls past on either
+   side); z-index matches .gallery-topright so they share the pinned top band. */
+.view-toggle-wrap { position: sticky; top: 8px; z-index: 99999; display: flex; justify-content: center; margin: 8px 0 22px; pointer-events: none; }
+.view-toggle { pointer-events: auto; }
+.view-toggle {
+  display: inline-flex; gap: 2px; padding: 3px;
+  border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted) / 0.5);
+}
+.view-toggle-opt {
+  padding: 6px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; line-height: 1.4;
+  color: hsl(var(--muted-foreground)); text-decoration: none; transition: background 0.12s, color 0.12s;
+}
+.view-toggle-opt:hover { color: hsl(var(--foreground)); }
+.view-toggle-opt.is-active {
+  background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px hsl(0 0% 0% / 0.12);
+}
+/* In the gallery the toggle floats above the masonry; keep it clear of the topright cluster. */
+.gallery .view-toggle-wrap { margin-top: 2px; }
+
+/* Fixed-width tiles packed top-left (no 1fr stretch) — file-manager convention. */
+.projects-grid { grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px; align-items: start; }
+
+/* "Create new" tiles (dashed, + icon). */
+.folder-tile--create { border-style: dashed; background: transparent; }
+.folder-tile--create:hover { border-color: hsl(var(--primary) / 0.7); background: hsl(var(--primary) / 0.04); }
+.tile-cover--create {
+  display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3;
+  color: hsl(var(--muted-foreground)); background: hsl(var(--muted) / 0.4);
+  border-bottom: 1px solid hsl(var(--border));
+}
+.folder-tile--create:hover .tile-cover--create { color: hsl(var(--primary)); }
+.tile-cover--create svg { width: 34px; height: 34px; }
+
+/* Folder-contents header. */
+.projects-head { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
+.projects-back {
+  display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: none;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius); color: hsl(var(--foreground)); text-decoration: none;
+}
+.projects-back:hover { background: hsl(var(--muted)); }
+.projects-back svg { width: 18px; height: 18px; }
+.projects-title { font-size: 20px; font-weight: 700; margin: 0; }
+.projects-title[data-rename-folder] { cursor: text; }
+.projects-title[data-rename-folder]:hover { text-decoration: underline dotted; text-underline-offset: 4px; }
+.projects-count { font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+.projects-head-spacer { flex: 1; }
+.projects-render { display: inline-flex; align-items: center; gap: 7px; }
+.projects-render svg { width: 15px; height: 15px; }
+
+/* "Move to" rail — drop targets in a folder view. */
+.projects-rail { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.projects-rail-hint {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+}
+.projects-chip {
+  padding: 6px 12px; border: 1px solid hsl(var(--border)); border-radius: 999px;
+  background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: 12.5px; cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+.projects-chip:hover { border-color: hsl(var(--primary) / 0.6); }
+.projects.is-dragging-session .projects-chip { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.04); }
+
+/* Drag feedback. */
+.folder-tile.is-dragging { opacity: 0.45; }
+.folder-tile[data-kind="session"] { cursor: grab; }
+.folder-tile.is-drop, .projects-chip.is-drop {
+  border-color: hsl(var(--primary)); box-shadow: 0 0 0 2px hsl(var(--primary) / 0.35); background: hsl(var(--primary) / 0.06);
+}
+
+/* Inline name input (create / rename). */
+.projects-name-input {
+  width: 100%; padding: 4px 6px; font-size: 13px; font-weight: 600;
+  border: 1px solid hsl(var(--primary)); border-radius: calc(var(--radius) / 1.5);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+.projects-empty { color: hsl(var(--muted-foreground)); font-size: 14px; margin: 18px 2px; }
+
+/* "Move to" group label inside the per-tile menu. */
+.folder-menu-head {
+  padding: 8px 10px 3px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: hsl(var(--muted-foreground));
+}
+
+/* "New from a tool" chooser dialog (the "+ New tool" file-style selector). */
+.projects-toolpicker {
+  border: 0; padding: 0; width: min(720px, 94vw); max-height: 84vh; overflow: hidden;
+  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4); display: flex; flex-direction: column;
+}
+.projects-toolpicker::backdrop { background: hsl(0 0% 0% / 0.42); }
+.toolpicker-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid hsl(var(--border)); }
+.toolpicker-title { font-size: 16px; font-weight: 700; margin: 0; flex: none; }
+.toolpicker-search {
+  flex: 1; min-width: 0; padding: 8px 14px; border: 1px solid hsl(var(--border));
+  border-radius: 999px; background: hsl(var(--background)); color: inherit; font-size: 13px;
+}
+.toolpicker-close {
+  flex: none; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid hsl(var(--border)); border-radius: 50%; background: none; color: inherit; cursor: pointer; font-size: 13px;
+}
+.toolpicker-close:hover { background: hsl(var(--muted)); }
+.toolpicker-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 10px; padding: 14px 18px 18px; overflow: auto;
+}
+.toolpicker-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 12px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card));
+  color: inherit; cursor: pointer; text-align: left; transition: border-color 0.12s, background 0.12s;
+}
+.toolpicker-tile:hover { border-color: hsl(var(--primary) / 0.6); background: hsl(var(--primary) / 0.05); }
+.toolpicker-icon { width: 26px; height: 26px; color: hsl(var(--primary)); }
+.toolpicker-icon svg { width: 100%; height: 100%; }
+.toolpicker-name { font-size: 13px; font-weight: 600; line-height: 1.25; }
+.toolpicker-desc {
+  font-size: 11px; color: hsl(var(--muted-foreground)); line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
 /* ─── Tool view layout ──────────────────────────────────────────────────── */
 
 .tool-layout {
@@ -1890,6 +2019,18 @@ a.gtile-name:focus-visible::after {
 .input-section:focus-within .input-row:not(:focus-within) { opacity: 0.45; }
 .blocks-list:focus-within .block-item:not(:focus-within) { opacity: 0.45; }
 .block-fields:focus-within .block-control:not(:focus-within) { opacity: 0.6; }
+
+/* Colour rows keep their swatch at full opacity — a faded colour indicator reads as
+   a faded/transparent colour, which misleads. Opacity on the row would cascade to
+   the swatch (a child can't exceed its parent's opacity), so instead leave the
+   colour row solid and recede only its text. Higher specificity than the dim rules
+   above, so it wins. */
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within),
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) { opacity: 1; }
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within) > .input-label,
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within) .color-trigger-hex,
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) > .input-label,
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) .color-trigger-hex { opacity: 0.45; }
 
 @media (prefers-reduced-motion: reduce) {
   /* The global reset covers animations + scroll-behavior but not transitions. */
@@ -2433,7 +2574,25 @@ background-color:hsl(var(--background) / 1);
   font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
 }
 .block-remove.is-confirming:hover { background: hsl(var(--destructive, 0 72% 51%)); color: #fff; }
-.block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 8px; align-items: end; }
+.block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 2px; align-items: end; }
+
+/* Compact untyped blocks (bare fields, no per-field labels, ≤3 fields) lay their
+   fields side by side in a single row instead of the 2-col grid, which would wrap a
+   3rd field to its own line — e.g. chart-creator's Label / Value / Colour. Scoped by
+   :not(:has(> .block-control)) (excludes labelled blocks like logo-wall) and
+   :not(:has(> :nth-child(4))) (excludes many-field blocks like arrows/wayfinding),
+   so only genuinely compact rows are affected. */
+.block-item--row .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) {
+  display: flex;
+  align-items: center;
+}
+.block-item--row .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > .block-field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.block-item--row .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > .block-color-field {
+  flex: 0 0 auto;
+}
 .block-control { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .block-control--full { grid-column: 1 / -1; }
 .block-control-label {

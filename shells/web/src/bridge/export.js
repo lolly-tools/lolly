@@ -67,10 +67,13 @@ export function createExportAPI(host) {
       // Detached clones lose getComputedStyle context: CSS variables don't resolve,
       // animations don't run, getBoundingClientRect returns zero — everything breaks.
       const removeWatermark = watermark ? addWatermarkOverlay(node) : null;
+      // Pull any editor-only chrome out of the tree for the duration of the capture.
+      const restoreHidden = detachExportHidden(node);
 
       try {
         return await renderFormat(node, format, opts);
       } finally {
+        restoreHidden();
         removeWatermark?.();
       }
     },
@@ -3843,6 +3846,22 @@ function addWatermarkOverlay(node) {
     stamp.remove();
     node.style.position = prevPosition;
   };
+}
+
+// Editor-only chrome (size previews, guides, safe-area overlays) opts out of EVERY
+// export by tagging itself [data-export-hide]. We detach those nodes for the
+// duration of the render and put them back exactly where they were — so no export
+// path (raster, SVG, PDF, …) can pick them up regardless of how it reads the DOM,
+// and the live editor is untouched afterwards. Mirrors the watermark overlay's
+// add/remove-in-finally discipline above.
+function detachExportHidden(node) {
+  if (!node?.querySelectorAll) return () => {};
+  const marked = [...node.querySelectorAll('[data-export-hide]')]
+    // Keep only the outermost when nested, so each re-insertion parent still exists.
+    .filter(el => !el.parentElement?.closest('[data-export-hide]'));
+  const slots = marked.map(el => ({ el, parent: el.parentNode, next: el.nextSibling }));
+  slots.forEach(({ el }) => el.remove());
+  return () => slots.forEach(({ el, parent, next }) => { if (parent) parent.insertBefore(el, next); });
 }
 
 // ── Text-based export formats ─────────────────────────────────────────────────

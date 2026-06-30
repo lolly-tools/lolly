@@ -196,8 +196,22 @@ export function wireColorField(scope, { onChange = () => {}, onInteractStart, on
       const left = Math.max(8, Math.min(t.left, window.innerWidth - W - 8));
       popover.style.cssText = `position:fixed;top:${Math.round(t.top)}px;left:${left}px;width:${W}px;right:auto;z-index:9999;border-top-left-radius:0;`;
       armOutside(field, popover);
+    } else {
+      // Regular sidebar field. Default CSS opens the popover downward (absolute, so
+      // it scrolls with the field). Where the field sits low in the scroll area the
+      // popover would be clipped by the sidebar's bottom — so flip it ABOVE the
+      // trigger instead (still absolute, still attached). Measure off-screen first.
+      const sb = scope.closest('.sidebar-body') || scope.closest('.sidebar');
+      const t = trigger.getBoundingClientRect();
+      const prev = popover.style.cssText;
+      popover.style.cssText = `position:fixed;visibility:hidden;left:-9999px;top:0;width:${Math.round(field.getBoundingClientRect().width)}px;`;
+      const ph = popover.offsetHeight;
+      popover.style.cssText = prev; // back to default downward (absolute) positioning
+      if (sb && (sb.getBoundingClientRect().bottom - t.bottom) < ph + 10) {
+        popover.style.top = 'auto';
+        popover.style.bottom = 'calc(100% + 4px)';
+      }
     }
-    // else: regular sidebar field → default CSS (absolute) positioning.
   }
 
   // Outside-click close (float fields only).
