@@ -1,0 +1,171 @@
+{
+  "id": "logo-lockup-partner",
+  "name": "Logo Lockup: Partner",
+  "description": "A co-branding lockup: the SUSE logo beside a partner's, with a vertical bar (or symbol, or “in partnership with” text) between them. Light or dark, optically balanced so both marks read equally, with sponsor-tier presence per logo. Add more partners for a “lead + partners” row. Your images stay on your device.",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "experimental",
+  "category": "designer",
+  "tags": ["logo", "lockup", "partner", "co-brand", "brand", "suse", "partnership", "sponsor", "powered-by", "on-device"],
+  "a11yLabel": "SUSE partner lockup with {{partners.length}} partner logos",
+  "render": {
+    "width": 1200,
+    "height": 360,
+    "formats": ["svg", "png", "pdf", "jpg", "webp"],
+    "actions": ["copy", "download", "save"],
+    "layout": "sidebar",
+    "transparentBg": true,
+    "convertPaths": true
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true
+  },
+  "inputs": [
+    {
+      "id": "theme",
+      "label": "Theme",
+      "type": "select",
+      "default": "light",
+      "help": "Light puts dark logos on a light background; dark flips it. The SUSE logo switches to the matching on-light / on-dark artwork automatically.",
+      "options": [
+        { "value": "light", "label": "Light" },
+        { "value": "dark", "label": "Dark" }
+      ]
+    },
+    {
+      "id": "lead",
+      "label": "Lead logo",
+      "type": "asset",
+      "assetType": "any",
+      "allowUpload": true,
+      "default": { "id": "suse/logo/hor-pos-green" },
+      "help": "Defaults to the SUSE logo, which follows the theme. Swap it for your own to lead with a different brand."
+    },
+    {
+      "id": "leadTreatment",
+      "label": "Lead colour",
+      "type": "select",
+      "default": "colour",
+      "help": "Full colour keeps the SUSE chameleon green; monochrome uses the one-colour SUSE mark (black on light, white on dark). For your own lead logo, monochrome desaturates it.",
+      "options": [
+        { "value": "colour", "label": "Full colour" },
+        { "value": "mono", "label": "Monochrome" }
+      ]
+    },
+    {
+      "id": "leadPresence",
+      "label": "Lead presence",
+      "type": "select",
+      "default": "normal",
+      "help": "How prominent the lead logo is, on top of any balancing. Use Large or Hero for a clear host (“powered by”) hierarchy.",
+      "options": [
+        { "value": "hero", "label": "Hero" },
+        { "value": "large", "label": "Large" },
+        { "value": "normal", "label": "Normal" },
+        { "value": "small", "label": "Small" }
+      ]
+    },
+    {
+      "id": "layout",
+      "label": "Layout",
+      "type": "select",
+      "default": "row",
+      "help": "Even row keeps every logo on one line. Lead + partners emphasises the lead and lets the partners wrap into a tidy group beside it.",
+      "options": [
+        { "value": "row", "label": "Even row" },
+        { "value": "lead", "label": "Lead + partners" }
+      ]
+    },
+    {
+      "id": "connector",
+      "label": "Connector",
+      "type": "select",
+      "default": "bar",
+      "help": "What sits between the lead and the partner(s).",
+      "options": [
+        { "value": "bar", "label": "Vertical bar" },
+        { "value": "symbol", "label": "Symbol" },
+        { "value": "text", "label": "Text" },
+        { "value": "none", "label": "Nothing (spacing only)" }
+      ]
+    },
+    {
+      "id": "symbol",
+      "label": "Symbol",
+      "type": "select",
+      "default": "times",
+      "showIf": { "connector": "symbol" },
+      "options": [
+        { "value": "times", "label": "× (times)" },
+        { "value": "plus", "label": "+ (plus)" },
+        { "value": "amp", "label": "& (and)" }
+      ]
+    },
+    {
+      "id": "connectorText",
+      "label": "Connector text",
+      "type": "text",
+      "default": "in partnership with",
+      "showIf": { "connector": "text" },
+      "help": "e.g. “in partnership with”, “powered by”, “×”."
+    },
+    {
+      "id": "size",
+      "label": "Logo size",
+      "type": "number",
+      "display": "slider",
+      "min": 40,
+      "max": 220,
+      "step": 2,
+      "default": 120,
+      "help": "Base height of the logos. Balancing and each logo's presence scale from here."
+    },
+    {
+      "id": "gap",
+      "label": "Spacing",
+      "type": "number",
+      "display": "slider",
+      "min": 8,
+      "max": 200,
+      "step": 2,
+      "default": 56,
+      "help": "Space around the connector and between partner logos."
+    },
+    {
+      "id": "balance",
+      "label": "Balance sizes",
+      "type": "boolean",
+      "default": true,
+      "help": "Auto-size each logo by its optical weight so the lead and partners read as equally prominent. Each logo's presence still applies on top. Turn off for equal-height logos."
+    },
+    {
+      "id": "partners",
+      "label": "Partners",
+      "type": "blocks",
+      "labelledFields": true,
+      "dropToAdd": { "field": "logo", "accept": "image/*" },
+      "fields": [
+        { "id": "logo", "label": "Partner logo", "type": "asset", "assetType": "any", "allowUpload": true },
+        { "id": "presence", "label": "Presence", "type": "select", "default": "normal",
+          "help": "How prominent this partner is, on top of any balancing.",
+          "options": [
+            { "value": "hero", "label": "Hero" },
+            { "value": "large", "label": "Large" },
+            { "value": "normal", "label": "Normal" },
+            { "value": "small", "label": "Small" }
+          ] },
+        { "id": "filter", "label": "Treatment", "type": "select", "default": "none",
+          "help": "Grayscale unifies mismatched partner colours; invert rescues a dark logo on a dark theme. Both survive every export format.",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "grayscale", "label": "Grayscale" },
+            { "value": "invert", "label": "Invert" }
+          ] },
+        { "id": "opacity", "label": "Opacity", "type": "number", "display": "slider", "min": 0.1, "max": 1, "step": 0.05, "default": 1 }
+      ],
+      "default": []
+    }
+  ]
+}

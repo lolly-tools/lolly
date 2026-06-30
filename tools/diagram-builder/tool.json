@@ -3,7 +3,7 @@
   "name": "Diagram Builder",
   "description": "Build org charts, layered \"layercake\" architecture diagrams, and process flowcharts — from visual cards, a typed text description, or ASCII art you draw. Clean export-safe output in the SUSE palette and type.",
   "a11yLabel": "{{default title \"Untitled\"}} — {{diagramType}} diagram",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "designer",
@@ -56,7 +56,7 @@
       "label": "Diagram text",
       "type": "longtext",
       "showIf": { "source": "text" },
-      "help": "Org: indent for hierarchy. Layercake: “# Layer” headings with cards listed below. Process: “A -> B -> C” (add “ : label” for an arrow label). “::” adds a card subtitle; “//” starts a comment.",
+      "help": "Org: indent for hierarchy. Layercake: “# Layer” headings with cards listed below. Process: “A -> B -> C” (add “ : label” for an arrow label). “::” adds a card subtitle; “@ https://…/logo.png” adds an image to a card; “//” starts a comment.",
       "default": "CEO\n  CTO :: Technology\n    Eng Lead\n    QA Lead\n  CFO :: Finance\n  COO :: Operations"
     },
     {
@@ -64,7 +64,7 @@
       "label": "ASCII art",
       "type": "longtext",
       "showIf": { "source": "ascii" },
-      "help": "Draw boxes with + - | and connect them with - | and arrowheads > < ^ v. Keep each box's | sides lined up with its +---+ borders. The first line inside a box is its title, the rest its subtitle. Your layout is preserved — we just render it as clean cards.",
+      "help": "Draw boxes with + - | and connect them with - | and arrowheads > < ^ v. Keep each box's | sides lined up with its +---+ borders. The first line inside a box is its title, the rest its subtitle, and a line of “@ https://…/logo.png” adds an image. Your layout is preserved — we just render it as clean cards.",
       "default": "+--------+          +-------+\n| Client |--------->|  API  |\n+--------+          +-------+\n                        |\n                        v\n                  +----------+\n                  | Database |\n                  +----------+"
     },
     {

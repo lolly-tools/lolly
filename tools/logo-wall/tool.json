@@ -1,13 +1,13 @@
 {
   "id": "logo-wall",
-  "name": "Logo Wall",
-  "description": "Drop in a pile of logos and arrange them into a clean, even wall — size, fade or grayscale each, or threshold them all into flat vector shapes. Your images stay on your device.",
-  "version": "1.0.0",
+  "name": "Logo Lockup: Grid (NASCAR)",
+  "description": "Drop in a pile of logos and arrange them into a clean, even grid — the classic sponsor / partner “NASCAR” wall. Balance them to equal optical weight, dial each one's presence up or down, fade or grayscale them, or flatten any logo to a single ink colour. Your images stay on your device.",
+  "version": "1.1.0",
   "engineVersion": "^1.0.0",
   "status": "experimental",
   "category": "designer",
-  "tags": ["logo", "wall", "grid", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "on-device"],
-  "a11yLabel": "A wall of {{logos.length}} logos",
+  "tags": ["logo", "lockup", "wall", "grid", "nascar", "logos", "brand", "partners", "customers", "sponsors", "clients", "montage", "cloud", "vector", "threshold", "on-device"],
+  "a11yLabel": "A grid of {{logos.length}} logos",
   "render": {
     "width": 1280,
     "height": 720,
@@ -124,7 +124,15 @@
       "dropToAdd": { "field": "logo", "accept": "image/*" },
       "fields": [
         { "id": "logo", "label": "Image", "type": "asset", "assetType": "any", "allowUpload": true },
-        { "id": "scale", "label": "Size %", "type": "number", "display": "slider", "min": 25, "max": 300, "step": 5, "default": 100 },
+        { "id": "presence", "label": "Presence", "type": "select", "default": "normal",
+          "help": "How prominent this logo is. Balancing equalises everyone first; Presence then deliberately weights this one up or down — sponsor-tier sizing.",
+          "options": [
+            { "value": "hero", "label": "Hero" },
+            { "value": "large", "label": "Large" },
+            { "value": "normal", "label": "Normal" },
+            { "value": "small", "label": "Small" }
+          ] },
+        { "id": "scale", "label": "Size %", "type": "number", "display": "slider", "min": 25, "max": 300, "step": 5, "default": 100, "help": "Fine nudge on top of Presence and balancing." },
         { "id": "opacity", "label": "Opacity", "type": "number", "display": "slider", "min": 0, "max": 1, "step": 0.05, "default": 1 },
         { "id": "filter", "label": "Filter", "type": "select", "default": "none", "options": [
           { "value": "none", "label": "None" },

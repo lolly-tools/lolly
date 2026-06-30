@@ -10,8 +10,9 @@
   "render": {
     "width": 1080,
     "height": 1080,
-    "formats": ["png", "jpg", "webp", "svg"],
-    "actions": ["copy", "download", "save"]
+    "formats": ["png", "jpg", "webp", "svg", "gif", "webm", "mp4"],
+    "actions": ["copy", "download", "save"],
+    "video": { "wait": 0, "duration": 5 }
   },
   "hooks": {
     "onInit": true,

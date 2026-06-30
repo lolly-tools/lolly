@@ -23,7 +23,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  /* No clipping: a logo sized above 100% (manually, by balancing, or by its Presence
+     tier) spills into the surrounding gap rather than being chopped at the cell edge —
+     there's room there, so use it. This also matches the SVG/PDF export walker, which
+     places each logo by its own box and never clipped the cell, so screen, PNG and
+     vector now agree. */
+  overflow: visible;
 }
 
 .lw-img {
@@ -60,8 +65,9 @@
 }
 
 /* A vectorised logo is a per-cell inline <svg> sized (width/height %) and fitted
-   exactly like the raster <img>, so vector and raster cells lay out identically.
-   The cell's overflow:hidden clips a balance-grown logo the same in both modes. */
+   exactly like the raster <img> — which is content-trimmed to match — so toggling a
+   logo between image and vector keeps the same footprint and the cells lay out
+   identically. */
 .lw-vec {
   display: block;
   object-fit: contain;

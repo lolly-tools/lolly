@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="ps-svg"
+     viewBox="0 0 {{width}} {{height}}" width="{{width}}" height="{{height}}"
+     preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block;">
+  {{#if outSrc}}
+  <!-- The whole composition (cover-framed photo + the pixel-stretch smear) is baked
+       into one bitmap by hooks.js — a deterministic canvas resample (drawImage of a
+       1px slice with smoothing off) so it looks identical in every browser, unlike
+       the CSS `image-rendering: pixelated` + transform trick that WebKit fades. The
+       bitmap already carries the export aspect, so map it 1:1 over the viewBox. In
+       live mode the camera frame is composed the same way and arrives here as outSrc. -->
+  <image href="{{outSrc}}" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>
+  {{else}}
+  <rect width="{{width}}" height="{{height}}" fill="#0f0f12"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+        font-family="system-ui, sans-serif" font-size="34" fill="#9ca3af">{{default note "Choose an image to stretch"}}</text>
+  {{/if}}
+</svg>
+<script>
+// Sync the SVG frame to the export dimension controls so non-square exports compose
+// correctly; fall back to the template's {{width}}/{{height}} viewBox. IIFE + var:
+// this <script> is re-created and re-run on every paint, so top-level const/let would
+// throw "already declared" on the second render.
+(function () {
+  var svg = document.getElementById('ps-svg');
+  if (!svg) return;
+  var vb = (svg.getAttribute('viewBox') || '0 0 1080 1080').split(/\s+/).map(Number);
+  var wEl = document.querySelector('[data-action="export-width"]');
+  var hEl = document.querySelector('[data-action="export-height"]');
+  var W = (wEl && parseFloat(wEl.value) > 0) ? parseFloat(wEl.value) : vb[2];
+  var H = (hEl && parseFloat(hEl.value) > 0) ? parseFloat(hEl.value) : vb[3];
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  var im = svg.querySelector('image');
+  if (im) { im.setAttribute('width', W); im.setAttribute('height', H); }
+})();
+</script>

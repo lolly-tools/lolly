@@ -10,7 +10,7 @@
   "render": {
     "width": 800,
     "height": 800,
-    "formats": ["webm", "mp4", "gif", "png", "svg", "pdf"],
+    "formats": ["webm", "mp4", "gif", "png", "svg","html", "pdf"],
     "actions": ["download", "copy", "save"],
     "video": {
       "wait": 1,

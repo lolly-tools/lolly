@@ -15,7 +15,7 @@ function onInit({ model, host }) {
 
 - **Additive only.** Methods may be added in a minor version; never removed or signature-changed without a major bump. When v2 ships, v1 keeps working.
 - **No platform-specific methods.** If only one shell can do something, it sits behind a `capabilities` flag in `tool.json` and shells that can't fulfil it expose a stub/error.
-- **Capabilities gate access.** `net` (`network`), `capture` and `compose` require a matching flag in the manifest's `capabilities`. `tokens`, `text` and `pdf` are optional and present only when the shell provides them. Declare what you need.
+- **Capabilities gate access.** `net` (`network`), `capture` and `compose` require a matching flag in the manifest's `capabilities`. `tokens`, `text`, `pdf` and `media` are optional and present only when the shell provides them (feature-detect, don't flag). Declare what you need.
 - `host.version` is `'1'`; `host.shell` is one of `web` · `tauri-desktop` · `tauri-mobile` · `cli`.
 
 ## `host.profile`
@@ -160,10 +160,25 @@ Render another tool's output to an embeddable asset — **tool composition** ("n
 
 `renderUrl(url, opts?)` is the **end-user** counterpart to `render` — added in **engine v1.3**, so feature-detect `host.compose?.renderUrl`. When a user pastes a Lolly tool *link* (embed URL, hash share route, or pretty path) into an asset picker, the host parses it manifest-aware — typed inputs coerce exactly as [URL mode](/info/url-mode.html) would — renders that tool, and returns an `AssetRef` whose `id` is the **canonical embed URL** (`https://lolly.tools/tool/<id>.<ext>?…`). That id *is* the asset's persistent identity: it round-trips through URL mode and saved sessions, and the runtime feeds it back here to re-render on load — so a tool-sourced image survives reload and travels inside a shared link, like a library asset id. `ComposeUrlOpts` (`format` · `width` · `height` · `unit` · `dpi`) overrides take precedence over anything parsed from the URL and are folded into the returned id. Like `render`, the child is never watermarked or provenance-stamped. Returns `null` when the URL isn't a recognised tool URL or the tool can't render (the caller leaves the slot empty) — a pasted link can only render a tool that already ships in this build.
 
+## `host.media` *(live camera — optional, v1.4)*
+
+A live camera frame source for **motion-reactive** tools — a tool can react to a webcam stream frame by frame (e.g. a filter that responds to movement). Optional and additive (engine **v1.4**); feature-detect `host.media?.isAvailable()`. **Not** a gated capability — it's pure progressive enhancement: a tool offers a "live" affordance only where a camera exists and runs as an ordinary still-image tool everywhere else, so do **not** list `camera` in the manifest's `capabilities`.
+
+| Method | Returns |
+|---|---|
+| `isAvailable()` | `boolean` — a camera is usable right now (a secure context) |
+| `start()` | `Promise<void>` — begin the camera (prompts for permission); reference-counted |
+| `stop()` | `void` — release one `start()`; the camera stops at the last release |
+| `subscribe(cb)` | `() => void` — receive frames; returns an unsubscribe function |
+
+A **`MediaFrame`** is `{ width, height, data: Uint8ClampedArray (RGBA), t }` — plain pixels, no DOM types, so the engine stays platform-agnostic (the shell owns the `MediaStream` / `<video>` / grab loop, mirroring `capture`). `data` is valid only for the synchronous duration of the callback, so read it synchronously; frames are downscaled + throttled and pause while the document is hidden.
+
+You rarely call `subscribe` yourself. A tool declares an **`onFrame`** hook and the runtime drives it once per camera frame — it owns the start → subscribe → `onFrame` → re-render loop and **drops overlapping frames** so a slow per-frame render self-throttles. The shell shows a "Go live" toggle that calls `runtime.startLive()` / `runtime.stopLive()` (released on unmount, so no camera outlives the tool). See [Authoring Tools](/info/authoring-tools.html) for the `onFrame` pattern; the four `filter-*` tools are the reference. Web + Tauri (its webview) provide it via `getUserMedia`; the headless CLI does not.
+
 ## `host.log`
 
 `log(level, msg, ctx?)` — `level` is `debug`·`info`·`warn`·`error`. Goes to the console in dev and a diagnostics buffer for support. Hook errors are caught and logged, not thrown.
 
 ## Sandbox
 
-Hooks run in a sandboxed `Function('host', …)` scope: only `host` is in reach. **No** `window`, `document`, `fetch`, `localStorage`, or module imports. `onInit` is allotted 5s, `onInput` 2s; overruns and errors are logged, never fatal.
+Hooks run in a sandboxed `Function('host', …)` scope: only `host` is in reach. **No** `window`, `document`, `fetch`, `localStorage`, or module imports. `onInit` is allotted 5s, `onInput` 2s; overruns and errors are logged, never fatal. `onFrame` (live camera) runs once per camera frame and is **not** time-boxed — keep it cheap; the runtime simply drops a frame if the previous one is still rendering.

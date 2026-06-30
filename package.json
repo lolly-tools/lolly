@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "dev:web": "node scripts/dev-web.js",
-    "build:web": "npm run build:info && npm --workspace shells/web run build",
+    "build:web": "npm run build:info && node scripts/build-tool-og.js && npm --workspace shells/web run build",
     "build:info": "node docs/build.js",
     "test": "node --test \"tests/**/*.test.js\" \"shells/web/src/**/*.test.js\"",
     "build:catalog": "node scripts/build-catalog-index.js && node scripts/checksum-assets.js",

@@ -41,7 +41,7 @@ Optional:
 
 - `capabilities` — `["network", "filesystem", "clipboard", "camera", "ffmpeg", "wasm", "capture", "compose"]`. Required for the host to expose those APIs to your tool. Tools without `"network"` cannot call `host.net.fetch`; tools that use `composes` (below) declare `"compose"`.
 - `privacy` — `"on-device"`. Marks a content-transform utility that processes the user's own file entirely on the device. Shows the "Runs on your device — nothing is uploaded" badge; enforces (validated) that the tool is never `experimental` and (at runtime) that exports carry no provenance metadata and no watermark. See the `file` input + `exportFile` hook below.
-- `hooks` — `{ onInit?, onInput?, beforeExport?, afterExport?, exportFile? }` boolean flags. If any are true, you must ship `hooks.js` with the matching functions. (`exportFile` is the transform path — file bytes in → transformed bytes out; see below.)
+- `hooks` — `{ onInit?, onInput?, onFrame?, beforeExport?, afterExport?, exportFile? }` boolean flags. If any are true, you must ship `hooks.js` with the matching functions. (`exportFile` is the transform path — file bytes in → transformed bytes out; `onFrame` makes the tool react to a live camera — both covered below.)
 - `composes` — embed another tool's render as an image (tool composition; see below). Requires the `"compose"` capability.
 - `a11yLabel` — accessible description of the rendered output. The preview canvas is exposed to screen readers as a single `role="img"`; this is its label. It's a Handlebars string hydrated with the current input values (same context as the template), so it stays accurate as the user edits — e.g. `"QR code linking to {{url}}"` or `"Meeting plan for {{default count \"a\"}} people"`. Use `{{default x \"fallback\"}}` for empty inputs. Omit it and the label falls back to `"<name> preview"`. Keep it short and factual — it replaces, not supplements, the canvas contents for SR users.
 
@@ -312,9 +312,33 @@ function exportFile({ model }) {
   // picked file's bytes and return the transformed file: { bytes, mime, filename }.
   // Bypasses the DOM render/export pipeline entirely. See the `file` input above.
 }
+
+function onFrame({ frame, model, host }) {
+  // Live camera (v1.4). Runs once per webcam frame so the render reacts to motion.
+  // `frame` = { width, height, data (RGBA Uint8ClampedArray), t }. Read pixels
+  // synchronously; return a patch like onInput. See "Motion-reactive tools" below.
+  return { svgContent: traceFrame(frame, model) };
+}
 ```
 
 Declared hooks must be flagged in the manifest's `hooks` object (`{ "onInit": true, ... }`) — the loader only invokes hooks the manifest opts into.
+
+### Motion-reactive tools (`onFrame`)
+
+Declare an `onFrame` hook and your tool can react to a **live camera** — the shell shows a "Go live" toggle wherever a camera is available (`host.media`), and the runtime drives `onFrame` once per frame. This is **pure progressive enhancement**: `onFrame` is never called where there's no camera, so the tool still works as an ordinary still-image tool. **Do not** add `camera` to `capabilities` — that would *require* a camera and hide the tool where there isn't one.
+
+A frame carries raw pixels (`frame.data`, RGBA), so the usual move is to wrap them in a canvas the still pipeline already understands and reuse it:
+
+```js
+function onFrame({ frame, model }) {
+  const c = document.createElement('canvas');
+  c.width = frame.width; c.height = frame.height;
+  c.getContext('2d').putImageData(new ImageData(frame.data, frame.width, frame.height), 0, 0);
+  return { svgContent: build(c, inputsFrom(model)) }; // same builder as onInit/onInput
+}
+```
+
+Keep it cheap — `onFrame` isn't time-boxed, but the runtime drops a frame if the previous one is still rendering, so an expensive per-frame render just lowers the frame rate. The four `filter-*` tools are the reference (halftone/scanline/posterise/duotone); pixel-tracers wrap the frame as above, while the SVG-filter duotone hands the frame back as a data-URL image instead.
 
 **What you can call:**
 - Everything on `host.*` your manifest's `capabilities` allows.

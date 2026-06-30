@@ -1,0 +1,27 @@
+{{#if hasContent}}
+<div class="ll-stage {{themeClass}} {{layoutClass}}" style="--ll-gap:{{gap}}px; --ll-ink:{{ink}}; background:{{stageBg}}; color:{{ink}};">
+  <div class="ll-row">
+    {{#with leadCell}}
+    <div class="ll-logo ll-lead" data-canvas-input="{{canvasId}}">
+      <img class="ll-img {{filterClass}}" src="{{displayUrl}}" alt="{{name}}" style="height:{{h}}px; width:auto; opacity:{{opacity}};">
+    </div>
+    {{/with}}
+    {{#if connectorOn}}
+    <div class="ll-conn ll-conn-{{connKind}}" style="{{connStyle}}" aria-hidden="true">{{connText}}</div>
+    {{/if}}
+    {{#if partnerCells.length}}
+    <div class="ll-partners">
+      {{#each partnerCells}}
+      <div class="ll-logo" data-canvas-input="{{canvasId}}">
+        <img class="ll-img {{filterClass}}" src="{{displayUrl}}" alt="{{name}}" style="height:{{h}}px; width:auto; opacity:{{opacity}};">
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+  </div>
+</div>
+{{else}}
+<div class="ll-stage ll-theme-light" style="background:#ffffff; color:#16181d;">
+  <div class="ll-empty" data-file-pick role="button" tabindex="0">Add a partner logo — drop it here or click to choose — and it sits beside the SUSE logo.</div>
+</div>
+{{/if}}

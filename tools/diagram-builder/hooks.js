@@ -249,8 +249,10 @@ function normaliseNodes(rawNodes) {
     var id = slug(b.nodeId) || slug(label) || ('node-' + (i + 1));
     if (used[id]) { var k = 2; while (used[id + '-' + k]) k++; id = id + '-' + k; } // dedupe
     used[id] = 1;
-    var ref = b.image; // resolved asset ref { url, type, format, meta } — visual editor only
-    var imgUrl = (ref && ref.url) ? ref.url : '';
+    // image: a resolved asset ref { url, type, format, meta } from the visual editor,
+    // OR a raw path/URL string typed in the text DSL / ASCII art.
+    var ref = b.image;
+    var imgUrl = (typeof ref === 'string') ? trim(ref) : ((ref && ref.url) ? ref.url : '');
     nodes.push({
       idx: i, id: id,
       shape: (b.shape === 'box' || b.shape === 'pill') ? b.shape : 'rounded',
@@ -551,6 +553,24 @@ function leadIndent(s) { var n = 0; for (var i = 0; i < s.length; i++) { var c =
 function stripBullet(s) { return s.replace(/^[-*•]\s+/, ''); }
 function splitDetail(s) { var i = s.indexOf('::'); return i >= 0 ? { label: s.slice(0, i).trim(), detail: s.slice(i + 2).trim() } : { label: s.trim(), detail: '' }; }
 function splitArrowLabel(s) { var m = s.match(/\s:\s+(.+)$/); return m ? { body: s.slice(0, m.index), label: m[1].trim() } : { body: s, label: '' }; }
+// Accept a typed image path/URL only if it's safe + actually looks like one: http(s)/
+// data: schemes, or a scheme-less path (has a slash or an image extension). Blocks
+// javascript:/file:/etc and stray '@word' text (e.g. "Ops @ HQ" is NOT an image).
+function imageRef(s) {
+  s = trim(s);
+  if (!s) return '';
+  var m = s.match(/^([a-z][a-z0-9+.-]*):/i);
+  if (m) { var sch = m[1].toLowerCase(); return (sch === 'http' || sch === 'https' || sch === 'data') ? s : ''; }
+  return (s.indexOf('/') >= 0 || /\.(png|jpe?g|gif|svg|webp|avif|bmp|ico)$/i.test(s)) ? s : '';
+}
+// A card token: `Label :: Detail @ image/path.png`. The image (after a whitespace-led
+// '@') is pulled off first, then the subtitle, leaving the label.
+function splitToken(s) {
+  var image = '', m = String(s).match(/\s@\s*([^@]+)$/);
+  if (m) { var ref = imageRef(m[1]); if (ref) { image = ref; s = s.slice(0, m.index); } }
+  var d = splitDetail(s);
+  return { label: d.label, detail: d.detail, image: image };
+}
 
 // Push the arrows of a `A -> B -> C` chain. addNode (process) creates/returns a node
 // id per endpoint; without it (org/layercake) endpoints resolve by slug to existing
@@ -560,8 +580,8 @@ function collectArrows(content, arrows, addNode) {
   var parts = al.body.split('->').map(function (s) { return s.trim(); }).filter(Boolean);
   if (parts.length < 2) { if (addNode && parts.length === 1) addNode(parts[0]); return; }
   for (var i = 0; i < parts.length - 1; i++) {
-    var aId = addNode ? addNode(parts[i]) : slug(splitDetail(parts[i]).label);
-    var bId = addNode ? addNode(parts[i + 1]) : slug(splitDetail(parts[i + 1]).label);
+    var aId = addNode ? addNode(parts[i]) : slug(splitToken(parts[i]).label);
+    var bId = addNode ? addNode(parts[i + 1]) : slug(splitToken(parts[i + 1]).label);
     arrows.push({ from: aId, to: bId, label: (i === parts.length - 2 ? al.label : ''), style: 'solid', color: '' });
   }
 }
@@ -573,11 +593,11 @@ function parseOrg(lines) {
     var t = raw.trim();
     if (isComment(t) || t.charAt(0) === '#') return;
     if (t.indexOf('->') >= 0) { collectArrows(stripBullet(t), arrows, null); return; }
-    var indent = leadIndent(raw), d = splitDetail(stripBullet(t));
+    var indent = leadIndent(raw), d = splitToken(stripBullet(t));
     if (!d.label) return;
     var id = uid(d.label);
     while (stack.length && stack[stack.length - 1].indent >= indent) stack.pop();
-    nodes.push({ shape: 'rounded', nodeId: id, label: d.label, detail: d.detail, parent: stack.length ? stack[stack.length - 1].id : '', layer: '', fill: '' });
+    nodes.push({ shape: 'rounded', nodeId: id, label: d.label, detail: d.detail, image: d.image, parent: stack.length ? stack[stack.length - 1].id : '', layer: '', fill: '' });
     stack.push({ indent: indent, id: id });
   });
   return { nodes: nodes, layers: [], arrows: arrows };
@@ -598,9 +618,9 @@ function parseLayercake(lines) {
     }
     var c = stripBullet(t);
     if (c.indexOf('->') >= 0) { collectArrows(c, arrows, null); return; }
-    var d = splitDetail(c);
+    var d = splitToken(c);
     if (!d.label) return;
-    nodes.push({ shape: 'rounded', nodeId: uid(usedN, d.label, 'node'), label: d.label, detail: d.detail, parent: '', layer: cur, fill: '' });
+    nodes.push({ shape: 'rounded', nodeId: uid(usedN, d.label, 'node'), label: d.label, detail: d.detail, image: d.image, parent: '', layer: cur, fill: '' });
   });
   return { nodes: nodes, layers: layers, arrows: arrows };
 }
@@ -608,9 +628,13 @@ function parseLayercake(lines) {
 function parseProcess(lines) {
   var nodes = [], arrows = [], seen = {};
   function addNode(rawPart) {
-    var d = splitDetail(rawPart), key = slug(d.label) || 'step';
-    if (seen[key]) { if (d.detail && !seen[key].detail) seen[key].detail = d.detail; return key; } // a later line can annotate
-    var node = { shape: 'rounded', nodeId: key, label: d.label, detail: d.detail, parent: '', layer: '', fill: '' };
+    var d = splitToken(rawPart), key = slug(d.label) || 'step';
+    if (seen[key]) { // a later line can annotate an existing step
+      if (d.detail && !seen[key].detail) seen[key].detail = d.detail;
+      if (d.image && !seen[key].image) seen[key].image = d.image;
+      return key;
+    }
+    var node = { shape: 'rounded', nodeId: key, label: d.label, detail: d.detail, image: d.image, parent: '', layer: '', fill: '' };
     seen[key] = node; nodes.push(node);
     return key;
   }
@@ -664,14 +688,18 @@ function parseAscii(text) {
   }
   if (!boxes.length) return { nodes: [], arrows: [], pos: [] };
 
-  // 2) interior text → label (first non-blank line) + detail (the rest joined).
+  // 2) interior text → label (first non-blank line) + detail (the rest joined). An
+  // interior line of '@ path' sets the box image instead of being shown as text.
   boxes.forEach(function (b) {
-    var lines = [], s, rr2, cc2;
+    var lines = [], s, rr2, cc2, im;
     for (rr2 = b.r0 + 1; rr2 < b.r1; rr2++) {
       s = '';
       for (cc2 = b.c0 + 1; cc2 < b.c1; cc2++) s += ch(rr2, cc2);
       s = s.trim();
-      if (s) lines.push(s);
+      if (!s) continue;
+      im = s.match(/^@\s*(.+)$/);
+      if (im && imageRef(im[1])) { b.image = imageRef(im[1]); continue; }
+      lines.push(s);
     }
     b.label = lines[0] || '';
     b.detail = lines.slice(1).join(' ');
@@ -683,7 +711,7 @@ function parseAscii(text) {
     var base = slug(b.label) || ('box-' + (bi + 1)), id = base, k = 2;
     while (used[id]) { id = base + '-' + k; k++; }
     used[id] = 1; b.id = id;
-    nodes.push({ shape: 'rounded', nodeId: id, label: b.label, detail: b.detail, parent: '', layer: '', fill: '' });
+    nodes.push({ shape: 'rounded', nodeId: id, label: b.label, detail: b.detail, image: b.image || '', parent: '', layer: '', fill: '' });
     pos.push({ x: b.c0 * CW, y: b.r0 * CH, w: Math.max(96, (b.c1 - b.c0) * CW), h: Math.max(44, (b.r1 - b.r0) * CH) });
   });
 
@@ -789,7 +817,12 @@ async function buildDiagram(inp) {
     // Preserve the sketch: positions come straight from the grid (no layouter),
     // and labels may wrap to fit whatever box the user drew.
     S.labelLines = 3;
-    nodes.forEach(function (n, i) { var p = asciiPos[i]; if (p) { n.x = p.x; n.y = p.y; n.w = p.w; n.h = p.h; } });
+    nodes.forEach(function (n, i) {
+      var p = asciiPos[i]; if (!p) return;
+      n.x = p.x; n.y = p.y; n.w = p.w;
+      // Grow a drawn box if needed so an image band + a line of text both fit.
+      n.h = n.image ? Math.max(p.h, CARD_PAD_V * 2 + S.imgBand + LABEL_LH) : p.h;
+    });
     layout = { autoEdges: [], bands: [], layerById: {} };
   } else if (mode === 'layercake') {
     layout = layoutLayercake(nodes, src.layers, S); // sets S.cardH / S.labelLines

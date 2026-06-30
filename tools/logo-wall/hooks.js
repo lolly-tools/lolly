@@ -37,6 +37,13 @@
 // can't blow up tracing time/output (≈ a 330×330 grid).
 var MAX_CELLS_PER_LOGO = 110000;
 
+// Per-logo "Presence" tiers → a size multiplier applied on TOP of any auto-balance:
+// balance first equalises optical weight, then Presence deliberately biases a logo
+// up or down (a headline sponsor reads large, a minor one small). The sponsor-tier
+// weighting control. Unknown values fall back to Normal (×1).
+var PRESENCE = { hero: 1.6, large: 1.25, normal: 1, small: 0.72 };
+function presenceMul(v) { return PRESENCE[v] != null ? PRESENCE[v] : 1; }
+
 // Decoded-image cache: url -> in-flight Promise<Image> (shared across re-renders).
 var _imgCache = {};
 // Traced-path cache: key -> { d, cols, rows } in grid-unit coords.
@@ -48,6 +55,11 @@ var _boxCache = {};
 // Inlined-SVG cache: url -> Promise<{ inner, vbx, vby, vbw, vbh }> for vector
 // logos, which are inlined (and recoloured) rather than traced.
 var _svgCache = {};
+// Content-trimmed raster cache: url -> data-URL of the logo cropped to its content
+// box (margins removed). A full-colour raster logo renders from this so it fits its
+// cell exactly like the vector path does (whose viewBox is already the content box) —
+// toggling "Render as vector" no longer changes the apparent size. Cached per url.
+var _cropCache = {};
 // Remembered for beforeExport (which only sees format/opts).
 var _transparent = false, _bg = '#ffffff';
 
@@ -201,6 +213,50 @@ function measureContent(url, img) {
   }
   _boxCache[url] = box;
   return box;
+}
+
+// A full-colour raster logo, cropped to its content box (margins removed), as a
+// data URL. The vector path already fits each logo to its trimmed content box (the
+// inline <svg> viewBox), but a plain <img> with object-fit:contain fits the WHOLE
+// image — transparent / flat-colour margins included — so the same logo looked
+// smaller as an image than as vector, and toggling "Render as vector" jumped its
+// size. Cropping the bitmap to the same content box makes both paths letterbox the
+// SAME artwork into the SAME size% box. We keep it a real <img> src (not a wrapper
+// crop) because the SVG/PDF export walker reads only the element's own geometry —
+// an overflow-clipped wrapper would be ignored, but a pre-cropped bitmap embeds
+// faithfully in every format. Returns the original url unchanged when there's no
+// meaningful margin to trim, when pixels can't be read (headless), or on failure.
+function getTrimmedRaster(url, img, box) {
+  if (_cropCache[url] !== undefined) return _cropCache[url];
+  if (!box) return url;
+  // Already tight — nothing to gain, and re-encoding would only cost quality.
+  if (box.fx <= 0.012 && box.fy <= 0.012 && box.fw >= 0.976 && box.fh >= 0.976) {
+    _cropCache[url] = url; return url;
+  }
+  if (typeof document === 'undefined' || !document.createElement) return url;
+  var iw = img.naturalWidth || img.width, ih = img.naturalHeight || img.height;
+  if (!iw || !ih) return url;
+  // Content box in source pixels (rounded outward by a pixel so we never shave the
+  // mark's own edge), clamped to the image.
+  var sx = clamp(Math.floor(box.fx * iw) - 1, 0, iw - 1);
+  var sy = clamp(Math.floor(box.fy * ih) - 1, 0, ih - 1);
+  var sw = clamp(Math.ceil((box.fx + box.fw) * iw) + 1, sx + 1, iw) - sx;
+  var sh = clamp(Math.ceil((box.fy + box.fh) * ih) + 1, sy + 1, ih) - sy;
+  if (sw <= 0 || sh <= 0) { _cropCache[url] = url; return url; }
+  try {
+    var c = document.createElement('canvas');
+    c.width = sw; c.height = sh;
+    var ctx = c.getContext && c.getContext('2d');
+    if (!ctx) return url;
+    // Draw at native resolution (no downscale) so the crop loses no detail.
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+    var out = c.toDataURL('image/png');   // PNG keeps the logo's transparency
+    _cropCache[url] = out;
+    return out;
+  } catch (e) {                            // tainted canvas, or toDataURL refused
+    _cropCache[url] = url;
+    return url;
+  }
 }
 
 // ── SVG logos: inline instead of trace ───────────────────────────────────────
@@ -585,6 +641,7 @@ function pruneCaches(activeUrls) {
   Object.keys(_imgCache).forEach(function (u) { if (!keep[u]) delete _imgCache[u]; });
   Object.keys(_boxCache).forEach(function (u) { if (!keep[u]) delete _boxCache[u]; });
   Object.keys(_svgCache).forEach(function (u) { if (!keep[u]) delete _svgCache[u]; });
+  Object.keys(_cropCache).forEach(function (u) { if (!keep[u]) delete _cropCache[u]; });
   Object.keys(_traceCache).forEach(function (k) {
     var u = k.slice(0, k.indexOf('|'));
     if (!keep[u]) delete _traceCache[k];
@@ -628,15 +685,13 @@ async function buildVectorLogo(it, ink, globalTP) {
   if (it.isSvg) {
     var svg = await getSvg(it.url).catch(function () { return null; });
     if (!svg || !svg.inner) return '';
-    var simg = await getImage(it.url).catch(function () { return null; });
-    var sbox = simg ? measureContent(it.url, simg) : null;
-    var cbx = svg.vbx, cby = svg.vby, cbw = svg.vbw, cbh = svg.vbh;
-    if (sbox) {
-      cbx = svg.vbx + sbox.fx * svg.vbw; cby = svg.vby + sbox.fy * svg.vbh;
-      cbw = Math.max(1e-3, sbox.fw * svg.vbw); cbh = Math.max(1e-3, sbox.fh * svg.vbh);
-    }
-    // `color` carries the ink so any stroke="currentColor" (preserved line art) inks too.
-    return wrap(cbx, cby, cbw, cbh, '<g fill="' + esc(ink) + '" color="' + esc(ink) + '">' + svg.inner + '</g>');
+    // Use the SVG's own viewBox — the SAME bounds its full-colour <img> presents (an
+    // SVG can't be canvas-cropped without rasterising, so its image path keeps the
+    // full viewBox). Matching it here means toggling "Render as vector" only swaps the
+    // paint, never the size. SVG viewBoxes are authored tight, so balancing still reads
+    // each mark fairly; `color` carries the ink so stroke="currentColor" line art inks.
+    return wrap(svg.vbx, svg.vby, svg.vbw, svg.vbh,
+      '<g fill="' + esc(ink) + '" color="' + esc(ink) + '">' + svg.inner + '</g>');
   }
 
   var img = await getImage(it.url).catch(function () { return null; });
@@ -666,15 +721,18 @@ async function buildItems(inputs, balance) {
   var items = logos.map(function (b, i) {
     var ref = b && b.logo;
     var s = clamp(num(b && b.scale, 100), 5, 400);
+    var url = ref && ref.url ? ref.url : '';
     return {
       index: i,
-      url: ref && ref.url ? ref.url : '',
+      url: url,
+      displayUrl: url,                          // full-colour <img> src; content-trimmed below
       name: ref && ref.meta && ref.meta.name ? ref.meta.name : '',
       isSvg: !!(ref && (ref.type === 'vector' || ref.format === 'svg')),
       vectorize: !!(b && b.vectorize),          // per-logo "Render as vector"
       opacity: clamp(num(b && b.opacity, 1), 0, 1),
       filter: (b && b.filter) || 'none',
       scale: s,
+      pmul: presenceMul(b && b.presence),       // Presence tier → size multiplier
       size: s,
       // Per-logo vector overrides (only applied when `tune` is on; see buildVectorLogo).
       tune: !!(b && b.tune),
@@ -685,32 +743,59 @@ async function buildItems(inputs, balance) {
     };
   });
 
-  if (!balance || !canRaster()) return items;
-  var withUrl = items.filter(function (it) { return it.url; });
-  if (withUrl.length < 2) return items;           // nothing to balance against
-
-  var imgs = await Promise.all(withUrl.map(function (it) {
-    return getImage(it.url).catch(function () { return null; });
-  }));
-  var dens = [];
-  for (var i = 0; i < withUrl.length; i++) {
-    var box = imgs[i] ? measureContent(withUrl[i].url, imgs[i]) : null;
-    // Weight is the artwork's footprint over its bounding square (any colour), so a
-    // sparse mark is "light" and a solid one "heavy" regardless of margin, colour or
-    // invert. Floor it so a near-empty logo still counts as light and grows.
-    withUrl[i]._den = (box && box.weight != null) ? Math.max(box.weight, 0.01) : null;
-    if (withUrl[i]._den) dens.push(withUrl[i]._den);
+  // Trim each full-colour raster logo to its content box (margins removed) so an <img>
+  // fills its cell exactly like the vector path does — toggling "Render as vector" no
+  // longer changes the apparent size. Needs a browser canvas; headless keeps the
+  // original src. SVG logos can't be canvas-cropped without rasterising, so they keep
+  // their (already-tight) viewBox in both modes.
+  if (canRaster()) {
+    await Promise.all(items.map(async function (it) {
+      if (!it.url || it.isSvg) return;
+      var img = await getImage(it.url).catch(function () { return null; });
+      if (!img) return;
+      it.displayUrl = getTrimmedRaster(it.url, img, measureContent(it.url, img));
+    }));
   }
-  if (dens.length < 2) { withUrl.forEach(function (it) { delete it._den; }); return items; }
-  // Reference = MEDIAN weight, so one mis-measured logo can't drag the whole wall the
-  // way a geometric mean would.
-  dens.sort(function (a, b) { return a - b; });
-  var mid = dens.length >> 1;
-  var refDen = dens.length % 2 ? dens[mid] : (dens[mid - 1] + dens[mid]) / 2;
-  withUrl.forEach(function (it) {
-    var factor = it._den ? clamp(Math.sqrt(refDen / it._den), 0.55, 1.7) : 1;
-    it.size = clamp(it.scale * factor, 5, 600);
-    delete it._den;
+
+  // Optical-weight balancing (default on): equalise each logo's footprint so the wall
+  // reads evenly. Computed per logo, keyed by its index; logos without an image (or
+  // when there are too few to balance, or headless) get a neutral factor of 1.
+  var factors = {};
+  if (balance && canRaster()) {
+    var withUrl = items.filter(function (it) { return it.url; });
+    if (withUrl.length >= 2) {
+      var imgs = await Promise.all(withUrl.map(function (it) {
+        return getImage(it.url).catch(function () { return null; });
+      }));
+      var dens = [];
+      for (var i = 0; i < withUrl.length; i++) {
+        var box = imgs[i] ? measureContent(withUrl[i].url, imgs[i]) : null;
+        // Weight is the artwork's footprint over its bounding square (any colour), so a
+        // sparse mark is "light" and a solid one "heavy" regardless of margin, colour or
+        // invert. Floor it so a near-empty logo still counts as light and grows.
+        var den = (box && box.weight != null) ? Math.max(box.weight, 0.01) : null;
+        withUrl[i]._den = den;
+        if (den) dens.push(den);
+      }
+      if (dens.length >= 2) {
+        // Reference = MEDIAN weight, so one mis-measured logo can't drag the whole wall
+        // the way a geometric mean would.
+        dens.sort(function (a, b) { return a - b; });
+        var mid = dens.length >> 1;
+        var refDen = dens.length % 2 ? dens[mid] : (dens[mid - 1] + dens[mid]) / 2;
+        withUrl.forEach(function (it) {
+          factors[it.index] = it._den ? clamp(Math.sqrt(refDen / it._den), 0.55, 1.7) : 1;
+        });
+      }
+      withUrl.forEach(function (it) { delete it._den; });
+    }
+  }
+
+  // Final size = manual Size % × balance factor × Presence tier. Presence always
+  // applies (independent of balancing), so a tier biases the logo either way.
+  items.forEach(function (it) {
+    var f = factors[it.index] != null ? factors[it.index] : 1;
+    it.size = clamp(it.scale * f * it.pmul, 5, 600);
   });
   return items;
 }

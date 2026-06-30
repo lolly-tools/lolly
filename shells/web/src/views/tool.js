@@ -3498,6 +3498,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
             <input type="checkbox" data-action="webm-60fps">
             60fps
           </label>
+          ${runtime.hasFrameHook ? `<span class="vp-live-hint" style="flex-basis:100%;font-size:11px;opacity:.7;margin-top:2px">Records the live feed — start <strong>Go&nbsp;live</strong> on the canvas first.</span>` : ''}
         </div>` : '';
   const settingsRow = (optionChips || videoChip)
     ? `<div class="export-settings">${optionChips}${videoChip}</div>`
@@ -4192,11 +4193,21 @@ function buildShareParams(runtime, exportScope) {
   return parts;
 }
 
-// Assemble a full shareable URL from query parts, preserving the current hash route.
+// Assemble a full shareable URL from query parts.
+//
+// For a tool route we emit the crawler-visible PATH form (/t/<id>) rather than the
+// in-app fragment (#/tool/<id>): the fragment is never sent to the server, so social
+// crawlers only ever saw the generic og.png. /t/<id> is served as a static per-tool
+// OG stub (scripts/build-tool-og.js) that carries the tool's own title/image, then
+// redirects a human visitor — with these params — back into the SPA. Non-tool routes
+// keep the hash form.
 function shareUrlFromParts(parts) {
-  const hashBase = window.location.hash.split('?')[0];
+  const hashBase = window.location.hash.split('?')[0];   // e.g. "#/tool/qr-code"
   const qs = parts.join('&');
-  return window.location.origin + window.location.pathname + hashBase + (qs ? '?' + qs : '');
+  const query = qs ? '?' + qs : '';
+  const tool = hashBase.match(/^#\/tool\/([^/?]+)/);
+  if (tool) return `${window.location.origin}/t/${tool[1]}${query}`;
+  return window.location.origin + window.location.pathname + hashBase + query;
 }
 
 /**
