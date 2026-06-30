@@ -8,14 +8,21 @@
  * Why this exists: the web shell routes tools by URL *fragment* (#/tool/<id>), which
  * social crawlers (Slack, X, LinkedIn, iMessage, Facebook, Discord) never send to the
  * server and never execute JS for. So every shared tool link previewed as the one
- * generic og.png. This generates, per tool, a crawler-visible landing stub at a real
- * path — shells/web/public/t/<id>/index.html — whose <head> carries that tool's own
+ * generic og.png. This generates, per tool, a crawler-visible landing stub — the exact
+ * static file shells/web/public/t/<id>.html — whose <head> carries that tool's own
  * title, description and a 1200×630 share card (brand field + tool name + tool icon).
  * A human visitor's browser then runs the stub's inline redirect into the SPA at
  * /#/tool/<id> (carrying any shared ?params); crawlers ignore the script and read the
- * tags. The Share button emits the /t/<id> form (shells/web/src/views/tool.js,
- * shareUrlFromParts); parseRoute (shells/web/src/main.js) also redirects /t/<id> for a
- * human who lands without the static stub (dev, or an SPA fall-through).
+ * tags.
+ *
+ * Serving: this deploy's catch-all rewrite (/(.*) → /index.html, no cleanUrls) serves
+ * ONLY exact static file paths — extensionless/directory paths fall through to the SPA
+ * shell (verified against lolly.tools). So the stub is a flat file at /t/<id>.html, and
+ * vercel.json + .vercel/output/config.json rewrite the clean /t/<id> share URL onto it
+ * (a scoped rule before the SPA catch-all). The Share button emits /t/<id>
+ * (shells/web/src/views/tool.js, shareUrlFromParts); parseRoute (shells/web/src/main.js)
+ * also redirects /t/<id> for a human who lands without the rewrite (dev, or a
+ * fall-through) so routing degrades gracefully even if only crawler OG is affected.
  *
  * Source of truth is the committed catalog/tools/index.json — it already carries each
  * tool's name, description and inlined icon SVG, so this needs no manifest walk and
@@ -33,7 +40,12 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = 'https://lolly.tools';
 
 const PUBLIC  = resolve(ROOT, 'shells/web/public');
-const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>/index.html  (served by Vercel filesystem)
+// Flat files, NOT <id>/index.html: this deploy's catch-all rewrite (/(.*) →
+// /index.html, no cleanUrls) serves ONLY exact static file paths — a directory or
+// extensionless path falls through to the SPA shell (verified against the live
+// site). So the stub is the exact file /t/<id>.html; vercel.json rewrites the clean
+// /t/<id> share URL onto it. See the og: comment block at the top of this file.
+const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact static file)
 const IMG_DIR  = resolve(PUBLIC, 'og/tools');  // → /og/tools/<id>.png  (alongside the static /og.png)
 const FALLBACK_IMG = `${SITE_URL}/og.png`;
 const FALLBACK_DESC = 'Generate on-brand assets from simple inputs. Works offline.';
@@ -119,9 +131,7 @@ async function main() {
       }
     }
 
-    const dir = resolve(STUB_DIR, t.id);
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(resolve(dir, 'index.html'), stubHtml({ id: t.id, name: t.name, description: t.description, image }));
+    writeFileSync(resolve(STUB_DIR, `${t.id}.html`), stubHtml({ id: t.id, name: t.name, description: t.description, image }));
     stubs++;
   }
 
