@@ -37,6 +37,7 @@ var _imgCache = { url: null, promise: null };
 var _defaultUrl = null;
 var _memoKey = null;
 var _memoResult = null;
+var _lastOutSrc = null; // previous composed bitmap, sent as prevSrc for seamless swaps
 var _srcCache = { key: null, canvas: null }; // colour-adjusted base, reused when only the smear changes
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -141,6 +142,32 @@ function _hex2rgb(hex) {
   if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
   return { r: parseInt(s.slice(0,2),16), g: parseInt(s.slice(2,4),16), b: parseInt(s.slice(4,6),16) };
 }
+// ── non-separable blend modes (hue/saturation/colour/luminosity) — W3C Compositing.
+// These mix the WHOLE rgb triple, so they can't go through the per-channel _bl above.
+// Cb/Cs are [r,g,b] in 0..1; _blendNonSep returns [r,g,b] or null for separable modes.
+function _lum(c) { return 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]; }
+function _clipColor(c) {
+  var l = _lum(c), mn = Math.min(c[0], c[1], c[2]), mx = Math.max(c[0], c[1], c[2]), o = [c[0], c[1], c[2]], i;
+  if (mn < 0) for (i = 0; i < 3; i++) o[i] = l + (o[i] - l) * l / (l - mn);
+  if (mx > 1) for (i = 0; i < 3; i++) o[i] = l + (o[i] - l) * (1 - l) / (mx - l);
+  return o;
+}
+function _setLum(c, l) { var d = l - _lum(c); return _clipColor([c[0] + d, c[1] + d, c[2] + d]); }
+function _sat(c) { return Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]); }
+function _setSat(c, s) {
+  var ix = [0, 1, 2].sort(function (a, b) { return c[a] - c[b]; }), lo = ix[0], mid = ix[1], hi = ix[2], o = [0, 0, 0];
+  if (c[hi] > c[lo]) { o[mid] = (c[mid] - c[lo]) * s / (c[hi] - c[lo]); o[hi] = s; }
+  return o;
+}
+function _blendNonSep(mode, Cb, Cs) {
+  switch (mode) {
+    case 'hue':        return _setLum(_setSat(Cs, _sat(Cb)), _lum(Cb));
+    case 'saturation': return _setLum(_setSat(Cb, _sat(Cs)), _lum(Cb));
+    case 'color':      return _setLum(Cs, _lum(Cb));
+    case 'luminosity': return _setLum(Cb, _lum(Cs));
+    default:           return null;
+  }
+}
 // Treatment state parsed once from inputs. ov=null or amt<=0 ⇒ treatment off.
 function treatmentFrom(inputs) {
   var ov = _hex2rgb(inputs.treatmentColor);
@@ -153,14 +180,20 @@ function treatmentFrom(inputs) {
 // result (same pass). No-op at defaults; silently skips a tainted canvas (cross-origin
 // asset) so the still/live render still shows.
 function applyHsl(ctx, W, H, p) {
-  if (p.hue === 0 && p.sat === 1 && p.light === 0 && !(p.treat && p.treat.on)) return;
+  if (p.hue === 0 && p.sat === 1 && p.light === 0 && p.contrast === 0 && !(p.treat && p.treat.on)) return;
   var image;
   try { image = ctx.getImageData(0, 0, W, H); } catch (e) { return; }
   var d = image.data, light = p.light;
   var m = hueSatMatrix(p.hue, p.sat);
   var m00 = m[0], m01 = m[1], m02 = m[2], m10 = m[3], m11 = m[4], m12 = m[5], m20 = m[6], m21 = m[7], m22 = m[8];
+  // Contrast LUT about mid-grey (same cf curve as the sibling filters). Identity at 0,
+  // so it's a no-op for existing sessions; applied per-channel BEFORE the hue/sat matrix.
+  // Uint8ClampedArray clamps+rounds each entry on assignment.
+  var cf = (259 * (p.contrast + 255)) / (255 * (259 - p.contrast));
+  var clut = new Uint8ClampedArray(256);
+  for (var v = 0; v < 256; v++) clut[v] = cf * (v - 128) + 128;
   for (var i = 0; i < d.length; i += 4) {
-    var r = d[i], g = d[i + 1], b = d[i + 2];
+    var r = clut[d[i]], g = clut[d[i + 1]], b = clut[d[i + 2]];
     var nr = m00 * r + m01 * g + m02 * b;
     var ng = m10 * r + m11 * g + m12 * b;
     var nb = m20 * r + m21 * g + m22 * b;
@@ -168,9 +201,10 @@ function applyHsl(ctx, W, H, p) {
     else if (light < 0) { var k = 1 + light; nr *= k; ng *= k; nb *= k; }
     if (p.treat && p.treat.on) {
       var A = p.treat.amt, ov = p.treat.ov, mo = p.treat.mode;
-      nr = (nr/255*(1-A) + _bl(mo, nr/255, ov.r/255)*A) * 255;
-      ng = (ng/255*(1-A) + _bl(mo, ng/255, ov.g/255)*A) * 255;
-      nb = (nb/255*(1-A) + _bl(mo, nb/255, ov.b/255)*A) * 255;
+      var Cb = [nr / 255, ng / 255, nb / 255], ns = _blendNonSep(mo, Cb, [ov.r / 255, ov.g / 255, ov.b / 255]);
+      nr = (Cb[0] * (1 - A) + (ns ? ns[0] : _bl(mo, Cb[0], ov.r / 255)) * A) * 255;
+      ng = (Cb[1] * (1 - A) + (ns ? ns[1] : _bl(mo, Cb[1], ov.g / 255)) * A) * 255;
+      nb = (Cb[2] * (1 - A) + (ns ? ns[2] : _bl(mo, Cb[2], ov.b / 255)) * A) * 255;
     }
     d[i]     = nr < 0 ? 0 : nr > 255 ? 255 : nr;
     d[i + 1] = ng < 0 ? 0 : ng > 255 ? 255 : ng;
@@ -190,30 +224,60 @@ function makeSrc(source, iw, ih, W, H, p) {
   return src;
 }
 
-// Lay the smear over the base: a 1px slice at the threshold stretched (smoothing off
-// → crisp streaks) the `spread` fraction toward the edge, with an optional feathered
-// seam. Interior seams (the threshold edge, and the far end when spread < 100) blend
-// over the feather band; edges that sit on the frame boundary stay solid.
+// Compose the stretch over the base. Three regions along the stretch axis, from the
+// frozen line `t` outward in the chosen direction:
+//   HEAD  — the photo before the freeze line, untouched (it's just the base).
+//   SMEAR — the 1px slice at `t` stretched (smoothing off → crisp streaks) across [a,b).
+//   TAIL  — the photo from the freeze line onward, SLID along in the stretch direction
+//           by the smear width and drawn at its NATURAL 1:1 aspect (no squeeze); whatever
+//           runs past the far edge is clipped. So the image keeps its proportions and
+//           simply continues from where it froze. (Earlier this squeezed the whole
+//           remaining photo into the leftover gap, which distorted it.)
+// `spread` sets how much of the post-threshold space the smear claims; the tail fills the
+// remainder at 1:1. spread=100 ⇒ tail width 0 ⇒ smear fills to the edge (the old default,
+// byte-identical). spread=0 ⇒ identity. Mirrored for left/up. Feather math is unchanged;
+// its far seam cross-fades the smear into the tail (both are real photo, both keyed at `t`).
 function composeSmear(src, W, H, p) {
   var out = document.createElement('canvas'); out.width = W; out.height = H;
   var octx = out.getContext('2d'); if (!octx) return null;
-  octx.drawImage(src, 0, 0); // base = framed, colour-adjusted photo
+  octx.drawImage(src, 0, 0); // base = framed, colour-adjusted photo (this IS the untouched HEAD)
   if (p.spread <= 0) return out;
 
   var horiz = (p.direction === 'right' || p.direction === 'left');
   var axis = horiz ? W : H;
-  var t = clamp(Math.round(p.threshold * (axis - 1)), 0, axis - 1); // sampled line position
-  var a, b; // smear extent in ascending coordinate order
-  if (p.direction === 'right' || p.direction === 'down') { a = t; b = t + Math.round(p.spread * (axis - t)); }
-  else { b = t; a = t - Math.round(p.spread * t); }
+  var t = clamp(Math.round(p.threshold * (axis - 1)), 0, axis - 1); // frozen-line position
+  var ascending = (p.direction === 'right' || p.direction === 'down');
+  var a, b;                       // smear band [a,b) in ascending coordinate order
+  var tSrc0, tSrcLen, tDst0, tDstLen; // squeezed-tail source span → dest span
+  if (ascending) {                // right / down — smear toward the higher coordinate
+    a = t;
+    b = clamp(t + Math.round(p.spread * (axis - t)), t, axis);
+    tDst0 = b;  tDstLen = axis - b;          // tail fills the leftover [b .. axis)
+    tSrc0 = t;  tSrcLen = tDstLen;           // …with photo[t .. t+leftover) at 1:1 (slides, clipped)
+  } else {                        // left / up — mirror, smear toward the lower coordinate
+    b = t;
+    a = clamp(t - Math.round(p.spread * t), 0, t);
+    tDst0 = 0;      tDstLen = a;              // tail fills the leftover [0 .. a)
+    tSrc0 = t - a;  tSrcLen = tDstLen;        // …with photo[t-a .. t) at 1:1 (slides, clipped)
+  }
   var len = b - a;
+
+  // TAIL first, so the smear's feathered far edge can blend over it. The tail's leading
+  // sample is the frozen line `t`, so the smear→tail seam is colour-continuous by design.
+  if (tDstLen >= 1 && tSrcLen >= 1) {
+    octx.imageSmoothingEnabled = true;
+    if (octx.imageSmoothingQuality) octx.imageSmoothingQuality = 'high';
+    if (horiz) octx.drawImage(src, tSrc0, 0, tSrcLen, H, tDst0, 0, tDstLen, H);
+    else       octx.drawImage(src, 0, tSrc0, W, tSrcLen, 0, tDst0, W, tDstLen);
+  }
+
   if (len <= 0) return out;
 
   var layer = document.createElement('canvas'); layer.width = W; layer.height = H;
-  var lctx = layer.getContext('2d'); if (!lctx) { octx.drawImage(out, 0, 0); return out; }
+  var lctx = layer.getContext('2d'); if (!lctx) return out;
   lctx.imageSmoothingEnabled = false;
-  if (horiz) lctx.drawImage(src, t, 0, 1, H, a, 0, len, H);   // stretch the column at t across [a,b]
-  else       lctx.drawImage(src, 0, t, W, 1, 0, a, W, len);   // stretch the row at t across [a,b]
+  if (horiz) lctx.drawImage(src, t, 0, 1, H, a, 0, len, H);   // stretch the column at t across [a,b)
+  else       lctx.drawImage(src, 0, t, W, 1, 0, a, W, len);   // stretch the row at t across [a,b)
 
   // Feather: alpha-ramp the smear in/out at any seam that borders real photo.
   var featherPx = clamp((p.feather / 100) * len * 0.5, 0, len * 0.5);
@@ -243,6 +307,7 @@ function paramsFrom(inputs) {
     threshold: clamp(n(inputs.threshold, 42), 0, 100) / 100,
     spread: clamp(n(inputs.spread, 100), 0, 100) / 100,
     feather: clamp(n(inputs.feather, 0), 0, 100),
+    contrast: clamp(n(inputs.contrast, 0), -100, 100),
     hue: clamp(n(inputs.hue, 0), -180, 180),
     sat: clamp(n(inputs.saturation, 100), 0, 200) / 100,
     light: clamp(n(inputs.lightness, 0), -100, 100) / 100,
@@ -291,7 +356,7 @@ async function compute(model) {
 
     // Cache the colour-adjusted base so tweaking only the smear (threshold / spread /
     // feather / direction) skips the expensive cover + HSL re-render.
-    var srcKey = JSON.stringify({ url: url, d: dims, zoom: p.zoom, px: p.px, py: p.py, hue: p.hue, sat: p.sat, light: p.light, treat: p.treat });
+    var srcKey = JSON.stringify({ url: url, d: dims, zoom: p.zoom, px: p.px, py: p.py, hue: p.hue, sat: p.sat, light: p.light, contrast: p.contrast, treat: p.treat });
     var src;
     if (_srcCache.key === srcKey && _srcCache.canvas) { src = _srcCache.canvas; }
     else { src = makeSrc(img, iw, ih, dims.w, dims.h, p); _srcCache = { key: srcKey, canvas: src }; }
@@ -305,8 +370,13 @@ async function compute(model) {
   }
   if (!outSrc) return { outSrc: null, note: 'Preview renders in the browser' };
 
+  // Hand the PREVIOUS bitmap to the template as a base layer so the new one can decode
+  // underneath it without the old frame flashing through (see template.html). Only when
+  // it actually changed — an unchanged frame needs no buffer.
+  var prev = (_lastOutSrc && _lastOutSrc !== outSrc) ? _lastOutSrc : null;
+  _lastOutSrc = outSrc;
   _memoKey = memoKey;
-  _memoResult = { outSrc: outSrc };
+  _memoResult = { outSrc: outSrc, prevSrc: prev };
   return _memoResult;
 }
 
@@ -335,5 +405,9 @@ function onFrame(ctx) {
   _memoKey = null; _srcCache = { key: null, canvas: null }; // a live frame supersedes the still caches
   var outSrc;
   try { outSrc = cv.toDataURL('image/jpeg', 0.82); } catch (e) { return null; }
-  return { outSrc: outSrc };
+  // No prevSrc base in live mode — frames are continuous, so a per-frame buffer would
+  // just double the DOM each tick; keep _lastOutSrc current so the next still render
+  // (e.g. on stop) buffers cleanly against the last live frame.
+  _lastOutSrc = outSrc;
+  return { outSrc: outSrc, prevSrc: null };
 }

@@ -78,6 +78,27 @@ function color(v, fallback) {
 function slug(s) { return trim(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
 function titleize(s) { s = String(s == null ? '' : s).replace(/[-_]+/g, ' ').trim(); return s.replace(/\b\w/g, function (c) { return c.toUpperCase(); }); }
 
+// ── auto-contrast text (house pattern: shells/web/src/palette.js + sibling tools) ──
+// WCAG relative luminance of a #hex; null for transparent/rgb()/invalid (unmeasurable).
+function relLuminance(hex) {
+  var s = String(hex == null ? '' : hex).replace('#', '');
+  if (!/^[0-9a-fA-F]{3}$|^[0-9a-fA-F]{6}$/.test(s)) return null;
+  var h = s.length === 3 ? s.replace(/(.)/g, '$1$1') : s;
+  function lin(i) { var v = parseInt(h.slice(i, i + 2), 16) / 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }
+  return 0.2126 * lin(0) + 0.7152 * lin(2) + 0.0722 * lin(4);
+}
+function contrastRatio(l1, l2) { var hi = Math.max(l1, l2), lo = Math.min(l1, l2); return (hi + 0.05) / (lo + 0.05); }
+// Text ink for a coloured fill: keep the chosen `prefer` colour while it stays
+// readable on `fill`, otherwise flip to white (dark fill) or brand pine (light fill).
+// A non-hex fill (transparent / rgb() / gradient) keeps `prefer` unchanged.
+function inkOn(fill, prefer) {
+  var lf = relLuminance(fill);
+  if (lf == null) return prefer;
+  var lp = relLuminance(prefer);
+  if (lp != null && contrastRatio(lf, lp) >= 3) return prefer;
+  return lf < 0.5 ? '#ffffff' : '#0c322c';
+}
+
 // Greedy word-wrap into at most `maxLines` lines of ~maxChars each.
 function wrapLines(text, maxChars, maxLines) {
   maxChars = Math.max(4, Math.floor(maxChars));
@@ -258,11 +279,12 @@ function renderCard(n, S) {
   } else {
     top = n.y + (n.h - blockH) / 2;
   }
+  var ink = inkOn(fill, S.nodeText), dink = inkOn(fill, S.detailColor);
   for (var i = 0; i < lines.length; i++) {
-    g += textEl(cx, top + i * S.labelLH + S.labelSize * 0.8, lines[i], S.labelSize, 500, S.nodeText, 'middle');
+    g += textEl(cx, top + i * S.labelLH + S.labelSize * 0.8, lines[i], S.labelSize, 500, ink, 'middle');
   }
   if (detail) {
-    g += textEl(cx, top + lines.length * S.labelLH + S.detailSize * 0.8 + 3, detail, S.detailSize, 400, S.detailColor, 'middle');
+    g += textEl(cx, top + lines.length * S.labelLH + S.detailSize * 0.8 + 3, detail, S.detailSize, 400, dink, 'middle');
   }
   return g + '</g>';
 }
@@ -647,8 +669,8 @@ function layoutPyramid(nodes, S, style, bb) {
       + (S.cardBorderWidth > 0 ? ' stroke="' + esc(S.nodeStroke) + '" stroke-width="' + f2(S.cardBorderWidth) + '"' : '') + '/>';
     var midY = (yT + yB) / 2, narrow = Math.min(wT, wB), lab = trim(nd.label);
     if (narrow > textWidth(lab, S.labelSize) + 16) {
-      behind += textEl(cx, midY + S.labelSize * 0.3, lab, S.labelSize, 600, S.nodeText, 'middle');
-      if (trim(nd.detail)) behind += textEl(cx, midY + S.labelSize * 0.3 + S.detailLH, nd.detail, S.detailSize, 400, S.detailColor, 'middle');
+      behind += textEl(cx, midY + S.labelSize * 0.3, lab, S.labelSize, 600, inkOn(fill, S.nodeText), 'middle');
+      if (trim(nd.detail)) behind += textEl(cx, midY + S.labelSize * 0.3 + S.detailLH, nd.detail, S.detailSize, 400, inkOn(fill, S.detailColor), 'middle');
     } else {
       var lx = cx + baseW / 2 + 14;
       behind += shaft(cx + Math.max(wT, wB) / 2, midY, lx - 2, midY, 'solid', S.nodeStroke, 1);
@@ -738,7 +760,7 @@ function layoutGantt(nodes, S, inp, bb) {
       + (S.cardBorderWidth > 0 ? ' stroke="' + esc(S.nodeStroke) + '" stroke-width="' + f2(S.cardBorderWidth) + '"' : '') + '/>';
     var lab = wrapLines(n.label, maxCharsFor(gutter - 14, S.labelSize), 2), ly = rowY + (rowH - lab.length * S.labelLH) / 2 + S.labelSize * 0.8;
     lab.forEach(function (line, li) { behind += textEl(gutter - 10, ly + li * S.labelLH, line, S.labelSize, 500, S.nodeText, 'end'); });
-    if (trim(n.detail) && barW > textWidth(n.detail, S.detailSize) + 12) behind += textEl(barX + barW / 2, rowY + rowH / 2 + S.detailSize * 0.3, n.detail, S.detailSize, 400, S.nodeText, 'middle');
+    if (trim(n.detail) && barW > textWidth(n.detail, S.detailSize) + 12) behind += textEl(barX + barW / 2, rowY + rowH / 2 + S.detailSize * 0.3, n.detail, S.detailSize, 400, inkOn(fill, S.nodeText), 'middle');
   });
   bb.add(0, 0, gutter, totalH);
   return { autoEdges: [], bands: [], layerById: {}, behind: behind, skipCards: true };
@@ -1280,14 +1302,15 @@ async function buildDiagram(inp) {
   layout.bands.forEach(function (L) {
     bb.add(L.x, L.y, L.w, L.h);
     bandsSvg += '<path d="' + roundedRectPath(L.x, L.y, L.w, L.h, 10) + '" fill="' + esc(L.bandFill) + '"/>';
+    var bandInk = inkOn(L.bandFill, S.nodeText);
     if (layout.kanbanHeader) {
       var lbl = L.label + (layout.showCount ? ' (' + L._cards.length + ')' : '');
       var llab = wrapLines(lbl, maxCharsFor(L.w - 20, S.labelSize), 1);
-      if (llab.length) bandsSvg += textEl(L.x + L.w / 2, L.y + 24, llab[0], Math.round(S.labelSize * 0.95), 600, S.nodeText, 'middle');
+      if (llab.length) bandsSvg += textEl(L.x + L.w / 2, L.y + 24, llab[0], Math.round(S.labelSize * 0.95), 600, bandInk, 'middle');
     } else {
       var gw = (layout.gutter || 168) - 28;
       var llab2 = wrapLines(L.label, maxCharsFor(gw, 15), 1);
-      if (llab2.length) bandsSvg += textEl(L.x + 20, L.y + L.h / 2 + 5, llab2[0], 15, 600, S.nodeText, 'start');
+      if (llab2.length) bandsSvg += textEl(L.x + 20, L.y + L.h / 2 + 5, llab2[0], 15, 600, bandInk, 'start');
     }
   });
 

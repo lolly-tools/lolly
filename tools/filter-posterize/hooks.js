@@ -135,12 +135,40 @@ function treatmentFrom(inputs) {
   var mode = typeof inputs.blendMode === 'string' ? inputs.blendMode : 'multiply';
   return { ov: ov, amt: amt, mode: mode, on: !!(ov && amt > 0) };
 }
+// ── non-separable blend modes (hue/saturation/colour/luminosity) — W3C Compositing.
+// These mix the WHOLE rgb triple, so they can't go through the per-channel _bl above.
+// Cb/Cs are [r,g,b] in 0..1; _blendNonSep returns [r,g,b] or null for separable modes.
+function _lum(c) { return 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]; }
+function _clipColor(c) {
+  var l = _lum(c), mn = Math.min(c[0], c[1], c[2]), mx = Math.max(c[0], c[1], c[2]), o = [c[0], c[1], c[2]], i;
+  if (mn < 0) for (i = 0; i < 3; i++) o[i] = l + (o[i] - l) * l / (l - mn);
+  if (mx > 1) for (i = 0; i < 3; i++) o[i] = l + (o[i] - l) * (1 - l) / (mx - l);
+  return o;
+}
+function _setLum(c, l) { var d = l - _lum(c); return _clipColor([c[0] + d, c[1] + d, c[2] + d]); }
+function _sat(c) { return Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]); }
+function _setSat(c, s) {
+  var ix = [0, 1, 2].sort(function (a, b) { return c[a] - c[b]; }), lo = ix[0], mid = ix[1], hi = ix[2], o = [0, 0, 0];
+  if (c[hi] > c[lo]) { o[mid] = (c[mid] - c[lo]) * s / (c[hi] - c[lo]); o[hi] = s; }
+  return o;
+}
+function _blendNonSep(mode, Cb, Cs) {
+  switch (mode) {
+    case 'hue':        return _setLum(_setSat(Cs, _sat(Cb)), _lum(Cb));
+    case 'saturation': return _setLum(_setSat(Cb, _sat(Cs)), _lum(Cb));
+    case 'color':      return _setLum(Cs, _lum(Cb));
+    case 'luminosity': return _setLum(Cb, _lum(Cs));
+    default:           return null;
+  }
+}
 // Blend the treatment colour over a base hex → new hex (or unchanged if off / unparseable).
 function treatHex(baseHex, t) {
   if (!t || !t.on) return baseHex;
   var b = _hex2rgb(baseHex); if (!b) return baseHex;
-  function ch(bc, sc) { var B = bc / 255, S = sc / 255; return (B * (1 - t.amt) + _bl(t.mode, B, S) * t.amt) * 255; }
-  return '#' + _hx(ch(b.r, t.ov.r)) + _hx(ch(b.g, t.ov.g)) + _hx(ch(b.b, t.ov.b));
+  var Cb = [b.r / 255, b.g / 255, b.b / 255], Cs = [t.ov.r / 255, t.ov.g / 255, t.ov.b / 255];
+  var ns = _blendNonSep(t.mode, Cb, Cs), o = [0, 0, 0], i;
+  for (i = 0; i < 3; i++) o[i] = Cb[i] * (1 - t.amt) + (ns ? ns[i] : _bl(t.mode, Cb[i], Cs[i])) * t.amt;
+  return '#' + _hx(o[0] * 255) + _hx(o[1] * 255) + _hx(o[2] * 255);
 }
 
 function canRaster() {
@@ -672,11 +700,15 @@ function gridFromFrame(frame, maxDetail) {
   return { lum: lum, alpha: alpha, r: r, g: g, b: b, cols: cols, rows: rows };
 }
 
-// Cap the live trace resolution WELL below the still path's reach (up to 640) so the
-// marching-squares trace stays responsive frame-to-frame — motion over fidelity. This
-// is the heaviest of the live filters (real-time vector tracing); the runtime drops
-// overlapping frames so it self-throttles rather than piling up.
-var LIVE_DETAIL = 180;
+// Live trace resolution is driven by the Quality slider too (so the knob isn't inert in
+// "Go live" mode), but capped WELL below the still path's reach (up to 640) so the
+// marching-squares trace stays responsive frame-to-frame — motion over fidelity. This is
+// the heaviest of the live filters (real-time vector tracing); the runtime drops
+// overlapping frames so a high Quality just traces fewer fps rather than piling up.
+// Half the still-path detail, clamped to [LIVE_MIN, LIVE_MAX] (Quality 90→130 … 200→300,
+// default 95 ≈ 156, near the previous fixed 180).
+var LIVE_MIN = 130, LIVE_MAX = 300;
+function liveDetailFor(tp) { return clamp(Math.round(tp.detail * 0.5), LIVE_MIN, LIVE_MAX); }
 
 function onFrame(ctx) {
   var frame = ctx.frame;
@@ -698,8 +730,10 @@ function onFrame(ctx) {
   var W = clamp(Math.round(num(inputs.width, 1080)), 1, 8000);
   var H = clamp(Math.round(num(inputs.height, 1080)), 1, 8000);
 
+  // Quality (+ smoothing) up front so it can size the live grid, not just the curve fit.
+  var tp = traceParams(inputs.quality, inputs.smoothing);
   var g;
-  try { g = gridFromFrame(frame, LIVE_DETAIL); } catch (e) { return null; }
+  try { g = gridFromFrame(frame, liveDetailFor(tp)); } catch (e) { return null; }
 
   var gTone = (brightness || contrast) ? applyTone(g, toneLUT(brightness, contrast)) : g;
   // HSL: hue rotate / saturation / lightness on the toned grid. No-op at defaults
@@ -726,7 +760,6 @@ function onFrame(ctx) {
     else { if (!auto) auto = autoPalette(gEff, thr, effSteps); palette.push(auto[pi]); }
   }
 
-  var tp = traceParams(inputs.quality, inputs.smoothing);
   var grid = { g: gEff, cols: g.cols, rows: g.rows, tp: tp, invert: invert, tone: toneKey };
   // Colour treatment over the live output, identical to the still path.
   var _t = treatmentFrom(inputs);

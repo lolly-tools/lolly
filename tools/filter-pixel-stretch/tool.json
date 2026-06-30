@@ -3,7 +3,7 @@
   "name": "Filter: Pixel Stretch",
   "description": "Freeze a photo at a threshold line and smear that column of pixels across the frame — set where it starts, how far it spreads, and which way it runs. Works live.",
   "a11yLabel": "Pixel-stretch smear of the chosen image",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "engineVersion": "^1.0.0",
   "status": "official",
   "category": "designer",
@@ -52,7 +52,7 @@
       "min": 0,
       "max": 100,
       "step": 1,
-      "help": "Where the photo freezes and the smear begins — the position of the sampled column along the stretch direction."
+      "help": "Where the photo freezes. Past this line the frozen column stretches, then the rest of the photo continues at its natural proportions, clipped at the far edge."
     },
     {
       "id": "spread",
@@ -63,7 +63,7 @@
       "min": 0,
       "max": 100,
       "step": 1,
-      "help": "How far the smear reaches from the threshold toward the edge. 0 leaves the photo untouched; 100 stretches all the way to the edge."
+      "help": "How much of the space past the threshold the frozen column fills. The rest of the photo slides in after it at its natural proportions (clipped at the edge). 0 = untouched photo; 100 = the column stretches all the way to the edge."
     },
     {
       "id": "feather",
@@ -74,7 +74,19 @@
       "min": 0,
       "max": 100,
       "step": 1,
-      "help": "Softens the seam where the photo meets the smear, blending them over a band. 0 keeps a hard edge."
+      "help": "Softens the seam where the photo meets the frozen column. The far end, where the column hands off to the sliding remainder, is already colour-continuous, so this mainly affects the start seam. 0 keeps a hard edge."
+    },
+    {
+      "id": "contrast",
+      "label": "Contrast",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 0,
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "help": "Push the tones apart (higher) or flatten them (lower)."
     },
     {
       "id": "hue",
@@ -138,7 +150,11 @@
         { "value": "hard-light", "label": "Hard light" },
         { "value": "soft-light", "label": "Soft light" },
         { "value": "difference", "label": "Difference" },
-        { "value": "exclusion", "label": "Exclusion" }
+        { "value": "exclusion", "label": "Exclusion" },
+        { "value": "hue", "label": "Hue" },
+        { "value": "saturation", "label": "Saturation" },
+        { "value": "color", "label": "Colour" },
+        { "value": "luminosity", "label": "Luminosity" }
       ],
       "help": "How the treatment colour mixes with the image."
     },

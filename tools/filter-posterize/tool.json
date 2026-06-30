@@ -74,17 +74,6 @@
       "help": "Lighten or darken the photo before it is separated — shifts every tone up or down, moving detail between the light and dark separations."
     },
     {
-      "id": "contrast",
-      "label": "Contrast",
-      "type": "number",
-      "display": "slider",
-      "min": -100,
-      "max": 100,
-      "step": 1,
-      "default": 0,
-      "help": "Push the tones apart (higher) or flatten them together (lower) before separating. More contrast gives bolder, more graphic separations."
-    },
-    {
       "id": "quality",
       "label": "Quality",
       "type": "number",
@@ -138,6 +127,7 @@
       "default": false,
       "help": "Drop the lightest 'paper' separation so the background is transparent (PNG / SVG)."
     },
+    { "id": "contrast", "label": "Contrast", "section": "Colour", "type": "number", "display": "slider", "min": -100, "max": 100, "step": 1, "default": 0, "help": "Push the tones apart (higher) or flatten them together (lower) before separating. More contrast gives bolder, more graphic separations." },
     { "id": "hue", "label": "Hue", "section": "Colour", "type": "number", "display": "slider", "default": 0, "min": -180, "max": 180, "step": 1, "help": "Rotate every colour around the wheel." },
     { "id": "saturation", "label": "Saturation", "section": "Colour", "type": "number", "display": "slider", "default": 100, "min": 0, "max": 200, "step": 1, "help": "0 = greyscale · 100 = original · 200 = vivid." },
     { "id": "lightness", "label": "Lightness", "section": "Colour", "type": "number", "display": "slider", "default": 0, "min": -100, "max": 100, "step": 1, "help": "Lift toward white or sink toward black." },
@@ -147,7 +137,8 @@
       { "value": "overlay", "label": "Overlay" }, { "value": "darken", "label": "Darken" }, { "value": "lighten", "label": "Lighten" },
       { "value": "color-dodge", "label": "Colour dodge" }, { "value": "color-burn", "label": "Colour burn" },
       { "value": "hard-light", "label": "Hard light" }, { "value": "soft-light", "label": "Soft light" },
-      { "value": "difference", "label": "Difference" }, { "value": "exclusion", "label": "Exclusion" }
+      { "value": "difference", "label": "Difference" }, { "value": "exclusion", "label": "Exclusion" },
+      { "value": "hue", "label": "Hue" }, { "value": "saturation", "label": "Saturation" }, { "value": "color", "label": "Colour" }, { "value": "luminosity", "label": "Luminosity" }
     ], "help": "How the treatment colour mixes with the image." },
     { "id": "treatmentIntensity", "label": "Intensity", "section": "Colour", "type": "number", "display": "slider", "default": 20, "min": 0, "max": 100, "step": 1, "help": "Opacity of the colour overlay." },
     { "id": "width",  "label": "Width",  "type": "number", "default": 1080, "min": 1, "max": 8000, "group": "export" },

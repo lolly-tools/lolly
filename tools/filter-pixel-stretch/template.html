@@ -7,8 +7,16 @@
        1px slice with smoothing off) so it looks identical in every browser, unlike
        the CSS `image-rendering: pixelated` + transform trick that WebKit fades. The
        bitmap already carries the export aspect, so map it 1:1 over the viewBox. In
-       live mode the camera frame is composed the same way and arrives here as outSrc. -->
-  <image href="{{outSrc}}" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>
+       live mode the camera frame is composed the same way and arrives here as outSrc.
+
+       Double-buffer: every render the shell replaces the canvas DOM wholesale, so the
+       new <image>'s data URL has to decode before it can paint — during that gap the
+       *previous* frame would flash through. So we draw the PREVIOUS bitmap (already
+       browser-cached → instant) as a base layer underneath while the new one decodes;
+       the inline script drops it once the top image has loaded, leaving a single
+       image in the settled DOM (and any export). -->
+  {{#if prevSrc}}<image href="{{prevSrc}}" data-ps-base="1" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>{{/if}}
+  <image href="{{outSrc}}" data-ps-top="1" x="0" y="0" width="{{width}}" height="{{height}}" preserveAspectRatio="none"/>
   {{else}}
   <rect width="{{width}}" height="{{height}}" fill="#0f0f12"/>
   <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
@@ -31,7 +39,18 @@
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
   svg.setAttribute('width', W);
   svg.setAttribute('height', H);
-  var im = svg.querySelector('image');
-  if (im) { im.setAttribute('width', W); im.setAttribute('height', H); }
+  var ims = svg.querySelectorAll('image');
+  for (var i = 0; i < ims.length; i++) { ims[i].setAttribute('width', W); ims[i].setAttribute('height', H); }
+  // Drop the previous-frame base layer once the new (top) image has painted, so the
+  // settled DOM / export carries a single image. The base only exists for one render
+  // after the bitmap changes (hooks.js sends prevSrc only when it differs).
+  var base = svg.querySelector('[data-ps-base]');
+  var top = svg.querySelector('[data-ps-top]');
+  if (base && top) {
+    var drop = function () { if (base && base.parentNode) base.parentNode.removeChild(base); };
+    top.addEventListener('load', drop, { once: true });
+    // Fallback if 'load' already fired (cached) or never fires: drop shortly after.
+    setTimeout(drop, 350);
+  }
 })();
 </script>

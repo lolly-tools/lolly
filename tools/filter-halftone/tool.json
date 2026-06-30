@@ -129,16 +129,6 @@
       "step": 1
     },
     {
-      "id": "contrast",
-      "label": "Contrast",
-      "type": "number",
-      "display": "slider",
-      "default": 10,
-      "min": -100,
-      "max": 100,
-      "step": 1
-    },
-    {
       "id": "gamma",
       "label": "Gamma",
       "type": "number",
@@ -172,6 +162,17 @@
         { "value": "noise", "label": "Grainy (noise)" }
       ],
       "help": "Adds a newspaper-style 1-bit texture by snapping cells to full or empty dots."
+    },
+    {
+      "id": "contrast",
+      "label": "Contrast",
+      "section": "Colour",
+      "type": "number",
+      "display": "slider",
+      "default": 10,
+      "min": -100,
+      "max": 100,
+      "step": 1
     },
     {
       "id": "hue",
@@ -235,7 +236,11 @@
         { "value": "hard-light", "label": "Hard light" },
         { "value": "soft-light", "label": "Soft light" },
         { "value": "difference", "label": "Difference" },
-        { "value": "exclusion", "label": "Exclusion" }
+        { "value": "exclusion", "label": "Exclusion" },
+        { "value": "hue", "label": "Hue" },
+        { "value": "saturation", "label": "Saturation" },
+        { "value": "color", "label": "Colour" },
+        { "value": "luminosity", "label": "Luminosity" }
       ],
       "help": "How the treatment colour mixes with the image."
     },
