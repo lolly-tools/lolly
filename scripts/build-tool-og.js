@@ -18,12 +18,15 @@
  *   1. Author override — tools/<id>/og.{png,jpg,jpeg,webp} (committed, raster). Lets a
  *      tool ship its own preferred art; it WINS over the generated default.
  *   2. Generated default — a gallery-tile card (tool icon + name + description + a
- *      framed preview of the tool's own output) rendered by docs/og-image.js into the
- *      git-ignored shells/web/public/og/tools/<id>.png. Needs @resvg/resvg-js, which is
- *      a real (non-dev) dependency so it installs in the Vercel build — if it were a
- *      devDependency the build's production install would drop it and every card would
- *      silently fall back to og.png (the bug this guards against).
- *   3. Fallback — the generic /og.png when resvg is somehow unavailable.
+ *      framed preview of the tool's own output) rendered by docs/og-image.js into
+ *      catalog/og/<id>.png. These are COMMITTED (like catalog/previews) and served at
+ *      /catalog/og/<id>.png. Rendering needs @resvg/resvg-js, which does NOT reliably
+ *      install on the Vercel build (it was a devDep; promoting it to a dependency still
+ *      didn't take because the build restores a stale node_modules cache and npm no-ops
+ *      "up to date"). So we commit the cards: build:web / dev:web refresh them LOCALLY
+ *      (where resvg works), and the git deploy ships those bytes. On a resvg-less build
+ *      the cards are left untouched (never wiped) and the stubs still point at them.
+ *   3. Fallback — the generic /og.png only when a tool has no committed card at all.
  *
  * Serving: this deploy's catch-all rewrite (/(.*) → /index.html, no cleanUrls) serves
  * ONLY exact static file paths — extensionless/directory paths fall through to the SPA
@@ -70,7 +73,11 @@ const PUBLIC  = resolve(ROOT, 'shells/web/public');
 // site). So the stub is the exact file /t/<id>.html; vercel.json rewrites the clean
 // /t/<id> share URL onto it. See the og: comment block at the top of this file.
 const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact static file)
-const IMG_DIR  = resolve(PUBLIC, 'og/tools');  // → /og/tools/<id>.png  (alongside the static /og.png)
+// Generated default cards are COMMITTED here (served /catalog/og/<id>.png), mirroring
+// the committed catalog/previews — so a git deploy ships them even though @resvg/resvg-js
+// fails to install on the Vercel build (devDep pruning + stale build cache). Locally,
+// where resvg works, build:web refreshes these; commit the changes like previews.
+const OG_DIR   = resolve(ROOT, 'catalog/og');  // → /catalog/og/<id>.png (committed)
 const FALLBACK_IMG = `${SITE_URL}/og.png`;
 const FALLBACK_DESC = 'Generate on-brand assets from simple inputs. Works offline.';
 
@@ -164,48 +171,57 @@ async function main() {
     console.log(`tool-og: card generation skipped (${e.message}); stubs fall back to og.png`);
   }
 
-  // Rebuild from scratch so a removed/renamed tool leaves no stale stub or card.
+  // Stubs (HTML, no resvg needed) are git-ignored and rebuilt from scratch each run.
+  // Cards (catalog/og/<id>.png) are COMMITTED and only (re)written when resvg is
+  // available — never wiped — so a Vercel build (where resvg won't install) keeps the
+  // committed cards rather than deleting them and falling back to og.png.
   rmSync(STUB_DIR, { recursive: true, force: true });
-  rmSync(IMG_DIR,  { recursive: true, force: true });
   mkdirSync(STUB_DIR, { recursive: true });
-  if (renderer) mkdirSync(IMG_DIR, { recursive: true });
+  mkdirSync(OG_DIR, { recursive: true });
 
   let cards = 0, stubs = 0, withPreview = 0, overrides = 0;
   for (const t of tools) {
     if (!t.id || !t.name) continue;
 
-    // Resolve the share image: author override (forced) → generated default card →
-    // generic og.png. `sized` is true only when we know the image is 1200×630.
+    // Resolve the share image, priority order: author override (forced) → committed
+    // generated card → generic og.png. `sized` is true only when the image is 1200×630.
     const override = authorOgImage(t.id);
     let image, sized;
     if (override) {
       image = override;            // author forces their own art; skip the default render
       sized = false;
       overrides++;
-    } else if (renderer) {
-      try {
-        const preview = previewDataUri(t.preview, Resvg, previewFonts);
-        if (preview) withPreview++;
-        const png = renderer.render({ name: t.name, description: t.description, iconSvg: t.icon, previewDataUri: preview });
-        writeFileSync(resolve(IMG_DIR, `${t.id}.png`), png);
-        image = `${SITE_URL}/og/tools/${t.id}.png`;
+    } else {
+      // Refresh the committed card when resvg is available (local build:web / dev:web).
+      if (renderer) {
+        try {
+          const preview = previewDataUri(t.preview, Resvg, previewFonts);
+          if (preview) withPreview++;
+          const png = renderer.render({ name: t.name, description: t.description, iconSvg: t.icon, previewDataUri: preview });
+          writeFileSync(resolve(OG_DIR, `${t.id}.png`), png);
+          cards++;
+        } catch (e) {
+          console.log(`tool-og: ${t.id} card failed (${e.message})`);
+        }
+      }
+      // Point at the committed card if it exists (just rendered, or shipped in the
+      // repo on a resvg-less Vercel build); otherwise the generic card.
+      if (existsSync(resolve(OG_DIR, `${t.id}.png`))) {
+        image = `${SITE_URL}/catalog/og/${t.id}.png`;
         sized = true;
-        cards++;
-      } catch (e) {
-        console.log(`tool-og: ${t.id} card failed (${e.message}); falls back to og.png`);
+      } else {
         image = FALLBACK_IMG;
         sized = true;
       }
-    } else {
-      image = FALLBACK_IMG;        // resvg unavailable → generic card (1200×630)
-      sized = true;
     }
 
     writeFileSync(resolve(STUB_DIR, `${t.id}.html`), stubHtml({ id: t.id, name: t.name, description: t.description, image, sized }));
     stubs++;
   }
 
-  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'})`);
+  const total = tools.filter(t => t.id && t.name).length;
+  console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'}); ${total - overrides} tools point at committed cards`);
+  if (!renderer) console.log('tool-og: resvg unavailable — kept committed catalog/og cards (regenerate locally with build:web/dev:web).');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
