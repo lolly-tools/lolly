@@ -17,6 +17,7 @@
     }
   ],
   "rewrites": [
+    { "source": "/t/:id", "destination": "/t/:id.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
