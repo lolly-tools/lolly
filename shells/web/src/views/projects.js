@@ -60,6 +60,13 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   let mounted = true;        // false after the view is swapped out (guards async renders)
   const toasts = new Set();  // live "Render folder" toasts, torn down on navigate-away
   let toolPickerEl = null;   // the "New from a tool" chooser dialog, if open
+  let viewMode = 'preview';  // 'preview' (tile grid) | 'list'
+  let sortBy = 'date';       // 'date' | 'name' | 'tool' (a client-side display preference)
+  try {
+    if (localStorage.getItem('lolly:projectsView') === 'list') viewMode = 'list';
+    const s = localStorage.getItem('lolly:projectsSort');
+    if (s === 'name' || s === 'tool' || s === 'date') sortBy = s;
+  } catch { /* localStorage unavailable */ }
 
   async function reload() {
     [folders, entries, sizes, profile] = await Promise.all([
@@ -91,6 +98,23 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     return (f?.items ?? []).filter(i => i.type === 'session').map(i => map.get(i.ref)).filter(Boolean);
   }
 
+  // Sort helpers honouring the view-options menu. 'date' is the default (recent first).
+  function sortFolders(arr) {
+    const a = [...arr];
+    if (sortBy === 'name') a.sort((x, y) => x.name.localeCompare(y.name));
+    else if (sortBy === 'date') a.sort((x, y) => +new Date(y.updatedAt || y.createdAt || 0) - +new Date(x.updatedAt || x.createdAt || 0));
+    // 'tool' has no meaning for folders → keep stored order.
+    return a;
+  }
+  const sessionTitle = (e) => (e.label || e.filename || toolName(e.toolId) || '').toLowerCase();
+  function sortSessions(arr) {
+    const a = [...arr];
+    if (sortBy === 'name') a.sort((x, y) => sessionTitle(x).localeCompare(sessionTitle(y)));
+    else if (sortBy === 'tool') a.sort((x, y) => (toolName(x.toolId) || '').localeCompare(toolName(y.toolId) || '') || sessionTitle(x).localeCompare(sessionTitle(y)));
+    else a.sort((x, y) => +new Date(y.updatedAt || 0) - +new Date(x.updatedAt || 0)); // date
+    return a;
+  }
+
   // ── render ───────────────────────────────────────────────────────────────
   function render() {
     if (!mounted) return; // an async callback fired after we navigated away — don't clobber the new view
@@ -103,13 +127,13 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const createFolder = createTile('folder', FOLDER_PLUS_ICON, 'New folder', 'Group saved sessions');
     const createTool = createTile('tool', FILE_PLUS_ICON, 'New tool', 'Start a fresh creation');
     const uncatTile = pseudoFolderTile(UNCAT, 'Uncategorised', uncat.map(e => e.slot));
-    const folderTiles = folders.map(f => folderTile(f, {
+    const folderTiles = sortFolders(folders).map(f => folderTile(f, {
       memberPreviews: f.items.map(i => i.type === 'session' ? previewForRef(i.ref) : null).filter(Boolean),
     })).join('');
-    // Content first (Uncategorised, then folders — newest last), create tiles LAST,
-    // so the grid reads top-left like a file manager and "new" affordances trail.
+    // Content first (Uncategorised, then folders), create tiles LAST, so the grid reads
+    // top-left like a file manager and the "new" affordances trail.
     return shell('Projects', 'projects', `
-      <div class="folder-grid projects-grid">
+      <div class="folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}">
         ${uncatTile}${folderTiles}${createFolder}${createTool}
       </div>`);
   }
@@ -120,7 +144,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     if (!isUncat && !folder) {
       return shell('Projects', 'projects', `<p class="projects-empty">That folder no longer exists. <a href="#/p">Back to Projects</a>.</p>`, { inFolder: true });
     }
-    const sessions = isUncat ? uncategorised() : sessionsInFolder(folder);
+    const sessions = sortSessions(isUncat ? uncategorised() : sessionsInFolder(folder));
     const title = isUncat ? 'Uncategorised' : folder.name;
     const count = sessions.length;
 
@@ -150,9 +174,10 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         ${count ? `<button type="button" class="projects-render btn" data-render-folder="${escape(id)}">${RENDER_ICON}<span>Render folder</span></button>` : ''}
       </div>`;
 
+    const gridClass = `folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const body = count
-      ? `<div class="folder-grid projects-grid">${tiles}${createTool}</div>`
-      : `<div class="folder-grid projects-grid">${createTool}</div><p class="projects-empty">No saved sessions ${isUncat ? 'are uncategorised' : 'in this folder'} yet.</p>`;
+      ? `<div class="${gridClass}">${tiles}${createTool}</div>`
+      : `<div class="${gridClass}">${createTool}</div><p class="projects-empty">No saved sessions ${isUncat ? 'are uncategorised' : 'in this folder'} yet.</p>`;
 
     return shell(title, 'projects', `${rail}${header}${body}`, { inFolder: true });
   }
@@ -199,6 +224,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const saved = entries.length;
     return `
       <div class="gallery-topright projects-topright">
+        <button type="button" class="filter-fab projects-viewopts" aria-label="View and sort options" aria-haspopup="true" title="View &amp; sort">${FILTER_ICON}</button>
         ${saved ? `<button type="button" class="history-fab" title="Saved sessions" aria-label="Saved sessions (${saved})">${HISTORY_ICON}<span class="history-fab-count" aria-hidden="true">${saved}</span></button>` : ''}
         <a href="#/profile" class="profile-link${headshotUrl ? ' has-avatar' : ''}" aria-label="Open your profile">${headshotUrl ? `<img class="profile-link-avatar" src="${escape(headshotUrl)}" alt="">` : ''}<span class="profile-link-name">${escape(profile?.firstname || 'Profile')}</span></a>
       </div>`;
@@ -253,6 +279,9 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       const os = t.closest('[data-open-session]');
       if (os) { resumeSession(os.dataset.openSession); return; }
     });
+
+    // View-options (filter) button → preview/list + sort popover.
+    root.querySelector('.projects-viewopts')?.addEventListener('click', (e) => { e.stopPropagation(); openViewOpts(e.currentTarget); });
 
     // History button → the quick saved-sessions overlay (same as the gallery). It can
     // move/rename folders behind the page, so refresh Projects when it closes.
@@ -348,6 +377,36 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       else if (act === 'rename-session') startRenameSession(btn.closest('.folder-tile'), ref);
       else if (act === 'move') { await store.moveItem(ref, item.dataset.to === UNCAT ? null : item.dataset.to, 'session'); await reload(); render(); }
       else if (act === 'delete-session') { if (confirm('Delete this saved session? This cannot be undone.')) { await host.state.delete(ref).catch(() => {}); await reload(); render(); } }
+    });
+  }
+
+  // The gallery-style filter button → a popover to switch view mode (Preview/List) and
+  // sort (Alphabetical / By date / By tool). Preference persists in localStorage.
+  function openViewOpts(btn) {
+    closeMenu();
+    const atRoot = folderId == null;
+    const opt = (on, attr, val, label) =>
+      `<button type="button" class="folder-menu-item${on ? ' is-on' : ''}" data-${attr}="${val}">${on ? '✓ ' : '  '}${label}</button>`;
+    const pop = document.createElement('div');
+    pop.className = 'folder-menu projects-viewmenu';
+    pop.innerHTML = `
+      <p class="folder-menu-head">View</p>
+      ${opt(viewMode === 'preview', 'vm', 'preview', 'Preview')}
+      ${opt(viewMode === 'list', 'vm', 'list', 'List')}
+      <p class="folder-menu-head">Sort</p>
+      ${opt(sortBy === 'name', 'sort', 'name', 'Alphabetical')}
+      ${opt(sortBy === 'date', 'sort', 'date', 'By date')}
+      ${atRoot ? '' : opt(sortBy === 'tool', 'sort', 'tool', 'By tool')}`;
+    document.body.appendChild(pop);
+    const r = btn.getBoundingClientRect();
+    pop.style.top = `${Math.round(r.bottom + 6 + window.scrollY)}px`;
+    pop.style.left = `${Math.round(Math.min(r.left, window.innerWidth - pop.offsetWidth - 12) + window.scrollX)}px`;
+    openPopover = pop;
+    document.addEventListener('pointerdown', onDocDown, true);
+    pop.addEventListener('click', (e) => {
+      const vm = e.target.closest('[data-vm]'); const so = e.target.closest('[data-sort]');
+      if (vm) { viewMode = vm.dataset.vm; try { localStorage.setItem('lolly:projectsView', viewMode); } catch { /* ignore */ } closeMenu(); render(); }
+      else if (so) { sortBy = so.dataset.sort; try { localStorage.setItem('lolly:projectsSort', sortBy); } catch { /* ignore */ } closeMenu(); render(); }
     });
   }
 
