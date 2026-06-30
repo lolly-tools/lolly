@@ -54,6 +54,17 @@ async function navigate(host) {
   view.classList.toggle('projects-view', route.name === 'projects');
   view.classList.toggle('is-returning', returning);
 
+  // When the route NAME changes, the view-scoping class above changes with it
+  // (e.g. .profile-view → .gallery-view). But the outgoing view's markup is still
+  // in `view` and won't be replaced until the incoming mount writes its innerHTML
+  // — which happens AFTER that mount's first await (gallery reads IndexedDB before
+  // it paints). In that gap the old markup is styled by a class it no longer has,
+  // so it flashes UNSTYLED (e.g. a bare profile form). Drop the stale markup now so
+  // that flash can't show; the incoming mount fills the empty container. Same-name
+  // updates (the gallery's post-sync refresh) keep their content so they never
+  // blank, and first boot keeps the "Loading…" skeleton until the gallery lands.
+  if (prevRouteName && route.name !== prevRouteName) view.replaceChildren();
+
   // The platform/capabilities dashboards lean on SUSE Mono (hex/CMYK rows, code,
   // the device user-agent). It isn't preloaded globally — that would tax the
   // mono-light gallery cold-load — so warm it here, before the view chunk imports

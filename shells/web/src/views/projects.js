@@ -22,7 +22,7 @@
 import { escape } from '../utils.js';
 import { createFolderStore } from '../folders.js';
 import {
-  folderTile, sessionTile, FOLDER_ICON, PACKAGE_ICON,
+  folderTile, sessionTile, FOLDER_ICON, PACKAGE_ICON, MENU_ICON,
   isBatchSlot, BATCH_SLOT_PREFIX,
 } from '../folder-tiles.js';
 import { viewToggle } from '../components/view-toggle.js';
@@ -172,6 +172,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         <span class="projects-count">${count} item${count === 1 ? '' : 's'}</span>
         <span class="projects-head-spacer"></span>
         ${count ? `<button type="button" class="projects-render btn" data-render-folder="${escape(id)}">${RENDER_ICON}<span>Render folder</span></button>` : ''}
+        ${isUncat ? '' : `<button type="button" class="tile-menu-btn projects-head-menu" data-menu="${escape(id)}" data-menu-kind="folder" aria-label="Folder actions (rename, render, delete)">${MENU_ICON}</button>`}
       </div>`;
 
     const gridClass = `folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}`;
@@ -244,6 +245,45 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   let openPopover = null;
   function closeMenu() { openPopover?.remove(); openPopover = null; document.removeEventListener('pointerdown', onDocDown, true); }
   function onDocDown(e) { if (openPopover && !openPopover.contains(e.target)) closeMenu(); }
+
+  // A styled modal confirmation (Promise<boolean>) for destructive actions — deleting a
+  // folder and its contents, or a saved session — so the warning is explicit rather than
+  // a bare native confirm(). Escape, backdrop click, and Cancel all resolve false.
+  let confirmEl = null;
+  function confirmDialog({ title, message, confirmLabel = 'Delete', danger = true }) {
+    return new Promise((resolve) => {
+      closeMenu();
+      const dlg = document.createElement('dialog');
+      dlg.className = 'projects-confirm';
+      dlg.innerHTML = `
+        <h2 class="projects-confirm-title">${escape(title)}</h2>
+        <p class="projects-confirm-msg">${escape(message)}</p>
+        <div class="projects-confirm-actions">
+          <button type="button" class="btn projects-confirm-cancel" data-act="cancel">Cancel</button>
+          <button type="button" class="btn${danger ? ' projects-confirm-danger' : ''}" data-act="ok">${escape(confirmLabel)}</button>
+        </div>`;
+      document.body.appendChild(dlg);
+      confirmEl = dlg;
+      let settled = false;
+      const finish = (val) => {
+        if (settled) return; settled = true;
+        if (confirmEl === dlg) confirmEl = null;
+        if (dlg.open) dlg.close();
+        dlg.remove();
+        resolve(val);
+      };
+      dlg.addEventListener('cancel', (e) => { e.preventDefault(); finish(false); }); // Escape
+      dlg.addEventListener('click', (e) => {
+        const act = e.target.closest('[data-act]')?.dataset.act;
+        if (act) { finish(act === 'ok'); return; }
+        // Click outside the content box (on the backdrop) dismisses.
+        const r = dlg.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) finish(false);
+      });
+      dlg.showModal();
+      dlg.querySelector('.projects-confirm-cancel')?.focus(); // default focus on the safe choice
+    });
+  }
 
   function wire() {
     const root = viewEl.querySelector('.projects');
@@ -370,13 +410,22 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       const item = e.target.closest('[data-act]'); if (!item) return;
       const act = item.dataset.act;
       closeMenu();
-      if (act === 'rename') startRename(btn.closest('.folder-tile'), ref);
+      // Rename can fire from a folder TILE (root view) or the folder-view header menu
+      // button (no enclosing tile) — fall back to the header <h2> in that case.
+      if (act === 'rename') startRename(btn.closest('.folder-tile') || viewEl.querySelector('.projects-title[data-rename-folder]'), ref);
       else if (act === 'render') renderFolder(ref);
-      else if (act === 'delete') { if (confirm('Delete this folder? Its sessions stay (they return to Uncategorised).')) { await store.remove(ref); await reload(); render(); } }
+      else if (act === 'delete') deleteFolderCascade(ref);
       else if (act === 'open') resumeSession(ref);
       else if (act === 'rename-session') startRenameSession(btn.closest('.folder-tile'), ref);
       else if (act === 'move') { await store.moveItem(ref, item.dataset.to === UNCAT ? null : item.dataset.to, 'session'); await reload(); render(); }
-      else if (act === 'delete-session') { if (confirm('Delete this saved session? This cannot be undone.')) { await host.state.delete(ref).catch(() => {}); await reload(); render(); } }
+      else if (act === 'delete-session') {
+        const ok = await confirmDialog({
+          title: 'Delete this saved session?',
+          message: 'This permanently deletes the saved session and its preview. This cannot be undone.',
+          confirmLabel: 'Delete',
+        });
+        if (ok && mounted) { await host.state.delete(ref).catch(() => {}); await reload(); render(); }
+      }
     });
   }
 
@@ -556,6 +605,38 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       : `#/tool/${entryBySlot().get(slot)?.toolId || ''}?slot=${encodeURIComponent(slot)}`;
   }
 
+  // ── delete a folder AND everything inside it ───────────────────────────────
+  // Unlike store.remove() (which only drops the folder record and returns its items to
+  // Uncategorised), this permanently deletes every saved session and image the folder
+  // holds — and their stored previews — then the folder itself. Always confirmed.
+  async function deleteFolderCascade(id) {
+    closeMenu();
+    if (!id || id === UNCAT) return;
+    const folder = folders.find(f => f.id === id);
+    if (!folder) return;
+    const items = folder.items ?? [];
+    const n = items.length;
+    const ok = await confirmDialog({
+      title: `Delete “${folder.name}”?`,
+      message: n
+        ? `This permanently deletes the folder and the ${n} item${n === 1 ? '' : 's'} inside it — saved sessions and images, including their previews. This cannot be undone.`
+        : 'This permanently deletes the folder. This cannot be undone.',
+      confirmLabel: 'Delete folder',
+    });
+    if (!ok || !mounted) return;
+    for (const it of items) {
+      try {
+        if (it.type === 'image') await host.assets._deleteUserAsset(it.ref);
+        else await host.state.delete(it.ref);
+      } catch (err) { host.log?.('warn', 'projects: folder item delete failed', { ref: it.ref, error: String(err) }); }
+    }
+    await store.remove(id);
+    if (!mounted) return;
+    // If we were viewing this folder, it's gone — fall back to the Projects root.
+    if (folderId === id) { window.location.hash = '#/p'; return; }
+    await reload(); render();
+  }
+
   // ── render a whole folder as one nested batch zip (gated /pro import) ────────
   async function renderFolder(id) {
     closeMenu();
@@ -588,7 +669,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   // Arriving at Projects means we're not mid-"+ New tool" creation, so disarm any
   // stale file-into marker left by an abandoned flow.
   try { sessionStorage.removeItem(FILE_INTO_KEY); } catch { /* ignore */ }
-  viewEl._cleanup = () => { mounted = false; closeMenu(); toasts.forEach(t => t.remove()); toasts.clear(); toolPickerEl?.remove(); toolPickerEl = null; };
+  viewEl._cleanup = () => { mounted = false; closeMenu(); confirmEl?.remove(); confirmEl = null; toasts.forEach(t => t.remove()); toasts.clear(); toolPickerEl?.remove(); toolPickerEl = null; };
   await reload();
   // A stale /p/<id> deep link to a deleted folder falls back to root.
   if (folderId && folderId !== UNCAT && !folders.some(f => f.id === folderId)) folderId = null;
