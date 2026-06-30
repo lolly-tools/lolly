@@ -1224,6 +1224,113 @@ a.gtile-name:focus-visible::after {
     right: calc(2em + var(--vv-right, 0px));
   }
 }
+
+/* ── Unified top bar (Tools|Projects toggle + the action cluster) ──────────────
+   On desktop the toggle is centred and the cluster is right-anchored as two
+   independent fixed elements — there's room, so leave them be: the wrapper is
+   display:contents (no box), and each child keeps its own fixed positioning.
+   On mobile there ISN'T room and the two fixed elements overlapped, so the
+   wrapper becomes ONE fixed flex row that holds them both — now they share a
+   layout and can't collide. The cluster also collapses there: the standalone
+   history button and the "Profile" wordmark fold into the avatar's menu. */
+.gallery-topbar { display: contents; }
+
+@media (max-width: 640px) {
+  .gallery-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    top: calc(.5em + var(--vv-top, 0px));
+    left: calc(.75em + var(--vv-left, 0px));
+    right: calc(.75em + var(--vv-right, 0px));
+    z-index: 99999;
+    pointer-events: none; /* empty middle lets taps fall through to the masonry */
+  }
+  .gallery-topbar > * { pointer-events: auto; }
+
+  /* Children flow inside the bar rather than pinning themselves to the viewport. */
+  .gallery-topbar .view-toggle-wrap {
+    position: static; left: auto; transform: none; margin: 0;
+    order: 0; min-width: 0; /* shrinkable if space is tight */
+  }
+  .gallery-topbar .view-toggle-opt { padding: 6px 14px; }
+  .gallery-topbar .gallery-topright {
+    position: static; top: auto; right: auto;
+    order: 1; margin-left: auto; gap: 8px; /* pushed to the right edge */
+  }
+
+  /* Fold the standalone history button + "Profile" wordmark into the avatar menu. */
+  .gallery-topbar .history-fab { display: none; }
+  .gallery-topbar .profile-link-name { display: none; }
+  .gallery-topbar .profile-link {
+    position: static; top: auto; right: auto;
+    width: 2.9em; height: 2.9em; padding: 0; border-radius: 50%;
+    display: inline-flex; flex: none;
+  }
+  /* Re-centre the avatar dot/image now the pill padding is gone. */
+  .gallery-topbar .profile-link::before,
+  .gallery-topbar .profile-link-avatar {
+    left: 50%; transform: translate(-50%, -50%);
+  }
+}
+
+/* ── Consolidated profile menu (mobile) — opened by tapping the avatar. ─────────
+   Gathers what the bar can't show at this width: theme switcher, saved sessions,
+   and a link to the full Settings page. Body-mounted popover; matches the filter
+   popover's surface + the view-toggle's segmented control. */
+.profile-menu {
+  position: fixed;
+  z-index: 100000;
+  min-width: 210px;
+  max-width: calc(100vw - 16px);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.4);
+  box-shadow: 0 12px 32px hsl(0 0% 0% / 0.24);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .profile-menu { animation: profile-menu-in .14s ease both; transform-origin: top right; }
+}
+@keyframes profile-menu-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.profile-menu-theme {
+  display: flex; gap: 2px; padding: 3px; margin-bottom: 4px;
+  border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted) / 0.5);
+}
+.profile-menu-seg {
+  flex: 1; padding: 8px 6px; border: 0; border-radius: 999px;
+  background: transparent; color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.2; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.profile-menu-seg:hover { color: hsl(var(--foreground)); }
+.profile-menu-seg[aria-checked="true"] {
+  background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px hsl(0 0% 0% / 0.12);
+}
+.profile-menu-seg:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+.profile-menu-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 11px 12px; border: 0; border-radius: var(--radius);
+  background: transparent; color: hsl(var(--foreground));
+  font: inherit; font-size: 14px; font-weight: 500; text-align: left; text-decoration: none;
+  cursor: pointer;
+}
+.profile-menu-item:hover { background: hsl(var(--accent)); }
+.profile-menu-item:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.profile-menu-item svg { color: hsl(var(--muted-foreground)); flex: none; }
+.profile-menu-count {
+  min-width: 20px; height: 18px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  color: hsl(var(--primary-foreground)); background: hsl(var(--primary)); border-radius: 999px;
+}
 .history-fab {
   position: relative;
   display: inline-flex;
@@ -1454,6 +1561,7 @@ a.gtile-name:focus-visible::after {
 .projects-grid {
   grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px;
   align-items: stretch; grid-auto-rows: 1fr;
+  padding:3.6rem 0 1rem;
 }
 
 /* List view mode — reflow the same tiles into compact full-width rows. */
@@ -1477,16 +1585,28 @@ a.gtile-name:focus-visible::after {
    classes outrank the base .pro-toast positioning from run-overlay.css. */
 .pro-toast.projects-toast { top: 56px; right: 2em; bottom: auto; left: auto; }
 
-/* "Create new" tiles (dashed, + icon). */
+/* "Create new" tiles (dashed, + icon) — kept deliberately muted so they read as
+   affordances, not content. Unlike a real tile, the icon area has NO preview fill and
+   NO divider border: it's one continuous transparent panel flowing straight into the
+   label, so the whole tile is just a quiet dashed outline. */
 .folder-tile--create { border-style: dashed; background: transparent; }
 .folder-tile--create:hover { border-color: hsl(var(--primary) / 0.7); background: hsl(var(--primary) / 0.04); }
 .tile-cover--create {
   display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3;
-  color: hsl(var(--muted-foreground)); background: hsl(var(--muted) / 0.4);
-  border-bottom: 1px solid hsl(var(--border));
+  color: hsl(var(--muted-foreground)); background: transparent;
+  border-bottom: 0;   /* override the base .tile-cover divider — create tiles are seamless */
 }
 .folder-tile--create:hover .tile-cover--create { color: hsl(var(--primary)); }
 .tile-cover--create svg { width: 34px; height: 34px; }
+
+/* Breadcrumb trail above a folder's header — links each ancestor back up the tree. */
+.projects-crumbs {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  margin: 0 0 8px; font-size: 12.5px; color: hsl(var(--muted-foreground));
+}
+.projects-crumbs a { color: hsl(var(--muted-foreground)); text-decoration: none; border-radius: 4px; }
+.projects-crumbs a:hover { color: hsl(var(--foreground)); text-decoration: underline; text-underline-offset: 2px; }
+.projects-crumb-sep { opacity: 0.5; }
 
 /* Folder-contents header. */
 .projects-head { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
@@ -1516,11 +1636,13 @@ a.gtile-name:focus-visible::after {
   transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
 }
 .projects-chip:hover { border-color: hsl(var(--primary) / 0.6); }
-.projects.is-dragging-session .projects-chip { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.04); }
+/* While dragging a session OR a folder, hint the rail chips as live drop targets. */
+.projects.is-dragging-session .projects-chip,
+.projects.is-dragging-folder .projects-chip { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.04); }
 
 /* Drag feedback. */
 .folder-tile.is-dragging { opacity: 0.45; }
-.folder-tile[data-kind="session"] { cursor: grab; }
+.folder-tile[data-kind="session"], .folder-tile--folder:not(.folder-tile--uncat) { cursor: grab; }
 .folder-tile.is-drop, .projects-chip.is-drop {
   border-color: hsl(var(--primary)); box-shadow: 0 0 0 2px hsl(var(--primary) / 0.35); background: hsl(var(--primary) / 0.06);
 }
@@ -1661,13 +1783,17 @@ a.gtile-name:focus-visible::after {
 .render-pill-save.is-unsaved {
   background: #f5a524;
   color: #2a1c00;
-  animation: renderSaveFlash 0.9s ease-out 1;
+  animation: renderSaveFlash 1.1s ease-in-out 1;
 }
 .render-pill-save.is-unsaved:hover { background: #ffb73d; }
+/* Two bright pulses, then settle on amber. Every edge (0%, 100%) and the resting
+   state are amber, so a frozen/backgrounded tab or reduced-motion still shows the
+   colour cue — the flash is pure enhancement on top of a robust static colour. */
 @keyframes renderSaveFlash {
-  0%   { background: #ffffff; color: #2a1c00; }
-  18%  { background: #fff0c2; }
-  45%  { background: #ffd166; }
+  0%   { background: #f5a524; }
+  14%  { background: #fff6e0; }
+  28%  { background: #f5a524; }
+  42%  { background: #fff6e0; }
   100% { background: #f5a524; }
 }
 /* Brief confirmation after a save completes. */

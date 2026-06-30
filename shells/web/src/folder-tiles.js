@@ -110,9 +110,12 @@ export function imageTile(ref) {
  * A folder tile with a 2×2 mosaic of its first members.
  * @param folder         { id, name, items }
  * @param memberPreviews array of up to 4 { thumb?, url?, batch? } resolved by the caller
+ * @param count          optional item count for the sub-line (defaults to items.length);
+ *                       the Projects view passes items + sub-folders so a nested folder
+ *                       reads "N items" inclusive of its sub-folders.
  */
-export function folderTile(folder, { memberPreviews = [] } = {}) {
-  const count = folder.items?.length ?? 0;
+export function folderTile(folder, { memberPreviews = [], count } = {}) {
+  count = count ?? folder.items?.length ?? 0;
   const cells = memberPreviews.slice(0, 4).map(p => {
     if (p.batch) return `<span class="folder-cell folder-cell--batch" aria-hidden="true">${PACKAGE_ICON}</span>`;
     const src = p.thumb || p.url;

@@ -2,16 +2,19 @@
 /**
  * Folders — a user-facing way to organize saved work into named groups.
  *
- * A "folder" (the user calls it a group, e.g. "my event") is one directory deep:
- * it holds references to saved sessions and user images, nothing nested. A saved
- * *batch* session is itself already a one-directory-deep folder — its rows are the
- * "files" — so a group of batch sessions gives exactly two levels of organization,
- * which is the limit we want.
+ * A "folder" (the user calls it a group, e.g. "my event") holds references to saved
+ * sessions and user images, AND can nest inside another folder: each folder carries an
+ * optional `parentId` (null / absent = a top-level folder). The tree is single-rooted —
+ * a folder has exactly one parent and a session/image belongs to exactly one folder —
+ * so it's a strict hierarchy, kept acyclic by `moveFolder` (can't reparent into self or
+ * a descendant). A saved *batch* session is itself still a one-directory-deep folder of
+ * rows, so a batch under a folder adds one more implicit level inside the zip.
  *
  * Folders live on the single profile record (`profile.folders`), riding the normal
  * profile persistence/sync exactly like `featureFlags`. An item references a saved
  * session by its host.state slot, or a user image by its `user/...` asset id. A ref
- * belongs to at most one folder; anything unreferenced shows at the root.
+ * belongs to at most one folder; anything unreferenced shows at the root. Legacy
+ * folders saved before nesting have no `parentId` → treated as top-level.
  *
  * This module is a thin facade over host.profile / host.state / host.assets. It must
  * stay free of DOM, engine, and pro/ imports so it can be used from the (pro-free)
@@ -19,7 +22,53 @@
  */
 
 /** @typedef {{ type: 'session' | 'image', ref: string }} FolderItem */
-/** @typedef {{ id: string, name: string, items: FolderItem[], createdAt: string, updatedAt: string }} Folder */
+/** @typedef {{ id: string, name: string, parentId: string|null, items: FolderItem[], createdAt: string, updatedAt: string }} Folder */
+
+// ── Tree helpers (pure; operate on a plain folders array) ───────────────────
+// A folder's parent is `parentId` (absent/undefined === top-level). These are exported
+// so the Projects view can render the hierarchy without re-deriving the walk each place.
+
+const parentOf = (f) => f?.parentId ?? null;
+
+/**
+ * Direct children of `parentId` (null → top level). An ORPHAN — a folder whose parent
+ * no longer exists (e.g. a soft-removed ancestor synced from elsewhere) — surfaces at
+ * the top level so it can never vanish from the tree.
+ */
+export function childFolders(folders, parentId) {
+  const ids = new Set(folders.map(f => f.id));
+  return folders.filter(f => {
+    const p = parentOf(f);
+    return parentId == null ? (p == null || !ids.has(p)) : p === parentId;
+  });
+}
+
+/** The chain of folder objects from the top-level ancestor down to `id` (inclusive). */
+export function folderPath(folders, id) {
+  const byId = new Map(folders.map(f => [f.id, f]));
+  const path = [];
+  const seen = new Set();
+  let cur = byId.get(id);
+  while (cur && !seen.has(cur.id)) {
+    seen.add(cur.id);
+    path.unshift(cur);
+    cur = cur.parentId ? byId.get(cur.parentId) : null;
+  }
+  return path;
+}
+
+/** Every folder id strictly beneath `id` (its whole subtree, excluding `id` itself). */
+export function descendantFolderIds(folders, id) {
+  const out = [];
+  const stack = [id];
+  while (stack.length) {
+    const pid = stack.pop();
+    for (const f of folders) {
+      if (parentOf(f) === pid && f.id !== id && !out.includes(f.id)) { out.push(f.id); stack.push(f.id); }
+    }
+  }
+  return out;
+}
 
 function uuid() {
   // crypto.randomUUID is available in every browser we target; fall back just in
@@ -68,10 +117,10 @@ export function createFolderStore(host) {
 
     // ── Folder CRUD ──────────────────────────────────────────────────────────
 
-    async create(name) {
+    async create(name, parentId = null) {
       const label = String(name ?? '').trim();
       if (!label) throw new Error('A folder name is required.');
-      const folder = { id: uuid(), name: label, items: [], createdAt: now(), updatedAt: now() };
+      const folder = { id: uuid(), name: label, parentId: parentId ?? null, items: [], createdAt: now(), updatedAt: now() };
       await mutate(folders => folders.push(folder));
       return folder;
     },
@@ -85,11 +134,46 @@ export function createFolderStore(host) {
       });
     },
 
-    /** Delete a folder; its items return to the root (they are not deleted). */
+    /**
+     * Soft-delete a single folder: its items return to the root (not deleted) and its
+     * direct sub-folders are LIFTED to its parent (not orphaned), so the record drops
+     * without losing anything. To hard-delete a whole subtree, see removeSubtree.
+     */
     async remove(folderId) {
       await mutate(folders => {
         const i = folders.findIndex(f => f.id === folderId);
-        if (i >= 0) folders.splice(i, 1);
+        if (i < 0) return;
+        const parent = folders[i].parentId ?? null;
+        for (const f of folders) if ((f.parentId ?? null) === folderId) f.parentId = parent; // lift children up
+        folders.splice(i, 1);
+      });
+    },
+
+    /** Hard-delete a folder AND its whole subtree of sub-folders (folder records only —
+     * the caller deletes the items/previews via host.state/host.assets first). */
+    async removeSubtree(folderId) {
+      await mutate(folders => {
+        const kill = new Set([folderId, ...descendantFolderIds(folders, folderId)]);
+        for (let i = folders.length - 1; i >= 0; i--) if (kill.has(folders[i].id)) folders.splice(i, 1);
+      });
+    },
+
+    /**
+     * Reparent a folder under `newParentId` (null → top level). No-op when it would
+     * create a cycle (moving a folder into itself or one of its own descendants) or the
+     * target doesn't exist — the tree stays a strict hierarchy.
+     */
+    async moveFolder(folderId, newParentId) {
+      await mutate(folders => {
+        if (folderId === newParentId) return;
+        const f = folders.find(x => x.id === folderId);
+        if (!f) return;
+        if (newParentId != null) {
+          if (!folders.some(x => x.id === newParentId)) return;             // target gone
+          if (descendantFolderIds(folders, folderId).includes(newParentId)) return; // cycle
+        }
+        f.parentId = newParentId ?? null;
+        f.updatedAt = now();
       });
     },
 
