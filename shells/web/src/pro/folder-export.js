@@ -28,9 +28,11 @@ export { rowsForFolder, rowFromToolSession, rowFromBatchRow } from './folder-row
  * @returns {Promise<{files, results, cancelled}>}
  */
 export async function exportFolderAsBatch(host, folder, {
-  mount, author = null, format = 'png', unit = 'px', dpi = 300, onBatchRendered, announce,
+  mount, author = null, format = 'png', unit = 'px', dpi = 300, folders = null, onBatchRendered, announce,
 } = {}) {
-  const rows = await rowsForFolder(host, folder);
+  // `folders` (the full list) lets rowsForFolder recurse into sub-folders so a nested
+  // tree exports under nested zip paths; omit it and only this folder's own sessions go.
+  const rows = await rowsForFolder(host, folder, folders);
   if (rows.length === 0) throw new Error('Nothing to export — this folder has no renderable sessions.');
 
   const { renderable, skipped } = await planBatch(rows);

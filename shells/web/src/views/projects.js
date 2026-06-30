@@ -5,27 +5,30 @@
  * A gallery-style page over the FOLDERS of saved sessions (the same data the folder
  * overlay manages, surfaced as a first-class destination). Two modes:
  *
- *   ROOT (/p)            — a grid of folder tiles: a "+ New folder" tile, a "+ New
- *                          tool" tile, an always-present "Uncategorised" folder (every
- *                          saved session not filed into a folder), then the user's
- *                          folders. Open a folder → /p/<id>.
- *   FOLDER (/p/<id>)     — that folder's saved sessions as tiles, a "+ New tool" tile
- *                          (the new session auto-files here), a "Move to" rail of the
- *                          other folders as drop targets, rename, and "Render folder"
- *                          (export every session as one nested batch zip).
+ *   ROOT (/p)            — a grid of the TOP-LEVEL folder tiles: an always-present
+ *                          "Uncategorised" folder (every saved session not filed into a
+ *                          folder), the user's folders, then a "+ New folder" + "+ New
+ *                          tool" tile. Open a folder → /p/<id>.
+ *   FOLDER (/p/<id>)     — that folder's SUB-FOLDERS and saved sessions as tiles, a
+ *                          breadcrumb of its ancestors, "+ New folder" (nests here) and
+ *                          "+ New tool" tiles, a "Move to" rail of other folders as drop
+ *                          targets, rename, and "Render folder" (export its whole subtree
+ *                          as one nested batch zip).
  *
- * Moving a session is drag-and-drop (drop a session onto a folder in the rail) with a
- * per-tile "Move to…" menu as the fallback. Folders live on the profile via the
- * pro-free folder store; rendering a folder gates a dynamic import of ./pro so the
- * Projects chunk stays light and /pro stays removable.
+ * Folders nest: each folder has a `parentId` (see ../folders.js). Moving a session OR a
+ * sub-folder is drag-and-drop (drop onto a folder tile / rail chip) with a per-tile
+ * "Move to…" menu as the fallback; reparenting a folder is kept acyclic by the store.
+ * Folders live on the profile via the pro-free folder store; rendering a folder gates a
+ * dynamic import of ./pro so the Projects chunk stays light and /pro stays removable.
  */
 import { escape } from '../utils.js';
-import { createFolderStore } from '../folders.js';
+import { createFolderStore, childFolders, folderPath, descendantFolderIds } from '../folders.js';
 import {
   folderTile, sessionTile, FOLDER_ICON, PACKAGE_ICON, MENU_ICON,
   isBatchSlot, BATCH_SLOT_PREFIX,
 } from '../folder-tiles.js';
 import { viewToggle } from '../components/view-toggle.js';
+import { attachProfileMenu } from '../components/profile-menu.js';
 import { openFolderOverlay } from '../folder-overlay.js';
 import { flagEnabled, PRO_FLAG } from '../feature-flags.js';
 
@@ -35,6 +38,11 @@ const UNCAT = '__uncat__';
 // + cleared by the tool view after its first save. sessionStorage so it survives the
 // navigation to the tool and dies with the tab.
 const FILE_INTO_KEY = 'lolly:fileInto';
+
+// Set just before opening/resuming a tool from here so the tool's Save button returns
+// to THIS projects page (the folder or root the user launched from) instead of the
+// gallery. sessionStorage, one-shot — read + cleared by the tool view on mount.
+const RETURN_KEY = 'lolly:returnTo';
 
 const FOLDER_PLUS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.7.9H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2Z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
 const FILE_PLUS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v5h5"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>';
@@ -106,6 +114,12 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     // 'tool' has no meaning for folders → keep stored order.
     return a;
   }
+  // A folder's full path as a label ("Event A / Drafts") so move targets and the rail
+  // disambiguate same-named folders at different depths.
+  const folderPathLabel = (id) => folderPath(folders, id).map(f => f.name).join(' / ');
+  // Tile sub-line count = a folder's own items PLUS its direct sub-folders.
+  const tileItemCount = (f) => (f.items?.length ?? 0) + childFolders(folders, f.id).length;
+
   const sessionTitle = (e) => (e.label || e.filename || toolName(e.toolId) || '').toLowerCase();
   function sortSessions(arr) {
     const a = [...arr];
@@ -127,8 +141,10 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const createFolder = createTile('folder', FOLDER_PLUS_ICON, 'New folder', 'Group saved sessions');
     const createTool = createTile('tool', FILE_PLUS_ICON, 'New tool', 'Start a fresh creation');
     const uncatTile = pseudoFolderTile(UNCAT, 'Uncategorised', uncat.map(e => e.slot));
-    const folderTiles = sortFolders(folders).map(f => folderTile(f, {
+    // Only TOP-LEVEL folders at the root; nested folders show inside their parent.
+    const folderTiles = sortFolders(childFolders(folders, null)).map(f => folderTile(f, {
       memberPreviews: f.items.map(i => i.type === 'session' ? previewForRef(i.ref) : null).filter(Boolean),
+      count: tileItemCount(f),
     })).join('');
     // Content first (Uncategorised, then folders), create tiles LAST, so the grid reads
     // top-left like a file manager and the "new" affordances trail.
@@ -144,30 +160,50 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     if (!isUncat && !folder) {
       return shell('Projects', 'projects', `<p class="projects-empty">That folder no longer exists. <a href="#/p">Back to Projects</a>.</p>`, { inFolder: true });
     }
+    const subfolders = isUncat ? [] : sortFolders(childFolders(folders, id));
     const sessions = sortSessions(isUncat ? uncategorised() : sessionsInFolder(folder));
     const title = isUncat ? 'Uncategorised' : folder.name;
-    const count = sessions.length;
+    const count = subfolders.length + sessions.length;
 
-    // "Move to" rail: every OTHER folder (+ Uncategorised when not already there) as drop targets.
+    // Breadcrumb + parent — the back arrow climbs ONE level (to the parent folder, or
+    // the root), and the trail links every ancestor. The current folder is the <h2>.
+    const ancestors = isUncat ? [] : folderPath(folders, id).slice(0, -1);
+    const parentId = ancestors.length ? ancestors[ancestors.length - 1].id : null;
+    const backHref = parentId ? `#/p/${escape(parentId)}` : '#/p';
+    const crumbs = `
+      <nav class="projects-crumbs" aria-label="Folder path">
+        <a href="#/p">Projects</a>
+        ${ancestors.map(a => `<span class="projects-crumb-sep" aria-hidden="true">/</span><a href="#/p/${escape(a.id)}">${escape(a.name)}</a>`).join('')}
+      </nav>`;
+
+    // "Move to" rail: every OTHER folder (+ Uncategorised when not already there) as drop
+    // targets — moving a session OUT, or reparenting a dragged sub-folder.
     const railTargets = [
-      ...(isUncat ? [] : [{ id: UNCAT, name: 'Uncategorised' }]),
-      ...folders.filter(f => f.id !== id).map(f => ({ id: f.id, name: f.name })),
+      ...(isUncat ? [] : [{ id: UNCAT, name: 'Top level' }]),
+      ...folders.filter(f => f.id !== id).map(f => ({ id: f.id, name: folderPathLabel(f.id) })),
     ];
     const rail = railTargets.length ? `
-      <div class="projects-rail" aria-label="Drag a session onto a folder to move it">
+      <div class="projects-rail" aria-label="Drag a session or folder onto a folder to move it">
         <span class="projects-rail-hint">Move to</span>
         ${railTargets.map(t => `<button type="button" class="projects-chip" data-drop-folder="${escape(t.id)}" data-open-folder-nav="${escape(t.id)}">${escape(t.name)}</button>`).join('')}
       </div>` : '';
 
+    // Content first (sub-folders, then sessions); create tiles LAST. No "+ New folder"
+    // inside the synthetic Uncategorised bucket (it isn't a real folder to nest under).
+    const createFolder = isUncat ? '' : createTile('folder', FOLDER_PLUS_ICON, 'New folder', `Group inside ${title}`);
     const createTool = createTile('tool', FILE_PLUS_ICON, 'New tool', isUncat ? 'New saved session' : `Add to ${title}`);
-    const tiles = sessions.map(e => sessionTile(e, {
-      toolName: toolName(e.toolId),
-      sizeBytes: sizes[e.slot] || 0,
-    })).join('');
+    const tiles = [
+      ...subfolders.map(f => folderTile(f, {
+        memberPreviews: f.items.map(i => i.type === 'session' ? previewForRef(i.ref) : null).filter(Boolean),
+        count: tileItemCount(f),
+      })),
+      ...sessions.map(e => sessionTile(e, { toolName: toolName(e.toolId), sizeBytes: sizes[e.slot] || 0 })),
+    ].join('');
 
     const header = `
+      ${crumbs}
       <div class="projects-head">
-        <a href="#/p" class="projects-back" aria-label="Back to Projects">${BACK_ICON}</a>
+        <a href="${backHref}" class="projects-back" aria-label="${parentId ? 'Up to parent folder' : 'Back to Projects'}">${BACK_ICON}</a>
         <h2 class="projects-title"${isUncat ? '' : ` data-rename-folder="${escape(id)}" title="Rename folder"`}>${escape(title)}</h2>
         <span class="projects-count">${count} item${count === 1 ? '' : 's'}</span>
         <span class="projects-head-spacer"></span>
@@ -177,8 +213,8 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
 
     const gridClass = `folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}`;
     const body = count
-      ? `<div class="${gridClass}">${tiles}${createTool}</div>`
-      : `<div class="${gridClass}">${createTool}</div><p class="projects-empty">No saved sessions ${isUncat ? 'are uncategorised' : 'in this folder'} yet.</p>`;
+      ? `<div class="${gridClass}">${tiles}${createFolder}${createTool}</div>`
+      : `<div class="${gridClass}">${createFolder}${createTool}</div><p class="projects-empty">${isUncat ? 'No saved sessions are uncategorised yet.' : 'This folder is empty — add a tool or a sub-folder.'}</p>`;
 
     return shell(title, 'projects', `${rail}${header}${body}`, { inFolder: true });
   }
@@ -234,8 +270,10 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   function shell(heading, active, inner, { inFolder = false } = {}) {
     return `
       <div class="projects${inFolder ? ' projects--folder' : ''}">
-        ${topRight()}
-        <div class="view-toggle-wrap">${viewToggle(active)}</div>
+        <div class="gallery-topbar">
+          <div class="view-toggle-wrap">${viewToggle(active)}</div>
+          ${topRight()}
+        </div>
         <h1 class="visually-hidden">${escape(heading)}</h1>
         ${inner}
       </div>`;
@@ -323,9 +361,10 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     // View-options (filter) button → preview/list + sort popover.
     root.querySelector('.projects-viewopts')?.addEventListener('click', (e) => { e.stopPropagation(); openViewOpts(e.currentTarget); });
 
-    // History button → the quick saved-sessions overlay (same as the gallery). It can
+    // History → the quick saved-sessions overlay (same as the gallery). It can
     // move/rename folders behind the page, so refresh Projects when it closes.
-    root.querySelector('.history-fab')?.addEventListener('click', async () => {
+    // Reached from the history button AND, on mobile, the consolidated profile menu.
+    async function openHistory() {
       const imageRefs = await host.assets._listUserAssets?.().catch(() => []) ?? [];
       openFolderOverlay(host, {
         context: 'projects',
@@ -338,24 +377,38 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       });
       document.querySelector('dialog.folder-overlay')
         ?.addEventListener('close', async () => { if (!mounted) return; await reload(); render(); }, { once: true });
+    }
+    root.querySelector('.history-fab')?.addEventListener('click', openHistory);
+
+    // Mobile: the avatar opens a single menu (theme + saved sessions + Settings);
+    // on desktop it stays a plain link to the profile page.
+    attachProfileMenu(root.querySelector('.profile-link'), host, {
+      savedCount: entries.length,
+      onHistory: openHistory,
     });
 
     wireDrag(root);
   }
 
-  // ── drag-and-drop: drag a session tile onto a folder chip / folder tile to move it ──
+  // ── drag-and-drop: drag a session OR a sub-folder onto a folder chip / folder tile ──
   function wireDrag(root) {
-    root.querySelectorAll('.folder-tile[data-kind="session"]').forEach(tile => {
+    // Session tiles AND real folder tiles are draggable (not the synthetic Uncategorised,
+    // not the create tiles). A folder carries 'text/lolly-folder'; a session 'text/lolly-session'.
+    root.querySelectorAll('.folder-tile[data-kind="session"], .folder-tile--folder:not(.folder-tile--uncat)').forEach(tile => {
+      const isFolder = tile.classList.contains('folder-tile--folder');
       tile.setAttribute('draggable', 'true');
       tile.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/lolly-session', tile.dataset.ref);
+        e.dataTransfer.setData(isFolder ? 'text/lolly-folder' : 'text/lolly-session', tile.dataset.ref);
         e.dataTransfer.effectAllowed = 'move';
         tile.classList.add('is-dragging');
-        root.classList.add('is-dragging-session');
+        root.classList.add(isFolder ? 'is-dragging-folder' : 'is-dragging-session');
       });
-      tile.addEventListener('dragend', () => { tile.classList.remove('is-dragging'); root.classList.remove('is-dragging-session'); });
+      tile.addEventListener('dragend', () => {
+        tile.classList.remove('is-dragging');
+        root.classList.remove('is-dragging-session', 'is-dragging-folder');
+      });
     });
-    // Drop targets: the move-rail chips (folder view) AND folder tiles (root view).
+    // Drop targets: the move-rail chips AND folder tiles (the open-button is the hit area).
     const targets = [
       ...root.querySelectorAll('[data-drop-folder]'),
       ...[...root.querySelectorAll('.folder-tile--folder')].map(t => t.querySelector('[data-open-folder]')).filter(Boolean),
@@ -368,8 +421,14 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       target.addEventListener('drop', async (e) => {
         e.preventDefault(); hit?.classList.remove('is-drop');
         const slot = e.dataTransfer.getData('text/lolly-session');
-        if (!slot) return;
-        await store.moveItem(slot, folderRef === UNCAT ? null : folderRef, 'session');
+        const draggedFolder = e.dataTransfer.getData('text/lolly-folder');
+        const dest = folderRef === UNCAT ? null : folderRef;
+        if (slot) {
+          await store.moveItem(slot, dest, 'session');
+        } else if (draggedFolder) {
+          if (draggedFolder === folderRef) return;   // dropped on itself — no-op
+          await store.moveFolder(draggedFolder, dest); // store guards self/descendant cycles
+        } else { return; }
         await reload(); render();
       });
     });
@@ -383,15 +442,25 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const pop = document.createElement('div');
     pop.className = 'folder-menu projects-menu';
     if (kind === 'folder') {
+      // Move targets exclude the folder itself and its descendants (a folder can't nest
+      // inside its own subtree). "Top level" appears unless it's already top-level.
+      const blocked = new Set([ref, ...descendantFolderIds(folders, ref)]);
+      const atTop = (folders.find(f => f.id === ref)?.parentId ?? null) == null;
+      const targets = [
+        ...(atTop ? [] : [{ id: UNCAT, name: 'Top level' }]),
+        ...folders.filter(f => !blocked.has(f.id)).map(f => ({ id: f.id, name: folderPathLabel(f.id) })),
+      ];
       pop.innerHTML = `
+        <button type="button" class="folder-menu-item" data-act="open-folder">Open</button>
         <button type="button" class="folder-menu-item" data-act="rename">Rename folder</button>
+        ${targets.length ? `<p class="folder-menu-head">Move to</p>${targets.map(t => `<button type="button" class="folder-menu-item" data-act="move-folder" data-to="${escape(t.id)}">${escape(t.name)}</button>`).join('')}` : ''}
         <button type="button" class="folder-menu-item" data-act="render">Render folder</button>
         <button type="button" class="folder-menu-item folder-menu-item--danger" data-act="delete">Delete folder</button>`;
     } else {
       const here = folderId;
       const targets = [
-        ...(here === UNCAT ? [] : [{ id: UNCAT, name: 'Uncategorised' }]),
-        ...folders.filter(f => f.id !== here).map(f => ({ id: f.id, name: f.name })),
+        ...(here === UNCAT ? [] : [{ id: UNCAT, name: 'Top level' }]),
+        ...folders.filter(f => f.id !== here).map(f => ({ id: f.id, name: folderPathLabel(f.id) })),
       ];
       pop.innerHTML = `
         <button type="button" class="folder-menu-item" data-act="open">Open</button>
@@ -415,6 +484,8 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       if (act === 'rename') startRename(btn.closest('.folder-tile') || viewEl.querySelector('.projects-title[data-rename-folder]'), ref);
       else if (act === 'render') renderFolder(ref);
       else if (act === 'delete') deleteFolderCascade(ref);
+      else if (act === 'open-folder') { window.location.hash = '#/p/' + ref; }
+      else if (act === 'move-folder') { await store.moveFolder(ref, item.dataset.to === UNCAT ? null : item.dataset.to); await reload(); render(); }
       else if (act === 'open') resumeSession(ref);
       else if (act === 'rename-session') startRenameSession(btn.closest('.folder-tile'), ref);
       else if (act === 'move') { await store.moveItem(ref, item.dataset.to === UNCAT ? null : item.dataset.to, 'session'); await reload(); render(); }
@@ -480,8 +551,11 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     tile.innerHTML = `
       <span class="tile-cover tile-cover--create" aria-hidden="true">${FOLDER_PLUS_ICON}</span>
       <div class="tile-meta"><input class="projects-name-input" type="text" placeholder="Folder name" aria-label="New folder name" maxlength="60"></div>`;
+    // Inside a real folder, the new folder nests here (parentId); at root / Uncategorised
+    // it's a top-level folder.
+    const parent = (folderId && folderId !== UNCAT) ? folderId : null;
     wireNameInput(tile.querySelector('input'), async (name) => {
-      if (name) { try { await store.create(name); } catch { /* empty name */ } }
+      if (name) { try { await store.create(name, parent); } catch { /* empty name */ } }
       await reload(); render();
     });
   }
@@ -593,33 +667,50 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       const tile = e.target.closest('[data-tool]'); if (!tile) return;
       const target = (folderId && folderId !== UNCAT) ? folderId : '';
       try { sessionStorage.setItem(FILE_INTO_KEY, target); } catch { /* private mode */ }
+      armReturn();
       dlg.close();
       window.location.hash = '#/tool/' + tile.dataset.tool;
     });
   }
 
-  function resumeSession(slot) {
-    closeMenu();
-    window.location.hash = isBatchSlot(slot)
-      ? `#/pro?session=${encodeURIComponent(slot)}`
-      : `#/tool/${entryBySlot().get(slot)?.toolId || ''}?slot=${encodeURIComponent(slot)}`;
+  // Arm the return target so the tool's Save button lands back on this exact page —
+  // root `/#/p`, the Uncategorised view, or a specific folder. navigateTo-compatible URL.
+  function armReturn() {
+    try { sessionStorage.setItem(RETURN_KEY, '/#/p' + (folderId ? '/' + folderId : '')); } catch { /* private mode */ }
   }
 
-  // ── delete a folder AND everything inside it ───────────────────────────────
-  // Unlike store.remove() (which only drops the folder record and returns its items to
-  // Uncategorised), this permanently deletes every saved session and image the folder
-  // holds — and their stored previews — then the folder itself. Always confirmed.
+  function resumeSession(slot) {
+    closeMenu();
+    if (isBatchSlot(slot)) {
+      window.location.hash = `#/pro?session=${encodeURIComponent(slot)}`;
+      return;
+    }
+    armReturn();
+    window.location.hash = `#/tool/${entryBySlot().get(slot)?.toolId || ''}?slot=${encodeURIComponent(slot)}`;
+  }
+
+  // ── delete a folder AND everything inside it (its WHOLE subtree) ────────────
+  // Unlike store.remove() (which only drops one record and lifts its contents up), this
+  // permanently deletes the folder, every SUB-FOLDER beneath it, and every saved session
+  // and image they hold — including stored previews — then the folder records. Confirmed.
   async function deleteFolderCascade(id) {
     closeMenu();
     if (!id || id === UNCAT) return;
     const folder = folders.find(f => f.id === id);
     if (!folder) return;
-    const items = folder.items ?? [];
-    const n = items.length;
+    // The whole subtree: this folder + all descendants, and every item they contain.
+    const subtreeIds = [id, ...descendantFolderIds(folders, id)];
+    const subtree = folders.filter(f => subtreeIds.includes(f.id));
+    const items = subtree.flatMap(f => f.items ?? []);
+    const subCount = subtreeIds.length - 1;            // sub-folders beneath this one
+    const n = items.length;                            // sessions + images across the subtree
+    const parts = [];
+    if (subCount) parts.push(`${subCount} sub-folder${subCount === 1 ? '' : 's'}`);
+    if (n) parts.push(`${n} item${n === 1 ? '' : 's'} (saved sessions and images, including previews)`);
     const ok = await confirmDialog({
       title: `Delete “${folder.name}”?`,
-      message: n
-        ? `This permanently deletes the folder and the ${n} item${n === 1 ? '' : 's'} inside it — saved sessions and images, including their previews. This cannot be undone.`
+      message: parts.length
+        ? `This permanently deletes the folder, ${parts.join(' and ')}. This cannot be undone.`
         : 'This permanently deletes the folder. This cannot be undone.',
       confirmLabel: 'Delete folder',
     });
@@ -630,10 +721,15 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         else await host.state.delete(it.ref);
       } catch (err) { host.log?.('warn', 'projects: folder item delete failed', { ref: it.ref, error: String(err) }); }
     }
-    await store.remove(id);
+    await store.removeSubtree(id);
     if (!mounted) return;
-    // If we were viewing this folder, it's gone — fall back to the Projects root.
-    if (folderId === id) { window.location.hash = '#/p'; return; }
+    // If we were viewing the deleted folder (or one now-deleted beneath it), climb to its
+    // parent (or root); otherwise just re-render in place.
+    if (subtreeIds.includes(folderId)) {
+      const parentId = folder.parentId ?? null;
+      window.location.hash = parentId ? `#/p/${parentId}` : '#/p';
+      return;
+    }
     await reload(); render();
   }
 
@@ -644,7 +740,12 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const folder = isUncat
       ? { name: 'Uncategorised', items: uncategorised().map(e => ({ type: 'session', ref: e.slot })) }
       : folders.find(f => f.id === id);
-    if (!folder || !folder.items.length) return;
+    if (!folder) return;
+    // A folder is renderable if its WHOLE subtree (it + descendants) holds any items.
+    const subtreeItems = isUncat
+      ? folder.items
+      : [id, ...descendantFolderIds(folders, id)].flatMap(cid => folders.find(f => f.id === cid)?.items ?? []);
+    if (!subtreeItems.length) return;
     const toast = document.createElement('div');
     toast.className = 'pro-toast projects-toast'; // top-right under the profile row (see app.css)
     toast.innerHTML = `<button type="button" class="pro-toast-close" aria-label="Close">✕</button><div class="pro-toast-mount"></div>`;
@@ -658,6 +759,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       await exportFolderAsBatch(host, folder, {
         mount,
         author: profile?.useDetails ? profile : null,
+        folders,   // recurse sub-folders into nested zip paths (Uncategorised has none)
         onBatchRendered: opts.onBatchRendered,
       });
     } catch (err) {
@@ -667,8 +769,8 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
 
   // ── boot ─────────────────────────────────────────────────────────────────
   // Arriving at Projects means we're not mid-"+ New tool" creation, so disarm any
-  // stale file-into marker left by an abandoned flow.
-  try { sessionStorage.removeItem(FILE_INTO_KEY); } catch { /* ignore */ }
+  // stale file-into / return-to markers left by an abandoned flow.
+  try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
   viewEl._cleanup = () => { mounted = false; closeMenu(); confirmEl?.remove(); confirmEl = null; toasts.forEach(t => t.remove()); toasts.clear(); toolPickerEl?.remove(); toolPickerEl = null; };
   await reload();
   // A stale /p/<id> deep link to a deleted folder falls back to root.

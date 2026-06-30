@@ -211,6 +211,19 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     } catch (e) { /* sessionStorage unavailable (private mode) */ }
   }
 
+  // Where the Save button returns to when it leaves. The Projects view arms a one-shot
+  // marker (the folder it launched from, e.g. `/#/p/<folderId>`) so a tool opened or
+  // resumed from a folder saves and lands BACK in that folder; opening straight from the
+  // gallery leaves no marker, so we fall back to '/' (the gallery). Consumed once here on
+  // mount — claimed for resume AND fresh opens (a session resumed from a folder should
+  // return to that folder too). The explicit "Tools" back-link stays gallery-bound.
+  let returnTo = '/';
+  try {
+    const back = sessionStorage.getItem('lolly:returnTo');
+    if (back) { sessionStorage.removeItem('lolly:returnTo'); returnTo = back; }
+  } catch (e) { /* sessionStorage unavailable (private mode) */ }
+  console.log('[MOUNT-DEBUG] mountTool', toolId, 'slot=', slot, 'returnTo=', returnTo, 'fileInto=', fileIntoFolder, 'urlParams=', JSON.stringify(urlParams), 'STACK=', new Error().stack?.split('\n').slice(1,6).join(' <<< '));
+
   // Populate inputs from user profile if they match profile field names
   const profile = await host.profile.get();
   const profileInputIds = (tool.manifest.inputs ?? []).map(i => i.id);
@@ -1156,7 +1169,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     if (id) dirtyParams.add(id);
   }
 
-  const actionsApi = renderActions(actionsEl, tool.manifest, runtime, canvasEl, host, resetView, exportUnscaled, exportDefaults, syncUrl, playShutter);
+  const actionsApi = renderActions(actionsEl, tool.manifest, runtime, canvasEl, host, resetView, exportUnscaled, exportDefaults, syncUrl, playShutter, fileIntoFolder, returnTo);
 
   // Copy-URL now lives in the actions bar (renderActions), alongside the export
   // buttons — its format/filename/dimension inputs are in the same element.
@@ -3513,7 +3526,7 @@ function controlHtml(input, modelValues = {}) {
 
 // fitCanvas and exportUnscaled are passed in so refreshCanvasPreview and the
 // export actions can coordinate with the responsive-scaling logic in mountTool.
-function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportUnscaled, exportDefaults = {}, onUrlSync = null, playShutter = () => {}) {
+function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportUnscaled, exportDefaults = {}, onUrlSync = null, playShutter = () => {}, fileIntoFolder = null, returnTo = '/') {
   // Shareable-link button (wired by wireUpCopyUrl). A link glyph + label; the
   // label is swapped to "Copied!" on click, so it's wrapped in its own span to
   // keep the icon. Lives at the foot of the actions bar — after the render
@@ -3569,6 +3582,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         } catch (e) { /* filing is best-effort */ }
         fileIntoFolder = null;
       }
+      console.log('[SAVE-DEBUG] saved; fileIntoFolder=', fileIntoFolder, 'returnTo=', returnTo);
       label.textContent = 'Saved';
       announce('Saved');
       return true;                              // leave the button as-is; the caller navigates away
@@ -3593,7 +3607,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     if (!hasInputs || optedOut) { el.innerHTML = ''; return {}; }
     el.innerHTML = `<div class="export-action-buttons"><button data-action="save" class="save-btn">${SAVE_SVG}<span data-save-label>Save</span></button>${copyUrlBtn}</div>`;
     el.querySelector('[data-action="save"]').addEventListener('click', async function () {
-      if (await performSave(this)) setTimeout(() => { navigateTo('/'); }, 800);
+      if (await performSave(this)) setTimeout(() => { navigateTo(returnTo); }, 800);
     });
     return { save: performSave };
   }
@@ -4269,7 +4283,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   });
 
   el.querySelector('[data-action="save"]')?.addEventListener('click', async function () {
-    if (await performSave(this)) setTimeout(() => { navigateTo('/'); }, 800);
+    if (await performSave(this)) setTimeout(() => { navigateTo(returnTo); }, 800);
   });
 
   // Apply the initial (or restored) dimensions to the canvas preview immediately.

@@ -68,9 +68,14 @@ export function rowFromBatchRow(r, pathParts) {
  *   - a batch session (subgroup) → all its rows, under `<group>/<subgroup>/…`
  *   - a single-tool session      → one row, under `<group>/…`
  * Image items are inputs, not renderable tools, so they're skipped.
+ *
+ * When `allFolders` is supplied, the folder's SUB-FOLDERS are recursed into as well, so
+ * a nested tree exports under nested paths (`<group>/<child>/…`). Omitting it keeps the
+ * legacy single-level behaviour (used by pro/index.js to flatten one folder into a grid).
+ * `basePath` is the ancestor path prefix accumulated during recursion.
  */
-export async function rowsForFolder(host, folder) {
-  const group = folder.name;
+export async function rowsForFolder(host, folder, allFolders = null, basePath = []) {
+  const path = [...basePath, folder.name];
   const rows = [];
   for (const item of folder.items ?? []) {
     if (item.type !== 'session') continue;
@@ -79,10 +84,15 @@ export async function rowsForFolder(host, folder) {
     if (data.__batch || isBatchSlot(item.ref)) {
       const sub = data.__label || item.ref.slice(BATCH_SLOT_PREFIX.length);
       for (const r of data.rows ?? []) {
-        if (r.toolId) rows.push(rowFromBatchRow(r, [group, sub]));
+        if (r.toolId) rows.push(rowFromBatchRow(r, [...path, sub]));
       }
     } else if (data.__toolId) {
-      rows.push(rowFromToolSession(data, [group]));
+      rows.push(rowFromToolSession(data, path));
+    }
+  }
+  if (allFolders) {
+    for (const child of allFolders.filter(f => (f.parentId ?? null) === folder.id)) {
+      rows.push(...await rowsForFolder(host, child, allFolders, path));
     }
   }
   return rows;

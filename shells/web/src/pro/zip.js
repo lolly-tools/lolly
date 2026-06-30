@@ -35,7 +35,7 @@ const ICONS = {
 const FORMAT_ICONS = { 'pdf-cmyk': '🖨️', 'eps-cmyk': '🖨️' };
 const iconFor = (f) => FORMAT_ICONS[f.fmt] ?? ICONS[extOf(f.name)] ?? '⚠️';
 
-const HEADER = '📐 Lolly  •  ❤️ Made with Love  •  🌏 lolly.tools';
+const HEADER = '📐 Lolly  •  ❤️ Give Fitzy an Ovation  •  🌏 https://lolly.tools';
 
 // The little manifest dropped into every batch zip. Lists each file with its
 // render time, the package name, a local timestamp, and (if set) the author's
