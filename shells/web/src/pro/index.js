@@ -28,11 +28,12 @@ import { controlHtml, readControlValue } from './controls.js';
 import { openBlocksEditor, closeBlocksPanel } from './blocks-editor.js';
 import { colorFieldHtml, wireColorField } from '../components/color-field.js';
 import { getTool, renderRowToBlob, isExportable } from './render-export.js';
-import { runBatch, planBatch } from './batch.js';
-import { buildZip, saveBlob, saveSequential } from './zip.js';
+import { planBatch } from './batch.js';
+import { saveBlob } from './zip.js';
 import { batchToCsv, csvToBatch, parseClipboardGrid, coerceCell } from './io.js';
 import { createSessionStore, rowsFromSnapshot, snapshotFromState } from './sessions.js';
-import { QUIPS, quipLines } from './quips.js';
+import { runBatchWithProgress } from './run-overlay.js';
+import { rowsForFolder } from './folder-rows.js';
 
 const FORMAT_OPTIONS = ['png', 'jpg', 'svg', 'emf', 'eps', 'pdf', 'webp'];
 
@@ -911,7 +912,12 @@ export async function mountPro(viewEl, host, opts = {}) {
         <span class="pro-sess-csv-label">Offline CSV</span>
         <button type="button" class="pro-btn" data-csv-export title="Download this batch as a CSV to edit in any spreadsheet">↓ Download</button>
         <button type="button" class="pro-btn" data-csv-import title="Load a batch from a CSV / TSV file">↑ Upload</button>
-      </div>`;
+      </div>
+      ${opts.openFolderOverlay ? `<div class="pro-sess-folders">
+        <button type="button" class="pro-btn" data-folders title="Organize sessions into folders and open a folder in the grid">📁 Folders…</button>
+      </div>` : ''}`;
+
+    pop.querySelector('[data-folders]')?.addEventListener('click', openFoldersOverlay);
 
     // CSV download/upload (offline round-trip). The hidden file input persists
     // outside the popover so the OS dialog survives the popover closing.
@@ -949,6 +955,41 @@ export async function mountPro(viewEl, host, opts = {}) {
     };
     pop.querySelector('[data-save]').addEventListener('click', doSave);
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); doSave(); } });
+  }
+
+  // Open the shared folder overlay to organize sessions and open a whole folder
+  // (group) into the grid — flattened, with each row's "Save as" carrying its
+  // group/subgroup path. Folder *creation* is disabled here (done in the gallery);
+  // /pro only browses, loads, and flattens.
+  async function openFoldersOverlay() {
+    if (!opts.openFolderOverlay) return;
+    closeSessions();
+    const [entries, sizes] = await Promise.all([
+      host.state.list(),
+      host.state.sizes().catch(() => ({})),
+    ]);
+    const nameById = new Map((window.__toolIndex?.tools ?? []).map(t => [t.id, t.name]));
+    opts.openFolderOverlay(host, {
+      context: 'pro',
+      sessionEntries: entries,
+      sessionSizes: sizes,
+      nameById,
+      showCreateFolder: false,        // groups are created in the gallery
+      allowBatchExport: false,        // exporting from inside the grid is redundant
+      onResume: async (entry) => {
+        const data = await sessions.load(entry.slot);   // null unless a batch slot
+        if (data) await applySnapshot(data);
+        else window.location.hash = `#/tool/${entry.toolId}?slot=${encodeURIComponent(entry.slot)}`;
+      },
+      onOpenGroup: async (folder) => {
+        // Flatten every subgroup's rows into the grid; each row's filename already
+        // carries its "group/subgroup/stem" path (set by rowsForFolder).
+        const rows = await rowsForFolder(host, folder);
+        if (!rows.length) { showProgress(`<p class="pro-progress-msg">That folder has no renderable rows.</p>`); return; }
+        await applySnapshot({ rows, zipName: folder.name });
+        showProgress(`<p class="pro-progress-msg">Opened folder “${escapeHtml(folder.name)}” — ${rows.length} row${rows.length === 1 ? '' : 's'} flattened into the grid.</p>`);
+      },
+    });
   }
 
   function relTime(iso) {
@@ -1191,122 +1232,31 @@ export async function mountPro(viewEl, host, opts = {}) {
     state.cancelRequested = false;
     renderGrid();
 
-    const total = renderable.length;
-    const skipNote = skipped.length
-      ? `<li class="pro-log-skip">${skipped.length} row${skipped.length === 1 ? '' : 's'} skipped (${escapeHtml(skipped[0].reason)}${skipped.length > 1 ? ', …' : ''})</li>`
-      : '';
+    // Author details ride into the zip manifest only when the user has opted in
+    // (Profile → "Use my details"); otherwise the [ Author Information ] block is
+    // dropped. The CSV is the exact settings that produced these files —
+    // re-importable to reproduce or tweak the run (Sessions ▸ Upload CSV).
+    const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+    const zipBase = state.zipName.trim().replace(/\.zip$/i, '') || `lolly-batch-${stamp}`;
+    const profile = await host.profile?.get?.().catch(() => null);
+    const author = profile?.useDetails ? profile : null;
+    const csv = batchToCsv(renderable, { unit: state.unit, dpi: state.dpi });
 
-    // Persistent progress shell: a rotating quip on top, then a head line + a
-    // single Cancel button, then the live log. The Cancel button and the <ol>
-    // are built ONCE here. draw() rewrites only the head text, and each finished
-    // row appends one <li>. (The old code rebuilt the whole body on every row:
-    // it re-created the Cancel button without re-binding its click — so it went
-    // dead after row 1 — and re-serialised the entire log each time, O(N²) on a
-    // big batch.)
-    progressEl.hidden = false;
-    progressEl.innerHTML = `
-      <div class="pro-quip" aria-hidden="true"></div>
-      <div class="pro-progress-body">
-        <div class="pro-progress-head">
-          <span class="pro-progress-headtext"></span>
-          <button type="button" class="pro-btn" id="pro-cancel">Cancel</button>
-        </div>
-        <ol class="pro-log"></ol>
-      </div>`;
-    const quipEl = progressEl.querySelector('.pro-quip');
-    const headEl = progressEl.querySelector('.pro-progress-headtext');
-    const logEl = progressEl.querySelector('.pro-log');
-    const cancelBtn = progressEl.querySelector('#pro-cancel');
-    if (skipNote) logEl.insertAdjacentHTML('beforeend', skipNote);
-    const draw = (head) => { headEl.innerHTML = head; };
-    const appendLog = (li) => logEl.insertAdjacentHTML('beforeend', li);
-    // One Cancel listener, bound once to the stable button, so even a long batch
-    // stays cancellable (the old per-row rebuild dropped this after row 1).
-    cancelBtn.addEventListener('click', () => { state.cancelRequested = true; cancelBtn.disabled = true; });
-
-    // Shuffle the quips and rotate one every few seconds (re-triggering the CSS
-    // fade on each swap). Just for fun while a big batch grinds away.
-    const order = QUIPS.map((_, i) => i);
-    for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
-    let qi = 0;
-    const paintQuip = () => {
-      quipEl.innerHTML = quipLines(QUIPS[order[qi]], total).map(l => `<span>${escapeHtml(l)}</span>`).join('');
-      quipEl.style.animation = 'none'; void quipEl.offsetWidth; quipEl.style.animation = '';
-    };
-    paintQuip();
-    const quipTimer = setInterval(() => { qi = (qi + 1) % order.length; paintQuip(); }, 4200);
-
-    try {
-      draw(`<strong>Rendering 0 / ${total}…</strong>`);
-      srAnnounce(`Rendering ${total} item${total === 1 ? '' : 's'}…`);
-
-      let done = 0;
-      const { files, results } = await runBatch(renderable, host, {
-        format: state.format,
-        // Toolbar defaults; each row may override via its own unit/dpi (batch.js).
-        unit: state.unit,
-        dpi: state.dpi,
-        isCancelled: () => state.cancelRequested,
-        onProgress: (p) => {
-          if (p.status === 'rendering') { draw(`<strong>Rendering ${done + 1} / ${total}…</strong>`); return; }
-          if (p.status === 'done') appendLog(`<li class="pro-log-ok">✓ ${escapeHtml(p.name)}</li>`);
-          else if (p.status === 'error') appendLog(`<li class="pro-log-err">✕ row ${p.index + 1}: ${escapeHtml(p.error)}</li>`);
-          else if (p.status === 'cancelled') appendLog(`<li class="pro-log-skip">Cancelled</li>`);
-          done++;
-          draw(`<strong>Rendered ${done} / ${total}</strong>`);
-        },
-      });
-
-      state.running = false;
-      renderGrid();
-      clearInterval(quipTimer);
-      quipEl.remove();   // the job's done talking
-      cancelBtn.remove(); // …and there's nothing left to cancel
-
-      // Rows that errored mid-run still produce no file — surface the count so a
-      // "Done — 480 files" can't quietly hide 20 failures.
-      const failed = results.filter(r => !r.ok).length;
-      const failNote = failed ? `, ${failed} failed` : '';
-
-      if (files.length === 0) {
-        draw(`<strong>No files produced.</strong>`);
-        srAnnounce('Batch finished — no files produced.');
-        return;
-      }
-
-      opts.onBatchRendered?.(files); // host-injected usage metric (see main.js)
-
-      // Deliver: one zip when possible; spaced sequential downloads as a fallback.
-      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-      const zipBase = state.zipName.trim().replace(/\.zip$/i, '') || `lolly-batch-${stamp}`;
-      // Only carry author details into the zip manifest when the user has opted
-      // in (Profile → "Use my details"); otherwise the [ Author Information ]
-      // block is dropped. creditText also omits it when there are no details.
-      const profile = await host.profile?.get?.().catch(() => null);
-      const author = profile?.useDetails ? profile : null;
-      // The exact batch settings that produced these files — re-importable to
-      // reproduce or tweak the run (Sessions ▸ Upload CSV).
-      const csv = batchToCsv(renderable, { unit: state.unit, dpi: state.dpi });
-      try {
-        const zip = await buildZip(files, { zipName: `${zipBase}.zip`, author, csv });
-        saveBlob(zip, `${zipBase}.zip`);
-        draw(`<strong>Done — ${files.length} file${files.length === 1 ? '' : 's'} in one zip${failNote}.</strong>`);
-        srAnnounce(`Batch complete — ${files.length} file${files.length === 1 ? '' : 's'} in one zip${failNote}.`);
-      } catch (zipErr) {
-        appendLog(`<li class="pro-log-skip">Zip failed (${escapeHtml(String(zipErr.message ?? zipErr))}); downloading files individually…</li>`);
-        draw(`<strong>Downloading ${files.length} files individually…</strong>`);
-        // Spaced one-at-a-time saves are slow and silent — surface progress as
-        // each file is dispatched so the run never looks stalled.
-        await saveSequential(files, {
-          delayMs: 600,
-          onSaved: (n, tot) => draw(`<strong>Saving ${n} / ${tot}…</strong>`),
-        });
-        draw(`<strong>Done — ${files.length} files downloaded${failNote}.</strong>`);
-        srAnnounce(`Batch complete — ${files.length} file${files.length === 1 ? '' : 's'} downloaded${failNote}.`);
-      }
-    } finally {
-      clearInterval(quipTimer); // never leave the rotator running
-    }
+    await runBatchWithProgress(host, renderable, {
+      mount: progressEl,
+      format: state.format,
+      // Toolbar defaults; each row may override via its own unit/dpi (batch.js).
+      unit: state.unit,
+      dpi: state.dpi,
+      zipBaseName: zipBase,
+      author,
+      csv,
+      skipped,
+      // Re-enable the grid as soon as the renders finish, before the zip builds.
+      onRendered: () => { state.running = false; renderGrid(); },
+      onBatchRendered: opts.onBatchRendered,
+      announce: srAnnounce,
+    });
   }
 
   function showProgress(html) { progressEl.hidden = false; progressEl.innerHTML = html; }

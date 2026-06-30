@@ -30,6 +30,7 @@ import { createRuntime, serializeUrlState, buildEmbedUrl } from '@lolly/engine';
 import { getTool } from '../bridge/tool-loader.js';
 import { downscaleRaster } from '../bridge/image-resize.js';
 import { MAX_USER_ASSETS } from '../bridge/assets.js';
+import { createFolderStore } from '../folders.js';
 
 let modalEl = null;
 
@@ -51,6 +52,10 @@ async function render(root, host, opts, resolve) {
   // The personal-image library is offered only when this input accepts uploads.
   const showUserAssets = opts.allowUpload === true;
   let userAssets = [];
+  // Folders the user has organized their images into (in the gallery overlay).
+  // Browse-only here — the picker reflects the grouping; it doesn't edit it.
+  const folderStore = createFolderStore(host);
+  let folders = [];
 
   // "Take a photo" is offered on the same terms as upload (the slot accepts the
   // user's own images) for raster-capable slots, when the browser exposes a camera.
@@ -289,10 +294,30 @@ async function render(root, host, opts, resolve) {
     if (!userEl) return;
     if (userAssets.length === 0) { userEl.hidden = true; userEl.innerHTML = ''; return; }
     userEl.hidden = false;
-    userEl.innerHTML = `
-      <div class="asset-picker-section-head">Your images <span class="asset-picker-count">${userAssets.length}/${MAX_USER_ASSETS}</span></div>
-      <div class="asset-picker-grid">${userAssets.map(userCard).join('')}</div>
-    `;
+
+    // Group the loaded images by the folder each belongs to (if any), preserving
+    // the newest-first order within each group. Cards keep their existing markup
+    // so pick/delete/keyboard-nav are unchanged — only headings are added.
+    const folderOf = new Map();
+    for (const f of folders) for (const it of f.items) if (it.type === 'image') folderOf.set(it.ref, f);
+    const groups = new Map();   // folderId → { name, items }
+    const ungrouped = [];
+    for (const a of userAssets) {
+      const f = folderOf.get(a.id);
+      if (f) { if (!groups.has(f.id)) groups.set(f.id, { name: f.name, items: [] }); groups.get(f.id).items.push(a); }
+      else ungrouped.push(a);
+    }
+
+    let html = `<div class="asset-picker-section-head">Your images <span class="asset-picker-count">${userAssets.length}/${MAX_USER_ASSETS}</span></div>`;
+    for (const g of groups.values()) {
+      html += `<div class="asset-picker-folder-head">${escape(g.name)}</div>`;
+      html += `<div class="asset-picker-grid">${g.items.map(userCard).join('')}</div>`;
+    }
+    if (ungrouped.length) {
+      if (groups.size) html += `<div class="asset-picker-folder-head">Ungrouped</div>`;
+      html += `<div class="asset-picker-grid">${ungrouped.map(userCard).join('')}</div>`;
+    }
+    userEl.innerHTML = html;
   }
 
   function updateUploadAffordance() {
@@ -522,9 +547,13 @@ async function render(root, host, opts, resolve) {
   // Load the user's saved images (filtered to the requested type) in parallel with
   // the library — they don't depend on each other.
   if (showUserAssets) {
-    host.assets._listUserAssets()
-      .then(list => {
+    Promise.all([
+      host.assets._listUserAssets(),
+      folderStore.list().catch(() => []),
+    ])
+      .then(([list, fs]) => {
         userAssets = list.filter(a => !opts.type || a.type === opts.type);
+        folders = fs;
         renderUserAssets();
         updateUploadAffordance();
       })

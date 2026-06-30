@@ -86,6 +86,9 @@ async function navigate(host) {
     // deleting src/pro/ and this case + the parseRoute branch below. ---
     case 'pro': {
       const { mountPro } = await import('./pro/index.js');
+      // The folder overlay is pro-free; inject it (like onBatchRendered) so /pro
+      // keeps its "imports only engine/host/siblings" isolation intact.
+      const { openFolderOverlay } = await import('./folder-overlay.js');
       const sessionSlot = new URLSearchParams(route.params || '').get('session');
       // Inject a metrics hook rather than letting /pro import metrics.js — keeps
       // the folder's "imports only engine/host/siblings" isolation intact.
@@ -94,7 +97,7 @@ async function navigate(host) {
         bumpMetric('filesRendered', files.length);
         for (const f of files) recordFormat(String(f.name).split('.').pop());
       };
-      await mountPro(view, host, { sessionSlot, onBatchRendered });
+      await mountPro(view, host, { sessionSlot, onBatchRendered, openFolderOverlay });
       break;
     }
     case 'gallery':
