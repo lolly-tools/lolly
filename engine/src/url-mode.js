@@ -34,6 +34,12 @@
  *                  formats (`pdf`/`pdf-cmyk`/`cmyk-tiff`); ignored otherwise.
  *   - `marks`    — print marks for the print formats: a CSV of `crop`, `reg`,
  *                  `bleed`, `bars`, `prov` drawn in the page/image margin.
+ *   - `z`        — a PACKED whole-state token (raw DEFLATE + base64url) that carries
+ *                  the entire query for complex tools whose readable form would blow
+ *                  past practical URL limits. Expanded back into a plain query by
+ *                  `expandQuery` (url-pack.js) at the load boundary, BEFORE this
+ *                  parser runs, so parseUrlState never sees a live `z`. Listed here
+ *                  only so a stray one is never mistaken for a tool input.
  *
  * NOTE: this list, the RESERVED set below, and docs/url-mode.md must stay in
  * sync — tests/engine.test.js asserts the RESERVED set against an inline copy.
@@ -60,7 +66,7 @@ import { isToolUrl } from './tool-url.js';
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options', 'nostage']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'full', 'options', 'nostage', 'z']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.

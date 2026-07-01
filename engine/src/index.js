@@ -12,6 +12,7 @@ export { createRuntime } from './runtime.js';
 export { hydrate, annotateTemplate } from './template.js';
 export { buildInputModel } from './inputs.js';
 export { parseUrlState, serializeUrlState, RESERVED } from './url-mode.js';
+export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.js';
 export { parseEmbedUrl } from './embed.js';
 export { parseToolUrl, buildEmbedUrl, isToolUrl } from './tool-url.js';
 export { buildExportMeta } from './metadata.js';
@@ -56,4 +57,9 @@ export {
 // motion). Pure progressive enhancement: the hook is only driven where the shell
 // provides host.media; a shell without it (or a tool without onFrame) is unaffected,
 // and such tools keep working as ordinary still-image tools. No v1 method changed.
-export const ENGINE_VERSION = '1.4.0';
+// 1.5.0 — additive: packed URL state. A whole readable query can be compressed into
+// a single reserved `z` param (raw DEFLATE + base64url — url-pack.js: packQuery /
+// unpackToken / expandQuery) so complex tools stay shareable past the ~2000-char URL
+// ceiling. Pure URL-mode enhancement — no bridge/host method added or changed; the
+// codec is native (CompressionStream) with graceful fallback to the readable form.
+export const ENGINE_VERSION = '1.5.0';

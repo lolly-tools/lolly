@@ -16,7 +16,7 @@
  * and bounds object-URL memory (oldest URL revoked on eviction).
  */
 
-import { parseToolUrl, buildEmbedUrl, parseUrlState, RESERVED } from '@lolly/engine';
+import { parseToolUrl, buildEmbedUrl, parseUrlState, expandQuery, RESERVED } from '@lolly/engine';
 import { renderRowToBlob } from '../pro/render-export.js';
 import { getTool } from './tool-loader.js';
 
@@ -84,7 +84,9 @@ export function createComposeAPI(host) {
     if (!parsed) return null;
     let tool;
     try { tool = await getTool(parsed.toolId); } catch { return null; } // unknown id → 404 → null
-    return { parsed, tool, state: parseUrlState(parsed.query, tool.manifest) };
+    // A pasted link may carry packed state (`?z=…`); expand before parsing.
+    const query = await expandQuery(parsed.query);
+    return { parsed, tool, state: parseUrlState(query, tool.manifest) };
   }
 
   // Describe a pasted tool URL for the picker UI (the "✦ Detected: <tool>" card):

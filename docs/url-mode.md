@@ -178,10 +178,27 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 | `bleed` | web only | Bleed amount for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`), as a dimension (e.g. `3mm`, `0.125in`). The artwork is scaled to fill the bleed; the PDF declares `TrimBox`/`BleedBox`, the TIFF is enlarged to the full sheet. |
 | `marks` | web only | Print marks for the print formats (`pdf` / `pdf-cmyk` / `cmyk-tiff`) — a CSV of `crop`, `reg`, `bleed`, `bars`, `prov`. Drawn in the page margin (PDF) or rasterised into the image margin (TIFF); registration prints on all four plates in `pdf-cmyk` and `cmyk-tiff`. `prov` (provenance credit text) is PDF-only. |
 | `nostage` | web only | Presence flag — for the `html` export only, drop the fixed-size canvas frame ("stage") so the saved page fills the whole window: the tool's content becomes the document body, with no centred card or grey backdrop. Mirrors the **Full page** toggle in the export panel. |
+| `z` | web + CLI | A **packed** whole-state token — the entire readable query, compressed (raw DEFLATE) and base64url-encoded, for complex tools whose readable link would blow past practical URL limits. See [Packed links](#packed-links-z) below. |
 
 `export`, `copy`, `full`, `options`, and `nostage` are **presence flags** — the parameter value is ignored; what matters is whether the key appears in the URL.
 
 > **Building share links in the UI.** In the web shell you don't have to hand-write these. The **Share** button (in the export panel) opens a dialog with the ready-to-copy link plus a toggle for each on-visit flag — _open fullscreen_ (`full`), _open with the export panel expanded_ (`options`), _download automatically_ (`export`), _copy to clipboard_ (`copy`), and _pin tool version_ (`_v`). The copy toggle appears only for clipboard-friendly formats (bitmap/text/html) and is hidden for SVG, PDF, and video. Ticking a box rewrites the link in place.
+
+### Packed links (`z`)
+
+Readable URLs are first-class — a simple `?color=30BA78&theme=dark` link can be hand-edited. But a complex tool (e.g. Layout Studio, with dozens of boxes each carrying coordinates, colours and text) serialises to thousands of characters, past the ~2000-char ceiling that pasted links, social crawlers, QR codes and some servers still enforce.
+
+For those, the app compresses the **entire readable query** into one `z` param:
+
+```
+/t/layout-studio?background=…&boxes=…&format=png   ← readable (e.g. 2729 chars)
+/t/layout-studio?z=1eJyFkc…                         ← packed   (e.g. 1059 chars)
+```
+
+- **Codec.** `z`'s value is `<tag><base64url>`. The one-char `tag` (`1` today) is raw DEFLATE (RFC 1951, a frozen standard) via the platform-native `CompressionStream`; base64url keeps the whole value URL-safe. The tag versions the codec so a future variant can be added without breaking links minted today.
+- **Stable by construction.** The packed form compresses the app's own canonical readable query, so there's no separate encoding to keep in sync — and DEFLATE is standard, so a link packed in a browser decodes identically in Node's `zlib` (and the CLI), across app versions. There is no server-side or app-side lookup table that could drift.
+- **When it kicks in.** Packing is used only when it's actually shorter (it *loses* on short links — DEFLATE framing plus base64's ⁴⁄₃ blow-up exceed tiny payloads), and the address bar switches to it automatically once the readable query passes ~1800 characters. Below that, links stay readable and editable. The **Share** dialog surfaces a **Shortest link** checkbox (auto-ticked for large states) showing the character saving.
+- **Expansion.** `expandQuery()` (engine) turns a `z` link back into a plain query *before* parsing, so everything downstream — the web shell, the CLI (`brand-tool <id> --z=1eJ…`), and pasted-link composition — behaves identically to the readable form. On-visit flags (`export`, `full`, `_v`, …) can ride alongside `z` in readable form and still take effect.
 
 ### Physical units (`unit=` + `dpi=`)
 
