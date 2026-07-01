@@ -54,6 +54,12 @@ const HISTORY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
 // "sliders-horizontal" — the gallery's filter/view-options button, reused here for
 // view mode (preview/list) + sort.
 const FILTER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>';
+// Context-menu glyphs (lucide house style). None of these existed in the codebase.
+const OPEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+const EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const MOVE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.7.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8"/><path d="M2 13h10"/><path d="m9 16 3-3-3-3"/></svg>';
+const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>';
+const CHEVRON_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
 
 export async function mountProjects(viewEl, host, folderId, opts = {}) {
   const store = createFolderStore(host);
@@ -72,6 +78,11 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   let mounted = true;        // false after the view is swapped out (guards async renders)
   const toasts = new Set();  // live "Render folder" toasts, torn down on navigate-away
   let toolPickerEl = null;   // the "New from a tool" chooser dialog, if open
+  let overlayEl = null;      // the move-picker / new-folder-name dialog, if open
+  // Multi-select: ref → 'folder' | 'session'. A closure var (NOT the DOM) because
+  // render() wipes viewEl.innerHTML — the selection is re-emitted from this Map each
+  // render, and toggles update just the affected tile + the bulk bar in place.
+  const selected = new Map();
   let viewMode = 'preview';  // 'preview' (tile grid) | 'list'
   let sortBy = 'date';       // 'date' | 'name' | 'tool' (a client-side display preference)
   try {
@@ -118,11 +129,31 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     // 'tool' has no meaning for folders → keep stored order.
     return a;
   }
-  // A folder's full path as a label ("Event A / Drafts") so move targets and the rail
-  // disambiguate same-named folders at different depths.
-  const folderPathLabel = (id) => folderPath(folders, id).map(f => f.name).join(' / ');
   // Tile sub-line count = a folder's own items PLUS its direct sub-folders.
   const tileItemCount = (f) => (f.items?.length ?? 0) + childFolders(folders, f.id).length;
+
+  // ── selection helpers ───────────────────────────────────────────────────────
+  const isSelected = (ref) => selected.has(ref);
+  const selectedByKind = (kind) => [...selected].filter(([, k]) => k === kind).map(([ref]) => ref);
+  // Selection is scoped to what the CURRENT view can show as a tile. Drop any selected
+  // ref that isn't currently visible — deleted, OR moved out of view via drag / a per-tile
+  // "Move to…" / the history overlay (none of which clear selection). This keeps the bulk
+  // bar count honest and stops a bulk action (esp. Delete) from silently hitting an item
+  // the user can no longer see was selected. Called at the top of every render().
+  function pruneSelection() {
+    if (!selected.size) return;
+    const visible = new Set();
+    if (folderId == null) {
+      for (const f of childFolders(folders, null)) visible.add(f.id);
+    } else if (folderId === UNCAT) {
+      for (const e of uncategorised()) visible.add(e.slot);
+    } else {
+      const folder = folders.find(f => f.id === folderId);
+      for (const f of childFolders(folders, folderId)) visible.add(f.id);
+      for (const e of sessionsInFolder(folder)) visible.add(e.slot);
+    }
+    for (const ref of [...selected.keys()]) if (!visible.has(ref)) selected.delete(ref);
+  }
 
   const sessionTitle = (e) => (e.label || e.filename || toolName(e.toolId) || '').toLowerCase();
   function sortSessions(arr) {
@@ -136,6 +167,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   // ── render ───────────────────────────────────────────────────────────────
   function render() {
     if (!mounted) return; // an async callback fired after we navigated away — don't clobber the new view
+    pruneSelection();     // forget refs that vanished since the last render
     viewEl.innerHTML = folderId == null ? rootHtml() : folderHtml(folderId);
     wire();
   }
@@ -149,6 +181,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const folderTiles = sortFolders(childFolders(folders, null)).map(f => folderTile(f, {
       memberPreviews: f.items.map(i => i.type === 'session' ? previewForRef(i.ref) : null).filter(Boolean),
       count: tileItemCount(f),
+      selectable: true, selected: isSelected(f.id),
     })).join('');
     // Content first (Uncategorised, then folders), create tiles LAST, so the grid reads
     // top-left like a file manager and the "new" affordances trail.
@@ -180,12 +213,16 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         ${ancestors.map(a => `<span class="projects-crumb-sep" aria-hidden="true">/</span><a href="#/p/${escape(a.id)}">${escape(a.name)}</a>`).join('')}
       </nav>`;
 
-    // "Move to" rail: every OTHER folder (+ Uncategorised when not already there) as drop
-    // targets — moving a session OUT, or reparenting a dragged sub-folder.
-    const railTargets = [
-      ...(isUncat ? [] : [{ id: UNCAT, name: 'Top level' }]),
-      ...folders.filter(f => f.id !== id).map(f => ({ id: f.id, name: folderPathLabel(f.id) })),
-    ];
+    // "Move to" rail: CONTEXTUAL drop targets only (not the whole tree dumped flat) —
+    // inside a folder it's Top level + the parent + siblings; in Uncategorised it's the
+    // top-level folders. Arbitrary-depth moves use the per-tile "Move to…" drill-down.
+    const railTargets = isUncat
+      ? childFolders(folders, null).map(f => ({ id: f.id, name: f.name }))
+      : [
+          { id: UNCAT, name: 'Top level' },
+          ...(parentId ? [{ id: parentId, name: folders.find(f => f.id === parentId)?.name || 'Parent' }] : []),
+          ...childFolders(folders, folder.parentId ?? null).filter(f => f.id !== id).map(f => ({ id: f.id, name: f.name })),
+        ];
     const rail = railTargets.length ? `
       <div class="projects-rail" aria-label="Drag a session or folder onto a folder to move it">
         <span class="projects-rail-hint">Move to</span>
@@ -200,8 +237,12 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       ...subfolders.map(f => folderTile(f, {
         memberPreviews: f.items.map(i => i.type === 'session' ? previewForRef(i.ref) : null).filter(Boolean),
         count: tileItemCount(f),
+        selectable: true, selected: isSelected(f.id),
       })),
-      ...sessions.map(e => sessionTile(e, { toolName: toolName(e.toolId), sizeBytes: sizes[e.slot] || 0, tool: toolById.get(e.toolId) })),
+      ...sessions.map(e => sessionTile(e, {
+        toolName: toolName(e.toolId), sizeBytes: sizes[e.slot] || 0, tool: toolById.get(e.toolId),
+        selectable: true, selected: isSelected(e.slot),
+      })),
     ].join('');
 
     const header = `
@@ -280,7 +321,36 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         </div>
         <h1 class="visually-hidden">${escape(heading)}</h1>
         ${inner}
+        ${bulkBarHtml()}
       </div>`;
+  }
+
+  // A floating action bar for the current multi-selection — rebuilt each render and
+  // shown/hidden (+ count) by syncBulkBar() reading the `selected` Map. The "Render
+  // selection" action leads with the primary Render styling to match the header button.
+  function bulkBarHtml() {
+    return `
+      <div class="projects-bulkbar" role="region" aria-label="Selection actions" hidden>
+        <span class="projects-bulkbar-count" aria-live="polite"></span>
+        <div class="projects-bulkbar-actions">
+          <button type="button" class="btn projects-render projects-bulk-render" data-bulk="render">${RENDER_ICON}<span>Render selection</span></button>
+          <button type="button" class="btn" data-bulk="move">${MOVE_ICON}<span>Move to…</span></button>
+          <button type="button" class="btn" data-bulk="newfolder">${FOLDER_PLUS_ICON}<span>New folder</span></button>
+          <button type="button" class="btn projects-bulk-danger" data-bulk="delete">${TRASH_ICON}<span>Delete</span></button>
+        </div>
+        <button type="button" class="projects-bulkbar-clear" data-bulk="clear" aria-label="Clear selection">✕</button>
+      </div>`;
+  }
+
+  // Reflect the current selection into the (already-rendered) bulk bar: show/hide +
+  // count. Called after every toggle and inside wire() on each render.
+  function syncBulkBar() {
+    const bar = viewEl.querySelector('.projects-bulkbar');
+    if (!bar) return;
+    const n = selected.size;
+    bar.hidden = n === 0;
+    const count = bar.querySelector('.projects-bulkbar-count');
+    if (count) count.textContent = `${n} selected`;
   }
 
   // ── wiring ─────────────────────────────────────────────────────────────────
@@ -303,6 +373,14 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       // Per-tile overflow menu (check before the open-folder primary it sits inside)
       const menuBtn = t.closest('[data-menu]');
       if (menuBtn) { e.preventDefault(); e.stopPropagation(); openMenu(menuBtn); return; }
+
+      // Selection toggle (must beat the open-folder / open-session primary it neighbours)
+      const selBtn = t.closest('[data-select]');
+      if (selBtn) { e.preventDefault(); e.stopPropagation(); toggleSelect(selBtn); return; }
+
+      // Bulk-action bar
+      const bulk = t.closest('[data-bulk]');
+      if (bulk) { e.preventDefault(); e.stopPropagation(); handleBulk(bulk.dataset.bulk); return; }
 
       // Open a folder (folder tile primary). Hash navigation (folders are hash-routed).
       const open = t.closest('[data-open-folder]');
@@ -358,6 +436,29 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     });
 
     wireDrag(root);
+    syncBulkBar();   // reflect a selection that survived this re-render
+  }
+
+  // Toggle one tile's membership in `selected` and update just that tile + the bulk bar
+  // in place (a full render() would drop scroll position / focus and interrupt a drag).
+  function toggleSelect(btn) {
+    const ref = btn.dataset.select;
+    const kind = btn.dataset.kind;
+    if (selected.has(ref)) selected.delete(ref); else selected.set(ref, kind);
+    const on = selected.has(ref);
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.closest('.folder-tile')?.classList.toggle('is-selected', on);
+    syncBulkBar();
+  }
+
+  // Bulk-bar dispatch. Each action re-checks `mounted` after awaits and clears the
+  // selection once applied.
+  function handleBulk(action) {
+    if (action === 'clear') { selected.clear(); render(); return; }
+    if (action === 'render') { renderSelection(); return; }
+    if (action === 'move') { moveSelection(); return; }
+    if (action === 'newfolder') { newFolderFromSelection(); return; }
+    if (action === 'delete') { deleteSelection(); return; }
   }
 
   // ── drag-and-drop: drag a session OR a sub-folder onto a folder chip / folder tile ──
@@ -405,38 +506,33 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   }
 
   // ── per-tile menu ────────────────────────────────────────────────────────
+  // One row of the context menu, icon + label. `render`/`danger` tint it.
+  const menuItem = (act, icon, label, { render = false, danger = false } = {}) =>
+    `<button type="button" class="folder-menu-item${render ? ' folder-menu-item--render' : ''}${danger ? ' folder-menu-item--danger' : ''}" data-act="${act}">${icon}<span>${escape(label)}</span></button>`;
+
   function openMenu(btn) {
     closeMenu();
     const ref = btn.dataset.menu;
     const kind = btn.dataset.menuKind;
     const pop = document.createElement('div');
     pop.className = 'folder-menu projects-menu';
+    // "Move to…" opens the drill-down picker (no more flat all-folders-at-once list).
     if (kind === 'folder') {
-      // Move targets exclude the folder itself and its descendants (a folder can't nest
-      // inside its own subtree). "Top level" appears unless it's already top-level.
-      const blocked = new Set([ref, ...descendantFolderIds(folders, ref)]);
-      const atTop = (folders.find(f => f.id === ref)?.parentId ?? null) == null;
-      const targets = [
-        ...(atTop ? [] : [{ id: UNCAT, name: 'Top level' }]),
-        ...folders.filter(f => !blocked.has(f.id)).map(f => ({ id: f.id, name: folderPathLabel(f.id) })),
-      ];
-      pop.innerHTML = `
-        <button type="button" class="folder-menu-item" data-act="open-folder">Open</button>
-        <button type="button" class="folder-menu-item" data-act="rename">Rename folder</button>
-        ${targets.length ? `<p class="folder-menu-head">Move to</p>${targets.map(t => `<button type="button" class="folder-menu-item" data-act="move-folder" data-to="${escape(t.id)}">${escape(t.name)}</button>`).join('')}` : ''}
-        <button type="button" class="folder-menu-item" data-act="render">Render folder</button>
-        <button type="button" class="folder-menu-item folder-menu-item--danger" data-act="delete">Delete folder</button>`;
+      pop.innerHTML = [
+        menuItem('open-folder', OPEN_ICON, 'Open'),
+        menuItem('rename', EDIT_ICON, 'Rename folder'),
+        menuItem('move-folder', MOVE_ICON, 'Move to…'),
+        menuItem('render', RENDER_ICON, 'Render folder', { render: true }),
+        menuItem('delete', TRASH_ICON, 'Delete folder', { danger: true }),
+      ].join('');
     } else {
-      const here = folderId;
-      const targets = [
-        ...(here === UNCAT ? [] : [{ id: UNCAT, name: 'Top level' }]),
-        ...folders.filter(f => f.id !== here).map(f => ({ id: f.id, name: folderPathLabel(f.id) })),
-      ];
-      pop.innerHTML = `
-        <button type="button" class="folder-menu-item" data-act="open">Open</button>
-        <button type="button" class="folder-menu-item" data-act="rename-session">Rename</button>
-        ${targets.length ? `<p class="folder-menu-head">Move to</p>${targets.map(t => `<button type="button" class="folder-menu-item" data-act="move" data-to="${escape(t.id)}">${escape(t.name)}</button>`).join('')}` : ''}
-        <button type="button" class="folder-menu-item folder-menu-item--danger" data-act="delete-session">Delete</button>`;
+      pop.innerHTML = [
+        menuItem('open', OPEN_ICON, 'Open'),
+        menuItem('rename-session', EDIT_ICON, 'Rename'),
+        menuItem('move', MOVE_ICON, 'Move to…'),
+        menuItem('render-session', RENDER_ICON, 'Render', { render: true }),
+        menuItem('delete-session', TRASH_ICON, 'Delete', { danger: true }),
+      ].join('');
     }
     document.body.appendChild(pop);
     const r = btn.getBoundingClientRect();
@@ -455,10 +551,23 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       else if (act === 'render') renderFolder(ref);
       else if (act === 'delete') deleteFolderCascade(ref);
       else if (act === 'open-folder') { window.location.hash = '#/p/' + ref; }
-      else if (act === 'move-folder') { await store.moveFolder(ref, item.dataset.to === UNCAT ? null : item.dataset.to); await reload(); render(); }
+      else if (act === 'move-folder') {
+        // A folder can't move into itself or its own subtree — block those targets.
+        const blocked = new Set([ref, ...descendantFolderIds(folders, ref)]);
+        openMovePicker({
+          title: 'Move folder to…', blocked,
+          onPick: async (dest) => { await store.moveFolder(ref, dest); await reload(); render(); },
+        });
+      }
       else if (act === 'open') resumeSession(ref);
       else if (act === 'rename-session') startRenameSession(btn.closest('.folder-tile'), ref);
-      else if (act === 'move') { await store.moveItem(ref, item.dataset.to === UNCAT ? null : item.dataset.to, 'session'); await reload(); render(); }
+      else if (act === 'move') {
+        openMovePicker({
+          title: 'Move to…',
+          onPick: async (dest) => { await store.moveItem(ref, dest, 'session'); await reload(); render(); },
+        });
+      }
+      else if (act === 'render-session') renderSession(ref);
       else if (act === 'delete-session') {
         const ok = await confirmDialog({
           title: 'Delete this saved session?',
@@ -467,6 +576,108 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         });
         if (ok && mounted) { await host.state.delete(ref).catch(() => {}); await reload(); render(); }
       }
+    });
+  }
+
+  // ── drill-down "Move to" picker ─────────────────────────────────────────────
+  // A native <dialog> that navigates the folder tree one level at a time (rather than
+  // dumping every folder at once): click a folder to drill in, breadcrumb to climb, then
+  // "Move to «here»" commits at the current level. `blocked` folder ids (a folder's own
+  // subtree, to prevent a cycle) are shown disabled. onPick(destId|null) — null = top level.
+  function openMovePicker({ title, blocked = new Set(), onPick }) {
+    closeMenu();
+    let cursor = null; // current folder id (null = top level)
+    const dlg = document.createElement('dialog');
+    dlg.className = 'projects-movepicker';
+    document.body.appendChild(dlg);
+    overlayEl = dlg;
+
+    const draw = () => {
+      const kids = sortFolders(childFolders(folders, cursor));
+      const path = cursor ? folderPath(folders, cursor) : [];
+      const curName = cursor ? (path[path.length - 1]?.name ?? 'Folder') : 'Top level';
+      const canDropHere = cursor == null || !blocked.has(cursor);
+      dlg.innerHTML = `
+        <div class="movepicker-head">
+          <h2 class="movepicker-title">${escape(title)}</h2>
+          <button type="button" class="movepicker-close" aria-label="Close">✕</button>
+        </div>
+        <nav class="movepicker-crumbs" aria-label="Folder path">
+          <button type="button" class="movepicker-crumb${cursor == null ? ' is-current' : ''}" data-cursor="">Projects</button>
+          ${path.map(f => `<span class="projects-crumb-sep" aria-hidden="true">/</span><button type="button" class="movepicker-crumb${f.id === cursor ? ' is-current' : ''}" data-cursor="${escape(f.id)}">${escape(f.name)}</button>`).join('')}
+        </nav>
+        <div class="movepicker-list">
+          ${kids.length ? kids.map(f => {
+            const isBlocked = blocked.has(f.id);
+            const kidCount = childFolders(folders, f.id).length;
+            return `<button type="button" class="movepicker-row${isBlocked ? ' is-blocked' : ''}" data-into="${escape(f.id)}"${isBlocked ? ' disabled' : ''}>
+              <span class="movepicker-row-icon" aria-hidden="true">${FOLDER_ICON}</span>
+              <span class="movepicker-row-name">${escape(f.name)}</span>
+              ${kidCount ? `<span class="movepicker-row-chev" aria-hidden="true">${CHEVRON_ICON}</span>` : ''}
+            </button>`;
+          }).join('') : `<p class="movepicker-empty">No sub-folders here.</p>`}
+        </div>
+        <div class="movepicker-foot">
+          <button type="button" class="btn movepicker-cancel">Cancel</button>
+          <button type="button" class="btn projects-render movepicker-confirm"${canDropHere ? '' : ' disabled'}>Move to ${escape(curName)}</button>
+        </div>`;
+    };
+    draw();
+
+    dlg.addEventListener('click', (e) => {
+      const crumb = e.target.closest('[data-cursor]');
+      if (crumb) { cursor = crumb.dataset.cursor || null; draw(); return; }
+      const into = e.target.closest('[data-into]');
+      if (into && !into.disabled) { cursor = into.dataset.into; draw(); return; }
+      if (e.target.closest('.movepicker-close, .movepicker-cancel')) { dlg.close(); return; }
+      if (e.target.closest('.movepicker-confirm:not([disabled])')) { const dest = cursor; dlg.close(); onPick(dest); return; }
+      // backdrop click
+      const r = dlg.getBoundingClientRect();
+      if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dlg.close();
+    });
+    dlg.addEventListener('cancel', (e) => { e.preventDefault(); dlg.close(); }); // Escape
+    dlg.addEventListener('close', () => { dlg.remove(); if (overlayEl === dlg) overlayEl = null; });
+    dlg.showModal();
+  }
+
+  // A tiny name prompt (New folder from selection). Resolves the trimmed name, or null.
+  function promptFolderName() {
+    return new Promise((resolve) => {
+      closeMenu();
+      const dlg = document.createElement('dialog');
+      dlg.className = 'projects-confirm projects-prompt';
+      dlg.innerHTML = `
+        <h2 class="projects-confirm-title">New folder</h2>
+        <input class="projects-name-input projects-prompt-input" type="text" placeholder="Folder name" maxlength="60" aria-label="Folder name">
+        <div class="projects-confirm-actions">
+          <button type="button" class="btn" data-act="cancel">Cancel</button>
+          <button type="button" class="btn projects-render" data-act="ok">Create</button>
+        </div>`;
+      document.body.appendChild(dlg);
+      overlayEl = dlg;
+      const input = dlg.querySelector('input');
+      let settled = false;
+      const finish = (val) => {
+        if (settled) return; settled = true;
+        if (overlayEl === dlg) overlayEl = null;
+        if (dlg.open) dlg.close();
+        dlg.remove();
+        resolve(val || null);
+      };
+      dlg.addEventListener('cancel', (e) => { e.preventDefault(); finish(null); });
+      // Resolve if the dialog is closed any other way (incl. _cleanup calling .close() on
+      // navigate-away) so the awaiting newFolderFromSelection() never hangs.
+      dlg.addEventListener('close', () => finish(null));
+      dlg.addEventListener('click', (e) => {
+        const act = e.target.closest('[data-act]')?.dataset.act;
+        if (act === 'ok') return finish(input.value.trim());
+        if (act === 'cancel') return finish(null);
+        const r = dlg.getBoundingClientRect();
+        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) finish(null);
+      });
+      input.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') finish(input.value.trim()); });
+      dlg.showModal();
+      input.focus();
     });
   }
 
@@ -703,6 +914,26 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     await reload(); render();
   }
 
+  const authorForExport = () => (profile?.useDetails ? profile : null);
+
+  // Shared scaffold for every render/export path (folder, single session, selection):
+  // a floating .pro-toast with a live mount + close button, tracked so navigate-away
+  // tears it down (_cleanup). `run(mount)` does the gated /pro export; errors surface
+  // in the toast instead of throwing.
+  function renderViaToast(run) {
+    closeMenu();
+    const toast = document.createElement('div');
+    toast.className = 'pro-toast projects-toast'; // top-right under the profile row (see app.css)
+    toast.innerHTML = `<button type="button" class="pro-toast-close" aria-label="Close">✕</button><div class="pro-toast-mount"></div>`;
+    document.body.appendChild(toast);
+    toasts.add(toast);
+    const mount = toast.querySelector('.pro-toast-mount');
+    toast.querySelector('.pro-toast-close').addEventListener('click', () => { toast.remove(); toasts.delete(toast); });
+    Promise.resolve(run(mount)).catch((err) => {
+      mount.innerHTML = `<p class="pro-progress-msg pro-log-err">${escape(String(err?.message ?? err))}</p>`;
+    });
+  }
+
   // ── render a whole folder as one nested batch zip (gated /pro import) ────────
   async function renderFolder(id) {
     closeMenu();
@@ -716,32 +947,120 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       ? folder.items
       : [id, ...descendantFolderIds(folders, id)].flatMap(cid => folders.find(f => f.id === cid)?.items ?? []);
     if (!subtreeItems.length) return;
-    const toast = document.createElement('div');
-    toast.className = 'pro-toast projects-toast'; // top-right under the profile row (see app.css)
-    toast.innerHTML = `<button type="button" class="pro-toast-close" aria-label="Close">✕</button><div class="pro-toast-mount"></div>`;
-    document.body.appendChild(toast);
-    toasts.add(toast); // tracked so navigating away tears it down (see _cleanup)
-    const mount = toast.querySelector('.pro-toast-mount');
-    const dropToast = () => { toast.remove(); toasts.delete(toast); };
-    toast.querySelector('.pro-toast-close').addEventListener('click', dropToast);
-    try {
+    renderViaToast(async (mount) => {
       const { exportFolderAsBatch } = await import('../pro/folder-export.js');
       await exportFolderAsBatch(host, folder, {
         mount,
-        author: profile?.useDetails ? profile : null,
+        author: authorForExport(),
         folders,   // recurse sub-folders into nested zip paths (Uncategorised has none)
         onBatchRendered: opts.onBatchRendered,
       });
-    } catch (err) {
-      mount.innerHTML = `<p class="pro-progress-msg pro-log-err">${escape(String(err?.message ?? err))}</p>`;
+    });
+  }
+
+  // ── render a SINGLE saved session (parity with "Render folder") ─────────────
+  // A single-tool session downloads as a bare file (its native format); a batch session
+  // falls back to a zip. See pro/folder-export.js renderSessionToFile.
+  function renderSession(slot) {
+    renderViaToast(async (mount) => {
+      const { renderSessionToFile } = await import('../pro/folder-export.js');
+      await renderSessionToFile(host, slot, { mount, author: authorForExport(), onBatchRendered: opts.onBatchRendered });
+    });
+  }
+
+  // ── bulk actions over the current multi-selection ───────────────────────────
+  // Selected FOLDERS that are descendants of another selected folder are redundant —
+  // the ancestor's subtree already covers them. Drop them so we don't double-process.
+  function topLevelSelectedFolders() {
+    const ids = selectedByKind('folder');
+    return ids.filter(id => !ids.some(other => other !== id && descendantFolderIds(folders, other).includes(id)));
+  }
+
+  function renderSelection() {
+    const sessionRefs = selectedByKind('session');
+    const folderIds = topLevelSelectedFolders();
+    if (!sessionRefs.length && !folderIds.length) return;
+    const label = folderId && folderId !== UNCAT ? (folders.find(f => f.id === folderId)?.name || 'Selection') : 'Selection';
+    renderViaToast(async (mount) => {
+      const { exportSelectionAsBatch } = await import('../pro/folder-export.js');
+      await exportSelectionAsBatch(host, {
+        label, sessionRefs, folderIds, allFolders: folders,
+        mount, author: authorForExport(), onBatchRendered: opts.onBatchRendered,
+      });
+    });
+  }
+
+  function moveSelection() {
+    const sessionRefs = selectedByKind('session');
+    const folderIds = topLevelSelectedFolders();
+    if (!sessionRefs.length && !folderIds.length) return;
+    // Can't move a selected folder into itself or any selected folder's subtree.
+    const blocked = new Set(folderIds.flatMap(id => [id, ...descendantFolderIds(folders, id)]));
+    openMovePicker({
+      title: `Move ${selected.size} item${selected.size === 1 ? '' : 's'} to…`, blocked,
+      onPick: async (dest) => {
+        for (const ref of sessionRefs) await store.moveItem(ref, dest, 'session');
+        for (const id of folderIds) await store.moveFolder(id, dest); // store guards cycles
+        selected.clear();
+        if (!mounted) return;
+        await reload(); render();
+      },
+    });
+  }
+
+  async function newFolderFromSelection() {
+    const sessionRefs = selectedByKind('session');
+    const folderIds = topLevelSelectedFolders();
+    if (!sessionRefs.length && !folderIds.length) return;
+    const name = await promptFolderName();
+    if (!name || !mounted) return;
+    const parent = (folderId && folderId !== UNCAT) ? folderId : null;
+    const created = await store.create(name, parent);
+    for (const ref of sessionRefs) await store.moveItem(ref, created.id, 'session');
+    for (const id of folderIds) { if (id !== created.id) await store.moveFolder(id, created.id); }
+    selected.clear();
+    if (!mounted) return;
+    await reload(); render();
+  }
+
+  async function deleteSelection() {
+    const sessionRefs = selectedByKind('session');
+    const folderIds = topLevelSelectedFolders();
+    if (!sessionRefs.length && !folderIds.length) return;
+    // Count everything the delete will remove (subtree items across selected folders).
+    const subtreeIds = folderIds.flatMap(id => [id, ...descendantFolderIds(folders, id)]);
+    const folderItems = folders.filter(f => subtreeIds.includes(f.id)).flatMap(f => f.items ?? []);
+    const totalSessions = sessionRefs.length + folderItems.filter(i => i.type !== 'image').length;
+    const totalImages = folderItems.filter(i => i.type === 'image').length;
+    const bits = [];
+    if (folderIds.length) bits.push(`${folderIds.length} folder${folderIds.length === 1 ? '' : 's'}${subtreeIds.length > folderIds.length ? ' (and everything inside)' : ''}`);
+    if (totalSessions) bits.push(`${totalSessions} saved session${totalSessions === 1 ? '' : 's'}`);
+    if (totalImages) bits.push(`${totalImages} image${totalImages === 1 ? '' : 's'}`);
+    const ok = await confirmDialog({
+      title: `Delete ${selected.size} selected item${selected.size === 1 ? '' : 's'}?`,
+      message: `This permanently deletes ${bits.join(', ')}, including previews. This cannot be undone.`,
+      confirmLabel: `Delete`,
+    });
+    if (!ok || !mounted) return;
+    for (const slot of sessionRefs) await host.state.delete(slot).catch(() => {});
+    for (const id of folderIds) {
+      const items = folders.filter(f => [id, ...descendantFolderIds(folders, id)].includes(f.id)).flatMap(f => f.items ?? []);
+      for (const it of items) {
+        try { if (it.type === 'image') await host.assets._deleteUserAsset(it.ref); else await host.state.delete(it.ref); }
+        catch (err) { host.log?.('warn', 'projects: bulk delete item failed', { ref: it.ref, error: String(err) }); }
+      }
+      await store.removeSubtree(id);
     }
+    selected.clear();
+    if (!mounted) return;
+    await reload(); render();
   }
 
   // ── boot ─────────────────────────────────────────────────────────────────
   // Arriving at Projects means we're not mid-"+ New tool" creation, so disarm any
   // stale file-into / return-to markers left by an abandoned flow.
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
-  viewEl._cleanup = () => { mounted = false; closeMenu(); closeConfirmDialogs(); toasts.forEach(t => t.remove()); toasts.clear(); toolPickerEl?.remove(); toolPickerEl = null; };
+  viewEl._cleanup = () => { mounted = false; closeMenu(); closeConfirmDialogs(); toasts.forEach(t => t.remove()); toasts.clear(); toolPickerEl?.remove(); toolPickerEl = null; overlayEl?.close?.(); overlayEl?.remove(); overlayEl = null; };
   await reload();
   // A stale /p/<id> deep link to a deleted folder falls back to root.
   if (folderId && folderId !== UNCAT && !folders.some(f => f.id === folderId)) folderId = null;

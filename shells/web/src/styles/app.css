@@ -1483,6 +1483,28 @@ a.gtile-name:focus-visible::after {
 .tile-menu-btn:hover { background: hsl(var(--muted)); }
 .tile-menu-btn svg { width: 15px; height: 15px; }
 
+/* Multi-select toggle — a SIBLING of .tile-primary (never nested; Space would double-
+   fire the open action). Mirrors .tile-menu-btn but pinned top-LEFT. Hover-revealed on
+   fine pointers, filled primary when selected, and always visible on touch / when the
+   tile is selected. */
+.tile-check {
+  position: absolute; top: 6px; left: 6px; z-index: 2; width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  border: 2px solid hsl(var(--border)); border-radius: 50%;
+  background: hsl(var(--background) / 0.85); color: hsl(var(--primary-foreground));
+  cursor: pointer; opacity: 0; transition: opacity 0.12s, background 0.12s, border-color 0.12s;
+}
+.folder-tile:hover .tile-check, .tile-check:focus-visible,
+.folder-tile.is-selected .tile-check { opacity: 1; }
+.tile-check svg { width: 13px; height: 13px; opacity: 0; }
+.tile-check[aria-pressed="true"] {
+  background: hsl(var(--primary)); border-color: hsl(var(--primary)); opacity: 1;
+}
+.tile-check[aria-pressed="true"] svg { opacity: 1; }
+.folder-tile.is-selected { border-color: hsl(var(--primary)); box-shadow: 0 0 0 2px hsl(var(--primary) / 0.35); }
+/* Touch devices have no hover — keep the toggle visible so selection is discoverable. */
+@media (pointer: coarse) { .tile-check { opacity: 1; } }
+
 /* Per-tile action popover (move / rename / delete). */
 .folder-menu {
   position: absolute; z-index: 5; min-width: 180px; padding: 5px;
@@ -1491,12 +1513,17 @@ a.gtile-name:focus-visible::after {
   display: flex; flex-direction: column; gap: 1px;
 }
 .folder-menu-item {
-  display: block; width: 100%; text-align: left; padding: 7px 10px;
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; padding: 7px 10px;
   border: 0; background: none; color: hsl(var(--foreground)); cursor: pointer;
   font-size: 12.5px; border-radius: calc(var(--radius) / 1.5);
 }
+.folder-menu-item svg { width: 15px; height: 15px; flex: none; opacity: 0.8; }
 .folder-menu-item:hover { background: hsl(var(--muted)); }
 .folder-menu-item--danger { color: hsl(var(--destructive, 0 70% 50%)); }
+/* The Render action is the primary affordance — tint its icon + label so it stands
+   out from Open/Rename/Move, matching the pronounced header "Render folder" button. */
+.folder-menu-item--render { color: hsl(var(--primary)); font-weight: 600; }
+.folder-menu-item--render svg { opacity: 1; }
 .folder-menu-sep {
   padding: 8px 10px 3px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
   letter-spacing: 0.04em; color: hsl(var(--muted-foreground));
@@ -1564,6 +1591,17 @@ a.gtile-name:focus-visible::after {
   padding:3.6rem 0 1rem;
 }
 
+/* Mobile: the fixed 180px columns drop to a SINGLE column below ~376px (a 360px
+   phone can't fit two 180px tiles + gap). Force two equal fractional columns on
+   narrow screens so at least two folders/sessions always sit side by side; the
+   desktop fixed-width file-manager packing and equal-height stretch are untouched.
+   Scoped `:not(.projects-list)` so list mode (a flex column) is unaffected. */
+@media (max-width: 560px) {
+  .projects-grid:not(.projects-list) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+  }
+}
+
 /* List view mode — reflow the same tiles into compact full-width rows. */
 .projects-grid.projects-list { display: flex; flex-direction: column; gap: 6px; max-width: 760px; }
 .projects-list .folder-tile { width: 100%; }
@@ -1576,6 +1614,9 @@ a.gtile-name:focus-visible::after {
 .projects-list .tile-meta { padding: 0; flex: 1; min-width: 0; }
 .projects-list .tile-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .projects-list .tile-menu-btn { top: 50%; right: 10px; transform: translateY(-50%); }
+/* In a compact row the top-left grid position would sit over the 52px cover thumbnail —
+   move the selection toggle into the right gutter, just inside the ⋯ menu button. */
+.projects-list .tile-check { top: 50%; left: auto; right: 42px; transform: translateY(-50%); }
 
 /* Active option in the view-options popover. */
 .projects-viewmenu .folder-menu-item.is-on { font-weight: 700; }
@@ -1623,6 +1664,15 @@ a.gtile-name:focus-visible::after {
 .projects-head-spacer { flex: 1; }
 .projects-render { display: inline-flex; align-items: center; gap: 7px; }
 .projects-render svg { width: 15px; height: 15px; }
+/* Render is the primary action — fill it with the brand colour so it reads as the
+   pronounced CTA (folder header, bulk bar, move-picker confirm all share this class).
+   Two-class `.projects-render.btn` to beat the generic `.btn` background defined LATER
+   in this file (equal specificity, later wins) — same trick as .projects-confirm-danger. */
+.projects-render.btn {
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary));
+}
+.projects-render.btn:hover { filter: brightness(1.08); }
+.projects-render.btn svg { opacity: 1; }
 
 /* "Move to" rail — drop targets in a folder view. */
 .projects-rail { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
@@ -1716,6 +1766,72 @@ a.gtile-name:focus-visible::after {
   background: hsl(var(--destructive, 0 70% 50%)); border-color: hsl(var(--destructive, 0 70% 50%)); color: #fff;
 }
 .projects-confirm .projects-confirm-danger:hover { filter: brightness(0.94); }
+
+/* New-folder-from-selection name prompt (reuses .projects-confirm chrome). */
+.projects-prompt-input { width: 100%; margin: 0 0 16px; }
+
+/* ─── Multi-select bulk-action bar ──────────────────────────────────────────
+   Floating, bottom-centre, above content but below the fixed view-toggle (99999).
+   Shown by JS (syncBulkBar toggles [hidden]) whenever the selection is non-empty. */
+.projects-bulkbar {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 9000;
+  display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 24px);
+  padding: 8px 10px 8px 16px; border: 1px solid hsl(var(--border));
+  border-radius: 999px; background: hsl(var(--card)); box-shadow: 0 12px 32px hsl(0 0% 0% / 0.28);
+}
+.projects-bulkbar[hidden] { display: none; }
+.projects-bulkbar-count { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.projects-bulkbar-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.projects-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; }
+.projects-bulkbar-actions .btn svg { width: 15px; height: 15px; }
+/* Two-class so the destructive red beats the generic `.btn { color: foreground }`
+   defined later in the file (equal specificity, later wins) — same trick as
+   .projects-render.btn / .projects-confirm-danger. */
+.projects-bulk-danger.btn { color: hsl(var(--destructive, 0 70% 50%)); }
+.projects-bulk-danger.btn:hover { background: hsl(var(--destructive, 0 70% 50%) / 0.1); }
+.projects-bulkbar-clear {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: none;
+  border: 0; border-radius: 50%; background: hsl(var(--muted)); color: hsl(var(--foreground));
+  cursor: pointer; font-size: 13px; line-height: 1;
+}
+.projects-bulkbar-clear:hover { background: hsl(var(--border)); }
+/* Phones: let the bar wrap its buttons and hug the safe area. */
+@media (max-width: 560px) {
+  .projects-bulkbar { flex-direction: column; align-items: stretch; border-radius: var(--radius); bottom: 12px; padding: 10px 12px; gap: 8px; }
+  .projects-bulkbar-clear { position: absolute; top: 8px; right: 8px; }
+}
+
+/* ─── Drill-down "Move to" picker ───────────────────────────────────────────
+   A modal that navigates the folder tree one level at a time. */
+.projects-movepicker {
+  border: 0; padding: 0; width: min(420px, 94vw); max-height: min(560px, 86vh);
+  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4); overflow: hidden;
+}
+.projects-movepicker::backdrop { background: hsl(0 0% 0% / 0.42); }
+.movepicker-head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 8px; }
+.movepicker-title { margin: 0; font-size: 15px; font-weight: 700; flex: 1; }
+.movepicker-close {
+  border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: 16px; padding: 4px;
+}
+.movepicker-crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 0 16px 10px; font-size: 12px; }
+.movepicker-crumb { border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 12px; }
+.movepicker-crumb:hover { color: hsl(var(--foreground)); }
+.movepicker-crumb.is-current { color: hsl(var(--foreground)); font-weight: 600; }
+.movepicker-list { padding: 4px 8px; overflow-y: auto; max-height: 340px; border-top: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); }
+.movepicker-row {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 8px;
+  border: 0; background: none; color: inherit; cursor: pointer; border-radius: calc(var(--radius) / 1.5); font-size: 13px;
+}
+.movepicker-row:hover { background: hsl(var(--muted)); }
+.movepicker-row-icon { width: 18px; height: 18px; flex: none; color: hsl(var(--muted-foreground)); }
+.movepicker-row-icon svg { width: 100%; height: 100%; }
+.movepicker-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.movepicker-row-chev { width: 16px; height: 16px; flex: none; color: hsl(var(--muted-foreground)); }
+.movepicker-row-chev svg { width: 100%; height: 100%; }
+.movepicker-row.is-blocked { opacity: 0.4; cursor: not-allowed; }
+.movepicker-empty { padding: 18px 10px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 12.5px; }
+.movepicker-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; }
 
 /* ─── Tool view layout ──────────────────────────────────────────────────── */
 

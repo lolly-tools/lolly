@@ -31,6 +31,19 @@ export const PACKAGE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="curren
 export const FOLDER_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>';
 // lucide "more-horizontal" — the per-tile overflow (move / rename / delete) trigger.
 export const MENU_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>';
+// lucide "check" — the tick shown inside a selected tile's selection toggle.
+export const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+
+/**
+ * A multi-select toggle for a tile — a BUTTON that is a SIBLING of `.tile-primary`
+ * (never nested inside it: an interactive control inside the tile's <button> lets
+ * Space/Enter double-fire the open action). Opt-in via the tile builders' `selectable`
+ * opt, so the folder overlay / picker (which don't pass it) are unaffected. State is on
+ * `aria-pressed`; the caller toggles it + the wrapper's `.is-selected` in place.
+ */
+function selectToggle(ref, kind, selected, name) {
+  return `<button type="button" class="tile-check" data-select="${escape(ref)}" data-kind="${kind}" aria-pressed="${selected ? 'true' : 'false'}" aria-label="Select ${escape(name)}">${CHECK_ICON}</button>`;
+}
 
 // ── Badges ──────────────────────────────────────────────────────────────────
 
@@ -68,7 +81,7 @@ function fmtFromName(name) {
  *                 same "what you'll get" spec as the gallery card. Explicit `meta`
  *                 values win over it.
  */
-export function sessionTile(entry, { toolName = '', sizeBytes = 0, meta = {}, tool = null } = {}) {
+export function sessionTile(entry, { toolName = '', sizeBytes = 0, meta = {}, tool = null, selectable = false, selected = false } = {}) {
   const batch = isBatchSlot(entry.slot);
   const title = batch
     ? (entry.label || 'Batch session')
@@ -108,6 +121,7 @@ export function sessionTile(entry, { toolName = '', sizeBytes = 0, meta = {}, to
     badges,
     openAttr: 'data-open-session',
     openLabel: batch ? `Open batch ${title}` : `Resume ${title}`,
+    selectable, selected,
   });
 }
 
@@ -138,7 +152,7 @@ export function imageTile(ref) {
  *                       the Projects view passes items + sub-folders so a nested folder
  *                       reads "N items" inclusive of its sub-folders.
  */
-export function folderTile(folder, { memberPreviews = [], count } = {}) {
+export function folderTile(folder, { memberPreviews = [], count, selectable = false, selected = false } = {}) {
   count = count ?? folder.items?.length ?? 0;
   const cells = memberPreviews.slice(0, 4).map(p => {
     if (p.batch) return `<span class="folder-cell folder-cell--batch" aria-hidden="true">${PACKAGE_ICON}</span>`;
@@ -152,7 +166,8 @@ export function folderTile(folder, { memberPreviews = [], count } = {}) {
     : `<span class="tile-cover tile-cover--batch" aria-hidden="true">${FOLDER_ICON}</span>`;
 
   return `
-    <div class="folder-tile folder-tile--folder" data-ref="${escape(folder.id)}" data-kind="folder">
+    <div class="folder-tile folder-tile--folder${selected ? ' is-selected' : ''}" data-ref="${escape(folder.id)}" data-kind="folder">
+      ${selectable ? selectToggle(folder.id, 'folder', selected, folder.name) : ''}
       <button type="button" class="tile-primary" data-open-folder="${escape(folder.id)}" aria-label="Open folder ${escape(folder.name)}">
         ${mosaic}
         <span class="tile-meta">
@@ -165,9 +180,10 @@ export function folderTile(folder, { memberPreviews = [], count } = {}) {
 }
 
 // Shared wrapper for session/image tiles.
-function tileShell({ ref, kind, batch, cover, title, sub, badges, openAttr, openLabel }) {
+function tileShell({ ref, kind, batch, cover, title, sub, badges, openAttr, openLabel, selectable = false, selected = false }) {
   return `
-    <div class="folder-tile" data-ref="${escape(ref)}" data-kind="${kind}"${batch ? ' data-batch="1"' : ''}>
+    <div class="folder-tile${selected ? ' is-selected' : ''}" data-ref="${escape(ref)}" data-kind="${kind}"${batch ? ' data-batch="1"' : ''}>
+      ${selectable ? selectToggle(ref, kind, selected, title) : ''}
       <button type="button" class="tile-primary" ${openAttr}="${escape(ref)}" aria-label="${escape(openLabel)}">
         ${cover}
         <span class="tile-meta">
