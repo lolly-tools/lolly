@@ -1186,7 +1186,10 @@ const LIQUID_GLASS_SCRIPT = `<script>(function(){
     var feDisp=document.createElementNS(ns,'feDisplacementMap');
     feDisp.setAttribute('in','SourceGraphic');feDisp.setAttribute('in2','map');
     feDisp.setAttribute('xChannelSelector','R');feDisp.setAttribute('yChannelSelector','G');
-    feDisp.setAttribute('scale',String((maxS*2*W).toFixed(2)));
+    // 2x displacement so the refraction visibly bends whatever passes behind the
+    // button (format chips, the lollipop) instead of only whispering at the edge.
+    var REFRACTION_BOOST=2;
+    feDisp.setAttribute('scale',String((maxS*2*W*REFRACTION_BOOST).toFixed(2)));
 
     filter.appendChild(feImg);filter.appendChild(feDisp);
     defs.appendChild(filter);svg.appendChild(defs);

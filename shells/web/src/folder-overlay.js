@@ -41,6 +41,9 @@ export function openFolderOverlay(host, opts = {}) {
   } = opts;
 
   const store = createFolderStore(host);
+  // Tool index entries (intended format + canvas size) so session tiles carry the same
+  // spec as the gallery cards. Read from the app-wide index the shell keeps current.
+  const toolById = new Map((window.__toolIndex?.tools ?? []).map(t => [t.id, t]));
 
   // In-memory working copies — mutated in place so re-renders are instant; the
   // backing stores (host.state / host.assets / profile) are the source of truth.
@@ -77,6 +80,7 @@ export function openFolderOverlay(host, opts = {}) {
       return sessionTile(entry, {
         toolName: nameById.get(entry.toolId) ?? '',
         sizeBytes: sessionSizes[entry.slot] ?? 0,
+        tool: toolById.get(entry.toolId),
       });
     }
     const ref = imageByRef.get(item.ref);
@@ -107,7 +111,7 @@ export function openFolderOverlay(host, opts = {}) {
       memberPreviews: f.items.map(previewForItem).filter(Boolean),
     })).join('');
     const looseTiles = [
-      ...sessions.map(e => sessionTile(e, { toolName: nameById.get(e.toolId) ?? '', sizeBytes: sessionSizes[e.slot] ?? 0 })),
+      ...sessions.map(e => sessionTile(e, { toolName: nameById.get(e.toolId) ?? '', sizeBytes: sessionSizes[e.slot] ?? 0, tool: toolById.get(e.toolId) })),
       ...images.map(imageTile),
     ].join('');
     const empty = !folders.length && !sessions.length && !images.length;

@@ -59,12 +59,16 @@
       "label": "Lead presence",
       "type": "select",
       "default": "normal",
-      "help": "How prominent the lead logo is, on top of any balancing. Use Large or Hero for a clear host (“powered by”) hierarchy.",
+      "help": "How prominent the lead logo is, on top of any balancing. Use Large / Hero (or the extreme tiers) for a clear host (“powered by”) hierarchy. The whole lockup still scales to fit the artboard, so these set relative prominence.",
       "options": [
+        { "value": "xxlarge", "label": "Huge" },
+        { "value": "xlarge", "label": "Extra large" },
         { "value": "hero", "label": "Hero" },
         { "value": "large", "label": "Large" },
         { "value": "normal", "label": "Normal" },
-        { "value": "small", "label": "Small" }
+        { "value": "small", "label": "Small" },
+        { "value": "xsmall", "label": "Extra small" },
+        { "value": "xxsmall", "label": "Tiny" }
       ]
     },
     {
@@ -112,6 +116,17 @@
       "help": "e.g. “in partnership with”, “powered by”, “×”."
     },
     {
+      "id": "partnerDivider",
+      "label": "Between partners",
+      "type": "select",
+      "default": "none",
+      "help": "Put a vertical bar between each partner logo. Applies once there are two or more partners.",
+      "options": [
+        { "value": "none", "label": "Nothing (spacing only)" },
+        { "value": "bar", "label": "Vertical bar" }
+      ]
+    },
+    {
       "id": "size",
       "label": "Logo size",
       "type": "number",
@@ -149,19 +164,27 @@
       "fields": [
         { "id": "logo", "label": "Partner logo", "type": "asset", "assetType": "any", "allowUpload": true },
         { "id": "presence", "label": "Presence", "type": "select", "default": "normal",
-          "help": "How prominent this partner is, on top of any balancing.",
+          "help": "How prominent this partner is, on top of any balancing. The extreme tiers (Huge … Tiny) let one logo dominate or recede; the whole lockup still scales to fit the artboard.",
           "options": [
+            { "value": "xxlarge", "label": "Huge" },
+            { "value": "xlarge", "label": "Extra large" },
             { "value": "hero", "label": "Hero" },
             { "value": "large", "label": "Large" },
             { "value": "normal", "label": "Normal" },
-            { "value": "small", "label": "Small" }
+            { "value": "small", "label": "Small" },
+            { "value": "xsmall", "label": "Extra small" },
+            { "value": "xxsmall", "label": "Tiny" }
           ] },
         { "id": "filter", "label": "Treatment", "type": "select", "default": "none",
-          "help": "Grayscale unifies mismatched partner colours; invert rescues a dark logo on a dark theme. Bitmap logos keep the treatment in every format; an SVG-file logo keeps it in PNG only.",
+          "help": "Even out a mismatched partner logo: grayscale or desaturate drop its colour, brighten lifts a dull mark, darken tames a washed-out one, invert rescues a dark logo on a dark theme, and ink knocks it back to a solid one-colour silhouette in the theme's ink. Bitmap logos keep the treatment in every format; an SVG-file logo keeps it in PNG only.",
           "options": [
             { "value": "none", "label": "None" },
             { "value": "grayscale", "label": "Grayscale" },
-            { "value": "invert", "label": "Invert" }
+            { "value": "desaturate", "label": "Desaturate" },
+            { "value": "brighten", "label": "Brighten" },
+            { "value": "darken", "label": "Darken" },
+            { "value": "invert", "label": "Invert" },
+            { "value": "ink", "label": "Convert to ink" }
           ] },
         { "id": "opacity", "label": "Opacity", "type": "number", "display": "slider", "min": 0.1, "max": 1, "step": 0.05, "default": 1 }
       ],

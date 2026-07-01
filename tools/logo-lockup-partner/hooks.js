@@ -35,7 +35,12 @@ var LIGHT_BG = '#ffffff', DARK_BG = '#0c322c';
 var LIGHT_INK = '#16181d', DARK_INK = '#ffffff';
 
 // Per-logo "Presence" tiers → a size multiplier applied on TOP of optical balancing.
-var PRESENCE = { hero: 1.6, large: 1.25, normal: 1, small: 0.72 };
+// The extreme tiers give users a wide override range; the lockup still fits the
+// artboard afterwards (see the fit pass), so these set RELATIVE prominence.
+var PRESENCE = {
+  xxlarge: 2.6, xlarge: 2.0, hero: 1.6, large: 1.25,
+  normal: 1, small: 0.72, xsmall: 0.5, xxsmall: 0.34,
+};
 function presenceMul(v) { return PRESENCE[v] != null ? PRESENCE[v] : 1; }
 
 var SYMBOLS = { times: '×', plus: '+', amp: '&' };
@@ -228,10 +233,19 @@ async function resolveLead(ref, theme, mono) {
 }
 
 // ── build one logo's render data ──────────────────────────────────────────────
-function filterClass(name) {
-  if (name === 'grayscale') return 'll-f-grayscale';
-  if (name === 'invert') return 'll-f-invert';
-  return '';
+// "ink" is theme-aware: a black silhouette on light, a white one on dark. Every
+// class maps to a CSS filter in styles.css; the export walker bakes it into raster
+// logos so PNG and (raster) PDF/SVG match the preview.
+function filterClass(name, theme) {
+  switch (name) {
+    case 'grayscale': return 'll-f-grayscale';
+    case 'desaturate': return 'll-f-desaturate';
+    case 'brighten': return 'll-f-brighten';
+    case 'darken': return 'll-f-darken';
+    case 'invert': return 'll-f-invert';
+    case 'ink': return theme === 'dark' ? 'll-f-ink-light' : 'll-f-ink-dark';
+    default: return '';
+  }
 }
 
 function makeItem(ref, opts) {
@@ -243,7 +257,7 @@ function makeItem(ref, opts) {
     isSvg: !!(ref && (ref.type === 'vector' || ref.format === 'svg')),
     opacity: clamp(num(opts.opacity, 1), 0.1, 1),
     pmul: presenceMul(opts.presence),
-    filterClass: opts.mono ? 'll-f-grayscale' : filterClass(opts.filter),
+    filterClass: opts.mono ? 'll-f-grayscale' : filterClass(opts.filter, opts.theme),
     isLead: !!opts.isLead,
     canvasId: opts.canvasId,
     aspect: 1,    // content width / height — measured below, drives fit-to-width
@@ -271,7 +285,7 @@ async function compute(model) {
   var items = [];
   if (lead) {
     items.push(makeItem(lead.ref, {
-      opacity: 1, presence: inputs.leadPresence, mono: lead.mono, isLead: true, canvasId: 'lead',
+      opacity: 1, presence: inputs.leadPresence, mono: lead.mono, isLead: true, canvasId: 'lead', theme: theme,
     }));
   }
   var partners = Array.isArray(inputs.partners) ? inputs.partners : [];
@@ -280,7 +294,7 @@ async function compute(model) {
     if (!ref || !ref.url) return;             // skip empty partner rows
     items.push(makeItem(ref, {
       opacity: b.opacity, presence: b.presence, filter: b.filter,
-      isLead: false, canvasId: 'partners:' + i,
+      isLead: false, canvasId: 'partners:' + i, theme: theme,
     }));
   });
 
@@ -333,16 +347,23 @@ async function compute(model) {
   var connKind = inputs.connector || 'bar';
   var connectorOn = connKind !== 'none' && items.length >= 2 && items.some(function (it) { return it.isLead; });
 
+  // A vertical bar between EACH partner logo (opt-in) — only meaningful with 2+ partners.
+  var nPartners = items.filter(function (it) { return !it.isLead; }).length;
+  var partnerDividerOn = inputs.partnerDivider === 'bar' && nPartners >= 2;
+  var dividerCount = partnerDividerOn ? (nPartners - 1) : 0;   // one bar between each pair
+
   // Fit the whole lockup to the artboard: the row of logos (each width = height × aspect),
-  // the connector and the gaps between elements must all fit AVAIL_W, and nothing may
-  // exceed AVAIL_H. Everything scales by ONE factor — logos, gaps, and the connector
-  // (which keys off the fitted height below) — so a wide wordmark, many partners, OR a
-  // large gap can never spill off the canvas (which would clip on export). Scaling the
-  // gaps too is what makes the dense / big-spacing cases stay inside the artboard.
+  // the connector, the partner dividers and the gaps between elements must all fit AVAIL_W,
+  // and nothing may exceed AVAIL_H. Everything scales by ONE factor — logos, gaps, and the
+  // connector (which keys off the fitted height below) — so a wide wordmark, many partners,
+  // OR a large gap can never spill off the canvas (which would clip on export). Scaling the
+  // gaps too is what makes the dense / big-spacing cases stay inside the artboard. Each
+  // partner divider adds its ~2px bar plus another gap on each side (it's an extra flex
+  // item), so it's counted in both the width and the element/gap tally.
   var connWEst = !connectorOn ? 0 : (connKind === 'symbol' ? baseH * 0.5 : connKind === 'text' ? baseH * 1.6 : 4);
-  var elemCount = items.length + (connectorOn ? 1 : 0);
+  var elemCount = items.length + (connectorOn ? 1 : 0) + dividerCount;
   var logosW = items.reduce(function (s, it) { return s + it.h * (it.aspect || 1); }, 0);
-  var rawW = logosW + connWEst + Math.max(0, elemCount - 1) * gap;
+  var rawW = logosW + connWEst + dividerCount * 2 + Math.max(0, elemCount - 1) * gap;
   var fit = rawW > AVAIL_W ? AVAIL_W / rawW : 1;
   var tallest = items.reduce(function (m, it) { return Math.max(m, it.h * fit); }, 0);
   if (tallest > AVAIL_H) fit *= AVAIL_H / tallest;          // also cap height
@@ -371,6 +392,20 @@ async function compute(model) {
       connStyle = 'height:' + Math.round(effH * 0.9) + 'px;background:' + mix(ink, _bg, 0.32);
     }
   }
+
+  // Partner divider bars, keyed to the fitted partner heights (a shade shorter than the
+  // logos so they read as dividers, not columns). Colour is pre-blended toward the
+  // background — matching the connector bar — so the muted tone survives PDF export,
+  // where the vector walker drops element opacity.
+  var partnerDividerStyle = '';
+  if (partnerDividerOn) {
+    var pMax = partnerCells.reduce(function (m, it) { return Math.max(m, it.h); }, 0);
+    partnerDividerStyle = 'height:' + Math.round(pMax * 0.85) + 'px;background:' + mix(ink, _bg, 0.32);
+  }
+  partnerCells.forEach(function (it, i) {
+    it.divider = partnerDividerOn && i > 0;   // a leading bar before every partner but the first
+    it.dividerStyle = partnerDividerStyle;
+  });
 
   return {
     hasContent: !!(leadCell || partnerCells.length),

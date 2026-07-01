@@ -36,7 +36,16 @@
 }
 
 .ll-f-grayscale { filter: grayscale(1); }
+.ll-f-desaturate { filter: saturate(0); }
+.ll-f-brighten { filter: brightness(1.5) contrast(1.4); }
+.ll-f-darken { filter: brightness(0.62) contrast(1.18); }
 .ll-f-invert { filter: invert(1); }
+/* "Convert to ink" — knock the logo back to a solid one-colour silhouette in the
+   theme's ink. brightness(0) crushes every opaque pixel to black (alpha kept); the
+   dark-theme variant then inverts that black to white. The hook picks the class by
+   theme; the export walker bakes it into raster logos like any other treatment. */
+.ll-f-ink-dark { filter: brightness(0); }
+.ll-f-ink-light { filter: brightness(0) invert(1); }
 
 /* Partners ride beside the connector. In the even-row layout they stay on one line;
    in the lead+partners layout they wrap into a tidy block next to the (emphasised) lead. */

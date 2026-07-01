@@ -97,6 +97,14 @@
       "help": "Optional hero image filling the top of the cover.",
       "section": "Cover"
     },
+    {
+      "id": "coverBg",
+      "label": "Cover background",
+      "type": "color",
+      "default": "",
+      "help": "Custom background colour for the cover. Leave empty to use the cover style default.",
+      "section": "Cover"
+    },
 
     {
       "id": "content",
@@ -161,6 +169,26 @@
     },
 
     {
+      "id": "backTheme",
+      "label": "Back page style",
+      "type": "select",
+      "default": "light",
+      "options": [
+        { "value": "light", "label": "Light" },
+        { "value": "dark", "label": "Dark" }
+      ],
+      "help": "Light or dark treatment for the back page text and logo.",
+      "section": "Back page"
+    },
+    {
+      "id": "backBg",
+      "label": "Back background",
+      "type": "color",
+      "default": "",
+      "help": "Custom background colour for the back page. Leave empty to use the back page style default.",
+      "section": "Back page"
+    },
+    {
       "id": "backHeading",
       "label": "Heading",
       "type": "text",
@@ -204,6 +232,23 @@
       "label": "Website",
       "type": "text",
       "default": "www.suse.com",
+      "section": "Back page"
+    },
+    {
+      "id": "aboutHeading",
+      "label": "About heading",
+      "type": "text",
+      "default": "About SUSE",
+      "maxLength": 60,
+      "section": "Back page"
+    },
+    {
+      "id": "aboutText",
+      "label": "About text",
+      "type": "longtext",
+      "default": "SUSE is a global leader of enterprise open source software. By transforming community innovations into secure, sovereign and AI-ready solutions, SUSE empowers customers to escape vendor lock-in and regain control of their IT destiny. Through industry-leading Linux, Kubernetes, Edge and AI infrastructure solutions, SUSE delivers the flexibility to innovate everywhere—from the data center to multi-cloud and out to the edge. Only SUSE also manages many Linux and Kubernetes distributions. At SUSE, Choice Happens because we prioritize community, interoperability and relentless innovation. Discover how we power mission-critical resilience at www.suse.com",
+      "rows": 6,
+      "help": "Shown beneath the contact details on the back page.",
       "section": "Back page"
     },
     {

@@ -99,11 +99,23 @@ async function compute(model) {
 
   // Colours / theme.
   var accent = colour(inputs.accent, '#30ba78');
-  var dark = str(inputs.theme) === 'dark';
-  var coverBg  = dark ? '#0c322c' : '#ffffff';
-  var coverInk = dark ? '#ffffff' : '#0c322c';
+
+  // Cover: the light/dark style sets the ink + logo variant; an optional custom
+  // background colour overrides the style's default background.
+  var coverDark = str(inputs.theme) === 'dark';
+  var coverBg  = colour(inputs.coverBg, coverDark ? '#0c322c' : '#ffffff');
+  var coverInk = coverDark ? '#ffffff' : '#0c322c';
+
+  // Content pages are always on white — the two-column grid is built for light paper.
   var ink   = '#10231f';
   var muted = '#5b6b66';
+
+  // Back page: its own light/dark style + optional custom background, independent
+  // of the cover, so the two cards can be treated differently.
+  var backDark = str(inputs.backTheme) === 'dark';
+  var backBg    = colour(inputs.backBg, backDark ? '#0c322c' : '#ffffff');
+  var backInk   = backDark ? '#ffffff' : '#10231f';
+  var backMuted = backDark ? 'rgba(255,255,255,.72)' : '#5b6b66';
 
   // ── per-block row-span estimate ──────────────────────────────────────────
   function estLines(text, w, fs) {
@@ -205,9 +217,11 @@ async function compute(model) {
 
   // ── resolve cover / back assets ──────────────────────────────────────────
   var coverLogoUrl = refUrl(inputs.coverLogo) ||
-    await getAssetUrl(dark ? 'suse/logo/hor-neg-white' : 'suse/logo/hor-pos-black');
+    await getAssetUrl(coverDark ? 'suse/logo/hor-neg-white' : 'suse/logo/hor-pos-black');
   var coverImageUrl = refUrl(inputs.coverImage);
-  var backLogoUrl = await getAssetUrl('suse/logo/hor-pos-green');
+  // Back logo follows the back page's own light/dark style: green on light, the
+  // white knockout on dark so it stays legible.
+  var backLogoUrl = await getAssetUrl(backDark ? 'suse/logo/hor-neg-white' : 'suse/logo/hor-pos-green');
   var backImageUrl = refUrl(inputs.backImage);
 
   // ── assemble the page list: cover, content pages, back ───────────────────
@@ -232,6 +246,8 @@ async function compute(model) {
     backEmail: str(inputs.backEmail),
     backPhone: str(inputs.backPhone),
     backWebsite: str(inputs.backWebsite),
+    aboutHeading: str(inputs.aboutHeading),
+    aboutText: str(inputs.aboutText),
     backLogoUrl: backLogoUrl,
     backImageUrl: backImageUrl,
     hasHero: !!backImageUrl,
@@ -256,6 +272,7 @@ async function compute(model) {
     '--accent:' + accent,
     '--ink:' + ink, '--muted:' + muted,
     '--cover-bg:' + coverBg, '--cover-ink:' + coverInk,
+    '--back-bg:' + backBg, '--back-ink:' + backInk, '--back-muted:' + backMuted,
     '--body-size:' + bodySize + 'px', '--heading-size:' + headingSize + 'px',
     '--caption-size:' + captionSize + 'px',
     '--cover-title-size:' + coverTitleSize + 'px', '--cover-sub-size:' + coverSubSize + 'px',

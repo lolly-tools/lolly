@@ -12,6 +12,7 @@
     {{#if partnerCells.length}}
     <div class="ll-partners">
       {{#each partnerCells}}
+      {{#if divider}}<div class="ll-conn ll-conn-bar ll-pdiv" style="{{dividerStyle}}" aria-hidden="true"></div>{{/if}}
       <div class="ll-logo" data-canvas-input="{{canvasId}}">
         <img class="ll-img {{filterClass}}" src="{{displayUrl}}" alt="{{name}}" style="height:{{h}}px; width:auto; opacity:{{opacity}};">
       </div>

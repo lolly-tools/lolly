@@ -37,8 +37,14 @@ export const MENU_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentCo
 export function fmtBadge(format) {
   return format ? `<span class="tile-badge tile-badge--fmt">${escape(fmtLabel(format))}</span>` : '';
 }
-export function dimBadge(w, h) {
-  return (w && h) ? `<span class="tile-badge">${Math.round(w)}×${Math.round(h)}</span>` : '';
+// The canvas size chip — "1080×1080 px" / "210×297 mm". Pixels are rounded (they're
+// integers anyway); a physical unit keeps its authored precision so "8.5×11 in" isn't
+// mangled to "9×11". Mirrors the gallery card's dimText.
+export function dimBadge(w, h, unit) {
+  if (!w || !h) return '';
+  const u = unit && unit !== 'px' ? unit : 'px';
+  const n = (v) => (u === 'px' ? Math.round(v) : +(+v).toFixed(2));
+  return `<span class="tile-badge">${n(w)}×${n(h)} ${u}</span>`;
 }
 export function rowCountBadge(n) {
   return n ? `<span class="tile-badge tile-badge--rows">${n} row${n === 1 ? '' : 's'}</span>` : '';
@@ -55,9 +61,14 @@ function fmtFromName(name) {
 /**
  * A saved session tile.
  * @param entry  host.state.list() row: { slot, toolId, label, filename, thumb, updatedAt }
- * @param opts   { toolName, sizeBytes, meta:{ format, width, height, rowCount } }
+ * @param opts   { toolName, sizeBytes, meta:{ format, width, height, rowCount },
+ *                 tool } — `tool` is the tool's catalog index entry
+ *                 ({ formats, width, height, unit, exportable }); it supplies the
+ *                 tool's INTENDED output (format + canvas size) so the tile reads the
+ *                 same "what you'll get" spec as the gallery card. Explicit `meta`
+ *                 values win over it.
  */
-export function sessionTile(entry, { toolName = '', sizeBytes = 0, meta = {} } = {}) {
+export function sessionTile(entry, { toolName = '', sizeBytes = 0, meta = {}, tool = null } = {}) {
   const batch = isBatchSlot(entry.slot);
   const title = batch
     ? (entry.label || 'Batch session')
@@ -69,10 +80,23 @@ export function sessionTile(entry, { toolName = '', sizeBytes = 0, meta = {} } =
       ? `<img class="tile-cover" src="${escape(entry.thumb)}" alt="" loading="lazy" decoding="async">`
       : `<span class="tile-cover tile-cover--empty" aria-hidden="true"></span>`;
 
-  const format = meta.format || (batch ? '' : fmtFromName(entry.filename));
+  // Intended output spec, drawn from the tool's index entry (primary format + canvas
+  // size at its unit). Non-exportable transforms (strip-data etc.) have no fixed
+  // output, so they show nothing — matching how the gallery drops the spec line.
+  // Falls back to the filename extension only when the tool isn't in the index.
+  const exportable = tool ? tool.exportable !== false : true;
+  let format = '', width, height, unit;
+  if (!batch) {
+    format = meta.format
+      || (tool ? (exportable ? (tool.formats?.[0] ?? '') : '') : fmtFromName(entry.filename));
+    width  = meta.width  ?? (exportable ? tool?.width  : undefined);
+    height = meta.height ?? (exportable ? tool?.height : undefined);
+    unit   = meta.unit   ?? tool?.unit;
+  }
+
   const badges = [
     batch ? '<span class="tile-badge tile-badge--type">Batch</span>' : fmtBadge(format),
-    dimBadge(meta.width, meta.height),
+    dimBadge(width, height, unit),
     batch ? rowCountBadge(meta.rowCount) : '',
     sizeBytes ? `<span class="tile-badge tile-badge--size">${fmtBytes(sizeBytes)}</span>` : '',
   ].filter(Boolean).join('');

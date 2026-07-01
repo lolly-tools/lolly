@@ -287,16 +287,16 @@
             { "value": "pill", "label": "Pill", "repeatable": true }
           ]
         },
-        { "id": "nodeId", "label": "ID", "type": "text", "placeholder": "e.g. ceo", "help": "Short unique handle. Auto-derived from the label if left blank." },
         { "id": "label", "label": "Label", "type": "text", "placeholder": "Card text" },
-        { "id": "detail", "label": "Detail", "type": "text", "placeholder": "Subtitle (optional)" },
+        { "id": "fill", "label": "Card colour", "type": "color", "default": "", "help": "Overrides the global card fill for this card only." },
         { "id": "image", "label": "Image", "type": "asset", "assetType": "any", "allowUpload": true, "help": "Optional headshot, icon, or product logo shown on the card." },
+        { "id": "nodeId", "label": "ID", "type": "text", "placeholder": "e.g. ceo", "help": "Short unique handle. Auto-derived from the label if left blank." },
+        { "id": "detail", "label": "Detail", "type": "text", "placeholder": "Subtitle (optional)" },
         { "id": "parent", "label": "Reports to", "default": "", "optionsFrom": { "input": "nodes", "value": "nodeId", "label": "label", "excludeSelf": true, "excludeDescendants": true, "emptyLabel": "— Top level —" }, "help": "Org / mind map: the card this one reports to / branches from. Pick a card, or just drag this row onto another in the list." },
         { "id": "layer", "label": "Group", "default": "", "optionsFrom": { "input": "layers", "value": "layerId", "label": "label", "prefix": "layer-", "freeText": true, "emptyLabel": "— none —" }, "help": "Layercake: which band. Kanban: which column — pick one, or type a new name to create a column. Cards in the same group sit together." },
         { "id": "quadrant", "label": "Quadrant", "type": "select", "default": "tr", "showIf": { "diagramType": "matrix" }, "options": [ { "value": "tr", "label": "Top-right" }, { "value": "tl", "label": "Top-left" }, { "value": "br", "label": "Bottom-right" }, { "value": "bl", "label": "Bottom-left" } ] },
         { "id": "ganttStart", "label": "Start", "type": "number", "min": 0, "max": 1000, "step": 0.5, "showIf": { "diagramType": "gantt" }, "help": "Bar start on the time axis." },
-        { "id": "ganttLen", "label": "Length", "type": "number", "min": 0.5, "max": 1000, "step": 0.5, "showIf": { "diagramType": "gantt" }, "help": "Bar length in the same units." },
-        { "id": "fill", "label": "Card colour", "type": "color", "default": "", "help": "Overrides the global card fill for this card only." }
+        { "id": "ganttLen", "label": "Length", "type": "number", "min": 0.5, "max": 1000, "step": 0.5, "showIf": { "diagramType": "gantt" }, "help": "Bar length in the same units." }
       ],
       "default": [
         { "shape": "rounded", "nodeId": "web", "label": "Web App", "detail": "PWA", "parent": "", "layer": "experience", "fill": "" },
