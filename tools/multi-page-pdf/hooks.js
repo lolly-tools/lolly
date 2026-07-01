@@ -110,9 +110,9 @@ async function compute(model) {
   var ink   = '#10231f';
   var muted = '#5b6b66';
 
-  // Back page: its own light/dark style + optional custom background, independent
-  // of the cover, so the two cards can be treated differently.
-  var backDark = str(inputs.backTheme) === 'dark';
+  // Back page shares the cover's light/dark style (ink + logo variant), but keeps
+  // its own optional custom background so the two cards can differ in colour.
+  var backDark  = coverDark;
   var backBg    = colour(inputs.backBg, backDark ? '#0c322c' : '#ffffff');
   var backInk   = backDark ? '#ffffff' : '#10231f';
   var backMuted = backDark ? 'rgba(255,255,255,.72)' : '#5b6b66';

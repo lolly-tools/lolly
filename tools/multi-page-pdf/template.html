@@ -55,12 +55,16 @@
     padding: var(--margin-y) var(--margin-x);
     min-height: 0;
   }
-  /* The logo hugs its own aspect inside a box bounded by BOTH width and height,
-     so a wide (horizontal) lockup grows to the width cap while a tall (stacked)
-     lockup grows to the height cap instead of being crushed to a single fixed
-     height. Both the PDF walker's SVG and raster branches honour this fitted box
-     via object-fit/object-position, so the export matches the preview. */
-  .mpdf-cover-logo { width: auto; height: auto; max-width: 56%; max-height: calc(var(--cover-sub-size) * 3.4); object-fit: contain; object-position: left center; display: block; }
+  /* The logo sits in a DEFINITE box (fixed width AND height) and is fitted inside
+     with object-fit:contain — so a wide (horizontal) lockup grows to the width edge
+     while a tall (stacked) lockup grows to the height edge, both aspect-preserved.
+     The box must be definite (not width:auto/height:auto): an <img> pointing at an
+     SVG sizes its box from the SVG's own width/height attributes, which vary per
+     asset (some omit them entirely) — that made the box non-deterministic and let
+     some marks run past the page. A fixed box removes that: the PDF walker reads
+     the same box via getBoundingClientRect and meet-fits identically, so preview
+     and export match exactly. object-position keeps the mark left-aligned. */
+  .mpdf-cover-logo { width: 56%; height: calc(var(--cover-sub-size) * 3.4); object-fit: contain; object-position: left center; display: block; }
   .mpdf-cover-fill { flex: 1 1 auto; }
   .mpdf-cover-band { width: calc(var(--margin-x) * 1.7); height: 8px; background: var(--accent); margin-bottom: calc(var(--margin-y) * .5); }
   .mpdf-cover-title {
@@ -153,7 +157,9 @@
   .mpdf-back-about { margin: 0 0 var(--margin-y); max-width: 100%; }
   .mpdf-back-about-heading { font-size: var(--caption-size); text-transform: uppercase; letter-spacing: .08em; color: var(--back-muted); margin: 0 0 .45em; }
   .mpdf-back-about-text { font-size: var(--caption-size); line-height: 1.5; color: var(--back-ink); opacity: .92; }
-  .mpdf-back-logo { height: calc(var(--cover-sub-size) * 1.2); width: auto; max-width: 50%; object-fit: contain; object-position: left center; display: block; }
+  /* Definite box + object-fit:contain, same reasoning as .mpdf-cover-logo — keeps
+     SVG logos deterministic so the export matches the preview and can't overflow. */
+  .mpdf-back-logo { width: 50%; height: calc(var(--cover-sub-size) * 1.8); object-fit: contain; object-position: left center; display: block; }
   .mpdf-back-rule { height: 4px; width: 100%; background: var(--accent); margin-top: calc(var(--margin-y) * .6); }
   /* The shared footer uses the back page's own muted tone when it sits there. */
   .mpdf-page--back .mpdf-footer { color: var(--back-muted); }

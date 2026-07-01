@@ -38,9 +38,10 @@
     },
     {
       "id": "theme",
-      "label": "Cover style",
+      "label": "Light / dark style",
       "type": "select",
       "default": "light",
+      "help": "Sets the light or dark treatment (text and logo) for both the cover and the back page.",
       "options": [
         { "value": "light", "label": "Light" },
         { "value": "dark", "label": "Dark" }
@@ -169,23 +170,11 @@
     },
 
     {
-      "id": "backTheme",
-      "label": "Back page style",
-      "type": "select",
-      "default": "light",
-      "options": [
-        { "value": "light", "label": "Light" },
-        { "value": "dark", "label": "Dark" }
-      ],
-      "help": "Light or dark treatment for the back page text and logo.",
-      "section": "Back page"
-    },
-    {
       "id": "backBg",
       "label": "Back background",
       "type": "color",
       "default": "",
-      "help": "Custom background colour for the back page. Leave empty to use the back page style default.",
+      "help": "Custom background colour for the back page. Leave empty to use the cover style default.",
       "section": "Back page"
     },
     {
