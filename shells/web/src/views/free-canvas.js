@@ -43,7 +43,7 @@ function icon(paths) {
 }
 
 export function initFreeCanvas(opts) {
-  const { viewEl, stageEl, canvasEl, runtime, host, input, nativeW, nativeH, onDirty } = opts;
+  const { viewEl, stageEl, canvasEl, runtime, host, input, nativeW, nativeH, onDirty, editTool } = opts;
   const cv = input.canvas || {};
   const blockId = input.id;
   const cfg = {
@@ -363,8 +363,18 @@ export function initFreeCanvas(opts) {
   }
   async function pickImage() {
     if (!cfg.imageField || !host.assets?.pick) return;
+    const boxes0 = getBoxes();
+    const first = boxes0[selIndices(boxes0)[0]] || {};
     try {
-      const ref = await host.assets.pick({ allowUpload: true, assetType: 'raster' });
+      const ref = await host.assets.pick({
+        title: 'Choose an image',
+        type: 'raster',
+        allowUpload: true,
+        current: first[cfg.imageField]?.id,
+        // Choosing a Lolly link or a saved creation opens its inputs first so the
+        // user can set values (configure → insert), reusing the sidebar's editor.
+        editTool,
+      });
       if (!ref) return;
       const boxes = getBoxes();
       const sel = new Set(selIndices(boxes));
