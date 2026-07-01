@@ -876,8 +876,37 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
 @media (max-width: 1180px) { .tool-masonry { --cols: 3; } }
 @media (max-width: 820px)  { .tool-masonry { --cols: 2; } }
 @media (max-width: 520px)  { .tool-masonry { --cols: 1; } }
-/* Tighter side gutters + a little more top room for the cluster on phones. */
-@media (max-width: 640px)  { .tool-masonry { padding: 4.2rem .6rem 1rem; } }
+/* Tighter side gutters + a little more top room for the cluster on phones. The
+   top pad tracks the safe-area inset so content clears the fixed bar (which is now
+   offset by env(safe-area-inset-top)) on notched standalone PWAs. */
+@media (max-width: 640px)  { .tool-masonry { padding: calc(4.2rem + env(safe-area-inset-top, 0px)) .6rem 1rem; } }
+
+/* Mobile (single-column) scroll-snap: flicking down the gallery settles each card
+   with its TITLE anchored at the base of the screen — the preview fills the view
+   above it, feed-style. Scoped to ≤520px (where the masonry is ONE column, so snap
+   points don't interleave across columns) and to the gallery view only, applied to
+   the document scroller (`html:has(...)`, the same scoping style as the tool view).
+   `proximity` — never `mandatory` — so a preview taller than the screen is never a
+   trap and free-scrolling to read a card's description still works. The snap target
+   is the title itself (`.gtile-name`).
+     The "base" is the top of the fixed .gallery-footer (search + Pro/What), NOT the
+   raw viewport edge, so a snapped title rests just ABOVE the footer instead of behind
+   it — `scroll-padding-bottom` mirrors the gallery's own footer clearance (5.5rem,
+   or 8.5rem while the first-visit privacy strip is up), and the title's small
+   `scroll-margin-bottom` is the gap between it and the footer. */
+@media (max-width: 520px) {
+  html:has(#view.gallery-view) {
+    scroll-snap-type: y proximity;
+    scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+  }
+  html:has(#view.gallery-view.has-privacy-notice) {
+    scroll-padding-bottom: calc(9rem + env(safe-area-inset-bottom));
+  }
+  #view.gallery-view .gtile-name {
+    scroll-snap-align: end;
+    scroll-margin-bottom: 14px;
+  }
+}
 
 /* "Hide previews" toggle (filter popover): drop ALL preview thumbnails for a
    compact gallery. Demo-preview heroes collapse entirely (the card body's name
@@ -1250,7 +1279,7 @@ a.gtile-name:focus-visible::after {
 .gallery-topright .profile-link { position: static; right: auto; top: auto; }
 @media (max-width: 640px) {
   .gallery-topright {
-    top: calc(1.25em + var(--vv-top, 0px));
+    top: calc(1.25em + env(safe-area-inset-top, 0px) + var(--vv-top, 0px));
     right: calc(2em + var(--vv-right, 0px));
   }
 }
@@ -1271,7 +1300,7 @@ a.gtile-name:focus-visible::after {
     align-items: center;
     gap: 8px;
     position: fixed;
-    top: calc(.5em + var(--vv-top, 0px));
+    top: calc(.5em + env(safe-area-inset-top, 0px) + var(--vv-top, 0px));
     left: calc(.75em + var(--vv-left, 0px));
     right: calc(.75em + var(--vv-right, 0px));
     z-index: 99999;
@@ -1547,9 +1576,11 @@ a.gtile-name:focus-visible::after {
 /* Touch devices have no hover — keep the toggle visible so selection is discoverable. */
 @media (pointer: coarse) { .tile-check { opacity: 1; } }
 
-/* Per-tile action popover (move / rename / delete). */
+/* Per-tile action popover (move / rename / delete). Appended to <body> and z-indexed
+   ABOVE the fixed chrome (top bar 99999, bulk bar 9000) so it's never painted behind
+   them — on mobile the menu can open over the bottom bulk bar. */
 .folder-menu {
-  position: absolute; z-index: 5; min-width: 180px; padding: 5px;
+  position: absolute; z-index: 100001; min-width: 180px; padding: 5px;
   border: 1px solid hsl(var(--border)); border-radius: var(--radius);
   background: hsl(var(--card)); box-shadow: 0 8px 28px hsl(0 0% 0% / 0.22);
   display: flex; flex-direction: column; gap: 1px;
@@ -1700,7 +1731,10 @@ a.gtile-name:focus-visible::after {
 }
 .projects-back:hover { background: hsl(var(--muted)); }
 .projects-back svg { width: 18px; height: 18px; }
-.projects-title { font-size: 20px; font-weight: 700; margin: 0; }
+/* Truncate to a single line so a long folder name never wraps into a tall column
+   or shoves the header actions off-screen. min-width:0 lets it shrink inside the
+   flex row (the default min-width:auto would refuse, forcing overflow). */
+.projects-title { font-size: 20px; font-weight: 700; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .projects-title[data-rename-folder] { cursor: text; }
 .projects-title[data-rename-folder]:hover { text-decoration: underline dotted; text-underline-offset: 4px; }
 .projects-count { font-size: 12.5px; color: hsl(var(--muted-foreground)); }
@@ -1761,8 +1795,7 @@ a.gtile-name:focus-visible::after {
   box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4); display: flex; flex-direction: column;
 }
 .projects-toolpicker::backdrop { background: hsl(0 0% 0% / 0.42); }
-.toolpicker-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid hsl(var(--border)); }
-.toolpicker-title { font-size: 16px; font-weight: 700; margin: 0; flex: none; }
+.toolpicker-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 12px; border-bottom: 1px solid hsl(var(--border)); }
 .toolpicker-search {
   flex: 1; min-width: 0; padding: 8px 14px; border: 1px solid hsl(var(--border));
   border-radius: 999px; background: hsl(var(--background)); color: inherit; font-size: 13px;
@@ -1776,16 +1809,38 @@ a.gtile-name:focus-visible::after {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
   gap: 10px; padding: 14px 18px 18px; overflow: auto;
 }
+/* Each grid item wraps the open-button (.toolpicker-tile) and the overlay "+ Add" button
+   as SIBLINGS — never nested (a button inside a button lets Space double-fire the parent). */
+.toolpicker-cell { position: relative; display: flex; }
+/* Search hides non-matches with the `hidden` attr; without this the base `display:flex`
+   (author beats the UA `[hidden]` rule) keeps them in the grid, so matches never reflow
+   to the top. Pull the whole cell out of layout so the grid collapses. */
+.toolpicker-cell[hidden] { display: none; }
 .toolpicker-tile {
+  flex: 1; width: 100%;
   display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 12px;
   border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card));
   color: inherit; cursor: pointer; text-align: left; transition: border-color 0.12s, background 0.12s;
 }
-/* Search hides non-matches with the `hidden` attr; without this the base rule's
-   `display:flex` (author beats the UA `[hidden]` rule) keeps them in the grid, so
-   matches never reflow to the top. Pull them out of layout so the grid collapses. */
-.toolpicker-tile[hidden] { display: none; }
-.toolpicker-tile:hover { border-color: hsl(var(--primary) / 0.6); background: hsl(var(--primary) / 0.05); }
+.toolpicker-cell:hover .toolpicker-tile { border-color: hsl(var(--primary) / 0.6); background: hsl(var(--primary) / 0.05); }
+
+/* "+ Add" — small overlay pill, top-right of the card. Hover-revealed on fine pointers
+   (always shown on touch, and once added) so it doesn't clutter the grid at rest. Files
+   the tool into this folder with default settings WITHOUT opening the editor. */
+.toolpicker-add {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  padding: 3px 9px; font: inherit; font-size: 11px; font-weight: 600; line-height: 1.4;
+  border: 1px solid hsl(var(--primary) / 0.5); border-radius: 999px;
+  background: hsl(var(--card)); color: hsl(var(--primary));
+  cursor: pointer; opacity: 0; transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s;
+}
+.toolpicker-cell:hover .toolpicker-add, .toolpicker-add:focus-visible { opacity: 1; }
+.toolpicker-add:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.toolpicker-add:disabled { cursor: default; }
+.toolpicker-add.is-added {
+  opacity: 1; border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+}
+@media (pointer: coarse) { .toolpicker-add { opacity: 1; } }
 .toolpicker-icon { width: 26px; height: 26px; color: hsl(var(--primary)); }
 .toolpicker-icon svg { width: 100%; height: 100%; }
 .toolpicker-name { font-size: 13px; font-weight: 600; line-height: 1.25; }
@@ -1801,10 +1856,13 @@ a.gtile-name:focus-visible::after {
   .toolpicker-tile {
     display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
     column-gap: 12px; row-gap: 1px; align-items: center; padding: 10px 12px;
+    padding-right: 68px;   /* clear the always-on "+ Add" pill in this compact row layout */
   }
   .toolpicker-icon { grid-row: 1 / span 2; align-self: center; width: 24px; height: 24px; }
   .toolpicker-name { grid-column: 2; align-self: end; }
   .toolpicker-desc { grid-column: 2; align-self: start; -webkit-line-clamp: 1; }
+  /* Centre the pill in the row (it's always visible on touch). */
+  .toolpicker-add { top: 50%; transform: translateY(-50%); }
 }
 
 /* Folder-actions overflow button in the folder-view header (rename / render / delete).
@@ -1862,10 +1920,56 @@ a.gtile-name:focus-visible::after {
   cursor: pointer; font-size: 13px; line-height: 1;
 }
 .projects-bulkbar-clear:hover { background: hsl(var(--border)); }
-/* Phones: let the bar wrap its buttons and hug the safe area. */
+/* Phones: let the bar wrap its buttons and hug the safe area (clear the home
+   indicator with env(safe-area-inset-bottom), matching the app's other bottom bars). */
 @media (max-width: 560px) {
-  .projects-bulkbar { flex-direction: column; align-items: stretch; border-radius: var(--radius); bottom: 12px; padding: 10px 12px; gap: 8px; }
+  .projects-bulkbar { flex-direction: column; align-items: stretch; border-radius: var(--radius); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); padding: 10px 12px; gap: 8px; }
   .projects-bulkbar-clear { position: absolute; top: 8px; right: 8px; }
+}
+
+/* ─── Projects: mobile layout ────────────────────────────────────────────────
+   The folder header can't fit its back button + full title + count + a text
+   "Render folder" button + ⋯ menu on one phone row, so it collapses to TWO rows:
+   [‹ back] [title — truncates] [count] [⋯]  /  [ Render folder — full-width CTA ].
+   Placed after the base rules so these win without needing extra specificity. */
+@media (max-width: 640px) {
+  /* Clear the fixed top bar (offset by the safe-area inset on notched PWAs). */
+  .projects { padding-top: calc(52px + env(safe-area-inset-top, 0px)); }
+
+  .projects-head { flex-wrap: wrap; column-gap: 8px; row-gap: 10px; margin-bottom: 14px; }
+  /* flex-basis 0 so a long title never forces the count/menu to wrap — it just
+     grows into the leftover space on row 1 and ellipsis-truncates. */
+  .projects-title { flex: 1 1 0; font-size: 17px; }
+  .projects-head-spacer { display: none; }
+  .projects-count { order: 3; flex: 0 0 auto; }
+  .projects-head-menu { order: 4; }
+  /* Scoped to the header — `.projects-render.btn` is a SHARED class (bulk bar's
+     "Render selection", move-picker confirm, new-folder Create), and an unscoped
+     order/flex here would reorder + full-width those too (e.g. shove the bulk bar's
+     primary Render below Delete). The header button is a direct child of .projects-head. */
+  .projects-head .projects-render.btn { order: 5; flex: 1 1 100%; justify-content: center; padding: 11px 14px; font-size: 14px; }
+
+  /* When a selection is active the floating bulk bar covers the bottom of the grid;
+     reserve room so the last row can scroll clear of it. Toggled by syncBulkBar(). */
+  .projects.has-selection { padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Touch: no hover, so reveal the per-tile ⋯ menu (its only trigger otherwise is
+   desktop right-click) and grow the small header/overlay controls to a comfortable
+   ~40-44px tap size — matching the app-wide coarse-pointer target convention. */
+@media (pointer: coarse) {
+  .tile-menu-btn { opacity: 1; width: 40px; height: 40px; }
+  .tile-check { width: 28px; height: 28px; }
+  /* List view pins BOTH controls to the right gutter (menu right:10, check right:42);
+     with the enlarged coarse sizes they'd overlap (~8px), so push the check clear of
+     the 40px menu. In grid view they sit in opposite corners, so no change needed. */
+  .projects-list .tile-check { right: 56px; }
+  .projects-back, .projects-head-menu { width: 40px; height: 40px; }
+  .projects-chip { padding-top: 9px; padding-bottom: 9px; }
+  .folder-menu-item { min-height: 44px; }
+  .movepicker-row { min-height: 44px; }
+  .movepicker-close { width: 40px; height: 40px; font-size: 18px; }
+  .movepicker-crumb { min-height: 32px; display: inline-flex; align-items: center; }
 }
 
 /* ─── Drill-down "Move to" picker ───────────────────────────────────────────

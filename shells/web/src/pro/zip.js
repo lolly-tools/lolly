@@ -44,9 +44,11 @@ const fmtLabel = (f) => (f ? (FMT_LABEL[f] ?? String(f).toUpperCase()) : '');
 
 const HEADER = '📐 Lolly  •  ❤️ Give Fitzy an Ovation  •  🌏 https://lolly.tools';
 
-// The little manifest dropped into every batch zip. Lists each file with its
-// render time, the package name, a local timestamp, and (if set) the author's
-// profile. `files` is [{ name, ms }]; opts carries the zip name + author.
+// The little manifest dropped into every batch zip. Top block = package name +
+// author (if set) + timestamp; then a clean one-line-per-file list; then all the
+// "reopen in Lolly" links gathered into a list at the END (as "filename - url") so
+// they don't clutter the file list. `files` is [{ name, ms, fmt, url }]; opts carries
+// the zip name + author.
 function creditText(files = [], { zipName, author } = {}) {
   const now = new Date();
   const date = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
@@ -55,18 +57,21 @@ function creditText(files = [], { zipName, author } = {}) {
   const n = files.length;
   const pkg = (zipName || 'lolly-batch.zip').trim();
 
-  // Each file is a two-line block: "name | FORMAT · render time", then a "reopen in
-  // Lolly" link carrying the exact inputs used, so a recipient can return to
-  // lolly.tools and recreate (or tweak) the file. Blocks are blank-line separated so
-  // the links stay readable. The link is omitted for any file we couldn't build one
-  // for (falls back to the plain header line).
-  const fileBlocks = files.map(f => {
+  // Author line — name / email / phone from the profile, when present.
+  const name = [author?.firstname, author?.lastname].filter(Boolean).join(' ');
+  const authorLine = [name, author?.email, author?.phone].filter(Boolean).join(' | ');
+
+  // One scannable line per file: "icon name | FORMAT · render time". No link here —
+  // the reopen links live in their own list at the end (see below).
+  const fileLines = files.map(f => {
     const secs = f.ms != null ? `${(f.ms / 1000).toFixed(2)}s to render` : '';
     const meta = [fmtLabel(f.fmt), secs].filter(Boolean).join('  ·  ');
-    const head = `${iconFor(f)} ${f.name}${meta ? `   |  ${meta}` : ''}`;
-    return f.url ? `${head}\n   ↳ ${f.url}` : head;
+    return `${iconFor(f)} ${f.name}${meta ? `   |  ${meta}` : ''}`;
   });
-  const anyUrl = files.some(f => f.url);
+
+  // Reopen links, listed at the very end as "filename - url", one per file we could
+  // build a link for. Each reopens the tool in Lolly with the exact inputs used.
+  const linkLines = files.filter(f => f.url).map(f => `${f.name} - ${f.url}`);
 
   const lines = [
     HEADER,
@@ -74,26 +79,35 @@ function creditText(files = [], { zipName, author } = {}) {
     '',
     '',
     `[[ 📦 ${pkg} ]]`,
+  ];
+
+  // Author sits right under the package name.
+  if (authorLine) {
+    lines.push('', '[ Author Information ]', '', authorLine);
+  }
+
+  lines.push(
     '',
     `Created on ${date} at ${time} (local)`,
     '',
     '',
     `[ ${n} file${n === 1 ? '' : 's'} included ]`,
     '',
-    // Explain the ↳ links once, up front — the whole point of them.
-    ...(anyUrl ? [
-      'Each ↳ link reopens the tool in Lolly with the exact inputs used —',
+    ...fileLines,
+  );
+
+  // Reopen links, gathered at the end.
+  if (linkLines.length) {
+    lines.push(
+      '',
+      '',
+      '[ Links ]',
+      '',
+      'Each link reopens the tool in Lolly with the exact inputs used —',
       'follow it to recreate or tweak the file at lolly.tools.',
       '',
-    ] : []),
-    fileBlocks.join('\n\n'),
-  ];
-
-  // Author block — only when the profile has something to show.
-  const name = [author?.firstname, author?.lastname].filter(Boolean).join(' ');
-  const authorLine = [name, author?.email, author?.phone].filter(Boolean).join(' | ');
-  if (authorLine) {
-    lines.push('', '', '', '[ Author Information ]', '', authorLine);
+      ...linkLines,
+    );
   }
 
   return lines.join('\n') + '\n';
