@@ -44,6 +44,16 @@
       "showIf": { "chartType": "donut" }
     },
     {
+      "id": "stackMax", "urlKey": "sm",
+      "label": "Scale max",
+      "type": "number",
+      "default": 0,
+      "min": 0,
+      "placeholder": "0 = fit to total",
+      "help": "Leave 0 to fit the bar to your values’ total (a composite). Set a number to scale the composite against a fixed maximum — the bar fills that share and leaves an empty remainder.",
+      "showIf": { "chartType": "stacked" }
+    },
+    {
       "id": "heading", "urlKey": "t",
       "label": "Title",
       "type": "text",

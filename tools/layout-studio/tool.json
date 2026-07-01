@@ -47,11 +47,13 @@
         "alignField": "align",
         "valignField": "valign",
         "weightField": "weight",
+        "fitField": "fit",
+        "blendField": "blend",
         "minSize": 8,
         "addKinds": [
           { "id": "box", "label": "Box", "seed": { "kind": "box", "bg": "#30BA78", "shape": "rounded", "text": "" } },
           { "id": "text", "label": "Text", "seed": { "kind": "text", "bg": "", "shape": "rect", "text": "Text", "fg": "#0c322c", "fontSize": 64, "valign": "top" } },
-          { "id": "image", "label": "Image", "seed": { "kind": "image", "bg": "#eef1f0", "shape": "rounded", "text": "" } }
+          { "id": "image", "label": "Image", "seed": { "kind": "image", "bg": "#eef1f0", "shape": "rounded", "fit": "cover", "text": "" } }
         ]
       },
       "fields": [
@@ -77,7 +79,6 @@
           "type": "select",
           "label": "Shape",
           "default": "rect",
-          "showFor": ["box", "image"],
           "options": [
             { "value": "rect", "label": "Rectangle" },
             { "value": "rounded", "label": "Rounded" },
@@ -88,16 +89,50 @@
         { "id": "radius", "type": "number", "label": "Corner radius", "default": 16, "min": 0, "showIf": { "shape": "rounded" } },
         { "id": "bg", "type": "color", "label": "Fill", "default": "#30BA78" },
         { "id": "opacity", "type": "number", "label": "Opacity", "default": 100, "min": 0, "max": 100, "display": "slider" },
-        { "id": "image", "type": "asset", "label": "Image", "assetType": "raster", "allowUpload": true, "showFor": ["image"] },
-        { "id": "text", "type": "text", "label": "Text", "default": "", "multilineFor": ["text"], "rows": 3 },
-        { "id": "fg", "type": "color", "label": "Text colour", "default": "#0c322c", "showFor": ["text", "box"] },
-        { "id": "fontSize", "type": "number", "label": "Text size", "default": 48, "min": 4, "showFor": ["text", "box"] },
+        { "id": "image", "type": "asset", "label": "Image", "assetType": "raster", "allowUpload": true },
+        {
+          "id": "fit",
+          "type": "select",
+          "label": "Image fit",
+          "default": "cover",
+          "options": [
+            { "value": "cover", "label": "Cover (crop to fill)" },
+            { "value": "contain", "label": "Contain (fit inside)" },
+            { "value": "fill", "label": "Stretch" }
+          ]
+        },
+        {
+          "id": "blend",
+          "type": "select",
+          "label": "Blend mode",
+          "default": "normal",
+          "options": [
+            { "value": "normal", "label": "Normal" },
+            { "value": "multiply", "label": "Multiply" },
+            { "value": "screen", "label": "Screen" },
+            { "value": "overlay", "label": "Overlay" },
+            { "value": "darken", "label": "Darken" },
+            { "value": "lighten", "label": "Lighten" },
+            { "value": "color-dodge", "label": "Colour dodge" },
+            { "value": "color-burn", "label": "Colour burn" },
+            { "value": "hard-light", "label": "Hard light" },
+            { "value": "soft-light", "label": "Soft light" },
+            { "value": "difference", "label": "Difference" },
+            { "value": "exclusion", "label": "Exclusion" },
+            { "value": "hue", "label": "Hue" },
+            { "value": "saturation", "label": "Saturation" },
+            { "value": "color", "label": "Colour" },
+            { "value": "luminosity", "label": "Luminosity" }
+          ]
+        },
+        { "id": "text", "type": "text", "label": "Text", "default": "", "multilineFor": ["box", "text", "image"], "rows": 3 },
+        { "id": "fg", "type": "color", "label": "Text colour", "default": "#0c322c" },
+        { "id": "fontSize", "type": "number", "label": "Text size", "default": 48, "min": 4 },
         {
           "id": "align",
           "type": "select",
           "label": "Align",
           "default": "center",
-          "showFor": ["text", "box"],
           "options": [
             { "value": "left", "label": "Left" },
             { "value": "center", "label": "Centre" },
@@ -109,7 +144,6 @@
           "type": "select",
           "label": "Vertical",
           "default": "middle",
-          "showFor": ["text", "box"],
           "options": [
             { "value": "top", "label": "Top" },
             { "value": "middle", "label": "Middle" },
@@ -121,7 +155,6 @@
           "type": "select",
           "label": "Weight",
           "default": "700",
-          "showFor": ["text", "box"],
           "options": [
             { "value": "400", "label": "Regular" },
             { "value": "600", "label": "Semibold" },

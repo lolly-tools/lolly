@@ -401,11 +401,16 @@ function stackedBar(items, lay, cfg) {
   if (!items.length) return '';
   const { textColor, showLabels, showLegend, dataLabels, labelSize, valueSize,
           labelWeight, valueWeight, legendFontWeight, legendSize, legendDotShape, legendPosition,
-          valueFormat,
+          valueFormat, stackMax,
           labelAlign, valueAlign,
           labelOffsetX, labelOffsetY, valueOffsetX, valueOffsetY, labelMaxChars, legendMaxChars } = cfg;
 
   const total      = items.reduce((s, i) => s + Math.abs(i.value), 0) || 1;
+  // The bar is a COMPOSITE of the values. By default it fits their total (denom = total,
+  // so it spans the full width). A Scale max GREATER than the total scales the composite
+  // against that maximum — the segments fill only their share and the rest is an empty
+  // remainder track. A max ≤ total is ignored (would overflow the bar).
+  const denom      = stackMax > total ? stackMax : total;
   const legendRowH = legendSize * 1.6;
   const legendH    = showLegend ? Math.min(items.length * legendRowH + 16, 220) : 0;
 
@@ -427,8 +432,14 @@ function stackedBar(items, lay, cfg) {
   let out  = '';
   let curX = barX;
 
+  // Empty remainder track behind the segments, shown only when a Scale max leaves the
+  // composite short of the full width (unused capacity up to the max).
+  if (denom > total) {
+    out += `<rect x="${barX}" y="${barY}" width="${barW}" height="${barH}" fill="${esc(textColor)}" opacity="0.08"/>`;
+  }
+
   items.forEach(item => {
-    const sw  = (Math.abs(item.value) / total) * barW;
+    const sw  = (Math.abs(item.value) / denom) * barW;
     const tc  = autoText(item.color);
     out += `<rect x="${curX}" y="${barY}" width="${sw}" height="${barH}" fill="${esc(item.color)}"/>`;
 
@@ -482,7 +493,9 @@ function buildChart(inputs) {
 
   const rawFormat = inputs.valueFormat || 'auto';
   const isBar     = chartType === 'vertical-bar' || chartType === 'horizontal-bar';
-  const resolvedValueFormat = rawFormat === 'auto' ? (isBar ? 'value' : 'percent') : rawFormat;
+  // Stacked is a COMPOSITE of the actual values (not a forced 100%), so it defaults to
+  // showing real numbers like the bar charts; pie/donut still default to percentages.
+  const resolvedValueFormat = rawFormat === 'auto' ? ((isBar || chartType === 'stacked') ? 'value' : 'percent') : rawFormat;
 
   const cfg = {
     chartType,
@@ -515,6 +528,7 @@ function buildChart(inputs) {
     valueFormat:     resolvedValueFormat,
     donutRadius:     parseFloat(inputs.donutRadius) || 0.55,
     legendWidth:     clamp(parseInt(inputs.legendWidth, 10) || 40, 15, 65),
+    stackMax:        Math.max(0, parseFloat(inputs.stackMax) || 0),
   };
 
   const lay = computeLayout(W, H, title, subtitle);

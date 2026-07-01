@@ -55,6 +55,14 @@ function radiusFor(shape, radius) {
 var H_JUSTIFY = { left: 'flex-start', center: 'center', right: 'flex-end' };
 var V_ALIGN = { top: 'flex-start', middle: 'center', bottom: 'flex-end' };
 var WEIGHTS = { '400': 1, '600': 1, '700': 1, '800': 1 };
+var FITS = { cover: 1, contain: 1, fill: 1, none: 1, 'scale-down': 1 };
+// CSS mix-blend-mode keywords. Faithful in raster (PNG/JPG/WebP) export; the vector
+// walkers (SVG/PDF) don't honour blend, so it flattens there — documented.
+var BLENDS = {
+  multiply: 1, screen: 1, overlay: 1, darken: 1, lighten: 1, 'color-dodge': 1,
+  'color-burn': 1, 'hard-light': 1, 'soft-light': 1, difference: 1, exclusion: 1,
+  hue: 1, saturation: 1, color: 1, luminosity: 1,
+};
 
 function boxCss(b) {
   var x = Math.round(num(b.x, 0));
@@ -64,15 +72,22 @@ function boxCss(b) {
   var rot = num(b.rot, 0);
   var op = clamp(num(b.opacity, 100), 0, 100) / 100;
   var fill = safeColor(b.bg, 'transparent');
+  var blend = BLENDS[String(b.blend)] ? String(b.blend) : '';
   var css =
     'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;' +
     (rot ? 'transform:rotate(' + (Math.round(rot * 10) / 10) + 'deg);' : '') +
     (op !== 1 ? 'opacity:' + op + ';' : '') +
+    (blend ? 'mix-blend-mode:' + blend + ';' : '') +
     'background:' + fill + ';' +
     'border-radius:' + radiusFor(b.shape, b.radius) + ';' +
     'justify-content:' + (H_JUSTIFY[b.align] || 'center') + ';' +
     'align-items:' + (V_ALIGN[b.valign] || 'center') + ';';
   return css;
+}
+
+function imgCss(b) {
+  var fit = FITS[String(b.fit)] ? String(b.fit) : 'cover';
+  return 'object-fit:' + fit + ';';
 }
 
 function textCss(b) {
@@ -93,9 +108,11 @@ function compute(model) {
   var transparent = inp.transparentBg === true;
   var boxStyle = boxes.map(function (b) { return boxCss(b || {}); });
   var textStyle = boxes.map(function (b) { return textCss(b || {}); });
+  var imgStyle = boxes.map(function (b) { return imgCss(b || {}); });
   return {
     boxStyle: boxStyle,
     textStyle: textStyle,
+    imgStyle: imgStyle,
     bgStyle: [transparent ? 'transparent' : safeColor(inp.background, '#ffffff')],
   };
 }
