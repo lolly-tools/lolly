@@ -181,9 +181,213 @@ function sampleGrid(img, cols, rows, fit, hueDeg, sat, light) {
   return g;
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// Brand overlay — optional SUSE logo + gently-animated "lower third" name card.
+//
+// Kept BYTE-IDENTICAL across every filter-* tool (paste target). Emits SVG children
+// so the overlay survives ALL export paths — raster (png/webp/jpg), motion
+// (gif/webm/mp4) AND vector (svg/pdf). Everything is OFF by default → overlayActive()
+// is false → buildOverlaySvg() returns '' (zero markup / zero cost).
+//
+// Animation is ATTRIBUTE-BAKED (computed transform/opacity per render), never CSS
+// @keyframes or SMIL: the tool's whole SVG is replaced on every paint / every live
+// camera frame, which would reset a CSS/SMIL animation to t=0 each frame. Baking the
+// pose means it looks identical in the live preview, in each captured video frame,
+// and in a static vector snapshot. In live mode the gentle intro is driven by the
+// camera clock (elapsed since the overlay first appeared).
+//
+// Module state used: _logoCache, _profileHeadshotUrl, _liveOvStart. Depends on `host`
+// (host.assets.get / host.profile.get) being in scope.
+// ══════════════════════════════════════════════════════════════════════════════
+var LOGO_ASPECT = 210.179 / 37.666;   // SUSE horizontal lockup, from its own viewBox
+var _logoCache = {};                  // variantId -> url | null (resolved once per variant)
+var _profileHeadshotUrl;              // undefined = not looked up; null = none; string = url
+var _liveOvStart = null;              // frame.t when the overlay first became active while live
+
+function ovEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return c === '&' ? '&amp;' : c === '<' ? '&lt;' : c === '>' ? '&gt;' : c === '"' ? '&quot;' : '&#39;';
+  });
+}
+function ovNum(v, d) { var x = Number(v); return isFinite(x) ? x : d; }
+function ovClamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+function ovF2(v) { return Math.round(v * 100) / 100; }
+function ovEaseOut(p) { p = ovClamp(p, 0, 1); return 1 - Math.pow(1 - p, 3); }
+
+// Normalise the overlay-related inputs into one flat object (reused by still + live).
+function overlayInputs(inp) {
+  return {
+    noFilter: !!inp.noFilter,
+    showLogo: !!inp.showLogo,
+    logoPosition: inp.logoPosition || 'top-right',
+    logoStyle: inp.logoStyle || 'white',
+    logoScale: inp.logoScale,
+    lowerThird: !!inp.lowerThird,
+    ltTheme: inp.ltTheme || 'bar',
+    ltPosition: inp.ltPosition || 'left',
+    firstname: inp.firstname,
+    lastname: inp.lastname,
+    title: inp.title,
+  };
+}
+function overlayActive(o) { return !!(o.showLogo || o.lowerThird); }
+
+// One of the 8 shipped SUSE logo ids. white → on-dark mono, green → on-dark colour,
+// black → on-light mono. Horizontal lockup only (reads best over a strip/corner).
+function logoVariantId(style) {
+  return style === 'green' ? 'suse/logo/hor-neg-green'
+    : style === 'black' ? 'suse/logo/hor-pos-black'
+      : 'suse/logo/hor-neg-white';
+}
+// Resolve the chosen logo variant to a URL, cached per-variant. Safe to await in
+// compute/onInit; call WITHOUT await from onFrame — it just warms the cache.
+function resolveLogoUrl(style) {
+  var id = logoVariantId(style);
+  if (_logoCache[id] !== undefined) return Promise.resolve(_logoCache[id]);
+  return host.assets.get(id)
+    .then(function (r) { return (_logoCache[id] = (r && r.url) || null); })
+    .catch(function () { return (_logoCache[id] = null); });
+}
+function cachedLogoUrl(style) { return _logoCache[logoVariantId(style)] || ''; }
+
+// Resolve the user's PROFILE headshot to a URL once (async). Used as the auto default
+// for the lower-third chip when the headshot input is empty. null = none / unavailable.
+function resolveProfileHeadshot() {
+  if (_profileHeadshotUrl !== undefined) return Promise.resolve(_profileHeadshotUrl);
+  _profileHeadshotUrl = null;
+  if (!host.profile || !host.profile.get) return Promise.resolve(null);
+  return host.profile.get().then(function (p) {
+    if (p && p.headshot && p.headshot.id) {
+      return host.assets.get(p.headshot.id).then(function (r) { _profileHeadshotUrl = (r && r.url) || null; });
+    }
+  }).catch(function () { }).then(function () { return _profileHeadshotUrl; });
+}
+
+// Build the overlay SVG children. OW/OH = the output coordinate box (viewBox units).
+// o = normalised overlay inputs + { logoUrl, headshotUrl, mode:'still'|'live', elapsed }.
+function buildOverlaySvg(OW, OH, o) {
+  if (!overlayActive(o)) return '';
+  var live = o.mode === 'live';
+  var elapsed = live ? ovNum(o.elapsed, 1e9) : 1e9;
+  var out = '';
+
+  // ── SUSE logo ──────────────────────────────────────────────────────────────
+  if (o.showLogo && o.logoUrl) {
+    var pos = o.logoPosition || 'top-right';
+    var m = OW * 0.045;
+    var scale = ovClamp(ovNum(o.logoScale, 1), 0.25, 3);
+    var w = pos === 'full' ? ovClamp(OW * 0.72 * scale, 40, OW)
+      : ovClamp(OW * 0.2 * scale, 24, OW - m * 2);
+    var h = w / LOGO_ASPECT;
+    var x = (pos === 'top-left' || pos === 'bottom-left') ? m
+      : (pos === 'top-right' || pos === 'bottom-right') ? OW - m - w
+        : (OW - w) / 2;
+    var y = (pos === 'top-left' || pos === 'top-right' || pos === 'top') ? m
+      : (pos === 'bottom-left' || pos === 'bottom-right' || pos === 'bottom') ? OH - m - h
+        : (OH - h) / 2;
+    var lop = live ? ovEaseOut(elapsed / 460) : 1;
+    out += '<image href="' + ovEsc(o.logoUrl) + '" x="' + ovF2(x) + '" y="' + ovF2(y)
+      + '" width="' + ovF2(w) + '" height="' + ovF2(h) + '" preserveAspectRatio="xMidYMid meet"'
+      + (lop < 1 ? ' opacity="' + ovF2(lop) + '"' : '') + '/>';
+  }
+
+  // ── lower-third name card ────────────────────────────────────────────────────
+  if (o.lowerThird) {
+    var name = [String(o.firstname || '').trim(), String(o.lastname || '').trim()].filter(Boolean).join(' ') || 'Your name';
+    var title = String(o.title || '').trim();
+    var theme = o.ltTheme || 'bar';
+    var lp = o.ltPosition || 'left';
+    var hasShot = !!o.headshotUrl;
+
+    var p = live ? ovEaseOut(elapsed / 560) : 1;
+    var mg = OW * 0.045;
+    var padX = OH * 0.032, padY = OH * 0.028;
+    var nameSize = OH * 0.045, titleSize = OH * 0.028;
+    var lineH = nameSize + (title ? titleSize * 1.5 : 0);
+    var cardH = lineH + padY * 2;
+    var chip = hasShot ? cardH - padY * 0.9 : 0;
+    var gap = hasShot ? padX * 0.7 : 0;
+    var nameW = name.length * nameSize * 0.6;
+    var titleW = title.length * titleSize * 0.58;
+    var textW = Math.max(nameW, titleW, OW * 0.14);
+    var cardW = ovClamp(padX + (hasShot ? chip + gap : 0) + textW + padX, OW * 0.22, OW - mg * 2);
+
+    var cx = lp === 'center' ? (OW - cardW) / 2 : lp === 'right' ? OW - mg - cardW : mg;
+    var cy = OH - mg - cardH;
+    var dy = (1 - p) * (OH * 0.035);
+
+    var accent = '#30ba78';
+    var r = Math.min(cardH * 0.2, 22);
+    var g = '<g transform="translate(' + ovF2(cx) + ' ' + ovF2(cy + dy) + ')"'
+      + (p < 1 ? ' opacity="' + ovF2(p) + '"' : '') + '>';
+
+    if (theme === 'bar') {
+      g += ovRRect(0, 0, cardW, cardH, r, '#0c322c', 0.97);
+    } else if (theme === 'glass') {
+      g += ovRRect(0, 0, cardW, cardH, r, '#0b1512', 0.34);
+      g += '<rect x="0.75" y="0.75" width="' + ovF2(cardW - 1.5) + '" height="' + ovF2(cardH - 1.5)
+        + '" rx="' + ovF2(r) + '" ry="' + ovF2(r) + '" fill="none" stroke="#ffffff" stroke-opacity="0.3" stroke-width="1.4"/>';
+    } // 'minimal' → no plate; text carries a soft outline for legibility
+
+    var textX = padX + (hasShot ? chip + gap : 0);
+    var blockTop = (cardH - lineH) / 2;
+    var nameY = blockTop + nameSize * 0.82;
+    var titleY = nameY + titleSize * 1.4;
+    var titleColor = theme === 'bar' ? '#a9e3c8' : '#e6f0ec';
+    var shadow = theme === 'minimal'
+      ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(nameSize * 0.14) + 'px;stroke-linejoin:round"'
+      : '';
+    var titleShadow = theme === 'minimal'
+      ? ' style="paint-order:stroke;stroke:#0b1512;stroke-opacity:0.55;stroke-width:' + ovF2(titleSize * 0.16) + 'px;stroke-linejoin:round"'
+      : '';
+    var FONT = 'SUSE, system-ui, -apple-system, sans-serif';
+
+    if (hasShot) {
+      var cxs = padX + chip / 2, cys = cardH / 2, rad = chip / 2;
+      g += '<clipPath id="lollyShot"><circle cx="' + ovF2(cxs) + '" cy="' + ovF2(cys) + '" r="' + ovF2(rad) + '"/></clipPath>';
+      g += '<image href="' + ovEsc(o.headshotUrl) + '" x="' + ovF2(padX) + '" y="' + ovF2(cys - rad)
+        + '" width="' + ovF2(chip) + '" height="' + ovF2(chip) + '" preserveAspectRatio="xMidYMid slice" clip-path="url(#lollyShot)"/>';
+      g += '<circle cx="' + ovF2(cxs) + '" cy="' + ovF2(cys) + '" r="' + ovF2(rad) + '" fill="none" stroke="' + accent + '" stroke-width="' + ovF2(rad * 0.09) + '"/>';
+    }
+
+    g += '<text x="' + ovF2(textX) + '" y="' + ovF2(nameY) + '" font-family="' + FONT + '" font-size="' + ovF2(nameSize)
+      + '" font-weight="700" fill="#ffffff"' + shadow + '>' + ovEsc(name) + '</text>';
+    if (title) {
+      g += '<text x="' + ovF2(textX) + '" y="' + ovF2(titleY) + '" font-family="' + FONT + '" font-size="' + ovF2(titleSize)
+        + '" font-weight="500" fill="' + titleColor + '"' + titleShadow + '>' + ovEsc(title) + '</text>';
+    }
+    var ulY = (title ? titleY : nameY) + (title ? titleSize * 0.55 : nameSize * 0.4);
+    var ulW = Math.min(nameW, cardW - textX - padX) * (live ? p : 1);
+    g += '<rect x="' + ovF2(textX) + '" y="' + ovF2(ulY) + '" width="' + ovF2(Math.max(0, ulW)) + '" height="' + ovF2(Math.max(2, nameSize * 0.08)) + '" rx="' + ovF2(nameSize * 0.04) + '" fill="' + accent + '"/>';
+
+    g += '</g>';
+    out += g;
+  }
+
+  return out;
+}
+// A rounded rect (rx clamped) shared by the overlay themes.
+function ovRRect(x, y, w, h, r, fill, op) {
+  r = Math.min(r, w / 2, h / 2);
+  return '<rect x="' + ovF2(x) + '" y="' + ovF2(y) + '" width="' + ovF2(w) + '" height="' + ovF2(h)
+    + '" rx="' + ovF2(r) + '" ry="' + ovF2(r) + '" fill="' + fill + '"'
+    + (op != null && op < 1 ? ' fill-opacity="' + ovF2(op) + '"' : '') + '/>';
+}
+
 // ── render ───────────────────────────────────────────────────────────────────
 
 function buildSvg(args) {
+  // No-filter bypass: show the raw source (still image or live camera frame) with the
+  // overlay composited on top — "just how it is", plus optional logo / lower-third.
+  if (args.noFilter) {
+    var bgnf = _bgTransparent ? null : colour(args.background, '');
+    var onf = svgOpen();
+    if (bgnf) onf += '<rect width="' + VIEW + '" height="' + VIEW + '" fill="' + bgnf + '"/>';
+    if (args.rawSrc) onf += '<image href="' + ovEsc(args.rawSrc) + '" x="0" y="0" width="' + VIEW + '" height="' + VIEW + '" preserveAspectRatio="xMidYMid slice"/>';
+    onf += buildOverlaySvg(VIEW, VIEW, args._ov || {});
+    onf += '</svg>';
+    return onf;
+  }
   var img = args.img;
   var vis = clamp(n(args.lineSize, 4), 1, 48);       // line height = cell size (square cells)
   var everyLine = Boolean(args.everyLine);
@@ -261,6 +465,7 @@ function buildSvg(args) {
   var out = svgOpen();
   if (bg) out += '<rect width="' + VIEW + '" height="' + VIEW + '" fill="' + bg + '"/>';
   for (var t = 0; t < 5; t++) if (paths[t]) out += '<path fill="' + fills[t] + '" d="' + paths[t] + '"/>';
+  out += buildOverlaySvg(VIEW, VIEW, args._ov || {});
   out += '</svg>';
   return out;
 }
@@ -290,14 +495,24 @@ async function compute(model) {
   }
   if (!url) return { svgContent: placeholder('Choose an image to scan') };
 
+  // Brand overlay — resolve logo + headshot URLs (cached) before building so the
+  // still render already carries them.
+  var ovi = overlayInputs(inputs);
+  if (ovi.showLogo) await resolveLogoUrl(ovi.logoStyle);
+  var headUrl = (inputs.ltHeadshot && inputs.ltHeadshot.url) || '';
+  if (ovi.lowerThird && !headUrl) headUrl = (await resolveProfileHeadshot()) || '';
+  var ov = Object.assign({}, ovi, { logoUrl: cachedLogoUrl(ovi.logoStyle), headshotUrl: headUrl, mode: 'still' });
+
   var params = {
-    url: url, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
+    url: url, noFilter: ovi.noFilter, rawSrc: url, ov: ov,
+    lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels, everyLine: inputs.everyLine, fit: inputs.fit,
     highlight: inputs.highlight, light: inputs.light, mid: inputs.mid, shade: inputs.shade,
     shadow: inputs.shadow, background: inputs.background, brightness: inputs.brightness, contrast: inputs.contrast,
     hue: inputs.hue, saturation: inputs.saturation, lightness: inputs.lightness,
     treatmentColor: inputs.treatmentColor, blendMode: inputs.blendMode, treatmentIntensity: inputs.treatmentIntensity,
   };
   var memoKey = JSON.stringify(params);
+  params._ov = ov;
   if (memoKey === _memoKey) return _memoResult;
 
   var svgContent;
@@ -334,8 +549,22 @@ function onFrame(ctx) {
     src.width = frame.width; src.height = frame.height;
     src.getContext('2d').putImageData(new ImageData(frame.data, frame.width, frame.height), 0, 0);
   } catch (e) { return null; }
+
+  // Brand overlay (live): warm caches without awaiting; drive the intro from camera time.
+  var ovi = overlayInputs(inputs);
+  if (overlayActive(ovi)) { if (_liveOvStart == null) _liveOvStart = frame.t; }
+  else _liveOvStart = null;
+  if (ovi.showLogo && _logoCache[logoVariantId(ovi.logoStyle)] === undefined) resolveLogoUrl(ovi.logoStyle);
+  if (ovi.lowerThird && _profileHeadshotUrl === undefined) resolveProfileHeadshot();
+  var headUrl = (inputs.ltHeadshot && inputs.ltHeadshot.url) || _profileHeadshotUrl || '';
+  var ov = Object.assign({}, ovi, {
+    logoUrl: cachedLogoUrl(ovi.logoStyle), headshotUrl: headUrl,
+    mode: 'live', elapsed: frame.t - (_liveOvStart == null ? frame.t : _liveOvStart),
+  });
+
   var svg = buildSvg({
-    img: src, lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels,
+    img: src, noFilter: ovi.noFilter, rawSrc: ovi.noFilter ? src.toDataURL('image/jpeg', 0.85) : null, _ov: ov,
+    lineSize: inputs.lineSize, gapSize: inputs.gapSize, separatePixels: inputs.separatePixels,
     everyLine: inputs.everyLine, fit: inputs.fit, highlight: inputs.highlight, light: inputs.light,
     mid: inputs.mid, shade: inputs.shade, shadow: inputs.shadow, background: inputs.background,
     brightness: inputs.brightness, contrast: inputs.contrast,

@@ -1744,6 +1744,10 @@ a.gtile-name:focus-visible::after {
   border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card));
   color: inherit; cursor: pointer; text-align: left; transition: border-color 0.12s, background 0.12s;
 }
+/* Search hides non-matches with the `hidden` attr; without this the base rule's
+   `display:flex` (author beats the UA `[hidden]` rule) keeps them in the grid, so
+   matches never reflow to the top. Pull them out of layout so the grid collapses. */
+.toolpicker-tile[hidden] { display: none; }
 .toolpicker-tile:hover { border-color: hsl(var(--primary) / 0.6); background: hsl(var(--primary) / 0.05); }
 .toolpicker-icon { width: 26px; height: 26px; color: hsl(var(--primary)); }
 .toolpicker-icon svg { width: 100%; height: 100%; }
