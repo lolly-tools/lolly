@@ -366,6 +366,20 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   function closeMenu() { openPopover?.remove(); openPopover = null; document.removeEventListener('pointerdown', onDocDown, true); }
   function onDocDown(e) { if (openPopover && !openPopover.contains(e.target)) closeMenu(); }
 
+  // Mount a popover at a viewport point (x,y) — a menu button's bottom-left, or the
+  // cursor for a right-click — clamped to stay on-screen (flips up near the bottom edge).
+  // The `.folder-menu` is position:absolute, so document coords add the scroll offset.
+  function placePopoverAt(pop, x, y) {
+    document.body.appendChild(pop);
+    openPopover = pop;
+    const pw = pop.offsetWidth, ph = pop.offsetHeight;
+    const left = Math.max(8, Math.min(x, window.innerWidth - pw - 12));
+    const top  = (y + ph > window.innerHeight - 8) ? Math.max(8, y - ph - 12) : y;
+    pop.style.left = `${Math.round(left + window.scrollX)}px`;
+    pop.style.top  = `${Math.round(top + window.scrollY)}px`;
+    document.addEventListener('pointerdown', onDocDown, true);
+  }
+
   // Destructive actions (delete a folder + its contents, delete a saved session) use
   // the shared styled confirm modal — close any open tile menu first so it doesn't
   // hang behind the dialog. See components/confirm-dialog.js.
@@ -380,7 +394,12 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
 
       // Per-tile overflow menu (check before the open-folder primary it sits inside)
       const menuBtn = t.closest('[data-menu]');
-      if (menuBtn) { e.preventDefault(); e.stopPropagation(); openMenu(menuBtn); return; }
+      if (menuBtn) {
+        e.preventDefault(); e.stopPropagation();
+        const r = menuBtn.getBoundingClientRect();
+        openMenu({ ref: menuBtn.dataset.menu, kind: menuBtn.dataset.menuKind, tileEl: menuBtn.closest('.folder-tile'), x: r.left, y: r.bottom + 6 });
+        return;
+      }
 
       // Selection toggle (must beat the open-folder / open-session primary it neighbours)
       const selBtn = t.closest('[data-select]');
@@ -444,7 +463,91 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     });
 
     wireDrag(root);
+    wireContextMenu(root);
+    wireMarquee(root);
     syncBulkBar();   // reflect a selection that survived this re-render
+  }
+
+  // ── desktop: right-click → context menu ─────────────────────────────────────
+  // Right-clicking a folder/session tile opens its menu at the cursor (matching the ⋯
+  // button); right-clicking a tile that's part of a multi-selection opens the bulk menu.
+  // Create tiles + the synthetic Uncategorised tile have no menu → the native menu shows.
+  function wireContextMenu(root) {
+    root.addEventListener('contextmenu', (e) => {
+      const tile = e.target.closest('.folder-tile[data-ref][data-kind]');
+      if (!tile || tile.classList.contains('folder-tile--create') || tile.classList.contains('folder-tile--uncat')) return;
+      e.preventDefault();
+      const ref = tile.dataset.ref, kind = tile.dataset.kind;
+      if (selected.size > 1 && selected.has(ref)) openBulkMenu(e.clientX, e.clientY);
+      else openMenu({ ref, kind, tileEl: tile, x: e.clientX, y: e.clientY });
+    });
+  }
+
+  // ── desktop: click-drag marquee (rubber-band) selection ─────────────────────
+  // Press on empty canvas and drag a box; tiles it touches are selected live. A plain
+  // drag replaces the selection; holding Shift/Cmd/Ctrl adds to it. A plain click on
+  // empty canvas clears the selection. Fine-pointer only (touch uses the checkboxes).
+  function wireMarquee(root) {
+    if (!window.matchMedia?.('(pointer: fine)').matches) return;
+    let sx = 0, sy = 0, box = null, base = null, additive = false, active = false;
+
+    const selectableTiles = () =>
+      [...root.querySelectorAll('.folder-tile[data-ref][data-kind]')]
+        .filter(t => !t.classList.contains('folder-tile--uncat') && !t.classList.contains('folder-tile--create'));
+
+    // Reconcile the selection Map to `next`, then repaint every tile's state in place.
+    function applySelection(next) {
+      selected.clear();
+      for (const [ref, kind] of next) selected.set(ref, kind);
+      root.querySelectorAll('.folder-tile[data-ref]').forEach(t => {
+        const on = selected.has(t.dataset.ref);
+        t.classList.toggle('is-selected', on);
+        t.querySelector('.tile-check')?.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      syncBulkBar();
+    }
+
+    function onMove(e) {
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (!box) {
+        if (Math.abs(dx) < 5 && Math.abs(dy) < 5) return;   // ignore micro-jitter (it's a click)
+        box = document.createElement('div');
+        box.className = 'projects-marquee';
+        document.body.appendChild(box);
+        root.classList.add('is-marqueeing');
+      }
+      e.preventDefault();
+      const x = Math.min(sx, e.clientX), y = Math.min(sy, e.clientY);
+      const w = Math.abs(dx), h = Math.abs(dy);
+      box.style.cssText = `position:fixed;left:${x}px;top:${y}px;width:${w}px;height:${h}px;`;
+      const next = new Map(additive ? base : []);
+      for (const tile of selectableTiles()) {
+        const r = tile.getBoundingClientRect();
+        const hit = !(r.right < x || r.left > x + w || r.bottom < y || r.top > y + h);
+        if (hit) next.set(tile.dataset.ref, tile.dataset.kind);
+      }
+      applySelection(next);
+    }
+
+    function onUp() {
+      document.removeEventListener('mousemove', onMove, true);
+      document.removeEventListener('mouseup', onUp, true);
+      if (box) { box.remove(); box = null; root.classList.remove('is-marqueeing'); }
+      else if (!additive && selected.size) { selected.clear(); render(); }  // plain click on empty → deselect
+      active = false; base = null;
+    }
+
+    root.addEventListener('mousedown', (e) => {
+      if (active || e.button !== 0) return;
+      // Only start on empty canvas — never on a tile, control, chip, bar, breadcrumb, etc.
+      if (e.target.closest('.folder-tile, button, a, input, label, dialog, .projects-bulkbar, .projects-rail, .projects-crumbs, .projects-head, .gallery-topbar')) return;
+      active = true;
+      sx = e.clientX; sy = e.clientY;
+      additive = e.shiftKey || e.metaKey || e.ctrlKey;
+      base = new Map(selected);
+      document.addEventListener('mousemove', onMove, true);
+      document.addEventListener('mouseup', onUp, true);
+    });
   }
 
   // Toggle one tile's membership in `selected` and update just that tile + the bulk bar
@@ -518,10 +621,11 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   const menuItem = (act, icon, label, { render = false, danger = false } = {}) =>
     `<button type="button" class="folder-menu-item${render ? ' folder-menu-item--render' : ''}${danger ? ' folder-menu-item--danger' : ''}" data-act="${act}">${icon}<span>${escape(label)}</span></button>`;
 
-  function openMenu(btn) {
+  // Open the per-tile context menu. `ctx` = { ref, kind, tileEl, x, y } — from the ⋯
+  // button (anchored below it) OR a right-click (anchored at the cursor). tileEl is the
+  // enclosing .folder-tile (null for the folder-view header ⋯, which falls back to <h2>).
+  function openMenu({ ref, kind, tileEl = null, x, y }) {
     closeMenu();
-    const ref = btn.dataset.menu;
-    const kind = btn.dataset.menuKind;
     const pop = document.createElement('div');
     pop.className = 'folder-menu projects-menu';
     // "Move to…" opens the drill-down picker (no more flat all-folders-at-once list).
@@ -542,12 +646,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         menuItem('delete-session', TRASH_ICON, 'Delete', { danger: true }),
       ].join('');
     }
-    document.body.appendChild(pop);
-    const r = btn.getBoundingClientRect();
-    pop.style.top = `${Math.round(r.bottom + 6 + window.scrollY)}px`;
-    pop.style.left = `${Math.round(Math.min(r.left, window.innerWidth - pop.offsetWidth - 12) + window.scrollX)}px`;
-    openPopover = pop;
-    document.addEventListener('pointerdown', onDocDown, true);
+    placePopoverAt(pop, x, y);
 
     pop.addEventListener('click', async (e) => {
       const item = e.target.closest('[data-act]'); if (!item) return;
@@ -555,7 +654,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       closeMenu();
       // Rename can fire from a folder TILE (root view) or the folder-view header menu
       // button (no enclosing tile) — fall back to the header <h2> in that case.
-      if (act === 'rename') startRename(btn.closest('.folder-tile') || viewEl.querySelector('.projects-title[data-rename-folder]'), ref);
+      if (act === 'rename') startRename(tileEl || viewEl.querySelector('.projects-title[data-rename-folder]'), ref);
       else if (act === 'render') renderFolder(ref);
       else if (act === 'delete') deleteFolderCascade(ref);
       else if (act === 'open-folder') { window.location.hash = '#/p/' + ref; }
@@ -568,7 +667,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         });
       }
       else if (act === 'open') resumeSession(ref);
-      else if (act === 'rename-session') startRenameSession(btn.closest('.folder-tile'), ref);
+      else if (act === 'rename-session') startRenameSession(tileEl, ref);
       else if (act === 'move') {
         openMovePicker({
           title: 'Move to…',
@@ -584,6 +683,27 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         });
         if (ok && mounted) { await host.state.delete(ref).catch(() => {}); await reload(); render(); }
       }
+    });
+  }
+
+  // The context menu for a MULTI-selection (right-clicking a tile that's part of the
+  // current selection) — the same actions as the bulk bar, at the cursor.
+  function openBulkMenu(x, y) {
+    closeMenu();
+    const pop = document.createElement('div');
+    pop.className = 'folder-menu projects-menu';
+    pop.innerHTML = [
+      `<p class="folder-menu-head">${selected.size} selected</p>`,
+      menuItem('render', RENDER_ICON, 'Render selection', { render: true }),
+      menuItem('move', MOVE_ICON, 'Move to…'),
+      menuItem('newfolder', FOLDER_PLUS_ICON, 'New folder from selection'),
+      menuItem('delete', TRASH_ICON, 'Delete', { danger: true }),
+    ].join('');
+    placePopoverAt(pop, x, y);
+    pop.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-act]'); if (!item) return;
+      closeMenu();
+      handleBulk(item.dataset.act);
     });
   }
 

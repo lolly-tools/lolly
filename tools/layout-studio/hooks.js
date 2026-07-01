@@ -90,6 +90,44 @@ function imgCss(b) {
   return 'object-fit:' + fit + ';';
 }
 
+function rot2(px, py, deg) {
+  var r = deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+  return [px * c - py * s, px * s + py * c];
+}
+function f2(v) { return Math.round(v * 100) / 100; }
+
+// Clip a box to ANOTHER box's silhouette (a clip-path mask). Expresses the mask
+// box's shape in THIS box's unrotated local coordinate space (clip-path is applied
+// pre-transform), so it stays correct when either box is rotated. Rect/rounded/pill
+// masks use the 4 corners (rounding approximated as square); ellipse is sampled.
+// Faithful in raster + SVG export (the SVG walker reads this polygon); PDF flattens.
+function clipCss(b, byId) {
+  var maskId = b.clip != null ? String(b.clip) : '';
+  var selfId = b.id != null ? String(b.id) : '';
+  if (!maskId || maskId === selfId) return '';
+  var m = byId[maskId];
+  if (!m) return '';
+  var bw = Math.max(1, num(b.w, 1)), bh = Math.max(1, num(b.h, 1));
+  var bcx = num(b.x, 0) + bw / 2, bcy = num(b.y, 0) + bh / 2, brot = num(b.rot, 0);
+  var mw = Math.max(1, num(m.w, 1)), mh = Math.max(1, num(m.h, 1));
+  var mcx = num(m.x, 0) + mw / 2, mcy = num(m.y, 0) + mh / 2, mrot = num(m.rot, 0);
+  var world = [];
+  if (String(m.shape) === 'ellipse') {
+    for (var i = 0; i < 48; i++) {
+      var t = i / 48 * 2 * Math.PI, w = rot2(Math.cos(t) * mw / 2, Math.sin(t) * mh / 2, mrot);
+      world.push([mcx + w[0], mcy + w[1]]);
+    }
+  } else {
+    var cs = [[-mw / 2, -mh / 2], [mw / 2, -mh / 2], [mw / 2, mh / 2], [-mw / 2, mh / 2]];
+    for (var j = 0; j < 4; j++) { var w2 = rot2(cs[j][0], cs[j][1], mrot); world.push([mcx + w2[0], mcy + w2[1]]); }
+  }
+  var poly = world.map(function (p) {
+    var lc = rot2(p[0] - bcx, p[1] - bcy, -brot);
+    return f2(lc[0] + bw / 2) + 'px ' + f2(lc[1] + bh / 2) + 'px';
+  }).join(',');
+  return 'clip-path:polygon(' + poly + ');';
+}
+
 function textCss(b) {
   var size = Math.max(1, Math.round(num(b.fontSize, 48)));
   var weight = WEIGHTS[String(b.weight)] ? String(b.weight) : '700';
@@ -106,7 +144,9 @@ function compute(model) {
   var inp = inputsFrom(model);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
   var transparent = inp.transparentBg === true;
-  var boxStyle = boxes.map(function (b) { return boxCss(b || {}); });
+  var byId = {};
+  boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
+  var boxStyle = boxes.map(function (b) { return boxCss(b || {}) + clipCss(b || {}, byId); });
   var textStyle = boxes.map(function (b) { return textCss(b || {}); });
   var imgStyle = boxes.map(function (b) { return imgCss(b || {}); });
   return {

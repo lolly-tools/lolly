@@ -49,6 +49,8 @@
         "weightField": "weight",
         "fitField": "fit",
         "blendField": "blend",
+        "groupField": "group",
+        "clipField": "clip",
         "minSize": 8,
         "addKinds": [
           { "id": "box", "label": "Box", "seed": { "kind": "box", "bg": "#30BA78", "shape": "rounded", "text": "" } },
@@ -161,7 +163,9 @@
             { "value": "700", "label": "Bold" },
             { "value": "800", "label": "Extrabold" }
           ]
-        }
+        },
+        { "id": "group", "type": "text", "label": "Group", "default": "" },
+        { "id": "clip", "type": "text", "label": "Clip to", "default": "" }
       ],
       "default": [
         { "id": "p1", "kind": "box", "x": 90, "y": 90, "w": 900, "h": 900, "rot": 0, "shape": "rounded", "radius": 44, "bg": "#f3f5f4", "opacity": 100, "text": "" },

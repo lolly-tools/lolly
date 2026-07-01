@@ -22,7 +22,7 @@ import {
   boxRect, withRect, boxCorners, rectCentre, hitTest, marqueeHit, boxAABB,
   moveBoxes, resizeRect, alignBoxes, distributeBoxes, reorderZ,
   seedBox, normDragRect, snapAngle, normAngle, clampBoxToCanvas, selectionAABB,
-  snapMove, snapPoint,
+  snapMove, snapPoint, scaleGroup, rotateGroup,
 } from './free-canvas-math.js';
 import { colorFieldHtml, wireColorField } from '../components/color-field.js';
 
@@ -55,7 +55,8 @@ export function initFreeCanvas(opts) {
     radiusField: cv.radiusField, imageField: cv.imageField, fitField: cv.fitField,
     blendField: cv.blendField, textField: cv.textField, textColorField: cv.textColorField,
     fontSizeField: cv.fontSizeField, alignField: cv.alignField, valignField: cv.valignField,
-    weightField: cv.weightField, kindField: 'kind',
+    weightField: cv.weightField, groupField: cv.groupField, clipField: cv.clipField,
+    kindField: 'kind',
   };
   const unwrapColor = (v) => (v && typeof v === 'object' && 'value' in v ? v.value : v);
   const minSize = cv.minSize ?? 8;
@@ -81,6 +82,14 @@ export function initFreeCanvas(opts) {
   const idOf = (b, i) => (b && b[cfg.idField] != null && b[cfg.idField] !== '' ? String(b[cfg.idField]) : String(i));
   const selIndices = (boxes) => boxes.reduce((a, b, i) => (selection.has(idOf(b, i)) ? (a.push(i), a) : a), []);
   const indexOfId = (boxes, id) => boxes.findIndex((b, i) => idOf(b, i) === id);
+  const groupOf = (b) => (cfg.groupField && b && b[cfg.groupField] ? String(b[cfg.groupField]) : '');
+  const groupMemberIds = (boxes, g) => boxes.reduce((a, b, i) => (groupOf(b) === g ? (a.push(idOf(b, i)), a) : a), []);
+  // The ids selected when box `i` is clicked: its whole group (if any), unless
+  // `soloBox` (Alt-click) drills in to just that one box.
+  function selectionForHit(boxes, i, soloBox) {
+    const g = groupOf(boxes[i]);
+    return (soloBox || !g) ? [idOf(boxes[i], i)] : groupMemberIds(boxes, g);
+  }
 
   let idSeq = 0;
   function freshId(boxes) {
@@ -218,10 +227,18 @@ export function initFreeCanvas(opts) {
   }
   function openArrangeMenu() {
     const has = selection.size > 0;
-    const mk = (label, op) => ({ label, run: () => has && applyZ(op) });
+    const multi = selection.size >= 2;
     spawnPopover(toolbar.children[1], [
-      mk('Bring to front', 'front'), mk('Bring forward', 'forward'),
-      mk('Send backward', 'backward'), mk('Send to back', 'back'),
+      { label: 'Bring to front', run: () => has && applyZ('front') },
+      { label: 'Bring forward', run: () => has && applyZ('forward') },
+      { label: 'Send backward', run: () => has && applyZ('backward') },
+      { label: 'Send to back', run: () => has && applyZ('back') },
+      { sep: true },
+      { label: 'Group', run: () => multi && groupSelection() },
+      { label: 'Ungroup', run: () => ungroupSelection() },
+      { sep: true },
+      { label: 'Clip to bottom shape', run: () => multi && clipSelection() },
+      { label: 'Release clip', run: () => releaseClip() },
     ]);
   }
   function openAlignMenu() {
@@ -388,6 +405,59 @@ export function initFreeCanvas(opts) {
     } catch { /* user cancelled */ }
   }
 
+  // ── grouping + clip/mask ──────────────────────────────────────────────────────
+  function freshGroupId(boxes) {
+    const used = new Set(boxes.map((b) => groupOf(b)).filter(Boolean));
+    let g;
+    do { g = 'g' + Date.now().toString(36).slice(-4) + (idSeq++).toString(36); } while (used.has(g));
+    return g;
+  }
+  function groupSelection() {
+    if (!cfg.groupField) return;
+    const boxes = getBoxes();
+    const idx = selIndices(boxes);
+    if (idx.length < 2) return;
+    const g = freshGroupId(boxes);
+    const set = new Set(idx);
+    commit(boxes.map((b, i) => (set.has(i) ? { ...b, [cfg.groupField]: g } : b)));
+  }
+  function ungroupSelection() {
+    if (!cfg.groupField) return;
+    const boxes = getBoxes();
+    const set = new Set(selIndices(boxes));
+    if (!boxes.some((b, i) => set.has(i) && groupOf(b))) return;
+    commit(boxes.map((b, i) => (set.has(i) && groupOf(b) ? { ...b, [cfg.groupField]: '' } : b)));
+  }
+  // Clip: the LOWEST selected box (bottom of the stack) is the mask; every higher
+  // selected box is clipped to its shape. They're grouped so the mask + content
+  // travel together (Figma-style mask group).
+  function clipSelection() {
+    if (!cfg.clipField) return;
+    const boxes = getBoxes();
+    const idx = selIndices(boxes).slice().sort((a, b) => a - b);
+    if (idx.length < 2) return;
+    const maskId = idOf(boxes[idx[0]], idx[0]);
+    const clipSet = new Set(idx.slice(1));
+    const allSet = new Set(idx);
+    const g = cfg.groupField ? freshGroupId(boxes) : '';
+    commit(boxes.map((b, i) => {
+      if (!allSet.has(i)) return b;
+      const nb = { ...b };
+      if (clipSet.has(i)) nb[cfg.clipField] = maskId;
+      if (cfg.groupField) nb[cfg.groupField] = g;
+      return nb;
+    }));
+  }
+  function releaseClip() {
+    if (!cfg.clipField) return;
+    const boxes = getBoxes();
+    const set = new Set(selIndices(boxes));
+    if (!boxes.some((b, i) => set.has(i) && b[cfg.clipField])) return;
+    commit(boxes.map((b, i) => (set.has(i) && b[cfg.clipField] ? { ...b, [cfg.clipField]: '' } : b)));
+  }
+  const selHasGroup = () => { const bx = getBoxes(); return selIndices(bx).some((i) => groupOf(bx[i])); };
+  const selHasClip = () => { const bx = getBoxes(); return cfg.clipField && selIndices(bx).some((i) => bx[i][cfg.clipField]); };
+
   // ── z-order / align / distribute ─────────────────────────────────────────────
   function applyZ(op) {
     const boxes = getBoxes();
@@ -541,8 +611,13 @@ export function initFreeCanvas(opts) {
     if (hit >= 0) {
       const id = idOf(boxes[hit], hit);
       const additive = e.shiftKey || e.metaKey || e.ctrlKey;
-      if (additive) { selection.has(id) ? selection.delete(id) : selection.add(id); }
-      else if (!selection.has(id)) { selection = new Set([id]); }
+      const hitSel = selectionForHit(boxes, hit, e.altKey);   // whole group, or Alt = just this box
+      if (additive) {
+        const anyIn = hitSel.some((x) => selection.has(x));
+        for (const x of hitSel) anyIn ? selection.delete(x) : selection.add(x);
+      } else if (!selection.has(id)) {
+        selection = new Set(hitSel);
+      }
       renderChrome();
       // Start a move for the whole current selection.
       const start = new Map();
@@ -631,6 +706,24 @@ export function initFreeCanvas(opts) {
       renderChromeLive();
       return;
     }
+    if (gesture.type === 'gscale') {
+      const k = Math.hypot(nat.x - gesture.anchor.x, nat.y - gesture.anchor.y) / gesture.origDist;
+      const next = scaleGroup(gesture.startBoxes, gesture.sel, gesture.anchor, k, cfg, { minSize });
+      for (const i of gesture.sel) applyLiveRect(i, boxRect(next[i], cfg));
+      gesture.liveBoxes = next;
+      renderChromeLive();
+      return;
+    }
+    if (gesture.type === 'grotate') {
+      const c = gesture.centerClient;
+      let deg = Math.atan2(e.clientY - c.y, e.clientX - c.x) * 180 / Math.PI - gesture.pointerStartDeg;
+      if (!e.altKey) deg = snapAngle(deg, 15, 4);
+      const next = rotateGroup(gesture.startBoxes, gesture.sel, gesture.centre, deg, cfg);
+      for (const i of gesture.sel) applyLiveRect(i, boxRect(next[i], cfg));
+      gesture.liveBoxes = next;
+      renderChromeLive();
+      return;
+    }
   }
 
   function onGestureEnd(e) {
@@ -694,6 +787,12 @@ export function initFreeCanvas(opts) {
       const live = g.liveRect || g.startRect;
       endGesture();
       commit(boxes.map((b, i) => (i === g.index ? withRect(b, live, cfg) : b)));
+      return;
+    }
+    if (g.type === 'gscale' || g.type === 'grotate') {
+      const next = g.liveBoxes;
+      endGesture();
+      if (next) commit(next); else renderChrome();
       return;
     }
     endGesture();
@@ -817,6 +916,8 @@ export function initFreeCanvas(opts) {
     if (idx.length === 1) {
       const r = (liveRects && liveRects.get(idx[0])) || boxRect(boxes[idx[0]], cfg);
       addHandles(r, m);
+    } else if (idx.length > 1) {
+      addGroupHandles(groupAABBNative(idx, boxes, liveRects), m);
     }
     // Contextual bar — rebuild its controls only when the SELECTION set changes
     // (so the colour pickers reflect the box); otherwise just reposition it.
@@ -868,6 +969,84 @@ export function initFreeCanvas(opts) {
     rot.title = 'Rotate';
     rot.addEventListener('pointerdown', (e) => onHandlePointerDown(e, 'rotate'));
     chrome.appendChild(rot);
+  }
+
+  // Axis-aligned native AABB of a multi-selection (rotation-aware), from live DOM
+  // rects during a gesture else from the model.
+  function groupAABBNative(idx, boxes, liveRects) {
+    let a = null;
+    for (const i of idx) {
+      const r = (liveRects && liveRects.get(i)) || boxRect(boxes[i], cfg);
+      for (const p of boxCorners(rectAsBox(r), cfg)) {
+        a = a
+          ? { minX: Math.min(a.minX, p.x), minY: Math.min(a.minY, p.y), maxX: Math.max(a.maxX, p.x), maxY: Math.max(a.maxY, p.y) }
+          : { minX: p.x, minY: p.y, maxX: p.x, maxY: p.y };
+      }
+    }
+    return a || { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+  }
+
+  // Group/multi-selection chrome: an axis-aligned box with 4 corner handles
+  // (uniform scale) + a rotate handle.
+  function addGroupHandles(a, m) {
+    const corners = {
+      nw: nativeToStage(a.minX, a.minY, m), ne: nativeToStage(a.maxX, a.minY, m),
+      se: nativeToStage(a.maxX, a.maxY, m), sw: nativeToStage(a.minX, a.maxY, m),
+    };
+    const outline = document.createElement('div');
+    outline.className = 'fc-outline fc-group-outline';
+    outline.style.left = corners.nw.x + 'px';
+    outline.style.top = corners.nw.y + 'px';
+    outline.style.width = (corners.ne.x - corners.nw.x) + 'px';
+    outline.style.height = (corners.sw.y - corners.nw.y) + 'px';
+    chrome.appendChild(outline);
+    for (const name of ['nw', 'ne', 'se', 'sw']) {
+      const el = document.createElement('div');
+      el.className = 'fc-handle fc-h-' + name;
+      el.style.left = corners[name].x + 'px';
+      el.style.top = corners[name].y + 'px';
+      el.addEventListener('pointerdown', (e) => onGroupHandleDown(e, name));
+      chrome.appendChild(el);
+    }
+    const bc = { x: (corners.sw.x + corners.se.x) / 2, y: (corners.sw.y + corners.se.y) / 2 };
+    const stem = document.createElement('div');
+    stem.className = 'fc-rot-stem';
+    stem.style.left = bc.x + 'px'; stem.style.top = bc.y + 'px';
+    stem.style.width = '30px'; stem.style.transform = 'rotate(90deg)';
+    chrome.appendChild(stem);
+    const rot = document.createElement('div');
+    rot.className = 'fc-handle fc-h-rotate';
+    rot.style.left = bc.x + 'px'; rot.style.top = (bc.y + 30) + 'px';
+    rot.title = 'Rotate group';
+    rot.addEventListener('pointerdown', (e) => onGroupHandleDown(e, 'rotate'));
+    chrome.appendChild(rot);
+  }
+
+  const CORNER_PT = (a, name) => ({
+    nw: { x: a.minX, y: a.minY }, ne: { x: a.maxX, y: a.minY },
+    se: { x: a.maxX, y: a.maxY }, sw: { x: a.minX, y: a.maxY },
+  }[name]);
+  const OPPOSITE = { nw: 'se', ne: 'sw', se: 'nw', sw: 'ne' };
+
+  function onGroupHandleDown(e, name) {
+    e.stopPropagation();
+    if (e.button > 0) return;
+    const boxes = getBoxes();
+    const sel = selIndices(boxes);
+    if (sel.length < 2) return;
+    const a = groupAABBNative(sel, boxes, null);
+    const centre = { x: (a.minX + a.maxX) / 2, y: (a.minY + a.maxY) / 2 };
+    if (name === 'rotate') {
+      const m = metrics();
+      const cs = nativeToStage(centre.x, centre.y, m);
+      const centerClient = { x: cs.x + m.sr.left, y: cs.y + m.sr.top };
+      const pointerStartDeg = Math.atan2(e.clientY - centerClient.y, e.clientX - centerClient.x) * 180 / Math.PI;
+      beginGesture(e, { type: 'grotate', sel, startBoxes: boxes, centre, centerClient, pointerStartDeg });
+    } else {
+      const anchor = CORNER_PT(a, OPPOSITE[name]);
+      const origDist = Math.hypot(CORNER_PT(a, name).x - anchor.x, CORNER_PT(a, name).y - anchor.y) || 1;
+      beginGesture(e, { type: 'gscale', sel, startBoxes: boxes, anchor, origDist });
+    }
   }
 
   function positionCtxBar(boxes, idx, liveRects, m) {
@@ -931,6 +1110,7 @@ export function initFreeCanvas(opts) {
     if (typingTarget()) return;
     if ((e.key === 'Delete' || e.key === 'Backspace') && selection.size) { e.preventDefault(); deleteSelection(); return; }
     if ((e.key === 'd' || e.key === 'D') && (e.metaKey || e.ctrlKey) && selection.size) { e.preventDefault(); duplicateSelection(); return; }
+    if ((e.key === 'g' || e.key === 'G') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.shiftKey ? ungroupSelection() : groupSelection(); return; }
     if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       const boxes = getBoxes();

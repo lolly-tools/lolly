@@ -1572,7 +1572,9 @@ a.gtile-name:focus-visible::after {
 /* Full-bleed like the gallery so the window uses all the space; the top-right
    profile/history cluster reuses .gallery-topright (position:fixed; right:2em) verbatim,
    so the profile button sits in the SAME window spot when toggling Tools ↔ Projects. */
-.projects { padding: 52px 20px 64px; } /* top clears the fixed toggle band */
+/* Fill the viewport so the empty area BELOW the tiles is still part of the Projects
+   surface — desktop marquee-drag + click-to-deselect need somewhere to grab. */
+.projects { padding: 52px 20px 64px; min-height: 100vh; box-sizing: border-box; } /* top clears the fixed toggle band */
 
 /* Tools | Projects segmented toggle — FIXED at the SAME top as the profile/history
    cluster (.gallery-topright top:.5em) and horizontally centred, so it's vertically
@@ -1793,6 +1795,13 @@ a.gtile-name:focus-visible::after {
 
 /* New-folder-from-selection name prompt (reuses .projects-confirm chrome). */
 .projects-prompt-input { width: 100%; margin: 0 0 16px; }
+
+/* Desktop click-drag marquee (rubber-band) selection box + no text-selection while dragging. */
+.projects-marquee {
+  position: fixed; z-index: 8000; pointer-events: none;
+  border: 1px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.12); border-radius: 2px;
+}
+.projects.is-marqueeing, .projects.is-marqueeing * { user-select: none; }
 
 /* ─── Multi-select bulk-action bar ──────────────────────────────────────────
    Floating, bottom-centre, above content but below the fixed view-toggle (99999).
@@ -3852,6 +3861,8 @@ background-color:hsl(var(--background) / 1);
   border: 1.5px solid hsl(var(--primary));
   transform-origin: 50% 50%;
 }
+/* Group / multi-selection bounding box — dashed to distinguish from a box outline. */
+.fc-group-outline { border-style: dashed; }
 .fc-handle {
   position: absolute; width: 12px; height: 12px;
   margin-left: -6px; margin-top: -6px;
