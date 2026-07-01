@@ -6672,6 +6672,20 @@ span.flatpickr-weekday {
   transition: opacity 0.12s;
 }
 .share-copy-btn:hover { opacity: 0.88; }
+/* Complexity caution — shown (JS toggles [hidden]) when even the shortest achievable
+   link is too long to paste reliably, so the user knows to trim elements. Amber, kept
+   distinct from the accented "Shortest link" pack row below. */
+.share-warning {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid hsl(38 92% 50% / 0.55);
+  border-radius: var(--radius);
+  background: hsl(38 92% 50% / 0.1);
+  color: hsl(var(--foreground));
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.share-warning[hidden] { display: none; }
 /* "Shortest link" — shown only when packing beats the readable URL (JS toggles
    [hidden]). A prominent accented row: it changes what the link IS, not just an
    on-visit flag like the ones in the fieldset below. */

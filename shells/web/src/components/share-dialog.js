@@ -18,6 +18,13 @@ import { packQuery, isPackAvailable, PACK_PARAM } from '@lolly/engine';
 // Above this readable-query length the Share dialog auto-adopts the packed form.
 const AUTO_PACK_MIN = 1800;
 
+// When even the SHORTEST achievable link (packed, if that helps) is this long, the
+// state has outgrown a reliably-pasteable URL: many chats, emails and social posts
+// truncate links past ~2000 chars, and the engine hard-rejects a tool URL past 4096
+// (tool-url.js MAX_URL) so it wouldn't even reopen. At that point we warn and nudge
+// the user to remove some elements rather than hand them a link that breaks on paste.
+const SHARE_WARN_LEN = 250;
+
 // Bitmap formats copy to the clipboard as a PNG; text/html copy as text/rich text.
 // Vector (svg/pdf) and video formats have no useful clipboard form, so the
 // "copy on visit" toggle is hidden for them. Mirrors performCopy()'s branches.
@@ -85,6 +92,7 @@ export function openShareDialog({ toolId, baseParts = [], manifest = {}, current
         <input type="text" class="share-link-field" readonly aria-label="Shareable link">
         <button type="button" class="share-copy-btn">Copy</button>
       </div>
+      <p class="share-warning" data-share-warning role="status" hidden></p>
       <label class="share-shortest" data-shortest-row hidden>
         <input type="checkbox" data-shortest>
         <span class="share-shortest-text">
@@ -116,8 +124,23 @@ export function openShareDialog({ toolId, baseParts = [], manifest = {}, current
   const shortestRow = dialog.querySelector('[data-shortest-row]');
   const shortestCb  = dialog.querySelector('[data-shortest]');
   const shortestNote = dialog.querySelector('[data-shortest-note]');
+  const warnEl      = dialog.querySelector('[data-share-warning]');
   // Packed token for the current state — filled in async once we know it helps.
   let packedToken = null;
+
+  // Warn once we know the shortest link this state can produce is still too long to
+  // share reliably (see SHARE_WARN_LEN). `bestLen` is the packed length when packing
+  // helps, else the readable length — so the message reflects the best case, not the
+  // toggle. Suggest trimming, since compression can't rescue it.
+  const flagShareability = (bestLen) => {
+    const over = bestLen >= SHARE_WARN_LEN;
+    warnEl.hidden = !over;
+    if (over) {
+      warnEl.textContent = `⚠️ This link is very long (${bestLen.toLocaleString()} characters) and may get cut off when pasted into chats, emails or social posts — or fail to open. Remove some elements (blocks, long text) to make it shareable.`;
+    }
+  };
+  const readableLen = shareUrlFromParts(baseParts, toolId).length;
+  flagShareability(readableLen);   // best guess until the packed length lands
 
   const flagParts = () => {
     const parts = [];
@@ -144,13 +167,13 @@ export function openShareDialog({ toolId, baseParts = [], manifest = {}, current
   if (isPackAvailable() && baseQuery) {
     packQuery(baseQuery).then(token => {
       if (!token || !dialog.isConnected) return;
-      const readableLen = shareUrlFromParts(baseParts, toolId).length;
       const packedLen   = shareUrlFromParts([`${PACK_PARAM}=${token}`], toolId).length;
       if (packedLen >= readableLen) return;             // packing wouldn't help — don't offer it
       packedToken = token;
       if (shortestNote) shortestNote.textContent = `${readableLen} → ${packedLen} characters`;
       shortestRow.hidden = false;
       if (readableLen >= AUTO_PACK_MIN) shortestCb.checked = true;   // auto-adopt for big states
+      flagShareability(packedLen);   // the packed form is the shortest we can offer
       refresh();
     }).catch(() => { /* leave the readable link */ });
   }

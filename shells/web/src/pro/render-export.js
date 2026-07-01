@@ -13,7 +13,28 @@
  * Duplicating ~40 lines keeps this feature removable without refactoring the
  * 2000-line single-tool view — a deliberate hygiene trade-off.
  */
-import { createRuntime, toCssPx } from '@lolly/engine';
+import { createRuntime, toCssPx, serializeUrlState, packQuery, isPackAvailable, PACK_PARAM } from '@lolly/engine';
+
+// Absolute short-form tool URL — `https://lolly.tools/t/<id>?<inputs>`, the human
+// "open this tool" address (mirrors views/tool.js TOOL_URL_BASE + the domain
+// buildEmbedUrl hardcodes). `query` is the already-encoded input/export params.
+const LOLLY_ORIGIN = 'https://lolly.tools';
+const toolShareUrl = (toolId, query) => `${LOLLY_ORIGIN}/t/${toolId}${query ? `?${query}` : ''}`;
+
+// Prefer the compressed `z=<token>` query for long links: a blocks-heavy tool (e.g. a
+// wayfinding sign's `directions` JSON) serialises to a huge readable query, so we DEFLATE
+// it into the reserved pack param whenever that actually shortens the URL. The reopen
+// route (views/tool.js) runs expandQuery on load, so a packed `/t/<id>?z=…` reopens
+// identically. Threshold is LOWER than the address bar's ~1800 (see tool.js AUTO_PACK_MIN):
+// a lolly.txt link is copied, not hand-edited, so shortness beats readability. Never
+// regresses — the packed form is only swapped in when it's strictly shorter.
+const PACK_QUERY_MIN = 256;
+async function preferCompactQuery(query) {
+  if (!query || query.length < PACK_QUERY_MIN || !isPackAvailable()) return query;
+  const token = await packQuery(query);
+  const packed = token && `${PACK_PARAM}=${token}`;
+  return packed && packed.length < query.length ? packed : query;
+}
 import { getTool, chooseFormat, isExportable } from '../bridge/tool-loader.js';
 import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.js';
 
@@ -96,6 +117,14 @@ export async function renderRowToBlob(row, host, { format, width, height, unit =
     // compose stack is threaded so an embed inside a composed child stays guarded.
     await hydrateEmbeds(canvas, { host, embed: { stack: composeStack ?? [] } });
     const fmt = chooseFormat(tool.manifest, format);
+    // A "reopen in Lolly" link: this tool's short URL carrying the exact inputs +
+    // export settings used for THIS render, so a zip recipient can return to
+    // lolly.tools and recreate (or tweak) the file. Serialised from the live model so
+    // values encode the same compact way the address bar does. Surfaced in the zip's
+    // lolly.txt (see creditText in pro/zip.js); ignored on the compose/thumbnail paths.
+    const url = toolShareUrl(tool.manifest.id, await preferCompactQuery(serializeUrlState(runtime.getModel(), {
+      format: fmt, width, height, unit, dpi: unit !== 'px' ? dpi : undefined,
+    })));
     // watermark/embedMeta/thumbnail are forwarded only when set (compose passes
     // watermark:false + embedMeta:false so an embedded child isn't stamped); batch
     // rows leave them undefined so runtime.export keeps its normal defaults.
@@ -104,7 +133,7 @@ export async function renderRowToBlob(row, host, { format, width, height, unit =
     if (embedMeta !== undefined) exportOpts.embedMeta = embedMeta;
     if (thumbnail !== undefined) exportOpts.thumbnail = thumbnail;
     const blob = await runtime.export(canvas, fmt, exportOpts);
-    return { blob, format: fmt };
+    return { blob, format: fmt, url };
   } finally {
     stage.remove();
   }
