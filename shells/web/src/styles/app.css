@@ -1733,11 +1733,11 @@ a.gtile-name:focus-visible::after {
    would override it at equal specificity. */
 .sheet-grip { display: none; }
 
-/* The "Get | Save" render pill + export popup. Shared visual styling here; each
+/* The "Export | Save" render pill + export popup. Shared visual styling here; each
    breakpoint positions the pill — a bottom-centre FAB + full-screen sheet on
    mobile, a bottom-left sidebar pill + non-modal sticky panel on desktop. Hidden
    until a breakpoint shows it. The export controls (#tool-actions) move into the
-   popup on both. The pill is a two-half control: "Get" (left, an up-arrow) opens
+   popup on both. The pill is a two-half control: "Export" (left, an up-arrow) opens
    the export popup; "Save" (right, a checkmark) quick-saves the session in place. */
 .render-pill {
   display: none;            /* shown per breakpoint */
