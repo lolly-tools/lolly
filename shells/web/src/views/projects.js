@@ -29,6 +29,7 @@ import {
 } from '../folder-tiles.js';
 import { viewToggle } from '../components/view-toggle.js';
 import { attachProfileMenu } from '../components/profile-menu.js';
+import { confirmDialog as baseConfirmDialog, closeConfirmDialogs } from '../components/confirm-dialog.js';
 import { openFolderOverlay } from '../folder-overlay.js';
 import { flagEnabled, PRO_FLAG } from '../feature-flags.js';
 
@@ -284,44 +285,10 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   function closeMenu() { openPopover?.remove(); openPopover = null; document.removeEventListener('pointerdown', onDocDown, true); }
   function onDocDown(e) { if (openPopover && !openPopover.contains(e.target)) closeMenu(); }
 
-  // A styled modal confirmation (Promise<boolean>) for destructive actions — deleting a
-  // folder and its contents, or a saved session — so the warning is explicit rather than
-  // a bare native confirm(). Escape, backdrop click, and Cancel all resolve false.
-  let confirmEl = null;
-  function confirmDialog({ title, message, confirmLabel = 'Delete', danger = true }) {
-    return new Promise((resolve) => {
-      closeMenu();
-      const dlg = document.createElement('dialog');
-      dlg.className = 'projects-confirm';
-      dlg.innerHTML = `
-        <h2 class="projects-confirm-title">${escape(title)}</h2>
-        <p class="projects-confirm-msg">${escape(message)}</p>
-        <div class="projects-confirm-actions">
-          <button type="button" class="btn projects-confirm-cancel" data-act="cancel">Cancel</button>
-          <button type="button" class="btn${danger ? ' projects-confirm-danger' : ''}" data-act="ok">${escape(confirmLabel)}</button>
-        </div>`;
-      document.body.appendChild(dlg);
-      confirmEl = dlg;
-      let settled = false;
-      const finish = (val) => {
-        if (settled) return; settled = true;
-        if (confirmEl === dlg) confirmEl = null;
-        if (dlg.open) dlg.close();
-        dlg.remove();
-        resolve(val);
-      };
-      dlg.addEventListener('cancel', (e) => { e.preventDefault(); finish(false); }); // Escape
-      dlg.addEventListener('click', (e) => {
-        const act = e.target.closest('[data-act]')?.dataset.act;
-        if (act) { finish(act === 'ok'); return; }
-        // Click outside the content box (on the backdrop) dismisses.
-        const r = dlg.getBoundingClientRect();
-        if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) finish(false);
-      });
-      dlg.showModal();
-      dlg.querySelector('.projects-confirm-cancel')?.focus(); // default focus on the safe choice
-    });
-  }
+  // Destructive actions (delete a folder + its contents, delete a saved session) use
+  // the shared styled confirm modal — close any open tile menu first so it doesn't
+  // hang behind the dialog. See components/confirm-dialog.js.
+  const confirmDialog = (opts) => { closeMenu(); return baseConfirmDialog(opts); };
 
   function wire() {
     const root = viewEl.querySelector('.projects');
@@ -771,7 +738,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   // Arriving at Projects means we're not mid-"+ New tool" creation, so disarm any
   // stale file-into / return-to markers left by an abandoned flow.
   try { sessionStorage.removeItem(FILE_INTO_KEY); sessionStorage.removeItem(RETURN_KEY); } catch { /* ignore */ }
-  viewEl._cleanup = () => { mounted = false; closeMenu(); confirmEl?.remove(); confirmEl = null; toasts.forEach(t => t.remove()); toasts.clear(); toolPickerEl?.remove(); toolPickerEl = null; };
+  viewEl._cleanup = () => { mounted = false; closeMenu(); closeConfirmDialogs(); toasts.forEach(t => t.remove()); toasts.clear(); toolPickerEl?.remove(); toolPickerEl = null; };
   await reload();
   // A stale /p/<id> deep link to a deleted folder falls back to root.
   if (folderId && folderId !== UNCAT && !folders.some(f => f.id === folderId)) folderId = null;

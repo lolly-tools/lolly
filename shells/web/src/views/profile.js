@@ -21,6 +21,8 @@ import { storeUserUpload } from './picker.js';
 import { CATEGORY_FLAGS, PRO_FLAG, flagEnabled } from '../feature-flags.js';
 import { saveBlob } from '../pro/zip.js';
 import { exportBackup, importBackup } from '../data-transfer.js';
+import { confirmDialog, closeConfirmDialogs } from '../components/confirm-dialog.js';
+import { relativeTime } from '../folder-tiles.js';
 
 // Friendly labels for the raw profile field keys.
 const FIELD_LABELS = {
@@ -260,13 +262,11 @@ export async function mountProfile(viewEl, host, params = '') {
     await refreshCounter();
   });
 
-  // Live storage counter — updates the Storage section's usage bar IF it's loaded
-  // (the headshot paths call this; it no-ops while Storage is still collapsed).
-  async function refreshCounter() {
-    const est = await navigator.storage?.estimate().catch(() => null);
-    const el = viewEl.querySelector('#storage-usage');
-    if (el && est) el.innerHTML = storageBar(est);
-  }
+  // Live storage refresh — re-render the Storage meter IF it's loaded. The headshot
+  // upload/remove paths change user-asset bytes and call this; it no-ops while the
+  // Storage section is still collapsed (loadStorage sets refreshStorageMeter).
+  let refreshStorageMeter = null;
+  async function refreshCounter() { if (refreshStorageMeter) await refreshStorageMeter(); }
 
   // Personal details form
   viewEl.querySelector('#profile-form').addEventListener('submit', async e => {
@@ -304,159 +304,528 @@ export async function mountProfile(viewEl, host, params = '') {
   // section is first expanded, then wire its handlers. ──────────────────────────
   const storageDetails = viewEl.querySelector('#storage-section');
   let storageLoaded = false;
+  // Tool display names + a glyph for sessions saved without a thumbnail.
+  const toolNameById = new Map((window.__toolIndex?.tools ?? []).map(t => [t.id, t.name]));
+  const toolNameOf = (id) => toolNameById.get(id) || id || 'Saved session';
+  const BATCH_SLOT_PREFIX = '__batch__:';
+  const SESS_PLACEHOLDER = `<span class="store-sess-thumb is-placeholder" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="1.5"/><path d="m21 15-4.5-4.5L7 21"/></svg></span>`;
+  const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Approximate, theme-agnostic byte formatting (KB/MB/GB) shared by the meter.
+  const fmtPct = (usage, quota) => {
+    if (!quota) return '0%';
+    const p = (usage / quota) * 100;
+    if (p < 0.1) return '<0.1%';
+    return p < 10 ? `${p.toFixed(1)}%` : `${Math.round(p)}%`;
+  };
+
+  // Tool-previews cache: measurable (size()/list()) + clearable. Feature-detected so
+  // an older/rebuilt bridge without host.previews just folds its bytes into "Other".
+  async function measurePreviews() {
+    if (!host.previews?.list) return { bytes: 0, count: 0, available: false };
+    try {
+      const list = await host.previews.list();
+      const bytes = typeof host.previews.size === 'function'
+        ? await host.previews.size()
+        : list.reduce((n, r) => n + (r?.thumb ? r.thumb.length : 0), 0);
+      return { bytes, count: list.length, available: true };
+    } catch { return { bytes: 0, count: 0, available: false }; }
+  }
+
+  // Read every measurer + the browser's ground-truth estimate into one model. The
+  // four measured slices never sum to estimate().usage — the honest remainder is
+  // "Other" = max(0, usage − measured), so measured + Other == usage by construction.
+  async function measure() {
+    const estP = navigator.storage?.estimate
+      ? navigator.storage.estimate().catch(() => null)
+      : Promise.resolve(null);
+    const [estimate, sessions, sessionSizes, cacheBytes, allImages, imagesBytes, previews] = await Promise.all([
+      estP,
+      host.state.list().catch(() => []),
+      host.state.sizes().catch(() => ({})),
+      host.assets._blobCacheSize().catch(() => 0),
+      host.assets._listUserAssets().catch(() => []),
+      host.assets._userAssetsSize().catch(() => 0),
+      measurePreviews(),
+    ]);
+    const sessBytes = Object.values(sessionSizes).reduce((s, n) => s + n, 0);
+    const imageList = allImages.filter(a => a.id !== HEADSHOT_ID); // headshot hidden from the grid (its bytes stay in the slice)
+    const measured = sessBytes + imagesBytes + cacheBytes + previews.bytes;
+    const hasEstimate = !!(estimate && estimate.usage != null);
+    const usage = hasEstimate ? estimate.usage : null;
+    const quota = (estimate && estimate.quota) || null;
+    const overshoot = hasEstimate && measured > usage; // estimates are bucketed/approximate
+    const other = (hasEstimate && !overshoot) ? Math.max(0, usage - measured) : 0;
+    const total = hasEstimate ? Math.max(usage, measured) : measured; // the hero number
+    return {
+      sessions: { bytes: sessBytes, count: sessions.length, sizes: sessionSizes, list: sessions },
+      images: { bytes: imagesBytes, count: imageList.length, list: imageList },
+      cache: { bytes: cacheBytes },
+      previews,
+      measured, hasEstimate, usage, quota, overshoot, other, total,
+    };
+  }
+
+  // The one-read screen-reader overview (the bar itself stays interactive, not role=img).
+  function reconciliationSentence(m) {
+    const parts = [
+      `Saved sessions ${fmtBytes(m.sessions.bytes)}`,
+      `My images ${fmtBytes(m.images.bytes)}`,
+      `Asset cache ${fmtBytes(m.cache.bytes)}`,
+    ];
+    if (m.previews.available) parts.push(`Tool previews ${fmtBytes(m.previews.bytes)}`);
+    let s = m.hasEstimate
+      ? `Using ${fmtBytes(m.total)}: ${parts.join(', ')}`
+      : `Measured ${fmtBytes(m.measured)}: ${parts.join(', ')}`;
+    if (m.hasEstimate && m.other > 0) s += `, and about ${fmtBytes(m.other)} of other app data and overhead`;
+    s += (m.hasEstimate && m.quota) ? ` — ${fmtPct(m.usage, m.quota)} of your ${fmtBytes(m.quota)} device budget.` : '.';
+    return s;
+  }
+
+  // One selectable, deletable session row. Largest-first by default.
+  function renderSessRow(s, bytes) {
+    const isBatch = String(s.slot).startsWith(BATCH_SLOT_PREFIX);
+    const label = s.label || s.filename || toolNameOf(s.toolId);
+    const thumb = s.thumb
+      ? `<img class="store-sess-thumb" src="${escape(s.thumb)}" alt="" loading="lazy">`
+      : SESS_PLACEHOLDER;
+    return `<li class="store-sess" data-slot="${escape(s.slot)}">
+      <input type="checkbox" class="store-sess-check" data-slot="${escape(s.slot)}" aria-label="Select ${escape(label)}">
+      ${thumb}
+      <span class="store-sess-meta">
+        <span class="store-sess-label">${escape(label)}${isBatch ? '<span class="store-sess-tag">batch</span>' : ''}</span>
+        <span class="store-sess-sub">${escape(toolNameOf(s.toolId))}${s.updatedAt ? ` · ${escape(relativeTime(s.updatedAt))}` : ''}</span>
+      </span>
+      <span class="session-size">${fmtBytes(bytes)}</span>
+      <button type="button" class="store-sess-del" data-del-session="${escape(s.slot)}" aria-label="Delete ${escape(label)}">&#x2715;</button>
+    </li>`;
+  }
+  function sessionRowsHtml(m, sort) {
+    const sizes = m.sessions.sizes;
+    const rows = [...m.sessions.list];
+    if (sort === 'recent') rows.sort((a, b) => String(b.updatedAt || '').localeCompare(String(a.updatedAt || '')));
+    else rows.sort((a, b) => (sizes[b.slot] || 0) - (sizes[a.slot] || 0));
+    if (!rows.length) return `<li class="storage-empty">No saved sessions yet.</li>`;
+    return rows.map(s => renderSessRow(s, sizes[s.slot] || 0)).join('');
+  }
+
+  // The whole section, rendered ONCE. applyMeter() then refreshes only the viz so an
+  // open managed list (multi-select state) is never rebuilt out from under the user.
+  function renderSection(m, sort) {
+    const hasPrev = m.previews.available;
+    return `
+      <section class="store-meter" aria-label="Storage on this device">
+        <header class="store-hero">
+          <p class="store-hero-num" id="store-hero-num" data-bytes="0">0 KB</p>
+          <p class="store-hero-cap">On this device ${infoDot('The real total this origin uses on this device, measured by your browser. Everything below is on THIS device only — nothing is uploaded.')}</p>
+          <p class="store-headroom" id="store-headroom" hidden></p>
+        </header>
+
+        <div class="store-bar" id="store-bar">
+          <button type="button" class="seg" data-cat="sessions" style="flex-grow:0"></button>
+          <button type="button" class="seg" data-cat="images" style="flex-grow:0"></button>
+          <button type="button" class="seg" data-cat="cache" style="flex-grow:0"></button>
+          <button type="button" class="seg" data-cat="previews" style="flex-grow:0"${hasPrev ? '' : ' hidden'}></button>
+          <span class="seg seg--other" data-cat="other" style="flex-grow:0" aria-hidden="true" hidden></span>
+        </div>
+        <p class="visually-hidden" id="store-aria-sentence"></p>
+
+        <ul class="store-legend" role="list">
+          <li><button type="button" class="store-chip" data-cat="sessions"><span class="store-chip-sw" data-cat="sessions"></span><span class="store-chip-name">Saved sessions</span><span class="store-chip-val" data-size="sessions">—</span></button></li>
+          <li><button type="button" class="store-chip" data-cat="images"><span class="store-chip-sw" data-cat="images"></span><span class="store-chip-name">My images</span><span class="store-chip-val" data-size="images">—</span></button></li>
+          <li><button type="button" class="store-chip" data-cat="cache"><span class="store-chip-sw" data-cat="cache"></span><span class="store-chip-name">Asset cache</span><span class="store-chip-val" data-size="cache">—</span></button></li>
+          ${hasPrev ? `<li><button type="button" class="store-chip" data-cat="previews"><span class="store-chip-sw" data-cat="previews"></span><span class="store-chip-name">Tool previews</span><span class="store-chip-val" data-size="previews">—</span></button></li>` : ''}
+          ${m.hasEstimate ? `<li><span class="store-chip store-chip--other"><span class="store-chip-sw is-hatch"></span><span class="store-chip-name">Other</span><span class="store-chip-val" data-size="other">—</span>${infoDot('Your profile, internal indexes, the offline app cache and storage overhead — everything not itemised above. Calculated as total used minus the measured items. Clear it with "Clear all my data" below.')}</span></li>` : ''}
+        </ul>
+
+        <p class="store-quota" id="store-quota" hidden><span class="storage-bar-wrap"><span class="storage-bar-fill" id="store-quota-fill" style="width:0%"></span></span><span class="store-quota-text" id="store-quota-text"></span></p>
+        <p class="store-reclaim" id="store-reclaim"></p>
+        <p class="store-footnote" id="store-footnote" hidden></p>
+
+        <div class="store-manages">
+          <details class="store-manage" data-cat="sessions">
+            <summary class="store-manage-sum">${COLLAPSE_CHEV}<span>Saved sessions</span> <span class="storage-count" data-count="sessions">0</span> <span class="storage-hint" data-size-hint="sessions">0 KB</span></summary>
+            <div class="store-manage-body">
+              <div class="store-sess-tools">
+                <label class="store-selall"><input type="checkbox" id="sess-selall"> Select all</label>
+                <button type="button" class="store-sort" data-sort="${sort}">${sort === 'recent' ? 'Recent ▾' : 'Largest first ▾'}</button>
+              </div>
+              <ul class="store-sess-list" id="store-sess-list">${sessionRowsHtml(m, sort)}</ul>
+              <a class="store-manage-link" href="#/p">Organise in Projects →</a>
+            </div>
+          </details>
+
+          <details class="store-manage" data-cat="images">
+            <summary class="store-manage-sum">${COLLAPSE_CHEV}<span>My images</span> <span class="storage-count" id="userimg-count">0/${MAX_USER_ASSETS}</span> <span class="storage-hint" id="userimg-size">0 KB</span> ${infoDot('Images you save to reuse across tools. This size includes your profile photo.')}</summary>
+            <div class="store-manage-body">
+              <div class="userimg-grid" id="userimg-grid">
+                ${m.images.list.map(userImageThumb).join('')}
+                <button type="button" class="userimg-add" id="userimg-add" aria-label="Add images"${m.images.count >= MAX_USER_ASSETS ? ' hidden' : ''}>
+                  <span class="userimg-add-icon" aria-hidden="true">+</span>
+                  <span class="userimg-add-text">Add</span>
+                </button>
+              </div>
+              <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/jpeg,image/webp" multiple hidden>
+              <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
+            </div>
+          </details>
+
+          <div class="store-manage store-manage--row" data-cat="cache">
+            <span class="store-manage-name">Asset cache ${infoDot('Downloaded catalog content; it re-downloads on demand. Safe to clear.')} <span class="storage-count" data-size-label="cache">0 KB</span></span>
+            <button type="button" id="clear-cache-btn" class="btn-link-danger">Clear cache</button>
+          </div>
+
+          ${hasPrev ? `<div class="store-manage store-manage--row" data-cat="previews">
+            <span class="store-manage-name">Tool previews ${infoDot('Snapshots Lolly draws of personalised tool cards — they redraw when needed. Safe to clear.')} <span class="storage-count" data-size-label="previews">0 KB</span></span>
+            <button type="button" id="clear-previews-btn" class="btn-link-danger">Clear previews</button>
+          </div>` : ''}
+        </div>
+
+        <div class="storage-subsection">
+          <div class="storage-subsection-header">
+            <span>Move to another device ${infoDot('Export everything — profile, saved sessions, uploaded images and preferences — as one file, then import it on another offline install to pick up exactly where you left off. Stays entirely on your devices.')}</span>
+          </div>
+          <div class="storage-actions">
+            <button type="button" id="export-data-btn" class="btn">Export my data</button>
+            <button type="button" id="import-data-btn" class="btn">Import data…</button>
+            <input type="file" id="import-data-input" accept=".zip,application/zip" hidden>
+          </div>
+        </div>
+
+        <div class="storage-actions">
+          <button type="button" id="clear-storage-btn" class="btn btn-danger">Clear all my data</button>
+        </div>
+
+        <div class="store-selbar" id="store-selbar" role="region" aria-live="polite" hidden>
+          <span class="store-selbar-count">0 selected</span>
+          <button type="button" class="btn store-selbar-clear">Clear selection</button>
+          <button type="button" class="btn btn-danger store-selbar-del">Delete</button>
+        </div>
+      </section>`;
+  }
+
   async function loadStorage() {
     if (storageLoaded) return;
     storageLoaded = true;
 
-    const [storageEst, sessions, sessionSizes, cacheSize, allUserImages, userImagesSize] = await Promise.all([
-      navigator.storage?.estimate().catch(() => null),
-      host.state.list(),
-      host.state.sizes(),
-      host.assets._blobCacheSize().catch(() => 0),
-      host.assets._listUserAssets().catch(() => []),
-      host.assets._userAssetsSize().catch(() => 0),
-    ]);
-    const sortedSessions = [...sessions].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-    // Keep the headshot out of the "My images" grid.
-    const userImages = allUserImages.filter(a => a.id !== HEADSHOT_ID);
+    let model = await measure();
+    let sessSort = 'size';
+    const userImages = [...model.images.list]; // mutable mirror for the grid + lightbox
 
     const body = viewEl.querySelector('#storage-body');
-    body.innerHTML = `
-      <div class="storage-row">
-        <span class="storage-indicator-profile" id="storage-usage">${storageEst ? storageBar(storageEst) : 'Unavailable'}</span>
-      </div>
+    body.innerHTML = renderSection(model, sessSort);
 
-      <div class="storage-subsection">
-        <div class="storage-subsection-header">
-          <span>Saved sessions ${infoDot('Delete individual sessions from the gallery.')} <span id="session-count" class="storage-count">${sortedSessions.length}</span> <span id="session-total-size" class="storage-hint">${fmtBytes(Object.values(sessionSizes).reduce((s, n) => s + n, 0))}</span></span>
-        </div>
-      </div>
+    const bar = body.querySelector('#store-bar');
+    const heroNum = body.querySelector('#store-hero-num');
+    const selbar = body.querySelector('#store-selbar');
+    const setText = (sel, text) => body.querySelectorAll(sel).forEach(e => { e.textContent = text; });
 
-      <div class="storage-subsection">
-        <div class="storage-subsection-header">
-          <span>My images ${infoDot(`Images saved here are ready to reuse across tools — up to ${MAX_USER_ASSETS}. Add them here or from inside any tool.`)} <span id="userimg-count" class="storage-count">${userImages.length}/${MAX_USER_ASSETS}</span> <span id="userimg-size" class="storage-hint">${fmtBytes(userImagesSize)}</span></span>
-        </div>
-        <div class="userimg-grid" id="userimg-grid">
-          ${userImages.map(userImageThumb).join('')}
-          <button type="button" class="userimg-add" id="userimg-add" aria-label="Add images"${userImages.length >= MAX_USER_ASSETS ? ' hidden' : ''}>
-            <span class="userimg-add-icon" aria-hidden="true">+</span>
-            <span class="userimg-add-text">Add</span>
-          </button>
-        </div>
-        <input type="file" id="userimg-file" accept="image/svg+xml,image/png,image/jpeg,image/webp" multiple hidden>
-        <p class="profile-inline-error" id="userimg-error" style="color:hsl(var(--destructive));font-size:13px;margin:.4rem 0 0" hidden></p>
-      </div>
-
-      <div class="storage-subsection">
-        <div class="storage-subsection-header">
-          <span>Asset cache ${infoDot('Downloaded catalog content. On-demand assets not referenced by a saved session are automatically removed on next load.')} <span class="storage-count" id="cache-size-label">${fmtBytes(cacheSize)}</span></span>
-        </div>
-      </div>
-
-      <div class="storage-subsection">
-        <div class="storage-subsection-header">
-          <span>Move to another device ${infoDot('Export everything — profile, saved sessions, uploaded images and preferences — as one file, then import it on another offline install to pick up exactly where you left off. Stays entirely on your devices.')}</span>
-        </div>
-        <div class="storage-actions">
-          <button type="button" id="export-data-btn" class="btn">Export my data</button>
-          <button type="button" id="import-data-btn" class="btn">Import data…</button>
-          <input type="file" id="import-data-input" accept=".zip,application/zip" hidden>
-        </div>
-      </div>
-
-      <div class="storage-actions">
-        <button type="button" id="clear-cache-btn" class="btn-link-danger">Clear cache</button>
-        <button type="button" id="clear-storage-btn" class="btn btn-danger">Clear all my data</button>
-      </div>
-    `;
-
-    // Re-query the user image count + size and reflect them in the header and the
-    // "Add" tile (hidden once the cap is reached). Shared by the add and delete
-    // paths so they never drift.
-    const userimgAddBtn = viewEl.querySelector('#userimg-add');
-    async function syncUserImgMeta() {
-      const [list, size] = await Promise.all([
-        host.assets._listUserAssets().catch(() => []),
-        host.assets._userAssetsSize().catch(() => 0),
-      ]);
-      const count = list.filter(a => a.id !== HEADSHOT_ID).length; // exclude the headshot
-      const countEl = viewEl.querySelector('#userimg-count');
-      const sizeEl  = viewEl.querySelector('#userimg-size');
-      if (countEl) countEl.textContent = `${count}/${MAX_USER_ASSETS}`;
-      if (sizeEl)  sizeEl.textContent  = fmtBytes(size);
-      if (userimgAddBtn) userimgAddBtn.hidden = count >= MAX_USER_ASSETS;
-      await refreshCounter();
+    // Hero count-up — cosmetic; set instantly under reduced-motion OR a hidden tab
+    // (rAF is paused when document.hidden, so the final value must land immediately).
+    function countUp(el, to) {
+      if (!el) return;
+      const from = Number(el.dataset.bytes || 0);
+      el.dataset.bytes = String(to);
+      if (reduceMotion() || document.hidden || from === to) { el.textContent = fmtBytes(to); return; }
+      const dur = 600; let t0 = null;
+      const tick = (now) => {
+        if (t0 == null) t0 = now;
+        const p = Math.min(1, (now - t0) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmtBytes(Math.round(from + (to - from) * eased));
+        if (p < 1) requestAnimationFrame(tick); else el.textContent = fmtBytes(to);
+      };
+      requestAnimationFrame(tick);
     }
 
-    // Add images directly from the profile — same upload path as the in-tool
-    // picker, so files are downscaled/re-encoded and capped identically. New
-    // thumbs prepend (newest-first) ahead of the persistent "Add" tile.
-    const userimgFile = viewEl.querySelector('#userimg-file');
+    const selectedSessionBytes = () => {
+      let n = 0;
+      body.querySelectorAll('.store-sess-check:checked').forEach(c => { n += model.sessions.sizes[c.dataset.slot] || 0; });
+      return n;
+    };
+    function updateReclaim(m) {
+      const el = body.querySelector('#store-reclaim');
+      if (el) el.innerHTML = `Up to <strong>${fmtBytes(m.cache.bytes + m.previews.bytes + selectedSessionBytes())}</strong> can be freed here`;
+    }
+
+    // Refresh ONLY the visualization (hero, segments, legend, quota, reclaim, aria,
+    // manage-summary badges) from a fresh model. Never rebuilds the session list/grid.
+    function applyMeter(m) {
+      countUp(heroNum, m.hasEstimate ? m.total : m.measured);
+      const headroom = body.querySelector('#store-headroom');
+      if (headroom) {
+        if (m.hasEstimate && m.quota) {
+          const used = m.usage / m.quota;
+          const phrase = used < 0.5 ? 'lots of room left' : used < 0.8 ? 'plenty of room left' : used < 0.95 ? 'getting full' : 'almost full';
+          headroom.textContent = `Using ${fmtPct(m.usage, m.quota)} of your ${fmtBytes(m.quota)} device budget · ${phrase}`;
+          headroom.hidden = false;
+        } else headroom.hidden = true;
+      }
+      const segs = [
+        ['sessions', m.sessions.bytes, 'Saved sessions', true],
+        ['images', m.images.bytes, 'My images', true],
+        ['cache', m.cache.bytes, 'Asset cache', true],
+        ['previews', m.previews.bytes, 'Tool previews', m.previews.available],
+      ];
+      for (const [cat, bytes, label, avail] of segs) {
+        const seg = bar?.querySelector(`.seg[data-cat="${cat}"]`);
+        if (!seg) continue;
+        seg.style.flexGrow = String(Math.max(0, bytes));
+        seg.hidden = !avail || bytes <= 0;
+        seg.setAttribute('aria-label', `${label}, ${fmtBytes(bytes)} — manage`);
+        seg.title = `${label} — ${fmtBytes(bytes)}`;
+      }
+      const otherSeg = bar?.querySelector('.seg--other');
+      if (otherSeg) { otherSeg.style.flexGrow = String(m.other); otherSeg.hidden = !(m.hasEstimate && !m.overshoot && m.other > 0); }
+
+      setText('[data-size="sessions"]', fmtBytes(m.sessions.bytes));
+      setText('[data-size="images"]', fmtBytes(m.images.bytes));
+      setText('[data-size="cache"]', fmtBytes(m.cache.bytes));
+      setText('[data-size="previews"]', fmtBytes(m.previews.bytes));
+      setText('[data-size="other"]', `~${fmtBytes(m.other)}`);
+      setText('[data-count="sessions"]', String(m.sessions.count));
+      setText('[data-size-hint="sessions"]', fmtBytes(m.sessions.bytes));
+      setText('[data-size-label="cache"]', fmtBytes(m.cache.bytes));
+      setText('[data-size-label="previews"]', fmtBytes(m.previews.bytes));
+      const imgCount = body.querySelector('#userimg-count');
+      const imgSize = body.querySelector('#userimg-size');
+      if (imgCount) imgCount.textContent = `${m.images.count}/${MAX_USER_ASSETS}`;
+      if (imgSize) imgSize.textContent = fmtBytes(m.images.bytes);
+
+      const quotaRow = body.querySelector('#store-quota');
+      const fill = body.querySelector('#store-quota-fill');
+      const quotaText = body.querySelector('#store-quota-text');
+      if (m.hasEstimate && m.quota) {
+        if (fill) fill.style.width = `${Math.min(100, (m.usage / m.quota) * 100)}%`;
+        if (quotaText) quotaText.innerHTML = `${fmtBytes(m.usage)} of ${fmtBytes(m.quota)} device budget · <strong>${fmtPct(m.usage, m.quota)}</strong> used`;
+        if (quotaRow) quotaRow.hidden = false;
+      } else if (quotaRow) quotaRow.hidden = true;
+
+      const note = body.querySelector('#store-footnote');
+      if (note) {
+        if (!m.hasEstimate) { note.textContent = 'Device total unavailable — showing measured items only.'; note.hidden = false; }
+        else if (m.overshoot) { note.textContent = "Measured items meet or exceed the browser's estimate (estimates are approximate)."; note.hidden = false; }
+        else note.hidden = true;
+      }
+      const aria = body.querySelector('#store-aria-sentence');
+      if (aria) aria.textContent = reconciliationSentence(m);
+      updateReclaim(m);
+    }
+
+    // Explore: a legend chip / bar segment isolates its slice and opens + scrolls to
+    // that category's manage panel. Re-clicking the active one clears the highlight.
+    function exploreCategory(cat) {
+      const next = bar?.getAttribute('data-active') === cat ? '' : cat;
+      if (bar) {
+        if (next) bar.setAttribute('data-active', next); else bar.removeAttribute('data-active');
+        bar.querySelectorAll('.seg').forEach(s => s.classList.toggle('is-active', !!next && s.dataset.cat === next));
+      }
+      body.querySelectorAll('.store-chip').forEach(c => c.classList.toggle('is-active', !!next && c.dataset.cat === next));
+      if (!next) return;
+      const panel = body.querySelector(`.store-manage[data-cat="${cat}"]`);
+      if (panel) {
+        if (panel.tagName === 'DETAILS') panel.open = true;
+        panel.scrollIntoView({ block: 'start', behavior: reduceMotion() ? 'auto' : 'smooth' });
+      }
+    }
+
+    const ensureSessEmptyState = () => {
+      const list = body.querySelector('#store-sess-list');
+      if (list && !list.querySelector('.store-sess')) list.innerHTML = `<li class="storage-empty">No saved sessions yet.</li>`;
+    };
+    function syncSelbar() {
+      const checked = [...body.querySelectorAll('.store-sess-check:checked')];
+      if (selbar) {
+        selbar.hidden = checked.length === 0;
+        let bytes = 0; checked.forEach(c => bytes += model.sessions.sizes[c.dataset.slot] || 0);
+        const cnt = selbar.querySelector('.store-selbar-count');
+        if (cnt) cnt.textContent = `${checked.length} selected · ${fmtBytes(bytes)}`;
+      }
+      // Reserve space so the fixed bar never covers the section's bottom controls (mobile).
+      body.querySelector('.store-meter')?.classList.toggle('has-selbar', checked.length > 0);
+      const all = body.querySelector('#sess-selall');
+      const boxes = [...body.querySelectorAll('.store-sess-check')];
+      if (all) all.checked = boxes.length > 0 && checked.length === boxes.length;
+      updateReclaim(model);
+    }
+
+    async function refreshMeter() { model = await measure(); applyMeter(model); }
+
+    // The confirm modal restores focus to the (now-removed) delete control on close, so
+    // after a deletion move focus to a surviving control — else keyboard/SR users drop to
+    // <body> and have to re-traverse the page.
+    function focusSurvivingSession(preferred) {
+      const t = (preferred && document.contains(preferred) && preferred)
+        || body.querySelector('.store-sess-del')
+        || body.querySelector('.store-sort')
+        || body.querySelector('.store-manage[data-cat="sessions"] > summary');
+      t?.focus?.();
+    }
+
+    async function deleteOneSession(slot, btn) {
+      const bytes = model.sessions.sizes[slot] || 0;
+      const row = [...body.querySelectorAll('.store-sess')].find(r => r.dataset.slot === slot);
+      const label = row?.querySelector('.store-sess-label')?.textContent || 'this session';
+      const ok = await confirmDialog({
+        title: 'Delete this session?',
+        message: `"${label}" will be permanently removed from this device${bytes ? `, freeing about ${fmtBytes(bytes)}` : ''}. This cannot be undone.`,
+        confirmLabel: 'Delete',
+      });
+      if (!ok) return;
+      // The next/previous row's delete button is the natural landing spot post-removal.
+      const nextFocus = (row?.nextElementSibling || row?.previousElementSibling)?.querySelector?.('.store-sess-del');
+      btn.disabled = true;
+      try { await host.state.delete(slot); }
+      catch (err) { host.log?.('error', 'Session delete failed', { slot, error: String(err) }); btn.disabled = false; return; }
+      row?.remove();
+      ensureSessEmptyState();
+      syncSelbar();
+      focusSurvivingSession(nextFocus);
+      await refreshMeter();
+      announce(`Freed ${fmtBytes(bytes)} — ${fmtBytes(model.hasEstimate ? model.total : model.measured)} used`);
+    }
+
+    async function deleteSelectedSessions(btn) {
+      const checked = [...body.querySelectorAll('.store-sess-check:checked')];
+      if (!checked.length) return;
+      const slots = checked.map(c => c.dataset.slot);
+      let bytes = 0; slots.forEach(s => bytes += model.sessions.sizes[s] || 0);
+      const ok = await confirmDialog({
+        title: `Delete ${slots.length} saved session${slots.length === 1 ? '' : 's'}?`,
+        message: `This permanently removes ${slots.length === 1 ? 'it' : 'them'} from this device, freeing about ${fmtBytes(bytes)}. This cannot be undone.`,
+        confirmLabel: `Delete ${slots.length}`,
+      });
+      if (!ok) return;
+      const prev = btn.textContent; btn.disabled = true; btn.textContent = 'Deleting…';
+      // Only splice a row once its delete actually resolves — otherwise a rejected
+      // delete leaves a ghost (row gone, but the session still counted by refreshMeter
+      // and resurrected on the next sort). Freed bytes are summed from real successes.
+      let freed = 0, done = 0;
+      for (const slot of slots) {
+        try { await host.state.delete(slot); }
+        catch (err) { host.log?.('error', 'Session delete failed', { slot, error: String(err) }); continue; }
+        freed += model.sessions.sizes[slot] || 0; done++;
+        [...body.querySelectorAll('.store-sess')].find(r => r.dataset.slot === slot)?.remove();
+      }
+      btn.textContent = prev; btn.disabled = false;
+      ensureSessEmptyState();
+      syncSelbar();
+      focusSurvivingSession();
+      await refreshMeter();
+      announce(done === slots.length
+        ? `Deleted ${done} session${done === 1 ? '' : 's'} — freed ${fmtBytes(freed)}`
+        : `Deleted ${done} of ${slots.length} — freed ${fmtBytes(freed)}; some could not be removed`);
+    }
+
+    function toggleSort(btn) {
+      sessSort = sessSort === 'size' ? 'recent' : 'size';
+      btn.dataset.sort = sessSort;
+      btn.textContent = sessSort === 'recent' ? 'Recent ▾' : 'Largest first ▾';
+      const checked = new Set([...body.querySelectorAll('.store-sess-check:checked')].map(c => c.dataset.slot));
+      const list = body.querySelector('#store-sess-list');
+      if (list) list.innerHTML = sessionRowsHtml(model, sessSort);
+      checked.forEach(slot => {
+        const box = [...body.querySelectorAll('.store-sess-check')].find(c => c.dataset.slot === slot);
+        if (box) box.checked = true;
+      });
+      syncSelbar();
+    }
+
+    async function clearRegenerable(btn, fn, doneMsg) {
+      const prev = btn.textContent; btn.disabled = true; btn.textContent = 'Clearing…';
+      try { await fn(); } catch (err) { host.log?.('error', doneMsg, { error: String(err) }); }
+      btn.textContent = 'Cleared';
+      setTimeout(() => { btn.textContent = prev; btn.disabled = false; }, 1500);
+      await refreshMeter();
+      announce(doneMsg);
+    }
+
+    // ── one delegated click listener (explore / clear / sort / multi-select bar) ──
+    body.addEventListener('click', async (e) => {
+      const explore = e.target.closest('.store-chip[data-cat], .seg[data-cat]');
+      if (explore && explore.dataset.cat !== 'other') { exploreCategory(explore.dataset.cat); return; }
+
+      const del = e.target.closest('[data-del-session]');
+      if (del) { await deleteOneSession(del.dataset.delSession, del); return; }
+
+      const sortBtn = e.target.closest('.store-sort');
+      if (sortBtn) { toggleSort(sortBtn); return; }
+
+      const cacheBtn = e.target.closest('#clear-cache-btn');
+      if (cacheBtn) { await clearRegenerable(cacheBtn, () => clearIdbStores(['asset-blob', 'asset-meta']), 'Cleared asset cache'); return; }
+
+      const prevBtn = e.target.closest('#clear-previews-btn');
+      if (prevBtn) { await clearRegenerable(prevBtn, () => host.previews?.clear(), 'Cleared tool previews'); return; }
+
+      if (e.target.closest('.store-selbar-clear')) { body.querySelectorAll('.store-sess-check').forEach(c => { c.checked = false; }); syncSelbar(); return; }
+      const selDel = e.target.closest('.store-selbar-del');
+      if (selDel) { await deleteSelectedSessions(selDel); return; }
+    });
+
+    // selection checkboxes (incl. select-all) update the floating action bar.
+    body.addEventListener('change', (e) => {
+      if (e.target.matches('.store-sess-check')) { syncSelbar(); }
+      else if (e.target.matches('#sess-selall')) {
+        const on = e.target.checked;
+        body.querySelectorAll('.store-sess-check').forEach(c => { c.checked = on; });
+        syncSelbar();
+      }
+    });
+
+    // ── My images — same add/delete/lightbox handlers as before (grid reused). ──
+    const userimgAddBtn = body.querySelector('#userimg-add');
+    async function syncUserImgMeta() {
+      const list = await host.assets._listUserAssets().catch(() => []);
+      const count = list.filter(a => a.id !== HEADSHOT_ID).length;
+      if (userimgAddBtn) userimgAddBtn.hidden = count >= MAX_USER_ASSETS;
+      await refreshCounter(); // re-measures → applyMeter refreshes the count/size badges + legend + bar
+    }
+    const userimgFile = body.querySelector('#userimg-file');
     userimgAddBtn?.addEventListener('click', () => userimgFile?.click());
     userimgFile?.addEventListener('change', async () => {
       const files = [...(userimgFile.files ?? [])];
       userimgFile.value = '';
       if (!files.length) return;
       if (userimgAddBtn) userimgAddBtn.disabled = true;
-      const imgErr = viewEl.querySelector('#userimg-error');
+      const imgErr = body.querySelector('#userimg-error');
       if (imgErr) imgErr.hidden = true;
       for (const file of files) {
         try {
           const ref = await storeUserUpload(host, file);
-          userImages.unshift(ref); // keep the lightbox lookup in sync, newest-first
-          viewEl.querySelector('#userimg-grid')
-            ?.insertAdjacentHTML('afterbegin', userImageThumb(ref));
+          userImages.unshift(ref);
+          body.querySelector('#userimg-grid')?.insertAdjacentHTML('afterbegin', userImageThumb(ref));
         } catch (err) {
           host.log?.('error', 'Image upload failed', { name: file.name, error: String(err) });
-          // Inline + announced (not a blocking alert) — e.g. the cap / storage-full message.
           const msg = String(err?.message ?? err);
           if (imgErr) { imgErr.textContent = msg; imgErr.hidden = false; }
           announce(msg, { assertive: true });
-          break; // stop the batch on a cap/quota error
+          break;
         }
       }
       if (userimgAddBtn) userimgAddBtn.disabled = false;
       await syncUserImgMeta();
     });
-
-    // My images — view on thumbnail click, delete on the ✕ (one delegated handler).
-    viewEl.querySelector('#userimg-grid')?.addEventListener('click', async e => {
+    body.querySelector('#userimg-grid')?.addEventListener('click', async e => {
       const view = e.target.closest('[data-view-userimg]');
       if (view) {
         const ref = userImages.find(a => a.id === view.dataset.viewUserimg);
         if (ref) openImageLightbox(ref);
         return;
       }
-
       const btn = e.target.closest('[data-delete-userimg]');
       if (!btn) return;
       const id = btn.dataset.deleteUserimg;
       btn.disabled = true;
-      try {
-        await host.assets._deleteUserAsset(id);
-      } catch (err) {
-        host.log?.('error', 'Failed to delete image', { id, error: String(err) });
-        btn.disabled = false;
-        return;
-      }
+      try { await host.assets._deleteUserAsset(id); }
+      catch (err) { host.log?.('error', 'Failed to delete image', { id, error: String(err) }); btn.disabled = false; return; }
       btn.closest('[data-userimg]')?.remove();
       const i = userImages.findIndex(a => a.id === id);
       if (i !== -1) userImages.splice(i, 1);
       await syncUserImgMeta();
     });
 
-    // Clear asset cache only — update the cache size label after clearing.
-    viewEl.querySelector('#clear-cache-btn')?.addEventListener('click', async e => {
-      const btn = e.target;
-      btn.disabled = true;
-      btn.textContent = 'Clearing…';
-      await clearIdbStores(['asset-blob', 'asset-meta']);
-      const sizeEl = viewEl.querySelector('#cache-size-label');
-      if (sizeEl) sizeEl.textContent = fmtBytes(0);
-      btn.textContent = 'Cleared';
-      setTimeout(() => { btn.textContent = 'Clear cache'; btn.disabled = false; }, 1500);
-      await refreshCounter();
-    });
+    applyMeter(model);
+    refreshStorageMeter = refreshMeter;
 
     // Clear all — confirmation dialog gated on typing a randomised word, so an
     // irreversible wipe can't be fired by reflex (or a stray double-click).
@@ -560,6 +929,11 @@ export async function mountProfile(viewEl, host, params = '') {
   // A persisted-open section renders open from the HTML `open` attribute, which does
   // NOT fire `toggle`, so kick the lazy load here (runs after first paint).
   if (storageDetails?.open) loadStorage();
+
+  // The Storage manager opens body-level modals (the shared confirmDialog); tear any
+  // down when the router swaps this view out (main.js calls _cleanup) so an orphaned
+  // top-layer <dialog> can't block the next view.
+  viewEl._cleanup = () => closeConfirmDialogs();
 }
 
 
@@ -636,7 +1010,8 @@ function clearIdbStores(storeNames) {
 function fmtBytes(bytes) {
   if (!bytes) return '0 KB';
   if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024 / 1024).toFixed(1)} GB`;
 }
 
 // Confirm + run a data import. The action may throw (not a backup, wrong format,
@@ -764,14 +1139,3 @@ async function saveHeadshot(host, blob) {
   return ref;
 }
 
-function storageBar({ usage = 0, quota = 0 }) {
-  const mb   = usage / 1024 / 1024;
-  const used = mb < 1 ? `${Math.round(usage / 1024)} KB` : `${mb.toFixed(1)} MB`;
-  if (!quota) return used;
-  const pct = Math.min(100, Math.round((usage / quota) * 100));
-  const quotaMb = quota / 1024 / 1024;
-  const cap = quotaMb >= 1024
-    ? `${(quotaMb / 1024).toFixed(0)} GB`
-    : `${Math.round(quotaMb)} MB`;
-  return `<span class="storage-bar-wrap"><span class="storage-bar-fill" style="width:${pct}%"></span></span>${used} of ${cap}`;
-}
