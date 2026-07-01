@@ -2,11 +2,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080px" height="1080px" style="width:100%;height:auto;display:block;">
   <defs>
     <filter id="duo" color-interpolation-filters="sRGB">
-      <feComponentTransfer>
+      <feColorMatrix type="hueRotate" values="0" result="h"/>
+      <feColorMatrix type="saturate" values="1" in="h" result="s"/>
+      <feComponentTransfer in="s" result="lit">
+        <feFuncR type="linear" slope="1" intercept="0"/>
+        <feFuncG type="linear" slope="1" intercept="0"/>
+        <feFuncB type="linear" slope="1" intercept="0"/>
+      </feComponentTransfer>
+      <feComponentTransfer in="lit" result="duo">
         <feFuncR type="table" tableValues="0.0471 1"/>
         <feFuncG type="table" tableValues="0.1961 0.8275"/>
         <feFuncB type="table" tableValues="0.1725 0.7412"/>
       </feComponentTransfer>
+      <feFlood flood-color="#000000" result="tcol"/>
+      <feBlend in="duo" in2="tcol" mode="multiply" result="tb"/>
+      <feComponentTransfer in="tb" result="tba"><feFuncA type="linear" slope="0"/></feComponentTransfer>
+      <feMerge><feMergeNode in="duo"/><feMergeNode in="tba"/></feMerge>
     </filter>
   </defs>
 

@@ -500,7 +500,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
         <div class="render-pill" id="render-pill" role="group" aria-label="Export and save">
           <button type="button" class="render-pill-btn render-pill-get" id="render-fab" aria-label="Export options">
             <svg class="render-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-            <span>Get</span>
+            <span>Export</span>
           </button>
           ${canSaveSession ? `
           <span class="render-pill-sep" aria-hidden="true"></span>
@@ -832,7 +832,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // can flash and clear it from the input-change chokepoint.
   let renderSaveBtn   = null;
   const renderPill    = viewEl.querySelector('#render-pill');
-  const renderFab     = viewEl.querySelector('#render-fab');   // the "Get" half (opens export)
+  const renderFab     = viewEl.querySelector('#render-fab');   // the "Export" half (opens export)
   renderSaveBtn       = viewEl.querySelector('#render-save');  // the "Save" half (outer-scoped)
   const exportOverlay = viewEl.querySelector('#export-overlay');
   const exportBody    = viewEl.querySelector('#export-popup-body');
