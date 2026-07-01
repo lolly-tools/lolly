@@ -1248,6 +1248,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         viewEl, stageEl, canvasEl, outerEl, runtime, host,
         input: canvasEditInput, nativeW, nativeH,
         onDirty: markUserDirty,
+        // Picking a Lolly link / saved session for a box image opens its inputs
+        // first (configure → insert), same as the sidebar asset slots.
+        editTool: (toolUrl) => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: 'image', mode: 'insert' }),
       });
       const prevCleanup = viewEl._cleanup;
       viewEl._cleanup = () => { try { fc.destroy(); } catch (e) { console.error(e); } prevCleanup?.(); };
