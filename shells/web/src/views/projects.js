@@ -59,6 +59,9 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   const store = createFolderStore(host);
   const nameById = new Map((window.__toolIndex?.tools ?? []).map(t => [t.id, t.name]));
   const toolName = (id) => nameById.get(id) || id || 'Saved session';
+  // Full index entries (formats + intended width/height/unit) so session tiles can show
+  // the same "what you'll get" spec the gallery cards do — see sessionTile's `tool` opt.
+  const toolById = new Map((window.__toolIndex?.tools ?? []).map(t => [t.id, t]));
 
   // Live data, re-read on every reload() so a move/rename/delete reflects at once.
   let folders = [];
@@ -198,7 +201,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         memberPreviews: f.items.map(i => i.type === 'session' ? previewForRef(i.ref) : null).filter(Boolean),
         count: tileItemCount(f),
       })),
-      ...sessions.map(e => sessionTile(e, { toolName: toolName(e.toolId), sizeBytes: sizes[e.slot] || 0 })),
+      ...sessions.map(e => sessionTile(e, { toolName: toolName(e.toolId), sizeBytes: sizes[e.slot] || 0, tool: toolById.get(e.toolId) })),
     ].join('');
 
     const header = `

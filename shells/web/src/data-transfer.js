@@ -88,8 +88,69 @@ const PREF_KEYS = ['theme', 'sidebarWidth', 'ct-metrics'];
 // the round-trip is honest about what it didn't restore rather than silently
 // dropping it. `assets/blobs/*` is the open-ended image payload.
 const KNOWN_PARTS = new Set(['manifest.json', 'profile.json', 'sessions.json', 'assets.json', 'prefs.json']);
+// A plain-text summary for humans inspecting the zip (see backupReadme). It carries no
+// restorable data, so it's a known-but-ignored part — never counted as `skipped`, never
+// read on import — and it's kept out of the integrity map (a README, not payload).
+const README_NAME = 'lolly.txt';
 function isKnownPart(path) {
-  return KNOWN_PARTS.has(path) || path.startsWith('assets/blobs/');
+  return KNOWN_PARTS.has(path) || path === README_NAME || path.startsWith('assets/blobs/');
+}
+
+// Mirrors the branding banner atop batch-export manifests (pro/zip.js `HEADER`).
+// Duplicated as a literal so this core module stays free of any /pro import (the batch
+// folder is designed to be removable) — keep the two in sync.
+const HEADER = '📐 Lolly  •  ❤️ Give Fitzy an Ovation  •  🌏 https://lolly.tools';
+
+// The human-readable `lolly.txt` dropped into every backup zip: the branding header, a
+// one-glance summary of what the bundle is + what's inside, how to load it, a legend of
+// the machine files, and (if the profile has any) the owner's details — so someone who
+// opens the zip without the app can understand it at a glance. Regenerated on each
+// export; ignored on import.
+function backupReadme({ summary, profile, filename }) {
+  const now = new Date();
+  const date = now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const time = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+
+  const lines = [
+    HEADER,
+    '-'.repeat(56),
+    '',
+    '',
+    `[[ 💼 ${filename} ]]`,
+    '',
+    `Exported on ${date} at ${time} (local)`,
+    '',
+    "A portable backup of everything you've made in Lolly on one device.",
+    'Open Lolly on another device, go to Profile → Storage → “Import data…”',
+    'and choose this .zip to pick up exactly where you left off.',
+    'Everything stayed on your devices — nothing was uploaded.',
+    '',
+    '',
+    "[ What's inside ]",
+    '',
+    `👤 Profile           ${summary.profile ? 'included' : 'not included'}`,
+    `🗂  Saved sessions    ${summary.sessions}`,
+    `🖼  Uploaded images   ${summary.userAssets}`,
+    `⚙  Preferences        ${summary.prefs}`,
+    '',
+    '',
+    '[ The files in this zip ]',
+    '',
+    'manifest.json   what the app reads to restore this backup',
+    'profile.json    your saved details + preferences',
+    'sessions.json   your saved tool sessions (thumbnails included)',
+    'assets.json     details of your uploaded images',
+    'assets/blobs/   the uploaded image files themselves',
+    'prefs.json      theme + local settings',
+    'lolly.txt       this summary (the app ignores it on import)',
+  ];
+
+  // Author block — same shape as the batch manifest, only when the profile has something.
+  const name = [profile?.firstname, profile?.lastname].filter(Boolean).join(' ');
+  const authorLine = [name, profile?.email, profile?.phone].filter(Boolean).join(' | ');
+  if (authorLine) lines.push('', '', '[ Author Information ]', '', authorLine);
+
+  return lines.join('\n') + '\n';
 }
 
 // Web Crypto — present in any secure browser context and in modern Node (so the
@@ -229,6 +290,10 @@ export async function exportBackup({ host, storage }) {
     prefs: Object.keys(prefs).length,
   };
 
+  // Named before the manifest so the human-readable lolly.txt can show it (and the
+  // per-day sequence is incremented exactly once).
+  const filename = backupFilename(profile, storage);
+
   const manifest = {
     format: BACKUP_FORMAT,
     formatVersion: BACKUP_FORMAT_VERSION,
@@ -253,9 +318,13 @@ export async function exportBackup({ host, storage }) {
 
   entries['manifest.json'] = strToU8(JSON.stringify(manifest, null, 2));
 
+  // Human-readable summary for anyone opening the zip. Added AFTER the integrity loop so
+  // it's not integrity-protected (it's a README, regenerated each export, not payload),
+  // and recognised as a known part on import so it never counts as `skipped`.
+  entries[README_NAME] = strToU8(backupReadme({ summary, profile, filename }));
+
   const zipped = await zipAsync(entries); // off-thread in the browser; sync fallback elsewhere
   const blob = new Blob([zipped], { type: 'application/zip' });
-  const filename = backupFilename(profile, storage);
   return { blob, filename, summary };
 }
 
