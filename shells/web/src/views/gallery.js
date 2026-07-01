@@ -356,7 +356,6 @@ export async function mountGallery(viewEl, host) {
     // Dot on the filter trigger whenever a non-default category is selected.
     filterFab?.classList.toggle('has-active', activeCat !== 'all');
     const tools = matchingTools();
-    masonry.style.setProperty('--items', Math.max(tools.length, 1));
     masonry.innerHTML = tools.length
       ? tools.map(t => cardMarkup(t, latestByTool(t.id), countByTool(t.id), host.capabilities, personalizedByTool.get(t.id))).join('')
       : `<p class="gallery-no-results">${query ? `No tools match "<strong>${escape(query.trim())}</strong>"` : 'No tools to show.'}</p>`;

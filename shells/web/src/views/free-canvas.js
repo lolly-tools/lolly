@@ -139,12 +139,18 @@ export function initFreeCanvas(opts) {
   overlay.appendChild(ctxbar);
   let ctxSelKey = null;   // sorted selected-id signature; rebuild ctxbar when it changes
 
+  // Dock wrapper flex-centres the rail without a transform on the rail itself
+  // (a transform/backdrop-filter there would capture its colour popover's fixed
+  // positioning — see the .fc-toolbar-dock CSS note).
+  const toolbarDock = document.createElement('div');
+  toolbarDock.className = 'fc-toolbar-dock';
+  toolbarDock.setAttribute('data-export-hide', '');
   const toolbar = document.createElement('div');
   toolbar.className = 'fc-toolbar';
-  toolbar.setAttribute('data-export-hide', '');
   toolbar.setAttribute('role', 'toolbar');
   toolbar.setAttribute('aria-label', 'Editor tools');
-  stageEl.appendChild(toolbar);
+  toolbarDock.appendChild(toolbar);
+  stageEl.appendChild(toolbarDock);
   buildToolbar();
 
   // ── toolbar ─────────────────────────────────────────────────────────────────
@@ -872,7 +878,12 @@ export function initFreeCanvas(opts) {
     if (!aabb) { ctxbar.hidden = true; return; }
     const tl = nativeToStage(aabb.minX, aabb.minY, m);
     const br = nativeToStage(aabb.maxX, aabb.maxY, m);
-    ctxbar.style.left = (tl.x + br.x) / 2 + 'px';
+    // Centre by computed `left` (NOT translateX) so the colour popover — which is
+    // position:fixed — isn't captured by a transformed ancestor. Clamp on-stage.
+    const bw = ctxbar.offsetWidth || 0;
+    const stageW = m.sr.width;
+    const left = Math.max(6, Math.min((tl.x + br.x) / 2 - bw / 2, stageW - bw - 6));
+    ctxbar.style.left = left + 'px';
     ctxbar.style.top = Math.max(6, tl.y - 48) + 'px';
     // Transform readout.
     const first = boxes[idx[0]];
@@ -979,7 +990,7 @@ export function initFreeCanvas(opts) {
       document.removeEventListener('pointerdown', onDocDown, true);
       ro.disconnect();
       unsub?.();
-      overlay.remove(); toolbar.remove(); closePopover(); closeMorePanel();
+      overlay.remove(); toolbarDock.remove(); closePopover(); closeMorePanel();
       document.body.classList.remove('fc-manipulating');
     },
   };
