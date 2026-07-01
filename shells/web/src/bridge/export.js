@@ -1099,6 +1099,28 @@ async function renderSvgFromHtml(node, opts) {
     if (opacity < 0.999) g.setAttribute('opacity', opacity.toFixed(4));
     parentG.appendChild(g);
 
+    // clip-path: polygon(...) — a free-canvas box masked by another box's shape.
+    // Translate the local-space polygon into an SVG <clipPath> so it exports (the
+    // walker otherwise ignores clipping). Points are element-local px → offset to
+    // root coords. (Raster honours the CSS clip-path directly; PDF flattens.)
+    const cp = style.clipPath || style.webkitClipPath;
+    if (cp && cp.indexOf('polygon(') === 0) {
+      const pts = cp.slice(8, cp.indexOf(')')).split(',')
+        .map(s => s.trim().split(/\s+/).map(parseFloat))
+        .filter(p => p.length === 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]));
+      if (pts.length >= 3) {
+        const cid = `fcclip-${++uid}`;
+        const clip = document.createElementNS(NS, 'clipPath');
+        clip.setAttribute('id', cid);
+        clip.setAttribute('clipPathUnits', 'userSpaceOnUse');
+        const poly = document.createElementNS(NS, 'polygon');
+        poly.setAttribute('points', pts.map(p => `${(x + p[0]).toFixed(2)},${(y + p[1]).toFixed(2)}`).join(' '));
+        clip.appendChild(poly);
+        defs.appendChild(clip);
+        g.setAttribute('clip-path', `url(#${cid})`);
+      }
+    }
+
     // ── Border radius (CSS corner-overlap clamped → pill, not ellipse) ───────
     const { radii, uniform } = resolveRadii(style, w, h);
 

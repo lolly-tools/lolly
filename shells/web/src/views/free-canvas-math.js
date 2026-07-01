@@ -331,6 +331,44 @@ export function normDragRect(x0, y0, x1, y1, minSize = 8) {
   return { x, y, w, h };
 }
 
+// ── Group transforms (multi-selection: scale + rotate about a pivot) ──────────
+// A group / multi-selection scales UNIFORMLY (shear-free — a rotated box can't
+// represent a non-uniform scale) about a fixed `anchor`, and rotates rigidly about
+// a fixed `centre`. Text size + corner radius scale with the group so it reads as
+// real scaling. Both return NEW boxes arrays.
+
+export function scaleGroup(boxes, indices, anchor, k, cfg, opts = {}) {
+  const set = new Set(indices);
+  const minSize = opts.minSize ?? 1;
+  const kk = k > 0 ? k : 0.01;
+  return boxes.map((b, i) => {
+    if (!set.has(i)) return b;
+    const r = boxRect(b, cfg);
+    const c = rectCentre(r);
+    const nc = { x: anchor.x + (c.x - anchor.x) * kk, y: anchor.y + (c.y - anchor.y) * kk };
+    const nw = Math.max(minSize, r.w * kk);
+    const nh = Math.max(minSize, r.h * kk);
+    const nb = withRect(b, { x: nc.x - nw / 2, y: nc.y - nh / 2, w: nw, h: nh }, cfg);
+    if (cfg.fontSizeField && b[cfg.fontSizeField] != null && b[cfg.fontSizeField] !== '')
+      nb[cfg.fontSizeField] = Math.max(1, Math.round(num(b[cfg.fontSizeField]) * kk));
+    if (cfg.radiusField && b[cfg.radiusField] != null && b[cfg.radiusField] !== '')
+      nb[cfg.radiusField] = Math.max(0, Math.round(num(b[cfg.radiusField]) * kk));
+    return nb;
+  });
+}
+
+export function rotateGroup(boxes, indices, centre, deltaDeg, cfg) {
+  const set = new Set(indices);
+  return boxes.map((b, i) => {
+    if (!set.has(i)) return b;
+    const r = boxRect(b, cfg);
+    const c = rectCentre(r);
+    const v = rotateVec(c.x - centre.x, c.y - centre.y, deltaDeg);
+    const nc = { x: centre.x + v.x, y: centre.y + v.y };
+    return withRect(b, { x: nc.x - r.w / 2, y: nc.y - r.h / 2, rot: normAngle(r.rot + deltaDeg) }, cfg);
+  });
+}
+
 // ── Snapping ──────────────────────────────────────────────────────────────────
 // Design-tool "smart guides": while moving/resizing/creating, snap the active
 // box's edges + centres to the artboard (edges + centre) and to every OTHER box's

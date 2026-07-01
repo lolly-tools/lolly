@@ -15,7 +15,7 @@ import {
   num, boxRect, withRect, boxAABB, boxCorners, hitTest, marqueeHit,
   moveBoxes, resizeRect, alignBoxes, distributeBoxes, reorderZ,
   seedBox, normDragRect, snapAngle, clampBoxToCanvas, selectionAABB,
-  snapMove, snapPoint,
+  snapMove, snapPoint, scaleGroup, rotateGroup,
 } from '../shells/web/src/views/free-canvas-math.js';
 
 const CFG = {
@@ -229,6 +229,32 @@ test('snapPoint snaps a pointer to a sibling right edge', () => {
   assert.equal(s.x, 300);            // 298 → sibling maxX 300
   assert.equal(s.y, 55);             // no y target near
   assert.ok(s.guides.some(g => g.x1 === 300));
+});
+
+const GCFG = { ...CFG, fontSizeField: 'fontSize', radiusField: 'radius' };
+
+test('scaleGroup scales positions + sizes about the anchor, keeping the anchor fixed', () => {
+  const boxes = [
+    box({ id: 'a', x: 100, y: 100, w: 100, h: 100 }),
+    box({ id: 'b', x: 300, y: 100, w: 100, h: 100, fontSize: 40, radius: 20 }),
+  ];
+  const anchor = { x: 100, y: 100 };            // top-left of box a
+  const out = scaleGroup(boxes, [0, 1], anchor, 2, GCFG);
+  // a's centre (150,150) → anchor + 2*(50,50) = (200,200); size 200 → x=100,y=100
+  assert.deepEqual([out[0].x, out[0].y, out[0].w, out[0].h], [100, 100, 200, 200]);
+  // b's centre (350,150) → (100,100)+2*(250,50)=(600,200); size 200 → x=500,y=100
+  assert.deepEqual([out[1].x, out[1].y, out[1].w, out[1].h], [500, 100, 200, 200]);
+  assert.equal(out[1].fontSize, 80);            // text scaled
+  assert.equal(out[1].radius, 40);              // radius scaled
+});
+
+test('rotateGroup rotates member centres about the pivot and adds to each rotation', () => {
+  const boxes = [box({ id: 'a', x: 100, y: -50, w: 100, h: 100, rot: 10 })]; // centre (150,0)
+  const out = rotateGroup(boxes, [0], { x: 0, y: 0 }, 90, CFG);
+  // centre (150,0) rotated +90° (screen, clockwise) → (0,150); box x=-50,y=100
+  const c = { x: out[0].x + out[0].w / 2, y: out[0].y + out[0].h / 2 };
+  near(c.x, 0, 1e-6); near(c.y, 150, 1e-6);
+  assert.equal(out[0].rot, 100);                // 10 + 90
 });
 
 test('selectionAABB unions rotated boxes', () => {

@@ -509,6 +509,8 @@
                   "alignField":    { "type": "string", "description": "Select sub-field: horizontal text alignment (left/center/right)." },
                   "valignField":   { "type": "string", "description": "Select sub-field: vertical text alignment (top/middle/bottom)." },
                   "weightField":   { "type": "string", "description": "Select sub-field: text weight." },
+                  "groupField":    { "type": "string", "description": "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
+                  "clipField":     { "type": "string", "description": "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
                   "minSize":       { "type": "number", "description": "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                   "addKinds": {
                     "type": "array",
