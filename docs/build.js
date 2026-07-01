@@ -1197,16 +1197,11 @@ const LIQUID_GLASS_SCRIPT = `<script>(function(){
     document.body.appendChild(svg);
 
     var bf='url(#'+id+') blur(0.4px) contrast(1.15) brightness(1.07) saturate(1.2)';
-    // The feImage decodes its data-URL displacement map ASYNCHRONOUSLY. If we set
-    // backdrop-filter before that decode finishes, the map is empty, feDisplacementMap
-    // does nothing, and all you get is the faint blur — no refraction (the classic
-    // "worked on a warm cache, blank on a cold one" race). So decode the map first,
-    // THEN apply the filter, guaranteeing the refraction has something to sample.
-    function apply(){ btn.style.backdropFilter=bf; btn.style.webkitBackdropFilter=bf; }
-    var pre=new Image();
-    pre.onload=function(){ (pre.decode?pre.decode():Promise.resolve()).then(apply,apply); };
-    pre.onerror=apply;
-    pre.src=mapUrl;
+    // Apply synchronously. The filter auto-re-renders when its feImage map finishes
+    // loading, so there's no need to defer — and NOT via img.decode(), which never
+    // resolves in a hidden/throttled tab and would leave the glass unapplied.
+    btn.style.backdropFilter=bf;
+    btn.style.webkitBackdropFilter=bf;
   }
 
   function paint(){
