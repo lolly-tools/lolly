@@ -10,6 +10,8 @@ The home screen is the **gallery** — every tool, grouped by category. Click a 
 
 Each tool is a split view: **controls** on one side, a live **preview** (the canvas) on the other. Change any control and the preview updates instantly.
 
+> A few tools (like **Layout Studio**) instead open as a **free canvas** — a chromeless, direct-manipulation surface where you drag, resize, rotate and snap boxes of text, shapes and images, and double-click to edit text in place. It exports through the same render path as every other tool, so the canvas *is* the file.
+
 ## The canvas (preview)
 
 The preview always shows exactly what will export.
@@ -50,13 +52,27 @@ Your headshot and details live **only on this device**. A profile can be more th
 
 ## Saving & continuing
 
-Click **Save** to store the current inputs as a session for that tool. Saved sessions appear on the gallery under **Saved sessions** and via each tool's **Continue** button. You can keep multiple named sessions per tool and delete any from the gallery. Sessions are device-local.
+Click **Save** to store the current inputs as a session for that tool. You can keep multiple named sessions per tool; each tool's **Continue** button reopens your most recent, and the **history button** (top-right, beside your profile) lists every saved session across all tools. Sessions are device-local. To organise them, open **Projects** (below).
+
+## Projects
+
+**Projects** — open it from the **Projects** tab beside **Tools**, or from **Profile → Storage → Organise in Projects** — is a home for everything you've saved, and it works like a file manager:
+
+- **Folders that nest.** Group saved sessions into folders, and folders inside folders, as deep as you like. Create a folder, rename it, or drag a tile onto another folder to move it; a breadcrumb walks you back up. An always-present **Uncategorised** folder holds anything not yet filed.
+- **File new work straight in.** Inside a folder, **+ New tool** opens a tool and files its first save into that folder automatically.
+- **Multi-select (desktop).** Tick a tile's checkbox, drag a selection box across empty canvas, or **Shift/Cmd-click**; **right-click** a tile for its context menu. Then act on the whole selection at once.
+- **Render a whole folder or selection.** **Render folder** exports every saved session in a folder — including its sub-folders — as one nested `.zip`. **Render selection** does the same for any multi-selection, and a single session renders straight to its own file. No Batch/Pro needed.
+- **Share a saved session.** Right-click a session → **Share link** to copy a link that reopens it with the exact same inputs (the full Share dialog — see below).
 
 ## Sharing a link
 
-Every input is captured in the page URL, so a link *is* the design. Use **Copy URL / Share** in the export controls to copy a link that reopens the tool with all your settings applied — paste it to a colleague, bookmark it, or commit it. Add `&export` to a shared link and it downloads the file on open. (Full details: [URL Mode](/info/url-mode.html).)
+Every input is captured in the page URL, so a link *is* the design. Use **Share** in the export controls — or **Share link** on any saved session in Projects — to open the **Share dialog**: a ready-to-copy link plus toggles for what happens when it's opened (fullscreen, the export panel expanded, download-on-open with `&export`, or copy-to-clipboard with `&copy`). A big design would make a long URL, so the dialog also offers a **Shortest link** that packs the whole state into a compact token — the readable form is always there too. Paste it to a colleague, bookmark it, or commit it. (Full details: [URL Mode](/info/url-mode.html).)
 
 > Images you uploaded from your device are **not** included in a shared link — they only exist on your machine.
+
+## Live camera (motion-reactive tools)
+
+The photo **Filters** — Halftone, Scanline, Posterize, Duotone — show a **Go live** button where a camera is available. Turn it on and the effect tracks your webcam frame by frame, so it reacts to movement; you can record the result to GIF, WebM or MP4. Frames are read and processed **on your device** and never leave it, and the camera is released the moment you stop or leave the tool. (Any image picker also has **Take a photo** to grab a single frame as an on-device image.)
 
 ## My images
 
@@ -87,6 +103,8 @@ See **[Exporting & Formats](/info/exporting.html)** for the full story — choos
 ## Batch (Pro) mode
 
 For power users, **Batch** (linked from the gallery, gated behind the Pro feature flag, which defaults on) renders many variations at once — a grid where each row is a set of inputs, exported together. Ideal for localising a card into a dozen languages or generating every size variant in one pass. Fill rows by typing, pasting straight from a spreadsheet, or importing a CSV (you can export one back too), and set per-row format, size, and output filename. Save a whole grid as a named **batch session** that reopens from the gallery, and download every row as a single `.zip`.
+
+Batch is for generating **many variants of one template** at once. To re-render sessions you've **already saved**, use **Projects → Render folder / Render selection** (above) — no Pro needed.
 
 ## Offline & install
 

@@ -1088,9 +1088,11 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // bar arrived as /t/<id>?… or #/tool/<id>?…) so shared/bookmarked links survive the
   // first subscribe callback.
   const dirtyParams = new Set(new URLSearchParams(urlParams || '').keys());
-  // Monotonic guard so an out-of-order async pack (below) never overwrites the bar
-  // with a stale state — only the latest pack for the latest syncUrl wins.
-  let urlPackSeq = 0;
+  // Monotonic guard shared by every address-bar writer (syncUrl AND shrinkUrl). It's
+  // bumped on EVERY bar write, so any later write invalidates an in-flight async pack
+  // — a stale pack from an earlier (larger) state can never clobber a newer bar. A
+  // holder object (not a bare `let`) so the module-level shrinkUrl can share it.
+  const barSeq = { v: 0 };
 
   function syncUrl(dirtyId) {
     if (dirtyId) dirtyParams.add(dirtyId);
@@ -1201,6 +1203,11 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     }
 
     const qs = params.toString();
+    // Bump the shared guard on EVERY write (not just when we pack) so a later,
+    // possibly sub-threshold, syncUrl invalidates any pack still in flight from an
+    // earlier large state — otherwise that stale pack could resolve afterward and
+    // overwrite this bar with the old state.
+    const seq = ++barSeq.v;
     history.replaceState(null, '', qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
 
     // Auto-switch to the packed form once the readable query gets long enough to
@@ -1209,9 +1216,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // and only if packing is available AND genuinely shorter. Async + seq-guarded so
     // a slow pack from an older keystroke can never clobber a newer bar.
     if (qs.length >= AUTO_PACK_MIN && isPackAvailable()) {
-      const seq = ++urlPackSeq;
       packQuery(qs).then(token => {
-        if (token == null || seq !== urlPackSeq) return;   // unavailable, or superseded
+        if (token == null || seq !== barSeq.v) return;      // unavailable, or superseded
         const packed = `${PACK_PARAM}=${token}`;
         if (packed.length >= qs.length) return;             // packing didn't help — keep readable
         history.replaceState(null, '', `${TOOL_URL_BASE}?${packed}`);
@@ -1260,7 +1266,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   const sidebarUtilsEl = viewEl.querySelector('#sidebar-utils');
   if (sidebarUtilsEl) {
     sidebarUtilsEl.querySelector('#shrink-url-btn')?.addEventListener('click', function () {
-      shrinkUrl(runtime, tool.manifest);
+      shrinkUrl(runtime, tool.manifest, barSeq);
       const prev = this.textContent;
       this.textContent = 'Shrunk!';
       setTimeout(() => { this.textContent = prev; }, 1500);
@@ -4433,7 +4439,7 @@ function matchesDefault(input, paramVal) {
  * Remove URL params from the live address bar that already equal the tool's defaults.
  * Operates on the raw query string to preserve compact encodings (e.g. ~,).
  */
-async function shrinkUrl(runtime, manifest) {
+async function shrinkUrl(runtime, manifest, barSeq) {
   // The bar is normally the path form /t/<id>?… by now; tolerate the boot-time hash
   // form too. Keep the route part, rewrite only the query.
   const hashQ = window.location.hash.indexOf('?');
@@ -4483,10 +4489,14 @@ async function shrinkUrl(runtime, manifest) {
   }
 
   const newQs = kept.join('&');
+  // Bump the shared guard so an in-flight syncUrl pack can't resolve later and clobber
+  // this shrunk bar with the pre-shrink state (barSeq is the same holder syncUrl uses).
+  const seq = barSeq ? ++barSeq.v : 0;
   // Re-pack if the shrunk-but-still-large query would still risk the URL ceiling and
   // packing actually wins; otherwise leave the readable form (shorter and editable).
   if (newQs.length >= AUTO_PACK_MIN && isPackAvailable()) {
     const token = await packQuery(newQs);
+    if (barSeq && seq !== barSeq.v) return;             // a newer bar write happened mid-pack
     const packed = token && `${PACK_PARAM}=${token}`;
     if (packed && packed.length < newQs.length) {
       history.replaceState(null, '', `${base}?${packed}`);

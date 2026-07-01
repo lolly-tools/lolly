@@ -634,14 +634,16 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
     ? `Last opened · ${escape(relativeTime(latest.updatedAt))}`
     : '';
 
-  // Intended output — primary format + canvas size — so a browser sees "what you'll
-  // get" before opening. Describes the tool (not the session), so it shows on every
-  // exportable card, with or without a saved session. On-device transforms (and tools
-  // that declare no size) have no fixed output, so the line is dropped for them.
-  const dims = dimText(tool);
-  const primaryFmt = (Array.isArray(tool.formats) && tool.formats.length) ? fmtLabel(tool.formats[0]) : '';
-  const specText = tool.exportable === false ? '' : [primaryFmt, dims].filter(Boolean).join(' · ');
-  const spec = specText ? `<p class="gtile-spec">${escape(specText)}</p>` : '';
+  // Available export formats — a compact chip row with the DEFAULT (first-declared)
+  // format highlighted, so a browser sees what they'll get and the full range at a
+  // glance. Describes the tool (not the session), so it shows on every exportable card.
+  // On-device transforms declare no export formats, so the row is dropped for them.
+  const fmtList = tool.exportable === false || !Array.isArray(tool.formats) ? [] : tool.formats;
+  const formatsRow = fmtList.length
+    ? `<ul class="gtile-formats" aria-label="Export formats">${fmtList
+        .map((f, i) => `<li class="gtile-fmt${i === 0 ? ' gtile-fmt--default' : ''}"${i === 0 ? ' title="Default format"' : ''}>${escape(fmtLabel(f))}</li>`)
+        .join('')}</ul>`
+    : '';
 
   // The title is the "start a new session" link. A stretched ::after (see CSS)
   // makes the whole text body — caption + description — its click target, so a
@@ -666,7 +668,7 @@ function cardMarkup(tool, latest, sessionCount, shellCaps, personalizedThumb) {
             ${name}
             ${sub ? `<span class="gtile-sub">${sub}</span>` : ''}
             <p class="gtile-desc">${escape(tool.description ?? '')}</p>
-            ${spec}
+            ${formatsRow}
           </span>
           ${hasSession ? '<span class="gtile-new" aria-hidden="true">+ New</span>' : ''}
           ${hasImageHero

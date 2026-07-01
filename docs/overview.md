@@ -110,7 +110,9 @@ lolly/
 │   │           ├── gallery.js    # tool library listing + saved-state cards
 │   │           ├── tool.js       # mounts one tool (inputs + canvas + actions)
 │   │           ├── picker.js     # asset picker UI (invoked by host.assets)
-│   │           └── profile.js    # user details editor
+│   │           ├── profile.js    # user details editor
+│   │           ├── projects.js   # /p — folders of saved sessions (nested; folder/selection export)
+│   │           └── free-canvas.js # free-canvas editor overlay for render.layout:"editor" tools
 │   │
 │   ├── cli/          # Node.js CLI — same engine, headless jsdom
 │   │   ├── bin/brand-tool.js
@@ -121,7 +123,7 @@ lolly/
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app
 │
-├── tools/            # 26 tool definitions — data, not code. SUSE-specific. Stays private.
+├── tools/            # 34 tool definitions — data, not code. SUSE-specific. Stays private.
 │   ├── qr-code/
 │   ├── quotes/
 │   ├── email-signature/
@@ -199,13 +201,15 @@ Rows are listed in gallery section order. The `utility` section always renders *
 
 | Category | Shipped tools | Planned |
 |---|---|---|
-| `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Color Block, Dynamic Layout, Logo | Employee Image Stationery |
-| `designer` | Brand Lockup, Bag Video, Chart Creator, Filter: Duotone, Street Map, Filter: Halftone, Filter: Scanline, Animated Ad, Multi-Page PDF, Logo Wall | PDF Smasher, Font Outliner |
+| `everyone` | QR Code Generator, Quote Card, Email Signature, Day Brief, Code Canvas, Color Block, Dynamic Layout, Logo, Web Icon Maker | Employee Image Stationery |
+| `designer` | Brand Lockup, Bag Video, Chart Creator, Street Map, Animated Ad, Multi-Page PDF, Diagram Builder, Logo Lockup: Grid (NASCAR), Logo Lockup: Partner, Filter: Duotone, Filter: Halftone, Filter: Scanline, Filter: Posterize Bitmap, Filter: Pixel Stretch | Font Outliner |
 | `event` | Meeting Planner, Event Name Badge, Wayfinding Signage, Calendar ICS | Event Stationery, Bulk Name Badges, Room Agenda Cards |
 | `product` | — | CVE Alert, Product Release Announcement, Blog OG Image |
-| `utility` | Countdown Timer, Color Palette, URL Screenshot, Strip Hidden Data, Text Helper, Compress PDF | Unit/format converters, more on-device privacy utilities |
+| `utility` | Countdown Timer, Color Palette, URL Screenshot, Strip Hidden Data, Text Helper, Compress PDF, Layout Studio | Unit/format converters, more on-device privacy utilities |
 
-Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Dynamic Layout, URL Screenshot, and Logo Wall currently carry `experimental` status.
+Tools are also classified by status: `official` (brand approved, no watermark), `community` (external contribution), `experimental` (watermarked exports). Dynamic Layout, URL Screenshot, Logo Lockup: Grid (NASCAR), Filter: Posterize Bitmap and Diagram Builder currently carry `experimental` status; Web Icon Maker and Layout Studio ship as `community` tools.
+
+**Layout Studio** is the first tool built on the `render.layout: "editor"` free-canvas mode — a chromeless, direct-manipulation surface where you drag, resize, rotate and snap boxes of text, shapes and images, then export through the same render path as every other tool.
 
 **Strip Hidden Data** is the first **on-device utility** (`privacy: "on-device"`): a content-transform tool that takes a file *you* supply, processes it entirely in the browser, and hands back a clean copy — never uploaded, never watermarked, no provenance stamped. **Text Helper** is the second — an on-device workbench for everyday paste-into-a-website jobs (JSON format, JWT decode, Base64, URL encode/decode, SHA hashing). **Compress PDF** is the third — it shrinks a PDF by recompressing its images, again entirely on-device. All three carry the badge text "Runs on your device — nothing is uploaded". This is the start of a privacy-utility category that replaces handing confidential files to single-purpose websites.
 
@@ -272,7 +276,7 @@ lolly.tools/#/tool/qr-code?url=https://suse.com&ecl=H
 
 CLI mode is URL mode under a different transport — the CLI shell builds a URL-state object from argv and runs the **same** engine pipeline. There is one render path. CLI cannot drift from GUI because it isn't a separate implementation.
 
-`url-mode.js` handles the round-trip (parse and serialize). Reserved params (never forwarded to the tool as inputs): `format`, `export`, `copy`, `slot`, `output`, `filename`, `_v`, `width`/`w`, `height`/`h`, `unit`, `dpi`, `profile`, `password`, `bleed`, `marks`, `full`, `options`. Asset inputs in URL mode are serialised by their `id`; the runtime resolves them via `host.assets.get()` before hydration. `width`/`height` are values in `unit` (default `px`, also `mm`/`cm`/`in`/`pt`/`pc`); with a physical unit `dpi` sets raster resolution. They set the canvas document size and pre-fill the export dimensions panel.
+`url-mode.js` handles the round-trip (parse and serialize). Reserved params (never forwarded to the tool as inputs): `format`, `export`, `copy`, `slot`, `output`, `filename`, `_v`, `z` (packed state — the "Shortest link" token), `width`/`w`, `height`/`h`, `unit`, `dpi`, `profile`, `password`, `bleed`, `marks`, `full`, `options`, `nostage`. Asset inputs in URL mode are serialised by their `id`; the runtime resolves them via `host.assets.get()` before hydration. `width`/`height` are values in `unit` (default `px`, also `mm`/`cm`/`in`/`pt`/`pc`); with a physical unit `dpi` sets raster resolution. They set the canvas document size and pre-fill the export dimensions panel.
 
 ### 6. Storage goes through the bridge, not direct
 

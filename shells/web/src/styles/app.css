@@ -1138,13 +1138,34 @@ a.gtile-name:focus-visible::after {
 /* Intended output (primary format + canvas size) — the card answers "what will I
    get?" at a glance. Sits under the description, set smaller with tabular figures so
    the dimensions stay legible. */
-.gtile-spec {
-  margin: 6px 0 0;
-  font-size: 11px;
+/* Available export formats — a compact chip row under the description. The default
+   (first-declared) format is filled with the accent so a browser sees at a glance what
+   they'll get; the rest are muted outlines showing the full range. Replaces the old
+   "format · dimensions" spec line (size lives in the info dialog now). */
+.gtile-formats {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.gtile-fmt {
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 3px 6px;
+  border-radius: 5px;
+  white-space: nowrap;
   color: hsl(var(--muted-foreground));
-  font-variant-numeric: tabular-nums;
+  background: hsl(var(--muted) / 0.55);
+  border: 1px solid hsl(var(--border));
+}
+.gtile-fmt--default {
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
 }
 
 /* Per-card (i) info / (h) history buttons — floated over the top-right of the
@@ -1771,6 +1792,19 @@ a.gtile-name:focus-visible::after {
 .toolpicker-desc {
   font-size: 11px; color: hsl(var(--muted-foreground)); line-height: 1.3;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Mobile: lay each tile out as a ROW — icon beside the text (name + 1-line desc) —
+   so tiles are short and more fit without scrolling (reclaims vertical space). */
+@media (max-width: 640px) {
+  .toolpicker-grid { grid-template-columns: 1fr; gap: 8px; padding: 12px 14px 16px; }
+  .toolpicker-tile {
+    display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
+    column-gap: 12px; row-gap: 1px; align-items: center; padding: 10px 12px;
+  }
+  .toolpicker-icon { grid-row: 1 / span 2; align-self: center; width: 24px; height: 24px; }
+  .toolpicker-name { grid-column: 2; align-self: end; }
+  .toolpicker-desc { grid-column: 2; align-self: start; -webkit-line-clamp: 1; }
 }
 
 /* Folder-actions overflow button in the folder-view header (rename / render / delete).
@@ -4268,7 +4302,12 @@ body.fc-manipulating { user-select: none; -webkit-user-select: none; }
      the freed space (see setupMobileSheet's peek re-fit in tool.js). */
   .tool-stage {
     position: fixed;
-    inset: var(--preview-top) 0 0 0;
+    /* Fallback 0px for the chromeless editor layout (render.layout:'editor'): it has
+       no mobile top bar, so it never sets --preview-top. Without the fallback the unset
+       var makes the whole `inset` collapse the fixed stage to its content width, which
+       drags the absolutely-positioned zoom HUD (.stage-nav) far off the right edge.
+       Non-editor tools set --preview-top from JS (setupMobileSheet), so they're unchanged. */
+    inset: var(--preview-top, 0px) 0 0 0;
     height: auto;
   }
 

@@ -127,6 +127,12 @@ Every time someone uploads a file to a third-party service to "just make it look
 
 **Production quality.** Outlined type, Spot color support, 60FPS · Media fit for the studio.
 
+**Organise & render in bulk.** Keep saved work in nested Projects folders, then render a whole folder — or any multi-selection — as one zip. No batch grid required.
+
+**Shortest shareable links.** Every design lives in its URL; a big one packs into a compact token so the link stays short enough to paste anywhere.
+
+**Free-canvas layout.** Beyond filling in a form — some tools open as a direct-manipulation canvas (Layout Studio): drag, rotate and snap boxes of text, shapes and images, exported through the same deterministic path.
+
 
 ## The Tools
 
