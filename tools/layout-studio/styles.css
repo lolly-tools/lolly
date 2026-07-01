@@ -40,3 +40,8 @@
   word-break: break-word;
   overflow-wrap: anywhere;
 }
+/* Semi-rich text: **bold** / *italic* render relative to the block's own weight,
+   so they still read as emphasis whatever the base weight is set to. Bullets are
+   just "•"-prefixed lines (see hooks.js richText), so no list styling is needed. */
+.lolly-box-text strong { font-weight: bolder; }
+.lolly-box-text em { font-style: italic; }

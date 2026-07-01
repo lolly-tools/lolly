@@ -54,7 +54,7 @@
         "minSize": 8,
         "addKinds": [
           { "id": "box", "label": "Box", "seed": { "kind": "box", "bg": "#30BA78", "shape": "rounded", "text": "" } },
-          { "id": "text", "label": "Text", "seed": { "kind": "text", "bg": "", "shape": "rect", "text": "Text", "fg": "#0c322c", "fontSize": 64, "valign": "top" } },
+          { "id": "text", "label": "Text", "seed": { "kind": "text", "bg": "", "shape": "rect", "text": "Text", "fg": "#0c322c", "fontSize": 64, "valign": "top", "font": "SUSE", "lineHeight": 1.12 } },
           { "id": "image", "label": "Image", "seed": { "kind": "image", "bg": "#eef1f0", "shape": "rounded", "fit": "contain", "text": "" } }
         ]
       },
@@ -127,7 +127,7 @@
             { "value": "luminosity", "label": "Luminosity" }
           ]
         },
-        { "id": "text", "type": "text", "label": "Text", "default": "", "multilineFor": ["box", "text", "image"], "rows": 3 },
+        { "id": "text", "type": "text", "label": "Text", "default": "", "multilineFor": ["box", "text", "image"], "rows": 3, "help": "Rich text: **bold**, *italic* / _italic_, and lines starting with - or • become bullets." },
         { "id": "fg", "type": "color", "label": "Text colour", "default": "#0c322c" },
         { "id": "fontSize", "type": "number", "label": "Text size", "default": 48, "min": 4 },
         {
@@ -164,6 +164,17 @@
             { "value": "800", "label": "Extrabold" }
           ]
         },
+        {
+          "id": "font",
+          "type": "select",
+          "label": "Font",
+          "default": "SUSE",
+          "options": [
+            { "value": "SUSE", "label": "SUSE Sans" },
+            { "value": "SUSE Mono", "label": "SUSE Mono" }
+          ]
+        },
+        { "id": "lineHeight", "type": "number", "label": "Line height", "default": 1.12, "min": 0.7, "max": 3, "step": 0.05 },
         { "id": "group", "type": "text", "label": "Group", "default": "" },
         { "id": "clip", "type": "text", "label": "Clip to", "default": "" }
       ],

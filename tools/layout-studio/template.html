@@ -2,7 +2,7 @@
   {{#each boxes}}
   <div class="lolly-box" data-canvas-input="boxes:{{@index}}" data-box-id="{{default id @index}}" style="{{lookup ../boxStyle @index}}">
     {{#if image}}<img class="lolly-box-img" src="{{asset image}}" style="{{lookup ../imgStyle @index}}" alt="" draggable="false">{{/if}}
-    <div class="lolly-box-text" style="{{lookup ../textStyle @index}}">{{text}}</div>
+    <div class="lolly-box-text" style="{{lookup ../textStyle @index}}">{{{lookup ../textHtml @index}}}</div>
   </div>
   {{/each}}
 </div>

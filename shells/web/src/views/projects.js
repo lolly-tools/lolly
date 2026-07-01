@@ -186,7 +186,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   function rootHtml() {
     const uncat = uncategorised();
     const createFolder = createTile('folder', FOLDER_PLUS_ICON, 'New folder', 'Group saved sessions');
-    const createTool = createTile('tool', FILE_PLUS_ICON, 'New tool', 'Start a fresh creation');
+    const createTool = createTile('tool', FILE_PLUS_ICON, 'New asset', 'Start a fresh creation');
     const uncatTile = pseudoFolderTile(UNCAT, 'Uncategorised', uncat.map(e => e.slot));
     // Only TOP-LEVEL folders at the root; nested folders show inside their parent.
     const folderTiles = sortFolders(childFolders(folders, null)).map(f => folderTile(f, {
@@ -245,7 +245,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     // Content first (sub-folders, then sessions); create tiles LAST. No "+ New folder"
     // inside the synthetic Uncategorised bucket (it isn't a real folder to nest under).
     const createFolder = isUncat ? '' : createTile('folder', FOLDER_PLUS_ICON, 'New folder', `Group inside ${title}`);
-    const createTool = createTile('tool', FILE_PLUS_ICON, 'New tool', isUncat ? 'New saved session' : `Add to ${title}`);
+    const createTool = createTile('tool', FILE_PLUS_ICON, 'New asset', isUncat ? 'New saved session' : `Add to ${title}`);
     const tiles = [
       ...subfolders.map(f => folderTile(f, {
         memberPreviews: f.items.map(i => i.type === 'session' ? previewForRef(i.ref) : null).filter(Boolean),

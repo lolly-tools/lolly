@@ -43,6 +43,35 @@ function safeColor(v, fallback) {
   return fallback;
 }
 
+// Escape a string for safe inclusion in raw HTML output ({{{ }}} in the template).
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Inline emphasis on an ALREADY-escaped fragment: **bold** first, then *italic* /
+// _italic_. The markers are literal chars in the escaped text and we only ever inject
+// our own fixed <strong>/<em> tags, so this can't smuggle markup through.
+function inlineMd(s) {
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+  s = s.replace(/(^|[^_\w])_([^_\n]+)_/g, '$1<em>$2</em>');
+  return s;
+}
+
+// Semi-rich text → safe HTML. Escape first, then a tiny markdown subset: **bold**,
+// *italic*/_italic_, and lines starting with - / * / • become "•"-prefixed bullets.
+// Newlines are preserved (styles.css sets white-space:pre-wrap). Emphasis is emitted
+// as inline <strong>/<em>; the SVG/PDF vector walkers recurse into inline runs and
+// outline each with its OWN computed weight/style, so bold/italic survive vector
+// export too (not just raster). Bullets are plain "•" text, so they're trivially safe.
+function richText(raw) {
+  return esc(raw).split('\n').map(function (ln) {
+    var m = ln.match(/^(\s*)[-*•]\s+(.*)$/);
+    return m ? m[1] + '•  ' + inlineMd(m[2]) : inlineMd(ln);
+  }).join('\n');
+}
+
 function radiusFor(shape, radius) {
   switch (shape) {
     case 'rounded': return Math.max(0, num(radius, 0)) + 'px';
@@ -55,6 +84,13 @@ function radiusFor(shape, radius) {
 var H_JUSTIFY = { left: 'flex-start', center: 'center', right: 'flex-end' };
 var V_ALIGN = { top: 'flex-start', middle: 'center', bottom: 'flex-end' };
 var WEIGHTS = { '400': 1, '600': 1, '700': 1, '800': 1 };
+// Text block font family. Single-quoted so it survives inside a style="" attribute
+// without HTML-escaping. Unknown values fall back to SUSE (no CSS injection).
+var FONTS = {
+  'SUSE Mono': "'SUSE Mono', ui-monospace, SFMono-Regular, monospace",
+  'SUSE': "'SUSE', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+};
+function fontFamily(v) { return FONTS[String(v)] || FONTS.SUSE; }
 var FITS = { cover: 1, contain: 1, fill: 1, none: 1, 'scale-down': 1 };
 // CSS mix-blend-mode keywords. Faithful in raster (PNG/JPG/WebP) export; the vector
 // walkers (SVG/PDF) don't honour blend, so it flattens there — documented.
@@ -135,8 +171,10 @@ function textCss(b) {
   return (
     'text-align:' + align + ';' +
     'color:' + safeColor(b.fg, '#0c322c') + ';' +
+    'font-family:' + fontFamily(b.font) + ';' +
     'font-size:' + size + 'px;' +
-    'font-weight:' + weight + ';'
+    'font-weight:' + weight + ';' +
+    'line-height:' + clamp(num(b.lineHeight, 1.12), 0.5, 4) + ';'
   );
 }
 
@@ -148,10 +186,12 @@ function compute(model) {
   boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
   var boxStyle = boxes.map(function (b) { return boxCss(b || {}) + clipCss(b || {}, byId); });
   var textStyle = boxes.map(function (b) { return textCss(b || {}); });
+  var textHtml = boxes.map(function (b) { return richText((b && b.text) || ''); });
   var imgStyle = boxes.map(function (b) { return imgCss(b || {}); });
   return {
     boxStyle: boxStyle,
     textStyle: textStyle,
+    textHtml: textHtml,
     imgStyle: imgStyle,
     bgStyle: [transparent ? 'transparent' : safeColor(inp.background, '#ffffff')],
   };
