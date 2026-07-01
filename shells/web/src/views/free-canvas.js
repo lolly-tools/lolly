@@ -441,9 +441,9 @@ export function initFreeCanvas(opts) {
       return;
     }
     if (gesture.type === 'rotate') {
-      const m = metrics();
       const c = gesture.centerClient;
       let deg = Math.atan2(e.clientY - c.y, e.clientX - c.x) * 180 / Math.PI - gesture.pointerStartDeg + gesture.startRect.rot;
+      deg = normAngle(deg);                       // keep stored rotation in [-180, 180)
       if (!e.altKey) deg = snapAngle(deg, 15, 4);
       const live = { ...gesture.startRect, rot: deg };
       applyLiveRect(gesture.index, live);
@@ -639,16 +639,19 @@ export function initFreeCanvas(opts) {
       el.addEventListener('pointerdown', (e) => onHandlePointerDown(e, h));
       chrome.appendChild(el);
     }
-    // rotate handle: outward from the top-edge midpoint along the box "up" normal.
+    // rotate handle: outward from the BOTTOM-edge midpoint along the box "down"
+    // normal — kept clear of the contextual bar (which floats above the selection)
+    // and the 'n' resize handle, so the two never fight for a grab (Canva-style).
+    const ROT_OFFSET = 30;
     const c = nativeToStage(r.x + r.w / 2, r.y + r.h / 2, m);
-    const top = pos.n;
-    const len = Math.hypot(top.x - c.x, top.y - c.y) || 1;
-    const ux = (top.x - c.x) / len, uy = (top.y - c.y) / len;
-    const rp = { x: top.x + ux * 22, y: top.y + uy * 22 };
+    const bottom = pos.s;
+    const len = Math.hypot(bottom.x - c.x, bottom.y - c.y) || 1;
+    const ux = (bottom.x - c.x) / len, uy = (bottom.y - c.y) / len;
+    const rp = { x: bottom.x + ux * ROT_OFFSET, y: bottom.y + uy * ROT_OFFSET };
     const stem = document.createElement('div');
     stem.className = 'fc-rot-stem';
-    stem.style.left = top.x + 'px'; stem.style.top = top.y + 'px';
-    stem.style.width = '22px';
+    stem.style.left = bottom.x + 'px'; stem.style.top = bottom.y + 'px';
+    stem.style.width = ROT_OFFSET + 'px';
     stem.style.transform = `rotate(${Math.atan2(uy, ux) * 180 / Math.PI}deg)`;
     chrome.appendChild(stem);
     const rot = document.createElement('div');
