@@ -35,6 +35,13 @@ const ICONS = {
 const FORMAT_ICONS = { 'pdf-cmyk': '🖨️', 'eps-cmyk': '🖨️' };
 const iconFor = (f) => FORMAT_ICONS[f.fmt] ?? ICONS[extOf(f.name)] ?? '⚠️';
 
+// Friendly format names for the manifest (mirrors the subset the UI shows).
+const FMT_LABEL = {
+  'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', 'eps-cmyk': 'EPS (CMYK)',
+  jpeg: 'JPG', jpg: 'JPG', md: 'Markdown', txt: 'Text', ico: 'Icon', vcf: 'vCard', ics: 'Calendar',
+};
+const fmtLabel = (f) => (f ? (FMT_LABEL[f] ?? String(f).toUpperCase()) : '');
+
 const HEADER = '📐 Lolly  •  ❤️ Give Fitzy an Ovation  •  🌏 https://lolly.tools';
 
 // The little manifest dropped into every batch zip. Lists each file with its
@@ -48,13 +55,18 @@ function creditText(files = [], { zipName, author } = {}) {
   const n = files.length;
   const pkg = (zipName || 'lolly-batch.zip').trim();
 
-  // Align the " | …s to render" column: pad every name to the longest one.
-  const widest = files.reduce((m, f) => Math.max(m, f.name.length), 0);
-  const fileLines = files.map(f => {
+  // Each file is a two-line block: "name | FORMAT · render time", then a "reopen in
+  // Lolly" link carrying the exact inputs used, so a recipient can return to
+  // lolly.tools and recreate (or tweak) the file. Blocks are blank-line separated so
+  // the links stay readable. The link is omitted for any file we couldn't build one
+  // for (falls back to the plain header line).
+  const fileBlocks = files.map(f => {
     const secs = f.ms != null ? `${(f.ms / 1000).toFixed(2)}s to render` : '';
-    const name = f.name.padEnd(widest, ' ');
-    return `${iconFor(f)} ${name}${secs ? `   | ${secs}` : ''}`;
+    const meta = [fmtLabel(f.fmt), secs].filter(Boolean).join('  ·  ');
+    const head = `${iconFor(f)} ${f.name}${meta ? `   |  ${meta}` : ''}`;
+    return f.url ? `${head}\n   ↳ ${f.url}` : head;
   });
+  const anyUrl = files.some(f => f.url);
 
   const lines = [
     HEADER,
@@ -68,7 +80,13 @@ function creditText(files = [], { zipName, author } = {}) {
     '',
     `[ ${n} file${n === 1 ? '' : 's'} included ]`,
     '',
-    ...fileLines,
+    // Explain the ↳ links once, up front — the whole point of them.
+    ...(anyUrl ? [
+      'Each ↳ link reopens the tool in Lolly with the exact inputs used —',
+      'follow it to recreate or tweak the file at lolly.tools.',
+      '',
+    ] : []),
+    fileBlocks.join('\n\n'),
   ];
 
   // Author block — only when the profile has something to show.

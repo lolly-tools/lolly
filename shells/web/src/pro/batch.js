@@ -70,7 +70,7 @@ export async function runBatch(rows, host, { format, unit, dpi, onProgress, isCa
       const rowUnit = row.unit ?? unit ?? 'px';
       const rowDpi = rowUnit === 'px' ? undefined : (row.dpi ?? dpi ?? 300);
       const t0 = Date.now();
-      const { blob, format: fmt } = await renderRowToBlob(row, host, {
+      const { blob, format: fmt, url } = await renderRowToBlob(row, host, {
         format: row.format || format, width: row.outWidth, height: row.outHeight, unit: rowUnit, dpi: rowDpi,
       });
       const ms = Date.now() - t0; // render time, surfaced in the zip manifest
@@ -88,7 +88,7 @@ export async function runBatch(rows, host, { format, unit, dpi, onProgress, isCa
         ? `${stem.slice(0, slash + 1)}${seq}-${stem.slice(slash + 1)}`
         : `${seq}-${stem}`;
       const name = uniqueName(usedNames, base, extFor(fmt), pathAware);
-      files.push({ name, blob, ms, fmt }); // fmt distinguishes pdf-cmyk from pdf
+      files.push({ name, blob, ms, fmt, url }); // fmt distinguishes pdf-cmyk from pdf; url = reopen-in-Lolly link
       results.push({ index: i, row, ok: true, name, size: blob.size, ms });
       onProgress?.({ index: i, total, status: 'done', row, name });
     } catch (err) {
