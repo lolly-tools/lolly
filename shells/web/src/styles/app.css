@@ -93,6 +93,12 @@ body:has(.app-view.tool-view) .skip-link { display: block; }
 
 }
 [hidden]{display:none;visibility:hidden}
+/* Form controls don't inherit font-family from their parent by default — browsers
+   give button/input/select/textarea their own UA font. Opt every control into the
+   brand font so no individual control can silently fall back (e.g. .folder-back). */
+button, input, select, textarea, optgroup {
+  font-family: inherit;
+}
 body {
   margin: 0;
   font-family: SUSE, ui-sans-serif, system-ui, sans-serif;

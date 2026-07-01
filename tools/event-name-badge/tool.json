@@ -53,6 +53,38 @@
       ]
     },
     {
+      "id": "status",
+      "label": "Attendee status",
+      "type": "select",
+      "default": "attendee",
+      "help": "Colour-codes the badge and sets the role band.",
+      "options": [
+        { "value": "attendee", "label": "Attendee" },
+        { "value": "speaker", "label": "Speaker" },
+        { "value": "presenter", "label": "Presenter" },
+        { "value": "sponsor", "label": "Sponsor" },
+        { "value": "exhibitor", "label": "Exhibitor" },
+        { "value": "organizer", "label": "Organizer" },
+        { "value": "staff", "label": "Staff / Employee" },
+        { "value": "press", "label": "Press / Media" },
+        { "value": "vip", "label": "VIP" },
+        { "value": "volunteer", "label": "Volunteer" }
+      ]
+    },
+    {
+      "id": "roleColor",
+      "label": "Role colour override",
+      "type": "color",
+      "default": "",
+      "help": "Optional — replaces the status colour. Leave empty to use the colour for the chosen status."
+    },
+    {
+      "id": "background",
+      "label": "Card background",
+      "type": "color",
+      "default": "#0c322c"
+    },
+    {
       "id": "eventLogo",
       "label": "Event logo",
       "type": "asset",
@@ -107,32 +139,6 @@
       "maxLength": 60
     },
     {
-      "id": "status",
-      "label": "Attendee status",
-      "type": "select",
-      "default": "attendee",
-      "help": "Colour-codes the badge and sets the role band.",
-      "options": [
-        { "value": "attendee", "label": "Attendee" },
-        { "value": "speaker", "label": "Speaker" },
-        { "value": "presenter", "label": "Presenter" },
-        { "value": "sponsor", "label": "Sponsor" },
-        { "value": "exhibitor", "label": "Exhibitor" },
-        { "value": "organizer", "label": "Organizer" },
-        { "value": "staff", "label": "Staff / Employee" },
-        { "value": "press", "label": "Press / Media" },
-        { "value": "vip", "label": "VIP" },
-        { "value": "volunteer", "label": "Volunteer" }
-      ]
-    },
-    {
-      "id": "roleColor",
-      "label": "Role colour override",
-      "type": "color",
-      "default": "",
-      "help": "Optional — replaces the status colour. Leave empty to use the colour for the chosen status."
-    },
-    {
       "id": "tracks",
       "label": "Tracks",
       "type": "blocks",
@@ -155,12 +161,6 @@
       "type": "url",
       "default": "https://www.suse.com",
       "help": "Attendee profile, schedule or contact page. Hidden when empty."
-    },
-    {
-      "id": "background",
-      "label": "Card background",
-      "type": "color",
-      "default": "#0c322c"
     }
   ]
 }
