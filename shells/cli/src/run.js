@@ -12,7 +12,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join, dirname, resolve, basename, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { loadTool, createRuntime, parseUrlState } from '@lolly/engine';
+import { loadTool, createRuntime, parseUrlState, expandQuery } from '@lolly/engine';
 import { createCliBridge } from './bridge.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -39,8 +39,12 @@ export async function runToolCli({ toolId, params, outputPath, format }) {
   const profile = await readProfile(params.profile);
   const host = await createCliBridge({ dom, profile });
 
+  // Expand a packed `z=…` param back into a plain query first — the CLI is URL mode
+  // under a different transport, so a packed share link must run identically here
+  // (`brand-tool layout-studio --z=1eJ…`). A no-op for ordinary readable params.
+  const query = await expandQuery(new URLSearchParams(params).toString());
   const { values, format: paramFormat, width, height, unit, dpi, password } = parseUrlState(
-    new URLSearchParams(params).toString(),
+    query,
     tool.manifest,
   );
 

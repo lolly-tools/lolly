@@ -36,6 +36,7 @@ const SVG = {
   trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
   image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
   more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  size: '<path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/>',
 };
 
 function icon(paths) {
@@ -43,7 +44,13 @@ function icon(paths) {
 }
 
 export function initFreeCanvas(opts) {
-  const { viewEl, stageEl, canvasEl, runtime, host, input, nativeW, nativeH, onDirty, editTool } = opts;
+  const { viewEl, stageEl, canvasEl, runtime, host, input, nativeW, nativeH, onDirty, editTool, setCanvasSize } = opts;
+  // The artboard is resizable, so read its CURRENT declared size (not the mount-time
+  // nativeW/H) everywhere geometry depends on the canvas dimensions.
+  const canvasWH = () => ({
+    w: parseInt(canvasEl.style.width, 10) || nativeW,
+    h: parseInt(canvasEl.style.height, 10) || nativeH,
+  });
   const cv = input.canvas || {};
   const blockId = input.id;
   const cfg = {
@@ -110,7 +117,7 @@ export function initFreeCanvas(opts) {
   function metrics() {
     const cr = canvasEl.getBoundingClientRect();
     const sr = stageEl.getBoundingClientRect();
-    const scale = cr.width / nativeW || 1;
+    const scale = cr.width / canvasWH().w || 1;
     return { cr, sr, scale };
   }
   const clientToNative = (cx, cy) => {
@@ -184,6 +191,7 @@ export function initFreeCanvas(opts) {
     if (armedKind) add.classList.add('is-armed');
     toolBtn('Arrange (stacking order)', SVG.front, () => openArrangeMenu());
     toolBtn('Align & distribute', SVG.align, () => openAlignMenu());
+    if (setCanvasSize) toolBtn('Canvas size', SVG.size, (b) => openSizeMenu(b));
     const sep = document.createElement('div'); sep.className = 'fc-sep'; toolbar.appendChild(sep);
     // Canvas background — the app's shared colour picker (swatches + hex + alpha).
     const bgWrap = document.createElement('div');
@@ -197,25 +205,81 @@ export function initFreeCanvas(opts) {
     });
   }
 
+  function fillPopover(el, items) {
+    for (const it of items) {
+      if (it.sep) { const s = document.createElement('div'); s.className = 'fc-pop-sep'; el.appendChild(s); continue; }
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'fc-pop-item' + (it.danger ? ' fc-pop-danger' : '');
+      b.disabled = it.disabled === true;
+      b.innerHTML = (it.icon ? `<span class="fc-pop-ic">${it.icon}</span>` : '') + `<span>${it.label}</span>`;
+      b.addEventListener('click', (e) => { e.stopPropagation(); if (b.disabled) return; it.run(); if (!it.keepOpen) closePopover(); });
+      el.appendChild(b);
+    }
+  }
   function spawnPopover(anchor, items) {
     closePopover();
     popover = document.createElement('div');
     popover.className = 'fc-popover';
-    for (const it of items) {
-      if (it.sep) { const s = document.createElement('div'); s.className = 'fc-pop-sep'; popover.appendChild(s); continue; }
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'fc-pop-item';
-      b.innerHTML = (it.icon ? `<span class="fc-pop-ic">${it.icon}</span>` : '') + `<span>${it.label}</span>`;
-      b.addEventListener('click', (e) => { e.stopPropagation(); it.run(); if (!it.keepOpen) closePopover(); });
-      popover.appendChild(b);
-    }
+    fillPopover(popover, items);
     popover.addEventListener('pointerdown', (e) => e.stopPropagation());
     stageEl.appendChild(popover);
     const ar = anchor.getBoundingClientRect();
     const sr = stageEl.getBoundingClientRect();
     popover.style.left = (ar.right - sr.left + 8) + 'px';
     popover.style.top = Math.max(6, ar.top - sr.top) + 'px';
+  }
+  // Right-click context menu at the cursor (desktop): a consolidated list of the
+  // arrange / align / group / clip / edit actions.
+  function openContextMenu(clientX, clientY) {
+    closePopover();
+    const has = selection.size > 0;
+    const multi = selection.size >= 2;
+    const items = [
+      { label: 'Duplicate', run: () => duplicateSelection(), disabled: !has },
+      { label: 'Delete', run: () => deleteSelection(), disabled: !has, danger: true },
+      { sep: true },
+      { label: 'Bring to front', run: () => applyZ('front'), disabled: !has },
+      { label: 'Bring forward', run: () => applyZ('forward'), disabled: !has },
+      { label: 'Send backward', run: () => applyZ('backward'), disabled: !has },
+      { label: 'Send to back', run: () => applyZ('back'), disabled: !has },
+      { sep: true },
+      { label: 'Align left', run: () => applyAlign('left'), disabled: !has },
+      { label: 'Align centre', run: () => applyAlign('hcentre'), disabled: !has },
+      { label: 'Align right', run: () => applyAlign('right'), disabled: !has },
+      { label: 'Align top', run: () => applyAlign('top'), disabled: !has },
+      { label: 'Align middle', run: () => applyAlign('vcentre'), disabled: !has },
+      { label: 'Align bottom', run: () => applyAlign('bottom'), disabled: !has },
+      { label: 'Distribute horizontally', run: () => applyDistribute('h'), disabled: selection.size < 3 },
+      { label: 'Distribute vertically', run: () => applyDistribute('v'), disabled: selection.size < 3 },
+      { sep: true },
+      { label: 'Group', run: () => groupSelection(), disabled: !multi },
+      { label: 'Ungroup', run: () => ungroupSelection(), disabled: !selHasGroup() },
+      { label: 'Clip to bottom shape', run: () => clipSelection(), disabled: !multi },
+      { label: 'Release clip', run: () => releaseClip(), disabled: !selHasClip() },
+    ];
+    popover = document.createElement('div');
+    popover.className = 'fc-popover fc-context-menu';
+    fillPopover(popover, items);
+    popover.addEventListener('pointerdown', (e) => e.stopPropagation());
+    stageEl.appendChild(popover);
+    const sr = stageEl.getBoundingClientRect();
+    const left = Math.max(6, Math.min(clientX - sr.left, sr.width - popover.offsetWidth - 6));
+    const top = Math.max(6, Math.min(clientY - sr.top, sr.height - popover.offsetHeight - 6));
+    popover.style.left = left + 'px';
+    popover.style.top = top + 'px';
+  }
+  function onContextMenu(e) {
+    e.preventDefault();
+    if (editing) commitTextEdit();
+    const nat = clientToNative(e.clientX, e.clientY);
+    const boxes = getBoxes();
+    const hit = hitTest(boxes, nat.x, nat.y, cfg);
+    if (hit >= 0 && !selection.has(idOf(boxes[hit], hit))) {
+      selection = new Set(selectionForHit(boxes, hit, e.altKey));
+      renderChrome();
+    }
+    openContextMenu(e.clientX, e.clientY);
   }
 
   function openAddMenu(anchor) {
@@ -301,6 +365,52 @@ export function initFreeCanvas(opts) {
   // ── "More" panel: shape / radius / opacity / image fit / blend ────────────────
   let morePanel = null;
   function closeMorePanel() { morePanel?.remove(); morePanel = null; }
+
+  // ── canvas (document) size ────────────────────────────────────────────────────
+  function applyDocSize(w, h) {
+    if (!setCanvasSize) return;
+    setCanvasSize(Math.max(16, Math.round(w)), Math.max(16, Math.round(h)));
+    scheduleSync();
+  }
+  const SIZE_PRESETS = [
+    ['Square', 1080, 1080], ['Portrait 4:5', 1080, 1350], ['Story 9:16', 1080, 1920],
+    ['Landscape 16:9', 1920, 1080], ['Wide 1.91:1', 1200, 630], ['A4 portrait', 2480, 3508],
+  ];
+  function openSizeMenu(anchor) {
+    closeMorePanel();
+    const d = canvasWH();
+    const p = document.createElement('div');
+    p.className = 'fc-panel fc-size-panel';
+    p.innerHTML =
+      '<div class="fc-panel-head">Canvas size</div>' +
+      '<div class="fc-size-presets">' +
+      SIZE_PRESETS.map(([label, w, h]) => `<button type="button" class="fc-size-preset${w === d.w && h === d.h ? ' is-current' : ''}" data-w="${w}" data-h="${h}"><b>${label}</b><span>${w}×${h}</span></button>`).join('') +
+      '</div>' +
+      '<label class="fc-row"><span>Width</span><input type="number" min="16" max="12000" data-sz="w" value="' + d.w + '"><b>px</b></label>' +
+      '<label class="fc-row"><span>Height</span><input type="number" min="16" max="12000" data-sz="h" value="' + d.h + '"><b>px</b></label>';
+    p.addEventListener('pointerdown', (e) => e.stopPropagation());
+    const wIn = () => p.querySelector('[data-sz="w"]');
+    const hIn = () => p.querySelector('[data-sz="h"]');
+    p.querySelectorAll('.fc-size-preset').forEach((b) => b.addEventListener('click', () => {
+      wIn().value = b.dataset.w; hIn().value = b.dataset.h;
+      p.querySelectorAll('.fc-size-preset').forEach((x) => x.classList.toggle('is-current', x === b));
+      applyDocSize(+b.dataset.w, +b.dataset.h);
+    }));
+    const commitCustom = () => {
+      const w = parseInt(wIn().value, 10), h = parseInt(hIn().value, 10);
+      if (w >= 16 && h >= 16) {
+        applyDocSize(w, h);
+        p.querySelectorAll('.fc-size-preset').forEach((x) => x.classList.toggle('is-current', +x.dataset.w === w && +x.dataset.h === h));
+      }
+    };
+    p.querySelectorAll('input[data-sz]').forEach((i) => i.addEventListener('change', commitCustom));
+    stageEl.appendChild(p);
+    morePanel = p;
+    const ar = anchor.getBoundingClientRect(), sr = stageEl.getBoundingClientRect();
+    p.style.left = Math.min(ar.right - sr.left + 8, sr.width - p.offsetWidth - 8) + 'px';
+    p.style.top = Math.max(6, Math.min(ar.top - sr.top, sr.height - p.offsetHeight - 8)) + 'px';
+  }
+
   function openMorePanel(anchor) {
     closeMorePanel();
     const boxes = getBoxes();
@@ -469,7 +579,7 @@ export function initFreeCanvas(opts) {
     const boxes = getBoxes();
     const idx = selIndices(boxes);
     if (!idx.length) return;
-    commit(alignBoxes(boxes, idx, edge, cfg, { w: nativeW, h: nativeH }));
+    commit(alignBoxes(boxes, idx, edge, cfg, canvasWH()));
   }
   function applyDistribute(axis) {
     const boxes = getBoxes();
@@ -657,7 +767,7 @@ export function initFreeCanvas(opts) {
     }
     if (gesture.type === 'create') {
       let corner = nat;
-      const snap = snapPoint(nat.x, nat.y, gesture.others, { w: nativeW, h: nativeH }, snapThreshNative());
+      const snap = snapPoint(nat.x, nat.y, gesture.others, canvasWH(), snapThreshNative());
       corner = { x: snap.x, y: snap.y };
       drawGuides(snap.guides);
       gesture.corner = corner;
@@ -671,7 +781,7 @@ export function initFreeCanvas(opts) {
           minX: gesture.selAABB.minX + dxN, minY: gesture.selAABB.minY + dyN,
           maxX: gesture.selAABB.maxX + dxN, maxY: gesture.selAABB.maxY + dyN,
         };
-        const snap = snapMove(cand, gesture.others, { w: nativeW, h: nativeH }, snapThreshNative());
+        const snap = snapMove(cand, gesture.others, canvasWH(), snapThreshNative());
         mdx += snap.dx; mdy += snap.dy;
         drawGuides(snap.guides);
       } else clearGuides();
@@ -683,7 +793,7 @@ export function initFreeCanvas(opts) {
     if (gesture.type === 'resize') {
       let sdx = dxN, sdy = dyN;
       if ((gesture.startRect.rot || 0) === 0 && !e.altKey) {
-        const snap = snapPoint(nat.x, nat.y, gesture.others, { w: nativeW, h: nativeH }, snapThreshNative());
+        const snap = snapPoint(nat.x, nat.y, gesture.others, canvasWH(), snapThreshNative());
         sdx += snap.x - nat.x; sdy += snap.y - nat.y;
         drawGuides(snap.guides);
       } else clearGuides();
@@ -754,7 +864,7 @@ export function initFreeCanvas(opts) {
       }
       const id = freshId(boxes);
       let box = seedBox(cfg, {}, g.seed, rect, id);
-      box = clampBoxToCanvas(box, cfg, { w: nativeW, h: nativeH });
+      box = clampBoxToCanvas(box, cfg, canvasWH());
       selection = new Set([id]);
       const wasImage = (g.seed?.[cfg.kindField] === 'image') || armedKind?.id === 'image';
       disarm();
@@ -1135,6 +1245,7 @@ export function initFreeCanvas(opts) {
   canvasEl.addEventListener('pointerup', onGestureEnd);
   canvasEl.addEventListener('pointercancel', onGestureEnd);
   canvasEl.addEventListener('dblclick', onDblClick);
+  canvasEl.addEventListener('contextmenu', onContextMenu);
   window.addEventListener('keydown', onKey);
   // Reposition chrome when the stage pans/zooms/resizes.
   const onStageMove = () => scheduleSync();
@@ -1163,6 +1274,7 @@ export function initFreeCanvas(opts) {
       canvasEl.removeEventListener('pointerup', onGestureEnd);
       canvasEl.removeEventListener('pointercancel', onGestureEnd);
       canvasEl.removeEventListener('dblclick', onDblClick);
+      canvasEl.removeEventListener('contextmenu', onContextMenu);
       window.removeEventListener('keydown', onKey);
       stageEl.removeEventListener('pointermove', onStageMove);
       stageEl.removeEventListener('wheel', onStageMove);

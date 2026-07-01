@@ -30,8 +30,11 @@ import {
 import { viewToggle } from '../components/view-toggle.js';
 import { attachProfileMenu } from '../components/profile-menu.js';
 import { confirmDialog as baseConfirmDialog, closeConfirmDialogs } from '../components/confirm-dialog.js';
+import { openShareDialog } from '../components/share-dialog.js';
 import { openFolderOverlay } from '../folder-overlay.js';
 import { flagEnabled, PRO_FLAG } from '../feature-flags.js';
+import { createRuntime, serializeUrlState } from '@lolly/engine';
+import { getTool } from '../bridge/tool-loader.js';
 
 // Sentinel folderId for the synthetic "Uncategorised" folder (sessions in no folder).
 const UNCAT = '__uncat__';
@@ -60,6 +63,8 @@ const EDIT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 const MOVE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.7.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8"/><path d="M2 13h10"/><path d="m9 16 3-3-3-3"/></svg>';
 const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>';
 const CHEVRON_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>';
+// lucide "link" — the shareable-link glyph (matches the tool view's Share button).
+const SHARE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" x2="16" y1="12" y2="12"/></svg>';
 
 export async function mountProjects(viewEl, host, folderId, opts = {}) {
   const store = createFolderStore(host);
@@ -638,10 +643,14 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         menuItem('delete', TRASH_ICON, 'Delete folder', { danger: true }),
       ].join('');
     } else {
+      // A batch session is a multi-row group with no single tool URL, so it can't be
+      // shared as a link — offer Share only for single-tool sessions.
+      const canShare = !isBatchSlot(ref);
       pop.innerHTML = [
         menuItem('open', OPEN_ICON, 'Open'),
         menuItem('rename-session', EDIT_ICON, 'Rename'),
         menuItem('move', MOVE_ICON, 'Move to…'),
+        canShare ? menuItem('share', SHARE_ICON, 'Share link') : '',
         menuItem('render-session', RENDER_ICON, 'Render', { render: true }),
         menuItem('delete-session', TRASH_ICON, 'Delete', { danger: true }),
       ].join('');
@@ -675,6 +684,7 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
         });
       }
       else if (act === 'render-session') renderSession(ref);
+      else if (act === 'share') shareSession(ref);
       else if (act === 'delete-session') {
         const ok = await confirmDialog({
           title: 'Delete this saved session?',
@@ -1094,6 +1104,31 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       const { renderSessionToFile } = await import('../pro/folder-export.js');
       await renderSessionToFile(host, slot, { mount, author: authorForExport(), onBatchRendered: opts.onBatchRendered });
     });
+  }
+
+  // ── share a saved session as a link (same dialog as the tool view's Share) ──
+  // Reconstruct the tool's URL state from the saved values (createRuntime →
+  // serializeUrlState, the picker's recipe) and hand it to the shared Share dialog.
+  async function shareSession(slot) {
+    closeMenu();
+    const entry = entryBySlot().get(slot);
+    if (!entry || isBatchSlot(slot)) return;   // batch sessions have no single tool URL
+    try {
+      const data = await host.state.load(slot);
+      if (!data) throw new Error('This saved session could not be loaded.');
+      const tool = await getTool(entry.toolId);
+      const runtime = await createRuntime(tool, host, data);
+      const query = serializeUrlState(runtime.getModel());
+      const baseParts = query ? query.split('&') : [];
+      // Carry the session's export format so the recipient's link opens on the same one.
+      if (data.__export_format) baseParts.push(`format=${encodeURIComponent(data.__export_format)}`);
+      openShareDialog({
+        toolId: entry.toolId, baseParts, manifest: tool.manifest,
+        currentFormat: data.__export_format || '', title: 'Share this creation',
+      });
+    } catch (err) {
+      host.log?.('warn', 'projects: share session failed', { slot, error: String(err) });
+    }
   }
 
   // ── bulk actions over the current multi-selection ───────────────────────────

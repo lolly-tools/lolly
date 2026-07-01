@@ -11,7 +11,13 @@
  *   5. Action buttons call runtime.export() / host.clipboard / host.state
  */
 
-import { loadTool, createRuntime, parseUrlState, serializeUrlState, annotateTemplate, UNITS, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, buildEmbedUrl, parseToolUrl, isTokenValue } from '@lolly/engine';
+import { loadTool, createRuntime, parseUrlState, serializeUrlState, annotateTemplate, UNITS, toCssPx, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION, buildEmbedUrl, parseToolUrl, isTokenValue, packQuery, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from '@lolly/engine';
+
+// Above this readable-query length the address bar and the Share dialog switch to
+// the packed `z=` form (when it's actually shorter). Kept well under the ~2000-char
+// ceiling that pasted links, social crawlers and some servers still enforce, while
+// leaving simple/typical links in their hand-editable readable form.
+const AUTO_PACK_MIN = 1800;
 import { escape } from '../utils.js';
 import { navigateTo } from '../nav.js';
 import { toolSupport, capabilityLabel, CAPTURE_EXTENSION_URL } from '../capabilities.js';
@@ -31,6 +37,7 @@ import { bumpMetric, recordFormat } from '../metrics.js';
 import { videoSupport, cmykTiffSupport } from '../bridge/export.js';
 import { neutralizeEmbeds, hydrateEmbeds } from '../bridge/embed.js';
 import { getTool } from '../bridge/tool-loader.js';
+import { openShareDialog } from '../components/share-dialog.js';
 import { storeUserUpload } from './picker.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -179,6 +186,11 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const inputIds = (tool.manifest.inputs ?? []).map(i => i.id);
   tool.template = annotateTemplate(tool.template, inputIds);
   document.title = `${tool.manifest.name} — Lolly`;
+
+  // A packed link (`?z=…`) carries the whole state compressed; expand it back into a
+  // plain query BEFORE anything reads it (parse, flag detection, dirty-param seed).
+  // A no-op for ordinary readable links. Done once so every consumer below agrees.
+  urlParams = await expandQuery(urlParams);
 
   const { values, format: urlFormat, export: autoExport, copy: autoCopy, slot, filename: urlFilename, width: urlWidth, height: urlHeight, unit: urlUnit, dpi: urlDpi, profile: urlProfile, password: urlPassword, bleed: urlBleed, marks: urlMarks } = parseUrlState(urlParams, tool.manifest);
   const urlFlags = new URLSearchParams(urlParams || '');
@@ -1076,6 +1088,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // bar arrived as /t/<id>?… or #/tool/<id>?…) so shared/bookmarked links survive the
   // first subscribe callback.
   const dirtyParams = new Set(new URLSearchParams(urlParams || '').keys());
+  // Monotonic guard so an out-of-order async pack (below) never overwrites the bar
+  // with a stale state — only the latest pack for the latest syncUrl wins.
+  let urlPackSeq = 0;
 
   function syncUrl(dirtyId) {
     if (dirtyId) dirtyParams.add(dirtyId);
@@ -1187,6 +1202,21 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
 
     const qs = params.toString();
     history.replaceState(null, '', qs ? `${TOOL_URL_BASE}?${qs}` : TOOL_URL_BASE);
+
+    // Auto-switch to the packed form once the readable query gets long enough to
+    // risk the ~2000-char URL ceiling. The readable write above already landed, so
+    // simple links stay readable/editable and only large states get compressed —
+    // and only if packing is available AND genuinely shorter. Async + seq-guarded so
+    // a slow pack from an older keystroke can never clobber a newer bar.
+    if (qs.length >= AUTO_PACK_MIN && isPackAvailable()) {
+      const seq = ++urlPackSeq;
+      packQuery(qs).then(token => {
+        if (token == null || seq !== urlPackSeq) return;   // unavailable, or superseded
+        const packed = `${PACK_PARAM}=${token}`;
+        if (packed.length >= qs.length) return;             // packing didn't help — keep readable
+        history.replaceState(null, '', `${TOOL_URL_BASE}?${packed}`);
+      }).catch(() => { /* keep the readable URL already written */ });
+    }
   }
 
   function markUserDirty(id) {
@@ -1242,12 +1272,27 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // only pulled in for editor-layout tools — the engine and every other tool are
   // untouched. It reads/writes the flat `boxes` array through runtime.setInput.
   if (editorLayout && canvasEditInput && canvasEl && stageEl) {
+    // The artboard is a resizable document. Restore its size from the URL's
+    // reserved width/height (px) if present, then re-fit.
+    if (urlWidth > 0) canvasEl.style.width = urlWidth + 'px';
+    if (urlHeight > 0) canvasEl.style.height = urlHeight + 'px';
+    if (urlWidth > 0 || urlHeight > 0) resetView();
+    // Resize the document: keep box coordinates fixed (they don't scatter), resize
+    // the canvas, mirror it to the export dimensions so output matches, and re-fit.
+    const setCanvasSize = (w, h) => {
+      canvasEl.style.width = w + 'px';
+      canvasEl.style.height = h + 'px';
+      actionsApi?.setDims?.({ width: w, height: h, unit: 'px' });
+      markUserDirty('w'); markUserDirty('h');
+      resetView();
+    };
     import('./free-canvas.js').then(({ initFreeCanvas }) => {
       if (!viewEl.isConnected) return;   // navigated away before the chunk loaded
       const fc = initFreeCanvas({
         viewEl, stageEl, canvasEl, outerEl, runtime, host,
         input: canvasEditInput, nativeW, nativeH,
         onDirty: markUserDirty,
+        setCanvasSize,
         // Picking a Lolly link / saved session for a box image opens its inputs
         // first (configure → insert), same as the sidebar asset slots.
         editTool: (toolUrl) => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: 'image', mode: 'insert' }),
@@ -4388,14 +4433,18 @@ function matchesDefault(input, paramVal) {
  * Remove URL params from the live address bar that already equal the tool's defaults.
  * Operates on the raw query string to preserve compact encodings (e.g. ~,).
  */
-function shrinkUrl(runtime, manifest) {
+async function shrinkUrl(runtime, manifest) {
   // The bar is normally the path form /t/<id>?… by now; tolerate the boot-time hash
   // form too. Keep the route part, rewrite only the query.
   const hashQ = window.location.hash.indexOf('?');
-  const qs = window.location.search ? window.location.search.slice(1)
+  const rawQs = window.location.search ? window.location.search.slice(1)
            : (hashQ >= 0 ? window.location.hash.slice(hashQ + 1) : '');
-  if (!qs) return;
+  if (!rawQs) return;
   const base = window.location.pathname + window.location.hash.split('?')[0];
+
+  // If the bar is already packed, expand it back to the readable query so the
+  // default-stripping below can see individual params (it operates per-key).
+  const qs = hasPackedState(rawQs) ? await expandQuery(rawQs) : rawQs;
 
   const model = runtime.getModel();
   const inputsByKey = {};
@@ -4434,6 +4483,16 @@ function shrinkUrl(runtime, manifest) {
   }
 
   const newQs = kept.join('&');
+  // Re-pack if the shrunk-but-still-large query would still risk the URL ceiling and
+  // packing actually wins; otherwise leave the readable form (shorter and editable).
+  if (newQs.length >= AUTO_PACK_MIN && isPackAvailable()) {
+    const token = await packQuery(newQs);
+    const packed = token && `${PACK_PARAM}=${token}`;
+    if (packed && packed.length < newQs.length) {
+      history.replaceState(null, '', `${base}?${packed}`);
+      return;
+    }
+  }
   history.replaceState(null, '', newQs ? `${base}?${newQs}` : base);
 }
 
@@ -4572,24 +4631,6 @@ function buildShareParams(runtime, exportScope) {
   }
 
   return parts;
-}
-
-// Assemble a full shareable URL from query parts.
-//
-// For a tool route we emit the crawler-visible PATH form (/t/<id>) rather than the
-// in-app fragment (#/tool/<id>): the fragment is never sent to the server, so social
-// crawlers only ever saw the generic og.png. /t/<id> is served as a static per-tool
-// OG stub (scripts/build-tool-og.js) that carries the tool's own title/image, then
-// redirects a human visitor — with these params — back into the SPA. The bar is
-// normally already the path form, but resolve the id from EITHER form so the share
-// link is the /t/<id> shape regardless. Non-tool routes keep the hash form.
-function shareUrlFromParts(parts) {
-  const qs = parts.join('&');
-  const query = qs ? '?' + qs : '';
-  const id = window.location.pathname.match(/^\/t\/([^/?]+)/)?.[1]
-          ?? window.location.hash.match(/^#\/tool\/([^/?]+)/)?.[1];
-  if (id) return `${window.location.origin}/t/${id}${query}`;
-  return window.location.origin + window.location.pathname + window.location.hash.split('?')[0] + query;
 }
 
 /**
@@ -4756,110 +4797,18 @@ async function openEmbedEditor(host, { editUrl, slotLabel, mode = 'edit' } = {})
   });
 }
 
-// Clipboard write with the legacy textarea fallback (older/locked-down browsers).
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    const ta = Object.assign(document.createElement('textarea'), { value: text });
-    Object.assign(ta.style, { position: 'fixed', opacity: '0', pointerEvents: 'none' });
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    ta.remove();
-  }
-}
-
-// Bitmap formats copy to the clipboard as a PNG; text/html copy as text/rich text.
-// Vector (svg/pdf) and video formats have no useful clipboard form, so the
-// "copy on visit" toggle is hidden for them. Mirrors performCopy()'s branches.
-const SHARE_BITMAP_FORMATS = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif']);
-const SHARE_TEXT_FORMATS   = new Set(['txt', 'md', 'markdown', 'html']);
-
-// The Share button opens this dialog: a ready-to-copy link at the top, plus
-// toggles for the on-visit behaviour flags that aren't inputs or export settings
-// (full/options/export/copy/_v). Toggling a box rewrites the link live.
+// The Share button opens the shared dialog (components/share-dialog.js): a ready-to-copy
+// link plus the on-visit behaviour toggles. This thin wrapper feeds it the live tool
+// state; the Projects view reuses the same dialog for a saved session.
 function showShareDialog(runtime, exportScope, manifest) {
-  const baseParts = buildShareParams(runtime, exportScope);
-
-  // Only offer toggles the tool can actually honour.
-  const canExport  = manifest.render?.export !== false && (manifest.render?.formats?.length ?? 0) > 0;
-  const actions    = manifest.render?.actions ?? ['copy', 'download', 'save'];
-  const currentFmt = exportScope?.querySelector('[data-action="format"]')?.value
-                     || manifest.render?.formats?.[0] || '';
-  const isBitmap   = SHARE_BITMAP_FORMATS.has(currentFmt);
-  const showCopy   = canExport && actions.includes('copy') && (isBitmap || SHARE_TEXT_FORMATS.has(currentFmt));
-  const copyLabel  = isBitmap ? 'Copy image to clipboard on visit' : 'Copy to clipboard on visit';
-  const version    = manifest.version;
-
-  const dialog = document.createElement('dialog');
-  dialog.className = 'share-dialog';
-  dialog.innerHTML = `
-    <div class="share-dialog-body">
-      <h2>Share this tool</h2>
-      <div class="share-link-row">
-        <input type="text" class="share-link-field" readonly aria-label="Shareable link">
-        <button type="button" class="share-copy-btn">Copy</button>
-      </div>
-      <fieldset class="share-toggles">
-        <legend>When the recipient opens the link…</legend>
-        <label><input type="checkbox" data-flag="full"> Open in fullscreen (hide controls)</label>
-        <label data-options-row><input type="checkbox" data-flag="options"> Open with the export panel expanded</label>
-        ${canExport ? `<label><input type="checkbox" data-flag="export"> Download automatically when opened</label>` : ''}
-        ${showCopy ? `<label><input type="checkbox" data-flag="copy"> ${escape(copyLabel)}</label>` : ''}
-        ${version ? `<label><input type="checkbox" data-flag="_v"> Pin this tool version (${escape(String(version))})</label>` : ''}
-      </fieldset>
-      <div class="share-dialog-actions">
-        <button type="button" class="share-done">Done</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(dialog);
-  dialog.showModal();
-
-  const field      = dialog.querySelector('.share-link-field');
-  const fullCb     = dialog.querySelector('[data-flag="full"]');
-  const optionsCb  = dialog.querySelector('[data-flag="options"]');
-  const optionsRow = dialog.querySelector('[data-options-row]');
-  const checkboxes = [...dialog.querySelectorAll('.share-toggles input[type="checkbox"]')];
-
-  const refresh = () => {
-    const parts = [...baseParts];
-    for (const cb of checkboxes) {
-      if (cb.disabled || !cb.checked) continue;
-      parts.push(cb.dataset.flag === '_v' ? `_v=${encodeURIComponent(String(version))}` : cb.dataset.flag);
-    }
-    field.value = shareUrlFromParts(parts);
-  };
-
-  // `full` collapses the sidebar, so the export panel has nowhere to anchor —
-  // full wins, exactly as the URL handling and CSS do. Reflect that here.
-  const syncFullWins = () => {
-    const dim = !!fullCb?.checked;
-    if (optionsCb) { optionsCb.disabled = dim; if (dim) optionsCb.checked = false; }
-    optionsRow?.classList.toggle('is-disabled', dim);
-  };
-
-  for (const cb of checkboxes) cb.addEventListener('change', () => { syncFullWins(); refresh(); });
-
-  dialog.querySelector('.share-copy-btn').addEventListener('click', async function () {
-    await copyToClipboard(field.value);
-    bumpMetric('linksCopied');
-    announce('Shareable link copied');
-    const prev = this.textContent;
-    this.textContent = 'Copied!';
-    setTimeout(() => { this.textContent = prev; }, 1500);
-  });
-
-  const cleanup = () => { dialog.close(); dialog.remove(); };
-  dialog.querySelector('.share-done').addEventListener('click', cleanup);
-  dialog.addEventListener('cancel', () => dialog.remove());            // Esc
-  dialog.addEventListener('click', e => { if (e.target === dialog) cleanup(); }); // click backdrop
-
-  syncFullWins();
-  refresh();
-  field.focus();
-  field.select();
+  // Resolve the tool id from the address bar (path or hash form) so the link is the
+  // crawler-visible /t/<id> shape. The dialog itself lives in components/share-dialog.js,
+  // shared with the Projects view's per-session "Share link". buildShareParams stays here
+  // (it reads the live runtime + export-panel DOM); the session path passes its own parts.
+  const toolId = window.location.pathname.match(/^\/t\/([^/?]+)/)?.[1]
+              ?? window.location.hash.match(/^#\/tool\/([^/?]+)/)?.[1];
+  const currentFormat = exportScope?.querySelector('[data-action="format"]')?.value || '';
+  openShareDialog({ toolId, baseParts: buildShareParams(runtime, exportScope), manifest, currentFormat });
 }
 
 // A vector input: N number fields committed together as one { fieldId: number }

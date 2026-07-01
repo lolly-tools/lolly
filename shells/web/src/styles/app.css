@@ -3773,7 +3773,9 @@ background-color:hsl(var(--background) / 1);
 .tool-layout.is-editor .render-pill {
   display: inline-flex;
   position: fixed;
-  right: calc(1rem + var(--vv-right, 0px));
+  /* Bottom-CENTRE, clear of the bottom-right zoom HUD it used to overlap. */
+  left: 50%;
+  transform: translateX(-50%);
   bottom: calc(1rem + var(--vv-bottom, 0px) + env(safe-area-inset-bottom));
   margin: 0;
   z-index: 30;
@@ -3850,9 +3852,13 @@ background-color:hsl(var(--background) / 1);
   font: inherit; font-size: 13.5px; text-align: left;
   padding: 8px 10px; border-radius: 8px; cursor: pointer;
 }
-.fc-pop-item:hover { background: hsl(var(--muted)); }
+.fc-pop-item:hover:not(:disabled) { background: hsl(var(--muted)); }
+.fc-pop-item:disabled { opacity: 0.38; cursor: default; }
+.fc-pop-item.fc-pop-danger:hover:not(:disabled) { background: #ef4444; color: #ffffff; }
 .fc-pop-ic svg { width: 16px; height: 16px; display: block; }
 .fc-pop-sep { height: 1px; background: hsl(var(--border)); margin: 4px 2px; }
+/* Right-click context menu — longer, so cap its height and scroll. */
+.fc-context-menu { max-height: min(80vh, 560px); overflow-y: auto; min-width: 210px; }
 
 /* Selection overlay — siblings of the canvas, never exported. */
 .fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
@@ -3984,6 +3990,25 @@ body.fc-manipulating { user-select: none; -webkit-user-select: none; }
   border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
 }
 .fc-row > b { flex: 0 0 32px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Canvas-size panel — presets grid + custom width/height. */
+.fc-size-panel { min-width: 262px; }
+.fc-panel-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--muted-foreground)); }
+.fc-size-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fc-size-preset {
+  display: flex; flex-direction: column; gap: 1px; align-items: flex-start;
+  padding: 7px 9px; border-radius: 8px; cursor: pointer;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background)); color: inherit;
+  font: inherit; font-size: 12px; text-align: left;
+}
+.fc-size-preset b { font-weight: 600; }
+.fc-size-preset span { font-size: 10.5px; color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+.fc-size-preset:hover { border-color: hsl(var(--ring) / 0.5); }
+.fc-size-preset.is-current { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.08); }
+.fc-size-panel .fc-row input[type="number"] {
+  flex: 1; min-width: 0; font: inherit; font-size: 12.5px; padding: 4px 6px;
+  border-radius: 7px; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
+}
 
 /* Inline text editing — the box's own text element becomes contentEditable. */
 .lolly-box-text.fc-editing {
@@ -6608,6 +6633,28 @@ span.flatpickr-weekday {
   transition: opacity 0.12s;
 }
 .share-copy-btn:hover { opacity: 0.88; }
+/* "Shortest link" — shown only when packing beats the readable URL (JS toggles
+   [hidden]). A prominent accented row: it changes what the link IS, not just an
+   on-visit flag like the ones in the fieldset below. */
+.share-shortest {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--primary) / 0.4);
+  border-radius: var(--radius);
+  background: hsl(var(--primary) / 0.06);
+  cursor: pointer;
+  font-size: 13px;
+}
+.share-shortest[hidden] { display: none; }
+.share-shortest input[type="checkbox"] { margin-top: 2px; cursor: inherit; }
+.share-shortest-text { display: flex; flex-direction: column; gap: 1px; }
+.share-shortest-note {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
 .share-toggles {
   border: 1px solid hsl(var(--border));
   border-radius: var(--radius);
