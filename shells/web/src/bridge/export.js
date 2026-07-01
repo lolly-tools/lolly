@@ -995,6 +995,38 @@ function isSvgRooted(node) {
   return false;
 }
 
+// The HTML→vector walkers position every element by its axis-aligned
+// getBoundingClientRect, which drops any CSS rotate() — a free-canvas box would
+// export unrotated at its enlarged bounding box. To render rotation faithfully we
+// detect a PURE rotation (orthonormal matrix, det +1 — NOT a scaleX(-1) flip or a
+// scale, which the walkers handle separately), then temporarily neutralise it on
+// the live element, walk the now-axis-aligned subtree, and wrap the result in a
+// rotation about the element's transform-origin. Returns 0 for anything that isn't
+// a clean rotation, so every non-rotated element stays byte-identical.
+function pureRotationDeg(transform) {
+  if (!transform || transform === 'none') return 0;
+  const m = /matrix\(([^)]+)\)/.exec(transform);
+  if (!m) return 0;
+  const p = m[1].split(',').map(parseFloat);
+  if (p.length < 4) return 0;
+  const [a, b, c, d] = p;
+  if (Math.abs(a - d) > 1e-3 || Math.abs(b + c) > 1e-3) return 0;   // scale/flip → not a rotation
+  if (Math.abs(a * d - b * c - 1) > 1e-2) return 0;                 // determinant ≠ 1
+  const deg = Math.atan2(b, a) * 180 / Math.PI;
+  return Math.abs(deg) < 1e-3 ? 0 : deg;
+}
+
+// The rotation pivot (transform-origin) of `el` in the walker's root-relative
+// coordinate space, measured from the element's UNROTATED border box. Call while
+// the element's rotation is neutralised so `unrotRect` is the axis-aligned box.
+function rotationPivot(style, unrotRect, rootRect) {
+  const o = (style.transformOrigin || '50% 50%').split(' ').map(parseFloat);
+  return {
+    x: (unrotRect.left - rootRect.left) + (o[0] || 0),
+    y: (unrotRect.top - rootRect.top) + (o[1] || 0),
+  };
+}
+
 async function renderSvgFromHtml(node, opts) {
   const NS = 'http://www.w3.org/2000/svg';
   // Text → vector <path> by default (self-contained, font-independent SVG). The
@@ -1037,6 +1069,23 @@ async function renderSvgFromHtml(node, opts) {
     if (style.display === 'none' || style.visibility === 'hidden') return;
     const opacity = parseFloat(style.opacity ?? '1');
     if (opacity === 0) return;
+
+    // CSS rotate(): neutralise it, walk the axis-aligned subtree, then wrap the
+    // whole thing in an SVG rotation about the transform-origin (faithful in SVG,
+    // unlike the AABB fallback). Additive — no-op for every unrotated element.
+    const rotDeg = pureRotationDeg(style.transform);
+    if (rotDeg) {
+      const prevInline = el.style.transform;
+      el.style.transform = 'none';
+      const unrot = el.getBoundingClientRect();   // reading forces the reflow
+      const pivot = rotationPivot(style, unrot, rootRect);
+      const gRot = document.createElementNS(NS, 'g');
+      gRot.setAttribute('transform', `rotate(${rotDeg.toFixed(4)} ${pivot.x.toFixed(3)} ${pivot.y.toFixed(3)})`);
+      parentG.appendChild(gRot);
+      try { await visitSvgNode(el, gRot); }
+      finally { el.style.transform = prevInline; }
+      return;
+    }
 
     const rect = el.getBoundingClientRect();
     if (rect.width < 0.5 || rect.height < 0.5) return;
@@ -2251,6 +2300,26 @@ async function withPdfClipRect(pdf, x, y, w, h, draw) {
   finally { pdf.restoreGraphicsState(); }
 }
 
+// Run `draw` with a CSS-clockwise rotation of `deg` about the point (cx, cy) in the
+// jsPDF drawing space (pt, top-left origin). Used so free-canvas boxes with a CSS
+// rotate() export rotated (not flattened to their bounding box). Applied via jsPDF's
+// transformation matrix; if that API is missing or throws we degrade gracefully to
+// an unrotated draw inside the saved/restored graphics state (never a broken PDF).
+async function withPdfRotation(pdf, deg, cx, cy, draw) {
+  const canMatrix = deg && typeof pdf.setCurrentTransformationMatrix === 'function' && typeof pdf.Matrix === 'function';
+  if (!canMatrix) { await draw(); return; }
+  const r = deg * Math.PI / 180, cos = Math.cos(r), sin = Math.sin(r);
+  // Rotate about (cx,cy): M = T(cx,cy)·R·T(-cx,-cy). jsPDF's Matrix is (a,b,c,d,e,f).
+  const a = cos, b = sin, c = -sin, d = cos;
+  const e = cx - (a * cx + c * cy);
+  const f = cy - (b * cx + d * cy);
+  pdf.saveGraphicsState();
+  try { pdf.setCurrentTransformationMatrix(new pdf.Matrix(a, b, c, d, e, f)); }
+  catch (err) { console.warn('[export] PDF rotation unavailable, flattening this element:', err); }
+  try { await draw(); }
+  finally { pdf.restoreGraphicsState(); }
+}
+
 // Emits jsPDF path operations (moveTo/lineTo/curveTo/close) for an SVG `d` string.
 // tx/ty are coordinate-transform functions: SVG user units → jsPDF pt (top-left origin).
 // Caller must call fill()/stroke()/fillStroke() after this returns.
@@ -2514,6 +2583,19 @@ async function drawHtmlVectors(pdf, node, ox, oy, regionW, regionH, convertPaths
     const style = window.getComputedStyle(el);
     if (style.display === 'none' || style.visibility === 'hidden') return;
     if (parseFloat(style.opacity ?? '1') === 0) return;
+
+    // CSS rotate(): neutralise it, walk the axis-aligned subtree, and wrap the draw
+    // in a jsPDF rotation about the transform-origin. Additive (no-op unrotated).
+    const rotDeg = pureRotationDeg(style.transform);
+    if (rotDeg) {
+      const prevInline = el.style.transform;
+      el.style.transform = 'none';
+      const unrot = el.getBoundingClientRect();     // reading forces the reflow
+      const pivot = rotationPivot(style, unrot, rootRect);
+      try { await withPdfRotation(pdf, rotDeg, pivot.x * scaleX, pivot.y * scaleY, () => visit(el)); }
+      finally { el.style.transform = prevInline; }
+      return;
+    }
 
     const rect = el.getBoundingClientRect();
     if (rect.width < 0.5 || rect.height < 0.5) return;
