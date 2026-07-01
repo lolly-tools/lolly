@@ -1164,6 +1164,7 @@ const LIQUID_GLASS_SCRIPT = `<script>(function(){
     var svg=document.createElementNS(ns,'svg');
     svg.setAttribute('width','0');svg.setAttribute('height','0');
     svg.setAttribute('aria-hidden','true');
+    svg.setAttribute('class','lg-svg');
     svg.style.cssText='position:absolute;top:0;left:0;pointer-events:none;overflow:hidden';
 
     var defs=document.createElementNS(ns,'defs');
@@ -1196,15 +1197,30 @@ const LIQUID_GLASS_SCRIPT = `<script>(function(){
     document.body.appendChild(svg);
 
     var bf='url(#'+id+') blur(0.4px) contrast(1.15) brightness(1.07) saturate(1.2)';
-    btn.style.backdropFilter=bf;
-    btn.style.webkitBackdropFilter=bf;
+    // The feImage decodes its data-URL displacement map ASYNCHRONOUSLY. If we set
+    // backdrop-filter before that decode finishes, the map is empty, feDisplacementMap
+    // does nothing, and all you get is the faint blur — no refraction (the classic
+    // "worked on a warm cache, blank on a cold one" race). So decode the map first,
+    // THEN apply the filter, guaranteeing the refraction has something to sample.
+    function apply(){ btn.style.backdropFilter=bf; btn.style.webkitBackdropFilter=bf; }
+    var pre=new Image();
+    pre.onload=function(){ (pre.decode?pre.decode():Promise.resolve()).then(apply,apply); };
+    pre.onerror=apply;
+    pre.src=mapUrl;
   }
 
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      document.querySelectorAll('.btn-primary,.btn-secondary').forEach(function(btn,i){buildGlass(btn,i);});
+  function paint(){
+    // Clear any filters from a previous pass so a re-run (e.g. after webfonts change
+    // the button size) rebuilds cleanly instead of stacking duplicate-id filters.
+    document.querySelectorAll('svg.lg-svg').forEach(function(s){ s.remove(); });
+    document.querySelectorAll('.btn-primary,.btn-secondary').forEach(function(btn,i){
+      try{ buildGlass(btn,i); }catch(e){ if(window.console)console.warn('liquid-glass failed',e); }
     });
-  });
+  }
+  // Two rAFs so layout has settled and the buttons have their final size; re-run once
+  // on full load as a belt-and-braces guard for a cold image cache.
+  requestAnimationFrame(function(){ requestAnimationFrame(paint); });
+  window.addEventListener('load', paint);
 })();<\/script>`;
 
 const HERO_CANVAS_SCRIPT = `<script>(function(){
