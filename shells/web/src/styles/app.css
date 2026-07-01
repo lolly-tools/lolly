@@ -3733,6 +3733,193 @@ background-color:hsl(var(--background) / 1);
   min-height: 100%;
 }
 
+/* ─── WYSIWYG editor layout (render.layout:'editor') ──────────────────────────
+   A chromeless free-canvas surface: no input sidebar, but the fixed render canvas,
+   pan/zoom and full export UI are kept. The direct-manipulation overlay + left
+   toolbar are stage siblings mounted by shells/web/src/views/free-canvas.js. All
+   chrome carries [data-export-hide] and sits outside #tool-canvas, so it never
+   appears in exported files. These rules follow the [data-sidebar="hidden"] block
+   above so .is-editor re-centres the fixed canvas (that block left-aligns it). */
+.tool-layout.is-editor .tool-stage {
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  place-items: center;
+  background-color: hsl(var(--muted));
+  background-image:
+    linear-gradient(45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.045) 75%),
+    linear-gradient(45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.045) 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+/* Float the Export|Save pill over the stage (fixed → it can't shrink the canvas). */
+.tool-layout.is-editor .render-pill {
+  display: inline-flex;
+  position: fixed;
+  right: calc(1rem + var(--vv-right, 0px));
+  bottom: calc(1rem + var(--vv-bottom, 0px) + env(safe-area-inset-bottom));
+  margin: 0;
+  z-index: 30;
+}
+.tool-layout.is-editor.export-open .render-pill { display: none; }
+
+/* Left toolbar rail — reveal-dimmed at rest on desktop, always-on for touch. */
+.fc-toolbar {
+  position: absolute;
+  left: calc(10px + var(--vv-left, 0px));
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 16;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px;
+  border-radius: 16px;
+  background: hsl(var(--card) / 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px hsl(var(--border));
+  opacity: 0.5;
+  transition: opacity 0.18s ease;
+}
+.tool-stage:hover .fc-toolbar,
+.fc-toolbar:hover,
+.fc-toolbar:focus-within { opacity: 1; }
+
+.fc-btn {
+  width: 40px; height: 40px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 11px;
+  background: transparent; color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+.fc-btn svg { width: 21px; height: 21px; }
+.fc-btn:hover { background: hsl(var(--muted)); }
+.fc-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.fc-btn.is-armed { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.fc-sep { height: 1px; background: hsl(var(--border)); margin: 3px 4px; }
+.fc-sep-v { display: inline-block; width: 1px; height: 20px; background: hsl(var(--border)); margin: 0 3px; }
+
+/* Colour-swatch controls (canvas background + fill/text). Native colour input
+   fills the button; a rounded chip shows the current colour. */
+.fc-swatch { position: relative; overflow: hidden; }
+.fc-swatch input[type="color"] {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; border: none; padding: 0; margin: 0;
+}
+.fc-swatch::after {
+  content: ""; width: 22px; height: 22px; border-radius: 7px;
+  background: var(--sw, #cccccc); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+/* Toolbar popovers (add / arrange / align). */
+.fc-popover {
+  position: absolute; z-index: 24; min-width: 184px;
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+  padding: 5px; display: flex; flex-direction: column;
+}
+.fc-pop-item {
+  display: flex; align-items: center; gap: 9px;
+  border: none; background: transparent; color: inherit;
+  font: inherit; font-size: 13.5px; text-align: left;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+}
+.fc-pop-item:hover { background: hsl(var(--muted)); }
+.fc-pop-ic svg { width: 16px; height: 16px; display: block; }
+.fc-pop-sep { height: 1px; background: hsl(var(--border)); margin: 4px 2px; }
+
+/* Selection overlay — siblings of the canvas, never exported. */
+.fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+.fc-outline {
+  position: absolute; box-sizing: border-box;
+  border: 1.5px solid hsl(var(--primary));
+  transform-origin: 50% 50%;
+}
+.fc-handle {
+  position: absolute; width: 12px; height: 12px;
+  margin-left: -6px; margin-top: -6px;
+  background: #ffffff; border: 1.5px solid hsl(var(--primary));
+  border-radius: 3px; pointer-events: auto; touch-action: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+}
+.fc-handle::after { content: ""; position: absolute; inset: -9px; }  /* fat touch target */
+.fc-h-n, .fc-h-s { cursor: ns-resize; }
+.fc-h-e, .fc-h-w { cursor: ew-resize; }
+.fc-h-ne, .fc-h-sw { cursor: nesw-resize; }
+.fc-h-nw, .fc-h-se { cursor: nwse-resize; }
+.fc-h-rotate {
+  width: 14px; height: 14px; margin-left: -7px; margin-top: -7px;
+  border-radius: 50%; cursor: grab; background: hsl(var(--primary)); border-color: #ffffff;
+}
+.fc-rot-stem {
+  position: absolute; height: 1.5px; background: hsl(var(--primary));
+  transform-origin: 0 50%; margin-top: -0.75px; pointer-events: none;
+}
+
+/* Rubber-band (create-drag + marquee). */
+.fc-rubber {
+  position: absolute; z-index: 13;
+  border: 1.5px dashed hsl(var(--primary));
+  background: hsl(var(--primary) / 0.10);
+  pointer-events: none;
+}
+
+/* Contextual bar above the selection. */
+.fc-ctxbar {
+  position: absolute; z-index: 15; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 2px;
+  padding: 4px; border-radius: 12px;
+  background: hsl(var(--card) / 0.96);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24), 0 0 0 1px hsl(var(--border));
+  pointer-events: auto;
+}
+.fc-cbtn {
+  min-width: 32px; height: 32px; padding: 0 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 8px; background: transparent;
+  color: hsl(var(--foreground)); font: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.fc-cbtn svg { width: 18px; height: 18px; }
+.fc-cbtn:hover { background: hsl(var(--muted)); }
+.fc-cbtn.fc-danger:hover { background: #ef4444; color: #ffffff; }
+.fc-ctxbar .fc-swatch { width: 32px; height: 32px; border-radius: 8px; }
+.fc-ctxbar .fc-swatch::after { width: 18px; height: 18px; border-radius: 6px; }
+.fc-readout {
+  font-size: 11px; color: hsl(var(--muted-foreground));
+  padding: 0 6px; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.fc-text-only, .fc-img-only { display: none; }
+.fc-ctxbar.has-text .fc-text-only { display: inline-flex; }
+.fc-ctxbar.has-image .fc-img-only { display: inline-flex; }
+
+/* Armed-create cursor + gesture body state. */
+.tool-stage.fc-arming { cursor: crosshair; }
+body.fc-manipulating { user-select: none; -webkit-user-select: none; }
+
+/* Hide the editor chrome while the export shutter is closing (belt-and-braces —
+   detachExportHidden also removes it during the actual capture). */
+.tool-stage:has(.export-shutter.is-active) .fc-overlay,
+.tool-stage:has(.export-shutter.is-active) .fc-toolbar { opacity: 0; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-toolbar { transition: none; }
+}
+
+/* Touch: always-visible toolbar + larger hit targets. */
+@media (pointer: coarse) {
+  .fc-toolbar { opacity: 1; }
+  .fc-btn { width: 44px; height: 44px; }
+  .fc-handle { width: 16px; height: 16px; margin-left: -8px; margin-top: -8px; }
+  .fc-h-rotate { width: 18px; height: 18px; margin-left: -9px; margin-top: -9px; }
+}
+
 /* Canvas-layout file utilities (render.layout:"canvas") put the drop zone on
    #tool-content; sidebar tools with a dropToAdd blocks input (e.g. logo-wall) put
    it on the #tool-canvas preview. Either way, dragging files over the canvas draws
