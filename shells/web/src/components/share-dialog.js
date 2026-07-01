@@ -23,7 +23,7 @@ const AUTO_PACK_MIN = 1800;
 // truncate links past ~2000 chars, and the engine hard-rejects a tool URL past 4096
 // (tool-url.js MAX_URL) so it wouldn't even reopen. At that point we warn and nudge
 // the user to remove some elements rather than hand them a link that breaks on paste.
-const SHARE_WARN_LEN = 250;
+const SHARE_WARN_LEN = 2000;
 
 // Bitmap formats copy to the clipboard as a PNG; text/html copy as text/rich text.
 // Vector (svg/pdf) and video formats have no useful clipboard form, so the

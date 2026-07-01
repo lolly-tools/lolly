@@ -367,6 +367,8 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     if (!bar) return;
     const n = selected.size;
     bar.hidden = n === 0;
+    // Reserve bottom room (mobile) so the floating bar doesn't cover the last tile row.
+    viewEl.querySelector('.projects')?.classList.toggle('has-selection', n > 0);
     const count = bar.querySelector('.projects-bulkbar-count');
     if (count) count.textContent = `${n} selected`;
   }
@@ -964,19 +966,22 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const tools = (window.__toolIndex?.tools ?? []).filter(t => t.category !== 'utility');
     const dlg = document.createElement('dialog');
     dlg.className = 'projects-toolpicker';
+    dlg.setAttribute('aria-label', 'New from a tool');   // accessible name (title text removed)
     dlg.innerHTML = `
       <div class="toolpicker-head">
-        <h2 class="toolpicker-title">New from a tool</h2>
         <input class="toolpicker-search" type="search" placeholder="Search tools…" aria-label="Search tools" autocomplete="off" spellcheck="false">
         <button type="button" class="toolpicker-close" aria-label="Close">✕</button>
       </div>
       <div class="toolpicker-grid">
         ${tools.map(t => `
-          <button type="button" class="toolpicker-tile" data-tool="${escape(t.id)}">
-            <span class="toolpicker-icon" aria-hidden="true">${t.icon || ''}</span>
-            <span class="toolpicker-name">${escape(t.name)}</span>
-            ${t.description ? `<span class="toolpicker-desc">${escape(t.description)}</span>` : ''}
-          </button>`).join('')}
+          <div class="toolpicker-cell" data-tool="${escape(t.id)}">
+            <button type="button" class="toolpicker-tile" data-open-tool="${escape(t.id)}">
+              <span class="toolpicker-icon" aria-hidden="true">${t.icon || ''}</span>
+              <span class="toolpicker-name">${escape(t.name)}</span>
+              ${t.description ? `<span class="toolpicker-desc">${escape(t.description)}</span>` : ''}
+            </button>
+            <button type="button" class="toolpicker-add" data-add-tool="${escape(t.id)}" title="Add to this folder with default settings — without opening the editor" aria-label="Add ${escape(t.name)} to this folder without opening"><span class="toolpicker-add-label">+ Add</span></button>
+          </div>`).join('')}
       </div>`;
     document.body.appendChild(dlg);
     toolPickerEl = dlg;
@@ -986,17 +991,75 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     setTimeout(() => search.focus(), 0);
     search.addEventListener('input', () => {
       const q = search.value.trim().toLowerCase();
-      dlg.querySelectorAll('.toolpicker-tile').forEach(tile => { tile.hidden = q && !tile.textContent.toLowerCase().includes(q); });
+      // Match on the tile's own text (name + description), hide the whole CELL so the
+      // grid collapses — and so the "+ Add" button's label never pollutes the search.
+      dlg.querySelectorAll('.toolpicker-cell').forEach(cell => {
+        const tile = cell.querySelector('.toolpicker-tile');
+        cell.hidden = q && !tile.textContent.toLowerCase().includes(q);
+      });
     });
     dlg.querySelector('.toolpicker-close').addEventListener('click', () => dlg.close());
     dlg.querySelector('.toolpicker-grid').addEventListener('click', (e) => {
-      const tile = e.target.closest('[data-tool]'); if (!tile) return;
+      // "+ Add": file a default-settings session into this folder WITHOUT opening the
+      // editor, and leave the picker open so several tools can be added in a row.
+      const addBtn = e.target.closest('[data-add-tool]');
+      if (addBtn) { e.stopPropagation(); queueAddOnly(addBtn); return; }
+      // Default action: open the tool in the editor (files into this folder on first save).
+      const openBtn = e.target.closest('[data-open-tool]');
+      if (!openBtn) return;
       const target = (folderId && folderId !== UNCAT) ? folderId : '';
       try { sessionStorage.setItem(FILE_INTO_KEY, target); } catch { /* private mode */ }
       armReturn();
       dlg.close();
-      window.location.hash = '#/tool/' + tile.dataset.tool;
+      window.location.hash = '#/tool/' + openBtn.dataset.openTool;
     });
+  }
+
+  // Serialise "+ Add" clicks — each files a fresh default-settings session into the
+  // current folder. Chained so a rapid burst can't race store.moveItem's read-modify-
+  // write of the profile's folder list (a concurrent add could otherwise drop a sibling).
+  let addChain = Promise.resolve();
+  function queueAddOnly(btn) {
+    if (btn.dataset.busy) return;
+    btn.dataset.busy = '1';
+    btn.disabled = true;
+    setAddLabel(btn, 'Adding…');
+    addChain = addChain.then(async () => {
+      let ok = false;
+      try { await addDefaultSession(btn.dataset.addTool); ok = true; }
+      catch (err) { host.log?.('warn', 'projects: add-only failed', { tool: btn.dataset.addTool, error: String(err) }); }
+      if (!btn.isConnected) return;
+      setAddLabel(btn, ok ? '✓ Added' : 'Failed');
+      btn.classList.toggle('is-added', ok);
+      // Reset a moment later, fire-and-forget so it never stalls the next queued add.
+      setTimeout(() => {
+        if (!btn.isConnected) return;
+        setAddLabel(btn, '+ Add'); btn.classList.remove('is-added'); btn.disabled = false; delete btn.dataset.busy;
+      }, 1300);
+    });
+  }
+  function setAddLabel(btn, text) {
+    const l = btn.querySelector('.toolpicker-add-label'); if (l) l.textContent = text;
+  }
+
+  // Create a saved session for `toolId` seeded with its RESOLVED defaults (createRuntime
+  // alone runs onInit + profile binding — no offscreen render), file it into the current
+  // folder, and refresh the grid under the still-open picker. No thumbnail: a fresh
+  // default session shows the standard placeholder cover until it's opened and saved.
+  async function addDefaultSession(toolId) {
+    const tool = await getTool(toolId);
+    const runtime = await createRuntime(tool, host, {});
+    const values = Object.fromEntries(runtime.getModel().map(i => [i.id, i.value]));
+    const slot = `${tool.manifest.id}:${Date.now()}`;
+    await host.state.save(slot, {
+      ...values,
+      __toolId:        tool.manifest.id,
+      __toolVersion:   tool.manifest.version,
+      __export_format: tool.manifest.render?.formats?.[0] ?? '',
+    }, '');
+    const target = (folderId && folderId !== UNCAT) ? folderId : null;
+    if (target) await store.moveItem(slot, target, 'session');
+    if (mounted) { await reload(); render(); }
   }
 
   // Arm the return target so the tool's Save button lands back on this exact page —
