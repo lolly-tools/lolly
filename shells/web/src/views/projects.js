@@ -129,8 +129,14 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     // 'tool' has no meaning for folders → keep stored order.
     return a;
   }
-  // Tile sub-line count = a folder's own items PLUS its direct sub-folders.
-  const tileItemCount = (f) => (f.items?.length ?? 0) + childFolders(folders, f.id).length;
+  // Tile / header count = every renderable file (session or image) in a folder's WHOLE
+  // subtree — exactly what "Render folder" would output — so "N items" matches the number
+  // of files you'd get even when they live in sub-folders. Sub-folders are containers, not
+  // files, so they aren't counted themselves (a folder of two sub-folders holding 11
+  // sessions reads "11 items", not "2"). Mirrors renderFolder's subtreeItems gather.
+  const tileItemCount = (f) =>
+    [f.id, ...descendantFolderIds(folders, f.id)]
+      .reduce((n, cid) => n + (folders.find(x => x.id === cid)?.items?.length ?? 0), 0);
 
   // ── selection helpers ───────────────────────────────────────────────────────
   const isSelected = (ref) => selected.has(ref);
@@ -200,7 +206,9 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
     const subfolders = isUncat ? [] : sortFolders(childFolders(folders, id));
     const sessions = sortSessions(isUncat ? uncategorised() : sessionsInFolder(folder));
     const title = isUncat ? 'Uncategorised' : folder.name;
-    const count = subfolders.length + sessions.length;
+    // Header count matches the folder tile: total renderable files in the whole subtree
+    // (Uncategorised is flat, so its direct session count is already the full picture).
+    const count = isUncat ? sessions.length : tileItemCount(folder);
 
     // Breadcrumb + parent — the back arrow climbs ONE level (to the parent folder, or
     // the root), and the trail links every ancestor. The current folder is the <h2>.
