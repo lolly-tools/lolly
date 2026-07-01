@@ -28,6 +28,17 @@ export function createPreviewsAPI(db) {
       try { return await db.getAll(STORE); }
       catch { return []; }
     },
+    /**
+     * Approximate bytes this cache occupies, for the storage UI. Thumbs are
+     * data-URL strings (ASCII, so length ≈ bytes — same byte-estimate spirit as
+     * host.state.sizes()). try/catch → 0 so a missing/rebuilt store never throws.
+     */
+    async size() {
+      try {
+        const recs = await db.getAll(STORE);
+        return recs.reduce((n, r) => n + (r?.thumb ? r.thumb.length : 0), 0);
+      } catch { return 0; }
+    },
     async get(toolId) {
       try { return (await db.get(STORE, toolId)) ?? null; }
       catch { return null; }

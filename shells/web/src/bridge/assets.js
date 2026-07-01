@@ -93,7 +93,12 @@ export function createAssetsAPI(db) {
      */
     async _uploadUserAsset(record) {
       const keys = await db.getAllKeys('user-assets');
-      if (!keys.includes(record.id) && keys.length >= MAX_USER_ASSETS) {
+      // The reserved profile headshot ('user/headshot') lives in this store but is not a
+      // library image — exclude it from the cap so the UI's "N/MAX" count (which hides the
+      // headshot) and the bridge agree, and a saved headshot never eats a library slot.
+      const HEADSHOT_KEY = 'user/headshot';
+      const libraryCount = keys.filter(k => k !== HEADSHOT_KEY).length;
+      if (record.id !== HEADSHOT_KEY && !keys.includes(record.id) && libraryCount >= MAX_USER_ASSETS) {
         throw userAssetError(
           `You've reached your limit of ${MAX_USER_ASSETS} saved images. Remove one to add another.`,
           'USER_ASSET_LIMIT',

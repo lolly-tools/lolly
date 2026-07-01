@@ -41,6 +41,15 @@
   --input:                  214 28% 84%;
   --ring:                   171 62% 12%;
 
+  /* Storage-meter palette — one ordered teal→spring-green ramp (on-brand, never
+     rainbow) for the breakdown segments; --store-other is a desaturated neutral
+     ("not a real category", reinforced by a hatch). */
+  --store-1:                171 60% 20%;
+  --store-2:                166 50% 32%;
+  --store-3:                159 46% 43%;
+  --store-4:                150 52% 55%;
+  --store-other:            205 10% 62%;
+
   --radius:                 1rem;
 }
 
@@ -76,6 +85,13 @@
   --input:                  217 33% 18%;
   --ring:                   151 57% 46%;
 
+  /* Storage-meter palette (see light theme). Lifted for legibility on near-black. */
+  --store-1:                151 57% 46%;
+  --store-2:                160 50% 54%;
+  --store-3:                170 46% 60%;
+  --store-4:                150 58% 70%;
+  --store-other:            215 12% 46%;
+
   --radius:                 1rem;
 }
 
@@ -110,6 +126,13 @@
   --border:                 171 36% 33%;
   --input:                  171 36% 33%;
   --ring:                   151 57% 46%;
+
+  /* Storage-meter palette (see light theme). Tuned for the dark-teal card base. */
+  --store-1:                151 57% 52%;
+  --store-2:                146 52% 60%;
+  --store-3:                160 46% 64%;
+  --store-4:                140 58% 72%;
+  --store-other:            171 16% 54%;
 
   --radius:                 1rem;
 }
