@@ -860,11 +860,14 @@ img.tool-card-thumb{box-shadow: 0 .1em 1em #0002;}
   border-color: hsl(var(--primary));
 }
 
-/* CSS multi-column masonry. --cols scales with width; --items (set in JS)
-   caps it so a short list never stretches into empty columns. */
+/* CSS multi-column masonry. --cols scales with width. Column count is fixed by the
+   viewport, NOT the result count: a short list (search / filter) packs into the
+   leftmost columns at the SAME card width the viewport is used to, rather than
+   collapsing to fewer, wider columns — so a lone result stays card-sized instead of
+   ballooning to full width. Leftover columns on the right are just empty. */
 .tool-masonry {
   --cols: 4;
-  column-count: min(var(--cols), var(--items, 99));
+  column-count: var(--cols);
   column-gap: 14px;
   /* Top padding clears the fixed top-right cluster (filter / saved / profile) now
      that the sticky pill bar — which used to hold this space — is gone. */
@@ -3768,21 +3771,27 @@ background-color:hsl(var(--background) / 1);
 }
 .tool-layout.is-editor.export-open .render-pill { display: none; }
 
-/* Left toolbar rail — reveal-dimmed at rest on desktop, always-on for touch. */
-.fc-toolbar {
+/* Left toolbar rail — reveal-dimmed at rest on desktop, always-on for touch.
+   Vertically centred by a flex DOCK wrapper — NOT a transform. The rail must not
+   carry `transform`/`backdrop-filter`, since either would become the containing
+   block for its colour-picker popover's `position:fixed` and knock it off-screen. */
+.fc-toolbar-dock {
   position: absolute;
-  left: calc(10px + var(--vv-left, 0px));
-  top: 50%;
-  transform: translateY(-50%);
+  left: 0; top: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: calc(10px + var(--vv-left, 0px));
+  pointer-events: none;
   z-index: 16;
+}
+.fc-toolbar {
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   gap: 5px;
   padding: 7px;
   border-radius: 16px;
-  background: hsl(var(--card) / 0.92);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: hsl(var(--card) / 0.95);
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px hsl(var(--border));
   opacity: 0.5;
   transition: opacity 0.18s ease;
@@ -3872,14 +3881,14 @@ background-color:hsl(var(--background) / 1);
   pointer-events: none;
 }
 
-/* Contextual bar above the selection. */
+/* Contextual bar above the selection. Its `left` is JS-centred (NOT translateX,
+   and no backdrop-filter) so its colour-picker popover's `position:fixed` stays
+   viewport-relative rather than anchoring to a transformed/filtered ancestor. */
 .fc-ctxbar {
-  position: absolute; z-index: 15; transform: translateX(-50%);
+  position: absolute; z-index: 15;
   display: flex; align-items: center; gap: 2px;
   padding: 4px; border-radius: 12px;
-  background: hsl(var(--card) / 0.96);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  background: hsl(var(--card) / 0.97);
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24), 0 0 0 1px hsl(var(--border));
   pointer-events: auto;
 }
