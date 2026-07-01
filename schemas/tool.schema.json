@@ -78,9 +78,9 @@
         },
         "layout": {
           "type": "string",
-          "enum": ["sidebar", "canvas"],
+          "enum": ["sidebar", "canvas", "editor"],
           "default": "sidebar",
-          "description": "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area — a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself. For on-device file utilities (e.g. a metadata stripper) where there are no per-property controls and the whole job is 'drop a file → get a file back'. Input semantics are unchanged: the file stays a normal declared input, so CLI/URL mode and the exportFile hook work identically."
+          "description": "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area — a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged."
         },
         "dims": {
           "type": "boolean",
@@ -484,6 +484,44 @@
                 "properties": {
                   "field": { "type": "string", "description": "id of the block's `asset` sub-field that each dropped file is uploaded into." },
                   "accept": { "type": "string", "description": "MIME accept filter for dropped files (default \"image/*\"). A trailing /* matches a whole type group." }
+                }
+              },
+              "canvas": {
+                "type": "object",
+                "description": "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay — select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute — that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format — never reorder or remove once shipped.",
+                "properties": {
+                  "idField":       { "type": "string", "description": "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'." },
+                  "xField":        { "type": "string", "description": "Number sub-field: box left, in canvas (native render) pixels. Default 'x'." },
+                  "yField":        { "type": "string", "description": "Number sub-field: box top, in canvas pixels. Default 'y'." },
+                  "wField":        { "type": "string", "description": "Number sub-field: box width, in canvas pixels. Default 'w'." },
+                  "hField":        { "type": "string", "description": "Number sub-field: box height, in canvas pixels. Default 'h'." },
+                  "rotationField": { "type": "string", "description": "Number sub-field: clockwise rotation in degrees about the box centre. Default 'rot'." },
+                  "shapeField":    { "type": "string", "description": "Select sub-field: box shape (e.g. rectangle/rounded/ellipse)." },
+                  "radiusField":   { "type": "string", "description": "Number sub-field: corner radius in px (used when shape is rounded)." },
+                  "fillField":     { "type": "string", "description": "Color sub-field: box background fill (empty = transparent)." },
+                  "opacityField":  { "type": "string", "description": "Number sub-field: box opacity 0–100." },
+                  "imageField":    { "type": "string", "description": "Asset sub-field: image drawn inside the box (object-fit: cover)." },
+                  "textField":     { "type": "string", "description": "Text sub-field: text drawn inside the box." },
+                  "textColorField":{ "type": "string", "description": "Color sub-field: text colour." },
+                  "fontSizeField": { "type": "string", "description": "Number sub-field: text size in px." },
+                  "alignField":    { "type": "string", "description": "Select sub-field: horizontal text alignment (left/center/right)." },
+                  "valignField":   { "type": "string", "description": "Select sub-field: vertical text alignment (top/middle/bottom)." },
+                  "weightField":   { "type": "string", "description": "Select sub-field: text weight." },
+                  "minSize":       { "type": "number", "description": "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
+                  "addKinds": {
+                    "type": "array",
+                    "description": "The kinds of box the 'add' tool offers. Each entry seeds a new box's fields (id excluded — the shell assigns it).",
+                    "items": {
+                      "type": "object",
+                      "required": ["id"],
+                      "properties": {
+                        "id":     { "type": "string", "description": "Kind id (also the default select value of the shape/kind field if present)." },
+                        "label":  { "type": "string", "description": "Menu label." },
+                        "icon":   { "type": "string", "description": "Optional inline SVG or glyph for the menu entry." },
+                        "seed":   { "type": "object", "description": "Field values a newly-added box of this kind starts at (merged over the block's declared defaults).", "additionalProperties": true }
+                      }
+                    }
+                  }
                 }
               }
             }

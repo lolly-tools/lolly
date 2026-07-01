@@ -22,6 +22,12 @@
   <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
         font-family="system-ui, sans-serif" font-size="34" fill="#9ca3af">{{default note "Choose an image to stretch"}}</text>
   {{/if}}
+  <!-- Optional brand overlay (SUSE logo + animated lower-third name card), built as an
+       SVG-string in hooks.js and injected here as SVG children so it survives raster,
+       video AND vector export. Empty string when every overlay control is off. Its own
+       <image> elements carry x/y/width/height and MUST NOT be force-sized by the script
+       below (which is why that loop is scoped to the base/top frame images only). -->
+  {{{overlaySvg}}}
 </svg>
 <script>
 // Sync the SVG frame to the export dimension controls so non-square exports compose
@@ -39,7 +45,9 @@
   svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
   svg.setAttribute('width', W);
   svg.setAttribute('height', H);
-  var ims = svg.querySelectorAll('image');
+  // Only the base/top frame images fill the whole frame; the brand-overlay images
+  // (logo, headshot chip) carry their own x/y/width/height and must be left alone.
+  var ims = svg.querySelectorAll('image[data-ps-top],image[data-ps-base]');
   for (var i = 0; i < ims.length; i++) { ims[i].setAttribute('width', W); ims[i].setAttribute('height', H); }
   // Drop the previous-frame base layer once the new (top) image has painted, so the
   // settled DOM / export carries a single image. The base only exists for one render

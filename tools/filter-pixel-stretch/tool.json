@@ -182,6 +182,138 @@
         { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50  }
       ]
     },
+    {
+      "id": "noFilter",
+      "label": "No filter (show raw)",
+      "section": "Overlay",
+      "type": "boolean",
+      "default": false,
+      "help": "Show the original photo or live camera feed untouched — handy for placing just a logo / lower-third over the raw footage."
+    },
+    {
+      "id": "showLogo",
+      "label": "SUSE logo overlay",
+      "section": "Overlay",
+      "type": "boolean",
+      "default": false,
+      "help": "Overlay the SUSE logo on the result. Off by default."
+    },
+    {
+      "id": "logoPosition",
+      "label": "Logo position",
+      "section": "Overlay",
+      "type": "select",
+      "default": "top-right",
+      "showIf": { "showLogo": true },
+      "options": [
+        { "value": "top-left", "label": "Top left" },
+        { "value": "top-right", "label": "Top right" },
+        { "value": "bottom-left", "label": "Bottom left" },
+        { "value": "bottom-right", "label": "Bottom right" },
+        { "value": "top", "label": "Top centre" },
+        { "value": "bottom", "label": "Bottom centre" },
+        { "value": "center", "label": "Centre" },
+        { "value": "full", "label": "Full (watermark)" }
+      ]
+    },
+    {
+      "id": "logoStyle",
+      "label": "Logo colour",
+      "section": "Overlay",
+      "type": "select",
+      "default": "white",
+      "showIf": { "showLogo": true },
+      "options": [
+        { "value": "white", "label": "White" },
+        { "value": "green", "label": "Green" },
+        { "value": "black", "label": "Black" }
+      ],
+      "help": "White and green read on dark or busy footage; black suits light backgrounds."
+    },
+    {
+      "id": "logoScale",
+      "label": "Logo size",
+      "section": "Overlay",
+      "type": "number",
+      "display": "slider",
+      "default": 1,
+      "min": 0.25,
+      "max": 3,
+      "step": 0.05,
+      "showIf": { "showLogo": true },
+      "help": "Scale the logo up or down."
+    },
+    {
+      "id": "lowerThird",
+      "label": "Lower-third name card",
+      "section": "Overlay",
+      "type": "boolean",
+      "default": false,
+      "help": "A gently-animated name card that draws in over the footage. Uses your profile name & headshot."
+    },
+    {
+      "id": "ltTheme",
+      "label": "Card style",
+      "section": "Overlay",
+      "type": "select",
+      "default": "bar",
+      "showIf": { "lowerThird": true },
+      "options": [
+        { "value": "bar", "label": "SUSE brand bar" },
+        { "value": "minimal", "label": "Minimal" },
+        { "value": "glass", "label": "Glass" }
+      ]
+    },
+    {
+      "id": "ltPosition",
+      "label": "Card position",
+      "section": "Overlay",
+      "type": "select",
+      "default": "left",
+      "showIf": { "lowerThird": true },
+      "options": [
+        { "value": "left", "label": "Bottom left" },
+        { "value": "center", "label": "Bottom centre" },
+        { "value": "right", "label": "Bottom right" }
+      ]
+    },
+    {
+      "id": "firstname",
+      "label": "First name",
+      "section": "Overlay",
+      "type": "text",
+      "default": "",
+      "bindToProfile": "firstname",
+      "showIf": { "lowerThird": true }
+    },
+    {
+      "id": "lastname",
+      "label": "Last name",
+      "section": "Overlay",
+      "type": "text",
+      "default": "",
+      "bindToProfile": "lastname",
+      "showIf": { "lowerThird": true }
+    },
+    {
+      "id": "title",
+      "label": "Role / subtitle",
+      "section": "Overlay",
+      "type": "text",
+      "default": "",
+      "showIf": { "lowerThird": true },
+      "help": "Optional line below the name — e.g. a role or event."
+    },
+    {
+      "id": "ltHeadshot",
+      "label": "Headshot (optional)",
+      "section": "Overlay",
+      "type": "asset",
+      "assetType": "raster",
+      "allowUpload": true,
+      "showIf": { "lowerThird": true },
+      "help": "Defaults to your profile headshot. Pick or upload another to override."
+    },
     { "id": "width",  "label": "Width",  "type": "number", "default": 1080, "min": 1, "max": 8000, "group": "export" },
     { "id": "height", "label": "Height", "type": "number", "default": 1080, "min": 1, "max": 8000, "group": "export" }
   ]

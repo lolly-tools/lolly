@@ -392,10 +392,24 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   // and an explicit empty actions list (opted-out file utilities) excludes it.
   const canSaveSession = (tool.manifest.render.actions ?? ['copy', 'download', 'save']).includes('save');
   const canvasLayout = tool.manifest.render.layout === 'canvas';
+  // The WYSIWYG "editor" layout: a chromeless full-canvas surface (no input
+  // sidebar) that KEEPS the fixed render canvas + the full render/export
+  // scaffolding, so it exports like a normal tool. The direct-manipulation overlay
+  // (select / drag / resize / rotate / z-order / align) is mounted below.
+  const editorLayout = tool.manifest.render.layout === 'editor';
+  // The blocks input the editor manipulates directly (carries the `canvas` flag).
+  const canvasEditInput = editorLayout
+    ? tool.manifest.inputs?.find(i => i.type === 'blocks' && i.canvas)
+    : null;
   // Hide the sidebar for pure-canvas utilities: either no inputs at all, or an
   // explicit canvas layout — where the tool's single file input becomes a
   // drag-and-drop / click-to-pick zone on the canvas itself (setupCanvasFileDrop).
+  // NOTE: editorLayout is deliberately NOT hideSidebar — it needs the live canvas
+  // node + export UI. It only removes the input aside (via showAside below).
   const hideSidebar = (noExport && !hasInputs) || canvasLayout;
+  // Whether the input aside is present. Editor mode drops it but is not hideSidebar.
+  const showAside = !hideSidebar && !editorLayout;
+  const noAside   = !showAside;   // no visible input aside (hidden-canvas OR editor)
   // The one declared file input a canvas-layout tool presents as that drop zone.
   const canvasFileInput = canvasLayout ? tool.manifest.inputs?.find(i => i.type === 'file') : null;
   // A sidebar tool with a `dropToAdd` blocks input (e.g. logo-wall) also turns its
@@ -437,7 +451,7 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const savedWidth  = Number(localStorage.getItem('sidebarWidth') ?? SIDEBAR_DEFAULT);
   // The desktop export panel anchors to the sidebar's bottom edge, so ?options
   // needs the sidebar open even if this device last left it collapsed (width 0).
-  const sidebarOpen = (isFull || hideSidebar) ? false : (showExportPanel || savedWidth > 0);
+  const sidebarOpen = (isFull || hideSidebar || editorLayout) ? false : (showExportPanel || savedWidth > 0);
   const openWidth   = savedWidth > 0 ? savedWidth : SIDEBAR_DEFAULT;
 
   // A saved design (or a shared URL) can reference an image the user has since
@@ -453,9 +467,9 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     </div>` : '';
 
   viewEl.innerHTML = `
-    ${hideSidebar ? `<a href="/" class="tools-home home-full">Tools</a>` : ''}
-    <div class="tool-layout" id="tool-layout" data-sidebar="${hideSidebar ? 'hidden' : (sidebarOpen ? 'open' : 'closed')}">
-      ${!hideSidebar ? `
+    ${noAside ? `<a href="/" class="tools-home home-full">Tools</a>` : ''}
+    <div class="tool-layout${editorLayout ? ' is-editor' : ''}" id="tool-layout" data-sidebar="${noAside ? 'hidden' : (sidebarOpen ? 'open' : 'closed')}">
+      ${showAside ? `
         <aside class="sidebar" id="tool-sidebar">
           <div class="sidebar-header">
             <div class="sidebar-back-row">
@@ -483,9 +497,9 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
              clipped by the sheet's overflow, which must stay hidden so the form
              can't spill past the sheet's rounded edge. -->
         <button type="button" class="sheet-grip" id="sheet-grip" aria-label="Drag to resize controls, tap to expand"></button>
-      ` : ''}
+      ` : (editorLayout ? `<div class="tool-actions" id="tool-actions"></div>` : '')}
       <div class="tool-stage" id="tool-stage">
-        ${!hideSidebar ? `<button class="fullscreen-toggle-float" id="fullscreen-toggle-float" aria-label="Expand sidebar"></button>` : ''}
+        ${showAside ? `<button class="fullscreen-toggle-float" id="fullscreen-toggle-float" aria-label="Expand sidebar"></button>` : ''}
         ${hideSidebar && onDevice ? `<div class="on-device-badge on-device-badge--float" title="This tool runs entirely in your browser. Your file is never uploaded.">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <span>Runs on your device — nothing is uploaded</span>
@@ -528,9 +542,12 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
   const styleEl = document.createElement('style');
   {
     const toolCss = tool.styles ? scopeCss(tool.styles, canvasScope) : '';
-    styleEl.textContent = `${toolCss}
+    // The editor layout owns its own selection chrome (free-canvas.js), so skip the
+    // generic click-to-focus hover outline that would double up on every box.
+    const focusHint = editorLayout ? '' : `
 ${canvasScope} [data-canvas-input] { cursor: pointer; }
 ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,0.35); outline-offset: 3px; border-radius: 2px; }`;
+    styleEl.textContent = `${toolCss}${focusHint}`;
     document.head.appendChild(styleEl);
   }
 
@@ -696,7 +713,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // sidebar toggle so the preview returns to a clean fit.
   let stageZoom = null;
 
-  if (!hideSidebar) {
+  if (showAside) {
     fullscreenToggle.addEventListener('click', () => {
       const opening = layout.dataset.sidebar !== 'open';
       setSidebarWidth(opening ? getRestoreWidth() : 0);
@@ -873,7 +890,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // it on mobile, where it's a viewport FAB the sheet's overflow would clip.
     const placeActions = () => {
       if (actionsEl.parentElement !== exportBody) exportBody.appendChild(actionsEl);
-      const fabDest = mqMobile.matches ? layout : sidebarEl;
+      // No sidebar in editor mode → the pill floats over the stage (like mobile).
+      const fabDest = (mqMobile.matches || editorLayout || !sidebarEl) ? layout : sidebarEl;
       if (renderPill.parentElement !== fabDest) fabDest.appendChild(renderPill);
     };
     renderFab.setAttribute('aria-haspopup', 'dialog');
@@ -1210,6 +1228,23 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       this.textContent = 'Shrunk!';
       setTimeout(() => { this.textContent = prev; }, 1500);
     });
+  }
+
+  // WYSIWYG editor overlay (render.layout:'editor'): mount the direct-manipulation
+  // layer over the live canvas. Dynamically imported (gated, never static) so it's
+  // only pulled in for editor-layout tools — the engine and every other tool are
+  // untouched. It reads/writes the flat `boxes` array through runtime.setInput.
+  if (editorLayout && canvasEditInput && canvasEl && stageEl) {
+    import('./free-canvas.js').then(({ initFreeCanvas }) => {
+      if (!viewEl.isConnected) return;   // navigated away before the chunk loaded
+      const fc = initFreeCanvas({
+        viewEl, stageEl, canvasEl, outerEl, runtime, host,
+        input: canvasEditInput, nativeW, nativeH,
+        onDirty: markUserDirty,
+      });
+      const prevCleanup = viewEl._cleanup;
+      viewEl._cleanup = () => { try { fc.destroy(); } catch (e) { console.error(e); } prevCleanup?.(); };
+    }).catch(err => console.error('[layout-studio] editor overlay failed to load:', err));
   }
 
   // Intercept tools-home nav clicks — offer save dialog if inputs have changed.

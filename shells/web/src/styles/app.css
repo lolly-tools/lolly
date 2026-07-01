@@ -1465,6 +1465,14 @@ a.gtile-name:focus-visible::after {
   display: flex; align-items: center; justify-content: center; color: hsl(var(--muted-foreground));
 }
 .folder-cell--batch svg { width: 20px; height: 20px; opacity: 0.5; }
+/* Folders + the "New folder/tool" create tiles are COMPACT cards: a short preview
+   banner instead of the big 4/3 box, so a folder no longer towers over its name and a
+   row of folders reads as a tidy band with the names aligned. Saved-session tiles keep
+   their 4/3 preview (they show the actual creation). */
+.folder-tile--folder .folder-mosaic,
+.folder-tile--folder .tile-cover,
+.tile-cover--create { aspect-ratio: auto; height: 90px; }
+.tile-cover--batch svg { width: 30px; height: 30px; }
 .tile-meta { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px 10px; min-width: 0; }
 .tile-title {
   font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -1585,15 +1593,14 @@ a.gtile-name:focus-visible::after {
    .projects top padding) — the toggle is now position:fixed, out of flow. */
 .gallery { padding-top: 52px; }
 
-/* Fixed-width tiles packed top-left (no 1fr stretch) — file-manager convention.
-   `grid-auto-rows: 1fr` + `align-items: stretch` makes every tile the SAME height as
-   its tallest sibling (folders, sessions and the create tiles all line up), so a row of
-   folders reads as one even band instead of ragged cards. The cover keeps its 4/3
-   aspect-ratio (it sizes off width, not the stretched height); only the card body grows
-   to fill, so nothing distorts — the extra space is just card background under the meta. */
+/* Fixed-width tiles packed top-left (file-manager convention). Tiles top-align
+   (`align-items: start`) at their natural height — folders + create tiles are compact
+   (short preview banner, uniform, so their names line up in a tidy row) and saved-session
+   tiles keep their taller 4/3 preview. (Earlier this stretched every tile to the tallest
+   via `grid-auto-rows: 1fr`, which made folders tower over their names — dropped.) */
 .projects-grid {
   grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px;
-  align-items: stretch; grid-auto-rows: 1fr;
+  align-items: start;
   padding:3.6rem 0 1rem;
 }
 
@@ -1639,12 +1646,12 @@ a.gtile-name:focus-visible::after {
 .folder-tile--create { border-style: dashed; background: transparent; }
 .folder-tile--create:hover { border-color: hsl(var(--primary) / 0.7); background: hsl(var(--primary) / 0.04); }
 .tile-cover--create {
-  display: flex; align-items: center; justify-content: center; aspect-ratio: 4 / 3;
+  display: flex; align-items: center; justify-content: center; height: 90px;   /* compact, matches folder tiles */
   color: hsl(var(--muted-foreground)); background: transparent;
   border-bottom: 0;   /* override the base .tile-cover divider — create tiles are seamless */
 }
 .folder-tile--create:hover .tile-cover--create { color: hsl(var(--primary)); }
-.tile-cover--create svg { width: 34px; height: 34px; }
+.tile-cover--create svg { width: 30px; height: 30px; }
 
 /* Breadcrumb trail above a folder's header — links each ancestor back up the tree. */
 .projects-crumbs {
