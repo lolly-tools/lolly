@@ -15,6 +15,7 @@ import {
   num, boxRect, withRect, boxAABB, boxCorners, hitTest, marqueeHit,
   moveBoxes, resizeRect, alignBoxes, distributeBoxes, reorderZ,
   seedBox, normDragRect, snapAngle, clampBoxToCanvas, selectionAABB,
+  snapMove, snapPoint,
 } from '../shells/web/src/views/free-canvas-math.js';
 
 const CFG = {
@@ -197,6 +198,37 @@ test('clampBoxToCanvas keeps the centre on the artboard', () => {
   // centre was (-350,60) → x clamped so centre.x = 0
   assert.equal(b.x, -50);
   assert.equal(b.y, 10); // y already in range
+});
+
+test('snapMove snaps a near edge to a sibling edge and emits a guide', () => {
+  const active = { minX: 203, minY: 100, maxX: 303, maxY: 200 };   // left edge 3px off 200
+  const others = [{ minX: 200, minY: 400, maxX: 300, maxY: 500 }]; // sibling left at 200
+  const s = snapMove(active, others, { w: 1000, h: 1000 }, 6);
+  assert.equal(s.dx, -3);            // pull left edge to 200
+  assert.equal(s.dy, 0);             // nothing within 6px vertically
+  assert.ok(s.guides.some(g => g.x1 === 200 && g.x2 === 200));
+});
+
+test('snapMove snaps centre to the artboard centre', () => {
+  const active = { minX: 402, minY: 402, maxX: 602, maxY: 602 };   // centre (502,502)
+  const s = snapMove(active, [], { w: 1000, h: 1000 }, 6);
+  assert.equal(s.dx, -2);            // centre 502 → 500
+  assert.equal(s.dy, -2);
+});
+
+test('snapMove ignores targets beyond the threshold', () => {
+  const active = { minX: 220, minY: 220, maxX: 320, maxY: 320 };
+  const s = snapMove(active, [{ minX: 200, minY: 200, maxX: 300, maxY: 300 }], { w: 1000, h: 1000 }, 6);
+  assert.equal(s.dx, 0);
+  assert.equal(s.dy, 0);
+  assert.equal(s.guides.length, 0);
+});
+
+test('snapPoint snaps a pointer to a sibling right edge', () => {
+  const s = snapPoint(298, 55, [{ minX: 100, minY: 40, maxX: 300, maxY: 90 }], { w: 1000, h: 1000 }, 6);
+  assert.equal(s.x, 300);            // 298 → sibling maxX 300
+  assert.equal(s.y, 55);             // no y target near
+  assert.ok(s.guides.some(g => g.x1 === 300));
 });
 
 test('selectionAABB unions rotated boxes', () => {

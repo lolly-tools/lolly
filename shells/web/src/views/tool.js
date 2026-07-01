@@ -215,17 +215,24 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     } catch (e) { /* sessionStorage unavailable (private mode) */ }
   }
 
-  // Where the Save button returns to when it leaves. The Projects view arms a marker
-  // (the folder it launched from, e.g. `/#/p/<folderId>`) so a tool opened or resumed
-  // from a folder saves and lands BACK in that folder; opening straight from the gallery
-  // leaves no marker, so we fall back to '/' (the gallery). Read (not removed) here for
-  // the same double-mount reason as fileIntoFolder above; cleared on the next non-tool
-  // mount. The explicit "Tools" back-link stays gallery-bound by design.
+  // Where the tool returns to when it leaves. The Projects view arms a marker (the
+  // folder it launched from, e.g. `/#/p/<folderId>`) so a tool opened or resumed from a
+  // folder saves and lands BACK in that folder; opening straight from the gallery leaves
+  // no marker, so we fall back to '/' (the gallery). Read (not removed) here for the same
+  // double-mount reason as fileIntoFolder above; cleared on the next non-tool mount.
   let returnTo = '/';
   try {
     const back = sessionStorage.getItem('lolly:returnTo');
     if (back) returnTo = back;
   } catch (e) { /* sessionStorage unavailable (private mode) */ }
+
+  // The back link follows that same marker: a tool launched from a folder reads "Back"
+  // and returns to the folder; from the gallery it reads "Tools" and returns there. This
+  // keeps the editing session a round-trip — add/resume a tool in a folder, then step
+  // straight back into it — instead of dumping the user in the gallery.
+  const fromFolder = returnTo !== '/';
+  const backHref = fromFolder ? returnTo : '/';
+  const backLabel = fromFolder ? 'Back' : 'Tools';
 
   // Populate inputs from user profile if they match profile field names
   const profile = await host.profile.get();
@@ -467,13 +474,13 @@ export async function mountTool(viewEl, host, toolId, urlParams) {
     </div>` : '';
 
   viewEl.innerHTML = `
-    ${noAside ? `<a href="/" class="tools-home home-full">Tools</a>` : ''}
+    ${noAside ? `<a href="${escape(backHref)}" class="tools-home home-full">${backLabel}</a>` : ''}
     <div class="tool-layout${editorLayout ? ' is-editor' : ''}" id="tool-layout" data-sidebar="${noAside ? 'hidden' : (sidebarOpen ? 'open' : 'closed')}">
       ${showAside ? `
         <aside class="sidebar" id="tool-sidebar">
           <div class="sidebar-header">
             <div class="sidebar-back-row">
-              <a href="/" class="tools-home sidebar-back">Tools</a>
+              <a href="${escape(backHref)}" class="tools-home sidebar-back">${backLabel}</a>
             </div>
             <div class="sidebar-header-row">
               <span class="sidebar-title">${escape(tool.manifest.name)}</span>
@@ -1190,7 +1197,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     if (id) dirtyParams.add(id);
   }
 
-  const actionsApi = renderActions(actionsEl, tool.manifest, runtime, canvasEl, host, resetView, exportUnscaled, exportDefaults, syncUrl, playShutter, fileIntoFolder, returnTo);
+  const actionsApi = renderActions(actionsEl, tool.manifest, runtime, canvasEl, host, resetView, exportUnscaled, exportDefaults, syncUrl, playShutter, fileIntoFolder, returnTo, slot);
 
   // Copy-URL now lives in the actions bar (renderActions), alongside the export
   // buttons — its format/filename/dimension inputs are in the same element.
@@ -1247,7 +1254,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     }).catch(err => console.error('[layout-studio] editor overlay failed to load:', err));
   }
 
-  // Intercept tools-home nav clicks — offer save dialog if inputs have changed.
+  // Intercept back / home nav clicks — offer save dialog if inputs have changed. Leaving
+  // routes to backHref (the launch folder when the session came from one, else the
+  // gallery), matching the back link's label and the Save button's return target.
   if (hasInputs) {
     viewEl.querySelectorAll('.tools-home').forEach(link => {
       link.addEventListener('click', e => {
@@ -1256,8 +1265,8 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         // Offer "Save & leave" only when the tool actually has a save action.
         const canSave = !!actionsEl?.querySelector('[data-action="save"]') && !!actionsApi?.save;
         showUnsavedDialog(
-          canSave ? async () => { if (await actionsApi.save()) navigateTo('/'); } : null,
-          () => { navigateTo('/'); },
+          canSave ? async () => { if (await actionsApi.save()) navigateTo(backHref); } : null,
+          () => { navigateTo(backHref); },
         );
       });
     });
@@ -3564,7 +3573,14 @@ function controlHtml(input, modelValues = {}) {
 
 // fitCanvas and exportUnscaled are passed in so refreshCanvasPreview and the
 // export actions can coordinate with the responsive-scaling logic in mountTool.
-function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportUnscaled, exportDefaults = {}, onUrlSync = null, playShutter = () => {}, fileIntoFolder = null, returnTo = '/') {
+function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportUnscaled, exportDefaults = {}, onUrlSync = null, playShutter = () => {}, fileIntoFolder = null, returnTo = '/', initialSlot = null) {
+  // The slot this editing session writes to. Seeded from a resumed `?slot=` session,
+  // otherwise null until the first save mints one. Every subsequent save (the Save
+  // button, the render-pill quick-Save, "Save & leave") reuses it so edits UPDATE the
+  // same saved session in place instead of spawning a new one on each save. Without
+  // this, re-saving after an edit orphaned a fresh copy in Uncategorised and left the
+  // original folder card frozen at its first-save state.
+  let activeSlot = initialSlot;
   // Shareable-link button (wired by wireUpCopyUrl). A link glyph + label; the
   // label is swapped to "Copied!" on click, so it's wrapped in its own span to
   // keep the icon. Lives at the foot of the actions bar — after the render
@@ -3590,7 +3606,9 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     btn.disabled = true;
     label.textContent = 'Saving…';
     try {
-      const slot   = `${manifest.id}:${Date.now()}`;
+      // Reuse the session's slot after the first save (or when resuming an existing
+      // session) so a re-save updates it in place; only mint a new slot the first time.
+      const slot   = activeSlot || `${manifest.id}:${Date.now()}`;
       const values = Object.fromEntries(runtime.getModel().map(i => [i.id, i.value]));
       // The effective export format (user-selected, or the tool's default). Drives
       // a vector (SVG) thumbnail for vector tools — see captureThumbnail.
@@ -3610,6 +3628,10 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         __export_bleed:    readBleed(el),
         __export_marks:    readMarks(el),
       }, thumb);
+      // Remember the slot so the next save updates THIS session rather than creating a
+      // duplicate (see activeSlot above). Set before filing so a fresh first-save is
+      // both filed into its folder AND pinned as the active slot for later edits.
+      activeSlot = slot;
       // File a freshly-created session into the folder the Projects "+ New tool" flow
       // launched from (claimed at mount into fileIntoFolder — empty value = root/uncat
       // = null = no filing). One-shot, best-effort, never blocks the save.

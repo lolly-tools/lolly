@@ -331,6 +331,71 @@ export function normDragRect(x0, y0, x1, y1, minSize = 8) {
   return { x, y, w, h };
 }
 
+// ── Snapping ──────────────────────────────────────────────────────────────────
+// Design-tool "smart guides": while moving/resizing/creating, snap the active
+// box's edges + centres to the artboard (edges + centre) and to every OTHER box's
+// edges + centres, and report guide line segments to draw. All native px.
+
+function pickSnap(edges, targets, threshold) {
+  let best = null;
+  for (const e of edges) {
+    for (const t of targets) {
+      const d = t.v - e;
+      if (Math.abs(d) <= threshold && (!best || Math.abs(d) < Math.abs(best.d))) best = { d, line: t.v, span: t.span };
+    }
+  }
+  return best;
+}
+
+/**
+ * Snap a rigidly-translating selection: `active` and `others` are AABBs
+ * {minX,minY,maxX,maxY}. Returns { dx, dy, guides:[{x1,y1,x2,y2}] } — the extra
+ * translation that lands an edge/centre on a target, plus guide segments.
+ */
+export function snapMove(active, others, canvas, threshold) {
+  const acx = (active.minX + active.maxX) / 2, acy = (active.minY + active.maxY) / 2;
+  const xTargets = [
+    { v: 0, span: [0, canvas.h] }, { v: canvas.w / 2, span: [0, canvas.h] }, { v: canvas.w, span: [0, canvas.h] },
+  ];
+  const yTargets = [
+    { v: 0, span: [0, canvas.w] }, { v: canvas.h / 2, span: [0, canvas.w] }, { v: canvas.h, span: [0, canvas.w] },
+  ];
+  for (const o of others) {
+    const ocx = (o.minX + o.maxX) / 2, ocy = (o.minY + o.maxY) / 2;
+    const yspan = [Math.min(active.minY, o.minY), Math.max(active.maxY, o.maxY)];
+    const xspan = [Math.min(active.minX, o.minX), Math.max(active.maxX, o.maxX)];
+    xTargets.push({ v: o.minX, span: yspan }, { v: ocx, span: yspan }, { v: o.maxX, span: yspan });
+    yTargets.push({ v: o.minY, span: xspan }, { v: ocy, span: xspan }, { v: o.maxY, span: xspan });
+  }
+  const bx = pickSnap([active.minX, acx, active.maxX], xTargets, threshold);
+  const by = pickSnap([active.minY, acy, active.maxY], yTargets, threshold);
+  const guides = [];
+  if (bx) guides.push({ x1: bx.line, y1: bx.span[0], x2: bx.line, y2: bx.span[1] });
+  if (by) guides.push({ x1: by.span[0], y1: by.line, x2: by.span[1], y2: by.line });
+  return { dx: bx ? bx.d : 0, dy: by ? by.d : 0, guides };
+}
+
+/**
+ * Snap a single pointer/corner point (native px) to the artboard + sibling
+ * edge/centre lines. Used for create-drag and unrotated resize (the handle
+ * follows the pointer, so snapping the pointer aligns the moving edge).
+ * Returns { x, y, guides }.
+ */
+export function snapPoint(px, py, others, canvas, threshold) {
+  const xTargets = [{ v: 0 }, { v: canvas.w / 2 }, { v: canvas.w }];
+  const yTargets = [{ v: 0 }, { v: canvas.h / 2 }, { v: canvas.h }];
+  for (const o of others) {
+    xTargets.push({ v: o.minX }, { v: (o.minX + o.maxX) / 2 }, { v: o.maxX });
+    yTargets.push({ v: o.minY }, { v: (o.minY + o.maxY) / 2 }, { v: o.maxY });
+  }
+  const bx = pickSnap([px], xTargets, threshold);
+  const by = pickSnap([py], yTargets, threshold);
+  const guides = [];
+  if (bx) guides.push({ x1: bx.line, y1: 0, x2: bx.line, y2: canvas.h });
+  if (by) guides.push({ x1: 0, y1: by.line, x2: canvas.w, y2: by.line });
+  return { x: bx ? px + bx.d : px, y: by ? py + by.d : py, guides };
+}
+
 /** Clamp a box's rect so its centre stays within the artboard (never fully lost). */
 export function clampBoxToCanvas(box, cfg, canvas) {
   const r = boxRect(box, cfg);
