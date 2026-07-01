@@ -90,6 +90,10 @@ const SECTIONS = [
         { name: 'Zoom & pan', desc: 'Cmd/Ctrl-scroll or pinch to zoom; <code>Space</code>-drag or middle-drag to pan; <code>0</code> fit, <code>1</code> = 100%.' },
         { name: 'System dark mode', desc: 'Tools that support it adapt their canvas to your device’s light/dark preference.' },
       ] },
+      { icon: I('<path d="m4 4 7 17 2.5-6.5L20 12z"/>'), title: 'Free-canvas layout', features: [
+        { name: 'Direct manipulation', desc: 'Some tools open as a chromeless free canvas (<strong>Layout Studio</strong>): drag, resize and rotate boxes of text, shapes and images, with smart guides that snap to edges and centres.' },
+        { name: 'Edit in place', desc: 'Double-click a text box to type; pick fills and images from the same shared controls — then export through the exact same render path as every other tool, so the canvas <em>is</em> the file.' },
+      ] },
       { icon: I('<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>'), title: 'Live camera', features: [
         { name: 'Motion-reactive filters', desc: 'Hit “Go live” on a photo filter — halftone, scanline, posterize or duotone — and it tracks your webcam in real time, so the effect responds to movement.' },
         { name: 'Stays on your device', desc: 'Frames are read and processed locally and never leave the device; the camera is released the moment you stop or leave the tool.' },
@@ -106,11 +110,18 @@ const SECTIONS = [
       ] },
       { icon: ICONS.link, title: 'Share a link', features: [
         { name: 'The URL is the design', desc: 'Every input lives in the link — paste it to a colleague, bookmark it, or commit it.' },
+        { name: 'Shortest link', desc: 'A big design would make a long URL; the Share dialog offers a <strong>Shortest link</strong> that packs the whole state into a compact token so it stays short enough to paste anywhere — the readable form is always there too.' },
         { name: 'Act-on-open flags', desc: 'Add <code>&amp;export</code> to download on open, or <code>&amp;copy</code> to arm copy-to-clipboard.' },
       ] },
-      { icon: ICONS.save, title: 'Save & continue', features: [
+      { icon: ICONS.save, title: 'Save, organise & share', features: [
         { name: 'Named sessions', desc: 'Keep multiple saved sessions per tool, all device-local; Continue resumes your most recent.' },
+        { name: 'Projects & folders', desc: 'Organise saved work in the <strong>Projects</strong> view — group sessions into folders that nest as deep as you like, drag to move, rename, and file new sessions straight into a folder.' },
+        { name: 'Share a saved session', desc: 'Right-click any saved session for a link that reopens it with the exact same inputs — the full Share dialog, from Projects.' },
         { name: 'Copy to clipboard', desc: 'Paste an image straight into Slack, email or a doc; falls back to a download where the browser can’t.' },
+      ] },
+      { icon: I('<path d="m12 2 9 5v10l-9 5-9-5V7z"/><path d="m3 7 9 5 9-5M12 12v10"/><path d="m9.5 15 2 1.5 3.5-3"/>'), title: 'Render many at once', features: [
+        { name: 'Render a whole folder', desc: 'From Projects, export every saved session in a folder — recursing its sub-folders — as one nested zip. No Batch/Pro needed.' },
+        { name: 'Render a selection', desc: 'Multi-select tiles (tick a checkbox, drag a marquee, or Shift-click) and render the lot in one pass; a single session renders straight to its native file.' },
       ] },
       { icon: ICONS.grid, title: 'Batch (Pro) mode', features: [
         { name: 'Many at once', desc: 'A grid where each row is a set of inputs, all exported together — a dozen languages or every size variant in one pass.' },
@@ -150,7 +161,7 @@ const SECTIONS = [
   },
   {
     flag: 'formats', open: true, id: 'cap-formats', title: 'Export formats',
-    desc: 'Twenty formats across vector, raster, print, motion and data. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
+    desc: 'Two dozen formats across vector, raster, print, motion and data. A tool offers only the formats its author declared, and the picker hides any your browser can’t produce.',
     cards: [
       { icon: ICONS.vector, title: 'Vector', features: [
         { name: 'SVG', desc: 'Infinitely scalable and self-contained — text is outlined to paths (HarfBuzz-shaped) so it renders identically without the font installed.' },
@@ -344,7 +355,7 @@ export async function mountCapabilities(viewEl, _host) {
           <p class="plat-sub">Feature set: what Lolly can make • where Lolly runs •  how Lolly is used.</p>
           <div class="plat-stats">
             <span class="plat-stat" data-tool-count${toolCount == null ? ' hidden' : ''}><strong>${escape(String(toolCount ?? ''))}</strong>tools</span>
-            ${stat(20, 'export formats')}
+            ${stat(24, 'export formats')}
             ${stat(6, 'surfaces')}
           </div>
         </div>

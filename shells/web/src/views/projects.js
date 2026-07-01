@@ -270,7 +270,12 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
       </div>`;
 
     const gridClass = `folder-grid projects-grid${viewMode === 'list' ? ' projects-list' : ''}`;
-    const body = count
+    // Gate on whether there are TILES to show (sub-folders OR sessions), not on the
+    // subtree file count: an empty sub-folder is a real tile the user needs to see, but
+    // contributes 0 to `count` (tileItemCount ignores folders), so keying off `count`
+    // would hide a freshly-created empty sub-folder.
+    const hasTiles = subfolders.length > 0 || sessions.length > 0;
+    const body = hasTiles
       ? `<div class="${gridClass}">${tiles}${createFolder}${createTool}</div>`
       : `<div class="${gridClass}">${createFolder}${createTool}</div><p class="projects-empty">${isUncat ? 'No saved sessions are uncategorised yet.' : 'This folder is empty — add a tool or a sub-folder.'}</p>`;
 
@@ -954,7 +959,9 @@ export async function mountProjects(viewEl, host, folderId, opts = {}) {
   function startCreateTool() { openToolPicker(); }
 
   function openToolPicker() {
-    const tools = window.__toolIndex?.tools ?? [];
+    // Projects are creative sessions you file in a folder, so the "new tool" chooser
+    // omits utilities (on-device transforms, pickers, etc. — category 'utility').
+    const tools = (window.__toolIndex?.tools ?? []).filter(t => t.category !== 'utility');
     const dlg = document.createElement('dialog');
     dlg.className = 'projects-toolpicker';
     dlg.innerHTML = `

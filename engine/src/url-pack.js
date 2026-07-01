@@ -143,7 +143,15 @@ export async function packQuery(query) {
   if (!isPackAvailable() || query == null) return null;
   try {
     const bytes = new TextEncoder().encode(String(query));
-    return TAG_DEFLATE_RAW + bytesToBase64Url(await deflateRaw(bytes));
+    // Refuse to mint a token the decoder would then refuse. The encode and decode
+    // size limits MUST stay symmetric: unpackToken caps its output at MAX_UNPACKED
+    // and the token at MAX_TOKEN, so a token that trips either cap is one we could
+    // never reopen — a silent, unrecoverable break of decode(encode(x)) === x. When
+    // that happens the caller falls back to the readable URL, which round-trips
+    // unpacked (expandQuery is a no-op without a `z`).
+    if (bytes.length > MAX_UNPACKED) return null;
+    const token = TAG_DEFLATE_RAW + bytesToBase64Url(await deflateRaw(bytes));
+    return token.length > MAX_TOKEN ? null : token;
   } catch {
     return null;
   }

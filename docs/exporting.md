@@ -13,9 +13,18 @@ The actions in the export controls:
 - **Download** — save the file (the primary action).
 - **Copy** — put the image on your clipboard to paste straight into Slack, email, a doc. Where a browser can't copy images, it downloads instead and tells you.
 - **Save** — keep the current design as a saved tool session in your library.
-- **Copy URL / Share** — copy a link that reproduces the design (see [URL Mode](/info/url-mode.html)).
+- **Share** — opens the **Share dialog**: a copyable link that reproduces the design, on-visit toggles (fullscreen, export panel, download- or copy-on-open), and an optional **Shortest link** that packs the whole state into a compact token (see [URL Mode](/info/url-mode.html)).
 
 (A tool's author picks which of these appear; the default set is Copy, Download, and Save.)
+
+### Rendering many at once
+
+A single export is one file, but you can render **many** in one pass — each delivered as one `.zip`:
+
+- **Projects → Render folder** exports every saved session in a folder (and its sub-folders) as one nested zip; **Render selection** does the same for any multi-selection; a single saved session renders straight to its own file. No Batch/Pro needed — see [Using Lolly → Projects](/info/using.html).
+- **Batch (Pro)** renders a grid of input sets — every variant of one template at once.
+
+A saved session can also be re-shared as a tool link from Projects (it reconstructs the tool URL from the saved inputs), so a link reopens it with the exact same settings.
 
 ## Choosing a format
 

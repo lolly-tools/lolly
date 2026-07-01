@@ -86,7 +86,7 @@ function boxCss(b) {
 }
 
 function imgCss(b) {
-  var fit = FITS[String(b.fit)] ? String(b.fit) : 'cover';
+  var fit = FITS[String(b.fit)] ? String(b.fit) : 'contain';
   return 'object-fit:' + fit + ';';
 }
 

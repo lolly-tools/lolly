@@ -99,13 +99,28 @@ test('hasPackedState / isPackAvailable', async () => {
   assert.equal(hasPackedState(''), false);
 });
 
-test('unpackToken refuses a decompression bomb (output over the size cap)', async () => {
-  // Pack a payload larger than the 256 KB inflate cap; the token is tiny (deflate
-  // crushes the repetition), but unpacking must abort rather than allocate it.
-  const bomb = 'a'.repeat(400 * 1024);
-  const token = await packQuery(bomb);
-  assert.ok(token && token.length < 2048, 'bomb packs to a small token');
-  assert.equal(await unpackToken(token), null, 'over-cap inflation is rejected');
+test('packQuery refuses input over the size cap (encode/decode limits stay symmetric)', async () => {
+  // A large-but-compressible query would pack to a tiny token, but its inflated output
+  // exceeds unpackToken's cap — so packQuery must NOT mint it, or the app would produce
+  // a link it cannot reopen (silent, unrecoverable state loss). The caller then falls
+  // back to the readable URL, which round-trips unpacked.
+  const huge = 'a=' + 'x'.repeat(400 * 1024);
+  assert.equal(await packQuery(huge), null, 'over-cap input → null, not an unopenable token');
+  // A just-under-cap query still packs and round-trips.
+  const ok = 'a=' + 'x'.repeat(200 * 1024);
+  const token = await packQuery(ok);
+  assert.ok(token, 'under-cap input still packs');
+  assert.equal(await unpackToken(token), ok);
+});
+
+test('unpackToken refuses a decompression bomb minted out-of-band', async () => {
+  // A hostile link can carry a bomb token even though our own packQuery would refuse
+  // to make one; mint it directly (zlib, Node) and confirm the decode cap still holds.
+  const zlib = await import('node:zlib');
+  const raw = zlib.deflateRawSync(Buffer.from('a'.repeat(400 * 1024)));
+  const token = '1' + raw.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  assert.ok(token.length < 2048, 'bomb token is small');
+  assert.equal(await unpackToken(token), null, 'over-cap inflation is aborted → null');
 });
 
 test('packing is NOT unconditionally smaller (why the caller must gate on length)', async () => {

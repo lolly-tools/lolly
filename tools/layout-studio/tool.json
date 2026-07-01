@@ -55,7 +55,7 @@
         "addKinds": [
           { "id": "box", "label": "Box", "seed": { "kind": "box", "bg": "#30BA78", "shape": "rounded", "text": "" } },
           { "id": "text", "label": "Text", "seed": { "kind": "text", "bg": "", "shape": "rect", "text": "Text", "fg": "#0c322c", "fontSize": 64, "valign": "top" } },
-          { "id": "image", "label": "Image", "seed": { "kind": "image", "bg": "#eef1f0", "shape": "rounded", "fit": "cover", "text": "" } }
+          { "id": "image", "label": "Image", "seed": { "kind": "image", "bg": "#eef1f0", "shape": "rounded", "fit": "contain", "text": "" } }
         ]
       },
       "fields": [
@@ -96,7 +96,7 @@
           "id": "fit",
           "type": "select",
           "label": "Image fit",
-          "default": "cover",
+          "default": "contain",
           "options": [
             { "value": "cover", "label": "Cover (crop to fill)" },
             { "value": "contain", "label": "Contain (fit inside)" },

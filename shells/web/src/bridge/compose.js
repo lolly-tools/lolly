@@ -84,9 +84,12 @@ export function createComposeAPI(host) {
     if (!parsed) return null;
     let tool;
     try { tool = await getTool(parsed.toolId); } catch { return null; } // unknown id → 404 → null
-    // A pasted link may carry packed state (`?z=…`); expand before parsing.
+    // A pasted link may carry packed state (`?z=…`); expand before parsing. Return the
+    // EXPANDED query too — renderUrl mints the persistent embed id from it, not from the
+    // still-packed parsed.query (whose only param would be the reserved `z`, which gets
+    // stripped, yielding a stateless id that re-renders as defaults on reload).
     const query = await expandQuery(parsed.query);
-    return { parsed, tool, state: parseUrlState(query, tool.manifest) };
+    return { parsed, tool, query, state: parseUrlState(query, tool.manifest) };
   }
 
   // Describe a pasted tool URL for the picker UI (the "✦ Detected: <tool>" card):
@@ -121,7 +124,7 @@ export function createComposeAPI(host) {
   async function renderUrl(url, opts = {}) {
     const r = await resolveSpec(url);
     if (!r) return null;
-    const { parsed, tool, state } = r;
+    const { parsed, tool, state, query } = r;
     const supported = (tool.manifest.render?.formats ?? []).map(normFmt);
 
     const format = normFmt(opts.format) || normFmt(parsed.format)
@@ -152,8 +155,11 @@ export function createComposeAPI(host) {
 
     // Canonical identity: keep the user's own child input params verbatim (already
     // compact/encoded), drop any export-control params, then fold in the effective
-    // size. The strict embed form re-parses everywhere (parseEmbedUrl is host-locked).
-    const q = new URLSearchParams(parsed.query);
+    // size. Built from the EXPANDED query (not parsed.query) so a pasted PACKED link's
+    // state survives — otherwise the only param is the reserved `z`, which the delete
+    // loop strips, leaving a stateless id that re-renders as defaults on reload. The
+    // strict embed form re-parses everywhere (parseEmbedUrl is host-locked).
+    const q = new URLSearchParams(query);
     for (const k of RESERVED) q.delete(k);
     if (width) q.set('w', String(width));
     if (height) q.set('h', String(height));

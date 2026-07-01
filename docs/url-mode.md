@@ -182,7 +182,7 @@ These keys are never treated as tool inputs. They control shell-level behaviour.
 
 `export`, `copy`, `full`, `options`, and `nostage` are **presence flags** — the parameter value is ignored; what matters is whether the key appears in the URL.
 
-> **Building share links in the UI.** In the web shell you don't have to hand-write these. The **Share** button (in the export panel) opens a dialog with the ready-to-copy link plus a toggle for each on-visit flag — _open fullscreen_ (`full`), _open with the export panel expanded_ (`options`), _download automatically_ (`export`), _copy to clipboard_ (`copy`), and _pin tool version_ (`_v`). The copy toggle appears only for clipboard-friendly formats (bitmap/text/html) and is hidden for SVG, PDF, and video. Ticking a box rewrites the link in place.
+> **Building share links in the UI.** In the web shell you don't have to hand-write these. The **Share** button (in the export panel) opens a dialog with the ready-to-copy link plus a toggle for each on-visit flag — _open fullscreen_ (`full`), _open with the export panel expanded_ (`options`), _download automatically_ (`export`), _copy to clipboard_ (`copy`), and _pin tool version_ (`_v`). The copy toggle appears only for clipboard-friendly formats (bitmap/text/html) and is hidden for SVG, PDF, and video. Ticking a box rewrites the link in place. The **same dialog** is reachable from **Projects → Share link** on any saved session (it reconstructs the tool URL from the saved inputs).
 
 ### Packed links (`z`)
 
@@ -265,7 +265,7 @@ Supported values:
 | `webm` | WebM video (animated tools only; Chrome/Firefox/Android) |
 | `mp4` | MP4 video (animated tools only; Safari/iOS and recent Chrome) |
 
-Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid (the full set is the 22-value enum in `schemas/tool.schema.json`). Requesting an unsupported format falls back gracefully.
+Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid (the full set is the 24-value enum in `schemas/tool.schema.json`). Requesting an unsupported format falls back gracefully.
 
 ---
 
