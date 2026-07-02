@@ -23,7 +23,7 @@ test('charsFromDom flattens text with strong/em flags', () => {
 });
 
 test('charsFromDom: BR and block elements become newlines, nbsp becomes space', () => {
-  const chars = charsFromDom(root(t('a b'), el('BR'), el('DIV', t('c')), el('DIV', t('d'))));
+  const chars = charsFromDom(root(t('a\u00a0b'), el('BR'), el('DIV', t('c')), el('DIV', t('d'))));
   assert.equal(str(chars), 'a b\nc\nd');
 });
 

@@ -26,7 +26,7 @@ export function charsFromDom(root) {
   const walk = (node, b, i) => {
     for (const child of node.childNodes) {
       if (child.nodeType === 3) {
-        const text = String(child.nodeValue || '').replace(/ /g, ' ');
+        const text = String(child.nodeValue || '').replace(/\u00a0/g, ' ');
         for (const ch of text) out.push({ ch, b, i });
         continue;
       }
