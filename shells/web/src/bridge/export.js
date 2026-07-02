@@ -2249,19 +2249,36 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
 
     if (tag === 'g') {
       // Compose this group's transform onto the inherited one. Supports the
-      // translate(+scale) that d3.zoom emits (street-map pan/zoom lives here): SVG
-      // order is translate-then-scale, so the local translate is taken in the
-      // PARENT's scale and the scales multiply. Rotation/skew are not handled.
+      // translate(+scale) that d3.zoom emits (street-map pan/zoom lives here) and
+      // a rotate() for articulated illustrations (pose-geeko's limbs / head / tail
+      // / body). SVG order is translate-then-scale, so the local translate is taken
+      // in the PARENT's scale and the scales multiply; the rotation is applied last,
+      // about its pivot, via the PDF matrix. Skew is not handled.
       let ntx = tx, nty = ty, nsX = sX, nsY = sY;
       const t = el.getAttribute('transform') ?? '';
+      let rotDeg = 0, rotCx = 0, rotCy = 0;
       if (t) {
         const tm = t.match(/translate\(\s*([+-]?\d*\.?\d+)[,\s]\s*([+-]?\d*\.?\d+)\s*\)/) ??
                    t.match(/translate\(\s*([+-]?\d*\.?\d+)\s*\)/);
         const sm = t.match(/scale\(\s*([+-]?\d*\.?\d+)(?:[,\s]\s*([+-]?\d*\.?\d+))?\s*\)/);
         if (tm) { ntx += sX * parseFloat(tm[1]); nty += sY * parseFloat(tm[2] ?? '0'); }
         if (sm) { nsX = sX * parseFloat(sm[1]); nsY = sY * parseFloat(sm[2] ?? sm[1]); }
+        const rm = t.match(/rotate\(\s*([+-]?\d*\.?\d+)(?:[,\s]+([+-]?\d*\.?\d+)[,\s]+([+-]?\d*\.?\d+))?\s*\)/);
+        if (rm) { rotDeg = parseFloat(rm[1]); rotCx = rm[2] != null ? parseFloat(rm[2]) : 0; rotCy = rm[3] != null ? parseFloat(rm[3]) : 0; }
       }
-      for (const child of el.children) await visit(child, ntx, nty, nsX, nsY);
+      if (rotDeg) {
+        // Rotate pivot mapped to PDF pt through this group's composed diagonal
+        // transform. A reflection (negative determinant, e.g. a scale(-1) mirror
+        // ancestor) reverses rotation handedness, so negate to match the SVG.
+        const rotPx = ox + ((ntx + nsX * rotCx) - vbX) * sx;
+        const rotPy = oy + ((nty + nsY * rotCy) - vbY) * sy;
+        const deg = (nsX * nsY * sx * sy) < 0 ? -rotDeg : rotDeg;
+        await withPdfRotation(pdf, deg, rotPx, rotPy, async () => {
+          for (const child of el.children) await visit(child, ntx, nty, nsX, nsY);
+        });
+      } else {
+        for (const child of el.children) await visit(child, ntx, nty, nsX, nsY);
+      }
       return;
     }
 

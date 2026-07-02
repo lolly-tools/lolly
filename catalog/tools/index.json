@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-02T12:07:26.198Z",
+  "generatedAt": "2026-07-02T16:01:03.972Z",
   "tools": [
     {
       "id": "color-block",
@@ -732,6 +732,25 @@
       "height": 1080,
       "exportable": true,
       "preview": "/catalog/previews/lottie-digi-ad.png"
+    },
+    {
+      "id": "pose-geeko",
+      "name": "Pose Geeko",
+      "description": "Pose the SUSE Geeko with sliders — eyes, blink and limbs. No animation, just a still you can dial in and export print-ready.",
+      "version": "0.1.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "svg",
+        "pdf",
+        "cmyk-tiff",
+        "jpg"
+      ],
+      "width": 800,
+      "height": 800,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 6h10\"/><path d=\"M18 6h2\"/><circle cx=\"16\" cy=\"6\" r=\"2\"/><path d=\"M4 12h2\"/><path d=\"M10 12h10\"/><circle cx=\"8\" cy=\"12\" r=\"2\"/><path d=\"M4 18h7\"/><path d=\"M15 18h5\"/><circle cx=\"13\" cy=\"18\" r=\"2\"/></svg>",
+      "preview": "/catalog/previews/pose-geeko.svg"
     }
   ]
 }

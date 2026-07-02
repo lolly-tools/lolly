@@ -65,7 +65,7 @@ Some tools build a **multi-page PDF document** instead of a single artwork — a
 - **Pages from content.** Add blocks of text and images; new pages are created automatically as the blocks fill, and you can force any block to start a new page.
 - **Real page sizes.** Choose A4, US Letter or A5, portrait or landscape — every page, and the exported PDF, renders at exactly that size.
 
-Multi-page PDFs are RGB documents and don't carry crop/bleed marks — those belong to the single-page **Print PDF** path above.
+Multi-page PDFs are RGB documents and don't carry crop/bleed marks — those belong to the single-page **Print PDF** path above. They do carry the same **PDF/X-4 metadata** as every PDF export (page boxes, XMP, document ID, an sRGB output intent with embedded profile), and they offer **Content Credentials** (below) — on the *Multi-Page PDF* tool the option comes pre-selected.
 
 ## Transparency
 
@@ -105,7 +105,7 @@ Where the format supports it, exports carry **provenance metadata** — software
 
 ## Content Credentials (C2PA)
 
-PDF exports can carry **Content Credentials** — a signed [C2PA](https://c2pa.org) manifest embedded in the file that records, in a tamper-evident way, that the file was made with Lolly and hasn't been altered since. It's the standards-track version of the provenance metadata above: a cryptographic claim (what made the file, when) bound to a hash of the file's bytes, so any later edit is detectable by a C2PA-aware viewer.
+PDF exports can carry **Content Credentials** — a signed [C2PA](https://c2pa.org) manifest embedded in the file that records, in a tamper-evident way, that the file was made with Lolly and hasn't been altered since. It's the standards-track version of the provenance metadata above: a cryptographic claim (what made the file, when) bound to a hash of the file's bytes, so any later edit is detectable by a C2PA-aware viewer. The standard is stewarded by the [Content Authenticity Initiative](https://contentauthenticity.org) (Adobe, BBC, Microsoft, Nikon and others), so the same credentials Lolly writes are the ones cameras, newsrooms and creative suites are adopting.
 
 - **Turning it on.** Choose the plain **PDF** format and tick the **Content Credentials** card in the export panel. The *Multi-Page PDF* tool pre-selects it; it's optional everywhere else.
 - **What recipients see.** Inspect-content-credentials tools (Adobe apps, `c2patool`, contentcredentials.org/verify) will read the manifest and show the claim. Because Lolly signs with a key generated **on your device** — not a certificate from a trust list — viewers report it as an *unverified* credential. The structure and the tamper-evidence are real; the signer identity is simply not vouched for by an authority.

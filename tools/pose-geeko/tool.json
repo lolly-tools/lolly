@@ -1,0 +1,148 @@
+{
+  "id": "pose-geeko",
+  "name": "Pose Geeko",
+  "description": "Pose the SUSE Geeko with sliders — eyes, blink and limbs. No animation, just a still you can dial in and export print-ready.",
+  "version": "0.1.0",
+  "engineVersion": "^1.0.0",
+  "status": "official",
+  "category": "designer",
+  "tags": ["geeko", "mascot", "pose", "illustration", "svg"],
+  "hooks": { "onInit": true, "onInput": true, "beforeExport": true },
+  "render": {
+    "width": 800,
+    "height": 800,
+    "formats": ["svg", "pdf", "cmyk-tiff", "jpg"],
+    "actions": ["download", "copy", "save"]
+  },
+  "inputs": [
+    {
+      "id": "pose",
+      "label": "Geeko",
+      "type": "select",
+      "default": "curious",
+      "options": [
+        { "value": "curious",   "label": "Curious" },
+        { "value": "sitting",   "label": "Sitting" },
+        { "value": "laying",    "label": "Laying" },
+        { "value": "dangling",  "label": "Dangling" }
+      ]
+    },
+    {
+      "id": "eyeX",
+      "label": "Eye left / right",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "help": "Slides the pupil across the eye.",
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "default": 0
+    },
+    {
+      "id": "eyeY",
+      "label": "Eye up / down",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "min": -100,
+      "max": 100,
+      "step": 1,
+      "default": 0
+    },
+    {
+      "id": "blink",
+      "label": "Blink",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "help": "0 = wide awake, 100 = eyes shut.",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "default": 0
+    },
+    {
+      "id": "headTilt",
+      "label": "Head tilt",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "help": "Tilts the head. On the climbing pose it leans the whole body.",
+      "min": -30,
+      "max": 30,
+      "step": 1,
+      "default": 0
+    },
+    {
+      "id": "legFront",
+      "label": "Front leg",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "help": "Swings the front leg. Dangling pose.",
+      "min": -45,
+      "max": 45,
+      "step": 1,
+      "default": 0,
+      "showIf": { "pose": "dangling" }
+    },
+    {
+      "id": "legBack",
+      "label": "Back leg",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "help": "Swings the back leg. Dangling pose.",
+      "min": -45,
+      "max": 45,
+      "step": 1,
+      "default": 0,
+      "showIf": { "pose": "dangling" }
+    },
+    {
+      "id": "tail",
+      "label": "Tail curl",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "help": "Curls the tail. Sitting pose.",
+      "min": -40,
+      "max": 40,
+      "step": 1,
+      "default": 0,
+      "showIf": { "pose": "sitting" }
+    },
+    {
+      "id": "geeko",
+      "label": "Scale & Position",
+      "section": "Geeko Options",
+      "help": "Scale sizes Geeko; X / Y nudge it in the frame (%). Drag a label or type a value.",
+      "type": "vector",
+      "fields": [
+        { "id": "scale", "label": "Scale", "min": 0.25, "max": 3,   "step": 0.05, "default": 1 },
+        { "id": "x",     "label": "X",     "min": -100, "max": 100, "step": 1,    "default": 0 },
+        { "id": "y",     "label": "Y",     "min": -100, "max": 100, "step": 1,    "default": 0 }
+      ]
+    },
+    {
+      "id": "flip",
+      "label": "Flip Geeko",
+      "type": "boolean",
+      "section": "Geeko Options",
+      "default": false
+    },
+    {
+      "id": "bg",
+      "label": "Background",
+      "type": "select",
+      "section": "Geeko Options",
+      "default": "dark",
+      "options": [
+        { "value": "dark",   "label": "Dark" },
+        { "value": "light",  "label": "Light" },
+        { "value": "pine",   "label": "Pine" }
+      ]
+    }
+  ]
+}
