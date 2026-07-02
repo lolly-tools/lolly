@@ -23,6 +23,9 @@
 
 var ROWS = 12;                 // grid rows per content page
 var SIZE_ROWS = { short: 3, medium: 5, tall: 8, full: ROWS };
+// Multiplier applied to the cover / back logo box (its definite width AND height),
+// so object-fit:contain scales the mark up or down while staying aspect-preserved.
+var LOGO_SCALE = { small: 0.72, medium: 1, large: 1.4 };
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -96,6 +99,10 @@ async function compute(model) {
   var coverTitleSize = clamp(Math.round(W * 0.072), 20, 130);
   var coverSubSize   = clamp(Math.round(W * 0.030), 12, 54);
   var footerSize  = clamp(Math.round(W * 0.0135), 8, 20);
+
+  // Logo sizing — scales the definite logo box on the cover and back page.
+  var coverLogoScale = LOGO_SCALE[str(inputs.coverLogoSize)] || 1;
+  var backLogoScale  = LOGO_SCALE[str(inputs.backLogoSize)] || 1;
 
   // Colours / theme.
   var accent = colour(inputs.accent, '#30ba78');
@@ -277,6 +284,7 @@ async function compute(model) {
     '--caption-size:' + captionSize + 'px',
     '--cover-title-size:' + coverTitleSize + 'px', '--cover-sub-size:' + coverSubSize + 'px',
     '--footer-size:' + footerSize + 'px',
+    '--cover-logo-scale:' + coverLogoScale, '--back-logo-scale:' + backLogoScale,
   ].join(';');
 
   return {

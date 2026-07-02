@@ -64,7 +64,7 @@
      some marks run past the page. A fixed box removes that: the PDF walker reads
      the same box via getBoundingClientRect and meet-fits identically, so preview
      and export match exactly. object-position keeps the mark left-aligned. */
-  .mpdf-cover-logo { width: 56%; height: calc(var(--cover-sub-size) * 3.4); object-fit: contain; object-position: left center; display: block; }
+  .mpdf-cover-logo { width: calc(56% * var(--cover-logo-scale)); height: calc(var(--cover-sub-size) * 3.4 * var(--cover-logo-scale)); object-fit: contain; object-position: left center; display: block; }
   .mpdf-cover-fill { flex: 1 1 auto; }
   .mpdf-cover-band { width: calc(var(--margin-x) * 1.7); height: 8px; background: var(--accent); margin-bottom: calc(var(--margin-y) * .5); }
   .mpdf-cover-title {
@@ -159,7 +159,7 @@
   .mpdf-back-about-text { font-size: var(--caption-size); line-height: 1.5; color: var(--back-ink); opacity: .92; }
   /* Definite box + object-fit:contain, same reasoning as .mpdf-cover-logo — keeps
      SVG logos deterministic so the export matches the preview and can't overflow. */
-  .mpdf-back-logo { width: 50%; height: calc(var(--cover-sub-size) * 1.8); object-fit: contain; object-position: left center; display: block; }
+  .mpdf-back-logo { width: calc(50% * var(--back-logo-scale)); height: calc(var(--cover-sub-size) * 1.8 * var(--back-logo-scale)); object-fit: contain; object-position: left center; display: block; }
   .mpdf-back-rule { height: 4px; width: 100%; background: var(--accent); margin-top: calc(var(--margin-y) * .6); }
   /* The shared footer uses the back page's own muted tone when it sits there. */
   .mpdf-page--back .mpdf-footer { color: var(--back-muted); }
@@ -183,11 +183,41 @@
   .mpdf-cell-body strong, .mpdf-cover-text strong, .mpdf-back-text strong, .mpdf-back-about-text strong { font-weight: 700; }
   .mpdf-cell-body em, .mpdf-cover-text em, .mpdf-back-text em, .mpdf-back-about-text em { font-style: italic; }
   .mpdf-cell-body del, .mpdf-cover-text del, .mpdf-back-text del { text-decoration: line-through; }
-  .mpdf-cell-body ul, .mpdf-cover-text ul, .mpdf-back-text ul { margin: .3em 0; padding-left: 1.1em; list-style: none; }
-  .mpdf-cell-body li, .mpdf-cover-text li, .mpdf-back-text li { position: relative; margin: 0 0 .3em; }
-  .mpdf-cell-body li::before, .mpdf-cover-text li::before, .mpdf-back-text li::before {
+  .mpdf-cell-body ul, .mpdf-cover-text ul, .mpdf-back-text ul, .mpdf-back-about-text ul { margin: .3em 0; padding-left: 1.1em; list-style: none; }
+  .mpdf-cell-body li, .mpdf-cover-text li, .mpdf-back-text li, .mpdf-back-about-text li { position: relative; margin: 0 0 .3em; }
+  .mpdf-cell-body ul li::before, .mpdf-cover-text ul li::before, .mpdf-back-text ul li::before, .mpdf-back-about-text ul li::before {
     content: ""; position: absolute; left: -1em; top: .55em;
     width: .38em; height: .38em; border-radius: 50%; background: var(--accent);
+  }
+  /* Numbered lists. The number is a real .md-index node baked by the markdown helper
+     (not a CSS counter / native <ol> marker — the vector PDF walker drops both), so
+     positioning it absolutely gives a hanging indent that also exports correctly. */
+  .mpdf-cell-body ol, .mpdf-cover-text ol, .mpdf-back-text ol, .mpdf-back-about-text ol { margin: .3em 0; padding-left: 1.6em; list-style: none; }
+  .mpdf-cell-body .md-index, .mpdf-cover-text .md-index, .mpdf-back-text .md-index, .mpdf-back-about-text .md-index {
+    position: absolute; left: -1.6em; top: 0; min-width: 1.4em;
+    color: var(--accent); font-weight: 700;
+  }
+  /* Headings authored with "# "…"###### ". Sized relative to the block's own text so
+     they stay proportionate on the cover, in content cells and on the back page. */
+  .mpdf-cell-body h1, .mpdf-cell-body h2, .mpdf-cell-body h3, .mpdf-cell-body h4, .mpdf-cell-body h5, .mpdf-cell-body h6,
+  .mpdf-cover-text h1, .mpdf-cover-text h2, .mpdf-cover-text h3, .mpdf-cover-text h4, .mpdf-cover-text h5, .mpdf-cover-text h6,
+  .mpdf-back-text h1, .mpdf-back-text h2, .mpdf-back-text h3, .mpdf-back-text h4, .mpdf-back-text h5, .mpdf-back-text h6,
+  .mpdf-back-about-text h1, .mpdf-back-about-text h2, .mpdf-back-about-text h3, .mpdf-back-about-text h4, .mpdf-back-about-text h5, .mpdf-back-about-text h6 {
+    font-weight: 700; line-height: 1.15; letter-spacing: -.01em; color: inherit; margin: .7em 0 .3em;
+  }
+  .mpdf-cell-body h1:first-child, .mpdf-cover-text h1:first-child, .mpdf-back-text h1:first-child, .mpdf-back-about-text h1:first-child,
+  .mpdf-cell-body h2:first-child, .mpdf-cover-text h2:first-child, .mpdf-back-text h2:first-child, .mpdf-back-about-text h2:first-child,
+  .mpdf-cell-body h3:first-child, .mpdf-cover-text h3:first-child, .mpdf-back-text h3:first-child, .mpdf-back-about-text h3:first-child,
+  .mpdf-cell-body h4:first-child, .mpdf-cover-text h4:first-child, .mpdf-back-text h4:first-child, .mpdf-back-about-text h4:first-child,
+  .mpdf-cell-body h5:first-child, .mpdf-cover-text h5:first-child, .mpdf-back-text h5:first-child, .mpdf-back-about-text h5:first-child,
+  .mpdf-cell-body h6:first-child, .mpdf-cover-text h6:first-child, .mpdf-back-text h6:first-child, .mpdf-back-about-text h6:first-child { margin-top: 0; }
+  .mpdf-cell-body h1, .mpdf-cover-text h1, .mpdf-back-text h1, .mpdf-back-about-text h1 { font-size: 1.55em; }
+  .mpdf-cell-body h2, .mpdf-cover-text h2, .mpdf-back-text h2, .mpdf-back-about-text h2 { font-size: 1.32em; }
+  .mpdf-cell-body h3, .mpdf-cover-text h3, .mpdf-back-text h3, .mpdf-back-about-text h3 { font-size: 1.15em; }
+  .mpdf-cell-body h4, .mpdf-cover-text h4, .mpdf-back-text h4, .mpdf-back-about-text h4 { font-size: 1.02em; }
+  .mpdf-cell-body h5, .mpdf-cover-text h5, .mpdf-back-text h5, .mpdf-back-about-text h5,
+  .mpdf-cell-body h6, .mpdf-cover-text h6, .mpdf-back-text h6, .mpdf-back-about-text h6 {
+    font-size: .92em; text-transform: uppercase; letter-spacing: .06em;
   }
 </style>
 

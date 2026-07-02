@@ -77,7 +77,7 @@
       "type": "longtext",
       "default": "Prepared for internal review.\n\n**Confidential** — not for distribution.",
       "rows": 3,
-      "help": "Supports **bold**, *italic* and - bullet lists.",
+      "help": "Supports # headings, **bold**, *italic*, - bullet lists and 1. numbered lists.",
       "section": "Cover"
     },
     {
@@ -88,6 +88,19 @@
       "allowUpload": true,
       "help": "Your logo for the cover. Leave empty to use the SUSE logo.",
       "section": "Cover"
+    },
+    {
+      "id": "coverLogoSize",
+      "label": "Logo size",
+      "type": "select",
+      "default": "medium",
+      "help": "How large the logo sits on the cover.",
+      "section": "Cover",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ]
     },
     {
       "id": "coverImage",
@@ -128,7 +141,7 @@
         {
           "id": "body", "label": "Body", "type": "text", "showFor": ["text"],
           "multilineFor": ["text"], "rows": 6,
-          "placeholder": "Body text — supports **bold**, *italic* and - bullet lists"
+          "placeholder": "Body text — supports # headings, **bold**, *italic*, - bullets and 1. numbered lists"
         },
         { "id": "image", "label": "Image", "type": "asset", "assetType": "raster", "allowUpload": true, "showFor": ["image"] },
         {
@@ -191,6 +204,7 @@
       "type": "longtext",
       "default": "Thanks for reading. Reach out for source files, templates and guidelines.",
       "rows": 3,
+      "help": "Supports # headings, **bold**, *italic*, - bullet lists and 1. numbered lists.",
       "section": "Back page"
     },
     {
@@ -237,7 +251,7 @@
       "type": "longtext",
       "default": "SUSE is a global leader of enterprise open source software. By transforming community innovations into secure, sovereign and AI-ready solutions, SUSE empowers customers to escape vendor lock-in and regain control of their IT destiny. Through industry-leading Linux, Kubernetes, Edge and AI infrastructure solutions, SUSE delivers the flexibility to innovate everywhere—from the data center to multi-cloud and out to the edge. Only SUSE also manages many Linux and Kubernetes distributions. At SUSE, Choice Happens because we prioritize community, interoperability and relentless innovation. Discover how we power mission-critical resilience at www.suse.com",
       "rows": 6,
-      "help": "Shown beneath the contact details on the back page.",
+      "help": "Shown beneath the contact details on the back page. Supports # headings, **bold**, *italic*, - bullet lists and 1. numbered lists.",
       "section": "Back page"
     },
     {
@@ -248,6 +262,19 @@
       "allowUpload": true,
       "help": "Optional image along the top of the back page.",
       "section": "Back page"
+    },
+    {
+      "id": "backLogoSize",
+      "label": "Logo size",
+      "type": "select",
+      "default": "medium",
+      "help": "How large the logo sits on the back page.",
+      "section": "Back page",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ]
     },
 
     { "id": "width", "label": "Page width", "type": "number", "default": 794, "min": 100, "max": 8000, "group": "export" },

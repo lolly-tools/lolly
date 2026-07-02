@@ -325,6 +325,32 @@ test('template: markdown renders bullet lists; lone * stays literal', () => {
   assert.equal(hydrate('{{{markdown t}}}', { t: 'cost is 5 * 3' }), '<p>cost is 5 * 3</p>');
 });
 
+test('template: markdown renders numbered lists (numbers baked, normalised to 1..n)', () => {
+  assert.equal(hydrate('{{{markdown t}}}', { t: '1. one\n2. **two**' }),
+    '<ol style="list-style:none"><li><span class="md-index">1.</span> one</li>' +
+    '<li><span class="md-index">2.</span> <strong>two</strong></li></ol>');
+  // "N)" markers work too, and the list always renumbers from 1.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '3) a\n4) b' }),
+    '<ol style="list-style:none"><li><span class="md-index">1.</span> a</li>' +
+    '<li><span class="md-index">2.</span> b</li></ol>');
+  // A decimal mid-number (no space after the dot) is not a list marker.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '3.5 million' }), '<p>3.5 million</p>');
+});
+
+test('template: markdown renders # headings and splits body beneath them', () => {
+  assert.equal(hydrate('{{{markdown t}}}', { t: '# Big' }), '<h1>Big</h1>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '### *small*' }), '<h3><em>small</em></h3>');
+  // Six levels max; a seventh hash falls back to a paragraph.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '###### deep' }), '<h6>deep</h6>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '####### too deep' }), '<p>####### too deep</p>');
+  // A heading directly above body text (no blank line) still becomes its own block.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '## Title\nBody text' }),
+    '<h2>Title</h2><p>Body text</p>');
+  // A heading followed by a bullet list, one block, no blank line.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '# Head\n- a\n- b' }),
+    '<h1>Head</h1><ul><li>a</li><li>b</li></ul>');
+});
+
 test('template: data-format helpers (icsStamp, rfcText, csvCell) with raw hydration', () => {
   const raw = (src, values) => hydrate(src, values, { raw: true });
   // icsStamp: datetime-local / date → iCalendar basic form

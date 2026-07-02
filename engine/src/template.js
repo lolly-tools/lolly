@@ -65,15 +65,23 @@ const LEADING_ARROW = /^\s*([<>^v])\s+/;
 Handlebars.registerHelper('arrow', text =>
   (text == null ? '' : String(text).replace(LEADING_ARROW, (_, m) => ARROW_GLYPHS[m] + ' ')));
 
-// Limited markdown → HTML. Supports **bold**, *italic*, ~~strikethrough~~, bullet
-// lists (a block whose every line starts "- ", "* ", or a direction marker
-// "> "/"< "/"^ "/"v "), paragraph breaks (blank line), and line breaks within a
-// paragraph. Direction-marker items are tagged with a per-direction class
+// Limited markdown → HTML. Supports **bold**, *italic*, ~~strikethrough~~,
+// "# "…"###### " headings (<h1>–<h6>), bullet lists (a block whose every line
+// starts "- ", "* ", or a direction marker "> "/"< "/"^ "/"v "), numbered lists
+// (every line "1. "/"2) "), paragraph breaks (blank line), and line breaks within
+// a paragraph. Direction-marker items are tagged with a per-direction class
 // (md-arrow / md-arrow-left / md-arrow-up / md-arrow-down) so tools can render
 // them with the matching arrow marker — most authors reach for a keyboard marker
-// rather than hunting for the glyph. Returns a SafeString so double-brace usage
-// ({{markdown field}}) renders without double-escaping.
+// rather than hunting for the glyph. Ordered-list numbers are baked as real
+// <span class="md-index"> nodes (not native <ol> markers or a CSS counter, both
+// of which the vector export path drops) with list-style:none so they can't
+// double; a tool can style/position .md-index for a hanging indent. Returns a
+// SafeString so double-brace usage ({{markdown field}}) renders without
+// double-escaping.
 const MD_ESCAPE = { '&': '&amp;', '<': '&lt;', '>': '&gt;' };
+const MD_BULLET  = /^\s*([-*<>^v])\s+/;              // "- "/"* " or a direction marker
+const MD_ORDERED = /^\s*\d+[.)]\s+/;                 // "1. "/"2) "
+const MD_HEADING = /^\s*(#{1,6})\s+(\S.*)$/;         // "# "…"###### " + text
 Handlebars.registerHelper('markdown', text => {
   if (text == null || text === '') return new Handlebars.SafeString('');
   // Fold the three HTML-escape passes (&, <, >) into a single scan — markdown runs
@@ -84,25 +92,44 @@ Handlebars.registerHelper('markdown', text => {
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/~~(.+?)~~/g, '<del>$1</del>')
     .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+  // Render a run of consecutive non-heading lines: an unordered list (every line a
+  // bullet / direction marker), an ordered list (every line "N."/"N)"), or a
+  // paragraph (lines joined with <br>). The leading marker is stripped before
+  // inlining so it can't read as italic or get HTML-escaped.
+  const renderRun = lines => {
+    if (lines.every(l => MD_BULLET.test(l))) {
+      const items = lines.map(l => {
+        const arrowClass = ARROW_CLASSES[l.match(MD_BULLET)[1]];
+        const cls = arrowClass ? ` class="${arrowClass}"` : '';
+        return `<li${cls}>${inline(l.replace(MD_BULLET, ''))}</li>`;
+      }).join('');
+      return `<ul>${items}</ul>`;
+    }
+    if (lines.every(l => MD_ORDERED.test(l))) {
+      const items = lines.map((l, i) =>
+        `<li><span class="md-index">${i + 1}.</span> ${inline(l.replace(MD_ORDERED, ''))}</li>`).join('');
+      return `<ol style="list-style:none">${items}</ol>`;
+    }
+    return `<p>${lines.map(inline).join('<br>')}</p>`;
+  };
   const html = String(text)
     .split(/\n{2,}/)
     .filter(b => b.trim())
     .map(block => {
       const lines = block.split('\n').filter(l => l.trim() !== '');
-      // A block whose every line is a "- "/"* " bullet or a direction marker
-      // ("> "/"< "/"^ "/"v ") → an unordered list. The leading marker is stripped
-      // before inlining, so it can't read as italic or get HTML-escaped. Direction
-      // markers get a per-direction class (md-arrow*) for the matching arrow.
-      const BULLET = /^\s*([-*<>^v])\s+/;
-      if (lines.length && lines.every(l => BULLET.test(l))) {
-        const items = lines.map(l => {
-          const arrowClass = ARROW_CLASSES[l.match(BULLET)[1]];
-          const cls = arrowClass ? ` class="${arrowClass}"` : '';
-          return `<li${cls}>${inline(l.replace(BULLET, ''))}</li>`;
-        }).join('');
-        return `<ul>${items}</ul>`;
+      // Headings are block-level: a "# "…"###### " line becomes <h1>–<h6> and breaks
+      // the surrounding run, so a heading directly above body text (no blank line)
+      // still renders as its own element rather than folding into the paragraph.
+      const out = [];
+      let run = [];
+      const flushRun = () => { if (run.length) { out.push(renderRun(run)); run = []; } };
+      for (const line of lines) {
+        const h = line.match(MD_HEADING);
+        if (h) { flushRun(); out.push(`<h${h[1].length}>${inline(h[2])}</h${h[1].length}>`); }
+        else run.push(line);
       }
-      return `<p>${inline(block).replace(/\n/g, '<br>')}</p>`;
+      flushRun();
+      return out.join('');
     })
     .join('');
   return new Handlebars.SafeString(html);
