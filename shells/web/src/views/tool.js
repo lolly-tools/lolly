@@ -1289,10 +1289,15 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     if (urlWidth > 0 || urlHeight > 0) resetView();
     // Resize the document: keep box coordinates fixed (they don't scatter), resize
     // the canvas, mirror it to the export dimensions so output matches, and re-fit.
-    const setCanvasSize = (w, h) => {
-      canvasEl.style.width = w + 'px';
-      canvasEl.style.height = h + 'px';
-      actionsApi?.setDims?.({ width: w, height: h, unit: 'px' });
+    const setCanvasSize = (w, h, unit = 'px') => {
+      // w/h are in `unit`; the artboard DOM is always px (a physical unit maps at the
+      // 96-DPI CSS convention), while the export bar carries the physical size so the
+      // output renders at the chosen DPI.
+      const pxW = Math.round(unit === 'px' ? w : toCssPx({ value: w, unit }));
+      const pxH = Math.round(unit === 'px' ? h : toCssPx({ value: h, unit }));
+      canvasEl.style.width = pxW + 'px';
+      canvasEl.style.height = pxH + 'px';
+      actionsApi?.setDims?.({ width: w, height: h, unit });
       markUserDirty('w'); markUserDirty('h');
       resetView();
     };
@@ -1303,6 +1308,25 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         input: canvasEditInput, nativeW, nativeH,
         onDirty: markUserDirty,
         setCanvasSize,
+        // Document-info panel: read/write the export/save name, plus at-a-glance
+        // details. Name binds to the export bar's filename field (the canonical
+        // save name); last-edited reads the resumed session's timestamp if any.
+        info: {
+          name: tool.manifest.name,
+          version: tool.manifest.version,
+          status: tool.manifest.status,
+          formats: tool.manifest.render.formats,
+          getFilename: () => viewEl.querySelector('[data-action="filename"]')?.value || '',
+          setFilename: (v) => {
+            const fn = viewEl.querySelector('[data-action="filename"]');
+            if (fn) { fn.value = v; fn.dispatchEvent(new Event('input', { bubbles: true })); }
+          },
+          lastEdited: async () => {
+            if (!slot) return null;
+            try { return (await host.state.list()).find(s => s.slot === slot)?.updatedAt || null; }
+            catch { return null; }
+          },
+        },
         // Picking a Lolly link / saved session for a box image opens its inputs
         // first (configure → insert), same as the sidebar asset slots. The picker
         // passes mode 'edit' when re-opening the box's current Lolly render.

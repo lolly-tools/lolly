@@ -24,6 +24,7 @@ import {
   seedBox, normDragRect, snapAngle, normAngle, clampBoxToCanvas, selectionAABB,
   snapMove, snapPoint, scaleGroup, rotateGroup,
 } from './free-canvas-math.js';
+import { toCssPx } from '@lolly/engine';
 import { colorFieldHtml, wireColorField } from '../components/color-field.js';
 import {
   charsFromDom, htmlFromChars, markdownFromChars,
@@ -273,6 +274,7 @@ export function initFreeCanvas(opts) {
     arrangeBtn = toolBtn('Arrange (stacking order)', SVG.front, () => openArrangeMenu());
     alignBtn = toolBtn('Align & distribute', SVG.align, () => openAlignMenu());
     if (setCanvasSize) toolBtn('Canvas size', SVG.size, (b) => openSizeMenu(b));
+    if (info) toolBtn('Document info', SVG.info, (b) => openInfoPanel(b));
     const sep = document.createElement('div'); sep.className = 'fc-sep'; toolbar.appendChild(sep);
     // Canvas background — the app's shared colour picker (swatches + hex + alpha).
     const bgWrap = document.createElement('div');
@@ -446,9 +448,14 @@ export function initFreeCanvas(opts) {
   function closeMorePanel() { morePanel?.remove(); morePanel = null; }
 
   // ── canvas (document) size ────────────────────────────────────────────────────
-  function applyDocSize(w, h) {
-    if (!setCanvasSize) return;
-    setCanvasSize(Math.max(16, Math.round(w)), Math.max(16, Math.round(h)));
+  const SIZE_UNITS = ['px', 'mm', 'cm', 'in', 'pt'];
+  let sizeUnit = 'px';   // remembered across opens of the size menu
+  // px per 1 of a unit (96-DPI CSS convention — matches the artboard mapping).
+  const pxPerUnit = (u) => (u === 'px' ? 1 : toCssPx({ value: 1, unit: u }));
+  const toUnitVal = (n, from, to) => (n > 0 ? Math.round(n * pxPerUnit(from) / pxPerUnit(to) * 100) / 100 : n);
+  function applyDocSize(w, h, unit = sizeUnit) {
+    if (!setCanvasSize || !(w > 0) || !(h > 0)) return;
+    setCanvasSize(w, h, unit);
     scheduleSync();
   }
   const SIZE_PRESETS = [
@@ -457,32 +464,48 @@ export function initFreeCanvas(opts) {
   ];
   function openSizeMenu(anchor) {
     closeMorePanel();
-    const d = canvasWH();
+    const d = canvasWH();   // always px
+    // Show the current px size expressed in the remembered unit.
+    const dispW = toUnitVal(d.w, 'px', sizeUnit), dispH = toUnitVal(d.h, 'px', sizeUnit);
     const p = document.createElement('div');
     p.className = 'fc-panel fc-size-panel';
     p.innerHTML =
       '<div class="fc-panel-head">Canvas size</div>' +
       '<div class="fc-size-presets">' +
-      SIZE_PRESETS.map(([label, w, h]) => `<button type="button" class="fc-size-preset${w === d.w && h === d.h ? ' is-current' : ''}" data-w="${w}" data-h="${h}"><b>${label}</b><span>${w}×${h}</span></button>`).join('') +
+      SIZE_PRESETS.map(([label, w, h]) => `<button type="button" class="fc-size-preset${sizeUnit === 'px' && w === d.w && h === d.h ? ' is-current' : ''}" data-w="${w}" data-h="${h}"><b>${label}</b><span>${w}×${h}</span></button>`).join('') +
       '</div>' +
-      '<label class="fc-row"><span>Width</span><input type="number" min="16" max="12000" data-sz="w" value="' + d.w + '"><b>px</b></label>' +
-      '<label class="fc-row"><span>Height</span><input type="number" min="16" max="12000" data-sz="h" value="' + d.h + '"><b>px</b></label>';
+      `<label class="fc-row"><span>Units</span><select data-sz="unit">${SIZE_UNITS.map((u) => `<option value="${u}"${u === sizeUnit ? ' selected' : ''}>${u}</option>`).join('')}</select></label>` +
+      `<label class="fc-row"><span>Width</span><input type="number" min="1" max="30000" step="any" data-sz="w" value="${dispW}"><b data-sz-unit>${sizeUnit}</b></label>` +
+      `<label class="fc-row"><span>Height</span><input type="number" min="1" max="30000" step="any" data-sz="h" value="${dispH}"><b data-sz-unit>${sizeUnit}</b></label>`;
     p.addEventListener('pointerdown', (e) => e.stopPropagation());
     const wIn = () => p.querySelector('[data-sz="w"]');
     const hIn = () => p.querySelector('[data-sz="h"]');
     p.querySelectorAll('.fc-size-preset').forEach((b) => b.addEventListener('click', () => {
+      // Presets are px — switch the unit control back to px and fill it in.
+      sizeUnit = 'px';
+      p.querySelector('[data-sz="unit"]').value = 'px';
+      p.querySelectorAll('[data-sz-unit]').forEach((x) => (x.textContent = 'px'));
       wIn().value = b.dataset.w; hIn().value = b.dataset.h;
       p.querySelectorAll('.fc-size-preset').forEach((x) => x.classList.toggle('is-current', x === b));
-      applyDocSize(+b.dataset.w, +b.dataset.h);
+      applyDocSize(+b.dataset.w, +b.dataset.h, 'px');
     }));
     const commitCustom = () => {
-      const w = parseInt(wIn().value, 10), h = parseInt(hIn().value, 10);
-      if (w >= 16 && h >= 16) {
-        applyDocSize(w, h);
-        p.querySelectorAll('.fc-size-preset').forEach((x) => x.classList.toggle('is-current', +x.dataset.w === w && +x.dataset.h === h));
+      const w = parseFloat(wIn().value), h = parseFloat(hIn().value);
+      if (w > 0 && h > 0) {
+        applyDocSize(w, h, sizeUnit);
+        p.querySelectorAll('.fc-size-preset').forEach((x) => x.classList.toggle('is-current', sizeUnit === 'px' && +x.dataset.w === Math.round(w) && +x.dataset.h === Math.round(h)));
       }
     };
     p.querySelectorAll('input[data-sz]').forEach((i) => i.addEventListener('change', commitCustom));
+    // Unit switch keeps the physical size: convert the shown W/H into the new unit.
+    p.querySelector('[data-sz="unit"]').addEventListener('change', (e) => {
+      const to = e.target.value;
+      wIn().value = toUnitVal(parseFloat(wIn().value) || 0, sizeUnit, to);
+      hIn().value = toUnitVal(parseFloat(hIn().value) || 0, sizeUnit, to);
+      sizeUnit = to;
+      p.querySelectorAll('[data-sz-unit]').forEach((x) => (x.textContent = to));
+      p.querySelectorAll('.fc-size-preset').forEach((x) => x.classList.remove('is-current'));
+    });
     stageEl.appendChild(p);
     morePanel = p;
     const ar = anchor.getBoundingClientRect(), sr = stageEl.getBoundingClientRect();
@@ -592,6 +615,36 @@ export function initFreeCanvas(opts) {
     // Anchor the readout drops BELOW the bar (readout sits at the bar's right end).
     const ar = anchor.getBoundingClientRect(), sr = stageEl.getBoundingClientRect();
     p.style.left = Math.max(6, Math.min(ar.right - sr.left - p.offsetWidth, sr.width - p.offsetWidth - 8)) + 'px';
+  }
+
+  // ── Document info panel: rename the session/file + at-a-glance details ─────────
+  function openInfoPanel(anchor) {
+    closeMorePanel();
+    const d = canvasWH();
+    const fname = info?.getFilename?.() ?? '';
+    const p = document.createElement('div');
+    p.className = 'fc-panel fc-info-panel';
+    p.innerHTML =
+      '<div class="fc-panel-head">Document</div>' +
+      `<label class="fc-row"><span>Name</span><input type="text" data-info="filename" value="${escapeHtml(fname)}" placeholder="Untitled"></label>` +
+      '<div class="fc-info-meta">' +
+        '<div class="fc-info-line"><span>Last edited</span><b data-info-edited>…</b></div>' +
+        `<div class="fc-info-line"><span>Canvas</span><b>${d.w} × ${d.h} px</b></div>` +
+        (info?.name ? `<div class="fc-info-line"><span>Tool</span><b>${escapeHtml(info.name)}${info.version ? ' · v' + escapeHtml(info.version) : ''}</b></div>` : '') +
+        (info?.status ? `<div class="fc-info-line"><span>Status</span><b>${escapeHtml(info.status)}</b></div>` : '') +
+        (info?.formats?.length ? `<div class="fc-info-line"><span>Exports</span><b>${info.formats.map(escapeHtml).join(', ')}</b></div>` : '') +
+      '</div>';
+    p.addEventListener('pointerdown', (e) => e.stopPropagation());
+    const fn = p.querySelector('[data-info="filename"]');
+    fn?.addEventListener('input', () => info?.setFilename?.(fn.value));
+    stageEl.appendChild(p);
+    morePanel = p;
+    positionPanelBelow(p, anchor);
+    // Last-edited resolves async (reads the saved session's timestamp).
+    Promise.resolve(info?.lastEdited?.()).then((iso) => {
+      const el = p.querySelector('[data-info-edited]');
+      if (el) el.textContent = iso ? fmtDate(iso) : 'Not saved yet';
+    }).catch(() => {});
   }
 
   // ── field editing (applies to all selected boxes) ────────────────────────────
@@ -1758,6 +1811,12 @@ export function initFreeCanvas(opts) {
     if (!Number.isFinite(n)) return dflt;
     return n < lo ? lo : (n > hi ? hi : n);
   }
+  const HTML_ESC = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => HTML_ESC[c]); }
+  function fmtDate(iso) {
+    try { return new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }); }
+    catch { return String(iso); }
+  }
 
   // ── keyboard ─────────────────────────────────────────────────────────────────
   function typingTarget() {
@@ -1779,6 +1838,17 @@ export function initFreeCanvas(opts) {
     if ((e.key === 'Delete' || e.key === 'Backspace') && selection.size) { e.preventDefault(); deleteSelection(); return; }
     if ((e.key === 'd' || e.key === 'D') && (e.metaKey || e.ctrlKey) && selection.size) { e.preventDefault(); duplicateSelection(); return; }
     if ((e.key === 'g' || e.key === 'G') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.shiftKey ? ungroupSelection() : groupSelection(); return; }
+    // Stacking order (Illustrator/Figma convention): Cmd/Ctrl + ] forward, + [ back;
+    // add Shift to jump all the way to front / back. (Undo/redo is handled globally
+    // by tool.js's onHistoryKey — Cmd+Z / Cmd+Shift+Z / Cmd+Y — and reaches the editor
+    // because every edit commits through runtime.setInput, which the undo wrapper
+    // records; nothing extra is needed here.)
+    if ((e.key === ']' || e.key === '[') && (e.metaKey || e.ctrlKey) && selection.size) {
+      e.preventDefault();
+      if (e.key === ']') applyZ(e.shiftKey ? 'front' : 'forward');
+      else applyZ(e.shiftKey ? 'back' : 'backward');
+      return;
+    }
     if (e.key === 'a' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault();
       const boxes = getBoxes();

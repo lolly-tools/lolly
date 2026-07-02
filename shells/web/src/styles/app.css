@@ -4247,6 +4247,59 @@ body.fc-manipulating { user-select: none; -webkit-user-select: none; }
 }
 .fc-text-panel { min-width: 256px; }
 
+/* Icon segment buttons (align / shape / fit) — centre the glyph. */
+.fc-seg-btn.fc-seg-ic { display: inline-flex; align-items: center; justify-content: center; padding: 0 4px; }
+.fc-seg-btn.fc-seg-ic svg { width: 16px; height: 16px; }
+
+/* Leading icon+label for More-panel rows (radius / opacity / fit / shape / blend). */
+.fc-row-lbl { display: inline-flex; align-items: center; gap: 6px; }
+.fc-row-lbl svg { width: 15px; height: 15px; flex: none; }
+.fc-row-lbl > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Text-only inputs / steppers / dims / info panels share the number+text field look. */
+.fc-panel input[type="number"], .fc-panel input[type="text"] {
+  flex: 1; min-width: 0; font: inherit; font-size: 12.5px; padding: 4px 6px;
+  border-radius: 7px; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
+}
+.fc-panel .fc-cfield { flex: 1; }
+
+/* Size stepper (A− / number / A+) in the Text panel. */
+.fc-stepper { flex: 1; display: inline-flex; align-items: center; gap: 6px; }
+.fc-stepper input[type="number"] { text-align: center; }
+.fc-stepper .fc-cbtn { min-width: 30px; height: 28px; border: 1px solid hsl(var(--input)); border-radius: 7px; font-size: 13px; }
+.fc-stepper .fc-cbtn:hover { background: hsl(var(--muted)); }
+
+/* More panel: sub-heading (Shadow) + a taller, scrollable body. */
+.fc-more-panel { min-width: 270px; max-height: min(72vh, 540px); overflow-y: auto; }
+.fc-panel-sub {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground)); margin-top: 2px; padding-top: 9px;
+  border-top: 1px solid hsl(var(--border));
+}
+.fc-more-panel .color-picker-field { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+.fc-more-panel .color-trigger { min-width: 0; padding: 3px 7px; border-radius: 7px; }
+.fc-more-panel .color-trigger-preview { width: 18px; height: 18px; border-radius: 5px; }
+
+/* Position & size panel — 2-column X/Y/W/H grid. */
+.fc-dims-panel { min-width: 216px; }
+.fc-dims-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fc-dims-grid .fc-row { gap: 6px; }
+.fc-dims-grid .fc-row > span { flex: 0 0 16px; font-weight: 600; }
+.fc-dims-grid .fc-row.fc-dims-rot { grid-column: 1 / -1; }
+.fc-dims-grid .fc-row.fc-dims-rot > span { flex: 0 0 auto; }
+
+/* Document info panel — editable name + at-a-glance meta rows. */
+.fc-info-panel { min-width: 262px; }
+.fc-info-meta { display: flex; flex-direction: column; gap: 5px; padding-top: 9px; border-top: 1px solid hsl(var(--border)); }
+.fc-info-line { display: flex; justify-content: space-between; gap: 14px; font-size: 12px; }
+.fc-info-line > span { color: hsl(var(--muted-foreground)); }
+.fc-info-line > b { font-weight: 600; text-align: right; word-break: break-word; }
+
+/* The transform readout is now a button (opens the dims panel). */
+button.fc-readout { border: none; background: transparent; cursor: pointer; font: inherit; border-radius: 7px; height: 32px; }
+button.fc-readout:hover { background: hsl(var(--muted)); color: hsl(var(--foreground)); }
+button.fc-readout:empty { display: none; }
+
 @media (pointer: coarse) {
   .fc-ctxbar .color-picker-field, .fc-ctxbar .color-trigger { width: 36px; height: 36px; }
 }
