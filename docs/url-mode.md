@@ -262,10 +262,11 @@ Supported values:
 | `json` / `csv` | Structured data |
 | `ics` / `vcf` | Calendar event / contact card |
 | `gif` | Animated GIF (animated tools only) |
+| `apng` | Animated PNG — full colour + real alpha (animated tools only) |
 | `webm` | WebM video (animated tools only; Chrome/Firefox/Android) |
 | `mp4` | MP4 video (animated tools only; Safari/iOS and recent Chrome) |
 
-Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid (the full set is the 24-value enum in `schemas/tool.schema.json`). Requesting an unsupported format falls back gracefully.
+Not all tools support all formats — only the formats listed in the tool's manifest `render.formats` are valid (the full set is the 25-value enum in `schemas/tool.schema.json`). Requesting an unsupported format falls back gracefully.
 
 ---
 

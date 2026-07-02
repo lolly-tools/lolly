@@ -4100,8 +4100,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/suse/palette/icon-themes.json",
-          "checksum": "sha256-6LVaXgbo0jK8cvxhoovL2RmKHoEv5kzuG2Wah8sa2Kw=",
-          "size": 767
+          "checksum": "sha256-MC7zBQCfRB0ZHdTdDPJYAaFOyxFGSSpKo+e09M1P1vg=",
+          "size": 892
         }
       ],
       "license": "LicenseRef-SUSE-Proprietary"

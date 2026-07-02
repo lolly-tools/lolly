@@ -47,7 +47,7 @@ Optional:
 
 ### The `render` block
 
-`render` carries `width`, `height`, `formats` (one or more of `svg`, `emf`, `eps`, `eps-cmyk`, `pdf`, `pdf-cmyk`, `cmyk-tiff`, `png`, `jpg`/`jpeg`, `webp`, `avif`, `webm`, `mp4`, `gif`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, `ico`, `zip`), plus these optional keys:
+`render` carries `width`, `height`, `formats` (one or more of `svg`, `emf`, `eps`, `eps-cmyk`, `pdf`, `pdf-cmyk`, `cmyk-tiff`, `png`, `jpg`/`jpeg`, `webp`, `avif`, `webm`, `mp4`, `gif`, `apng`, `html`, `md`, `txt`, `json`, `csv`, `ics`, `vcf`, `ico`, `zip`), plus these optional keys:
 
 - `actions` — which action buttons to show. One or more of `copy`, `download`, `save`, `share`. **Defaults to `['copy','download','save']`** if omitted.
 - `export` — set `false` for utility/interactive tools with no export (hides the download/copy/format/dimension bar; shows **Save** only when the tool has inputs).
@@ -55,7 +55,8 @@ Optional:
 - `convertPaths` — defaults `true`. When the tool exports a vector format, the engine **auto-injects a "Convert paths" toggle** that outlines text to vector paths (in SVG/PDF/PDF-CMYK) so the output renders identically without the fonts installed. Set `false` to suppress it and never outline — e.g. a capture tool whose output is raster (`url-shot`), or a tool that draws its text as raster/canvas before export (`event-name-badge`, `wayfinding-signage`).
 - `transparentBg` — defaults `false`. Adds a **"No BG"** (transparent background) toggle to the export bar; the engine injects it into the input model so hooks can react via `onInit`/`onInput` (`chart-creator`).
 - `preview` — `{ format?, auto? }`. Marks a tool whose live canvas is a placeholder until an explicit, expensive render runs (e.g. a capture tool that screenshots a page in `beforeExport`); the shell wires a `[data-preview]` control. `auto: true` renders one frame on load. Used by `url-shot`.
-- `video` — `{ wait?, duration? }` (seconds; defaults `1` / `5`). Capture timing used when `webm`/`mp4`/`gif` is in `formats` (`bag-video`).
+- `video` — `{ wait?, duration? }` (seconds; defaults `1` / `5`). Capture timing used when `webm`/`mp4`/`gif`/`apng` is in `formats` (`bag-video`).
+- `c2pa` — defaults `false`. Pre-selects the **Content Credentials** card in the export popup for `pdf` exports: the finished PDF gets a signed C2PA manifest (on-device key, so viewers report it as an unverified credential). `multi-page-pdf` is the reference.
 - `dims` — set `false` to hide the export dimension inputs in the download bar.
 - `aspectWarning` — `{ min?, max?, message }`. An **editor-only** amber caution shown in the Export popup when the chosen page aspect (`width ÷ height`) falls outside `[min, max]` (either bound optional). It's purely a guard against picking a size that breaks the layout — it never appears in the exported output. `multi-page-pdf` declares `{ "max": 1, "message": "…" }` (portrait-only).
 

@@ -243,6 +243,22 @@
 .asset-picker-group.is-collapsed .asset-picker-group-body { display: none; }
 /* Inside a section header the strip already has the header's bottom gap. */
 .asset-picker-group-head .asset-picker-themes { margin-bottom: 0; }
+/* Nested sub-group (e.g. Headshots inside Photos): same mechanics, quieter
+   header — indented, no divider rule, normal-case title. */
+.asset-picker-group .asset-picker-group {
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: 0;
+  padding-left: 10px;
+  border-left: 2px solid hsl(var(--border));
+}
+.asset-picker-group .asset-picker-group .asset-picker-group-title {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+}
+/* "Your images" uses the shared group chrome; its wrapper keeps the divider. */
+.asset-picker-userassets .asset-picker-group { margin-top: 0; }
 
 .asset-picker-grid {
   display: grid;

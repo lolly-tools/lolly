@@ -175,6 +175,26 @@ function clipCss(b, byId) {
   return 'clip-path:polygon(' + poly + ');';
 }
 
+// Drop shadow. The `shadow` field picks WHAT the shadow follows, which decides the
+// CSS property: 'box' → box-shadow (the box outline / radius), 'text' → text-shadow
+// (on the text run), 'content' → filter:drop-shadow (the visible alpha silhouette,
+// e.g. a transparent PNG / icon). Returns the fragments for each target element.
+// Raster-faithful (PNG/JPG/WebP); the SVG/PDF vector walkers don't model shadows, so
+// they flatten there — same caveat as blend modes.
+var SHADOW_TARGETS = { box: 1, text: 1, content: 1 };
+function shadowCss(b) {
+  var tgt = String(b.shadow || 'none');
+  if (!SHADOW_TARGETS[tgt]) return { box: '', text: '', filter: '' };
+  var col = safeColor(b.shadowColor, '#00000055');
+  var x = Math.round(clamp(num(b.shadowX, 0), -300, 300));
+  var y = Math.round(clamp(num(b.shadowY, 0), -300, 300));
+  var bl = Math.round(clamp(num(b.shadowBlur, 10), 0, 300));
+  var off = x + 'px ' + y + 'px ' + bl + 'px ';
+  if (tgt === 'text') return { box: '', text: 'text-shadow:' + off + col + ';', filter: '' };
+  if (tgt === 'box') return { box: 'box-shadow:' + off + col + ';', text: '', filter: '' };
+  return { box: '', text: '', filter: 'filter:drop-shadow(' + off + col + ');' };
+}
+
 function textCss(b) {
   var size = Math.max(1, Math.round(num(b.fontSize, 48)));
   var weight = weightOf(b);
@@ -199,8 +219,9 @@ function compute(model) {
   var transparent = inp.transparentBg === true;
   var byId = {};
   boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
-  var boxStyle = boxes.map(function (b) { return boxCss(b || {}) + clipCss(b || {}, byId); });
-  var textStyle = boxes.map(function (b) { return textCss(b || {}); });
+  var shadows = boxes.map(function (b) { return shadowCss(b || {}); });
+  var boxStyle = boxes.map(function (b, i) { return boxCss(b || {}) + clipCss(b || {}, byId) + shadows[i].box + shadows[i].filter; });
+  var textStyle = boxes.map(function (b, i) { return textCss(b || {}) + shadows[i].text; });
   var textHtml = boxes.map(function (b) { return richText((b && b.text) || ''); });
   var imgStyle = boxes.map(function (b) { return imgCss(b || {}); });
   return {

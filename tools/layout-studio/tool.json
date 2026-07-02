@@ -54,6 +54,11 @@
         "blendField": "blend",
         "groupField": "group",
         "clipField": "clip",
+        "shadowField": "shadow",
+        "shadowColorField": "shadowColor",
+        "shadowXField": "shadowX",
+        "shadowYField": "shadowY",
+        "shadowBlurField": "shadowBlur",
         "minSize": 8,
         "addKinds": [
           { "id": "box", "label": "Box", "seed": { "kind": "box", "bg": "#30BA78", "shape": "rounded", "text": "" } },
@@ -101,8 +106,8 @@
           "label": "Image fit",
           "default": "contain",
           "options": [
-            { "value": "cover", "label": "Cover (crop to fill)" },
             { "value": "contain", "label": "Contain (fit inside)" },
+            { "value": "cover", "label": "Cover (crop to fill)" },
             { "value": "fill", "label": "Stretch" }
           ]
         },
@@ -186,7 +191,24 @@
         { "id": "lineHeight", "type": "number", "label": "Line height", "default": 1.12, "min": 0.7, "max": 3, "step": 0.05 },
         { "id": "group", "type": "text", "label": "Group", "default": "" },
         { "id": "clip", "type": "text", "label": "Clip to", "default": "" },
-        { "id": "pad", "type": "number", "label": "Text padding", "default": 8, "min": 0 }
+        { "id": "pad", "type": "number", "label": "Text padding", "default": 8, "min": 0 },
+        {
+          "id": "shadow",
+          "type": "select",
+          "label": "Shadow",
+          "default": "none",
+          "help": "What the drop shadow applies to: the box outline, the text, or the visible content (image alpha). Raster export only — SVG/PDF flatten it.",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "box", "label": "Box" },
+            { "value": "text", "label": "Text" },
+            { "value": "content", "label": "Content" }
+          ]
+        },
+        { "id": "shadowColor", "type": "color", "label": "Shadow colour", "default": "#00000055" },
+        { "id": "shadowX", "type": "number", "label": "Shadow X", "default": 0, "min": -300, "max": 300 },
+        { "id": "shadowY", "type": "number", "label": "Shadow Y", "default": 0, "min": -300, "max": 300 },
+        { "id": "shadowBlur", "type": "number", "label": "Shadow blur", "default": 10, "min": 0, "max": 300 }
       ],
       "default": [
         { "id": "p1", "kind": "box", "x": 90, "y": 90, "w": 900, "h": 900, "rot": 0, "shape": "rounded", "radius": 44, "bg": "#f3f5f4", "opacity": 100, "text": "" },

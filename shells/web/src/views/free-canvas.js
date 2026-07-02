@@ -42,6 +42,25 @@ const SVG = {
   more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   size: '<path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/>',
   editText: '<path d="M4 7V5h16v2"/><path d="M9 19h6"/><path d="M12 5v14"/>',
+  // Pencil — the "edit text" action (replaces the old 'T' glyph on the object bar).
+  pencil: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  // Type glyph — the Text add-kind + the "Aa" text panel.
+  type: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>',
+  boxKind: '<rect x="3" y="5" width="18" height="14" rx="2.5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><line x1="11" y1="11.5" x2="12" y2="11.5"/><line x1="12" y1="11.5" x2="12" y2="16"/><circle cx="12" cy="8" r="0.7" fill="currentColor" stroke="none"/>',
+  // Shape glyphs for the segmented shape control.
+  shRect: '<rect x="4" y="6" width="16" height="12"/>',
+  shRounded: '<rect x="4" y="6" width="16" height="12" rx="4.5"/>',
+  shPill: '<rect x="3" y="7.5" width="18" height="9" rx="4.5"/>',
+  shEllipse: '<ellipse cx="12" cy="12" rx="9" ry="7"/>',
+  // Image-fit glyphs.
+  fitContain: '<rect x="3" y="4.5" width="18" height="15" rx="1.5"/><rect x="8" y="8.5" width="8" height="7" rx="1"/>',
+  fitCover: '<rect x="3" y="4.5" width="18" height="15" rx="1.5"/><path d="M3 16l4.5-3.5L11 15l3-2.2L21 18"/><circle cx="8.5" cy="9" r="1.2"/>',
+  fitFill: '<rect x="3" y="4.5" width="18" height="15" rx="1.5"/><polyline points="8 9 5.5 12 8 15"/><polyline points="16 9 18.5 12 16 15"/>',
+  radius: '<path d="M5 19V9a4 4 0 0 1 4-4h10"/><line x1="5" y1="19" x2="5" y2="21"/><line x1="3" y1="19" x2="5" y2="19"/>',
+  opacity: '<rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M12 3.5v17"/><path d="M12 5.5h6.5M12 8.5h8M12 11.5h8M12 14.5h8M12 17.5h6.5"/>',
+  blend: '<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6" opacity="0.5"/>',
+  shadowIc: '<rect x="3.5" y="3.5" width="12" height="12" rx="2.5"/><path d="M8.5 20.5h10a2 2 0 0 0 2-2v-10" opacity="0.45"/>',
   collapse: '<polyline points="15 18 9 12 15 6"/>',
   forward: '<polyline points="8 9 12 5 16 9"/><line x1="12" y1="5" x2="12" y2="15"/><line x1="5" y1="19" x2="19" y2="19"/>',
   backward: '<polyline points="8 15 12 19 16 15"/><line x1="12" y1="19" x2="12" y2="9"/><line x1="5" y1="5" x2="19" y2="5"/>',
@@ -84,7 +103,7 @@ const H_JUSTIFY = { left: 'flex-start', center: 'center', right: 'flex-end' };
 const V_ALIGN = { top: 'flex-start', middle: 'center', bottom: 'flex-end' };
 
 export function initFreeCanvas(opts) {
-  const { viewEl, stageEl, canvasEl, runtime, host, input, nativeW, nativeH, onDirty, editTool, setCanvasSize } = opts;
+  const { viewEl, stageEl, canvasEl, runtime, host, input, nativeW, nativeH, onDirty, editTool, setCanvasSize, info } = opts;
   // The artboard is resizable, so read its CURRENT declared size (not the mount-time
   // nativeW/H) everywhere geometry depends on the canvas dimensions.
   const canvasWH = () => ({
@@ -104,6 +123,8 @@ export function initFreeCanvas(opts) {
     fontSizeField: cv.fontSizeField, alignField: cv.alignField, valignField: cv.valignField,
     weightField: cv.weightField, fontField: cv.fontField, lineHeightField: cv.lineHeightField,
     padField: cv.padField, groupField: cv.groupField, clipField: cv.clipField,
+    shadowField: cv.shadowField, shadowColorField: cv.shadowColorField,
+    shadowXField: cv.shadowXField, shadowYField: cv.shadowYField, shadowBlurField: cv.shadowBlurField,
     kindField: 'kind',
   };
   const unwrapColor = (v) => (v && typeof v === 'object' && 'value' in v ? v.value : v);
@@ -342,10 +363,11 @@ export function initFreeCanvas(opts) {
     openContextMenu(e.clientX, e.clientY);
   }
 
+  const ADD_KIND_ICON = { image: SVG.image, text: SVG.type, box: SVG.boxKind };
   function openAddMenu(anchor) {
     spawnPopover(anchor, addKinds.map((k) => ({
       label: k.label || k.id,
-      icon: icon(k.id === 'image' ? SVG.image : SVG.add),
+      icon: icon(ADD_KIND_ICON[k.id] || SVG.add),
       run: () => armCreate(k),
     })));
   }
@@ -392,16 +414,14 @@ export function initFreeCanvas(opts) {
     ctxbar.innerHTML = `
       ${cfg.fillField ? `<span class="fc-cfield" title="Fill">${colorFieldHtml('fc-fill', fillVal, { float: true })}</span>` : ''}
       ${cfg.textColorField ? `<span class="fc-cfield" title="Text colour">${colorFieldHtml('fc-fg', fgVal, { float: true })}</span>` : ''}
-      <button type="button" class="fc-cbtn" data-cx="edit" title="Edit text (double-click)" aria-label="Edit text">${icon(SVG.editText)}</button>
-      <button type="button" class="fc-cbtn" data-cx="smaller" title="Smaller text" aria-label="Smaller text">A−</button>
-      <button type="button" class="fc-cbtn" data-cx="bigger" title="Bigger text" aria-label="Bigger text">A+</button>
-      <button type="button" class="fc-cbtn fc-cbtn-text" data-cx="text" title="Text — font, weight, alignment, line height, padding" aria-label="Text options">Aa</button>
+      <button type="button" class="fc-cbtn" data-cx="edit" title="Edit text (double-click)" aria-label="Edit text">${icon(SVG.pencil)}</button>
+      <button type="button" class="fc-cbtn fc-cbtn-text" data-cx="text" title="Text — size, font, weight, alignment, line height, padding" aria-label="Text options">Aa</button>
       <button type="button" class="fc-cbtn" data-cx="setimg" title="Set image" aria-label="Set image">${icon(SVG.image)}</button>
-      <button type="button" class="fc-cbtn" data-cx="more" title="More — shape, radius, opacity, fit, blend" aria-label="More options">${icon(SVG.more)}</button>
+      <button type="button" class="fc-cbtn" data-cx="more" title="More — shape, radius, opacity, fit, blend, shadow" aria-label="More options">${icon(SVG.more)}</button>
       <span class="fc-sep fc-sep-v"></span>
       <button type="button" class="fc-cbtn" data-cx="dup" title="Duplicate" aria-label="Duplicate">${icon(SVG.dup)}</button>
       <button type="button" class="fc-cbtn fc-danger" data-cx="del" title="Delete" aria-label="Delete">${icon(SVG.trash)}</button>
-      <span class="fc-readout" data-cx-readout></span>`;
+      <button type="button" class="fc-readout" data-cx="dims" data-cx-readout title="Edit position & size" aria-label="Edit position and size"></button>`;
     wireColorField(ctxbar, {
       onChange: (id, val) => {
         if (id === 'fc-fill') setField(cfg.fillField, unwrapColor(val));
@@ -411,14 +431,13 @@ export function initFreeCanvas(opts) {
     ctxbar.querySelectorAll('[data-cx]').forEach((b) => b.addEventListener('click', (e) => {
       e.stopPropagation();
       const cx = b.dataset.cx;
-      if (cx === 'smaller') bumpFont(-6);
-      else if (cx === 'bigger') bumpFont(6);
-      else if (cx === 'text') openTextPanel(b);
+      if (cx === 'text') openTextPanel(b);
       else if (cx === 'edit') { if (selection.size) startTextEdit([...selection][0], { selectAll: true }); }
       else if (cx === 'dup') duplicateSelection();
       else if (cx === 'del') deleteSelection();
       else if (cx === 'setimg') pickImage();
       else if (cx === 'more') openMorePanel(b);
+      else if (cx === 'dims') openDimsPanel(b);
     }));
   }
 
@@ -479,41 +498,100 @@ export function initFreeCanvas(opts) {
     const b = boxes[idx[0]] || {};
     const opt = (v, label, cur) => `<option value="${v}"${String(cur) === v ? ' selected' : ''}>${label}</option>`;
     const shapeCur = b[cfg.shapeField] || 'rect';
-    const fitCur = b[cfg.fitField] || 'cover';
+    const fitCur = b[cfg.fitField] || 'contain';
     const blendCur = b[cfg.blendField] || 'normal';
     const radiusCur = Math.max(0, Math.round(parseFloat(b[cfg.radiusField]) || 0));
     const opacityCur = Math.round(parseFloat(b[cfg.opacityField]) ?? 100);
+    // Shadow state — target picks the CSS mechanism; colour/x/y/blur are shared.
+    const shadowCur = String(b[cfg.shadowField] || 'none');
+    const shColor = String(b[cfg.shadowColorField] || '#00000055');
+    const shX = Math.round(clampN(parseFloat(b[cfg.shadowXField]), 0, -300, 300));
+    const shY = Math.round(clampN(parseFloat(b[cfg.shadowYField]), 0, -300, 300));
+    const shBlur = Math.round(clampN(parseFloat(b[cfg.shadowBlurField]), 10, 0, 300));
+    // Row with a leading icon label (keeps the "clean up + use icons" intent while
+    // staying legible). segRow hosts a segmented control; iconRow a slider/select.
+    const iconRow = (ic, lbl, ctrl) => `<label class="fc-row"><span class="fc-row-lbl" title="${lbl}">${icon(ic)}<span>${lbl}</span></span>${ctrl}</label>`;
+    const segRow = (ic, lbl, seg) => `<div class="fc-row"><span class="fc-row-lbl" title="${lbl}">${icon(ic)}<span>${lbl}</span></span>${seg}</div>`;
     const p = document.createElement('div');
-    p.className = 'fc-panel';
+    p.className = 'fc-panel fc-more-panel';
     p.innerHTML = `
-      ${cfg.shapeField ? `<label class="fc-row"><span>Shape</span><select data-mp="shape">
-        ${opt('rect', 'Rectangle', shapeCur)}${opt('rounded', 'Rounded', shapeCur)}${opt('pill', 'Pill', shapeCur)}${opt('ellipse', 'Ellipse', shapeCur)}
-      </select></label>` : ''}
-      ${cfg.radiusField ? `<label class="fc-row"><span>Corner radius</span><input type="range" data-mp="radius" min="0" max="200" value="${radiusCur}"><b data-mp-val="radius">${radiusCur}</b></label>` : ''}
-      ${cfg.opacityField ? `<label class="fc-row"><span>Opacity</span><input type="range" data-mp="opacity" min="0" max="100" value="${Number.isFinite(opacityCur) ? opacityCur : 100}"><b data-mp-val="opacity">${Number.isFinite(opacityCur) ? opacityCur : 100}</b></label>` : ''}
-      ${cfg.fitField ? `<label class="fc-row"><span>Image fit</span><select data-mp="fit">
-        ${opt('cover', 'Cover (crop)', fitCur)}${opt('contain', 'Contain', fitCur)}${opt('fill', 'Stretch', fitCur)}
-      </select></label>` : ''}
-      ${cfg.blendField ? `<label class="fc-row"><span>Blend mode</span><select data-mp="blend">
+      ${cfg.shapeField ? segRow(SVG.shRounded, 'Shape', segHtml(cfg.shapeField, shapeCur, [['rect', 'Rectangle', SVG.shRect], ['rounded', 'Rounded', SVG.shRounded], ['pill', 'Pill', SVG.shPill], ['ellipse', 'Ellipse', SVG.shEllipse]])) : ''}
+      ${cfg.radiusField ? iconRow(SVG.radius, 'Corner radius', `<input type="range" data-mp="radius" min="0" max="200" value="${radiusCur}"><b data-mp-val="radius">${radiusCur}</b>`) : ''}
+      ${cfg.opacityField ? iconRow(SVG.opacity, 'Opacity', `<input type="range" data-mp="opacity" min="0" max="100" value="${Number.isFinite(opacityCur) ? opacityCur : 100}"><b data-mp-val="opacity">${Number.isFinite(opacityCur) ? opacityCur : 100}</b>`) : ''}
+      ${cfg.fitField ? segRow(SVG.fitContain, 'Image fit', segHtml(cfg.fitField, fitCur, [['contain', 'Contain', SVG.fitContain], ['cover', 'Cover (crop)', SVG.fitCover], ['fill', 'Stretch', SVG.fitFill]])) : ''}
+      ${cfg.blendField ? iconRow(SVG.blend, 'Blend mode', `<select data-mp="blend">
         ${['normal', 'multiply', 'screen', 'overlay', 'darken', 'lighten', 'color-dodge', 'color-burn', 'hard-light', 'soft-light', 'difference', 'exclusion', 'hue', 'saturation', 'color', 'luminosity'].map((m) => opt(m, m[0].toUpperCase() + m.slice(1).replace('-', ' '), blendCur)).join('')}
-      </select></label>` : ''}`;
+      </select>`) : ''}
+      ${cfg.shadowField ? `<div class="fc-panel-sub">Shadow</div>
+        ${segRow(SVG.shadowIc, 'Apply to', segHtml(cfg.shadowField, shadowCur, [['none', 'None'], ['box', 'Box'], ['text', 'Text'], ['content', 'Content']]))}
+        <label class="fc-row"><span class="fc-row-lbl">Colour</span><span class="fc-cfield">${colorFieldHtml('fc-shadow', shColor, { float: true })}</span></label>
+        <label class="fc-row"><span class="fc-row-lbl">X</span><input type="range" data-mp="shx" min="-300" max="300" value="${shX}"><b data-mp-val="shx">${shX}</b></label>
+        <label class="fc-row"><span class="fc-row-lbl">Y</span><input type="range" data-mp="shy" min="-300" max="300" value="${shY}"><b data-mp-val="shy">${shY}</b></label>
+        <label class="fc-row"><span class="fc-row-lbl">Blur</span><input type="range" data-mp="shblur" min="0" max="300" value="${shBlur}"><b data-mp-val="shblur">${shBlur}</b></label>` : ''}`;
     p.addEventListener('pointerdown', (e) => e.stopPropagation());
-    p.querySelectorAll('select[data-mp]').forEach((sel) => sel.addEventListener('change', () => {
-      const key = sel.dataset.mp;
-      setField(key === 'shape' ? cfg.shapeField : key === 'fit' ? cfg.fitField : cfg.blendField, sel.value);
-    }));
+    wireSegs(p);
+    const MP_FIELD = { radius: cfg.radiusField, opacity: cfg.opacityField, shx: cfg.shadowXField, shy: cfg.shadowYField, shblur: cfg.shadowBlurField };
+    p.querySelectorAll('select[data-mp]').forEach((sel) => sel.addEventListener('change', () => setField(cfg.blendField, sel.value)));
     p.querySelectorAll('input[data-mp]').forEach((rng) => rng.addEventListener('input', () => {
-      const key = rng.dataset.mp;
-      const valEl = p.querySelector(`[data-mp-val="${key}"]`);
+      const valEl = p.querySelector(`[data-mp-val="${rng.dataset.mp}"]`);
       if (valEl) valEl.textContent = rng.value;
-      setField(key === 'radius' ? cfg.radiusField : cfg.opacityField, Number(rng.value));
+      setField(MP_FIELD[rng.dataset.mp], Number(rng.value));
     }));
+    if (cfg.shadowColorField) wireColorField(p, { onChange: (id, val) => { if (id === 'fc-shadow') setField(cfg.shadowColorField, unwrapColor(val)); } });
     stageEl.appendChild(p);
     morePanel = p;
     const ar = anchor.getBoundingClientRect();
     const sr = stageEl.getBoundingClientRect();
     p.style.left = Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8) + 'px';
     p.style.top = (ar.bottom - sr.top + 8) + 'px';
+  }
+
+  // Clamp a floating panel below-and-left of its anchor, inside the stage.
+  function positionPanelBelow(p, anchor) {
+    const ar = anchor.getBoundingClientRect(), sr = stageEl.getBoundingClientRect();
+    p.style.left = Math.max(6, Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8)) + 'px';
+    p.style.top = Math.max(6, Math.min(ar.bottom - sr.top + 8, sr.height - p.offsetHeight - 8)) + 'px';
+  }
+
+  // ── Dimensions panel: manual X / Y / W / H / rotation for ONE box ─────────────
+  // Opened from the object bar's transform readout (single selection only — editing
+  // X on many boxes would stack them). Writes each field on `change`.
+  function openDimsPanel(anchor) {
+    closeMorePanel();
+    const boxes = getBoxes();
+    const idx = selIndices(boxes);
+    if (idx.length !== 1) return;
+    const b = boxes[idx[0]] || {};
+    const rd = (f, d) => Math.round(clampN(b[f], d, -100000, 100000));
+    const x = rd(cfg.xField, 0), y = rd(cfg.yField, 0);
+    const w = Math.max(1, rd(cfg.wField, 1)), h = Math.max(1, rd(cfg.hField, 1));
+    const rot = Math.round(clampN(b[cfg.rotationField], 0, -180, 180));
+    const p = document.createElement('div');
+    p.className = 'fc-panel fc-dims-panel';
+    p.innerHTML =
+      '<div class="fc-panel-head">Position &amp; size</div>' +
+      '<div class="fc-dims-grid">' +
+      `<label class="fc-row"><span>X</span><input type="number" data-dm="${cfg.xField}" value="${x}"></label>` +
+      `<label class="fc-row"><span>Y</span><input type="number" data-dm="${cfg.yField}" value="${y}"></label>` +
+      `<label class="fc-row"><span>W</span><input type="number" min="1" data-dm="${cfg.wField}" value="${w}"></label>` +
+      `<label class="fc-row"><span>H</span><input type="number" min="1" data-dm="${cfg.hField}" value="${h}"></label>` +
+      (cfg.rotationField ? `<label class="fc-row fc-dims-rot"><span>Rotation</span><input type="number" min="-180" max="180" data-dm="${cfg.rotationField}" value="${rot}"><b>°</b></label>` : '') +
+      '</div>';
+    p.addEventListener('pointerdown', (e) => e.stopPropagation());
+    p.querySelectorAll('input[data-dm]').forEach((inp) => inp.addEventListener('change', () => {
+      const f = inp.dataset.dm;
+      let v = parseFloat(inp.value);
+      if (!Number.isFinite(v)) return;
+      if (f === cfg.wField || f === cfg.hField) v = Math.max(1, v);
+      if (f === cfg.rotationField) v = clampN(v, 0, -180, 180);
+      setField(f, Math.round(v * 100) / 100);
+    }));
+    stageEl.appendChild(p);
+    morePanel = p;
+    positionPanelBelow(p, anchor);
+    // Anchor the readout drops BELOW the bar (readout sits at the bar's right end).
+    const ar = anchor.getBoundingClientRect(), sr = stageEl.getBoundingClientRect();
+    p.style.left = Math.max(6, Math.min(ar.right - sr.left - p.offsetWidth, sr.width - p.offsetWidth - 8)) + 'px';
   }
 
   // ── field editing (applies to all selected boxes) ────────────────────────────
@@ -533,6 +611,21 @@ export function initFreeCanvas(opts) {
       const base = Number.isFinite(cur) ? cur : 48;
       return { ...b, [cfg.fontSizeField]: Math.max(4, base + delta) };
     }));
+  }
+  // Segmented icon/label control shared by the Text + More panels. `choices` is
+  // [value, label, iconSvg?]; data-seg carries the RESOLVED field so wireSegs writes
+  // it directly. When an entry has an icon it renders as an icon button (tooltip =
+  // label); otherwise the label text.
+  function segHtml(field, cur, choices) {
+    return `<div class="fc-seg" data-seg="${field}">` +
+      choices.map(([v, lbl, ic]) => `<button type="button" class="fc-seg-btn${String(cur) === String(v) ? ' is-on' : ''}${ic ? ' fc-seg-ic' : ''}" data-v="${v}" title="${lbl}" aria-label="${lbl}">${ic ? icon(ic) : lbl}</button>`).join('') +
+      '</div>';
+  }
+  function wireSegs(panel, onSet = (field, v) => setField(field, v)) {
+    panel.querySelectorAll('.fc-seg').forEach((segEl) => segEl.querySelectorAll('.fc-seg-btn').forEach((btn) => btn.addEventListener('click', () => {
+      segEl.querySelectorAll('.fc-seg-btn').forEach((x) => x.classList.toggle('is-on', x === btn));
+      onSet(segEl.dataset.seg, btn.dataset.v);
+    })));
   }
   // ── Text panel: font · size · weight · line height · align · vertical · padding ─
   // In editor layout there is NO sidebar, so this panel is the only place these
@@ -556,20 +649,25 @@ export function initFreeCanvas(opts) {
     const padCur = Math.max(0, Math.round(Number.isFinite(padRaw) ? padRaw : 8));
     const alignCur = String(b[cfg.alignField] || 'center');
     const valignCur = String(b[cfg.valignField] || 'middle');
-    const seg = (field, cur, choices) => `<div class="fc-seg" data-seg="${field}">` +
-      choices.map(([v, lbl]) => `<button type="button" class="fc-seg-btn${cur === v ? ' is-on' : ''}" data-v="${v}" title="${lbl}" aria-label="${lbl}">${lbl}</button>`).join('') + '</div>';
     const p = document.createElement('div');
     p.className = 'fc-panel fc-text-panel';
     p.innerHTML =
       '<div class="fc-panel-head">Text</div>' +
       (cfg.fontField ? `<label class="fc-row"><span>Font</span><select data-tp="font">${opt('SUSE', 'SUSE Sans', fontCur)}${opt('SUSE Mono', 'SUSE Mono', fontCur)}</select></label>` : '') +
-      (cfg.fontSizeField ? `<label class="fc-row"><span>Size</span><input type="number" min="4" max="2000" data-tp="size" value="${sizeCur}"><b>px</b></label>` : '') +
+      // Size row now carries the A−/A+ steppers (moved off the object bar) around the number.
+      (cfg.fontSizeField ? `<div class="fc-row"><span>Size</span><div class="fc-stepper">
+        <button type="button" class="fc-cbtn" data-tp="smaller" title="Smaller" aria-label="Smaller text">A−</button>
+        <input type="number" min="4" max="2000" data-tp="size" value="${sizeCur}">
+        <button type="button" class="fc-cbtn" data-tp="bigger" title="Bigger" aria-label="Bigger text">A+</button>
+      </div></div>` : '') +
       (cfg.weightField ? `<label class="fc-row"><span>Weight</span><select data-tp="weight">${weightChoicesFor(fontCur).map(([v, l]) => opt(v, l, weightCur)).join('')}</select></label>` : '') +
       (cfg.lineHeightField ? `<label class="fc-row"><span>Line height</span><input type="range" min="0.7" max="3" step="0.01" data-tp="lh" value="${lhCur}"><b data-tp-val="lh">${lhCur.toFixed(2)}</b></label>` : '') +
-      (cfg.alignField ? `<div class="fc-row"><span>Align</span>${seg(cfg.alignField, alignCur, [['left', 'Left'], ['center', 'Centre'], ['right', 'Right']])}</div>` : '') +
-      (cfg.valignField ? `<div class="fc-row"><span>Vertical</span>${seg(cfg.valignField, valignCur, [['top', 'Top'], ['middle', 'Middle'], ['bottom', 'Bottom']])}</div>` : '') +
+      (cfg.alignField ? `<div class="fc-row"><span>Align</span>${segHtml(cfg.alignField, alignCur, [['left', 'Align left', SVG.textL], ['center', 'Align centre', SVG.textC], ['right', 'Align right', SVG.textR]])}</div>` : '') +
+      (cfg.valignField ? `<div class="fc-row"><span>Vertical</span>${segHtml(cfg.valignField, valignCur, [['top', 'Align top', SVG.textT], ['middle', 'Centre vertically', SVG.textM], ['bottom', 'Align bottom', SVG.textB]])}</div>` : '') +
       (cfg.padField ? `<label class="fc-row"><span>Padding</span><input type="range" min="0" max="200" data-tp="pad" value="${padCur}"><b data-tp-val="pad">${padCur}</b></label>` : '');
     p.addEventListener('pointerdown', (e) => e.stopPropagation());
+    p.querySelector('[data-tp="smaller"]')?.addEventListener('click', () => { bumpFont(-6); const s = p.querySelector('[data-tp="size"]'); if (s) s.value = String(Math.max(4, (parseInt(s.value, 10) || 48) - 6)); });
+    p.querySelector('[data-tp="bigger"]')?.addEventListener('click', () => { bumpFont(6); const s = p.querySelector('[data-tp="size"]'); if (s) s.value = String((parseInt(s.value, 10) || 48) + 6); });
     p.querySelectorAll('select[data-tp]').forEach((sel) => sel.addEventListener('change', () => {
       if (sel.dataset.tp !== 'font') { setField(cfg.weightField, sel.value); return; }
       // Font change: SUSE Mono has no 900 cut, so clamp any Black boxes to 800 in
@@ -599,10 +697,7 @@ export function initFreeCanvas(opts) {
       if (k === 'lh') { if (valEl) valEl.textContent = (+rng.value).toFixed(2); setField(cfg.lineHeightField, +rng.value); }
       else { if (valEl) valEl.textContent = rng.value; setField(cfg.padField, +rng.value); }
     }));
-    p.querySelectorAll('.fc-seg').forEach((segEl) => segEl.querySelectorAll('.fc-seg-btn').forEach((btn) => btn.addEventListener('click', () => {
-      segEl.querySelectorAll('.fc-seg-btn').forEach((x) => x.classList.toggle('is-on', x === btn));
-      setField(segEl.dataset.seg, btn.dataset.v);
-    })));
+    wireSegs(p);
     stageEl.appendChild(p);
     morePanel = p;
     const ar = anchor.getBoundingClientRect();
@@ -1656,6 +1751,12 @@ export function initFreeCanvas(opts) {
   }
   function cssEscape(s) {
     return (window.CSS && CSS.escape) ? CSS.escape(s) : String(s).replace(/["\\]/g, '\\$&');
+  }
+  // Finite number clamped to [lo,hi], or the default when not a number.
+  function clampN(v, dflt, lo, hi) {
+    const n = typeof v === 'number' ? v : parseFloat(v);
+    if (!Number.isFinite(n)) return dflt;
+    return n < lo ? lo : (n > hi ? hi : n);
   }
 
   // ── keyboard ─────────────────────────────────────────────────────────────────

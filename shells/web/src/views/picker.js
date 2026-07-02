@@ -380,16 +380,23 @@ async function render(root, host, opts, resolve) {
       else ungrouped.push(a);
     }
 
-    let html = `<div class="asset-picker-section-head">Your images <span class="asset-picker-count">${userAssets.length}/${MAX_USER_ASSETS}</span></div>`;
+    let inner = '';
     for (const g of groups.values()) {
-      html += `<div class="asset-picker-folder-head">${escape(g.name)}</div>`;
-      html += `<div class="asset-picker-grid">${g.items.map(userCard).join('')}</div>`;
+      inner += `<div class="asset-picker-folder-head">${escape(g.name)}</div>`;
+      inner += `<div class="asset-picker-grid">${g.items.map(userCard).join('')}</div>`;
     }
     if (ungrouped.length) {
-      if (groups.size) html += `<div class="asset-picker-folder-head">Ungrouped</div>`;
-      html += `<div class="asset-picker-grid">${ungrouped.map(userCard).join('')}</div>`;
+      if (groups.size) inner += `<div class="asset-picker-folder-head">Ungrouped</div>`;
+      inner += `<div class="asset-picker-grid">${ungrouped.map(userCard).join('')}</div>`;
     }
-    userEl.innerHTML = html;
+    // Same collapsible section chrome as the library groups (one delegated toggle
+    // handler serves both); state persists in collapsedGroups across re-renders.
+    userEl.innerHTML = sectionHtml(
+      { key: 'your-images', label: 'Your images' },
+      `${userAssets.length}/${MAX_USER_ASSETS}`,
+      '',
+      inner,
+    );
   }
 
   function updateUploadAffordance() {
@@ -433,8 +440,11 @@ async function render(root, host, opts, resolve) {
   // Library sections, in display order. A candidate is bucketed by its tags into
   // exactly one: 'background' wins over 'themable' so a two-colour background
   // pattern lands under Backgrounds, not Icons. 'other' catches anything untagged.
+  // A group may declare `sub` groups — tag-matched subsets rendered as their own
+  // nested collapsible sections inside the parent (headshots are photos, but a
+  // distinct enough subset to fold away on their own).
   const LIB_GROUPS = [
-    { key: 'photos',      label: 'Photos' },
+    { key: 'photos',      label: 'Photos', sub: [{ key: 'photos/headshots', label: 'Headshots', tag: 'headshot' }] },
     { key: 'backgrounds', label: 'Backgrounds' },
     { key: 'logos',       label: 'Logos' },
     { key: 'icons',       label: 'Icons' },
@@ -444,12 +454,46 @@ async function render(root, host, opts, resolve) {
     const t = new Set(ref?.meta?.tags || []);
     if (t.has('background')) return 'backgrounds';
     if (t.has('logo'))       return 'logos';
-    if (t.has('headshot'))   return 'photos';
+    if (t.has('headshot') || t.has('photo')) return 'photos'; // headshots are a subset of photos
     if (t.has('themable'))   return 'icons';
     return 'other';
   }
   const collapsedGroups = new Set(); // group keys the user collapsed; persists across re-render
   const CHEVRON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>';
+
+  // One collapsible section shell — used by the library groups, their nested
+  // sub-groups, and the "Your images" section, so the delegated toggle handler
+  // and collapse-state Set serve all of them identically.
+  function sectionHtml(g, count, strip, bodyHtml) {
+    const collapsed = collapsedGroups.has(g.key);
+    return `<section class="asset-picker-group${collapsed ? ' is-collapsed' : ''}" data-group="${escape(g.key)}">
+      <div class="asset-picker-group-head">
+        <button type="button" class="asset-picker-group-toggle" data-group-toggle="${escape(g.key)}" aria-expanded="${!collapsed}">
+          <span class="asset-picker-group-chevron">${CHEVRON}</span>
+          <span class="asset-picker-group-title">${escape(g.label)}</span>
+          <span class="asset-picker-count">${count}</span>
+        </button>
+        ${strip}
+      </div>
+      <div class="asset-picker-group-body">${bodyHtml}</div>
+    </section>`;
+  }
+
+  // A group's body: the items not claimed by a sub-group as a grid, then each
+  // non-empty sub-group as a nested collapsible section.
+  function groupBodyHtml(g, items) {
+    const subs = [];
+    let rest = items;
+    for (const s of g.sub ?? []) {
+      const inSub = rest.filter(c => c.meta?.tags?.includes(s.tag));
+      if (inSub.length) {
+        subs.push(sectionHtml(s, inSub.length, '', `<div class="asset-picker-grid">${inSub.map(card).join('')}</div>`));
+        rest = rest.filter(c => !c.meta?.tags?.includes(s.tag));
+      }
+    }
+    const restGrid = rest.length ? `<div class="asset-picker-grid">${rest.map(card).join('')}</div>` : '';
+    return restGrid + subs.join('');
+  }
 
   function renderLibrary(candidates) {
     if (candidates.length === 0) {
@@ -478,21 +522,8 @@ async function render(root, host, opts, resolve) {
     }
     libraryEl.innerHTML = present.map(g => {
       const items = buckets.get(g.key);
-      const collapsed = collapsedGroups.has(g.key);
       const strip = themableOf(items) ? themeStripHtml() : '';
-      return `<section class="asset-picker-group${collapsed ? ' is-collapsed' : ''}" data-group="${g.key}">
-        <div class="asset-picker-group-head">
-          <button type="button" class="asset-picker-group-toggle" data-group-toggle="${g.key}" aria-expanded="${!collapsed}">
-            <span class="asset-picker-group-chevron">${CHEVRON}</span>
-            <span class="asset-picker-group-title">${escape(g.label)}</span>
-            <span class="asset-picker-count">${items.length}</span>
-          </button>
-          ${strip}
-        </div>
-        <div class="asset-picker-group-body">
-          <div class="asset-picker-grid">${items.map(card).join('')}</div>
-        </div>
-      </section>`;
+      return sectionHtml(g, items.length, strip, groupBodyHtml(g, items));
     }).join('');
     retintThemableCards(); // re-applied after every innerHTML rebuild (search, tab return)
   }
