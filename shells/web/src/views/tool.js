@@ -985,6 +985,7 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Cleanup: remove injected <style>, disconnect observer, tear down canvas nav + export.
   viewEl._cleanup = () => {
     runtime.stopLive?.(); // release the camera if a live session is running
+    lottieModule?.destroyLottiePlayers(); // else animationManager ticks detached trees
     styleEl.remove(); shutterEl?.remove(); ro.disconnect(); stageZoom?.destroy(); exportTeardown?.();
     window.removeEventListener('keydown', onHistoryKey);
     clearTimeout(historyToastTimer); historyToastEl?.remove();
@@ -1007,6 +1008,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
     // Embeds (lolly.tools/tool/… URLs) hydrate fire-and-forget on each render;
     // wait for the latest pass so export reads resolved blobs, not the placeholder.
     await embedsPending;
+    // Same for lottie players — a first-paint/deep-link export must not capture
+    // an unmounted [data-lottie-src] container.
+    await lottiePending;
     const annotated = [...canvasEl.querySelectorAll('[data-canvas-input]')];
     const saved = annotated.map(el => ({ el, id: el.dataset.canvasInput }));
     annotated.forEach(el => el.removeAttribute('data-canvas-input'));
@@ -1508,6 +1512,10 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
   // Latest embed-hydration promise; exportUnscaled awaits it so an export reads
   // resolved blob URLs rather than the neutralised 1×1 placeholder.
   let embedsPending = Promise.resolve();
+  // Latest lottie-mount pass (same contract); the module is loaded lazily the
+  // first time a paint emits a [data-lottie-src] marker and kept for reaping.
+  let lottiePending = Promise.resolve();
+  let lottieModule = null;
 
   // The RENDER half of the subscriber is coalesced behind requestAnimationFrame:
   // a full canvas rebuild swaps innerHTML, re-walks annotations, and re-executes
@@ -1536,6 +1544,16 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
       if (tool.manifest.a11yLabel) contentEl.setAttribute('aria-label', canvasLabel());
       runTemplateScripts(contentEl);
       embedsPending = hydrateEmbeds(contentEl, { host, isCurrent: () => gen === renderGen });
+      // Lottie markers are mounted by the shell, not the template (tools stay
+      // data-only). Once the module has loaded, run the pass even on marker-less
+      // paints so players orphaned by the innerHTML swap get reaped.
+      if (lottieModule || contentEl.querySelector('[data-lottie-src]')) {
+        lottiePending = (lottieModule
+          ? Promise.resolve(lottieModule)
+          : import('./lottie-mount.js').then(m => (lottieModule = m)))
+          .then(m => m.mountLottiePlayers(contentEl, { isCurrent: () => gen === renderGen }))
+          .catch(err => console.warn('lottie mount failed:', err));
+      }
       clearCanvasError();
     } catch (err) {
       // A throwing template script (charts, QR, fetch-backed tools run in page
@@ -3304,10 +3322,14 @@ function controlHtml(input, modelValues = {}) {
       const hasValue = Boolean(input.value);
       // A selected asset carries a resolved blob: URL (see runtime resolveAssetRefs)
       // — show it as a small preview so the picked image is visible at a glance.
+      // A lottie ref's URL is the animation JSON (unrenderable in <img>), so it
+      // gets a play-glyph stub instead.
       const thumbUrl = input.value?.url;
-      const thumb = thumbUrl
-        ? `<img class="asset-picker-thumb-inline" src="${escape(thumbUrl)}" alt="">`
-        : '';
+      const thumb = input.value?.type === 'lottie'
+        ? `<span class="asset-picker-thumb-inline asset-picker-thumb-lottie" aria-hidden="true">&#9654;</span>`
+        : thumbUrl
+          ? `<img class="asset-picker-thumb-inline" src="${escape(thumbUrl)}" alt="">`
+          : '';
       // An image minted from a pasted Lolly link keeps its origin in meta.toolUrl —
       // the canonical, re-renderable embed URL (see compose.renderUrl). Surface that
       // provenance and an Edit affordance that re-opens the source tool's own inputs
@@ -3472,9 +3494,13 @@ function controlHtml(input, modelValues = {}) {
           // top-level asset-picker case): a ✦ Edit button keyed on the same field id
           // the picker/clear handlers use re-opens the source tool (openEmbedEditor).
           const fromTool = ref?.meta?.toolUrl ? (ref.meta.name ?? 'a Lolly tool') : null;
+          // A lottie ref's URL is JSON — show a play-glyph + name, not a dead <img>.
+          const trigger = !has ? `<span>&#43; ${escape(f.label ?? 'Image')}</span>`
+            : ref.type === 'lottie' ? `<span class="block-asset-lottie"><span aria-hidden="true">&#9654;</span> ${escape(ref.meta?.name ?? ref.id)}</span>`
+            : `<img src="${escape(ref.url)}" alt="">`;
           return labelled(f, `<div class="block-asset">
             <button type="button" class="block-asset-trigger" data-block-asset="${fieldId}" aria-label="${escape(f.label ?? f.id)}">
-              ${has ? `<img src="${escape(ref.url)}" alt="">` : `<span>&#43; ${escape(f.label ?? 'Image')}</span>`}
+              ${trigger}
             </button>
             ${fromTool ? `<button type="button" class="block-asset-edit" data-block-asset-edit="${fieldId}" title="Edit — from ${escape(fromTool)}" aria-label="Edit image, from ${escape(fromTool)}">&#10022;</button>` : ''}
             ${has ? `<button type="button" class="block-asset-clear" data-block-asset-clear="${fieldId}" aria-label="Remove ${escape(f.label ?? 'image')}">&#x2715;</button>` : ''}

@@ -948,6 +948,9 @@ function sessionThumb(thumb, iconSvg) {
 }
 
 function formatBadge(ref) {
+  // A lottie card thumbnails as its static poster — badge the motion, not the
+  // misleading underlying file format.
+  if (ref.type === 'lottie') return `<span class="asset-picker-fmt">▶ LOTTIE</span>`;
   return ref.format ? `<span class="asset-picker-fmt">${escape(String(ref.format).toUpperCase())}</span>` : '';
 }
 

@@ -116,6 +116,14 @@ export async function renderRowToBlob(row, host, { format, width, height, unit =
     // appears in the output (the existing image seams then handle the blob). The
     // compose stack is threaded so an embed inside a composed child stays guarded.
     await hydrateEmbeds(canvas, { host, embed: { stack: composeStack ?? [] } });
+    // Mount lottie players on any [data-lottie-src] markers — batch/folder renders
+    // bypass the live-preview wiring in views/tool.js, so without this the capture
+    // would show empty containers. The chunk loads only when a marker exists.
+    if (canvas.querySelector('[data-lottie-src]')) {
+      const { mountLottiePlayers, destroyLottiePlayers } = await import('../views/lottie-mount.js');
+      await mountLottiePlayers(canvas);
+      stage._lottieCleanup = () => destroyLottiePlayers(canvas);
+    }
     const fmt = chooseFormat(tool.manifest, format);
     // A "reopen in Lolly" link: this tool's short URL carrying the exact inputs +
     // export settings used for THIS render, so a zip recipient can return to
@@ -135,6 +143,7 @@ export async function renderRowToBlob(row, host, { format, width, height, unit =
     const blob = await runtime.export(canvas, fmt, exportOpts);
     return { blob, format: fmt, url };
   } finally {
+    stage._lottieCleanup?.(); // destroyed players unregister from animationManager
     stage.remove();
   }
 }

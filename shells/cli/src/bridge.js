@@ -67,7 +67,12 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
       const { baseId, theme } = parseThemedAssetId(id);
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
-      const fmt = meta.formats[0];
+      // Lottie entries list the animation (json) plus a static poster variant;
+      // tools always want the animation regardless of listing order (mirrors the
+      // web bridge's pickFormat).
+      const fmt = meta.type === 'lottie'
+        ? (meta.formats.find(f => f.format === 'json') ?? meta.formats[0])
+        : meta.formats[0];
       const localPath = join(REPO_ROOT, fmt.url.replace(/^\//, ''));
       let buf = await readFile(localPath);
       // For palette JSON, embed swatches in meta for templates to use.

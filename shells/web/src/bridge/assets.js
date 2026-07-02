@@ -133,7 +133,12 @@ export function createAssetsAPI(db) {
       // cached blob first. Only flag a placeholder when there's genuinely no URL
       // to resolve (an unresolved/on-demand tier with no static formats[0].url).
       return filtered.map(m => {
-        const directUrl = m.formats[0]?.url ?? '';
+        // Lottie thumbnails come from the static poster variant (an <img> can't
+        // show the json animation); everything else keeps formats[0].
+        const poster = m.type === 'lottie'
+          ? (m.formats.find(f => f.format !== 'json')?.url ?? '')
+          : '';
+        const directUrl = poster || (m.formats[0]?.url ?? '');
         return {
           source: 'library',
           id: m.id,
@@ -141,7 +146,7 @@ export function createAssetsAPI(db) {
           format: m.formats[0]?.format ?? 'svg',
           url: directUrl,
           version: m.version,
-          meta: { name: m.name, tags: m.tags, _placeholder: !directUrl },
+          meta: { name: m.name, tags: m.tags, _placeholder: !directUrl, ...(poster ? { posterUrl: poster } : {}) },
         };
       });
     },
@@ -400,6 +405,9 @@ function pickFormat(meta, requested) {
   }
   // Sensible default per type.
   if (meta.type === 'vector') return meta.formats.find(f => f.format === 'svg') ?? meta.formats[0];
+  // A lottie entry carries the animation (json) plus a static poster variant;
+  // tools always want the animation regardless of listing order.
+  if (meta.type === 'lottie') return meta.formats.find(f => f.format === 'json') ?? meta.formats[0];
   return meta.formats[0];
 }
 
