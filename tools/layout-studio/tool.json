@@ -94,7 +94,7 @@
         { "id": "radius", "type": "number", "label": "Corner radius", "default": 16, "min": 0, "showIf": { "shape": "rounded" } },
         { "id": "bg", "type": "color", "label": "Fill", "default": "#30BA78" },
         { "id": "opacity", "type": "number", "label": "Opacity", "default": 100, "min": 0, "max": 100, "display": "slider" },
-        { "id": "image", "type": "asset", "label": "Image", "assetType": "raster", "allowUpload": true },
+        { "id": "image", "type": "asset", "label": "Image", "assetType": "any", "allowUpload": true },
         {
           "id": "fit",
           "type": "select",
@@ -160,11 +160,17 @@
           "type": "select",
           "label": "Weight",
           "default": "700",
+          "help": "Black (900) is SUSE Sans only — SUSE Mono tops out at Extrabold (800).",
           "options": [
+            { "value": "100", "label": "Thin" },
+            { "value": "200", "label": "Extra light" },
+            { "value": "300", "label": "Light" },
             { "value": "400", "label": "Regular" },
+            { "value": "500", "label": "Medium" },
             { "value": "600", "label": "Semibold" },
             { "value": "700", "label": "Bold" },
-            { "value": "800", "label": "Extrabold" }
+            { "value": "800", "label": "Extrabold" },
+            { "value": "900", "label": "Black" }
           ]
         },
         {

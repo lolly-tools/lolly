@@ -52,11 +52,15 @@ function esc(s) {
 // Inline emphasis on an ALREADY-escaped fragment: **bold** first, then *italic* /
 // _italic_. The markers are literal chars in the escaped text and we only ever inject
 // our own fixed <strong>/<em> tags, so this can't smuggle markup through.
+// \* and \_ are literal-marker escapes (the WYSIWYG editor emits them for typed
+// asterisks/underscores so "5 * 3 * 2" never italicises): park them in control
+// chars while the emphasis regexes run, then restore the bare character.
 function inlineMd(s) {
+  s = s.replace(/\\\*/g, '\u0001').replace(/\\_/g, '\u0002');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
   s = s.replace(/(^|[^_\w])_([^_\n]+)_/g, '$1<em>$2</em>');
-  return s;
+  return s.replace(/\u0001/g, '*').replace(/\u0002/g, '_');
 }
 
 // Semi-rich text → safe HTML. Escape first, then a tiny markdown subset: **bold**,
@@ -83,7 +87,14 @@ function radiusFor(shape, radius) {
 
 var H_JUSTIFY = { left: 'flex-start', center: 'center', right: 'flex-end' };
 var V_ALIGN = { top: 'flex-start', middle: 'center', bottom: 'flex-end' };
-var WEIGHTS = { '400': 1, '600': 1, '700': 1, '800': 1 };
+// Any 100-step weight in the variable font's range. SUSE Sans covers 100–900;
+// SUSE Mono has no Black cut (its axis tops out at 800), so cap it there — this
+// keeps the browser render and the static-TTF vector export in agreement.
+function weightOf(b) {
+  var w = clamp(Math.round(num(b.weight, 700) / 100) * 100, 100, 900);
+  if (String(b.font) === 'SUSE Mono' && w > 800) w = 800;
+  return String(w);
+}
 // Text block font family. Single-quoted so it survives inside a style="" attribute
 // without HTML-escaping. Unknown values fall back to SUSE (no CSS injection).
 var FONTS = {
@@ -166,7 +177,7 @@ function clipCss(b, byId) {
 
 function textCss(b) {
   var size = Math.max(1, Math.round(num(b.fontSize, 48)));
-  var weight = WEIGHTS[String(b.weight)] ? String(b.weight) : '700';
+  var weight = weightOf(b);
   var align = H_JUSTIFY[b.align] ? b.align : 'center';
   // Inner padding between the box edge and the text (all sides). Clamped so a
   // hand-edited URL can't push text absurdly far or negative.

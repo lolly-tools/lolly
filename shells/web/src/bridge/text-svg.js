@@ -10,11 +10,13 @@
  */
 
 // Maps a CSS numeric font-weight to the nearest SUSE static TTF filename stem.
-export function suseWeightName(weight) {
+// SUSE Mono has no Black cut (its weight axis tops out at ExtraBold/800), so
+// mono resolution caps there — matching how the browser clamps the variable font.
+export function suseWeightName(weight, mono = false) {
   const map = [
     [100, 'Thin'], [200, 'ExtraLight'], [300, 'Light'], [400, 'Regular'],
     [500, 'Medium'], [600, 'SemiBold'], [700, 'Bold'], [800, 'ExtraBold'], [900, 'Black'],
-  ];
+  ].filter(([n]) => !mono || n <= 800);
   const w = Math.round(weight / 100) * 100;
   const entry = map.find(([n]) => n === w) ?? map.reduce((a, b) =>
     Math.abs(b[0] - weight) < Math.abs(a[0] - weight) ? b : a);
@@ -25,22 +27,24 @@ export function suseWeightName(weight) {
 // Single source of truth shared by the SVG path emitter and the PDF embedder.
 export const SUSE_FONT_DIR = '/catalog/fonts/ttf/';
 
-export function suseFontFile(weight, italic) {
-  return `SUSE-${suseWeightName(weight)}${italic ? 'Italic' : ''}.ttf`;
+export function suseFontFile(weight, italic, mono = false) {
+  return `SUSE${mono ? 'Mono' : ''}-${suseWeightName(weight, mono)}${italic ? 'Italic' : ''}.ttf`;
 }
 
 /**
  * Resolve a computed style to a SUSE TTF URL host.text.toPath can fetch, or null
- * if this run isn't set in the brand font. (Phase 2 will resolve non-SUSE/system
- * fonts via a font registry or @font-face src; until then those fall back to a
- * plain <text> element — see canVectoriseText.)
+ * if this run isn't set in the brand font. SUSE Mono resolves to the SUSEMono-*
+ * statics. (Phase 2 will resolve non-SUSE/system fonts via a font registry or
+ * @font-face src; until then those fall back to a plain <text> element — see
+ * canVectoriseText.)
  */
 export function resolveSuseFontUrl(style) {
   const family = (style.fontFamily || '').toLowerCase();
   if (!family.includes('suse')) return null;
+  const mono = family.includes('mono');
   const weight = parseInt(style.fontWeight) || 400;
   const italic = style.fontStyle === 'italic' || style.fontStyle === 'oblique';
-  return SUSE_FONT_DIR + suseFontFile(weight, italic);
+  return SUSE_FONT_DIR + suseFontFile(weight, italic, mono);
 }
 
 /**

@@ -100,6 +100,23 @@ Tools reference palette swatches through `host.assets.get(id)` → `ref.meta.swa
 
 The `color` input type also accepts a `palette` field (schema-valid, mapped to a `palette-picker` control in `engine/src/inputs.js`), but the web shell currently renders that control as a **stub**. For a working brand-restricted picker today, use a `color` input with `"swatchesOnly": true` — it renders the real brand swatch picker (no hex/native/alpha).
 
+## Themable two-colour icons
+
+An icon tagged `themable` is an SVG that expresses its two colours only as classes, with one overridable default block and nothing else — no other `fill`/`stroke`/`style` anywhere:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="40" height="40">
+  <defs><style>.c1{fill:#30ba78}.c2{fill:#0c322c}</style></defs>
+  <path class="c2" d="…"/>   <!-- base (majority) shapes -->
+  <path class="c1" d="…"/>   <!-- accent shapes -->
+</svg>
+```
+
+- `.c1` is the **accent**, `.c2` the **base**. The defaults (jungle on pine) are plain class rules, so inlining the SVG lets a page or tool override them — `.c1 { fill: … !important }` wins by design.
+- The colour pairings the picker offers come from a palette-type asset tagged `icon-themes` (`suse/palette/icon-themes`); its first pairing must match the defaults baked into the icons.
+- A non-default pairing chosen in the picker travels **inside the asset id** — `suse/icons/ai?theme=ocean` — because an asset value persists as its id alone (URL mode). Both shell bridges parse that suffix (`parseThemedAssetId`) and bake the pairing at resolve time (`applyIconTheme`: style block removed, fills inlined as attributes) so two differently-themed copies never fight over class rules inside one exported SVG/PDF.
+- The validator enforces the contract for every `themable`-tagged SVG (exactly one default style block; classes limited to `c1`/`c2`; no inline styles or strokes).
+
 ## Design tokens
 
 `type: "tokens"` is a DTCG (Design Tokens Community Group) JSON document — the canonical brand-color source. The core asset `suse/tokens/brand` feeds the color picker's swatches and the defaults for brand-bound inputs. Beyond the normal asset checks, the validator runs a dedicated DTCG-structure validation against `schemas/tokens.schema.json` (`scripts/validate-catalog.js`). See [Design tokens](/info/design-tokens.html) for the token model and how palettes relate.

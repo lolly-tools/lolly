@@ -13,7 +13,7 @@
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf, emitEps, parseToolUrl, buildEmbedUrl, parseUrlState, RESERVED } from '@lolly/engine';
+import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf, emitEps, parseToolUrl, buildEmbedUrl, parseUrlState, RESERVED, parseThemedAssetId, applyIconTheme } from '@lolly/engine';
 // PDF metadata inspect/strip is pure pdf-lib (no DOM), so the lean node CLI
 // shares the web shell's implementation rather than duplicating it.
 import { createPdfAPI } from '../../web/src/bridge/pdf.js';
@@ -46,13 +46,31 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
     subscribe() { return () => {}; },
   };
 
+  // Colour pairings for themable two-colour icons, from the catalog's palette
+  // asset tagged "icon-themes". Read once per CLI invocation.
+  let iconThemesCache = null;
+  async function iconThemes() {
+    if (iconThemesCache) return iconThemesCache;
+    try {
+      const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('icon-themes'));
+      const doc = pal ? JSON.parse(await readFile(join(REPO_ROOT, pal.formats[0].url.replace(/^\//, '')), 'utf8')) : null;
+      iconThemesCache = Array.isArray(doc?.themes) ? doc.themes : [];
+    } catch {
+      iconThemesCache = []; // unavailable ≠ broken: icons just stay default
+    }
+    return iconThemesCache;
+  }
+
   host.assets = {
     async get(id) {
-      const meta = assetById.get(id);
-      if (!meta) throw new Error(`Asset not in catalog: ${id}`);
+      // `<baseId>?theme=<themeId>` — themable two-colour icon with a colour
+      // pairing baked in at resolve time (same contract as the web bridge).
+      const { baseId, theme } = parseThemedAssetId(id);
+      const meta = assetById.get(baseId);
+      if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
       const fmt = meta.formats[0];
       const localPath = join(REPO_ROOT, fmt.url.replace(/^\//, ''));
-      const buf = await readFile(localPath);
+      let buf = await readFile(localPath);
       // For palette JSON, embed swatches in meta for templates to use.
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === 'palette' && fmt.format === 'json') {
@@ -61,12 +79,21 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
           extraMeta = { ...extraMeta, ...parsed };
         } catch {}
       }
+      if (theme) {
+        const def = (await iconThemes()).find(t => t.id === theme);
+        const baked = def ? applyIconTheme(buf.toString('utf8'), def) : null;
+        if (baked) {
+          buf = Buffer.from(baked, 'utf8');
+          extraMeta = { ...extraMeta, theme, baseId };
+        }
+        // Unknown theme / non-themable file → serve the plain asset.
+      }
       // jsdom doesn't have URL.createObjectURL by default; encode as data URL.
       const mime = mimeFor(fmt.format);
       const url = `data:${mime};base64,${buf.toString('base64')}`;
       return {
         source: 'library',
-        id: meta.id,
+        id: theme ? id : meta.id,
         type: meta.type,
         format: fmt.format,
         url,
@@ -92,7 +119,7 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
       throw new Error('Asset picker not available in CLI mode — pass asset ids via URL params instead');
     },
     async isAvailable(id) {
-      return assetById.has(id);
+      return assetById.has(parseThemedAssetId(id).baseId);
     },
 
     // The user-image library (device upload → downscale → IndexedDB) is a GUI

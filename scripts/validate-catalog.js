@@ -294,6 +294,25 @@ for (const asset of assetsIndex.assets) {
           }
         }
       }
+
+      // Themable two-colour icons (tag "themable"): the shells' theme baking is
+      // a string rewrite, so the SVG must follow the exact contract — one
+      // default <defs><style>.c1{fill:…}.c2{fill:…}</style></defs> block, shape
+      // classes limited to c1/c2, and no stray style/stroke attributes.
+      if (asset.tags?.includes('themable') && fmt.format === 'svg') {
+        const svg = readFileSync(absPath, 'utf8');
+        const styleBlocks = svg.match(/<style>/g) ?? [];
+        if (!/<defs><style>\.c1\{fill:[^}]+\}\.c2\{fill:[^}]+\}<\/style><\/defs>/.test(svg)) {
+          errors.push(`[asset ${asset.id}] themable icon missing the default .c1/.c2 style block`);
+        } else if (styleBlocks.length !== 1) {
+          errors.push(`[asset ${asset.id}] themable icon must contain exactly one <style> block`);
+        }
+        const body = svg.replace(/<defs><style>[\s\S]*?<\/style><\/defs>/, '');
+        const badClass = [...body.matchAll(/class="([^"]*)"/g)].find(m => m[1] !== 'c1' && m[1] !== 'c2');
+        if (badClass) errors.push(`[asset ${asset.id}] themable icon has a class other than c1/c2: "${badClass[1]}"`);
+        if (/style="/.test(body)) errors.push(`[asset ${asset.id}] themable icon has an inline style attribute`);
+        if (/stroke/.test(body)) errors.push(`[asset ${asset.id}] themable icon has stroke styling (fills only)`);
+      }
     }
   }
 }
@@ -314,9 +333,11 @@ for (const asset of assetsIndex.assets) {
 
 for (const [toolId, manifest] of toolManifests) {
   for (const input of manifest.inputs) {
-    // Default asset refs must resolve
+    // Default asset refs must resolve. A default may carry an icon theme
+    // suffix (`<id>?theme=<t>`) — the catalog id is the part before it.
     if (input.type === 'asset' && typeof input.default === 'string') {
-      if (!assetById.has(input.default)) {
+      const baseId = input.default.split('?theme=')[0];
+      if (!assetById.has(baseId)) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" not in catalog`);
       }
     }

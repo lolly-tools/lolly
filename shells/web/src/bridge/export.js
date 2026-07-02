@@ -2163,8 +2163,9 @@ async function drawSvgVectorsInRegion(pdf, svgEl, ox, oy, regionW, regionH, regi
       pdf.setFontSize(Math.max(1, fs));
       let fontSet = false;
       if (family.includes('suse') && registeredFonts) {
-        const suseStyle = await embedSuseFont(pdf, registeredFonts, fw, italic);
-        if (suseStyle) { pdf.setFont('SUSE', suseStyle); fontSet = true; }
+        const mono = family.includes('mono');
+        const suseStyle = await embedSuseFont(pdf, registeredFonts, fw, italic, mono);
+        if (suseStyle) { pdf.setFont(suseFontName(mono), suseStyle); fontSet = true; }
       }
       if (!fontSet) {
         pdf.setFont('helvetica', fw >= 600 ? (italic ? 'bolditalic' : 'bold') : (italic ? 'italic' : 'normal'));
@@ -2950,8 +2951,9 @@ async function applyPdfTextStyle(pdf, style, cssToPt, registeredFonts) {
   const italic  = style.fontStyle === 'italic' || style.fontStyle === 'oblique';
   const family  = (style.fontFamily || '').toLowerCase();
   if (family.includes('suse')) {
-    const suseStyle = await embedSuseFont(pdf, registeredFonts, weight, italic);
-    if (suseStyle) { pdf.setFont('SUSE', suseStyle); return; }
+    const mono = family.includes('mono');
+    const suseStyle = await embedSuseFont(pdf, registeredFonts, weight, italic, mono);
+    if (suseStyle) { pdf.setFont(suseFontName(mono), suseStyle); return; }
   }
   const fallback = weight >= 600 ? (italic ? 'bolditalic' : 'bold') : (italic ? 'italic' : 'normal');
   pdf.setFont('helvetica', fallback);
@@ -3126,19 +3128,20 @@ async function loadFontBase64(url) {
 }
 
 // Embeds a SUSE weight+style variant into the jsPDF instance and returns the
-// jsPDF fontStyle key to use with pdf.setFont('SUSE', key).
+// jsPDF fontStyle key to use with pdf.setFont(suseFontName(mono), key).
 // registeredFonts is a per-PDF-instance Set that avoids re-registering.
 // Font-file naming is shared with the SVG path emitter (text-svg.js) so the two
 // export paths never resolve the same weight to different files.
-async function embedSuseFont(pdf, registeredFonts, weight, italic) {
-  const style = italic ? `wi${weight}` : `w${weight}`;
+const suseFontName = (mono) => (mono ? 'SUSEMono' : 'SUSE');
+async function embedSuseFont(pdf, registeredFonts, weight, italic, mono = false) {
+  const style = (mono ? 'm' : '') + (italic ? `wi${weight}` : `w${weight}`);
   if (!registeredFonts.has(style)) {
-    const file = suseFontFile(weight, italic);
+    const file = suseFontFile(weight, italic, mono);
     const url  = SUSE_FONT_DIR + file;
     try {
       const b64 = await loadFontBase64(url);
       pdf.addFileToVFS(file, b64);
-      pdf.addFont(file, 'SUSE', style);
+      pdf.addFont(file, suseFontName(mono), style);
       registeredFonts.add(style);
     } catch {
       return null; // fetch failed; caller falls back to helvetica

@@ -4175,25 +4175,40 @@ body.fc-manipulating { user-select: none; -webkit-user-select: none; }
   cursor: text; min-height: 1em; min-width: 8px; caret-color: #2d7ff9;
 }
 /* While editing, let the caret/text spill past the box so nothing types "into the
-   void"; the box re-clips (and grows to fit) on commit. */
-.lolly-box.fc-box-editing { overflow: visible; }
+   void"; the box re-clips (and grows to fit) on commit. Rounding and clip masks
+   come off too (inline styles, hence !important) — editing happens on a plain
+   rectangle so corners/masks never hide the caret or the copy. */
+.lolly-box.fc-box-editing {
+  overflow: visible;
+  border-radius: 0 !important;
+  clip-path: none !important;
+}
 /* Gentle placeholder in an empty text box being edited (editor-only: the class is
    removed before export, so it never leaks into output). */
 .lolly-box-text.fc-editing:empty::before {
   content: "Type\2026"; opacity: 0.4; pointer-events: none;
 }
 
-/* Floating format bar (bold / italic / bullet) shown while editing text. Sits in
-   the pointer-events:none overlay, so it opts back in. */
+/* Floating format bar shown while editing text: bold / italic / bullets, plus
+   text alignment (horizontal + vertical), weight, and size. Sits in the
+   pointer-events:none overlay, so it opts back in. */
 .fc-fmtbar {
   position: absolute; z-index: 16; pointer-events: auto;
   display: flex; align-items: center; gap: 2px;
+  flex-wrap: wrap; max-width: min(92vw, 540px);
   padding: 4px; border-radius: 12px;
   background: hsl(var(--card) / 0.98);
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24), 0 0 0 1px hsl(var(--border));
 }
 .fc-fmtbar .fc-cbtn { min-width: 32px; }
 .fc-fmtbar i { font-style: italic; }
+.fc-fmtbar .fc-vsep { width: 1px; align-self: stretch; margin: 3px 3px; background: hsl(var(--border)); }
+.fc-fmtbar .fc-cbtn.is-on { background: hsl(var(--primary) / 0.16); color: hsl(var(--primary)); }
+.fc-fmt-weight {
+  font: inherit; font-size: 12.5px; max-width: 104px;
+  padding: 4px 4px; border-radius: 8px;
+  border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
+}
 
 /* The "Aa" text-options trigger — nudge its glyph so it reads as a type control. */
 .fc-cbtn-text { font-weight: 800; letter-spacing: -0.02em; }

@@ -1300,8 +1300,9 @@ ${canvasScope} [data-canvas-input]:hover { outline: 2px dashed rgba(128,128,128,
         onDirty: markUserDirty,
         setCanvasSize,
         // Picking a Lolly link / saved session for a box image opens its inputs
-        // first (configure → insert), same as the sidebar asset slots.
-        editTool: (toolUrl) => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: 'image', mode: 'insert' }),
+        // first (configure → insert), same as the sidebar asset slots. The picker
+        // passes mode 'edit' when re-opening the box's current Lolly render.
+        editTool: (toolUrl, mode = 'insert') => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: 'image', mode }),
       });
       const prevCleanup = viewEl._cleanup;
       viewEl._cleanup = () => { try { fc.destroy(); } catch (e) { console.error(e); } prevCleanup?.(); };
@@ -2701,9 +2702,14 @@ function renderInputs(el, model, runtime, host, onDirty) {
           namespace:   input.filter?.namespace,
           allowUpload: input.allowUpload === true,
           current:     input.value?.id,
+          // A slot already holding a Lolly render gets an "edit the tool you're
+          // using" banner in the picker (its inputs pre-filled), alongside the
+          // normal choose-a-different-image grids.
+          currentToolUrl:  input.value?.meta?.toolUrl,
+          currentToolName: input.value?.meta?.name,
           // Picking a tool in the picker opens its inputs first (configure → insert),
           // reusing the same in-place editor the "from <tool>" Edit badge uses.
-          editTool:    (toolUrl) => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: input.label ?? input.id, mode: 'insert' }),
+          editTool:    (toolUrl, mode = 'insert') => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: input.label ?? input.id, mode }),
         });
         if (ref) { runtime.setInput(id, ref); onDirty?.(id); }
       });
@@ -2958,15 +2964,19 @@ function renderInputs(el, model, runtime, host, onDirty) {
       const inp = panelModel.find(i => i.id === blockId);
       if (!inp) return;
       const f = (inp.fields ?? []).find(x => x.id === fId) ?? {};
-      const cur = Array.isArray(inp.value) ? inp.value[idx]?.[fId]?.id : undefined;
+      const cur = Array.isArray(inp.value) ? inp.value[idx]?.[fId] : null;
       const ref = await host.assets.pick({
         title:       `Choose ${f.label ?? fId}`,
         type:        f.assetType === 'any' ? undefined : f.assetType,
         tags:        f.filter?.tags,
         namespace:   f.filter?.namespace,
         allowUpload: f.allowUpload === true,
-        current:     cur,
-        editTool:    (toolUrl) => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: f.label ?? fId, mode: 'insert' }),
+        current:     cur?.id,
+        // Mirror the top-level slot: a block image that's already a Lolly render
+        // offers its edit-in-place banner inside the picker too.
+        currentToolUrl:  cur?.meta?.toolUrl,
+        currentToolName: cur?.meta?.name,
+        editTool:    (toolUrl, mode = 'insert') => openEmbedEditor(host, { editUrl: toolUrl, slotLabel: f.label ?? fId, mode }),
       });
       if (!ref) return;
       const arr = (Array.isArray(inp.value) ? inp.value : []).map(x => ({ ...x }));

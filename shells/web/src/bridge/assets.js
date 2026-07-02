@@ -14,7 +14,13 @@
  *   - on-demand → fetched lazily, then cached
  */
 
+import { parseThemedAssetId, applyIconTheme } from '@lolly/engine';
+
 const OBJECT_URL_CACHE = new Map(); // key → blob URL, kept alive while bridge is.
+
+// Parsed theme list from the catalog's icon-themes palette asset (a palette-type
+// asset tagged "icon-themes"). Cached per session; reset when the catalog syncs.
+let ICON_THEMES_CACHE = null;
 
 /**
  * Max number of device images a user may keep in their personal library.
@@ -33,7 +39,7 @@ export const MAX_USER_ASSETS = 50;
 const QUOTA_SAFETY_FRACTION = 0.9;
 
 export function createAssetsAPI(db) {
-  return {
+  const api = {
     async get(id, opts = {}) {
       if (id.startsWith('user/')) {
         const userAsset = await db.get('user-assets', id);
@@ -41,23 +47,62 @@ export function createAssetsAPI(db) {
         return toAssetRef(userAsset, 'user');
       }
 
-      const meta = await db.get('asset-meta', id);
-      if (!meta) throw new Error(`Asset not in catalog: ${id}`);
+      // `<baseId>?theme=<themeId>` — a themable two-colour icon with a colour
+      // pairing chosen at pick time. The base asset is resolved normally (blob
+      // cache keyed by base id), then the theme is baked into a derived copy.
+      const { baseId, theme } = parseThemedAssetId(id);
+
+      const meta = await db.get('asset-meta', baseId);
+      if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
 
       const format = pickFormat(meta, opts.format);
       const version = opts.version ?? meta.version;
-      const blobKey = `${id}:${format.format}:${version}`;
+      const blobKey = `${baseId}:${format.format}:${version}`;
 
       let blob = await db.get('asset-blob', blobKey);
       if (!blob) {
         if (meta.tier === 'on-demand') {
           blob = await fetchAndCache(meta, format, blobKey, db);
         } else {
-          throw new Error(`Asset not cached: ${id} (tier: ${meta.tier})`);
+          throw new Error(`Asset not cached: ${baseId} (tier: ${meta.tier})`);
         }
       }
 
+      if (theme) {
+        const def = (await api._iconThemes()).find(t => t.id === theme);
+        const baked = def ? applyIconTheme(await blob.text(), def) : null;
+        if (baked) {
+          return toAssetRef({
+            ...meta,
+            id, // keep the themed id — it's the value that persists in URL mode
+            blob: new Blob([baked], { type: 'image/svg+xml' }),
+            format: format.format,
+            meta: { name: meta.name, tags: meta.tags, theme, baseId },
+          }, 'library');
+        }
+        // Unknown theme or a non-themable file: fall through to the plain asset.
+      }
+
       return toAssetRef({ ...meta, blob, format: format.format }, 'library');
+    },
+
+    /**
+     * Internal: colour pairings for themable icons, from the catalog's
+     * palette asset tagged "icon-themes". [] when the catalog has none.
+     * First entry is the default pairing (matches the fills baked into icons).
+     */
+    async _iconThemes() {
+      if (ICON_THEMES_CACHE) return ICON_THEMES_CACHE;
+      try {
+        const all = await db.getAll('asset-meta');
+        const pal = all.find(m => m.type === 'palette' && m.tags?.includes('icon-themes'));
+        const blob = pal ? await api._getBlob(pal.id) : null;
+        const doc = blob ? JSON.parse(await blob.text()) : null;
+        ICON_THEMES_CACHE = Array.isArray(doc?.themes) ? doc.themes : [];
+      } catch {
+        ICON_THEMES_CACHE = []; // unavailable ≠ broken: icons just stay default
+      }
+      return ICON_THEMES_CACHE;
     },
 
     async query(filter = {}) {
@@ -161,6 +206,7 @@ export function createAssetsAPI(db) {
       const tx = db.transaction('asset-meta', 'readwrite');
       await Promise.all(assets.map(a => tx.store.put(a)));
       await tx.done;
+      ICON_THEMES_CACHE = null; // the icon-themes palette may have changed
     },
 
     /**
@@ -262,16 +308,18 @@ export function createAssetsAPI(db) {
       if (id.startsWith('user/')) {
         return Boolean(await db.get('user-assets', id));
       }
-      const meta = await db.get('asset-meta', id);
+      const { baseId } = parseThemedAssetId(id);
+      const meta = await db.get('asset-meta', baseId);
       if (!meta) return false;
       if (meta.tier === 'on-demand') return navigator.onLine;
       // For core/catalog, check if at least one format is cached.
       const cached = await Promise.all(
-        meta.formats.map(f => db.get('asset-blob', `${id}:${f.format}:${meta.version}`)),
+        meta.formats.map(f => db.get('asset-blob', `${baseId}:${f.format}:${meta.version}`)),
       );
       return cached.some(Boolean);
     },
   };
+  return api;
 }
 
 /** Revoke + drop a single object-URL cache entry, if present. */

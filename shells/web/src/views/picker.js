@@ -19,14 +19,18 @@
  *   - paste a Lolly link in the search box (the original smart-paste flow)
  *
  * Exported function: openPicker(host, opts) → Promise<AssetRef | null>
- *   opts.editTool?(toolUrl) → Promise<AssetRef|null> — when present, choosing a tool
- *   opens the full input editor (the caller wires it to tool.js's openEmbedEditor) so
- *   the user can configure the tool before it's inserted. Absent (e.g. batch mode) →
+ *   opts.editTool?(toolUrl, mode?) → Promise<AssetRef|null> — when present, choosing a
+ *   tool opens the full input editor (the caller wires it to tool.js's openEmbedEditor)
+ *   so the user can configure the tool before it's inserted. Absent (e.g. batch mode) →
  *   the picker falls back to its inline format/size render card.
+ *   opts.currentToolUrl / opts.currentToolName — when the slot being changed already
+ *   holds a Lolly render (the AssetRef's meta.toolUrl), the picker shows an "edit the
+ *   tool you're already using" banner that re-opens its inputs pre-filled (mode 'edit');
+ *   the grids below still offer choosing a different image instead.
  */
 
 import DOMPurify from 'dompurify';
-import { createRuntime, serializeUrlState, buildEmbedUrl } from '@lolly/engine';
+import { createRuntime, serializeUrlState, buildEmbedUrl, parseThemedAssetId, buildThemedAssetId, restyleIconTheme } from '@lolly/engine';
 import { getTool } from '../bridge/tool-loader.js';
 import { downscaleRaster } from '../bridge/image-resize.js';
 import { MAX_USER_ASSETS } from '../bridge/assets.js';
@@ -84,8 +88,27 @@ async function render(root, host, opts, resolve) {
     ? toolIndex.filter(t => isEmbeddable(t, needsSvg)).sort((a, b) => a.name.localeCompare(b.name))
     : [];
 
+  // The slot's current image may itself be a Lolly render (meta.toolUrl on the
+  // AssetRef). Offer an edit path back into that tool's own inputs — pre-filled
+  // with the values already in use — without giving up the normal pick-another-
+  // image grids below. Needs editTool (the caller's embed editor) to mean anything.
+  const currentToolUrl = (opts.editTool && typeof opts.currentToolUrl === 'string' && opts.currentToolUrl) || null;
+
   // Saved single-tool sessions (filled async below); null while loading.
   let sessions = null;
+
+  // ── Icon colour themes ──────────────────────────────────────────────────────
+  // Themable two-colour icons (assets tagged "themable") can take a colour
+  // pairing chosen here. The pairings come from the catalog's icon-themes
+  // palette asset via host.assets._iconThemes(); the strip mounts only when the
+  // library actually contains themable icons. The first pairing is the default
+  // (identical to the fills baked into every icon) — choosing it keeps the plain
+  // asset id, so default picks stay class-overridable when inlined.
+  // A non-default choice is carried in the picked id (`<id>?theme=<themeId>`).
+  let iconThemes = [];
+  let activeTheme = parseThemedAssetId(String(opts.current ?? '')).theme;
+  const currentBaseId = parseThemedAssetId(String(opts.current ?? '')).baseId;
+  const isThemableRef = (ref) => Boolean(ref?.meta?.tags?.includes('themable'));
 
   // Which sources get a tab. Library is always present; the rest are conditional.
   const tabs = [{ id: 'library', label: 'Library' }];
@@ -108,9 +131,14 @@ async function render(root, host, opts, resolve) {
         <button type="button" class="asset-picker-close" aria-label="Close">×</button>
       </header>
       ${tabs.length > 1 ? `<div class="asset-picker-tabs" role="tablist">${tabs.map(tabBtn).join('')}</div>` : ''}
+      ${currentToolUrl ? `<div class="asset-picker-current">
+        <span class="asset-picker-current-label"><span class="asset-picker-current-spark" aria-hidden="true">✦</span> Current image is from <strong>${escape(opts.currentToolName ?? 'a Lolly tool')}</strong> — tweak it, or pick a different image below</span>
+        <button type="button" class="asset-picker-current-edit">Edit inputs…</button>
+      </div>` : ''}
       <div class="asset-picker-body">
         <section class="asset-picker-pane" data-pane="library">
           ${showUserAssets ? `<section class="asset-picker-userassets" hidden></section>` : ''}
+          <div class="asset-picker-themes" role="group" aria-label="Icon colour theme" hidden></div>
           <section class="asset-picker-library">
             <div class="asset-picker-loading">Loading…</div>
           </section>
@@ -149,6 +177,7 @@ async function render(root, host, opts, resolve) {
   root.querySelector('.asset-picker-backdrop').addEventListener('click', () => close(null));
 
   const body         = root.querySelector('.asset-picker-body');
+  const currentEl    = root.querySelector('.asset-picker-current');
   const libraryEl    = root.querySelector('.asset-picker-library');
   const userEl       = root.querySelector('.asset-picker-userassets');
   const searchInput  = root.querySelector('.asset-picker-search');
@@ -156,6 +185,15 @@ async function render(root, host, opts, resolve) {
   const footerEl     = root.querySelector('.asset-picker-footer');
   const sessionsPane = root.querySelector('.asset-picker-pane[data-pane="sessions"]');
   const toolsPane    = root.querySelector('.asset-picker-pane[data-pane="tools"]');
+
+  // "Edit the tool you're already using": re-open the source tool's inputs seeded
+  // from the slot's current embed URL (mode 'edit' → "Re-apply to slot"). A commit
+  // resolves the picker with the fresh render; cancelling stays here so the user
+  // can still pick a different image instead.
+  currentEl?.querySelector('.asset-picker-current-edit')?.addEventListener('click', async () => {
+    const ref = await opts.editTool(currentToolUrl, 'edit');
+    if (ref) close(ref);
+  });
 
   // ── Keyboard navigation over the (responsive) card grid ────────────────────
   // Cards flow left-to-right then wrap, so DOM order == visual reading order:
@@ -240,7 +278,13 @@ async function render(root, host, opts, resolve) {
     const pick = e.target.closest('[data-asset-id]');
     if (pick) {
       try {
-        const resolved = await host.assets.get(pick.dataset.assetId);
+        // A non-default icon theme rides in the picked id so it survives
+        // URL-mode round-trips (an asset value persists as its id alone).
+        let pickId = pick.dataset.assetId;
+        if (activeTheme && isThemableRef(libraryCandidates.find(c => c.id === pickId))) {
+          pickId = buildThemedAssetId(pickId, activeTheme);
+        }
+        const resolved = await host.assets.get(pickId);
         close(resolved);
       } catch (err) {
         host.log('error', 'Failed to resolve asset', { id: pick.dataset.assetId, error: String(err) });
@@ -274,6 +318,7 @@ async function render(root, host, opts, resolve) {
     });
     toolcardHost.hidden = true;
     toolcardHost.innerHTML = '';
+    if (currentEl) currentEl.hidden = false;
     root.querySelectorAll('.asset-picker-pane').forEach(p => { p.hidden = p.dataset.pane !== id; });
     setFooter(id === 'library');
     searchInput.placeholder = placeholderFor(id);
@@ -364,6 +409,64 @@ async function render(root, host, opts, resolve) {
       return;
     }
     libraryEl.innerHTML = `<div class="asset-picker-grid">${candidates.map(card).join('')}</div>`;
+    retintThemableCards(); // re-applied after every innerHTML rebuild (search, tab return)
+  }
+
+  // ── Icon theme strip: mount, retint thumbnails, track the active pairing ────
+  function mountThemeStrip() {
+    const strip = root.querySelector('.asset-picker-themes');
+    if (!strip || strip.childElementCount) return;
+    strip.hidden = false;
+    strip.innerHTML = `<span class="asset-picker-themes-label">Icon colours</span>` + iconThemes.map((t, i) => {
+      const on = activeTheme ? t.id === activeTheme : i === 0;
+      return `
+        <button type="button" class="asset-picker-theme${on ? ' is-active' : ''}" data-theme-id="${escape(t.id)}" aria-pressed="${on}">
+          <span class="asset-picker-theme-duo" style="background:${escape(t.previewBg ?? '#ffffff')}"><i style="background:${escape(t.c2)}"></i><i style="background:${escape(t.c1)}"></i></span>
+          <span>${escape(t.label ?? t.id)}</span>
+        </button>`;
+    }).join('');
+    strip.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-theme-id]');
+      if (!btn) return;
+      // The first pairing is the icons' baked default → no id suffix.
+      activeTheme = btn.dataset.themeId === iconThemes[0]?.id ? null : btn.dataset.themeId;
+      strip.querySelectorAll('[data-theme-id]').forEach(b => {
+        const on = b === btn;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      retintThemableCards();
+    });
+  }
+
+  // Live-preview the chosen pairing on every themable thumbnail. Restyle (class
+  // contract kept) rather than bake — each thumb is its own <img> document, so
+  // there is no cross-icon CSS collision here. SVG text is fetched once per
+  // asset; a seq guard drops stale passes when the user flips themes quickly.
+  const iconSvgTextCache = new Map(); // asset id → Promise<string|null>
+  let retintSeq = 0;
+  function retintThemableCards() {
+    const def = activeTheme ? iconThemes.find(t => t.id === activeTheme) : null;
+    const seq = ++retintSeq;
+    for (const cardEl of libraryEl.querySelectorAll('[data-asset-id]')) {
+      const ref = libraryCandidates.find(c => c.id === cardEl.dataset.assetId);
+      if (!isThemableRef(ref)) continue;
+      const img = cardEl.querySelector('img.asset-picker-thumb');
+      if (!img) continue;
+      if (!def) { img.src = ref.url; img.style.background = ''; continue; }
+      let textP = iconSvgTextCache.get(ref.id);
+      if (!textP) {
+        textP = fetch(ref.url).then(r => (r.ok ? r.text() : null)).catch(() => null);
+        iconSvgTextCache.set(ref.id, textP);
+      }
+      textP.then(text => {
+        if (seq !== retintSeq) return; // superseded by a newer theme choice
+        const restyled = text ? restyleIconTheme(text, def) : null;
+        if (!restyled) return;
+        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(restyled);
+        img.style.background = def.previewBg ?? '';
+      });
+    }
   }
 
   // Library candidates resolve async (host.assets.query); `restoreLibrary` filters
@@ -416,6 +519,7 @@ async function render(root, host, opts, resolve) {
   // tools fallback when no input editor is available.
   function showTakeover(html) {
     root.querySelectorAll('.asset-picker-pane').forEach(p => { p.hidden = true; });
+    if (currentEl) currentEl.hidden = true;
     setFooter(false);
     toolcardHost.hidden = false;
     toolcardHost.innerHTML = html;
@@ -590,12 +694,21 @@ async function render(root, host, opts, resolve) {
     const candidates = await host.assets.query(opts);
     libraryCandidates = candidates;
     libraryLoaded = true;
+
+    // Colour pairings for themable icons — only worth mounting when this
+    // library actually contains some and the bridge can supply pairings.
+    if (candidates.some(isThemableRef) && typeof host.assets._iconThemes === 'function') {
+      iconThemes = await host.assets._iconThemes().catch(() => []);
+      if (activeTheme && !iconThemes.some(t => t.id === activeTheme)) activeTheme = null;
+      if (iconThemes.length > 1) mountThemeStrip();
+    }
+
     renderLibrary(candidates);
 
     // Land focus on an asset (the current one if provided) so the keyboard can
-    // drive the picker straight away.
+    // drive the picker straight away. A themed current id matches its base card.
     const libCards = [...libraryEl.querySelectorAll('[data-asset-id]')];
-    (libCards.find(c => c.dataset.assetId === opts.current) || libCards[0])?.focus({ preventScroll: true });
+    (libCards.find(c => c.dataset.assetId === currentBaseId) || libCards[0])?.focus({ preventScroll: true });
 
     // A Lolly tool URL pasted into the search box flips the picker into a "render
     // this tool" card; anything else filters the active pane. The seq guard drops a
@@ -619,6 +732,7 @@ async function render(root, host, opts, resolve) {
       if (!toolcardHost.hidden) {
         toolcardHost.hidden = true;
         toolcardHost.innerHTML = '';
+        if (currentEl) currentEl.hidden = false;
         const pane = root.querySelector(`.asset-picker-pane[data-pane="${activeTab}"]`);
         if (pane) pane.hidden = false;
         setFooter(activeTab === 'library');

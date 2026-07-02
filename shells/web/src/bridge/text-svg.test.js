@@ -52,6 +52,21 @@ test('resolveSuseFontUrl defaults missing weight to Regular', () => {
   );
 });
 
+test('SUSE Mono resolves to SUSEMono statics, capped at ExtraBold (no Black cut)', () => {
+  assert.equal(suseWeightName(900, true), 'ExtraBold');   // mono axis tops out at 800
+  assert.equal(suseWeightName(900, false), 'Black');
+  assert.equal(suseFontFile(500, false, true), 'SUSEMono-Medium.ttf');
+  assert.equal(suseFontFile(900, true, true),  'SUSEMono-ExtraBoldItalic.ttf');
+  assert.equal(
+    resolveSuseFontUrl({ fontFamily: "'SUSE Mono', ui-monospace, monospace", fontWeight: '700' }),
+    `${SUSE_FONT_DIR}SUSEMono-Bold.ttf`,
+  );
+  assert.equal(
+    resolveSuseFontUrl({ fontFamily: 'SUSE Mono', fontWeight: '900', fontStyle: 'italic' }),
+    `${SUSE_FONT_DIR}SUSEMono-ExtraBoldItalic.ttf`,
+  );
+});
+
 test('canVectoriseText needs a host.text + resolvable font, and bails on letter-spacing', () => {
   const url = `${SUSE_FONT_DIR}SUSE-Regular.ttf`;
   assert.equal(canVectoriseText({ letterSpacing: 'normal' }, url, true), true);

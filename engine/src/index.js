@@ -37,6 +37,10 @@ export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
 } from './tokens.js';
+export {
+  parseThemedAssetId, buildThemedAssetId, isThemableIconSvg,
+  applyIconTheme, restyleIconTheme,
+} from './icon-theme.js';
 
 // 1.1.0 — additive: `file` input type, the transform output path
 // (host.export.file + the `exportFile` hook + runtime.exportFile), and the

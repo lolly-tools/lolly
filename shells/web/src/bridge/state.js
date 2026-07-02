@@ -8,6 +8,8 @@
  * warn the user.
  */
 
+import { parseThemedAssetId } from '@lolly/engine';
+
 export function createStateAPI(db) {
   return {
     async save(slot, data, thumb = null) {
@@ -72,7 +74,10 @@ function collectAssetRefs(value, refs) {
     return;
   }
   if (value.source === 'library' && value.id && value.format && value.version != null) {
-    refs.add(`${value.id}:${value.format}:${value.version}`);
+    // A themed icon ref (`<baseId>?theme=<t>`) is derived from the BASE blob —
+    // that's the key the cache holds and the one pruning must protect.
+    const { baseId } = parseThemedAssetId(String(value.id));
+    refs.add(`${baseId}:${value.format}:${value.version}`);
     return;
   }
   for (const v of Object.values(value)) collectAssetRefs(v, refs);

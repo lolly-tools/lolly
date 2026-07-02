@@ -1,0 +1,11 @@
+{
+  "name": "Icon Duo Themes",
+  "description": "Colour pairings for themable two-colour icons: c1 = accent, c2 = base. 'brand' matches the defaults baked into every icon. previewBg is the surface a light pairing needs behind it to stay visible in pickers/previews.",
+  "themes": [
+    { "id": "brand", "label": "Brand",  "c1": "#30ba78", "c2": "#0c322c" },
+    { "id": "ocean", "label": "Ocean",  "c1": "#2453ff", "c2": "#192072" },
+    { "id": "mint",  "label": "Mint",   "c1": "#90ebcd", "c2": "#30ba78" },
+    { "id": "paper", "label": "Paper",  "c1": "#ffffff", "c2": "#efefef", "previewBg": "#0c322c" },
+    { "id": "ember", "label": "Ember",  "c1": "#fe7c3f", "c2": "#ff5a2b" }
+  ]
+}

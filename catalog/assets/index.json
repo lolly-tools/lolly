@@ -167,8 +167,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/suse/logo/SUSE_logo-vert-neg-green.svg",
-          "checksum": "sha256-r5+kHLmLnZiJXsCWab18mb13TvwQXz8wVIHbBcTvzyk=",
-          "size": 4525
+          "checksum": "sha256-TXArUIa2/s7sorsFiea1xG9ykg9Dw6RJevwM5rI++cY=",
+          "size": 4498
         }
       ],
       "license": "LicenseRef-SUSE-Proprietary"
@@ -193,8 +193,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/suse/logo/SUSE_logo-vert-neg-white.svg",
-          "checksum": "sha256-vnSmZtY1+V8Ehfh8nUfHjJAftJ2sz1PNJGuSsM4kp+8=",
-          "size": 5399
+          "checksum": "sha256-uDEClEw45psuxddMdIL5Yq/U7vRX6VIqfyZbIVKPL8I=",
+          "size": 5330
         }
       ],
       "license": "LicenseRef-SUSE-Proprietary"
@@ -218,8 +218,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/suse/logo/SUSE_logo-vert-pos-green.svg",
-          "checksum": "sha256-u6v1SP6CvE7/9utVThMFGanGH7C7VPaMFO2WiHXpobI=",
-          "size": 4435
+          "checksum": "sha256-t4rcRdY2CN6S38aIxPl1zl/vbuUR24sTRNxZlJ/XDBM=",
+          "size": 4372
         }
       ],
       "license": "LicenseRef-SUSE-Proprietary"
@@ -244,8 +244,8 @@
         {
           "format": "svg",
           "url": "/catalog/assets/suse/logo/SUSE_logo-vert-pos-black.svg",
-          "checksum": "sha256-5KaJZ4Kl7GPszhFZDjyBUJibOKgCc0nJLdFIRjBn4uc=",
-          "size": 4393
+          "checksum": "sha256-QmzBuuvbzD/BIJkNz3FD0ZyhPvTi1VLzy5oVzw7oUkw=",
+          "size": 4328
         }
       ],
       "license": "LicenseRef-SUSE-Proprietary"
@@ -1306,6 +1306,2711 @@
           "url": "/catalog/assets/suse/executives/tina-steincke.jpg",
           "checksum": "sha256-TEfdwV5TgulTtvZ16oZXFAPYBzOt2BdGwY3KGTR/yOc=",
           "size": 81256
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/ai",
+      "name": "AI",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-ai.svg",
+          "checksum": "sha256-slGv3ei2Hl0YFHxLT0hpcIdQAS4dN+QYJhYzTt3Iibo=",
+          "size": 1803
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/app-reg",
+      "name": "App Reg",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-app-reg.svg",
+          "checksum": "sha256-od1gtf+W75ui+D/KDwaCJCpJaq3skZqTbN3UJiualnQ=",
+          "size": 632
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/app-virt",
+      "name": "App Virt",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-app-virt.svg",
+          "checksum": "sha256-2+w6AY6Qp0dXMRulpCccgAgKRxoK/gYtAFEUAHFJU+g=",
+          "size": 1922
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/automotive",
+      "name": "Automotive",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-automotive.svg",
+          "checksum": "sha256-ZLsE5acWRuLW/fQW3WVx9pH7EzqaYxl7vU7wlMYWrJc=",
+          "size": 1038
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/bike",
+      "name": "Bike",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-bike.svg",
+          "checksum": "sha256-2d8hCfbrS28ipaHHFaR8vbaXLbjTvuFP9pm1y+KErWU=",
+          "size": 1255
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/boat",
+      "name": "Boat",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-boat.svg",
+          "checksum": "sha256-CyzAiUH7nvV08jd338vS7z2ieg9pp/GZwLbWAgCbE2I=",
+          "size": 1287
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/book",
+      "name": "Book",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-book.svg",
+          "checksum": "sha256-lLlp8ASD0BmGTaC3TWY4NTfRwhPQrqJ+dl22diikTnQ=",
+          "size": 838
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/box",
+      "name": "Box",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-box.svg",
+          "checksum": "sha256-1aHJcLI9pt8ICze1YGDWz3OPljFswcdWtvoHGww5a40=",
+          "size": 821
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/boxes",
+      "name": "Boxes",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-boxes.svg",
+          "checksum": "sha256-yixo6YZ6gX93U/He+MfUXeIpgu8M+ez+XAJO3MAL1aE=",
+          "size": 6676
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/brain",
+      "name": "Brain",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-brain.svg",
+          "checksum": "sha256-QfbKTq2y0G1AOjJJGvovz9QxtGKvaoIFfOFJycG9sAY=",
+          "size": 3265
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/bug",
+      "name": "Bug",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-bug.svg",
+          "checksum": "sha256-ykf2DHVx3y/JbreK8VuMhAZgdPQQOaFvvFZM9+uCuws=",
+          "size": 1525
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/butter",
+      "name": "Butter",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-butter.svg",
+          "checksum": "sha256-k6uxpucobI9DjT37YBx0fourH/OHL5233xJ9B+JEXoc=",
+          "size": 3673
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/calendar",
+      "name": "Calendar",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-calendar.svg",
+          "checksum": "sha256-xEXWKgx7s7GOt3AoPW467AdsmHn+acBlsHid3RbR9IA=",
+          "size": 1435
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/can",
+      "name": "Can",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-can.svg",
+          "checksum": "sha256-3bKYpCX/dUbIqF+uOiGalSuOCrBRFIdHKfry4bagV1g=",
+          "size": 3553
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/canyon",
+      "name": "Canyon",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-canyon.svg",
+          "checksum": "sha256-48cYFY5nio9iOR4fqqWSksySiFrmsvdFR04zL4p9GC4=",
+          "size": 1640
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/certificate",
+      "name": "Certificate",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-certificate.svg",
+          "checksum": "sha256-31lJZWAuZUVZPjItz5hHflSdN2XsCuthgwqDr31SKe0=",
+          "size": 1465
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/chart",
+      "name": "Chart",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-chart.svg",
+          "checksum": "sha256-J0rwWb6Cjrd2f/Wf84UHW7HC0IY+anBCNOGlj1wI7JE=",
+          "size": 824
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/checking",
+      "name": "Checking",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-checking.svg",
+          "checksum": "sha256-aH8o1Kc/RcATNomrUO6CzjhFsjv7NxMfkPHONI7HCAY=",
+          "size": 2412
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/chess",
+      "name": "Chess",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-chess.svg",
+          "checksum": "sha256-tIDJp1eXla+BFyQAGQKsyz+vhD3fNuKzHgAbNbgTPoU=",
+          "size": 1645
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/chilli",
+      "name": "Chilli",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-chilli.svg",
+          "checksum": "sha256-ez7WzqXR6YyJV1yefQHzomBaejDxNLsYlObRGEp4iVw=",
+          "size": 1198
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/choice",
+      "name": "Choice",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-choice.svg",
+          "checksum": "sha256-kqz6ct3bAE/nEmsYGH1gWMXFru2KS7cMpN/zyBmERcc=",
+          "size": 935
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/cloud-computing",
+      "name": "Cloud Computing",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-cloud-computing.svg",
+          "checksum": "sha256-E4Z+1dvW0/39ycBXcVqvM8o7+xIEYUp7Uf4s5TP/eVI=",
+          "size": 1234
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/collection",
+      "name": "Collection",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-collection.svg",
+          "checksum": "sha256-kM+WjU6J+mjJuItvSgbjR2jz5vdEADDfsWhsGg0/r7k=",
+          "size": 777
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/combined",
+      "name": "Combined",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-combined.svg",
+          "checksum": "sha256-LqKz6novETfHblIihW89avQZNwxZhm9iim/7vRej6I8=",
+          "size": 1302
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/communication-collaboration",
+      "name": "Communication Collaboration",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-communication-collaboration.svg",
+          "checksum": "sha256-/LwLsaQ9YaMjDe31SWqTvNtYpUiZQJCKMgk678HDj+g=",
+          "size": 656
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/community",
+      "name": "Community",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-community.svg",
+          "checksum": "sha256-Hn2p/7c9zDmfrD209njtfV/kWTw3+Wt5ft3/tUN/kl4=",
+          "size": 2312
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/config",
+      "name": "Config",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-config.svg",
+          "checksum": "sha256-hiCPwMZbdXIBEO9ivebOSEqLw40tGDsq3CQZKAdm49U=",
+          "size": 2097
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/containerlift",
+      "name": "Containerlift",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-containerlift.svg",
+          "checksum": "sha256-qFMUQ3yTh9KHY0rtKsK/2e+ZvlqWgg+Hg+OkngeOcbM=",
+          "size": 1013
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/containers",
+      "name": "Containers",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-containers.svg",
+          "checksum": "sha256-vF9YT7BkxDM8JL9YP4RI/Adj1LiVx7ciEupoo7bDlTk=",
+          "size": 958
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/controls",
+      "name": "Controls",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-controls.svg",
+          "checksum": "sha256-pu1lSOulOE0N2whurjmfuyvcTI+F0W+/puJK8l8BETo=",
+          "size": 4647
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/cost-savings",
+      "name": "Cost Savings",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-cost-savings.svg",
+          "checksum": "sha256-ddFgBhJClMqcqnLHTOfzM1rVnGD2c7LgvaaI6mphXdc=",
+          "size": 1264
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/customer-care",
+      "name": "Customer Care",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-customer-care.svg",
+          "checksum": "sha256-6Ca71mzwfee/VarVDtbi/noDBkLLllZr8Zj/66mDp3I=",
+          "size": 856
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/data",
+      "name": "Data",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-data.svg",
+          "checksum": "sha256-e2ggR9yIec26teOOzgKGHOmv1k9gmlbl+CuvGdzy38s=",
+          "size": 2531
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/data-center",
+      "name": "Data Center",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-data-center.svg",
+          "checksum": "sha256-dOffK66XOKzRLnT8yKtzE/Qi5BG+pdNGyzBVLzMb8bQ=",
+          "size": 895
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/database",
+      "name": "Database",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-database.svg",
+          "checksum": "sha256-W3A3PkbxPr0+SJ6Zppy4evFNYOy6wmouXfGK/6t5XFw=",
+          "size": 4878
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/dev-ops",
+      "name": "DevOps",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-dev-ops.svg",
+          "checksum": "sha256-zTI4ZQPtl3W55u6vKKifAABwnavqaBtpZkBGOi2JDZo=",
+          "size": 1273
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/developer-optimization",
+      "name": "Developer Optimization",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-developer-optimization.svg",
+          "checksum": "sha256-kRs/gbCydpp8voHBIYgbtmkq33vV/Isau+DkQJq4ifY=",
+          "size": 2102
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/development-engineering",
+      "name": "Development Engineering",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-development-engineering.svg",
+          "checksum": "sha256-QpzWdz+lnni7IJMJOzgU2MPzJusnRTQm1YX4Zbgbj0Y=",
+          "size": 1188
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/edge",
+      "name": "Edge",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-edge.svg",
+          "checksum": "sha256-umXtdd8zfB8dCsOj4dpElLLHaIJonfQGF1qY0lShEH8=",
+          "size": 1040
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/education",
+      "name": "Education",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-education.svg",
+          "checksum": "sha256-DyLnzixquohf8aR35MjI5AXPx+sQFhXeUdfjKnIKyIo=",
+          "size": 1359
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/energy",
+      "name": "Energy",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-energy.svg",
+          "checksum": "sha256-TRa0tgf5EArrgVH5zwMAzX3O0AX1D5tu3JOn9gVL2Cg=",
+          "size": 442
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/error",
+      "name": "Error",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-error.svg",
+          "checksum": "sha256-U4m2iHDkiLpVx1TuMFCu3gNKpXgyB57OhiPlVQPi+gQ=",
+          "size": 629
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/exit",
+      "name": "Exit",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-exit.svg",
+          "checksum": "sha256-jCz3IWck1+ICtooBkSuvHfA5B4mB+NfKfOwv++/ufvo=",
+          "size": 1688
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/financial",
+      "name": "Financial",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-financial.svg",
+          "checksum": "sha256-QpVHeGKDAKosk4x9NVdURSR2ZeXfl+smDpSrJVu6qnU=",
+          "size": 1596
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/flame",
+      "name": "Flame",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-flame.svg",
+          "checksum": "sha256-ZzoMVd/dtyqkDNmMjoVNZ/pU1ou1G9JQWB/Zw7EZnCw=",
+          "size": 1910
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/globe",
+      "name": "Globe",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-globe.svg",
+          "checksum": "sha256-fbK73dRaIUZj1Q/2BiCstJk+Z1HNSoGBj58Nr/NehwQ=",
+          "size": 889
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/grid",
+      "name": "Grid",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-grid.svg",
+          "checksum": "sha256-FqgVWoqNMaQyv/WYhaxU+XsScwuigdqvuICeVak+d9I=",
+          "size": 5195
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/growth",
+      "name": "Growth",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-growth.svg",
+          "checksum": "sha256-adyzNgP8IUorjTzCyl7ioPkxgpf8SpAvZCOz2KlKLkQ=",
+          "size": 1001
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/healthcare",
+      "name": "Healthcare",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-healthcare.svg",
+          "checksum": "sha256-BTPNfR1ejpY0FQGfihe0zHeFHNqZ/eZDK21T0AfcCx8=",
+          "size": 1264
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/home",
+      "name": "Home",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-home.svg",
+          "checksum": "sha256-PNV/yJjogxkXGzS+fvmlu1dFc+nvTpWAST5buqPx3nE=",
+          "size": 540
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/icecream",
+      "name": "Ice Cream",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-icecream.svg",
+          "checksum": "sha256-NQUO6RyV8m34cjW7gKQ3ZBnqg8Oc89u1fAvxigacgnA=",
+          "size": 2962
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/idea-lightbulb",
+      "name": "Idea Lightbulb",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-idea-lightbulb.svg",
+          "checksum": "sha256-cPHcGUDI+n2KOfvKPeAdmw9wzUbObaeUy2yV4CHAbU8=",
+          "size": 1442
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-1",
+      "name": "Infinity Stream 1",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-1.svg",
+          "checksum": "sha256-z6GsPtzl8mp36Oxzqjkn4couRBW7hHZYZYyHauFcd48=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-10",
+      "name": "Infinity Stream 10",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-10.svg",
+          "checksum": "sha256-zCb3UBH4q9NdbwOE4kqbfUmyivoNUR/0IlXGrbKZlGc=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-2",
+      "name": "Infinity Stream 2",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-2.svg",
+          "checksum": "sha256-GMvB5HzicvaWG+p6vUGWVz1Zrz/6QArLMdoqCgRc69Q=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-3",
+      "name": "Infinity Stream 3",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-3.svg",
+          "checksum": "sha256-GMvB5HzicvaWG+p6vUGWVz1Zrz/6QArLMdoqCgRc69Q=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-4",
+      "name": "Infinity Stream 4",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-4.svg",
+          "checksum": "sha256-AW3rV5/A4K697l1Z+NdeLzgMjwWtUM9f/rvAtDoJ8Ag=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-5",
+      "name": "Infinity Stream 5",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-5.svg",
+          "checksum": "sha256-AW3rV5/A4K697l1Z+NdeLzgMjwWtUM9f/rvAtDoJ8Ag=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-6",
+      "name": "Infinity Stream 6",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-6.svg",
+          "checksum": "sha256-PAP9CuIMT0LN3B2FwZC9VDL0+53s7BVlVwBvT/6UOXM=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-7",
+      "name": "Infinity Stream 7",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-7.svg",
+          "checksum": "sha256-TPpGt30DOjujYCwvmMGjVhYmNRUWTOacGWF/ElNuyJo=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-8",
+      "name": "Infinity Stream 8",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-8.svg",
+          "checksum": "sha256-TeCcjreOnPUPErznCUOtcuqnKgUP8cDF4UwETdeGodw=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/infinity-stream-9",
+      "name": "Infinity Stream 9",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "decorative"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-infinity-stream-9.svg",
+          "checksum": "sha256-jXmSh3EVNQBOr1qudgPRnsi/9LDoK3oL7Cm21RIPBNE=",
+          "size": 2561
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/information",
+      "name": "Information",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-information.svg",
+          "checksum": "sha256-a8TnNPH4WAduWPpQIkAckNRNeVteoX515dU3D+ZNeAM=",
+          "size": 635
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/innovate",
+      "name": "Innovate",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-innovate.svg",
+          "checksum": "sha256-a8hBCzbsVq3cCwkpRM2TB180H8GZze+hhrmk30yg+3w=",
+          "size": 1507
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/innovation",
+      "name": "Innovation",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-innovation.svg",
+          "checksum": "sha256-kG+4LfsrGAt1A29mdq+2ohNWSFA2j68WCEQiKAMXZyg=",
+          "size": 1248
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/innovation-value",
+      "name": "Innovation Value",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-innovation-value.svg",
+          "checksum": "sha256-cHrmgq6TTP56YWuKmZ6fqV3nJWG1Wmff3RCDTWXcNWo=",
+          "size": 1929
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/jar",
+      "name": "Jar",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-jar.svg",
+          "checksum": "sha256-yWgm94JgEbV6LpEROTmvoVigFH04WEMWTrS3c5pVqF4=",
+          "size": 1607
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/laptop",
+      "name": "Laptop",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-laptop.svg",
+          "checksum": "sha256-EnsYE/B0nve2zg1nfQ3bWYx11bMVX8MAvDrtDOPB4cA=",
+          "size": 1128
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/liberty",
+      "name": "Liberty",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-liberty.svg",
+          "checksum": "sha256-m1QkF+to3STB3nb69u4uRwvG9IscgEmw73z4aNTexiw=",
+          "size": 1149
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/lightbulb",
+      "name": "Lightbulb",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-lightbulb.svg",
+          "checksum": "sha256-ms1YW9WvJ/deynVXjRuFyD/7aNwci+HOQ4ze8FupUys=",
+          "size": 1070
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/linux",
+      "name": "Linux",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-linux.svg",
+          "checksum": "sha256-cAlcT0n6zuVN47WdiuQRar6DnnIbEhamDMlaLOCsZwA=",
+          "size": 896
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/magnifying-glass",
+      "name": "Magnifying Glass",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-magnifying-glass.svg",
+          "checksum": "sha256-fBWcygVGoC22Uwx05Wgq8Io5Mkk0+MEp3S6SEQq364I=",
+          "size": 696
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/manage-and-secure",
+      "name": "Manage And Secure",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-manage-and-secure.svg",
+          "checksum": "sha256-hjB/mz/BYf9xnwUjP4mTS8v4YmvMWDggXWggNkOVTJ8=",
+          "size": 1230
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/manufacturing",
+      "name": "Manufacturing",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-manufacturing.svg",
+          "checksum": "sha256-UFXTsYcvhlqMP9qjwxXf0IfoQQNJtTSH59RwDA6QUVw=",
+          "size": 1192
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/measuring",
+      "name": "Measuring",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-measuring.svg",
+          "checksum": "sha256-6cJNIFAIkdVyDiIFWqANFx4LFrcnNpfT9P/kxICOa+4=",
+          "size": 747
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/medal",
+      "name": "Medal",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-medal.svg",
+          "checksum": "sha256-SjvQr4yKOWPGwPsydKWu/rxpob2G6enXpGW7rQF7fqA=",
+          "size": 1108
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/mini-spot-truck",
+      "name": "Mini Spot Truck",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-mini-spot-truck.svg",
+          "checksum": "sha256-8/FNGAMdVseRbCUyVoxw1A7ZA7cdici+o+cvwT3KHCI=",
+          "size": 1294
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/mission",
+      "name": "Mission",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-mission.svg",
+          "checksum": "sha256-GVtyV4Q3qo7If/SXisvplpEPhHbm1hqu/6PL882rK3A=",
+          "size": 1755
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/modernize",
+      "name": "Modernize",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-modernize.svg",
+          "checksum": "sha256-J+vxbY47WT/XHKuug80KlXLx8vSLRPHbU27d84JfMZQ=",
+          "size": 2522
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/monitoring",
+      "name": "Monitoring",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-monitoring.svg",
+          "checksum": "sha256-6ApSGahZtMwuQzEi1ZQgfZvL5zdiSJBa683vgtGNAjw=",
+          "size": 1455
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/network",
+      "name": "Network",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-network.svg",
+          "checksum": "sha256-f2t/flZ26XT5C13+WAcPNoTTTVdAu1Z4+JXpzyz8cKY=",
+          "size": 2085
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/observability",
+      "name": "Observability",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-observability.svg",
+          "checksum": "sha256-HM0EwIUmsnOXw+81Ep/GsEj9iOehVH5p4Brzg1gt/08=",
+          "size": 1158
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/open-source",
+      "name": "Open Source",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-open-source.svg",
+          "checksum": "sha256-aA2R8n/CnzTzruBcrX9eugDdmRcmehIEyTQNfdkD2xA=",
+          "size": 986
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/operations",
+      "name": "Operations",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-operations.svg",
+          "checksum": "sha256-K+pHWeefGy77Y2t2ZuRp/QhdyvR7aOuXcD0I722OFzc=",
+          "size": 2232
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/optimize",
+      "name": "Optimize",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-optimize.svg",
+          "checksum": "sha256-ihPm+yRhLzQKwYnn6KhtyPN9NMvJjkDLduzicW1WwA0=",
+          "size": 1746
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/partner-handshake",
+      "name": "Partner Handshake",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-partner-handshake.svg",
+          "checksum": "sha256-spgzXFHJ9ekI3KuCg+t2JvCTwsBTcGojvXt9DqPoR64=",
+          "size": 1587
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/pencil",
+      "name": "Pencil",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-pencil.svg",
+          "checksum": "sha256-vhYZnFtg6t2a90kkMmWP+TuppVk8ZzkJqR8/J9Y0Kko=",
+          "size": 1483
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/phone",
+      "name": "Phone",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-phone.svg",
+          "checksum": "sha256-qW7hxi2ctG0B/htpMEgbPJbRDwZxOjcA4CL0PNfuHkU=",
+          "size": 1776
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/plane",
+      "name": "Plane",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-plane.svg",
+          "checksum": "sha256-Rf5FV4iehb9/bIevNpSzrEDZqmrKNDKSrq+CTVRGUTk=",
+          "size": 1707
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/planet",
+      "name": "Planet",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-planet.svg",
+          "checksum": "sha256-GCz+aMobL+M/9u79YKEz4fDQS4aQCG+Jbc6r6j1CiOI=",
+          "size": 3421
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/planet-2",
+      "name": "Planet 2",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-planet-2.svg",
+          "checksum": "sha256-OOhs4YQiA3qp7Ke+QJAY+A9cGyZAugwpldyRe05azG4=",
+          "size": 2737
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/plant",
+      "name": "Plant",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-plant.svg",
+          "checksum": "sha256-LeusF/X+u8CuHd50T2hm0nsyNuDEm96BhC3LfNpWoWQ=",
+          "size": 5016
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/portfolio-offerings-and-programs",
+      "name": "Portfolio Offerings And Programs",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-portfolio-offerings-and-programs.svg",
+          "checksum": "sha256-V+XhCpirO1AipmuJybu8rLZ5LzYmTc1oiqWOVm41VPI=",
+          "size": 3100
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/premium-support",
+      "name": "Premium Support",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-premium-support.svg",
+          "checksum": "sha256-zUEf+E97pbSo7DfudDFFvfp7nLHDafANMJPTb3ZKvUc=",
+          "size": 2279
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/regulation",
+      "name": "Regulation",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-regulation.svg",
+          "checksum": "sha256-IcV/xITSGIo0G9lfp1PDO+ZDmEP7vCWDAIcyYXOqLmQ=",
+          "size": 2787
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/retail",
+      "name": "Retail",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-retail.svg",
+          "checksum": "sha256-D8YJLzqbcUOe5kpHyVnBONuZltwc2S8eSBlsDvyC8LM=",
+          "size": 761
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/run-sap-solutions",
+      "name": "Run SAP Solutions",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-run-sap-solutions.svg",
+          "checksum": "sha256-DWcbq8dbENn9lQRsOCdvXvr5WSKvcRinFFeCvoYXsZA=",
+          "size": 2413
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/running-data-flow",
+      "name": "Running Data Flow",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-running-data-flow.svg",
+          "checksum": "sha256-bD/dX22olU30kPd6nzPk2+iwQ4oXPEHP/3RmuU/fc1w=",
+          "size": 1267
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/safe",
+      "name": "Safe",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-safe.svg",
+          "checksum": "sha256-+f7POwsViTpXu2zOVKRuh0C66vLfF49yAjz+YuLPHpw=",
+          "size": 3429
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/sales-deals",
+      "name": "Sales Deals",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-sales-deals.svg",
+          "checksum": "sha256-wZhLbFwMWFqHarMg64fwTx/nJgAneB1NwjmJ5+078hc=",
+          "size": 835
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/security",
+      "name": "Security",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-security.svg",
+          "checksum": "sha256-cz2jl7+7NO2ZY5yoSJPZDQjLJQ2Zaxa6gYnWa15X8wg=",
+          "size": 632
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/server",
+      "name": "Server",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-server.svg",
+          "checksum": "sha256-EHy8mN5ETDFtTe+WZDE1ZcsOg9ETKrHs1bHAuQZViSQ=",
+          "size": 1396
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/share-love",
+      "name": "Share Love",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-share-love.svg",
+          "checksum": "sha256-jBHzcAQjipOtRuxkPQLHVQgSvYoRts5HCUo68DSFJFY=",
+          "size": 1784
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/shield",
+      "name": "Shield",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-shield.svg",
+          "checksum": "sha256-rEI9UT2RBF+MEJhz+2xdSLgjseEO8XEvOiYhEE8mBX8=",
+          "size": 487
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/stack-layers",
+      "name": "Stack Layers",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-stack-layers.svg",
+          "checksum": "sha256-u6LkwL/tG0qcqtI7KvAamgu0/OEHkMwX1Wn+YksW0EQ=",
+          "size": 546
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/succeed-with-hybrid-solutions",
+      "name": "Succeed With Hybrid Solutions",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-succeed-with-hybrid-solutions.svg",
+          "checksum": "sha256-G9L8vpJorXy3nguDRdI2p3ydyfEXpF4mMxO5JeRa8hk=",
+          "size": 1371
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/tech-leader",
+      "name": "Tech Leader",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-tech-leader.svg",
+          "checksum": "sha256-cdZjakhAjAtPwJighK1s7+5Odee/3ggTHHLmK/0UNrc=",
+          "size": 541
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/tech-software",
+      "name": "Tech Software",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-tech-software.svg",
+          "checksum": "sha256-FNhzdXFplWDxYFwricSslT6dV+bJ9TYr4rKjubE0I4Q=",
+          "size": 972
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/telecommunications",
+      "name": "Telecommunications",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-telecommunications.svg",
+          "checksum": "sha256-1WjUUjkoq6TFiFXoLIZirJdAj4xBvICgm9hsStF/fGs=",
+          "size": 1074
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/together",
+      "name": "Together",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-together.svg",
+          "checksum": "sha256-NPfyFv0p9B43ymWV3/QXO9TLI2HoVE/c5zT3063QfEI=",
+          "size": 854
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/train",
+      "name": "Train",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-train.svg",
+          "checksum": "sha256-wHaFnzoHQ1Jxaw0aflazRHKG/RAy2Sz2I2RPqONaQvc=",
+          "size": 2604
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/training-services",
+      "name": "Training Services",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-training-services.svg",
+          "checksum": "sha256-WxzY1W2woTnO3hWl1atfI0EWSxsB60LVfsu8isf0vRE=",
+          "size": 907
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/transfer",
+      "name": "Transfer",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-transfer.svg",
+          "checksum": "sha256-uoAqZXCiCQkL7i8pyoUAlnk5Cz+dGds1MP7jNjHryuY=",
+          "size": 667
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/trust",
+      "name": "Trust",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-trust.svg",
+          "checksum": "sha256-rB7lFYNfQA+rBUnquF+IR5cwcuOg4WXMARzl6+znHco=",
+          "size": 731
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/trust-value",
+      "name": "Trust Value",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-trust-value.svg",
+          "checksum": "sha256-7nmq5pOo5Jr9LMs7y8wYDga2pNfDq/DmArxyN6ImEEk=",
+          "size": 1188
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/try-buy",
+      "name": "Try Buy",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-try-buy.svg",
+          "checksum": "sha256-vKT/VlGGzBLVG98+vRkabCr4oIRjyD6zKCeOV8G8Yck=",
+          "size": 1151
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/us-federal-government",
+      "name": "US Federal Government",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-us-federal-government.svg",
+          "checksum": "sha256-jAV5/u4KbwwmCtq1TJVfdarOOKjLDmRFi1MdIeL23Vc=",
+          "size": 679
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/video",
+      "name": "Video",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-video.svg",
+          "checksum": "sha256-r2X3ZkAnIVWTi3JyZ8U9nsAwLouXQ69oLyVEcvCj59o=",
+          "size": 1101
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/virt-stack",
+      "name": "Virt Stack",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-virt-stack.svg",
+          "checksum": "sha256-IZifBGcxcZWPM7ZrRCuwEiEyjjU4vHNODP+2VhRoRC8=",
+          "size": 4071
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/vision",
+      "name": "Vision",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-vision.svg",
+          "checksum": "sha256-skRbO17iVHgAvZJhPegqqMp2+cmnYOqUAiE/XNrC4ww=",
+          "size": 645
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/warning",
+      "name": "Warning",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "iconography"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-warning.svg",
+          "checksum": "sha256-kgd6yyGk/ojKDY0uQDXrtEGd7XZltWeBsCyRVHzKG1A=",
+          "size": 433
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/icons/web",
+      "name": "Web",
+      "type": "vector",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "icon",
+        "themable",
+        "two-color",
+        "spot"
+      ],
+      "formats": [
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/icons/icon-web.svg",
+          "checksum": "sha256-psFchhxKGTy12RFgL02KfTP1u2KrqrKj35+ygrqByrw=",
+          "size": 2601
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/palette/icon-themes",
+      "name": "Icon Duo Themes",
+      "description": "Colour pairings for themable two-colour icons (c1 accent / c2 base).",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "palette",
+        "icon-themes"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/suse/palette/icon-themes.json",
+          "checksum": "sha256-UJvoteez0aLVM9ksVfDCEvV1gCoi5HdCLn9KczVGHAw=",
+          "size": 691
         }
       ],
       "license": "LicenseRef-SUSE-Proprietary"
