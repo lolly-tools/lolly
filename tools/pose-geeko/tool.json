@@ -33,9 +33,9 @@
       "type": "number",
       "display": "slider",
       "section": "Pose",
-      "help": "Slides the pupil across the eye.",
+      "help": "Slides the pupil across the eye. Positive looks right.",
       "min": -100,
-      "max": 100,
+      "max": 200,
       "step": 1,
       "default": 0
     },
@@ -45,8 +45,9 @@
       "type": "number",
       "display": "slider",
       "section": "Pose",
+      "help": "Slides the pupil across the eye. Positive looks down.",
       "min": -100,
-      "max": 100,
+      "max": 200,
       "step": 1,
       "default": 0
     },
@@ -68,11 +69,24 @@
       "type": "number",
       "display": "slider",
       "section": "Pose",
-      "help": "Tilts the head. On the climbing pose it leans the whole body.",
+      "help": "Tilts the Geeko's head.",
       "min": -30,
       "max": 30,
       "step": 1,
       "default": 0
+    },
+    {
+      "id": "foliage",
+      "label": "Leaves & branch",
+      "type": "number",
+      "display": "slider",
+      "section": "Pose",
+      "help": "Rotates the branch and leaves. Climbing pose.",
+      "min": -40,
+      "max": 40,
+      "step": 1,
+      "default": 0,
+      "showIf": { "pose": "curious" }
     },
     {
       "id": "legFront",

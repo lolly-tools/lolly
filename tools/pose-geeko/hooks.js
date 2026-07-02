@@ -24,26 +24,27 @@
 // *.pivot:        rotate centre in the group's own user space (from getBBox)
 // *.mirror:       group sits under a scale(-1); negate so +slider reads the same way
 var POSES = {
-  curious: {                                    // gc-* — climbing; eye + blink + lean
-    pupil: { maxX: 16, maxY: 13, flipX: false },
+  curious: {                                    // gc-* — climbing; eye, blink, head, leaves+branch
+    pupil: { maxX: 22, maxY: 22, flipX: false },  // eyeball r48 @ (200,137); 200→edge
     eyelidMax: 40,
-    body:  { pivot: [1077, 602], factor: 0.35 },  // head slider gently leans the body
+    head:    { pivot: [335, 215] },   // headTilt rotates the head (snout + eye)
+    foliage: { pivot: [500, 430] },   // "Leaves & branch" slider rotates the perch
   },
   dangling: {                                   // dg-* — full body: eye, blink, head, 2 legs
-    pupil: { maxX: 52, maxY: 46, flipX: true },
+    pupil: { maxX: 52, maxY: 46, flipX: true },   // eyeball r111; pupil rests far left
     eyelidMax: 150,
     head:     { pivot: [1033, 1955], mirror: true },
     legBack:  { pivot: [1210, 1517], mirror: true },
     legFront: { pivot: [1226, 1722], mirror: true },
   },
   sitting: {                                    // gp-* — tail + head + eye
-    pupil: { maxX: 9, maxY: 7, flipX: false },
+    pupil: { maxX: 13, maxY: 11, flipX: false },
     eyelidMax: 26,
     head: { pivot: [227, 198] },
     tail: { pivot: [300, 235] },
   },
   laying: {                                     // gl-* — head + eye
-    pupil: { maxX: 16, maxY: 13, flipX: false },
+    pupil: { maxX: 22, maxY: 20, flipX: false },
     eyelidMax: 42,
     head: { pivot: [671, 313] },
   },
@@ -65,21 +66,24 @@ function compute(model) {
   var cfg = POSES[pose] || POSES.curious;
   _bg = THEME_BG[v.bg] || THEME_BG.dark;
 
-  var out = { pupilT: '', eyelidW: 0, headT: '', bodyT: '', legFrontT: '', legBackT: '', tailT: '' };
+  var out = { pupilT: '', eyelidW: 0, headT: '', foliageT: '', legFrontT: '', legBackT: '', tailT: '' };
 
-  // Eyes — pupil translate (slider ±100 → ±max user units, kept inside the eye)
+  // Eyes — pupil translate. Slider runs -100..200 (more travel to look right/down)
+  // → -max..2·max user units. flipX mirrors it under a scale(-1) pose.
   var p = cfg.pupil;
-  var dx = (clamp(num(v.eyeX, 0), -100, 100) / 100) * p.maxX * (p.flipX ? -1 : 1);
-  var dy = (clamp(num(v.eyeY, 0), -100, 100) / 100) * p.maxY;
+  var dx = (clamp(num(v.eyeX, 0), -100, 200) / 100) * p.maxX * (p.flipX ? -1 : 1);
+  var dy = (clamp(num(v.eyeY, 0), -100, 200) / 100) * p.maxY;
   if (dx || dy) out.pupilT = 'translate(' + round(dx) + ' ' + round(dy) + ')';
 
   // Blink — eyelid stroke-width (0 open → eyelidMax shut)
   out.eyelidW = round((clamp(num(v.blink, 0), 0, 100) / 100) * cfg.eyelidMax);
 
-  // Head tilt (curious has no head group → leans the whole body instead)
+  // Head tilt — rotates the head group on every pose.
   var ht = clamp(num(v.headTilt, 0), -30, 30);
   if (cfg.head) out.headT = rot(ht * (cfg.head.mirror ? -1 : 1), cfg.head.pivot);
-  if (cfg.body) out.bodyT = rot(ht * (cfg.body.factor || 1), cfg.body.pivot);
+
+  // Leaves & branch (curious only) — rotates the whole perch.
+  if (cfg.foliage) out.foliageT = rot(clamp(num(v.foliage, 0), -40, 40), cfg.foliage.pivot);
 
   // Legs (dangling only — hidden elsewhere by showIf)
   if (cfg.legFront) out.legFrontT = rot(clamp(num(v.legFront, 0), -45, 45) * (cfg.legFront.mirror ? -1 : 1), cfg.legFront.pivot);

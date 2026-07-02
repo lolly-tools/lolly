@@ -28,7 +28,7 @@ The outcome is **brand abundance**: every event has correct signage, every CVE a
 | Intuitive editor (designer) | ✅ | ❌ | ✅ | ✅ | ❌ |
 | Live collaboration | ✅ | ❌ | ❌ | ✅ | ❌ |
 
-The gap is clear: nothing in the existing landscape gives us constraints-first, offline-capable, low-skill, internally accessible output. The trade-off we accept is that this is **not** an open-canvas tool. Designers continue to use Illustrator and Figma for bespoke flagship work. Permutations can be assembled with this tool.
+The gap is clear: nothing in the existing landscape gives us constraints-first, offline-capable, low-skill, internally accessible output. Lolly even includes an open canvas — **Layout Studio** — where colours, type and assets conform to the brand globals, so free arrangement stays constraints-first. What it is **not** is an unconstrained design suite: designers continue to use Illustrator and Figma for bespoke flagship work. Permutations can be assembled with this tool.
 
 **Use it for:** Rapid generation of operationalised creative assets — event tiles, name badges, signatures, CVE alerts, QR codes, social cards.
 

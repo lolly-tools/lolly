@@ -10,7 +10,7 @@ The home screen is the **gallery** — every tool, grouped by category. Click a 
 
 Each tool is a split view: **controls** on one side, a live **preview** (the canvas) on the other. Change any control and the preview updates instantly.
 
-> A few tools (like **Layout Studio**) instead open as a **free canvas** — a chromeless, direct-manipulation surface where you drag, resize, rotate and snap boxes of text, shapes and images, and double-click to edit text in place. It exports through the same render path as every other tool, so the canvas *is* the file.
+> A few tools (like **Layout Studio**) instead open as a **free canvas** — a chromeless, direct-manipulation surface where you drag, resize, rotate and snap boxes of text, shapes and images, and double-click to edit text in place. It exports through the same render path as every other tool, so the canvas *is* the file. See [The free canvas](#the-free-canvas-layout-studio) below.
 
 ## The canvas (preview)
 
@@ -30,6 +30,15 @@ The preview always shows exactly what will export.
 **Click to jump to a control:** click any element in the design and the matching sidebar input gets focus and scrolls into view — for a repeating row group it folds open the exact row you clicked, so editing what you see is one tap away.
 
 A dimension change always snaps the view back to a clean fit.
+
+### The free canvas (Layout Studio)
+
+Free-canvas tools add a working surface *around* the artboard, like a designer's pasteboard:
+
+- **Off-canvas staging.** Drag a box past the frame edge and it stays fully **visible and selectable** — park elements off to the side while you arrange the composition, then drag them back in. Everything outside the frame is **gently faded** so the export area always reads at a glance, and the frame keeps its shadow to mark exactly where the file begins.
+- **Only the frame exports.** The exported file is bounded by the artboard — anything left outside (or the part of a box hanging over the edge) is simply cropped out of the output, in raster and vector formats alike.
+- **Zoom out past Fit** (down to 20%) to see the whole pasteboard when you've staged things far outside the frame.
+- **Resizable artboard.** Changing the export dimensions resizes the frame in place; boxes keep their positions, so you can reframe a layout around existing content.
 
 ## On a phone
 

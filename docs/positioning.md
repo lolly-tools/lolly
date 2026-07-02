@@ -16,11 +16,12 @@ Where this platform fits in the wider creative-tools landscape, and where it del
 | Intuitive editor (designer)      | ✅ | ❌ | ✅ | ✅ | ❌ |
 | Live collaboration               | ✅ | ❌ | ❌ | ✅ | ❌ |
 
-The shape of the gap is clear: nothing in the existing landscape gives us constraints-first, offline-capable, low-skill, internally accessible, generative output. The trade-off we accept is that this is **not** an open-canvas tool. Designers will continue to use Illustrator and Figma for bespoke work.
+The shape of the gap is clear: nothing in the existing landscape gives us constraints-first, offline-capable, low-skill, internally accessible, generative output. Lolly now ships an open canvas of its own — **Layout Studio**, a direct-manipulation free canvas — but with a decisive difference from the Canva column: colours, type and assets placed on it conform to the brand globals, so even free arrangement stays constraints-first. What Lolly still is **not** is an unconstrained design suite; designers will continue to use Illustrator and Figma for bespoke work.
 
 ## Use it for
 
 - Rapid generation of operationalised creative assets (event tiles, badges, signatures, alerts)
+- Free-form arrangement on the open canvas (Layout Studio) when the pieces — colours, type, icons, images — must stay conformed to the brand globals
 - One-to-many "fill in three fields, get the finished asset" flows — including bulk runs from a spreadsheet/CSV in the `/pro` batch grid (paste or import rows, one finished asset per row, download as a zip)
 - Always-on, recurring branded outputs
 - Things where central control of brand expression matters more than expressive flexibility
@@ -29,7 +30,7 @@ The shape of the gap is clear: nothing in the existing landscape gives us constr
 
 - Bespoke or flagship hero content (billboards, major videos)
 - Unique campaign work that genuinely needs a designer
-- Open-canvas ideation where constraints would just get in the way
+- Ideation that needs to escape the brand system entirely — Lolly's open canvas still conforms colours, type and assets to the brand globals, and that's the point
 
 ## What this uniquely provides
 

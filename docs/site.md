@@ -117,6 +117,8 @@ Every time someone uploads a file to a third-party service to "just make it look
 
 **100% free and open source.** No SaaS fees, no usage limits, no vendor dependency.
 
+**Content Credentials.** Exports can carry a signed [C2PA](https://c2pa.org) manifest — the [Content Authenticity Initiative](https://contentauthenticity.org) standard for tamper-evident provenance — created entirely on your device.
+
 **Works everywhere.** Web PWA, Mac, Linux, iOS, Android, CLI — same engine, same output.
 
 **Works offline.** Local compute, local storage. No internet required after first sync.
@@ -126,8 +128,6 @@ Every time someone uploads a file to a third-party service to "just make it look
 **Ships new tools without app updates.** Tools are data, not bundled code. New tools appear automatically.
 
 **Production quality.** Outlined type, Spot color support, 60FPS · Media fit for the studio.
-
-**Content Credentials.** Exports can carry a signed [C2PA](https://c2pa.org) manifest — the [Content Authenticity Initiative](https://contentauthenticity.org) standard for tamper-evident provenance — created entirely on your device.
 
 **Organise & render in bulk.** Keep saved work in nested Projects folders, then render a whole folder — or any multi-selection — as one zip. No batch grid required.
 

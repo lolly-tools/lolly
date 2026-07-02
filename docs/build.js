@@ -215,7 +215,12 @@ function inline(text) {
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+  // External links (absolute http/https) open in a new tab; internal/relative links
+  // (other /info pages, #anchors) stay in place.
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) =>
+    /^https?:\/\//i.test(url)
+      ? `<a href="${url}" target="_blank" rel="noopener">${label}</a>`
+      : `<a href="${url}">${label}</a>`);
   return s;
 }
 

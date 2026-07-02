@@ -35,10 +35,11 @@ Tools can be used via a:
 ## What this is **not**
 
 - A general-purpose design tool
-- An open canvas editor
 - A DAM
 
-See `docs/positioning.md` for the full landscape comparison.
+It *does* include an open canvas — Layout Studio — but even there, colours, type
+and assets conform to the brand globals, so free arrangement never becomes
+off-brand output. See `docs/positioning.md` for the full landscape comparison.
 
 ## Repository layout
 
