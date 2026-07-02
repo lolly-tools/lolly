@@ -1,0 +1,180 @@
+/* SPDX-License-Identifier: MPL-2.0 — Unified top bar + consolidated profile menu. Split from app.css (finding 10); see app.css for the import order. */
+/* ── Unified top bar (Tools|Projects toggle + the action cluster) ──────────────
+   On desktop the toggle is centred and the cluster is right-anchored as two
+   independent fixed elements — there's room, so leave them be: the wrapper is
+   display:contents (no box), and each child keeps its own fixed positioning.
+   On mobile there ISN'T room and the two fixed elements overlapped, so the
+   wrapper becomes ONE fixed flex row that holds them both — now they share a
+   layout and can't collide. The cluster also collapses there: the standalone
+   history button and the "Profile" wordmark fold into the avatar's menu. */
+.gallery-topbar { display: contents; }
+
+@media (max-width: 640px) {
+  .gallery-topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    top: calc(.5em + env(safe-area-inset-top, 0px) + var(--vv-top, 0px));
+    left: calc(.75em + var(--vv-left, 0px));
+    right: calc(.75em + var(--vv-right, 0px));
+    z-index: 99999;
+    pointer-events: none; /* empty middle lets taps fall through to the masonry */
+  }
+  .gallery-topbar > * { pointer-events: auto; }
+
+  /* Children flow inside the bar rather than pinning themselves to the viewport. */
+  .gallery-topbar .view-toggle-wrap {
+    position: static; left: auto; transform: none; margin: 0;
+    order: 0; min-width: 0; /* shrinkable if space is tight */
+  }
+  .gallery-topbar .view-toggle-opt { padding: 6px 14px; }
+  .gallery-topbar .gallery-topright {
+    position: static; top: auto; right: auto;
+    order: 1; margin-left: auto; gap: 8px; /* pushed to the right edge */
+  }
+
+  /* Fold the standalone history button + "Profile" wordmark into the avatar menu. */
+  .gallery-topbar .history-fab { display: none; }
+  .gallery-topbar .profile-link-name { display: none; }
+  .gallery-topbar .profile-link {
+    position: static; top: auto; right: auto;
+    width: 2.9em; height: 2.9em; padding: 0; border-radius: 50%;
+    display: inline-flex; flex: none;
+  }
+  /* Re-centre the avatar dot/image now the pill padding is gone. */
+  .gallery-topbar .profile-link::before,
+  .gallery-topbar .profile-link-avatar {
+    left: 50%; transform: translate(-50%, -50%);
+  }
+}
+
+/* ── Consolidated profile menu (mobile) — opened by tapping the avatar. ─────────
+   Gathers what the bar can't show at this width: theme switcher, saved sessions,
+   and a link to the full Settings page. Body-mounted popover; matches the filter
+   popover's surface + the view-toggle's segmented control. */
+.profile-menu {
+  position: fixed;
+  z-index: 100000;
+  min-width: 210px;
+  max-width: calc(100vw - 16px);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.4);
+  box-shadow: 0 12px 32px hsl(0 0% 0% / 0.24);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .profile-menu { animation: profile-menu-in .14s ease both; transform-origin: top right; }
+}
+@keyframes profile-menu-in { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.profile-menu-theme {
+  display: flex; gap: 2px; padding: 3px; margin-bottom: 4px;
+  border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted) / 0.5);
+}
+.profile-menu-seg {
+  flex: 1; padding: 8px 6px; border: 0; border-radius: 999px;
+  background: transparent; color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 12.5px; font-weight: 600; line-height: 1.2; cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.profile-menu-seg:hover { color: hsl(var(--foreground)); }
+.profile-menu-seg[aria-checked="true"] {
+  background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px hsl(0 0% 0% / 0.12);
+}
+.profile-menu-seg:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+
+.profile-menu-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  width: 100%; padding: 11px 12px; border: 0; border-radius: var(--radius);
+  background: transparent; color: hsl(var(--foreground));
+  font: inherit; font-size: 14px; font-weight: 500; text-align: left; text-decoration: none;
+  cursor: pointer;
+}
+.profile-menu-item:hover { background: hsl(var(--accent)); }
+.profile-menu-item:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -2px; }
+.profile-menu-item svg { color: hsl(var(--muted-foreground)); flex: none; }
+.profile-menu-count {
+  min-width: 20px; height: 18px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; line-height: 1;
+  color: hsl(var(--primary-foreground)); background: hsl(var(--primary)); border-radius: 999px;
+}
+.history-fab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.9em;
+  height: 2.9em;
+  padding: 0;
+  border: 1px solid hsl(var(--primary));
+  border-radius: 50%;
+  background: hsl(var(--background) / 0.5);
+  color: hsl(var(--primary));
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  transition: background 0.12s, color 0.12s;
+}
+.history-fab:hover { background: hsl(var(--primary) / 0.12); }
+.history-fab svg { width: 18px; height: 18px; }
+.history-fab-count {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  color: hsl(var(--primary-foreground));
+  background: hsl(var(--primary));
+  border-radius: 999px;
+}
+
+/* Right-anchored saved-sessions drawer (a <dialog>, so Esc + backdrop are free). */
+.tool-drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(400px, 92vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: 100dvh;
+  border: 0;
+  border-left: 1px solid hsl(var(--border));
+  border-radius: 0;
+  box-shadow: -8px 0 32px hsl(0 0% 0% / 0.2);
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* Quick slide-in from the right, backdrop fading up behind it. Keyframe
+     animations (not transitions) so they play on showModal() without needing
+     @starting-style. Rows cascade in just behind the panel — see .saved-row. */
+  .tool-drawer { animation: drawer-slide-in 0.22s cubic-bezier(.22, .61, .36, 1) both; }
+  .tool-drawer::backdrop { animation: drawer-backdrop-in 0.2s ease both; }
+}
+@keyframes drawer-slide-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes drawer-backdrop-in { from { opacity: 0; } to { opacity: 1; } }
+.drawer-body { display: flex; flex-direction: column; height: 100%; }
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid hsl(var(--border));
+}
+.drawer-head h2 { margin: 0; font-size: 15px; }
+.drawer-list { flex: 1; overflow: auto; padding: 10px 12px; margin: 0; list-style: none; }
+.drawer-empty { padding: 40px 18px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }

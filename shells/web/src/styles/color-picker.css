@@ -1,0 +1,282 @@
+/* SPDX-License-Identifier: MPL-2.0 — Color picker + flatpickr theme. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Color picker with swatches ────────────────────────────────────────────── */
+
+/* ─── Color picker (trigger + popover) ─────────────────────────────────── */
+
+.color-picker-field {
+  position: relative;
+}
+
+.color-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 5px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.12s;
+  justify-content: end;
+}
+
+.color-trigger:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.color-trigger-preview {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: 0 .1rem .2rem -.05rem #0004;
+
+  flex-shrink: 0;
+}
+
+.color-trigger-hex {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+}
+
+.color-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 10px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-hex-input {
+  width: 100%;
+  padding: 5px 8px;
+  background: hsl(var(--input) / 0.3);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: calc(var(--radius) *2);
+  text-align:center;
+  font-family: "SUSE Mono", ui-monospace, monospace;
+  font-size: 17px;
+  padding:16px;
+  outline: none;
+}
+.color-hex-input:focus {
+  border-color: hsl(var(--ring) / 0.6);
+}
+
+.color-alpha-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.color-alpha-label {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  width: 12px;
+  flex-shrink: 0;
+  text-align: center;
+}
+.color-alpha-slider {
+  flex: 1;
+  height: 4px;
+  cursor: pointer;
+  accent-color: hsl(var(--ring));
+}
+.color-alpha-pct {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  min-width: 30px;
+  text-align: right;
+}
+
+.color-popover-native {
+    width: 3em;
+    height: 3em;
+    padding: 0;
+    border: 1px solid hsl(var(--input));
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: none;
+    position: absolute;
+    top: 1.5em;
+    left: 1.5em;
+    display:none;
+}
+
+.color-swatches {
+  display: flex;
+  flex-flow:wrap;
+
+  gap: 2px;
+  max-height: 240px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border));
+  padding:6px; 
+}
+
+.color-popover-native::part{border-radius: var(--radius)}
+.color-swatch {
+  
+  height: 2em;
+  width:2em;border-radius:50%;
+ 
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.1s, border-color 0.1s;
+  box-shadow: inset 0 0 0 .1rem #fff0, inset 0 .1rem  .25rem #fff4, 0 .1rem .2rem -.05rem #0004;
+}
+[pseudo="-webkit-color-swatch"]{border-radius: var(--radius)}
+.color-swatch:hover {
+  transform: scale(1.18);
+  border-color: hsl(var(--foreground) / 0.5);
+  box-shadow:  0 .1em .5em #0003;
+}
+
+.color-swatch:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+.color-swatch--transparent {
+  background-image:
+    linear-gradient(45deg, #ccc 25%, transparent 25%),
+    linear-gradient(-45deg, #ccc 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #ccc 75%),
+    linear-gradient(-45deg, transparent 75%, #ccc 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+  background-color: #fff;
+}
+
+/* ─── Flatpickr datetime picker ─────────────────────────────────────────── */
+
+input.fp-datetime {
+  width: 100%;
+  cursor: pointer;
+}
+
+.flatpickr-calendar {
+  background:    hsl(var(--popover));
+  border:        1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  box-shadow:    0 8px 32px hsl(var(--foreground) / 0.12);
+  font-family:   SUSE, ui-sans-serif, system-ui, sans-serif;
+  font-size:     13px;
+  color:         hsl(var(--popover-foreground));
+}
+
+.flatpickr-calendar.arrowBottom::before,
+.flatpickr-calendar.arrowBottom::after,
+.flatpickr-calendar.arrowTop::before,
+.flatpickr-calendar.arrowTop::after {
+  border-bottom-color: hsl(var(--border));
+  border-top-color:    hsl(var(--border));
+}
+
+.flatpickr-months .flatpickr-month,
+.flatpickr-current-month,
+.flatpickr-current-month input.cur-year,
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  background:    transparent;
+  color:         hsl(var(--popover-foreground));
+  fill:          hsl(var(--popover-foreground));
+}
+
+.flatpickr-months .flatpickr-prev-month,
+.flatpickr-months .flatpickr-next-month {
+  color: hsl(var(--muted-foreground));
+  fill:  hsl(var(--muted-foreground));
+}
+
+.flatpickr-months .flatpickr-prev-month:hover,
+.flatpickr-months .flatpickr-next-month:hover {
+  color: hsl(var(--popover-foreground));
+  fill:  hsl(var(--popover-foreground));
+}
+
+.flatpickr-weekdays,
+span.flatpickr-weekday {
+  background: transparent;
+  color:      hsl(var(--muted-foreground));
+  font-size:  11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+}
+
+.flatpickr-day {
+  color:         hsl(var(--popover-foreground));
+  border-radius: 0.4rem;
+}
+
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+  background: hsl(var(--accent));
+  border-color: transparent;
+}
+
+.flatpickr-day.selected,
+.flatpickr-day.selected:hover {
+  background:   hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  color:        hsl(var(--primary-foreground));
+  font-weight:  700;
+}
+
+.flatpickr-day.today {
+  border-color: hsl(var(--primary));
+}
+
+.flatpickr-day.today:not(.selected) {
+  color: hsl(var(--primary));
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+.flatpickr-time {
+  border-top: 1px solid hsl(var(--border));
+}
+
+.flatpickr-time input,
+.flatpickr-time .flatpickr-time-separator,
+.flatpickr-time .flatpickr-am-pm {
+  background: transparent;
+  color:      hsl(var(--popover-foreground));
+  font-family: SUSE, ui-sans-serif, system-ui, sans-serif;
+}
+
+.flatpickr-time input:hover,
+.flatpickr-time input:focus,
+.flatpickr-time .flatpickr-am-pm:hover,
+.flatpickr-time .flatpickr-am-pm:focus {
+  background: hsl(var(--accent));
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months:hover,
+.flatpickr-current-month input.cur-year:hover {
+  background: hsl(var(--accent) / 0.6);
+}
+
+.numInputWrapper:hover,
+.numInputWrapper span:hover {
+  background: hsl(var(--accent) / 0.6);
+}

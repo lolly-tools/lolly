@@ -1,0 +1,385 @@
+/* SPDX-License-Identifier: MPL-2.0 — Projects view, bulk-action bar, mobile layout, move-to picker. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Projects view (/p) — gallery-style page over folders of saved sessions ─ */
+.projects-view { display: block; }
+/* Full-bleed like the gallery so the window uses all the space; the top-right
+   profile/history cluster reuses .gallery-topright (position:fixed; right:2em) verbatim,
+   so the profile button sits in the SAME window spot when toggling Tools ↔ Projects. */
+/* Fill the viewport so the empty area BELOW the tiles is still part of the Projects
+   surface — desktop marquee-drag + click-to-deselect need somewhere to grab. */
+.projects { padding: 52px 20px 64px; min-height: 100vh; box-sizing: border-box; } /* top clears the fixed toggle band */
+
+/* Tools | Projects segmented toggle — FIXED at the SAME top as the profile/history
+   cluster (.gallery-topright top:.5em) and horizontally centred, so it's vertically
+   centred with those icons AND sits identically on the gallery and Projects views
+   (in-flow positioning made it drift between the two). Shrinks to the pill so it
+   never blocks clicks elsewhere in the top band. */
+.view-toggle-wrap {
+  position: fixed; top: .5em; left: 50%; transform: translateX(-50%);
+  z-index: 99999; display: flex; justify-content: center; margin: 0;
+}
+.view-toggle {
+  display: inline-flex; gap: 2px; padding: 3px;
+  border: 1px solid hsl(var(--border)); border-radius: 999px; background: hsl(var(--muted) / 0.5);
+}
+.view-toggle-opt {
+  padding: 6px 18px; border-radius: 999px; font-size: 13px; font-weight: 600; line-height: 1.4;
+  color: hsl(var(--muted-foreground)); text-decoration: none; transition: background 0.12s, color 0.12s;
+}
+.view-toggle-opt:hover { color: hsl(var(--foreground)); }
+.view-toggle-opt.is-active {
+  background: hsl(var(--card)); color: hsl(var(--foreground)); box-shadow: 0 1px 3px hsl(0 0% 0% / 0.12);
+}
+/* In the gallery the toggle floats above the masonry; keep it clear of the topright cluster. */
+/* Clear the fixed Tools|Projects toggle band at the top of the gallery (matches the
+   .projects top padding) — the toggle is now position:fixed, out of flow. */
+.gallery { padding-top: 52px; }
+
+/* Fixed-width tiles packed top-left (file-manager convention). Tiles top-align
+   (`align-items: start`) at their natural height — folders + create tiles are compact
+   (short preview banner, uniform, so their names line up in a tidy row) and saved-session
+   tiles keep their taller 4/3 preview. (Earlier this stretched every tile to the tallest
+   via `grid-auto-rows: 1fr`, which made folders tower over their names — dropped.) */
+.projects-grid {
+  grid-template-columns: repeat(auto-fill, 180px); justify-content: start; gap: 16px;
+  align-items: start;
+  padding:3.6rem 0 1rem;
+}
+
+/* Mobile: the fixed 180px columns drop to a SINGLE column below ~376px (a 360px
+   phone can't fit two 180px tiles + gap). Force two equal fractional columns on
+   narrow screens so at least two folders/sessions always sit side by side; the
+   desktop fixed-width file-manager packing and equal-height stretch are untouched.
+   Scoped `:not(.projects-list)` so list mode (a flex column) is unaffected. */
+@media (max-width: 560px) {
+  .projects-grid:not(.projects-list) {
+    grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;
+  }
+}
+
+/* List view mode — reflow the same tiles into compact full-width rows. */
+.projects-grid.projects-list { display: flex; flex-direction: column; gap: 6px; max-width: 760px; }
+.projects-list .folder-tile { width: 100%; }
+.projects-list .folder-tile .tile-primary { flex-direction: row; align-items: center; gap: 14px; padding: 8px 12px; }
+.projects-list .tile-cover, .projects-list .folder-mosaic, .projects-list .tile-cover--create, .projects-list .tile-cover--batch {
+  width: 52px; height: 40px; aspect-ratio: auto; flex: none; overflow: hidden;
+  border-radius: calc(var(--radius) / 1.6); border: 1px solid hsl(var(--border));
+}
+.projects-list .tile-cover--create svg, .projects-list .tile-cover--batch svg { width: 20px; height: 20px; }
+.projects-list .tile-meta { padding: 0; flex: 1; min-width: 0; }
+.projects-list .tile-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.projects-list .tile-menu-btn { top: 50%; right: 10px; transform: translateY(-50%); }
+/* In a compact row the top-left grid position would sit over the 52px cover thumbnail —
+   move the selection toggle into the right gutter, just inside the ⋯ menu button. */
+.projects-list .tile-check { top: 50%; left: auto; right: 42px; transform: translateY(-50%); }
+
+/* Active option in the view-options popover. */
+.projects-viewmenu .folder-menu-item.is-on { font-weight: 700; }
+
+/* "Render folder" progress toast — pin top-right UNDER the profile/history row (not the
+   default bottom-right) so the rotating quip + per-render log read at a glance. Two
+   classes outrank the base .pro-toast positioning from run-overlay.css. */
+.pro-toast.projects-toast { top: 56px; right: 2em; bottom: auto; left: auto; }
+
+/* "Create new" tiles (dashed, + icon) — kept deliberately muted so they read as
+   affordances, not content. Unlike a real tile, the icon area has NO preview fill and
+   NO divider border: it's one continuous transparent panel flowing straight into the
+   label, so the whole tile is just a quiet dashed outline. */
+.folder-tile--create { border-style: dashed; background: transparent; }
+.folder-tile--create:hover { border-color: hsl(var(--primary) / 0.7); background: hsl(var(--primary) / 0.04); }
+.tile-cover--create {
+  display: flex; align-items: center; justify-content: center; height: 90px;   /* compact, matches folder tiles */
+  color: hsl(var(--muted-foreground)); background: transparent;
+  border-bottom: 0;   /* override the base .tile-cover divider — create tiles are seamless */
+}
+.folder-tile--create:hover .tile-cover--create { color: hsl(var(--primary)); }
+.tile-cover--create svg { width: 30px; height: 30px; }
+
+/* Breadcrumb trail above a folder's header — links each ancestor back up the tree. */
+.projects-crumbs {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  margin: 0 0 8px; font-size: 12.5px; color: hsl(var(--muted-foreground));
+}
+.projects-crumbs a { color: hsl(var(--muted-foreground)); text-decoration: none; border-radius: 4px; }
+.projects-crumbs a:hover { color: hsl(var(--foreground)); text-decoration: underline; text-underline-offset: 2px; }
+.projects-crumb-sep { opacity: 0.5; }
+
+/* Folder-contents header. */
+.projects-head { display: flex; align-items: center; gap: 12px; margin: 0 0 18px; }
+.projects-back {
+  display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: none;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius); color: hsl(var(--foreground)); text-decoration: none;
+}
+.projects-back:hover { background: hsl(var(--muted)); }
+.projects-back svg { width: 18px; height: 18px; }
+/* Truncate to a single line so a long folder name never wraps into a tall column
+   or shoves the header actions off-screen. min-width:0 lets it shrink inside the
+   flex row (the default min-width:auto would refuse, forcing overflow). */
+.projects-title { font-size: 20px; font-weight: 700; margin: 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projects-title[data-rename-folder] { cursor: text; }
+.projects-title[data-rename-folder]:hover { text-decoration: underline dotted; text-underline-offset: 4px; }
+.projects-count { font-size: 12.5px; color: hsl(var(--muted-foreground)); }
+.projects-head-spacer { flex: 1; }
+.projects-render { display: inline-flex; align-items: center; gap: 7px; }
+.projects-render svg { width: 15px; height: 15px; }
+/* Render is the primary action — fill it with the brand colour so it reads as the
+   pronounced CTA (folder header, bulk bar, move-picker confirm all share this class).
+   Two-class `.projects-render.btn` to beat the generic `.btn` background defined LATER
+   in this file (equal specificity, later wins) — same trick as .projects-confirm-danger. */
+.projects-render.btn {
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border-color: hsl(var(--primary));
+}
+.projects-render.btn:hover { filter: brightness(1.08); }
+.projects-render.btn svg { opacity: 1; }
+
+/* "Move to" rail — drop targets in a folder view. */
+.projects-rail { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 16px; }
+.projects-rail-hint {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: hsl(var(--muted-foreground));
+}
+.projects-chip {
+  padding: 6px 12px; border: 1px solid hsl(var(--border)); border-radius: 999px;
+  background: hsl(var(--card)); color: hsl(var(--foreground)); font-size: 12.5px; cursor: pointer;
+  transition: border-color 0.12s, background 0.12s, box-shadow 0.12s;
+}
+.projects-chip:hover { border-color: hsl(var(--primary) / 0.6); }
+/* While dragging a session OR a folder, hint the rail chips as live drop targets. */
+.projects.is-dragging-session .projects-chip,
+.projects.is-dragging-folder .projects-chip { border-color: hsl(var(--primary) / 0.5); background: hsl(var(--primary) / 0.04); }
+
+/* Drag feedback. */
+.folder-tile.is-dragging { opacity: 0.45; }
+.folder-tile[data-kind="session"], .folder-tile--folder:not(.folder-tile--uncat) { cursor: grab; }
+.folder-tile.is-drop, .projects-chip.is-drop {
+  border-color: hsl(var(--primary)); box-shadow: 0 0 0 2px hsl(var(--primary) / 0.35); background: hsl(var(--primary) / 0.06);
+}
+
+/* Inline name input (create / rename). */
+.projects-name-input {
+  width: 100%; padding: 4px 6px; font-size: 13px; font-weight: 600;
+  border: 1px solid hsl(var(--primary)); border-radius: calc(var(--radius) / 1.5);
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+.projects-empty { color: hsl(var(--muted-foreground)); font-size: 14px; margin: 18px 2px; }
+
+/* "Move to" group label inside the per-tile menu. */
+.folder-menu-head {
+  padding: 8px 10px 3px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: hsl(var(--muted-foreground));
+}
+
+/* "New from a tool" chooser dialog (the "+ New tool" file-style selector). */
+.projects-toolpicker {
+  border: 0; padding: 0; width: min(720px, 94vw); max-height: 84vh; overflow: hidden;
+  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4); display: flex; flex-direction: column;
+}
+.projects-toolpicker::backdrop { background: hsl(0 0% 0% / 0.42); }
+.toolpicker-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 12px; border-bottom: 1px solid hsl(var(--border)); }
+.toolpicker-search {
+  flex: 1; min-width: 0; padding: 8px 14px; border: 1px solid hsl(var(--border));
+  border-radius: 999px; background: hsl(var(--background)); color: inherit; font-size: 13px;
+}
+.toolpicker-close {
+  flex: none; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid hsl(var(--border)); border-radius: 50%; background: none; color: inherit; cursor: pointer; font-size: 13px;
+}
+.toolpicker-close:hover { background: hsl(var(--muted)); }
+.toolpicker-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+  gap: 10px; padding: 14px 18px 18px; overflow: auto;
+}
+/* Each grid item wraps the open-button (.toolpicker-tile) and the overlay "+ Add" button
+   as SIBLINGS — never nested (a button inside a button lets Space double-fire the parent). */
+.toolpicker-cell { position: relative; display: flex; }
+/* Search hides non-matches with the `hidden` attr; without this the base `display:flex`
+   (author beats the UA `[hidden]` rule) keeps them in the grid, so matches never reflow
+   to the top. Pull the whole cell out of layout so the grid collapses. */
+.toolpicker-cell[hidden] { display: none; }
+.toolpicker-tile {
+  flex: 1; width: 100%;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px; padding: 12px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius); background: hsl(var(--card));
+  color: inherit; cursor: pointer; text-align: left; transition: border-color 0.12s, background 0.12s;
+}
+.toolpicker-cell:hover .toolpicker-tile { border-color: hsl(var(--primary) / 0.6); background: hsl(var(--primary) / 0.05); }
+
+/* "+ Add" — small overlay pill, top-right of the card. Hover-revealed on fine pointers
+   (always shown on touch, and once added) so it doesn't clutter the grid at rest. Files
+   the tool into this folder with default settings WITHOUT opening the editor. */
+.toolpicker-add {
+  position: absolute; top: 6px; right: 6px; z-index: 2;
+  padding: 3px 9px; font: inherit; font-size: 11px; font-weight: 600; line-height: 1.4;
+  border: 1px solid hsl(var(--primary) / 0.5); border-radius: 999px;
+  background: hsl(var(--card)); color: hsl(var(--primary));
+  cursor: pointer; opacity: 0; transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s;
+}
+.toolpicker-cell:hover .toolpicker-add, .toolpicker-add:focus-visible { opacity: 1; }
+.toolpicker-add:hover { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.toolpicker-add:disabled { cursor: default; }
+.toolpicker-add.is-added {
+  opacity: 1; border-color: hsl(var(--primary)); background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+}
+@media (pointer: coarse) { .toolpicker-add { opacity: 1; } }
+.toolpicker-icon { width: 26px; height: 26px; color: hsl(var(--primary)); }
+.toolpicker-icon svg { width: 100%; height: 100%; }
+.toolpicker-name { font-size: 13px; font-weight: 600; line-height: 1.25; }
+.toolpicker-desc {
+  font-size: 11px; color: hsl(var(--muted-foreground)); line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+/* Mobile: lay each tile out as a ROW — icon beside the text (name + 1-line desc) —
+   so tiles are short and more fit without scrolling (reclaims vertical space). */
+@media (max-width: 640px) {
+  .toolpicker-grid { grid-template-columns: 1fr; gap: 8px; padding: 12px 14px 16px; }
+  .toolpicker-tile {
+    display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto;
+    column-gap: 12px; row-gap: 1px; align-items: center; padding: 10px 12px;
+    padding-right: 68px;   /* clear the always-on "+ Add" pill in this compact row layout */
+  }
+  .toolpicker-icon { grid-row: 1 / span 2; align-self: center; width: 24px; height: 24px; }
+  .toolpicker-name { grid-column: 2; align-self: end; }
+  .toolpicker-desc { grid-column: 2; align-self: start; -webkit-line-clamp: 1; }
+  /* Centre the pill in the row (it's always visible on touch). */
+  .toolpicker-add { top: 50%; transform: translateY(-50%); }
+}
+
+/* Folder-actions overflow button in the folder-view header (rename / render / delete).
+   It's not inside a .folder-tile, so undo the tile-menu's absolute, hover-to-reveal styling. */
+.projects-head-menu { position: static; opacity: 1; flex: none; width: 32px; height: 32px; }
+
+/* Confirmation modal for destructive actions (delete folder + contents, delete session). */
+.projects-confirm {
+  border: 0; padding: 22px; width: min(420px, 92vw);
+  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4);
+}
+.projects-confirm::backdrop { background: hsl(0 0% 0% / 0.42); }
+.projects-confirm-title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+.projects-confirm-msg { margin: 0 0 18px; font-size: 13px; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.projects-confirm-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Scoped (two-class) so it beats the generic .btn background rule that comes later. */
+.projects-confirm .projects-confirm-danger {
+  background: hsl(var(--destructive, 0 70% 50%)); border-color: hsl(var(--destructive, 0 70% 50%)); color: #fff;
+}
+.projects-confirm .projects-confirm-danger:hover { filter: brightness(0.94); }
+
+/* New-folder-from-selection name prompt (reuses .projects-confirm chrome). */
+.projects-prompt-input { width: 100%; margin: 0 0 16px; }
+
+/* Desktop click-drag marquee (rubber-band) selection box + no text-selection while dragging. */
+.projects-marquee {
+  position: fixed; z-index: 8000; pointer-events: none;
+  border: 1px solid hsl(var(--primary)); background: hsl(var(--primary) / 0.12); border-radius: 2px;
+}
+.projects.is-marqueeing, .projects.is-marqueeing * { user-select: none; }
+
+/* ─── Multi-select bulk-action bar ──────────────────────────────────────────
+   Floating, bottom-centre, above content but below the fixed view-toggle (99999).
+   Shown by JS (syncBulkBar toggles [hidden]) whenever the selection is non-empty. */
+.projects-bulkbar {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 9000;
+  display: flex; align-items: center; gap: 12px; max-width: calc(100vw - 24px);
+  padding: 8px 10px 8px 16px; border: 1px solid hsl(var(--border));
+  border-radius: 999px; background: hsl(var(--card)); box-shadow: 0 12px 32px hsl(0 0% 0% / 0.28);
+}
+.projects-bulkbar[hidden] { display: none; }
+.projects-bulkbar-count { font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+.projects-bulkbar-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.projects-bulkbar-actions .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 12.5px; }
+.projects-bulkbar-actions .btn svg { width: 15px; height: 15px; }
+/* Two-class so the destructive red beats the generic `.btn { color: foreground }`
+   defined later in the file (equal specificity, later wins) — same trick as
+   .projects-render.btn / .projects-confirm-danger. */
+.projects-bulk-danger.btn { color: hsl(var(--destructive, 0 70% 50%)); }
+.projects-bulk-danger.btn:hover { background: hsl(var(--destructive, 0 70% 50%) / 0.1); }
+.projects-bulkbar-clear {
+  display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; flex: none;
+  border: 0; border-radius: 50%; background: hsl(var(--muted)); color: hsl(var(--foreground));
+  cursor: pointer; font-size: 13px; line-height: 1;
+}
+.projects-bulkbar-clear:hover { background: hsl(var(--border)); }
+/* Phones: let the bar wrap its buttons and hug the safe area (clear the home
+   indicator with env(safe-area-inset-bottom), matching the app's other bottom bars). */
+@media (max-width: 560px) {
+  .projects-bulkbar { flex-direction: column; align-items: stretch; border-radius: var(--radius); bottom: calc(12px + env(safe-area-inset-bottom, 0px)); padding: 10px 12px; gap: 8px; }
+  .projects-bulkbar-clear { position: absolute; top: 8px; right: 8px; }
+}
+
+/* ─── Projects: mobile layout ────────────────────────────────────────────────
+   The folder header can't fit its back button + full title + count + a text
+   "Render folder" button + ⋯ menu on one phone row, so it collapses to TWO rows:
+   [‹ back] [title — truncates] [count] [⋯]  /  [ Render folder — full-width CTA ].
+   Placed after the base rules so these win without needing extra specificity. */
+@media (max-width: 640px) {
+  /* Clear the fixed top bar (offset by the safe-area inset on notched PWAs). */
+  .projects { padding-top: calc(52px + env(safe-area-inset-top, 0px)); }
+
+  .projects-head { flex-wrap: wrap; column-gap: 8px; row-gap: 10px; margin-bottom: 14px; }
+  /* flex-basis 0 so a long title never forces the count/menu to wrap — it just
+     grows into the leftover space on row 1 and ellipsis-truncates. */
+  .projects-title { flex: 1 1 0; font-size: 17px; }
+  .projects-head-spacer { display: none; }
+  .projects-count { order: 3; flex: 0 0 auto; }
+  .projects-head-menu { order: 4; }
+  /* Scoped to the header — `.projects-render.btn` is a SHARED class (bulk bar's
+     "Render selection", move-picker confirm, new-folder Create), and an unscoped
+     order/flex here would reorder + full-width those too (e.g. shove the bulk bar's
+     primary Render below Delete). The header button is a direct child of .projects-head. */
+  .projects-head .projects-render.btn { order: 5; flex: 1 1 100%; justify-content: center; padding: 11px 14px; font-size: 14px; }
+
+  /* When a selection is active the floating bulk bar covers the bottom of the grid;
+     reserve room so the last row can scroll clear of it. Toggled by syncBulkBar(). */
+  .projects.has-selection { padding-bottom: calc(190px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Touch: no hover, so reveal the per-tile ⋯ menu (its only trigger otherwise is
+   desktop right-click) and grow the small header/overlay controls to a comfortable
+   ~40-44px tap size — matching the app-wide coarse-pointer target convention. */
+@media (pointer: coarse) {
+  .tile-menu-btn { opacity: 1; width: 40px; height: 40px; }
+  .tile-check { width: 28px; height: 28px; }
+  /* List view pins BOTH controls to the right gutter (menu right:10, check right:42);
+     with the enlarged coarse sizes they'd overlap (~8px), so push the check clear of
+     the 40px menu. In grid view they sit in opposite corners, so no change needed. */
+  .projects-list .tile-check { right: 56px; }
+  .projects-back, .projects-head-menu { width: 40px; height: 40px; }
+  .projects-chip { padding-top: 9px; padding-bottom: 9px; }
+  .folder-menu-item { min-height: 44px; }
+  .movepicker-row { min-height: 44px; }
+  .movepicker-close { width: 40px; height: 40px; font-size: 18px; }
+  .movepicker-crumb { min-height: 32px; display: inline-flex; align-items: center; }
+}
+
+/* ─── Drill-down "Move to" picker ───────────────────────────────────────────
+   A modal that navigates the folder tree one level at a time. */
+.projects-movepicker {
+  border: 0; padding: 0; width: min(420px, 94vw); max-height: min(560px, 86vh);
+  border-radius: calc(var(--radius) * 1.2); background: hsl(var(--card)); color: hsl(var(--foreground));
+  box-shadow: 0 24px 64px hsl(0 0% 0% / 0.4); overflow: hidden;
+}
+.projects-movepicker::backdrop { background: hsl(0 0% 0% / 0.42); }
+.movepicker-head { display: flex; align-items: center; gap: 10px; padding: 16px 16px 8px; }
+.movepicker-title { margin: 0; font-size: 15px; font-weight: 700; flex: 1; }
+.movepicker-close {
+  border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; font-size: 16px; padding: 4px;
+}
+.movepicker-crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 0 16px 10px; font-size: 12px; }
+.movepicker-crumb { border: 0; background: none; color: hsl(var(--muted-foreground)); cursor: pointer; padding: 2px 4px; border-radius: 4px; font-size: 12px; }
+.movepicker-crumb:hover { color: hsl(var(--foreground)); }
+.movepicker-crumb.is-current { color: hsl(var(--foreground)); font-weight: 600; }
+.movepicker-list { padding: 4px 8px; overflow-y: auto; max-height: 340px; border-top: 1px solid hsl(var(--border)); border-bottom: 1px solid hsl(var(--border)); }
+.movepicker-row {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 8px;
+  border: 0; background: none; color: inherit; cursor: pointer; border-radius: calc(var(--radius) / 1.5); font-size: 13px;
+}
+.movepicker-row:hover { background: hsl(var(--muted)); }
+.movepicker-row-icon { width: 18px; height: 18px; flex: none; color: hsl(var(--muted-foreground)); }
+.movepicker-row-icon svg { width: 100%; height: 100%; }
+.movepicker-row-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.movepicker-row-chev { width: 16px; height: 16px; flex: none; color: hsl(var(--muted-foreground)); }
+.movepicker-row-chev svg { width: 100%; height: 100%; }
+.movepicker-row.is-blocked { opacity: 0.4; cursor: not-allowed; }
+.movepicker-empty { padding: 18px 10px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 12.5px; }
+.movepicker-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 16px; }

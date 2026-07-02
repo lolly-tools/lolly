@@ -1,0 +1,245 @@
+/* SPDX-License-Identifier: MPL-2.0 — Unsaved-changes dialog. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Unsaved changes dialog ─────────────────────────────────────────────── */
+
+.unsaved-dialog,
+.share-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 2);
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: 0;
+  max-width: 380px;
+  width: 90vw;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+}
+
+.share-dialog { max-width: 460px; }
+
+.unsaved-dialog::backdrop,
+.share-dialog::backdrop {
+  background: hsl(0 0% 0% / 0.45);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+
+/* Share dialog — a ready-to-copy link plus on-visit behaviour toggles. */
+.share-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.share-dialog-body h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+.share-link-row {
+  display: flex;
+  gap: 8px;
+}
+.share-link-field {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.share-copy-btn {
+  flex: 0 0 auto;
+  padding: 7px 16px;
+  border: none;
+  border-radius: var(--radius);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.share-copy-btn:hover { opacity: 0.88; }
+/* Complexity caution — shown (JS toggles [hidden]) when even the shortest achievable
+   link is too long to paste reliably, so the user knows to trim elements. Amber, kept
+   distinct from the accented "Shortest link" pack row below. */
+.share-warning {
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid hsl(38 92% 50% / 0.55);
+  border-radius: var(--radius);
+  background: hsl(38 92% 50% / 0.1);
+  color: hsl(var(--foreground));
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.share-warning[hidden] { display: none; }
+/* "Shortest link" — shown only when packing beats the readable URL (JS toggles
+   [hidden]). A prominent accented row: it changes what the link IS, not just an
+   on-visit flag like the ones in the fieldset below. */
+.share-shortest {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--primary) / 0.4);
+  border-radius: var(--radius);
+  background: hsl(var(--primary) / 0.06);
+  cursor: pointer;
+  font-size: 13px;
+}
+.share-shortest[hidden] { display: none; }
+.share-shortest input[type="checkbox"] { margin-top: 2px; cursor: inherit; }
+.share-shortest-text { display: flex; flex-direction: column; gap: 1px; }
+.share-shortest-note {
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  font-variant-numeric: tabular-nums;
+}
+.share-toggles {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.share-toggles legend {
+  padding: 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+}
+.share-toggles label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.share-toggles label.is-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.share-toggles input[type="checkbox"] { cursor: inherit; }
+.share-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.share-done {
+  padding: 6px 16px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.share-done:hover { background: hsl(var(--accent)); }
+
+.unsaved-dialog-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.unsaved-dialog-body h2 {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.unsaved-dialog-body p {
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  margin: 0;
+}
+
+.unsaved-dialog-actions {
+  display: flex;
+  gap: 3px;
+  justify-content: space-between;
+  margin-top: 8px;
+  flex-wrap: wrap;
+
+}
+
+.unsaved-save {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius);
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+
+.unsaved-save:hover {
+  opacity: 0.88;
+}
+
+.unsaved-leave,
+.unsaved-cancel {
+  padding: 6px 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: transparent;
+  color: hsl(var(--foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+    transition: background 0.12s;
+  }
+  
+  .unsaved-leave:hover,
+  .unsaved-cancel:hover {
+    background: hsl(var(--accent));
+  }
+
+  /* On mobile the three actions wrap awkwardly with space-between (uneven rows,
+     a lone button). Stack them full-width with comfortable tap targets; the
+     primary "Save & leave" stays on top. */
+  @media (max-width: 640px) {
+    .unsaved-dialog-actions {
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    .unsaved-dialog-actions button {
+      width: 100%;
+      min-height: 44px;
+    }
+  }
+
+  .clear-inputs-btn {
+    appearance: none;
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    cursor: pointer;
+    padding: 4px 16px;
+    background-color: transparent;
+    max-width: 10em;
+    place-self: end;
+    color: hsl(var(--muted-foreground));
+    font: inherit;
+    font-size: 13px;
+    transition: border-color 0.12s, color 0.12s, background-color 0.12s;
+  }
+
+  .clear-inputs-btn:hover {
+    border-color: hsl(var(--destructive));
+    color: hsl(var(--destructive));
+    background-color: hsl(var(--destructive) / 0.08);
+  }

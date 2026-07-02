@@ -1,0 +1,29 @@
+/* SPDX-License-Identifier: MPL-2.0 — Keyboard focus rings. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Keyboard focus rings (a11y) ───────────────────────────────────────────
+   Several form controls replace the focus ring with a tinted border + a faint
+   ~0.15 box-shadow glow on :focus (or set outline:none on the base), which is
+   near-invisible for keyboard users and beats the global :focus-visible ring.
+   Restore a real, high-contrast ring on :focus-visible ONLY — mouse focus keeps
+   the subtle styled look (the existing :focus rules are untouched). Selectors
+   mirror each control's :focus rule (same specificity) and are declared last so
+   they win the cascade. */
+.gallery-search:focus-visible,
+.input-row input:focus-visible,
+.input-row textarea:focus-visible,
+.input-row select:focus-visible,
+.time-input-wrap input[type="time"]:focus-visible,
+.block-field:focus-visible,
+.vec-num:focus-visible,
+.dim-unit:focus-visible,
+.export-dims input[type="number"]:focus-visible,
+.video-params input[type="number"]:focus-visible,
+.export-pdfpass input[type="password"]:focus-visible,
+.print-bleed input[type="number"]:focus-visible,
+.export-filename:focus-visible,
+.tool-actions select:focus-visible,
+.profile-view .profile-field input:focus-visible,
+.color-hex-input:focus-visible,
+.profile-view .info-dot:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}

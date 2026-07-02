@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // "DOM" is here ONLY for the fetch-spec globals (Blob, Response, RequestInit,
+    // URL) shared by browsers and Node. The engine must stay renderer-agnostic:
+    // no document/window usage — enforced in review, not by the compiler.
+    "lib": ["ES2023", "DOM"],
+    "types": []
+  },
+  "include": ["src/**/*"]
+}

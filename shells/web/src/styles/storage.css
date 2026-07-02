@@ -1,0 +1,575 @@
+/* SPDX-License-Identifier: MPL-2.0 — Saved section, storage indicator, clear-data dialog, saved list, segmented control. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Saved section (gallery page) ─────────────────────────────────────── */
+
+.section-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: hsl(var(--muted-foreground));
+  margin: 0 0 12px;
+}
+.small{font-size:13px}
+
+/* ─── Storage indicator ─────────────────────────────────────────────────── */
+
+a.storage-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  text-decoration: none;
+  margin-bottom: 8px;
+  opacity: 0.7;
+      place-self: end;
+    align-self: center;
+}
+a.storage-indicator:hover { opacity: 1; }
+
+.storage-bar-wrap {
+  display: inline-block;
+  width: 80px;
+  height: 6px;
+  background: hsl(var(--border));
+  border-radius: 3px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.storage-bar-fill {
+  display: block;
+  height: 100%;
+  background: hsl(var(--muted-foreground));
+  border-radius: 3px;
+  min-width: 2px;
+}
+
+/* profile page storage row reuses the same bar but inline */
+.storage-indicator-profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+.storage-indicator-profile .storage-bar-wrap { width: 120px; height: 8px; }
+.storage-indicator-profile .storage-bar-fill { background: hsl(var(--foreground)); }
+
+.storage-subsection {
+  margin-top: 1.25em;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 1em;
+}
+.storage-subsection-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  margin-bottom: 0.5em;
+}
+.storage-count {
+  display: inline-block;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  border-radius: 99px;
+  padding: 0 6px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 4px;
+}
+.storage-hint {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.storage-empty {
+  list-style: none;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  padding: 4px 0;
+}
+.storage-hint-text {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  opacity: 0.6;
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+.feature-hint-text {margin-bottom:2em;}
+.session-size {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-left: auto;
+  margin-right: 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.btn-link-danger {
+  background: hsl(0 72% 51% / 0.1);
+  border: 1px solid hsl(0 72% 51% / 0.35);
+  color: hsl(0 72% 51%);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius);
+}
+.btn-link-danger:hover { background: hsl(0 72% 51% / 0.18); border-color: hsl(0 72% 51% / 0.55); }
+.btn-link-danger:disabled { opacity: 0.4; cursor: default; }
+
+/* My images — personal device-image library */
+.userimg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.userimg-item {
+  position: relative;
+  aspect-ratio: 1;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+.userimg-view {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+.userimg-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.15s ease;
+}
+/* SVGs (logos/icons) are shown whole, not cropped to fill. */
+.userimg-thumb.is-vector { object-fit: contain; padding: 6px; }
+.userimg-view:hover .userimg-thumb { transform: scale(1.05); }
+.userimg-delete {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: hsl(var(--background) / 0.85);
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.12s, color 0.12s, background 0.12s;
+}
+.userimg-item:hover .userimg-delete,
+.userimg-delete:focus-visible { opacity: 1; }
+.userimg-delete:hover { color: hsl(var(--destructive)); background: hsl(var(--accent)); }
+.userimg-delete:disabled { opacity: 0.4; cursor: default; }
+
+/* "Add" tile — sits in the grid as the last cell (or the only cell when empty),
+   matching the thumb cells in size but dashed to read as an upload affordance. */
+.userimg-add {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.4);
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.userimg-add:hover {
+  border-color: hsl(var(--ring) / 0.6);
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+}
+.userimg-add:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.userimg-add:disabled { opacity: 0.5; cursor: default; }
+.userimg-add-icon { font-size: 20px; line-height: 1; font-weight: 300; }
+.userimg-add-text { font-size: 10px; letter-spacing: 0.02em; }
+
+/* My images — full-size preview lightbox */
+.userimg-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 6vw;
+  background: rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+}
+.userimg-lightbox {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+  max-height: 100%;
+}
+.userimg-lightbox-img {
+  max-width: 100%;
+  max-height: 82vh;
+  object-fit: contain;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+/* viewBox-only SVGs report no intrinsic size — in an <img> they'd fall back to
+   ~300×150 and look tiny. Give vectors a definite, bounded box and let
+   object-fit scale them up to fit (preserving the viewBox aspect, no distortion
+   at any size), on a card so transparent art stays visible. */
+.userimg-lightbox-img.is-vector {
+  width: min(86vw, 680px);
+  height: min(78vh, 520px);
+  object-fit: contain;
+  padding: 28px;
+  background: hsl(var(--card));
+}
+.userimg-lightbox-caption {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  color: #fff;
+  font-size: 13px;
+}
+.userimg-lightbox-dims {
+  opacity: 0.7;
+  font-variant-numeric: tabular-nums;
+}
+.userimg-lightbox-close {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  color: #111;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+.userimg-lightbox-close:hover { background: hsl(var(--accent)); }
+
+.profile-sessions-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.btn-danger {
+  background: hsl(0 72% 51%);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-danger:hover { background: hsl(0 72% 42%); }
+.btn-danger:disabled { opacity: 0.5; cursor: default; }
+
+/* ─── Clear-data confirmation dialog ────────────────────────────────────── */
+
+.clear-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: hsl(0 0% 0% / 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.clear-dialog {
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 28px 32px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.2);
+}
+
+.clear-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.clear-dialog p {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.clear-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clear-dialog-actions .btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--foreground));
+  text-align: center;
+}
+
+.clear-dialog-actions .btn:hover { background: hsl(var(--muted)); }
+.clear-dialog-actions .btn.btn-danger { border-color: transparent; }
+.clear-dialog-actions .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* "Type <word> to confirm" gate on the destructive clear-all dialog. */
+.clear-confirm { display: flex; flex-direction: column; gap: 6px; margin: -8px 0 20px; }
+.clear-confirm-prompt { font-size: 13px; color: hsl(var(--muted-foreground)); }
+.clear-confirm-prompt strong { color: hsl(var(--foreground)); font-weight: 700; letter-spacing: .02em; }
+.clear-confirm-input {
+  font: inherit; font-size: 14px; padding: 9px 12px;
+  border: 1px solid hsl(var(--input)); border-radius: 8px;
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+}
+.clear-confirm-input:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 1px; }
+
+.saved-label {
+  display:grid;
+  grid-template-columns: 4fr 1fr 1fr 2em;
+  place-items: inherit;
+  flex: 1;
+  min-width: 0;
+  width:100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-row .muted{
+  display:block;
+}
+
+/* ─── Saved list ────────────────────────────────────────────────────────── */
+
+.saved-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.saved-row {
+  position: relative;
+  margin: 4px 0;
+  gap: 12px;
+  align-items: center;
+  /* Keep the row only slightly taller than the 48px .saved-thumb — no dead
+     space above/below. Override .tool-card's min-height:7em (it's reused for
+     the saved-row markup) so the row collapses to the thumb height + padding. */
+  padding: 3px 10px;
+  min-height: 0;
+  border-bottom: 0;
+  font-size: 13px;
+  transition: background 0.12s;
+  display:grid !important;
+  grid-template-columns: 3.5em 4fr;
+      border-radius: 1.05em;
+}
+
+/* Collapsed/filtered rows must leave the layout entirely (not just go invisible)
+   so a long saved list can't push the page tall. `.saved-row` sets
+   `display:grid !important` and the global `[hidden]` only adds visibility:hidden,
+   so the hide needs `!important` + higher specificity to win and pull the row —
+   and the show-all button row — out of flow completely. */
+.gallery-view .saved-list > [hidden] { display: none !important; }
+
+/* "Show all saved" — a box the same size as a saved row that reveals the
+   sessions collapsed behind it. */
+.saved-show-all-row { margin: 0; }
+.saved-show-all {
+  width: 100%;
+  margin: 4px 0;
+  min-height: 54px;
+  padding: 3px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  background: hsl(var(--background) / .5);
+  border: 1px dashed hsl(var(--border));
+  border-radius: 1.05em;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.saved-show-all:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--foreground));
+  border-color: hsl(var(--border));
+}
+
+
+.saved-thumb {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: calc(var(--radius) / 2);
+  object-fit: contain;
+  background: hsl(var(--background));
+  display: block;
+}
+
+.saved-thumb--empty {
+  opacity: 0.3;
+  background: hsl(var(--muted));
+}
+
+/* Batch sessions have no render thumbnail — show a package icon instead. */
+.saved-thumb--batch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+}
+.saved-thumb--batch svg { width: 24px; height: 24px; }
+/* Keep the user's session name verbatim (the row otherwise capitalizes). */
+.saved-row--batch h4 { text-transform: none; }
+ 
+
+.saved-row:hover {
+  background: hsl(var(--accent));
+}
+
+/* date-time + size stamps: dim at rest, full on hover. */
+.saved-row:hover .saved-label{opacity:1}
+.saved-row:not(:hover) .saved-label{opacity:.5}
+
+/* Saved rows cascade in behind the drawer's slide (also the per-tool history
+   modal). A tight, quick stagger; capped so a long list stays snappy. */
+@media (prefers-reduced-motion: no-preference) {
+  .saved-list .saved-row { animation: card-in var(--enter-dur) var(--enter-ease) both; }
+  .saved-list .saved-row:nth-child(1)  { animation-delay: 0.04s; }
+  .saved-list .saved-row:nth-child(2)  { animation-delay: 0.07s; }
+  .saved-list .saved-row:nth-child(3)  { animation-delay: 0.10s; }
+  .saved-list .saved-row:nth-child(4)  { animation-delay: 0.13s; }
+  .saved-list .saved-row:nth-child(5)  { animation-delay: 0.16s; }
+  .saved-list .saved-row:nth-child(6)  { animation-delay: 0.19s; }
+  .saved-list .saved-row:nth-child(7)  { animation-delay: 0.22s; }
+  .saved-list .saved-row:nth-child(8)  { animation-delay: 0.25s; }
+  .saved-list .saved-row:nth-child(9)  { animation-delay: 0.28s; }
+  .saved-list .saved-row:nth-child(10) { animation-delay: 0.31s; }
+  .saved-list .saved-row:nth-child(n+11) { animation-delay: 0.34s; }
+}
+
+.saved-delete button:focus{opacity:1 !important}
+
+
+.saved-resume {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 0;
+}
+
+.saved-delete {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  border: 1px solid transparent;
+  border-radius: 50%;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
+}
+
+.saved-delete:hover {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.5);
+  background: hsl(var(--destructive) / 0.08);
+}
+
+/* ─── Segmented control ─────────────────────────────────────────────────── */
+
+.segmented-control {
+  display: inline-flex;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+
+.segmented-btn {
+  flex: 1;
+  padding: 6px 16px;
+  border: none;
+  border-right: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+  text-transform:uppercase;
+}
+
+.segmented-btn:last-child {
+  border-right: none;
+}
+
+.segmented-btn:hover:not([aria-pressed="true"]) {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+}
+
+.segmented-btn[aria-pressed="true"] {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-weight: 600;
+}

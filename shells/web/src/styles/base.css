@@ -1,0 +1,218 @@
+/* SPDX-License-Identifier: MPL-2.0 — Skip link, reset/base, app shell. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Skip link ─────────────────────────────────────────────────────────── */
+
+/* Accessibility skip-nav. Its target (#tool-inputs) only exists on the tool
+   view, so it's scoped to that route — hidden and out of the tab order on the
+   gallery / profile / info pages, where it would jump nowhere. The router sets
+   .tool-view on #view (see main.js); :has() flips the link on only then. */
+.skip-link {
+  display: none;
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+body:has(.app-view.tool-view) .skip-link { display: block; }
+/* The router moves focus to #view on route change (tabindex=-1) for SR/keyboard
+   users; it's a programmatic target, so no visible focus ring. */
+.app-view:focus { outline: none; }
+.skip-link:focus {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  z-index: 9999;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 0 0 var(--radius) 0;
+  overflow: visible;
+  text-decoration: none;
+}
+
+/* Screen-reader-only: visually hidden but exposed to assistive tech. Used for
+   per-view <h1>s, control hints, and live-region announcers. */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Honour a user's reduced-motion preference for app CHROME only: tame looping /
+   decorative keyframe animations and smooth scroll. Colours/layout unchanged.
+   We deliberately DO NOT zero transitions — functional state changes (the mobile
+   sheet sliding, the export popup, hovers) are short, non-vestibular, and reading
+   them as instant "jumps" feels broken; honouring reduced motion shouldn't make
+   the UI feel broken. Looping/entrance animations (the genuinely gratuitous kind)
+   are still reduced.
+   The tool render canvas (.tool-canvas / #tool-content) and its ENTIRE subtree —
+   descendants and their pseudo-elements — are exempt: that motion is the user's
+   creative output, and animated tools (e.g. Bag Video) must keep animating to
+   render as intended. The exemption is repeated on ::before/::after so the
+   pseudo-elements of canvas content aren't frozen. */
+@media (prefers-reduced-motion: reduce) {
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *),
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *)::before,
+  *:not(.tool-canvas, .tool-canvas *, #tool-content, #tool-content *)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+  /* The export shutter sweeps via a transition (not an animation), so the rule
+     above doesn't reach it. Cover/uncover instantly for reduced motion — it still
+     hides the export "shake"; the JS waits on a timer, not transitionend. */
+  .export-shutter .flap { transition: none !important; }
+}
+
+/* ─── Reset / base ──────────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+
+}
+[hidden]{display:none;visibility:hidden}
+/* Form controls don't inherit font-family from their parent by default — browsers
+   give button/input/select/textarea their own UA font. Opt every control into the
+   brand font so no individual control can silently fall back (e.g. .folder-back). */
+button, input, select, textarea, optgroup {
+  font-family: inherit;
+}
+body {
+  margin: 0;
+  font-family: SUSE, ui-sans-serif, system-ui, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth colour transitions only when the theme changes (class set by JS). */
+.theme-transitioning,
+.theme-transitioning * {
+  transition:
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.15s ease !important;
+}
+
+/* Global focus ring — keyboard navigation only. */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* ─── App shell ─────────────────────────────────────────────────────────── */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  height: 52px;
+  border-bottom: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.app-header a {
+
+  -webkit-text-stroke: .04em;
+  text-decoration: none;
+  color: currentcolor;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: hsl(var(--foreground));
+}
+
+.brand-name {
+  color: hsl(var(--primary));
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Ghost nav buttons */
+.nav-btn {
+  padding: 5px 12px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
+  }
+
+  .nav-btn--active {
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    font-weight: 600;
+  }
+  
+  .app-view {
+  
+    min-height: 100vh;
+  }
+  
+  /* Tool view is full-bleed — the sidebar provides its own visual edge. */
+  .app-view.tool-view {
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .pro-view {
+    padding: 48px 0
+  }
+  
+  .pro-wrap {
+    padding: 1em 0 !important
+  }
+  
+  .pro-col-head {
+    position: relative
+  }
+  
+  .pro-col-head .pro-fill-btn {
+    position: absolute;
+    right: 0
+  }
+  
+  .pro-col-head:hover .pro-fill-btn{opacity:1}
+.pro-col-head:not(:hover) .pro-fill-btn{opacity:0}
+.pro-addrow .pro-btn{border-radius: 0em 0 1em 1em; padding: 1em 2em; }
+footer{text-align:right;}

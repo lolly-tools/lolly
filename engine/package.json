@@ -4,9 +4,9 @@
   "description": "Platform-agnostic engine for Lolly. Loads tool manifests, renders inputs, hydrates templates, drives exports through the capability bridge.",
   "license": "MPL-2.0",
   "type": "module",
-  "main": "./src/index.js",
+  "main": "./src/index.ts",
   "exports": {
-    ".": "./src/index.js",
+    ".": "./src/index.ts",
     "./bridge/v1": "./src/bridge/host-v1.ts"
   },
   "scripts": {

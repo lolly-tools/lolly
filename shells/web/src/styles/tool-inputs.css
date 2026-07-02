@@ -1,0 +1,1025 @@
+/* SPDX-License-Identifier: MPL-2.0 — Sidebar inputs: focus/help, floating labels, time/datetime, sections, blocks, custom slider. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Sidebar focus, navigation & on-demand help ──────────────────────────────
+   Make a long sidebar guide the eye. Web-shell presentation only — none of this
+   touches the engine, the render path, or the CLI/headless export.
+     · clicking the canvas glides the matching row into view (scrollToControl, tool.js)
+     · focus spotlights the active control and dims the rest (pure :focus-within)
+     · per-input help collapses behind an info button (components/help-tip.js)
+   Costs nothing at render/paint time: the dim is CSS state toggled by focus, not
+   recomputed per frame, and stays off the live-camera onFrame path entirely. */
+
+/* Land a canvas-targeted row just clear of the sidebar's top edge (block:'start'). */
+.input-row, .block-item { scroll-margin-block: 16px; }
+
+/* One-shot "you are here" ping on arrival. Inset box-shadow so the sidebar's
+   clipped right edge can't crop it and the row's own background is undisturbed;
+   the global reduce-motion reset zeroes the animation, and tool.js clears
+   .is-target on a timer regardless of whether animationend fires. */
+@keyframes spotlight-pulse {
+  from { box-shadow: inset 0 0 0 100px hsl(var(--ring) / 0.15); }
+  to   { box-shadow: inset 0 0 0 100px hsl(var(--ring) / 0); }
+}
+.input-row.is-target, .block-item.is-target { animation: spotlight-pulse 0.7s ease; }
+
+/* Focus spotlight — when the panel holds focus, anything not containing it recedes
+   so the active control reads as the single target. Pure :focus-within: no JS
+   state, survives the per-keystroke innerHTML rebuild (focus is restored after it),
+   and releases the instant focus leaves the panel. Opacity only, so dimmed controls
+   stay keyboard- and screen-reader-reachable. The selectors deliberately never dim
+   two nested elements at once (which would multiply opacities and over-darken): a
+   non-focused section dims as a whole; its rows are not dimmed again. */
+.input-row, .input-section, .block-item, .block-control { transition: opacity 0.15s ease; }
+.tool-inputs:focus-within > .input-row:not(:focus-within),
+.tool-inputs:focus-within .input-section:not(:focus-within) { opacity: 0.45; }
+.input-section:focus-within .input-row:not(:focus-within) { opacity: 0.45; }
+.blocks-list:focus-within .block-item:not(:focus-within) { opacity: 0.45; }
+.block-fields:focus-within .block-control:not(:focus-within) { opacity: 0.6; }
+
+/* Colour rows keep their swatch at full opacity — a faded colour indicator reads as
+   a faded/transparent colour, which misleads. Opacity on the row would cascade to
+   the swatch (a child can't exceed its parent's opacity), so instead leave the
+   colour row solid and recede only its text. Higher specificity than the dim rules
+   above, so it wins. */
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within),
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) { opacity: 1; }
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within) > .input-label,
+.tool-inputs:focus-within > .input-row:has(.color-trigger):not(:focus-within) .color-trigger-hex,
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) > .input-label,
+.input-section:focus-within .input-row:has(.color-trigger):not(:focus-within) .color-trigger-hex { opacity: 0.45; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* The global reset covers animations + scroll-behavior but not transitions. */
+  .input-row, .input-section, .block-item, .block-control { transition: none; }
+}
+
+/* On-demand help: a small info button by the label reveals the help text on hover
+   (desktop), tap (touch), or keyboard focus, instead of printing it under every
+   control. The text stays in the DOM, wired to its control via aria-describedby. */
+.input-label-text { display: inline; }
+.help-tip-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  vertical-align: middle; margin-left: 4px;
+  width: 16px; height: 16px; padding: 0;
+  border: none; border-radius: 50%; background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: help;
+  opacity: 0.55; transition: opacity 0.12s ease, color 0.12s ease;
+}
+.help-tip-btn:hover, .help-tip-btn:focus-visible { opacity: 1; color: var(--primary); }
+.help-tip-btn:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; border-radius: 50%; }
+/* The focus ring sits a few px outside the 16px button. The floating-label rule
+   clips .input-label (overflow:hidden, for long-label ellipsis), which crops that
+   ring top/bottom — so un-clip the label when it hosts a help button (selectors
+   mirror the floating-label rule's so this wins specificity) and move the
+   truncation onto the text span, which keeps long labels ellipsised. */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])):has(.help-tip-btn) .input-label,
+.input-row:not(.input-row--static-label):has(textarea):has(.help-tip-btn) .input-label {
+  overflow: visible;
+}
+.input-label:has(.help-tip-btn) > .input-label-text {
+  display: inline-block; max-width: 100%; vertical-align: middle;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.help-tip-btn svg { display: block; }
+.block-control { position: relative; }
+.help-tip-pop {
+  position: absolute; left: 0; right: 0; top: 100%; margin-top: 4px; z-index: 30;
+  padding: 7px 9px; border-radius: var(--radius);
+  background: hsl(var(--popover)); color: hsl(var(--popover-foreground));
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 22px hsl(var(--foreground) / 0.16);
+  font-size: 11px; font-weight: 400; line-height: 1.4;
+  letter-spacing: 0; text-transform: none; white-space: normal;
+}
+/* Block sub-field cells are narrow — let their tip take its own width. */
+.block-control > .help-tip-pop { right: auto; width: max-content; min-width: 140px; max-width: 210px; }
+.help-tip-pop[hidden] { display: none; }
+/* Sections clip their contents (overflow:hidden, for rounded corners). Un-clip only
+   while a help tip in them is active so the popover isn't cut off at the section edge. */
+.input-section:has(.help-tip-btn:hover),
+.input-section:has(.help-tip-btn:focus-visible),
+.input-section:has(.help-tip-pop:not([hidden])) { overflow: visible; }
+/* Desktop reveal on hover / keyboard focus of the trigger. Touch toggles via JS. */
+@media (hover: hover) {
+  .input-row:has(.help-tip-btn:hover) > .help-tip-pop,
+  .input-row:has(.help-tip-btn:focus-visible) > .help-tip-pop,
+  .block-control:has(.help-tip-btn:hover) > .help-tip-pop,
+  .block-control:has(.help-tip-btn:focus-visible) > .help-tip-pop { display: block; }
+}
+
+/* Base label — used for selects, checkboxes, asset-pickers, etc. */
+.input-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+}
+
+.input-value {
+  font-size: 11px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground));
+  margin-left: 0.4em;
+}
+
+/* ── Floating labels for text inputs and textareas ─────────────── */
+
+/* Resting state: label sits inside the field like placeholder text.
+   Rows tagged .input-row--static-label (e.g. the flatpickr datetime) opt out and
+   keep the plain static label above the field. */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"])) .input-label,
+.input-row:not(.input-row--static-label):has(textarea) .input-label {
+  position: absolute;
+  left: 10px;
+  top: 23px;
+  transform: translateY(-50%);
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--muted-foreground) / 0.9);
+  pointer-events: none;
+  transition:
+    top 0.15s ease,
+    transform 0.15s ease,
+    font-size 0.15s ease,
+    color 0.15s ease,
+    font-weight 0.15s ease,
+    letter-spacing 0.15s ease;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: calc(100% - 20px);
+}
+
+/* Floating state — focused or has content */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not(:placeholder-shown)) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:focus) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:not(:placeholder-shown)) .input-label {
+  top: 7px;
+  transform: translateY(0);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+      color: hsl(var(--muted-foreground));
+}
+
+/* Highlight label on focus */
+.input-row:not(.input-row--static-label):has(input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus) .input-label,
+.input-row:not(.input-row--static-label):has(textarea:focus) .input-label {
+  color: hsl(var(--ring));
+}
+
+/* Hide placeholder in resting state — label acts as the visual placeholder.
+   Only reveal hint text once the label has floated up (on focus). */
+.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"])::placeholder,
+.input-row:not(.input-row--static-label) textarea::placeholder {
+  color: transparent;
+  transition: color 0.15s;
+}
+
+.input-row:not(.input-row--static-label) input:not([type="checkbox"]):not([type="color"]):not([type="range"]):focus::placeholder,
+.input-row:not(.input-row--static-label) textarea:focus::placeholder {
+  color: hsl(var(--muted-foreground) / 0.4);
+}
+
+/* Shared control appearance */
+.input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]),
+.input-row textarea {
+  width: 100%;
+
+  background: hsl(var(--background) / .5);
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+  appearance: auto;
+  padding: 16px 14px 16px;
+}
+
+/* The rule above forces appearance:auto on number fields (the vector scrubbers),
+   which re-shows Firefox's spin buttons — Chrome hides them via ::-webkit-*-spin-
+   button, which Firefox lacks. Restore appearance:textfield with matching
+   specificity so it wins the cascade and the spinners stay hidden everywhere. */
+.input-row input[type="number"]:not([type="checkbox"]):not([type="color"]):not([type="range"]) {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.input-row select {
+  width: 100%;
+  padding: 9px 32px 9px 10px;   /* right room for the custom chevron */
+  background-color: hsl(var(--background));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+  /* appearance:none drops the native menulist widget. The old appearance:auto +
+     transition combo made Chrome re-lay-out the native control on every hover
+     frame, producing a ~1px baseline jitter. A plain box transitions cleanly. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.input-row input:not([type="checkbox"]):not([type="color"]):not([type="range"]):hover,
+.input-row textarea:hover,
+.input-row select:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.input-row input:focus,
+.input-row textarea:focus,
+.input-row select:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+.input-row textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.input-row--checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  user-select: none;
+}
+
+.input-row--checkbox:hover {
+  border-color: hsl(var(--ring) / 0.4);
+  background: hsl(var(--accent));
+}
+
+.input-row--checkbox:has(input:checked) {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.07);
+}
+
+.input-row--checkbox .input-label {
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+}
+
+.input-row input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+}
+
+.input-row input[type="color"]:not(.color-popover-native) {
+  width: 36px;
+  height: 28px;
+  padding: 1px 2px;
+  border:none;;
+  border-radius: var(--radius);
+  cursor: pointer;
+  background: none;
+}
+
+/* ─── Time input ────────────────────────────────────────────────────────── */
+
+.input-row:has(.time-input-wrap) .input-label {
+  position: static;
+  transform: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  pointer-events: auto;
+  white-space: normal;
+  max-width: none;
+}
+
+.time-input-wrap input[type="time"] {
+  width: 100%;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+  color-scheme: light dark;
+}
+.time-input-wrap input[type="time"]:hover { border-color: hsl(var(--ring) / 0.4); }
+.time-input-wrap input[type="time"]:focus { border-color: hsl(var(--ring)); outline: none; box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
+
+/* ─── Datetime-local input ──────────────────────────────────────────────── */
+
+/* The datetime control renders a flatpickr-enhanced `.fp-datetime` text input
+   (see controlHtml in tool.js) — it picks up the shared input-box styling above.
+   Its row carries .input-row--static-label so the label stays static rather than
+   floating: the panel re-renders on every keystroke and flatpickr re-populates
+   the value, which would otherwise make a floating label wobble each time. */
+
+/* ─── Collapsible input section ─────────────────────────────────────────── */
+
+.input-section {
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+  /* No border-color transition: Chromium can leave a :has()-triggered transition
+     stuck at its start value, so the focus-ring border below would never paint.
+     The ring switches instantly instead (the box-shadow halo carries the motion). */
+  min-width: 0; /* grid item: allow shrink so inner controls can truncate */
+}
+
+.input-section-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  /* Match a sidebar <select>'s height (39.5px) so a collapsed section lines up
+     with the dropdowns in the input list — minus the section's 2px border. */
+  min-height: 37.5px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+
+.input-section-summary:hover{
+  color:var(--primary);
+background-color:hsl(var(--background) / 1);
+}
+
+/* Keyboard focus ring. The section's overflow:hidden would clip an outline or
+   box-shadow on the focused <summary>, so promote the ring to the section
+   wrapper — its own box-shadow paints outside its border box, unclipped — using
+   the same border + halo idiom as a focused <select> / text field. */
+.input-section-summary:focus-visible { outline: none; }
+.input-section:has(.input-section-summary:focus-visible) {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+.input-section-summary::-webkit-details-marker { display: none; }
+
+.input-section-summary::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.input-section[open] .input-section-summary::after {
+  transform: rotate(45deg);
+}
+
+.input-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px 10px 10px;
+  border-top: 1px solid hsl(var(--border));
+}
+
+/* ─── Blocks input ──────────────────────────────────────────────────────── */
+
+/* Disable floating-label behaviour for rows that contain a blocks control */
+.input-row:has(.blocks-input) .input-label {
+  position: static;
+  transform: none;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: hsl(var(--muted-foreground));
+  pointer-events: auto;
+  white-space: normal;
+  max-width: none;
+}
+
+.blocks-input {margin-top: 2em; display: flex; flex-direction: column; gap: 6px; }
+.blocks-list  { display: flex; flex-direction: column; gap: 4px;     margin: 0 -12px;}
+
+.block-item {
+  display: grid;
+  grid-template-columns: 1fr .51fr .71fr ;
+  gap: 1px;
+  align-items: center;
+}
+
+/* Color picker field inside a block row spans full width on its own row.
+   The remove button is pinned to row 1 col 3 so it stays with the text fields. */
+.block-item:has(.block-color-field) .block-remove {
+  grid-row: 1;
+  grid-column: 4;
+}
+.block-color-field {
+ 
+  grid-row: 1;grid-column: 3;
+}
+.blocks-list .block-field{padding:4px  4px 4px  14px !important; }
+.block-field {
+  width: 100%;
+  padding: 6px 8px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 12px;
+  transition: border-color 0.12s;
+}
+.block-field:hover { border-color: hsl(var(--ring) / 0.4); }
+.block-field:focus { border-color: hsl(var(--ring)); outline: none; box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15); }
+
+.block-remove {
+  display: flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; flex-shrink: 0;
+  background: none; border: none; cursor: pointer;
+  color: hsl(var(--muted-foreground)); border-radius: var(--radius);
+  font-size: 12px; transition: color 0.12s, background 0.12s;
+}
+.block-remove:hover { color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+
+.block-add {
+  align-self: flex-start;
+  padding: 5px 10px;
+  background: none;
+  border: 1px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 12px; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.block-add:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+
+/* Drop-to-add: a blocks input that declares `dropToAdd` (e.g. logo-wall) becomes
+   a drop zone. The empty-state prompt doubles as a "choose files" button; the
+   whole list highlights while files are dragged over it. */
+.blocks-input--droppable .blocks-list { min-height: 8px; }
+.blocks-drop-hint {
+  display: block; width: 100%; box-sizing: border-box;
+  margin: 2px 0; padding: 18px 12px;
+  background: none;
+  border: 1.5px dashed hsl(var(--border));
+  border-radius: var(--radius);
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 13px; text-align: center; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.blocks-drop-hint:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+.blocks-input--droppable.is-file-dragover .blocks-list,
+.blocks-input--droppable.is-file-dragover .blocks-drop-hint {
+  outline: 2px dashed hsl(var(--primary));
+  outline-offset: 3px;
+  border-color: hsl(var(--primary));
+}
+
+/* "Collapse all / Expand all" — a small pill above a multi-block list so a long
+   stack of opened blocks folds back in one tap. Right-aligned, deliberately quiet
+   (it's a tidy-up affordance, not a primary action like the brand-fill Add pill). */
+.blocks-toolbar { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+.blocks-collapse-all {
+  padding: 3px 10px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  color: hsl(var(--muted-foreground));
+  font: inherit; font-size: 11px; font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.blocks-collapse-all:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+
+/* ── Typed blocks (addMenu) ──────────────────────────────────────────────────
+   Each block is a self-contained card with a type label + remove in its head and
+   a two-column field grid below. Opts out of the legacy fixed 3-column row grid
+   used by name/value blocks (meeting-planner, chart-creator). */
+.blocks-input--cards .blocks-list { margin: 0; gap: 8px; }
+/* Untyped (compact name/value) blocks reuse the card chrome but have no variant
+   label — the header is a bare drag/collapse handle whose empty `.block-type-label`
+   acts as a flex spacer, and the collapsed pill (preview + swatch) is the identity. */
+.block-item.is-typed {
+  display: block;
+  grid-template-columns: none;
+  padding: 9px 11px 11px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.35);
+}
+/* The header doubles as a drag handle (grip + label); the remove button sits at
+   the far end, pushed there by the label's flex-grow. */
+.block-item.is-typed .block-head {
+  display: flex; align-items: center; gap: 6px;
+  margin-bottom: 8px;
+  cursor: grab;
+  user-select: none;
+}
+.block-item.is-typed .block-head:active { cursor: grabbing; }
+.block-grip { flex: none; fill: hsl(var(--muted-foreground)); opacity: 0.45; }
+.block-item.is-typed .block-head:hover .block-grip { opacity: 0.8; }
+.block-type-label {
+  flex: 1; min-width: 0;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+}
+/* Drag-reorder feedback */
+.block-item.is-dragging { opacity: 0.4; }
+.block-item.drag-over { outline: 2px dashed hsl(var(--ring)); outline-offset: 2px; }
+
+/* Tree (nested) blocks — diagram-builder org / mind map. The flat reference-by-id
+   array is rendered as an indented outline (one step per depth level); drop
+   feedback splits into before / after (reorder as a sibling) and inside (re-nest
+   as a child). Data stays flat: only this presentation is tree-shaped. */
+.blocks-input--tree .block-item.is-nestable {
+  position: relative;
+  margin-left: calc(var(--block-depth, 0) * 16px);
+  transition: margin-left 0.12s ease;
+}
+/* Elbow connector tying a child card back up toward its parent's indent. */
+.blocks-input--tree .block-item.is-child::before {
+  content: ""; position: absolute; left: -10px; top: -6px; height: calc(50% + 6px); width: 9px;
+  border-left: 1.5px solid hsl(var(--border));
+  border-bottom: 1.5px solid hsl(var(--border));
+  border-bottom-left-radius: 6px;
+  pointer-events: none;
+}
+.block-item.drop-before { box-shadow: inset 0 2px 0 0 hsl(var(--ring)); }
+.block-item.drop-after  { box-shadow: inset 0 -2px 0 0 hsl(var(--ring)); }
+.block-item.drop-inside {
+  outline: 2px solid hsl(var(--ring)); outline-offset: 1px;
+  background: hsl(var(--ring) / 0.10);
+}
+/* Two-step delete confirm — the armed state reads unmistakably destructive. */
+.block-remove.is-confirming {
+  width: auto; height: 22px; padding: 0 9px;
+  background: hsl(var(--destructive, 0 72% 51%)); color: #fff;
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.block-remove.is-confirming:hover { background: hsl(var(--destructive, 0 72% 51%)); color: #fff; }
+.block-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 2px; align-items: end; }
+
+/* Compact untyped blocks (bare fields, no per-field labels, ≤3 fields) lay their
+   fields side by side in a single row instead of the 2-col grid, which would wrap a
+   3rd field to its own line — e.g. chart-creator's Label / Value / Colour. Scoped by
+   :not(:has(> .block-control)) (excludes labelled blocks like logo-wall) and
+   :not(:has(> :nth-child(4))) (excludes many-field blocks like arrows/wayfinding),
+   so only genuinely compact rows are affected. */
+.block-item--row .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) {
+  display: flex;
+  align-items: center;
+}
+.block-item--row .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > .block-field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.block-item--row .block-fields:not(:has(> .block-control)):not(:has(> :nth-child(4))) > .block-color-field {
+  flex: 0 0 auto;
+}
+.block-control { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.block-control--full { grid-column: 1 / -1; }
+.block-control-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+  text-transform: uppercase; color: hsl(var(--muted-foreground));
+}
+.block-fields .block-field--full { grid-column: 1 / -1; }
+/* Checkbox sub-field (e.g. logo-wall's per-logo "Tune this logo" / "Invert"):
+   a checkbox + inline label on its own full-width row. */
+.block-control--checkbox { flex-direction: row; align-items: center; gap: 8px; flex-wrap: wrap; cursor: pointer; }
+.block-control--checkbox .block-control-label {
+  text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; color: hsl(var(--foreground));
+}
+.block-field--checkbox { width: auto; flex: none; margin: 0; cursor: pointer; }
+.block-item.is-typed .block-field--checkbox { padding: 0 !important; }
+/* Optional hint under a labelled sub-field. */
+.block-control-help {
+  flex-basis: 100%;
+  font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none;
+  color: hsl(var(--muted-foreground)); line-height: 1.35;
+}
+/* Multi-line block text field (e.g. body copy) — grows downward, vertical resize only. */
+.block-field--textarea { min-height: 52px; line-height: 1.4; resize: vertical; }
+/* The legacy rule forces left-padding on every .block-field; typed cards don't
+   want it (selects/ranges read better flush). */
+.block-item.is-typed .block-field { padding: 6px 8px !important; }
+.block-item.is-typed .block-color-field { grid-row: auto; grid-column: auto; }
+.block-item.is-typed .color-trigger { width: 100%; }
+
+/* Collapse-to-pill — an icon button in the header folds the block down to a
+   compact pill (type label + colour dot + first line of text). The chevron
+   rotates to point right when collapsed. */
+.block-collapse {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0;
+  border: none; border-radius: 6px; background: transparent;
+  color: hsl(var(--muted-foreground)); cursor: pointer;
+}
+.block-collapse:hover { background: hsl(var(--muted-foreground) / 0.12); color: hsl(var(--foreground)); }
+.block-collapse svg { transition: transform 0.15s ease; }
+.block-item.is-collapsed .block-collapse svg { transform: rotate(-90deg); }
+
+.block-item.is-collapsed { padding: 0; border-radius: 999px; background: hsl(var(--muted) / 0.5); }
+/* The whole collapsed pill is clickable to expand (JS handler), so the header reads as
+   a button rather than a drag handle while folded. */
+.block-item.is-collapsed .block-head { margin-bottom: 0; padding:9px 6px 9px 10px; cursor: pointer; }
+.block-item.is-collapsed .block-head:hover { background: hsl(var(--muted-foreground) / 0.07); border-radius: 999px; }
+.block-item.is-collapsed .block-fields { display: none; }
+
+/* Pill summary bits — only shown while collapsed. */
+.block-head-swatch, .block-head-preview { display: none; }
+.block-item.is-collapsed .block-type-label { flex: none; }
+.block-item.is-collapsed .block-head-swatch {
+  display: block; flex: none; width: 12px; height: 12px;
+  border-radius: 50%; border: 1px solid hsl(var(--border));
+}
+.block-item.is-collapsed .block-head-preview {
+  display: block; flex: 1; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 12px; font-weight: 400; text-transform: none; letter-spacing: 0;
+  color: hsl(var(--foreground)); opacity: 0.7;
+}
+
+/* Per-block image picker */
+.block-asset { display: flex; gap: 4px; align-items: stretch; }
+.block-asset-trigger {
+  flex: 1; min-width: 0; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0; overflow: hidden;
+  border: 1px dashed hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--background)); cursor: pointer;
+  font: inherit; font-size: 11px; color: hsl(var(--muted-foreground));
+  transition: border-color 0.12s, color 0.12s;
+}
+.block-asset-trigger:hover { border-color: hsl(var(--ring)); color: hsl(var(--foreground)); }
+.block-asset-trigger img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.block-asset-clear {
+  flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
+  background: none; cursor: pointer; color: hsl(var(--muted-foreground));
+  font-size: 11px; transition: color 0.12s, background 0.12s;
+}
+.block-asset-clear:hover { color: hsl(var(--destructive, 0 72% 51%)); background: hsl(var(--destructive, 0 72% 51%) / 0.08); }
+/* ✦ Edit — shown only for a block image that came from a Lolly link. */
+.block-asset-edit {
+  flex-shrink: 0; width: 24px; border: none; border-radius: var(--radius);
+  background: none; cursor: pointer; color: hsl(var(--primary));
+  font-size: 12px; transition: background 0.12s, filter 0.12s;
+}
+.block-asset-edit:hover { background: hsl(var(--primary) / 0.1); filter: brightness(1.1); }
+
+/* Per-block range slider — native, kept compact */
+.block-range-input { width: 100%; accent-color: hsl(var(--ring)); cursor: pointer; }
+
+/* Typed add-menu */
+.block-add-menu { position: relative; align-self: stretch; }
+/* Prominent primary call-to-action for adding a block — full width, brand fill. */
+.block-add--prominent {
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  width: 100%; padding: 9px 12px;
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+  border: 1px solid transparent; border-radius: var(--radius);
+  font-weight: 600; font-size: 12.5px;
+  transition: filter 0.12s;
+}
+.block-add--prominent:hover { filter: brightness(1.08); border-color: transparent; color: hsl(var(--primary-foreground)); }
+.block-add-options {
+  position: absolute; z-index: 6; top: calc(100% + 4px); left: 0; right: 0;
+  display: flex; flex-direction: column; min-width: 150px; padding: 4px;
+  background: hsl(var(--background)); border: 1px solid hsl(var(--border));
+  border-radius: var(--radius); box-shadow: 0 6px 20px rgb(0 0 0 / 0.14);
+}
+.block-add-option {
+  text-align: left; padding: 7px 9px; border: none; border-radius: calc(var(--radius) - 2px);
+  background: none; cursor: pointer; font: inherit; font-size: 12px;
+  color: hsl(var(--foreground)); transition: background 0.1s;
+}
+.block-add-option:hover:not(:disabled) { background: hsl(var(--muted)); }
+.block-add-option:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* Vector input — N Figma-style number scrubbers on one row, one control/column.
+   The label doubles as a drag handle (scrub left/right); the number field is
+   typeable. */
+/* Vector input — N numeric fields joined into one segmented component (e.g. the
+   background Zoom / X / Y control). Each field overlays a tiny draggable character
+   (Figma-style scrub) on the left of a typeable number, mirroring the export-dims
+   width/height fields. Only the outer corners round; internal borders collapse so
+   the segments read as a single pill. */
+
+/* The row's own label is redundant for a vector control — the section header
+   names it (e.g. "Position") and the per-field scrub symbols + help text carry
+   the rest. Left visible it gets the floating-label treatment (the fields are
+   <input type=number>) and collides with the scrubbers, so hide it. Each field
+   keeps its own aria-label, so the accessible name is unaffected. */
+.input-row:has(.vector-input) .input-label { display: none; }
+
+.vector-input {
+  display: flex;
+  margin-top: 2px;
+}
+.vec-field {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* The scrub character, overlaid inside the field on the left. Drag it to change
+   the value; the rest of the field stays clickable for typing. */
+.vec-scrub {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+    color: hsl(var(--muted-foreground));
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    z-index: 1;
+    /* Purely a visual cue — let hover/click/focus fall through to the <input>
+       below. Drag-to-scrub still works: that listener is on .vec-field and gets
+       pointer events bubbling up from the input. */
+    pointer-events: none;
+    transition: color 0.12s;
+}
+.vec-field:hover .vec-scrub { color: hsl(var(--foreground)); }
+.vec-field:focus-within .vec-scrub { color: hsl(var(--ring)); }
+.vec-num {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 6px 7px 19px;       /* left room for the scrub character */
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: 0;
+  border-right-width: 0;           /* collapse internal dividers */
+  font: inherit;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  -moz-appearance: textfield;
+  appearance: textfield;
+  cursor: ew-resize;               /* drag anywhere to scrub (handled on .vec-field) */
+}
+/* Round only the outer corners; the last field restores its right border. */
+.vec-field:first-child .vec-num {
+  border-top-left-radius: var(--radius);
+  border-bottom-left-radius: var(--radius);
+}
+.vec-field:last-child .vec-num {
+  border-right-width: 1px;
+  border-top-right-radius: var(--radius);
+  border-bottom-right-radius: var(--radius);
+}
+.vec-num::-webkit-outer-spin-button,
+.vec-num::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.vec-num:focus {
+  outline: none;
+  position: relative;
+  z-index: 2;                      /* lift the focused field's ring above its neighbours */
+  border-color: hsl(var(--ring));
+  border-right-width: 1px;
+  cursor: text;                    /* once editing, show the caret instead of the scrub cue */
+}
+
+.storage-row{display:grid; grid-template-columns:2fr .5fr;}
+/* ─── Custom slider ─────────────────────────────────────────────────────── */
+
+.custom-slider {
+  position: relative;
+  padding: 8px 0 20px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  /* Claim the gesture: without this, a vertical drag that starts on the slider
+     scrolls the page on touch instead of moving the thumb. */
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cs-track {
+  position: relative;
+  height: 4px;
+  border-radius: 2px;
+  background: hsl(var(--input));
+}
+
+.cs-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 2px;
+  background: hsl(var(--primary));
+  pointer-events: none;
+  /* Glide for keyboard / programmatic changes; suppressed while dragging below
+     so a finger/pointer drag stays 1:1 with no lag. */
+  transition: width 0.12s ease;
+}
+
+.cs-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: hsl(var(--primary));
+  box-shadow: 0 1px 4px hsl(0 0% 0% / 0.25);
+  pointer-events: none;
+  transition: box-shadow 0.12s, transform 0.12s ease, left 0.12s ease;
+}
+
+.custom-slider:focus-visible .cs-thumb {
+  /* Solid, high-contrast keyboard focus ring on the thumb (was a faint 0.3 glow). */
+  box-shadow: 0 0 0 3px hsl(var(--ring)), 0 1px 4px hsl(0 0% 0% / 0.25);
+}
+
+/* Tactile grab feedback: the thumb swells while the slider is being dragged
+   (JS toggles .dragging) and on a desktop press. */
+.custom-slider.dragging .cs-thumb,
+.custom-slider:active .cs-thumb {
+  transform: translate(-50%, -50%) scale(1.35);
+  box-shadow: 0 0 0 5px hsl(var(--ring) / 0.25), 0 1px 5px hsl(0 0% 0% / 0.3);
+}
+
+.custom-slider.dragging .cs-fill,
+.custom-slider.dragging .cs-thumb {
+  transition: box-shadow 0.12s, transform 0.12s ease;
+}
+
+.cs-ticks {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(8px + 4px + 5px);
+  height: 8px;
+  pointer-events: none;
+}
+
+.cs-tick {
+  position: absolute;
+  width: 1.5px;
+  height: 4px;
+  border-radius: 1px;
+  background: hsl(var(--muted-foreground) / 0.3);
+  transform: translateX(-50%);
+}
+
+.cs-tick:first-child,
+.cs-tick:last-child {
+  height: 6px;
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+.input-help {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.4;
+}
+
+/* Asset picker */
+.asset-picker-row {
+  display: flex;
+  gap: 4px;
+  /* Don't let a long file path set the component's min width: allow the row to
+     shrink below its content (flex items default to min-width:auto) so the
+     trigger's ellipsis kicks in instead of widening / wrapping the sidebar. */
+  min-width: 0;
+  max-width: 100%;
+}
+.saved-row{font-weight:600;text-transform:capitalize;}
+
+.saved-row small{    display: grid;
+    padding: 2px 4px;
+    border-radius: var(--radius);
+    color: hsl(var(--primary));
+    font-size: 9px;
+    font-weight: 400;
+    cursor: pointer;
+    float: right;
+    text-decoration: none;
+    font-family: "SUSE Mono", monospace;
+}
+
+.asset-picker-thumb-inline {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+}
+
+.asset-picker-trigger {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: border-color 0.12s;
+}
+
+.asset-picker-trigger:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.asset-clear {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font-size: 13px;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.asset-clear:hover {
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive));
+}
+
+/* Provenance line for an image that came from a pasted Lolly link: a "✦ from
+   <tool>" badge + an Edit button that re-opens the source tool (openEmbedEditor).
+   Rendered below the asset-picker-row, only when the asset carries meta.toolUrl. */
+.asset-from-tool {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+.asset-from-tool-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.asset-from-tool-label strong { color: hsl(var(--foreground)); font-weight: 600; }
+.asset-from-tool-spark { color: hsl(var(--primary)); }
+.asset-edit {
+  flex: none;
+  padding: 3px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  transition: border-color 0.12s, color 0.12s;
+}
+.asset-edit:hover { border-color: hsl(var(--primary)); color: hsl(var(--primary)); }

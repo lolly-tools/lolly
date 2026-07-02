@@ -78,8 +78,8 @@ export default defineConfig({
   publicDir: resolve(webShell, 'public'),
   plugins: [
     overrideBridgeModules({
-      'state.js': resolve(__dirname, 'bridge-overrides/state.js'),
-      'capabilities-provided.js': resolve(__dirname, 'bridge-overrides/capabilities-provided.js'),
+      'state.ts': resolve(__dirname, 'bridge-overrides/state.js'),
+      'capabilities-provided.ts': resolve(__dirname, 'bridge-overrides/capabilities-provided.js'),
     }),
     bundleRepoDirs(),
   ],

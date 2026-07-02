@@ -17,7 +17,7 @@
  */
 
 import { argv, exit } from 'node:process';
-import { runToolCli, listToolsCli, showToolInputsCli } from '../src/run.js';
+import { runToolCli, listToolsCli, showToolInputsCli } from '../src/run.ts';
 
 const args = argv.slice(2);
 

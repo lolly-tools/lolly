@@ -1,0 +1,704 @@
+/* SPDX-License-Identifier: MPL-2.0 — Actions bar (export panel). Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Actions bar ───────────────────────────────────────────────────────── */
+/* The export panel is a strict priority stack: filename·format → dimensions →
+   ancillary settings → action buttons. DOM order encodes the hierarchy, so a
+   flex column keeps the layout stable no matter which optional rows a given
+   tool/format contributes. */
+.tool-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+  border-top: 1px solid hsl(var(--border));
+  margin-top: auto;
+  margin-bottom:5em;
+  width: 100%;
+}
+
+/* Collapse the whitespace-only text nodes left by the template literal so they
+   don't add phantom gaps between rows. */
+.tool-actions:empty { display: none; }
+
+.export-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: hsl(var(--foreground));
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.export-option:hover {
+  border-color: hsl(var(--ring) / 0.4);
+  background: hsl(var(--accent));
+}
+
+.export-option:has(input:checked) {
+  border-color: hsl(var(--primary) / 0.5);
+  background: hsl(var(--primary) / 0.07);
+}
+
+.export-option input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  accent-color: hsl(var(--primary));
+  cursor: pointer;
+}
+
+/* Tier 2 — dimensions. The headline sizing control: both fields share the full
+   width and sit taller than the other inputs. Each field carries a directional
+   icon (↔ width, ↕ height) tucked inside on the left. */
+.export-dims {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 13px;
+  color: hsl(var(--muted-foreground));
+}
+
+.dim-field {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.dim-icon {
+  position: absolute;
+  /* Centred in the 18px gap before the text: (18 − 15)/2 ≈ 1.5px each side. */
+  left: 1.5px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  transition: color 0.12s;
+}
+
+.dim-field:focus-within .dim-icon { color: hsl(var(--ring)); }
+
+.export-dims input[type="number"] {
+  width: 100%;
+  padding: 9px 10px 9px 18px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  appearance: textfield;
+  -moz-appearance: textfield;
+  cursor: ew-resize;
+  user-select: none;
+}
+
+.export-dims input[type="number"]:focus {
+  cursor: text;
+  user-select: auto;
+}
+
+.dim-x {
+  flex: 0 0 auto;
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+}
+
+/* Units selector — a compact dropdown where the static "px" used to be. */
+.dim-unit {
+  flex: 0 0 auto;
+  align-self: stretch;   /* match the height of the dimension inputs in its row */
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  padding: 0 6px;        /* vertical centring comes from the stretched height */
+  cursor: pointer;
+}
+.dim-unit:focus { border-color: hsl(var(--ring)); outline: none; }
+
+/* DPI field — only shown for physical units; a short box + "dpi" suffix. */
+.dim-dpi {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+}
+.export-dims .dim-dpi input[type="number"] {
+  width: 3.6rem;
+  padding: 9px 8px;          /* no icon → normal left padding */
+  text-align: right;
+  cursor: text;              /* not a scrub field */
+  user-select: auto;
+}
+
+/* Spinner-hiding + focus ring shared by all action-bar number inputs
+   (dimensions and video timing). Kept as one rule so the two contexts can't
+   drift. */
+.export-dims input[type="number"]::-webkit-inner-spin-button,
+.export-dims input[type="number"]::-webkit-outer-spin-button,
+.video-params input[type="number"]::-webkit-inner-spin-button,
+.video-params input[type="number"]::-webkit-outer-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.export-dims input[type="number"]:focus,
+.video-params input[type="number"]:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+/* Claim the *horizontal* gesture on the scrubbable dimension fields so a drag
+   scrubs the value, while leaving the vertical axis to the browser so the export
+   bottom sheet still scrolls when a swipe starts on a field. The scrub is
+   horizontal-only, so pan-y (not none) is the right grant: a horizontal-dominant
+   gesture reaches our pointer handlers; a vertical one scrolls and fires
+   pointercancel, which tears the scrub down cleanly. DPI is typed, not scrubbed,
+   so it keeps native behaviour. */
+.export-dims input[data-action="export-width"],
+.export-dims input[data-action="export-height"] {
+  touch-action: pan-y;
+}
+
+/* Floating value indicator shown while a dimension field is dragged-to-scrub.
+   Desktop anchors it above the control (the pointer is locked, cursor hidden);
+   touch tracks it above the finger where the value would otherwise hide.
+   Created + positioned in components/scrub-readout.js. */
+.scrub-readout {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 10000;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 6px 20px hsl(0 0% 0% / 0.28);
+  opacity: 0;
+  transform: scale(0.92);
+  transform-origin: center bottom;
+  transition: opacity 0.1s ease, transform 0.1s ease;
+}
+.scrub-readout.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+.scrub-readout.is-below {
+  transform-origin: center top;
+}
+/* Caret pointing down at the control / finger (above mode). */
+.scrub-readout::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: var(--caret-x, 50%);
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: hsl(var(--primary));
+}
+/* Flipped to point up when the bubble sits below the target. */
+.scrub-readout.is-below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: hsl(var(--primary));
+}
+/* A zoom is exactly the vestibular motion reduced-motion targets — drop the
+   scale and keep only the fade for users who ask for less motion. */
+@media (prefers-reduced-motion: reduce) {
+  .scrub-readout,
+  .scrub-readout.is-visible { transform: none; }
+}
+
+/* Tier 4 — actions. Download is the primary CTA and gets the widest track;
+   any present secondary buttons (copy/save) split the remainder evenly. */
+.export-action-buttons {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
+  /* Query container so Copy/Save/Share react to the row's own width — the
+     sidebar is resizable, so the viewport isn't a reliable signal here. */
+  container-type: inline-size;
+}
+/* Taller, easier-to-hit targets while labelled; collapses back to compact icons
+   in the @container query below. */
+.export-action-buttons button { flex: 1 1 0; min-width: 0; padding-block: 9px; }
+/* Copy and Save each carry a line-art glyph ahead of their label. */
+.copy-btn,
+.save-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.copy-icon,
+.save-icon { width: 14px; height: 14px; flex-shrink: 0; }
+
+/* Share button — equal flex sibling of Copy and Save in the actions row (sized
+   by .export-action-buttons button), link glyph riding ahead of the label. */
+.copy-url-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+.copy-url-icon { width: 15px; height: 15px; flex-shrink: 0; }
+
+/* When the actions row gets too narrow for icon + label to sit comfortably
+   side by side, drop the labels and let Copy/Save/Share collapse to their
+   three icons. `title`/`aria-label` keep each button's meaning available. */
+@container (max-width: 220px) {
+  .copy-btn > span,
+  .save-btn > [data-save-label],
+  .copy-url-btn > [data-copy-url-label] { display: none; }
+  .copy-btn,
+  .save-btn,
+  .copy-url-btn { gap: 0; }
+  /* Icon-only: drop back to a compact square rather than a tall, empty pill. */
+  .export-action-buttons button { padding-block: 6px; }
+}
+
+/* Tier 1 — filename · format. The filename fills the row; when a format
+   selector exists the two fuse into a single "name.format" segmented control. */
+.filename-extension {
+  display: flex;
+  align-items: stretch;
+}
+.filename-extension .export-filename {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.filename-extension:has(select) .export-filename {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: none;
+}
+.filename-extension:has(select) select[data-action="format"] {
+  flex: 0 0 auto;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+/* Tier 3 — ancillary settings. A single wrapping cluster of chips so optional
+   controls never disrupt the rows above. */
+.export-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.export-settings:empty { display: none; }
+
+/* Tier 2.5 — Print-PDF colour profile. A self-contained card so this print-only
+   ICC press setting reads as a deliberate, professional control rather than a
+   stray dropdown. Revealed only when "Print PDF" (pdf-cmyk) is the chosen format. */
+.export-cmyk {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.45);
+}
+.cmyk-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.cmyk-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: hsl(var(--primary));
+}
+.export-cmyk select[data-action="cmyk-profile"] {
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+.cmyk-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Editor-only aspect-ratio warning (render.aspectWarning), shown beside the
+   dimension fields when the page size leaves the tool's supported orientation.
+   Amber caution rather than destructive red — the export still works, it just
+   won't lay out as intended. No --warning token exists, so the hue is inline. */
+.export-aspect-warning {
+  --aspect-warn: 38 92% 45%;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: -2px;
+  padding: 10px 12px;
+  border: 1px solid hsl(var(--aspect-warn) / 0.5);
+  border-radius: var(--radius);
+  background: hsl(var(--aspect-warn) / 0.12);
+  color: hsl(var(--foreground));
+  font-size: 12px;
+  line-height: 1.45;
+}
+.export-aspect-warning[hidden] { display: none; }
+.aspect-warn-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: hsl(var(--aspect-warn));
+}
+
+/* PDF password card — mirrors .export-cmyk; revealed only for the "PDF" format. */
+.export-pdfpass {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.45);
+}
+/* Clickable disclosure header — resets the button chrome, and carries a CSS caret
+   (same idiom as .input-section-summary) that rotates when the card is open. */
+.pdfpass-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+}
+.pdfpass-head:hover { color: hsl(var(--primary)); }
+.pdfpass-head::after {
+  content: '';
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin-left: auto;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+.export-pdfpass.is-open .pdfpass-head::after { transform: rotate(45deg); }
+.pdfpass-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: hsl(var(--primary));
+}
+.pdfpass-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.export-pdfpass input[type="password"] {
+  width: 100%;
+  padding: 9px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.export-pdfpass input[type="password"]:focus {
+  outline: none;
+  border-color: hsl(var(--ring));
+}
+.pdfpass-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Print marks & bleed card — mirrors .export-cmyk; revealed for pdf / pdf-cmyk.
+   A master checkbox (.print-enable) reveals the body so ordinary PDFs stay plain. */
+.export-print {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.45);
+}
+.print-enable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.print-enable input[type="checkbox"] { flex: 0 0 auto; }
+.print-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.print-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: hsl(var(--primary));
+}
+.print-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.print-bleed {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: hsl(var(--foreground));
+}
+.print-bleed input[type="number"] {
+  width: 72px;
+  padding: 7px 10px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+.print-bleed input[type="number"]:focus { outline: none; border-color: hsl(var(--ring)); }
+/* Mark toggles reuse the .export-option chip; wrap so they pack side by side in a
+   wide sidebar and stack only when there's no room. */
+.print-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.print-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Filename input */
+.export-filename {
+  padding: 9px 12px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  transition: border-color 0.12s;
+}
+
+.export-filename:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.export-filename:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+
+/* Format selector */
+.tool-actions select {
+  padding: 9px 28px 9px 12px;   /* right room for the custom chevron */
+  background-color: hsl(var(--background));
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.12s;
+  /* Custom chevron + appearance:none — same native-menulist jitter fix as
+     .input-row select. The 28px right padding already reserved arrow space. */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.tool-actions select:hover {
+  border-color: hsl(var(--ring) / 0.4);
+}
+
+.tool-actions select:focus {
+  border-color: hsl(var(--ring));
+  outline: none;
+  box-shadow: 0 0 0 3px hsl(var(--ring) / 0.15);
+}
+.cancel-button{    border: 1px solid hsl(var(--border));
+    text-decoration: none;
+    background-color: hsl(var(--card));
+    border-radius: var(--radius);
+    color:currentcolor;
+    text-align: center;}
+
+/* Timing inputs — wait and duration, shown for webm and gif formats */
+/* Shown only for animated formats. Takes its own full-width row in the Tier-3
+   cluster and wraps internally, so the timing controls reflow cleanly instead
+   of overflowing a narrow sidebar. */
+.video-params {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 6px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  padding: 6px 8px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--background));
+}
+
+/* Keep each "label · input · unit" trio together as one unwrappable unit. */
+.vp-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.video-params input[type="number"] {
+  width: 48px;
+  padding: 5px 6px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 12px;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* Dither / 60fps toggles — shown inside .video-params for gif / webm. Separated
+   from the timing fields by the cluster gap so they wrap without a stray
+   divider hanging at the start of a wrapped line. */
+.gif-dither-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.gif-dither-toggle input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  accent-color: hsl(var(--primary));
+}
+
+/* Action buttons — outline style by default */
+.btn,
+.tool-actions button {
+  text-decoration:none;
+  padding: 5px 14px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: inset 0 1px #fff3, 0 1px 3px #0002;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.tool-actions button:hover {
+  background: hsl(var(--accent));
+  border-color: hsl(var(--border));
+}
+
+.tool-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Copy button armed by the ?copy URL action — pulses to invite the click that
+   gives the clipboard write its required user gesture. */
+.tool-actions [data-action="copy"].copy-armed {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+  animation: copy-armed-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes copy-armed-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0.5); }
+  50%      { box-shadow: 0 0 0 5px hsl(var(--primary) / 0); }
+}
+
+/* Download is the primary CTA — the biggest, easiest target in the row. */
+.tool-actions [data-action="download"] {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border-color: hsl(var(--primary));
+  font-weight: 600;
+  padding-block: 13px;
+}
+
+/* Down-arrow glyph as the download affordance, riding ahead of the label. */
+.tool-actions [data-action="download"]::before {
+  content: "\2193";   /* ↓ */
+  margin-right: 0.4em;
+  font-weight: 700;
+}
+
+.tool-actions [data-action="download"]:hover {
+  background: hsl(var(--primary) / 0.88);
+  border-color: hsl(var(--primary) / 0.88);
+}
