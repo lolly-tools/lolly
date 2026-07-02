@@ -33,7 +33,10 @@
   position: relative;
   width: 100%;
   margin: 0;
-  padding: 0 4px;
+  /* Inner padding is computed per box in hooks.js (the `pad` field) and applied
+     inline, so it renders identically headless; this is just the resting default. */
+  padding: 8px;
+  box-sizing: border-box;
   font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   line-height: 1.12;
   white-space: pre-wrap;

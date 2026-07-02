@@ -3949,6 +3949,17 @@ background-color:hsl(var(--background) / 1);
 .fc-toolbar:hover,
 .fc-toolbar:focus-within { opacity: 1; }
 
+/* Collapse toggle — folds the rail away so it never covers the artboard. When
+   collapsed only the chevron remains (rotated to point "open"). */
+.fc-collapse { color: hsl(var(--muted-foreground)); }
+.fc-collapse svg { width: 18px; height: 18px; transition: transform 0.16s ease; }
+.fc-toolbar.is-collapsed { gap: 0; padding: 5px; opacity: 1; }
+.fc-toolbar.is-collapsed > *:not(.fc-collapse) { display: none; }
+.fc-toolbar.is-collapsed .fc-collapse svg { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) {
+  .fc-collapse svg { transition: none; }
+}
+
 .fc-btn {
   width: 40px; height: 40px; padding: 0;
   display: inline-flex; align-items: center; justify-content: center;
@@ -4153,6 +4164,44 @@ body.fc-manipulating { user-select: none; -webkit-user-select: none; }
   outline: 2px solid #2d7ff9; outline-offset: 3px;
   cursor: text; min-height: 1em; min-width: 8px; caret-color: #2d7ff9;
 }
+/* While editing, let the caret/text spill past the box so nothing types "into the
+   void"; the box re-clips (and grows to fit) on commit. */
+.lolly-box.fc-box-editing { overflow: visible; }
+/* Gentle placeholder in an empty text box being edited (editor-only: the class is
+   removed before export, so it never leaks into output). */
+.lolly-box-text.fc-editing:empty::before {
+  content: "Type\2026"; opacity: 0.4; pointer-events: none;
+}
+
+/* Floating format bar (bold / italic / bullet) shown while editing text. Sits in
+   the pointer-events:none overlay, so it opts back in. */
+.fc-fmtbar {
+  position: absolute; z-index: 16; pointer-events: auto;
+  display: flex; align-items: center; gap: 2px;
+  padding: 4px; border-radius: 12px;
+  background: hsl(var(--card) / 0.98);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24), 0 0 0 1px hsl(var(--border));
+}
+.fc-fmtbar .fc-cbtn { min-width: 32px; }
+.fc-fmtbar i { font-style: italic; }
+
+/* The "Aa" text-options trigger — nudge its glyph so it reads as a type control. */
+.fc-cbtn-text { font-weight: 800; letter-spacing: -0.02em; }
+
+/* Segmented control (align / vertical align) inside the Text panel. */
+.fc-seg { display: inline-flex; flex: 1; min-width: 0; gap: 2px; padding: 2px;
+  border-radius: 8px; background: hsl(var(--muted)); }
+.fc-seg-btn {
+  flex: 1; min-width: 0; height: 26px; padding: 0 6px;
+  border: none; border-radius: 6px; background: transparent; color: inherit;
+  font: inherit; font-size: 12px; cursor: pointer; white-space: nowrap;
+}
+.fc-seg-btn:hover { background: hsl(var(--background) / 0.6); }
+.fc-seg-btn.is-on {
+  background: hsl(var(--background)); color: hsl(var(--foreground));
+  font-weight: 700; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.14);
+}
+.fc-text-panel { min-width: 256px; }
 
 @media (pointer: coarse) {
   .fc-ctxbar .color-picker-field, .fc-ctxbar .color-trigger { width: 36px; height: 36px; }

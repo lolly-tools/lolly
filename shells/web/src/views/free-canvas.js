@@ -37,6 +37,8 @@ const SVG = {
   image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
   more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   size: '<path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/>',
+  editText: '<path d="M4 7V5h16v2"/><path d="M9 19h6"/><path d="M12 5v14"/>',
+  collapse: '<polyline points="15 18 9 12 15 6"/>',
 };
 
 function icon(paths) {
@@ -62,7 +64,8 @@ export function initFreeCanvas(opts) {
     radiusField: cv.radiusField, imageField: cv.imageField, fitField: cv.fitField,
     blendField: cv.blendField, textField: cv.textField, textColorField: cv.textColorField,
     fontSizeField: cv.fontSizeField, alignField: cv.alignField, valignField: cv.valignField,
-    weightField: cv.weightField, groupField: cv.groupField, clipField: cv.clipField,
+    weightField: cv.weightField, fontField: cv.fontField, lineHeightField: cv.lineHeightField,
+    padField: cv.padField, groupField: cv.groupField, clipField: cv.clipField,
     kindField: 'kind',
   };
   const unwrapColor = (v) => (v && typeof v === 'object' && 'value' in v ? v.value : v);
@@ -167,11 +170,12 @@ export function initFreeCanvas(opts) {
   toolbar.setAttribute('aria-label', 'Editor tools');
   toolbarDock.appendChild(toolbar);
   stageEl.appendChild(toolbarDock);
-  buildToolbar();
 
   // ── toolbar ─────────────────────────────────────────────────────────────────
   let popover = null;
+  let arrangeBtn = null, alignBtn = null;   // popover anchors (captured, not by index)
   function closePopover() { popover?.remove(); popover = null; }
+  buildToolbar();   // after arrangeBtn/alignBtn exist (buildToolbar assigns them)
 
   function toolBtn(label, svg, onClick, extraClass = '') {
     const b = document.createElement('button');
@@ -187,10 +191,28 @@ export function initFreeCanvas(opts) {
   }
 
   function buildToolbar() {
+    // Collapse toggle — the chromeless editor has no other way to reclaim the space,
+    // so let the whole rail fold away (and back) with a tap.
+    const collapse = document.createElement('button');
+    collapse.type = 'button';
+    collapse.className = 'fc-btn fc-collapse';
+    collapse.title = 'Hide tools';
+    collapse.setAttribute('aria-label', 'Hide tools');
+    collapse.setAttribute('aria-expanded', 'true');
+    collapse.innerHTML = icon(SVG.collapse);
+    collapse.addEventListener('pointerdown', (e) => e.stopPropagation());
+    collapse.addEventListener('click', (e) => {
+      e.stopPropagation(); closePopover();
+      const collapsed = toolbar.classList.toggle('is-collapsed');
+      collapse.title = collapsed ? 'Show tools' : 'Hide tools';
+      collapse.setAttribute('aria-label', collapse.title);
+      collapse.setAttribute('aria-expanded', String(!collapsed));
+    });
+    toolbar.appendChild(collapse);
     const add = toolBtn('Add a box', SVG.add, () => openAddMenu(add), 'fc-btn-add');
     if (armedKind) add.classList.add('is-armed');
-    toolBtn('Arrange (stacking order)', SVG.front, () => openArrangeMenu());
-    toolBtn('Align & distribute', SVG.align, () => openAlignMenu());
+    arrangeBtn = toolBtn('Arrange (stacking order)', SVG.front, () => openArrangeMenu());
+    alignBtn = toolBtn('Align & distribute', SVG.align, () => openAlignMenu());
     if (setCanvasSize) toolBtn('Canvas size', SVG.size, (b) => openSizeMenu(b));
     const sep = document.createElement('div'); sep.className = 'fc-sep'; toolbar.appendChild(sep);
     // Canvas background — the app's shared colour picker (swatches + hex + alpha).
@@ -292,7 +314,7 @@ export function initFreeCanvas(opts) {
   function openArrangeMenu() {
     const has = selection.size > 0;
     const multi = selection.size >= 2;
-    spawnPopover(toolbar.children[1], [
+    spawnPopover(arrangeBtn, [
       { label: 'Bring to front', run: () => has && applyZ('front') },
       { label: 'Bring forward', run: () => has && applyZ('forward') },
       { label: 'Send backward', run: () => has && applyZ('backward') },
@@ -307,7 +329,7 @@ export function initFreeCanvas(opts) {
   }
   function openAlignMenu() {
     const mk = (label, fn) => ({ label, run: fn });
-    spawnPopover(toolbar.children[2], [
+    spawnPopover(alignBtn, [
       mk('Align left', () => applyAlign('left')),
       mk('Align centre', () => applyAlign('hcentre')),
       mk('Align right', () => applyAlign('right')),
@@ -332,10 +354,10 @@ export function initFreeCanvas(opts) {
     ctxbar.innerHTML = `
       ${cfg.fillField ? `<span class="fc-cfield" title="Fill">${colorFieldHtml('fc-fill', fillVal, { float: true })}</span>` : ''}
       ${cfg.textColorField ? `<span class="fc-cfield" title="Text colour">${colorFieldHtml('fc-fg', fgVal, { float: true })}</span>` : ''}
+      <button type="button" class="fc-cbtn" data-cx="edit" title="Edit text (double-click)" aria-label="Edit text">${icon(SVG.editText)}</button>
       <button type="button" class="fc-cbtn" data-cx="smaller" title="Smaller text" aria-label="Smaller text">A−</button>
       <button type="button" class="fc-cbtn" data-cx="bigger" title="Bigger text" aria-label="Bigger text">A+</button>
-      <button type="button" class="fc-cbtn" data-cx="align" title="Text alignment" aria-label="Text alignment">≡</button>
-      <button type="button" class="fc-cbtn" data-cx="weight" title="Text weight" aria-label="Text weight">B</button>
+      <button type="button" class="fc-cbtn fc-cbtn-text" data-cx="text" title="Text — font, weight, alignment, line height, padding" aria-label="Text options">Aa</button>
       <button type="button" class="fc-cbtn" data-cx="setimg" title="Set image" aria-label="Set image">${icon(SVG.image)}</button>
       <button type="button" class="fc-cbtn" data-cx="more" title="More — shape, radius, opacity, fit, blend" aria-label="More options">${icon(SVG.more)}</button>
       <span class="fc-sep fc-sep-v"></span>
@@ -353,8 +375,8 @@ export function initFreeCanvas(opts) {
       const cx = b.dataset.cx;
       if (cx === 'smaller') bumpFont(-6);
       else if (cx === 'bigger') bumpFont(6);
-      else if (cx === 'align') cycleAlign();
-      else if (cx === 'weight') cycleWeight();
+      else if (cx === 'text') openTextPanel(b);
+      else if (cx === 'edit') { if (selection.size) startTextEdit([...selection][0], { selectAll: true }); }
       else if (cx === 'dup') duplicateSelection();
       else if (cx === 'del') deleteSelection();
       else if (cx === 'setimg') pickImage();
@@ -474,25 +496,65 @@ export function initFreeCanvas(opts) {
       return { ...b, [cfg.fontSizeField]: Math.max(4, base + delta) };
     }));
   }
-  const ALIGN_CYCLE = ['left', 'center', 'right'];
-  function cycleAlign() {
-    if (!cfg.alignField) return;
+  // ── Text panel: font · size · weight · line height · align · vertical · padding ─
+  // In editor layout there is NO sidebar, so this panel is the only place these
+  // typographic properties (several of which were previously unreachable) can be
+  // set. Every control shows and writes the selected box's current value.
+  function openTextPanel(anchor) {
+    closeMorePanel();
     const boxes = getBoxes();
-    const sel = new Set(selIndices(boxes));
-    const first = boxes.find((b, i) => sel.has(i));
-    const cur = ALIGN_CYCLE.indexOf(first?.[cfg.alignField]);
-    const next = ALIGN_CYCLE[(cur + 1) % ALIGN_CYCLE.length] || 'center';
-    commit(boxes.map((b, i) => (sel.has(i) ? { ...b, [cfg.alignField]: next } : b)));
-  }
-  const WEIGHT_CYCLE = ['400', '600', '700', '800'];
-  function cycleWeight() {
-    if (!cfg.weightField) return;
-    const boxes = getBoxes();
-    const sel = new Set(selIndices(boxes));
-    const first = boxes.find((b, i) => sel.has(i));
-    const cur = WEIGHT_CYCLE.indexOf(String(first?.[cfg.weightField]));
-    const next = WEIGHT_CYCLE[(cur + 1) % WEIGHT_CYCLE.length] || '700';
-    commit(boxes.map((b, i) => (sel.has(i) ? { ...b, [cfg.weightField]: next } : b)));
+    const idx = selIndices(boxes);
+    if (!idx.length) return;
+    const b = boxes[idx[0]] || {};
+    const opt = (v, label, cur) => `<option value="${v}"${String(cur) === v ? ' selected' : ''}>${label}</option>`;
+    const fontCur = String(b[cfg.fontField] || 'SUSE');
+    const sizeCur = Math.max(1, Math.round(parseFloat(b[cfg.fontSizeField]) || 48));
+    const weightCur = String(b[cfg.weightField] || '700');
+    const lhRaw = parseFloat(b[cfg.lineHeightField]);
+    const lhCur = Number.isFinite(lhRaw) ? lhRaw : 1.12;
+    // Defaults here MUST match hooks.js textCss so the panel shows the real rendered
+    // value for a box that hasn't set the field yet (pad defaults to 8, not 0).
+    const padRaw = parseFloat(b[cfg.padField]);
+    const padCur = Math.max(0, Math.round(Number.isFinite(padRaw) ? padRaw : 8));
+    const alignCur = String(b[cfg.alignField] || 'center');
+    const valignCur = String(b[cfg.valignField] || 'middle');
+    const seg = (field, cur, choices) => `<div class="fc-seg" data-seg="${field}">` +
+      choices.map(([v, lbl]) => `<button type="button" class="fc-seg-btn${cur === v ? ' is-on' : ''}" data-v="${v}" title="${lbl}" aria-label="${lbl}">${lbl}</button>`).join('') + '</div>';
+    const p = document.createElement('div');
+    p.className = 'fc-panel fc-text-panel';
+    p.innerHTML =
+      '<div class="fc-panel-head">Text</div>' +
+      (cfg.fontField ? `<label class="fc-row"><span>Font</span><select data-tp="font">${opt('SUSE', 'SUSE Sans', fontCur)}${opt('SUSE Mono', 'SUSE Mono', fontCur)}</select></label>` : '') +
+      (cfg.fontSizeField ? `<label class="fc-row"><span>Size</span><input type="number" min="4" max="2000" data-tp="size" value="${sizeCur}"><b>px</b></label>` : '') +
+      (cfg.weightField ? `<label class="fc-row"><span>Weight</span><select data-tp="weight">${opt('400', 'Regular', weightCur)}${opt('600', 'Semibold', weightCur)}${opt('700', 'Bold', weightCur)}${opt('800', 'Extrabold', weightCur)}</select></label>` : '') +
+      (cfg.lineHeightField ? `<label class="fc-row"><span>Line height</span><input type="range" min="0.7" max="3" step="0.01" data-tp="lh" value="${lhCur}"><b data-tp-val="lh">${lhCur.toFixed(2)}</b></label>` : '') +
+      (cfg.alignField ? `<div class="fc-row"><span>Align</span>${seg(cfg.alignField, alignCur, [['left', 'Left'], ['center', 'Centre'], ['right', 'Right']])}</div>` : '') +
+      (cfg.valignField ? `<div class="fc-row"><span>Vertical</span>${seg(cfg.valignField, valignCur, [['top', 'Top'], ['middle', 'Middle'], ['bottom', 'Bottom']])}</div>` : '') +
+      (cfg.padField ? `<label class="fc-row"><span>Padding</span><input type="range" min="0" max="200" data-tp="pad" value="${padCur}"><b data-tp-val="pad">${padCur}</b></label>` : '');
+    p.addEventListener('pointerdown', (e) => e.stopPropagation());
+    p.querySelectorAll('select[data-tp]').forEach((sel) => sel.addEventListener('change', () => {
+      setField(sel.dataset.tp === 'font' ? cfg.fontField : cfg.weightField, sel.value);
+    }));
+    p.querySelectorAll('input[type="number"][data-tp]').forEach((inp) => inp.addEventListener('change', () => {
+      const v = parseInt(inp.value, 10);
+      if (Number.isFinite(v) && v >= 4) setField(cfg.fontSizeField, v);
+    }));
+    p.querySelectorAll('input[type="range"][data-tp]').forEach((rng) => rng.addEventListener('input', () => {
+      const k = rng.dataset.tp;
+      const valEl = p.querySelector(`[data-tp-val="${k}"]`);
+      if (k === 'lh') { if (valEl) valEl.textContent = (+rng.value).toFixed(2); setField(cfg.lineHeightField, +rng.value); }
+      else { if (valEl) valEl.textContent = rng.value; setField(cfg.padField, +rng.value); }
+    }));
+    p.querySelectorAll('.fc-seg').forEach((segEl) => segEl.querySelectorAll('.fc-seg-btn').forEach((btn) => btn.addEventListener('click', () => {
+      segEl.querySelectorAll('.fc-seg-btn').forEach((x) => x.classList.toggle('is-on', x === btn));
+      setField(segEl.dataset.seg, btn.dataset.v);
+    })));
+    stageEl.appendChild(p);
+    morePanel = p;
+    const ar = anchor.getBoundingClientRect();
+    const sr = stageEl.getBoundingClientRect();
+    p.style.left = Math.max(6, Math.min(ar.left - sr.left, sr.width - p.offsetWidth - 8)) + 'px';
+    p.style.top = Math.max(6, Math.min(ar.bottom - sr.top + 8, sr.height - p.offsetHeight - 8)) + 'px';
   }
   async function pickImage() {
     if (!cfg.imageField || !host.assets?.pick) return;
@@ -639,6 +701,10 @@ export function initFreeCanvas(opts) {
   }
 
   // ── inline text editing (double-click a box) ─────────────────────────────────
+  // A small floating format bar (B / I / •) appears while editing so wrapping the
+  // selection in markdown markers stays pleasant, not fiddly.
+  let fmtbar = null;
+
   function onDblClick(e) {
     if (!cfg.textField) return;
     const nat = clientToNative(e.clientX, e.clientY);
@@ -650,54 +716,222 @@ export function initFreeCanvas(opts) {
     renderChrome();
     startTextEdit(idOf(boxes[hit], hit));
   }
-  function startTextEdit(id) {
+  // A box element only exists after a foreground paint (rAF-gated), so a freshly
+  // created box needs us to wait a few frames before we can focus its text.
+  function editAfterPaint(id, opts, tries = 8) {
+    if (disposed) return;
+    const el = canvasEl.querySelector(`.lolly-box[data-box-id="${cssEscape(id)}"] .lolly-box-text`);
+    if (el) { startTextEdit(id, opts); return; }
+    if (tries > 0) requestAnimationFrame(() => editAfterPaint(id, opts, tries - 1));
+  }
+  function startTextEdit(id, opts = {}) {
     if (editing) commitTextEdit();
     const el = canvasEl.querySelector(`.lolly-box[data-box-id="${cssEscape(id)}"] .lolly-box-text`);
     if (!el) return;
-    editing = { id, el, prev: el.textContent };
+    const boxEl = el.closest('.lolly-box');
+    const boxes = getBoxes();
+    const i = indexOfId(boxes, id);
+    // Edit the RAW markdown SOURCE (**bold**, *italic*, "- " bullets), not the
+    // rendered HTML — otherwise committing plain innerText flattens the formatting.
+    const raw = i >= 0 ? String(boxes[i][cfg.textField] ?? '') : '';
+    editing = { id, el, boxEl, prevHtml: el.innerHTML };
     chrome.innerHTML = '';       // hide handles while typing
     ctxbar.hidden = true;
-    closeMorePanel();
+    closeMorePanel(); closePopover();
+    el.textContent = raw;
+    boxEl?.classList.add('fc-box-editing');   // reveal overflow so typing stays visible
     el.setAttribute('contenteditable', 'plaintext-only');
+    el.setAttribute('role', 'textbox');
+    el.setAttribute('aria-label', 'Edit text');
     el.classList.add('fc-editing');
     el.focus();
+    // Select-all when replacing a create-seed ("Text") so the first keystroke wins;
+    // otherwise drop the caret at the end for a natural continue-typing feel.
     const range = document.createRange();
     range.selectNodeContents(el);
+    if (!opts.selectAll) range.collapse(false);
     const sel = window.getSelection();
     sel.removeAllRanges(); sel.addRange(range);
     el.addEventListener('keydown', onEditKey);
     el.addEventListener('blur', onEditBlur);
+    showFmtBar();
+    positionFmtBar();
   }
   function onEditKey(e) {
     if (e.key === 'Escape') { e.preventDefault(); cancelTextEdit(); }
-    else if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); commitTextEdit(); }
+    // Enter inserts a newline (a text box holds multi-line copy); commit explicitly.
+    else if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); commitTextEdit(); }
+    else if ((e.key === 'b' || e.key === 'B') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); wrapSelection('**'); }
+    else if ((e.key === 'i' || e.key === 'I') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); wrapSelection('*'); }
     e.stopPropagation();          // keep global Delete/nudge/undo off while typing
   }
-  function onEditBlur() { commitTextEdit(); }
+  function onEditBlur(e) {
+    // Clicking our own format bar preventDefaults focus, so blur shouldn't fire from
+    // it — but guard anyway so a stray blur toward the bar never drops the edit.
+    if (e && e.relatedTarget && fmtbar && fmtbar.contains(e.relatedTarget)) return;
+    commitTextEdit();
+  }
   function finishEdit() {
     if (!editing) return null;
     const done = editing; editing = null;
+    hideFmtBar();
     done.el.removeEventListener('keydown', onEditKey);
     done.el.removeEventListener('blur', onEditBlur);
     done.el.removeAttribute('contenteditable');
+    done.el.removeAttribute('role');
+    done.el.removeAttribute('aria-label');
     done.el.classList.remove('fc-editing');
+    done.boxEl?.classList.remove('fc-box-editing');
     return done;
   }
+  // Normalise the contenteditable back to raw source text: keep the user's line
+  // breaks, drop a single trailing newline some browsers append, un-nbsp spaces.
+  function readEditText(el) {
+    return el.innerText.replace(/ /g, ' ').replace(/\n$/, '');
+  }
   function commitTextEdit() {
-    const done = finishEdit();
+    const done = editing;
     if (!done) return;
-    const text = done.el.innerText.replace(/ /g, ' ').replace(/\n$/, '');
+    const text = readEditText(done.el);
     const boxes = getBoxes();
     const i = indexOfId(boxes, done.id);
-    if (i >= 0 && String(boxes[i][cfg.textField] ?? '') !== text) {
-      commit(boxes.map((b, k) => (k === i ? { ...b, [cfg.textField]: text } : b)));
-    } else renderChrome();
+    const changedText = i >= 0 && String(boxes[i][cfg.textField] ?? '') !== text;
+    // Grow-to-fit — ONLY when the text actually changed (so merely opening a box to
+    // read it never mutates its height). The box clips overflow in the final render,
+    // so if the copy is taller than the box, grow it (only ever grow) to keep it
+    // whole. Measure the RENDERED height, not the raw source in the contenteditable.
+    let grownH = null;
+    if (changedText && cfg.hField && done.boxEl) {
+      const needed = Math.ceil(renderedTextHeight(text, done.el));
+      const boxNativeH = parseFloat(done.boxEl.style.height) || 0;
+      if (boxNativeH && needed > boxNativeH + 1) grownH = needed;
+    }
+    finishEdit();
+    if (i < 0) { renderChrome(); return; }
+    if (changedText) {
+      commit(boxes.map((b, k) => {
+        if (k !== i) return b;
+        const nb = { ...b, [cfg.textField]: text };
+        if (grownH != null) nb[cfg.hField] = grownH;
+        return nb;
+      }));
+    } else {
+      done.el.innerHTML = done.prevHtml;   // nothing changed → restore rendered view
+      renderChrome();
+    }
+  }
+  // Measure the height the RENDERED markdown will occupy. hooks.js richText strips
+  // the **/*/'- ' markers and emits <strong>/<em>/'•  ', which wraps differently than
+  // the raw source shown in the contenteditable — so measuring the source over/under-
+  // grows the box. This mirrors richText JUST closely enough for line wrapping and is
+  // MEASUREMENT-ONLY (never output), so any drift only nudges the auto-grow height and
+  // can never change the exported artwork.
+  function renderedTextHeight(raw, srcEl) {
+    const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const inline = (s) => s
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+      .replace(/(^|[^_\w])_([^_\n]+)_/g, '$1<em>$2</em>');
+    const html = esc(raw).split('\n').map((ln) => {
+      const m = ln.match(/^(\s*)[-*•]\s+(.*)$/);
+      return m ? m[1] + '•  ' + inline(m[2]) : inline(ln);
+    }).join('\n');
+    const probe = document.createElement('div');
+    const cs = window.getComputedStyle(srcEl);
+    ['fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'lineHeight', 'letterSpacing',
+      'textAlign', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+      'boxSizing', 'whiteSpace', 'wordBreak', 'overflowWrap'].forEach((p) => { probe.style[p] = cs[p]; });
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.left = '-99999px';
+    probe.style.top = '0';
+    probe.style.width = srcEl.offsetWidth + 'px';
+    probe.innerHTML = html;
+    (canvasEl || document.body).appendChild(probe);
+    const h = probe.scrollHeight;
+    probe.remove();
+    return h;
   }
   function cancelTextEdit() {
-    const done = finishEdit();
+    const done = editing;
     if (!done) return;
-    done.el.textContent = done.prev;
+    finishEdit();
+    done.el.innerHTML = done.prevHtml;     // discard edits, restore rendered view
     renderChrome();
+  }
+
+  // ── in-edit formatting: wrap the selection in markdown markers ────────────────
+  function setEditRange(range) {
+    const sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(range);
+  }
+  function wrapSelection(marker) {
+    if (!editing) return;
+    const el = editing.el;
+    el.focus();
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    if (!el.contains(range.commonAncestorContainer)) return;
+    const text = range.toString() || 'text';
+    const node = document.createTextNode(marker + text + marker);
+    range.deleteContents();
+    range.insertNode(node);
+    const r2 = document.createRange();     // re-select the inner text for quick edits
+    r2.setStart(node, marker.length);
+    r2.setEnd(node, marker.length + text.length);
+    setEditRange(r2);
+  }
+  // Toggle a "- " bullet prefix on every non-blank line (a text box is usually one
+  // logical block, so treat the whole thing as one list).
+  function toggleBullet() {
+    if (!editing) return;
+    const el = editing.el;
+    el.focus();
+    const lines = readEditText(el).split('\n');
+    const anyBullet = lines.some((l) => /^\s*[-*•]\s+/.test(l));
+    el.textContent = lines.map((l) => {
+      if (!l.trim()) return l;
+      return anyBullet ? l.replace(/^(\s*)[-*•]\s+/, '$1') : '- ' + l;
+    }).join('\n');
+    const range = document.createRange();
+    range.selectNodeContents(el); range.collapse(false);
+    setEditRange(range);
+  }
+  function showFmtBar() {
+    if (fmtbar) return;
+    fmtbar = document.createElement('div');
+    fmtbar.className = 'fc-fmtbar';
+    fmtbar.setAttribute('data-export-hide', '');
+    const mk = (label, html, run) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'fc-cbtn'; b.title = label; b.setAttribute('aria-label', label);
+      b.innerHTML = html;
+      // preventDefault on pointerdown keeps the caret/selection in the editable
+      // (focus never leaves → the marker wraps the live selection, no blur/commit).
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); });
+      b.addEventListener('click', (e) => { e.stopPropagation(); run(); });
+      fmtbar.appendChild(b);
+    };
+    mk('Bold (⌘B)', '<b>B</b>', () => wrapSelection('**'));
+    mk('Italic (⌘I)', '<i style="font-family:serif">I</i>', () => wrapSelection('*'));
+    mk('Bullet list', '•', () => toggleBullet());
+    overlay.appendChild(fmtbar);
+  }
+  function hideFmtBar() { fmtbar?.remove(); fmtbar = null; }
+  function positionFmtBar() {
+    if (!fmtbar || !editing) return;
+    const boxes = getBoxes();
+    const i = indexOfId(boxes, editing.id);
+    if (i < 0) return;
+    const m = metrics();
+    const aabb = selectionAABB(boxes, [i], cfg);
+    if (!aabb) return;
+    const tl = nativeToStage(aabb.minX, aabb.minY, m);
+    const br = nativeToStage(aabb.maxX, aabb.minY, m);
+    const bw = fmtbar.offsetWidth || 0;
+    fmtbar.style.left = Math.max(6, Math.min((tl.x + br.x) / 2 - bw / 2, m.sr.width - bw - 6)) + 'px';
+    fmtbar.style.top = Math.max(6, tl.y - 44) + 'px';
   }
 
   function onCanvasPointerDown(e) {
@@ -867,10 +1101,12 @@ export function initFreeCanvas(opts) {
       box = clampBoxToCanvas(box, cfg, canvasWH());
       selection = new Set([id]);
       const wasImage = (g.seed?.[cfg.kindField] === 'image') || armedKind?.id === 'image';
+      const wasText = (g.seed?.[cfg.kindField] === 'text') || armedKind?.id === 'text';
       disarm();
       endGesture();
       commit([...boxes, box]);
       if (wasImage) setTimeout(() => pickImage(), 0);
+      else if (wasText && cfg.textField) editAfterPaint(id, { selectAll: true });
       return;
     }
     if (g.type === 'marquee') {
@@ -1007,6 +1243,9 @@ export function initFreeCanvas(opts) {
   }
 
   function paintChrome(boxes, liveRects) {
+    // While editing text, suppress selection chrome + ctxbar; just keep the floating
+    // format bar tracking the box as the stage pans/zooms.
+    if (editing) { chrome.innerHTML = ''; ctxbar.hidden = true; positionFmtBar(); return; }
     // outlines + handles
     chrome.innerHTML = '';
     const idx = selIndices(boxes);
@@ -1218,6 +1457,12 @@ export function initFreeCanvas(opts) {
     if (disposed) return;
     if (e.key === 'Escape') { if (armedKind) { disarm(); } else if (selection.size) { selection = new Set(); renderChrome(); } closePopover(); return; }
     if (typingTarget()) return;
+    // Enter / F2 on a selected box → edit its text (select-all so typing replaces it).
+    if ((e.key === 'Enter' || e.key === 'F2') && !editing && selection.size && cfg.textField) {
+      e.preventDefault();
+      startTextEdit([...selection][0], { selectAll: e.key === 'Enter' });
+      return;
+    }
     if ((e.key === 'Delete' || e.key === 'Backspace') && selection.size) { e.preventDefault(); deleteSelection(); return; }
     if ((e.key === 'd' || e.key === 'D') && (e.metaKey || e.ctrlKey) && selection.size) { e.preventDefault(); duplicateSelection(); return; }
     if ((e.key === 'g' || e.key === 'G') && (e.metaKey || e.ctrlKey)) { e.preventDefault(); e.shiftKey ? ungroupSelection() : groupSelection(); return; }
@@ -1259,7 +1504,7 @@ export function initFreeCanvas(opts) {
   // Dismiss popover / more-panel on outside click.
   const onDocDown = (e) => {
     if (popover && !popover.contains(e.target)) closePopover();
-    if (morePanel && !morePanel.contains(e.target) && !e.target.closest?.('[data-cx="more"]')) closeMorePanel();
+    if (morePanel && !morePanel.contains(e.target) && !e.target.closest?.('[data-cx="more"],[data-cx="text"]')) closeMorePanel();
   };
   document.addEventListener('pointerdown', onDocDown, true);
 

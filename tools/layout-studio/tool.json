@@ -47,6 +47,9 @@
         "alignField": "align",
         "valignField": "valign",
         "weightField": "weight",
+        "fontField": "font",
+        "lineHeightField": "lineHeight",
+        "padField": "pad",
         "fitField": "fit",
         "blendField": "blend",
         "groupField": "group",
@@ -176,7 +179,8 @@
         },
         { "id": "lineHeight", "type": "number", "label": "Line height", "default": 1.12, "min": 0.7, "max": 3, "step": 0.05 },
         { "id": "group", "type": "text", "label": "Group", "default": "" },
-        { "id": "clip", "type": "text", "label": "Clip to", "default": "" }
+        { "id": "clip", "type": "text", "label": "Clip to", "default": "" },
+        { "id": "pad", "type": "number", "label": "Text padding", "default": 8, "min": 0 }
       ],
       "default": [
         { "id": "p1", "kind": "box", "x": 90, "y": 90, "w": 900, "h": 900, "rot": 0, "shape": "rounded", "radius": 44, "bg": "#f3f5f4", "opacity": 100, "text": "" },

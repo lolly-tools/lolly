@@ -168,13 +168,17 @@ function textCss(b) {
   var size = Math.max(1, Math.round(num(b.fontSize, 48)));
   var weight = WEIGHTS[String(b.weight)] ? String(b.weight) : '700';
   var align = H_JUSTIFY[b.align] ? b.align : 'center';
+  // Inner padding between the box edge and the text (all sides). Clamped so a
+  // hand-edited URL can't push text absurdly far or negative.
+  var pad = Math.round(clamp(num(b.pad, 8), 0, 400));
   return (
     'text-align:' + align + ';' +
     'color:' + safeColor(b.fg, '#0c322c') + ';' +
     'font-family:' + fontFamily(b.font) + ';' +
     'font-size:' + size + 'px;' +
     'font-weight:' + weight + ';' +
-    'line-height:' + clamp(num(b.lineHeight, 1.12), 0.5, 4) + ';'
+    'line-height:' + clamp(num(b.lineHeight, 1.12), 0.5, 4) + ';' +
+    'padding:' + pad + 'px;'
   );
 }
 
