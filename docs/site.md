@@ -131,8 +131,6 @@ Every time someone uploads a file to a third-party service to "just make it look
 
 **Organise & render in bulk.** Keep saved work in nested Projects folders, then render a whole folder — or any multi-selection — as one zip. No batch grid required.
 
-**Shortest shareable links.** Every design lives in its URL; a big one packs into a compact token so the link stays short enough to paste anywhere.
-
 
 ## The Tools
 

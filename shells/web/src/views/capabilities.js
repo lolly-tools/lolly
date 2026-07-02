@@ -263,6 +263,9 @@ const SECTIONS = [
       { icon: ICONS.swatch, title: 'Tokens, themes & palette', features: [
         { name: 'Defined once, used everywhere', desc: 'Shared design tokens and multiple themes; the brand palette appears in every colour picker, with measured CMYK ink values where known.' },
       ] },
+      { icon: I('<circle cx="9" cy="12" r="6"/><circle cx="15" cy="12" r="6"/>'), title: 'Themable icons & backgrounds', features: [
+        { name: 'Recolour to any brand pairing', desc: 'A library of two-colour icons and decorative backgrounds that recolour to a chosen brand pairing right in the asset picker; the colour choice rides in the asset id, so it round-trips through URL mode and re-bakes on every render.' },
+      ] },
       { icon: ICONS.font, title: 'Bundled type', features: [
         { name: 'Local variable fonts', desc: 'SUSE and SUSE Mono ship with the app — no webfont or CDN dependency at render time.' },
       ] },
@@ -286,6 +289,9 @@ const SECTIONS = [
       ] },
       { icon: ICONS.image, title: 'Image hygiene', features: [
         { name: 'Stripped & local', desc: 'Images you add are downscaled and stripped of EXIF/GPS, then kept in a local My images library — never uploaded.' },
+      ] },
+      { icon: I('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>'), title: 'Content Credentials', features: [
+        { name: 'Signed, tamper-evident provenance', desc: 'Exports can carry a signed <a href="https://c2pa.org" target="_blank" rel="noopener">C2PA</a> manifest — the <a href="https://contentauthenticity.org" target="_blank" rel="noopener">Content Authenticity Initiative</a> standard for tamper-evident provenance — created entirely on your device, so a file can prove what made it without any cloud signing service.' },
       ] },
       { icon: ICONS.shield, title: 'On-device utilities', features: [
         { name: 'File in → clean file out', desc: 'Content-transform utilities take a file you supply, process it entirely on your device and hand back a cleaned copy — never uploaded, never watermarked. Strip Hidden Data removes EXIF/GPS, camera, author and editor metadata from JPEG, PNG, SVG and PDF. This replaces handing confidential files to single-purpose websites.' },
