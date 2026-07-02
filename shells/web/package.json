@@ -19,6 +19,7 @@
     "harfbuzzjs": "^1.4.0",
     "idb": "^8.0.0",
     "jspdf": "^4.2.1",
+    "lottie-web": "^5.12.2",
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {

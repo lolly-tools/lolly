@@ -22,7 +22,7 @@
  */
 
 const THEME_ID_RE = /^[a-z0-9][a-z0-9-]*$/;
-const THEME_SUFFIX_RE = /^([^?]+)\?theme=([a-z0-9][a-z0-9-]*)$/;
+const THEME_SUFFIX = '?theme=';
 const DEFAULT_STYLE_RE = /<defs><style>\.c1\{fill:([^}]*)\}\.c2\{fill:([^}]*)\}<\/style><\/defs>/;
 
 /**
@@ -32,16 +32,39 @@ const DEFAULT_STYLE_RE = /<defs><style>\.c1\{fill:([^}]*)\}\.c2\{fill:([^}]*)\}<
  */
 export function parseThemedAssetId(id) {
   if (typeof id !== 'string' || id.includes('://')) return { baseId: id, theme: null };
-  const m = THEME_SUFFIX_RE.exec(id);
-  if (!m) return { baseId: id, theme: null };
-  return { baseId: m[1], theme: m[2] };
+  const i = id.indexOf(THEME_SUFFIX);
+  if (i <= 0) return { baseId: id, theme: null };
+  const baseId = id.slice(0, i);
+  const theme = id.slice(i + THEME_SUFFIX.length);
+  if (baseId.includes('?') || !THEME_ID_RE.test(theme)) return { baseId: id, theme: null };
+  return { baseId, theme };
 }
 
 /** Compose a themed id; a falsy theme returns the base id unchanged. */
 export function buildThemedAssetId(baseId, themeId) {
   if (!themeId) return baseId;
   if (!THEME_ID_RE.test(themeId)) throw new Error(`Bad icon theme id: ${themeId}`);
-  return `${baseId}?theme=${themeId}`;
+  return `${baseId}${THEME_SUFFIX}${themeId}`;
+}
+
+/** Is this theme id valid for use in a themed asset id? */
+export function isValidThemeId(themeId) {
+  return typeof themeId === 'string' && THEME_ID_RE.test(themeId);
+}
+
+/**
+ * Extract the theme list from an icon-themes palette document (the JSON
+ * payload of a palette-type asset tagged "icon-themes"). This is the single
+ * shape contract both shell bridges and the catalog validator share:
+ * `{ themes: [{ id, label?, c1, c2, previewBg? }, …] }`, first entry = the
+ * default pairing (must match the fills baked into every themable icon).
+ * Entries with an invalid id or unusable colours are dropped.
+ */
+export function parseIconThemesDoc(doc) {
+  if (!doc || !Array.isArray(doc.themes)) return [];
+  return doc.themes.filter(t =>
+    t && isValidThemeId(t.id) && safeCssColor(t.c1) && safeCssColor(t.c2),
+  );
 }
 
 /** Does this SVG text follow the themable two-colour contract? */

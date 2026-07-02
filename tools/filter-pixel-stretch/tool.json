@@ -11,7 +11,7 @@
   "render": {
     "width": 1080,
     "height": 1080,
-    "formats": ["png", "jpg", "webp", "svg", "gif", "webm", "mp4"],
+    "formats": ["png", "jpg", "webp", "svg", "gif", "apng", "webm", "mp4"],
     "actions": ["copy", "download", "save"],
     "video": { "wait": 0, "duration": 5 },
     "liveMaxEdge": 1280

@@ -4265,6 +4265,15 @@ body.fc-manipulating { user-select: none; -webkit-user-select: none; }
   position: relative;
   transform-origin: top left;
 }
+/* Editor (free-canvas) only — boxes dragged off the artboard stay visible and
+   selectable: hit-testing follows the visual overflow, and the box DOM still
+   lives inside the canvas so clicks bubble to the overlay's handlers. `> *`
+   un-clips the tool's own clipping root (e.g. layout-studio's .artboard)
+   without naming a tool class. Export is unaffected: the raster capture is
+   bounded by the canvas rect, and the vector walkers' out-of-viewBox geometry
+   never paints. */
+.tool-canvas.fc-open-canvas,
+.tool-canvas.fc-open-canvas > * { overflow: visible !important; }
 
 /* ── Canvas pan/zoom (setupStageNav) ────────────────────────────────────── */
 /* Panning the stage: Space- or middle-drag. Plain clicks stay free for the
@@ -5020,6 +5029,49 @@ body.fc-manipulating { user-select: none; -webkit-user-select: none; }
   border-color: hsl(var(--ring));
 }
 .pdfpass-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Content Credentials (C2PA) card — mirrors .export-pdfpass; revealed only for
+   the "PDF" format. A single checkbox + hint; the checkbox is disabled while an
+   open-password is typed (the two are mutually exclusive — see refreshC2paUi). */
+.export-c2pa {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  background: hsl(var(--muted) / 0.45);
+}
+.c2pa-enable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.c2pa-enable input[type="checkbox"] { flex: 0 0 auto; }
+.c2pa-enable:has(input:disabled) { cursor: default; opacity: 0.55; }
+.c2pa-head {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(var(--muted-foreground));
+}
+.c2pa-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  color: hsl(var(--primary));
+}
+.c2pa-hint {
   margin: 0;
   font-size: 11px;
   line-height: 1.45;

@@ -62,7 +62,7 @@
         "height": { "type": "integer", "minimum": 1 },
         "formats": {
           "type": "array",
-          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "emf", "eps", "eps-cmyk", "pdf", "pdf-cmyk", "cmyk-tiff", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "avif", "webm", "mp4", "gif"] },
+          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "emf", "eps", "eps-cmyk", "pdf", "pdf-cmyk", "cmyk-tiff", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "avif", "webm", "mp4", "gif", "apng"] },
           "minItems": 1,
           "description": "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
         },
@@ -96,6 +96,11 @@
           "type": "boolean",
           "default": false,
           "description": "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
+        },
+        "c2pa": {
+          "type": "boolean",
+          "default": false,
+          "description": "Pre-select the Content Credentials (C2PA) option in the export panel for PDF exports."
         },
         "liveMaxEdge": {
           "type": "integer",
@@ -320,7 +325,7 @@
           "if": { "properties": { "type": { "const": "asset" } } },
           "then": {
             "properties": {
-              "assetType": { "type": "string", "enum": ["vector", "raster", "video", "any"] },
+              "assetType": { "type": "string", "enum": ["vector", "raster", "video", "lottie", "any"] },
               "filter": {
                 "type": "object",
                 "description": "Constraints passed to host.assets.query(). Limits the picker.",
@@ -421,7 +426,7 @@
                     "max": { "type": "number" },
                     "step": { "type": "number" },
                     "display": { "type": "string", "enum": ["input", "slider"], "default": "input" },
-                    "assetType": { "type": "string", "enum": ["vector", "raster", "video", "any"] },
+                    "assetType": { "type": "string", "enum": ["vector", "raster", "video", "lottie", "any"] },
                     "allowUpload": { "type": "boolean", "default": false },
                     "filter": {
                       "type": "object",

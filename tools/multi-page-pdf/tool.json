@@ -14,6 +14,7 @@
     "formats": ["pdf"],
     "actions": ["download", "save"],
     "printMarks": false,
+    "c2pa": true,
     "aspectWarning": {
       "max": 1,
       "message": "This document is built for portrait pages. A landscape or wider size breaks the two-column layout — keep height the longer side."

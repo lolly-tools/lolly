@@ -28,7 +28,7 @@
 
 var TRANS = 0.6;        // scene entrance length (seconds, at speed 1)
 var MAX_SCENES = 12;    // soft cap — each scene is a layer + a keyframe block
-var GIF_CAP = 16;       // seconds; renderGif has no frame ceiling, so bound it
+var GIF_CAP = 16;       // seconds; renderGif/renderApng have no frame ceiling, so bound it
 var VIDEO_CAP = 24;     // seconds; renderVideo caps at 600 frames (~25s @24fps)
 
 // Resolved-asset → data-URL cache (so a slider drag doesn't re-fetch/encode).
@@ -266,8 +266,8 @@ async function compute(model) {
 function onInit(ctx) { return compute(ctx.model); }
 function onInput(ctx) { return compute(ctx.model); }
 
-// gif/webm/mp4/html must PLAY; png/svg/pdf freeze on the poster scene.
-var ANIMATED_FORMATS = { gif: 1, webm: 1, mp4: 1, html: 1 };
+// gif/apng/webm/mp4/html must PLAY; png/svg/pdf freeze on the poster scene.
+var ANIMATED_FORMATS = { gif: 1, apng: 1, webm: 1, mp4: 1, html: 1 };
 
 async function beforeExport(ctx) {
   var root = ctx.node && ctx.node.querySelector && ctx.node.querySelector('.digiad');
@@ -287,11 +287,12 @@ async function beforeExport(ctx) {
     // The timeline IS the clip length — but keep frames under the bridge's 600-frame
     // ceiling, which is fps-aware (the export bar's 60fps option flows in via opts.fps).
     var fps = (ctx.opts.fps > 0) ? ctx.opts.fps : 24;
-    var cap = fmt === 'gif' ? GIF_CAP : Math.min(VIDEO_CAP, Math.floor(595 / fps));
+    var cap = (fmt === 'gif' || fmt === 'apng') ? GIF_CAP : Math.min(VIDEO_CAP, Math.floor(595 / fps));
     ctx.opts.duration = Math.min(_totalDuration, cap);
-    // GIF loop count (gifenc repeat: -1 once, 0 forever, N times) so "Play once /
-    // 3 times" is honoured in the exported GIF, not just the HTML.
-    if (fmt === 'gif') ctx.opts.repeat = _loop === 'loop' ? 0 : (_loop === 'once' ? -1 : 3);
+    // Loop count (gifenc repeat semantics: -1 once, 0 forever, N times; the APNG
+    // path maps the same values onto acTL num_plays) so "Play once / 3 times" is
+    // honoured in the exported clip, not just the HTML.
+    if (fmt === 'gif' || fmt === 'apng') ctx.opts.repeat = _loop === 'loop' ? 0 : (_loop === 'once' ? -1 : 3);
   } else {
     // Static poster / "Animate" off — hold the focus (or end-card) scene.
     root.classList.add('dg-frozen');

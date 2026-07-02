@@ -251,6 +251,108 @@
       "license": "LicenseRef-SUSE-Proprietary"
     },
     {
+      "id": "suse/lottie/pulse-rings",
+      "name": "Pulse Rings",
+      "description": "Concentric SUSE-green rings that scale up and fade out in a staggered pulse. 4s loop, transparent background.",
+      "type": "lottie",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "lottie",
+        "animation",
+        "motion",
+        "pulse",
+        "rings"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/suse/lottie/pulse-rings.json",
+          "checksum": "sha256-52jXzF1wkwvXR+QRklQi6CQL5uinEAg1j2r+HJZWy3M=",
+          "width": 400,
+          "height": 400,
+          "size": 5130
+        },
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/lottie/pulse-rings.svg",
+          "checksum": "sha256-28UBCnu6V+U0yf6XNWWCWRM6eUWv0jXgIUytoaPM5A0=",
+          "width": 400,
+          "height": 400,
+          "size": 470
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/lottie/loader-dots",
+      "name": "Loader Dots",
+      "description": "Three dots — green, pine, green — bouncing in a staggered wave. 3.2s loop, transparent background.",
+      "type": "lottie",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "lottie",
+        "animation",
+        "motion",
+        "loader",
+        "dots"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/suse/lottie/loader-dots.json",
+          "checksum": "sha256-SgXkWcv9EP4ozkwp4KwXq8hUFNxZrMncrBwvG/jrb00=",
+          "width": 400,
+          "height": 400,
+          "size": 4942
+        },
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/lottie/loader-dots.svg",
+          "checksum": "sha256-IZUbKM61kzksJFL8OwYJdk1fGD30e8ObIgcokA1BfVw=",
+          "width": 400,
+          "height": 400,
+          "size": 327
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
+      "id": "suse/lottie/bar-sweep",
+      "name": "Bar Sweep",
+      "description": "A rounded SUSE-green bar easing back and forth along a faint pine track — a progress motif. 3.2s loop, transparent background.",
+      "type": "lottie",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "lottie",
+        "animation",
+        "motion",
+        "progress",
+        "bar"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/suse/lottie/bar-sweep.json",
+          "checksum": "sha256-202WWs184cC+NVQD0yoefDbTbTFDf/ZFSYa+ckh/jnI=",
+          "width": 800,
+          "height": 200,
+          "size": 2518
+        },
+        {
+          "format": "svg",
+          "url": "/catalog/assets/suse/lottie/bar-sweep.svg",
+          "checksum": "sha256-EFDnlGJJ8VUKLqBkxHmxkgV81oPSF8vlGlC7DSLJoiA=",
+          "width": 800,
+          "height": 200,
+          "size": 335
+        }
+      ],
+      "license": "LicenseRef-SUSE-Proprietary"
+    },
+    {
       "id": "suse/headshots/abhinav-puri",
       "name": "Abhinav Puri",
       "type": "raster",
@@ -2324,13 +2426,12 @@
     },
     {
       "id": "suse/icons/grid",
-      "name": "Grid",
+      "name": "Infinity Grid",
       "type": "vector",
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "spot"
       ],
@@ -2461,8 +2562,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2483,8 +2583,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2505,8 +2604,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2527,8 +2625,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2549,8 +2646,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2571,8 +2667,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2593,8 +2688,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2615,8 +2709,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2637,8 +2730,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -2659,8 +2751,7 @@
       "version": "1.0.0",
       "tier": "on-demand",
       "tags": [
-        "icon",
-        "themable",
+        "background",
         "two-color",
         "decorative"
       ],
@@ -4009,8 +4100,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/suse/palette/icon-themes.json",
-          "checksum": "sha256-UJvoteez0aLVM9ksVfDCEvV1gCoi5HdCLn9KczVGHAw=",
-          "size": 691
+          "checksum": "sha256-6LVaXgbo0jK8cvxhoovL2RmKHoEv5kzuG2Wah8sa2Kw=",
+          "size": 767
         }
       ],
       "license": "LicenseRef-SUSE-Proprietary"

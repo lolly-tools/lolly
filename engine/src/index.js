@@ -34,12 +34,17 @@ export {
 export { emitEmf } from './emf.js';
 export { emitEps } from './eps.js';
 export {
+  buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
+} from './pdfx.js';
+export { buildC2paManifest, embedC2paInPdf } from './c2pa.js';
+export { packApng } from './apng.js';
+export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
 } from './tokens.js';
 export {
-  parseThemedAssetId, buildThemedAssetId, isThemableIconSvg,
-  applyIconTheme, restyleIconTheme,
+  parseThemedAssetId, buildThemedAssetId, isThemableIconSvg, isValidThemeId,
+  applyIconTheme, restyleIconTheme, parseIconThemesDoc,
 } from './icon-theme.js';
 
 // 1.1.0 — additive: `file` input type, the transform output path
@@ -66,4 +71,10 @@ export {
 // unpackToken / expandQuery) so complex tools stay shareable past the ~2000-char URL
 // ceiling. Pure URL-mode enhancement — no bridge/host method added or changed; the
 // codec is native (CompressionStream) with graceful fallback to the readable form.
-export const ENGINE_VERSION = '1.5.0';
+// 1.6.0 — additive: themable two-colour icons. An asset id may carry a colour
+// pairing (`<baseId>?theme=<themeId>` — icon-theme.js) which shell bridges parse
+// before catalog lookup and bake into the resolved SVG at resolve time; pairings
+// are catalog data (a palette-type asset tagged "icon-themes"), never engine code.
+// No v1 method signature changed — host.assets.get/isAvailable simply accept the
+// suffixed id form; a shell that ignores it still resolves the base asset.
+export const ENGINE_VERSION = '1.6.0';

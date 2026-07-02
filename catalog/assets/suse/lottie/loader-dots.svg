@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Poster frame for loader-dots.json: middle dot caught mid-bounce. -->
+  <circle cx="130" cy="215" r="28" fill="#30BA78"/>
+  <circle cx="200" cy="172" r="28" fill="#0C322C"/>
+  <circle cx="270" cy="215" r="28" fill="#30BA78"/>
+</svg>

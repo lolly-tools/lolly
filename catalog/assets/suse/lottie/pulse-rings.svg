@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <!-- Poster frame for pulse-rings.json: three concentric rings mid-pulse. -->
+  <circle cx="200" cy="200" r="60" fill="none" stroke="#30BA78" stroke-width="12" opacity="0.9"/>
+  <circle cx="200" cy="200" r="105" fill="none" stroke="#30BA78" stroke-width="9" opacity="0.5"/>
+  <circle cx="200" cy="200" r="145" fill="none" stroke="#30BA78" stroke-width="6" opacity="0.25"/>
+</svg>

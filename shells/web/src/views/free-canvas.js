@@ -1703,6 +1703,12 @@ export function initFreeCanvas(opts) {
   canvasEl.addEventListener('pointercancel', onGestureEnd);
   canvasEl.addEventListener('dblclick', onDblClick);
   canvasEl.addEventListener('contextmenu', onContextMenu);
+  // While the editor is mounted, un-clip the canvas (and the tool's own clipping
+  // root inside it) so boxes dragged off the artboard stay visible + selectable —
+  // their DOM still lives inside canvasEl, so clicks bubble to the handlers above.
+  // Export semantics are unchanged: the raster capture is bounded by the canvas
+  // rect, and the vector walkers' out-of-viewBox geometry never paints.
+  canvasEl.classList.add('fc-open-canvas');
   window.addEventListener('keydown', onKey);
   // Reposition chrome when the stage pans/zooms/resizes.
   const onStageMove = () => scheduleSync();
@@ -1711,6 +1717,11 @@ export function initFreeCanvas(opts) {
   window.addEventListener('resize', onStageMove);
   const ro = new ResizeObserver(onStageMove);
   ro.observe(stageEl);
+  // Keyboard/HUD zoom (setupStageNav's − / + / 0 / 1 / Fit) changes the canvas
+  // wrapper's transform with NO pointer or wheel event — watch the wrapper's
+  // style attribute so the selection chrome follows those zooms too.
+  const mo = new MutationObserver(onStageMove);
+  if (canvasEl.parentElement) mo.observe(canvasEl.parentElement, { attributes: true, attributeFilter: ['style'] });
   // Re-sync after every model change (paint()).
   const unsub = runtime.subscribe(() => scheduleSync());
   // Dismiss popover / more-panel on outside click.
@@ -1738,7 +1749,9 @@ export function initFreeCanvas(opts) {
       window.removeEventListener('resize', onStageMove);
       document.removeEventListener('pointerdown', onDocDown, true);
       ro.disconnect();
+      mo.disconnect();
       unsub?.();
+      canvasEl.classList.remove('fc-open-canvas');
       overlay.remove(); toolbarDock.remove(); closePopover(); closeMorePanel();
       document.body.classList.remove('fc-manipulating');
     },

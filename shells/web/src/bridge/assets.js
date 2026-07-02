@@ -14,7 +14,7 @@
  *   - on-demand → fetched lazily, then cached
  */
 
-import { parseThemedAssetId, applyIconTheme } from '@lolly/engine';
+import { parseThemedAssetId, applyIconTheme, parseIconThemesDoc } from '@lolly/engine';
 
 const OBJECT_URL_CACHE = new Map(); // key → blob URL, kept alive while bridge is.
 
@@ -53,55 +53,74 @@ export function createAssetsAPI(db) {
       const { baseId, theme } = parseThemedAssetId(id);
 
       const meta = await db.get('asset-meta', baseId);
-      if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
+      if (!meta) throw new Error(`Asset not in catalog: ${id}`);
 
       const format = pickFormat(meta, opts.format);
       const version = opts.version ?? meta.version;
       const blobKey = `${baseId}:${format.format}:${version}`;
+      const refMeta = { name: meta.name, tags: meta.tags };
 
-      let blob = await db.get('asset-blob', blobKey);
-      if (!blob) {
-        if (meta.tier === 'on-demand') {
-          blob = await fetchAndCache(meta, format, blobKey, db);
-        } else {
-          throw new Error(`Asset not cached: ${baseId} (tier: ${meta.tier})`);
+      const loadBlob = async () => {
+        let blob = await db.get('asset-blob', blobKey);
+        if (!blob) {
+          if (meta.tier === 'on-demand') {
+            blob = await fetchAndCache(meta, format, blobKey, db);
+          } else {
+            throw new Error(`Asset not cached: ${id} (tier: ${meta.tier})`);
+          }
         }
-      }
+        return blob;
+      };
 
       if (theme) {
         const def = (await api._iconThemes()).find(t => t.id === theme);
-        const baked = def ? applyIconTheme(await blob.text(), def) : null;
-        if (baked) {
-          return toAssetRef({
-            ...meta,
-            id, // keep the themed id — it's the value that persists in URL mode
-            blob: new Blob([baked], { type: 'image/svg+xml' }),
-            format: format.format,
-            meta: { name: meta.name, tags: meta.tags, theme, baseId },
-          }, 'library');
+        if (def) {
+          // Cache key carries the pairing's colours, so palette edits re-bake,
+          // and a resolve whose bake is already minted skips the blob entirely.
+          const cacheKey = `library:${blobKey}:t:${theme}:${def.c1},${def.c2}`;
+          const common = { ...meta, id, format: format.format, cacheKey, meta: { ...refMeta, theme, baseId } };
+          if (OBJECT_URL_CACHE.has(cacheKey)) return toAssetRef(common, 'library');
+          const baked = applyIconTheme(await (await loadBlob()).text(), def);
+          if (baked) {
+            return toAssetRef({ ...common, blob: new Blob([baked], { type: 'image/svg+xml' }) }, 'library');
+          }
         }
-        // Unknown theme or a non-themable file: fall through to the plain asset.
+        // Unknown theme or a non-themable file: serve the plain bytes but KEEP
+        // the requested id — a theme that's temporarily unresolvable must not
+        // be stripped from state the next save persists (and the CLI bridge
+        // behaves the same way). Shares the base asset's object URL.
+        return toAssetRef({
+          ...meta, id, blob: await loadBlob(), format: format.format,
+          cacheKey: `library:${blobKey}`, meta: refMeta,
+        }, 'library');
       }
 
-      return toAssetRef({ ...meta, blob, format: format.format }, 'library');
+      return toAssetRef({ ...meta, blob: await loadBlob(), format: format.format, meta: refMeta }, 'library');
     },
 
     /**
      * Internal: colour pairings for themable icons, from the catalog's
      * palette asset tagged "icon-themes". [] when the catalog has none.
      * First entry is the default pairing (matches the fills baked into icons).
+     * Caches the in-flight promise so concurrent cold-cache resolves share one
+     * metadata scan; a transient failure is NOT cached (next call retries).
      */
     async _iconThemes() {
-      if (ICON_THEMES_CACHE) return ICON_THEMES_CACHE;
-      try {
+      ICON_THEMES_CACHE ??= (async () => {
         const all = await db.getAll('asset-meta');
         const pal = all.find(m => m.type === 'palette' && m.tags?.includes('icon-themes'));
-        const blob = pal ? await api._getBlob(pal.id) : null;
-        const doc = blob ? JSON.parse(await blob.text()) : null;
-        ICON_THEMES_CACHE = Array.isArray(doc?.themes) ? doc.themes : [];
-      } catch {
-        ICON_THEMES_CACHE = []; // unavailable ≠ broken: icons just stay default
-      }
+        if (!pal) {
+          // Distinguish "synced catalog has no themes" (cacheable) from
+          // "metadata hasn't synced yet" (retry once it has).
+          if (!all.length) throw new Error('asset metadata not synced yet');
+          return [];
+        }
+        const blob = await api._getBlob(pal.id);
+        return parseIconThemesDoc(JSON.parse(await blob.text()));
+      })().catch(() => {
+        ICON_THEMES_CACHE = null; // unavailable ≠ broken: icons stay default, retry later
+        return [];
+      });
       return ICON_THEMES_CACHE;
     },
 
@@ -291,9 +310,13 @@ export function createAssetsAPI(db) {
         await Promise.all(staleBlobs.map(k => tx.store.delete(k)));
         await tx.done;
         // Revoke any live object URLs minted for these now-deleted blobs.
-        // toAssetRef keys library URLs as `library:<blobKey>` — without this the
-        // OBJECT_URL_CACHE leaks one entry per pruned blob on every sync.
-        for (const k of staleBlobs) evictObjectUrl(`library:${k}`);
+        // toAssetRef keys library URLs as `library:<blobKey>` and themed icon
+        // bakes as `library:<blobKey>:t:<theme>:<colours>` — evict both forms,
+        // else the OBJECT_URL_CACHE leaks one entry per pruned blob per sync.
+        for (const k of staleBlobs) {
+          evictObjectUrl(`library:${k}`);
+          evictObjectUrlsByPrefix(`library:${k}:t:`);
+        }
       }
       if (staleMeta.length) {
         const tx = db.transaction('asset-meta', 'readwrite');
@@ -381,7 +404,9 @@ function pickFormat(meta, requested) {
 }
 
 function toAssetRef(record, source) {
-  const cacheKey = `${source}:${record.id}:${record.format}:${record.version ?? 'x'}`;
+  // record.cacheKey overrides the default key — themed icon refs key on the
+  // base blob + pairing colours (see get()) so identical bakes share one URL.
+  const cacheKey = record.cacheKey ?? `${source}:${record.id}:${record.format}:${record.version ?? 'x'}`;
   let url = OBJECT_URL_CACHE.get(cacheKey);
   if (!url && record.blob) {
     url = URL.createObjectURL(record.blob);

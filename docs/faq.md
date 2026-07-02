@@ -85,3 +85,9 @@ business model that has every incentive to keep what you give them. The operatio
 trivial; the **content is the cost.** 
 
 We win the war for governance with excellent conveinece and service. 
+
+## What happens on Aug 29?
+
+The SUSE-branded tools leave the project, and new generic example tools defined by the user take over.
+
+SUSE will operate its own Lolly to protect its trademarks.

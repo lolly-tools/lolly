@@ -1,0 +1,136 @@
+{
+  "id": "lottie-digi-ad",
+  "name": "Lottie Ad",
+  "description": "Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size.",
+  "a11yLabel": "Animated Lottie ad with {{sceneCount}} scenes",
+  "version": "1.0.0",
+  "engineVersion": "^1.0.0",
+  "status": "community",
+  "category": "designer",
+  "tags": ["ad", "advertising", "banner", "animation", "lottie", "motion", "video", "social", "scenes", "gif", "apng"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["mp4", "gif", "webm", "apng", "png"],
+    "actions": ["download", "copy", "save"],
+    "video": { "wait": 0, "duration": 6 },
+    "transparentBg": false
+  },
+  "hooks": {
+    "onInit": true,
+    "onInput": true,
+    "beforeExport": true,
+    "afterExport": true
+  },
+  "inputs": [
+    {
+      "id": "size",
+      "label": "Ad size",
+      "type": "select",
+      "default": "sq",
+      "help": "Sets the canvas shape and the exported pixel size. The layout reflows for square, portrait, story, wide and skinny banner shapes.",
+      "options": [
+        { "value": "sq",          "label": "Square · 1080 × 1080",        "width": 1080, "height": 1080, "unit": "px" },
+        { "value": "portrait",    "label": "Portrait 4:5 · 1080 × 1350",  "width": 1080, "height": 1350, "unit": "px" },
+        { "value": "story",       "label": "Story 9:16 · 1080 × 1920",     "width": 1080, "height": 1920, "unit": "px" },
+        { "value": "landscape",   "label": "Landscape 1.91:1 · 1200 × 628", "width": 1200, "height": 628, "unit": "px" },
+        { "value": "mrec",        "label": "Medium Rectangle · 300 × 250", "width": 300,  "height": 250,  "unit": "px" },
+        { "value": "halfpage",    "label": "Half Page · 300 × 600",        "width": 300,  "height": 600,  "unit": "px" },
+        { "value": "skyscraper",  "label": "Wide Skyscraper · 160 × 600",  "width": 160,  "height": 600,  "unit": "px" },
+        { "value": "billboard",   "label": "Billboard · 970 × 250",        "width": 970,  "height": 250,  "unit": "px" },
+        { "value": "leaderboard", "label": "Leaderboard · 728 × 90",       "width": 728,  "height": 90,   "unit": "px" },
+        { "value": "mobile",      "label": "Mobile Banner · 320 × 50",     "width": 320,  "height": 50,   "unit": "px" }
+      ]
+    },
+    {
+      "id": "animated",
+      "label": "Animate",
+      "type": "boolean",
+      "default": true,
+      "section": "Animation",
+      "help": "When on, the scenes play in sequence. Turn off to hold the final scene as a still (the Lottie asset itself keeps playing in the preview)."
+    },
+    {
+      "id": "motion",
+      "label": "Motion style",
+      "type": "select",
+      "default": "fade",
+      "section": "Animation",
+      "help": "The default way each scene enters. A scene can override it.",
+      "options": [
+        { "value": "fade",  "label": "Fade" },
+        { "value": "slide", "label": "Slide up" },
+        { "value": "zoom",  "label": "Zoom" }
+      ]
+    },
+    {
+      "id": "speed",
+      "label": "Speed",
+      "type": "number",
+      "display": "slider",
+      "section": "Animation",
+      "min": 0.5,
+      "max": 2,
+      "step": 0.05,
+      "default": 1,
+      "help": "Plays the whole scene sequence faster or slower without re-timing each scene."
+    },
+    {
+      "id": "loop",
+      "label": "Loop",
+      "type": "select",
+      "default": "loop",
+      "section": "Animation",
+      "help": "How many times the sequence plays. Display ad networks usually cap at 3 plays.",
+      "options": [
+        { "value": "loop",  "label": "Loop forever" },
+        { "value": "play3", "label": "Play 3 times" },
+        { "value": "once",  "label": "Play once" }
+      ]
+    },
+    {
+      "id": "scenes",
+      "label": "Scenes",
+      "type": "blocks",
+      "help": "Each scene is one segment of the sequence — it animates in over the previous one, with its own Lottie animation looping on top. The last scene is the resting end card.",
+      "addMenu": { "field": "animSize", "label": "Add scene" },
+      "fields": [
+        {
+          "id": "anim", "label": "Animation", "type": "asset", "assetType": "lottie"
+        },
+        { "id": "bgColor", "label": "Background", "type": "color", "default": "" },
+        { "id": "fgColor", "label": "Text colour", "type": "color", "default": "" },
+        { "id": "headline", "label": "Headline", "type": "text", "default": "", "placeholder": "Build once." },
+        { "id": "caption", "label": "Caption", "type": "text", "default": "", "placeholder": "Run anywhere." },
+        {
+          "id": "animSize", "label": "Animation size", "type": "select", "default": "large",
+          "options": [
+            { "value": "small",  "label": "Small animation",      "repeatable": true },
+            { "value": "medium", "label": "Medium animation",     "repeatable": true },
+            { "value": "large",  "label": "Large animation",      "repeatable": true },
+            { "value": "full",   "label": "Full-bleed animation", "repeatable": true }
+          ]
+        },
+        {
+          "id": "hold", "label": "Hold (seconds)", "type": "number",
+          "min": 0.5, "max": 8, "step": 0.1, "default": 2.5
+        },
+        {
+          "id": "transition", "label": "Enter with", "type": "select", "default": "inherit",
+          "options": [
+            { "value": "inherit", "label": "Default" },
+            { "value": "fade",    "label": "Fade" },
+            { "value": "slide",   "label": "Slide up" },
+            { "value": "zoom",    "label": "Zoom" },
+            { "value": "none",    "label": "Cut" }
+          ]
+        }
+      ],
+      "default": [
+        { "anim": { "id": "suse/lottie/pulse-rings" }, "bgColor": "#0c322c", "fgColor": "#ffffff", "headline": "Build once.", "caption": "Run anywhere.", "animSize": "large", "hold": 2.5, "transition": "inherit" },
+        { "anim": { "id": "suse/lottie/loader-dots" }, "bgColor": "#ffffff", "fgColor": "#0c322c", "headline": "", "caption": "One platform for every cloud, edge and datacenter.", "animSize": "medium", "hold": 2.5, "transition": "inherit" },
+        { "anim": { "id": "suse/lottie/bar-sweep" },   "bgColor": "#0c322c", "fgColor": "#ffffff", "headline": "Get started", "caption": "suse.com", "animSize": "large", "hold": 2.5, "transition": "inherit" }
+      ]
+    }
+  ]
+}

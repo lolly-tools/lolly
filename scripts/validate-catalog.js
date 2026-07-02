@@ -41,6 +41,7 @@ import { entryFromManifest } from './build-catalog-index.js';
 // export's hex→CMYK lookup (buildCmykPaletteMap) is keyed on hex and would
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.js';
+import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.js';
 
 // Fields tools/index.json mirrors from each manifest — kept in sync with
 // scripts/build-catalog-index.js.
@@ -248,6 +249,8 @@ for (const [toolId, manifest] of toolManifests) {
 
 const seenAssetIds = new Set();
 const assetById = new Map();
+const iconThemePalettes = [];     // { assetId, themes } per icon-themes palette
+const themableIconDefaults = [];  // { assetId, c1, c2 } per themable icon
 
 for (const asset of assetsIndex.assets) {
   if (seenAssetIds.has(asset.id)) {
@@ -272,19 +275,20 @@ for (const asset of assetsIndex.assets) {
         errors.push(`[asset ${asset.id}] format "${fmt.format}" url "${fmt.url}" does not exist on disk`);
         continue;
       }
+      const bytes = readFileSync(absPath);
       if (fmt.checksum === 'sha256-PLACEHOLDER') {
         warnings.push(`[asset ${asset.id}] format "${fmt.format}" has placeholder checksum — run \`npm run build:catalog\``);
-        continue;
-      }
-      const actual = `sha256-${createHash('sha256').update(readFileSync(absPath)).digest('base64')}`;
-      if (fmt.checksum !== actual) {
-        errors.push(`[asset ${asset.id}] format "${fmt.format}" checksum stale — run \`npm run build:catalog\``);
+      } else {
+        const actual = `sha256-${createHash('sha256').update(bytes).digest('base64')}`;
+        if (fmt.checksum !== actual) {
+          errors.push(`[asset ${asset.id}] format "${fmt.format}" checksum stale — run \`npm run build:catalog\``);
+        }
       }
 
       // Tokens assets carry a DTCG document — validate its structure too.
       if (asset.type === 'tokens' && fmt.format === 'json') {
         let doc;
-        try { doc = JSON.parse(readFileSync(absPath, 'utf8')); } catch {
+        try { doc = JSON.parse(bytes.toString('utf8')); } catch {
           errors.push(`[asset ${asset.id}] tokens doc "${fmt.url}" is not valid JSON`);
           continue;
         }
@@ -295,24 +299,66 @@ for (const asset of assetsIndex.assets) {
         }
       }
 
+      // Icon-themes palettes: the colour pairings the shells offer for themable
+      // icons. parseIconThemesDoc is the runtime's reader — any entry it drops
+      // (bad id charset, unusable colour) would silently vanish from the UI, so
+      // dropping is an authoring error here.
+      if (asset.type === 'palette' && asset.tags?.includes('icon-themes') && fmt.format === 'json') {
+        let doc;
+        try { doc = JSON.parse(bytes.toString('utf8')); } catch {
+          errors.push(`[asset ${asset.id}] icon-themes doc "${fmt.url}" is not valid JSON`);
+          continue;
+        }
+        const themes = parseIconThemesDoc(doc);
+        const declared = Array.isArray(doc?.themes) ? doc.themes.length : 0;
+        if (!declared) {
+          errors.push(`[asset ${asset.id}] icon-themes doc has no themes[] array`);
+        } else if (themes.length !== declared) {
+          errors.push(`[asset ${asset.id}] icon-themes doc has ${declared - themes.length} entr${declared - themes.length === 1 ? 'y' : 'ies'} the runtime would drop (theme ids must be [a-z0-9-], c1/c2 must be simple CSS colours)`);
+        }
+        const ids = themes.map(t => t.id);
+        if (new Set(ids).size !== ids.length) {
+          errors.push(`[asset ${asset.id}] icon-themes doc has duplicate theme ids`);
+        }
+        iconThemePalettes.push({ assetId: asset.id, themes });
+      }
+
       // Themable two-colour icons (tag "themable"): the shells' theme baking is
-      // a string rewrite, so the SVG must follow the exact contract — one
-      // default <defs><style>.c1{fill:…}.c2{fill:…}</style></defs> block, shape
-      // classes limited to c1/c2, and no stray style/stroke attributes.
+      // a string rewrite, so the SVG must follow the exact contract the engine's
+      // isThemableIconSvg/applyIconTheme expect — one default
+      // <defs><style>.c1{fill:…}.c2{fill:…}</style></defs> block, shape classes
+      // limited to c1/c2, and no stray style/stroke attributes.
       if (asset.tags?.includes('themable') && fmt.format === 'svg') {
-        const svg = readFileSync(absPath, 'utf8');
+        const svg = bytes.toString('utf8');
         const styleBlocks = svg.match(/<style>/g) ?? [];
-        if (!/<defs><style>\.c1\{fill:[^}]+\}\.c2\{fill:[^}]+\}<\/style><\/defs>/.test(svg)) {
+        if (!isThemableIconSvg(svg)) {
           errors.push(`[asset ${asset.id}] themable icon missing the default .c1/.c2 style block`);
         } else if (styleBlocks.length !== 1) {
           errors.push(`[asset ${asset.id}] themable icon must contain exactly one <style> block`);
+        } else {
+          const fills = svg.match(/\.c1\{fill:([^}]*)\}\.c2\{fill:([^}]*)\}/);
+          themableIconDefaults.push({ assetId: asset.id, c1: fills[1], c2: fills[2] });
         }
         const body = svg.replace(/<defs><style>[\s\S]*?<\/style><\/defs>/, '');
         const badClass = [...body.matchAll(/class="([^"]*)"/g)].find(m => m[1] !== 'c1' && m[1] !== 'c2');
         if (badClass) errors.push(`[asset ${asset.id}] themable icon has a class other than c1/c2: "${badClass[1]}"`);
         if (/style="/.test(body)) errors.push(`[asset ${asset.id}] themable icon has an inline style attribute`);
-        if (/stroke/.test(body)) errors.push(`[asset ${asset.id}] themable icon has stroke styling (fills only)`);
+        if (/\bstroke[-\w]*\s*[:=]/.test(body)) errors.push(`[asset ${asset.id}] themable icon has stroke styling (fills only)`);
       }
+    }
+  }
+}
+
+// The first icon-themes pairing is the DEFAULT the picker maps to a plain
+// (suffix-less) id — it only reads true if it matches the fills actually baked
+// into the icons. Reordering the palette without recolouring the icons would
+// silently mislabel every default pick.
+for (const pal of iconThemePalettes) {
+  const first = pal.themes[0];
+  if (!first) continue;
+  for (const icon of themableIconDefaults) {
+    if (icon.c1.toLowerCase() !== first.c1.toLowerCase() || icon.c2.toLowerCase() !== first.c2.toLowerCase()) {
+      errors.push(`[asset ${icon.assetId}] default fills (${icon.c1}/${icon.c2}) don't match the first icon-themes pairing "${first.id}" (${first.c1}/${first.c2}) in ${pal.assetId}`);
     }
   }
 }
@@ -334,11 +380,16 @@ for (const asset of assetsIndex.assets) {
 for (const [toolId, manifest] of toolManifests) {
   for (const input of manifest.inputs) {
     // Default asset refs must resolve. A default may carry an icon theme
-    // suffix (`<id>?theme=<t>`) — the catalog id is the part before it.
+    // suffix (`<id>?theme=<t>`) — parse it exactly the way the runtime does,
+    // so anything that validates here also resolves at mount.
     if (input.type === 'asset' && typeof input.default === 'string') {
-      const baseId = input.default.split('?theme=')[0];
-      if (!assetById.has(baseId)) {
+      const { baseId, theme } = parseThemedAssetId(input.default);
+      if (baseId.includes('?')) {
+        errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
+      } else if (!assetById.has(baseId)) {
         errors.push(`[${toolId}] input "${input.id}" default asset "${input.default}" not in catalog`);
+      } else if (theme && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+        errors.push(`[${toolId}] input "${input.id}" default asset theme "${theme}" not in any icon-themes palette`);
       }
     }
     // Color palette refs must resolve

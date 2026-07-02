@@ -45,7 +45,7 @@ const FMT_LABEL = {
   'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', jpeg: 'JPG', jpg: 'JPG',
   webm: 'WebM', mp4: 'MP4', emf: 'EMF', eps: 'EPS', 'eps-cmyk': 'EPS (CMYK)', ics: 'Calendar', vcf: 'vCard', ico: 'Icon',
   zip: 'ZIP', csv: 'CSV', json: 'JSON', svg: 'SVG', pdf: 'PDF', png: 'PNG',
-  webp: 'WebP', avif: 'AVIF', html: 'HTML', md: 'Markdown', txt: 'Text', gif: 'GIF',
+  webp: 'WebP', avif: 'AVIF', html: 'HTML', md: 'Markdown', txt: 'Text', gif: 'GIF', apng: 'Animated PNG',
 };
 const fmtLabel = (f) => FMT_LABEL[f] ?? String(f).toUpperCase();
 

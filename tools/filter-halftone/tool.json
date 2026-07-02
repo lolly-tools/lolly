@@ -11,7 +11,7 @@
   "render": {
     "width": 1000,
     "height": 1000,
-    "formats": ["svg", "pdf", "pdf-cmyk", "emf", "png", "webp", "avif", "gif", "webm", "mp4"],
+    "formats": ["svg", "pdf", "pdf-cmyk", "emf", "png", "webp", "avif", "gif", "apng", "webm", "mp4"],
     "actions": ["copy", "download", "save"],
     "video": { "wait": 0, "duration": 5 },
     "transparentBg": false,

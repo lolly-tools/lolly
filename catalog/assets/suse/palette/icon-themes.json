@@ -5,6 +5,7 @@
     { "id": "brand", "label": "Brand",  "c1": "#30ba78", "c2": "#0c322c" },
     { "id": "ocean", "label": "Ocean",  "c1": "#2453ff", "c2": "#192072" },
     { "id": "mint",  "label": "Mint",   "c1": "#90ebcd", "c2": "#30ba78" },
+    { "id": "pine",  "label": "Pine",   "c1": "#008878", "c2": "#01564a" },
     { "id": "paper", "label": "Paper",  "c1": "#ffffff", "c2": "#efefef", "previewBg": "#0c322c" },
     { "id": "ember", "label": "Ember",  "c1": "#fe7c3f", "c2": "#ff5a2b" }
   ]

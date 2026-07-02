@@ -15,7 +15,7 @@
       "type": "string",
       "description": "For library: the canonical asset id (e.g. 'suse/logo/primary'). For user: a host-generated local id. For remote: the source URL."
     },
-    "type": { "type": "string", "enum": ["vector", "raster", "video", "palette", "font"] },
+    "type": { "type": "string", "enum": ["vector", "raster", "video", "lottie", "palette", "tokens", "font"] },
     "format": {
       "type": "string",
       "description": "The specific variant resolved, e.g. 'svg', 'png@2x'."

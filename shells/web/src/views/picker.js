@@ -106,8 +106,8 @@ async function render(root, host, opts, resolve) {
   // asset id, so default picks stay class-overridable when inlined.
   // A non-default choice is carried in the picked id (`<id>?theme=<themeId>`).
   let iconThemes = [];
-  let activeTheme = parseThemedAssetId(String(opts.current ?? '')).theme;
-  const currentBaseId = parseThemedAssetId(String(opts.current ?? '')).baseId;
+  const { baseId: currentBaseId, theme: currentTheme } = parseThemedAssetId(String(opts.current ?? ''));
+  let activeTheme = currentTheme;
   const isThemableRef = (ref) => Boolean(ref?.meta?.tags?.includes('themable'));
 
   // Which sources get a tab. Library is always present; the rest are conditional.
@@ -138,7 +138,6 @@ async function render(root, host, opts, resolve) {
       <div class="asset-picker-body">
         <section class="asset-picker-pane" data-pane="library">
           ${showUserAssets ? `<section class="asset-picker-userassets" hidden></section>` : ''}
-          <div class="asset-picker-themes" role="group" aria-label="Icon colour theme" hidden></div>
           <section class="asset-picker-library">
             <div class="asset-picker-loading">Loading…</div>
           </section>
@@ -204,7 +203,9 @@ async function render(root, host, opts, resolve) {
   const visiblePane = () => root.querySelector('.asset-picker-pane:not([hidden])');
   const navCards = () => {
     const pane = visiblePane();
-    return pane ? [...pane.querySelectorAll('[data-asset-id],[data-tool-id],[data-session-slot]')] : [];
+    // Skip cards inside a collapsed section (offsetParent is null when display:none).
+    return pane ? [...pane.querySelectorAll('[data-asset-id],[data-tool-id],[data-session-slot]')]
+      .filter(el => el.offsetParent !== null) : [];
   };
   function focusCard(el) { if (el) { el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'nearest' }); } }
   function moveSelection(cur, key) {
@@ -255,9 +256,35 @@ async function render(root, host, opts, resolve) {
     if (btn) setTab(btn.dataset.tab);
   });
 
-  // One delegated handler serves every region: pick a library/user asset, delete a
-  // user image, embed a saved session, or open a tool.
+  // One delegated handler serves every region: choose an icon colour, pick a
+  // library/user asset, delete a user image, embed a saved session, or open a tool.
   body.addEventListener('click', async (e) => {
+    // Icon colour pairing — the strip lives inside the (re-rendered) Icons group,
+    // so it's handled by delegation rather than a per-render listener.
+    const theme = e.target.closest('[data-theme-id]');
+    if (theme) {
+      // The first pairing is the icons' baked default → no id suffix in the pick.
+      activeTheme = theme.dataset.themeId === iconThemes[0]?.id ? null : theme.dataset.themeId;
+      libraryEl.querySelectorAll('[data-theme-id]').forEach(b => {
+        const on = b === theme;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      retintThemableCards();
+      return;
+    }
+    // Collapse / expand a library section. State is kept in `collapsedGroups` so it
+    // survives the innerHTML rebuild a search / tab-return does.
+    const gt = e.target.closest('[data-group-toggle]');
+    if (gt) {
+      const key = gt.dataset.groupToggle;
+      const sec = gt.closest('.asset-picker-group');
+      const collapse = !sec.classList.contains('is-collapsed');
+      sec.classList.toggle('is-collapsed', collapse);
+      gt.setAttribute('aria-expanded', String(!collapse));
+      if (collapse) collapsedGroups.add(key); else collapsedGroups.delete(key);
+      return;
+    }
     const del = e.target.closest('[data-delete-id]');
     if (del) {
       const id = del.dataset.deleteId;
@@ -277,17 +304,17 @@ async function render(root, host, opts, resolve) {
     if (tool) { embedTool(tool.dataset.toolId); return; }
     const pick = e.target.closest('[data-asset-id]');
     if (pick) {
+      // A non-default icon theme rides in the picked id so it survives
+      // URL-mode round-trips (an asset value persists as its id alone).
+      let pickId = pick.dataset.assetId;
+      if (activeTheme && isThemableRef(candidateById.get(pickId))) {
+        pickId = buildThemedAssetId(pickId, activeTheme);
+      }
       try {
-        // A non-default icon theme rides in the picked id so it survives
-        // URL-mode round-trips (an asset value persists as its id alone).
-        let pickId = pick.dataset.assetId;
-        if (activeTheme && isThemableRef(libraryCandidates.find(c => c.id === pickId))) {
-          pickId = buildThemedAssetId(pickId, activeTheme);
-        }
         const resolved = await host.assets.get(pickId);
         close(resolved);
       } catch (err) {
-        host.log('error', 'Failed to resolve asset', { id: pick.dataset.assetId, error: String(err) });
+        host.log('error', 'Failed to resolve asset', { id: pickId, error: String(err) });
         alert(`Could not resolve asset: ${err.message}`);
       }
     }
@@ -403,67 +430,122 @@ async function render(root, host, opts, resolve) {
     if (ref) close(ref);
   });
 
+  // Library sections, in display order. A candidate is bucketed by its tags into
+  // exactly one: 'background' wins over 'themable' so a two-colour background
+  // pattern lands under Backgrounds, not Icons. 'other' catches anything untagged.
+  const LIB_GROUPS = [
+    { key: 'photos',      label: 'Photos' },
+    { key: 'backgrounds', label: 'Backgrounds' },
+    { key: 'logos',       label: 'Logos' },
+    { key: 'icons',       label: 'Icons' },
+    { key: 'other',       label: 'More' },
+  ];
+  function libCategory(ref) {
+    const t = new Set(ref?.meta?.tags || []);
+    if (t.has('background')) return 'backgrounds';
+    if (t.has('logo'))       return 'logos';
+    if (t.has('headshot'))   return 'photos';
+    if (t.has('themable'))   return 'icons';
+    return 'other';
+  }
+  const collapsedGroups = new Set(); // group keys the user collapsed; persists across re-render
+  const CHEVRON = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 6 15 12 9 18"/></svg>';
+
   function renderLibrary(candidates) {
     if (candidates.length === 0) {
       libraryEl.innerHTML = `<p class="asset-picker-empty" role="status">No assets match.${opts.allowUpload ? ' Upload one below.' : ''}</p>`;
       return;
     }
-    libraryEl.innerHTML = `<div class="asset-picker-grid">${candidates.map(card).join('')}</div>`;
+    // Bucket by category, preserving order within each bucket.
+    const buckets = new Map();
+    for (const c of candidates) {
+      const k = libCategory(c);
+      if (!buckets.has(k)) buckets.set(k, []);
+      buckets.get(k).push(c);
+    }
+    const present = LIB_GROUPS.filter(g => buckets.get(g.key)?.length);
+    // A group is themable when the catalog supplies pairings AND it holds themable
+    // icons — only then does its header carry the colour strip.
+    const themableOf = (items) => iconThemes.length > 1 && items.some(isThemableRef);
+    // Simple pickers (one plain category — e.g. a raster-only field) stay a single
+    // grid with no section chrome. Sections appear once there's real grouping, or a
+    // themable group that needs its colour strip above it.
+    const useSections = present.length > 1 || (present[0] && themableOf(buckets.get(present[0].key)));
+    if (!useSections) {
+      libraryEl.innerHTML = `<div class="asset-picker-grid">${candidates.map(card).join('')}</div>`;
+      retintThemableCards();
+      return;
+    }
+    libraryEl.innerHTML = present.map(g => {
+      const items = buckets.get(g.key);
+      const collapsed = collapsedGroups.has(g.key);
+      const strip = themableOf(items) ? themeStripHtml() : '';
+      return `<section class="asset-picker-group${collapsed ? ' is-collapsed' : ''}" data-group="${g.key}">
+        <div class="asset-picker-group-head">
+          <button type="button" class="asset-picker-group-toggle" data-group-toggle="${g.key}" aria-expanded="${!collapsed}">
+            <span class="asset-picker-group-chevron">${CHEVRON}</span>
+            <span class="asset-picker-group-title">${escape(g.label)}</span>
+            <span class="asset-picker-count">${items.length}</span>
+          </button>
+          ${strip}
+        </div>
+        <div class="asset-picker-group-body">
+          <div class="asset-picker-grid">${items.map(card).join('')}</div>
+        </div>
+      </section>`;
+    }).join('');
     retintThemableCards(); // re-applied after every innerHTML rebuild (search, tab return)
   }
 
-  // ── Icon theme strip: mount, retint thumbnails, track the active pairing ────
-  function mountThemeStrip() {
-    const strip = root.querySelector('.asset-picker-themes');
-    if (!strip || strip.childElementCount) return;
-    strip.hidden = false;
-    strip.innerHTML = `<span class="asset-picker-themes-label">Icon colours</span>` + iconThemes.map((t, i) => {
-      const on = activeTheme ? t.id === activeTheme : i === 0;
-      return `
-        <button type="button" class="asset-picker-theme${on ? ' is-active' : ''}" data-theme-id="${escape(t.id)}" aria-pressed="${on}">
-          <span class="asset-picker-theme-duo" style="background:${escape(t.previewBg ?? '#ffffff')}"><i style="background:${escape(t.c2)}"></i><i style="background:${escape(t.c1)}"></i></span>
-          <span>${escape(t.label ?? t.id)}</span>
-        </button>`;
-    }).join('');
-    strip.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-theme-id]');
-      if (!btn) return;
-      // The first pairing is the icons' baked default → no id suffix.
-      activeTheme = btn.dataset.themeId === iconThemes[0]?.id ? null : btn.dataset.themeId;
-      strip.querySelectorAll('[data-theme-id]').forEach(b => {
-        const on = b === btn;
-        b.classList.toggle('is-active', on);
-        b.setAttribute('aria-pressed', String(on));
-      });
-      retintThemableCards();
-    });
+  // ── Icon theme strip ────────────────────────────────────────────────────────
+  // Markup for the colour-pairing strip. Rebuilt with the Icons group on every
+  // renderLibrary (search / tab return); the active pairing lives in `activeTheme`
+  // and clicks are handled by the delegated body listener, so no per-render wiring.
+  function themeStripHtml() {
+    return `<div class="asset-picker-themes" role="group" aria-label="Icon colour theme">`
+      + `<span class="asset-picker-themes-label">Icon colours</span>`
+      + iconThemes.map((t, i) => {
+          const on = activeTheme ? t.id === activeTheme : i === 0;
+          return `<button type="button" class="asset-picker-theme${on ? ' is-active' : ''}" data-theme-id="${escape(t.id)}" aria-pressed="${on}">
+            <span class="asset-picker-theme-duo" style="background:${escape(t.previewBg ?? '#ffffff')}"><i style="background:${escape(t.c2)}"></i><i style="background:${escape(t.c1)}"></i></span>
+            <span>${escape(t.label ?? t.id)}</span>
+          </button>`;
+        }).join('')
+      + `</div>`;
   }
 
   // Live-preview the chosen pairing on every themable thumbnail. Restyle (class
   // contract kept) rather than bake — each thumb is its own <img> document, so
   // there is no cross-icon CSS collision here. SVG text is fetched once per
-  // asset; a seq guard drops stale passes when the user flips themes quickly.
-  const iconSvgTextCache = new Map(); // asset id → Promise<string|null>
+  // asset and finished data URLs are cached per pairing, so a rebuild (every
+  // search keystroke re-renders the grid) just reassigns strings; a seq guard
+  // drops stale passes when the user flips themes quickly.
+  const iconSvgTextCache = new Map();  // asset id → Promise<string|null>
+  const themedThumbCache = new Map();  // `${asset id}:${theme id}` → data URL
   let retintSeq = 0;
   function retintThemableCards() {
     const def = activeTheme ? iconThemes.find(t => t.id === activeTheme) : null;
     const seq = ++retintSeq;
     for (const cardEl of libraryEl.querySelectorAll('[data-asset-id]')) {
-      const ref = libraryCandidates.find(c => c.id === cardEl.dataset.assetId);
+      const ref = candidateById.get(cardEl.dataset.assetId);
       if (!isThemableRef(ref)) continue;
       const img = cardEl.querySelector('img.asset-picker-thumb');
       if (!img) continue;
       if (!def) { img.src = ref.url; img.style.background = ''; continue; }
+      const cached = themedThumbCache.get(`${ref.id}:${def.id}`);
+      if (cached) { img.src = cached; img.style.background = def.previewBg ?? ''; continue; }
       let textP = iconSvgTextCache.get(ref.id);
       if (!textP) {
         textP = fetch(ref.url).then(r => (r.ok ? r.text() : null)).catch(() => null);
         iconSvgTextCache.set(ref.id, textP);
       }
       textP.then(text => {
-        if (seq !== retintSeq) return; // superseded by a newer theme choice
         const restyled = text ? restyleIconTheme(text, def) : null;
         if (!restyled) return;
-        img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(restyled);
+        const src = svgDataUrl(restyled);
+        themedThumbCache.set(`${ref.id}:${def.id}`, src);
+        if (seq !== retintSeq) return; // superseded by a newer theme choice
+        img.src = src;
         img.style.background = def.previewBg ?? '';
       });
     }
@@ -472,6 +554,7 @@ async function render(root, host, opts, resolve) {
   // Library candidates resolve async (host.assets.query); `restoreLibrary` filters
   // them and is safe to call before they land (shows the loading state until then).
   let libraryCandidates = [];
+  let candidateById = new Map();
   let libraryLoaded = false;
   function restoreLibrary(q) {
     renderUserAssets();
@@ -691,8 +774,13 @@ async function render(root, host, opts, resolve) {
   }
 
   try {
-    const candidates = await host.assets.query(opts);
+    // Only visual assets are pickable images — palette / tokens / font entries are
+    // engine data (JSON), never something a user places in a slot, so keep them out
+    // of the library (a `type`-scoped pick already excludes them; this covers `any`).
+    const VISUAL_TYPES = new Set(['raster', 'vector', 'video']);
+    const candidates = (await host.assets.query(opts)).filter(a => VISUAL_TYPES.has(a.type));
     libraryCandidates = candidates;
+    candidateById = new Map(candidates.map(c => [c.id, c]));
     libraryLoaded = true;
 
     // Colour pairings for themable icons — only worth mounting when this
@@ -700,7 +788,7 @@ async function render(root, host, opts, resolve) {
     if (candidates.some(isThemableRef) && typeof host.assets._iconThemes === 'function') {
       iconThemes = await host.assets._iconThemes().catch(() => []);
       if (activeTheme && !iconThemes.some(t => t.id === activeTheme)) activeTheme = null;
-      if (iconThemes.length > 1) mountThemeStrip();
+      // renderLibrary renders the strip inside the Icons group when iconThemes.length > 1.
     }
 
     renderLibrary(candidates);
@@ -841,14 +929,19 @@ function sessionCard(s) {
   `;
 }
 
+// One encoding for every SVG-text-as-<img> use (session thumbs, themed icon
+// thumbnails) so quirks fixes land in one place.
+function svgDataUrl(svgText) {
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svgText);
+}
+
 function sessionThumb(thumb, iconSvg) {
   if (typeof thumb === 'string' && thumb) {
     if (thumb.startsWith('data:')) {
       return `<img class="asset-picker-thumb" src="${escape(thumb)}" alt="" loading="lazy" decoding="async">`;
     }
     if (/^\s*<(\?xml|svg)/i.test(thumb)) {
-      const src = 'data:image/svg+xml;utf8,' + encodeURIComponent(thumb);
-      return `<img class="asset-picker-thumb" src="${escape(src)}" alt="" loading="lazy" decoding="async">`;
+      return `<img class="asset-picker-thumb" src="${escape(svgDataUrl(thumb))}" alt="" loading="lazy" decoding="async">`;
     }
   }
   return `<span class="asset-picker-thumb asset-picker-thumb-stub asset-picker-thumb-icon" aria-hidden="true">${iconSvg ?? ''}</span>`;

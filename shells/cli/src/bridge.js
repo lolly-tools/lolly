@@ -13,7 +13,7 @@
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf, emitEps, parseToolUrl, buildEmbedUrl, parseUrlState, RESERVED, parseThemedAssetId, applyIconTheme } from '@lolly/engine';
+import { parseDimension, toCssLength, toCssPx, loadTool, createRuntime, emitEmf, emitEps, parseToolUrl, buildEmbedUrl, parseUrlState, RESERVED, parseThemedAssetId, applyIconTheme, parseIconThemesDoc } from '@lolly/engine';
 // PDF metadata inspect/strip is pure pdf-lib (no DOM), so the lean node CLI
 // shares the web shell's implementation rather than duplicating it.
 import { createPdfAPI } from '../../web/src/bridge/pdf.js';
@@ -47,17 +47,16 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
   };
 
   // Colour pairings for themable two-colour icons, from the catalog's palette
-  // asset tagged "icon-themes". Read once per CLI invocation.
+  // asset tagged "icon-themes". The in-flight promise is cached so N themed
+  // refs resolving in parallel share one read per CLI invocation.
   let iconThemesCache = null;
-  async function iconThemes() {
-    if (iconThemesCache) return iconThemesCache;
-    try {
+  function iconThemes() {
+    iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find(a => a.type === 'palette' && a.tags?.includes('icon-themes'));
-      const doc = pal ? JSON.parse(await readFile(join(REPO_ROOT, pal.formats[0].url.replace(/^\//, '')), 'utf8')) : null;
-      iconThemesCache = Array.isArray(doc?.themes) ? doc.themes : [];
-    } catch {
-      iconThemesCache = []; // unavailable ≠ broken: icons just stay default
-    }
+      if (!pal) return [];
+      const doc = JSON.parse(await readFile(join(REPO_ROOT, pal.formats[0].url.replace(/^\//, '')), 'utf8'));
+      return parseIconThemesDoc(doc);
+    })().catch(() => []); // unavailable ≠ broken: icons just stay default
     return iconThemesCache;
   }
 
@@ -86,14 +85,16 @@ export async function createCliBridge({ profile = {}, dom } = {}) {
           buf = Buffer.from(baked, 'utf8');
           extraMeta = { ...extraMeta, theme, baseId };
         }
-        // Unknown theme / non-themable file → serve the plain asset.
+        // Unknown theme / non-themable file → plain bytes under the requested
+        // id (kept so a temporarily unresolvable theme isn't stripped from
+        // persisted state — same contract as the web bridge).
       }
       // jsdom doesn't have URL.createObjectURL by default; encode as data URL.
       const mime = mimeFor(fmt.format);
       const url = `data:${mime};base64,${buf.toString('base64')}`;
       return {
         source: 'library',
-        id: theme ? id : meta.id,
+        id,
         type: meta.type,
         format: fmt.format,
         url,

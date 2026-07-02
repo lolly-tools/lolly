@@ -11,7 +11,7 @@
   "render": {
     "width": 1080,
     "height": 1080,
-    "formats": ["png", "svg", "pdf", "jpg", "webp", "gif", "webm", "mp4"],
+    "formats": ["png", "svg", "pdf", "jpg", "webp", "gif", "apng", "webm", "mp4"],
     "actions": ["copy", "download", "save"],
     "video": { "wait": 0, "duration": 5 },
     "convertPaths": false

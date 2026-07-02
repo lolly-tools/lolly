@@ -263,7 +263,15 @@ export interface Profile {
 // ─── Assets ─────────────────────────────────────────────────────────────────
 
 export interface AssetsAPI {
-  /** Resolve a specific asset by id. Throws if not found and not in user uploads. */
+  /**
+   * Resolve a specific asset by id. Throws if not found and not in user uploads.
+   *
+   * 1.6.0: the id may carry an icon colour pairing — `<baseId>?theme=<themeId>`
+   * (see engine icon-theme.js). Bridges resolve the BASE asset and, for a
+   * themable two-colour icon, bake the pairing into the returned bytes; the
+   * returned ref keeps the themed id (it is the persistent identity in URL
+   * mode). An unknown theme resolves to the plain asset under the themed id.
+   */
   get(id: string, opts?: { format?: string; version?: string }): Promise<AssetRef>;
 
   /** Query the catalog by filter. Returns a list of resolved AssetRefs. */
@@ -409,7 +417,7 @@ export interface InputFile {
   url: string | null;
 }
 
-export type ExportFormat = 'png' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'av1';
+export type ExportFormat = 'png' | 'apng' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm';
 
 export interface ExportOpts {
   scale?: number;        // raster scale (1, 2, 3) — used when width/height absent

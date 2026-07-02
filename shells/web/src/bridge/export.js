@@ -13,8 +13,10 @@
 
 import {
   parseDimension, isPhysical, toPixels, toPoints, toCssPx, toCssLength, CSS_DPI,
-  iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry, emitEmf, emitEps,
+  iccProfileBytes, rgbToCmyk, cmykCondition, computePrintGeometry, emitEmf, emitEps, packApng,
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
+  buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
+  embedC2paInPdf,
 } from '@lolly/engine';
 import {
   suseFontFile, SUSE_FONT_DIR,
@@ -151,6 +153,8 @@ async function renderFormat(node, format, opts = {}) {
       return await renderVideo(node, opts, 'mp4');
     case 'gif':
       return await renderGif(node, opts);
+    case 'apng':
+      return await renderApng(node, opts);
     default:
       throw new Error(`Unsupported export format: ${format}`);
   }
@@ -1871,13 +1875,55 @@ async function renderPdf(node, opts) {
   // print-geometry (marks/bleed) path, which stays single-page. Falls through to
   // the legacy single-page renderer when no page boxes are present.
   const pageEls = node.querySelectorAll ? [...node.querySelectorAll('[data-pdf-page]')] : [];
-  if (pageEls.length > 0) return await renderMultiPagePdf(pageEls, opts);
+  let blob;
+  if (pageEls.length > 0) {
+    blob = await renderMultiPagePdf(pageEls, opts);
+  } else {
+    const geo = printGeometry(node, opts);
+    const artBlob = await renderArtworkPdf(node, opts, geo);
+    if (opts.password && !geo) {
+      // jsPDF encryption and pdf-lib post-processing are mutually exclusive:
+      // the locked blob (only produced when there's no print geometry) ships
+      // as-is, without the PDF/X-4 finishing pass.
+      _host?.log?.('info', 'pdf: password-locked export — skipping PDF/X finishing (pdf-lib cannot rewrite an encrypted document)');
+      blob = artBlob;
+    } else {
+      // RGB PDF: marks are black; page boxes declare trim/bleed for the RIP;
+      // one pdf-lib pass adds the marks (when geo) and the PDF/X-4 metadata.
+      blob = await finishPdfX(artBlob, opts, {
+        intentKind: 'srgb', geo, space: 'rgb',
+        labels: geo ? provenanceLabels(opts.meta) : null,
+      });
+    }
+  }
+  // C2PA embedding must remain the LAST byte operation on this blob — the
+  // credential hashes the finished bytes and appends an incremental update.
+  if (opts.c2pa) blob = await stampC2pa(blob, opts);
+  return blob;
+}
 
-  const geo = printGeometry(node, opts);
-  const artBlob = await renderArtworkPdf(node, opts, geo);
-  if (!geo) return artBlob;                       // legacy path (may be encrypted)
-  // RGB PDF: marks are black; page boxes declare trim/bleed for the RIP.
-  return finishPrintPdf(artBlob, geo, { space: 'rgb', labels: provenanceLabels(opts.meta) });
+// Content Credentials (opts.c2pa) — a signed C2PA manifest appended to the
+// finished PDF as an incremental update. Signed with an ephemeral on-device
+// key, so viewers report the credential as unverified (there is no CA — by
+// design). An encrypted document can't take the update, so a password wins;
+// any other cannot-attach case ('C2PA embed: …') logs and ships the
+// un-stamped PDF — a credential failure must never fail the export.
+async function stampC2pa(blob, opts) {
+  if (opts.password) {
+    _host?.log?.('info', 'pdf: password-locked export — skipping Content Credentials (an encrypted document cannot take the C2PA update)');
+    return blob;
+  }
+  try {
+    const stamped = await embedC2paInPdf(new Uint8Array(await blob.arrayBuffer()), {
+      title: opts.meta?.tool,
+      claimGenerator: `${opts.meta?.software || 'Lolly'} lolly.tools`,
+      dates: {}, // module defaults: fresh signing time + 1-year cert validity
+    });
+    return new Blob([stamped], { type: 'application/pdf' });
+  } catch (err) {
+    _host?.log?.('warn', `pdf: Content Credentials not attached — ${err?.message || err}`);
+    return blob;
+  }
 }
 
 // Render a sequence of [data-pdf-page] DOM nodes into one multi-page PDF. Each
@@ -1886,9 +1932,9 @@ async function renderPdf(node, opts) {
 // matching the export page height — gets one true PDF page per box. Each box is
 // drawn at (0,0) in its own page via drawHtmlVectors, whose coordinate origin is
 // the node it's handed, so a page is rendered correctly regardless of where it
-// sits in the scrolled/stacked document. A password locks the document on open
-// (this path never goes through pdf-lib, so — unlike the single-page print path —
-// it can always encrypt). Print marks/bleed are not applied here; a tool that
+// sits in the scrolled/stacked document. A password locks the document on open —
+// this path can always encrypt (no print geometry), at the cost of the pdf-lib
+// PDF/X finishing pass. Print marks/bleed are not applied here; a tool that
 // emits page boxes opts out of the print-finishing card (render.printMarks:false).
 async function renderMultiPagePdf(pageEls, opts) {
   const mod = await import('jspdf');
@@ -1924,20 +1970,148 @@ async function renderMultiPagePdf(pageEls, opts) {
     if (svgRoot) await drawSvgVectorsInRegion(pdf, svgRoot, 0, 0, w, h, new Set());
     else await drawHtmlVectors(pdf, el, 0, 0, w, h, convert);
   }
-  return pdf.output('blob');
+  const blob = pdf.output('blob');
+  if (opts.password) {
+    // jsPDF encryption and pdf-lib post-processing are mutually exclusive — a
+    // locked multi-page document ships without the PDF/X-4 finishing pass.
+    _host?.log?.('info', 'pdf: password-locked export — skipping PDF/X finishing (pdf-lib cannot rewrite an encrypted document)');
+    return blob;
+  }
+  return await finishPdfX(blob, opts, { intentKind: 'srgb' });
 }
 
-// Re-save a jsPDF artwork blob through pdf-lib to set the print page boxes and
-// draw the marks. Used by the plain RGB pdf path; the CMYK path inlines the same
-// steps after its colour conversion (see renderCmykPdf).
-async function finishPrintPdf(blob, geo, { space, labels } = {}) {
+// Re-save a jsPDF blob through one pdf-lib pass: print page boxes + marks (when
+// print geometry is supplied) and the PDF/X-4 metadata set. Subsumes the old
+// finishPrintPdf so the plain RGB path loads pdf-lib exactly once; the CMYK path
+// has its own pdf-lib pass and calls applyPdfX inside it (see renderCmykPdf).
+// Never fed an encrypted blob — pdf-lib can't reopen jsPDF's RC4 output.
+async function finishPdfX(blobOrBytes, opts, { intentKind = 'srgb', geo = null, space = 'rgb', labels = null } = {}) {
   const { PDFDocument } = await import('pdf-lib');
-  const pdfDoc = await PDFDocument.load(new Uint8Array(await blob.arrayBuffer()));
-  const page = pdfDoc.getPage(0);
-  setPageBoxes(page, geo);
-  await drawPrintMarks(page, geo, { space, labels });
-  const out = await pdfDoc.save();
+  const bytes = blobOrBytes instanceof Uint8Array
+    ? blobOrBytes
+    : new Uint8Array(await blobOrBytes.arrayBuffer());
+  // updateMetadata:false — pdf-lib would otherwise stamp itself as Producer on
+  // load; applyPdfX writes the document's real dates/producer below.
+  const pdfDoc = await PDFDocument.load(bytes, { updateMetadata: false });
+  if (geo) {
+    const page = pdfDoc.getPage(0);
+    setPageBoxes(page, geo);
+    await drawPrintMarks(page, geo, { space, labels });
+  }
+  await applyPdfX(pdfDoc, opts, intentKind);
+  // The C2PA embedder only parses a classic xref table; pdf-lib's default save
+  // (object streams) writes a cross-reference stream it refuses. Only flipped
+  // when credentials are requested, so ordinary PDFs keep the compact form.
+  const out = await pdfDoc.save(opts.c2pa ? { useObjectStreams: false } : undefined);
   return new Blob([out], { type: 'application/pdf' });
+}
+
+// PDF/X-4 metadata pass over an already-loaded pdf-lib document — shared by the
+// plain, multi-page and CMYK PDF paths. WHAT X-4 requires comes from the engine
+// (pdfx.js); this maps it onto pdf-lib objects:
+//  - every page carries a TrimBox (pages the print path already boxed keep their
+//    computed trim/bleed; unmarked pages trim at the full page),
+//  - a catalog /Metadata XMP packet,
+//  - Info dict: CreationDate == ModDate (one clock read, matching the XMP dates),
+//    Trapped /False, and the GTS_PDFXVersion claim,
+//  - trailer /ID: two identical 16-byte ids sharing the XMP DocumentID's bytes,
+//  - a single GTS_PDFX OutputIntent from pdfxOutputIntentSpec.
+// intentKind null/'none' writes the metadata but no intent and no claim (X-4
+// requires an output intent, so claiming without one would be false).
+// Honesty gate: a CMYK intent is registered-name only (no embedded ICC), so if
+// the document still contains unmanaged /DeviceRGB image pixels the whole set is
+// written EXCEPT the conformance claim (no Info/XMP GTS_PDFXVersion). The sRGB
+// intent claims unconditionally — DeviceRGB content matches an sRGB intent.
+async function applyPdfX(pdfDoc, opts, intentKind) {
+  const { PDFName, PDFString, PDFHexString } = await import('pdf-lib');
+
+  // TrimBox is not inheritable, so the leaf dict says whether setPageBoxes ran.
+  for (const page of pdfDoc.getPages()) {
+    if (!page.node.get(PDFName.of('TrimBox'))) {
+      const mb = page.getMediaBox();
+      page.setTrimBox(mb.x, mb.y, mb.width, mb.height);
+    }
+  }
+
+  const spec = intentKind && intentKind !== 'none' ? pdfxOutputIntentSpec(intentKind) : null;
+  let claim = Boolean(spec);
+  if (spec && !spec.iccBytes && hasDeviceRgbImage(pdfDoc, PDFName)) {
+    claim = false;
+    _host?.log?.('info', 'PDF/X metadata written without conformance claim: unmanaged RGB image content');
+  }
+  if (spec) setPdfxOutputIntent(pdfDoc, spec, { PDFName, PDFString });
+
+  const now = new Date();
+  const producer = opts.meta?.software || 'Lolly';
+  const documentId = makeDocumentId();
+  let xmp = buildPdfXXmp({
+    createDate: now.toISOString(),
+    title: opts.meta?.tool || '',
+    creatorTool: producer,
+    producer,
+    documentId,
+    instanceId: makeDocumentId(),
+  });
+  // Withholding the claim means no GTS_PDFXVersion anywhere — Info or XMP (the
+  // packet builder always writes the property, so strip its one known line).
+  if (!claim) xmp = xmp.replace(/[ \t]*<pdfxid:GTS_PDFXVersion>[^<]*<\/pdfxid:GTS_PDFXVersion>\n/, '');
+  // The XMP stream stays uncompressed so non-PDF-aware scanners can find the
+  // xpacket markers (the point of the packet's writable padding).
+  const meta = pdfDoc.context.stream(new TextEncoder().encode(xmp), { Type: 'Metadata', Subtype: 'XML' });
+  pdfDoc.catalog.set(PDFName.of('Metadata'), pdfDoc.context.register(meta));
+
+  // getInfoDict is private in the d.ts but a plain method at runtime.
+  const info = pdfDoc.getInfoDict();
+  const pdfDate = PDFString.of(formatPdfDate(now));
+  info.set(PDFName.of('Producer'), PDFString.of(producer));
+  info.set(PDFName.of('CreationDate'), pdfDate);
+  info.set(PDFName.of('ModDate'), pdfDate);       // == CreationDate: untouched since export
+  info.set(PDFName.of('Trapped'), PDFName.of('False'));
+  if (claim) info.set(PDFName.of('GTS_PDFXVersion'), PDFString.of(PDFX_VERSION));
+
+  // Trailer /ID: two identical entries (a fresh document, not a revision) reusing
+  // the XMP DocumentID's 16 bytes so file identity agrees end to end.
+  const idHex = documentId.replace(/^uuid:/, '').replace(/-/g, '');
+  const id = PDFHexString.of(idHex);
+  pdfDoc.context.trailerInfo.ID = pdfDoc.context.obj([id, id]);
+}
+
+// True when any image XObject draws in plain /DeviceRGB — jsPDF embeds rasters
+// this way, and unmanaged RGB pixels under a CMYK output intent are exactly what
+// the PDF/X conformance claim is meant to rule out. Indirect (ICCBased/Indexed)
+// colour spaces don't stringify to /DeviceRGB and count as managed.
+function hasDeviceRgbImage(pdfDoc, PDFName) {
+  for (const [, obj] of pdfDoc.context.enumerateIndirectObjects()) {
+    const dict = obj?.dict;
+    if (!dict?.get) continue;
+    const sub = dict.get(PDFName.of('Subtype'));
+    if (!sub || !String(sub).includes('Image')) continue;
+    const cs = dict.get(PDFName.of('ColorSpace'));
+    if (cs && String(cs).includes('DeviceRGB')) return true;
+  }
+  return false;
+}
+
+// Materialise the engine's OutputIntent spec (pdfx.js) into the catalog,
+// REPLACING any existing intents so an export carries exactly one. Field map:
+// S ← subtype, OutputConditionIdentifier ← identifier, OutputCondition/Info ←
+// info, RegistryName ← registry, DestOutputProfile ← iccBytes as a compressed
+// stream with /N components ('srgb' ships profile bytes; the CMYK press
+// conditions are registered-name only and get no profile).
+function setPdfxOutputIntent(pdfDoc, spec, { PDFName, PDFString }) {
+  const intent = pdfDoc.context.obj({
+    Type: 'OutputIntent',
+    S: spec.subtype,
+    OutputConditionIdentifier: PDFString.of(spec.identifier),
+    OutputCondition: PDFString.of(spec.info),
+    Info: PDFString.of(spec.info),
+    RegistryName: PDFString.of(spec.registry),
+  });
+  if (spec.iccBytes) {
+    const icc = pdfDoc.context.flateStream(spec.iccBytes, { N: spec.components });
+    intent.set(PDFName.of('DestOutputProfile'), pdfDoc.context.register(icc));
+  }
+  pdfDoc.catalog.set(PDFName.of('OutputIntents'), pdfDoc.context.obj([intent]));
 }
 
 // Compose the proof-margin credit strings from the export's provenance metadata.
@@ -3170,7 +3344,7 @@ async function renderCmykPdf(node, opts) {
   const rgbBlob = await renderArtworkPdf(node, opts, geo);
   const rgbBytes = new Uint8Array(await rgbBlob.arrayBuffer());
 
-  const { PDFDocument, PDFName, PDFNumber, PDFString } = await import('pdf-lib');
+  const { PDFDocument, PDFName, PDFNumber } = await import('pdf-lib');
   const pdfDoc = await PDFDocument.load(rgbBytes);
   const m = opts.meta;
   const creator = m?.software || 'Lolly';
@@ -3185,13 +3359,6 @@ async function renderCmykPdf(node, opts) {
   }
   const paletteMap = buildCmykPaletteMap(opts.palette ?? []);
   const usedKeys = new Set();   // brand palette keys actually hit during substitution
-
-  // Declare the press condition the DeviceCMYK values are meant to be read under,
-  // so a RIP/print shop knows the intended output. Referenced by registered name
-  // (no heavy destination profile embedded) — valid for a standard condition.
-  if (opts.colorProfile !== 'none') {
-    addCmykOutputIntent(pdfDoc, opts.colorProfile, PDFName, PDFString);
-  }
 
   for (const [, obj] of pdfDoc.context.enumerateIndirectObjects()) {
     if (!(obj.contents instanceof Uint8Array)) continue;
@@ -3241,6 +3408,16 @@ async function renderCmykPdf(node, opts) {
     await drawPrintMarks(page, marksGeo, { space: 'cmyk', labels: provenanceLabels(opts.meta) });
   }
 
+  // PDF/X-4 finishing runs AFTER the colour substitution so the honesty gate
+  // sees the final image set. The press-condition intent declares what the
+  // DeviceCMYK values mean to a RIP; 'none' (user opted out of a condition)
+  // writes the metadata without an intent or conformance claim, and anything
+  // non-CMYK ('srgb'/absent) falls back to the default condition — mirroring
+  // the old addCmykOutputIntent guard.
+  const intentKind = opts.colorProfile === 'none' ? null
+    : (opts.colorProfile && opts.colorProfile !== 'srgb' ? opts.colorProfile : 'fogra39');
+  await applyPdfX(pdfDoc, opts, intentKind);
+
   const out = await pdfDoc.save();
   return new Blob([out], { type: 'application/pdf' });
 }
@@ -3278,26 +3455,6 @@ function paletteHitKey(p) {
   const h = (p?.hex ?? '').replace('#', '').toLowerCase();
   if (h.length !== 6) return null;
   return cmykKey(parseInt(h.slice(0, 2), 16) / 255, parseInt(h.slice(2, 4), 16) / 255, parseInt(h.slice(4, 6), 16) / 255);
-}
-
-// Adds an OutputIntent declaring the target CMYK press condition to the document
-// catalog. The condition descriptor (registered name / info / registry) comes
-// from the engine; 'srgb'/undefined falls back to the default press condition.
-function addCmykOutputIntent(pdfDoc, name, PDFName, PDFString) {
-  const cond = cmykCondition(name === 'srgb' ? undefined : name);
-  const intent = pdfDoc.context.obj({
-    Type: 'OutputIntent',
-    S: 'GTS_PDFX',
-    OutputConditionIdentifier: PDFString.of(cond.identifier),
-    OutputCondition: PDFString.of(cond.info),
-    Info: PDFString.of(cond.info),
-    RegistryName: PDFString.of(cond.registry),
-  });
-  const catalog = pdfDoc.catalog;
-  const key = PDFName.of('OutputIntents');
-  let arr = catalog.lookup(key);
-  if (!arr) { arr = pdfDoc.context.obj([]); catalog.set(key, arr); }
-  arr.push(intent);
 }
 
 // Converts PDF-space RGB (0–1) to CMYK (0–1), preferring an exact palette match
@@ -3832,6 +3989,67 @@ async function renderGif(node, opts) {
   } finally {
     source.dispose();
   }
+}
+
+// Renders the DOM node as an Animated PNG.
+//
+// Same capture loop as renderGif (shared FrameSource, sequential real-time
+// frames, timing lives in the fcTL delay metadata), but each frame stays a
+// full-fidelity PNG — no palette quantisation — and the engine's packApng
+// splices the encoded frames into one APNG at the chunk level.
+//
+// opts.wait     — seconds before capture starts (default 1)
+// opts.duration — clip length in seconds (default 5)
+// opts.repeat   — loop count: -1 = play once, 0/absent = forever (GIF semantics)
+async function renderApng(node, opts) {
+  const fps           = 15;
+  const frameInterval = Math.round(1000 / fps);
+  const durationMs    = (opts.duration ?? 5) * 1000;
+  const frameCount    = Math.max(1, Math.round(durationMs / frameInterval));
+
+  // Shared FrameSource: same sequential, real-time capture as the video path.
+  const source  = await createFrameSource(node, opts);
+  const targetW = source.width, targetH = source.height;
+
+  // toCanvas() may return a DPR-scaled canvas; normalise every frame to the
+  // target size so all encoded PNGs share identical IHDR geometry (packApng
+  // rejects mismatched frames).
+  const offscreen = document.createElement('canvas');
+  offscreen.width  = targetW;
+  offscreen.height = targetH;
+  const offCtx = offscreen.getContext('2d');
+
+  const frames = [];
+  try {
+    for (let i = 0; i < frameCount; i++) {
+      const canvas = await source.frame();
+      offCtx.clearRect(0, 0, targetW, targetH);
+      offCtx.drawImage(canvas, 0, 0, targetW, targetH);
+      const blob = await new Promise((res, rej) =>
+        offscreen.toBlob(b => b ? res(b) : rej(new Error('APNG frame encode failed')), 'image/png'));
+      frames.push(new Uint8Array(await blob.arrayBuffer()));
+      // Progress for a slow N-frame render (no-op when no listener is wired).
+      opts.onProgress?.(i + 1, frameCount);
+    }
+  } finally {
+    source.dispose();
+  }
+
+  // GIF repeat → APNG num_plays: -1 (play once) → 1; 0/absent stays 0 (infinite).
+  let bytes = packApng(frames, {
+    delayMs: frameInterval,
+    loops: opts.repeat === -1 ? 1 : (opts.repeat ?? 0),
+  });
+
+  // Stamp DPI + provenance + colour profile exactly as the static PNG path does —
+  // all three helpers splice right after IHDR, which the APNG spec allows (acTL
+  // only has to precede the first IDAT, not follow IHDR directly).
+  const d = exportDims(node, opts);
+  const icc = iccWanted(opts) ? iccProfileBytes(opts.colorProfile) : null;
+  if (d.dpi > 0) bytes = insertPngPhys(bytes, d.dpi) || bytes;
+  bytes = insertPngMeta(bytes, opts.meta);
+  if (icc) bytes = await insertPngIcc(bytes, icc);
+  return new Blob([bytes], { type: 'image/png' });
 }
 
 // Allocates the reusable scratch buffers for the Floyd-Steinberg path. Hoisted out

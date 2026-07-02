@@ -1,0 +1,91 @@
+<div class="{{rootClass}}">
+  {{#each scenesOut}}
+  <section class="lda-scene lda-scene--{{idx}}" style="{{{style}}}">
+    {{#if hasAnim}}<div class="lda-anim lda-anim--{{animSize}}" data-lottie-src="{{animUrl}}"></div>{{/if}}
+    {{#if headline}}<div class="lda-headline">{{headline}}</div>{{/if}}
+    {{#if caption}}<div class="lda-caption">{{caption}}</div>{{/if}}
+  </section>
+  {{/each}}
+
+  <style>
+    /* Everything is namespaced under .lda — the template <style> is injected raw
+       (NOT engine-scoped), and frame-by-frame gif/video capture must see the full
+       styling on the canvas node itself. Never move these rules (especially
+       @keyframes) into styles.css: scopeCss() corrupts multi-step keyframes.
+       There is deliberately NO <script> here: the shell mounts a Lottie player on
+       each [data-lottie-src] node — until it does, the box simply renders empty. */
+    .lda {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      container-type: size;
+      background: #0c322c;
+      isolation: isolate;
+      font-family: "SUSE", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    .lda, .lda * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    .lda-scene {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3.5cqmin;
+      padding: 8cqmin;
+      text-align: center;
+      color: var(--fg, #fff);
+      background-color: var(--bg, #0c322c);
+      will-change: opacity, transform;
+    }
+
+    /* The Lottie stage. The player letterboxes non-square animations (contain),
+       so one square box suits every asset aspect. */
+    .lda-anim { flex: none; }
+    .lda-anim--small  { width: 26cqmin; height: 26cqmin; }
+    .lda-anim--medium { width: 42cqmin; height: 42cqmin; }
+    .lda-anim--large  { width: 60cqmin; height: 60cqmin; }
+    .lda-anim--full   { position: absolute; inset: 0; width: auto; height: auto; }
+    /* Copy stays legible above a full-bleed animation. */
+    .lda-headline, .lda-caption { position: relative; z-index: 1; }
+
+    .lda-headline {
+      font-weight: 800;
+      line-height: 1.04;
+      letter-spacing: -0.015em;
+      font-size: clamp(15px, 10cqmin, 120px);
+      overflow-wrap: anywhere;
+    }
+    .lda-caption {
+      font-weight: 500;
+      line-height: 1.2;
+      opacity: 0.92;
+      max-width: 26ch;
+      font-size: clamp(12px, 5.4cqmin, 56px);
+      overflow-wrap: anywhere;
+    }
+
+    /* ── Responsive layout switches (the layout must survive 11:1 to 1:5) ── */
+
+    /* Wide, short strips: leaderboard / billboard / mobile banner → single row,
+       animation sized by the strip height, copy on one line. */
+    @container (min-aspect-ratio: 12/5) {
+      .lda-scene { flex-direction: row; gap: 4cqmin; padding: 4cqmin 6cqmin; }
+      .lda-anim--small  { width: auto; height: 46cqh; aspect-ratio: 1; }
+      .lda-anim--medium { width: auto; height: 64cqh; aspect-ratio: 1; }
+      .lda-anim--large  { width: auto; height: 82cqh; aspect-ratio: 1; }
+      .lda-headline { font-size: clamp(13px, 42cqh, 64px); line-height: 1; white-space: nowrap; }
+      .lda-caption  { font-size: clamp(11px, 24cqh, 36px); max-width: none; }
+    }
+
+    /* Tall, skinny strips: skyscrapers → tighter stack, smaller copy. */
+    @container (max-aspect-ratio: 1/2) {
+      .lda-scene { gap: 4cqmin; padding: 7cqmin 5cqmin; }
+      .lda-headline { font-size: clamp(14px, 12cqmin, 64px); }
+      .lda-caption  { font-size: clamp(11px, 7cqmin, 40px); }
+    }
+  </style>
+  <style>{{{animCss}}}</style>
+</div>

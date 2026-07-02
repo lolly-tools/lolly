@@ -146,9 +146,10 @@
 .asset-picker-toolcard-host[hidden] { display: none; }
 
 /* ── Icon colour themes strip ───────────────────────────────────────────────
-   Colour pairings for themable two-colour icons (c1 accent / c2 base). Mounted
-   above the library grid only when it contains themable icons; the chosen
-   pairing live-retints their thumbnails and rides in the picked asset id. */
+   Colour pairings for themable two-colour icons (c1 accent / c2 base). Rendered
+   inside the "Icons" group header (directly above the icons it recolours) only
+   when the library contains themable icons; the chosen pairing live-retints their
+   thumbnails and rides in the picked asset id. */
 .asset-picker-themes {
   display: flex;
   align-items: center;
@@ -200,6 +201,48 @@
   height: 9px;
   border-radius: 50%;
 }
+
+/* Collapsible library sections (Photos / Backgrounds / Logos / Icons). Each has a
+   toggle header; a themable group (Icons) also carries the colour strip below its
+   title, so the strip reads as belonging to the icons it recolours. */
+.asset-picker-group + .asset-picker-group {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid hsl(var(--border));
+}
+.asset-picker-group-head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.asset-picker-group-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 2px 0;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: hsl(var(--muted-foreground));
+  font: inherit;
+}
+.asset-picker-group-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.asset-picker-group-chevron {
+  display: inline-flex;
+  transform: rotate(90deg);          /* points down when the section is open */
+  transition: transform 0.15s ease;
+}
+.asset-picker-group.is-collapsed .asset-picker-group-chevron { transform: rotate(0deg); }
+.asset-picker-group.is-collapsed .asset-picker-group-body { display: none; }
+/* Inside a section header the strip already has the header's bottom gap. */
+.asset-picker-group-head .asset-picker-themes { margin-bottom: 0; }
 
 .asset-picker-grid {
   display: grid;

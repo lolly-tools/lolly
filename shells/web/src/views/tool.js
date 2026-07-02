@@ -44,7 +44,7 @@ import 'flatpickr/dist/flatpickr.min.css';
 
 // Human-readable labels and file extensions for format identifiers that differ
 // from their raw string (e.g. "pdf-cmyk" → "Print PDF" / ".pdf").
-const FMT_LABEL = { 'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', 'jpeg': 'JPG', 'webm': 'WebM', 'mp4': 'MP4',
+const FMT_LABEL = { 'pdf-cmyk': 'Print PDF', 'cmyk-tiff': 'Print TIFF', 'jpeg': 'JPG', 'webm': 'WebM', 'mp4': 'MP4', apng: 'Animated PNG',
   emf: 'EMF (old)', eps: 'EPS', 'eps-cmyk': 'EPS (CMYK)', ics: 'Calendar', vcf: 'vCard', ico: 'Icon', zip: 'ZIP', csv: 'CSV', json: 'JSON' };
 const FMT_EXT   = { 'pdf-cmyk': 'pdf', 'cmyk-tiff': 'tiff', 'jpeg': 'jpg', 'eps-cmyk': 'eps' };
 
@@ -85,7 +85,7 @@ function readMarks(el) {
 // Visual formats a ZIP export bundles (data/text and video are excluded). The
 // shell passes these as opts.bundleFormats; the export bridge renders each and
 // archives them (see renderZip).
-const ZIP_BUNDLE = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'emf', 'eps', 'eps-cmyk', 'pdf', 'pdf-cmyk', 'cmyk-tiff', 'gif', 'ico']);
+const ZIP_BUNDLE = new Set(['png', 'jpg', 'jpeg', 'webp', 'avif', 'svg', 'emf', 'eps', 'eps-cmyk', 'pdf', 'pdf-cmyk', 'cmyk-tiff', 'gif', 'apng', 'ico']);
 
 // Which video containers this browser's MediaRecorder can actually record.
 // Safari/iOS = mp4 only; Firefox = webm only; recent Chrome = both. Used to gate
@@ -1863,7 +1863,8 @@ function setupCanvasBlocksDrop({ viewEl, contentEl, runtime, host, input, onDirt
 // The transform sits on the OUTER wrapper, layered on top of the fitCanvas scale;
 // `scale` is a multiplier where 1 == the fitted view ("Fit").
 function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
-  const MIN = 1, MAX = 16;        // multiplier on top of the fitted view (Fit = 1)
+  const MAX = 16;                 // multiplier on top of the fitted view (Fit = 1)
+  const MIN_ABS = 0.2;            // zoom-out floor: 20% of native export pixels
   const PINCH_DEADZONE = 0.02;    // ignore <2% finger-spread wobble so a pan ≠ zoom
   let scale = 1, tx = 0, ty = 0;
   let originX = 0, originY = 0;   // outer's natural (untransformed) top-left, client coords
@@ -1909,7 +1910,17 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
     if (cy > sr.bottom) ty += sr.bottom - cy;
   }
 
-  function isZoomed() { return scale > 1.001 || tx !== 0 || ty !== 0; }
+  // Zooming OUT past Fit is allowed down to an absolute floor of MIN_ABS (so
+  // objects parked off the artboard stay reachable in editor tools) — or Fit
+  // itself when a huge canvas already fits below that floor.
+  function minScale() {
+    const w = canvasEl ? canvasEl.getBoundingClientRect().width : 0;
+    if (!(w > 0)) return 1;
+    const fitAbs = (w / scale) / nativeW;   // absolute zoom the Fit view shows
+    return Math.min(1, MIN_ABS / fitAbs);
+  }
+
+  function isZoomed() { return Math.abs(scale - 1) > 0.001 || tx !== 0 || ty !== 0; }
   function reset() { scale = 1; tx = 0; ty = 0; apply(); }
   // "Fit" = clear any zoom/pan, then recompute the fit for the current layout
   // (so it accounts for e.g. the mobile sheet's current coverage). reset() first
@@ -1919,7 +1930,7 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
   // Zoom by `factor`, keeping the client point (fx, fy) pinned under the cursor.
   function zoomAbout(factor, fx, fy) {
     captureOrigin();
-    const next = Math.max(MIN, Math.min(MAX, scale * factor));
+    const next = Math.max(minScale(), Math.min(MAX, scale * factor));
     if (next === scale) return;
     const r = next / scale;
     const lx = fx - originX, ly = fy - originY;
@@ -1961,7 +1972,7 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
       panPt     = null;
     } else if (pts.size === 1) {
       panPt = { x: e.clientX, y: e.clientY };
-      if (e.timeStamp - lastTap < 300 && scale > 1) { fit(); lastTap = 0; }  // double-tap → fit (sheet-aware)
+      if (e.timeStamp - lastTap < 300 && isZoomed()) { fit(); lastTap = 0; }  // double-tap → fit (sheet-aware)
       else lastTap = e.timeStamp;
     }
   });
@@ -1982,7 +1993,7 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
       // Hold pinchDist as the reference until we actually zoom, so a slow,
       // deliberate pinch still accumulates past the threshold and applies smoothly.
       if (pinchDist > 0 && Math.abs(d / pinchDist - 1) > PINCH_DEADZONE) {
-        const next = Math.max(MIN, Math.min(MAX, scale * (d / pinchDist)));
+        const next = Math.max(minScale(), Math.min(MAX, scale * (d / pinchDist)));
         const r = next / scale;
         const fx = m.x - originX, fy = m.y - originY;
         tx = fx - (fx - tx) * r;   // zoom about the pinch midpoint
@@ -1994,7 +2005,7 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
       clampPan();
       apply();
       e.preventDefault();
-    } else if (pts.size === 1 && scale > 1 && panPt) {
+    } else if (pts.size === 1 && isZoomed() && panPt) {
       tx += e.clientX - panPt.x;
       ty += e.clientY - panPt.y;
       panPt = { x: e.clientX, y: e.clientY };
@@ -2012,7 +2023,9 @@ function setupStageNav(stageEl, outerEl, canvasEl, nativeW, onFit) {
       panPt = { x: p.x, y: p.y };
     } else if (pts.size === 0) {
       panPt = null;
-      if (scale <= 1.001) reset();   // settled back at fit — clear the transform
+      // Settled back AT fit — clear the transform. (Not <=: zoomed OUT past fit
+      // is a legitimate resting state now.)
+      if (Math.abs(scale - 1) <= 0.001) reset();
     }
   };
   stageEl.addEventListener('pointerup', endTouch);
@@ -3737,7 +3750,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
 
   const actions    = manifest.render.actions ?? ['copy', 'download', 'save'];
   const exportOpts = runtime.getModel().filter(i => i.group === 'export' && i.control === 'checkbox');
-  const isAnimatedFmt = f => f === 'webm' || f === 'mp4' || f === 'gif';
+  const isAnimatedFmt = f => f === 'webm' || f === 'mp4' || f === 'gif' || f === 'apng';
   // Mirrors VECTOR_FORMATS in engine/src/inputs.js — formats where text→path
   // outlining (the 'Convert paths' toggle) applies. Bitmap formats don't.
   const isVectorFmt   = f => f === 'svg' || f === 'pdf' || f === 'pdf-cmyk';
@@ -3854,6 +3867,23 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         </div>
       </div>` : '';
 
+  // Tier 2.65 — Content Credentials (standard "PDF" only, like the password card;
+  // shares its [data-pdf-only] visibility). Checking it appends a signed C2PA
+  // manifest to the finished PDF (the export bridge stamps it as the last byte
+  // operation — see stampC2pa in bridge/export.js). Mutually exclusive with the
+  // open-password: an encrypted document can't take the C2PA incremental update
+  // (see refreshC2paUi). A tool pre-selects it via manifest render.c2pa.
+  const ICON_CRED = `<svg class="c2pa-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 11.5 2 2 4-4"/></svg>`;
+  const c2paInitOn = manifest.render?.c2pa === true;
+  const c2paRow = hasPdf ? `
+      <div class="export-c2pa" data-pdf-only style="display:${initialFmt === 'pdf' ? 'flex' : 'none'}">
+        <label class="c2pa-enable">
+          <input type="checkbox" data-action="pdf-c2pa" ${c2paInitOn ? 'checked' : ''}>
+          <span class="c2pa-head">${ICON_CRED}<span>Content Credentials</span></span>
+        </label>
+        <p class="c2pa-hint">Embeds a signed C2PA manifest recording that this file was made with Lolly. Signed with an on-device key, so viewers will show it as an unverified credential.</p>
+      </div>` : '';
+
   // Tier 2.7 — print marks & bleed (pdf / pdf-cmyk / cmyk-tiff). An opt-in card
   // (master checkbox) so ordinary output stays trim-sized; turning it on reveals a
   // bleed field (default 3mm) + the mark toggles at print-standard defaults. Mark
@@ -3953,7 +3983,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
   const downloadRow = downloadBtn ? `<div class="export-action-buttons">${downloadBtn}</div>` : '';
 
   el.innerHTML = `
-    ${actions.includes('download') ? `${filenameRow}${dimsRow}${aspectWarnRow}${cmykRow}${pdfPassRow}${printRow}${settingsRow}` : ''}
+    ${actions.includes('download') ? `${filenameRow}${dimsRow}${aspectWarnRow}${cmykRow}${pdfPassRow}${c2paRow}${printRow}${settingsRow}` : ''}
     ${secondaryRow}
     ${downloadRow}
   `;
@@ -4040,6 +4070,27 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
     el.querySelector('[data-action="pdfpass-toggle"]')?.setAttribute('aria-expanded', String(open));
     if (open) el.querySelector('[data-action="pdf-password"]')?.focus();
   });
+
+  // Content Credentials ↔ open-password exclusion: an encrypted PDF can't take
+  // the C2PA incremental update, so whichever is active disables the other
+  // (mirrors the marks-vs-password exclusion in refreshPrintUi). Checking the
+  // box clears a typed password; a typed password (or a ?password= link — the
+  // initial call below) unchecks the box and wins over a tool's render.c2pa.
+  const c2paEl    = el.querySelector('[data-action="pdf-c2pa"]');
+  const pdfPassEl = el.querySelector('[data-action="pdf-password"]');
+  function refreshC2paUi(changed) {
+    if (!c2paEl || !pdfPassEl) return;
+    if (changed === 'c2pa' && c2paEl.checked && pdfPassEl.value) {
+      pdfPassEl.value = '';
+      onUrlSync?.('password');
+    }
+    if (pdfPassEl.value) c2paEl.checked = false;
+    c2paEl.disabled    = Boolean(pdfPassEl.value);
+    pdfPassEl.disabled = c2paEl.checked;
+  }
+  c2paEl?.addEventListener('change', () => refreshC2paUi('c2pa'));
+  pdfPassEl?.addEventListener('input', () => refreshC2paUi('password'));
+  refreshC2paUi(); // initial state (?password= link vs a c2pa-default tool)
 
   const dimUnit = () => el.querySelector('[data-action="export-unit"]')?.value || 'px';
   const dimDpi  = () => { const n = parseInt(el.querySelector('[data-action="export-dpi"]')?.value, 10); return n > 0 ? n : 300; };
@@ -4376,6 +4427,7 @@ function renderActions(el, manifest, runtime, canvasEl, host, fitCanvas, exportU
         ...(fmt === 'pdf' && el.querySelector('[data-action="pdf-password"]')?.value
           ? { password: el.querySelector('[data-action="pdf-password"]').value }
           : {}),
+        ...(fmt === 'pdf' && el.querySelector('[data-action="pdf-c2pa"]')?.checked ? { c2pa: true } : {}),
         ...(fmt === 'zip' ? {
           ...printOpts(),   // bundled pdf / pdf-cmyk get marks & bleed; rasters ignore them
           palette: PALETTE,

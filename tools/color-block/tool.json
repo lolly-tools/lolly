@@ -1,7 +1,7 @@
 {
   "id": "color-block",
   "name": "Color Block",
-  "description": "Colour blocks — text, headshot, logo — auto-arranged into a grid.",
+  "description": "Colour blocks — text, image, logo — auto-arranged into a grid.",
   "a11yLabel": "Colour-block composition",
   "version": "1.0.0",
   "engineVersion": "^1.0.0",
@@ -35,7 +35,7 @@
             { "value": "subheading", "label": "Subheading" },
             { "value": "body",       "label": "Body text" },
             { "value": "cta",        "label": "Call to action" },
-            { "value": "headshot",   "label": "Headshot" },
+            { "value": "image",      "label": "Image" },
             { "value": "logo",       "label": "Logo" },
             { "value": "blank",      "label": "Blank", "repeatable": true }
           ],
@@ -69,7 +69,7 @@
           "type": "number",
           "display": "slider",
           "min": 0.3, "max": 2.5, "step": 0.05, "default": 1,
-          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
+          "showFor": ["heading", "subheading", "body", "cta", "image", "blank"]
         },
         {
           "id": "weight",
@@ -127,9 +127,10 @@
           "id": "bgImage",
           "label": "Image",
           "type": "asset",
-          "assetType": "raster",
+          "assetType": "any",
           "allowUpload": true,
-          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
+          "help": "Pick a photo, or an icon (its colours can be themed in the picker).",
+          "showFor": ["heading", "subheading", "body", "cta", "image", "blank"]
         },
         {
           "id": "bgX",
@@ -137,7 +138,7 @@
           "type": "number",
           "display": "slider",
           "min": 0, "max": 100, "step": 1, "default": 50,
-          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
+          "showFor": ["heading", "subheading", "body", "cta", "image", "blank"]
         },
         {
           "id": "bgY",
@@ -145,7 +146,7 @@
           "type": "number",
           "display": "slider",
           "min": 0, "max": 100, "step": 1, "default": 50,
-          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
+          "showFor": ["heading", "subheading", "body", "cta", "image", "blank"]
         },
         {
           "id": "bgZoom",
@@ -153,7 +154,7 @@
           "type": "number",
           "display": "slider",
           "min": 100, "max": 400, "step": 1, "default": 100,
-          "showFor": ["heading", "subheading", "body", "cta", "headshot", "blank"]
+          "showFor": ["heading", "subheading", "body", "cta", "image", "blank"]
         }
       ],
       "default": [
