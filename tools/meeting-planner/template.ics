@@ -8,7 +8,7 @@ DTSTAMP:{{icsStamp meetingTime}}
 DTSTART:{{icsStamp meetingTime}}
 DURATION:PT1H
 SUMMARY:{{rfcText eventName}}
-LOCATION:{{rfcText hostCity}}
-DESCRIPTION:{{rfcText eventName}} — hosted in {{rfcText hostCity}}
+LOCATION:{{rfcText city}}
+DESCRIPTION:{{rfcText eventName}} — hosted in {{rfcText city}}
 END:VEVENT
 END:VCALENDAR

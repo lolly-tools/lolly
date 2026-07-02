@@ -12,7 +12,7 @@
  * Friday). Timed multi-day spans across days; all-day multi-day books the whole
  * range (DTEND is the RFC-exclusive day after the last day).
  *
- * Input ids deliberately match Meeting Planner (eventName, meetingTime, hostCity)
+ * Input ids deliberately match Meeting Planner (eventName, meetingTime, city)
  * so one batch sheet's columns drive both tools (see memory pro-column-merge-input-ids).
  */
 
@@ -124,7 +124,7 @@ function build(model) {
 
   const trig = alarmTrigger(v.reminder);
   const name = v.eventName || '';
-  const uid = `${slug(name)}-${hash([name, dtStartLine, dtEndLine, v.hostCity || ''].join('|'))}@lolly.tools`;
+  const uid = `${slug(name)}-${hash([name, dtStartLine, dtEndLine, v.city || ''].join('|'))}@lolly.tools`;
 
   // ── Assemble RFC 5545-correct .ics (CRLF, folded, escaped) ──
   const L = [
@@ -140,7 +140,7 @@ function build(model) {
     dtEndLine,
     fold(`SUMMARY:${escText(name)}`),
   ];
-  if ((v.hostCity || '').trim()) L.push(fold(`LOCATION:${escText(v.hostCity)}`));
+  if ((v.city || '').trim()) L.push(fold(`LOCATION:${escText(v.city)}`));
   if ((v.description || '').trim()) L.push(fold(`DESCRIPTION:${escText(v.description)}`));
   if ((v.url || '').trim()) L.push(fold(`URL:${escUri(v.url)}`));
   if (trig) {
@@ -170,7 +170,7 @@ function build(model) {
     cardWhen,
     cardTimeRange,
     multiDay,
-    hasLocation: Boolean((v.hostCity || '').trim()),
+    hasLocation: Boolean((v.city || '').trim()),
     hasDescription: Boolean((v.description || '').trim()),
     hasUrl: Boolean((v.url || '').trim()),
     hasReminder: Boolean(trig),

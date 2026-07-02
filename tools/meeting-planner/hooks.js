@@ -23,7 +23,7 @@ function compute(inputs) {
     // Declared input values — used in HTML markup (attribute values are NOT annotated
     // by the shell so {{theme}} and {{layout}} in class="..." are safe)
     eventName:     (inputs.eventName || '').trim() || 'Team Meeting',
-    hostCity:      (inputs.hostCity || '').trim(),
+    city:          (inputs.city || '').trim(),
     meetingTime,
     liveClock,
     theme:         inputs.theme || 'dark',
@@ -44,7 +44,7 @@ function compute(inputs) {
     // Extras for JS use in <script> — keys don't match any input ID so the
     // shell's annotateTemplate won't wrap them in <!-- ci:id --> markers.
     _mapZoom:       (inputs.mapZoom || '').trim(),
-    _hostCity:      (inputs.hostCity || '').trim(),
+    _hostCity:      (inputs.city || '').trim(),
     _meetingTime:   meetingTime,
     _liveClock:     liveClock ? 'yes' : 'no',
     _theme:         inputs.theme || 'dark',

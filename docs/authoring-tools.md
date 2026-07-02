@@ -296,7 +296,7 @@ VERSION:2.0
 BEGIN:VEVENT
 DTSTART:{{icsStamp meetingTime}}
 SUMMARY:{{rfcText title}}
-LOCATION:{{rfcText hostCity}}
+LOCATION:{{rfcText city}}
 END:VEVENT
 END:VCALENDAR
 ```

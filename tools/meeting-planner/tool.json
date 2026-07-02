@@ -27,7 +27,7 @@
       "placeholder": " "
     },
     {
-      "id": "hostCity",
+      "id": "city",
       "label": "Host city",
       "type": "text",
       "default": "Nuremberg",

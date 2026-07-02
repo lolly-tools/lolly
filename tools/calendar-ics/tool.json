@@ -48,12 +48,12 @@
       "help": "Ignore the time of day and book the whole date."
     },
     {
-      "id": "hostCity",
+      "id": "city",
       "label": "Location",
       "type": "text",
       "default": "",
       "placeholder": "e.g. Nuremberg, or a meeting link",
-      "help": "Where it happens — a place or a URL. Shared id with Meeting Planner (hostCity)."
+      "help": "Where it happens — a place or a URL. Shared id with Meeting Planner (city)."
     },
     {
       "id": "description",
