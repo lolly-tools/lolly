@@ -3829,6 +3829,15 @@ background-color:hsl(var(--background) / 1);
   transition: box-shadow 0.09s ease;
 }
 
+/* Editor (free-canvas) only — let boxes dragged off the artboard spill PAST the
+   frame so they stay visible and manageable instead of being clipped at its edge.
+   The frame's own box-shadow (above) is kept as the "here's where the export area
+   begins" cue; the stage still clips the overflow to the visible viewport, and
+   export is unaffected (the raster capture is bounded by #tool-canvas, and the
+   vector walkers' out-of-viewBox geometry never paints). Scoped via :has() so it
+   only applies while the free-canvas overlay is mounted. */
+.tool-canvas-outer:has(> .tool-canvas.fc-open-canvas) { overflow: visible; }
+
 @media (prefers-reduced-motion: reduce) {
   .tool-canvas-outer,
   .tool-canvas-outer.is-resizing { transition: none; }
@@ -4040,6 +4049,18 @@ background-color:hsl(var(--background) / 1);
 
 /* Selection overlay — siblings of the canvas, never exported. */
 .fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+/* Frame dimmer — sits above the artboard but below the selection chrome (no
+   z-index, first overlay child). Its big outset box-shadow floods everything
+   OUTSIDE the frame with a faint background-matched tint, so boxes dragged off the
+   artboard read as gently faded (~0.8) while remaining fully visible + selectable.
+   Zero per-box cost; pointer-transparent; the stage clips the shadow's reach.
+   Theme-aware via --background, so it fades toward the surrounding stage in every
+   theme. Editor-only and inside .fc-overlay, so it never reaches export. */
+.fc-frame-scrim {
+  position: absolute;
+  pointer-events: none;
+  box-shadow: 0 0 0 100vmax hsl(var(--background) / 0.22);
+}
 .fc-outline {
   position: absolute; box-sizing: border-box;
   border: 1.5px solid hsl(var(--primary));

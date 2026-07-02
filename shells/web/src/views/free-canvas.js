@@ -198,6 +198,15 @@ export function initFreeCanvas(opts) {
   overlay.setAttribute('data-export-hide', '');
   stageEl.appendChild(overlay);
 
+  // Frame dimmer — a hole-punch scrim sized to the export frame (repositioned by
+  // positionFrameScrim() on every paintChrome). Its big outset box-shadow faintly
+  // tints everything OUTSIDE the frame, so boxes dragged off the artboard read as
+  // gently faded while staying fully visible + selectable. First overlay child so
+  // the selection chrome, guides and ctxbar all paint above it.
+  const frameScrim = document.createElement('div');
+  frameScrim.className = 'fc-frame-scrim';
+  overlay.appendChild(frameScrim);
+
   const rubber = document.createElement('div');
   rubber.className = 'fc-rubber';
   rubber.hidden = true;
@@ -1602,7 +1611,21 @@ export function initFreeCanvas(opts) {
     paintChrome(boxes, null);
   }
 
+  // Align the frame dimmer to the export frame. Runs on every sync (pan / zoom /
+  // resize) regardless of selection or text-edit state, so the "faded outside the
+  // frame" cue tracks the artboard wherever it moves.
+  function positionFrameScrim() {
+    const m = metrics();
+    const wh = canvasWH();
+    const tl = nativeToStage(0, 0, m);
+    frameScrim.style.left = tl.x + 'px';
+    frameScrim.style.top = tl.y + 'px';
+    frameScrim.style.width = wh.w * m.scale + 'px';
+    frameScrim.style.height = wh.h * m.scale + 'px';
+  }
+
   function paintChrome(boxes, liveRects) {
+    positionFrameScrim();
     // While editing text, suppress selection chrome + ctxbar; just keep the floating
     // format bar tracking the box as the stage pans/zooms.
     if (editing) { chrome.innerHTML = ''; ctxbar.hidden = true; positionFmtBar(); return; }

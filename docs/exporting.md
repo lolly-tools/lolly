@@ -38,6 +38,7 @@ A saved session can also be re-shared as a tool link from Projects (it reconstru
 | Print | **PDF**, or **Print PDF** (CMYK) | True page size; CMYK for press |
 | Print raster for a press | **Print TIFF** (CMYK) | DeviceCMYK pixels for a RIP |
 | Animated for the web | **GIF** | Works everywhere, larger files |
+| Animated with full colour + real alpha | **APNG** | Animated PNG — no palette limit, true transparency |
 | Video for social / sharing | **MP4** or **WebM** | Best quality-per-byte (see below) |
 | Rich text / email signature | **HTML** | Pastes formatted into mail clients |
 | Plain content | **MD** / **TXT** | Text only |
@@ -102,10 +103,19 @@ Where the format supports it, exports carry **provenance metadata** — software
 
 **Composed renders.** When a tool embeds another tool's output (e.g. an *Event Name Badge* embedding a *QR Code*), the nested render is inlined into the parent's export — it stays a **true vector** in SVG and PDF and rasterises crisply in PNG/JPG/WebP. The embedded child is an intermediate: it gets *no* watermark and *no* provenance of its own; only the finished parent asset does. (Composition covers SVG and the raster formats; HTML/MD/TXT can't be composed.)
 
+## Content Credentials (C2PA)
+
+PDF exports can carry **Content Credentials** — a signed [C2PA](https://c2pa.org) manifest embedded in the file that records, in a tamper-evident way, that the file was made with Lolly and hasn't been altered since. It's the standards-track version of the provenance metadata above: a cryptographic claim (what made the file, when) bound to a hash of the file's bytes, so any later edit is detectable by a C2PA-aware viewer.
+
+- **Turning it on.** Choose the plain **PDF** format and tick the **Content Credentials** card in the export panel. The *Multi-Page PDF* tool pre-selects it; it's optional everywhere else.
+- **What recipients see.** Inspect-content-credentials tools (Adobe apps, `c2patool`, contentcredentials.org/verify) will read the manifest and show the claim. Because Lolly signs with a key generated **on your device** — not a certificate from a trust list — viewers report it as an *unverified* credential. The structure and the tamper-evidence are real; the signer identity is simply not vouched for by an authority.
+- **Privacy.** Everything happens on your device: the signing key is created for the export and never leaves the browser, nothing is uploaded, and the claim contains only what the provenance metadata already carries. Privacy utilities (on-device transforms of *your own* files) never add credentials, and *Strip Hidden Data* will remove a C2PA manifest like any other embedded metadata.
+- **Interactions.** Content Credentials and **password protection** are mutually exclusive (an encrypted PDF can't take the credential attachment). The credential is added as the final step over the finished bytes — after PDF/X metadata, print marks, and colour handling.
+
 ## On a phone
 
 The export controls live behind the floating **Render** button, which opens the **Export** sheet — same formats, size, copy, download, and share, sized for touch.
 
 ## Format reference
 
-`png` · `jpg`/`jpeg` · `webp` · `avif` · `svg` · `emf` · `eps` · `eps-cmyk` (EPS CMYK) · `pdf` · `pdf-cmyk` (Print PDF) · `cmyk-tiff` (Print TIFF) · `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `ico` · `zip` · `webm` · `mp4` · `gif`. These ids are also the values for the URL `format=` parameter and the CLI `--export=` flag — see [URL Mode](/info/url-mode.html) and [CLI](/info/cli.html).
+`png` · `jpg`/`jpeg` · `webp` · `avif` · `svg` · `emf` · `eps` · `eps-cmyk` (EPS CMYK) · `pdf` · `pdf-cmyk` (Print PDF) · `cmyk-tiff` (Print TIFF) · `html` · `md` · `txt` · `json` · `csv` · `ics` · `vcf` · `ico` · `zip` · `webm` · `mp4` · `gif` · `apng` (Animated PNG). These ids are also the values for the URL `format=` parameter and the CLI `--export=` flag — see [URL Mode](/info/url-mode.html) and [CLI](/info/cli.html).
