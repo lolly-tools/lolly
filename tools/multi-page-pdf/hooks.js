@@ -5,7 +5,7 @@
  * sequence of FIXED-SIZE page boxes. Each page box is exactly the export page
  * size (width/height come from the export bar, in CSS px), so the export bridge
  * can emit one true PDF page per box (it walks every [data-pdf-page] element —
- * see shells/web/src/bridge/export.js renderMultiPagePdf). Keeping each page's
+ * see shells/web/src/bridge/export/pdf.ts renderMultiPagePdf). Keeping each page's
  * height locked to the export height is what makes the browser lay content into
  * discrete pages and what makes every PDF page come out the right size.
  *

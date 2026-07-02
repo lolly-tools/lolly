@@ -255,9 +255,13 @@ export interface Profile {
   city?: string;
   country?: string;
   headshot?: AssetRef; // Yes — the user's headshot is an AssetRef too.
+  /** Opt-in: embed the user's personal details in export provenance / previews. */
+  useDetails?: boolean;
   custom?: Record<string, string>;
   /** Local UI feature flags, keyed by flag id (default ON when unset). */
   featureFlags?: Record<string, boolean>;
+  /** The user's chosen theme name (mirrors, and wins over, localStorage's 'theme'). */
+  theme?: string;
 }
 
 // ─── Assets ─────────────────────────────────────────────────────────────────
@@ -348,7 +352,9 @@ export interface ColorSwatch {
   path: string;
   name: string;                 // display label ($description, or prettified leaf)
   group: string | null;        // display group (parent group, prettified)
-  value: string;               // resolved colour as a hex string
+  value: string | null;        // resolved colour as a hex string; null when the
+                               // token's value can't be read as a colour (see
+                               // engine/src/tokens.ts colorToHex)
   description: string | null;
   cmyk: number[] | null;       // [C,M,Y,K] from $extensions, when present
 }
@@ -409,7 +415,7 @@ export interface InputFile {
   url: string | null;
 }
 
-export type ExportFormat = 'png' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm' | 'av1';
+export type ExportFormat = 'png' | 'jpg' | 'svg' | 'emf' | 'eps' | 'eps-cmyk' | 'pdf' | 'pdf-cmyk' | 'cmyk-tiff' | 'html' | 'webm';
 
 export interface ExportOpts {
   scale?: number;        // raster scale (1, 2, 3) — used when width/height absent

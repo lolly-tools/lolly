@@ -1,0 +1,155 @@
+/* SPDX-License-Identifier: MPL-2.0 — Folder overlay (file manager for saved sessions/images). Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Folder overlay (file-manager for saved sessions / images) ──────────── */
+/* A wider <dialog> than the meta modal; reuses .tool-meta-dialog chrome. */
+.folder-overlay { max-width: 760px; width: 94vw; }
+.folder-overlay-body { padding: 18px 20px 22px; position: relative; }
+.folder-overlay-loading { padding: 40px; text-align: center; color: hsl(var(--muted-foreground)); }
+.folder-overlay-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.folder-overlay-head h2 { margin: 0; font-size: 16px; }
+.folder-overlay-head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.folder-overlay-crumb { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.folder-crumb-icon svg { width: 18px; height: 18px; opacity: 0.6; }
+.folder-back {
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background));
+  color: hsl(var(--foreground)); border-radius: calc(var(--radius) / 1.5);
+  width: 28px; height: 28px; cursor: pointer; font-size: 15px; line-height: 1;
+}
+.folder-back:hover { background: hsl(var(--muted)); }
+.folder-overlay-empty { padding: 28px 12px; text-align: center; color: hsl(var(--muted-foreground)); font-size: 13px; }
+
+.folder-grid {
+  display: grid; gap: 12px; margin: 0 0 14px;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+}
+.folder-grid--folders { margin-bottom: 18px; }
+
+.folder-tile {
+  position: relative; border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.1); background: hsl(var(--card));
+  overflow: hidden; transition: border-color 0.12s, box-shadow 0.12s;
+}
+.folder-tile:hover { border-color: hsl(var(--primary) / 0.6); box-shadow: 0 3px 14px hsl(0 0% 0% / 0.08); }
+.tile-primary {
+  display: flex; flex-direction: column; width: 100%; padding: 0;
+  border: 0; background: none; color: inherit; cursor: pointer; text-align: left;
+}
+.tile-cover, .folder-mosaic {
+  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover;
+  background: hsl(var(--muted)); border-bottom: 1px solid hsl(var(--border));
+}
+.tile-cover--batch, .tile-cover--empty {
+  display: flex; align-items: center; justify-content: center;
+  color: hsl(var(--muted-foreground));
+}
+.tile-cover--batch svg { width: 34px; height: 34px; opacity: 0.55; }
+.folder-mosaic {
+  display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1px;
+  overflow: hidden;   /* clip cells to the 90px banner — belt-and-suspenders with the min-0 below */
+}
+/* min-width/height:0 defeats the grid item's default `min-*: auto`, which otherwise lets a
+   tall member thumbnail inflate a `1fr` row to the image's intrinsic height — spilling the
+   preview down over the folder's name + item count. */
+.folder-cell { width: 100%; height: 100%; min-width: 0; min-height: 0; object-fit: cover; background: hsl(var(--muted)); }
+.folder-cell--batch, .folder-cell--empty {
+  display: flex; align-items: center; justify-content: center; color: hsl(var(--muted-foreground));
+}
+.folder-cell--batch svg { width: 20px; height: 20px; opacity: 0.5; }
+/* Folders + the "New folder/tool" create tiles are COMPACT cards: a short preview
+   banner instead of the big 4/3 box, so a folder no longer towers over its name and a
+   row of folders reads as a tidy band with the names aligned. Saved-session tiles keep
+   their 4/3 preview (they show the actual creation). */
+.folder-tile--folder .folder-mosaic,
+.folder-tile--folder .tile-cover,
+.tile-cover--create { aspect-ratio: auto; height: 90px; }
+.tile-cover--batch svg { width: 30px; height: 30px; }
+.tile-meta { display: flex; flex-direction: column; gap: 3px; padding: 8px 10px 10px; min-width: 0; }
+.tile-title {
+  font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tile-sub { font-size: 11px; color: hsl(var(--muted-foreground)); }
+.tile-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 2px; }
+.tile-badge {
+  font-size: 10px; font-weight: 600; line-height: 1; padding: 3px 5px;
+  border-radius: 999px; background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+}
+.tile-badge--type { background: hsl(var(--primary) / 0.14); color: hsl(var(--primary)); }
+.tile-badge--rows { background: hsl(var(--primary) / 0.1); color: hsl(var(--primary)); }
+
+.tile-menu-btn {
+  position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  border: 1px solid hsl(var(--border)); border-radius: 50%;
+  background: hsl(var(--background) / 0.85); color: hsl(var(--foreground));
+  cursor: pointer; opacity: 0; transition: opacity 0.12s, background 0.12s;
+}
+.folder-tile:hover .tile-menu-btn, .tile-menu-btn:focus-visible { opacity: 1; }
+.tile-menu-btn:hover { background: hsl(var(--muted)); }
+.tile-menu-btn svg { width: 15px; height: 15px; }
+
+/* Multi-select toggle — a SIBLING of .tile-primary (never nested; Space would double-
+   fire the open action). Mirrors .tile-menu-btn but pinned top-LEFT. Hover-revealed on
+   fine pointers, filled primary when selected, and always visible on touch / when the
+   tile is selected. */
+.tile-check {
+  position: absolute; top: 6px; left: 6px; z-index: 2; width: 22px; height: 22px;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  border: 2px solid hsl(var(--border)); border-radius: 50%;
+  background: hsl(var(--background) / 0.85); color: hsl(var(--primary-foreground));
+  cursor: pointer; opacity: 0; transition: opacity 0.12s, background 0.12s, border-color 0.12s;
+}
+.folder-tile:hover .tile-check, .tile-check:focus-visible,
+.folder-tile.is-selected .tile-check { opacity: 1; }
+.tile-check svg { width: 13px; height: 13px; opacity: 0; }
+.tile-check[aria-pressed="true"] {
+  background: hsl(var(--primary)); border-color: hsl(var(--primary)); opacity: 1;
+}
+.tile-check[aria-pressed="true"] svg { opacity: 1; }
+.folder-tile.is-selected { border-color: hsl(var(--primary)); box-shadow: 0 0 0 2px hsl(var(--primary) / 0.35); }
+/* Touch devices have no hover — keep the toggle visible so selection is discoverable. */
+@media (pointer: coarse) { .tile-check { opacity: 1; } }
+
+/* Per-tile action popover (move / rename / delete). Appended to <body> and z-indexed
+   ABOVE the fixed chrome (top bar 99999, bulk bar 9000) so it's never painted behind
+   them — on mobile the menu can open over the bottom bulk bar. */
+.folder-menu {
+  position: absolute; z-index: 100001; min-width: 180px; padding: 5px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card)); box-shadow: 0 8px 28px hsl(0 0% 0% / 0.22);
+  display: flex; flex-direction: column; gap: 1px;
+}
+.folder-menu-item {
+  display: flex; align-items: center; gap: 9px; width: 100%; text-align: left; padding: 7px 10px;
+  border: 0; background: none; color: hsl(var(--foreground)); cursor: pointer;
+  font-size: 12.5px; border-radius: calc(var(--radius) / 1.5);
+}
+.folder-menu-item svg { width: 15px; height: 15px; flex: none; opacity: 0.8; }
+.folder-menu-item:hover { background: hsl(var(--muted)); }
+.folder-menu-item--danger { color: hsl(var(--destructive, 0 70% 50%)); }
+/* The Render action is the primary affordance — tint its icon + label so it stands
+   out from Open/Rename/Move, matching the pronounced header "Render folder" button. */
+.folder-menu-item--render { color: hsl(var(--primary)); font-weight: 600; }
+.folder-menu-item--render svg { opacity: 1; }
+.folder-menu-sep {
+  padding: 8px 10px 3px; font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: hsl(var(--muted-foreground));
+}
+
+/* Inline name prompt (create / rename), centered over the dialog. */
+.folder-ask {
+  position: absolute; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center;
+  background: hsl(0 0% 0% / 0.18); border-radius: inherit;
+}
+.folder-ask-card {
+  display: flex; flex-direction: column; gap: 10px; width: min(320px, 80%); padding: 16px;
+  border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+  background: hsl(var(--card)); box-shadow: 0 10px 30px hsl(0 0% 0% / 0.25);
+}
+.folder-ask-label { font-size: 13px; font-weight: 600; }
+.folder-ask-input {
+  padding: 8px 10px; border: 1px solid hsl(var(--border)); border-radius: calc(var(--radius) / 1.5);
+  background: hsl(var(--background)); color: hsl(var(--foreground)); font-size: 13px;
+}
+.folder-ask-actions { display: flex; justify-content: flex-end; gap: 8px; }

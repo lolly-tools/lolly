@@ -17,7 +17,7 @@ npm run dev:web     # Vite dev server + live-rebuild of the /info docs pages
 npm run build:web   # production build (builds the /info pages first)
 ```
 
-`dev:web` runs two things in parallel: the Vite dev server **and** `node docs/build.js --watch`,
+`dev:web` runs two things in parallel: the Vite dev server **and** `node docs/build.ts --watch`,
 which generates the static `/info` site into `public/info/` and rebuilds it whenever anything
 under `docs/` (or the root `README.md`) changes.
 

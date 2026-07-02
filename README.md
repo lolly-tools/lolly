@@ -52,7 +52,7 @@ lolly/
 │   └── assets/       # index.json + asset files (logos, palettes, etc.)
 ├── schemas/          # JSON Schemas for tool.json, asset manifests, AssetRef, etc.
 ├── docs/             # Architecture, contracts, tool-authoring guide + the /info site generator
-├── scripts/          # build-catalog-index.js, checksum-assets.js, validate-catalog.js
+├── scripts/          # build-catalog-index.ts, checksum-assets.ts, validate-catalog.ts
 └── tests/            # Engine and contract tests
 ```
 

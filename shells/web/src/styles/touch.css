@@ -1,0 +1,133 @@
+/* SPDX-License-Identifier: MPL-2.0 — Mobile / touch affordances. Split from app.css (finding 10); see app.css for the import order. */
+/* ═══ Mobile / touch affordances ═════════════════════════════════════════════
+   Polish for finger input. Desktop is untouched: the font-size bumps and the
+   enlarged hit-areas live behind (pointer: coarse), and the press feedback is
+   :active (a no-op on a mouse until you actually click). Hover-only affordances
+   never fire on touch, so these add the tactile cues a finger otherwise misses. */
+
+/* Kill the translucent grey/blue flash iOS & Android paint over tapped
+   controls — we provide our own :active feedback instead. */
+.btn,
+.color-trigger,
+.color-swatch,
+.asset-picker-trigger,
+.asset-clear,
+.block-add,
+.block-remove,
+.input-row--checkbox,
+.custom-slider,
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Quick, springy press state. Transform-only so it composites on the GPU and
+   can't reflow the layout. */
+.color-trigger:active,
+.asset-picker-trigger:active,
+.asset-clear:active,
+.block-add:active,
+.block-remove:active {
+  transform: scale(0.97);
+}
+.color-swatch:active {
+  transform: scale(1.05);
+}
+.color-trigger,
+.asset-picker-trigger,
+.asset-clear,
+.block-add,
+.block-remove {
+  transition: border-color 0.12s, background 0.12s, color 0.12s, transform 0.08s ease;
+}
+
+@media (pointer: coarse) {
+  /* 16px is the threshold below which iOS Safari zooms the page on focus — a
+     jarring jump that strands the sticky sidebar header and can lose the user
+     mid-edit. Enforce it on EVERY text-entry control, not just the tool sidebar:
+     <input> never inherits the page font, so search boxes, the export panel,
+     profile onboarding, the date-picker popup and Pro mode all sit at 13–14px
+     and would otherwise trigger the zoom. !important so this usability guarantee
+     wins over each component's cosmetic font-size; the lone opt-out is the
+     oversized Pro batch-name field, whose width is measured against 1.5rem. */
+  input:not([type="checkbox"]):not([type="color"]):not([type="range"]):not([type="radio"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="image"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+  .pro-zip input { font-size: 1.5rem !important; }
+
+  /* Comfortable ~44px tap targets for the tappable controls. */
+  .input-row select,
+  .asset-picker-trigger,
+  .asset-clear,
+  .color-trigger,
+  .block-add,
+  .tool-card-action {
+    min-height: 44px;
+  }
+  .asset-clear {
+    width: 44px;
+  }
+
+  /* Bigger, easier-to-grab slider: a taller track and a thumb sized for a
+     fingertip. The row already captures the whole hit-area, so this is purely
+     making the target legible. */
+  .cs-track { height: 6px; }
+  .cs-thumb { width: 22px; height: 22px; }
+  .custom-slider { padding: 12px 0 24px; }
+
+  /* Roomier swatches and checkbox. */
+  .color-swatch { height: 2.4em; width: 2.4em; }
+  .input-row input[type="checkbox"] { width: 20px; height: 20px; }
+  .input-row--checkbox { padding: 11px 12px; }
+
+  /* Finger-friendly hit areas for toolbar / nav / dismiss controls. (Corner
+     overlay deletes are left for a visual pass — enlarging them risks stealing
+     taps from the card beneath.) */
+  .nav-btn,
+  .privacy-notice-dismiss { min-height: 44px; }
+  .fullscreen-toggle,
+  .stage-nav-btn,
+  .export-popup-close { min-height: 44px; min-width: 44px; }
+
+  /* Gallery touch targets: category pills (in the filter popover), the back
+     pill, the per-card icon buttons, the profile pill, and footer links. */
+  .gallery-pill,
+  .tools-home,
+  .gallery-footer .btn { min-height: 44px; }
+  .gallery-footer .btn { display: inline-flex; align-items: center; justify-content: center; }
+  .gtile-iconbtn { width: 44px; height: 44px; }
+  .profile-link { padding-top: 14px; padding-bottom: 14px; }
+  /* The top-right cluster FABs (2.9em ≈ 39px) need bumping to 44px too. */
+  .filter-fab,
+  .history-fab { min-width: 44px; min-height: 44px; }
+}
+
+/* Capabilities + Platform shortcuts — a centered footer row at the bottom of the
+   profile content (they used to be a fixed top-right cluster). The links default
+   to position:fixed below, so neutralise that inside the row. */
+.profile-bottom-links {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: .6rem;
+  margin-top: .5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid hsl(var(--border));
+}
+.profile-bottom-links .profile-platform-link { position: static; top: auto; right: auto; }
+.profile-platform-link {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 100;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+  border: 1px solid hsl(var(--border));
+}
+.profile-platform-link:hover { background-color: hsl(var(--muted)); }
+.profile-platform-link:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }

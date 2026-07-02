@@ -193,3 +193,7 @@ lolly-batch-*/
 lolly-batch-*.zip
 lolly-url-screenshot-*/
 lolly-url-screenshot-*.zip
+/.agents/skills
+/.codex/skills/thermo-nuclear-code-quality-review
+/skills-lock.json
+/.tokensave

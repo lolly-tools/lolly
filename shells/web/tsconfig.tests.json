@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "paths": {
+      "@lolly/engine": ["../../engine/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.test.js", "src/bridge/export/vendor.d.ts"]
+}

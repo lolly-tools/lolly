@@ -1,0 +1,798 @@
+/* SPDX-License-Identifier: MPL-2.0 — Tool stage & canvas, WYSIWYG editor layout, pan/zoom, toast, mobile sheet. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Tool stage & canvas ───────────────────────────────────────────────── */
+
+.tool-stage {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0  ;
+  place-items: center;
+  overflow: hidden;
+  justify-content: center;
+  height:100vh;
+  height:100dvh;
+
+    background:
+    repeating-conic-gradient(
+      rgba(255,255,255,.025) 0% 25%,
+      rgba(0,0,0,.025) 0% 50%)
+     50% / 2em 2em;
+}
+
+/* Live-camera toggle — top-left of the stage (zoom controls sit bottom-right).
+   Only present for tools with an onFrame hook on a camera-capable shell. */
+.canvas-live-toggle {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: hsl(var(--card) / 0.92);
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: 999px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: border-color 0.12s, background 0.12s, color 0.12s;
+}
+.canvas-live-toggle:hover { border-color: hsl(var(--primary)); }
+.canvas-live-toggle:disabled { opacity: 0.6; cursor: progress; }
+.canvas-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--muted-foreground));
+  flex-shrink: 0;
+}
+.canvas-live-toggle.is-live {
+  border-color: hsl(var(--destructive));
+  color: hsl(var(--destructive));
+}
+.canvas-live-toggle.is-live .canvas-live-dot {
+  background: hsl(var(--destructive));
+  animation: canvas-live-pulse 1.4s ease-in-out infinite;
+}
+@keyframes canvas-live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 hsl(var(--destructive) / 0.5); }
+  50%      { opacity: 0.6; box-shadow: 0 0 0 4px hsl(var(--destructive) / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-live-toggle.is-live .canvas-live-dot { animation: none; }
+}
+
+/* Clips the canvas to its visual (scaled) size so the stage doesn't leave
+   a gap when transform: scale() reduces the canvas below its DOM dimensions. */
+.tool-canvas-outer {
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 .5em 3em #0002;
+  /* Slow default transition = the gentle fade-OUT after a resize ends. */
+  transition: box-shadow 0.4s ease;
+}
+
+/* Editor-only outline pulsed onto the canvas WHILE the export size is being
+   changed (scrub / scroll / type) and removed shortly after — see
+   pulseCanvasResize() in tool.js. Lives on the OUTER wrapper, never the exported
+   #tool-canvas, so it can't bleed into output; box-shadow (not outline/border)
+   so it sits OUTSIDE the canvas and never draws over its content. A faster
+   transition here makes it appear quickly; the base rule fades it out slowly. */
+.tool-canvas-outer.is-resizing {
+  box-shadow: 0 .5em 3em #0002,
+              0 0 0 2px hsl(var(--ring) / 0.32),
+              0 0 16px hsl(var(--ring) / 0.10);
+  transition: box-shadow 0.09s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-canvas-outer,
+  .tool-canvas-outer.is-resizing { transition: none; }
+}
+
+/* Export shutter — a CSS camera-iris that sweeps in to COVER the whole stage
+   while the brief full-res resize during export (the "shake") happens, then
+   sweeps back out. Template-agnostic: the live canvas is what's exported
+   underneath, so canvas/WebGL document roots keep their real pixels.
+   (Adapted from a one-shot keyframe — codepen.io/shshaw/pen/yLMMBxa — to a held
+   open↔closed transition so it can stay covered for the variable export time.) */
+.export-shutter {
+  --flaps: 6;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+  display: none;             /* only mounted/composited while exporting */
+}
+.export-shutter.is-active { display: block; }
+/* Mobile: the controller moves the shutter to <body> and adds this class so it
+   covers the whole screen — above the sidebar sheet, export popup and FAB — while
+   the system download/share sheet appears. Desktop keeps the in-stage shutter. */
+.export-shutter--fullscreen { position: fixed; inset: 0; z-index: 100000; }
+.export-shutter .flap {
+  position: absolute;
+  width: 150vmax; height: 150vmax;
+  bottom: 50%; right: 50%;                 /* pivot at the stage centre */
+  transform-origin: bottom right;
+  pointer-events: none;
+  will-change: transform;
+  background: linear-gradient(35deg, hsl(var(--card)), hsl(var(--secondary)));
+  border: 1.5px solid hsl(var(--border));
+  /* Directional shadow away from the centre pivot (bottom-right) for blade depth,
+     plus a hairline inset highlight on the trailing edge. Baked into the layer
+     once → no per-frame cost; flip the outer offset if it casts the wrong way. */
+  box-shadow: -3px -3px 16px rgba(0, 0, 0, 0.22), inset 0 -1px rgba(255, 255, 255, 0.2);
+  --p: calc(var(--i) / var(--flaps));      /* this blade's share of the circle */
+  transition: transform 0.42s cubic-bezier(0.5, 0, 0.5, 1);
+  /* Resting (open): blades fanned off-screen. */
+  transform: rotate(-0.5turn) rotate(calc(1turn * var(--p))) skewX(30deg) translateX(-100%) translateY(90%);
+}
+/* Closed: blades swept into the centre, fully covering the stage. */
+.export-shutter.is-closed .flap {
+  transform: rotate(-0.25turn) rotate(calc(1turn * var(--p))) skewX(30deg) translateX(0%) translateY(0%);
+}
+
+/* Inline render-failure notice — overlays the stage when a template script throws
+   during render (see the runtime.subscribe catch in tool.js). A sibling of the
+   canvas so the per-render innerHTML rebuild doesn't remove it. z-index sits below
+   the export shutter (6) so an in-progress export still covers it. */
+.canvas-error {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  max-width: min(90%, 420px);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  /* Solid destructive pairing — guaranteed AA in light/dark/suse (unlike red text
+     on the card, which is low-contrast on the SUSE dark-teal card). */
+  background: hsl(var(--destructive));
+  color: hsl(var(--destructive-foreground));
+  font-size: 13px;
+  font-weight: 500;
+  text-align: center;
+  box-shadow: 0 6px 20px hsl(0 0% 0% / 0.2);
+}
+
+/* Fullscreen utility tools (no sidebar, no export) */
+.tool-layout[data-sidebar="hidden"] .tool-stage {
+  overflow: auto;
+  align-items: flex-start;
+  justify-content: flex-start;
+  place-items: start;
+  background: none;
+    height:  100vh  !important;
+    height:  100dvh  !important;
+}
+
+#tool-content {
+  width: 100%;
+  min-height: 100%;
+}
+
+/* ─── WYSIWYG editor layout (render.layout:'editor') ──────────────────────────
+   A chromeless free-canvas surface: no input sidebar, but the fixed render canvas,
+   pan/zoom and full export UI are kept. The direct-manipulation overlay + left
+   toolbar are stage siblings mounted by shells/web/src/views/free-canvas.js. All
+   chrome carries [data-export-hide] and sits outside #tool-canvas, so it never
+   appears in exported files. These rules follow the [data-sidebar="hidden"] block
+   above so .is-editor re-centres the fixed canvas (that block left-aligns it). */
+.tool-layout.is-editor .tool-stage {
+  overflow: hidden;
+  align-items: center;
+  justify-content: center;
+  place-items: center;
+  background-color: hsl(var(--muted));
+  background-image:
+    linear-gradient(45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.045) 75%),
+    linear-gradient(45deg, rgba(0, 0, 0, 0.045) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, 0.045) 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+/* Float the Export|Save pill over the stage (fixed → it can't shrink the canvas). */
+.tool-layout.is-editor .render-pill {
+  display: inline-flex;
+  position: fixed;
+  /* Bottom-CENTRE, clear of the bottom-right zoom HUD it used to overlap. */
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(1rem + var(--vv-bottom, 0px) + env(safe-area-inset-bottom));
+  margin: 0;
+  z-index: 30;
+}
+.tool-layout.is-editor.export-open .render-pill { display: none; }
+
+/* Left toolbar rail — reveal-dimmed at rest on desktop, always-on for touch.
+   Vertically centred by a flex DOCK wrapper — NOT a transform. The rail must not
+   carry `transform`/`backdrop-filter`, since either would become the containing
+   block for its colour-picker popover's `position:fixed` and knock it off-screen. */
+.fc-toolbar-dock {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  padding-left: calc(10px + var(--vv-left, 0px));
+  pointer-events: none;
+  z-index: 16;
+}
+.fc-toolbar {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px;
+  border-radius: 16px;
+  background: hsl(var(--card) / 0.95);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px hsl(var(--border));
+  opacity: 0.5;
+  transition: opacity 0.18s ease;
+}
+.tool-stage:hover .fc-toolbar,
+.fc-toolbar:hover,
+.fc-toolbar:focus-within { opacity: 1; }
+
+.fc-btn {
+  width: 40px; height: 40px; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 11px;
+  background: transparent; color: hsl(var(--foreground));
+  cursor: pointer;
+  transition: background-color 0.14s ease;
+}
+.fc-btn svg { width: 21px; height: 21px; }
+.fc-btn:hover { background: hsl(var(--muted)); }
+.fc-btn:focus-visible { outline: 2px solid hsl(var(--primary)); outline-offset: 2px; }
+.fc-btn.is-armed { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.fc-sep { height: 1px; background: hsl(var(--border)); margin: 3px 4px; }
+.fc-sep-v { display: inline-block; width: 1px; height: 20px; background: hsl(var(--border)); margin: 0 3px; }
+
+/* Colour-swatch controls (canvas background + fill/text). Native colour input
+   fills the button; a rounded chip shows the current colour. */
+.fc-swatch { position: relative; overflow: hidden; }
+.fc-swatch input[type="color"] {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; cursor: pointer; border: none; padding: 0; margin: 0;
+}
+.fc-swatch::after {
+  content: ""; width: 22px; height: 22px; border-radius: 7px;
+  background: var(--sw, #cccccc); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+/* Toolbar popovers (add / arrange / align). */
+.fc-popover {
+  position: absolute; z-index: 24; min-width: 184px;
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); border-radius: 12px;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+  padding: 5px; display: flex; flex-direction: column;
+}
+.fc-pop-item {
+  display: flex; align-items: center; gap: 9px;
+  border: none; background: transparent; color: inherit;
+  font: inherit; font-size: 13.5px; text-align: left;
+  padding: 8px 10px; border-radius: 8px; cursor: pointer;
+}
+.fc-pop-item:hover:not(:disabled) { background: hsl(var(--muted)); }
+.fc-pop-item:disabled { opacity: 0.38; cursor: default; }
+.fc-pop-item.fc-pop-danger:hover:not(:disabled) { background: #ef4444; color: #ffffff; }
+.fc-pop-ic svg { width: 16px; height: 16px; display: block; }
+.fc-pop-sep { height: 1px; background: hsl(var(--border)); margin: 4px 2px; }
+/* Right-click context menu — longer, so cap its height and scroll. */
+.fc-context-menu { max-height: min(80vh, 560px); overflow-y: auto; min-width: 210px; }
+
+/* Selection overlay — siblings of the canvas, never exported. */
+.fc-overlay { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
+.fc-outline {
+  position: absolute; box-sizing: border-box;
+  border: 1.5px solid hsl(var(--primary));
+  transform-origin: 50% 50%;
+}
+/* Group / multi-selection bounding box — dashed to distinguish from a box outline. */
+.fc-group-outline { border-style: dashed; }
+.fc-handle {
+  position: absolute; width: 12px; height: 12px;
+  margin-left: -6px; margin-top: -6px;
+  background: #ffffff; border: 1.5px solid hsl(var(--primary));
+  border-radius: 3px; pointer-events: auto; touch-action: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.28);
+}
+.fc-handle::after { content: ""; position: absolute; inset: -9px; }  /* fat touch target */
+.fc-h-n, .fc-h-s { cursor: ns-resize; }
+.fc-h-e, .fc-h-w { cursor: ew-resize; }
+.fc-h-ne, .fc-h-sw { cursor: nesw-resize; }
+.fc-h-nw, .fc-h-se { cursor: nwse-resize; }
+.fc-h-rotate {
+  width: 14px; height: 14px; margin-left: -7px; margin-top: -7px;
+  border-radius: 50%; cursor: grab; background: hsl(var(--primary)); border-color: #ffffff;
+}
+.fc-rot-stem {
+  position: absolute; height: 1.5px; background: hsl(var(--primary));
+  transform-origin: 0 50%; margin-top: -0.75px; pointer-events: none;
+}
+
+/* Rubber-band (create-drag + marquee). */
+.fc-rubber {
+  position: absolute; z-index: 13;
+  border: 1.5px dashed hsl(var(--primary));
+  background: hsl(var(--primary) / 0.10);
+  pointer-events: none;
+}
+
+/* Contextual bar above the selection. Its `left` is JS-centred (NOT translateX,
+   and no backdrop-filter) so its colour-picker popover's `position:fixed` stays
+   viewport-relative rather than anchoring to a transformed/filtered ancestor. */
+.fc-ctxbar {
+  position: absolute; z-index: 15;
+  display: flex; align-items: center; gap: 2px;
+  padding: 4px; border-radius: 12px;
+  background: hsl(var(--card) / 0.97);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24), 0 0 0 1px hsl(var(--border));
+  pointer-events: auto;
+}
+.fc-cbtn {
+  min-width: 32px; height: 32px; padding: 0 7px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 8px; background: transparent;
+  color: hsl(var(--foreground)); font: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+.fc-cbtn svg { width: 18px; height: 18px; }
+.fc-cbtn:hover { background: hsl(var(--muted)); }
+.fc-cbtn.fc-danger:hover { background: #ef4444; color: #ffffff; }
+.fc-ctxbar .fc-swatch { width: 32px; height: 32px; border-radius: 8px; }
+.fc-ctxbar .fc-swatch::after { width: 18px; height: 18px; border-radius: 6px; }
+.fc-readout {
+  font-size: 11px; color: hsl(var(--muted-foreground));
+  padding: 0 6px; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
+.fc-text-only, .fc-img-only { display: none; }
+.fc-ctxbar.has-text .fc-text-only { display: inline-flex; }
+.fc-ctxbar.has-image .fc-img-only { display: inline-flex; }
+
+/* Armed-create cursor + gesture body state. */
+.tool-stage.fc-arming { cursor: crosshair; }
+body.fc-manipulating { user-select: none; -webkit-user-select: none; }
+
+/* Hide the editor chrome while the export shutter is closing (belt-and-braces —
+   detachExportHidden also removes it during the actual capture). */
+.tool-stage:has(.export-shutter.is-active) .fc-overlay,
+.tool-stage:has(.export-shutter.is-active) .fc-toolbar { opacity: 0; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fc-toolbar { transition: none; }
+}
+
+/* Touch: always-visible toolbar + larger hit targets. */
+@media (pointer: coarse) {
+  .fc-toolbar { opacity: 1; }
+  .fc-btn { width: 44px; height: 44px; }
+  .fc-handle { width: 16px; height: 16px; margin-left: -8px; margin-top: -8px; }
+  .fc-h-rotate { width: 18px; height: 18px; margin-left: -9px; margin-top: -9px; }
+}
+
+/* ── Editor iteration 2: guides · unified controls · colour picker · text edit ── */
+
+/* Snap / alignment guide lines drawn during move / resize / create. */
+.fc-guides { position: absolute; inset: 0; pointer-events: none; z-index: 14; }
+.fc-guide {
+  position: absolute; height: 1.5px; background: #ff2d78;
+  transform-origin: 0 0; pointer-events: none;
+  box-shadow: 0 0 0 0.5px rgba(255, 45, 120, 0.35);
+}
+
+/* Toolbar canvas-background — the shared colour picker, compacted to a swatch. */
+.fc-color-btn { padding: 0; overflow: visible; }
+.fc-toolbar .color-picker-field { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+.fc-toolbar .color-trigger { width: 34px; height: 34px; padding: 0; gap: 0; justify-content: center; border-radius: 10px; }
+.fc-toolbar .color-trigger-hex { display: none; }
+.fc-toolbar .color-trigger-preview { width: 22px; height: 22px; border-radius: 7px; }
+
+/* Context-bar fill + text-colour fields — compact swatch triggers. */
+.fc-cfield { display: inline-flex; }
+.fc-ctxbar .color-picker-field { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+.fc-ctxbar .color-trigger { width: 30px; height: 30px; padding: 0; gap: 0; justify-content: center; border-radius: 8px; }
+.fc-ctxbar .color-trigger-hex { display: none; }
+.fc-ctxbar .color-trigger-preview { width: 20px; height: 20px; border-radius: 6px; }
+
+/* "More" panel: shape / radius / opacity / image fit / blend. */
+.fc-panel {
+  position: absolute; z-index: 24; min-width: 238px;
+  display: flex; flex-direction: column; gap: 9px;
+  padding: 11px 12px; border-radius: 12px;
+  background: hsl(var(--card)); color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border)); box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+}
+.fc-row { display: flex; align-items: center; gap: 9px; font-size: 12.5px; }
+.fc-row > span { flex: 0 0 86px; color: hsl(var(--muted-foreground)); }
+.fc-row select, .fc-row input[type="range"] { flex: 1; min-width: 0; }
+.fc-row select {
+  font: inherit; font-size: 12.5px; padding: 4px 6px; border-radius: 7px;
+  border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
+}
+.fc-row > b { flex: 0 0 32px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Canvas-size panel — presets grid + custom width/height. */
+.fc-size-panel { min-width: 262px; }
+.fc-panel-head { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: hsl(var(--muted-foreground)); }
+.fc-size-presets { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.fc-size-preset {
+  display: flex; flex-direction: column; gap: 1px; align-items: flex-start;
+  padding: 7px 9px; border-radius: 8px; cursor: pointer;
+  border: 1px solid hsl(var(--border)); background: hsl(var(--background)); color: inherit;
+  font: inherit; font-size: 12px; text-align: left;
+}
+.fc-size-preset b { font-weight: 600; }
+.fc-size-preset span { font-size: 10.5px; color: hsl(var(--muted-foreground)); font-variant-numeric: tabular-nums; }
+.fc-size-preset:hover { border-color: hsl(var(--ring) / 0.5); }
+.fc-size-preset.is-current { border-color: hsl(var(--primary)); background: hsl(var(--primary) / 0.08); }
+.fc-size-panel .fc-row input[type="number"] {
+  flex: 1; min-width: 0; font: inherit; font-size: 12.5px; padding: 4px 6px;
+  border-radius: 7px; border: 1px solid hsl(var(--input)); background: hsl(var(--background)); color: inherit;
+}
+
+/* Inline text editing — the box's own text element becomes contentEditable. */
+.lolly-box-text.fc-editing {
+  outline: 2px solid #2d7ff9; outline-offset: 3px;
+  cursor: text; min-height: 1em; min-width: 8px; caret-color: #2d7ff9;
+}
+
+@media (pointer: coarse) {
+  .fc-ctxbar .color-picker-field, .fc-ctxbar .color-trigger { width: 36px; height: 36px; }
+}
+
+/* Canvas-layout file utilities (render.layout:"canvas") put the drop zone on
+   #tool-content; sidebar tools with a dropToAdd blocks input (e.g. logo-wall) put
+   it on the #tool-canvas preview. Either way, dragging files over the canvas draws
+   a clear drop affordance. The outline is transient (only while dragging, removed
+   before export), so it never bleeds into output. */
+#tool-content.is-file-dragover,
+#tool-canvas.is-file-dragover {
+  outline: 3px dashed hsl(var(--primary));
+  outline-offset: -12px;
+  background: hsl(var(--primary) / 0.05);
+}
+
+/* On-device reassurance badge, floated onto the stage when there's no sidebar to
+   host it. Pinned bottom-centre, out of the way of the canvas content. */
+.on-device-badge--float {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  margin-bottom: 0;
+  background: hsl(var(--background));
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+
+
+.tool-canvas {
+  background: transparent;
+  overflow: hidden;
+  position: relative;
+  transform-origin: top left;
+}
+
+/* ── Canvas pan/zoom (setupStageNav) ────────────────────────────────────── */
+/* Panning the stage: Space- or middle-drag. Plain clicks stay free for the
+   canvas click-to-focus behaviour, so the grab cursor only shows on Space-hold. */
+.tool-stage.is-grabbable { cursor: grab; }
+.tool-stage.is-grabbing  { cursor: grabbing; }
+
+/* Zoom HUD — a small bottom-right pill: −  [NN%]  +  Fit. Dimmed until the stage
+   is hovered or the canvas is zoomed, so it stays out of the way at rest. */
+.stage-nav {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.85);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  border: 1px solid hsl(var(--border));
+  opacity: 0.45;
+  transition: opacity 0.12s;
+}
+.tool-stage:hover .stage-nav,
+.stage-nav[data-zoomed="1"],
+.stage-nav:focus-within { opacity: 1; }
+
+.stage-nav-btn,
+.stage-nav-pct {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: hsl(var(--foreground));
+  height: 26px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, color 0.12s;
+}
+.stage-nav-btn { width: 26px; font-size: 16px; line-height: 1; }
+.stage-nav-pct { min-width: 48px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.stage-nav-fit { width: auto; padding: 0 10px; font-size: 12px; font-weight: 600; }
+.stage-nav-btn:hover,
+.stage-nav-pct:hover { background: hsl(var(--accent)); color: hsl(var(--accent-foreground)); }
+
+/* Mobile: stack the zoom HUD into a vertical capsule so it fits the narrow stage,
+   reading + / NN% / − / Fit top-to-bottom like a map zoom control. */
+@media (max-width: 640px) {
+  .stage-nav {
+    flex-direction: column;
+    align-items: stretch;
+    opacity: 1;                                    /* no hover on touch — keep it visible */
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));  /* clear the home indicator */
+  }
+  .stage-nav-btn { width: auto; }                 /* fill the column when stacked */
+  .stage-nav [data-nav="in"]  { order: 1; }       /* + */
+  .stage-nav [data-nav="pct"] { order: 2; }       /* NN% */
+  .stage-nav [data-nav="out"] { order: 3; }       /* − */
+  .stage-nav [data-nav="fit"] { order: 4; }       /* Fit */
+  /* Round the capsule's ends: top button (+) and the bottom Fit button. */
+  .stage-nav [data-nav="in"]  { border-radius: 6em 6em 1em 1em; }
+  .stage-nav [data-nav="fit"] { border-radius: 1em 1em 6em 6em; }
+}
+
+/* On touch the HUD is the primary zoom control; the canvas also keeps pinch/drag. */
+
+/* ─── Toast — transient feedback (undo/redo) ────────────────────────────────
+   Body-mounted, fixed bottom-centre pill in the .stage-nav idiom (translucent
+   card + blur + hairline border, theme-aware via tokens). Sits above page chrome
+   (z 900) but below modals (1000+). pointer-events:none so canvas clicks fall
+   through — only the action button re-enables them. Entrance is a TRANSITION
+   (not a keyframe) so it still plays under prefers-reduced-motion, matching the
+   .export-popup philosophy. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(92vw, 30rem);
+  padding: 6px 6px 6px 14px;
+  border-radius: 999px;
+  background: hsl(var(--card) / 0.92);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+  color: hsl(var(--foreground));
+  font-size: 0.8125rem;
+  line-height: 1.2;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-50%) translateY(8px);
+  transition: opacity 0.16s ease, transform 0.22s cubic-bezier(0.32, 0.72, 0, 1), visibility 0.16s;
+}
+.toast.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.toast-icon { display: inline-flex; flex: none; color: hsl(var(--muted-foreground)); }
+.toast-icon svg { width: 16px; height: 16px; display: block; }
+.toast-message { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.toast-label { color: hsl(var(--muted-foreground)); }
+.toast.is-muted { padding: 6px 14px; }
+.toast.is-muted .toast-message { color: hsl(var(--muted-foreground)); }
+.toast-action {
+  pointer-events: auto;            /* the one part of the toast that takes clicks */
+  flex: none;
+  border: none;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 999px;
+  transition: filter 0.12s;
+}
+.toast-action:hover { filter: brightness(1.08); }
+.toast-action:active { filter: brightness(0.95); }
+
+/* Mobile: lift the toast above the bottom-centre Render FAB (z55), and cap its
+   width so its right edge can't reach (and steal taps from) the bottom-right zoom
+   HUD. A long label ellipsises rather than spanning edge-to-edge. */
+@media (max-width: 640px) {
+  .toast {
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+    max-width: calc(100vw - 6rem);
+  }
+}
+
+/* ── Mobile (≤640px): controls become a drag sheet, preview fills below ──────
+   Placed after the base .sidebar / .tool-stage rules so it actually wins the
+   cascade. The controls panel is anchored at the TOP with the grip on its BOTTOM
+   edge, so dragging the grip down grows the controls (and shrinks the preview)
+   while the grip tracks the finger 1:1. Snap heights mirror setupMobileSheet. */
+@media (max-width: 640px) {
+  .tool-layout {
+    display: block;
+    height: 100dvh;
+    --sheet-h: 50dvh;                 /* default; overridden per data-sheet state */
+    /* Clearance below the peek bar so the preview doesn't run up under it. Driven
+       by --peek-h (the measured header height, set in setupMobileSheet) so the
+       taller two-row header still fully shows in peek; 56px is the fallback.
+       Static — independent of the sheet height — so the preview never rescales. */
+    --preview-top: calc(var(--peek-h, 56px) + 0dvh);
+  }
+  .tool-layout[data-sheet="peek"] { --sheet-h: var(--peek-h, 56px); }
+  .tool-layout[data-sheet="half"] { --sheet-h: 50dvh; }
+  .tool-layout[data-sheet="full"] { --sheet-h: 90dvh; }
+
+  /* Controls panel — anchored at the top, grip on its bottom edge. The --vv-*
+     offsets (set by the VisualViewport shim in main.js) keep it pinned to the
+     VISIBLE area while the page is pinch-zoomed; they're 0px when not zoomed. */
+  .sidebar {
+    position: fixed;
+    top: var(--vv-top, 0px); left: var(--vv-left, 0px); right: auto;
+    width: 100% !important;           /* override the desktop inline width */
+    height: var(--sheet-h);
+    max-height: 92dvh;
+    display: flex;
+    flex-direction: column;
+    border-right: none;
+    border-bottom: 1px solid hsl(var(--border));
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18);
+    transition: height 0.34s cubic-bezier(0.32, 0.72, 0, 1); /* confident, decelerating settle */
+    z-index: 50;
+    /* Clip the sheet so the form can't spill past its rounded bottom edge. The
+       grip is NOT a child (it's a sibling in tool.js, position:fixed) so this
+       clipping never crops it. Inputs scroll via .sidebar-body's own overflow. */
+    overflow: hidden;
+  }
+  /* The title bar doubles as a wide drag handle for the sheet (see addDragHandle
+     in tool.js). touch-action:none so the drag moves the panel instead of the
+     page; the inner Tools link / controls stay tappable and are excluded in JS. */
+  .sidebar-header {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  .tool-layout.is-sheet-dragging .sidebar-header { cursor: grabbing; }
+
+  /* Grip is pinned to the divider line itself (fixed, out of the panel's flow),
+     so it's always visible and grabbable no matter how short the panel gets. */
+  .sheet-grip {
+    display: flex;
+    position: fixed;
+    left: var(--vv-left, 0px); right: auto; width: 100%;
+    top: calc(var(--sheet-h) + var(--vv-top, 0px));   /* tracks the sheet + the visible-area offset */
+    transform: translateY(-50%);
+    height: 30px;                 /* generous hit area straddling the divider */
+    z-index: 60;                  /* above the panel (50) and the preview */
+    transition: top 0.34s cubic-bezier(0.32, 0.72, 0, 1); /* match the sheet's settle */
+  }
+  .tool-layout.is-sheet-dragging .sheet-grip { transition: none; }
+
+  /* Preview — a static backdrop offset below the top bar. The controls sheet
+     slides over it (it doesn't rescale on half/full), and Fit fits to this region
+     since fitCanvas reads the stage rect. Collapse to peek and it re-fits to fill
+     the freed space (see setupMobileSheet's peek re-fit in tool.js). */
+  .tool-stage {
+    position: fixed;
+    /* Fallback 0px for the chromeless editor layout (render.layout:'editor'): it has
+       no mobile top bar, so it never sets --preview-top. Without the fallback the unset
+       var makes the whole `inset` collapse the fixed stage to its content width, which
+       drags the absolutely-positioned zoom HUD (.stage-nav) far off the right edge.
+       Non-editor tools set --preview-top from JS (setupMobileSheet), so they're unchanged. */
+    inset: var(--preview-top, 0px) 0 0 0;
+    height: auto;
+  }
+
+  /* Track the finger 1:1 while dragging — no easing on the panel height. */
+  .tool-layout.is-sheet-dragging .sidebar { transition: none; }
+
+  /* The grip replaces the desktop width handle + fullscreen toggles. */
+  .sidebar-drag-handle { display: none; }
+  .fullscreen-toggle,
+  .fullscreen-toggle-float { display: none !important; }
+
+  /* The desktop "collapsed" hide must not blank the sheet body on mobile. */
+  .tool-layout[data-sidebar="closed"] .sidebar-body { opacity: 1 !important; pointer-events: auto !important; }
+  /* The sheet is full-width; don't pin the body to the desktop open width. */
+  .sidebar-body { min-width: 0; }
+
+  /* Get|Save pill — the primary export/save CTA, floating bottom-centre over the
+     preview, always reachable regardless of the controls-sheet position. */
+  .render-pill {
+    display: inline-flex;
+    align-items: stretch;
+    position: fixed;
+    left: 50%;
+    bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 55;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.3), inset 0 .1px #fff6;
+  }
+  .tool-layout.export-open .render-pill { display: none; }
+
+  /* Export popup — a bottom sheet holding the (moved) actions panel. Hidden until
+     Render is tapped; dismiss via the scrim or the ✕. */
+  .export-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+  }
+  .tool-layout.export-open .export-overlay { opacity: 1; visibility: visible; }
+  .export-overlay-scrim { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.45); }
+  .export-popup {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    max-height: 85dvh;
+    display: flex;
+    flex-direction: column;
+    background: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-radius: 18px 18px 0 0;
+    box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.3);
+    transform: translateY(100%);
+    transition: transform 0.34s cubic-bezier(0.32, 0.72, 0, 1); /* same settle as the sheet */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .tool-layout.export-open .export-popup { transform: translateY(0); }
+  /* While the finger is dragging the sheet down, track it 1:1 — the spring-back
+     / dismiss animation re-enables once the touch ends. */
+  .export-popup.is-popup-dragging { transition: none; }
+  /* Grab affordance — hints that the sheet can be flicked away. */
+  .export-popup::before {
+    content: "";
+    position: absolute;
+    top: 8px; left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 4px;
+    border-radius: 999px;
+    background: hsl(var(--muted-foreground) / 0.4);
+  }
+  .export-popup-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 16px 12px;
+    border-bottom: 1px solid hsl(var(--border));
+    flex-shrink: 0;
+  }
+  .export-popup-title {
+    font-size: 13px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: hsl(var(--muted-foreground));
+  }
+  .export-popup-close {
+    border: none; background: none; cursor: pointer; padding: 4px 8px;
+    font-size: 18px; line-height: 1; color: hsl(var(--muted-foreground));
+  }
+  .export-popup-body { overflow-y: auto; padding: 16px; }
+  /* Drop the sidebar-specific spacing now that the panel lives in the popup. */
+  .export-popup-body .tool-actions { margin: 0; padding: 0; border-top: none; }
+}

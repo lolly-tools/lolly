@@ -1,0 +1,272 @@
+/* SPDX-License-Identifier: MPL-2.0 — Platform view (brand dashboard). Split from app.css (finding 10); see app.css for the import order. */
+/* ─── Platform view — read-only brand/platform dashboard ───────────────────── */
+.platform-view { overflow-y: auto; }
+.platform-view .platform-layout {
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 3.25rem 1.25rem 5rem; /* top clears the fixed "Tools" pill */
+}
+
+.plat-header { margin: .5rem 0 1.85rem; }
+.plat-title { margin: 0 0 .4rem; font-size: clamp(1.7rem, 3.4vw, 2.3rem); font-weight: 700; letter-spacing: -.02em; }
+.plat-sub { margin: 0 0 1rem; max-width: 62ch; color: hsl(var(--muted-foreground)); font-size: 1rem; line-height: 1.55; }
+.plat-header-text { min-width: 0; }
+.plat-header-text > :last-child { margin-bottom: 0; }
+.plat-note {
+  margin: 0; max-width: 72ch; padding: .75rem .9rem;
+  font-size: .85rem; line-height: 1.55; color: hsl(var(--muted-foreground));
+  background: hsl(var(--muted) / .5); border: 1px solid hsl(var(--border)); border-radius: var(--radius);
+}
+.plat-note strong { color: hsl(var(--foreground)); }
+
+/* Desktop: set the title beside its supporting copy so the header stays compact
+   and the content starts higher up the page. Stacks again on narrow screens. */
+@media (min-width: 820px) {
+  .plat-header { display: flex; align-items: center; gap: 2.5rem; margin-bottom: 2rem; }
+  .plat-title { flex: 0 0 auto; max-width: 16ch; margin: 0; }
+  .plat-header-text { flex: 1 1 auto; }
+  .plat-header-text .plat-sub { margin-bottom: .7rem; }
+}
+
+/* Entrance cascade — ONE continuous ladder over the page's top-level nodes:
+   the "Tools" back-link (i=0) → the header band (i=1) → each section (i=2,3…).
+   The header rides the SAME motion as the cards, so the page reveals as one
+   wave instead of the old behaviour where the header snapped in at full opacity
+   while only the sections faded under it (that split read as a flicker). Inner
+   cards do NOT animate independently — they ride their section's single fade,
+   which kills the old parent×child double-stagger.
+
+   JS (mountPlatform/mountCapabilities) arms this by adding `.is-entering` to the
+   view and an inline `--enter-i` index on each node, synchronously right after
+   innerHTML so the FIRST paint already has the hidden `from` state — no flash.
+   The class is removed once the wave finishes, so it never replays when a user
+   later expands a <details> section.
+
+   Gated behind `no-preference`: under reduced motion the hidden `from` state is
+   never authored and `.is-entering` is never added, so content renders
+   instantly — no specificity fight with the global !important reduce rule and
+   none of the "held-invisible-by-a-surviving-delay then pop" that zeroing only
+   the duration would cause. (Mirrors the masonry pattern above.) */
+@media (prefers-reduced-motion: no-preference) {
+  .platform-view.is-entering > .tools-home,
+  .platform-view.is-entering > .platform-layout > .plat-header,
+  .platform-view.is-entering > .platform-layout > .plat-section,
+  .capabilities-view.is-entering > .tools-home,
+  .capabilities-view.is-entering > .platform-layout > .plat-header,
+  .capabilities-view.is-entering > .platform-layout > .plat-section {
+    animation: card-in var(--enter-dur) var(--enter-ease) both;
+    animation-delay: calc(var(--enter-i, 0) * 0.05s);
+  }
+}
+
+/* Deferred content (the "This device" grid + brand-asset counts on Platform) is
+   filled AFTER first paint, so it would otherwise pop into an already-revealed
+   section. The view adds `.plat-hydrated` in the same tick it injects the
+   content, so this opacity-only fade (no translate — the box is already in place)
+   carries it in. No-preference gated; under reduced motion it just appears. */
+@keyframes plat-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) {
+  .plat-hydrated { animation: plat-fade 0.28s var(--enter-ease) both; }
+}
+
+/* Collapsible sections are profile-style cards: card chrome lives on the
+   <details>, the title is its <summary>, and an SVG chevron rotates 90° on open. */
+.plat-section {
+  margin: 0 0 1.1rem;
+  background: hsl(var(--card));
+  color: hsl(var(--card-foreground));
+  border: 1px solid hsl(var(--border));
+  border-radius: calc(var(--radius) * 1.25);
+}
+/* Section headings match the profile cards: small uppercase muted labels
+   (nothing in either view is case-sensitive, so uppercasing is safe). */
+.plat-section-title {
+  margin: 0;
+  font-size: .72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: hsl(var(--muted-foreground));
+}
+.plat-section-desc { margin: .55rem 0 0; max-width: 74ch; color: hsl(var(--muted-foreground)); font-size: .9rem; line-height: 1.5; }
+.plat-section-desc code, .plat-note code,
+.plat-swatch-hex, .plat-swatch-cmyk, .plat-src, .plat-table td code {
+  font-family: 'SUSE Mono', ui-monospace, monospace;
+}
+
+.plat-legend { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; margin: 0 0 1rem; font-size: .8rem; color: hsl(var(--muted-foreground)); }
+.plat-legend-item { display: inline-flex; align-items: center; gap: .5rem; }
+
+.plat-ramp-title {
+  display: flex; align-items: center; gap: .5rem;
+  margin: 1.5rem 0 .7rem; font-size: .78rem; font-weight: 650;
+  text-transform: uppercase; letter-spacing: .07em; color: hsl(var(--muted-foreground));
+}
+.plat-ramp-count {
+  font-size: .7rem; font-weight: 600; padding: .05rem .45rem; border-radius: 999px; letter-spacing: 0;
+  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+}
+.plat-ramp-note { margin: -.3rem 0 .8rem; max-width: 74ch; color: hsl(var(--muted-foreground)); font-size: .82rem; line-height: 1.5; }
+.plat-ramp-note strong { color: hsl(var(--foreground)); }
+
+.plat-swatch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: .75rem; }
+.plat-swatch {
+  display: flex; flex-direction: column;
+  background: hsl(var(--background)); border: 1px solid hsl(var(--border));
+  border-radius: var(--radius); overflow: hidden;
+}
+.plat-swatch-chip {
+  position: relative; height: 62px; width: 100%; border: 0; padding: 0; cursor: pointer;
+  box-shadow: inset 0 0 0 1px hsl(var(--border) / .6);
+}
+.plat-swatch-chip.is-transparent {
+  background-color: hsl(var(--card));
+  background-image: conic-gradient(hsl(var(--muted-foreground) / .25) 25%, transparent 0 50%, hsl(var(--muted-foreground) / .25) 0 75%, transparent 0);
+  background-size: 14px 14px;
+}
+.plat-swatch-chip::after {
+  content: 'Copied'; position: absolute; inset: 0; display: grid; place-content: center;
+  font-size: .7rem; font-weight: 600; color: #fff; background: hsl(0 0% 0% / .55);
+  opacity: 0; transition: opacity .12s; pointer-events: none;
+}
+.plat-swatch-chip.is-copied::after { opacity: 1; }
+.plat-swatch-chip:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
+.plat-chip-flag {
+  position: absolute; top: 4px; right: 4px;
+  font-size: .55rem; font-weight: 700; letter-spacing: .04em; line-height: 1;
+  padding: .2rem .32rem; border-radius: 3px;
+  background: hsl(0 0% 100% / .88); color: hsl(0 0% 10%);
+}
+.plat-chip-flag.is-static { position: static; display: inline-block; }
+.plat-swatch-name { margin: .45rem .55rem 0; font-size: .8rem; font-weight: 600; }
+.plat-swatch-hex { margin: .12rem .55rem 0; font-size: .72rem; color: hsl(var(--muted-foreground)); }
+.plat-swatch-cmyk { margin: .05rem .55rem .55rem; font-size: .68rem; color: hsl(var(--foreground)); }
+.plat-swatch-cmyk.is-generic { color: hsl(var(--muted-foreground) / .85); font-style: italic; }
+
+.plat-table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.plat-table th, .plat-table td { text-align: left; padding: .55rem .6rem; border-bottom: 1px solid hsl(var(--border)); }
+.plat-table th { font-size: .72rem; text-transform: uppercase; letter-spacing: .05em; color: hsl(var(--muted-foreground)); font-weight: 600; }
+.plat-table td code { font-size: .85em; }
+.plat-table tr.is-default td:first-child { font-weight: 600; }
+.plat-pill {
+  display: inline-block; margin-left: .4rem; font-size: .58rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em; vertical-align: middle;
+  padding: .12rem .38rem; border-radius: 999px;
+  background: hsl(var(--primary)); color: hsl(var(--primary-foreground));
+}
+/* Informational, not a highlight — used to qualify a value (e.g. cookies are
+   available but never set). Muted so it reads as a footnote, not a badge. */
+.plat-pill--muted {
+  background: hsl(var(--muted)); color: hsl(var(--muted-foreground));
+}
+
+.plat-font-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+.plat-font { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1.1rem 1.2rem; }
+.plat-font-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; margin-bottom: .5rem; }
+.plat-font-name { font-size: 1.4rem; font-weight: 600; }
+.plat-font-role { font-size: .75rem; color: hsl(var(--muted-foreground)); }
+.plat-font-specimen { padding: .3rem 0 .8rem; border-bottom: 1px solid hsl(var(--border)); margin-bottom: .8rem; }
+.plat-font-aa { font-size: 3.2rem; font-weight: 500; line-height: 1; }
+.plat-font-pangram { margin: .5rem 0 .7rem; font-size: 1rem; line-height: 1.35; }
+.plat-font-weights { display: flex; flex-wrap: wrap; gap: .8rem; font-size: 1rem; color: hsl(var(--muted-foreground)); }
+.plat-kv { margin: 0; display: grid; gap: .35rem; }
+.plat-kv > div { display: flex; gap: .6rem; font-size: .8rem; }
+.plat-kv dt { flex: 0 0 4.25rem; color: hsl(var(--muted-foreground)); }
+.plat-kv dd { margin: 0; min-width: 0; }
+.plat-src { font-size: .72rem; word-break: break-all; }
+
+/* Collapsible sections — every platform section is a <details>; the title is its
+   <summary>, with an SVG chevron that rotates 90° when open. Mirrors the profile
+   page's collapsible cards (style + .15s ease transition). */
+.plat-section-summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 1rem;
+  padding: 1.1rem 1.4rem;
+}
+.plat-section-summary::-webkit-details-marker { display: none; }
+.plat-section-summary .plat-section-title { flex: 1 1 auto; margin: 0; text-align: left; }
+.plat-section-chev { flex: 0 0 auto; color: hsl(var(--muted-foreground)); transition: transform .15s ease; }
+.plat-section-summary:hover .plat-section-title,
+.plat-section-summary:hover .plat-section-chev { color: hsl(var(--foreground)); }
+.plat-section[open] .plat-section-summary .plat-section-chev { transform: rotate(90deg); }
+.plat-section-summary:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: -3px; border-radius: calc(var(--radius) * 1.25); }
+.plat-section-body { padding: 0 1.4rem 1.4rem; }
+@media (prefers-reduced-motion: reduce) { .plat-section-chev { transition: none; } }
+
+/* "This device" runtime snapshot — a grid of grouped key/value cards. Cards sit
+   at their natural height (`start`, not `stretch`) so a short card like the
+   single-row System Graphics one doesn't balloon to match its row. */
+.plat-client-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1rem; align-items: start; }
+/* Where the browser supports grid masonry, pack the columns tightly while
+   KEEPING left-to-right reading order — unlike column-count masonry, which runs
+   top-to-bottom down each column. Falls back to the top-aligned grid above. */
+@supports (grid-template-rows: masonry) {
+  .plat-client-grid { grid-template-rows: masonry; }
+}
+/* Sub-cards sit on the cleanest base background so they read as distinct panels
+   nested inside the section card (which uses --card). */
+.plat-client-card { background: hsl(var(--background)); border: 1px solid hsl(var(--border)); border-radius: var(--radius); padding: 1rem 1.15rem; }
+.plat-client-title {
+  display: flex; align-items: center; gap: .5rem;
+  margin: 0 0 .7rem; padding-bottom: .5rem; border-bottom: 1px solid hsl(var(--border));
+  font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: hsl(var(--muted-foreground));
+}
+.plat-client-icon { display: inline-flex; flex: 0 0 auto; color: hsl(var(--card-foreground)); }
+.plat-client-icon svg { display: block; width: 32px; height: 32px; }
+/* Card-level caption (e.g. the "inferred, not probed" note on Rendering stack). */
+.plat-client-note { margin: -.35rem 0 .7rem; font-size: .72rem; line-height: 1.4; color: hsl(var(--muted-foreground)); }
+.plat-kv--wide dt { flex: 0 0 8rem; }
+.plat-kv--wide dd { word-break: break-word; }
+.plat-kv .is-stacked { flex-direction: column; gap: .15rem; }
+.plat-kv .is-stacked dt { flex: none; }
+.plat-kv dd.is-mono { font-family: 'SUSE Mono', ui-monospace, monospace; font-size: .72rem; word-break: break-all; color: hsl(var(--muted-foreground)); }
+.plat-kv dd.is-lead { font-size: .95rem; font-weight: 650; line-height: 1.2; }
+.plat-kv .is-hero { flex-direction: column; align-items: flex-start; gap: .25rem; }
+.plat-kv .is-hero dt { flex: none; font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; }
+.plat-kv dd.is-hero { font-size: 1.6rem; font-weight: 700; line-height: 1.1; color: hsl(var(--card-foreground)); word-break: break-word; }
+
+.plat-theme-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .85rem; }
+.plat-theme { padding: 1rem; border-radius: var(--radius); background: hsl(var(--background)); color: hsl(var(--foreground)); border: 1px solid hsl(var(--border)); }
+.plat-theme-name { font-weight: 600; text-transform: capitalize; }
+.plat-theme-dots { display: flex; gap: .35rem; margin: .85rem 0; }
+.plat-theme-dots span { width: 22px; height: 22px; border-radius: 50%; box-shadow: inset 0 0 0 1px hsl(var(--border)); }
+.plat-theme-sample { font-size: 1.6rem; font-weight: 600; }
+
+.plat-stat-block { margin-bottom: 1.25rem; }
+.plat-stats { display: flex; flex-wrap: wrap; gap: .6rem; }
+.plat-stats--sub { margin-top: .55rem; }
+.plat-stat {
+  display: inline-flex; align-items: baseline; gap: .35rem;
+  padding: .35rem .65rem; border-radius: var(--radius);
+  background: hsl(var(--muted) / .6); font-size: .82rem; text-transform: capitalize;
+}
+.plat-stat strong { font-size: 1rem; }
+/* `.plat-stat` sets display:inline-flex, which out-specifies the global
+   [hidden]{display:none} (a (0,1,0) tie that source order hands to .plat-stat),
+   leaving only visibility:hidden — so a hidden stat (the cold "N tools" pill
+   before its count syncs in) would still reserve layout and reflow when shown.
+   This (0,2,0) override restores display:none. Mirrors the same fix elsewhere
+   in this file (e.g. the gallery's hidden-state rules). */
+.plat-stat[hidden] { display: none; }
+.plat-chip {
+  display: inline-block; padding: .25rem .55rem; border-radius: 999px;
+  background: hsl(var(--secondary)); color: hsl(var(--secondary-foreground));
+  font-size: .75rem; text-transform: capitalize;
+}
+.plat-muted { color: hsl(var(--muted-foreground)); font-size: .85rem; font-style: italic; }
+
+/* Capabilities (features) page — reuses the platform chrome (.plat-*, .platform-layout)
+   with a feature-card list whose feature name leads and its description follows. */
+.capabilities-view { overflow-y: auto; }
+.capabilities-view .platform-layout {
+  width: 100%; max-width: 1080px; margin: 0 auto;
+  padding: 3.25rem 1.25rem 5rem; /* top clears the fixed "Tools" pill */
+}
+.cap-grid { align-items: start; }
+.cap-card { display: flex; flex-direction: column; }
+.cap-feat { margin: 0; display: grid; gap: .85rem; }
+.cap-feat > div { display: block; }
+.cap-feat dt { margin: 0 0 .12rem; font-size: .82rem; font-weight: 650; color: hsl(var(--foreground)); }
+.cap-feat dd { margin: 0; font-size: .8rem; line-height: 1.5; color: hsl(var(--muted-foreground)); }
+.cap-feat dd code { font-family: 'SUSE Mono', ui-monospace, monospace; font-size: .92em; }

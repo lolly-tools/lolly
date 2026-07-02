@@ -70,7 +70,7 @@ The `ref` keeps the value canonical — editing the token, or switching themes, 
 
 How it moves through the engine:
 
-- **Hydration** ([`runtime.js`](../engine/src/runtime.js) → `resolveTokenRefs`, mirroring asset-ref resolution): on load, each token-backed colour re-resolves against the live token set and its cached hex is refreshed. `modelToValues` then hands the template a plain hex string — templates and data/JSON exports never see an object.
+- **Hydration** ([`runtime.ts`](../engine/src/runtime.ts) → `resolveTokenRefs`, mirroring asset-ref resolution): on load, each token-backed colour re-resolves against the live token set and its cached hex is refreshed. `modelToValues` then hands the template a plain hex string — templates and data/JSON exports never see an object.
 - **Hooks** see the flattened hex too (`modelForHooks` in [`inputs.js`](../engine/src/inputs.js)): the `{ ref, value }` shape is an engine detail and never reaches a tool's `onInit`/`onInput`, so the common `(inputs.x || '').trim()` pattern keeps working.
 - **URL mode** ([`url-mode.js`](../engine/src/url-mode.js)): a token colour serialises to its reference (`?bg={color.brand.jungle}`), so a shared link re-resolves against the *recipient's* tokens. Parsing a `{path}` yields an unresolved token value the runtime then resolves.
 - **Editing past a token** (typing a hex, dragging alpha) emits a plain string — deliberately de-linking from the token, because the user just overrode it.

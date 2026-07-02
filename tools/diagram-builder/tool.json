@@ -17,7 +17,8 @@
   },
   "hooks": {
     "onInit": true,
-    "onInput": true
+    "onInput": true,
+    "module": true
   },
   "inputs": [
     {

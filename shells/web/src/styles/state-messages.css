@@ -1,0 +1,135 @@
+/* SPDX-License-Identifier: MPL-2.0 — State messages. Split from app.css (finding 10); see app.css for the import order. */
+/* ─── State messages ────────────────────────────────────────────────────── */
+
+.loading,
+.empty {
+  color: hsl(var(--muted-foreground));
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  text-align: center;
+}
+
+.error {
+  color: hsl(var(--destructive));
+  padding: 12px 16px;
+  border: 1px solid hsl(var(--destructive) / 0.4);
+  background: hsl(var(--destructive) / 0.06);
+  border-radius: var(--radius);
+  font-size: 13px;
+}
+
+.error-list {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.error-list code {
+  font-family: ui-monospace, monospace;
+  background: hsl(var(--muted));
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.muted {
+  color: hsl(var(--muted-foreground));
+  font-size: 12px;
+}
+
+.tools-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 9;
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--primary-foreground));
+  top: 2em;
+  left: 2em;
+  padding: 8px 18px;
+  border-radius: 999px;            /* pill */
+  text-decoration: none;
+  transition: filter 0.12s, background 0.12s;
+}
+.tools-home:hover { filter: brightness(1.12); }
+
+.tools-home:before {
+  content: "←";
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Sidebar back button: sits at the left of the back row (with the theme toggle on
+   the right — see .sidebar-back-row). The filled .tools-home base gives the pill
+   look; this just keeps it from stretching. */
+.tools-home.sidebar-back {
+  flex: none;
+}
+
+.profile-link {
+    position: absolute;
+    z-index:99999;
+    right: 2em;
+    top: 1.25em;
+    color: currentcolor;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    border: 1px solid hsl(var(--primary));
+    padding: 12px 10px 12px 3em;
+    border-radius: 2em;
+    backdrop-filter: blur(2px);
+    transition: background 0.12s, color 0.12s;
+  }
+
+/* Pin the profile link to the viewport on the gallery so it stays put while the
+   tool list scrolls (mobile already does this below; this covers desktop too). */
+ 
+
+/* Placeholder dot — shown only when the user has no headshot yet. */
+.profile-link::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.2em;
+ height: 2.2em;
+  background-color: hsl(var(--primary));
+  border-radius: 50%;
+}
+.profile-link.has-avatar::before { display: none; }
+
+/* Real user headshot, clipped to a circle in place of the dot. */
+.profile-link-avatar {
+  position: absolute;
+  left: 7px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.2em;
+ height: 2.2em;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid hsl(var(--primary) / .4);
+}
+
+/* On mobile the gallery scrolls under it, so pin the profile button to the
+   viewport and blur what passes behind for legibility. */
+@media (max-width: 640px) {
+  .profile-link {
+    position: fixed;
+    /* Re-pin to the visible top-right while the page is pinch-zoomed. */
+    top: calc(1.25em + var(--vv-top, 0px));
+    right: calc(2em + var(--vv-right, 0px));
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+}

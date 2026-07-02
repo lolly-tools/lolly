@@ -76,49 +76,49 @@ The gap is clear: nothing in the existing landscape gives us constraints-first, 
 lolly/
 ├── engine/           # Platform-agnostic core. Open-sourceable.
 │   └── src/
-│       ├── index.js          # public surface — loader, runtime, template, inputs, url-mode
-│       ├── loader.js         # fetches and validates tool files
-│       ├── runtime.js        # orchestrates the 5-step lifecycle
-│       ├── template.js       # Handlebars hydration + annotateTemplate
-│       ├── inputs.js         # manifest → runtime input model
-│       ├── url-mode.js       # URL ↔ input state round-trip
-│       ├── validate.js       # JSON Schema validation of manifests
-│       ├── compose.js        # resolve nested tool renders (composes)
-│       ├── embed.js          # parse portable lolly.tools embed URLs
+│       ├── index.ts          # public surface — loader, runtime, template, inputs, url-mode
+│       ├── loader.ts         # fetches and validates tool files
+│       ├── runtime.ts        # orchestrates the 5-step lifecycle
+│       ├── template.ts       # Handlebars hydration + annotateTemplate
+│       ├── inputs.ts         # manifest → runtime input model
+│       ├── url-mode.ts       # URL ↔ input state round-trip
+│       ├── validate.ts       # JSON Schema validation of manifests
+│       ├── compose.ts        # resolve nested tool renders (composes)
+│       ├── embed.ts          # parse portable lolly.tools embed URLs
 │       └── bridge/
 │           └── host-v1.ts    # TypeScript interface — the bridge contract
 │
 ├── shells/
 │   ├── web/          # PWA — hosted online; primary distribution
 │   │   └── src/
-│   │       ├── main.js           # boot, routing
-│   │       ├── theme.js          # theme apply/persist (FOUC prevention)
+│   │       ├── main.ts           # boot, routing
+│   │       ├── theme.ts          # theme apply/persist (FOUC prevention)
 │   │       ├── bridge/           # web implementations of HostV1 APIs
-│   │       │   ├── index.js      # compose all bridge pieces
-│   │       │   ├── db.js         # IndexedDB setup
-│   │       │   ├── state.js      # host.state — saved edits
-│   │       │   ├── profile.js    # host.profile — user details
-│   │       │   ├── assets.js     # host.assets — catalog + user uploads
-│   │       │   ├── clipboard.js  # host.clipboard
-│   │       │   ├── export.js     # host.export — rasterise/serialize
-│   │       │   ├── net.js        # host.net — allowlisted fetch
-│   │       │   └── media.js      # host.media — live camera frames (onFrame)
+│   │       │   ├── index.ts      # compose all bridge pieces
+│   │       │   ├── db.ts         # IndexedDB setup
+│   │       │   ├── state.ts      # host.state — saved edits
+│   │       │   ├── profile.ts    # host.profile — user details
+│   │       │   ├── assets.ts     # host.assets — catalog + user uploads
+│   │       │   ├── clipboard.ts  # host.clipboard
+│   │       │   ├── export/       # host.export — rasterise/serialize (adapters + registry)
+│   │       │   ├── net.ts        # host.net — allowlisted fetch
+│   │       │   └── media.ts      # host.media — live camera frames (onFrame)
 │   │       ├── catalog/
-│   │       │   └── sync.js       # boot-time catalog sync + offline cache
+│   │       │   └── sync.ts       # boot-time catalog sync + offline cache
 │   │       ├── styles/           # app-wide CSS (app.css, picker.css, tokens.css)
 │   │       └── views/
-│   │           ├── gallery.js    # tool library listing + saved-state cards
-│   │           ├── tool.js       # mounts one tool (inputs + canvas + actions)
-│   │           ├── picker.js     # asset picker UI (invoked by host.assets)
-│   │           ├── profile.js    # user details editor
-│   │           ├── projects.js   # /p — folders of saved sessions (nested; folder/selection export)
-│   │           └── free-canvas.js # free-canvas editor overlay for render.layout:"editor" tools
+│   │           ├── gallery.ts    # tool library listing + saved-state cards
+│   │           ├── tool/         # mounts one tool (inputs + canvas + actions)
+│   │           ├── picker.ts     # asset picker UI (invoked by host.assets)
+│   │           ├── profile/      # user details editor
+│   │           ├── projects.ts   # /p — folders of saved sessions (nested; folder/selection export)
+│   │           └── free-canvas.ts # free-canvas editor overlay for render.layout:"editor" tools
 │   │
 │   ├── cli/          # Node.js CLI — same engine, headless jsdom
-│   │   ├── bin/brand-tool.js
+│   │   ├── bin/brand-tool.js  # thin JS launcher (spawns with --experimental-strip-types)
 │   │   └── src/
-│   │       ├── run.js    # loadTool → createRuntime → export → write file
-│   │       └── bridge.js # CLI implementation of HostV1
+│   │       ├── run.ts    # loadTool → createRuntime → export → write file
+│   │       └── bridge.ts # CLI implementation of HostV1
 │   │
 │   ├── tauri-desktop/ # downloadable desktop app
 │   └── tauri-mobile/  # iOS/Android app

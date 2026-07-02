@@ -58,8 +58,8 @@ function overrideBridgeModules(map) {
     enforce: 'pre',
     resolveId(source, importer) {
       if (!importer) return null;
-      // Redirect the web bridge's own sibling imports (./state.js, ./capture.js,
-      // ./capabilities-provided.js) to the Tauri versions. Matched by the source's
+      // Redirect the web bridge's own sibling imports (./state.ts, ./capture.ts,
+      // ./capabilities-provided.ts) to the Tauri versions. Matched by the source's
       // basename + the importer living in a bridge/ dir, so it works for BOTH the
       // absolute fs importer (`vite build`) and the root-relative URL importer the
       // dev server passes (`/src/bridge/index.js`).
@@ -75,9 +75,9 @@ export default defineConfig({
   publicDir: resolve(webShell, 'public'),
   plugins: [
     overrideBridgeModules({
-      'state.js': resolve(__dirname, 'bridge-overrides/state.js'),
-      'capture.js': resolve(__dirname, 'bridge-overrides/capture.js'),
-      'capabilities-provided.js': resolve(__dirname, 'bridge-overrides/capabilities-provided.js'),
+      'state.ts': resolve(__dirname, 'bridge-overrides/state.js'),
+      'capture.ts': resolve(__dirname, 'bridge-overrides/capture.js'),
+      'capabilities-provided.ts': resolve(__dirname, 'bridge-overrides/capabilities-provided.js'),
     }),
     bundleRepoDirs(),
   ],

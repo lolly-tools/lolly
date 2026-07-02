@@ -152,6 +152,15 @@
 
 <script>
 (function () {
+  // Per-render root: runTemplateScripts re-creates this script node, so
+  // document.currentScript is live and its parent is THIS render's container
+  // (the visible canvas or an off-screen batch row) — never another render's.
+  var _scriptEl = document.currentScript;
+  var _container = _scriptEl && _scriptEl.parentNode ? _scriptEl.parentNode : document;
+  var _dcRoot = _container.querySelector('.dc-root');
+  function _signalReady() {
+    if (_dcRoot) _dcRoot.dispatchEvent(new CustomEvent('tool:ready', { bubbles: true }));
+  }
   // ── Quotes (must match hooks.js) ───────────────────────────────────────
   var QUOTES = [
     { text: "People who love ideas must have a love of words, and that means, given a chance, they will take a vivid interest in the clothes which **words wear**", author: "Beatrice Warde" },
@@ -242,7 +251,7 @@
   // ── Orientation: a landscape canvas gets the side-by-side layout ───────
   // The script re-runs on every render (incl. export-size changes), so this
   // re-evaluates whenever the canvas aspect ratio changes — no resize listener.
-  var dcRoot = document.getElementById('dc-root');
+  var dcRoot = _dcRoot;
   if (dcRoot) {
     dcRoot.classList.toggle('dc-landscape', dcRoot.clientWidth > dcRoot.clientHeight * 1.15);
   }
@@ -270,9 +279,11 @@
   var city = '{{cityNorm}}';
   if (!city || !city.trim()) return;
 
-  // Tell waitForQuiescence (auto-export) to hold until we dispatch 'tool:ready'.
-  // We dispatch it in every terminal state of the fetch chain below.
-  window.__toolHasReadySignal = true;
+  // Tell waitForQuiescence (auto-export) to hold until this render's async
+  // work is done: mark THIS render's root; every terminal state of the fetch
+  // chain below dispatches a bubbling 'tool:ready' from it (per-render
+  // contract — see shells/web/src/render/lifecycle.ts).
+  if (_dcRoot) _dcRoot.setAttribute('data-ready-signal', '');
 
   // Skip the debounce on the very first render — it exists to prevent hammering
   // the API while the user types, which can't happen on first paint.
@@ -510,13 +521,13 @@
             if (weatherPanel) weatherPanel.style.display = 'none';
           })
           .finally(function() {
-            document.dispatchEvent(new CustomEvent('tool:ready'));
+            _signalReady();
           });
       })
       .catch(function() {
         // Geocoding failed (offline or unknown city) — keep strip hidden, show nothing
         if (strip) strip.classList.add('hidden');
-        document.dispatchEvent(new CustomEvent('tool:ready'));
+        _signalReady();
       });
   }
 
