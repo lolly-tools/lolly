@@ -2761,6 +2761,14 @@ a.gtile-name:focus-visible::after {
 .input-row textarea {
   resize: vertical;
   min-height: 80px;
+  /* Grow to fit content as the user types — native, no JS, no jitter — so a
+     multi-paragraph cover / body / about field isn't trapped in a cramped 3-row
+     scrolly box that has to be dragged bigger by its tiny corner handle. Capped so
+     one long field can't swallow the panel; content past the cap scrolls. A manual
+     drag still wins (it sets an explicit height). Browsers without field-sizing keep
+     the old rows + resize-handle behaviour. */
+  field-sizing: content;
+  max-height: 45vh;
 }
 
 .input-row--checkbox {
@@ -3138,8 +3146,10 @@ background-color:hsl(var(--background) / 1);
   font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none;
   color: hsl(var(--muted-foreground)); line-height: 1.35;
 }
-/* Multi-line block text field (e.g. body copy) — grows downward, vertical resize only. */
-.block-field--textarea { min-height: 52px; line-height: 1.4; resize: vertical; }
+/* Multi-line block text field (e.g. body copy) — grows downward with its content
+   (native field-sizing, capped) so long body copy isn't stuck in a tiny scrolly box;
+   manual vertical resize still wins. */
+.block-field--textarea { min-height: 52px; line-height: 1.4; resize: vertical; field-sizing: content; max-height: 40vh; }
 /* The legacy rule forces left-padding on every .block-field; typed cards don't
    want it (selects/ranges read better flush). */
 .block-item.is-typed .block-field { padding: 6px 8px !important; }

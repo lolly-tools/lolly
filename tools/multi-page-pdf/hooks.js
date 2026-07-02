@@ -25,7 +25,10 @@ var ROWS = 12;                 // grid rows per content page
 var SIZE_ROWS = { short: 3, medium: 5, tall: 8, full: ROWS };
 // Multiplier applied to the cover / back logo box (its definite width AND height),
 // so object-fit:contain scales the mark up or down while staying aspect-preserved.
-var LOGO_SCALE = { small: 0.72, medium: 1, large: 1.4 };
+// The template caps the box WIDTH at 100% (see .mpdf-cover-logo), so the larger
+// steps grow mainly by giving the mark more VERTICAL space — a wide lockup can't
+// spill past the page, and a tall / square logo gets the extra height to fill.
+var LOGO_SCALE = { small: 0.72, medium: 1, large: 1.4, xlarge: 1.9, xxlarge: 2.5 };
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 

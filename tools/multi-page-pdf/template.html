@@ -64,7 +64,7 @@
      some marks run past the page. A fixed box removes that: the PDF walker reads
      the same box via getBoundingClientRect and meet-fits identically, so preview
      and export match exactly. object-position keeps the mark left-aligned. */
-  .mpdf-cover-logo { width: calc(56% * var(--cover-logo-scale)); height: calc(var(--cover-sub-size) * 3.4 * var(--cover-logo-scale)); object-fit: contain; object-position: left center; display: block; }
+  .mpdf-cover-logo { width: min(calc(56% * var(--cover-logo-scale)), 100%); height: calc(var(--cover-sub-size) * 3.4 * var(--cover-logo-scale)); object-fit: contain; object-position: left center; display: block; }
   .mpdf-cover-fill { flex: 1 1 auto; }
   .mpdf-cover-band { width: calc(var(--margin-x) * 1.7); height: 8px; background: var(--accent); margin-bottom: calc(var(--margin-y) * .5); }
   .mpdf-cover-title {
@@ -159,7 +159,7 @@
   .mpdf-back-about-text { font-size: var(--caption-size); line-height: 1.5; color: var(--back-ink); opacity: .92; }
   /* Definite box + object-fit:contain, same reasoning as .mpdf-cover-logo — keeps
      SVG logos deterministic so the export matches the preview and can't overflow. */
-  .mpdf-back-logo { width: calc(50% * var(--back-logo-scale)); height: calc(var(--cover-sub-size) * 1.8 * var(--back-logo-scale)); object-fit: contain; object-position: left center; display: block; }
+  .mpdf-back-logo { width: min(calc(50% * var(--back-logo-scale)), 100%); height: calc(var(--cover-sub-size) * 1.8 * var(--back-logo-scale)); object-fit: contain; object-position: left center; display: block; }
   .mpdf-back-rule { height: 4px; width: 100%; background: var(--accent); margin-top: calc(var(--margin-y) * .6); }
   /* The shared footer uses the back page's own muted tone when it sits there. */
   .mpdf-page--back .mpdf-footer { color: var(--back-muted); }

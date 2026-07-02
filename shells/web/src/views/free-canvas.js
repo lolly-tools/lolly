@@ -39,6 +39,21 @@ const SVG = {
   size: '<path d="M9 3H5a2 2 0 0 0-2 2v4"/><path d="M15 3h4a2 2 0 0 1 2 2v4"/><path d="M15 21h4a2 2 0 0 0 2-2v-4"/><path d="M9 21H5a2 2 0 0 1-2-2v-4"/>',
   editText: '<path d="M4 7V5h16v2"/><path d="M9 19h6"/><path d="M12 5v14"/>',
   collapse: '<polyline points="15 18 9 12 15 6"/>',
+  forward: '<polyline points="8 9 12 5 16 9"/><line x1="12" y1="5" x2="12" y2="15"/><line x1="5" y1="19" x2="19" y2="19"/>',
+  backward: '<polyline points="8 15 12 19 16 15"/><line x1="12" y1="19" x2="12" y2="9"/><line x1="5" y1="5" x2="19" y2="5"/>',
+  back: '<rect x="3" y="10" width="11" height="11" rx="1.5"/><path d="M10 7V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"/>',
+  alignL: '<line x1="4" y1="3.5" x2="4" y2="20.5"/><rect x="7" y="5.5" width="13" height="4.5" rx="1"/><rect x="7" y="14" width="8" height="4.5" rx="1"/>',
+  alignC: '<line x1="12" y1="3.5" x2="12" y2="20.5"/><rect x="5" y="5.5" width="14" height="4.5" rx="1"/><rect x="8" y="14" width="8" height="4.5" rx="1"/>',
+  alignR: '<line x1="20" y1="3.5" x2="20" y2="20.5"/><rect x="4" y="5.5" width="13" height="4.5" rx="1"/><rect x="9" y="14" width="8" height="4.5" rx="1"/>',
+  alignT: '<line x1="3.5" y1="4" x2="20.5" y2="4"/><rect x="5.5" y="7" width="4.5" height="13" rx="1"/><rect x="14" y="7" width="4.5" height="8" rx="1"/>',
+  alignM: '<line x1="3.5" y1="12" x2="20.5" y2="12"/><rect x="5.5" y="5" width="4.5" height="14" rx="1"/><rect x="14" y="8" width="4.5" height="8" rx="1"/>',
+  alignB: '<line x1="3.5" y1="20" x2="20.5" y2="20"/><rect x="5.5" y="4" width="4.5" height="13" rx="1"/><rect x="14" y="9" width="4.5" height="8" rx="1"/>',
+  distH: '<line x1="4" y1="3.5" x2="4" y2="20.5"/><line x1="20" y1="3.5" x2="20" y2="20.5"/><rect x="9" y="7" width="6" height="10" rx="1"/>',
+  distV: '<line x1="3.5" y1="4" x2="20.5" y2="4"/><line x1="3.5" y1="20" x2="20.5" y2="20"/><rect x="7" y="9" width="10" height="6" rx="1"/>',
+  group: '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><rect x="6.5" y="6.5" width="5" height="5" rx="1"/><rect x="12.5" y="12.5" width="5" height="5" rx="1"/>',
+  ungroup: '<rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>',
+  clip: '<rect x="3" y="3" width="12" height="12" rx="2"/><circle cx="15.5" cy="15.5" r="5.5"/>',
+  unclip: '<rect x="3" y="3" width="9" height="9" rx="2"/><circle cx="16.5" cy="16.5" r="4.5"/>',
 };
 
 function icon(paths) {
@@ -258,27 +273,27 @@ export function initFreeCanvas(opts) {
     const has = selection.size > 0;
     const multi = selection.size >= 2;
     const items = [
-      { label: 'Duplicate', run: () => duplicateSelection(), disabled: !has },
-      { label: 'Delete', run: () => deleteSelection(), disabled: !has, danger: true },
+      { label: 'Duplicate', icon: icon(SVG.dup), run: () => duplicateSelection(), disabled: !has },
+      { label: 'Delete', icon: icon(SVG.trash), run: () => deleteSelection(), disabled: !has, danger: true },
       { sep: true },
-      { label: 'Bring to front', run: () => applyZ('front'), disabled: !has },
-      { label: 'Bring forward', run: () => applyZ('forward'), disabled: !has },
-      { label: 'Send backward', run: () => applyZ('backward'), disabled: !has },
-      { label: 'Send to back', run: () => applyZ('back'), disabled: !has },
+      { label: 'Bring to front', icon: icon(SVG.front), run: () => applyZ('front'), disabled: !has },
+      { label: 'Bring forward', icon: icon(SVG.forward), run: () => applyZ('forward'), disabled: !has },
+      { label: 'Send backward', icon: icon(SVG.backward), run: () => applyZ('backward'), disabled: !has },
+      { label: 'Send to back', icon: icon(SVG.back), run: () => applyZ('back'), disabled: !has },
       { sep: true },
-      { label: 'Align left', run: () => applyAlign('left'), disabled: !has },
-      { label: 'Align centre', run: () => applyAlign('hcentre'), disabled: !has },
-      { label: 'Align right', run: () => applyAlign('right'), disabled: !has },
-      { label: 'Align top', run: () => applyAlign('top'), disabled: !has },
-      { label: 'Align middle', run: () => applyAlign('vcentre'), disabled: !has },
-      { label: 'Align bottom', run: () => applyAlign('bottom'), disabled: !has },
-      { label: 'Distribute horizontally', run: () => applyDistribute('h'), disabled: selection.size < 3 },
-      { label: 'Distribute vertically', run: () => applyDistribute('v'), disabled: selection.size < 3 },
+      { label: 'Align left', icon: icon(SVG.alignL), run: () => applyAlign('left'), disabled: !has },
+      { label: 'Align centre', icon: icon(SVG.alignC), run: () => applyAlign('hcentre'), disabled: !has },
+      { label: 'Align right', icon: icon(SVG.alignR), run: () => applyAlign('right'), disabled: !has },
+      { label: 'Align top', icon: icon(SVG.alignT), run: () => applyAlign('top'), disabled: !has },
+      { label: 'Align middle', icon: icon(SVG.alignM), run: () => applyAlign('vcentre'), disabled: !has },
+      { label: 'Align bottom', icon: icon(SVG.alignB), run: () => applyAlign('bottom'), disabled: !has },
+      { label: 'Distribute horizontally', icon: icon(SVG.distH), run: () => applyDistribute('h'), disabled: selection.size < 3 },
+      { label: 'Distribute vertically', icon: icon(SVG.distV), run: () => applyDistribute('v'), disabled: selection.size < 3 },
       { sep: true },
-      { label: 'Group', run: () => groupSelection(), disabled: !multi },
-      { label: 'Ungroup', run: () => ungroupSelection(), disabled: !selHasGroup() },
-      { label: 'Clip to bottom shape', run: () => clipSelection(), disabled: !multi },
-      { label: 'Release clip', run: () => releaseClip(), disabled: !selHasClip() },
+      { label: 'Group', icon: icon(SVG.group), run: () => groupSelection(), disabled: !multi },
+      { label: 'Ungroup', icon: icon(SVG.ungroup), run: () => ungroupSelection(), disabled: !selHasGroup() },
+      { label: 'Clip to bottom shape', icon: icon(SVG.clip), run: () => clipSelection(), disabled: !multi },
+      { label: 'Release clip', icon: icon(SVG.unclip), run: () => releaseClip(), disabled: !selHasClip() },
     ];
     popover = document.createElement('div');
     popover.className = 'fc-popover fc-context-menu';
@@ -315,30 +330,30 @@ export function initFreeCanvas(opts) {
     const has = selection.size > 0;
     const multi = selection.size >= 2;
     spawnPopover(arrangeBtn, [
-      { label: 'Bring to front', run: () => has && applyZ('front') },
-      { label: 'Bring forward', run: () => has && applyZ('forward') },
-      { label: 'Send backward', run: () => has && applyZ('backward') },
-      { label: 'Send to back', run: () => has && applyZ('back') },
+      { label: 'Bring to front', icon: icon(SVG.front), run: () => has && applyZ('front') },
+      { label: 'Bring forward', icon: icon(SVG.forward), run: () => has && applyZ('forward') },
+      { label: 'Send backward', icon: icon(SVG.backward), run: () => has && applyZ('backward') },
+      { label: 'Send to back', icon: icon(SVG.back), run: () => has && applyZ('back') },
       { sep: true },
-      { label: 'Group', run: () => multi && groupSelection() },
-      { label: 'Ungroup', run: () => ungroupSelection() },
+      { label: 'Group', icon: icon(SVG.group), run: () => multi && groupSelection() },
+      { label: 'Ungroup', icon: icon(SVG.ungroup), run: () => ungroupSelection() },
       { sep: true },
-      { label: 'Clip to bottom shape', run: () => multi && clipSelection() },
-      { label: 'Release clip', run: () => releaseClip() },
+      { label: 'Clip to bottom shape', icon: icon(SVG.clip), run: () => multi && clipSelection() },
+      { label: 'Release clip', icon: icon(SVG.unclip), run: () => releaseClip() },
     ]);
   }
   function openAlignMenu() {
-    const mk = (label, fn) => ({ label, run: fn });
+    const mk = (label, ic, fn) => ({ label, icon: icon(ic), run: fn });
     spawnPopover(alignBtn, [
-      mk('Align left', () => applyAlign('left')),
-      mk('Align centre', () => applyAlign('hcentre')),
-      mk('Align right', () => applyAlign('right')),
-      mk('Align top', () => applyAlign('top')),
-      mk('Align middle', () => applyAlign('vcentre')),
-      mk('Align bottom', () => applyAlign('bottom')),
+      mk('Align left', SVG.alignL, () => applyAlign('left')),
+      mk('Align centre', SVG.alignC, () => applyAlign('hcentre')),
+      mk('Align right', SVG.alignR, () => applyAlign('right')),
+      mk('Align top', SVG.alignT, () => applyAlign('top')),
+      mk('Align middle', SVG.alignM, () => applyAlign('vcentre')),
+      mk('Align bottom', SVG.alignB, () => applyAlign('bottom')),
       { sep: true },
-      mk('Distribute horizontally', () => applyDistribute('h')),
-      mk('Distribute vertically', () => applyDistribute('v')),
+      mk('Distribute horizontally', SVG.distH, () => applyDistribute('h')),
+      mk('Distribute vertically', SVG.distV, () => applyDistribute('v')),
     ]);
   }
 
