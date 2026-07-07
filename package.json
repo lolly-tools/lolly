@@ -22,6 +22,9 @@
     "build:info": "node docs/build.ts",
     "test": "node --test \"tests/**/*.test.js\" \"tests/**/*.test.ts\" \"shells/web/src/**/*.test.js\" \"shells/web/src/**/*.test.ts\" \"services/mcp/test/**/*.test.ts\"",
     "typecheck": "tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p tests && tsc -p scripts && tsc -p services/mcp",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
+    "format": "biome format --write",
     "build:catalog": "node scripts/build-catalog-index.ts && node scripts/checksum-assets.ts && node scripts/build-preview-bundle.ts",
     "validate:catalog": "node scripts/validate-catalog.ts",
     "check:bundle": "node scripts/check-bundle-budget.ts",
@@ -62,6 +65,7 @@
     "@resvg/resvg-js": "^2.6.2"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.2",
     "@types/node": "^26.1.0",
     "esbuild": "^0.28.1",
     "playwright": "^1.49.0",

@@ -285,7 +285,7 @@ const BLENDS: Record<string, number> = {
   difference: 1, exclusion: 1, hue: 1, saturation: 1, color: 1, luminosity: 1,
 };
 
-function has(o: unknown, k: string): boolean { return o != null && Object.prototype.hasOwnProperty.call(o, k); }
+function has(o: unknown, k: string): boolean { return o != null && Object.hasOwn(o, k); }
 
 /**
  * Turn one normalized DesignNode into a full Layout Studio box row — every field

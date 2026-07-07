@@ -28,7 +28,7 @@ const align4 = (n: number): number => (n + 3) & ~3;
 
 // sRGB electro-optical transfer function: encoded [0,1] → linear light [0,1].
 function srgbToLinear(c: number): number {
-  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 }
 
 function writeSig(buf: Uint8Array, offset: number, sig: string): void {
@@ -194,7 +194,7 @@ export const COLOR_PROFILES = {
 } satisfies Record<string, ColorProfile>;
 
 const isProfileName = (n: string): n is keyof typeof COLOR_PROFILES =>
-  Object.prototype.hasOwnProperty.call(COLOR_PROFILES, n);
+  Object.hasOwn(COLOR_PROFILES, n);
 
 /**
  * ICC profile bytes for a named profile, or null for 'none'/unknown. Anything
@@ -252,7 +252,7 @@ export const CMYK_CONDITIONS = {
 export const DEFAULT_CMYK_CONDITION = 'fogra39';
 
 const isCmykConditionName = (n: string): n is keyof typeof CMYK_CONDITIONS =>
-  Object.prototype.hasOwnProperty.call(CMYK_CONDITIONS, n);
+  Object.hasOwn(CMYK_CONDITIONS, n);
 
 /**
  * Resolve a press-condition descriptor by name, falling back to the default for

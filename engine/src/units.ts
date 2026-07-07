@@ -34,7 +34,7 @@ export const UNITS: readonly Unit[] = ['px', 'pt', 'pc', 'mm', 'cm', 'in'];
 const PER_INCH: Record<Unit, number> = { px: 96, pt: 72, pc: 6, mm: 25.4, cm: 2.54, in: 1 };
 
 export const isUnit = (u: string): u is Unit =>
-  Object.prototype.hasOwnProperty.call(PER_INCH, u);
+  Object.hasOwn(PER_INCH, u);
 
 /**
  * Parse a dimension into { value, unit }. Accepts a number (treated as px) or a

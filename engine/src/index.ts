@@ -45,7 +45,9 @@ export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';
 export { buildPptxParts, EMU_PER_INCH, EMU_PER_PX } from './pptx.ts';
-export type { PptxSlideInput, PptxBuildOpts } from './pptx.ts';
+export type {
+  PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
+} from './pptx.ts';
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
 } from './pdfx.ts';
@@ -252,10 +254,12 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // escape-hatch has no line-art form and is dropped (count returned so the shell can
 // warn). Pure, imports only units.ts; no bridge/host method added or changed.
 // 1.23.0 — additive: PPTX (PowerPoint) export. `buildPptxParts` (pptx.ts) assembles
-// the OOXML part tree for a deck — content types, relationships, a minimal slide
-// master + blank layout + theme, presentation.xml, per-slide XML and docProps — with
-// ONE picture per slide filling the frame (a deck has a single slide size, so later
-// pages fit-centre into the first page's). The shell renders each page to a picture
-// (EMF vector, PNG fallback) and zips the returned parts with fflate. Pure: returns
-// strings + byte arrays, no zip, no DOM, no deps. No bridge/host method added or changed.
+// the OOXML part tree for a deck (content types, relationships, a minimal slide
+// master + blank layout + theme, presentation.xml, docProps) and serializes each
+// slide's SHAPES to DrawingML — pic (raster at native res, OR a real embedded SVG via
+// PowerPoint's asvg:svgBlip extension so vectors extract at full fidelity), text
+// (editable text box), rect (solid/gradient/border block). The shell walks the DOM
+// into shapes + media and zips with fflate. Purpose: transport a page's treated
+// images + vectors into PowerPoint as independent, extractable objects (layout
+// secondary). Pure: strings + byte arrays, no zip, no DOM, no deps. No bridge change.
 export const ENGINE_VERSION = '1.23.0';

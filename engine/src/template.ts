@@ -145,7 +145,7 @@ Handlebars.registerHelper('markdown', (text: unknown) => {
 
 // AssetRef helper: lets templates write {{asset logo}} to get the URL safely,
 // or {{asset logo "width"}} to get the width property.
-Handlebars.registerHelper('asset', function (ref: unknown, field: unknown) {
+Handlebars.registerHelper('asset', (ref: unknown, field: unknown) => {
   if (!ref || typeof ref !== 'object') return '';
   if (typeof field === 'string') {
     const v: unknown = Reflect.get(ref, field);
@@ -172,7 +172,7 @@ function mediaBool(v: unknown, dflt: boolean): boolean {
   const s = String(v).toLowerCase();
   return s === 'true' || s === '1' || s === 'yes' || s === 'on';
 }
-Handlebars.registerHelper('media', function (ref: unknown, options?: { hash?: Record<string, unknown> }) {
+Handlebars.registerHelper('media', (ref: unknown, options?: { hash?: Record<string, unknown> }) => {
   const empty = new Handlebars.SafeString('');
   if (!ref || typeof ref !== 'object') return empty;
   const esc = Handlebars.escapeExpression;

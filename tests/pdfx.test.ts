@@ -114,7 +114,7 @@ test('pdfx: formatPdfDate produces the Info-dict D: shape', () => {
   const d = new Date(2026, 6, 2, 9, 5, 7); // local time, month is 0-based
   const s = formatPdfDate(d);
   assert.match(s, /^D:\d{14}[+\-Z]/, 'D: + 14 digits + offset marker');
-  assert.match(s, /^D:\d{14}[+\-]\d{2}'\d{2}'$/, "full local-offset form +HH'mm'");
+  assert.match(s, /^D:\d{14}[+-]\d{2}'\d{2}'$/, "full local-offset form +HH'mm'");
   assert.ok(s.startsWith('D:20260702090507'), 'local date components in order');
   assert.equal(formatPdfDate('2026-07-02T09:05:07'), s, 'string input parses to the same instant');
   assert.throws(() => formatPdfDate('not a date'), TypeError);
