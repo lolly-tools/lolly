@@ -9,6 +9,7 @@
 #       No -m → empty commit message. First push after the history rewrite
 #       needs --force (once).
 #   loldev push [-m "msg"] [--force]   gtg without the catalog rebuild
+#   loldev ship [-m "msg"] [--preview] gtg, THEN deploy to Vercel (prod; --preview = preview URL)
 #   loldev status | st                 what's dirty / ahead, per repo
 #   loldev build                       build:catalog + validate:catalog
 #   loldev previews                    regenerate look thumbnails (slow, Playwright)
@@ -89,10 +90,29 @@ gtg() {
   fi
 }
 
+# ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel (project `bt`,
+# linked via .vercel/). Uses `npx vercel` (CLI not installed globally) + cached auth
+# (andyfitz). --archive=tgz tarballs the LOCAL tree, so submodule content ships and
+# Vercel compiles api/ functions. --preview → a preview URL instead of prod.
+ship() {
+  local PREVIEW=0 gargs=() a
+  for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
+  gtg "${gargs[@]}" || { err "gtg failed — not deploying"; return 1; }
+  echo
+  if [ "$PREVIEW" = 1 ]; then
+    say "deploy → Vercel (bt, PREVIEW)"
+    npx --yes vercel deploy --archive=tgz --yes && ok "preview deployed" || err "vercel deploy failed"
+  else
+    say "deploy → Vercel (bt, PRODUCTION → lolly.tools)"
+    npx --yes vercel deploy --prod --archive=tgz --yes && ok "production deployed" || err "vercel deploy failed"
+  fi
+}
+
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
 case "$cmd" in
   gtg)          gtg "$@" ;;
   push)         gtg --no-build "$@" ;;
+  ship)         ship "$@" ;;
   status|st)    bash "$SUB/status.sh" ;;
   build)        do_build 0 ;;
   validate)     npm run validate:catalog ;;
