@@ -109,10 +109,54 @@ repo_description() {
 # tar --strip-components depth = number of path segments (tools=1, shells/web=2).
 path_depth() { local p="$1"; echo $(( $(tr -cd '/' <<<"$p" | wc -c) + 1 )); }
 
-# Pretty logging.
-c_reset='\033[0m'; c_bold='\033[1m'; c_dim='\033[2m'; c_grn='\033[32m'; c_yel='\033[33m'; c_red='\033[31m'
-say()  { printf "${c_bold}%s${c_reset}\n" "$*"; }
-info() { printf "  %s\n" "$*"; }
+# --- Pretty logging --------------------------------------------------------
+# 256-colour palette. Degrades to plain text when stdout isn't a TTY or when
+# NO_COLOR is set (https://no-color.org). Sourced by every subrepo script, so a
+# piped `loldev status > file` stays clean while an interactive run is candy.
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
+  c_reset=$'\033[0m';        c_bold=$'\033[1m';         c_dim=$'\033[2m';          c_ital=$'\033[3m'
+  c_grn=$'\033[38;5;42m';    c_teal=$'\033[38;5;44m';   c_cyan=$'\033[38;5;51m'
+  c_yel=$'\033[38;5;220m';   c_orange=$'\033[38;5;214m';c_red=$'\033[38;5;203m'
+  c_pink=$'\033[38;5;211m';  c_purple=$'\033[38;5;177m';c_blue=$'\033[38;5;75m'
+  c_gray=$'\033[38;5;245m';  c_white=$'\033[38;5;231m'
+else
+  c_reset=''; c_bold=''; c_dim=''; c_ital=''
+  c_grn=''; c_teal=''; c_cyan=''; c_yel=''; c_orange=''; c_red=''
+  c_pink=''; c_purple=''; c_blue=''; c_gray=''; c_white=''
+fi
+
+# Repeat a (possibly multibyte) string $2 times — BSD/macOS `tr` can't do it, so
+# we build the string ourselves. Used for the full-width decorative rules.
+_repeat() { local s="$1" n="${2:-0}" out=''; while [ "$n" -gt 0 ]; do out+="$s"; n=$((n-1)); done; printf '%s' "$out"; }
+
+# Width for decorative rules: terminal columns, capped, with a sane fallback.
+_rule_w() {
+  local w="${COLUMNS:-}"
+  case "$w" in ''|*[!0-9]*) w=$(tput cols 2>/dev/null || echo 60) ;; esac
+  case "$w" in ''|*[!0-9]*) w=60 ;; esac
+  [ "$w" -gt 64 ] && w=64
+  printf '%s' "$w"
+}
+
+# A thin full-width divider.
+rule() { printf "${c_dim}${c_teal}%s${c_reset}\n" "$(_repeat '─' "$(_rule_w)")"; }
+
+# banner EMOJI TITLE [SUBTITLE] — the spaced header block for a top-level command.
+banner() {
+  echo
+  printf "  %s  ${c_bold}${c_grn}%s${c_reset}\n" "$1" "$2"
+  [ -n "${3:-}" ] && printf "     ${c_gray}${c_ital}%s${c_reset}\n" "$3"
+  rule
+}
+
+# phase EMOJI TITLE — a section divider with breathing room above it.
+phase() { printf "\n${c_bold}${c_purple}%s  %s${c_reset}\n" "$1" "$2"; }
+
+# step TEXT — an in-progress action line (trailing ellipsis).
+step() { printf "  ${c_teal}▸${c_reset} ${c_dim}%s…${c_reset}\n" "$*"; }
+
+say()  { printf "${c_bold}${c_teal}▸ %s${c_reset}\n" "$*"; }
+info() { printf "  ${c_gray}%s${c_reset}\n" "$*"; }
 ok()   { printf "  ${c_grn}✓${c_reset} %s\n" "$*"; }
-warn() { printf "  ${c_yel}!${c_reset} %s\n" "$*"; }
-err()  { printf "  ${c_red}✗${c_reset} %s\n" "$*" >&2; }
+warn() { printf "  ${c_yel}▲${c_reset} ${c_yel}%s${c_reset}\n" "$*"; }
+err()  { printf "  ${c_red}✗${c_reset} ${c_red}%s${c_reset}\n" "$*" >&2; }

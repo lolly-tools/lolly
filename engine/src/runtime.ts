@@ -802,8 +802,12 @@ function getHookFactory(tool: LoadedTool): HookFactory {
   const key = `${tool.manifest.id}@${tool.manifest.version}`;
   let factory = hookFactoryCache.get(key);
   if (!factory) {
-    // Hooks run in a Function() scope with only the host bridge in reach.
-    // No window, no global fetch — anything tools need goes through host.
+    // Hooks run in a Function() scope with the host bridge injected as the
+    // sole argument — the intended path for anything a tool needs. This is
+    // closure-scope injection, NOT isolation: `new Function` still runs in the
+    // realm's global scope, so hooks CAN reach window/document/fetch when the
+    // shell is a browser (and some shipping tools rely on it). Not a security
+    // sandbox; the host bridge is just the supported, portable API surface.
     // typeof guards prevent ReferenceError for hooks that aren't declared.
     // The assertion is the `new Function` trust boundary: the factory's return
     // shape is pinned by the source string built right here.

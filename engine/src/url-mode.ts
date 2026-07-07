@@ -339,7 +339,16 @@ function decodeBlocksCompact(str: string, fields: BlockFieldSpec[]): InputValue[
     const parts = splitToFields(item, fields.length);
     const obj: { [key: string]: InputValue | undefined } = {};
     fields.forEach((f, i) => {
-      const raw = decodeURIComponent(parts[i] ?? '');
+      const part = parts[i] ?? '';
+      // A lone '%' (or other malformed escape) in a hand-edited URL makes
+      // decodeURIComponent throw URIError, which would abort the whole tool
+      // load. Degrade gracefully: fall back to the raw part for that field.
+      let raw: string;
+      try {
+        raw = decodeURIComponent(part);
+      } catch {
+        raw = part;
+      }
       if (f.type === 'asset') {
         // Lightweight ref by id; the runtime resolves it before hydration
         // (resolveAssetRefs descends into block asset fields). A tool URL is a

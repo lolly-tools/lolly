@@ -42,6 +42,43 @@ export function parseSvgPathArgs(str: string): number[] {
 }
 
 /**
+ * Parse an elliptical-arc (A/a) argument run with the proper SVG grammar.
+ *
+ * Each run is groups of 7: rx, ry, x-axis-rotation (numbers), large-arc-flag and
+ * sweep-flag (each a SINGLE '0'/'1' char, which may be immediately followed by the
+ * next number with no separator), then x, y. The generic number tokenizer
+ * mis-reads compact, SVGO-optimized flags — e.g. "0110" as one number 110 — so
+ * arcs need this dedicated pass.
+ */
+function parseArcArgs(str: string): number[] {
+  const numRe  = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
+  const flagRe = /[01]/y;
+  const sepRe  = /[\s,]*/y;
+  const out: number[] = [];
+  let i = 0;
+  const skipSep = (): void => { sepRe.lastIndex = i; sepRe.exec(str); i = sepRe.lastIndex; };
+  const grab = (re: RegExp): string | null => {
+    skipSep();
+    re.lastIndex = i;
+    const mm = re.exec(str);
+    if (!mm) return null;
+    i = re.lastIndex;
+    return mm[0];
+  };
+  while (i < str.length) {
+    const rx   = grab(numRe);  if (rx   === null) break;
+    const ry   = grab(numRe);  if (ry   === null) break;
+    const xrot = grab(numRe);  if (xrot === null) break;
+    const laf  = grab(flagRe); if (laf  === null) break;
+    const swf  = grab(flagRe); if (swf  === null) break;
+    const x    = grab(numRe);  if (x    === null) break;
+    const y    = grab(numRe);  if (y    === null) break;
+    out.push(Number(rx), Number(ry), Number(xrot), Number(laf), Number(swf), Number(x), Number(y));
+  }
+  return out;
+}
+
+/**
  * Parse an SVG `d` string into absolute M/L/C subpaths.
  *
  * Mirrors the command handling in the former drawSvgPathToPdf, including its
@@ -74,9 +111,11 @@ export function parseSvgPath(d: string): SubPath[] {
 
   while ((m = cmdRe.exec(d)) !== null) {
     const cmd  = m[1] ?? '';
-    const nums = parseSvgPathArgs(m[2] ?? '');
     const abs  = cmd === cmd.toUpperCase();
     const C    = cmd.toUpperCase();
+    // Arc flags can be packed against the next number ("0110" = laf 0, swf 1, x 10),
+    // so arcs get a grammar-aware tokenizer; every other command uses the numeric one.
+    const nums = C === 'A' ? parseArcArgs(m[2] ?? '') : parseSvgPathArgs(m[2] ?? '');
     // In-bounds by each case's loop condition; ?? 0 only satisfies the compiler.
     const at   = (i: number): number => nums[i] ?? 0;
     const ax   = (i: number): number => abs ? at(i) : cx + at(i);

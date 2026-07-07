@@ -39,58 +39,100 @@ changed_submodules() {
 }
 
 do_build() {  # $1 = run previews? (1/0)
-  say "typecheck"
-  npm run --silent typecheck || { err "typecheck failed — fix before pushing (or 'loldev push' to bypass build gates)"; return 1; }
+  phase "🔍" "Build gate"
+  step "type-checking every project"
+  npm run --silent typecheck || { err "typecheck failed — fix it, or run 'loldev push' to bypass the build gate"; return 1; }
   ok "typecheck passed"
-  say "build catalog"
-  npm run --silent build:catalog || { err "build:catalog failed"; return 1; }
+  step "building + validating the catalog"
+  npm run --silent build:catalog   || { err "build:catalog failed";    return 1; }
   npm run --silent validate:catalog || { err "validate:catalog failed"; return 1; }
   ok "catalog built + validated"
-  if [ "${1:-0}" = 1 ]; then warn "previews (slow — Playwright/Chromium)"; npm run previews || warn "previews failed (continuing)"; fi
+  if [ "${1:-0}" = 1 ]; then
+    step "regenerating look previews (slow — Playwright/Chromium)"
+    npm run previews && ok "previews regenerated" || warn "previews failed (continuing anyway)"
+  fi
+}
+
+# Pretty end-of-run tally. Reads the PUSHED / FAILED / NOOP globals gtg fills in.
+# $1 = elapsed seconds, $2 = headline emoji+verb ("✨ Good to go" / "🚀 Shipping").
+gtg_summary() {
+  local secs="$1" head="$2" n=${#PUSHED[@]} f=${#FAILED[@]} x
+  echo
+  rule
+  if [ "$f" -eq 0 ]; then
+    printf "  ${c_bold}${c_grn}%s${c_reset}  ${c_gray}·  %s repo(s) in %ss${c_reset}\n" "$head" "$n" "$secs"
+  else
+    printf "  ${c_bold}${c_red}✗  finished with %s failure(s)${c_reset}  ${c_gray}·  %ss${c_reset}\n" "$f" "$secs"
+  fi
+  for x in "${PUSHED[@]}"; do printf "     ${c_grn}⬆${c_reset}  ${c_white}%s${c_reset}\n" "$x"; done
+  for x in "${NOOP[@]}";   do printf "     ${c_gray}·  %s — unchanged${c_reset}\n" "$x"; done
+  for x in "${FAILED[@]}"; do printf "     ${c_red}✗  %s${c_reset}\n" "$x"; done
+  rule
 }
 
 gtg() {
-  local MSG="" FORCE=0 PREVIEWS=0 NOBUILD=0
+  local MSG="" FORCE=0 PREVIEWS=0 NOBUILD=0 title="loldev gtg" blurb="good to go · commit + push every changed repo"
   while [ $# -gt 0 ]; do
     case "$1" in
       -m|--message) shift; MSG="${1:-}" ;;
       -f|--force)   FORCE=1 ;;
       --previews)   PREVIEWS=1 ;;
-      --no-build)   NOBUILD=1 ;;
+      --no-build)   NOBUILD=1; title="loldev push"; blurb="fast lane · commit + push, no build gate" ;;
       *) warn "gtg: ignoring '$1'" ;;
     esac; shift
   done
 
-  [ "$NOBUILD" = 1 ] || do_build "$PREVIEWS" || { err "build failed — not pushing"; return 1; }
+  local start=$SECONDS
+  PUSHED=(); FAILED=(); NOOP=()   # globals — read back in gtg_summary
+  banner "🍭" "$title" "$blurb"
+
+  if [ "$NOBUILD" = 1 ]; then
+    phase "⏩" "Build gate"; info "skipped (push mode)"
+  else
+    do_build "$PREVIEWS" || { err "build failed — not pushing"; return 1; }
+  fi
 
   # 1. each changed submodule → its own repo
-  local any=0 p
+  phase "📦" "Submodules"
+  local any=0 p repo out
   while read -r p; do
     [ -z "$p" ] && continue
-    any=1
-    say "$p  →  $ORG/$(repo_for_path "$p")"
+    any=1; repo="$ORG/$(repo_for_path "$p")"
+    step "$p  →  $repo"
     git -C "$p" add -A
-    if git -C "$p" commit --allow-empty-message -m "$MSG" >/dev/null; then
-      git -C "$p" push && ok "pushed $p" || err "push failed: $p"
+    if git -C "$p" commit --allow-empty-message -m "$MSG" >/dev/null 2>&1; then
+      if out=$(git -C "$p" push 2>&1); then
+        ok "pushed $p"; PUSHED+=("$p  →  $repo")
+      else
+        err "push failed: $p"; printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"; FAILED+=("$p (push)")
+      fi
     else
-      warn "$p: nothing to commit"
+      warn "$p — nothing to commit"; NOOP+=("$p")
     fi
     git add "$p"   # stage the pointer bump in the parent
   done < <(changed_submodules)
   [ "$any" = 0 ] && info "no submodule changes"
 
   # 2. parent (pointer bumps + parent-owned files) → lolly-tools/lolly
+  phase "🌳" "Parent repo"
   git add -A
   if git diff --cached --quiet; then
-    info "parent: nothing new to commit"
+    info "nothing new to commit"
   else
-    git commit --allow-empty-message -m "$MSG" >/dev/null && ok "parent committed"
+    git commit --allow-empty-message -m "$MSG" >/dev/null 2>&1 && ok "committed pointer bumps"
   fi
-  say "push parent  →  $ORG/lolly"
-  if [ "$FORCE" = 1 ]; then git push --force origin HEAD:main; else git push origin HEAD:main; fi
-  if [ $? -eq 0 ]; then ok "parent pushed"; else
+  step "push parent  →  $ORG/lolly"
+  if [ "$FORCE" = 1 ]; then out=$(git push --force origin HEAD:main 2>&1); else out=$(git push origin HEAD:main 2>&1); fi
+  if [ $? -eq 0 ]; then
+    ok "parent pushed"; PUSHED+=("(parent)  →  $ORG/lolly")
+  else
+    printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"
     err "parent push rejected — the FIRST push after the history rewrite needs:  loldev gtg --force"
+    FAILED+=("(parent)")
   fi
+
+  gtg_summary $((SECONDS - start)) "✨ Good to go!"
+  [ "${#FAILED[@]}" -eq 0 ]   # exit status reflects success/failure
 }
 
 # ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel (project `bt`,
@@ -101,14 +143,28 @@ ship() {
   local PREVIEW=0 gargs=() a
   for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
   gtg "${gargs[@]}" || { err "gtg failed — not deploying"; return 1; }
+
+  local tgt flags log rc url
+  if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; flags=(); else tgt="PRODUCTION → lolly.tools"; flags=(--prod); fi
+  phase "🚀" "Deploy → Vercel (bt, $tgt)"
+  step "tarballing the local tree + building on Vercel"
+  log="$(mktemp -t loldev-ship.XXXXXX)"
+  npx --yes vercel deploy "${flags[@]}" --archive=tgz --yes 2>&1 | tee "$log"
+  rc=${PIPESTATUS[0]}
+  url="$(grep -Eo 'https://[a-zA-Z0-9._~:/?#@!$&%*+=-]+' "$log" | tail -1)"
+  rm -f "$log"
+
   echo
-  if [ "$PREVIEW" = 1 ]; then
-    say "deploy → Vercel (bt, PREVIEW)"
-    npx --yes vercel deploy --archive=tgz --yes && ok "preview deployed" || err "vercel deploy failed"
+  rule
+  if [ "$rc" -eq 0 ]; then
+    printf "  ${c_bold}${c_grn}🎉  Shipped!${c_reset}  ${c_gray}·  live on Vercel${c_reset}\n"
+    [ -n "$url" ] && printf "     ${c_cyan}🌐  %s${c_reset}\n" "$url"
+    [ "$PREVIEW" = 0 ] && printf "     ${c_cyan}🌐  https://lolly.tools${c_reset}\n"
   else
-    say "deploy → Vercel (bt, PRODUCTION → lolly.tools)"
-    npx --yes vercel deploy --prod --archive=tgz --yes && ok "production deployed" || err "vercel deploy failed"
+    printf "  ${c_bold}${c_red}✗  vercel deploy failed${c_reset}  ${c_gray}(exit %s)${c_reset}\n" "$rc"
   fi
+  rule
+  [ "$rc" -eq 0 ]
 }
 
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
