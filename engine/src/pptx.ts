@@ -118,7 +118,9 @@ function paraXml(p: PptxPara): string {
   return `<a:p>${pPr}${p.runs.map(runXml).join('')}</a:p>`;
 }
 function textXml(t: PptxText, id: number): string {
-  const body = `<a:bodyPr wrap="square" anchor="${t.anchor ?? 't'}" lIns="0" tIns="0" rIns="0" bIns="0"><a:spAutoFit/></a:bodyPr>`;
+  // noAutofit keeps the box at its authored geometry (matches the DOM box) so text
+  // sits where the layout put it — spAutoFit grew boxes and overlapped neighbours.
+  const body = `<a:bodyPr wrap="square" anchor="${t.anchor ?? 't'}" lIns="0" tIns="0" rIns="0" bIns="0"><a:noAutofit/></a:bodyPr>`;
   const paras = t.paras.length ? t.paras.map(paraXml).join('') : '<a:p/>';
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="text${id}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>` +
     `<p:spPr>${xfrmXml(t)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>` +

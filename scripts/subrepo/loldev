@@ -4,7 +4,7 @@
 # operates on $LOLLY_ROOT (default ~/Build/lolly, override with the env var).
 #
 #   loldev gtg [-m "msg"] [--force] [--previews] [--no-build]
-#       "good to go" — build the catalog, then commit + push every changed
+#       "good to go" — typecheck + build the catalog (gate), then commit + push every changed
 #       submodule to its own repo AND the parent, to the correct place.
 #       No -m → empty commit message. First push after the history rewrite
 #       needs --force (once).
@@ -39,6 +39,9 @@ changed_submodules() {
 }
 
 do_build() {  # $1 = run previews? (1/0)
+  say "typecheck"
+  npm run --silent typecheck || { err "typecheck failed — fix before pushing (or 'loldev push' to bypass build gates)"; return 1; }
+  ok "typecheck passed"
   say "build catalog"
   npm run --silent build:catalog || { err "build:catalog failed"; return 1; }
   npm run --silent validate:catalog || { err "validate:catalog failed"; return 1; }
