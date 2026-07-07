@@ -26,6 +26,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive   # tools/catalog/shells/services are submodules now
 
       - uses: actions/setup-node@v4
         with:

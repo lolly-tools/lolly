@@ -32,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive   # shells/* + workspace deps live in submodules now
 
       - uses: actions/setup-node@v4
         with:
@@ -97,6 +99,8 @@ jobs:
       options: --privileged
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive   # shells/* + workspace deps live in submodules now
 
       # Stage the .deb next to the manifest as the stable name it references.
       - uses: actions/download-artifact@v4
