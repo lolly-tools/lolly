@@ -14,9 +14,10 @@
  *     their own dimensions. So the deck size is the first page's; each later page's
  *     picture is fit (contain, centred) into that frame. For the common uniform-page
  *     case (a carousel, a paged document) every picture fills exactly.
- *   • "Vector picture per slide": embedding EMF keeps the slide scalable in desktop
- *     PowerPoint; the shell falls back to PNG per slide where EMF would be lossy or
- *     fails. Either way it's a p:pic with a stretch fill — the container is identical.
+ *   • Picture kind is the shell's choice (emf | png | jpeg) — it's always a p:pic with
+ *     a stretch fill, so the container is identical either way. The web shell renders
+ *     a high-res PNG per slide (faithful to the source: gradients, photos and effects
+ *     survive, and it opens everywhere), which is why png is the common `ext`.
  *
  * Like the other format authorities (emf.ts / apng.ts / pptx has no external deps),
  * fully node:test-able: it returns strings + byte arrays, no zip, no DOM.
@@ -48,7 +49,11 @@ export interface PptxBuildOpts {
 const xmlEsc = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
+// Relationship TYPE base (…/officeDocument/2006/relationships/<kind>) vs the
+// Relationships CONTAINER namespace (…/package/2006/relationships) — DIFFERENT URIs.
+// The .rels root element uses PKG_REL_NS; only the Type="" attributes use REL.
 const REL = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const PKG_REL_NS = 'http://schemas.openxmlformats.org/package/2006/relationships';
 const CT = 'http://schemas.openxmlformats.org/package/2006/content-types';
 
 const MEDIA_CT: Record<PptxSlideInput['ext'], string> = {
@@ -87,7 +92,7 @@ function slideXml(slide: PptxSlideInput, emuW: number, emuH: number, index: numb
 
 const slideRelsXml = (index: number, ext: string): string =>
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
-  `<Relationships xmlns="${REL}/relationships">` +
+  `<Relationships xmlns="${PKG_REL_NS}">` +
   `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>` +
   `<Relationship Id="rId2" Type="${REL}/image" Target="../media/image${index + 1}.${ext}"/>` +
   `</Relationships>`;
@@ -111,7 +116,7 @@ function presentationRelsXml(n: number): string {
   let rels = `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="slideMasters/slideMaster1.xml"/>`;
   for (let i = 0; i < n; i++) rels += `<Relationship Id="rId${i + 2}" Type="${REL}/slide" Target="slides/slide${i + 1}.xml"/>`;
   rels += `<Relationship Id="rId${n + 2}" Type="${REL}/theme" Target="theme/theme1.xml"/>`;
-  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${REL}/relationships">${rels}</Relationships>`;
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${PKG_REL_NS}">${rels}</Relationships>`;
 }
 
 function contentTypesXml(n: number, exts: Set<string>): string {
@@ -133,7 +138,7 @@ function contentTypesXml(n: number, exts: Set<string>): string {
 
 const ROOT_RELS =
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
-  `<Relationships xmlns="${REL}/relationships">` +
+  `<Relationships xmlns="${PKG_REL_NS}">` +
   `<Relationship Id="rId1" Type="${REL}/officeDocument" Target="ppt/presentation.xml"/>` +
   `<Relationship Id="rId2" Type="${REL}/metadata/core-properties" Target="docProps/core.xml"/>` +
   `<Relationship Id="rId3" Type="${REL}/extended-properties" Target="docProps/app.xml"/>` +
@@ -156,7 +161,7 @@ function slideMasterXml(): string {
 }
 const slideMasterRels =
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
-  `<Relationships xmlns="${REL}/relationships">` +
+  `<Relationships xmlns="${PKG_REL_NS}">` +
   `<Relationship Id="rId1" Type="${REL}/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>` +
   `<Relationship Id="rId2" Type="${REL}/theme" Target="../theme/theme1.xml"/>` +
   `</Relationships>`;
@@ -175,7 +180,7 @@ function slideLayoutXml(): string {
 }
 const slideLayoutRels =
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
-  `<Relationships xmlns="${REL}/relationships">` +
+  `<Relationships xmlns="${PKG_REL_NS}">` +
   `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/>` +
   `</Relationships>`;
 

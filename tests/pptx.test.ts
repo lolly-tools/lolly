@@ -80,3 +80,16 @@ test('a portrait picture into a landscape deck is pillarboxed and centred', () =
 test('empty slide list throws', () => {
   assert.throws(() => buildPptxParts([], {}), /at least one slide/);
 });
+
+test('.rels use the package Relationships namespace, not a doubled/officeDocument one', () => {
+  // Regression: the container xmlns must be .../package/2006/relationships. A wrong
+  // namespace (e.g. .../officeDocument/2006/relationships/relationships) makes every
+  // relationship fail to resolve → LibreOffice rejects the file, PowerPoint "repairs".
+  const parts = buildPptxParts([slide()], {});
+  for (const [path, content] of Object.entries(parts)) {
+    if (!path.endsWith('.rels')) continue;
+    const xml = content as string;
+    assert.match(xml, /<Relationships xmlns="http:\/\/schemas\.openxmlformats\.org\/package\/2006\/relationships">/, `${path} container ns`);
+    assert.doesNotMatch(xml, /relationships\/relationships/, `${path} has a doubled namespace`);
+  }
+});
