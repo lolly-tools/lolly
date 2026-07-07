@@ -210,6 +210,7 @@ interface C2paStoreParts {
   assertions: C2paAssertion[];
   claimBytes: Uint8Array;
   signatureBytes: Uint8Array;
+  claimVersion: 1 | 2;
 }
 
 /**
