@@ -1,7 +1,18 @@
 # Trim the CLI upload to what the web build + MCP function need.
 # The Tauri shells (esp. src-tauri/target ~2.2G) and scratch dirs are
 # irrelevant to `npm run build:web` and the api/mcp function.
+# NOTE: Vercel does NOT read .gitignore when this file exists, so anything
+# gitignored-but-heavy must be repeated here or it uploads over the wire.
 shells/tauri-desktop
 shells/tauri-mobile
 scratch
 plans
+
+# Scoped Chromium for the CLI/MCP Tier-B raster path (`lolly install-browser`),
+# ~540 MB. Never used by the deployed function — esbuild bundles the MCP fn and
+# includeFiles is only {tools,catalog}/**. Was the bulk of the 450 MB upload.
+.browsers
+
+# Prebuilt web output — Vercel regenerates it via buildCommand (outputDirectory
+# is shells/web/dist), so shipping the local ~170 MB copy is pure waste.
+shells/web/dist
