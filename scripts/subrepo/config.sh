@@ -10,9 +10,11 @@
 set -euo pipefail
 
 ORG="lolly-tools"
-# SSH host prefix — uses the key Andy added. Subrepo remotes + .gitmodules URLs
-# use SSH so pushes don't depend on a token. (The parent remote is left alone.)
-GIT_HOST="git@github.com"
+# HTTPS host — public submodules clone anonymously, so Vercel's git-build / CI /
+# keyless clones can fetch them. (SSH .gitmodules URLs broke the Vercel git-build:
+# no SSH key in the build env.) Andy's existing local submodule push-remotes stay
+# SSH; a fresh clone fetches over HTTPS and pushes via gh/HTTPS auth.
+GIT_HOST="https://github.com"
 
 # Resolve repo root from this file's location (scripts/subrepo/config.sh).
 SUBREPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -84,7 +86,7 @@ repo_for_path() {
 
 is_mpl_path() { local p="$1" m; for m in "${MPL_PATHS[@]}"; do [ "$m" = "$p" ] && return 0; done; return 1; }
 
-subrepo_url() { echo "${GIT_HOST}:${ORG}/$(repo_for_path "$1").git"; }
+subrepo_url() { echo "${GIT_HOST}/${ORG}/$(repo_for_path "$1").git"; }
 
 # Human-readable GitHub description per path. Pattern: "lolly.sh: <name> - submodule".
 repo_description() {

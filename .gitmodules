@@ -1,33 +1,33 @@
 [submodule "tools"]
 	path = tools
-	url = git@github.com:lolly-tools/lolly-suse-tools.git
+	url = https://github.com/lolly-tools/lolly-suse-tools.git
 [submodule "catalog"]
 	path = catalog
-	url = git@github.com:lolly-tools/lolly-suse-catalog.git
+	url = https://github.com/lolly-tools/lolly-suse-catalog.git
 [submodule "services/mcp"]
 	path = services/mcp
-	url = git@github.com:lolly-tools/lolly-mcp-server.git
+	url = https://github.com/lolly-tools/lolly-mcp-server.git
 [submodule "services/ca"]
 	path = services/ca
-	url = git@github.com:lolly-tools/lolly-ca.git
+	url = https://github.com/lolly-tools/lolly-ca.git
 [submodule "shells/web"]
 	path = shells/web
-	url = git@github.com:lolly-tools/lolly-web.git
+	url = https://github.com/lolly-tools/lolly-web.git
 [submodule "shells/cli"]
 	path = shells/cli
-	url = git@github.com:lolly-tools/lolly-cli.git
+	url = https://github.com/lolly-tools/lolly-cli.git
 [submodule "shells/tui"]
 	path = shells/tui
-	url = git@github.com:lolly-tools/lolly-tui.git
+	url = https://github.com/lolly-tools/lolly-tui.git
 [submodule "shells/tauri-desktop"]
 	path = shells/tauri-desktop
-	url = git@github.com:lolly-tools/lolly-desktop.git
+	url = https://github.com/lolly-tools/lolly-desktop.git
 [submodule "shells/tauri-mobile"]
 	path = shells/tauri-mobile
-	url = git@github.com:lolly-tools/lolly-mobile.git
+	url = https://github.com/lolly-tools/lolly-mobile.git
 [submodule "shells/chrome-extension"]
 	path = shells/chrome-extension
-	url = git@github.com:lolly-tools/lolly-chrome-extension.git
+	url = https://github.com/lolly-tools/lolly-chrome-extension.git
 [submodule "docs"]
 	path = docs
-	url = git@github.com:lolly-tools/lolly-docs.git
+	url = https://github.com/lolly-tools/lolly-docs.git
