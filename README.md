@@ -141,6 +141,7 @@ ln -sf "$PWD/scripts/subrepo/loldev" /usr/local/bin/loldev   # or any dir on you
 loldev gtg -m "replaced suse logomark"   # build catalog → commit + push every changed
                                          # submodule to its repo → commit + push the umbrella
 loldev gtg                               # same, with an empty commit message
+loldev ship -m "…"                       # gtg, THEN deploy to Vercel prod (lolly.tools); --preview for a preview URL
 loldev status                            # what's dirty / ahead, per repo
 loldev pull                              # pull umbrella + update all submodules
 loldev dev                               # run the web shell
