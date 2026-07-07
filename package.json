@@ -1,0 +1,71 @@
+{
+  "name": "lolly",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Constraint-first, template-driven on-brand asset generation for SUSE.",
+  "license": "MPL-2.0",
+  "type": "module",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "workspaces": [
+    "engine",
+    "shells/web",
+    "shells/cli",
+    "shells/tui",
+    "services/ca",
+    "services/mcp"
+  ],
+  "scripts": {
+    "dev:web": "node scripts/dev-web.ts",
+    "build:web": "npm run build:info && node scripts/build-tool-og.ts && node scripts/build-view-og.ts && npm --workspace shells/web run build",
+    "build:info": "node docs/build.ts",
+    "test": "node --test \"tests/**/*.test.js\" \"tests/**/*.test.ts\" \"shells/web/src/**/*.test.js\" \"shells/web/src/**/*.test.ts\" \"services/mcp/test/**/*.test.ts\"",
+    "typecheck": "tsc -p engine && tsc -p shells/web && tsc -p shells/web/tsconfig.tests.json && tsc -p shells/cli && tsc -p shells/tui && tsc -p tests && tsc -p scripts && tsc -p services/mcp",
+    "build:catalog": "node scripts/build-catalog-index.ts && node scripts/checksum-assets.ts && node scripts/build-preview-bundle.ts",
+    "validate:catalog": "node scripts/validate-catalog.ts",
+    "check:bundle": "node scripts/check-bundle-budget.ts",
+    "check:mcp": "node scripts/check-mcp-live.ts",
+    "previews": "node scripts/build-previews.ts && node scripts/optimize-preview-webp.ts && node scripts/build-preview-bundle.ts",
+    "previews:animated": "node scripts/build-animated-previews.ts",
+    "voice": "node scripts/build-voice-clips.ts",
+    "cards:svg": "node scripts/build-svg-card.ts",
+    "cards:html": "node scripts/build-html-card.ts",
+    "sign:credentials": "node scripts/sign-credentialed-assets.ts",
+    "sign:credentials:ca": "node --env-file=services/ca/.env scripts/sign-credentialed-assets.ts --ca",
+    "sign:credentials:catalog": "node --env-file=services/ca/.env scripts/sign-credentialed-assets.ts --ca --catalog",
+    "optimize:previews": "node scripts/optimize-previews.ts",
+    "optimize:assets": "node scripts/optimize-assets.ts",
+    "optimize:thumbnails": "node scripts/build-thumbnails.ts",
+    "optimize:preview-png": "node scripts/optimize-preview-png.ts",
+    "optimize:preview-webp": "node scripts/optimize-preview-webp.ts",
+    "build:sbom": "node scripts/build-sbom.ts",
+    "build:licenses": "node scripts/build-licenses.ts",
+    "cli": "node shells/cli/bin/brand-tool.ts",
+    "tui": "npm --workspace shells/tui run start",
+    "mcp": "node services/mcp/bin/lolly-mcp.ts",
+    "mcp:http": "node services/mcp/src/http.ts",
+    "mcp:test": "node --test \"services/mcp/test/**/*.test.ts\"",
+    "mcp:inspect": "mcp-inspector node services/mcp/bin/lolly-mcp.ts",
+    "mcp:inspect:cli": "mcp-inspector --cli node services/mcp/bin/lolly-mcp.ts",
+    "mcp:install-browser": "node services/mcp/scripts/install-browser.ts",
+    "build:mcp-fn": "node scripts/build-mcp-fn.ts",
+    "build:ca-fn": "node scripts/build-ca-fn.ts",
+    "dev:desktop": "cd shells/tauri-desktop && npm run dev",
+    "build:desktop": "cd shells/tauri-desktop && npm run build",
+    "dev:android": "cd shells/tauri-mobile && npm run dev:android",
+    "dev:ios": "cd shells/tauri-mobile && npm run dev:ios",
+    "build:android": "cd shells/tauri-mobile && npm run build:android",
+    "build:ios": "cd shells/tauri-mobile && npm run build:ios"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "esbuild": "^0.28.1",
+    "playwright": "^1.49.0",
+    "sharp": "^0.35.3",
+    "svgo": "^4.0.1"
+  }
+}

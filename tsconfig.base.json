@@ -1,0 +1,19 @@
+{
+  "//": "Shared strict base for the incremental JS->TS migration. Per-area configs extend this and set their own lib/types. erasableSyntaxOnly guarantees Node's type-stripping can run the .ts directly; isolatedModules keeps esbuild/Vite single-file transpile honest; allowJs+checkJs:false lets unconverted .js coexist as untyped imports.",
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowJs": true,
+    "checkJs": false,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // "DOM" is here ONLY for the fetch-spec globals (Blob, Response, RequestInit,
+    // URL) shared by browsers and Node. The engine must stay renderer-agnostic:
+    // no document/window usage — enforced in review, not by the compiler.
+    // DOM.Iterable: URLSearchParams.entries() iteration in url-mode (type-only;
+    // the API is available in both browsers and Node).
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": []
+  },
+  "include": ["src/**/*"]
+}

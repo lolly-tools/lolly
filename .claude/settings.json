@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; cat {} | python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); r=d.get\\(\\\\\"render\\\\\",{}\\); print\\(d[\\\\\"id\\\\\"], \\\\\"|\\\\\", r.get\\(\\\\\"formats\\\\\",[]\\), \\\\\"|\\\\\", r.get\\(\\\\\"width\\\\\"\\),\\\\\"x\\\\\",r.get\\(\\\\\"height\\\\\"\\)\\)\"')",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('render',{}\\), indent=2\\)\\)\")",
+      "Bash(sh -s -- -y)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/andy/Build/lolly/icon.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/andy/Build/lolly/shells/tauri-desktop/src-tauri/icons/icon.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/andy/Build/lolly/shells/tauri-desktop/src-tauri/icons/32x32.png)",
+      "Bash(sips --padToHeightWidth 1296 1296 /Users/andy/Build/lolly/icon.png --out /tmp/icon-square.png)",
+      "Bash(python3 -c \"import json,sys; s=json.load\\(sys.stdin\\); print\\(json.dumps\\(s['properties']['inputs'], indent=2\\)\\)\")",
+      "Bash(npm test *)",
+      "Bash(node scripts/validate-catalog.ts)",
+      "Bash(node -e ' *)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(f'{len\\(d[\\\\\"tools\\\\\"]\\)} tools'\\); [print\\(f'  {t[\\\\\"id\\\\\"]}'\\) for t in d[\\\\\"tools\\\\\"]]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); tiers={}; [tiers.update\\({a['tier']: tiers.get\\(a['tier'],0\\)+1}\\) for a in d['assets']]; print\\(f'{len\\(d[\\\\\"assets\\\\\"]\\)} assets'\\); [print\\(f'  {k}: {v}'\\) for k,v in tiers.items\\(\\)]\")",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(k,':',v\\) for k,v in d.get\\('dependencies',{}\\).items\\(\\)]\")",
+      "Bash(python3 -c ' *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/hooks/require-archive.sh\"",
+            "statusMessage": "Enforcing --archive on catalog-scale commands"
+          }
+        ]
+      }
+    ]
+  }
+}

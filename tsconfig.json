@@ -1,0 +1,9 @@
+{
+  "//": "Root tsconfig ONLY so Vercel's @vercel/node function compiler — which walks up from api/*.ts and would otherwise fall back to TS defaults — inherits allowImportingTsExtensions (the repo uses explicit .ts import specifiers so Node can run .ts directly). `npm run typecheck` does NOT use this; it runs per-project `tsc -p engine|shells/web|services/mcp|...`. Keep the lib/types in sync with services/mcp/tsconfig.json since the api/mcp function's import graph is engine + services/mcp.",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["api/**/*.ts", "services/mcp/src/**/*.ts", "engine/src/**/*.ts"]
+}

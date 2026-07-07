@@ -1,0 +1,41 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "npm run build:web && npm run build:mcp-fn && npm run build:ca-fn",
+  "outputDirectory": "shells/web/dist",
+  "functions": {
+    "api/mcp/**": {
+      "maxDuration": 60,
+      "includeFiles": "{tools,catalog}/**"
+    }
+  },
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www\\.lolly\\.tools" }],
+      "destination": "https://lolly.tools/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": ".*lolly\\.(art|ad|bot|codes|design|free|gallery|graphics|ing|ink|is|media|sh|style|to|work)" }],
+      "destination": "https://lolly.tools/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    { "source": "/t/:id", "destination": "/t/:id.html" },
+    { "source": "/d", "destination": "/view/d.html" },
+    { "source": "/v", "destination": "/view/v.html" },
+    { "source": "/c", "destination": "/view/c.html" },
+    { "source": "/p", "destination": "/view/p.html" },
+    { "source": "/profile", "destination": "/view/profile.html" },
+    { "source": "/api/ca/:path*", "destination": "/api/ca/[...path]" },
+    { "source": "/api/mcp", "destination": "/api/mcp/[...path]" },
+    { "source": "/api/mcp/:path*", "destination": "/api/mcp/[...path]" },
+    { "source": "/.well-known/oauth-authorization-server", "destination": "/api/mcp/[...path]" },
+    { "source": "/.well-known/oauth-authorization-server/:path*", "destination": "/api/mcp/[...path]" },
+    { "source": "/.well-known/oauth-protected-resource", "destination": "/api/mcp/[...path]" },
+    { "source": "/.well-known/oauth-protected-resource/:path*", "destination": "/api/mcp/[...path]" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}

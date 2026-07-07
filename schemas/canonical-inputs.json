@@ -1,0 +1,35 @@
+{
+  "_README": "Canonical input registry. New tools SHOULD reuse these input `id`s and constraints verbatim. Two tools that share an id collapse into a single column in the /pro batch grid; if they also share type + constraints (number min/max/step, select options, color palette), that column becomes bulk-writable — one value fills every row. The catalog validator (scripts/validate-catalog.ts) emits a WARNING (never an error) when a tool uses one of these ids with a divergent type or constraints, so drift is visible without blocking. Labels here are advisory: a tool may show its own label (the /pro header uses the first non-empty one). Adding a new shared input? Add it here first, then adopt it. This is deliberately data, not docs — the authoring guide will link here.",
+
+  "inputs": {
+    "heading":     { "type": "text",     "label": "Heading",         "description": "Primary headline / title text." },
+    "subheading":  { "type": "text",     "label": "Subheading",      "description": "Secondary line beneath the heading." },
+    "body":        { "type": "longtext", "label": "Body",            "description": "Main body copy (markdown where the tool renders it)." },
+    "cta":         { "type": "text",     "label": "Call to action",  "description": "Short call-to-action label." },
+
+    "color":       { "type": "color",    "label": "Color",           "description": "Primary ink / foreground colour." },
+    "background":  { "type": "color",    "label": "Background",      "description": "Background fill colour." },
+
+    "image":       { "type": "asset",    "label": "Image",           "description": "Primary image / photo." },
+    "headshot":    { "type": "asset",    "label": "Headshot",        "description": "Portrait / person photo." },
+    "bgImage":     { "type": "asset",    "label": "Background image", "description": "Full-bleed background photo." },
+
+    "bgOpacity":   { "type": "number",   "label": "Opacity", "min": 0, "max": 1, "step": 0.01, "description": "Background image opacity / overlay strength (0–1)." },
+
+    "imageFraming": {
+      "type": "vector",
+      "label": "Zoom & Position",
+      "description": "Zoom + pan of an image within its frame (like object-position with a scale). Tools that only pan may omit the `zoom` field.",
+      "fields": [
+        { "id": "zoom", "label": "Zoom", "min": 100, "max": 400, "step": 1, "default": 100 },
+        { "id": "x",    "label": "X",    "min": 0,   "max": 100, "step": 1, "default": 50 },
+        { "id": "y",    "label": "Y",    "min": 0,   "max": 100, "step": 1, "default": 50 }
+      ]
+    }
+  },
+
+  "conventions": {
+    "typography": "Per-element typography numbers use `<element>FontSize` and `<element>FontWeight` (e.g. headingFontSize, bodyFontWeight). Weight is a number with min 100, max 900, step 100. Size is a relative number whose range the tool defines.",
+    "bulkWrite": "A /pro column is bulk-writable only when every tool that declares the id agrees on type AND constraints — number min/max/step, select option values, color palette. Match the values above to keep the column actionable."
+  }
+}

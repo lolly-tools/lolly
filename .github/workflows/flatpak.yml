@@ -1,0 +1,114 @@
+# Build a Linux Flatpak of the Lolly desktop app.
+#
+# Flatpak is Linux-only and Tauri does not cross-compile, so this cannot be built on a
+# developer's macOS machine — it runs here on `ubuntu-latest` instead. Two jobs:
+#
+#   1. build-deb  — build the Tauri desktop app into a .deb (needs network + the
+#                   webkit2gtk toolchain; a normal runner, NOT the offline Flatpak
+#                   sandbox). Uploads the .deb as an artifact.
+#   2. flatpak    — inside the GNOME-47 flatpak-builder container, unpack that .deb via
+#                   shells/tauri-desktop/flatpak/tools.lolly.desktop.yml and export a
+#                   single-file Lolly.flatpak bundle.
+#
+# Triggers on version tags (v*) and manual dispatch. Keep the container tag (gnome-47)
+# in lockstep with `runtime-version: '47'` in the manifest.
+name: Flatpak (Linux)
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flatpak-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-deb:
+    name: Build .deb (x86_64)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            shells/tauri-desktop/src-tauri/target
+          key: cargo-${{ runner.os }}-${{ hashFiles('shells/tauri-desktop/src-tauri/Cargo.lock') }}
+
+      # Tauri v2 Linux system dependencies (Ubuntu 24.04 ships webkit2gtk-4.1).
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev libgtk-3-dev librsvg2-dev \
+            libayatana-appindicator3-dev libsoup-3.0-dev \
+            build-essential patchelf file
+
+      # Root workspace deps power the shared web frontend (the desktop Vite build uses
+      # shells/web as its root); the desktop package has its OWN lockfile (it is not a
+      # root workspace member), so install it separately.
+      - name: Install workspace deps
+        run: npm ci
+      - name: Install desktop shell deps
+        working-directory: shells/tauri-desktop
+        run: npm ci
+
+      # Build the frontend, then bundle ONLY the .deb (skips AppImage/RPM tooling).
+      - name: Build desktop .deb
+        working-directory: shells/tauri-desktop
+        run: |
+          npm run build:frontend
+          npm run tauri -- build --bundles deb
+
+      - name: Collect the .deb
+        run: |
+          set -e
+          deb=$(find shells/tauri-desktop/src-tauri/target/release/bundle/deb -name '*.deb' | head -1)
+          test -n "$deb" || { echo "::error::no .deb produced"; exit 1; }
+          echo "Built: $deb"
+          mkdir -p out && cp "$deb" out/
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: lolly-deb
+          path: out/*.deb
+          if-no-files-found: error
+
+  flatpak:
+    name: Build .flatpak (x86_64)
+    needs: build-deb
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-47
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+
+      # Stage the .deb next to the manifest as the stable name it references.
+      - uses: actions/download-artifact@v4
+        with:
+          name: lolly-deb
+          path: shells/tauri-desktop/flatpak
+      - name: Stage .deb as lolly.deb
+        run: mv shells/tauri-desktop/flatpak/*.deb shells/tauri-desktop/flatpak/lolly.deb
+
+      - name: Build Flatpak bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: Lolly.flatpak
+          manifest-path: shells/tauri-desktop/flatpak/tools.lolly.desktop.yml
+          cache-key: flatpak-builder-${{ github.sha }}

@@ -1,0 +1,26 @@
+{
+  "name": "@lolly/engine",
+  "version": "0.1.0",
+  "description": "Platform-agnostic engine for Lolly. Loads tool manifests, renders inputs, hydrates templates, drives exports through the capability bridge.",
+  "license": "MPL-2.0",
+  "type": "module",
+  "//sideEffects": "The engine is pure — every module only defines/exports; none patch globals or run required top-level effects. Declaring this lets the bundler tree-shake the barrel (src/index.ts) so importing e.g. `parseUrlState` no longer drags createRuntime→Handlebars and loadTool→Ajv onto the web shell's boot chunk. See plans/ui-perf-audit.md.",
+  "sideEffects": false,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./bridge/v1": "./src/bridge/host-v1.ts"
+  },
+  "scripts": {
+    "test": "node --test \"../tests/**/*.test.js\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "handlebars": "^4.7.8",
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  },
+  "//": "The engine has NO direct dependency on a DOM library, framework, or storage backend. Those are provided by the host shell at runtime via the capability bridge."
+}

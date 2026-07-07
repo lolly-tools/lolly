@@ -1,0 +1,7 @@
+# Trim the CLI upload to what the web build + MCP function need.
+# The Tauri shells (esp. src-tauri/target ~2.2G) and scratch dirs are
+# irrelevant to `npm run build:web` and the api/mcp function.
+shells/tauri-desktop
+shells/tauri-mobile
+scratch
+plans
