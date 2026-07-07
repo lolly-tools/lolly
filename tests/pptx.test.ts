@@ -93,6 +93,17 @@ test('a text shape becomes an editable text box with sized/coloured runs', () =>
   assert.match(xml, /typeface="SUSE"/);
 });
 
+test('a pic with srcRect crops the source (object-fit:cover) and keeps a full blip', () => {
+  const slide: PptxSlide = {
+    shapes: [{ kind: 'pic', x: 0, y: 0, cx: 400, cy: 200, media: 0, srcRect: { l: 0.1, t: 0, r: 0.1, b: 0 } }],
+    media: [{ bytes, ext: 'jpeg' }],
+  };
+  const xml = buildPptxParts([slide], {})['ppt/slides/slide1.xml'] as string;
+  // 10% each side → 10000 (1000ths of a percent); a plain stretch fill still follows.
+  assert.match(xml, /<a:srcRect l="10000" t="0" r="10000" b="0"\/>/);
+  assert.match(xml, /<a:srcRect[^>]*\/><a:stretch><a:fillRect\/><\/a:stretch>/);
+});
+
 test('a rect shape carries fill, border and rounded geometry', () => {
   const slide: PptxSlide = {
     shapes: [

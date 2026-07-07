@@ -19,7 +19,7 @@ Shortcut: append `?full` to any tool URL to open it with the sidebar already col
 
 ```
 /#/tool/qr-code?url=https://suse.com&w=1200&h=628
-brand-tool qr-code --url=https://suse.com --w=1200 --h=628 --export=png
+lolly qr-code --url=https://suse.com --w=1200 --h=628 --export=png
 ```
 
 ### Utility tool layout

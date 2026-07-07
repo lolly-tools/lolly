@@ -43,7 +43,7 @@ function buildCard(toolId: string): void {
   }
   // The tool's real html export (canvas node + its inline <style>/@keyframes), rendered
   // through the engine + hooks by the CLI shell — no browser.
-  const res = spawnSync('node', ['shells/cli/bin/brand-tool.ts', toolId, '--export=html'], {
+  const res = spawnSync('node', ['shells/cli/bin/lolly.ts', toolId, '--export=html'], {
     cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024,
   });
   if (res.status !== 0) throw new Error(`${toolId}: CLI html export failed — ${(res.stderr || '').split('\n')[0]}`);

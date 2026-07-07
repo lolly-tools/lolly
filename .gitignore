@@ -173,7 +173,7 @@ vite.config.ts.timestamp-*
 # Web build output (Vercel/CI regenerate via `npm run build:web`)
 shells/web/dist/
 
-# Scoped Chromium for the CLI's Tier-B raster path (`brand-tool install-browser`).
+# Scoped Chromium for the CLI's Tier-B raster path (`lolly install-browser`).
 # Never committed — a plain `npm install` pulls no browser.
 .browsers/
 

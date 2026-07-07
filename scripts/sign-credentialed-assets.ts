@@ -9,7 +9,7 @@
  * into a small curated set of *styled* assets (the styling is a genuine Lolly
  * transform, which is exactly what "Made with Lolly" asserts), and registers
  * them as `suse/credentials/*` catalog entries. A user downloads one, drops it
- * into Verify (or `brand-tool validate`), and sees the "Made with Lolly" hero.
+ * into Verify (or `lolly validate`), and sees the "Made with Lolly" hero.
  *
  * Every rendition goes through the SAME engine paths the app uses:
  *   - icons        → applyIconTheme()  (bake the c1/c2 two-colour theme)

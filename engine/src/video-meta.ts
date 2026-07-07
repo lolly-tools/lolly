@@ -142,6 +142,43 @@ const ilstItem = (key: string, value: string): Uint8Array => box(key, dataAtom(v
 const freeform = (name: string, value: string): Uint8Array =>
   box('----', box('mean', be32(0), fourcc('com.apple.iTunes')), box('name', be32(0), fourcc(name)), dataAtom(value));
 
+// Big-endian u32 write in place.
+const writeU32 = (buf: Uint8Array, off: number, v: number): void => {
+  buf[off] = (v >>> 24) & 0xff; buf[off + 1] = (v >>> 16) & 0xff;
+  buf[off + 2] = (v >>> 8) & 0xff; buf[off + 3] = v & 0xff;
+};
+
+// After inserting `delta` bytes at file position `insertAt` (the end of moov,
+// which is the start of mdat in a fast-start file), every chunk-offset entry in
+// moov's stco/co64 tables that points at/after `insertAt` is now stale by
+// `delta`. Walk moov ▸ trak ▸ mdia ▸ minf ▸ stbl ▸ stco|co64 and fix them in
+// place. Without this a fast-start MP4 (moov before mdat — the shell's own
+// WebCodecs/MediaRecorder output) is corrupted: players can't locate samples.
+function patchChunkOffsets(buf: Uint8Array, moovOff: number, moovSize: number, insertAt: number, delta: number): void {
+  const kids = (start: number, end: number, type: string): BoxInfo | undefined =>
+    (walkBoxes(buf, start, end) ?? []).find((b) => b.type === type);
+  for (const trak of (walkBoxes(buf, moovOff + 8, moovOff + moovSize) ?? []).filter((b) => b.type === 'trak')) {
+    const mdia = kids(trak.off + 8, trak.off + trak.size, 'mdia'); if (!mdia) continue;
+    const minf = kids(mdia.off + 8, mdia.off + mdia.size, 'minf'); if (!minf) continue;
+    const stbl = kids(minf.off + 8, minf.off + minf.size, 'stbl'); if (!stbl) continue;
+    for (const b of walkBoxes(buf, stbl.off + 8, stbl.off + stbl.size) ?? []) {
+      if (b.type !== 'stco' && b.type !== 'co64') continue;
+      const count = readU32(buf, b.off + 12);
+      const wide = b.type === 'co64';
+      for (let i = 0; i < count; i++) {
+        const p = b.off + 16 + i * (wide ? 8 : 4);
+        if (wide) {
+          const val = readU32(buf, p) * 4294967296 + readU32(buf, p + 4);
+          if (val >= insertAt) { const nv = val + delta; writeU32(buf, p, Math.floor(nv / 4294967296)); writeU32(buf, p + 4, nv >>> 0); }
+        } else {
+          const val = readU32(buf, p);
+          if (val >= insertAt) writeU32(buf, p, val + delta);
+        }
+      }
+    }
+  }
+}
+
 /**
  * Append provenance tags into the MP4's `moov` as `udta ▸ meta ▸ ilst`.
  * Returns new bytes, or the input untouched when the structure is unexpected
@@ -175,6 +212,13 @@ export function embedMp4Meta(bytes: Uint8Array, tags: VideoProvenanceTags): Uint
     udta,
     bytes.subarray(moov.off + moov.size),
   );
+  // Fast-start files (moov before mdat — the shell's own output) just had mdat
+  // pushed forward by udta.length; fix the now-stale chunk offsets or the video
+  // is unplayable. (moov after mdat: nothing shifted, offsets stay valid.)
+  const mdat = top!.find((b) => b.type === 'mdat');
+  if (mdat && mdat.off > moov.off) {
+    patchChunkOffsets(out, moov.off, moov.size + udta.length, moov.off + moov.size, udta.length);
+  }
   return out;
 }
 

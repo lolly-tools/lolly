@@ -44,7 +44,7 @@
     "optimize:preview-webp": "node scripts/optimize-preview-webp.ts",
     "build:sbom": "node scripts/build-sbom.ts",
     "build:licenses": "node scripts/build-licenses.ts",
-    "cli": "node shells/cli/bin/brand-tool.ts",
+    "cli": "node shells/cli/bin/lolly.ts",
     "tui": "npm --workspace shells/tui run start",
     "mcp": "node services/mcp/bin/lolly-mcp.ts",
     "mcp:http": "node services/mcp/src/http.ts",

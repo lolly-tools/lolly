@@ -113,7 +113,7 @@ tools/<id>/
 |---|---|
 | `engine/src/` | `index.ts` (public surface), `loader.ts`, `runtime.ts`, `inputs.ts`, `template.ts`, `validate.ts`, `url-mode.ts`, `units.ts`, `color.ts`, `print-marks.ts`, `emf.ts`, `svg-path.ts`, `tokens.ts`, `compose.ts`, `embed.ts`, `metadata.ts`, `tool-url.ts`, `c2pa.ts`, `c2pa-verify.ts`, `x509.ts`, `video-meta.ts`, `apng.ts`, `batch.ts`, `css-box.ts`, `data-import.ts`, `design-map.ts`, `eps.ts`, `icon-theme.ts`, `media-sniff.ts`, `pdf-crypto-r6.ts`, `pdf-map.ts`, `pdfx.ts`, `photo-treatment.ts`, `tiff.ts`, `url-pack.ts`, `zip-crypto.ts`, `bridge/host-v1.ts` (37 TS modules) |
 | `shells/web/` | Vite PWA. Bridge impls under `src/bridge/`, views under `src/views/`, catalog sync under `src/catalog/` (all `.ts`) |
-| `shells/cli/` | `bin/brand-tool.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
+| `shells/cli/` | `bin/lolly.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
 | `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` |
 | `tools/` | 44 tool directories (qr-code, chart-creator, meeting-planner, strip-data, text-helper, etc.) |
 | `catalog/` | `tools/index.json` (generated registry) + `assets/` (asset registry + files, SUSE-specific) |

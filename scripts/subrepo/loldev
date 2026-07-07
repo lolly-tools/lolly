@@ -3,7 +3,7 @@
 # submodules. Install puts it on your PATH (see `loldev help`). Works from any cwd;
 # operates on $LOLLY_ROOT (default ~/Build/lolly, override with the env var).
 #
-#   loldev gtg [-m "msg"] [--force] [--previews] [--no-build]
+#   loldev gtg [-m "msg"] [--force] [--no-build]
 #       "good to go" — typecheck + build the catalog (gate), then commit + push every changed
 #       submodule to its own repo AND the parent, to the correct place.
 #       No -m → empty commit message. First push after the history rewrite
@@ -12,7 +12,7 @@
 #   loldev ship [-m "msg"] [--preview] gtg, THEN deploy to Vercel (prod; --preview = preview URL)
 #   loldev status | st                 what's dirty / ahead, per repo
 #   loldev build                       build:catalog + validate:catalog
-#   loldev previews                    regenerate look thumbnails (slow, Playwright)
+#   loldev previews                    regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes
 #   loldev verify [--clone]            full post-split build/run verification
 #   loldev pull | up                   pull parent + update all submodules
 #   loldev dev                         run the web shell (npm run dev:web)
@@ -38,19 +38,17 @@ changed_submodules() {
   done < <(subrepo_paths)
 }
 
-do_build() {  # $1 = run previews? (1/0)
+do_build() {
   phase "🔍" "Build gate"
   step "type-checking every project"
   npm run --silent typecheck || { err "typecheck failed — fix it, or run 'loldev push' to bypass the build gate"; return 1; }
   ok "typecheck passed"
   step "building + validating the catalog"
+  # build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no browser).
+  # The heavy Playwright card/look render is a separate, opt-in `loldev previews`.
   npm run --silent build:catalog   || { err "build:catalog failed";    return 1; }
   npm run --silent validate:catalog || { err "validate:catalog failed"; return 1; }
   ok "catalog built + validated"
-  if [ "${1:-0}" = 1 ]; then
-    step "regenerating look previews (slow — Playwright/Chromium)"
-    npm run previews && ok "previews regenerated" || warn "previews failed (continuing anyway)"
-  fi
 }
 
 # Pretty end-of-run tally. Reads the PUSHED / FAILED / NOOP globals gtg fills in.
@@ -71,12 +69,11 @@ gtg_summary() {
 }
 
 gtg() {
-  local MSG="" FORCE=0 PREVIEWS=0 NOBUILD=0 title="loldev gtg" blurb="good to go · commit + push every changed repo"
+  local MSG="" FORCE=0 NOBUILD=0 title="loldev gtg" blurb="good to go · commit + push every changed repo"
   while [ $# -gt 0 ]; do
     case "$1" in
       -m|--message) shift; MSG="${1:-}" ;;
       -f|--force)   FORCE=1 ;;
-      --previews)   PREVIEWS=1 ;;
       --no-build)   NOBUILD=1; title="loldev push"; blurb="fast lane · commit + push, no build gate" ;;
       *) warn "gtg: ignoring '$1'" ;;
     esac; shift
@@ -89,7 +86,7 @@ gtg() {
   if [ "$NOBUILD" = 1 ]; then
     phase "⏩" "Build gate"; info "skipped (push mode)"
   else
-    do_build "$PREVIEWS" || { err "build failed — not pushing"; return 1; }
+    do_build || { err "build failed — not pushing"; return 1; }
   fi
 
   # 1. each changed submodule → its own repo
@@ -173,7 +170,7 @@ case "$cmd" in
   push)         gtg --no-build "$@" ;;
   ship)         ship "$@" ;;
   status|st)    bash "$SUB/status.sh" ;;
-  build)        do_build 0 ;;
+  build)        do_build ;;
   validate)     npm run validate:catalog ;;
   previews)     npm run previews ;;
   verify)       bash "$SUB/verify.sh" "$@" ;;

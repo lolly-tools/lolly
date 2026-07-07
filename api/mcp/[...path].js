@@ -5558,7 +5558,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       }));
     },
     async pick() {
-      throw new Error("Asset picker not available in CLI mode \u2014 list ids with `brand-tool assets [query]` and pass one to the asset input (e.g. --logo=suse/logo/hor-pos-green)");
+      throw new Error("Asset picker not available in CLI mode \u2014 list ids with `lolly assets [query]` and pass one to the asset input (e.g. --logo=suse/logo/hor-pos-green)");
     },
     async isAvailable(id) {
       return assetById.has(parseThemedAssetId(id).baseId);

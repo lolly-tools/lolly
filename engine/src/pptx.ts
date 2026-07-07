@@ -42,7 +42,12 @@ export interface PptxText { kind: 'text'; x: number; y: number; cx: number; cy: 
 /** A picture. `media` is the index (into the slide's media[]) of the raster blip;
  *  `svg`, when set, is the index of an .svg part embedded via svgBlip (media is then
  *  the PNG fallback). */
-export interface PptxPic { kind: 'pic'; x: number; y: number; cx: number; cy: number; rot?: number; media: number; svg?: number; name?: string; }
+export interface PptxPic {
+  kind: 'pic'; x: number; y: number; cx: number; cy: number; rot?: number; media: number; svg?: number; name?: string;
+  /** Source crop (object-fit:cover), as fractions 0..1 cropped off each edge — the
+   *  blip stays the full image (un-croppable in PowerPoint), only the view is cropped. */
+  srcRect?: { l?: number; t?: number; r?: number; b?: number };
+}
 export type PptxShape = PptxRect | PptxText | PptxPic;
 
 export interface PptxMedia { bytes: Uint8Array; ext: 'png' | 'jpeg' | 'emf' | 'svg'; }
@@ -134,8 +139,12 @@ function picXml(p: PptxPic, id: number): string {
     ? `<a:blip r:embed="${mediaRid(p.media)}"><a:extLst><a:ext uri="${SVG_EXT_URI}">` +
       `<asvg:svgBlip xmlns:asvg="http://schemas.microsoft.com/office/drawing/2016/SVG/main" r:embed="${mediaRid(p.svg)}"/></a:ext></a:extLst></a:blip>`
     : `<a:blip r:embed="${mediaRid(p.media)}"/>`;
+  const pct = (v?: number): string => v && v > 0 ? String(clampInt(v * 100000, 0, 99000)) : '0';
+  const sr = p.srcRect;
+  const srcRect = sr && (sr.l || sr.t || sr.r || sr.b)
+    ? `<a:srcRect l="${pct(sr.l)}" t="${pct(sr.t)}" r="${pct(sr.r)}" b="${pct(sr.b)}"/>` : '';
   return `<p:pic><p:nvPicPr><p:cNvPr id="${id}" name="${xmlEsc(p.name ?? `pic${id}`)}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr>` +
-    `<p:blipFill>${blip}<a:stretch><a:fillRect/></a:stretch></p:blipFill>` +
+    `<p:blipFill>${blip}${srcRect}<a:stretch><a:fillRect/></a:stretch></p:blipFill>` +
     `<p:spPr>${xfrmXml(p)}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
 }
 
