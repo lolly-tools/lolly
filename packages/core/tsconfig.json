@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // DOM here provides the shared fetch/DOM globals the contract references
+    // (Blob, Response, RequestInit, Element, Uint8ClampedArray) — same reason
+    // the engine includes it. The package itself is renderer-agnostic.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"],
+    "resolveJsonModule": true
+  },
+  "include": ["src/**/*", "test/**/*"]
+}

@@ -155,10 +155,11 @@ for (const [fmt, fixture] of CASES) {
     assert.equal(report.state, 'valid', JSON.stringify(report.checks));
     assert.equal(report.madeWithLolly, true);
     assert.equal(report.environment?.format, fmt);
-    // v2 credentials carry no schema.org CreativeWork assertion (the 2.x spec
-    // removed it), so no human author is surfaced — attribution rides in the
-    // claim_generator_info map, checked next.
-    assert.equal(report.author, undefined);
+    // v2 dropped the schema.org CreativeWork assertion (2.x removed it) but the
+    // human author is restored via a CAWG metadata assertion (dc:creator), so it
+    // IS surfaced as report.author; software attribution rides in
+    // claim_generator_info, checked next.
+    assert.deepEqual(report.author, { name: 'Testy McTestface' });
     assert.equal(report.claim?.generatorInfo?.name, 'Lolly');
 
     // Flip one byte of the ORIGINAL container content (never the inserted

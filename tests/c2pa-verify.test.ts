@@ -203,3 +203,18 @@ test('authorship "created" with a Lolly generator → madeWithLolly=true, delive
   assert.equal(r.madeWithLolly, true);
   assert.equal(r.delivered, false);
 });
+
+// v2 records the human author in a CAWG metadata assertion (dc:creator); the
+// verifier reads it back into report.author for the "Produced by" line. (The
+// strict c2pa.metadata assertion forbids creator fields — see c2pa.ts.)
+test('author profile → cawg.metadata dc:creator → report.author round-trips', async () => {
+  const pdf = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Authored Asset', claimGenerator: 'Lolly', author: { name: 'Andy Fitzsimon' },
+  });
+  const r: any = await verifyC2pa(pdf);
+  assert.equal(r.state, 'valid', 'the CAWG metadata assertion must not break validity');
+  assert.deepEqual(r.author, { name: 'Andy Fitzsimon' });
+  // The assertion is referenced + hashed like any other (no unverified assertion).
+  assert.ok(r.checks.some((c: any) => c.ok && c.code === 'assertion.hashedURI.match'));
+  assert.ok(!r.checks.some((c: any) => !c.ok && c.code === 'assertion.hashedURI.mismatch'));
+});

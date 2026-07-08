@@ -328,6 +328,18 @@ export const LOLLY_EXPORT_ASSERTION = 'tools.lolly.export';
 // on-device signer deliberately doesn't have — but every validator today
 // (c2patool, Verify) still parses and DISPLAYS it as the work's author.
 export const CREATIVE_WORK_ASSERTION = 'stds.schema-org.CreativeWork';
+// How a human author is recorded in v2. NOT the strict `c2pa.metadata`
+// assertion: C2PA 2.x locked that to a technical field whitelist (exif/tiff/
+// crs/pdf/dc-technical…) that EXCLUDES dc:creator — c2patool rejects a creator
+// there with `assertion.metadata.disallowed` and marks the whole file Invalid.
+// The spec-clean vehicle for creator metadata is the CAWG metadata assertion
+// (`cawg.metadata`): same JSON-LD metadata structure, not field-restricted,
+// purpose-built for dc:creator — validated Valid by c2patool, and distinct from
+// the `cawg.identity` assertion (which needs a real identity credential this
+// on-device signer lacks). schema.org/Exif/IPTC standalone assertions were
+// removed in 2.x, so this replaces the v1 CreativeWork path.
+export const METADATA_ASSERTION = 'cawg.metadata';
+const DC_CONTEXT = { dc: 'http://purl.org/dc/elements/1.1/' };
 
 /**
  * Build a complete C2PA JUMBF store (→ Uint8Array). Emits a C2PA 2.x claim
@@ -458,6 +470,14 @@ export async function buildC2paManifest({
     authorBox = jumbfSuperbox(UUID_JSON_CONTENT, CREATIVE_WORK_ASSERTION, isoBox('json', te.encode(JSON.stringify(work))));
     storeBoxes.push(authorBox);
   }
+  // v2: the human author rides in the spec-clean c2pa.metadata assertion
+  // (JSON-LD, Dublin Core dc:creator) instead of the removed schema.org one.
+  let metadataBox: Uint8Array | null = null;
+  if (v2 && author?.name) {
+    const meta = { '@context': DC_CONTEXT, 'dc:creator': [String(author.name)] };
+    metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(meta))));
+    storeBoxes.push(metadataBox);
+  }
   const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, 'c2pa.assertions', ...storeBoxes);
 
   // JUMBF-box hashed URIs cover the superbox PAYLOAD — the jumd description box
@@ -469,6 +489,7 @@ export async function buildC2paManifest({
     { url: `self#jumbf=c2pa.assertions/${hashLabel}`, hash: await sha256(hashBox.subarray(8)) },
     ...(exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : []),
     ...(authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : []),
+    ...(metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : []),
   ];
 
   // v2 claim map (c2pa.claim.v2): no free-text claim_generator, no dc:format; a

@@ -1,0 +1,20 @@
+{
+  "id": "hello-badge",
+  "name": "Hello Badge",
+  "description": "A tiny example tool: renders a name badge and derives the initials in a hook. Shows the manifest + template + styles + hooks shape end to end.",
+  "version": "1.0.0",
+  "engineVersion": "1.0.0",
+  "status": "community",
+  "tags": ["example", "badge"],
+  "render": {
+    "width": 600,
+    "height": 400,
+    "formats": ["svg", "png"]
+  },
+  "inputs": [
+    { "id": "name", "type": "text", "label": "Name", "default": "Ada Lovelace", "maxLength": 60 },
+    { "id": "bg", "type": "color", "label": "Background", "default": "#30ba78" },
+    { "id": "fg", "type": "color", "label": "Text", "default": "#ffffff" }
+  ],
+  "hooks": { "onInit": true, "onInput": true }
+}

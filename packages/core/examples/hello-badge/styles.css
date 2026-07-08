@@ -1,0 +1,34 @@
+/* Auto-scoped to the tool canvas by the host — no wrapper selector needed. */
+.badge {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-family: system-ui, sans-serif;
+}
+
+.badge-initials {
+  width: 6rem;
+  height: 6rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 2.4rem;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.badge-name {
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.badge-tag {
+  font-size: 0.9rem;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}

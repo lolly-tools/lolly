@@ -941,15 +941,23 @@ export async function signedBy(child: ParsedCertificate, signer: ParsedCertifica
 // signature and requiring every intermediate to be basicConstraints CA:TRUE (or
 // any issued leaf could vouch for a forged identity). Real Adobe / Microsoft /
 // OpenAI chains carry more than one intermediate, so the walk is not depth-1.
-// Guards: intermediates are consumed at most once (no A→B→A loops) and the walk
-// is bounded by their count; the anchor is only ever the PINNED cert, never a
-// root the chain ships for itself. Hostile chains must never crash verification:
-// every parse/import/verify failure is a quiet no-match. → the anchor, or null.
+// Guards: intermediates are consumed at most once (no A→B→A loops); the anchor
+// is only ever the PINNED cert, never a root the chain ships for itself.
+//
+// DoS bound: the walk re-scans not-yet-used intermediates each hop, so an
+// attacker x5chain of N same-subject CA certs would cost O(N²) serial WebCrypto
+// verifications (minutes of pinned CPU) — verifyC2pa must never hang. So only
+// the first MAX_CHAIN_INTERMEDIATES are ever parsed/considered; real C2PA chains
+// are ≤ ~4–6 deep, far under the cap, while a hostile chain is bounded to a
+// trivial O(cap²). Hostile chains must never crash: every parse/import/verify
+// failure is a quiet no-match. → the anchor, or null.
+const MAX_CHAIN_INTERMEDIATES = 8;
 async function chainsToAnchor(leaf: ParsedCertificate, chainDers: unknown[], trustAnchors: Uint8Array[]): Promise<ParsedCertificate | null> {
   const anchors: ParsedCertificate[] = [];
   for (const der of trustAnchors) { try { anchors.push(parseCertificate(der)); } catch { /* skip malformed anchor */ } }
   const intermediates: ParsedCertificate[] = [];
-  for (const der of chainDers.slice(1)) {
+  // Slice BEFORE parsing so a giant x5chain can't even force N cert parses.
+  for (const der of chainDers.slice(1, 1 + MAX_CHAIN_INTERMEDIATES)) {
     if (der instanceof Uint8Array) { try { const c = parseCertificate(der); if (c.isCa) intermediates.push(c); } catch { /* skip */ } }
   }
   let current = leaf;
@@ -1191,9 +1199,21 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     try { report.environment = mapToObj(decodeCbor(exportAssertion.content)); } catch { /* display nicety only */ }
   }
 
-  // Authorship from the schema.org CreativeWork assertion (JSON, first author).
+  // Authorship. v2 records it in the CAWG metadata assertion (`cawg.metadata`,
+  // JSON-LD Dublin Core dc:creator — the strict `c2pa.metadata` assertion
+  // forbids creator fields); v1 used the schema.org CreativeWork assertion.
+  // Prefer the metadata assertion, fall back to CreativeWork. Integrity of both
+  // is covered by the hashed-URI check above/below.
+  const metaAssertion = parts.assertions.find((a) => a.label === 'cawg.metadata' || a.label === 'c2pa.metadata');
+  if (metaAssertion) {
+    try {
+      const creator = JSON.parse(td.decode(metaAssertion.content))?.['dc:creator'];
+      const name = Array.isArray(creator) ? creator[0] : creator;
+      if (name) report.author = { name: String(name) };
+    } catch { /* display nicety only */ }
+  }
   const creativeWork = parts.assertions.find((a) => a.label === 'stds.schema-org.CreativeWork');
-  if (creativeWork) {
+  if (!report.author && creativeWork) {
     try {
       const person = JSON.parse(td.decode(creativeWork.content))?.author?.[0];
       if (person?.name) report.author = { name: String(person.name), ...(person.email ? { email: String(person.email) } : {}) };

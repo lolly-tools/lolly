@@ -21,7 +21,7 @@ import {
   der, derSeq, derSet, derOctet, derUint, derOid, derTime, ecdsaRawToDer,
 } from '../engine/src/x509.ts';
 import { embedC2paInPdf } from '../engine/src/c2pa.ts';
-import { verifyC2pa, parseCertificate } from '../engine/src/c2pa-verify.ts';
+import { verifyC2pa, parseCertificate, signedBy } from '../engine/src/c2pa-verify.ts';
 import { c2paTrustAnchors } from '../engine/src/c2pa-trust.ts';
 
 const te = new TextEncoder();
@@ -279,11 +279,155 @@ test('hostile chain garbage never crashes verification', async () => {
 // Guards the vendored C2PA trust list (engine/src/c2pa-trust.ts): it must parse
 // cleanly and carry the Google C2PA root Gemini chains to — the anchor that
 // makes real "Nano Banana" images read as trusted rather than merely valid.
-test('vendored c2paTrustAnchors() parse and include the Google C2PA root', async () => {
+test('vendored c2paTrustAnchors() union both lists and dedup', async () => {
   const anchors = c2paTrustAnchors();
-  assert.ok(anchors.length >= 20, `expected a populated trust list, got ${anchors.length}`);
-  const cns = anchors.map((der) => { try { return parseCertificate(der).subject.commonName; } catch { return null; } });
-  assert.ok(cns.includes('Google C2PA Root CA G3'), 'Gemini root anchor present');
+  assert.ok(anchors.length >= 45, `expected the unioned trust list, got ${anchors.length}`);
+  const names = anchors.map((der) => { try { const c = parseCertificate(der); return c.subject.commonName || c.subject.organization; } catch { return null; } });
+  assert.ok(names.includes('Google C2PA Root CA G3'), 'Gemini root anchor present');
+  // A representative from the FROZEN CAI list (would be dropped by official-only)…
+  assert.ok(names.includes('Adobe Root CA G2'), 'frozen-CAI Adobe root present');
+  // …and one only on the OFFICIAL conformance list.
+  assert.ok(names.some((n) => /DigiCert.*C2PA/i.test(n || '')), 'official-list DigiCert-for-C2PA root present');
   // Every entry is a parseable certificate (no corrupt PEM block survived).
-  assert.equal(cns.filter((c) => c === null).length, 0, 'all anchors parse');
+  assert.equal(names.filter((c) => c === null).length, 0, 'all anchors parse');
+  // Deduped: no two anchors share a DER fingerprint.
+  const fps = anchors.map((d) => Array.from(d).join(','));
+  assert.equal(new Set(fps).size, fps.length, 'no duplicate anchors');
+});
+
+// The guardrail: a cert may CLAIM any organisation in its subject, but a name is
+// never proof. An attacker signs a fully valid credential (real COSE signature,
+// intact hard binding) with their OWN key under a self-made root that claims
+// O="OpenAI" — and verifies it against the REAL vendored anchors. It must read
+// intact-but-UNTRUSTED: no chain to a pinned anchor → no identity, no trust.
+test('impersonation: a cert claiming O=OpenAI that chains to no pinned anchor is NEVER trusted', async () => {
+  const spoofRoot = await generateCaRoot({ commonName: 'OpenAI', organization: 'OpenAI', days: 3650 });
+  const dev = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
+  const spoofLeaf = await issueLeafCert({
+    caCertDer: spoofRoot.certDer,
+    caPrivateKey: spoofRoot.pkcs8Der,
+    spkiDer: new Uint8Array(await subtle.exportKey('spki', dev.publicKey)),
+    email: 'contact@openai.com',
+    commonName: 'OpenAI',
+    organization: 'OpenAI',
+    days: 30,
+  });
+  const pdf = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Totally Real OpenAI Image',
+    claimGenerator: 'OpenAI/1.0',
+    signer: { privateKey: dev.privateKey, certDer: spoofLeaf, chain: [spoofLeaf, spoofRoot.certDer] },
+  });
+  const report: any = await verifyC2pa(pdf, { trustAnchors: c2paTrustAnchors() });
+  assert.equal(report.state, 'valid', 'the bytes match what was signed — it IS intact');
+  assert.equal(report.trusted, false, 'claiming O=OpenAI must not confer trust without a real chain');
+  assert.equal(report.signer?.identity, undefined, 'no CA-verified identity for an unanchored signer');
+  assert.ok(check(report, 'signingCredential.untrusted'), 'the untrusted marker is present');
+});
+
+// Real-data proof that chain-step verification spans every algorithm C2PA CAs
+// use: a self-signed root signs its OWN tbsCertificate, so signedBy(root, root)
+// must hold for each self-signed vendored anchor. Exercises ECDSA (Google,
+// camera makers), RSA PKCS#1 v1.5 (Adobe, Microsoft, Truepic, Pinterest) and
+// Ed25519 (Trufo) against genuine certificates — the RSA/Ed25519 paths have no
+// other coverage (the round-trip fixtures are all ECDSA).
+test('every self-signed trust anchor verifies its own signature (ECDSA + RSA + Ed25519)', async () => {
+  const schemes = new Set<string>();
+  let selfSigned = 0;
+  for (const der of c2paTrustAnchors()) {
+    let cert;
+    try { cert = parseCertificate(der); } catch { continue; }
+    if (!cert.selfSigned) continue;   // intermediates/timestamp CAs verify against their parent, not themselves
+    selfSigned++;
+    assert.equal(await signedBy(cert, cert), true,
+      `self-signed anchor ${cert.subject.commonName || cert.subject.organization} did not verify its own signature`);
+    if (cert.sigAlg) schemes.add(cert.sigAlg.scheme);
+  }
+  assert.ok(selfSigned >= 15, `expected many self-signed roots, got ${selfSigned}`);
+  // The whole point: more than one algorithm family is actually verified.
+  assert.ok(schemes.has('ecdsa'), 'an ECDSA root was verified');
+  assert.ok(schemes.has('rsa'), 'an RSA (PKCS#1 v1.5) root was verified');
+  assert.ok(schemes.has('ed25519'), 'the Ed25519 (Trufo) root was verified');
+});
+
+// A tampered anchor must NOT self-verify — flipping a tbsCertificate byte breaks
+// the signature. Guards against a chain step that accepts anything.
+test('a tampered self-signed anchor fails its own signature check', async () => {
+  const der = c2paTrustAnchors().find((d) => { try { return parseCertificate(d).selfSigned; } catch { return false; } })!;
+  const bent = der.slice();
+  bent[40] = bent[40]! ^ 0xff;   // corrupt a tbsCertificate byte
+  const cert = parseCertificate(bent);
+  assert.equal(await signedBy(cert, cert), false, 'a corrupted anchor must not verify');
+});
+
+// Arbitrary-depth chains: leaf ← intermediate2 ← intermediate1 ← anchored root.
+// Real Adobe/Microsoft/OpenAI chains carry more than one intermediate, so the
+// walk must climb further than depth-1.
+test('two intermediates: leaf ← CA:TRUE mid2 ← CA:TRUE mid1 ← anchored root → trusted', async () => {
+  const rootKey = await subtle.importKey('pkcs8', root.pkcs8Der as BufferSource, { name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign']);
+  const caUnder = async (parentSubjectBytes: Uint8Array, parentKey: CryptoKey, cn: string, serial: number) => {
+    const pair = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, true, ['sign', 'verify']);
+    const spki = new Uint8Array(await subtle.exportKey('spki', pair.publicKey));
+    const name = derSeq(
+      derSet(derSeq(derOid('2.5.4.10'), der(0x0c, te.encode('Lolly')))),
+      derSet(derSeq(derOid('2.5.4.3'), der(0x0c, te.encode(cn)))),
+    );
+    const extensions = derSeq(
+      derSeq(derOid('2.5.29.19'), der(0x01, Uint8Array.of(0xff)), derOctet(derSeq(der(0x01, Uint8Array.of(0xff))))), // CA:TRUE
+      derSeq(derOid('2.5.29.15'), der(0x01, Uint8Array.of(0xff)), derOctet(der(0x03, Uint8Array.of(1, 0x06)))),       // keyCertSign
+    );
+    const tbs = derSeq(
+      der(0xa0, derUint(Uint8Array.of(2))),
+      derUint(Uint8Array.of(serial)),
+      derSeq(derOid('1.2.840.10045.4.3.2')),
+      parentSubjectBytes,
+      derSeq(derTime(new Date(Date.now() - 60_000)), derTime(new Date(Date.now() + 30 * 864e5))),
+      name, spki, der(0xa3, extensions),
+    );
+    const raw = new Uint8Array(await subtle.sign({ name: 'ECDSA', hash: 'SHA-256' }, parentKey, tbs as BufferSource));
+    const certDer = derSeq(tbs, derSeq(derOid('1.2.840.10045.4.3.2')), der(0x03, Uint8Array.of(0), ecdsaRawToDer(raw)));
+    return { certDer, privateKey: pair.privateKey, subjectBytes: parseCertificate(certDer).subjectBytes };
+  };
+  const mid1 = await caUnder(parseCertificate(root.certDer).subjectBytes, rootKey, 'Lolly Deep Intermediate 1', 0x51);
+  const mid2 = await caUnder(mid1.subjectBytes, mid1.privateKey, 'Lolly Deep Intermediate 2', 0x52);
+  const dev = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
+  const leaf = await issueLeafCert({
+    caCertDer: mid2.certDer,
+    caPrivateKey: mid2.privateKey,
+    spkiDer: new Uint8Array(await subtle.exportKey('spki', dev.publicKey)),
+    email: 'deep@example.com',
+    days: 30,
+  });
+  const pdf = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Deep Chain Fixture',
+    claimGenerator: 'LollyTest/1.0',
+    signer: { privateKey: dev.privateKey, certDer: leaf, chain: [leaf, mid2.certDer, mid1.certDer, root.certDer] },
+  });
+  const report: any = await verifyC2pa(pdf, { trustAnchors: [root.certDer] });
+  assert.equal(report.state, 'valid');
+  assert.equal(report.trusted, true, 'a leaf two intermediates below the anchor must still chain');
+  assert.equal(report.signer.identity.email, 'deep@example.com');
+});
+
+// DoS regression: a hostile x5chain padded with a large pile of same-DN CA
+// certs must neither hang (the walk is capped, not O(n²)) nor break a genuine
+// chain buried in the pile. leaf ← mid ← anchored root, with 200 copies of the
+// intermediate stuffed in between. Completing at all proves the bound.
+test('padded x5chain (200 same-DN CA certs) stays bounded and still verifies the real chain', async () => {
+  const mid = await buildIntermediate('Lolly Padded Intermediate');
+  const dev = await subtle.generateKey({ name: 'ECDSA', namedCurve: 'P-256' }, false, ['sign', 'verify']);
+  const leaf = await issueLeafCert({
+    caCertDer: mid.certDer,
+    caPrivateKey: mid.privateKey,
+    spkiDer: new Uint8Array(await subtle.exportKey('spki', dev.publicKey)),
+    email: 'padded@example.com',
+    days: 30,
+  });
+  const flood = Array.from({ length: 200 }, () => mid.certDer); // same DN + key, all CA:TRUE
+  const pdf = await embedC2paInPdf(buildTestPdf(), {
+    title: 'Padded Fixture',
+    claimGenerator: 'LollyTest/1.0',
+    signer: { privateKey: dev.privateKey, certDer: leaf, chain: [leaf, mid.certDer, ...flood, root.certDer] },
+  });
+  const report: any = await verifyC2pa(pdf, { trustAnchors: [root.certDer] });
+  assert.equal(report.trusted, true, 'the genuine leaf←mid←root chain still verifies despite the flood');
 });

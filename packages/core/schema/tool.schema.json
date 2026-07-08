@@ -1,0 +1,731 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lolly.tools/schemas/tool.schema.json",
+  "title": "Tool Manifest",
+  "description": "Declares everything the engine needs to know about a tool: its identity, its inputs, its render target, and its capabilities. The template consumes inputs by name; this manifest declares them.",
+  "type": "object",
+  "required": ["id", "name", "version", "engineVersion", "status", "render", "inputs"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "description": "Stable, lowercase, hyphen-separated. NEVER changes once published. URL-safe."
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable display name."
+    },
+    "description": {
+      "type": "string",
+      "description": "Shown in the tool gallery."
+    },
+    "a11yLabel": {
+      "type": "string",
+      "description": "Optional Handlebars template for the canvas's accessible label (the preview is exposed to screen readers as role=img). Hydrated live with input values, e.g. \"QR code linking to {{url}}\". Defaults to \"<name> preview\" when omitted."
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "SemVer. Bumped on any change. Used for cache-busting and saved-state migration."
+    },
+    "engineVersion": {
+      "type": "string",
+      "description": "SemVer range of engine versions this tool is compatible with, e.g. '^1.0.0'."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["official", "community", "experimental"],
+      "description": "Drives gallery sorting, watermarking, and brand-approval messaging. Experimental tools watermark their exports."
+    },
+    "category": {
+      "type": "string",
+      "description": "Free-form, used for gallery grouping. Examples: 'everyone', 'event', 'product', 'designer'."
+    },
+    "new": {
+      "type": "boolean",
+      "description": "Force the gallery's 'New' badge on this tool regardless of catalog position. Newness is otherwise inferred from catalog order (the most-recently-appended tools wear the badge and it self-expires as more ship); set this to keep a tool flagged new even after later tools push it out of that trailing window."
+    },
+    "listed": {
+      "type": "boolean",
+      "description": "Whether the tool appears in the gallery listing — the grid, search, favourites and the featured/utility strips (default true). Set false to UNLIST a tool that is a MECHANISM invoked from context rather than a destination the user browses to (e.g. asset-export, reached from the catalog's per-asset 'Download'). An unlisted tool still loads normally via #/tool/<id>, URL mode, and the CLI; unlisting only removes it from the gallery listing."
+    },
+    "privacy": {
+      "type": "string",
+      "enum": ["on-device"],
+      "description": "Marks an on-device utility — a tool that processes the user's OWN content (file in → transformed file out) entirely on the device, with nothing uploaded. The host shows a 'Runs on your device — nothing is uploaded' badge. Enforced conventions (validated): status must not be 'experimental' (no watermark on the user's own file) and the tool must not embed provenance metadata into the output. This is the marker for the privacy-flagship utility category (EXIF strip, redact, compress, convert) that replaces content exfiltration to single-purpose SaaS."
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Free-form search tags."
+    },
+    "featured": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Marks this tool for the gallery's cinematic 'Featured' hero row. Its presence (even {}) includes the tool; `variants` drive the tile's slow cross-fade between example inputs and themes. SUSE-specific curation lives here in the manifest (not in the open-source shell), so the featured row stays clean across the eventual repo split.",
+      "properties": {
+        "blurb": {
+          "type": "string",
+          "description": "One-line end-user hook shown over the hero tile (sentence case, no period)."
+        },
+        "order": {
+          "type": "number",
+          "description": "Optional sort key within the featured row (ascending). Entries without one sort after ordered ones, in catalog order."
+        },
+        "variants": {
+          "type": "array",
+          "description": "DEPRECATED alias for top-level `examples` — kept for tools authored before `examples` existed. When both are present, `examples` wins (in the featured row and the gallery tile). Prefer authoring `examples` (it also drives the gallery tile's preview strip).",
+          "items": { "$ref": "#/$defs/exampleVariant" }
+        }
+      }
+    },
+    "examples": {
+      "type": "array",
+      "description": "Example input value-sets that demonstrate the tool's range. They render live on the client (the same off-screen engine path an export takes) and are shown as the gallery tile's horizontally-scrollable preview strip — after the most-recent saved-session preview — and, when the tool is `featured`, as the hero row's cross-fade. Each is memoised so later visits are instant. Omit for a tool whose single committed preview says enough.",
+      "items": { "$ref": "#/$defs/exampleVariant" }
+    },
+    "render": {
+      "type": "object",
+      "required": ["width", "height", "formats"],
+      "additionalProperties": false,
+      "description": "Defines the template render area and supported export formats.",
+      "properties": {
+        "width": { "type": "integer", "minimum": 1 },
+        "height": { "type": "integer", "minimum": 1 },
+        "formats": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "pptx", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng"] },
+          "minItems": 1,
+          "description": "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
+        },
+        "actions": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["copy", "download", "save", "share"] },
+          "description": "Default actions to show. Defaults to ['copy', 'download', 'save'] if omitted."
+        },
+        "export": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false for utility/interactive tools that have no export. Hides download, copy, format, and dimension controls. Shows Save only when the tool has inputs. Hides the sidebar entirely when there are no inputs."
+        },
+        "layout": {
+          "type": "string",
+          "enum": ["sidebar", "canvas", "editor", "document"],
+          "default": "sidebar",
+          "description": "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area — a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged. 'document' is a chromeless multi-page flowing-document surface (paged tools): it keeps the render/export controls like 'editor' but mounts a rich-text document editor (on-canvas format ribbon, per-block controls, contenteditable, rich-HTML paste) over a 'blocks' input whose rows are content blocks (heading/text/lolly/table). Pagination lives in the tool's hook, so CLI/URL render the same document with no editor."
+        },
+        "dims": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to hide the export dimension inputs in the download bar."
+        },
+        "paged": {
+          "type": "boolean",
+          "default": false,
+          "description": "Marks a multi-page document tool — one whose output lays out several `[data-pdf-page]` boxes (e.g. multi-page-pdf). The gallery renders each page as its own horizontally-scrollable preview slide (via renderToolPages) instead of input-variant example looks."
+        },
+        "pages": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["count", "width", "height"],
+          "description": "Turns an `editor`-layout tool into a MULTI-PAGE canvas (carousel-maker): the web shell sizes `#tool-canvas` to a horizontal strip of N same-size page frames (fit-to-single-page off) and the free-canvas overlay places boxes across all frames. Box coordinates stay a single flat, global, URL-expressible array; the tool's hook derives which page each box belongs to (by centre) and emits one `[data-pdf-page]` frame per page, so headless CLI/URL render identically and export fans out (multi-page PDF, or one still image per page). Requires `layout:'editor'` and `paged:true`. Values name the input ids the page geometry is read from, so the shell stays generic.",
+          "properties": {
+            "count":  { "type": "string", "description": "Input id (a number input) holding the page count. Clamped to [min, max]." },
+            "width":  { "type": "string", "description": "Input id (a number input, px) holding each page's width. All pages share it." },
+            "height": { "type": "string", "description": "Input id (a number input, px) holding each page's height. All pages share it." },
+            "gap":    { "type": "integer", "minimum": 0, "default": 56, "description": "Gap in px between page frames in the editor strip. MUST equal the tool template/hook's own frame gap so overlay handles and rendered boxes stay aligned." },
+            "min":    { "type": "integer", "minimum": 1, "default": 1, "description": "Minimum page count." },
+            "max":    { "type": "integer", "minimum": 1, "default": 6, "description": "Maximum page count." }
+          }
+        },
+        "printMarks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to hide the 'Print marks & bleed' card from the download bar. The print-finishing path (crop/registration marks, bleed box, page boxes) applies to a single trim-sized artwork, so multi-page documents (which emit per-page boxes) opt out of it."
+        },
+        "transparentBg": {
+          "type": "boolean",
+          "default": false,
+          "description": "Adds a 'No BG' (transparent background) toggle to the export bar. The engine injects it into the model so hooks can react to it via onInit/onInput."
+        },
+        "c2pa": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the Content Credentials (C2PA) toggle is pre-checked in the export panel. Default TRUE — every tool stamps a signed provenance manifest by default (for the C2PA-capable formats it exports). Set FALSE to opt a tool out. Ignored (forced off) for privacy:'on-device' tools, which must never embed provenance into a user's own file. A ?c2pa= link/save value overrides this per export."
+        },
+        "liveMaxEdge": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "For onFrame (live camera) tools only: the requested longest edge, in pixels, of the working camera frame handed to the hook. The shell downscales the source camera to a small default that suits a vector trace; a raster-output tool (whose result is a bitmap, not traced shapes — e.g. pixel-stretch) sets this higher for sharper output. The shell clamps it to the native camera frame (never upscales) and to its own ceiling. Ignored by tools without onFrame and by shells without a camera."
+        },
+        "convertPaths": {
+          "type": "boolean",
+          "default": true,
+          "description": "Controls the 'Convert paths' export toggle (outline text to vector paths in SVG/PDF/PDF-CMYK so output renders identically without the fonts installed). The engine auto-injects the toggle whenever the tool exports a vector format. Set false to suppress the toggle entirely and never outline text — e.g. capture tools, where the output is a raster and text-outlining doesn't apply."
+        },
+        "preview": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Marks a tool whose live canvas is a placeholder until an explicit, expensive render runs (e.g. a capture tool that screenshots a page in beforeExport). The shell wires a [data-preview] control in the template to render into the frame — preview only, never a download — and re-shows the placeholder whenever an input changes (the last preview is invalidated).",
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": ["png", "jpg", "jpeg", "svg", "pdf", "webp", "avif"],
+              "description": "Format used for the preview render. Defaults to the tool's first render format. Pick a cheap raster (e.g. webp) — the blob is discarded; only the painted frame is kept."
+            },
+            "auto": {
+              "type": "boolean",
+              "default": false,
+              "description": "Generate a preview automatically once the tool finishes loading, so the user lands on a rendered frame rather than the placeholder. Fires once on load only — never on every input change — so deferred renders stay deliberate."
+            }
+          }
+        },
+        "video": {
+          "type": "object",
+          "description": "Default video capture settings used when webm or mp4 is in formats.",
+          "additionalProperties": false,
+          "properties": {
+            "wait":     { "type": "number", "minimum": 0, "description": "Seconds to wait before recording starts. Default 1." },
+            "duration": { "type": "number", "minimum": 0.5, "description": "Length of the recorded clip in seconds. Default 5." }
+          }
+        },
+        "capture": {
+          "type": "string",
+          "enum": ["audio", "video", "av"],
+          "description": "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder — also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder — use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
+        },
+        "aspectWarning": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["message"],
+          "description": "Editor-only guard for tools whose layout only suits a certain orientation (e.g. a portrait-only document). Shows a prominent warning beside the dimension controls when the current page aspect ratio (width ÷ height) falls outside [min, max]. Never affects — or appears in — the rendered/exported output.",
+          "properties": {
+            "min":     { "type": "number", "exclusiveMinimum": 0, "description": "Minimum acceptable aspect ratio (width ÷ height). Below this, the warning shows. Omit to leave the low end unbounded." },
+            "max":     { "type": "number", "exclusiveMinimum": 0, "description": "Maximum acceptable aspect ratio (width ÷ height). Above this, the warning shows. Omit to leave the high end unbounded." },
+            "message": { "type": "string", "description": "The warning text shown to the editor." }
+          }
+        }
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "description": "Declares user-facing inputs. The host generates UI from this. The template references inputs by id.",
+      "items": { "$ref": "#/$defs/input" }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["network", "filesystem", "clipboard", "camera", "microphone", "ffmpeg", "wasm", "capture", "compose"]
+      },
+      "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera' recording tool is unavailable in the headless CLI)."
+    },
+    "composes": {
+      "type": "array",
+      "maxItems": 24,
+      "description": "Nested renders (tool composition). Each entry renders another tool's output to an embeddable asset, exposed to the template as an extra referenced via {{asset <id>}} (so a logic-less template can embed one tool's render inside another). Requires the 'compose' capability. Recursion is depth- and cycle-guarded by the host. Capped (maxItems) well under the render cache so a single tool's composes can't self-evict mid-render.",
+      "items": {
+        "type": "object",
+        "required": ["id", "tool"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+            "description": "Name the composed asset is exposed under. Reference it in the template as {{asset <id>}}; guard with {{#if <id>}} since composition can fail gracefully."
+          },
+          "tool": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+            "description": "id of the tool to render."
+          },
+          "inputs": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Inputs passed to the composed tool, keyed by the child tool's input ids. String values are Handlebars, hydrated against THIS tool's own context (its input values + extras), so child inputs can bind to parent values, e.g. { \"url\": \"{{url}}\" }."
+          },
+          "format": {
+            "type": "string",
+            "enum": ["png", "jpg", "jpeg", "svg", "pdf", "webp"],
+            "description": "Render format for the composed output. Default: svg when the child supports it (vector embeds stay crisp in svg/pdf exports), else png."
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Render width in px. Defaults to the composed tool's native width."
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Render height in px. Defaults to the composed tool's native height."
+          }
+        }
+      }
+    },
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Optional escape hatch. If present, the tool ships a hooks.js file that the host loads in a sandboxed context.",
+      "properties": {
+        "onInit": { "type": "boolean" },
+        "onInput": { "type": "boolean" },
+        "onFrame": { "type": "boolean", "description": "The tool reacts to a live camera stream. When the shell provides host.media (a camera) the runtime drives this hook once per frame with { frame, model, host }, where frame is { width, height, data (RGBA), t }; the returned patch updates the render exactly like onInit/onInput. Pure progressive enhancement — the tool still runs as a still-image tool where no camera is available, so it must NOT be declared as a required 'camera' capability." },
+        "onLevel": { "type": "boolean", "description": "The tool reacts to live audio levels while metering/recording (e.g. a mic recorder's VU meter + coaching). When the shell provides host.recorder the runtime drives this hook per level sample with { level, model, host }, where level is { rms, peak, dbfs, clipping, t }; the returned patch updates the render like onFrame (drop-overlap, not time-boxed). The tool declares the 'microphone' capability, so — unlike onFrame — it only runs where a mic can be recorded." },
+        "beforeRender": { "type": "boolean" },
+        "beforeExport": { "type": "boolean" },
+        "afterExport": { "type": "boolean" },
+        "exportFile": { "type": "boolean", "description": "The tool produces output via the transform path (file in → transformed file out) rather than rasterising the DOM. The hook reads the picked file's bytes (input.value.bytes) and returns a { bytes, mime, filename } record; the host wraps it in a Blob and delivers it via host.export.file (no watermark, no embedded provenance). Used by on-device utilities." }
+      }
+    }
+  },
+  "$defs": {
+    "input": {
+      "type": "object",
+      "required": ["id", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$",
+          "description": "Referenced in the template as {{id}}. Also becomes a URL param."
+        },
+        "label": { "type": "string" },
+        "help": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "profile", "blocks", "vector", "file"]
+        },
+        "required": { "type": "boolean", "default": false },
+        "default": { "description": "Type-appropriate default value." },
+        "bindToProfile": {
+          "type": "string",
+          "description": "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."
+        },
+        "group": {
+          "type": "string",
+          "description": "Optional grouping tag. The reserved value 'export' moves an input out of the sidebar into the export panel; the engine injects its own export-group toggles (transparentBg, convertPaths). Any other value is a free-form label for related controls."
+        },
+        "showIf": {
+          "type": "object",
+          "description": "Conditional visibility: the input renders in the sidebar only while every { otherInputId: value } pair here matches the current model (e.g. { \"vectorize\": true }).",
+          "additionalProperties": true
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "text" } } },
+          "then": {
+            "properties": {
+              "maxLength": { "type": "integer" },
+              "minLength": { "type": "integer" },
+              "pattern": { "type": "string", "description": "Regex." }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "longtext" } } },
+          "then": {
+            "properties": {
+              "maxLength": { "type": "integer" },
+              "rows": { "type": "integer" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "number" } } },
+          "then": {
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "step": { "type": "number" },
+              "display": { "type": "string", "enum": ["input", "slider"], "default": "input" },
+              "rangeWhen": {
+                "type": "array",
+                "description": "Conditional slider bounds: the first entry whose `when` map matches the current model overrides min/max/step (e.g. per-mode limits). Drives the web slider UI only — a tool that must enforce the bound elsewhere (URL/CLI values are not auto-clamped) does so in a hook.",
+                "items": {
+                  "type": "object",
+                  "required": ["when"],
+                  "additionalProperties": false,
+                  "properties": {
+                    "when": { "type": "object", "additionalProperties": true },
+                    "min": { "type": "number" },
+                    "max": { "type": "number" },
+                    "step": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "color" } } },
+          "then": {
+            "properties": {
+              "palette": {
+                "type": "string",
+                "description": "Asset ID of a palette asset to constrain choices. If omitted, free color picker."
+              },
+              "swatchesOnly": {
+                "type": "boolean",
+                "description": "Restrict to brand palette swatches only — hides the hex entry, native picker and alpha. Default false (full picker)."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "select" } } },
+          "then": {
+            "required": ["options"],
+            "properties": {
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["value"],
+                  "properties": {
+                    "value": { "type": "string" },
+                    "label": { "type": "string" },
+                    "width": { "type": "number", "exclusiveMinimum": 0, "description": "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override." },
+                    "height": { "type": "number", "exclusiveMinimum": 0, "description": "Export height this option implies, in `unit`." },
+                    "unit": { "type": "string", "enum": ["px", "mm", "cm", "in", "pt"], "description": "Unit for this option's width/height. Defaults to 'mm' when width/height are present." }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "asset" } } },
+          "then": {
+            "properties": {
+              "assetType": { "type": "string", "enum": ["vector", "raster", "image", "video", "lottie", "any"] },
+              "filter": {
+                "type": "object",
+                "description": "Constraints passed to host.assets.query(). Limits the picker.",
+                "properties": {
+                  "tags": { "type": "array", "items": { "type": "string" } },
+                  "namespace": { "type": "string" }
+                }
+              },
+              "allowUpload": {
+                "type": "boolean",
+                "default": false,
+                "description": "If true, picker offers user upload alongside library."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "file" } } },
+          "then": {
+            "properties": {
+              "accept": {
+                "type": "array",
+                "items": { "type": "string" },
+                "description": "Allowlist of accepted file types — MIME types and/or extensions (e.g. [\"image/jpeg\", \"image/png\", \".heic\"]). Used as the file picker's `accept` attribute. Empty/omitted accepts any file. This is a UX hint, not a security boundary — the hook should still validate bytes."
+              },
+              "maxSize": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Maximum accepted file size in bytes. The host rejects larger files at pick time. Omit for no limit."
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "blocks" } } },
+          "then": {
+            "properties": {
+              "addMenu": {
+                "type": "object",
+                "description": "Turns the '+ Add' button into a typed menu. Each option of the named discriminator sub-field becomes a menu entry; an entry already used is disabled unless its option sets repeatable:true. The discriminator is fixed at creation and shown as the block's label rather than an editable control.",
+                "required": ["field"],
+                "properties": {
+                  "field": { "type": "string", "description": "id of the select sub-field whose options drive the menu." },
+                  "label": { "type": "string", "description": "Menu button label (default 'Add')." }
+                }
+              },
+              "labelledFields": {
+                "type": "boolean",
+                "default": false,
+                "description": "Show a text label above each sub-field (the layout typed/addMenu blocks always use). Turn on for untyped blocks whose controls aren't self-evident, or that carry several optional fields."
+              },
+              "fields": {
+                "type": "array",
+                "description": "Sub-fields for each repeatable block entry. A field may declare a `type` (text|color|select|asset|number|boolean); text is the default. `showFor` limits a field to blocks whose discriminator value is listed; `showIf` limits it by sibling-field and/or top-level input values.",
+                "items": {
+                  "type": "object",
+                  "required": ["id"],
+                  "properties": {
+                    "id": { "type": "string" },
+                    "label": { "type": "string" },
+                    "placeholder": { "type": "string" },
+                    "type": {
+                      "type": "string",
+                      "enum": ["text", "color", "select", "asset", "number", "boolean"],
+                      "default": "text"
+                    },
+                    "default": { "description": "Value a newly-added block's field starts at." },
+                    "help": { "type": "string", "description": "Short hint shown under the sub-field (labelledFields blocks only)." },
+                    "showFor": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Render this field only when the block's discriminator value is one of these."
+                    },
+                    "showIf": {
+                      "type": "object",
+                      "description": "Render this field only when the named values all match. Keys are looked up first among sibling fields of the same block, then among top-level input ids (e.g. { \"vectorize\": true, \"tune\": true })."
+                    },
+                    "multilineFor": {
+                      "type": "array",
+                      "items": { "type": "string" },
+                      "description": "Render a text field as a multi-line textarea (rather than a single-line input) when the block's discriminator value is one of these."
+                    },
+                    "rows": { "type": "integer", "description": "Visible rows for a multi-line text field (see multilineFor). Default 3." },
+                    "options": {
+                      "type": "array",
+                      "description": "Choices for a select sub-field. An option's repeatable:true lets the add-menu offer it more than once.",
+                      "items": {
+                        "type": "object",
+                        "required": ["value"],
+                        "properties": {
+                          "value": { "type": "string" },
+                          "label": { "type": "string" },
+                          "repeatable": { "type": "boolean" }
+                        }
+                      }
+                    },
+                    "min": { "type": "number" },
+                    "max": { "type": "number" },
+                    "step": { "type": "number" },
+                    "display": { "type": "string", "enum": ["input", "slider"], "default": "input" },
+                    "assetType": { "type": "string", "enum": ["vector", "raster", "image", "video", "lottie", "any"] },
+                    "allowUpload": { "type": "boolean", "default": false },
+                    "filter": {
+                      "type": "object",
+                      "properties": {
+                        "tags": { "type": "array", "items": { "type": "string" } },
+                        "namespace": { "type": "string" }
+                      }
+                    },
+                    "optionsFrom": {
+                      "type": "object",
+                      "description": "Render this sub-field as a reference picker whose choices are the rows of another blocks input (or several). The stored value is each target row's derived id (slug of its key field, else its label, else an ordinal) — the same id a tool's hook resolves — so it replaces hand-typed ID cross-references with a dropdown. A stored value matching no current row is surfaced as an '(unknown)' option rather than silently dropped.",
+                      "properties": {
+                        "input": { "type": "string", "description": "id of the blocks input to draw rows from (single-source form)." },
+                        "value": { "type": "string", "default": "nodeId", "description": "Source-row sub-field used as the stored id (slugged + de-duplicated to match the tool's resolution)." },
+                        "label": { "type": "string", "default": "label", "description": "Source-row sub-field shown to the user (falls back to the derived id)." },
+                        "prefix": { "type": "string", "default": "node-", "description": "Ordinal id prefix for rows with neither key nor label." },
+                        "sources": {
+                          "type": "array",
+                          "description": "Several source inputs merged into one option list (e.g. cards AND layers). De-duplicated by value, first wins.",
+                          "items": {
+                            "type": "object",
+                            "required": ["input"],
+                            "properties": {
+                              "input": { "type": "string" },
+                              "value": { "type": "string", "default": "nodeId" },
+                              "label": { "type": "string", "default": "label" },
+                              "prefix": { "type": "string" }
+                            }
+                          }
+                        },
+                        "freeText": { "type": "boolean", "default": false, "description": "Render as a combobox (datalist) that also accepts a typed value not in the list — e.g. a kanban column invented on the spot." },
+                        "excludeSelf": { "type": "boolean", "default": false, "description": "Omit the current row from its own options (a card can't be its own parent)." },
+                        "excludeDescendants": { "type": "boolean", "default": false, "description": "Omit the current row's descendants (requires the input's `nesting`) so a node can't reparent into its own subtree." },
+                        "emptyLabel": { "type": "string", "description": "Label for the blank/none option (default '— none —')." }
+                      }
+                    }
+                  }
+                }
+              },
+              "nesting": {
+                "type": "object",
+                "description": "Treat this blocks array as an editable TREE: the sidebar renders it as an indented outline and the header drag lets a card be dropped above, below, or INSIDE another, updating the dragged card's parent reference (its whole subtree travels with it). The data stays a flat reference-by-id array — only the presentation is tree-shaped — so it serialises and renders exactly as before.",
+                "required": ["parentField"],
+                "properties": {
+                  "parentField": { "type": "string", "description": "Sub-field holding each row's parent reference (the id of another row)." },
+                  "keyField": { "type": "string", "default": "nodeId", "description": "Sub-field used as a row's id (what parentField points at)." },
+                  "labelField": { "type": "string", "default": "label", "description": "Fallback id source when keyField is blank, and the human label for indentation." },
+                  "prefix": { "type": "string", "default": "node-", "description": "Ordinal id prefix for rows with neither key nor label." },
+                  "activeWhen": {
+                    "type": "object",
+                    "description": "Only treat the input as a tree when these top-level input values match (an array value matches by membership), e.g. { \"diagramType\": [\"org\", \"mindmap\"] }. Omit to always nest.",
+                    "additionalProperties": true
+                  }
+                }
+              },
+              "dropToAdd": {
+                "type": "object",
+                "description": "Turns the blocks list into a drop zone: dragging or selecting several image files at once creates one block per file, each with the file uploaded into the named asset sub-field. Every other field of a new block starts at its declared default.",
+                "required": ["field"],
+                "properties": {
+                  "field": { "type": "string", "description": "id of the block's `asset` sub-field that each dropped file is uploaded into." },
+                  "accept": { "type": "string", "description": "MIME accept filter for dropped files (default \"image/*\"). A trailing /* matches a whole type group." }
+                }
+              },
+              "mdPaste": {
+                "type": "boolean",
+                "default": false,
+                "description": "Adds a 'Paste Markdown' button to the blocks toolbar. It reads the clipboard, splits the Markdown into one block per heading (the heading line → the block's `heading` field, the section beneath it → its `body` field, kept as Markdown for the tool's {{markdown}} render), and appends the blocks — so a whole document lands as editable, page-flowing blocks. A block gets kind:'text' when the input has a `kind` discriminator; other fields start at their defaults."
+              },
+              "importData": {
+                "type": "object",
+                "description": "Lets the user populate the whole list from a CSV or JSON file (the ingest counterpart to CSV/JSON export). The shell offers an 'Import data' control; the engine (parseDataRows) maps columns onto these fields — by explicit `columns` map, else by matching each column header/key case-insensitively to a field's id then its label — and sets the input value. Data stays flat and serialises exactly like hand-entered blocks.",
+                "additionalProperties": false,
+                "properties": {
+                  "formats": {
+                    "type": "array",
+                    "items": { "type": "string", "enum": ["csv", "json"] },
+                    "description": "Accepted data formats. Defaults to both csv and json."
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": ["replace", "append"],
+                    "default": "replace",
+                    "description": "Whether an import replaces the current rows or appends to them. Default replace."
+                  },
+                  "columns": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" },
+                    "description": "Explicit fieldId → source column/key overrides. Omit to auto-map by header (field id, then label). e.g. { \"value\": \"Amount\" }."
+                  }
+                }
+              },
+              "canvas": {
+                "type": "object",
+                "description": "Marks this blocks array as a free-form WYSIWYG canvas of positioned 'boxes' (requires render.layout:'editor'). The web shell mounts a direct-manipulation overlay — select, drag, resize, rotate, re-stack (z-order = array order, later rows paint on top), align and distribute — that reads and writes this flat array through the normal input path. The fields named below give the overlay the geometry to manipulate; every field remains an ordinary block sub-field, so the layout stays flat, URL-expressible, and renders identically headless (CLI/URL) with no overlay. Field ORDER in `fields` is the compact-URL wire format — never reorder or remove once shipped.",
+                "properties": {
+                  "idField":       { "type": "string", "description": "Sub-field holding each box's stable id (used to track selection across re-stacking). Default 'id'." },
+                  "xField":        { "type": "string", "description": "Number sub-field: box left, in canvas (native render) pixels. Default 'x'." },
+                  "yField":        { "type": "string", "description": "Number sub-field: box top, in canvas pixels. Default 'y'." },
+                  "wField":        { "type": "string", "description": "Number sub-field: box width, in canvas pixels. Default 'w'." },
+                  "hField":        { "type": "string", "description": "Number sub-field: box height, in canvas pixels. Default 'h'." },
+                  "rotationField": { "type": "string", "description": "Number sub-field: clockwise rotation in degrees about the box centre. Default 'rot'." },
+                  "shapeField":    { "type": "string", "description": "Select sub-field: box shape (e.g. rectangle/rounded/ellipse)." },
+                  "radiusField":   { "type": "string", "description": "Number sub-field: corner radius in px (used when shape is rounded)." },
+                  "fillField":     { "type": "string", "description": "Color sub-field: box background fill (empty = transparent)." },
+                  "opacityField":  { "type": "string", "description": "Number sub-field: box opacity 0–100." },
+                  "imageField":    { "type": "string", "description": "Asset sub-field: image drawn inside the box." },
+                  "fitField":      { "type": "string", "description": "Select sub-field: how the image fills the box (object-fit: cover/contain/fill)." },
+                  "imgPosField":   { "type": "string", "description": "Select sub-field: CSS object-position anchor (which edge/corner a contained image sits against, or which part of a cover-cropped image stays in frame). Honoured in raster + SVG (preserveAspectRatio) + PDF export." },
+                  "blendField":    { "type": "string", "description": "Select sub-field: CSS mix-blend-mode for the whole box (faithful in raster export; flattened in vector)." },
+                  "textField":     { "type": "string", "description": "Text sub-field: text drawn inside the box." },
+                  "textColorField":{ "type": "string", "description": "Color sub-field: text colour." },
+                  "fontSizeField": { "type": "string", "description": "Number sub-field: text size in px." },
+                  "alignField":    { "type": "string", "description": "Select sub-field: horizontal text alignment (left/center/right)." },
+                  "valignField":   { "type": "string", "description": "Select sub-field: vertical text alignment (top/middle/bottom)." },
+                  "weightField":   { "type": "string", "description": "Select sub-field: text weight." },
+                  "fontField":     { "type": "string", "description": "Select sub-field: text font family." },
+                  "lineHeightField":{ "type": "string", "description": "Number sub-field: text line-height (unitless multiplier)." },
+                  "padField":      { "type": "string", "description": "Number sub-field: inner padding in px between the box edge and its text." },
+                  "groupField":    { "type": "string", "description": "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
+                  "clipField":     { "type": "string", "description": "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
+                  "trackingField":    { "type": "string", "description": "Number sub-field: letter-spacing in px." },
+                  "ligaturesField":   { "type": "string", "description": "Boolean sub-field: enable common ligatures." },
+                  "alternatesField":  { "type": "string", "description": "Boolean/select sub-field: stylistic alternates." },
+                  "shadowField":      { "type": "string", "description": "Boolean sub-field: whether the box casts a drop shadow." },
+                  "shadowColorField": { "type": "string", "description": "Color sub-field: drop-shadow colour." },
+                  "shadowXField":     { "type": "string", "description": "Number sub-field: drop-shadow x offset in px." },
+                  "shadowYField":     { "type": "string", "description": "Number sub-field: drop-shadow y offset in px." },
+                  "shadowBlurField":  { "type": "string", "description": "Number sub-field: drop-shadow blur radius in px." },
+                  "minSize":       { "type": "number", "description": "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
+                  "addKinds": {
+                    "type": "array",
+                    "description": "The kinds of box the 'add' tool offers. Each entry seeds a new box's fields (id excluded — the shell assigns it).",
+                    "items": {
+                      "type": "object",
+                      "required": ["id"],
+                      "properties": {
+                        "id":     { "type": "string", "description": "Kind id (also the default select value of the shape/kind field if present)." },
+                        "label":  { "type": "string", "description": "Menu label." },
+                        "icon":   { "type": "string", "description": "Optional inline SVG or glyph for the menu entry." },
+                        "seed":   { "type": "object", "description": "Field values a newly-added box of this kind starts at (merged over the block's declared defaults).", "additionalProperties": true }
+                      }
+                    }
+                  },
+                  "grid": {
+                    "type": "object",
+                    "description": "Opt into snap-to-grid: the overlay rounds drag/resize to this lattice (per-axis alignment smart-guides still win; Alt disables).",
+                    "properties": {
+                      "size":    { "type": "number", "description": "Grid step in canvas px." },
+                      "default": { "type": "boolean", "description": "Whether snap-to-grid starts on." }
+                    }
+                  },
+                  "fixedCanvas": { "type": "boolean", "description": "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)." },
+                  "connect": {
+                    "type": "object",
+                    "description": "Opt into connector authoring: a Connect-mode rail button (click a source card, then targets), a live connector preview, and an Auto-arrange (tidy-tree) button. Edges are stored as rows of a SECOND blocks input named by `input`; each *Field below names a sub-field of that connectors block.",
+                    "required": ["input"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "input":        { "type": "string", "description": "Input id of the connectors blocks array edges are written to." },
+                      "fromField":    { "type": "string", "description": "Edge sub-field holding the source box id. Default 'from'." },
+                      "toField":      { "type": "string", "description": "Edge sub-field holding the target box id. Default 'to'." },
+                      "styleField":   { "type": "string", "description": "Edge select sub-field: route flavour (straight/elbow/elbow-v/elbow-h/elbow-src/elbow-tgt/curved)." },
+                      "arrowField":   { "type": "string", "description": "Edge select sub-field: which ends carry an arrow (none/end/both)." },
+                      "headField":    { "type": "string", "description": "Edge select sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar)." },
+                      "colorField":   { "type": "string", "description": "Edge color sub-field: line colour." },
+                      "dashField":    { "type": "string", "description": "Edge select sub-field: line dash (solid/dashed/dotted)." },
+                      "widthField":   { "type": "string", "description": "Edge number sub-field: line width in px." },
+                      "layerClass":   { "type": "string", "description": "CSS class of the tool's rendered connector <svg>, hidden mid-drag while the shell paints a live preview." },
+                      "defaultStyle": { "type": "string", "description": "Route flavour a new edge starts at." },
+                      "defaultArrow": { "type": "string", "description": "Arrow ends a new edge starts at." },
+                      "defaultHead":  { "type": "string", "description": "Arrowhead shape a new edge starts at." },
+                      "defaultColor": { "type": "string", "description": "Colour a new edge starts at." },
+                      "defaultWidth": { "type": "number", "description": "Width (px) a new edge starts at." }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "vector" } } },
+          "then": {
+            "required": ["fields"],
+            "properties": {
+              "fields": {
+                "type": "array",
+                "minItems": 1,
+                "description": "Numeric sub-fields, each a labelled Figma-style scrubber. Stored as one compound value { fieldId: number } and rendered as a single control / column.",
+                "items": {
+                  "type": "object",
+                  "required": ["id"],
+                  "properties": {
+                    "id": { "type": "string" },
+                    "label": { "type": "string" },
+                    "symbol": { "type": "string", "description": "Single character shown inside the field as its scrub handle (e.g. \"+\" for zoom). Defaults to the first letter of the label." },
+                    "min": { "type": "number" },
+                    "max": { "type": "number" },
+                    "step": { "type": "number" },
+                    "default": { "type": "number" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "exampleVariant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["values"],
+      "description": "One example look: a set of input values (and optionally the UI theme it suits) rendered live to demonstrate the tool.",
+      "properties": {
+        "label": { "type": "string", "description": "Short human label for this look (not shown to end users; documents the intent)." },
+        "theme": {
+          "type": "string",
+          "enum": ["light", "dark"],
+          "description": "Which UI theme this look suits — set only on looks that render ink on a TRANSPARENT background (e.g. a reverse/white logo). 'dark' looks show on the dark/SUSE themes, 'light' looks on the light theme; the clashing look is filtered out so it's never near-invisible on the tile. Omit for looks that bake their own background (shown on any theme)."
+        },
+        "values": {
+          "type": "object",
+          "description": "Map of input id -> value seeded into the render — the same shape URL params resolve to. Scalar inputs (select/color/text/number/boolean/url) plus block arrays (e.g. chart data, badge tracks — an array of field objects) are supported; rely on the tool's default for asset inputs unless referencing a catalog asset id."
+        }
+      }
+    }
+  }
+}
