@@ -1058,7 +1058,14 @@ interface C2paClaim {
   generatorInfo: Record<string, string | number | boolean> | null;
   instanceId: unknown;
   manifestLabel: string;
-  actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown }>;
+  actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown }>;
+}
+// A file's provenance flagged as AI/ML-generated: `generated` = pixels produced
+// wholly by a trained model, `composite` = a human work with AI-generated parts
+// mixed in. `sourceType` is the raw IPTC DigitalSourceType URI it was read from.
+interface C2paAiOrigin {
+  kind: 'generated' | 'composite';
+  sourceType: string;
 }
 interface C2paReport {
   found: boolean;
@@ -1073,7 +1080,16 @@ interface C2paReport {
   environment?: Record<string, string | number | boolean> | null;
   author?: { name: string; email?: string };
   signer?: C2paSigner;
+  aiGenerated?: C2paAiOrigin;
 }
+
+// IPTC DigitalSourceType slugs that denote AI/ML-generated pixels. A file is
+// flagged AI-generated when any recorded action carries one of these — full-AI
+// ("generated") outranks the mixed-in ("composite") case if both appear.
+const AI_SOURCE_TYPES: Record<string, 'generated' | 'composite'> = {
+  trainedAlgorithmicMedia: 'generated',
+  compositeWithTrainedAlgorithmicMedia: 'composite',
+};
 
 /**
  * Verify a file's Content Credentials entirely on-device. Sniffs the
@@ -1088,6 +1104,8 @@ interface C2paReport {
  *     found, state: 'valid'|'invalid'|'none', trusted, reason?,
  *     format:  sniffed container ('png', 'pdf', …) or null,
  *     madeWithLolly: boolean — credential INTACT and records Lolly as generator,
+ *     aiGenerated?: { kind: 'generated'|'composite', sourceType } — set when an
+ *                action declares AI/ML-generated pixels (IPTC DigitalSourceType),
  *     claim?:  { title, format, claimGenerator, generatorInfo, instanceId, manifestLabel, actions },
  *     environment?: the `tools.lolly.export` assertion's export context,
  *     signer?: { commonName, organization, notBefore, notAfter, selfSigned, alg,
@@ -1155,7 +1173,7 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   // maps share the same shape for the fields read here (action/when), except
   // softwareAgent is a bare string in v1 and a generator-info map in v2.
   const actionsAssertion = parts.assertions.find((a) => a.label === 'c2pa.actions' || a.label === 'c2pa.actions.v2');
-  let actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown }> = [];
+  let actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown }> = [];
   try {
     const decoded = actionsAssertion && (decodeCbor(actionsAssertion.content) as Map<unknown, unknown>).get('actions');
     if (Array.isArray(decoded)) {
@@ -1166,6 +1184,9 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
           when: a.get?.('when'),
           // v2 softwareAgent is a { name, version } map; surface its name.
           softwareAgent: sa instanceof Map ? sa.get('name') : sa,
+          // IPTC provenance kind of this step (digitalCapture / digitalCreation /
+          // trainedAlgorithmicMedia …) — the signal behind the AI-generated flag.
+          digitalSourceType: a.get?.('digitalSourceType'),
         };
       });
     }
@@ -1191,6 +1212,18 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     manifestLabel: parts.manifestLabel,
     actions,
   };
+
+  // AI-generated provenance: scan the recorded actions' digitalSourceType for
+  // the IPTC "trained algorithmic media" codes. A single full-AI step wins over
+  // any number of composite ones (a wholly-generated origin is the louder truth).
+  for (const a of actions) {
+    const sourceType = typeof a.digitalSourceType === 'string' ? a.digitalSourceType : '';
+    const kind = AI_SOURCE_TYPES[sourceType.split('/').pop() ?? ''];
+    if (kind && (!report.aiGenerated || kind === 'generated')) {
+      report.aiGenerated = { kind, sourceType };
+      if (kind === 'generated') break;
+    }
+  }
 
   // Export context recorded by the writer (tool, surface, browser engine, OS…)
   // — a custom assertion; its integrity is covered by the hashed-URI check.
