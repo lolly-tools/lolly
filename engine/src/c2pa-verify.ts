@@ -1067,6 +1067,8 @@ interface C2paAiOrigin {
   kind: 'generated' | 'composite';
   sourceType: string;
 }
+// One recorded provenance step — a C2PA action from any manifest in the chain.
+interface C2paHistoryStep { action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; }
 interface C2paReport {
   found: boolean;
   state: 'valid' | 'invalid' | 'none';
@@ -1081,6 +1083,9 @@ interface C2paReport {
   author?: { name: string; email?: string };
   signer?: C2paSigner;
   aiGenerated?: C2paAiOrigin;
+  // The full provenance chain — every manifest's actions (parent/ingredient →
+  // active), flattened in store order with adjacent duplicates collapsed.
+  history?: C2paHistoryStep[];
 }
 
 // IPTC DigitalSourceType slugs that denote AI/ML-generated pixels. A file is
@@ -1090,6 +1095,62 @@ const AI_SOURCE_TYPES: Record<string, 'generated' | 'composite'> = {
   trainedAlgorithmicMedia: 'generated',
   compositeWithTrainedAlgorithmicMedia: 'composite',
 };
+const aiKind = (sourceType: unknown): 'generated' | 'composite' | undefined =>
+  AI_SOURCE_TYPES[(typeof sourceType === 'string' ? sourceType : '').split('/').pop() ?? ''];
+
+// Walk EVERY manifest in the store (active + all ingredient/parent manifests)
+// and flatten their recorded actions in store order (oldest parent → active).
+// AI provenance and the "created" step routinely live in a PARENT manifest — a
+// chain that ends in a watermark + re-encode whose active manifest never records
+// "created" at all — so reading only the active manifest (parseC2paStore) misses
+// both the AI origin and the interesting creation steps. Every parse is guarded:
+// a manifest we can't read is skipped, never fatal (this is a display nicety).
+function collectActionChain(store: Uint8Array): C2paHistoryStep[] {
+  const chain: C2paHistoryStep[] = [];
+  let root: Superbox;
+  try {
+    const top = walkBoxes(store, 0, store.length);
+    if (!top.length) return chain;
+    root = parseSuperbox(store, top[0]!);
+  } catch { return chain; }
+  if (root.label !== 'c2pa') return chain;
+  for (const manifestBox of root.children) {
+    let manifest: Superbox;
+    try { manifest = parseSuperbox(store, manifestBox); } catch { continue; }
+    for (const child of manifest.children) {
+      let sub: Superbox;
+      try { sub = parseSuperbox(store, child); } catch { continue; }
+      if (sub.label !== 'c2pa.assertions') continue;
+      for (const a of sub.children) {
+        let ab: Superbox;
+        try { ab = parseSuperbox(store, a); } catch { continue; }
+        if (ab.label !== 'c2pa.actions' && ab.label !== 'c2pa.actions.v2') continue;
+        try {
+          const decoded = (decodeCbor(contentOf(store, ab)) as Map<unknown, unknown>).get('actions');
+          if (!Array.isArray(decoded)) continue;
+          for (const act of decoded) {
+            const sa = act.get?.('softwareAgent');
+            chain.push({
+              action: act.get?.('action'),
+              when: act.get?.('when'),
+              softwareAgent: sa instanceof Map ? sa.get('name') : sa,
+              digitalSourceType: act.get?.('digitalSourceType'),
+            });
+          }
+        } catch { /* opaque/absent actions — skip this assertion */ }
+      }
+    }
+  }
+  // Collapse duplicate steps the same event is recorded under in successive
+  // manifests of a chain (same action + time + agent + source type).
+  const seen = new Set<string>();
+  return chain.filter((s) => {
+    const key = JSON.stringify([s.action, s.when, s.softwareAgent, s.digitalSourceType]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
 
 /**
  * Verify a file's Content Credentials entirely on-device. Sniffs the
@@ -1106,6 +1167,7 @@ const AI_SOURCE_TYPES: Record<string, 'generated' | 'composite'> = {
  *     madeWithLolly: boolean — credential INTACT and records Lolly as generator,
  *     aiGenerated?: { kind: 'generated'|'composite', sourceType } — set when an
  *                action declares AI/ML-generated pixels (IPTC DigitalSourceType),
+ *     history?: the full provenance chain — every manifest's actions flattened,
  *     claim?:  { title, format, claimGenerator, generatorInfo, instanceId, manifestLabel, actions },
  *     environment?: the `tools.lolly.export` assertion's export context,
  *     signer?: { commonName, organization, notBefore, notAfter, selfSigned, alg,
@@ -1213,14 +1275,19 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     actions,
   };
 
-  // AI-generated provenance: scan the recorded actions' digitalSourceType for
-  // the IPTC "trained algorithmic media" codes. A single full-AI step wins over
-  // any number of composite ones (a wholly-generated origin is the louder truth).
-  for (const a of actions) {
-    const sourceType = typeof a.digitalSourceType === 'string' ? a.digitalSourceType : '';
-    const kind = AI_SOURCE_TYPES[sourceType.split('/').pop() ?? ''];
+  // The whole provenance chain across every manifest (the active manifest's own
+  // `actions` above is just its last link) — used for the edit-history timeline
+  // and to flag AI origin wherever in the chain it was declared.
+  const chain = collectActionChain(extracted.manifest);
+  if (chain.length) report.history = chain;
+
+  // AI-generated provenance: scan the chain's digitalSourceType for the IPTC
+  // "trained algorithmic media" codes. A single full-AI step wins over any number
+  // of composite ones (a wholly-generated origin is the louder truth).
+  for (const s of chain) {
+    const kind = aiKind(s.digitalSourceType);
     if (kind && (!report.aiGenerated || kind === 'generated')) {
-      report.aiGenerated = { kind, sourceType };
+      report.aiGenerated = { kind, sourceType: s.digitalSourceType as string };
       if (kind === 'generated') break;
     }
   }
