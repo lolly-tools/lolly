@@ -1,57 +1,92 @@
 {
-  "$description": "Lolly starter brand tokens — hand-editable placeholders shipped with the blank lolly-start profile so the colour picker and brand-bound inputs have something neutral to resolve instead of silently falling back to hardcoded swatches. Replaced wholesale when a real brand is hydrated with 'npm run ingest:brand'.",
-  "color": {
-    "$type": "color",
-    "brand": {
-      "black": {
-        "$value": "#0b0b0e",
-        "$description": "Black"
+  "$description": "Lolly starter brand tokens — the neutral, OKLCH-native DTCG document shipped with the blank lolly-start profile. It doubles as the reference example of the brand token contract (plans/brand-token-contract.md): three ramps + a spectrum in a shared 'base' set, and per-theme semantic slots that alias into them. Every $value is a CSS oklch() string (L%, chroma, hue) so lightness steps are perceptually even; anything needing hex goes through the engine's colorToHex. Anchor: primary = oklch(60% 0.10 250), scheme mono. Replace wholesale via the #/start wizard or 'npm run ingest:brand'.",
+  "$metadata": {
+    "tokenSetOrder": ["base", "light", "dark"]
+  },
+  "$themes": [
+    { "name": "light", "selectedTokenSets": { "base": "enabled", "light": "enabled" } },
+    { "name": "dark", "selectedTokenSets": { "base": "enabled", "dark": "enabled" } }
+  ],
+  "base": {
+    "color": {
+      "$type": "color",
+      "ramp": {
+        "$description": "Nine-step ramps, 1 = darkest to 9 = lightest, on the shared L scale [18, 28, 38, 50, 62, 74, 84, 92, 97]% with chroma following a bell over lightness (fullest mid-ramp, tapering at both ends). Step 5 of the primary ramp is pulled to the anchor's own L (60%) so the exact brand color sits in its ramp.",
+        "primary": {
+          "$description": "The brand ramp — hue 250 (a calm slate blue) at up to 0.10 chroma. Step 5 is the anchor color itself.",
+          "1": { "$value": "oklch(18% 0.05 250)", "$description": "Deep brand ink — dark-theme on-primary, near-black fills" },
+          "2": { "$value": "oklch(28% 0.068 250)", "$description": "Dark emphasis fills and hover states on light surfaces" },
+          "3": { "$value": "oklch(38% 0.085 250)", "$description": "Strong accent for small text and icons on light surfaces" },
+          "4": { "$value": "oklch(50% 0.098 250)", "$description": "Mid-dark accent — buttons that need light text" },
+          "5": { "$value": "oklch(60% 0.10 250)", "$description": "THE brand color (the anchor) — light-theme primary" },
+          "6": { "$value": "oklch(74% 0.088 250)", "$description": "Lifted accent — dark-theme primary (8.2:1 on the dark surface)" },
+          "7": { "$value": "oklch(84% 0.068 250)", "$description": "Soft accent fills, selected states" },
+          "8": { "$value": "oklch(92% 0.045 250)", "$description": "Pale tint — washes and large decorative shapes" },
+          "9": { "$value": "oklch(97% 0.025 250)", "$description": "Faintest tint — brand-tinted backgrounds" }
+        },
+        "neutral": {
+          "$description": "Quiet grays that carry the primary hue (250) at ≤ 0.02 chroma, so 'gray' UI still feels like the brand. Surfaces, text, hairlines all come from here.",
+          "1": { "$value": "oklch(18% 0.012 250)", "$description": "Ink — light-theme text, dark-theme surface" },
+          "2": { "$value": "oklch(28% 0.014 250)", "$description": "Raised dark surface, strong secondary text on light" },
+          "3": { "$value": "oklch(38% 0.016 250)", "$description": "Dark-theme hairlines and edges (1.9:1 on the dark surface)" },
+          "4": { "$value": "oklch(50% 0.018 250)", "$description": "Light-theme muted text (5.5:1 on the light surface)" },
+          "5": { "$value": "oklch(62% 0.018 250)", "$description": "True mid-gray — disabled states, placeholder text" },
+          "6": { "$value": "oklch(74% 0.016 250)", "$description": "Dark-theme muted text (8.2:1 on the dark surface)" },
+          "7": { "$value": "oklch(84% 0.012 250)", "$description": "Light-theme hairlines and edges (1.5:1 on the light surface)" },
+          "8": { "$value": "oklch(92% 0.008 250)", "$description": "Subtle fills — cards, wells, input backgrounds" },
+          "9": { "$value": "oklch(97% 0.005 250)", "$description": "Paper — the light-theme surface" }
+        },
+        "secondary": {
+          "$description": "The supporting accent. Scheme is mono, so this is a low-chroma sibling of the primary (same hue 250, chroma × 0.35) — a distinct ramp, not a re-alias, so tools that reach for 'secondary' get a genuinely quieter color.",
+          "1": { "$value": "oklch(18% 0.018 250)", "$description": "Darkest supporting tone" },
+          "2": { "$value": "oklch(28% 0.024 250)", "$description": "Dark supporting fills" },
+          "3": { "$value": "oklch(38% 0.03 250)", "$description": "Strong supporting accent on light surfaces" },
+          "4": { "$value": "oklch(50% 0.034 250)", "$description": "Mid-dark supporting accent" },
+          "5": { "$value": "oklch(62% 0.035 250)", "$description": "The supporting accent — light-theme secondary" },
+          "6": { "$value": "oklch(74% 0.031 250)", "$description": "Lifted supporting accent — dark-theme secondary" },
+          "7": { "$value": "oklch(84% 0.024 250)", "$description": "Soft supporting fills" },
+          "8": { "$value": "oklch(92% 0.016 250)", "$description": "Pale supporting tint" },
+          "9": { "$value": "oklch(97% 0.009 250)", "$description": "Faintest supporting tint" }
+        }
       },
-      "white": {
-        "$value": "#ffffff",
-        "$description": "White"
-      },
-      "ink": {
-        "$value": "#1c1c22",
-        "$description": "Ink"
-      },
-      "graphite": {
-        "$value": "#6e6e76",
-        "$description": "Graphite"
-      },
-      "mist": {
-        "$value": "#d9d9e0",
-        "$description": "Mist"
-      },
-      "paper": {
-        "$value": "#f7f7f5",
-        "$description": "Paper"
+      "spectrum": {
+        "$description": "Six fixed chart/illustration hues at matched lightness (65%) and moderate chroma (0.12), each nudged 8° toward the primary hue (250) so the set reads as tinted by the brand. Blue sits on the primary hue itself.",
+        "blue": { "$value": "oklch(65% 0.12 250)", "$description": "Blue — on the primary hue" },
+        "teal": { "$value": "oklch(65% 0.12 198)", "$description": "Teal (190 nudged +8 toward the primary)" },
+        "violet": { "$value": "oklch(65% 0.12 292)", "$description": "Violet (300 nudged −8 toward the primary)" },
+        "amber": { "$value": "oklch(65% 0.12 83)", "$description": "Amber (75 nudged +8 toward the primary)" },
+        "rose": { "$value": "oklch(65% 0.12 347)", "$description": "Rose (355 nudged −8 toward the primary)" },
+        "green": { "$value": "oklch(65% 0.12 153)", "$description": "Green (145 nudged +8 toward the primary)" }
       }
-    },
-    "spectrum": {
-      "blue": {
-        "$value": "#4f83cc",
-        "$description": "Blue"
-      },
-      "teal": {
-        "$value": "#3fa9a0",
-        "$description": "Teal"
-      },
-      "violet": {
-        "$value": "#8b6cc1",
-        "$description": "Violet"
-      },
-      "amber": {
-        "$value": "#d99a3d",
-        "$description": "Amber"
-      },
-      "rose": {
-        "$value": "#d1618a",
-        "$description": "Rose"
-      },
-      "green": {
-        "$value": "#5fa76c",
-        "$description": "Green"
+    }
+  },
+  "light": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "$description": "The seven semantic slots for the light look (the default theme — light is first in $themes). Every slot aliases a ramp step; WCAG 2.1 ratios were computed against the resolved sRGB values and honor the contract floors: text ≥ 7.0, muted ≥ 3.0, on-primary ≥ 4.5, edge ≥ 1.3.",
+        "primary": { "$value": "{color.ramp.primary.5}", "$description": "The brand color — the anchor itself" },
+        "on-primary": { "$value": "{color.ramp.primary.1}", "$description": "Text/icons on primary — deep brand ink, 4.8:1 on primary (white only reaches 3.9:1 here, so the ramp end wins)" },
+        "secondary": { "$value": "{color.ramp.secondary.5}", "$description": "Supporting accent for fills and badges" },
+        "surface": { "$value": "{color.ramp.neutral.9}", "$description": "Canvas/page background — paper" },
+        "text": { "$value": "{color.ramp.neutral.1}", "$description": "Main foreground — 17.2:1 on surface" },
+        "muted": { "$value": "{color.ramp.neutral.4}", "$description": "Secondary foreground — 5.5:1 on surface" },
+        "edge": { "$value": "{color.ramp.neutral.7}", "$description": "Hairlines and borders — 1.5:1 on surface" }
+      }
+    }
+  },
+  "dark": {
+    "color": {
+      "$type": "color",
+      "semantic": {
+        "$description": "The seven semantic slots for the dark look — the light theme reversed across the neutral ramp, with primary lifted one step so it keeps reading on the dark surface. Same contract floors, same computed-ratio discipline.",
+        "primary": { "$value": "{color.ramp.primary.6}", "$description": "The brand color lifted for dark surfaces — 8.2:1 on surface" },
+        "on-primary": { "$value": "{color.ramp.primary.1}", "$description": "Text/icons on primary — deep brand ink, 8.2:1 on the lifted primary" },
+        "secondary": { "$value": "{color.ramp.secondary.6}", "$description": "Supporting accent lifted to match" },
+        "surface": { "$value": "{color.ramp.neutral.1}", "$description": "Canvas/page background — ink" },
+        "text": { "$value": "{color.ramp.neutral.9}", "$description": "Main foreground — 17.2:1 on surface" },
+        "muted": { "$value": "{color.ramp.neutral.6}", "$description": "Secondary foreground — 8.2:1 on surface" },
+        "edge": { "$value": "{color.ramp.neutral.3}", "$description": "Hairlines and borders — 1.9:1 on surface" }
       }
     }
   }

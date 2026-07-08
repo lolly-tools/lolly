@@ -1,0 +1,20 @@
+<div class="vr" data-theme="{{default theme 'dark'}}" data-live="{{#if live}}on{{else}}off{{/if}}" data-tone="{{default tone 'ok'}}" style="--vr-accent: {{default accent '#4f84ba'}}">
+  <div class="vr-top">
+    <span class="vr-rec"><span class="vr-rec-dot"></span><span class="vr-rec-label">REC</span></span>
+    <span class="vr-title">{{default title "Voice note"}}</span>
+    {{#if clipping}}<span class="vr-clip">CLIP</span>{{/if}}
+  </div>
+
+  <div class="vr-tip">{{#if tip}}{{tip}}{{else}}Tap ● Warm the mic — I’ll watch your levels.{{/if}}</div>
+
+  <div class="vr-stage">
+    <div class="vr-db">{{dbText}}</div>
+    <div class="vr-meter" data-tone="{{default barTone 'ok'}}">
+      <div class="vr-bar">
+        <div class="vr-bar-fill" style="width: {{default barPct 0}}%"></div>
+        <div class="vr-bar-peak" style="left: {{default peakPct 0}}%"></div>
+      </div>
+      <div class="vr-scale"><span>-60</span><span>-24</span><span>-12</span><span>-6</span><span>0</span></div>
+    </div>
+  </div>
+</div>

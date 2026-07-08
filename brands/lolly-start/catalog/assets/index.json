@@ -5,9 +5,9 @@
     {
       "id": "lolly/tokens/brand",
       "name": "Lolly Starter Tokens",
-      "description": "Neutral placeholder brand tokens (DTCG) shipped with the blank lolly-start profile, so the colour picker resolves real swatches instead of falling back to hardcoded ones. Replace with a real brand via 'npm run ingest:brand'.",
+      "description": "Neutral OKLCH-native brand tokens (DTCG sets + themes) shipped with the blank lolly-start profile: primary/neutral/secondary ramps, a six-hue spectrum, and light/dark semantic slots, so the colour picker and semantic CSS vars resolve real values. Replace with a real brand via the start wizard or 'npm run ingest:brand'.",
       "type": "tokens",
-      "version": "1.0.0",
+      "version": "2.0.0",
       "tier": "core",
       "tags": [
         "tokens",
@@ -18,8 +18,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-G350S2MssUu/wNrItazJrrbru3YOZico+7Hy9YhbkL4=",
-          "size": 1461
+          "checksum": "sha256-eaXgvMe9YilwBx8gxm7wWA0ub3i/CqLHS/XTio1f8m4=",
+          "size": 8521
         }
       ]
     }

@@ -1,0 +1,132 @@
+/* Voice Recorder card. The live meter is data-driven (bar width / peak position come
+   from the onLevel hook each frame) — NOT CSS keyframes, which would reset on every
+   per-frame re-hydrate. Colours shift with data-tone (ok / low / hot). */
+
+.vr {
+  width: 1080px;
+  height: 1080px;
+  box-sizing: border-box;
+  padding: 96px 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  background: #0e1217;
+  color: #f3f5f8;
+  /* The healthy-level colour: the accent input wins, then the brand's semantic
+     --primary (set on the canvas root when tokens resolve), then a neutral hex. */
+  --vr-ok: var(--vr-accent, var(--primary, #4f84ba));
+  --vr-low: #f5b544;
+  --vr-hot: #ef5b5b;
+  --vr-track: rgba(255, 255, 255, 0.10);
+  --vr-muted: rgba(243, 245, 248, 0.55);
+}
+.vr[data-theme="light"] {
+  background: #f3f5f8;
+  color: #0e1217;
+  --vr-track: rgba(0, 0, 0, 0.09);
+  --vr-muted: rgba(14, 18, 23, 0.55);
+}
+
+/* ── Top row ─────────────────────────────────────────────── */
+.vr-top { display: flex; align-items: center; gap: 20px; }
+.vr-rec {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: 2px solid var(--vr-track);
+  font-weight: 800;
+  font-size: 26px;
+  letter-spacing: 0.14em;
+  color: var(--vr-muted);
+}
+.vr-rec-dot {
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--vr-muted);
+}
+.vr[data-live="on"] .vr-rec { border-color: var(--vr-hot); color: var(--vr-hot); }
+.vr[data-live="on"] .vr-rec-dot { background: var(--vr-hot); box-shadow: 0 0 0 6px rgba(239, 91, 91, 0.22); }
+.vr-title {
+  font-size: 30px;
+  font-weight: 600;
+  opacity: 0.9;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vr-clip {
+  margin-left: auto;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--vr-hot);
+  color: #fff;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: 0.12em;
+}
+
+/* ── Meter stage ─────────────────────────────────────────── */
+.vr-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 44px;
+}
+.vr-db {
+  font-size: 168px;
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.vr-meter { display: flex; flex-direction: column; gap: 14px; }
+.vr-bar {
+  position: relative;
+  height: 72px;
+  border-radius: 18px;
+  background: var(--vr-track);
+  overflow: hidden;
+}
+.vr-bar-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 18px;
+  background: var(--vr-ok);
+  transition: width 0.06s linear;
+}
+.vr-meter[data-tone="low"] .vr-bar-fill { background: var(--vr-low); }
+.vr-meter[data-tone="hot"] .vr-bar-fill { background: var(--vr-hot); }
+.vr-bar-peak {
+  position: absolute;
+  top: -6px; bottom: -6px;
+  width: 5px;
+  border-radius: 3px;
+  background: currentColor;
+  opacity: 0.75;
+  transform: translateX(-50%);
+  /* Glide between per-frame steps so the hold-then-fall-off reads as a smooth slide. */
+  transition: left 0.09s linear;
+}
+@media (prefers-reduced-motion: reduce) { .vr-bar-peak { transition: none; } }
+.vr-scale {
+  display: flex;
+  justify-content: space-between;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vr-muted);
+  padding: 0 4px;
+}
+
+/* ── Coaching tip ────────────────────────────────────────── */
+.vr-tip {
+  min-height: 1.4em;
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.vr[data-tone="low"] .vr-tip { color: var(--vr-low); }
+.vr[data-tone="hot"] .vr-tip { color: var(--vr-hot); }
