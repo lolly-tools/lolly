@@ -35,6 +35,10 @@ export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { stripMetadata, isStrippableFormat } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
 export {
+  embedWatermark, detectWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH, DETECT_THRESHOLD,
+} from './pixel-watermark.ts';
+export type { EmbedOptions, DetectResult, WatermarkGeometry } from './pixel-watermark.ts';
+export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
 } from './units.ts';

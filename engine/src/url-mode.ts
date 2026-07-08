@@ -43,6 +43,13 @@
  *                  tool's `render.c2pa` default. With an enrolled identity the
  *                  certificate window was fixed at enrolment and the lifetime
  *                  value is ignored.
+ *   - `imprint`  — Lolly pixel watermark for raster exports (`png`/`jpg`/`webp`).
+ *                  `imprint=1` (or empty/`on`) embeds an imperceptible, on-device
+ *                  DCT spread-spectrum mark that survives metadata stripping and
+ *                  recompression (see engine/src/pixel-watermark.ts); absent/`0`/
+ *                  `off` leaves pixels untouched. Off by default — a durable
+ *                  provenance signal COMPLEMENTING the C2PA credential, not a
+ *                  hardened one (security-through-obscurity; the key is public).
  *   - `z`        — a PACKED whole-state token (raw DEFLATE + base64url) that carries
  *                  the entire query for complex tools whose readable form would blow
  *                  past practical URL limits. Expanded back into a plain query by
@@ -106,6 +113,8 @@ export interface UrlState {
   bleed: string | null;
   marks: PrintMarksFlags | null;
   c2pa: C2paSetting | null;
+  /** Pixel-watermark opt-in (the `imprint` param). null ⇒ absent (off). */
+  imprint: boolean | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -134,12 +143,14 @@ export interface SerializeUrlOpts {
   /** false = force off; truthy = on (lifetime from c2paDays, else default). */
   c2pa?: boolean;
   c2paDays?: number | null;
+  /** true ⇒ embed the Lolly pixel watermark on raster exports (`imprint=1`). */
+  imprint?: boolean;
 }
 
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'full', 'options', 'nostage', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -164,6 +175,15 @@ function parseC2pa(raw: string | null): C2paSetting | null {
   if (v === 'off' || v === '0' || v === 'false' || v === 'no') return { on: false, days: null };
   const n = Number(v);
   return { on: true, days: [7, 30, 90, 365].includes(n) ? n : null };
+}
+
+// Parse the `imprint` param (pixel-watermark opt-in). null when absent (off);
+// false for an explicit off; true for on. Empty value (`?imprint`) reads as on.
+function parseImprint(raw: string | null): boolean | null {
+  if (raw == null) return null;
+  const v = String(raw).trim().toLowerCase();
+  if (v === 'off' || v === '0' || v === 'false' || v === 'no') return false;
+  return true;
 }
 
 /**
@@ -231,6 +251,8 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     marks:    parseMarks(params.get('marks')),
     // Content Credentials on/off + ephemeral-cert lifetime (see header).
     c2pa:     parseC2pa(params.get('c2pa')),
+    // Pixel-watermark opt-in for raster exports (see header).
+    imprint:  parseImprint(params.get('imprint')),
   };
 }
 
@@ -272,6 +294,7 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.marks) params.set('marks', opts.marks);
   if (opts.c2pa === false) params.set('c2pa', 'off');
   else if (opts.c2pa) params.set('c2pa', [7, 30, 90, 365].includes(Number(opts.c2paDays)) ? String(opts.c2paDays) : '1');
+  if (opts.imprint) params.set('imprint', '1');
   return params.toString();
 }
 
