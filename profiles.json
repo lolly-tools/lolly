@@ -1,0 +1,16 @@
+{
+  "$comment": "Content profiles — which tool packs + brand catalog make up the repo-root tools/ and catalog/ views. Switch with `npm run profile:<name>` (or `loldev profile <name>`); scripts/use-profile.ts builds the views. Later tool roots win on id collisions, so a brand pack can override a community tool.",
+  "default": "suse",
+  "profiles": {
+    "suse": {
+      "label": "SUSE",
+      "tools": ["community", "brands/suse/tools"],
+      "catalog": "brands/suse/catalog"
+    },
+    "lolly-start": {
+      "label": "Lolly Start (blank brand)",
+      "tools": ["community"],
+      "catalog": "brands/lolly-start/catalog"
+    }
+  }
+}

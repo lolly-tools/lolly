@@ -223,3 +223,11 @@ lolly-url-screenshot-*.zip
 api/mcp/[...path].js.map
 api/ca/[...path].js.map
 .env*
+
+# ── Profile views ────────────────────────────────────────────────────────────
+# tools/ and catalog/ are generated VIEWS of the active content profile
+# (profiles.json), built by scripts/use-profile.ts from the mounted packs
+# (community/, brands/suse/, brands/lolly-start/). Never commit them.
+/tools
+/catalog
+/.lolly-profile

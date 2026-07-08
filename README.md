@@ -53,10 +53,13 @@ lolly/                              # umbrella — engine + glue (this repo)
 ├── scripts/                        # catalog build/validate + scripts/subrepo/ split toolkit
 ├── tests/                          # engine + contract tests
 ├── api/                            # Vercel functions (mcp, ca)
+├── brands/lolly-start/             # blank starter brand (neutral tokens only) — parent-owned
+├── tools/                          # VIEW: the active profile's merged tool set (gitignored)
+├── catalog/                        # VIEW: the active profile's brand catalog (gitignored)
 │                                   #  ── submodules (github.com/lolly-tools/*) ──
 ├── docs/              → lolly-docs             # architecture, guides, /info generator
-├── tools/             → lolly-suse-tools       # tool definitions (data, not code)
-├── catalog/           → lolly-suse-catalog     # tool + asset registries, fonts
+├── community/         → lolly-tools            # community-safe tools (data, not code; MPL-2.0)
+├── brands/suse/       → suse-lolly             # PRIVATE: SUSE tools + brand catalog
 ├── services/mcp/      → lolly-mcp-server       # Model Context Protocol server
 ├── services/ca/       → lolly-ca               # device-credential Certificate Authority
 └── shells/
@@ -68,7 +71,7 @@ lolly/                              # umbrella — engine + glue (this repo)
     └── chrome-extension/ → lolly-chrome-extension
 ```
 
-**Critical separation:** `engine/` knows nothing about SUSE. `tools/` and `catalog/` hold the SUSE-specific content; the shells, services, engine and docs are MPL-2.0. Keeping each unit in its own repo lets it ship on its own cadence while the umbrella pins a known-good combination.
+**Critical separation:** `engine/` knows nothing about SUSE. Brand-specific content lives in **brand packs** (`brands/suse` — private; `brands/lolly-start` — the blank starter brand), brand-agnostic tools in `community/`; the shells, services, engine and docs are MPL-2.0. The repo-root `tools/` and `catalog/` paths every script and shell consumes are **profile views** built by `scripts/use-profile.ts` from `profiles.json` — switch brands with `npm run profile:suse` / `npm run profile:start`. Keeping each unit in its own repo lets it ship on its own cadence while the umbrella pins a known-good combination.
 
 ## Architectural commitments
 
@@ -98,13 +101,22 @@ cd lolly
 # already cloned non-recursively? → git submodule update --init --recursive
 
 npm install                    # workspaces need every submodule's package.json — init submodules FIRST
+                               # (postinstall picks a content profile automatically — see below)
 
 npm run dev:web                # run the web shell
 npm run cli -- qr-code --url=https://suse.com --output=./qr.svg   # run a tool headlessly
 npm run validate:catalog       # validate the catalog
 ```
 
-See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow.
+**Content profiles.** `tools/` and `catalog/` are gitignored *views* assembled from the mounted packs (`profiles.json`): the private `brands/suse` pack (skipped automatically on clone if you don't have access — it's `update = none`) plus the public `community/` tools. Without SUSE access you land on the blank **lolly-start** brand and everything still builds and runs. Switch explicitly:
+
+```bash
+npm run profile          # show the active profile + what's available
+npm run profile:suse     # SUSE brand pack (needs: git submodule update --init --checkout brands/suse)
+npm run profile:start    # blank starter brand — community tools only
+```
+
+See `docs/authoring-tools.md` to build your first tool, and [Development](#development) below for the submodule workflow. A new brand pack can be generated from design tokens with `npm run ingest:brand` (DTCG / Tokens Studio / Penpot exports).
 
 ## Development
 
@@ -125,12 +137,13 @@ Each submodule is checked out on its own `main`, tracking its repo under `github
 |---|---|
 | `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, root files | the umbrella (`lolly`) |
 | `docs/` | `lolly-docs` |
-| `tools/` | `lolly-suse-tools` |
-| `catalog/` | `lolly-suse-catalog` |
+| `community/` (or a community tool via the `tools/` view) | `lolly-tools` |
+| `brands/suse/` (or SUSE tools/catalog via the views) | `suse-lolly` (private) |
+| `brands/lolly-start/`, `profiles.json` | the umbrella (`lolly`) |
 | `services/mcp`, `services/ca` | `lolly-mcp-server`, `lolly-ca` |
 | any `shells/*` | `lolly-web` · `lolly-cli` · `lolly-tui` · `lolly-desktop` · `lolly-mobile` · `lolly-chrome-extension` |
 
-> ⚠️ Committing from the umbrella root does **not** capture edits made *inside* a submodule — git only sees the pointer. Commit inside the submodule, or use `loldev` (below). Editing a tool usually touches three repos: the manifest (`lolly-suse-tools`), the regenerated `catalog/tools/index.json` (`lolly-suse-catalog`), and the umbrella pointer bump.
+> ⚠️ Committing from the umbrella root does **not** capture edits made *inside* a submodule — git only sees the pointer. Commit inside the submodule, or use `loldev` (below). The `tools/` and `catalog/` views are symlinks into the packs, so editing through them lands in the right pack checkout automatically. Editing a SUSE tool touches two repos (`suse-lolly` + umbrella pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated index, umbrella pointer).
 
 **`loldev` — one command to ship a change.** A helper that does the multi-repo dance for you. Install it on your PATH:
 
@@ -144,7 +157,8 @@ loldev gtg -m "replaced suse logomark"   # build catalog → commit + push every
 loldev gtg                               # same, with an empty commit message
 loldev ship -m "…"                       # gtg, THEN deploy to Vercel prod (lolly.tools); --preview for a preview URL
 loldev status                            # what's dirty / ahead, per repo
-loldev pull                              # pull umbrella + update all submodules
+loldev profile suse|lolly-start          # switch the content profile (rebuilds tools/ + catalog views)
+loldev pull                              # pull umbrella + update all submodules + refresh views
 loldev dev                               # run the web shell
 loldev cli -- qr-code --url=…            # run a tool headlessly
 loldev help                              # every command

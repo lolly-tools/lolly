@@ -16,3 +16,9 @@ plans
 # Prebuilt web output — Vercel regenerates it via buildCommand (outputDirectory
 # is shells/web/dist), so shipping the local ~170 MB copy is pure waste.
 shells/web/dist
+
+# Profile views — derived from the packs (community/, brands/**), which DO ship.
+# postinstall (use-profile --auto) rebuilds them on Vercel as real copies, so
+# vercel.json's includeFiles globs and the web build's dist copy see real files.
+/tools
+/catalog

@@ -11,8 +11,8 @@ the individual scripts — to change names, the org, or per-repo `.gitignore`s.
 
 | Path (submodule mount) | Repo | Notes |
 |---|---|---|
-| `tools/` | `lolly-suse-tools` | data; carries `NOTICE.md` |
-| `catalog/` | `lolly-suse-catalog` | data; **music excluded**; carries `NOTICE.md` + `OFL.txt` |
+| `community/` | `lolly-tools` | public, MPL-2.0 — brand-agnostic tools (utilities, qr-code, street-map, filter-*) |
+| `brands/suse/` | `suse-lolly` | **PRIVATE** — SUSE tools + full catalog (music INCLUDED); `update = none` so public clones skip it |
 | `services/mcp/` | `lolly-mcp-server` | workspace; needs `@lolly/engine` |
 | `services/ca/` | `lolly-ca` | workspace; ships `*.pem` gitignore (root-key safety) |
 | `shells/web/` | `lolly-web` | workspace; needs `@lolly/engine` |
@@ -22,7 +22,17 @@ the individual scripts — to change names, the org, or per-repo `.gitignore`s.
 | `shells/tauri-mobile/` | `lolly-mobile` | wraps the web build |
 | `shells/chrome-extension/` | `lolly-chrome-extension` | standalone |
 
-`engine/`, `schemas/`, `docs/`, `api/`, `scripts/`, `tests/` stay in the parent.
+`engine/`, `schemas/`, `api/`, `scripts/`, `tests/`, `brands/lolly-start/` (the
+blank starter brand) and `profiles.json` stay in the parent.
+
+**Profile views (2026-07-08 split):** the repo-root `tools/` and `catalog/`
+paths are no longer submodules — they are gitignored VIEWS of the active
+content profile, built by `scripts/use-profile.ts` (symlink farm locally, real
+copies on Vercel). `loldev profile suse|lolly-start` switches; `npm install`'s
+postinstall picks one automatically (falling back to `lolly-start` when the
+private SUSE pack isn't mounted). The old public `lolly-suse-tools` /
+`lolly-suse-catalog` repos are retired — archive them (and scrub/remove the
+music from `lolly-suse-catalog` before 2026-08-29).
 
 ## One-time split — `migrate.sh`
 
@@ -85,9 +95,10 @@ git submodule update --init --recursive     # BEFORE npm install — workspaces 
 - Submodule remotes use SSH (`git@github.com:lolly-tools/…`). The **parent
   remote is left untouched** — the local `origin` is a stale placeholder; push
   the parent your usual way.
-- `lolly-suse-catalog` gitignores `assets/suse/music/`. The tracks stay on your
-  disk (untracked) so `--archive` deploys still ship them, but they are not
-  pushed to the public repo. (They remain in the parent `lolly` repo's existing
-  history — a separate, deferred decision.)
+- The PremiumBeat music is tracked in the **private** `suse-lolly` pack
+  (`brands/suse/catalog/assets/suse/music/`) — never push it to a public repo.
+  `verify.sh` asserts it is absent from the public `community` pack. (It also
+  remains in the parent `lolly` repo's pre-split history and in the retired
+  `lolly-suse-catalog` — scrub/archive those before 2026-08-29.)
 - `mcp-server` / `shell-*` do not build as standalone clones (they need
   `@lolly/engine` / `../web`); they are meant to be consumed within the monorepo.

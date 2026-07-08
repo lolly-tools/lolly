@@ -11,13 +11,18 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { exportSizeDriver, aspectWarning } from '../shells/web/src/views/export-size.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+// The real-manifest tests read tools that ship in the (private) SUSE brand
+// pack; under a profile without it (lolly-start / public CI) they can't run.
+const SKIP_SUSE = !existsSync(join(ROOT, 'tools/multi-page-pdf/tool.json'))
+  && 'SUSE brand pack not mounted (see profiles.json)';
 
 test('detects a select whose options carry width/height and maps each value to dims', () => {
   const d = exportSizeDriver({
@@ -101,7 +106,7 @@ test('aspectWarning returns null with no config or invalid dimensions', () => {
   assert.equal(aspectWarning(GUARD, undefined as any, undefined as any), null);
 });
 
-test('the real multi-page-pdf manifest warns on landscape but not portrait', () => {
+test('the real multi-page-pdf manifest warns on landscape but not portrait', { skip: SKIP_SUSE }, () => {
   const manifest = JSON.parse(readFileSync(join(ROOT, 'tools/multi-page-pdf/tool.json'), 'utf8'));
   assert.ok(manifest.render.aspectWarning, 'manifest declares an aspect guard');
   // The removed A4-landscape size (297 × 210) is exactly what the guard should catch.
@@ -114,7 +119,7 @@ test('the real multi-page-pdf manifest warns on landscape but not portrait', () 
   }
 });
 
-test('the real event-name-badge manifest wires its size select to export dims', () => {
+test('the real event-name-badge manifest wires its size select to export dims', { skip: SKIP_SUSE }, () => {
   const manifest = JSON.parse(readFileSync(join(ROOT, 'tools/event-name-badge/tool.json'), 'utf8'));
   const d = exportSizeDriver(manifest)!;
   assert.equal(d.id, 'size');

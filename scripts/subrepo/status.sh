@@ -11,6 +11,7 @@ say "Parent  ($REPO_ROOT)"
 info "HEAD $(git rev-parse --short HEAD)  branch $(git rev-parse --abbrev-ref HEAD)"
 pdirty="$(git status --porcelain | wc -l | tr -d ' ')"
 [ "$pdirty" = 0 ] && ok "clean" || warn "$pdirty uncommitted change(s) (incl. submodule pointer bumps)"
+info "content profile: $(cat .lolly-profile 2>/dev/null || echo '(none — run npm run profile:<name>)') — tools/ + catalog are views (profiles.json)"
 echo
 
 if [ ! -f .gitmodules ]; then
