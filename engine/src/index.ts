@@ -21,7 +21,7 @@ export { createRuntime } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
-export { buildInputModel } from './inputs.ts';
+export { buildInputModel, summarizeInputs } from './inputs.ts';
 export { parseUrlState, serializeUrlState, RESERVED } from './url-mode.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';
@@ -339,4 +339,19 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // validate as `Valid` in the reference c2patool (contentauth c2pa-rs) — see the
 // gated conformance test tests/c2pa-c2patool-conformance.test.ts — with only the
 // expected self-signed untrusted markers.
-export const ENGINE_VERSION = '1.26.0';
+//
+// 1.27.0 — richer, self-describing exports + a JPEG multi-manifest read fix.
+// (1) New summarizeInputs(model) returns a compact scalar-input digest (id →
+// short string: colours, sizes, toggles, short text; skips uploads, repeating
+// groups, long text, and profile-bound PII). The runtime derives it when C2PA
+// stamping is on and threads it via ExportOpts.c2paInputs; each shell records it
+// (plus the export date + output dimensions) under the tools.lolly.export
+// assertion, so an inspected asset shows "what it was made from / where / when /
+// how big". verifyC2pa now surfaces report.environment.inputs (the nested digest,
+// string→string only). Purely additive — no digest → byte-identical to before.
+// (2) extractC2paFromJpeg now reassembles the manifest store by APP11 box-instance
+// (En) + sequence (Z) instead of scanning every segment for the store UUID — an
+// assertion URL that plants "c2pa" in a continuation chunk no longer trips a false
+// "more than one manifest store" rejection (multi-manifest JPEGs, e.g. a design
+// composed from AI-generated ingredients, now verify like their PNG/PDF siblings).
+export const ENGINE_VERSION = '1.27.0';

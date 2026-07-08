@@ -435,6 +435,46 @@ export function modelToValues(model: InputModelItem[]): Record<string, InputValu
   return out;
 }
 
+// Input types whose value is a single short scalar worth recording in export
+// provenance ("what was this rendered from"). Deliberately excludes the user's
+// own uploads (asset/file), repeating groups (blocks/vector) and long-form prose
+// (longtext) — those are either private, bulky, or not a legible one-liner.
+const SUMMARISABLE_TYPES = new Set<string>([
+  'text', 'number', 'boolean', 'color', 'select', 'url', 'date', 'time', 'datetime-local',
+]);
+
+/**
+ * A compact, human-readable digest of a tool's scalar inputs — id → short string
+ * — for embedding in export provenance (the C2PA `tools.lolly.export`
+ * assertion), so an inspected asset answers "what was this made from": the
+ * colours, sizes, toggles and short text it was rendered with.
+ *
+ * Deliberately shallow and privacy-aware: skips uploads, repeating groups and
+ * long text (see {@link SUMMARISABLE_TYPES}); skips profile-bound inputs so a
+ * user's pre-filled name/email never rides along unless they opted into
+ * authorship separately; drops empties; appends a number's unit ("12 mm"); and
+ * truncates any long value to a sample so the credential stays lean. Bounded by
+ * `maxEntries`. Never throws — provenance enrichment must not fail an export.
+ */
+export function summarizeInputs(
+  model: readonly InputModelItem[],
+  { maxValueLen = 48, maxEntries = 24 }: { maxValueLen?: number; maxEntries?: number } = {},
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const item of model) {
+    if (Object.keys(out).length >= maxEntries) break;
+    if (!item || !SUMMARISABLE_TYPES.has(item.type) || item.bindToProfile) continue;
+    const v = flattenValue(item.value);
+    if (typeof v !== 'string' && typeof v !== 'number' && typeof v !== 'boolean') continue;
+    let s = String(v).trim();
+    if (!s) continue;
+    if (item.unit && typeof v === 'number') s += ` ${item.unit}`;
+    if (s.length > maxValueLen) s = s.slice(0, Math.max(1, maxValueLen - 1)) + '…';
+    out[item.id] = s;
+  }
+  return out;
+}
+
 /**
  * The model as hooks should see it: token-backed colour values flattened to their
  * resolved hex string, matching what templates (and CLI/JSON export) receive. The

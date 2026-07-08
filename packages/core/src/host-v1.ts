@@ -690,6 +690,16 @@ export interface ExportOpts {
    * to the shell; ignored by exports that aren't C2PA-stamped.
    */
   ingredients?: IngredientCredential[];
+
+  /**
+   * A compact digest of the tool's scalar inputs (id → short string) that
+   * produced this render — colours, sizes, toggles, short text (added v1.27).
+   * The runtime derives it via summarizeInputs() when C2PA stamping is on; the
+   * shell records it under `inputs` in the `tools.lolly.export` assertion so an
+   * inspected asset shows what it was made from. Opaque to the shell; ignored by
+   * exports that aren't C2PA-stamped.
+   */
+  c2paInputs?: Record<string, string>;
 }
 
 // Provenance only — no copyright/licence/ownership fields (can't be asserted safely).

@@ -371,8 +371,20 @@ function extractC2paFromPng(png: Uint8Array): { manifest: Uint8Array } | null {
 }
 
 function extractC2paFromJpeg(jpeg: Uint8Array): { manifest: Uint8Array } | null {
-  const parts: Uint8Array[] = [];
-  let en = -1;
+  // C2PA stores its manifest as a JUMBF box inside APP11 (0xFFEB) segments. A box
+  // larger than JPEG's ~64 KB segment limit is split across many APP11 segments
+  // that share one box-instance number (En) and carry a 1-based sequence counter
+  // (Z); c2pa-rs repeats the 8-byte JUMBF LBox/TBox header in EVERY segment. We
+  // group the segments by box instance, order each group by Z, then reassemble
+  // the group whose superbox UUID is the c2pa manifest store — keeping the first
+  // chunk's LBox/TBox and appending each chunk's payload.
+  //
+  // The start segment MUST be identified by its position in the sequence (Z===1),
+  // NOT by scanning for "c2pa" at the manifest-store UUID offset: an assertion URL
+  // like `self#jumbf=/c2pa/...` lands the bytes "c2pa" at that same offset inside
+  // a *continuation* chunk, which used to be misread as a second manifest store
+  // and wrongly rejected as "more than one manifest store".
+  const boxes = new Map<number, Array<{ z: number; body: Uint8Array }>>();
   for (let i = 2; i + 4 <= jpeg.length; ) {
     if (jpeg[i] !== 0xff) break;
     const marker = jpeg[i + 1];
@@ -380,26 +392,38 @@ function extractC2paFromJpeg(jpeg: Uint8Array): { manifest: Uint8Array } | null 
     const le = (jpeg[i + 2]! << 8) | jpeg[i + 3]!;
     const end = i + 2 + le;
     if (end > jpeg.length) throw new Error('malformed JPEG segment');
+    // APP11 JUMBF payload: CI(2)="JP" · En(2) box instance · Z(4) 1-based seq ·
+    // LBox(4)/TBox(4) JUMBF header · box data. Need at least that 16-byte prefix.
     if (marker === 0xeb && le > 18) {
       const c = jpeg.subarray(i + 4, end);
-      const segEn = (c[2]! << 8) | c[3]!;
-      const isStart = c.length > 28 && ascii(c, 24, 4) === 'c2pa';
-      if (isStart) {
-        if (parts.length) throw new Error('JPEG has more than one manifest store');
-        en = segEn;
-        parts.push(c.subarray(8)); // strip CI/En/Z
-      } else if (parts.length && segEn === en) {
-        parts.push(c.subarray(16)); // strip CI/En/Z + duplicated LBox/TBox
+      if (c[0] === 0x4a && c[1] === 0x50) { // CI == "JP" (JUMBF); ignore other APP11
+        const en = (c[2]! << 8) | c[3]!;
+        const z = ((c[4]! << 24) | (c[5]! << 16) | (c[6]! << 8) | c[7]!) >>> 0;
+        let group = boxes.get(en);
+        if (!group) { group = []; boxes.set(en, group); }
+        group.push({ z, body: c });
       }
     }
     if (marker === 0xda) break;
     i = end;
   }
-  if (!parts.length) return null;
-  const manifest = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
-  let o = 0;
-  for (const p of parts) { manifest.set(p, o); o += p.length; }
-  return { manifest };
+  // Reassemble every JUMBF box instance whose first chunk is the c2pa manifest
+  // store (its superbox `jumd` UUID begins with "c2pa" at offset 24).
+  const stores: Uint8Array[] = [];
+  for (const group of boxes.values()) {
+    group.sort((a, b) => a.z - b.z);
+    const first = group[0]!.body;
+    if (!(first.length > 28 && ascii(first, 24, 4) === 'c2pa')) continue;
+    // First chunk keeps the JUMBF LBox/TBox (strip CI/En/Z); every continuation
+    // is raw box data (strip CI/En/Z + the repeated LBox/TBox).
+    const parts = group.map((s, idx) => idx === 0 ? s.body.subarray(8) : s.body.subarray(16));
+    const manifest = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+    let o = 0;
+    for (const p of parts) { manifest.set(p, o); o += p.length; }
+    stores.push(manifest);
+  }
+  if (stores.length > 1) throw new Error('JPEG has more than one manifest store');
+  return stores.length ? { manifest: stores[0]! } : null;
 }
 
 function extractC2paFromGif(gif: Uint8Array): { manifest: Uint8Array } | null {
@@ -1082,7 +1106,10 @@ interface C2paReport {
   checks: C2paCheck[];
   reason?: string;
   claim?: C2paClaim;
-  environment?: Record<string, string | number | boolean> | null;
+  // Scalar export-context keys (tool/surface/engine/os/date/dimensions…) plus an
+  // optional nested `inputs` digest (id → short string) — the scalar inputs the
+  // asset was rendered from, recorded by the writer's tools.lolly.export assertion.
+  environment?: (Record<string, string | number | boolean> & { inputs?: Record<string, string> }) | null;
   author?: { name: string; email?: string };
   signer?: C2paSigner;
   aiGenerated?: C2paAiOrigin;
@@ -1400,7 +1427,22 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   // — a custom assertion; its integrity is covered by the hashed-URI check.
   const exportAssertion = parts.assertions.find((a) => a.label === LOLLY_EXPORT_ASSERTION);
   if (exportAssertion) {
-    try { report.environment = mapToObj(decodeCbor(exportAssertion.content)); } catch { /* display nicety only */ }
+    try {
+      const decoded = decodeCbor(exportAssertion.content);
+      const env = mapToObj(decoded) as (Record<string, string | number | boolean> & { inputs?: Record<string, string> }) | null;
+      if (env) {
+        // The scalar keys come through mapToObj; the nested `inputs` map (the
+        // scalar-input digest) is a CBOR Map it drops, so lift it separately —
+        // string→string only, so a crafted assertion can't inject other shapes.
+        const rawInputs = decoded instanceof Map ? decoded.get('inputs') : undefined;
+        if (rawInputs instanceof Map) {
+          const inputs: Record<string, string> = {};
+          for (const [k, v] of rawInputs) if (typeof k === 'string' && typeof v === 'string') inputs[k] = v;
+          if (Object.keys(inputs).length) env.inputs = inputs;
+        }
+        report.environment = env;
+      }
+    } catch { /* display nicety only */ }
   }
 
   // Authorship. v2 records it in the CAWG metadata assertion (`cawg.metadata`,

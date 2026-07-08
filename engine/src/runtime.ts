@@ -25,7 +25,7 @@
  *   being declared as user-facing inputs in the manifest.
  */
 
-import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue } from './inputs.ts';
+import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs } from './inputs.ts';
 import { hydrate } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
 import { isTokenValue, isAlias, colorToHex } from './tokens.ts';
@@ -63,6 +63,10 @@ export interface DroppedAsset {
  *  plus the engine-level 'Convert paths' toggle the bridge reads. */
 export interface RuntimeExportOpts extends ExportOpts {
   convertPaths?: boolean;
+  /** The shell's Content-Credentials render intent. The runtime only reads it to
+   *  decide whether to derive the input digest (summarizeInputs) for provenance;
+   *  the actual stamping lives in each shell's export bridge. */
+  c2pa?: boolean;
 }
 
 /** What a tool's `exportFile` hook must produce (the transform output path). */
@@ -678,6 +682,11 @@ export async function createRuntime(
         }
         if (prepared.length) ingredients = prepared;
       }
+      // When stamping Content Credentials (never the on-device utility path),
+      // record a compact digest of the scalar inputs this render came from —
+      // surfaced by the shell in the tools.lolly.export assertion so an inspected
+      // asset shows what it was made from. Cheap + best-effort; skipped otherwise.
+      const c2paInputs = (opts.c2pa && !isOnDevice) ? summarizeInputs(model) : undefined;
       let blob;
       try {
         blob = await host.export.render(renderedNode as Element, format as ExportFormat, {
@@ -685,6 +694,7 @@ export async function createRuntime(
           watermark: opts.watermark ?? (isExperimental && !isOnDevice),
           meta,
           ...(ingredients ? { ingredients } : {}),
+          ...(c2paInputs && Object.keys(c2paInputs).length ? { c2paInputs } : {}),
           // Tag output with a colour profile by default (sRGB for raster, the
           // default press condition for CMYK PDF). Thumbnails stay untagged.
           colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),
