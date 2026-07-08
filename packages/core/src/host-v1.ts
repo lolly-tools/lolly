@@ -458,6 +458,32 @@ export interface AssetsAPI {
 
   /** Check if an asset is available offline right now (for graceful degradation). */
   isAvailable(id: string): Promise<boolean>;
+
+  /**
+   * The stored Content Credentials of a user-uploaded asset, if it carried any
+   * at ingest — kept as the raw C2PA manifest store (no pixels/EXIF, so nothing
+   * the upload pipeline strips is re-hoarded). Used to preserve a placed asset's
+   * provenance as an export ingredient (see engine prepareC2paIngredientFromStore
+   * → embedC2pa). Optional (added v1.26): shells without credential capture omit
+   * it, and the runtime simply skips ingredient preservation.
+   */
+  credential?(id: string): Promise<{ store: Uint8Array; format: string } | null>;
+}
+
+/**
+ * A credentialed source asset's preserved provenance, carried into an export's
+ * Content Credentials. The runtime gathers these from credentialed uploads used
+ * in a design; the C2PA embedder copies their manifests into the export's store
+ * and records a c2pa.ingredient assertion + c2pa.opened action (so an AI or
+ * camera origin is never laundered away). Opaque to the shell — forwarded as-is.
+ */
+export interface IngredientCredential {
+  manifestBoxes: Uint8Array[];
+  activeLabel: string;
+  title?: string;
+  format?: string;
+  relationship?: string;
+  digitalSourceType?: string;
 }
 
 export interface AssetQuery {
@@ -571,9 +597,10 @@ export interface ExportAPI {
 
 /**
  * The value of a `file`-typed input: a user-picked file loaded into memory. The
- * shell's file picker builds this; the tool's hooks read `bytes` directly (the
- * hook sandbox has no fetch, so bytes ride in the value rather than behind a
- * read API). Never persisted and never serialised into a URL — binary user
+ * shell's file picker builds this; the tool's hooks read `bytes` directly (by
+ * design bytes ride in the value rather than behind a read API — the portable
+ * host surface has no file-read call). Never persisted and never serialised
+ * into a URL — binary user
  * content lives only in memory on the device, which is the whole privacy point.
  */
 export interface InputFile {
@@ -655,6 +682,14 @@ export interface ExportOpts {
    * uploaded talking clip stays intelligible under the bed.
    */
   audio?: { id?: string; url: string; fadeIn?: number; fadeOut?: number; volume?: number; duck?: number };
+
+  /**
+   * Content Credentials to preserve from placed source assets (added v1.26). The
+   * runtime gathers these from credentialed uploads used in the design; the C2PA
+   * embedder carries their manifests into the export's provenance chain. Opaque
+   * to the shell; ignored by exports that aren't C2PA-stamped.
+   */
+  ingredients?: IngredientCredential[];
 }
 
 // Provenance only — no copyright/licence/ownership fields (can't be asserted safely).

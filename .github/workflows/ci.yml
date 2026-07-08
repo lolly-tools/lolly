@@ -3,10 +3,14 @@
 #   test            — full repo suite (engine contract tests + core/web/mcp)
 #   typecheck       — tsc -p across every project
 #   validate        — catalog manifests/index drift + asset checksums
-#   build + budget  — production web build, then the boot-path bundle budget
-#                     (scripts/check-bundle-budget.ts is deliberately NOT part
-#                     of build:web, so CI must run it explicitly after).
-# Every command already exits non-zero on failure.
+#   build + budget  — production web build (hard gate), then the boot-path
+#                     bundle budget (scripts/check-bundle-budget.ts is
+#                     deliberately NOT part of build:web, so CI runs it after).
+# All four gates (test / typecheck / validate / build+budget) exit non-zero on
+# failure and BLOCK. The bundle-budget step is a hard gate again as of the boot
+# diet (2026-07-08): boot JS is ~66 KB gz vs the 115 KB budget, after the engine
+# barrel was pulled off the boot path (it had dragged c2pa-trust/design-map/
+# pdf-map/pptx/emf/… onto first paint). See plans/fable-advice.md.
 name: CI
 
 on:

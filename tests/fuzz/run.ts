@@ -74,8 +74,9 @@ async function main(): Promise<void> {
   const iters = Number(process.argv[2] || process.env.FUZZ_ITERS || 2500);
   const only = process.argv[3];
   const targets = only ? [TARGETS_BY_NAME[only]!].filter(Boolean) : ALL_TARGETS;
-  // Clear stale regression files from a prior run so the corpus reflects THIS run.
-  if (!process.env.FUZZ_KEEP) for (const f of readdirSync(REGRESS)) if (f.endsWith('.bin')) unlinkSync(join(REGRESS, f));
+  // Clear only THIS runner's auto-generated files (`<target>-<n>.bin`) from a
+  // prior run; hand-curated regression fixtures (any other name) are preserved.
+  if (!process.env.FUZZ_KEEP) for (const f of readdirSync(REGRESS)) if (/-\d+\.bin$/.test(f)) unlinkSync(join(REGRESS, f));
 
   const all: Finding[] = [];
   for (const target of targets) {

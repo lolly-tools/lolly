@@ -21,6 +21,8 @@ import type { ValidationIssue } from './validate.ts';
 import type { InputSpec } from './inputs.ts';
 import type { ComposeEntry } from './compose.ts';
 import type { Capability } from './bridge/host-v1.ts';
+import { verifyEnvelopeSignature, verifyToolFile } from './catalog-integrity.ts';
+import type { CatalogSignatureEnvelope, IntegrityResult } from './catalog-integrity.ts';
 
 /** `render` block of a tool manifest (schemas/tool.schema.json `render`). */
 export interface ToolRenderSpec {
@@ -114,6 +116,20 @@ export interface LoadedTool {
   textTemplateErrors: Record<string, string>;
 }
 
+/**
+ * Catalog-integrity enforcement config (catalog-integrity.ts). When a shell
+ * passes this, every fetched tool file must match the signed digest map or
+ * loadTool refuses to return the tool — fail closed, verified BEFORE the
+ * runtime ever compiles hooks.js. Without it the loader behaves exactly as
+ * before (plus a one-time "unsigned catalog" console warning).
+ */
+export interface ToolIntegrityOpts {
+  /** The signed catalog envelope (catalog/tools/index.sig.json, as fetched). */
+  envelope: CatalogSignatureEnvelope;
+  /** The deployment's pinned catalog public key, imported for ECDSA-P256 verify. */
+  publicKey: CryptoKey;
+}
+
 export interface LoadToolOpts {
   /**
    * Resolve a tool-directory-relative path (e.g. "qr-code/hooks.js") to a URL a
@@ -121,10 +137,74 @@ export interface LoadToolOpts {
    * CLI to a file:// URL. Required to load a tool that declares hooks.module.
    */
   resolveModuleUrl?: (path: string) => string;
+  /** Verify every fetched tool file against a signed catalog envelope. */
+  integrity?: ToolIntegrityOpts;
+}
+
+const integrityTextEncoder = new TextEncoder();
+
+// One envelope signature check per envelope object, shared across every
+// loadTool call the shell makes with it (the per-file digests are the hot path).
+const envelopeTrust = new WeakMap<CatalogSignatureEnvelope, Promise<IntegrityResult>>();
+
+async function assertEnvelopeTrusted(integrity: ToolIntegrityOpts): Promise<void> {
+  let pending = envelopeTrust.get(integrity.envelope);
+  if (!pending) {
+    pending = verifyEnvelopeSignature(integrity.envelope, integrity.publicKey);
+    envelopeTrust.set(integrity.envelope, pending);
+  }
+  const result = await pending;
+  if (!result.ok) {
+    throw new ToolLoadError(`catalog integrity: envelope rejected — ${result.reason}`, []);
+  }
+}
+
+/**
+ * Verify one fetched file's bytes against the signed map. `text === null`
+ * means the fetch failed/degraded — fatal when the catalog signed that file
+ * (a stripped hooks.js must not silently mount a hook-less tool), fine when
+ * the tool genuinely ships no such file (absent from the map too).
+ */
+async function assertFileIntegrity(
+  integrity: ToolIntegrityOpts,
+  toolId: string,
+  filename: string,
+  text: string | null,
+): Promise<void> {
+  if (text == null) {
+    if (integrity.envelope.files?.[`${toolId}/${filename}`]) {
+      throw new ToolLoadError(
+        `catalog integrity: "${toolId}/${filename}" is signed in the catalog but failed to load — refusing to run without it`,
+        [],
+      );
+    }
+    return;
+  }
+  const result = await verifyToolFile(integrity.envelope, toolId, filename, integrityTextEncoder.encode(text));
+  if (!result.ok) {
+    throw new ToolLoadError(`catalog integrity: ${result.reason}`, []);
+  }
+}
+
+// The unsigned-catalog compat path warns ONCE per process/session, not per tool.
+let warnedUnsignedCatalog = false;
+function warnUnsignedCatalogOnce(): void {
+  if (warnedUnsignedCatalog) return;
+  warnedUnsignedCatalog = true;
+  console.warn('catalog integrity: unsigned catalog — tool code is not verified');
 }
 
 export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: LoadToolOpts = {}): Promise<LoadedTool> {
+  const integrity = opts.integrity ?? null;
+  if (integrity) {
+    await assertEnvelopeTrusted(integrity);
+  } else {
+    warnUnsignedCatalogOnce();
+  }
+
   const manifestText = await fetchFile(`${toolId}/tool.json`);
+  // Verify the manifest bytes before parsing/trusting anything it declares.
+  if (integrity) await assertFileIntegrity(integrity, toolId, 'tool.json', manifestText);
   const parsed: unknown = JSON.parse(manifestText);
 
   const { valid, errors } = validateManifest(parsed);
@@ -158,6 +238,15 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   // module cache applies. A host that can't resolve module URLs must fail HERE,
   // loudly: silently mounting a hook-less tool would render wrong output.
   const wantsModuleHooks = manifest.hooks?.module === true;
+  // Module hooks are imported natively — the loader never sees their bytes, so
+  // the signed digest map CANNOT cover what actually executes (nor sibling
+  // imports). Fail closed rather than pretend they're verified.
+  if (wantsModuleHooks && integrity) {
+    throw new ToolLoadError(
+      `catalog integrity: "${toolId}" declares module hooks, whose imported bytes cannot be verified against the signed catalog`,
+      [],
+    );
+  }
   if (wantsModuleHooks && !opts.resolveModuleUrl) {
     throw new ToolLoadError(
       `"${toolId}" declares module hooks, but this host provides no module-URL resolver`,
@@ -187,6 +276,21 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
     textTemplates[ext] = result.value;
     if (result.error != null) textTemplateErrors[ext] = result.error;
   });
+
+  // Fail closed on every fetched file before the tool can reach the runtime
+  // (this is upstream of hooks compilation). Note the null cases: a signed
+  // styles.css/hooks.js that degraded to null is fatal here, closing the
+  // tryFetch silent-strip hole the unsigned path still has.
+  if (integrity) {
+    await assertFileIntegrity(integrity, toolId, 'template.html', template);
+    await assertFileIntegrity(integrity, toolId, 'styles.css', styles);
+    if (manifest.hooks && !wantsModuleHooks) {
+      await assertFileIntegrity(integrity, toolId, 'hooks.js', hooksSource);
+    }
+    for (const ext of textExts) {
+      await assertFileIntegrity(integrity, toolId, `template.${ext}`, textTemplates[ext] ?? null);
+    }
+  }
 
   return {
     manifest,

@@ -106,6 +106,31 @@ interface AssetHash {
 // 'created' preserves every existing caller.
 type Authorship = 'created' | 'delivered';
 
+// One recorded step for the actions assertion. `action` is a C2PA action code
+// (c2pa.created / c2pa.edited / c2pa.converted / c2pa.color_adjustments / …);
+// `digitalSourceType` (IPTC) and a free-text `description` are optional. The
+// uniform softwareAgent and `when` are stamped by buildC2paManifest so every
+// step of one export agrees byte-for-byte.
+interface C2paActionInput { action: string; digitalSourceType?: string; description?: string; parameters?: unknown; }
+
+// A credentialed ingredient to preserve into a new asset's manifest store. Its
+// `manifestBoxes` (the ingredient store's manifest superboxes, verbatim, active
+// last) are carried into the new store ahead of the active manifest, so the
+// ingredient's own signatures and full provenance chain stay intact and
+// independently verifiable; the active manifest gains a c2pa.ingredient
+// assertion referencing `activeLabel` and a c2pa.opened action that propagates
+// `digitalSourceType` (so an AI origin is never laundered away). Produce one
+// with the read side's prepareC2paIngredient(). Structurally identical to
+// C2paIngredientData in c2pa-verify.ts (kept separate to avoid an import cycle).
+interface C2paIngredient {
+  manifestBoxes: Uint8Array[];
+  activeLabel: string;
+  title?: string;
+  format?: string;
+  relationship?: string;
+  digitalSourceType?: string;
+}
+
 interface BuildC2paManifestOptions {
   title?: string;
   claimGenerator?: string;
@@ -113,6 +138,15 @@ interface BuildC2paManifestOptions {
   environment?: unknown;
   author?: Author | null;
   authorship?: Authorship;
+  /**
+   * Explicit action history for the actions assertion. When present and
+   * non-empty it REPLACES the default single created/published action — each
+   * entry is decorated with the shared softwareAgent + `when`. Build a sensible
+   * list from an export's transformations with {@link exportActionSteps}.
+   */
+  actions?: C2paActionInput[];
+  /** Credentialed ingredients to preserve into the store (multi-manifest). */
+  ingredients?: C2paIngredient[];
   assetHash?: AssetHash;
   format?: string;
   dates?: Dates;
@@ -136,6 +170,8 @@ interface EmbedOptions {
   environment?: unknown;
   author?: Author | null;
   authorship?: Authorship;
+  actions?: C2paActionInput[];
+  ingredients?: C2paIngredient[];
   dates?: Dates;
   signer?: Signer;
 }
@@ -317,6 +353,45 @@ const isoSeconds = (d: Date): string => d.toISOString().slice(0, 19) + 'Z';
 // as the provenance kind of the c2pa.created action).
 const DIGITAL_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation';
 
+// Output formats that are a genuine re-encode/render of the authored design
+// (so a c2pa.converted step is honest) vs vector-native / text serialisations
+// that ARE the created asset and warrant no conversion step.
+const RASTER_OUTPUTS = new Set(['png', 'apng', 'jpg', 'jpeg', 'webp', 'webp-anim', 'tiff', 'cmyk-tiff', 'gif', 'ico']);
+const VIDEO_OUTPUTS = new Set(['mp4', 'm4v', 'mov', 'webm']);
+
+// dc:format MIME for a preserved ingredient's c2pa.ingredient assertion.
+const INGREDIENT_MIME: Record<string, string> = {
+  png: 'image/png', apng: 'image/apng', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif',
+  svg: 'image/svg+xml', tiff: 'image/tiff', webp: 'image/webp', pdf: 'application/pdf',
+  mp4: 'video/mp4', webm: 'video/webm', mkv: 'video/x-matroska',
+};
+
+/**
+ * Assemble an honest action history for a Lolly export from what the pipeline
+ * actually did. Opens with `c2pa.created` (digitalCreation) — or a single
+ * `c2pa.published` when `delivered` — then appends a step ONLY for a
+ * transformation that genuinely happened: a CMYK / brand-colour conversion
+ * (`colorAdjusted`), print marks & bleed (`markedUp`), an experimental-tool
+ * watermark (`watermarked`), and a closing render/encode for raster, video and
+ * PDF outputs. Vector-native (svg/emf/dxf/eps) and text outputs add nothing —
+ * the created asset already IS that file. Pass the result as `actions` to
+ * {@link embedC2pa} / {@link buildC2paManifest}.
+ */
+export function exportActionSteps(format: string, flags: {
+  delivered?: boolean; colorAdjusted?: boolean; markedUp?: boolean; watermarked?: boolean;
+} = {}): C2paActionInput[] {
+  if (flags.delivered) return [{ action: 'c2pa.published' }];
+  const f = String(format || '').toLowerCase();
+  const steps: C2paActionInput[] = [{ action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE }];
+  if (flags.colorAdjusted) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours for print output' });
+  if (flags.markedUp) steps.push({ action: 'c2pa.edited', description: 'Added print marks and bleed' });
+  if (flags.watermarked) steps.push({ action: 'c2pa.edited', description: 'Added experimental-tool watermark' });
+  if (RASTER_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Rendered to ${f.toUpperCase()}` });
+  else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Encoded to ${f.toUpperCase()}` });
+  else if (f === 'pdf' || f === 'pdf-cmyk') steps.push({ action: 'c2pa.converted', description: 'Rendered to PDF' });
+  return steps;
+}
+
 // Custom assertion label for Lolly's export context (reverse-domain of
 // lolly.tools). c2pa-rs surfaces unknown CBOR assertions verbatim in reports
 // and validates them only by hashed URI — no allowlist, no penalty.
@@ -379,6 +454,8 @@ export async function buildC2paManifest({
   environment,
   author,
   authorship = 'created',
+  actions: actionSteps,
+  ingredients,
   assetHash,
   format = 'application/pdf',
   dates = {},
@@ -413,17 +490,79 @@ export async function buildC2paManifest({
   // object); in v1 it stays the bare generator string.
   const softwareAgent: unknown = v2 ? genInfoMap : generatorName;
   const delivered = authorship === 'delivered';
+  // An explicit step list (from exportActionSteps) wins; otherwise the historic
+  // single created/published action. Every step is decorated with the same
+  // softwareAgent + `when` so one export's history agrees byte-for-byte; the
+  // created path keeps its exact key order (action, digitalSourceType, …) so
+  // pre-existing single-action manifests hash identically.
+  const baseSteps: C2paActionInput[] = (actionSteps && actionSteps.length)
+    ? actionSteps
+    : [delivered
+      ? { action: 'c2pa.published' }
+      : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE }];
+  // Each preserved ingredient is opened FIRST — and the opened step carries the
+  // ingredient's AI/ML source type, so the new asset's OWN active manifest
+  // declares the AI origin (not only the walked-in ingredient chain). This is
+  // the anti-laundering guarantee: strip the ingredient manifests and the flag
+  // still fires from Lolly's signed actions.
+  const ingList = ingredients ?? [];
+  // Build each preserved ingredient's c2pa.ingredient.v3 assertion FIRST: the
+  // c2pa.opened action below must reference it via parameters.ingredients (the
+  // spec requires opened/placed/removed actions to name their ingredients), and
+  // the same hash feeds the claim's assertion list. Each assertion carries the
+  // V3-required validationResults — the integrity checks the ingredient's own
+  // manifest passed at ingest (signature + hashes; carried verbatim so they
+  // still hold; trust is reported separately by the reader).
+  const ingredientBoxes: Uint8Array[] = [];
+  const ingredientRefs: { url: string; hash: Uint8Array }[] = [];
+  const ingredientParamRefs: { url: string; alg: string; hash: Uint8Array }[] = [];
+  for (let i = 0; i < ingList.length; i++) {
+    const ing = ingList[i]!;
+    const activeBox = ing.manifestBoxes[ing.manifestBoxes.length - 1]!;
+    // Distinct labels when several ingredients are preserved (spec allows the
+    // __N disambiguation suffix on repeated assertion labels).
+    const label = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : 'c2pa.ingredient.v3';
+    const ingAssertion = {
+      'dc:title': ing.title || 'Ingredient',
+      ...(ing.format && INGREDIENT_MIME[ing.format] ? { 'dc:format': INGREDIENT_MIME[ing.format] } : {}),
+      relationship: ing.relationship || 'parentOf',
+      // activeManifest hashed URI covers the referenced manifest superbox payload
+      // (jumd + content, minus the 8-byte header) — Lolly's hashed-URI convention.
+      activeManifest: { url: `self#jumbf=/c2pa/${ing.activeLabel}`, alg: 'sha256', hash: await sha256(activeBox.subarray(8)) },
+      validationResults: {
+        activeManifest: {
+          success: [{ code: 'claimSignature.validated', url: `self#jumbf=/c2pa/${ing.activeLabel}/c2pa.signature` }],
+          informational: [],
+          failure: [],
+        },
+      },
+    };
+    const box = jumbfSuperbox(UUID_CBOR_CONTENT, label, isoBox('cbor', encodeCbor(ingAssertion)));
+    const hash = await sha256(box.subarray(8));
+    ingredientBoxes.push(box);
+    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, hash });
+    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, alg: 'sha256', hash });
+  }
+  // Each ingredient is opened FIRST — the opened step references its ingredient
+  // assertion AND carries the ingredient's AI/ML source type, so the new asset's
+  // OWN active manifest declares the AI origin (not only the walked-in chain):
+  // strip the ingredient manifests and the flag still fires from Lolly's actions.
+  const openedSteps: C2paActionInput[] = ingList.map((ing, i) => ({
+    action: 'c2pa.opened',
+    ...(ing.digitalSourceType ? { digitalSourceType: ing.digitalSourceType } : {}),
+    ...(ing.title ? { description: `Opened ${ing.title}` } : {}),
+    parameters: { ingredients: [ingredientParamRefs[i]!] },
+  }));
+  const stepList = [...openedSteps, ...baseSteps];
   const actions = {
-    actions: [delivered ? {
-      action: 'c2pa.published',
+    actions: stepList.map((s) => ({
+      action: s.action,
+      ...(s.digitalSourceType ? { digitalSourceType: s.digitalSourceType } : {}),
+      ...(s.description ? { description: s.description } : {}),
+      ...(s.parameters ? { parameters: s.parameters } : {}),
       softwareAgent,
       when: isoSeconds(signedAt),
-    } : {
-      action: 'c2pa.created',
-      digitalSourceType: DIGITAL_SOURCE_TYPE,
-      softwareAgent,
-      when: isoSeconds(signedAt),
-    }],
+    })),
   };
   // BMFF assets carry the spec's box-walking binding (c2pa.hash.bmff.v2, fixed
   // xpath exclusions) instead of byte ranges — c2pa-rs rejects a data-hash
@@ -478,6 +617,10 @@ export async function buildC2paManifest({
     metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(meta))));
     storeBoxes.push(metadataBox);
   }
+  // The ingredient assertions were built up-front (their hashes feed the opened
+  // action's parameters.ingredients); add them to the assertion store here so
+  // they sit after the standard assertions.
+  for (const box of ingredientBoxes) storeBoxes.push(box);
   const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, 'c2pa.assertions', ...storeBoxes);
 
   // JUMBF-box hashed URIs cover the superbox PAYLOAD — the jumd description box
@@ -490,6 +633,7 @@ export async function buildC2paManifest({
     ...(exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : []),
     ...(authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : []),
     ...(metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : []),
+    ...ingredientRefs,
   ];
 
   // v2 claim map (c2pa.claim.v2): no free-text claim_generator, no dc:format; a
@@ -518,7 +662,12 @@ export async function buildC2paManifest({
   const claimBox = jumbfSuperbox(UUID_CLAIM, v2 ? 'c2pa.claim.v2' : 'c2pa.claim', isoBox('cbor', claimBytes));
   const signatureBox = jumbfSuperbox(UUID_SIGNATURE, 'c2pa.signature', isoBox('cbor', await coseSign1Detached(sig, claimBytes)));
   const manifest = jumbfSuperbox(UUID_MANIFEST, manifestLabel || urnUuid(), assertionStore, claimBox, signatureBox);
-  return jumbfSuperbox(UUID_C2PA_STORE, 'c2pa', manifest);
+  // Ingredient manifests are carried in verbatim BEFORE the active (Lolly)
+  // manifest — the store's LAST manifest is the active one (C2PA §"active
+  // manifest"), and the read side (parseC2paStore / collectActionChain) walks
+  // every manifest, so a preserved ingredient's full provenance chain surfaces.
+  const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
+  return jumbfSuperbox(UUID_C2PA_STORE, 'c2pa', ...ingredientManifestBoxes, manifest);
 }
 
 // ─── PDF incremental update ───────────────────────────────────────────────────
@@ -784,7 +933,7 @@ const xrefEntryLine = (offset: number, gen: number): string => `${String(offset)
  * table (jsPDF-style); cross-reference streams throw a clear Error the
  * shell treats as "cannot attach".
  */
-export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
+export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error('C2PA embed: pdfBytes must be a Uint8Array');
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
@@ -832,7 +981,7 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, dates, format: 'application/pdf',
+    title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates, format: 'application/pdf',
     assetHash: { exclusions, hash, pad: padBytes },
     ...internals,
   });
@@ -1563,7 +1712,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === 'bmff';
 
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer } = opts;
   // As in embedC2paInPdf: signer + chain bytes frozen once per embed so every
   // pass across the two-pass layout signs identical protected-header bytes.
   const sig: Signer = signer ?? (await generateSigner(dates));
@@ -1575,7 +1724,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, dates, format: container.mime,
+    title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates, format: container.mime,
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
     ...internals,
   });

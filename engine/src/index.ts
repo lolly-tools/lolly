@@ -6,7 +6,16 @@
  * tools talk to the host through the capability bridge passed to their hooks.
  */
 
-export { loadTool } from './loader.ts';
+export { loadTool, ToolLoadError } from './loader.ts';
+export type { LoadedTool, ToolManifest, ToolFetchFile, LoadToolOpts, ToolIntegrityOpts } from './loader.ts';
+export {
+  canonicalJson, sha256Hex, jwkThumbprint, importSpkiOrJwkPublicKey,
+  signCatalogEnvelope, verifyEnvelopeSignature, verifyCatalogEnvelope, verifyToolFile,
+  CATALOG_SIG_ALG, CATALOG_SIG_PATH, CATALOG_SIGNED_TOOL_FILES,
+} from './catalog-integrity.ts';
+export type {
+  CatalogSignatureEnvelope, UnsignedCatalogEnvelope, IntegrityResult,
+} from './catalog-integrity.ts';
 export { validateManifest } from './validate.ts';
 export { createRuntime } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
@@ -23,6 +32,8 @@ export type { BatchRow, BatchTemplateTool } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
 export { extractFileMetadata, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
+export { stripMetadata, isStrippableFormat } from './strip-metadata.ts';
+export type { StripFormat } from './strip-metadata.ts';
 export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
@@ -53,8 +64,9 @@ export type {
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
-export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf } from './c2pa-verify.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
+export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore } from './c2pa-verify.ts';
+export type { C2paIngredientData } from './c2pa-verify.ts';
 export { c2paTrustAnchors } from './c2pa-trust.ts';
 export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
@@ -282,4 +294,45 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // and recognises c2pa.actions.v2 — so external v2 credentials (Gemini "Nano Banana",
 // Adobe, OpenAI, …) verify on-device instead of failing `credential.unreadable`. No
 // bridge change.
-export const ENGINE_VERSION = '1.24.0';
+// 1.25.0 — additive: catalog signing + runtime integrity verification
+// (catalog-integrity.ts — closes the SOVEREIGNTY.md "catalog origin is a trust
+// anchor" boundary). A deployment signs its tool catalog at build time
+// (scripts/sign-catalog.ts writes catalog/tools/index.sig.json: a sha256 per
+// tool file — hooks.js included — plus a hash of the exact index.json bytes,
+// ECDSA P-256/SHA-256 over the canonical-JSON envelope; canonicalJson is the
+// single shared serialization on both sides). A shell that pins the public key
+// passes loadTool's new optional `integrity` opts ({ envelope, publicKey }):
+// the loader then verifies every fetched tool file BEFORE the runtime can
+// compile hooks.js — a tampered, stripped-but-signed, or unsigned-extra file
+// is a hard ToolLoadError (fail closed; this also closes the tryFetch
+// silent-strip hole for signed hooks.js/styles.css), and module-hooks tools
+// are refused outright since their imported bytes never pass through the
+// loader. Without integrity opts nothing changes except a one-time
+// "unsigned catalog" console warning (the dev/compat path). Pure engine
+// module, DOM-free (globalThis.crypto.subtle only); no bridge change.
+// 1.26.0 — additive: honest export action history + ingredient credential
+// preservation. (1) buildC2paManifest / embedC2pa / embedC2paInPdf accept
+// `actions` (a C2paActionInput[] — action code + optional digitalSourceType +
+// description), REPLACING the historic single created/published action; the new
+// exportActionSteps(format, flags) assembles an honest list from what an export
+// actually did (c2pa.created + c2pa.color_adjustments on CMYK/brand-palette +
+// c2pa.edited on print marks / experimental watermark + c2pa.converted on a
+// raster/video/PDF render — vector/text outputs add nothing). No `actions` →
+// byte-identical to before. verifyC2pa now surfaces each action's `description`.
+// (2) `ingredients` (C2paIngredient[] from prepareC2paIngredient /
+// prepareC2paIngredientFromStore, sourced from extractC2paStore) carry a placed
+// credentialed asset's manifests VERBATIM into the new store as a MULTI-manifest
+// store (ingredient manifests before the active one), plus a c2pa.ingredient.v3
+// assertion (activeManifest hashed-URI) and a c2pa.opened action that propagates
+// the ingredient's AI/ML digitalSourceType onto the NEW asset's own active
+// manifest (the opened action also carries parameters.ingredients, and the
+// c2pa.ingredient.v3 assertion its required validationResults) — so an AI or
+// camera origin is never laundered away (the AI flag fires from Lolly's signed
+// actions even if the ingredient manifests are stripped). Bridge (additive):
+// host.assets.credential?(id) returns a user upload's captured manifest store
+// (kept at ingest, manifest-only — no pixels/EXIF), and ExportOpts.ingredients
+// threads it runtime → export. Both the multi-action and multi-manifest outputs
+// validate as `Valid` in the reference c2patool (contentauth c2pa-rs) — see the
+// gated conformance test tests/c2pa-c2patool-conformance.test.ts — with only the
+// expected self-signed untrusted markers.
+export const ENGINE_VERSION = '1.26.0';

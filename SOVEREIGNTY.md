@@ -50,7 +50,10 @@ Honesty about the edges is part of the claim. These are real and intentional.
 
 - **The catalog origin is a trust anchor, and tool code is not yet verified at
   runtime.** Tools are *data, not code*, but that data includes `hooks.js`,
-  which the engine executes via `new Function`. The loader fetches and runs
+  which the engine executes via `new Function` **in the page realm — not a
+  sandbox**: hook code has the same reach as the app itself (async results are
+  time-boxed, but that bounds waiting, not capability), so untrusted tool code
+  is not safe to run until Worker isolation ships. The loader fetches and runs
   whatever the origin returns with no integrity check
   ([`engine/src/loader.ts`](engine/src/loader.ts)), and asset checksums are
   computed at **build time only** — there is deliberately no runtime

@@ -1058,7 +1058,7 @@ interface C2paClaim {
   generatorInfo: Record<string, string | number | boolean> | null;
   instanceId: unknown;
   manifestLabel: string;
-  actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown }>;
+  actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown }>;
 }
 // A file's provenance flagged as AI/ML-generated: `generated` = pixels produced
 // wholly by a trained model, `composite` = a human work with AI-generated parts
@@ -1068,7 +1068,10 @@ interface C2paAiOrigin {
   sourceType: string;
 }
 // One recorded provenance step — a C2PA action from any manifest in the chain.
-interface C2paHistoryStep { action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; }
+// `generator` is the claim_generator(_info) of the manifest that RECORDED this
+// step — the "who did it" the view renders as a software pill (softwareAgent, a
+// per-action field many writers omit, takes precedence when present).
+interface C2paHistoryStep { action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown; generator?: unknown; }
 interface C2paReport {
   found: boolean;
   state: 'valid' | 'invalid' | 'none';
@@ -1117,6 +1120,25 @@ function collectActionChain(store: Uint8Array): C2paHistoryStep[] {
   for (const manifestBox of root.children) {
     let manifest: Superbox;
     try { manifest = parseSuperbox(store, manifestBox); } catch { continue; }
+    // Pre-pass: this manifest's generator identity, attached to every step it
+    // records as the actor. v2 → claim_generator_info map's `name`; v1 → the
+    // same array's first entry, else the free-text claim_generator string.
+    let generator: unknown;
+    for (const child of manifest.children) {
+      let sub: Superbox;
+      try { sub = parseSuperbox(store, child); } catch { continue; }
+      if (sub.label !== 'c2pa.claim' && sub.label !== 'c2pa.claim.v2') continue;
+      try {
+        const claim = decodeCbor(contentOf(store, sub));
+        if (claim instanceof Map) {
+          const gi = claim.get('claim_generator_info');
+          generator = gi instanceof Map ? gi.get('name')
+            : (Array.isArray(gi) && gi[0] instanceof Map) ? gi[0].get('name')
+              : claim.get('claim_generator');
+        }
+      } catch { /* opaque claim — no generator */ }
+      break;
+    }
     for (const child of manifest.children) {
       let sub: Superbox;
       try { sub = parseSuperbox(store, child); } catch { continue; }
@@ -1135,6 +1157,8 @@ function collectActionChain(store: Uint8Array): C2paHistoryStep[] {
               when: act.get?.('when'),
               softwareAgent: sa instanceof Map ? sa.get('name') : sa,
               digitalSourceType: act.get?.('digitalSourceType'),
+              description: act.get?.('description'),
+              generator,
             });
           }
         } catch { /* opaque/absent actions — skip this assertion */ }
@@ -1145,11 +1169,90 @@ function collectActionChain(store: Uint8Array): C2paHistoryStep[] {
   // manifests of a chain (same action + time + agent + source type).
   const seen = new Set<string>();
   return chain.filter((s) => {
-    const key = JSON.stringify([s.action, s.when, s.softwareAgent, s.digitalSourceType]);
+    const key = JSON.stringify([s.action, s.when, s.softwareAgent, s.digitalSourceType, s.description]);
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+}
+
+// Everything the writer (engine/src/c2pa.ts) needs to carry a credentialed
+// ingredient's provenance into a NEW asset's manifest store, without importing
+// the write side (which would cycle). `manifestBoxes` are the ingredient store's
+// manifest superboxes verbatim (store order, active last) — copied wholesale so
+// the ingredient's own signatures stay intact; `activeLabel` is the last box's
+// label for the c2pa.ingredient reference; `digitalSourceType` is the strongest
+// AI/ML source type found anywhere in the ingredient's chain (propagated onto
+// the c2pa.opened action so the new asset never launders the AI origin away).
+export interface C2paIngredientData {
+  manifestBoxes: Uint8Array[];
+  activeLabel: string;
+  title?: string;
+  format: string;
+  digitalSourceType?: string;
+}
+
+/**
+ * Pull just the raw C2PA manifest store (the JUMBF 'c2pa' superbox) out of a
+ * credentialed file, with its sniffed container format. Returns null when the
+ * file carries no readable C2PA. The store is SMALL (no pixels/EXIF) — ingest
+ * keeps only this to preserve provenance without re-hoarding the metadata the
+ * upload pipeline deliberately strips.
+ */
+export function extractC2paStore(bytes: Uint8Array): { store: Uint8Array; format: SniffFormat } | null {
+  if (!(bytes instanceof Uint8Array)) return null;
+  const format = sniffFormat(bytes);
+  if (!format) return null;
+  try {
+    const ex = EXTRACTORS[format]?.(bytes);
+    return ex ? { store: ex.manifest, format } : null;
+  } catch { return null; }
+}
+
+/**
+ * Read a credentialed file's manifest store and package what the writer needs to
+ * preserve it as an ingredient. Returns null when the file carries no readable
+ * C2PA (nothing to preserve). Purely read-side — the writer stays cycle-free.
+ */
+export function prepareC2paIngredient(bytes: Uint8Array): C2paIngredientData | null {
+  const ex = extractC2paStore(bytes);
+  return ex ? prepareC2paIngredientFromStore(ex.store, ex.format) : null;
+}
+
+/** As {@link prepareC2paIngredient}, but from an already-extracted manifest store
+ *  (what ingest persists) plus the ingredient's original container format. */
+export function prepareC2paIngredientFromStore(store: Uint8Array, format: string): C2paIngredientData | null {
+  if (!(store instanceof Uint8Array)) return null;
+  let root: Superbox;
+  try {
+    const top = walkBoxes(store, 0, store.length);
+    if (!top.length) return null;
+    root = parseSuperbox(store, top[0]!);
+  } catch { return null; }
+  if (root.label !== 'c2pa' || !root.children.length) return null;
+  const manifestBoxes = root.children.map((b) => store.slice(b.start, b.end));
+  let activeLabel = '';
+  let title: string | undefined;
+  try {
+    const parts = parseC2paStore(store);
+    activeLabel = parts.manifestLabel;
+    const claim = decodeCbor(parts.claimBytes);
+    if (claim instanceof Map) {
+      const t = claim.get('dc:title');
+      if (typeof t === 'string') title = t;
+    }
+  } catch { return null; }
+  if (!activeLabel) return null;
+  // Strongest AI/ML source type in the chain, generated ranking above composite.
+  let digitalSourceType: string | undefined;
+  for (const s of collectActionChain(store)) {
+    const kind = aiKind(s.digitalSourceType);
+    if (kind && (!digitalSourceType || kind === 'generated')) {
+      digitalSourceType = s.digitalSourceType as string;
+      if (kind === 'generated') break;
+    }
+  }
+  return { manifestBoxes, activeLabel, title, format, digitalSourceType };
 }
 
 /**
@@ -1235,7 +1338,7 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   // maps share the same shape for the fields read here (action/when), except
   // softwareAgent is a bare string in v1 and a generator-info map in v2.
   const actionsAssertion = parts.assertions.find((a) => a.label === 'c2pa.actions' || a.label === 'c2pa.actions.v2');
-  let actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown }> = [];
+  let actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown; digitalSourceType?: unknown; description?: unknown }> = [];
   try {
     const decoded = actionsAssertion && (decodeCbor(actionsAssertion.content) as Map<unknown, unknown>).get('actions');
     if (Array.isArray(decoded)) {
@@ -1249,6 +1352,7 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
           // IPTC provenance kind of this step (digitalCapture / digitalCreation /
           // trainedAlgorithmicMedia …) — the signal behind the AI-generated flag.
           digitalSourceType: a.get?.('digitalSourceType'),
+          description: a.get?.('description'),
         };
       });
     }

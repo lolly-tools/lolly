@@ -202,8 +202,8 @@ function readExif(bytes: Uint8Array, base: number, len: number, out: FileMetadat
   const byTag = new Map<number, IfdEntry>();
   for (const e of ifd0) byTag.set(e.tag, e);
 
-  const make = asciiVal(dv, byTag.get(0x010f)!) ?? null;
-  const model = asciiVal(dv, byTag.get(0x0110)!) ?? null;
+  const make = byTag.has(0x010f) ? asciiVal(dv, byTag.get(0x010f)!) : null;
+  const model = byTag.has(0x0110) ? asciiVal(dv, byTag.get(0x0110)!) : null;
   push('Camera', [make, model].filter(Boolean).join(' ') || null, 'device', true);
   push('Software', byTag.has(0x0131) ? asciiVal(dv, byTag.get(0x0131)!) : null, 'software');
   push('Artist', byTag.has(0x013b) ? asciiVal(dv, byTag.get(0x013b)!) : null, 'authorship', true);

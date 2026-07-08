@@ -11,8 +11,11 @@
  * The runtime is platform-agnostic. It receives a host (the capability bridge)
  * and emits state updates. The shell renders them.
  *
- * Hooks (if the tool declares any) are loaded into a sandboxed context. The
- * runtime invokes them at the right lifecycle points and merges their effects.
+ * Hooks (if the tool declares any) are loaded via `new Function` with the host
+ * bridge injected as closure scope — a portability contract, NOT a security
+ * boundary (see getHookFactory). The runtime invokes them at the right
+ * lifecycle points, time-boxes their async results (HOOK_BUDGET_MS), and
+ * merges their effects.
  *
  * Patch semantics:
  *   Hooks return a plain object. Keys that match a declared input id update
@@ -33,8 +36,9 @@ import type { LoadedTool, ToolManifest } from './loader.ts';
 import type { ComposeMemo } from './compose.ts';
 import type {
   HostV1, AssetRef, ExportFormat, ExportOpts, MediaFrame, TokenSet,
-  AudioLevel, RecordOpts, RecordSession,
+  AudioLevel, RecordOpts, RecordSession, IngredientCredential,
 } from './bridge/host-v1.ts';
+import { prepareC2paIngredientFromStore } from './c2pa-verify.ts';
 
 /** One state emission: the current model plus the hydrated template. */
 export interface RuntimeState {
@@ -74,6 +78,29 @@ export interface RecordResult {
   blob: Blob;
   mimeType: string;
 }
+
+/**
+ * Per-hook time budgets (ms) for the runtime's async time-box. A hook that
+ * returns a Promise is RACED against its budget: on overrun the runtime logs
+ * the timeout, applies NO patch, and discards the late resolution — but the
+ * hook itself keeps executing (there is no in-realm preemption; a SYNCHRONOUS
+ * overrun can only be measured and warned after the fact). `onFrame`/`onLevel`
+ * are deliberately absent: they run once per frame/sample and are throttled by
+ * dropping overlapping samples instead (see startLive/driveLevels).
+ * `exportFile` gets a larger budget because it's a real-work path (e.g. PDF
+ * re-encode of a large file). `beforeRender` is declared in the hook contract
+ * but currently has no invocation site. Exported mutable so tests (and shells
+ * with unusual needs, e.g. a long page-capture beforeExport) can adjust it;
+ * the defaults are the documented contract.
+ */
+export const HOOK_BUDGET_MS = {
+  onInit: 5000,
+  onInput: 2000,
+  beforeRender: 5000,
+  beforeExport: 5000,
+  afterExport: 5000,
+  exportFile: 10000,
+};
 
 /** The lifecycle context every hook receives. */
 interface HookContext {
@@ -222,12 +249,35 @@ export async function createRuntime(
   // Available to templates alongside input values.
   let extras: Record<string, unknown> = {};
 
+  // Run one lifecycle hook under its HOOK_BUDGET_MS budget. An async result is
+  // raced: a timeout rejects HERE (the caller logs/records it and applies no
+  // patch) and the hook's eventual late resolution is discarded — withTimeout's
+  // promise has already settled, so the value never reaches mergePatch. The
+  // hook itself is NOT cancelled (no in-realm preemption). A synchronous hook
+  // has already finished by the time we can look at the clock, so a sync
+  // overrun is just measured and logged as a warning; its result still counts.
+  // A sync throw propagates to the caller's handler, same as before.
+  function runHook(name: keyof typeof HOOK_BUDGET_MS, invoke: () => unknown): Promise<unknown> {
+    const budget = HOOK_BUDGET_MS[name];
+    const started = Date.now();
+    const out = invoke();
+    if (out == null || typeof (out as { then?: unknown }).then !== 'function') {
+      const elapsed = Date.now() - started;
+      if (elapsed > budget) {
+        host.log('warn', `${name} ran ${elapsed}ms synchronously (budget ${budget}ms — sync hooks can't be preempted)`, { toolId: tool.manifest.id });
+      }
+      return Promise.resolve(out);
+    }
+    return withTimeout(out as Promise<unknown>, budget, tool.manifest.id);
+  }
+
   let hooks: Hooks | null = null;
   if (tool.hooksSource && tool.manifest.hooks) {
     hooks = await loadHooks(tool, host);
-    if (hooks.onInit) {
+    const onInit = hooks.onInit;
+    if (onInit) {
       try {
-        const patch = await withTimeout(hooks.onInit({ model: modelForHooks(model), host }), 5000, tool.manifest.id);
+        const patch = await runHook('onInit', () => onInit({ model: modelForHooks(model), host }));
         if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
       } catch (e) {
         // Record the failure (not just log it) so the shell can show a canvas-error
@@ -372,9 +422,10 @@ export async function createRuntime(
       // capitalisation) then triggers a one-frame correction on the re-emit below —
       // acceptable per the perf plan; the FINAL state is always the post-hook value.
       emit();
-      if (hooks?.onInput) {
+      const onInput = hooks?.onInput;
+      if (onInput) {
         try {
-          const patch = await withTimeout(hooks.onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }), 2000, tool.manifest.id);
+          const patch = await runHook('onInput', () => onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }));
           if (patch) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds));
             emit(); // re-emit with the hook's patch so the final state is correct
@@ -540,11 +591,12 @@ export async function createRuntime(
       if (!exportFileHook) {
         throw new Error(`Tool "${tool.manifest.id}" has no exportFile hook`);
       }
-      // Hook sandbox trust boundary: the result's shape is the tool's own
+      // Hook trust boundary: the result's shape is the tool's own
       // { bytes, mime, filename } contract, verified for bytes presence below.
-      const out = await withTimeout(
-        exportFileHook({ model: modelForHooks(model), host, opts }),
-        10000, tool.manifest.id,
+      // Errors (including a HOOK_BUDGET_MS timeout) propagate — the shell shows
+      // the transform's failure to the user; there's no degraded fallback here.
+      const out = await runHook('exportFile',
+        () => exportFileHook({ model: modelForHooks(model), host, opts }),
       ) as ExportFileResult | null | undefined;
       if (!out || out.bytes == null) {
         throw new Error(`exportFile produced no bytes (${tool.manifest.id})`);
@@ -553,8 +605,13 @@ export async function createRuntime(
     },
 
     async export(renderedNode, format, opts = {}) {
-      if (hooks?.beforeExport) {
-        await hooks.beforeExport({ node: renderedNode, format, opts, host });
+      const beforeExport = hooks?.beforeExport;
+      if (beforeExport) {
+        // Time-boxed via HOOK_BUDGET_MS, but errors (including the timeout)
+        // PROPAGATE and fail this export visibly — beforeExport is where tools
+        // raise user-facing preconditions (e.g. url-shot's "enter a URL"), and
+        // exporting an unstaged canvas silently would be worse than failing.
+        await runHook('beforeExport', () => beforeExport({ node: renderedNode, format, opts, host }));
       }
       // Surface the 'Convert paths' export toggle (a synthetic export-group input)
       // to the bridge as opts.convertPaths, unless the caller set it explicitly.
@@ -586,12 +643,48 @@ export async function createRuntime(
       // per format). This keeps the single export entry point — every shell that
       // calls runtime.export gets these formats for free.
       const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
+      // Preserve the Content Credentials of any credentialed image the user
+      // PLACED into this design — carried into the export's provenance chain as
+      // an ingredient (engine c2pa.ts), so an AI-generated or camera-signed
+      // source is never laundered away. Only when we're stamping (never the
+      // on-device utility path) and only for user uploads whose credential the
+      // host captured at ingest. A credential we can't read is skipped, never
+      // fatal to the export.
+      let ingredients: IngredientCredential[] | undefined;
+      if (!isOnDevice && meta !== undefined && host.assets?.credential) {
+        const ids = new Set<string>();
+        const note = (v: unknown): void => {
+          if (v && typeof v === 'object') {
+            const { id, source } = v as { id?: unknown; source?: unknown };
+            if (typeof id === 'string' && source === 'user') ids.add(id);
+          }
+        };
+        for (const input of model) {
+          if (input.type === 'asset') note(input.value);
+          else if (input.type === 'blocks' && Array.isArray(input.value)) {
+            const assetFields = (input.fields ?? []).filter(f => f.type === 'asset').map(f => f.id);
+            for (const item of input.value) {
+              if (item && typeof item === 'object') for (const fid of assetFields) note((item as Record<string, unknown>)[fid]);
+            }
+          }
+        }
+        const prepared: IngredientCredential[] = [];
+        for (const id of ids) {
+          try {
+            const cred = await host.assets.credential(id);
+            const ing = cred?.store ? prepareC2paIngredientFromStore(cred.store, cred.format) : null;
+            if (ing) prepared.push(ing);
+          } catch { /* unreadable credential — skip, don't fail the export */ }
+        }
+        if (prepared.length) ingredients = prepared;
+      }
       let blob;
       try {
         blob = await host.export.render(renderedNode as Element, format as ExportFormat, {
           ...opts,
           watermark: opts.watermark ?? (isExperimental && !isOnDevice),
           meta,
+          ...(ingredients ? { ingredients } : {}),
           // Tag output with a colour profile by default (sRGB for raster, the
           // default press condition for CMYK PDF). Thumbnails stay untagged.
           colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),
@@ -600,9 +693,17 @@ export async function createRuntime(
       } finally {
         // afterExport is a cleanup guarantee (e.g. tools that mutate the live node
         // in beforeExport) — run it even if render throws, so a failed export
-        // can't leave hook state / the DOM in the export configuration.
-        if (hooks?.afterExport) {
-          await hooks.afterExport({ node: renderedNode, format, opts, host });
+        // can't leave hook state / the DOM in the export configuration. Its errors
+        // and timeouts are logged, NOT rethrown (a throw from a finally would mask
+        // the render's own error); the budget only bounds how long we WAIT — the
+        // cleanup itself is never cancelled, so a slow afterExport still finishes.
+        const afterExport = hooks?.afterExport;
+        if (afterExport) {
+          try {
+            await runHook('afterExport', () => afterExport({ node: renderedNode, format, opts, host }));
+          } catch (e) {
+            host.log('warn', `afterExport ${(e as Error).message}`, { toolId: tool.manifest.id });
+          }
         }
       }
       return blob;
@@ -787,7 +888,7 @@ async function resolveTokenRefs(model: InputModelItem[], host: HostV1): Promise<
   });
 }
 
-// What the hooks.js sandbox factory returns: the seven lifecycle exports, each
+// What the hooks.js factory returns: the eight lifecycle exports, each
 // whatever the tool defined (or null). Untrusted until narrowed in loadHooks.
 type HookFactory = (host: HostV1) => Record<string, unknown>;
 
@@ -807,7 +908,10 @@ function getHookFactory(tool: LoadedTool): HookFactory {
     // closure-scope injection, NOT isolation: `new Function` still runs in the
     // realm's global scope, so hooks CAN reach window/document/fetch when the
     // shell is a browser (and some shipping tools rely on it). Not a security
-    // sandbox; the host bridge is just the supported, portable API surface.
+    // sandbox; the host bridge is just the supported, portable API surface —
+    // third-party/untrusted tool code is NOT safe to run until Worker
+    // isolation ships. Async results are time-boxed (HOOK_BUDGET_MS) but a
+    // synchronous runaway hook cannot be preempted in-realm.
     // typeof guards prevent ReferenceError for hooks that aren't declared.
     // The assertion is the `new Function` trust boundary: the factory's return
     // shape is pinned by the source string built right here.
@@ -829,7 +933,7 @@ function getHookFactory(tool: LoadedTool): HookFactory {
   return factory;
 }
 
-// Narrow one untrusted sandbox export to a callable hook. The assertion is the
+// Narrow one untrusted hooks.js export to a callable hook. The assertion is the
 // `new Function` trust boundary: the value's runtime signature is whatever the
 // tool wrote; the declared type is the contract the runtime invokes it with.
 function hookFn<T extends (...args: never[]) => unknown>(v: unknown): T | null {
@@ -887,7 +991,7 @@ function mergePatch(
   const modelPatch: Record<string, InputValue> = {};
   let hasModelPatch = false;
   for (const [k, v] of Object.entries(patch as Record<string, unknown>)) {
-    // Hook sandbox trust boundary: a patched input value is whatever the tool
+    // Hook trust boundary: a patched input value is whatever the tool
     // computed — the same latitude the untyped runtime always gave hooks.
     if (ids.has(k)) { modelPatch[k] = v as InputValue; hasModelPatch = true; }
     else newExtras[k] = v;
