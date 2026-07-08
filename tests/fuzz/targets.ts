@@ -140,11 +140,14 @@ const PDF_CONTENT_SEEDS: string[] = [
   '0.1 0.2 0.3 0.4 k 0 0 10 10 re B',
 ];
 const TOUNICODE_SEED = 'begincmap\nbeginbfchar\n<0041> <0041>\n<0042> <0042>\nendbfchar\nbeginbfrange\n<0043> <0045> <0043>\n<0046> <0048> [<0046> <0047> <0048>]\nendbfrange\nendcmap';
+// A wide-code (8 hex digit) variant so byte mutations can reach the range-span
+// blow-up class the parser must clamp (a hostile CMap driving a giant loop).
+const TOUNICODE_WIDE_SEED = 'begincmap\nbeginbfrange\n<00000010> <00000020> <0041>\n<00010000> <00010005> [<0041> <0042> <0043> <0044> <0045> <0046>]\nendbfrange\nendcmap';
 
 export const pdfMapTarget: FuzzTarget = {
   name: 'pdf-map',
   async seeds() {
-    return [...PDF_CONTENT_SEEDS.map(bytesOf), bytesOf(TOUNICODE_SEED)];
+    return [...PDF_CONTENT_SEEDS.map(bytesOf), bytesOf(TOUNICODE_SEED), bytesOf(TOUNICODE_WIDE_SEED)];
   },
   async invoke(bytes) {
     // Byte-transparent latin1 view — the shell hands the interpreter a decoded
