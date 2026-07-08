@@ -1,0 +1,47 @@
+{
+  "id": "voice-recorder",
+  "name": "Voice Recorder",
+  "description": "Record a voice note with a live level meter and gentle coaching, then save it as MP3.",
+  "a11yLabel": "Voice recorder — level {{default dbText \"idle\"}}",
+  "version": "1.0.1",
+  "engineVersion": "^1.17.0",
+  "status": "experimental",
+  "category": "everyone",
+  "tags": ["audio", "voice", "record", "recording", "microphone", "voiceover", "podcast", "mp3", "meter", "levels"],
+  "featured": {
+    "order": 2,
+    "blurb": "Record a clean voice note with live level coaching"
+  },
+  "capabilities": ["microphone"],
+  "render": {
+    "width": 1080,
+    "height": 1080,
+    "formats": ["png", "svg"],
+    "capture": "audio",
+    "actions": ["download", "save"],
+    "printMarks": false,
+    "convertPaths": false
+  },
+  "inputs": [
+    { "id": "title", "label": "Label", "type": "text", "default": "Voice note", "maxLength": 60, "help": "Names the recording card and the saved file." },
+    {
+      "id": "targetLevel", "label": "Target level", "type": "select", "default": "normal",
+      "help": "What counts as 'just right' for the coaching prompts.",
+      "options": [
+        { "value": "soft", "label": "Soft · close mic" },
+        { "value": "normal", "label": "Normal speech" },
+        { "value": "loud", "label": "Loud · room" }
+      ]
+    },
+    { "id": "showTips", "label": "Coaching tips", "type": "boolean", "default": true, "help": "Live prompts like ‘get closer’ or ‘you’re clipping’." },
+    {
+      "id": "theme", "label": "Card style", "type": "select", "default": "dark",
+      "options": [
+        { "value": "dark", "label": "Dark" },
+        { "value": "light", "label": "Light" }
+      ]
+    },
+    { "id": "accent", "label": "Accent", "type": "color", "default": "#4f84ba" }
+  ],
+  "hooks": { "onInit": true, "onLevel": true }
+}

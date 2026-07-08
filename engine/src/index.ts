@@ -90,6 +90,14 @@ export {
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
 } from './tokens.ts';
 export {
+  parseOklch, formatOklch, hexToOklch, oklchToHex, contrastRatio, deriveBrandTokens,
+} from './brand-derive.ts';
+export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
+export {
+  coerceTokensDoc, assembleTokenSetFiles, extractPenpotProject, summarizeTokensDoc,
+} from './brand-import.ts';
+export type { TokensExtraction } from './brand-import.ts';
+export {
   parseThemedAssetId, buildThemedAssetId, isThemableIconSvg, isValidThemeId,
   applyIconTheme, restyleIconTheme, parseIconThemesDoc,
 } from './icon-theme.ts';
@@ -354,4 +362,14 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // assertion URL that plants "c2pa" in a continuation chunk no longer trips a false
 // "more than one manifest store" rejection (multi-manifest JPEGs, e.g. a design
 // composed from AI-generated ingredients, now verify like their PNG/PDF siblings).
-export const ENGINE_VERSION = '1.27.0';
+// 1.28.0 — additive: OKLCH-native brand tokens. brand-derive.ts is the engine's
+// sRGB↔OKLCH authority (parseOklch/formatOklch/hexToOklch/oklchToHex — with
+// deterministic chroma-reduction gamut mapping — plus WCAG 2.1 contrastRatio)
+// and deriveBrandTokens(), which turns one brand colour into a complete layered
+// DTCG document (base ramps + brand-tinted spectrum + contrast-enforced
+// light/dark semantic slots) in exactly the shape createTokenSet consumes.
+// colorToHex now reads oklch()/lch() strings via that module, and the barrel
+// exports the brand-import container extractors (coerceTokensDoc /
+// assembleTokenSetFiles / extractPenpotProject / summarizeTokensDoc). Pure
+// engine modules; no bridge change.
+export const ENGINE_VERSION = '1.28.0';

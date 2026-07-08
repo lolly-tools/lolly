@@ -1,0 +1,57 @@
+/* Layout Studio — a free-form WYSIWYG canvas of positioned boxes.
+   Almost all per-box styling is computed in hooks.js and applied inline (so the
+   same output renders headless in CLI/URL mode). These classes carry only the
+   structural layout the inline styles build on. Auto-scoped to #tool-canvas. */
+
+.artboard {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.lolly-box {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  overflow: hidden;
+  /* transform-origin centre so hooks.js rotate() spins about the box middle —
+     this must match the free-canvas overlay's rotation model. */
+  transform-origin: 50% 50%;
+}
+
+.lolly-box-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* A Lottie box reuses .lolly-box-img for position/size, but it's a <div> the shell's
+   lottie-mount enhancer fills with an <svg> (object-fit doesn't apply to a div, so the
+   fit is honoured via the player's preserveAspectRatio from data-lottie-fit). Keep the
+   player non-interactive so it never steals the editor's drag/select pointer events. */
+.lolly-box-lottie { pointer-events: none; }
+.lolly-box-lottie > svg { display: block; width: 100%; height: 100%; }
+
+.lolly-box-text {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  /* Inner padding is computed per box in hooks.js (the `pad` field) and applied
+     inline, so it renders identically headless; this is just the resting default. */
+  padding: 8px;
+  box-sizing: border-box;
+  font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
+  line-height: 1.12;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+/* Semi-rich text: **bold** / *italic* render relative to the block's own weight,
+   so they still read as emphasis whatever the base weight is set to. Bullets are
+   just "•"-prefixed lines (see hooks.js richText), so no list styling is needed. */
+.lolly-box-text strong { font-weight: bolder; }
+.lolly-box-text em { font-style: italic; }

@@ -1,0 +1,8 @@
+<div class="artboard" style="background:{{lookup bgStyle 0}}">
+  {{#each boxes}}
+  <div class="lolly-box" data-canvas-input="boxes:{{@index}}" data-box-id="{{default id @index}}" style="{{lookup ../boxStyle @index}}">
+    {{{lookup ../mediaHtml @index}}}
+    <div class="lolly-box-text" style="{{lookup ../textStyle @index}}">{{{lookup ../textHtml @index}}}</div>
+  </div>
+  {{/each}}
+</div>

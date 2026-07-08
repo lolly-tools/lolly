@@ -9,7 +9,7 @@
     },
     "lolly-start": {
       "label": "Lolly Start (blank brand)",
-      "tools": ["community"],
+      "tools": ["community", "brands/lolly-start/tools"],
       "catalog": "brands/lolly-start/catalog"
     }
   }

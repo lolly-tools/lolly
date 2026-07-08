@@ -101,6 +101,39 @@ test('colorToHex normalises every form Penpot can emit', () => {
   assert.equal(colorToHex('rebeccapurple'), 'rebeccapurple');  // unknown named colour — untouched
 });
 
+test('colorToHex parses oklch()/lch() via the brand-derive math', () => {
+  assert.equal(colorToHex('oklch(100% 0 0)'), '#ffffff');
+  assert.equal(colorToHex('oklch(0% 0 0)'), '#000000');
+  assert.equal(colorToHex('lch(100% 0 0)'), '#ffffff'); // CIELAB form converts via Lab
+  // sRGB red's OKLCH coordinates land back on red (small rounding slack).
+  const red = colorToHex('oklch(62.796% 0.25768 29.234)')!;
+  assert.match(red, /^#[0-9a-f]{6}$/);
+  assert.ok(
+    Math.abs(parseInt(red.slice(1, 3), 16) - 0xff) <= 1 &&
+    parseInt(red.slice(3, 5), 16) <= 1 && parseInt(red.slice(5, 7), 16) <= 1,
+    `≈ #ff0000, got ${red}`,
+  );
+  assert.match(colorToHex('oklch(62% 0.11 250 / 0.5)')!, /^#[0-9a-f]{8}$/); // alpha → 8-digit hex
+  // Out-of-sRGB chroma gamut-maps to a real hex instead of clipping.
+  assert.match(colorToHex('oklch(62% 0.35 145)')!, /^#[0-9a-f]{6}$/);
+});
+
+test('createTokenSet: oklch() $values resolve and swatch to hex', () => {
+  const ts = createTokenSet({
+    color: {
+      $type: 'color',
+      brand: { $value: 'oklch(62% 0.11 250)' },
+      semantic: { primary: { $value: '{color.brand}' } }, // alias onto an oklch token
+    },
+  });
+  assert.equal(ts.resolve('{color.brand}'), 'oklch(62% 0.11 250)'); // raw value survives
+  const brand = ts.colors().find(s => s.path === 'color.brand')!;
+  assert.match(brand.value, /^#[0-9a-f]{6}$/); // swatch is picker-ready hex
+  const primary = ts.colors().find(s => s.path === 'color.semantic.primary')!;
+  assert.equal(primary.value, brand.value); // alias resolves to the same colour
+  assert.equal(resolveColorValue(ts, '{color.brand}'), brand.value); // hydration path too
+});
+
 test('resolveColorValue: ref + cached value model', () => {
   const ts = createTokenSet(BRAND);
 

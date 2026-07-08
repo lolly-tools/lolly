@@ -19,14 +19,16 @@
  *     A document with no `$themes` is treated as one implicit set (paths keep
  *     their `color.brand.x` shape; there is no set prefix).
  *
- * Colour values: read every form Penpot can emit (hex, rgb/rgba, hsl/hsla, and
- * the DTCG colour *object*), normalise to a hex string for the rest of the app
- * (which already speaks `#rrggbb` / `#rrggbbaa` / `transparent`). CMYK print
- * anchors ride in `$extensions` under the SUSE vendor key — DTCG reserves
- * `$extensions` for exactly this, and Penpot round-trips it untouched.
+ * Colour values: read every form Penpot can emit (hex, rgb/rgba, hsl/hsla,
+ * oklch/lch — the lolly-start brand-token format — and the DTCG colour
+ * *object*), normalise to a hex string for the rest of the app (which already
+ * speaks `#rrggbb` / `#rrggbbaa` / `transparent`). CMYK print anchors ride in
+ * `$extensions` under the SUSE vendor key — DTCG reserves `$extensions` for
+ * exactly this, and Penpot round-trips it untouched.
  */
 
 import type { TokenSet, TokenEntry, ColorSwatch } from './bridge/host-v1.ts';
+import { parseOklch, oklchToHex } from './brand-derive.ts';
 
 // Vendor extension namespace for Lolly-specific token metadata (CMYK anchors,
 // swatch grouping hints). Reverse-domain per the DTCG `$extensions` convention.
@@ -292,6 +294,12 @@ export function colorToHex(value: unknown): string | null | undefined {
     const p = (m[1] ?? '').split(/[,/]/).map(x => x.trim());
     const [r, g, b] = hslToRgb(num(p[0]), pct(p[1]), pct(p[2]));
     return rgbaToHex(r, g, b, p[3] != null ? alpha(p[3]) : 1);
+  }
+  if (/^(?:ok)?lch\(/i.test(s)) {
+    // oklch()/lch() — the OKLCH-native brand-token format. The conversion math
+    // is brand-derive.ts's (single source of truth), never duplicated here.
+    const ok = parseOklch(s);
+    if (ok) return oklchToHex(ok);
   }
   return s; // a named CSS colour or something we don't parse — leave it alone
 }
