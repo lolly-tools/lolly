@@ -26,10 +26,14 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const core = readFileSync(new URL('../shells/web/src/lib/audio-coach-core.ts', import.meta.url), 'utf8');
-const hook = readFileSync(new URL('../tools/voice-recorder/hooks.js', import.meta.url), 'utf8');
+// voice-recorder ships in the (private) SUSE brand pack; without it mounted
+// (lolly-start profile / public CI) there is nothing to compare against.
+const hookUrl = new URL('../tools/voice-recorder/hooks.js', import.meta.url);
+const hook = existsSync(hookUrl) ? readFileSync(hookUrl, 'utf8') : '';
+const SKIP_SUSE = !hook && 'SUSE brand pack not mounted (see profiles.json)';
 
 // Read a named `NAME = <number>` literal from the core module (source of truth).
 function coreConst(name: string): string {
@@ -52,7 +56,7 @@ function hasNumber(src: string, n: string): boolean {
   return new RegExp('(?<![\\d.])' + esc + '(?![\\d.])').test(src);
 }
 
-test('audio-coaching BANDS match between shell core and voice-recorder hook', () => {
+test('audio-coaching BANDS match between shell core and voice-recorder hook', { skip: SKIP_SUSE }, () => {
   for (const row of ['soft', 'normal', 'loud']) {
     assert.deepEqual(
       band(hook, row),
@@ -62,7 +66,7 @@ test('audio-coaching BANDS match between shell core and voice-recorder hook', ()
   }
 });
 
-test('audio-coaching room/speech thresholds are mirrored in voice-recorder hook', () => {
+test('audio-coaching room/speech thresholds are mirrored in voice-recorder hook', { skip: SKIP_SUSE }, () => {
   for (const name of ['NOISY_FLOOR_DBFS', 'HUM_RATIO', 'HISS_FLATNESS', 'SPEAKING_SNR_DB']) {
     const value = coreConst(name);
     assert.ok(

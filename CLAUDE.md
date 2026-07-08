@@ -11,11 +11,21 @@ The package name, repo, and working directory are all `lolly`.
 ## Commands
 
 ```bash
-# This repo is split into submodules — tools/, catalog/, services/{mcp,ca}, and every
-# shells/* live in github.com/lolly-tools/*. Clone with --recurse-submodules, or:
+# This repo is split into submodules — community/ (tools), brands/suse/ (PRIVATE brand pack),
+# services/{mcp,ca}, docs/, and every shells/* live in github.com/lolly-tools/*.
+# Clone with --recurse-submodules, or:
 git submodule update --init --recursive   # REQUIRED before npm install (workspaces need every package.json)
+                                          # brands/suse is `update = none` (private) — SUSE devs opt in:
+git submodule update --init --checkout brands/suse
 
-npm install                  # install workspace deps (root, engine, shells/web, shells/cli)
+npm install                  # install workspace deps; postinstall builds the tools/ + catalog PROFILE VIEWS
+
+# Content profiles — tools/ and catalog/ at the repo root are gitignored VIEWS of the
+# active profile (profiles.json), built by scripts/use-profile.ts. NEVER commit them.
+npm run profile              # show active + available profiles
+npm run profile:suse         # community + SUSE tools, SUSE catalog (needs brands/suse mounted)
+npm run profile:start        # blank brand: community tools + a single neutral tokens asset (brands/lolly-start)
+npm run ingest:brand -- <src> --name <brand> [--register|--activate]  # hydrate a brand pack from DTCG/Tokens-Studio/Penpot tokens (scripts/ingest-brand.ts)
 
 npm run dev:web              # run the web shell (Vite) + live-rebuild the /info site on docs changes
 npm run build:web            # production build of the web shell — builds the /info site first
@@ -48,14 +58,17 @@ There is no lint script configured. The codebase is **TypeScript** — engine, b
 ### The three-layer separation (this is the core idea)
 
 ```
-engine/   ← platform-agnostic core. Knows NOTHING about SUSE, the DOM, storage, or networking.
-shells/   ← host implementations. Each provides a "capability bridge" the engine calls into.
-tools/    ← tool definitions (manifest + template + hooks). Data, not code. SUSE-specific content.
+engine/     ← platform-agnostic core. Knows NOTHING about brands, the DOM, storage, or networking.
+shells/     ← host implementations. Each provides a "capability bridge" the engine calls into.
+community/  ← brand-agnostic tool definitions (manifest + template + hooks). Data, not code. Public.
+brands/     ← brand packs: suse/ (PRIVATE submodule: SUSE tools + catalog), lolly-start/ (blank, parent-owned).
+tools/      ← VIEW (gitignored): the active profile's merged tool set — community/* ∪ brands/<active>/tools/*.
+catalog/    ← VIEW (gitignored): symlink to the active brand's catalog.
 ```
 
 - `engine/` has **no** dependency on a DOM library, framework, or storage backend (see `engine/package.json` — only `handlebars` + `ajv`). Everything platform-specific is injected at runtime by the shell via the bridge.
 - **Tools never import from the engine** and never touch the DOM/filesystem/network directly. They call `host.*` methods. This is what makes one tool run unchanged in browser, Tauri, and CLI.
-- **Repository split (done):** `tools/`, `catalog/`, `services/mcp`, `services/ca`, and every `shells/*` are now **git submodules** hosted under [github.com/lolly-tools](https://github.com/lolly-tools) (all public), mounted at their existing paths — so npm workspaces, relative build paths, and `--archive` deploys are unchanged. `engine/`, `schemas/`, `docs/`, `api/`, `scripts/`, `tests/` stay in this parent repo. The split toolkit + day-to-day workflow live in `scripts/subrepo/` (see its README): `sync.sh` builds + pushes changed submodules and bumps parent pointers, `status.sh` shows state. Editing a tool now touches up to three repos (manifest → `lolly-suse-tools`, regenerated `index.json` → `lolly-suse-catalog`, pointer bump → parent). The no-cross-imports rule stays enforced so the split stays clean. **Do not add SUSE-specific or DOM-specific logic to `engine/`.** Note: `catalog/assets/suse/music/` (licensed PremiumBeat tracks) is included in the public `lolly-suse-catalog` **only until 2026-08-29**, when it is removed (see `catalog/NOTICE.md`).
+- **Repository split (done — brand-pack layout since 2026-07-08):** content is mounted as packs: `community/` → public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) (the 14 brand-agnostic tools: utilities, qr-code, street-map, filter-*), `brands/suse/` → **private** `suse-lolly` (32 SUSE tools + the full SUSE catalog, incl. tokens and the PremiumBeat music — private, so the old 2026-08-29 public-removal deadline no longer applies to it), plus `services/mcp`, `services/ca`, `docs/`, and every `shells/*` as public submodules. `engine/`, `schemas/`, `api/`, `scripts/`, `tests/`, `brands/lolly-start/`, and `profiles.json` stay in this parent repo. The repo-root `tools/` and `catalog/` are gitignored **profile views** built by `scripts/use-profile.ts` (symlink farm; real copies on Vercel where `postinstall` runs with `VERCEL=1`, and the views are `.vercelignore`d) — every script/shell/deploy path still consumes those two paths unchanged. `brands/suse` is `update = none` in `.gitmodules` so public clones (and CI) skip the private pack and fall back to the `lolly-start` profile. The split toolkit + day-to-day workflow live in `scripts/subrepo/` (see its README); `loldev profile <name>` switches profiles. Editing a SUSE tool touches two repos (`suse-lolly` + parent pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated `index.json`, parent pointer). The no-cross-imports rule stays enforced so the split stays clean. **Do not add SUSE-specific or DOM-specific logic to `engine/`, and never commit the `tools/`/`catalog/` views.** The retired public `lolly-suse-tools` / `lolly-suse-catalog` repos await archiving (music must leave the public one before 2026-08-29).
 
 ### The Capability Bridge (`engine/src/bridge/host-v1.ts`)
 
@@ -115,8 +128,10 @@ tools/<id>/
 | `shells/web/` | Vite PWA. Bridge impls under `src/bridge/`, views under `src/views/`, catalog sync under `src/catalog/` (all `.ts`) |
 | `shells/cli/` | `bin/lolly.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
 | `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` |
-| `tools/` | 46 tool directories (qr-code, chart-creator, meeting-planner, strip-data, text-helper, etc.) |
-| `catalog/` | `tools/index.json` (generated registry) + `assets/` (asset registry + files, SUSE-specific) |
+| `community/` | 14 brand-agnostic tool dirs (qr-code, street-map, strip-data, text-helper, filter-*, …) — public submodule `lolly-tools` |
+| `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (32 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |
+| `brands/lolly-start/` | parent-owned blank brand: near-empty `catalog/` (one neutral tokens asset) — where the brand-import (DTCG) experience gets built |
+| `tools/`, `catalog/` | gitignored profile VIEWS of the above (scripts/use-profile.ts + profiles.json) — what every script/shell actually reads |
 | `schemas/` | `tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json` |
 | `scripts/` | `build-catalog-index.ts`, `checksum-assets.ts`, `validate-catalog.ts` |
 | `docs/` | architecture, authoring guides, positioning, URL mode; `build.ts` builds the info site |

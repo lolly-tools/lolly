@@ -1,0 +1,727 @@
+{
+  "version": "1",
+  "generatedAt": "2026-07-08T12:59:14.220Z",
+  "tools": [
+    {
+      "id": "color-palette",
+      "name": "Color Palette",
+      "description": "Browse SUSE brand colors — click a swatch to copy it.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "utility",
+      "formats": [
+        "html"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z\" /><circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /></svg>",
+      "preview": "/tools/color-palette/card.svg"
+    },
+    {
+      "id": "compress-pdf",
+      "name": "Compress PDF",
+      "description": "Shrink a PDF by recompressing its images — on your device.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "pdf"
+      ],
+      "width": 760,
+      "height": 620,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 15 6 6m-6-6v4.8m0-4.8h4.8\" /><path d=\"M9 19.8V15m0 0H4.2M9 15l-6 6\" /><path d=\"M15 4.2V9m0 0h4.8M15 9l6-6\" /><path d=\"M9 4.2V9m0 0H4.2M9 9 3 3\" /></svg>",
+      "preview": "/tools/compress-pdf/card.svg"
+    },
+    {
+      "id": "countdown-timer",
+      "name": "Countdown Timer",
+      "description": "A focused countdown with a live progress ring. Click to pause.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "formats": [
+        "html"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\" /><line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\" /><circle cx=\"12\" cy=\"14\" r=\"8\" /></svg>",
+      "preview": "/tools/countdown-timer/card.svg"
+    },
+    {
+      "id": "filter-duotone",
+      "name": "Filter: Duotone",
+      "description": "A two-color duotone for any photo — shadows one color, highlights another.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 18a6 6 0 0 0 0-12v12z\" /></svg>",
+      "preview": "/catalog/previews/filter-duotone.svg",
+      "examples": [
+        {
+          "label": "Pine & peach",
+          "values": {
+            "colorFg": "#0c322c",
+            "colorBg": "#fcb244"
+          }
+        },
+        {
+          "label": "Jade duotone",
+          "values": {
+            "colorFg": "#0c322c",
+            "colorBg": "#30ba78"
+          }
+        },
+        {
+          "label": "Ocean duotone",
+          "values": {
+            "colorFg": "#000000",
+            "colorBg": "#0a9bd6"
+          }
+        },
+        {
+          "label": "Teal & mint",
+          "values": {
+            "colorFg": "#0c322c",
+            "colorBg": "#2fb9a0"
+          }
+        },
+        {
+          "label": "Electric duotone",
+          "values": {
+            "colorFg": "#000000",
+            "colorBg": "#2453ff"
+          }
+        },
+        {
+          "label": "Sunset duotone",
+          "values": {
+            "colorFg": "#0c322c",
+            "colorBg": "#fe7c3f"
+          }
+        }
+      ]
+    },
+    {
+      "id": "filter-halftone",
+      "name": "Filter: Halftone",
+      "description": "Vector halftone from any photo — dots sized by brightness.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "svg",
+        "pdf",
+        "pdf-cmyk",
+        "emf",
+        "png",
+        "webp",
+        "avif",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1000,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"5\" r=\"1\" /><circle cx=\"19\" cy=\"5\" r=\"1\" /><circle cx=\"5\" cy=\"5\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"19\" r=\"1\" /><circle cx=\"19\" cy=\"19\" r=\"1\" /><circle cx=\"5\" cy=\"19\" r=\"1\" /></svg>",
+      "preview": "/tools/filter-halftone/card.svg",
+      "examples": [
+        {
+          "label": "Fine green dots",
+          "values": {
+            "colorSource": "solid",
+            "fgColor": "#30ba78",
+            "bgColor": "#ffffff",
+            "gridSize": 18,
+            "shape": "circle"
+          }
+        },
+        {
+          "label": "Bold ink squares",
+          "values": {
+            "colorSource": "solid",
+            "fgColor": "#0c322c",
+            "bgColor": "#ffffff",
+            "gridSize": 28,
+            "dotScale": 1.4,
+            "shape": "square"
+          }
+        },
+        {
+          "label": "Comic diamonds",
+          "values": {
+            "colorSource": "solid",
+            "fgColor": "#0a9bd6",
+            "bgColor": "#ffffff",
+            "gridSize": 22,
+            "shape": "diamond"
+          }
+        },
+        {
+          "label": "Full-colour screen",
+          "values": {
+            "colorSource": "image",
+            "colorLevels": "0",
+            "gridSize": 20,
+            "shape": "circle"
+          }
+        },
+        {
+          "label": "Inverted mint on ink",
+          "values": {
+            "colorSource": "solid",
+            "fgColor": "#2fb9a0",
+            "bgColor": "#0c322c",
+            "gridSize": 22,
+            "invert": true
+          }
+        },
+        {
+          "label": "Coarse amber",
+          "values": {
+            "colorSource": "solid",
+            "fgColor": "#fcb244",
+            "bgColor": "#0c322c",
+            "gridSize": 34,
+            "dotScale": 1.6,
+            "shape": "circle"
+          }
+        }
+      ]
+    },
+    {
+      "id": "filter-pixel-stretch",
+      "name": "Filter: Pixel Stretch",
+      "description": "Smear a column of pixels across a photo from a threshold line. Works live.",
+      "version": "1.3.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><line x1=\"9\" y1=\"4\" x2=\"9\" y2=\"20\"/><line x1=\"9\" y1=\"8.5\" x2=\"18.5\" y2=\"8.5\"/><line x1=\"9\" y1=\"12\" x2=\"15.5\" y2=\"12\"/><line x1=\"9\" y1=\"15.5\" x2=\"19\" y2=\"15.5\"/></svg>",
+      "preview": "/catalog/previews/filter-pixel-stretch.svg",
+      "examples": [
+        {
+          "label": "Smear right",
+          "values": {
+            "direction": "right",
+            "threshold": 42,
+            "spread": 100
+          }
+        },
+        {
+          "label": "Smear left",
+          "values": {
+            "direction": "left",
+            "threshold": 55,
+            "spread": 100
+          }
+        },
+        {
+          "label": "Pull down",
+          "values": {
+            "direction": "down",
+            "threshold": 40,
+            "spread": 100
+          }
+        },
+        {
+          "label": "Jade-graded stretch",
+          "values": {
+            "direction": "down",
+            "threshold": 50,
+            "spread": 100,
+            "saturation": 140,
+            "treatmentColor": "#30ba78",
+            "blendMode": "overlay",
+            "treatmentIntensity": 30
+          }
+        },
+        {
+          "label": "Ember pull-up",
+          "values": {
+            "direction": "up",
+            "threshold": 46,
+            "spread": 100,
+            "saturation": 120,
+            "treatmentColor": "#fe7c3f",
+            "blendMode": "overlay",
+            "treatmentIntensity": 28
+          }
+        },
+        {
+          "label": "Cobalt screen smear",
+          "values": {
+            "direction": "right",
+            "threshold": 60,
+            "spread": 85,
+            "treatmentColor": "#192072",
+            "blendMode": "screen",
+            "treatmentIntensity": 24
+          }
+        }
+      ]
+    },
+    {
+      "id": "filter-posterize",
+      "name": "Filter: Posterize Bitmap",
+      "description": "Trace any photo into flat, screenprint-style vector colour separations.",
+      "version": "1.1.0",
+      "status": "experimental",
+      "category": "designer",
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpg",
+        "webp",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"/><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"/><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"/></svg>",
+      "preview": "/tools/filter-posterize/card.svg"
+    },
+    {
+      "id": "filter-scanline",
+      "name": "Filter: Scanline",
+      "description": "Horizontal 'infinity lines' scanline vector effect from any photo",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "svg",
+        "png",
+        "webp",
+        "avif",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1000,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 12h10\" /></svg>",
+      "preview": "/catalog/previews/filter-scanline.svg",
+      "examples": [
+        {
+          "label": "Green CRT",
+          "values": {
+            "highlight": "#ffffff",
+            "light": "#bff1ea",
+            "mid": "#30ba78",
+            "shade": "#0c322c",
+            "shadow": "#000000",
+            "lineSize": 32,
+            "gapSize": 18
+          }
+        },
+        {
+          "label": "Pixel matrix",
+          "values": {
+            "highlight": "#ffffff",
+            "light": "#bff1ea",
+            "mid": "#30ba78",
+            "shade": "#0c322c",
+            "shadow": "#000000",
+            "separatePixels": true,
+            "lineSize": 28,
+            "gapSize": 14
+          }
+        },
+        {
+          "label": "Ocean bars",
+          "values": {
+            "highlight": "#ffffff",
+            "light": "#bff1ea",
+            "mid": "#2453ff",
+            "shade": "#192072",
+            "shadow": "#000000",
+            "lineSize": 36,
+            "gapSize": 20
+          }
+        },
+        {
+          "label": "Amber terminal",
+          "values": {
+            "highlight": "#ffffff",
+            "light": "#fab088",
+            "mid": "#fe7c3f",
+            "shade": "#0c322c",
+            "shadow": "#000000",
+            "lineSize": 32,
+            "gapSize": 18
+          }
+        },
+        {
+          "label": "Solid posterise",
+          "values": {
+            "highlight": "#ffffff",
+            "light": "#bff1ea",
+            "mid": "#30ba78",
+            "shade": "#0c322c",
+            "shadow": "#000000",
+            "everyLine": true,
+            "lineSize": 24,
+            "gapSize": 0
+          }
+        },
+        {
+          "label": "Persimmon on ink",
+          "values": {
+            "highlight": "#ffffff",
+            "light": "#fe7c3f",
+            "mid": "#2453ff",
+            "shade": "#192072",
+            "shadow": "#000000",
+            "background": "#0c322c",
+            "separatePixels": true,
+            "lineSize": 30,
+            "gapSize": 16
+          }
+        }
+      ]
+    },
+    {
+      "id": "filter-voronoi",
+      "name": "Filter: Voronoi Cells",
+      "description": "Shatter any photo into a Voronoi cell mosaic — each cell filled with the nearest colour, as flat vector.",
+      "version": "1.0.0",
+      "status": "experimental",
+      "category": "designer",
+      "formats": [
+        "png",
+        "svg",
+        "pdf",
+        "jpg",
+        "webp",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M10 3 L9 10 L3 9\" /><path d=\"M9 10 L15 14\" /><path d=\"M21 13 L15 14 L14 21\" /></svg>",
+      "preview": "/catalog/previews/filter-voronoi.svg",
+      "examples": [
+        {
+          "label": "Fine mosaic",
+          "values": {
+            "cells": 1400
+          }
+        },
+        {
+          "label": "Chunky cells",
+          "values": {
+            "cells": 220
+          }
+        },
+        {
+          "label": "Stained glass",
+          "values": {
+            "cells": 600,
+            "edgeWidth": 3,
+            "edgeColor": "#0c322c"
+          }
+        },
+        {
+          "label": "Relaxed & even",
+          "values": {
+            "cells": 900,
+            "relax": 3,
+            "jitter": 40
+          }
+        },
+        {
+          "label": "Crystalline",
+          "values": {
+            "cells": 500,
+            "jitter": 100
+          }
+        },
+        {
+          "label": "Jade-tinted",
+          "values": {
+            "cells": 800,
+            "saturation": 130,
+            "treatmentColor": "#30ba78",
+            "blendMode": "overlay",
+            "treatmentIntensity": 35
+          }
+        }
+      ]
+    },
+    {
+      "id": "qr-code",
+      "name": "QR Code Generator",
+      "description": "QR codes for any URL, with full color and style control.",
+      "version": "2.0.0",
+      "status": "official",
+      "category": "everyone",
+      "formats": [
+        "svg",
+        "emf",
+        "eps",
+        "eps-cmyk",
+        "dxf",
+        "pdf",
+        "pdf-cmyk",
+        "cmyk-tiff",
+        "tiff",
+        "png",
+        "jpeg",
+        "webp",
+        "avif"
+      ],
+      "width": 600,
+      "height": 600,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"5\" height=\"5\" x=\"3\" y=\"3\" rx=\"1\" /><rect width=\"5\" height=\"5\" x=\"16\" y=\"3\" rx=\"1\" /><rect width=\"5\" height=\"5\" x=\"3\" y=\"16\" rx=\"1\" /><path d=\"M21 16h-3a2 2 0 0 0-2 2v3\" /><path d=\"M21 21v.01\" /><path d=\"M12 7v3a2 2 0 0 1-2 2H7\" /><path d=\"M3 12h.01\" /><path d=\"M12 3h.01\" /><path d=\"M12 16v.01\" /><path d=\"M16 12h1\" /><path d=\"M21 12v.01\" /><path d=\"M12 21v-1\" /></svg>",
+      "preview": "/catalog/previews/qr-code.svg",
+      "featured": {
+        "order": 10,
+        "blurb": "QR codes in any brand colour"
+      },
+      "examples": [
+        {
+          "label": "Inverted pine",
+          "values": {
+            "url": "https://www.suse.com/products",
+            "color": "#ffffff",
+            "background": "#0c322c",
+            "join": true
+          }
+        },
+        {
+          "label": "SUSE green",
+          "values": {
+            "url": "https://documentation.suse.com",
+            "color": "#30ba78",
+            "background": "#ffffff",
+            "join": true
+          }
+        },
+        {
+          "label": "Mint field",
+          "values": {
+            "url": "https://www.rancher.com",
+            "color": "#0c322c",
+            "background": "#90ebcd",
+            "padding": 6
+          }
+        },
+        {
+          "label": "Persimmon on pine",
+          "values": {
+            "url": "https://events.suse.com",
+            "color": "#fe7c3f",
+            "background": "#0c322c",
+            "ecl": "H"
+          }
+        },
+        {
+          "label": "Ocean blue",
+          "values": {
+            "url": "https://www.suse.com/solutions/ai",
+            "color": "#0a9bd6",
+            "background": "#ffffff",
+            "ecl": "Q",
+            "join": true
+          }
+        },
+        {
+          "label": "Amber edge",
+          "values": {
+            "url": "https://www.suse.com/products/edge",
+            "color": "#fcb244",
+            "background": "#0c322c",
+            "padding": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "street-map",
+      "name": "Street Map",
+      "description": "Clean vector street-block maps of any city. Works offline.",
+      "version": "0.4.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "svg",
+        "emf",
+        "dxf",
+        "pdf",
+        "pdf-cmyk",
+        "png"
+      ],
+      "width": 900,
+      "height": 900,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
+      "preview": "/tools/street-map/card.svg",
+      "examples": [
+        {
+          "label": "Nuremberg · light · pine",
+          "values": {
+            "city": "nuremberg",
+            "theme": "light",
+            "roadColor": "#30ba78",
+            "waterColor": "#0a9bd6",
+            "background": "#ffffff"
+          }
+        },
+        {
+          "label": "Paris · dark · teal",
+          "values": {
+            "city": "paris",
+            "theme": "dark",
+            "roadColor": "#2fb9a0",
+            "waterColor": "#0a9bd6",
+            "background": "#0c322c"
+          }
+        },
+        {
+          "label": "Amsterdam · light · canals",
+          "values": {
+            "city": "amsterdam",
+            "theme": "light",
+            "roadColor": "#0c322c",
+            "waterColor": "#0a9bd6",
+            "waterWeight": 12,
+            "showWater": true,
+            "background": "#eafaf1"
+          }
+        },
+        {
+          "label": "New York · dark · amber grid",
+          "values": {
+            "city": "newyork",
+            "theme": "dark",
+            "roadColor": "#fcb244",
+            "waterColor": "#2fb9a0",
+            "background": "#0c322c"
+          }
+        },
+        {
+          "label": "Tokyo · light · cobalt",
+          "values": {
+            "city": "tokyo",
+            "theme": "light",
+            "roadColor": "#2453ff",
+            "showWater": false,
+            "background": "#ffffff"
+          }
+        },
+        {
+          "label": "San Francisco · dark · teal",
+          "values": {
+            "city": "sanfrancisco",
+            "theme": "dark",
+            "roadColor": "#2fb9a0",
+            "waterColor": "#0a9bd6",
+            "majorRoadWeight": 8,
+            "minorRoadWeight": 4,
+            "background": "#0c322c"
+          }
+        }
+      ]
+    },
+    {
+      "id": "strip-data",
+      "name": "Strip Hidden Data",
+      "description": "Reveal and remove hidden metadata from images and PDFs — on your device.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "jpg",
+        "png",
+        "svg",
+        "pdf"
+      ],
+      "width": 760,
+      "height": 620,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" /></svg>",
+      "preview": "/tools/strip-data/card.svg"
+    },
+    {
+      "id": "text-helper",
+      "name": "Text Helper",
+      "description": "Format, decode, hash and de-identify text — JSON, JWT and more.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "html"
+      ],
+      "width": 1100,
+      "height": 820,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1\" /><path d=\"M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1\" /></svg>",
+      "preview": "/tools/text-helper/card.svg"
+    },
+    {
+      "id": "url-shot",
+      "name": "URL Screenshot",
+      "description": "Any web page, at any scroll-depth, with custom CSS",
+      "version": "0.1.0",
+      "status": "experimental",
+      "category": "utility",
+      "capabilities": [
+        "capture"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "pdf",
+        "svg"
+      ],
+      "width": 1280,
+      "height": 720,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z\" /><circle cx=\"12\" cy=\"13\" r=\"3\" /></svg>",
+      "preview": "/tools/url-shot/card.svg"
+    }
+  ]
+}

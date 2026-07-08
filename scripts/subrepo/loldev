@@ -14,7 +14,9 @@
 #   loldev build                       build:catalog + validate:catalog
 #   loldev previews                    regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes
 #   loldev verify [--clone]            full post-split build/run verification
-#   loldev pull | up                   pull parent + update all submodules
+#   loldev profile [name] [--copy]     show or switch the content profile (suse / lolly-start):
+#                                      rebuilds the tools/ + catalog/ views from the packs
+#   loldev pull | up                   pull parent + update all submodules + refresh the profile views
 #   loldev dev                         run the web shell (npm run dev:web)
 #   loldev cli -- <args>               run a tool headlessly (npm run cli)
 #   loldev help
@@ -174,7 +176,10 @@ case "$cmd" in
   validate)     npm run validate:catalog ;;
   previews)     npm run previews ;;
   verify)       bash "$SUB/verify.sh" "$@" ;;
-  pull|up)      git pull --ff-only origin main && git submodule update --init --recursive && ok "synced parent + submodules" ;;
+  profile|brand) node scripts/use-profile.ts "$@" ;;
+  pull|up)      git pull --ff-only origin main && git submodule update --init --recursive \
+                  && node scripts/use-profile.ts --auto \
+                  && ok "synced parent + submodules + profile views" ;;
   dev)          npm run dev:web ;;
   cli)          npm run cli -- "$@" ;;
   help|-h|--help) usage ;;

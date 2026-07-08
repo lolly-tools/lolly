@@ -24,11 +24,15 @@ REPO_ROOT="$(cd "$SUBREPO_DIR/../.." && pwd)"
 STAGE_ROOT="${SUBREPO_STAGE:-${TMPDIR:-/tmp}/lolly-subrepo-stage}"
 
 # path-in-monorepo | repo-name-under-lolly-tools
-# Order is cosmetic (each unit is independent), but catalog is handled specially
-# (music excluded) wherever it appears.
+# Order is cosmetic (each unit is independent).
+# 2026-07-08 content split: the old tools/ + catalog/ submodules (lolly-suse-tools,
+# lolly-suse-catalog) were replaced by two packs — community/ (public, brand-agnostic
+# tools) and brands/suse/ (PRIVATE: SUSE tools + full catalog incl. music). The
+# repo-root tools/ and catalog/ paths are now gitignored profile VIEWS built by
+# scripts/use-profile.ts (see profiles.json).
 SUBREPO_MAP=(
-  "tools|lolly-suse-tools"
-  "catalog|lolly-suse-catalog"
+  "community|lolly-tools"
+  "brands/suse|suse-lolly"
   "docs|lolly-docs"
   "services/mcp|lolly-mcp-server"
   "services/ca|lolly-ca"
@@ -44,21 +48,24 @@ SUBREPO_MAP=(
 # tools/ and catalog/ instead carry their own NOTICE.md (proprietary / mixed),
 # which travels automatically via `git archive`.
 MPL_PATHS=(
+  "community"
   "docs"
   "services/mcp" "services/ca"
   "shells/web" "shells/cli" "shells/tui"
   "shells/tauri-desktop" "shells/tauri-mobile" "shells/chrome-extension"
 )
 
-# The one path whose licensed music must NEVER be pushed (PremiumBeat/Shutterstock).
-MUSIC_REL="assets/suse/music"   # relative to the catalog subrepo root
+# Licensed music (PremiumBeat/Shutterstock) — tracked in the PRIVATE brands/suse
+# pack (at brands/suse/catalog/$MUSIC_REL) and must NEVER land in a public repo.
+MUSIC_REL="assets/suse/music"   # relative to the active catalog root
 
 # Extra .gitignore lines per path, appended to any .gitignore carried in the
 # archive. The ca rules are SECURITY-CRITICAL: services/ca has no local
 # .gitignore today and relies on the ROOT one to keep the root private key out.
 gitignore_extra() {
   case "$1" in
-    catalog)      printf '%s\n' '.DS_Store' 'node_modules/' ;;  # music INCLUDED (public, time-boxed to 2026-08-29 removal — Andy's call)
+    brands/suse)  printf '%s\n' '.DS_Store' 'node_modules/' ;;  # music INCLUDED — repo is PRIVATE
+    community)    printf '%s\n' '.DS_Store' 'node_modules/' ;;
     services/ca)  printf '%s\n' '.DS_Store' 'node_modules/' '*.pem' 'lolly-root-key.pem' '.env' ;;
     services/mcp) printf '%s\n' '.DS_Store' 'node_modules/' '.browsers/' ;;
     # Shells relied on the ROOT .gitignore for build-output rules — replicate the
@@ -91,8 +98,8 @@ subrepo_url() { echo "${GIT_HOST}/${ORG}/$(repo_for_path "$1").git"; }
 # Human-readable GitHub description per path. Pattern: "lolly.sh: <name> - submodule".
 repo_description() {
   case "$1" in
-    tools)                    echo "lolly.sh: SUSE Tool Definitions - submodule" ;;
-    catalog)                  echo "lolly.sh: SUSE Brand Catalog - submodule" ;;
+    community)                echo "lolly.sh: Community Tools - submodule" ;;
+    brands/suse)              echo "lolly.sh: SUSE Brand Pack (tools + catalog) - submodule" ;;
     docs)                     echo "lolly.sh: Documentation - submodule" ;;
     services/mcp)             echo "lolly.sh: MCP Server - submodule" ;;
     services/ca)              echo "lolly.sh: Certificate Authority - submodule" ;;

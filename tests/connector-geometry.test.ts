@@ -6,10 +6,15 @@
 // test at the end guards the elbow fractions from drifting between the two files.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import {
   edgeWaypoints, edgeBorderPt, edgeNested, roundedEdgePath, smoothEdgePath,
 } from '../shells/web/src/views/free-canvas-math.ts';
+
+// org-chart ships in the (private) SUSE brand pack; the hook↔shell parity
+// tests can only run when the pack is mounted (see profiles.json).
+const SKIP_SUSE = !existsSync(new URL('../tools/org-chart/hooks.js', import.meta.url))
+  && 'SUSE brand pack not mounted (see profiles.json)';
 
 // A stacked pair (a above b) and a diagonal pair (a up-left of b), in native px.
 const aTop = { x: 0, y: 0, w: 100, h: 50 };
@@ -76,7 +81,7 @@ test('smoothEdgePath: renders a single cubic S-curve (golden)', () => {
   assert.equal(smoothEdgePath(pts), 'M50 50C50 125 50 125 50 200');
 });
 
-test('parity: the tool hook and the shell math share the elbow fractions', () => {
+test('parity: the tool hook and the shell math share the elbow fractions', { skip: SKIP_SUSE }, () => {
   // tools/org-chart/hooks.js (committed render) and free-canvas-math.ts (editor preview)
   // hand-mirror the routing. If someone re-tunes the elbow bend in one, this fails.
   const hook = readFileSync(new URL('../tools/org-chart/hooks.js', import.meta.url), 'utf8');
@@ -104,7 +109,7 @@ test('edgeWaypoints: arc-flip bows the opposite side; arc-wide bows deeper', () 
   assert.ok(Math.abs(m('arc-wide')) > Math.abs(m('arc')), 'wide bows deeper than the plain arc');
 });
 
-test('parity: the tool hook and the shell math share the arc variants', () => {
+test('parity: the tool hook and the shell math share the arc variants', { skip: SKIP_SUSE }, () => {
   const hook = readFileSync(new URL('../tools/org-chart/hooks.js', import.meta.url), 'utf8');
   const shell = readFileSync(new URL('../shells/web/src/views/free-canvas-math.ts', import.meta.url), 'utf8');
   for (const key of ['arc-wide', 'arc-flip', 'arc-flip-wide']) {

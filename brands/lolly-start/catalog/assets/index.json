@@ -1,0 +1,27 @@
+{
+  "version": "1",
+  "generatedAt": "2026-07-08T00:00:00.000Z",
+  "assets": [
+    {
+      "id": "lolly/tokens/brand",
+      "name": "Lolly Starter Tokens",
+      "description": "Neutral placeholder brand tokens (DTCG) shipped with the blank lolly-start profile, so the colour picker resolves real swatches instead of falling back to hardcoded ones. Replace with a real brand via 'npm run ingest:brand'.",
+      "type": "tokens",
+      "version": "1.0.0",
+      "tier": "core",
+      "tags": [
+        "tokens",
+        "brand",
+        "dtcg"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/tokens/brand.json",
+          "checksum": "sha256-G350S2MssUu/wNrItazJrrbru3YOZico+7Hy9YhbkL4=",
+          "size": 1461
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "$description": "Lolly starter brand tokens — hand-editable placeholders shipped with the blank lolly-start profile so the colour picker and brand-bound inputs have something neutral to resolve instead of silently falling back to hardcoded swatches. Replaced wholesale when a real brand is hydrated with 'npm run ingest:brand'.",
+  "color": {
+    "$type": "color",
+    "brand": {
+      "black": {
+        "$value": "#0b0b0e",
+        "$description": "Black"
+      },
+      "white": {
+        "$value": "#ffffff",
+        "$description": "White"
+      },
+      "ink": {
+        "$value": "#1c1c22",
+        "$description": "Ink"
+      },
+      "graphite": {
+        "$value": "#6e6e76",
+        "$description": "Graphite"
+      },
+      "mist": {
+        "$value": "#d9d9e0",
+        "$description": "Mist"
+      },
+      "paper": {
+        "$value": "#f7f7f5",
+        "$description": "Paper"
+      }
+    },
+    "spectrum": {
+      "blue": {
+        "$value": "#4f83cc",
+        "$description": "Blue"
+      },
+      "teal": {
+        "$value": "#3fa9a0",
+        "$description": "Teal"
+      },
+      "violet": {
+        "$value": "#8b6cc1",
+        "$description": "Violet"
+      },
+      "amber": {
+        "$value": "#d99a3d",
+        "$description": "Amber"
+      },
+      "rose": {
+        "$value": "#d1618a",
+        "$description": "Rose"
+      },
+      "green": {
+        "$value": "#5fa76c",
+        "$description": "Green"
+      }
+    }
+  }
+}

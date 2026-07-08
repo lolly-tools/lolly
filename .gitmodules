@@ -1,9 +1,3 @@
-[submodule "tools"]
-	path = tools
-	url = https://github.com/lolly-tools/lolly-suse-tools.git
-[submodule "catalog"]
-	path = catalog
-	url = https://github.com/lolly-tools/lolly-suse-catalog.git
 [submodule "services/mcp"]
 	path = services/mcp
 	url = https://github.com/lolly-tools/lolly-mcp-server.git
@@ -31,3 +25,10 @@
 [submodule "docs"]
 	path = docs
 	url = https://github.com/lolly-tools/lolly-docs.git
+[submodule "community"]
+	path = community
+	url = https://github.com/lolly-tools/lolly-tools.git
+[submodule "brands/suse"]
+	path = brands/suse
+	url = https://github.com/lolly-tools/suse-lolly.git
+	update = none

@@ -17,10 +17,17 @@ fail=0; step() { say "• $*"; }
 
 step "submodule count"
 n="$(git submodule status 2>/dev/null | wc -l | tr -d ' ')"
-[ "$n" = "10" ] && ok "$n submodules" || { warn "$n submodules (expected 10)"; }
+want=${#SUBREPO_MAP[@]}   # every mapped path is a submodule
+[ "$n" = "$want" ] && ok "$n submodules" || { warn "$n submodules (expected $want)"; }
 
 step "submodule init"
 git submodule update --init --recursive && ok "initialised" || { err "init failed"; fail=1; }
+
+step "profile views (tools/ + catalog from the active profile)"
+node scripts/use-profile.ts --auto >/dev/null 2>&1
+if [ -d tools ] && [ -e catalog ]; then
+  ok "views present (profile: $(cat .lolly-profile 2>/dev/null || echo '?'))"
+else err "profile views missing — run: npm run profile:suse (or profile:start)"; fail=1; fi
 
 step "npm install (workspaces link)"
 npm install >/dev/null 2>&1 && ok "installed" || { err "npm install failed"; fail=1; }
@@ -42,11 +49,14 @@ if npm run --silent cli -- qr-code --url=https://suse.com --output="$out" >/dev/
 step "tauri desktop resolves ../web"
 if [ -e "shells/tauri-desktop/vite.config.js" ] && [ -d "shells/web" ]; then ok "shells/web present beside tauri-desktop"; else warn "tauri ../web coupling not satisfied"; fi
 
-step "music: present locally + ignored in catalog submodule"
-if [ -d "catalog/$MUSIC_REL" ]; then
-  if git -C catalog check-ignore "$MUSIC_REL" >/dev/null 2>&1; then ok "music present + gitignored in catalog submodule"
-  else warn "music present but NOT ignored in catalog submodule — check catalog/.gitignore"; fi
-else warn "catalog/$MUSIC_REL missing locally (deploys won't have audio beds)"; fi
+step "music: tracked ONLY in the private brands/suse pack"
+if [ -d "brands/suse/catalog/$MUSIC_REL" ]; then
+  if git -C brands/suse ls-files "catalog/$MUSIC_REL" | grep -q .; then ok "music tracked in brands/suse (private repo)"
+  else warn "music present but untracked in brands/suse — check brands/suse/.gitignore"; fi
+else warn "brands/suse/catalog/$MUSIC_REL missing (suse pack not mounted? deploys won't have audio beds)"; fi
+if git -C community ls-files 2>/dev/null | grep -q "$MUSIC_REL"; then
+  err "music found in the PUBLIC community pack — must never be pushed there"; fail=1
+else ok "no music in the public community pack"; fi
 
 if [ "$DO_CLONE" = 1 ]; then
   step "fresh --recurse-submodules clone build"

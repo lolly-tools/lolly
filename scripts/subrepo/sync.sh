@@ -18,9 +18,13 @@
 #   --dry-run            Show what would happen; change nothing.
 #   paths...             Restrict to these submodule paths. Default: every dirty one.
 #
-# Editing a tool typically touches TWO submodules: the manifest (tools/) and the
-# regenerated index/preview-bundle (catalog/). The catalog rebuild below makes
-# that automatic; both get committed + pushed, then the parent points at both.
+# Editing a SUSE tool touches ONE pack (brands/suse — manifest + regenerated
+# index/preview-bundle live together); editing a community tool touches TWO
+# (community/ for the manifest, brands/suse for the regenerated suse catalog).
+# tools/ and catalog/ at the repo root are profile VIEWS (scripts/use-profile.ts),
+# so writes through them land in the right pack. The catalog rebuild below makes
+# the regeneration automatic; every dirty pack gets committed + pushed, then the
+# parent points at each.
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 
