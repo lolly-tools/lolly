@@ -112,11 +112,21 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
       : wantSvg ? 'svg' : 'webp';
     entry.preview = `/catalog/previews/${manifest.id}.${ext}`;
   }
-  // Whether any input pre-fills from the user profile (bindToProfile). The gallery
-  // uses this to scope profile-aware preview regeneration to the tools that actually
-  // change with the profile — see shells/web/src/personalize-previews.js. Without it
-  // the gallery would have to fetch every manifest to find out. Manifest-derived.
-  if ((manifest.inputs ?? []).some((i: any) => i.bindToProfile)) entry.personalized = true;
+  // Whether any input pre-fills from the user profile (bindToProfile) AND is actually
+  // visible at the tool's default input values. The gallery uses this to scope
+  // profile-aware preview regeneration to tools whose DEFAULT render changes with the
+  // profile — see shells/web/src/personalize-previews.js. A bindToProfile input hidden
+  // behind a default-off toggle (e.g. the filter tools' firstname/lastname under a
+  // lower-third `showIf: { lowerThird: true }`) does NOT change the default preview, so
+  // it must not mark the tool personalized — otherwise the gallery would needlessly
+  // re-render it and swap the committed illustrative card (tools/<id>/card.svg) for a
+  // live render. Without this flag the gallery would have to fetch every manifest to
+  // find out. Manifest-derived.
+  const inputs: any[] = manifest.inputs ?? [];
+  const defaultOf = (id: string) => inputs.find((i) => i.id === id)?.default;
+  const activeAtDefault = (input: any) =>
+    !input.showIf || Object.entries(input.showIf).every(([k, v]) => defaultOf(k) === v);
+  if (inputs.some((i: any) => i.bindToProfile && activeAtDefault(i))) entry.personalized = true;
   // Featured-row curation (manifest.featured) — carried verbatim so the gallery's
   // cinematic hero row (shells/web/src/components/featured-row.ts) can pick its tiles
   // and cross-fade variants with no per-tool manifest fetch. Not in INDEX_FIELDS (it's

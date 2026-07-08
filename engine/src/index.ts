@@ -53,6 +53,7 @@ export {
 } from './pdfx.ts';
 export { buildC2paManifest, embedC2paInPdf, embedC2pa, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf } from './c2pa-verify.ts';
+export { c2paTrustAnchors } from './c2pa-trust.ts';
 export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
 export { packWebpAnim } from './webp-anim.ts';
@@ -262,4 +263,21 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // into shapes + media and zips with fflate. Purpose: transport a page's treated
 // images + vectors into PowerPoint as independent, extractable objects (layout
 // secondary). Pure: strings + byte arrays, no zip, no DOM, no deps. No bridge change.
-export const ENGINE_VERSION = '1.23.0';
+// 1.24.0 — C2PA 2.x claims. buildC2paManifest / embedC2pa / embedC2paInPdf now emit a
+// v2 claim (`c2pa.claim.v2`) by default — the format Gemini and every current C2PA
+// validator (c2patool, contentcredentials.org / c2pa-rs) produce and read: no free-text
+// claim_generator, no dc:format, a REQUIRED single claim_generator_info map, references
+// split into created_assertions (+ optional gathered_assertions), the actions assertion
+// relabelled c2pa.actions.v2 (softwareAgent a generator-info map), and the schema.org
+// CreativeWork author assertion dropped (the 2.x spec removed it). Box UUIDs, the
+// data-hash / BMFF bindings, the COSE ES256 envelope, the x509 signer, and every
+// per-format embedder are version-independent and unchanged; the two-pass length-freeze
+// carries the differently-shaped-but-deterministic v2 claim. buildC2paManifest keeps an
+// internal `claimVersion` (default 2; `1` builds the legacy c2pa.claim) purely so the
+// verifier's v1-read path stays test-covered — the embedders never request it, so Lolly
+// only ever WRITES v2. verifyC2pa now READS both: it branches on the claim box label,
+// reads created_assertions + gathered_assertions and the single-map claim_generator_info,
+// and recognises c2pa.actions.v2 — so external v2 credentials (Gemini "Nano Banana",
+// Adobe, OpenAI, …) verify on-device instead of failing `credential.unreadable`. No
+// bridge change.
+export const ENGINE_VERSION = '1.24.0';

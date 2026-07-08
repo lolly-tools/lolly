@@ -2,9 +2,13 @@
 /**
  * C2PA (Content Credentials) manifest builder + PDF embedder — pure, DOM-free.
  *
- * Example-grade but spec-shaped C2PA v1: a JUMBF (ISO 19566-5) store holding
- * one manifest (assertion store + CBOR claim + COSE_Sign1 claim signature),
- * signed with an ephemeral on-device self-signed ECDSA P-256 certificate.
+ * Example-grade but spec-shaped C2PA: a JUMBF (ISO 19566-5) store holding one
+ * manifest (assertion store + CBOR claim + COSE_Sign1 claim signature), signed
+ * with an ephemeral on-device self-signed ECDSA P-256 certificate. Emits a
+ * C2PA 2.x claim (`c2pa.claim.v2`, created_assertions, claim_generator_info,
+ * c2pa.actions.v2) by default — validated by c2patool / c2pa-rs; the legacy v1
+ * claim is retained behind buildC2paManifest's `claimVersion` only so the
+ * dual-version verifier keeps v1-read coverage.
  * Validators parse the structure but report the signer as unknown/untrusted —
  * that is the intended trust posture: no real credential ever leaves the
  * device, so what must be right is the container, not the chain.
@@ -115,6 +119,14 @@ interface BuildC2paManifestOptions {
   signer?: Signer;
   manifestLabel?: string;
   instanceId?: string;
+  /**
+   * Claim format to emit. Default 2 (C2PA 2.x `c2pa.claim.v2`) — the format
+   * every current validator reads and the spec's required output. `1` builds
+   * the legacy `c2pa.claim` and is retained only so the dual-version verifier
+   * keeps v1-read test coverage; the embedders never request it, so Lolly's
+   * products only ever write v2.
+   */
+  claimVersion?: 1 | 2;
 }
 
 interface EmbedOptions {
@@ -318,20 +330,24 @@ export const LOLLY_EXPORT_ASSERTION = 'tools.lolly.export';
 export const CREATIVE_WORK_ASSERTION = 'stds.schema-org.CreativeWork';
 
 /**
- * Build a complete C2PA v1 JUMBF store (→ Uint8Array).
+ * Build a complete C2PA JUMBF store (→ Uint8Array). Emits a C2PA 2.x claim
+ * (`c2pa.claim.v2`) by default; `claimVersion: 1` builds the legacy
+ * `c2pa.claim` and exists only so the dual-version verifier keeps v1-read test
+ * coverage — the embedders never pass it, so Lolly's products only write v2.
  *
- * Assertions: c2pa.actions (one c2pa.created action with softwareAgent =
- * claimGenerator, digitalSourceType = digitalCreation and when =
- * dates.signedAt), the c2pa.hash.data hard binding carrying assetHash
- * verbatim:
+ * Assertions: the actions assertion (c2pa.actions.v2 on v2, c2pa.actions on v1)
+ * with one c2pa.created action (softwareAgent = the generator-info map on v2 /
+ * the generator string on v1, digitalSourceType = digitalCreation, when =
+ * dates.signedAt), the c2pa.hash.data hard binding carrying assetHash verbatim:
  *   assetHash = { exclusions: [{start, length}], name?, alg?, hash: Uint8Array, pad?: Uint8Array }
  * — or, with assetHash = { bmff: true, hash, pad? }, the ISO-BMFF binding
  * c2pa.hash.bmff.v2 with the fixed top-level box exclusions instead —
  * and — when `environment` is given — a `tools.lolly.export` CBOR assertion
  * recording the export context (tool, format, surface, browser engine, OS…).
  * `generatorInfo` ({ name, version, operating_system? }) becomes the claim's
- * claim_generator_info entry (v1: optional array alongside the required
- * claim_generator string).
+ * claim_generator_info (a single REQUIRED map in v2; an optional array
+ * alongside the free-text claim_generator string in v1). The v2 claim drops
+ * dc:format and the schema.org CreativeWork author assertion per the 2.x spec.
  *
  * The claim references each assertion by hashed URI — a JUMBF URI relative to
  * the manifest plus sha256 over the assertion superbox's payload (jumd +
@@ -357,29 +373,43 @@ export async function buildC2paManifest({
   signer,
   manifestLabel,
   instanceId,
+  claimVersion = 2,
 }: BuildC2paManifestOptions = {}): Promise<Uint8Array> {
   const bmff = !!assetHash?.bmff;
   if (!assetHash || !(assetHash.hash instanceof Uint8Array) || (!bmff && !Array.isArray(assetHash.exclusions))) {
     throw new Error('c2pa: assetHash requires { exclusions: [{start, length}], hash: Uint8Array } (or { bmff: true, hash })');
   }
+  const v2 = claimVersion !== 1;
   const signedAt = asDate(dates.signedAt, Date.now());
   const sig = signer || (await generateSigner(dates));
+
+  // Generator identity. v1 carries a free-text `claim_generator` string plus an
+  // optional claim_generator_info array; v2 drops the string and makes a single
+  // claim_generator_info map the sole identity, reused as each action's
+  // softwareAgent. Build it once so the claim and the actions agree byte-exactly.
+  const generatorName = String(claimGenerator || 'Lolly');
+  const genInfoMap: Record<string, unknown> =
+    generatorInfo && typeof generatorInfo === 'object' && Object.keys(generatorInfo as object).length
+      ? { name: generatorName, ...(generatorInfo as Record<string, unknown>) }
+      : { name: generatorName };
 
   // A creation claim carries the digitalCreation source type; a delivery claim
   // (distributing an existing asset, the standard c2pa.published action)
   // deliberately omits it, so the credential never asserts the signer authored
   // the work. Key insertion order is preserved on the created path — its bytes
-  // are unchanged.
+  // are unchanged. In v2 the action's softwareAgent is a generator-info map (an
+  // object); in v1 it stays the bare generator string.
+  const softwareAgent: unknown = v2 ? genInfoMap : generatorName;
   const delivered = authorship === 'delivered';
   const actions = {
     actions: [delivered ? {
       action: 'c2pa.published',
-      softwareAgent: String(claimGenerator || 'Lolly'),
+      softwareAgent,
       when: isoSeconds(signedAt),
     } : {
       action: 'c2pa.created',
       digitalSourceType: DIGITAL_SOURCE_TYPE,
-      softwareAgent: String(claimGenerator || 'Lolly'),
+      softwareAgent,
       when: isoSeconds(signedAt),
     }],
   };
@@ -401,7 +431,10 @@ export async function buildC2paManifest({
     hash: assetHash.hash,
     pad: assetHash.pad || new Uint8Array(0),
   };
-  const actionsBox = jumbfSuperbox(UUID_CBOR_CONTENT, 'c2pa.actions', isoBox('cbor', encodeCbor(actions)));
+  // v2 renames the actions assertion to c2pa.actions.v2; the data-hash / BMFF
+  // binding labels are version-independent and stay the same.
+  const actionsLabel = v2 ? 'c2pa.actions.v2' : 'c2pa.actions';
+  const actionsBox = jumbfSuperbox(UUID_CBOR_CONTENT, actionsLabel, isoBox('cbor', encodeCbor(actions)));
   const hashBox = jumbfSuperbox(UUID_CBOR_CONTENT, hashLabel, isoBox('cbor', encodeCbor(hashData)));
   const storeBoxes = [actionsBox, hashBox];
   let exportBox: Uint8Array | null = null;
@@ -410,8 +443,13 @@ export async function buildC2paManifest({
     exportBox = jumbfSuperbox(UUID_CBOR_CONTENT, LOLLY_EXPORT_ASSERTION, isoBox('cbor', encodeCbor(environment)));
     storeBoxes.push(exportBox);
   }
+  // Authorship rode in a schema.org CreativeWork assertion on v1. C2PA 2.x
+  // removed the schema.org/Exif/IPTC assertions (a conformant v2 generator must
+  // not write them), and the CAWG identity assertion that replaces them needs a
+  // real identity credential the ephemeral on-device signer lacks — so a v2
+  // credential attributes the software via claim_generator_info, never a human.
   let authorBox: Uint8Array | null = null;
-  if (author?.name) {
+  if (!v2 && author?.name) {
     // Profile authorship (opt-in upstream): a schema.org Person on the
     // CreativeWork. JSON assertion — jumd UUID 'json', content box 'json'.
     const person: { '@type': string; name: string; email?: string } = { '@type': 'Person', name: String(author.name) };
@@ -422,27 +460,41 @@ export async function buildC2paManifest({
   }
   const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, 'c2pa.assertions', ...storeBoxes);
 
-  const claim = {
+  // JUMBF-box hashed URIs cover the superbox PAYLOAD — the jumd description box
+  // and content boxes, NOT the outer 8-byte LBox+TBox header (matches c2pa-rs,
+  // which recreates the box and hashes write_box_payload). Same reference shape
+  // in both versions; v2 only relabels the actions assertion.
+  const assertionRefs = [
+    { url: `self#jumbf=c2pa.assertions/${actionsLabel}`, hash: await sha256(actionsBox.subarray(8)) },
+    { url: `self#jumbf=c2pa.assertions/${hashLabel}`, hash: await sha256(hashBox.subarray(8)) },
+    ...(exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : []),
+    ...(authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : []),
+  ];
+
+  // v2 claim map (c2pa.claim.v2): no free-text claim_generator, no dc:format; a
+  // REQUIRED single claim_generator_info map; assertion references split into
+  // created_assertions (authored here) and optional gathered_assertions (none,
+  // so omitted). v1 claim map (c2pa.claim): the historical single `assertions`
+  // array plus the claim_generator string. dc:title keeps its spelling in both.
+  const claim = v2 ? {
+    ...(title ? { 'dc:title': String(title) } : {}),
+    instanceID: instanceId || urnUuid(),
+    claim_generator_info: genInfoMap,
+    created_assertions: assertionRefs,
+    signature: 'self#jumbf=c2pa.signature',
+    alg: 'sha256',
+  } : {
     'dc:title': String(title || 'Untitled'),
     'dc:format': format,
     instanceID: instanceId || urnUuid(),
-    claim_generator: String(claimGenerator || 'Lolly'),
+    claim_generator: generatorName,
     ...(generatorInfo ? { claim_generator_info: [generatorInfo] } : {}),
     signature: 'self#jumbf=c2pa.signature',
-    assertions: [
-      // JUMBF-box hashed URIs cover the superbox PAYLOAD — the jumd
-      // description box and content boxes, NOT the outer 8-byte LBox+TBox
-      // header (matches c2pa-rs, which recreates the box and hashes
-      // write_box_payload).
-      { url: 'self#jumbf=c2pa.assertions/c2pa.actions', hash: await sha256(actionsBox.subarray(8)) },
-      { url: `self#jumbf=c2pa.assertions/${hashLabel}`, hash: await sha256(hashBox.subarray(8)) },
-      ...(exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : []),
-      ...(authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : []),
-    ],
+    assertions: assertionRefs,
     alg: 'sha256',
   };
   const claimBytes = encodeCbor(claim);
-  const claimBox = jumbfSuperbox(UUID_CLAIM, 'c2pa.claim', isoBox('cbor', claimBytes));
+  const claimBox = jumbfSuperbox(UUID_CLAIM, v2 ? 'c2pa.claim.v2' : 'c2pa.claim', isoBox('cbor', claimBytes));
   const signatureBox = jumbfSuperbox(UUID_SIGNATURE, 'c2pa.signature', isoBox('cbor', await coseSign1Detached(sig, claimBytes)));
   const manifest = jumbfSuperbox(UUID_MANIFEST, manifestLabel || urnUuid(), assertionStore, claimBox, signatureBox);
   return jumbfSuperbox(UUID_C2PA_STORE, 'c2pa', manifest);

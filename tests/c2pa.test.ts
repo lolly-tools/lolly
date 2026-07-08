@@ -267,7 +267,7 @@ test('JUMBF store: superbox/description structure, C2PA UUIDs and labels', async
   assert.equal(p.assertionStore.uuid, uuidOf('c2as'));
   assert.equal(p.assertionStore.label, 'c2pa.assertions');
   assert.equal(p.claim.uuid, uuidOf('c2cl'));
-  assert.equal(p.claim.label, 'c2pa.claim');
+  assert.equal(p.claim.label, 'c2pa.claim.v2', 'default output is a v2 claim');
   assert.equal(p.signature.uuid, uuidOf('c2cs'));
   assert.equal(p.signature.label, 'c2pa.signature');
   // CBOR assertions: jumd carries the CBOR content-type UUID, content box type 'cbor'
@@ -276,14 +276,15 @@ test('JUMBF store: superbox/description structure, C2PA UUIDs and labels', async
     assert.equal(sub.children[0].type, 'cbor');
   }
   assert.equal(p.actions.uuid, uuidOf('cbor'));
-  assert.equal(p.actions.label, 'c2pa.actions');
+  assert.equal(p.actions.label, 'c2pa.actions.v2', 'v2 relabels the actions assertion');
   assert.equal(p.hashData.uuid, uuidOf('cbor'));
   assert.equal(p.hashData.label, 'c2pa.hash.data');
 
   const actions = decodeCbor(p.contentOf(p.actions)).get('actions');
   assert.equal(actions.length, 1);
   assert.equal(actions[0].get('action'), 'c2pa.created');
-  assert.equal(actions[0].get('softwareAgent'), 'LollyTest/1.0');
+  // v2 softwareAgent is a generator-info map, not a bare string.
+  assert.equal(actions[0].get('softwareAgent').get('name'), 'LollyTest/1.0');
   assert.equal(actions[0].get('when'), '2026-07-02T12:00:00Z');
 
   const hd = decodeCbor(p.contentOf(p.hashData));
@@ -301,13 +302,17 @@ test('COSE_Sign1 verifies; claim hashed-URIs match sha256 of assertion boxes', a
   const store = await fixture;
   const claim = await verifyCose(store);
   assert.equal(claim.get('dc:title'), 'Fixture Asset');
-  assert.equal(claim.get('dc:format'), 'application/pdf');
-  assert.equal(claim.get('claim_generator'), 'LollyTest/1.0');
+  // v2 claim: no dc:format, no free-text claim_generator — the generator
+  // identity is the required single claim_generator_info map instead.
+  assert.equal(claim.get('dc:format'), undefined);
+  assert.equal(claim.get('claim_generator'), undefined);
+  assert.equal(claim.get('claim_generator_info').get('name'), 'LollyTest/1.0');
   assert.equal(claim.get('signature'), 'self#jumbf=c2pa.signature');
   assert.equal(claim.get('alg'), 'sha256');
   assert.match(claim.get('instanceID'), /^urn:uuid:/);
-  const refs = claim.get('assertions');
-  assert.equal(refs[0].get('url'), 'self#jumbf=c2pa.assertions/c2pa.actions');
+  // v2 splits references into created_assertions (+ optional gathered_assertions).
+  const refs = claim.get('created_assertions');
+  assert.equal(refs[0].get('url'), 'self#jumbf=c2pa.assertions/c2pa.actions.v2');
   assert.equal(refs[1].get('url'), 'self#jumbf=c2pa.assertions/c2pa.hash.data');
   const p = storeParts(store);
   for (const [i, sub] of [p.actions, p.hashData].entries()) {
@@ -316,6 +321,32 @@ test('COSE_Sign1 verifies; claim hashed-URIs match sha256 of assertion boxes', a
     const boxBytes = store.slice(sub.box.start + 8, sub.box.end);
     assert.equal(hex(refs[i].get('hash')), hex(await sha256(boxBytes)), `hashed URI ${i} covers the assertion superbox payload`);
   }
+});
+
+// The v1 claim format is retained (claimVersion:1) only so the dual-version
+// verifier keeps v1-read coverage — the embedders never request it. This locks
+// the legacy shape (c2pa.claim / c2pa.actions labels, flat `assertions` array,
+// claim_generator string + dc:format) so a v1-format credential still builds
+// and its COSE signature still verifies.
+test('legacy claimVersion:1 builds the v1 claim shape (retained for v1-read coverage)', async () => {
+  const v1 = await buildC2paManifest({
+    title: 'Legacy Asset',
+    claimGenerator: 'LollyTest/1.0',
+    format: 'application/pdf',
+    assetHash: { exclusions: [{ start: 100, length: 200 }], hash: new Uint8Array(32).fill(7), pad: new Uint8Array(4) },
+    dates: DATES,
+    claimVersion: 1,
+  });
+  const p = storeParts(v1);
+  assert.equal(p.claim.label, 'c2pa.claim', 'v1 claim box label');
+  assert.equal(p.actions.label, 'c2pa.actions', 'v1 actions assertion label');
+  const claim = await verifyCose(v1);
+  assert.equal(claim.get('claim_generator'), 'LollyTest/1.0');
+  assert.equal(claim.get('dc:format'), 'application/pdf');
+  assert.equal(decodeCbor(p.contentOf(p.actions)).get('actions')[0].get('softwareAgent'), 'LollyTest/1.0');
+  const refs = claim.get('assertions');
+  assert.ok(Array.isArray(refs), 'v1 uses a flat assertions array');
+  assert.equal(refs[0].get('url'), 'self#jumbf=c2pa.assertions/c2pa.actions');
 });
 
 // ─── X.509 ────────────────────────────────────────────────────────────────────
@@ -413,7 +444,7 @@ test('embedC2paInPdf appends a verifiable incremental update', async () => {
   // the embedded manifest's COSE signature still verifies
   const claim = await verifyCose(manifest);
   assert.equal(claim.get('dc:title'), 'Embedded Asset');
-  assert.equal(claim.get('dc:format'), 'application/pdf');
+  assert.equal(claim.get('dc:format'), undefined, 'v2 claim drops dc:format');
 });
 
 test('embedC2paInPdf merges into an existing inline /Names dict', async () => {

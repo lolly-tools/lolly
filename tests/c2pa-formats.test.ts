@@ -155,7 +155,10 @@ for (const [fmt, fixture] of CASES) {
     assert.equal(report.state, 'valid', JSON.stringify(report.checks));
     assert.equal(report.madeWithLolly, true);
     assert.equal(report.environment?.format, fmt);
-    assert.equal(report.author?.name, 'Testy McTestface');
+    // v2 credentials carry no schema.org CreativeWork assertion (the 2.x spec
+    // removed it), so no human author is surfaced — attribution rides in the
+    // claim_generator_info map, checked next.
+    assert.equal(report.author, undefined);
     assert.equal(report.claim?.generatorInfo?.name, 'Lolly');
 
     // Flip one byte of the ORIGINAL container content (never the inserted

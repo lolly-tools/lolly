@@ -57,8 +57,11 @@ test('verifies the embedder\'s own output: valid, untrusted, facts intact', asyn
   assert.equal(report.checks.filter((c: any) => c.code === 'assertion.hashedURI.match').length, 2);
 
   assert.equal(report.claim.title, 'Fixture Asset');
-  assert.equal(report.claim.format, 'application/pdf');
-  assert.equal(report.claim.claimGenerator, 'LollyTest/1.0');
+  // v2 claim: no dc:format / claim_generator string — the generator identity is
+  // surfaced from the required claim_generator_info map instead.
+  assert.equal(report.claim.format, undefined);
+  assert.equal(report.claim.claimGenerator, undefined);
+  assert.equal(report.claim.generatorInfo?.name, 'LollyTest/1.0');
   assert.match(report.claim.manifestLabel, /^urn:uuid:/);
   assert.equal(report.claim.actions[0].action, 'c2pa.created');
   assert.equal(report.claim.actions[0].softwareAgent, 'LollyTest/1.0');

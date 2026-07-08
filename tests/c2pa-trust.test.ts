@@ -22,6 +22,7 @@ import {
 } from '../engine/src/x509.ts';
 import { embedC2paInPdf } from '../engine/src/c2pa.ts';
 import { verifyC2pa, parseCertificate } from '../engine/src/c2pa-verify.ts';
+import { c2paTrustAnchors } from '../engine/src/c2pa-trust.ts';
 
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
@@ -273,4 +274,16 @@ test('hostile chain garbage never crashes verification', async () => {
   assert.equal(report.state, 'valid');
   assert.equal(report.trusted, true);
   assert.equal(report.signer.identity.email, 'test@example.com');
+});
+
+// Guards the vendored C2PA trust list (engine/src/c2pa-trust.ts): it must parse
+// cleanly and carry the Google C2PA root Gemini chains to — the anchor that
+// makes real "Nano Banana" images read as trusted rather than merely valid.
+test('vendored c2paTrustAnchors() parse and include the Google C2PA root', async () => {
+  const anchors = c2paTrustAnchors();
+  assert.ok(anchors.length >= 20, `expected a populated trust list, got ${anchors.length}`);
+  const cns = anchors.map((der) => { try { return parseCertificate(der).subject.commonName; } catch { return null; } });
+  assert.ok(cns.includes('Google C2PA Root CA G3'), 'Gemini root anchor present');
+  // Every entry is a parseable certificate (no corrupt PEM block survived).
+  assert.equal(cns.filter((c) => c === null).length, 0, 'all anchors parse');
 });

@@ -231,8 +231,8 @@ export function parseC2paStore(store: Uint8Array): C2paStoreParts {
     assertions: C2paAssertion[];
     claimBytes?: Uint8Array;
     signatureBytes?: Uint8Array;
-  } = { manifestLabel: manifest.label, assertions: [] };
-  let claimV2 = false;
+    claimVersion: 1 | 2;
+  } = { manifestLabel: manifest.label, assertions: [], claimVersion: 1 };
   for (const child of manifest.children) {
     const sub = parseSuperbox(store, child);
     if (sub.label === 'c2pa.assertions') {
@@ -247,17 +247,21 @@ export function parseC2paStore(store: Uint8Array): C2paStoreParts {
       }
     } else if (sub.label === 'c2pa.claim') {
       parts.claimBytes = contentOf(store, sub);
+      parts.claimVersion = 1;
     } else if (sub.label === 'c2pa.claim.v2') {
-      claimV2 = true;
+      // C2PA 2.x active-manifest claim. Same JUMBF box UUID as v1 (c2cl) — the
+      // label is the version discriminator. The claim map differs
+      // (created_assertions/gathered_assertions instead of a single assertions
+      // array, a required claim_generator_info map, no free-text
+      // claim_generator string); those deltas are handled where the claim is
+      // read in verifyC2pa.
+      parts.claimBytes = contentOf(store, sub);
+      parts.claimVersion = 2;
     } else if (sub.label === 'c2pa.signature') {
       parts.signatureBytes = contentOf(store, sub);
     }
   }
-  if (!parts.claimBytes) {
-    throw new Error(claimV2
-      ? 'this credential uses a version 2 claim, which the on-device verifier does not read yet'
-      : 'manifest has no claim');
-  }
+  if (!parts.claimBytes) throw new Error('manifest has no claim');
   if (!parts.signatureBytes) throw new Error('manifest has no claim signature');
   return parts as C2paStoreParts;
 }
@@ -744,10 +748,75 @@ interface ParsedCertificate {
   spki: Uint8Array;
   tbsBytes: Uint8Array;
   signatureRaw: Uint8Array | null;
+  sigAlg: CertSigAlg | null;
   issuerBytes: Uint8Array;
   subjectBytes: Uint8Array;
   sanEmails: string[];
   isCa: boolean;
+}
+
+// How an ISSUER signed a child's tbsCertificate. Real C2PA hierarchies span
+// ECDSA (Google, the camera makers), RSA PKCS#1 v1.5 (Adobe, Microsoft,
+// DigiCert, SSL.com roots), RSA-PSS, and Ed25519 (Trufo). The digest is fixed
+// by the OID for ECDSA/RSA; RSA-PSS carries it in the AlgorithmIdentifier
+// parameters. Read from the CHILD cert (it names the algorithm the parent used).
+type CertSigAlg =
+  | { scheme: 'ecdsa'; hash: string }
+  | { scheme: 'rsa'; hash: string }
+  | { scheme: 'rsa-pss'; hash: string; saltLength: number }
+  | { scheme: 'ed25519' };
+
+// signatureAlgorithm OID (hex of the OID content) → fixed-digest schemes.
+const SIG_ALGS: Record<string, { scheme: 'ecdsa' | 'rsa'; hash: string }> = {
+  '2a8648ce3d040302': { scheme: 'ecdsa', hash: 'SHA-256' }, // ecdsa-with-SHA256
+  '2a8648ce3d040303': { scheme: 'ecdsa', hash: 'SHA-384' }, // ecdsa-with-SHA384
+  '2a8648ce3d040304': { scheme: 'ecdsa', hash: 'SHA-512' }, // ecdsa-with-SHA512
+  '2a864886f70d01010b': { scheme: 'rsa', hash: 'SHA-256' }, // sha256WithRSAEncryption
+  '2a864886f70d01010c': { scheme: 'rsa', hash: 'SHA-384' }, // sha384WithRSAEncryption
+  '2a864886f70d01010d': { scheme: 'rsa', hash: 'SHA-512' }, // sha512WithRSAEncryption
+};
+const SIG_OID_RSA_PSS = '2a864886f70d01010a'; // id-RSASSA-PSS
+const SIG_OID_ED25519 = '2b6570';             // id-Ed25519
+const HASH_OIDS: Record<string, string> = {
+  '608648016503040201': 'SHA-256', '608648016503040202': 'SHA-384',
+  '608648016503040203': 'SHA-512', '2b0e03021a': 'SHA-1',
+};
+const HASH_LEN: Record<string, number> = { 'SHA-1': 20, 'SHA-256': 32, 'SHA-384': 48, 'SHA-512': 64 };
+
+// Parse a signatureAlgorithm AlgorithmIdentifier into a verify recipe, or null
+// for anything unrecognised (→ the chain step is a quiet no-match, never a
+// crash, never a false trust).
+function parseCertSigAlg(cert: Uint8Array, algId: DerTlv): CertSigAlg | null {
+  try {
+    const kids = derChildren(cert, algId);
+    const oidTlv = kids[0];
+    if (!oidTlv || oidTlv.tag !== 0x06) return null;
+    const oid = hexOf(cert.slice(oidTlv.contentStart, oidTlv.end));
+    const fixed = SIG_ALGS[oid];
+    if (fixed) return { ...fixed };
+    if (oid === SIG_OID_ED25519) return { scheme: 'ed25519' };
+    if (oid === SIG_OID_RSA_PSS) {
+      // RSASSA-PSS-params ::= SEQUENCE { [0] hashAlgorithm, [1] maskGen,
+      // [2] saltLength INTEGER DEFAULT 20, [3] trailerField }. Absent [0]/[2]
+      // fall back to the ASN.1 defaults (SHA-1, 20).
+      let hash = 'SHA-1';
+      let saltLength = 20;
+      const params = kids[1];
+      if (params && params.tag === 0x30) {
+        for (const field of derChildren(cert, params)) {
+          if (field.tag === 0xa0) {
+            const h = derChildren(cert, field)[0];
+            if (h && h.tag === 0x06) hash = HASH_OIDS[hexOf(cert.slice(h.contentStart, h.end))] || hash;
+          } else if (field.tag === 0xa2) {
+            const s = derChildren(cert, field)[0];
+            if (s && s.tag === 0x02) { let n = 0; for (const b of cert.slice(s.contentStart, s.end)) n = n * 256 + b; saltLength = n; }
+          }
+        }
+      }
+      return { scheme: 'rsa-pss', hash, saltLength };
+    }
+    return null;
+  } catch { return null; }
 }
 
 /** Pull display facts + the SPKI out of a DER certificate. */
@@ -756,6 +825,7 @@ export function parseCertificate(cert: Uint8Array): ParsedCertificate {
   // Certificate: tbsCertificate, signatureAlgorithm, signatureValue BIT STRING.
   const topKids = derChildren(cert, top);
   const tbs = topKids[0]!;
+  const sigAlgTlv = topKids[1];
   const sigTlv = topKids[2];
   const kids = derChildren(cert, tbs);
   // tbsCertificate: optional [0] version, serial, sigAlg, issuer, validity, subject, SPKI, …
@@ -781,6 +851,7 @@ export function parseCertificate(cert: Uint8Array): ParsedCertificate {
     signatureRaw: sigTlv && sigTlv.tag === 0x03 && sigTlv.end > sigTlv.contentStart + 1
       ? cert.slice(sigTlv.contentStart + 1, sigTlv.end)
       : null,
+    sigAlg: sigAlgTlv ? parseCertSigAlg(cert, sigAlgTlv) : null,
     issuerBytes,
     subjectBytes,
     sanEmails: ext.sanEmails,
@@ -809,32 +880,94 @@ function ecdsaDerToRaw(derSig: Uint8Array, size = 32): Uint8Array {
   return out;
 }
 
-// One issuer→subject step, ECDSA P-256/SHA-256 only (the profile x509.js
-// issues): the child's issuer Name must byte-match the signer's subject AND
-// the signature over the child's tbsCertificate must verify against the
-// signer's SPKI. A non-P-256 signer key makes importKey throw, which the
-// caller counts as no-match.
-async function signedBy(child: ParsedCertificate, signer: ParsedCertificate): Promise<boolean> {
-  if (!child.signatureRaw || hexOf(child.issuerBytes) !== hexOf(signer.subjectBytes)) return false;
-  const key = await subtle.importKey('spki', asBufferSource(signer.spki), { name: 'ECDSA', namedCurve: 'P-256' }, false, ['verify']);
-  return subtle.verify({ name: 'ECDSA', hash: 'SHA-256' }, key, asBufferSource(ecdsaDerToRaw(child.signatureRaw)), asBufferSource(child.tbsBytes));
+// EC named-curve OIDs → WebCrypto params. C2PA signing hierarchies mix curves
+// (a Google chain is a P-256 leaf under a P-384 intermediate under a P-384
+// root), and an ECDSA CA signs with the SHA paired to its curve, so the verify
+// hash and the r||s integer width are read from the SIGNER's curve, not fixed.
+const EC_CURVES: Record<string, { curve: string; hash: string; size: number }> = {
+  '2a8648ce3d030107': { curve: 'P-256', hash: 'SHA-256', size: 32 }, // prime256v1
+  '2b81040022': { curve: 'P-384', hash: 'SHA-384', size: 48 },       // secp384r1
+  '2b81040023': { curve: 'P-521', hash: 'SHA-512', size: 66 },       // secp521r1
+};
+
+// Read the named curve out of an EC SubjectPublicKeyInfo (SEQUENCE {
+// AlgorithmIdentifier { ecPublicKey, curveOID }, BIT STRING }). A non-EC key
+// (RSA root) or an unknown curve returns null → the step is a quiet no-match,
+// so an RSA-rooted signer stays honestly untrusted rather than crashing.
+function ecParamsOf(spki: Uint8Array): { curve: string; hash: string; size: number } | null {
+  try {
+    const algId = derChildren(spki, derTlv(spki, 0))[0]!;
+    const curveOid = derChildren(spki, algId)[1];
+    if (!curveOid || curveOid.tag !== 0x06) return null;
+    return EC_CURVES[hexOf(spki.slice(curveOid.contentStart, curveOid.end))] ?? null;
+  } catch { return null; }
 }
 
-// Does the x5chain reach a pinned root? Direct leaf←anchor, or through ONE
-// intermediate (chain[1]) — which must itself be basicConstraints CA:TRUE, or
-// any issued leaf could vouch for a forged identity. Hostile chains must
-// never crash verification: every parse/import failure is a quiet no-match.
-// → the anchor's parsed certificate, or null.
+// One issuer→subject step: the child's issuer Name must byte-match the signer's
+// subject AND the signature over the child's tbsCertificate must verify against
+// the signer's SPKI, under the algorithm the CHILD's signatureAlgorithm names.
+// Covers every scheme real C2PA CAs sign certificates with — ECDSA P-256/384/521
+// (Google, camera makers), RSA PKCS#1 v1.5 (Adobe, Microsoft, DigiCert, SSL.com),
+// RSA-PSS, and Ed25519 (Trufo). An unrecognised algorithm, a key that can't be
+// imported for it, or any thrown error is a quiet no-match: a signer we cannot
+// cryptographically verify stays honestly UNTRUSTED — never a false trust.
+export async function signedBy(child: ParsedCertificate, signer: ParsedCertificate): Promise<boolean> {
+  if (!child.signatureRaw || !child.sigAlg || hexOf(child.issuerBytes) !== hexOf(signer.subjectBytes)) return false;
+  const sa = child.sigAlg;
+  try {
+    if (sa.scheme === 'ecdsa') {
+      const ec = ecParamsOf(signer.spki);
+      if (!ec) return false;
+      const key = await subtle.importKey('spki', asBufferSource(signer.spki), { name: 'ECDSA', namedCurve: ec.curve }, false, ['verify']);
+      return await subtle.verify({ name: 'ECDSA', hash: sa.hash }, key, asBufferSource(ecdsaDerToRaw(child.signatureRaw, ec.size)), asBufferSource(child.tbsBytes));
+    }
+    if (sa.scheme === 'rsa') {
+      const key = await subtle.importKey('spki', asBufferSource(normalizeRsaSpki(signer.spki)), { name: 'RSASSA-PKCS1-v1_5', hash: sa.hash }, false, ['verify']);
+      return await subtle.verify({ name: 'RSASSA-PKCS1-v1_5' }, key, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+    }
+    if (sa.scheme === 'rsa-pss') {
+      const key = await subtle.importKey('spki', asBufferSource(normalizeRsaSpki(signer.spki)), { name: 'RSA-PSS', hash: sa.hash }, false, ['verify']);
+      return await subtle.verify({ name: 'RSA-PSS', saltLength: sa.saltLength }, key, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+    }
+    // Ed25519 — the raw 64-byte signature verifies directly; not universal in
+    // WebCrypto, so a missing implementation throws → quiet no-match.
+    const key = await subtle.importKey('spki', asBufferSource(signer.spki), { name: 'Ed25519' }, false, ['verify']);
+    return await subtle.verify({ name: 'Ed25519' }, key, asBufferSource(child.signatureRaw), asBufferSource(child.tbsBytes));
+  } catch { return false; }
+}
+
+// Does the x5chain reach a pinned root? Walks leaf → intermediates (the rest of
+// the embedded x5chain) → a caller-pinned anchor, verifying each issuer→subject
+// signature and requiring every intermediate to be basicConstraints CA:TRUE (or
+// any issued leaf could vouch for a forged identity). Real Adobe / Microsoft /
+// OpenAI chains carry more than one intermediate, so the walk is not depth-1.
+// Guards: intermediates are consumed at most once (no A→B→A loops) and the walk
+// is bounded by their count; the anchor is only ever the PINNED cert, never a
+// root the chain ships for itself. Hostile chains must never crash verification:
+// every parse/import/verify failure is a quiet no-match. → the anchor, or null.
 async function chainsToAnchor(leaf: ParsedCertificate, chainDers: unknown[], trustAnchors: Uint8Array[]): Promise<ParsedCertificate | null> {
-  for (const anchorDer of trustAnchors) {
-    try {
-      const anchor = parseCertificate(anchorDer);
-      if (await signedBy(leaf, anchor)) return anchor;
-      if (chainDers[1] instanceof Uint8Array) {
-        const mid = parseCertificate(chainDers[1]);
-        if (mid.isCa && (await signedBy(leaf, mid)) && (await signedBy(mid, anchor))) return anchor;
-      }
-    } catch { /* malformed / foreign-algorithm certificate: not trusted */ }
+  const anchors: ParsedCertificate[] = [];
+  for (const der of trustAnchors) { try { anchors.push(parseCertificate(der)); } catch { /* skip malformed anchor */ } }
+  const intermediates: ParsedCertificate[] = [];
+  for (const der of chainDers.slice(1)) {
+    if (der instanceof Uint8Array) { try { const c = parseCertificate(der); if (c.isCa) intermediates.push(c); } catch { /* skip */ } }
+  }
+  let current = leaf;
+  const used = new Set<ParsedCertificate>();
+  // At most (intermediates + 1) hops: each iteration either reaches an anchor or
+  // climbs one fresh intermediate; if neither, the chain is broken.
+  for (let hop = 0; hop <= intermediates.length; hop++) {
+    for (const anchor of anchors) {
+      try { if (await signedBy(current, anchor)) return anchor; } catch { /* not this anchor */ }
+    }
+    let next: ParsedCertificate | null = null;
+    for (const mid of intermediates) {
+      if (used.has(mid) || hexOf(mid.subjectBytes) !== hexOf(current.issuerBytes)) continue;
+      try { if (await signedBy(current, mid)) { next = mid; break; } } catch { /* try next intermediate */ }
+    }
+    if (!next) break;
+    used.add(next);
+    current = next;
   }
   return null;
 }
@@ -1010,14 +1143,23 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     return report;
   }
 
-  const actionsAssertion = parts.assertions.find((a) => a.label === 'c2pa.actions');
+  // v1 uses the 'c2pa.actions' assertion; v2 uses 'c2pa.actions.v2'. The action
+  // maps share the same shape for the fields read here (action/when), except
+  // softwareAgent is a bare string in v1 and a generator-info map in v2.
+  const actionsAssertion = parts.assertions.find((a) => a.label === 'c2pa.actions' || a.label === 'c2pa.actions.v2');
   let actions: Array<{ action: unknown; when: unknown; softwareAgent: unknown }> = [];
   try {
     const decoded = actionsAssertion && (decodeCbor(actionsAssertion.content) as Map<unknown, unknown>).get('actions');
     if (Array.isArray(decoded)) {
-      actions = decoded.map((a) => ({
-        action: a.get?.('action'), when: a.get?.('when'), softwareAgent: a.get?.('softwareAgent'),
-      }));
+      actions = decoded.map((a) => {
+        const sa = a.get?.('softwareAgent');
+        return {
+          action: a.get?.('action'),
+          when: a.get?.('when'),
+          // v2 softwareAgent is a { name, version } map; surface its name.
+          softwareAgent: sa instanceof Map ? sa.get('name') : sa,
+        };
+      });
     }
   } catch { /* absent/opaque actions are a display nicety, not a check */ }
 
@@ -1027,12 +1169,16 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     for (const [k, v] of m) if (typeof k === 'string' && (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean')) o[k] = v;
     return o;
   };
+  // claim_generator_info is an array of generator maps in v1 (optional, read
+  // its first entry) and a single generator map in v2 (required — the
+  // free-text claim_generator string is gone in v2, so this is the sole
+  // generator identity).
   const genInfo = claim.get('claim_generator_info');
   report.claim = {
     title: claim.get('dc:title'),
     format: claim.get('dc:format'),
     claimGenerator: claim.get('claim_generator'),
-    generatorInfo: Array.isArray(genInfo) ? mapToObj(genInfo[0]) : null,
+    generatorInfo: mapToObj(Array.isArray(genInfo) ? genInfo[0] : genInfo),
     instanceId: claim.get('instanceID'),
     manifestLabel: parts.manifestLabel,
     actions,
@@ -1058,7 +1204,19 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   //    superbox payload actually present in the store. A crafted claim can put
   //    ANYTHING in this array (non-map entries, refs without a hash) — each
   //    malformation is a failed check, never an escaped exception.
-  const refs = claim.get('assertions');
+  // v1 lists every assertion reference in one `assertions` array. v2 splits
+  // them into `created_assertions` (required — the hard binding + actions.v2,
+  // authored by this claim generator) and optional `gathered_assertions`
+  // (carried in from ingredients). Both are hashed-URI references, verified
+  // identically, so the loop treats them as one flat list. Wiring BOTH here is
+  // load-bearing: a v2 claim whose references were never read would leave every
+  // assertion unverified behind only the hard binding.
+  const refs = parts.claimVersion === 2
+    ? [
+        ...(Array.isArray(claim.get('created_assertions')) ? (claim.get('created_assertions') as unknown[]) : []),
+        ...(Array.isArray(claim.get('gathered_assertions')) ? (claim.get('gathered_assertions') as unknown[]) : []),
+      ]
+    : claim.get('assertions');
   for (const ref of Array.isArray(refs) ? refs : []) {
     const url = ref instanceof Map ? ref.get('url') : null;
     const hash = ref instanceof Map ? ref.get('hash') : null;
