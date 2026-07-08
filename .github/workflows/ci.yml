@@ -1,10 +1,12 @@
 # Quality gate — runs on every push to main and every PR.
-# Nothing here was enforced before (no CI), so a red test or a drifted catalog
-# could ship; this is the meta-gate the QA audit (plans/qa-audit-2026-06-28.md #1)
-# called for. Both commands already exit non-zero on failure.
-#
-# Deliberately NOT running `typecheck` yet — it's a broken no-op (no engine
-# tsconfig); wire it in once that's fixed. A build smoke / e2e can follow.
+# Four independent gates run in parallel (plans/qa-audit-2026-06-28.md #1):
+#   test            — full repo suite (engine contract tests + core/web/mcp)
+#   typecheck       — tsc -p across every project
+#   validate        — catalog manifests/index drift + asset checksums
+#   build + budget  — production web build, then the boot-path bundle budget
+#                     (scripts/check-bundle-budget.ts is deliberately NOT part
+#                     of build:web, so CI must run it explicitly after).
+# Every command already exits non-zero on failure.
 name: CI
 
 on:
@@ -22,12 +24,12 @@ concurrency:
 
 jobs:
   test:
-    name: test + validate catalog
+    name: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          submodules: recursive   # tools/catalog/shells/services are submodules now
+          submodules: recursive   # tools/catalog/shells/services/docs are submodules; workspaces need every package.json
 
       - uses: actions/setup-node@v4
         with:
@@ -37,8 +39,65 @@ jobs:
       - name: Install (workspaces)
         run: npm ci
 
-      - name: Engine contract tests
+      - name: Full test suite
         run: npm test
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (workspaces)
+        run: npm ci
+
+      - name: Typecheck (tsc -p, every project)
+        run: npm run typecheck
+
+  validate-catalog:
+    name: validate catalog
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (workspaces)
+        run: npm ci
 
       - name: Validate catalog (no manifest/index drift, asset checksums)
         run: npm run validate:catalog
+
+  build:
+    name: build + bundle budget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (workspaces)
+        run: npm ci
+
+      - name: Production build (info site + OG cards + web shell)
+        run: npm run build:web
+
+      - name: Bundle budget (boot-path JS ≤ 115 KB gz, no heavy chunks preloaded)
+        run: npm run check:bundle

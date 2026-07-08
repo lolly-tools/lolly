@@ -688,6 +688,13 @@ function hexToUtf16(hex: string): string {
  * (range mappings, with either a base destination or an explicit array). Character codes
  * are the source-byte integers used in content-stream strings.
  */
+// Source codes are 1-byte (simple fonts) or 2-byte (Type0/CID), so a single
+// bfrange can never legitimately span more than 0x10000 codes. A hostile CMap
+// (`<00000000> <ffffffff> <0041>`) would otherwise drive an ~4-billion-iteration
+// loop that OOM-crashes the process — never trust the declared span. Ranges
+// wider than this cap are clamped (the leading, plausibly-real codes still map).
+const MAX_BF_RANGE = 0x10000;
+
 export function parseToUnicode(cmap: string): Map<number, string> {
   const map = new Map<number, string>();
   if (!cmap) return map;
@@ -726,7 +733,8 @@ export function parseToUnicode(cmap: string): Map<number, string> {
       const lo = parseInt(rm[1]!, 16), hi = parseInt(rm[2]!, 16);
       const baseHex = rm[3]!;
       const base = parseInt(baseHex, 16);
-      for (let k = 0; k <= hi - lo; k++) {
+      const span = Math.min(hi - lo, MAX_BF_RANGE - 1); // never trust the declared span
+      for (let k = 0; k <= span; k++) {
         map.set(lo + k, String.fromCharCode((base + k) & 0xffff));
       }
     }
