@@ -301,15 +301,22 @@ export function colorToHex(value: unknown): string | null | undefined {
     const ok = parseOklch(s);
     if (ok) return oklchToHex(ok);
   }
-  return s; // a named CSS colour or something we don't parse — leave it alone
+  // A plain colour ident ("rebeccapurple") passes through untouched. Anything
+  // else must NOT flow on verbatim: token values come from untrusted imported
+  // documents and colorToHex's output lands in inline style attributes, so a
+  // string like "red;background:url(//evil)" or "expression(alert(1))" would
+  // otherwise inject live CSS declarations. Idents only; the rest is "no colour".
+  return /^[a-z][a-z0-9-]*$/i.test(s) ? s : null;
 }
 
-function normHex(s: string): string {
+// Strict hex only: expand #rgb/#rgba, reject anything that isn't a pure
+// 6/8-digit hex afterwards — "#fff;background:url(//x)" must not pass through.
+function normHex(s: string): string | null {
   let h = s.trim().toLowerCase();
   if (/^#[0-9a-f]{3}$/.test(h) || /^#[0-9a-f]{4}$/.test(h)) {
     h = '#' + h.slice(1).split('').map(c => c + c).join('');
   }
-  return h;
+  return /^#(?:[0-9a-f]{6}|[0-9a-f]{8})$/.test(h) ? h : null;
 }
 
 function rgbaToHex(r: number, g: number, b: number, a = 1): string {

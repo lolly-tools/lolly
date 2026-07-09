@@ -41,7 +41,7 @@
         { "value": "light", "label": "Light" }
       ]
     },
-    { "id": "accent", "label": "Accent", "type": "color", "default": "#4f84ba" }
+    { "id": "accent", "label": "Accent", "type": "color", "default": "", "help": "Leave unset to follow your brand's primary colour." }
   ],
   "hooks": { "onInit": true, "onLevel": true }
 }
