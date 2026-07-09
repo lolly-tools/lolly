@@ -119,6 +119,14 @@ test('duplicate colours across multiple elements collapse to one entry', () => {
   assert.deepEqual(extractSvgColors(svg), ['#ff0000']);
 });
 
+test('a named colour dedupes case-insensitively, keeping the first-seen casing', () => {
+  // colorToHex normalises hex/rgb()/hsl() to lowercase, but passes a bare
+  // named colour through verbatim — "RED" and "red" must still collapse to
+  // one entry rather than surviving as two "different" colours.
+  assert.deepEqual(extractSvgColors('<rect fill="RED"/><rect fill="red"/>'), ['RED']);
+  assert.deepEqual(extractSvgColors('<rect fill="red"/><rect fill="RED"/>'), ['red']);
+});
+
 test('order is first-seen', () => {
   const svg = `<rect fill="#111111"/><rect fill="#222222"/><rect fill="#333333"/>`;
   assert.deepEqual(extractSvgColors(svg), ['#111111', '#222222', '#333333']);
