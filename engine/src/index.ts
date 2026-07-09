@@ -96,6 +96,8 @@ export {
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
+export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
+export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';
 export {
   coerceTokensDoc, assembleTokenSetFiles, extractPenpotProject, summarizeTokensDoc,
 } from './brand-import.ts';
