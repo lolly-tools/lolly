@@ -4,12 +4,14 @@
 # operates on $LOLLY_ROOT (default ~/Build/lolly, override with the env var).
 #
 #   loldev gtg [-m "msg"] [--force] [--no-build]
-#       "good to go" — typecheck + build the catalog (gate), then commit + push every changed
-#       submodule to its own repo AND the parent, to the correct place.
+#       "good to go" — typecheck + build/validate the catalog for EVERY live
+#       profile (gate, see SHIP_TARGETS in config.sh), then commit + push every
+#       changed submodule to its own repo AND the parent, to the correct place.
 #       No -m → empty commit message. First push after the history rewrite
 #       needs --force (once).
 #   loldev push [-m "msg"] [--force]   gtg without the catalog rebuild
-#   loldev ship [-m "msg"] [--preview] gtg, THEN deploy to Vercel (prod; --preview = preview URL)
+#   loldev ship [-m "msg"] [--preview] gtg, THEN deploy EVERY SHIP_TARGETS project to
+#                                      Vercel uniformly (prod; --preview = preview URLs)
 #   loldev status | st                 what's dirty / ahead, per repo
 #   loldev build                       build:catalog + validate:catalog
 #   loldev previews                    regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes
@@ -45,12 +47,26 @@ do_build() {
   step "type-checking every project"
   npm run --silent typecheck || { err "typecheck failed — fix it, or run 'loldev push' to bypass the build gate"; return 1; }
   ok "typecheck passed"
-  step "building + validating the catalog"
+
   # build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no browser).
   # The heavy Playwright card/look render is a separate, opt-in `loldev previews`.
-  npm run --silent build:catalog   || { err "build:catalog failed";    return 1; }
-  npm run --silent validate:catalog || { err "validate:catalog failed"; return 1; }
-  ok "catalog built + validated"
+  # Every SHIP_TARGETS profile feeds a live site (bt=suse, lolly-start=lolly-start) —
+  # validate each one's catalog, not just whichever profile happens to be checked
+  # out locally, so a push can't silently break the site we're not developing in.
+  local starting; starting="$(cat "$REPO_ROOT/.lolly-profile" 2>/dev/null)"
+  local entry name id profile domain seen=()
+  for entry in "${SHIP_TARGETS[@]}"; do
+    IFS='|' read -r name id profile domain <<<"$entry"
+    [[ " ${seen[*]:-} " == *" $profile "* ]] && continue   # dedupe shared profiles
+    seen+=("$profile")
+    step "building + validating the '$profile' catalog ($domain)"
+    node scripts/use-profile.ts "$profile" >/dev/null 2>&1 \
+      || { err "profile '$profile' isn't mounted here — can't validate $domain before push"; return 1; }
+    npm run --silent build:catalog    || { err "build:catalog failed for profile '$profile'";    return 1; }
+    npm run --silent validate:catalog || { err "validate:catalog failed for profile '$profile'"; return 1; }
+    ok "'$profile' catalog built + validated"
+  done
+  [ -n "$starting" ] && node scripts/use-profile.ts "$starting" >/dev/null 2>&1
 }
 
 # Pretty end-of-run tally. Reads the PUSHED / FAILED / NOOP globals gtg fills in.
@@ -134,36 +150,58 @@ gtg() {
   [ "${#FAILED[@]}" -eq 0 ]   # exit status reflects success/failure
 }
 
-# ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel (project `bt`,
-# linked via .vercel/). Uses `npx vercel` (CLI not installed globally) + cached auth
-# (andyfitz). --archive=tgz tarballs the LOCAL tree, so submodule content ships and
-# Vercel compiles api/ functions. --preview → a preview URL instead of prod.
+# ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel — EVERY
+# project in SHIP_TARGETS, uniformly (currently `bt`→lolly.tools/SUSE and
+# `lolly-start`→lolly.art/blank brand), so `loldev ship` never leaves one site
+# stale relative to the other. Uses `npx vercel` (CLI not installed globally) +
+# cached auth (andyfitz); VERCEL_ORG_ID/VERCEL_PROJECT_ID env overrides pick the
+# target project per deploy without touching the local `.vercel/` link (stays
+# pointed at `bt`, e.g. for `vercel dev`). --archive=tgz tarballs the LOCAL tree
+# for every target, so submodule content ships and Vercel compiles api/
+# functions; each project's own LOLLY_PROFILE env var (Vercel dashboard) is what
+# actually picks the brand it builds. --preview → preview URLs instead of prod,
+# for every target.
 ship() {
   local PREVIEW=0 gargs=() a
   for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
   gtg "${gargs[@]}" || { err "gtg failed — not deploying"; return 1; }
 
-  local tgt flags log rc url
-  if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; flags=(); else tgt="PRODUCTION → lolly.tools"; flags=(--prod); fi
-  phase "🚀" "Deploy → Vercel (bt, $tgt)"
-  step "tarballing the local tree + building on Vercel"
-  log="$(mktemp -t loldev-ship.XXXXXX)"
-  npx --yes vercel deploy "${flags[@]}" --archive=tgz --yes 2>&1 | tee "$log"
-  rc=${PIPESTATUS[0]}
-  url="$(grep -Eo 'https://[a-zA-Z0-9._~:/?#@!$&%*+=-]+' "$log" | tail -1)"
-  rm -f "$log"
+  local tgt flags
+  if [ "$PREVIEW" = 1 ]; then tgt="PREVIEW"; flags=(); else tgt="PRODUCTION"; flags=(--prod); fi
+
+  local -a SHIPPED=() SFAILED=()
+  local entry name id profile domain log rc url line
+  for entry in "${SHIP_TARGETS[@]}"; do
+    IFS='|' read -r name id profile domain <<<"$entry"
+    phase "🚀" "Deploy → Vercel ($name → $domain, $tgt)"
+    step "tarballing the local tree + building on Vercel"
+    log="$(mktemp -t loldev-ship.XXXXXX)"
+    VERCEL_ORG_ID="$VERCEL_TEAM_ID" VERCEL_PROJECT_ID="$id" \
+      npx --yes vercel deploy "${flags[@]}" --archive=tgz --yes 2>&1 | tee "$log"
+    rc=${PIPESTATUS[0]}
+    url="$(grep -Eo 'https://[a-zA-Z0-9._~:/?#@!$&%*+=-]+' "$log" | tail -1)"
+    rm -f "$log"
+    if [ "$rc" -eq 0 ]; then
+      ok "shipped $name"
+      line="$domain"; [ -n "$url" ] && line="$line  ·  $url"
+      SHIPPED+=("$line")
+    else
+      err "vercel deploy failed: $name (exit $rc)"
+      SFAILED+=("$name → $domain")
+    fi
+  done
 
   echo
   rule
-  if [ "$rc" -eq 0 ]; then
-    printf "  ${c_bold}${c_grn}🎉  Shipped!${c_reset}  ${c_gray}·  live on Vercel${c_reset}\n"
-    [ -n "$url" ] && printf "     ${c_cyan}🌐  %s${c_reset}\n" "$url"
-    [ "$PREVIEW" = 0 ] && printf "     ${c_cyan}🌐  https://lolly.tools${c_reset}\n"
+  if [ "${#SFAILED[@]}" -eq 0 ]; then
+    printf "  ${c_bold}${c_grn}🎉  Shipped!${c_reset}  ${c_gray}·  %s site(s) live on Vercel${c_reset}\n" "${#SHIP_TARGETS[@]}"
   else
-    printf "  ${c_bold}${c_red}✗  vercel deploy failed${c_reset}  ${c_gray}(exit %s)${c_reset}\n" "$rc"
+    printf "  ${c_bold}${c_red}✗  %s/%s site(s) failed to deploy${c_reset}\n" "${#SFAILED[@]}" "${#SHIP_TARGETS[@]}"
   fi
+  for line in "${SHIPPED[@]}"; do printf "     ${c_cyan}🌐  %s${c_reset}\n" "$line"; done
+  for line in "${SFAILED[@]}"; do printf "     ${c_red}✗  %s${c_reset}\n" "$line"; done
   rule
-  [ "$rc" -eq 0 ]
+  [ "${#SFAILED[@]}" -eq 0 ]
 }
 
 cmd="${1:-help}"; [ $# -gt 0 ] && shift
