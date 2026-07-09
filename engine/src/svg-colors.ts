@@ -110,8 +110,14 @@ export function extractSvgColors(svgText: string): string[] {
     if (BARE_IDENT.test(v) && !NAMED_COLORS.has(lc)) return; // stray word, not a real colour
     const hex = colorToHex(v);
     if (hex == null || hex === 'transparent') return; // colorToHex couldn't read it
-    if (seen.has(hex)) return;
-    seen.add(hex);
+    // colorToHex already normalises hex/rgb()/hsl()/… to lowercase hex, but a
+    // bare named colour passes through VERBATIM (preserved casing) — dedupe on
+    // a lowercased key so "RED" and "red" in the same file collapse to one
+    // entry (whichever casing was seen first), while still returning that
+    // first-seen casing in `out`.
+    const key = hex.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
     out.push(hex);
   };
 

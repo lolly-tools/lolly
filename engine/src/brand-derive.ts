@@ -356,9 +356,19 @@ export interface BrandDeriveOptions {
   surface?: 'light' | 'dark' | 'primary';
   /** Contrast floors: 'comfort' (default) or 'high'. */
   contrast?: 'comfort' | 'high';
+  /** How many steps each ramp carries (primary/neutral/secondary). Default 9;
+   *  clamped to [3, 20]. The perceptual RAMP_L curve is resampled to this count
+   *  and every semantic role's preferred step scales proportionally, so the
+   *  contrast floors hold at any division count. */
+  steps?: number;
   /** Provenance label baked into `$description`. */
   name?: string;
 }
+
+/** Ramp division bounds — the shade-count slider's range. */
+export const RAMP_STEPS_MIN = 3;
+export const RAMP_STEPS_MAX = 20;
+export const RAMP_STEPS_DEFAULT = 9;
 
 // Mirrors TOKEN_EXT in tokens.ts — kept as a local literal because tokens.ts
 // imports this module's conversion math; importing the constant back would cycle.
@@ -383,14 +393,24 @@ const SCHEME_ROTATION = { mono: 0, complement: 180, analogous: 30, triad: 120 } 
 const WHITE: Oklch = { l: 1, c: 0, h: 0 };
 const BLACK: Oklch = { l: 0, c: 0, h: 0 };
 
-// Ramp L targets, with step 5 pulled to the primary's exact L when it's
-// mid-range (0.45–0.75) — neighbours re-spaced so the ramp stays monotonic.
-function rampLightnesses(primaryL: number): number[] {
-  const Ls: number[] = [...RAMP_L];
-  if (primaryL >= 0.45 && primaryL <= 0.75) {
-    Ls[4] = primaryL;
-    for (let i = 1; i <= 3; i++) Ls[i] = Ls[0]! + (Ls[4]! - Ls[0]!) * (i / 4);
-    for (let i = 5; i <= 7; i++) Ls[i] = Ls[4]! + (Ls[8]! - Ls[4]!) * ((i - 4) / 4);
+// `n` ramp L targets: the 9-point perceptual RAMP_L curve resampled to n points
+// (endpoints fixed), with the MIDDLE step pulled to the primary's exact L when
+// it's mid-range (0.45–0.75) — neighbours re-spaced so the ramp stays monotonic.
+// n = 9 reproduces the original RAMP_L (and its step-5 anchor pull) verbatim.
+function rampLightnesses(primaryL: number, n: number): number[] {
+  const src = RAMP_L;
+  const Ls: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const t = n === 1 ? 0.5 : i / (n - 1);
+    const x = t * (src.length - 1);
+    const lo = Math.floor(x), hi = Math.min(src.length - 1, lo + 1);
+    Ls.push(src[lo]! + (src[hi]! - src[lo]!) * (x - lo));
+  }
+  if (primaryL >= 0.45 && primaryL <= 0.75 && n >= 3) {
+    const mid = Math.round((n - 1) / 2);
+    Ls[mid] = primaryL;
+    for (let i = 1; i < mid; i++) Ls[i] = Ls[0]! + (Ls[mid]! - Ls[0]!) * (i / mid);
+    for (let i = mid + 1; i < n - 1; i++) Ls[i] = Ls[mid]! + (Ls[n - 1]! - Ls[mid]!) * ((i - mid) / (n - 1 - mid));
   }
   return Ls;
 }
@@ -418,12 +438,12 @@ function emitHex(v: Oklch): string {
 }
 
 // Ramp steps ordered by distance from `preferred`; ties break toward `tie`
-// (-1 = darker side first, +1 = lighter side first).
-function stepsByDistance(preferred: number, tie: 1 | -1): number[] {
+// (-1 = darker side first, +1 = lighter side first). `n` = ramp length.
+function stepsByDistance(preferred: number, tie: 1 | -1, n = 9): number[] {
   const out = [preferred];
-  for (let d = 1; d < 9; d++) {
+  for (let d = 1; d < n; d++) {
     for (const s of [preferred + tie * d, preferred - tie * d]) {
-      if (s >= 1 && s <= 9 && !out.includes(s)) out.push(s);
+      if (s >= 1 && s <= n && !out.includes(s)) out.push(s);
     }
   }
   return out;
@@ -454,7 +474,7 @@ function nudged(from: Oklch, surfaceHex: string, floor: number): Oklch {
 function pickByContrast(
   ramp: Oklch[], preferred: number, surfaceHex: string, floor: number, tie: 1 | -1,
 ): Slot {
-  for (const s of stepsByDistance(preferred, tie)) {
+  for (const s of stepsByDistance(preferred, tie, ramp.length)) {
     const v = ramp[s - 1]!;
     if (contrastRatio(emitHex(v), surfaceHex) >= floor) return { step: s, value: v };
   }
@@ -463,10 +483,11 @@ function pickByContrast(
 
 // on-primary candidates in spec order: white / black / the primary ramp ends.
 function pickOnPrimary(primaryHex: string, primaryRamp: Oklch[], floor: number): Slot | null {
+  const N = primaryRamp.length;
   const candidates: Slot[] = [
     { value: WHITE },
     { value: BLACK },
-    { step: 9, value: primaryRamp[8]! },
+    { step: N, value: primaryRamp[N - 1]! },
     { step: 1, value: primaryRamp[0]! },
   ];
   for (const cand of candidates) {
@@ -494,20 +515,27 @@ function buildSemantic(
 ): Record<string, Tok> {
   const { primary: pRamp, neutral } = ramps;
   const tie: 1 | -1 = spec.dark ? 1 : -1; // ties break toward the higher-contrast side
+  // Role preferred-steps are FRACTIONS of the ramp (0 = darkest step 1, 1 =
+  // lightest step N), so the perceptual placement holds at any division count.
+  // `at(frac)` maps to a 1-based step; at n = 9 these reproduce the original
+  // fixed indices (9/1, 6/4, 3/7, 8/9 & 2/1, anchor 5, primary-surface 6…9).
+  const N = neutral.length;
+  const at = (frac: number): number => Math.min(N, Math.max(1, Math.round(frac * (N - 1)) + 1));
+  const anchor = at(0.5); // the mid ramp step (was 5) — the brand-colour anchor
 
   let surface: Slot;
   if (spec.primarySurface) {
     // The "dark mid primary" look: a deep, chroma-rich primary surface.
     surface = { value: { l: 0.26, c: Math.max(0.06, p.c * 0.6), h: p.h } };
   } else {
-    const step = spec.dark ? (high ? 2 : 1) : (high ? 8 : 9);
+    const step = spec.dark ? (high ? at(0.125) : at(0)) : (high ? at(0.875) : at(1));
     surface = { step, value: neutral[step - 1]! };
   }
   const surfaceHex = emitHex(surface.value);
 
-  const text = pickByContrast(neutral, spec.dark ? 9 : 1, surfaceHex, F.text, tie);
-  const muted = pickByContrast(neutral, spec.dark ? 6 : 4, surfaceHex, F.muted, tie);
-  const edge = pickByContrast(neutral, spec.dark ? 3 : 7, surfaceHex, F.edge, tie);
+  const text = pickByContrast(neutral, spec.dark ? at(1) : at(0), surfaceHex, F.text, tie);
+  const muted = pickByContrast(neutral, spec.dark ? at(0.625) : at(0.375), surfaceHex, F.muted, tie);
+  const edge = pickByContrast(neutral, spec.dark ? at(0.25) : at(0.75), surfaceHex, F.edge, tie);
 
   // primary + on-primary are enforced as a PAIR: when no on-primary candidate
   // reads on the anchor step, the primary slot itself shifts along its ramp
@@ -518,7 +546,7 @@ function buildSemantic(
     // Lift primary to a lighter step until it reads on the primary surface
     // (the muted floor doubles as its readability target) AND carries a
     // passing on-primary.
-    for (let s = 6; s <= 9 && !primary; s++) {
+    for (let s = at(0.625); s <= N && !primary; s++) {
       const v = pRamp[s - 1]!;
       if (contrastRatio(emitHex(v), surfaceHex) < F.muted) continue;
       const on = pickOnPrimary(emitHex(v), pRamp, F.onPrimary);
@@ -528,7 +556,7 @@ function buildSemantic(
       }
     }
   } else {
-    for (const s of stepsByDistance(5, tie)) {
+    for (const s of stepsByDistance(anchor, tie, N)) {
       const v = pRamp[s - 1]!;
       const on = pickOnPrimary(emitHex(v), pRamp, F.onPrimary);
       if (on) {
@@ -541,15 +569,15 @@ function buildSemantic(
   if (!primary || !onPrimary) {
     // Unreachable in practice (a ramp end always carries a passing white or
     // black at these floors) — but never emit a slot below its floor.
-    const step = spec.primarySurface ? 9 : 1;
+    const step = spec.primarySurface ? N : 1;
     primary = { step, value: pRamp[step - 1]! };
-    onPrimary = { value: nudged(step === 9 ? BLACK : WHITE, emitHex(primary.value), F.onPrimary) };
+    onPrimary = { value: nudged(step === N ? BLACK : WHITE, emitHex(primary.value), F.onPrimary) };
   }
 
   return {
     'primary': slotTok(primary, 'primary', 'Semantic'),
     'on-primary': slotTok(onPrimary, 'primary', 'Semantic'),
-    'secondary': aliasTok('color.ramp.secondary.5', 'Semantic'),
+    'secondary': aliasTok(`color.ramp.secondary.${anchor}`, 'Semantic'),
     'surface': slotTok(surface, 'neutral', 'Semantic'),
     'text': slotTok(text, 'neutral', 'Semantic'),
     'muted': slotTok(muted, 'neutral', 'Semantic'),
@@ -577,11 +605,12 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
   const contrast = opts.contrast === 'high' ? 'high' : 'comfort';
   const high = contrast === 'high';
   const F = FLOORS[contrast];
+  const steps = Math.round(Math.min(RAMP_STEPS_MAX, Math.max(RAMP_STEPS_MIN, opts.steps ?? RAMP_STEPS_DEFAULT)));
 
   // Ramps: hue held constant per ramp; chroma bells over L, peaking where the
   // primary sits (clamped mid-range) so the anchor keeps the input chroma.
   const peak = Math.min(0.75, Math.max(0.45, p.l));
-  const Ls = rampLightnesses(p.l);
+  const Ls = rampLightnesses(p.l, steps);
   const mkRamp = (hue: number, chromaScale: number): Oklch[] =>
     Ls.map(L => ({ l: L, c: p.c * chromaScale * chromaBell(L, peak), h: normHue(hue) }));
 

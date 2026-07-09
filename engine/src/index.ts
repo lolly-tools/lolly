@@ -93,6 +93,7 @@ export {
 } from './tokens.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, contrastRatio, deriveBrandTokens,
+  RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
 export {
