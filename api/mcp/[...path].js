@@ -1553,7 +1553,7 @@ async function buildExportMeta(host, manifest, profile) {
   const author = optedIn ? [clean(p.firstname), clean(p.lastname)].filter(Boolean).join(" ") : "";
   const contact = optedIn ? [clean(p.email), clean(p.phone)].filter(Boolean).join(" \xB7 ") : "";
   const tool = clean(manifest?.name) || clean(manifest?.id);
-  const description = ["Made with https://lolly.tools", tool && `\u2014 ${tool}`, author && `by ${author}`].filter(Boolean).join(" ");
+  const description = ["Made with https://lolly.tools", tool && ${tool}`, author && `by ${author}`].filter(Boolean).join(" ");
   return {
     software: "Lolly",
     source: "https://lolly.tools",
