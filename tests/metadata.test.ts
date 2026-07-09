@@ -34,7 +34,7 @@ test('buildExportMeta: details present but NOT opted in → no personal data emb
   assert.equal(m.contact, '');
   assert.equal(m.tool, 'QR Code');     // tool / platform attribution still stands
   assert.equal(m.software, 'Lolly');
-  assert.equal(m.description, 'Made with https://lolly.tools — QR Code');
+  assert.equal(m.description, 'Made with https://lolly.tools : QR Code');
 });
 
 test('buildExportMeta: empty profile → software-only provenance', async () => {
