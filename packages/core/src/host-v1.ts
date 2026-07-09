@@ -744,6 +744,22 @@ export interface TextToPathOpts {
    * instead of forcing a non-outlined <text> fallback. Defaults to 0.
    */
   letterSpacing?: number;
+  /**
+   * OpenType variation-axis settings for a VARIABLE font, as HarfBuzz strings
+   * (`['wght=700']`). Without them a variable face shapes at its default
+   * instance — a bold run would outline as regular. Axes not listed take their
+   * default value. Ignored by static fonts. (v1.29)
+   */
+  variations?: string[];
+  /**
+   * Faces to shape the characters `fontUrl` has no glyph for, tried in order —
+   * the same job the browser's font fallback does. Needed because webfont
+   * families arrive as DISJOINT subsets (Google Fonts' `latin` file holds no
+   * `Ł`, and its `latin-ext` file holds no ASCII), so a single face cannot
+   * outline "Łódź". Characters no face covers shape as `.notdef` and are
+   * counted in `notdef`. (v1.29)
+   */
+  fallbackFonts?: Array<{ fontUrl: string; variations?: string[] }>;
 }
 
 export interface TextPathResult {
@@ -756,6 +772,13 @@ export interface TextPathResult {
    * y1 is above the baseline (negative), y2 is below (positive for descenders).
    */
   bbox: { x1: number; y1: number; x2: number; y2: number } | null;
+  /**
+   * How many glyphs in the run fell back to `.notdef` — the font has no glyph
+   * for that character. Outlining then draws blanks or tofu boxes, so a caller
+   * that has a fallback (an SVG `<text>` element) should prefer it when this is
+   * non-zero. Absent on hosts that predate the field; treat as 0. (v1.29)
+   */
+  notdef?: number;
 }
 
 // ─── Network ────────────────────────────────────────────────────────────────

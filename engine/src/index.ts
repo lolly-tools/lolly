@@ -372,4 +372,9 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // exports the brand-import container extractors (coerceTokensDoc /
 // assembleTokenSetFiles / extractPenpotProject / summarizeTokensDoc). Pure
 // engine modules; no bridge change.
-export const ENGINE_VERSION = '1.28.0';
+// 1.29.0 — additive on host.text: TextToPathOpts.variations (HarfBuzz axis
+// settings, e.g. ['wght=700']) so a VARIABLE face outlines at the run's actual
+// weight instead of its default instance, and TextPathResult.notdef (count of
+// missing glyphs) so a caller can prefer its <text> fallback over outlining
+// tofu. Both optional: an older host omitting them keeps working unchanged.
+export const ENGINE_VERSION = '1.29.0';
