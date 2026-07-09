@@ -48,7 +48,7 @@ export async function buildExportMeta(
   const contact = optedIn ? [clean(p.email), clean(p.phone)].filter(Boolean).join(' · ') : '';
   const tool    = clean(manifest?.name) || clean(manifest?.id);
 
-  const description = ['Made with https://lolly.tools', tool && `— ${tool}`, author && `by ${author}`]
+  const description = ['Made with https://lolly.tools', tool && `: ${tool}`, author && `by ${author}`]
     .filter(Boolean).join(' ');
 
   return {
