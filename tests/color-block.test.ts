@@ -22,6 +22,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -33,9 +34,14 @@ import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
 const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'tools');
 const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
 
+// color-block ships in the (private) SUSE brand pack; under a profile without
+// it (lolly-start / public CI) there is no tool to load — skip the suite.
+const SKIP_SUSE = !existsSync(join(TOOLS_DIR, 'color-block/tool.json'))
+  && 'SUSE brand pack not mounted (see profiles.json)';
+
 // Load + validate the real tool once; createRuntime never mutates it (only the
 // web shell annotates the template), so it's safe to share across mounts.
-const tool: any = await loadTool('color-block', fetchFile);
+const tool: any = SKIP_SUSE ? null : await loadTool('color-block', fetchFile);
 
 // A stub host. Asset ids resolve to "asset:<id>" so the rendered logo src reveals
 // exactly which mark the hook picked. `fetched` records every resolved id.
@@ -63,7 +69,7 @@ const logoSrcs = (html: string) => [...html.matchAll(/<img class="cb-logo-mark" 
 
 // ─── manifest shape ──────────────────────────────────────────────────────────
 
-test('color-block: the only top-level content input is the block list (no corner-logo input)', () => {
+test('color-block: the only top-level content input is the block list (no corner-logo input)', { skip: SKIP_SUSE }, () => {
   const ids = (tool.manifest.inputs ?? []).map((i: any) => i.id);
   // `blocks` is the sole content input; `width`/`height` are the export-size inputs
   // (per-example dimensions). The guarantee here is that `logo` is a block *kind*, not
@@ -72,7 +78,7 @@ test('color-block: the only top-level content input is the block list (no corner
   assert.ok(!ids.includes('logo'), 'logo must be a block kind, not a top-level input');
 });
 
-test('color-block: "logo" is a block kind that can be added like any other', () => {
+test('color-block: "logo" is a block kind that can be added like any other', { skip: SKIP_SUSE }, () => {
   const kind = tool.manifest.inputs[0].fields.find((f: any) => f.id === 'kind');
   const kinds = kind.options.map((o: any) => o.value);
   assert.ok(kinds.includes('logo'), `kinds were ${kinds.join(', ')}`);
@@ -86,7 +92,7 @@ test('color-block: "logo" is a block kind that can be added like any other', () 
 
 // ─── structure: one cell per block, logo is a cell (never an overlay) ─────────
 
-test('color-block: renders exactly one grid cell per block', async () => {
+test('color-block: renders exactly one grid cell per block', { skip: SKIP_SUSE }, async () => {
   // Derive the expected count from the manifest's own default list, so trimming
   // (or growing) the default block set never silently breaks this assertion.
   const defaultBlocks = tool.manifest.inputs[0].default.length;
@@ -99,7 +105,7 @@ test('color-block: renders exactly one grid cell per block', async () => {
   assert.equal(cellCount(six), 6);
 });
 
-test('color-block: the logo is its own grid cell, never a corner overlay', async () => {
+test('color-block: the logo is its own grid cell, never a corner overlay', { skip: SKIP_SUSE }, async () => {
   const { html } = await mount();
   // The mark renders inside a logo-block cell …
   assert.match(html, /class="cb-block logo-block/);
@@ -108,7 +114,7 @@ test('color-block: the logo is its own grid cell, never a corner overlay', async
   assert.doesNotMatch(html, /cb-logo-top|cb-logo-bottom|id="cb-logo"|data-corner/);
 });
 
-test('color-block: every cell carries a click-to-focus marker for its block', async () => {
+test('color-block: every cell carries a click-to-focus marker for its block', { skip: SKIP_SUSE }, async () => {
   const { html } = await mount();
   const n = cellCount(html);
   for (let i = 0; i < n; i++) {
@@ -133,13 +139,13 @@ const LOGO_MATRIX: Array<[string, string, string, string]> = [
 ];
 
 for (const [logoOrient, logoColor, bgColor, expected] of LOGO_MATRIX) {
-  test(`color-block: logo ${logoOrient}/${logoColor} on ${bgColor} → ${expected}`, async () => {
+  test(`color-block: logo ${logoOrient}/${logoColor} on ${bgColor} → ${expected}`, { skip: SKIP_SUSE }, async () => {
     const { html } = await mount({ blocks: [{ kind: 'logo', logoOrient, logoColor, bgColor }] });
     assert.deepEqual(logoSrcs(html), [`asset:suse/logo/${expected}`]);
   });
 }
 
-test('color-block: a logo defaults to the horizontal mono lockup', async () => {
+test('color-block: a logo defaults to the horizontal mono lockup', { skip: SKIP_SUSE }, async () => {
   // No orientation/colour set → horizontal + mono; dark bg → the white mark.
   const { html } = await mount({ blocks: [{ kind: 'logo', bgColor: '#0c322c' }] });
   assert.deepEqual(logoSrcs(html), ['asset:suse/logo/hor-neg-white']);
@@ -147,19 +153,19 @@ test('color-block: a logo defaults to the horizontal mono lockup', async () => {
 
 // ─── per-block colour resolution ──────────────────────────────────────────────
 
-test('color-block: an empty background falls back to the next palette colour', async () => {
+test('color-block: an empty background falls back to the next palette colour', { skip: SKIP_SUSE }, async () => {
   const { html } = await mount({ blocks: [{ kind: 'heading', text: 'Hi', bgColor: '' }] });
   assert.match(html, /background-color:#0c322c/);        // first SUSE palette entry
 });
 
-test('color-block: text colour auto-contrasts with the background', async () => {
+test('color-block: text colour auto-contrasts with the background', { skip: SKIP_SUSE }, async () => {
   const dark = await mount({ blocks: [{ kind: 'heading', text: 'X', bgColor: '#0c322c' }] });
   assert.match(dark.html, /; color:#ffffff/);            // white text on dark
   const light = await mount({ blocks: [{ kind: 'heading', text: 'X', bgColor: '#ffffff' }] });
   assert.match(light.html, /; color:#0c322c/);           // dark text on light
 });
 
-test('color-block: a background image forces light text regardless of bgColor', async () => {
+test('color-block: a background image forces light text regardless of bgColor', { skip: SKIP_SUSE }, async () => {
   const { html } = await mount({
     blocks: [{
       kind: 'heading', text: 'X', bgColor: '#ffffff',
@@ -172,7 +178,7 @@ test('color-block: a background image forces light text regardless of bgColor', 
 
 // ─── the unified --scale knob (logo size vs text scale, split by kind) ────────
 
-test('color-block: logo size and text scale both feed --scale, chosen by kind', async () => {
+test('color-block: logo size and text scale both feed --scale, chosen by kind', { skip: SKIP_SUSE }, async () => {
   const { html } = await mount({ blocks: [
     { kind: 'logo',    logoOrient: 'horizontal', logoColor: 'mono', bgColor: '#0c322c', logoSize: 0.5 },
     { kind: 'heading', text: 'Big', bgColor: '#30ba78', scale: 1.8 },
@@ -183,7 +189,7 @@ test('color-block: logo size and text scale both feed --scale, chosen by kind', 
 
 // ─── consistency: pure render + lossless URL transport ────────────────────────
 
-test('color-block: identical inputs render byte-identical output (render is pure)', async () => {
+test('color-block: identical inputs render byte-identical output (render is pure)', { skip: SKIP_SUSE }, async () => {
   const state = { blocks: [
     { kind: 'logo',    logoOrient: 'stacked', logoColor: 'green', bgColor: '#30ba78', logoSize: 0.7 },
     { kind: 'heading', text: 'Same', bgColor: '#0c322c', scale: 1 },
@@ -194,7 +200,7 @@ test('color-block: identical inputs render byte-identical output (render is pure
   assert.equal(a.html, b.html);
 });
 
-test('color-block: a composition survives a URL serialize → parse round-trip', async () => {
+test('color-block: a composition survives a URL serialize → parse round-trip', { skip: SKIP_SUSE }, async () => {
   const state = { blocks: [
     { kind: 'logo',       logoOrient: 'horizontal', logoColor: 'green', bgColor: '#01564a', logoSize: 0.9 },
     { kind: 'subheading', text: 'Round & trip', bgColor: '' },

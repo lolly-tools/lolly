@@ -21,7 +21,7 @@ export { createRuntime } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
-export { buildInputModel, summarizeInputs } from './inputs.ts';
+export { buildInputModel, summarizeInputs, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export { parseUrlState, serializeUrlState, RESERVED } from './url-mode.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';

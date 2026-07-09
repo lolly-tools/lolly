@@ -47,6 +47,13 @@ export interface ParseDataResult {
  *  hand-authored dataset. The shell should also bound the file size at pick time. */
 export const DEFAULT_ROW_LIMIT = 1000;
 
+/** Hard cap on the TEXT fed to the parser (chars ≈ bytes for the data files this
+ *  reads). The engine enforces it itself — shells should reject earlier at pick
+ *  time for a friendlier message, but a missing shell gate must not let a
+ *  gigabyte "CSV" (e.g. one row of millions of commas) balloon into cell/header
+ *  allocations. 8M chars is ~40× the largest real import seen. */
+export const MAX_IMPORT_CHARS = 8 * 1024 * 1024;
+
 // A single record is either a keyed JSON object or a positional cell array.
 type Rec = Record<string, unknown> | unknown[];
 // One accessor per field: reads its value out of a single record.
@@ -61,6 +68,9 @@ export function parseDataRows(text: string, opts: ParseDataOpts = {}): ParseData
   const fields = (opts.fields || []).filter((f) => f && f.id);
   if (!fields.length) throw new Error('This input has no fields to import into.');
   if (typeof text !== 'string' || !text.trim()) throw new Error('The file is empty.');
+  if (text.length > MAX_IMPORT_CHARS) {
+    throw new Error(`The file is too large to import (over ${Math.round(MAX_IMPORT_CHARS / 1024 / 1024)} MB of text).`);
+  }
 
   const limit =
     Number.isFinite(opts.limit) && (opts.limit as number) > 0

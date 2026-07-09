@@ -149,7 +149,7 @@ function weightOf(b) {
 // identical without it). Values are closed keywords, so nothing user-typed reaches
 // the style="" attribute (no CSS injection); unknown values fall back to sans.
 var FONTS = {
-  'mono': 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+  'mono': 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace)',
   'sans': "var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif)",
 };
 function fontFamily(v) { return FONTS[String(v)] || FONTS.sans; }

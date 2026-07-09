@@ -86,6 +86,20 @@ function matchAscii(b: Uint8Array, off: number, str: string): boolean {
   return true;
 }
 
+// Bounds for hostile input: this reader feeds a DOM view, so both the NUMBER of
+// fields (a PNG can carry a million tiny tEXt chunks) and each field's LENGTH
+// (a TIFF ASCII tag can declare the whole file as its value) are capped. Well
+// above anything a real camera/editor writes; purely a display-layer defence.
+const MAX_FIELDS = 64;
+const MAX_VALUE_CHARS = 2048;
+// XMP packets and SVG sources are scanned as text; cap the scan so a
+// gigabyte-scale input can't balloon into string work (best-effort reader).
+const MAX_TEXT_SCAN = 16 * 1024 * 1024;
+
+function clip(s: string): string {
+  return s.length > MAX_VALUE_CHARS ? s.slice(0, MAX_VALUE_CHARS) + '…' : s;
+}
+
 // ── EXIF / TIFF ─────────────────────────────────────────────────────────────────
 // Offsets inside a TIFF block are relative to the TIFF header, so the DataView is
 // anchored there. Tag numbers per EXIF 2.3.
@@ -115,7 +129,9 @@ function readIfd(dv: DataView, off: number, le: boolean): IfdEntry[] {
 function asciiVal(dv: DataView, e: IfdEntry): string | null {
   if (e.type !== 2) return null;
   let s = '';
-  for (let i = 0; i < e.count; i++) {
+  // A hostile TIFF can declare the whole file as one ASCII tag — cap the value.
+  const max = Math.min(e.count, MAX_VALUE_CHARS);
+  for (let i = 0; i < max; i++) {
     const off = e.valueOffset + i;
     if (off >= dv.byteLength) break;
     const c = dv.getUint8(off);
@@ -258,7 +274,7 @@ function readXmp(text: string, out: FileMetadata): void {
   const grab = (re: RegExp): string | null => {
     const m = re.exec(text);
     if (!m) return null;
-    const t = (m[1] || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const t = clip((m[1] || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
     return t || null;
   };
   const tool = grab(/xmp:CreatorTool>\s*([\s\S]*?)<\/xmp:CreatorTool>/i)
@@ -279,7 +295,7 @@ function readXmp(text: string, out: FileMetadata): void {
 function readJpeg(bytes: Uint8Array, out: FileMetadata): void {
   let p = 2;
   let xmp = '';
-  while (p + 4 <= bytes.length) {
+  while (p + 4 <= bytes.length && out.fields.length < MAX_FIELDS) {
     if (bytes[p] !== 0xff) break;
     let marker = bytes[p + 1]!;
     while (marker === 0xff && p + 2 < bytes.length) { p++; marker = bytes[p + 1]!; }
@@ -290,7 +306,7 @@ function readJpeg(bytes: Uint8Array, out: FileMetadata): void {
     const dataStart = p + 4, dataLen = len - 2;
     if (marker === 0xe1) {
       if (matchAscii(bytes, dataStart, 'Exif\0\0')) readExif(bytes, dataStart + 6, dataLen - 6, out);
-      else if (matchAscii(bytes, dataStart, 'http://ns.adobe.com/xap/')) {
+      else if (matchAscii(bytes, dataStart, 'http://ns.adobe.com/xap/') && xmp.length < MAX_TEXT_SCAN) {
         xmp += new TextDecoder('utf-8').decode(bytes.subarray(dataStart, dataStart + dataLen));
       }
     } else if (marker === 0xe2 && matchAscii(bytes, dataStart, 'ICC_PROFILE\0')) {
@@ -300,7 +316,7 @@ function readJpeg(bytes: Uint8Array, out: FileMetadata): void {
     } else if (marker === 0xed) {
       out.fields.push({ label: 'IPTC / Photoshop', value: 'caption & author data', group: 'authorship' });
     } else if (marker === 0xfe) {
-      const c = new TextDecoder('utf-8').decode(bytes.subarray(dataStart, dataStart + dataLen)).trim();
+      const c = clip(new TextDecoder('utf-8').decode(bytes.subarray(dataStart, dataStart + dataLen)).trim());
       if (c) out.fields.push({ label: 'Comment', value: c, group: 'description' });
     }
     p += 2 + len;
@@ -339,7 +355,7 @@ function pngText(bytes: Uint8Array, start: number, len: number, kind: 'tEXt' | '
     if (compressed) { out.fields.push({ label: keyword || 'Text', value: 'compressed text chunk', group: 'description' }); return; }
   }
   if (textStart >= end) return;
-  const value = new TextDecoder(kind === 'iTXt' ? 'utf-8' : 'latin1').decode(bytes.subarray(textStart, end)).trim();
+  const value = clip(new TextDecoder(kind === 'iTXt' ? 'utf-8' : 'latin1').decode(bytes.subarray(textStart, Math.min(end, textStart + MAX_VALUE_CHARS * 4))).trim());
   if (!value) return;
   const m = PNG_KEYWORD_GROUP[keyword] ?? { group: 'description' as MetaGroup };
   out.fields.push({ label: keyword || 'Text', value, group: m.group, sensitive: m.sensitive });
@@ -347,7 +363,7 @@ function pngText(bytes: Uint8Array, start: number, len: number, kind: 'tEXt' | '
 
 function readPng(bytes: Uint8Array, out: FileMetadata): void {
   let p = 8;
-  while (p + 8 <= bytes.length) {
+  while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
     const len = ((bytes[p]! << 24) | (bytes[p + 1]! << 16) | (bytes[p + 2]! << 8) | bytes[p + 3]!) >>> 0;
     const type = String.fromCharCode(bytes[p + 4]!, bytes[p + 5]!, bytes[p + 6]!, bytes[p + 7]!);
     const dataStart = p + 8;
@@ -367,7 +383,7 @@ function readPng(bytes: Uint8Array, out: FileMetadata): void {
 
 function readWebp(bytes: Uint8Array, out: FileMetadata): void {
   let p = 12; // past "RIFF"<size>"WEBP"
-  while (p + 8 <= bytes.length) {
+  while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
     const fourcc = String.fromCharCode(bytes[p]!, bytes[p + 1]!, bytes[p + 2]!, bytes[p + 3]!);
     const size = (bytes[p + 4]! | (bytes[p + 5]! << 8) | (bytes[p + 6]! << 16) | (bytes[p + 7]! * 0x1000000)) >>> 0;
     const dataStart = p + 8;
@@ -385,8 +401,11 @@ function readWebp(bytes: Uint8Array, out: FileMetadata): void {
 // ── SVG (text; targeted extraction) ───────────────────────────────────────────────
 
 function readSvg(bytes: Uint8Array, out: FileMetadata): void {
-  const text = new TextDecoder('utf-8').decode(bytes);
-  const clean = (s: string | undefined): string | null => s ? s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() || null : null;
+  // Best-effort by design: scan at most the leading window so a gigabyte-scale
+  // "SVG" can't balloon into string/regex work. Real authoring metadata sits at
+  // the top of the file.
+  const text = new TextDecoder('utf-8').decode(bytes.length > MAX_TEXT_SCAN ? bytes.subarray(0, MAX_TEXT_SCAN) : bytes);
+  const clean = (s: string | undefined): string | null => s ? clip(s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()) || null : null;
 
   let editor: string | null = null;
   const gen = /<!--[^>]*Generator:\s*([^\n]*?)(?:-->|SVG (?:Export|Version))/i.exec(text);
