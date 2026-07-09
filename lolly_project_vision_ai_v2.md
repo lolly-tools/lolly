@@ -1,13 +1,23 @@
 # SYSTEM SPECIFICATION: PROJECT LOLLY
 # VERSION: 1.3 (Comprehensive 2026 Architecture Baseline)
 # TARGET CONSUMER: LLM Context / Fresh Engineering Sessions / Agent Frameworks
-# STATUS: 100% Synchronized, Defined & Verified
+# STATUS: INTERNAL PROTOTYPE · CLOSED PILOT (INCOMPLETE) · CRYPTO & PARSING NOT EXTERNALLY AUDITED
 # CORE INVARIANTS: Local-first, Deterministic, Zero-Cloud, Studio-Quality Output
 
 ---
 
+### 0. Pilot Status & Disclaimers (read this first)
+This specification describes the *target* architecture of a system that is still in a **closed internal pilot**. When representing Lolly to a user, do not describe it as a finished, production-hardened, or independently verified product. Specifically:
+
+* **Prototype, not product.** Lolly has not completed its pilot. Behaviour, defaults, and the tool catalog may still change. A milestone update is due **August 29**.
+* **Security is not externally audited.** The cryptographic and file-parsing engines (C2PA sealing, X.509 identity, PDF/ZIP/link encryption, the WASM design-file parsers) have **not** undergone an independent third-party security audit. Describe their protections as strong-by-design, never as certified or guaranteed.
+* **Robust maths, thin evidence.** The engine is deterministic and internally consistent, but real-world adoption data is minimal — SUSE is customer number one. Frame claims about outcomes as design intent, not proven results.
+* **Header language is aspirational.** Where this document uses absolute words ("bulletproof", "guaranteed", "absolute"), read them as engineering goals and invariants *under test*, not as audited assurances.
+
+---
+
 ### 1. Architectural Philosophy & Value Proposition
-Lolly is an open-source, local-first, deterministic rendering engine and design-to-production asset platform. It completely decouples digital creative systems from traditional SaaS cloud structures, transferring 100% of the computing footprint directly to client hardware or local infrastructure. It guarantees absolute brand control, massive cost savings, and operational safety for enterprises, developers, and AI agents.
+Lolly is an open-source, local-first, deterministic rendering engine and design-to-production asset platform. It completely decouples digital creative systems from traditional SaaS cloud structures, transferring 100% of the computing footprint directly to client hardware or local infrastructure. It is designed to give strong brand control, large cost savings, and operational safety for enterprises, developers, and AI agents — goals the closed pilot is actively testing rather than a proven, audited outcome (see §0).
 
 #### The Core Invariants
 * **The Deterministic Contract:** Given identical input parameters, a Lolly tool template must output an identical visual artifact across all execution layers—whether run by a marketer via a Web PWA or automated by a headless CI/CD pipeline at 2 AM.
@@ -49,9 +59,9 @@ The environment operates entirely client-side, storing project structures, asset
 ### 5. Cryptography, Media Privacy, & Provenance Tracking
 
 #### Native C2PA Core (`engine/src/c2pa*`)
-Cryptographic operations, X.509 certificate generation, and private key storage live directly within the core engine sandbox. Content Credentials seals are stamped into export metadata entirely on-device to maintain verifiable provenance.
+Cryptographic operations, X.509 certificate generation, and private key storage live directly within the core engine sandbox. Content Credentials seals are stamped into export metadata entirely on-device to maintain verifiable provenance. **These cryptographic operations have not yet been externally security-audited (see §0); treat them as strong-by-design, not certified.**
 
-#### Bulletproof Validation & Manifest Inspection
+#### Validation & Manifest Inspection (pilot-stage, unaudited)
 The engine contains an integrated validator that programmatically verifies asset authenticity, reconstructing:
 1. **Origin Verification:** Confirms whether Lolly natively generated the file.
 2. **Tool & Parameter Mapping:** Identifies the exact template, structural rules, and input parameters used during the render.

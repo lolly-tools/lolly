@@ -118,6 +118,26 @@ test('colorToHex parses oklch()/lch() via the brand-derive math', () => {
   assert.match(colorToHex('oklch(62% 0.35 145)')!, /^#[0-9a-f]{6}$/);
 });
 
+test('colorToHex rejects CSS-injection payloads (token values reach style attributes)', () => {
+  // Token documents are untrusted user imports and colorToHex's output lands in
+  // inline style attributes (swatches, brand vars) — anything that isn't a
+  // plain colour must come back null, never verbatim.
+  for (const hostile of [
+    'javascript:',
+    'url(//x)',
+    'red;background:url(//x)',
+    'expression(alert(1))',
+    '#fff;background:url(//x)', // hex-prefixed smuggle — normHex must reject it
+    '#zzzzzz',                  // non-hex digits behind a '#'
+  ]) {
+    assert.equal(colorToHex(hostile), null, hostile);
+  }
+  // Plain colour idents still pass through untouched.
+  assert.equal(colorToHex('red'), 'red');
+  assert.equal(colorToHex('transparent'), 'transparent');
+  assert.equal(colorToHex('rebeccapurple'), 'rebeccapurple');
+});
+
 test('createTokenSet: oklch() $values resolve and swatch to hex', () => {
   const ts = createTokenSet({
     color: {

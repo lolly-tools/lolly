@@ -228,8 +228,14 @@ export function hexToOklch(hex: string): Oklch | null {
   return out;
 }
 
+// Tolerance is deliberately loose (1e-3 in LINEAR light): near the sRGB blue
+// and yellow corners the constant-hue chroma ray grazes a cube face, dipping
+// out of gamut by ~7e-4 before re-entering at the corner itself. A tight
+// epsilon makes the chroma binary search below stop at that false boundary
+// (#0000ff would emit as #0031e5); the loose one sails over the dip, and
+// byte()'s clamp01 absorbs the residue at encode time (< 1/255 per channel).
 const inSrgbGamut = (rgb: [number, number, number]): boolean =>
-  rgb.every(v => v >= -1e-6 && v <= 1 + 1e-6);
+  rgb.every(v => v >= -1e-3 && v <= 1 + 1e-3);
 
 /**
  * OKLCH → hex, gamut-mapped: when the requested chroma leaves sRGB, reduce it

@@ -13,9 +13,10 @@
   font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
   background: #0e1217;
   color: #f3f5f8;
-  /* The healthy-level colour: the accent input wins, then the brand's semantic
-     --primary (set on the canvas root when tokens resolve), then a neutral hex. */
-  --vr-ok: var(--vr-accent, var(--primary, #4f84ba));
+  /* The healthy-level colour: the accent input wins (only set when the user picks
+     one), then the brand's semantic --brand-primary (set on the canvas root when
+     tokens resolve), then a neutral hex. */
+  --vr-ok: var(--vr-accent, var(--brand-primary, #4f84ba));
   --vr-low: #f5b544;
   --vr-hot: #ef5b5b;
   --vr-track: rgba(255, 255, 255, 0.10);

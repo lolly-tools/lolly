@@ -49,7 +49,7 @@ function slotHex(ts: Resolver, path: string): string {
 // ── oklch ↔ hex round-trips ──────────────────────────────────────────────────
 
 test('hexToOklch ↔ oklchToHex round-trips within ~1/255 per channel', () => {
-  const hexes = ['#000000', '#ffffff', '#ff0000', '#4f83cc', '#30ba78', '#f5ee9e', '#0b0b10', '#808080', '#123456'];
+  const hexes = ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#4f83cc', '#30ba78', '#f5ee9e', '#0b0b10', '#808080', '#123456'];
   for (const hex of hexes) {
     const ok = hexToOklch(hex);
     assert.ok(ok, `${hex} parsed`);
@@ -99,6 +99,19 @@ test('oklchToHex clamps out-of-gamut chroma by chroma reduction (hue + L kept)',
   assertHexClose(oklchToHex(hexToOklch('#4f83cc')!), '#4f83cc', 1);
 });
 
+test('oklchToHex survives the sRGB corner-grazing rays (blue/yellow gamut dip)', () => {
+  // Near the blue and yellow corners the constant-hue chroma ray dips ~7e-4
+  // out of gamut before re-entering AT the corner. A too-tight gamut epsilon
+  // makes the chroma search stop at that false boundary and lose ~15% chroma
+  // (#0000ff emitted as #0031e5). These pin the loose-tolerance behaviour.
+  // The exact anchor deriveBrandTokens({primary:'#0000ff'}) emits at step 5
+  // (2dp-quantised hue) must land back on blue:
+  assertHexClose(oklchToHex(parseOklch('oklch(45.2% 0.3132 264.05)')!), '#0000ff', 1, 'quantised blue');
+  // Quantised (formatOklch → parseOklch) round-trips through the corner too.
+  assertHexClose(oklchToHex(parseOklch(formatOklch(hexToOklch('#0000ff')!))!), '#0000ff', 1, 'quantised blue round-trip');
+  assertHexClose(oklchToHex(parseOklch(formatOklch(hexToOklch('#ffff00')!))!), '#ffff00', 1, 'quantised yellow round-trip');
+});
+
 // ── parseOklch forms ─────────────────────────────────────────────────────────
 
 test('parseOklch: oklch() percent + bare L, hue units, alpha', () => {
@@ -128,6 +141,11 @@ test('parseOklch: lch() (CIELAB D50) converts via Lab', () => {
   const red = parseOklch('lch(54.29% 106.84 40.86)')!;
   assertHexClose(oklchToHex(red), '#ff0000', 3, 'lch red');
   assert.equal(parseOklch('lch(54.29% 106.84 40.86 / 0.5)')!.alpha, 0.5);
+  // sRGB blue's lch() coordinates (the corner-grazing ray — the form
+  // Tokens-Studio/DTCG lch exports produce) land back on blue.
+  const blue = parseOklch('lch(29.568% 131.207 301.364)')!;
+  assertHexClose(oklchToHex(blue), '#0000ff', 3, 'lch blue');
+  assertHexClose(colorToHex('lch(29.568% 131.207 301.364)') as string, '#0000ff', 3, 'lch blue via colorToHex');
 });
 
 test('parseOklch: rejects malformed strings', () => {
@@ -187,6 +205,10 @@ test('deriveBrandTokens: a mid-range primary appears verbatim at ramp step 5', (
   const doc = deriveBrandTokens({ primary: '#4f83cc' });
   const ts = createTokenSet(doc, { theme: 'light' });
   assertHexClose(slotHex(ts, 'color.ramp.primary.5'), '#4f83cc', 1, 'anchor step');
+  // A pure-blue brand (L 0.452, mid-range → anchor rule fires) survives the
+  // corner-grazing gamut ray: every hex consumer reads back blue, not #0031e5.
+  const blue = createTokenSet(deriveBrandTokens({ primary: '#0000ff' }), { theme: 'light' });
+  assertHexClose(slotHex(blue, 'color.ramp.primary.5'), '#0000ff', 1, 'blue anchor step');
 });
 
 test('deriveBrandTokens: mono keeps one hue family, secondary chroma reduced', () => {

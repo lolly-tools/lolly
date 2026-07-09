@@ -1,4 +1,4 @@
-<div class="vr" data-theme="{{default theme 'dark'}}" data-live="{{#if live}}on{{else}}off{{/if}}" data-tone="{{default tone 'ok'}}" style="--vr-accent: {{default accent '#4f84ba'}}">
+<div class="vr" data-theme="{{default theme 'dark'}}" data-live="{{#if live}}on{{else}}off{{/if}}" data-tone="{{default tone 'ok'}}" style="{{#if accent}}--vr-accent: {{accent}}{{/if}}">
   <div class="vr-top">
     <span class="vr-rec"><span class="vr-rec-dot"></span><span class="vr-rec-label">REC</span></span>
     <span class="vr-title">{{default title "Voice note"}}</span>
