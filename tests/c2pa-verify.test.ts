@@ -12,8 +12,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { embedC2paInPdf, encodeCbor } from '../engine/src/c2pa.ts';
-import { verifyC2pa, extractC2paFromPdf, decodeCbor, parseC2paStore, sniffFormat } from '../engine/src/c2pa-verify.ts';
+import { embedC2paInPdf, embedC2pa, encodeCbor } from '../engine/src/c2pa.ts';
+import { verifyC2pa, extractC2paFromPdf, decodeCbor, parseC2paStore, sniffFormat, prepareC2paIngredient } from '../engine/src/c2pa-verify.ts';
 
 const bytesOf = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
 const binOf = (bytes: Uint8Array): string => Array.from(bytes, (b) => String.fromCharCode(b)).join('');
@@ -237,4 +237,56 @@ test('author profile → cawg.metadata dc:creator → report.author round-trips'
   // The assertion is referenced + hashed like any other (no unverified assertion).
   assert.ok(r.checks.some((c: any) => c.ok && c.code === 'assertion.hashedURI.match'));
   assert.ok(!r.checks.some((c: any) => !c.ok && c.code === 'assertion.hashedURI.mismatch'));
+});
+
+// The manifest profile a catalog "modified download" writes (web shell
+// downloadSigned → stampDerivedC2pa): custom edit actions with NO c2pa.created
+// — the engine prepends c2pa.opened for the preserved source ingredient — plus
+// the transform detail under tools.lolly.export. The chain must verify, the
+// source's AI origin must propagate onto the new active manifest, and the
+// history must span BOTH manifests (the AI creation and the Lolly edits).
+test('derived download: edit actions + AI-source ingredient → valid, chained, AI flag propagated', async () => {
+  const svgOf = (fill: string): Uint8Array => Uint8Array.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8"><rect width="8" height="8" fill="${fill}"/></svg>`,
+    (c) => c.charCodeAt(0) & 0xff,
+  );
+  // The "uploaded AI image": its own credential declares trainedAlgorithmicMedia.
+  const aiSource = await embedC2pa(svgOf('#0c322c'), 'svg', {
+    title: 'AI artwork',
+    claimGenerator: 'SomeImageModel/1.0',
+    actions: [{ action: 'c2pa.created', digitalSourceType: 'http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia' }],
+  });
+  const ingredient = prepareC2paIngredient(aiSource);
+  assert.ok(ingredient, 'source credential reads back as an ingredient');
+
+  // The "colour-washed download": different bytes, Lolly-signed edit history.
+  const derived = await embedC2pa(svgOf('#90ebcd'), 'svg', {
+    title: 'photo.svg',
+    claimGenerator: 'Lolly lolly.tools',
+    environment: { tool: 'Catalog', format: 'svg', inputs: { asset: 'user/photo', treatment: 'Forest' } },
+    actions: [
+      { action: 'c2pa.color_adjustments', description: "Applied the 'Forest' colour treatment" },
+      { action: 'c2pa.converted', description: 'Rendered to SVG' },
+    ],
+    ingredients: [ingredient!],
+  });
+
+  const r: any = await verifyC2pa(derived);
+  assert.equal(r.state, 'valid', `chained manifest verifies (${r.reason ?? ''})`);
+  // Engine-prepended opened step first, then the shell's edit steps verbatim.
+  assert.equal(r.claim.actions[0].action, 'c2pa.opened');
+  assert.deepEqual(
+    r.claim.actions.slice(1).map((a: any) => a.action),
+    ['c2pa.color_adjustments', 'c2pa.converted'],
+  );
+  assert.equal(r.claim.actions[1].description, "Applied the 'Forest' colour treatment");
+  // The AI origin fires from the NEW manifest's own signed actions.
+  assert.equal(r.aiGenerated?.kind, 'generated');
+  // History walks the whole store: the source's creation AND this edit round.
+  const historyActions = (r.history ?? []).map((s: any) => s.action);
+  assert.ok(historyActions.includes('c2pa.created'), 'source manifest creation in the chain');
+  assert.ok(historyActions.includes('c2pa.color_adjustments'), 'the Lolly edit in the chain');
+  // Transform detail rides the tools.lolly.export assertion.
+  assert.equal(r.environment?.tool, 'Catalog');
+  assert.equal(r.environment?.inputs?.treatment, 'Forest');
 });
