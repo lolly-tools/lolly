@@ -50,6 +50,7 @@ export {
   computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
 } from './print-marks.ts';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.ts';
+export { extractSvgColors } from './svg-colors.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
 } from './css-box.ts';

@@ -16,6 +16,21 @@ ORG="lolly-tools"
 # SSH; a fresh clone fetches over HTTPS and pushes via gh/HTTPS auth.
 GIT_HOST="https://github.com"
 
+# Vercel deploy targets — every one of these gets built+validated by `loldev gtg`'s
+# build gate and shipped by `loldev ship`, uniformly. Each entry is
+# name|project-id|profile|domain: `name`/`id` target a specific Vercel project via
+# VERCEL_ORG_ID/VERCEL_PROJECT_ID env overrides (so the local `.vercel/project.json`
+# link, which stays pointed at `bt` for `vercel dev`/inspect, is never touched);
+# `profile` must be a key in profiles.json — it's what the build gate switches the
+# tools/+catalog views to before validating (each project's OWN LOLLY_PROFILE env
+# var, set in its Vercel dashboard, is what actually picks the brand at build time —
+# this is belt-and-braces so a bad push can't silently break either site).
+VERCEL_TEAM_ID="team_6XAaRitEb6CnNoNPwI3pI6hb"
+SHIP_TARGETS=(
+  "bt|prj_13zlzrOV2VHeK0CGUCyHGx4cPLu7|suse|lolly.tools"
+  "lolly-start|prj_1t1TmmTPcchUyLluRIZDP7Fflq9d|lolly-start|lolly.art"
+)
+
 # Resolve repo root from this file's location (scripts/subrepo/config.sh).
 SUBREPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SUBREPO_DIR/../.." && pwd)"

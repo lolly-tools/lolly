@@ -9,5 +9,11 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": []
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  // Co-located *.test.ts files import Node built-ins (node:test / node:assert),
+  // but the engine keeps `types: []` on purpose to stay renderer/Node-agnostic —
+  // so they'd fail to resolve here. Tests run via `node --test` (native
+  // type-stripping) and are typechecked with Node types by the root tsconfig; the
+  // engine's own production typecheck excludes them.
+  "exclude": ["src/**/*.test.ts"]
 }
