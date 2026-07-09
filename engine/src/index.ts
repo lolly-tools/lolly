@@ -68,7 +68,8 @@ export type {
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION } from './c2pa.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE } from './c2pa.ts';
+export type { C2paActionInput } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore } from './c2pa-verify.ts';
 export type { C2paIngredientData } from './c2pa-verify.ts';
 export { c2paTrustAnchors } from './c2pa-trust.ts';
@@ -382,4 +383,14 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // font's default-instance axis values, so a caller that embeds the raw file
 // into a renderer with no variable-axis control (jsPDF) can tell whether it'll
 // render at the weight it asked for. Optional; absent on older hosts.
-export const ENGINE_VERSION = '1.30.0';
+// 1.31.0 — provenance chains for DERIVED assets. (1) The runtime's export-time
+// ingredient sweep now also notes library/catalog-sourced asset inputs (source
+// 'library', not just 'user'), so a credentialed CATALOG image placed into a
+// tool carries its chain — host.assets.credential(id) may serve those ids by
+// extracting the store from the asset's own bytes (semantics widened, signature
+// unchanged). (2) c2pa.ts exports C2paActionInput + DIGITAL_SOURCE_TYPE so a
+// shell can assemble an honest custom history (recolour / colour treatment /
+// crop / re-encode steps) for embedC2pa — used by the web catalog's download
+// paths, which now re-sign modified assets with the source credential preserved
+// as an ingredient instead of shipping unsigned bytes.
+export const ENGINE_VERSION = '1.31.0';
