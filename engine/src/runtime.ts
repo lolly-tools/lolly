@@ -651,16 +651,17 @@ export async function createRuntime(
       // PLACED into this design — carried into the export's provenance chain as
       // an ingredient (engine c2pa.ts), so an AI-generated or camera-signed
       // source is never laundered away. Only when we're stamping (never the
-      // on-device utility path) and only for user uploads whose credential the
-      // host captured at ingest. A credential we can't read is skipped, never
-      // fatal to the export.
+      // on-device utility path). Covers user uploads (credential captured at
+      // ingest) and library/catalog assets (the host may extract one from the
+      // asset's own bytes — v1.31). A credential we can't read is skipped,
+      // never fatal to the export.
       let ingredients: IngredientCredential[] | undefined;
       if (!isOnDevice && meta !== undefined && host.assets?.credential) {
         const ids = new Set<string>();
         const note = (v: unknown): void => {
           if (v && typeof v === 'object') {
             const { id, source } = v as { id?: unknown; source?: unknown };
-            if (typeof id === 'string' && source === 'user') ids.add(id);
+            if (typeof id === 'string' && (source === 'user' || source === 'library')) ids.add(id);
           }
         };
         for (const input of model) {

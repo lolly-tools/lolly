@@ -110,8 +110,9 @@ type Authorship = 'created' | 'delivered';
 // (c2pa.created / c2pa.edited / c2pa.converted / c2pa.color_adjustments / …);
 // `digitalSourceType` (IPTC) and a free-text `description` are optional. The
 // uniform softwareAgent and `when` are stamped by buildC2paManifest so every
-// step of one export agrees byte-for-byte.
-interface C2paActionInput { action: string; digitalSourceType?: string; description?: string; parameters?: unknown; }
+// step of one export agrees byte-for-byte. Exported so shells can assemble
+// custom histories (e.g. a catalog recolour/crop download) for embedC2pa.
+export interface C2paActionInput { action: string; digitalSourceType?: string; description?: string; parameters?: unknown; }
 
 // A credentialed ingredient to preserve into a new asset's manifest store. Its
 // `manifestBoxes` (the ingredient store's manifest superboxes, verbatim, active
@@ -350,8 +351,10 @@ function urnUuid(): string {
 const isoSeconds = (d: Date): string => d.toISOString().slice(0, 19) + 'Z';
 
 // IPTC digital source type for works created by software (shown by validators
-// as the provenance kind of the c2pa.created action).
-const DIGITAL_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation';
+// as the provenance kind of the c2pa.created action). Exported alongside
+// C2paActionInput so a shell-authored history can open with the same honest
+// created step the engine's own exportActionSteps emits.
+export const DIGITAL_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation';
 
 // Output formats that are a genuine re-encode/render of the authored design
 // (so a c2pa.converted step is honest) vs vector-native / text serialisations
