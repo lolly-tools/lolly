@@ -374,7 +374,12 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // engine modules; no bridge change.
 // 1.29.0 — additive on host.text: TextToPathOpts.variations (HarfBuzz axis
 // settings, e.g. ['wght=700']) so a VARIABLE face outlines at the run's actual
-// weight instead of its default instance, and TextPathResult.notdef (count of
-// missing glyphs) so a caller can prefer its <text> fallback over outlining
-// tofu. Both optional: an older host omitting them keeps working unchanged.
-export const ENGINE_VERSION = '1.29.0';
+// weight; TextPathResult.notdef (missing-glyph count) so a caller can prefer
+// its <text> fallback over outlining tofu; and TextToPathOpts.fallbackFonts (an
+// ordered face chain, shaped segment-by-segment) for the disjoint unicode
+// subsets a webfont family ships as. All optional; older hosts keep working.
+// 1.30.0 — additive on host.text: TextAPI.axisDefaults() returns a variable
+// font's default-instance axis values, so a caller that embeds the raw file
+// into a renderer with no variable-axis control (jsPDF) can tell whether it'll
+// render at the weight it asked for. Optional; absent on older hosts.
+export const ENGINE_VERSION = '1.30.0';

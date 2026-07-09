@@ -730,6 +730,15 @@ export interface TextAPI {
 
   /** Warm the font cache for `fontUrl` without doing any shaping. */
   preload(fontUrl: string): Promise<void>;
+
+  /**
+   * The font's variable-axis DEFAULT values, tag → value (`{ wght: 400 }`), or
+   * `{}` for a static font. A caller embedding the raw file into a renderer with
+   * no variable-axis control (jsPDF) gets exactly this instance, so it needs the
+   * defaults to know whether the file will render at the weight it wants.
+   * Optional/additive (v1.30); absent on older hosts. (v1.30)
+   */
+  axisDefaults?(fontUrl: string): Promise<Record<string, number>>;
 }
 
 export interface TextToPathOpts {
