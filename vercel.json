@@ -17,7 +17,13 @@
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": ".*lolly\\.(art|ad|bot|codes|design|free|gallery|graphics|ing|ink|is|media|sh|style|to|work)" }],
+      "has": [{ "type": "host", "value": "www\\.lolly\\.art" }],
+      "destination": "https://lolly.art/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": ".*lolly\\.(ad|bot|codes|design|free|gallery|graphics|ing|ink|is|media|sh|style|to|work)" }],
       "destination": "https://lolly.tools/:path*",
       "permanent": true
     }
