@@ -366,26 +366,49 @@ const INGREDIENT_MIME: Record<string, string> = {
   mp4: 'video/mp4', webm: 'video/webm', mkv: 'video/x-matroska',
 };
 
+// Joins a list of human-readable fragments as "a, b and c" (Oxford-comma-free,
+// matching British house style elsewhere in this file's descriptions).
+function joinList(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? '';
+  if (items.length === 2) return `${items[0]} and ${items[1]}`;
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
 /**
  * Assemble an honest action history for a Lolly export from what the pipeline
  * actually did. Opens with `c2pa.created` (digitalCreation) — or a single
- * `c2pa.published` when `delivered` — then appends a step ONLY for a
- * transformation that genuinely happened: a CMYK / brand-colour conversion
- * (`colorAdjusted`), print marks & bleed (`markedUp`), an experimental-tool
- * watermark (`watermarked`), and a closing render/encode for raster, video and
- * PDF outputs. Vector-native (svg/emf/dxf/eps) and text outputs add nothing —
- * the created asset already IS that file. Pass the result as `actions` to
- * {@link embedC2pa} / {@link buildC2paManifest}.
+ * `c2pa.published` when `delivered` — then appends ONE step per transformation
+ * that genuinely happened, each its own entry so the credential's history is as
+ * granular as the pipeline itself: a CMYK conversion (`cmyk`), a brand-palette
+ * colour snap (`paletteColors`, named by count), whichever print marks/bleed
+ * were added — named individually, not lumped together (`marks`) — the
+ * experimental-tool overlay watermark (`watermarked`), the durable in-pixel
+ * Lolly watermark (`imprint`), an added audio track (`audio`), and a closing
+ * render/encode for raster, video and PDF outputs. Vector-native (svg/emf/dxf/
+ * eps) and text outputs add nothing beyond the close — the created asset
+ * already IS that file. Pass the result as `actions` to {@link embedC2pa} /
+ * {@link buildC2paManifest}.
  */
 export function exportActionSteps(format: string, flags: {
-  delivered?: boolean; colorAdjusted?: boolean; markedUp?: boolean; watermarked?: boolean;
+  delivered?: boolean;
+  cmyk?: boolean;
+  /** Count of distinct brand-palette colours the export was snapped to. */
+  paletteColors?: number;
+  /** Print marks/bleed applied, named individually (e.g. ['3mm bleed', 'crop marks']). */
+  marks?: string[];
+  watermarked?: boolean;
+  imprint?: boolean;
+  audio?: boolean;
 } = {}): C2paActionInput[] {
   if (flags.delivered) return [{ action: 'c2pa.published' }];
   const f = String(format || '').toLowerCase();
   const steps: C2paActionInput[] = [{ action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE }];
-  if (flags.colorAdjusted) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours for print output' });
-  if (flags.markedUp) steps.push({ action: 'c2pa.edited', description: 'Added print marks and bleed' });
+  if (flags.cmyk) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours to CMYK for print' });
+  if (flags.paletteColors) steps.push({ action: 'c2pa.color_adjustments', description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? '' : 's'})` });
+  if (flags.marks?.length) steps.push({ action: 'c2pa.edited', description: `Added ${joinList(flags.marks)}` });
   if (flags.watermarked) steps.push({ action: 'c2pa.edited', description: 'Added experimental-tool watermark' });
+  if (flags.imprint) steps.push({ action: 'c2pa.edited', description: 'Embedded a durable Lolly pixel watermark' });
+  if (flags.audio) steps.push({ action: 'c2pa.edited', description: 'Added an audio track' });
   if (RASTER_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Rendered to ${f.toUpperCase()}` });
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Encoded to ${f.toUpperCase()}` });
   else if (f === 'pdf' || f === 'pdf-cmyk') steps.push({ action: 'c2pa.converted', description: 'Rendered to PDF' });

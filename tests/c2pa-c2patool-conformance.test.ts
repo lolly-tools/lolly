@@ -40,7 +40,7 @@ function c2paVerdict(bytes: Uint8Array): { state: string; beyondTrust: string[] 
 test('Tier-1: honest multi-action manifest validates in c2patool', { skip: !hasC2patool && 'c2patool not installed' }, async () => {
   const out = await embedC2pa(new Uint8Array(HOST_PNG), 'png', {
     claimGenerator: 'Lolly lolly.tools', generatorInfo: GEN,
-    actions: exportActionSteps('png', { colorAdjusted: true, markedUp: true, watermarked: true }),
+    actions: exportActionSteps('png', { cmyk: true, paletteColors: 3, marks: ['3mm bleed', 'crop marks'], watermarked: true, imprint: true, audio: true }),
     dates: DATES,
   });
   const { state, beyondTrust } = c2paVerdict(out);
