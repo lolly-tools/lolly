@@ -85,6 +85,11 @@
       "type": "boolean",
       "default": false,
       "description": "Catalog tier only. If true, fetch bytes at sync time, not on first use."
+    },
+    "brandLock": {
+      "type": "boolean",
+      "default": false,
+      "description": "Tokens assets only. When true, this brand is authoritative: the app resolves ITS colours/fonts and IGNORES any user-installed brand, and the brand-customisation UI (the #/start wizard, brand fonts, brand-file import) is disabled. A locked catalog 'eats what it is given'. Omit/false for a customisable brand (e.g. lolly-start)."
     }
   }
 }
