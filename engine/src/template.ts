@@ -215,16 +215,26 @@ Handlebars.registerHelper('media', (ref: unknown, options?: { hash?: Record<stri
 
 /**
  * Pre-process a Handlebars template source so each input-ID reference is
- * wrapped in HTML comment markers: <!-- ci:id -->{{...id...}}<!-- /ci:id -->.
+ * marked for the shell's click-to-focus / click-to-edit-in-place mapping.
  *
- * The shell uses these markers after hydration to find which rendered DOM nodes
- * correspond to which input, then adds data-canvas-input attributes so clicking
- * an element can focus its sidebar control.
+ * Text-content references are wrapped in HTML comment markers:
+ * <!-- ci:id -->{{...id...}}<!-- /ci:id -->. The shell uses these markers
+ * after hydration to find which rendered DOM nodes correspond to which input,
+ * then adds data-canvas-input attributes so clicking an element can focus its
+ * sidebar control (or, for a color/asset/select input, open it in place).
  *
- * Only expressions in HTML text content are annotated — expressions inside
- * attribute values (src="{{id}}", class="foo {{id}}") are left alone to avoid
- * injecting comment text into attribute values and breaking the DOM. Block
- * helpers ({{#…}}/{{/…}}), comments ({{!…}}), and partials ({{>…}}) are also
+ * References inside a tag's OWN attribute values (style="background:{{id}}",
+ * <img src="{{asset id}}">) — the overwhelmingly common way a color or asset
+ * input actually reaches the page — get `data-canvas-input="id"` written
+ * directly onto that tag instead: there's no text run to bracket with
+ * comments here, so this skips the comment-marker indirection and bakes the
+ * final attribute straight into the template source. A tag that already
+ * declares its own data-canvas-input (e.g. a blocks-row template authoring
+ * "boxes:{{@index}}" by hand) is left alone — the author's mapping wins.
+ *
+ * Either way, an expression referencing several ids is tagged for the first
+ * one it mentions (positionally) — enough for the shell's mapping. Block
+ * helpers ({{#…}}/{{/…}}), comments ({{!…}}), and partials ({{>…}}) are
  * skipped regardless of position.
  */
 export function annotateTemplate(source: string, inputIds: string[]): string {
@@ -242,6 +252,11 @@ export function annotateTemplate(source: string, inputIds: string[]): string {
   // Double-brace — skip block/comment/partial/nested-brace openers, and don't
   // match {{ that is part of {{{ … }}} (lookbehind + lookahead).
   const double = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`, 'g');
+  // Same two patterns, non-global — used with .exec() against one whole tag string
+  // at a time (the attribute case below), where a fresh from-index-0 search is
+  // wanted each call rather than a stateful global-regex resume position.
+  const tripleAttr = new RegExp(`\\{\\{\\{[^}]*\\b(${idAlt})\\b[^}]*\\}\\}\\}`);
+  const doubleAttr = new RegExp(`(?<!\\{)\\{\\{(?![{#/!>^])[^}]*\\b(${idAlt})\\b[^}]*\\}\\}(?!\\})`);
 
   function annotateContent(text: string): string {
     text = text.replace(triple, (m, id: string) => `<!-- ci:${id} -->${m}<!-- /ci:${id} -->`);
@@ -249,9 +264,28 @@ export function annotateTemplate(source: string, inputIds: string[]): string {
     return text;
   }
 
-  // Walk the source splitting into content and tag segments. Tags are passed
-  // through unchanged; only content segments are annotated. Quote-aware scanning
-  // handles > inside attribute values (e.g. alt="a > b") correctly.
+  // A closing tag has no attributes to reference anything (and no room to add
+  // one without producing invalid markup); a doctype/comment-like `<!` tag is
+  // never a real element either. Otherwise, the first id the tag's own
+  // attribute text mentions gets baked in as a literal data-canvas-input
+  // attribute, inserted just before the tag's closing `>` (or, for a
+  // self-closing tag, just before the `/>`).
+  function annotateTagAttrs(tag: string): string {
+    if (tag.startsWith('</') || tag.startsWith('<!')) return tag;
+    if (/\sdata-canvas-input=/.test(tag)) return tag; // author already mapped this element
+    const m = tripleAttr.exec(tag) || doubleAttr.exec(tag);
+    if (!m) return tag;
+    const id = m[1]!;
+    const selfClose = /\/\s*>$/.exec(tag);
+    const insertAt = selfClose ? tag.length - selfClose[0].length : tag.length - 1;
+    const before = tag.slice(0, insertAt).replace(/\s+$/, '');
+    return `${before} data-canvas-input="${id}"${selfClose ? ' />' : '>'}`;
+  }
+
+  // Walk the source splitting into content and tag segments. Tag ATTRIBUTE text
+  // is scanned for id references (see annotateTagAttrs); only content segments
+  // get the comment-marker treatment. Quote-aware scanning handles > inside
+  // attribute values (e.g. alt="a > b") correctly.
   const result: string[] = [];
   let i = 0;
   let contentStart = 0;
@@ -274,8 +308,8 @@ export function annotateTemplate(source: string, inputIds: string[]): string {
       }
     }
 
-    const tag = source.slice(tagStart, i);
-    result.push(tag); // tag verbatim
+    const tag = annotateTagAttrs(source.slice(tagStart, i));
+    result.push(tag);
     contentStart = i;
 
     // <script>/<style> hold raw text (JS/CSS) that may itself contain < and >

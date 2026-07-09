@@ -17,9 +17,8 @@
  *    hints on $extensions["com.suse.lolly"], so exactly that substring is
  *    scrubbed before the check (it currently appears nowhere in the pack).
  *    The build:catalog aggregation catalog/tools/index.json is excluded: it
- *    embeds COMMUNITY manifests verbatim (color-palette description, filter
- *    examples, …) whose de-SUSE sweep is deferred (contract §8), not
- *    lolly-start authored content.
+ *    embeds COMMUNITY manifests verbatim (filter examples, …) whose de-SUSE
+ *    sweep is deferred (contract §8), not lolly-start authored content.
  *
  * 2. Semantic brand vars are never consumed bare: templates get
  *    --brand-primary, --brand-on-primary, --brand-secondary, --brand-surface,

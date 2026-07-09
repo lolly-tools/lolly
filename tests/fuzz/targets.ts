@@ -8,17 +8,27 @@
  * allocation blow-up is a finding).
  *
  * Entry points (verified against the modules + existing tests):
- *   - c2pa-verify : verifyC2pa(bytes)                       — top-level verifier
- *   - media-sniff : sniffAnimatedRaster + sniffVideoContainer
- *   - pdf-map     : interpretPdfPage(page) + parseToUnicode(str)
- *   - x509        : parseCertificate(der)                   — the DER/X.509 cert parser
+ *   - c2pa-verify   : verifyC2pa(bytes)                     — top-level verifier
+ *   - cbor          : decodeCbor(bytes)                     — the claim decoder, hit directly
+ *   - media-sniff   : sniffAnimatedRaster + sniffVideoContainer
+ *   - pdf-map       : interpretPdfPage(page) + parseToUnicode(str)
+ *   - x509          : parseCertificate(der)                 — the DER/X.509 cert parser
+ *   - file-metadata : extractFileMetadata(bytes)            — the /verify metadata reveal
+ *   - strip-metadata: stripMetadata(bytes, fmt)             — the clean-copy byte surgery
+ *   - video-meta    : embedMp4Meta / embedWebmMeta          — container walkers (shared with the c2pa read side)
+ *   - data-import   : parseDataRows(text)                   — CSV/JSON → blocks rows
  */
 
-import { embedC2paInPdf, embedC2pa } from '../../engine/src/c2pa.ts';
+import { embedC2paInPdf, embedC2pa, encodeCbor } from '../../engine/src/c2pa.ts';
 import { generateSigner, generateCaRoot, issueLeafCert } from '../../engine/src/x509.ts';
-import { verifyC2pa, parseCertificate } from '../../engine/src/c2pa-verify.ts';
+import { verifyC2pa, parseCertificate, decodeCbor } from '../../engine/src/c2pa-verify.ts';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
 import { interpretPdfPage, parseToUnicode } from '../../engine/src/pdf-map.ts';
+import { extractFileMetadata } from '../../engine/src/file-metadata.ts';
+import { stripMetadata, type StripFormat } from '../../engine/src/strip-metadata.ts';
+import { embedMp4Meta, embedWebmMeta, videoProvenanceTags } from '../../engine/src/video-meta.ts';
+import { parseDataRows } from '../../engine/src/data-import.ts';
+import { packTiff } from '../../engine/src/tiff.ts';
 
 export interface FuzzTarget {
   name: string;
@@ -181,5 +191,104 @@ export const x509Target: FuzzTarget = {
   },
 };
 
-export const ALL_TARGETS: FuzzTarget[] = [c2paVerifyTarget, mediaSniffTarget, pdfMapTarget, x509Target];
+export const cborTarget: FuzzTarget = {
+  name: 'cbor',
+  async seeds() {
+    // The writer's own encodings of realistic claim shapes — every major type,
+    // nesting, and both string kinds — so mutation reaches the decoder's paths.
+    return [
+      encodeCbor({ 'dc:title': 'Fuzz', alg: 'sha256', assertions: [{ url: 'self#jumbf=c2pa.assertions/c2pa.hash.data', hash: new Uint8Array(32) }] }),
+      encodeCbor([1, -5, 42, true, null, 'text', { nested: [{ deeper: 'x' }] }]),
+      encodeCbor(new Map<unknown, unknown>([['actions', [{ action: 'c2pa.created' }]], [1, 2]])),
+      encodeCbor('plain string'),
+      encodeCbor(1234567890123),
+      // Half/single/double floats the decoder must read (0xf9/0xfa/0xfb) — the
+      // writer can't emit them, so hand-author the three heads.
+      Uint8Array.from([0xf9, 0x3c, 0x00]),                                     // half 1.0
+      Uint8Array.from([0xfa, 0x40, 0x49, 0x0f, 0xdb]),                          // single ~π
+      Uint8Array.from([0xfb, 0x3f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),  // double 1.0
+    ];
+  },
+  async invoke(bytes) { decodeCbor(bytes); },
+};
+
+export const fileMetadataTarget: FuzzTarget = {
+  name: 'file-metadata',
+  async seeds() {
+    const tiff = packTiff(new Uint8Array(3), { width: 1, height: 1, meta: { software: 'LollyFuzz', author: 'Fuzz' }, description: 'seed' });
+    const pngWithText = concat([
+      Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10),
+      pngChunk('IHDR', Uint8Array.of(0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0, 0, 0)),
+      pngChunk('tEXt', bytesOf('Software\0LollyFuzz')),
+      pngChunk('iTXt', bytesOf('Comment\0\0\0en\0\0hello')),
+      pngChunk('IEND', new Uint8Array(0)),
+    ]);
+    return [tinyJpeg(), tinyPng(), pngWithText, tinyWebp(), tinySvg(), tiff, tinyGif(1)];
+  },
+  // Contract: never throws, never hangs — a malformed block yields fewer fields.
+  async invoke(bytes) { extractFileMetadata(bytes); },
+};
+
+export const stripMetadataTarget: FuzzTarget = {
+  name: 'strip-metadata',
+  async seeds() {
+    return [tinyJpeg(), tinyPng(), tinySvg()];
+  },
+  async invoke(bytes) {
+    for (const fmt of ['jpeg', 'png', 'svg'] as StripFormat[]) stripMetadata(bytes, fmt);
+  },
+};
+
+// A fast-start MP4 (moov before mdat) whose moov carries a real trak▸…▸stbl▸stco,
+// so mutations reach the chunk-offset patcher — the loop that must clamp a forged
+// entry count to what the box physically holds.
+function faststartMp4(): Uint8Array {
+  const stco = mp4box('stco', u32be(0) /* version/flags */, u32be(2) /* count */, u32be(64), u32be(128));
+  const stbl = mp4box('stbl', stco);
+  const minf = mp4box('minf', stbl);
+  const mdia = mp4box('mdia', minf);
+  const trak = mp4box('trak', mdia);
+  return concat([
+    mp4box('ftyp', bytesOf('isom'), u32be(0), bytesOf('isom'), bytesOf('mp42')),
+    mp4box('moov', mp4box('mvhd', new Uint8Array(100)), trak),
+    mp4box('mdat', new Uint8Array(64)),
+  ]);
+}
+
+export const videoMetaTarget: FuzzTarget = {
+  name: 'video-meta',
+  async seeds() {
+    return [tinyMp4(), faststartMp4(), tinyWebm()];
+  },
+  async invoke(bytes) {
+    // Fixed date so the tag bytes are deterministic across runs.
+    const tags = videoProvenanceTags({ tool: 'Fuzz', software: 'LollyFuzz' }, new Date(0));
+    embedMp4Meta(bytes, tags);
+    embedWebmMeta(bytes, tags);
+  },
+};
+
+const DATA_IMPORT_FIELDS = [{ id: 'name' }, { id: 'value', type: 'number' }, { id: 'on', type: 'boolean' }];
+const DATA_IMPORT_SEEDS = [
+  'name,value,on\nalpha,1,yes\nbeta,2,no\n"quoted, cell",3,true',
+  '[{"name":"a","value":1,"on":true},{"name":"b","value":2}]',
+  '{"data":[["a",1],["b",2]]}',
+];
+
+export const dataImportTarget: FuzzTarget = {
+  name: 'data-import',
+  async seeds() {
+    return DATA_IMPORT_SEEDS.map((s) => new TextEncoder().encode(s));
+  },
+  async invoke(bytes) {
+    // The shell reads the file to text; junk bytes arrive as replacement chars.
+    // "No usable rows" & friends are controlled throws — fine by the runner.
+    parseDataRows(new TextDecoder('utf-8').decode(bytes), { fields: DATA_IMPORT_FIELDS });
+  },
+};
+
+export const ALL_TARGETS: FuzzTarget[] = [
+  c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
+  fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
+];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

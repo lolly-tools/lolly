@@ -202,6 +202,16 @@ export interface InputManifest {
   };
 }
 
+/**
+ * Backstop size cap for `file` inputs whose manifest omits `maxSize`. Shells
+ * enforce `input.maxSize ?? DEFAULT_FILE_MAX_BYTES` at pick/drop time so an
+ * undeclared cap never means an *unbounded* read into memory — file bytes are
+ * held in RAM (and some downstream parsers make byte-transparent string copies),
+ * so a multi-GB pick would OOM the tab long before any hook could run. Tools
+ * with a real need above this declare their own `maxSize`.
+ */
+export const DEFAULT_FILE_MAX_BYTES = 100 * 1024 * 1024;
+
 /** Profile fields readable via bindToProfile, keyed by field name. */
 export type ProfileValues = Record<string, InputValue | undefined>;
 

@@ -82,19 +82,31 @@ function bytesToBin(bytes: Uint8Array): string {
 
 const CBOR_BREAK = Symbol('cbor break');
 
-function decodeItem(b: Uint8Array, i: number): [unknown, number] {
+// Hostile manifests must fail with a prompt throw, never a hang or a blown
+// stack (the fuzz suite asserts both). Two guards below serve that:
+//   - every multi-byte length head is bounds-checked BEFORE the read — an
+//     out-of-range Uint8Array read is undefined, which NaN-poisons the offset
+//     and turns the indefinite-chunk loop into an infinite one (the GIF lesson,
+//     again);
+//   - nesting is capped — real claims nest a handful of levels, and a 64 KB
+//     file of 0x81 bytes must not recurse 64K frames deep.
+const MAX_CBOR_DEPTH = 64;
+
+function decodeItem(b: Uint8Array, i: number, depth = 0): [unknown, number] {
   if (i >= b.length) throw new Error('cbor: truncated');
+  if (depth > MAX_CBOR_DEPTH) throw new Error('cbor: nesting too deep');
   const ib = b[i++]!;
   const major = ib >> 5;
   let n = ib & 0x1f;
   const indefinite = n === 31;
+  const need = (k: number): void => { if (i + k > b.length) throw new Error('cbor: truncated length head'); };
   if (indefinite) {
     if (major < 2 || major === 6) throw new Error('cbor: reserved indefinite head');
     if (major === 7) return [CBOR_BREAK, i];
-  } else if (n === 24) { n = b[i]!; i += 1; }
-  else if (n === 25) { n = (b[i]! << 8) | b[i + 1]!; i += 2; }
-  else if (n === 26) { n = b[i]! * 0x1000000 + ((b[i + 1]! << 16) | (b[i + 2]! << 8) | b[i + 3]!); i += 4; }
-  else if (n === 27) { n = Number(new DataView(b.buffer, b.byteOffset + i, 8).getBigUint64(0)); i += 8; }
+  } else if (n === 24) { need(1); n = b[i]!; i += 1; }
+  else if (n === 25) { need(2); n = (b[i]! << 8) | b[i + 1]!; i += 2; }
+  else if (n === 26) { need(4); n = b[i]! * 0x1000000 + ((b[i + 1]! << 16) | (b[i + 2]! << 8) | b[i + 3]!); i += 4; }
+  else if (n === 27) { need(8); n = Number(new DataView(b.buffer, b.byteOffset + i, 8).getBigUint64(0)); i += 8; }
   else if (n > 27) throw new Error('cbor: reserved length head');
   switch (major) {
     case 0: return [n, i];
@@ -105,7 +117,7 @@ function decodeItem(b: Uint8Array, i: number): [unknown, number] {
         // Chunked string/bytes: definite-length chunks of the same major, then break.
         const parts: Uint8Array[] = [];
         for (;;) {
-          const [v, j] = decodeItem(b, i);
+          const [v, j] = decodeItem(b, i, depth + 1);
           i = j;
           if (v === CBOR_BREAK) break;
           parts.push(major === 2 ? (v as Uint8Array) : te.encode(v as string));
@@ -119,7 +131,7 @@ function decodeItem(b: Uint8Array, i: number): [unknown, number] {
     case 4: {
       const a: unknown[] = [];
       for (let k = 0; indefinite || k < n; k++) {
-        const [v, j] = decodeItem(b, i);
+        const [v, j] = decodeItem(b, i, depth + 1);
         i = j;
         if (v === CBOR_BREAK) break;
         a.push(v);
@@ -129,15 +141,15 @@ function decodeItem(b: Uint8Array, i: number): [unknown, number] {
     case 5: {
       const m = new Map<unknown, unknown>();
       for (let k = 0; indefinite || k < n; k++) {
-        const [key, j] = decodeItem(b, i);
+        const [key, j] = decodeItem(b, i, depth + 1);
         if (key === CBOR_BREAK) { i = j; break; }
-        const [v, j2] = decodeItem(b, j);
+        const [v, j2] = decodeItem(b, j, depth + 1);
         m.set(key, v);
         i = j2;
       }
       return [m, i];
     }
-    case 6: { const [v, j] = decodeItem(b, i); return [{ tag: n, value: v }, j]; }
+    case 6: { const [v, j] = decodeItem(b, i, depth + 1); return [{ tag: n, value: v }, j]; }
     default: {
       if (n === 20) return [false, i];
       if (n === 21) return [true, i];

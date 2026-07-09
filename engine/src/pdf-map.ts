@@ -245,8 +245,29 @@ function tokenize(src: string): Tok[] {
     }
   };
 
+  // Real TJ arrays never nest; a hostile stream of thousands of `[` must not
+  // recurse the readArray ↔ readOne pair into a stack overflow. Past the cap
+  // the array body is consumed iteratively (strings/dicts skipped whole so a
+  // bracket inside them can't unbalance the count) and dropped.
+  const MAX_ARRAY_DEPTH = 16;
+  let arrayDepth = 0;
+
+  const skipArrayBody = (): void => {
+    let depth = 1;
+    while (i < n && depth > 0) {
+      const c = code(i);
+      if (c === 0x28) { readString(); continue; }
+      if (c === 0x3c && code(i + 1) === 0x3c) { skipDict(); continue; }
+      if (c === 0x5b) depth++;
+      else if (c === 0x5d) depth--;
+      i++;
+    }
+  };
+
   const readArray = (): Tok[] => {
     i++; // skip '['
+    if (arrayDepth >= MAX_ARRAY_DEPTH) { skipArrayBody(); return []; }
+    arrayDepth++;
     const items: Tok[] = [];
     while (i < n) {
       const c = code(i);
@@ -255,6 +276,7 @@ function tokenize(src: string): Tok[] {
       const tk = readOne();
       if (tk) items.push(tk); else if (i < n && code(i) !== 0x5d) i++;
     }
+    arrayDepth--;
     return items;
   };
 

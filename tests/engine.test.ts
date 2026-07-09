@@ -496,7 +496,7 @@ test('template: arrow helper swaps a leading direction marker for its glyph', ()
   assert.equal(hydrate('{{arrow t}}', { t: 'very nice' }), 'very nice');
 });
 
-test('annotateTemplate: annotates text refs, skips attrs and <style>/<script> bodies', () => {
+test('annotateTemplate: annotates text refs + attribute refs, <style>/<script> bodies untouched', () => {
   // A stray "<"/">" inside a <style> (CSS comment) or <script> (JS operator) must
   // not desync the tag scanner and suppress annotation of the markup after it.
   const src = [
@@ -510,9 +510,35 @@ test('annotateTemplate: annotates text refs, skips attrs and <style>/<script> bo
   // Text refs both before AND after the raw-text elements are annotated.
   assert.ok(out.includes('<!-- ci:heading -->{{heading}}<!-- /ci:heading -->'));
   assert.ok(out.includes('<!-- ci:body -->{{body}}<!-- /ci:body -->'));
-  // Refs in attributes are never annotated; raw element bodies survive verbatim.
-  assert.ok(!out.includes('ci:photo'));
+  // A ref inside an attribute value gets a literal data-canvas-input baked onto
+  // that tag instead of a comment marker (there's no text run to bracket) — the
+  // ONLY way most colour/asset inputs actually reach the page is an attribute
+  // (style="...", src="..."), so this is the common case, not an edge case.
+  // Appended after the tag's existing attributes, just before its closing ">".
+  assert.ok(out.includes('<img src="{{asset photo}}" alt="a > b" data-canvas-input="photo">'));
+  assert.ok(!out.includes('ci:photo')); // no comment-marker form for this one
+  // Raw <style>/<script> element bodies survive completely verbatim.
   assert.ok(out.includes('i < 3') && out.includes('">" and "<"'));
+});
+
+test('annotateTemplate: attribute refs — self-closing tags, first-id-wins, author mapping respected', () => {
+  const src = [
+    '<div style="background:{{color}}"></div>',
+    '<input value="{{name}}" />',
+    '<span style="color:{{a}}; border-color:{{b}}"></span>',
+    '<div data-canvas-input="rows:0" style="background:{{color}}"></div>',
+    '</div>',
+  ].join('\n');
+  const out = annotateTemplate(src, ['color', 'name', 'a', 'b']);
+  assert.ok(out.includes('<div style="background:{{color}}" data-canvas-input="color"></div>'));
+  // Self-closing: the attribute lands before the "/>", not after it.
+  assert.ok(out.includes('<input value="{{name}}" data-canvas-input="name" />'));
+  // Two ids in one tag's attributes — only the first (positionally) wins.
+  assert.ok(out.includes('<span style="color:{{a}}; border-color:{{b}}" data-canvas-input="a"></span>'));
+  // A tag that already hand-authors its own data-canvas-input is left alone.
+  assert.ok(out.includes('<div data-canvas-input="rows:0" style="background:{{color}}"></div>'));
+  // A closing tag never gets one, however it's spelled.
+  assert.ok(!out.includes('</div data-canvas-input'));
 });
 
 test('template: asset helper field access', () => {

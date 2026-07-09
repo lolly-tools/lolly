@@ -163,8 +163,12 @@ function patchChunkOffsets(buf: Uint8Array, moovOff: number, moovSize: number, i
     const stbl = kids(minf.off + 8, minf.off + minf.size, 'stbl'); if (!stbl) continue;
     for (const b of walkBoxes(buf, stbl.off + 8, stbl.off + stbl.size) ?? []) {
       if (b.type !== 'stco' && b.type !== 'co64') continue;
-      const count = readU32(buf, b.off + 12);
       const wide = b.type === 'co64';
+      // Never trust the declared entry count: clamp it to what the box can
+      // physically hold, or a forged count (up to 2^32-1) drives a
+      // billions-iteration loop over out-of-range offsets.
+      const fits = Math.max(0, Math.floor((b.size - 16) / (wide ? 8 : 4)));
+      const count = Math.min(readU32(buf, b.off + 12), fits);
       for (let i = 0; i < count; i++) {
         const p = b.off + 16 + i * (wide ? 8 : 4);
         if (wide) {
