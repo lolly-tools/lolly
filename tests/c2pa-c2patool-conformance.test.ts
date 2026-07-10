@@ -48,6 +48,23 @@ test('Tier-1: honest multi-action manifest validates in c2patool', { skip: !hasC
   assert.deepEqual(beyondTrust, [], `unexpected c2patool statuses: ${beyondTrust.join(', ')}`);
 });
 
+test('Tier-1: a live-capture + text-added manifest validates in c2patool', { skip: !hasC2patool && 'c2patool not installed' }, async () => {
+  // A recorder-style export: created essence captured from camera+mic (IPTC
+  // digitalCapture), text placed over it, encoded to a raster. Proves the new
+  // capture source type and the c2pa.edited "Added text" step are spec-clean.
+  const out = await embedC2pa(new Uint8Array(HOST_PNG), 'png', {
+    claimGenerator: 'Lolly lolly.tools', generatorInfo: GEN,
+    actions: exportActionSteps('png', {
+      capture: { camera: true, microphone: true },
+      textAdded: true, textSample: 'BREAKING: live on the scene',
+    }),
+    dates: DATES,
+  });
+  const { state, beyondTrust } = c2paVerdict(out);
+  assert.equal(state, 'Valid');
+  assert.deepEqual(beyondTrust, [], `unexpected c2patool statuses: ${beyondTrust.join(', ')}`);
+});
+
 test('Ingredient preservation: multi-manifest store validates in c2patool', { skip: !hasC2patool && 'c2patool not installed' }, async () => {
   // A synthetic AI-generated source — a credential whose created action is
   // trainedAlgorithmicMedia — so the test is self-contained (no external fixture).

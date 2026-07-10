@@ -356,6 +356,13 @@ const isoSeconds = (d: Date): string => d.toISOString().slice(0, 19) + 'Z';
 // created step the engine's own exportActionSteps emits.
 export const DIGITAL_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation';
 
+// IPTC DigitalSourceType for content whose essence was captured from a real-world
+// source by a digital device — a live camera frame or a mic/AV recording. The
+// created step carries this (instead of digitalCreation) when the render's origin
+// was a sensor, so the credential declares the capture honestly. Readers already
+// surface it as "Captured by a camera" (engine c2pa-verify + web Verify view).
+export const CAPTURE_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture';
+
 // Output formats that are a genuine re-encode/render of the authored design
 // (so a c2pa.converted step is honest) vs vector-native / text serialisations
 // that ARE the created asset and warrant no conversion step.
@@ -391,6 +398,14 @@ function joinList(items: string[]): string {
  * eps) and text outputs add nothing beyond the close — the created asset
  * already IS that file. Pass the result as `actions` to {@link embedC2pa} /
  * {@link buildC2paManifest}.
+ *
+ * Two `flags` make the origin honest rather than assumed: `capture` (a live
+ * camera frame or a mic/AV recording produced the essence) swaps the created
+ * step's source type to `digitalCapture` with a "captured/recorded live"
+ * description; `textAdded` (rendered text placed OVER an opened asset — the
+ * caller gates this on an ingredient being present) appends a `c2pa.edited`
+ * "Added text" step. From-scratch text is content, not an edit — it belongs in
+ * the input digest, so callers must NOT set `textAdded` without an ingredient.
  */
 export function exportActionSteps(format: string, flags: {
   delivered?: boolean;
@@ -402,20 +417,43 @@ export function exportActionSteps(format: string, flags: {
   watermarked?: boolean;
   imprint?: boolean;
   audio?: boolean;
+  /** The render's essence was captured from a device sensor — created → digitalCapture. */
+  capture?: { camera?: boolean; microphone?: boolean };
+  /** Text was placed over an opened asset (gate on ingredients) — appends "Added text". */
+  textAdded?: boolean;
+  /** Short teaser of that text for the step label (full copy rides in the input digest). */
+  textSample?: string;
 } = {}): C2paActionInput[] {
   if (flags.delivered) return [{ action: 'c2pa.published' }];
   const f = String(format || '').toLowerCase();
-  const steps: C2paActionInput[] = [{ action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE }];
+  // Origin: a captured essence (camera/mic) declares digitalCapture with an honest
+  // description; otherwise the software-authored default (digitalCreation).
+  const cap = flags.capture;
+  const captured = !!(cap && (cap.camera || cap.microphone));
+  const created: C2paActionInput = captured
+    ? { action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap!) }
+    : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE };
+  const steps: C2paActionInput[] = [created];
   if (flags.cmyk) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours to CMYK for print' });
   if (flags.paletteColors) steps.push({ action: 'c2pa.color_adjustments', description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? '' : 's'})` });
   if (flags.marks?.length) steps.push({ action: 'c2pa.edited', description: `Added ${joinList(flags.marks)}` });
   if (flags.watermarked) steps.push({ action: 'c2pa.edited', description: 'Added experimental-tool watermark' });
   if (flags.imprint) steps.push({ action: 'c2pa.edited', description: 'Embedded a durable Lolly pixel watermark' });
   if (flags.audio) steps.push({ action: 'c2pa.edited', description: 'Added an audio track' });
+  // Text over an opened asset is a genuine edit (the caller has already gated this
+  // on an ingredient); its short teaser labels the step, the full copy is digested.
+  if (flags.textAdded) steps.push({ action: 'c2pa.edited', description: flags.textSample ? `Added text — “${flags.textSample}”` : 'Added text' });
   if (RASTER_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Rendered to ${f.toUpperCase()}` });
   else if (VIDEO_OUTPUTS.has(f)) steps.push({ action: 'c2pa.converted', description: `Encoded to ${f.toUpperCase()}` });
   else if (f === 'pdf' || f === 'pdf-cmyk') steps.push({ action: 'c2pa.converted', description: 'Rendered to PDF' });
   return steps;
+}
+
+// The created step's description for a captured essence — camera, mic, or both.
+function captureDescription(cap: { camera?: boolean; microphone?: boolean }): string {
+  if (cap.camera && cap.microphone) return 'Recorded live from the camera and microphone';
+  if (cap.camera) return 'Captured live from the camera';
+  return 'Recorded live from the microphone';
 }
 
 // Custom assertion label for Lolly's export context (reverse-domain of
