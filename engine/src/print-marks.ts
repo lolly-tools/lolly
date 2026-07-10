@@ -47,11 +47,14 @@ export interface PrintMarksFlags {
   provenance?: boolean;
 }
 
-/** One brand swatch for the verification colour bar (rgb & cmyk both 0–1). */
+/** One brand swatch for the verification colour bar (rgb & cmyk both 0–1).
+ *  spotName, when the swatch is locked to a named ink (e.g. a Pantone), lets
+ *  the shell annotate the cell with the ink name instead of raw CMYK numbers. */
 export interface PaletteSwatch {
   rgb: RgbTriple;
   cmyk: Cmyk;
   label?: string;
+  spotName?: string;
 }
 
 export type LineMarkKind = 'crop' | 'bleed' | 'registration';
@@ -81,6 +84,7 @@ export interface BarCell {
   rgb: RgbTriple;
   ink: 'rgb' | 'cmyk' | 'page';
   label?: string;
+  spotName?: string;
   mark: 'colorbar';
 }
 
@@ -153,7 +157,10 @@ export function cmykToRgbApprox([c, m, y, k]: Cmyk): RgbTriple {
  *
  * When `palette` is supplied with colorBars, the bar becomes one RGB reference
  * cell beside its CMYK substitution per colour, so a press operator can confirm
- * the RGB→CMYK swap and calibrate against known inks. Empty → the generic
+ * the RGB→CMYK swap and calibrate against known inks. A swatch locked to a named
+ * spot ink carries `spotName` onto both cells, so the shell can annotate the
+ * pair with the ink name (e.g. "PANTONE 186 C") rather than raw CMYK numbers —
+ * a genuine spot plate, not a process substitution. Empty palette → the generic
  * process/overprint/tint control bar.
  */
 export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}, palette = [] }: PrintGeometryOpts): PrintGeometry {
@@ -234,11 +241,11 @@ export function computePrintGeometry({ trimWpt, trimHpt, bleedPt = 0, marks = {}
       // Brand pairs — RGB reference cell touching its CMYK substitution. Capped
       // on brand cells only (the process primaries above are always kept).
       let brandCells = 0;
-      for (const { rgb, cmyk, label } of palette) {
+      for (const { rgb, cmyk, label, spotName } of palette) {
         if (brandCells + 2 > bmax) break;          // flat ceiling on brand cells
         if (x + 2 * bc > maxX) break;              // no room for the pair before the centre mark
-        bars.push({ x,        y, w: bc, h: bc, cmyk, rgb, ink: 'rgb',  label, mark: 'colorbar' });
-        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: 'cmyk', label, mark: 'colorbar' });
+        bars.push({ x,        y, w: bc, h: bc, cmyk, rgb, ink: 'rgb',  label, spotName, mark: 'colorbar' });
+        bars.push({ x: x + bc, y, w: bc, h: bc, cmyk, rgb, ink: 'cmyk', label, spotName, mark: 'colorbar' });
         x += 2 * bc + bg;                          // gap separates one colour's pair from the next
         brandCells += 2;
       }

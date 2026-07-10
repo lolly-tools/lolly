@@ -40,7 +40,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { extname, join, relative } from 'node:path';
+import { extname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
@@ -56,6 +56,15 @@ const TEXT_EXTS = new Set([
 // Generated-by-build:catalog aggregation of the active profile's tool manifests
 // (community residue, not pack content) — see the header comment.
 const GENERATED = new Set([join(PACK, 'catalog', 'tools', 'index.json')]);
+
+// catalog/previews/ is a `npm run previews` render cache (screenshots +
+// build-preview-bundle.ts's rolled-up bundle.json), COMMITTED so a plain
+// git-based deploy ships gallery thumbnails (.gitignore's "Tool preview
+// thumbnails" note) — not pack-authored content, and it reflects whatever
+// profile/brand was active at capture time rather than lolly-start's own
+// tokens. Same "generated, not authored" exclusion as index.json above.
+const GENERATED_PREVIEWS = join(PACK, 'catalog', 'previews') + sep;
+const isGenerated = (f: string) => GENERATED.has(f) || f.startsWith(GENERATED_PREVIEWS);
 
 function walk(dir: string, out: string[] = []): string[] {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -77,7 +86,7 @@ const ALLOWED_SUSE = 'com.suse.lolly';
 
 test('brands/lolly-start carries no SUSE brand hexes or SUSE references', () => {
   const files = walk(PACK).filter(
-    f => TEXT_EXTS.has(extname(f).toLowerCase()) && !GENERATED.has(f),
+    f => TEXT_EXTS.has(extname(f).toLowerCase()) && !isGenerated(f),
   );
   // Sanity: the pack has real content (README, tokens, two tool dirs).
   assert.ok(files.length >= 8, `expected the starter pack's text files, found ${files.length}`);
@@ -122,7 +131,7 @@ const RETIRED_VAR = /var\(\s*--(on-primary|primary|secondary|surface|text|muted|
 
 test('lolly-start never consumes the retired bare semantic var names', () => {
   const files = walk(PACK).filter(
-    f => TEXT_EXTS.has(extname(f).toLowerCase()) && !GENERATED.has(f),
+    f => TEXT_EXTS.has(extname(f).toLowerCase()) && !isGenerated(f),
   );
   for (const f of files) {
     const text = readFileSync(f, 'utf8');

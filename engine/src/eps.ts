@@ -19,10 +19,17 @@ import { parseDimension, toPoints, CSS_DPI } from './units.ts';
 import { rgbToCmyk } from './color.ts';
 import type { Rgb, VectorIr, VectorPathPrim, VectorImagePrim, VectorEmitOpts } from './emf.ts';
 
+/** A brand ink lookup keyed by a quantised RGB triple (see rgbPaletteKey). CMYK
+ *  values are 0–1 fractions, matching rgbToCmyk's output — mirrors
+ *  buildCmykPaletteMap in shells/web/src/bridge/export.ts so a caller can build
+ *  one map and reuse it across both the PDF and EPS CMYK export paths. */
+export type EpsCmykPalette = Map<string, { cmyk: [number, number, number, number] }>;
+
 /** EPS options: physical size + colour mode + optional DSC metadata. */
 export interface EpsEmitOpts extends VectorEmitOpts {
   cmyk?: boolean;
   meta?: { title?: string };
+  cmykPalette?: EpsCmykPalette;
 }
 
 // Compact number: 3 decimals, no negative zero (PostScript tokenises "-0" oddly).
@@ -32,10 +39,17 @@ const n = (v: number): string => {
   return Object.is(r, -0) ? '0' : String(r);
 };
 
-function colorOp(c: Rgb, cmyk: boolean): string {
+// Quantises an 0–1 RGB triple to the 2-decimal precision brand CMYK matches are
+// keyed on (mirrors cmykKey in shells/web/src/bridge/export.ts).
+function rgbPaletteKey(r: number, g: number, b: number): string {
+  return Math.round(r * 100) + ',' + Math.round(g * 100) + ',' + Math.round(b * 100);
+}
+
+function colorOp(c: Rgb, cmyk: boolean, palette?: EpsCmykPalette): string {
   const r = (c.r & 0xff) / 255, g = (c.g & 0xff) / 255, b = (c.b & 0xff) / 255;
   if (cmyk) {
-    const [cy, m, y, k] = rgbToCmyk(r, g, b);
+    const hit = palette?.get(rgbPaletteKey(r, g, b));
+    const [cy, m, y, k] = hit ? hit.cmyk : rgbToCmyk(r, g, b);
     return n(cy) + ' ' + n(m) + ' ' + n(y) + ' ' + n(k) + ' setcmykcolor';
   }
   return n(r) + ' ' + n(g) + ' ' + n(b) + ' setrgbcolor';
@@ -70,7 +84,7 @@ function emitImagePrim(prim: VectorImagePrim, out: string[]): void {
   out.push('grestore');
 }
 
-function emitPathPrim(prim: VectorPathPrim, cmyk: boolean, out: string[]): void {
+function emitPathPrim(prim: VectorPathPrim, cmyk: boolean, out: string[], palette?: EpsCmykPalette): void {
   const { subpaths, fill, stroke, fillRule } = prim;
   if (!subpaths || !subpaths.length) return;
   out.push('newpath');
@@ -87,12 +101,12 @@ function emitPathPrim(prim: VectorPathPrim, cmyk: boolean, out: string[]): void 
   const fillVerb = fillRule === 'evenodd' ? 'eofill' : 'fill';
   const lw = n(Math.max(0, stroke ? stroke.width : 0)) + ' setlinewidth';
   if (fill && stroke) {
-    out.push('gsave', colorOp(fill, cmyk), fillVerb, 'grestore');
-    out.push(colorOp(stroke, cmyk), lw, 'stroke');
+    out.push('gsave', colorOp(fill, cmyk, palette), fillVerb, 'grestore');
+    out.push(colorOp(stroke, cmyk, palette), lw, 'stroke');
   } else if (fill) {
-    out.push(colorOp(fill, cmyk), fillVerb);
+    out.push(colorOp(fill, cmyk, palette), fillVerb);
   } else if (stroke) {
-    out.push(colorOp(stroke, cmyk), lw, 'stroke');
+    out.push(colorOp(stroke, cmyk, palette), lw, 'stroke');
   }
 }
 
@@ -126,7 +140,7 @@ export function emitEps(ir: VectorIr, opts: EpsEmitOpts = {}): string {
   L.push('0 ' + n(Hpt) + ' translate');
   L.push(n(sx) + ' ' + n(-sy) + ' scale');
   for (const prim of ir.prims || []) {
-    if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L);
+    if (prim && prim.type === 'path') emitPathPrim(prim, cmyk, L, opts.cmykPalette);
     else if (prim && prim.type === 'image') emitImagePrim(prim, L);
   }
   L.push('grestore');

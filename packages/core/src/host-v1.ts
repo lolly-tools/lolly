@@ -558,6 +558,15 @@ export interface ColorSwatch {
   value: string;               // resolved colour as a hex string
   description: string | null;
   cmyk: number[] | null;       // [C,M,Y,K] from $extensions, when present
+  spot: SpotColor | null;      // named spot/Pantone lock from $extensions, when present
+}
+
+/** A named spot ink (e.g. Pantone) locked onto a token, with its CMYK equivalent
+ *  for preview, non-PDF export, and the Separation alternate-space fallback. */
+export interface SpotColor {
+  name: string;
+  book?: string;
+  cmyk: [number, number, number, number];
 }
 
 // ─── Clipboard ──────────────────────────────────────────────────────────────

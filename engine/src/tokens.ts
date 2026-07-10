@@ -27,7 +27,7 @@
  * exactly this, and Penpot round-trips it untouched.
  */
 
-import type { TokenSet, TokenEntry, ColorSwatch } from './bridge/host-v1.ts';
+import type { TokenSet, TokenEntry, ColorSwatch, SpotColor } from './bridge/host-v1.ts';
 import { parseOklch, oklchToHex } from './brand-derive.ts';
 
 // Vendor extension namespace for Lolly-specific token metadata (CMYK anchors,
@@ -43,6 +43,11 @@ const isRecord = (v: unknown): v is UnknownRecord =>
 const strOrNull = (v: unknown): string | null => (typeof v === 'string' ? v : null);
 const isNumberArray = (v: unknown): v is number[] =>
   Array.isArray(v) && v.every(n => typeof n === 'number');
+const isSpotColor = (v: unknown): v is SpotColor => {
+  if (!isRecord(v) || typeof v.name !== 'string') return false;
+  if (v.book !== undefined && typeof v.book !== 'string') return false;
+  return isNumberArray(v.cmyk) && v.cmyk.length === 4;
+};
 
 /**
  * A token-backed input value: a reference plus the value it last resolved to.
@@ -238,6 +243,7 @@ function toSwatch(e: TokenEntry): ColorSwatch {
     value: colorToHex(e.value) ?? '',
     description: e.description ?? null,
     cmyk: ext && isNumberArray(ext.cmyk) ? ext.cmyk : null,
+    spot: ext && isSpotColor(ext.spot) ? ext.spot : null,
   };
 }
 
