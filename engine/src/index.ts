@@ -73,7 +73,7 @@ export type {
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE } from './c2pa.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore } from './c2pa-verify.ts';
 export type { C2paIngredientData } from './c2pa-verify.ts';
@@ -428,4 +428,14 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // page SVG re-imported into Layout Studio regroups. Transparent background by
 // default (PDF "paper" is a viewer convention; .ai vector art shouldn't bake a
 // white plate). No bridge change.
-export const ENGINE_VERSION = '1.34.0';
+// 1.35.0 — additive: deeper, honest capture/text provenance. (1) exportActionSteps
+// gains `capture` ({camera,microphone}) — a live camera frame or a mic/AV recording
+// swaps the created step's IPTC source type to the new CAPTURE_SOURCE_TYPE
+// (digitalCapture) with a "captured/recorded live" description — and `textAdded`
+// (+`textSample`), appending a c2pa.edited "Added text" step for text placed OVER an
+// opened asset. The runtime derives both from actual sensor use (onFrame /
+// stopRecording) and an ingredient being present, threading them via new ExportOpts
+// c2paCapture / c2paTextAdded. (2) summarizeInputs now includes `longtext` and stores
+// FULL text (bounded) so the exact rendered copy — a tamper-relevant signal — rides
+// in the tools.lolly.export digest. No bridge signature change.
+export const ENGINE_VERSION = '1.35.0';

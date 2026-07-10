@@ -711,6 +711,27 @@ export interface ExportOpts {
    * exports that aren't C2PA-stamped.
    */
   c2paInputs?: Record<string, string>;
+
+  /**
+   * Live-capture provenance for the C2PA action history (added v1.35). Set by the
+   * runtime when the essence of this render came from a device sensor — a filter
+   * tool's live camera frame (host.media / onFrame), or a recorder tool's take
+   * (host.recorder): a video take carries both; an audio take, the mic alone. The
+   * C2PA embedder marks the created step with the IPTC `digitalCapture` source
+   * type and an honest "captured/recorded live" description, so an inspected asset
+   * declares its real-world origin. Opaque to the shell; ignored by non-C2PA exports.
+   */
+  c2paCapture?: { camera?: boolean; microphone?: boolean };
+
+  /**
+   * Text-added provenance for the C2PA action history (added v1.35). Set by the
+   * runtime ONLY when rendered text sits over an OPENED asset (a credentialed
+   * upload/catalog image is present as an ingredient) — a genuine edit worth its
+   * own `c2pa.edited` "Added text" step. From-scratch text is the work's content,
+   * not an edit: it rides in the `c2paInputs` digest instead. `sample` is a short
+   * teaser for the step label; the full copy is in the digest. Opaque to the shell.
+   */
+  c2paTextAdded?: { sample?: string };
 }
 
 // Provenance only — no copyright/licence/ownership fields (can't be asserted safely).

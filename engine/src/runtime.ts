@@ -319,6 +319,20 @@ export async function createRuntime(
   let framePending = false;
   const isLive = () => liveUnsub != null;
 
+  // ── Live-capture provenance (C2PA) ────────────────────────────────────────────
+  // Whether the CURRENT render's essence came from a device sensor, so the export
+  // can declare it honestly (IPTC digitalCapture) instead of assuming software
+  // creation. `liveCameraShown` tracks a filter tool's live frame: set when onFrame
+  // drives a render, cleared when the user swaps the image SOURCE (an asset/file/url
+  // input) — a scalar tweak keeps it (while live, the next frame re-sets it anyway).
+  // `recordedCamera`/`recordedMic` are sticky once a recorder tool finalises a take
+  // (the recording IS the content, re-composited across edits); a fresh take re-sets
+  // them per the captured MIME + the tool's declared capabilities.
+  let liveCameraShown = false;
+  let recordedCamera = false;
+  let recordedMic = false;
+  const toolCaps = new Set(tool.manifest.capabilities ?? []);
+
   // ── Audio level meter + recording (onLevel) ───────────────────────────────────
   // The audio counterpart to the onFrame camera loop. host.recorder pushes plain
   // AudioLevel numbers (no DOM), the runtime runs the tool's `onLevel` hook per
@@ -418,6 +432,13 @@ export async function createRuntime(
     hookErrors,
 
     async setInput(id, value) {
+      // Swapping the image SOURCE retires any live-camera capture flag — the render
+      // no longer shows camera essence. Scalar tweaks keep it (while live, the next
+      // onFrame re-sets it within a frame). Recorded takes stay sticky: a recorder
+      // stores its clip through this same path, so clearing them here would erase
+      // the capture the moment it's committed.
+      const priorType = model.find(i => i.id === id)?.type;
+      if (priorType === 'asset' || priorType === 'file' || priorType === 'url') liveCameraShown = false;
       model = updateInput(model, id, value);
       const seq = ++setInputSeq;
       // Paint the keystroke immediately, BEFORE awaiting the onInput hook (which may
@@ -494,7 +515,8 @@ export async function createRuntime(
         Promise.resolve(onFrame({ frame, model: modelForHooks(model), host }))
           .then((patch) => {
             // Guard liveUnsub so a frame in flight when stopLive() ran can't repaint.
-            if (patch && liveUnsub) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); emit(); }
+            // A frame drove the render → its essence is now a live camera capture.
+            if (patch && liveUnsub) { ({ model, extras } = mergePatch(model, extras, patch, inputIds)); liveCameraShown = true; emit(); }
           })
           .catch((e: unknown) => host.log('warn', `onFrame ${(e as Error).message}`, { toolId: tool.manifest.id }))
           .finally(() => { framePending = false; });
@@ -566,6 +588,11 @@ export async function createRuntime(
       if (meterUnsub) { meterUnsub(); meterUnsub = null; }
       recordSession = null;
       const blob = await session.stop();
+      // Mark the capture for export provenance. A video take carries the camera
+      // (and the mic too, when this tool declares one); an audio take, the mic
+      // alone. Sticky — the take IS the content, re-composited across later edits.
+      if (/^video\//i.test(blob.type)) { recordedCamera = true; if (toolCaps.has('microphone')) recordedMic = true; }
+      else if (/^audio\//i.test(blob.type)) { recordedMic = true; }
       return { blob, mimeType: blob.type };
     },
 
@@ -687,7 +714,31 @@ export async function createRuntime(
       // record a compact digest of the scalar inputs this render came from —
       // surfaced by the shell in the tools.lolly.export assertion so an inspected
       // asset shows what it was made from. Cheap + best-effort; skipped otherwise.
-      const c2paInputs = (opts.c2pa && !isOnDevice) ? summarizeInputs(model) : undefined;
+      const stampProvenance = opts.c2pa && !isOnDevice;
+      const c2paInputs = stampProvenance ? summarizeInputs(model) : undefined;
+      // Live-capture provenance: declare the origin honestly when this session's
+      // render came from a device sensor (a filter's live camera frame, or a
+      // recorder take). Biased against over-claiming — see the flag tracking above.
+      const capCamera = liveCameraShown || recordedCamera;
+      const c2paCapture = stampProvenance && (capCamera || recordedMic)
+        ? { ...(capCamera ? { camera: true as const } : {}), ...(recordedMic ? { microphone: true as const } : {}) }
+        : undefined;
+      // Text-added provenance: honest ONLY when rendered text sits over an OPENED
+      // asset (an ingredient is present) — a genuine edit on someone else's image.
+      // From-scratch text is the work's own content; it rides in the digest above,
+      // never as a fabricated edit step. `sample` teases the step; the full copy is
+      // in the digest. bindToProfile text (a pre-filled name) is attribution, not
+      // added content — excluded, matching summarizeInputs.
+      let c2paTextAdded: { sample?: string } | undefined;
+      if (stampProvenance && ingredients?.length) {
+        const textItem = model.find(i =>
+          (i.type === 'text' || i.type === 'longtext') && !i.bindToProfile &&
+          String(flattenValue(i.value) ?? '').trim());
+        if (textItem) {
+          const s = String(flattenValue(textItem.value)).trim();
+          c2paTextAdded = { sample: s.length > 48 ? s.slice(0, 47) + '…' : s };
+        }
+      }
       let blob;
       try {
         blob = await host.export.render(renderedNode as Element, format as ExportFormat, {
@@ -696,6 +747,8 @@ export async function createRuntime(
           meta,
           ...(ingredients ? { ingredients } : {}),
           ...(c2paInputs && Object.keys(c2paInputs).length ? { c2paInputs } : {}),
+          ...(c2paCapture ? { c2paCapture } : {}),
+          ...(c2paTextAdded ? { c2paTextAdded } : {}),
           // Tag output with a colour profile by default (sRGB for raster, the
           // default press condition for CMYK PDF). Thumbnails stay untagged.
           colorProfile: opts.colorProfile ?? (opts.thumbnail ? 'none' : 'srgb'),

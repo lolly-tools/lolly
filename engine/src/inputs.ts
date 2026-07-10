@@ -445,13 +445,18 @@ export function modelToValues(model: InputModelItem[]): Record<string, InputValu
   return out;
 }
 
-// Input types whose value is a single short scalar worth recording in export
-// provenance ("what was this rendered from"). Deliberately excludes the user's
-// own uploads (asset/file), repeating groups (blocks/vector) and long-form prose
-// (longtext) — those are either private, bulky, or not a legible one-liner.
+// Input types whose value is worth recording in export provenance ("what was this
+// rendered from"). Deliberately excludes the user's own uploads (asset/file) and
+// repeating groups (blocks/vector) — bulky or not a legible entry. Text AND
+// longtext ARE recorded: the exact rendered copy is a tamper-relevant signal, so
+// it belongs in the credential (stored in full, bounded by TEXT_VALUE_CAP below).
 const SUMMARISABLE_TYPES = new Set<string>([
-  'text', 'number', 'boolean', 'color', 'select', 'url', 'date', 'time', 'datetime-local',
+  'text', 'longtext', 'number', 'boolean', 'color', 'select', 'url', 'date', 'time', 'datetime-local',
 ]);
+// Text/longtext are kept in FULL (not truncated to the scalar sample length) so the
+// verifiable copy matches what the asset shows — capped only against a pathological
+// manifest. Non-text scalars keep the short `maxValueLen` sample.
+const TEXT_VALUE_CAP = 4000;
 
 /**
  * A compact, human-readable digest of a tool's scalar inputs — id → short string
@@ -459,12 +464,12 @@ const SUMMARISABLE_TYPES = new Set<string>([
  * assertion), so an inspected asset answers "what was this made from": the
  * colours, sizes, toggles and short text it was rendered with.
  *
- * Deliberately shallow and privacy-aware: skips uploads, repeating groups and
- * long text (see {@link SUMMARISABLE_TYPES}); skips profile-bound inputs so a
- * user's pre-filled name/email never rides along unless they opted into
- * authorship separately; drops empties; appends a number's unit ("12 mm"); and
- * truncates any long value to a sample so the credential stays lean. Bounded by
- * `maxEntries`. Never throws — provenance enrichment must not fail an export.
+ * Privacy-aware: skips uploads and repeating groups (see {@link SUMMARISABLE_TYPES})
+ * and profile-bound inputs, so a user's pre-filled name/email never rides along
+ * unless they opted into authorship separately; drops empties; appends a number's
+ * unit ("12 mm"). Text and longtext are recorded IN FULL (bounded by TEXT_VALUE_CAP)
+ * — the exact rendered copy is a tamper-relevant signal — while other scalars keep a
+ * short sample. Bounded by `maxEntries`. Never throws — enrichment must not fail an export.
  */
 export function summarizeInputs(
   model: readonly InputModelItem[],
@@ -479,7 +484,9 @@ export function summarizeInputs(
     let s = String(v).trim();
     if (!s) continue;
     if (item.unit && typeof v === 'number') s += ` ${item.unit}`;
-    if (s.length > maxValueLen) s = s.slice(0, Math.max(1, maxValueLen - 1)) + '…';
+    // Text keeps its full copy (bounded); other scalars keep the short sample.
+    const cap = (item.type === 'text' || item.type === 'longtext') ? TEXT_VALUE_CAP : maxValueLen;
+    if (s.length > cap) s = s.slice(0, Math.max(1, cap - 1)) + '…';
     out[item.id] = s;
   }
   return out;
