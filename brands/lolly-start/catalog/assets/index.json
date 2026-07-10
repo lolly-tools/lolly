@@ -322,6 +322,186 @@
         }
       ],
       "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/drift",
+      "name": "Drift",
+      "description": "A gentle bell melody over a warm pad with a light offbeat pulse. Generated on device from a few KB of ZzFXM data (~44s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/drift.zzfxm.json",
+          "checksum": "sha256-LIZcaf1LvLx1cLvcqeV009qjWT6YSrY6y7faBUgS37s=",
+          "size": 962
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/amber-glow",
+      "name": "Amber Glow",
+      "description": "Sparse glass notes drifting over soothing pad swells — no drums. Generated on device from a few KB of ZzFXM data (~53s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "ambient",
+        "calm",
+        "sweeps"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/amber-glow.zzfxm.json",
+          "checksum": "sha256-TOdHajxUWH5pMETNJtpTCd/Q5AksDebjPVPpq/7aBZg=",
+          "size": 946
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/tide-pool",
+      "name": "Tide Pool",
+      "description": "Very slow, open, suspended chords with long swells — drift-away focus. Generated on device from a few KB of ZzFXM data (~58s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "ambient",
+        "calm",
+        "sweeps",
+        "dreamy"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/tide-pool.zzfxm.json",
+          "checksum": "sha256-meYw86p7jqLDoIVMk7fwpImRkpWtdQtvWyfe79/PIE8=",
+          "size": 924
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/paper-lanterns",
+      "name": "Paper Lanterns",
+      "description": "A wistful minor-pentatonic melody with a gentle, rocking lilt. Generated on device from a few KB of ZzFXM data (~43s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/paper-lanterns.zzfxm.json",
+          "checksum": "sha256-A6HN22Wq53aflD8of0pJYPrcj2T8L8s0ealNcVhN+Mw=",
+          "size": 974
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/night-bus",
+      "name": "Night Bus",
+      "description": "A soft, steady beat with a round bass groove and quiet chord stabs. Generated on device from a few KB of ZzFXM data (~43s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "beat",
+        "rhythm",
+        "focus"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/night-bus.zzfxm.json",
+          "checksum": "sha256-hB73W0gp6uCbE+iRqfGftgtfLvnYCtjaW6qwboU00gI=",
+          "size": 1175
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/slow-train",
+      "name": "Slow Train",
+      "description": "A rolling four-on-the-floor pulse with a deep sub and plucked chords. Generated on device from a few KB of ZzFXM data (~40s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "beat",
+        "rhythm",
+        "focus"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/slow-train.zzfxm.json",
+          "checksum": "sha256-xCwYn4KnGfD3pEwdrKd14CeAg3lLBsygv9CRKQppD6k=",
+          "size": 1176
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/meadow",
+      "name": "Meadow",
+      "description": "Bright, unhurried bell phrases over an easy pad — open and sunny. Generated on device from a few KB of ZzFXM data (~52s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/meadow.zzfxm.json",
+          "checksum": "sha256-zahJffOz9cf9z2cQkTCiHXbuQ7wo1UCn+U3O0rBpi38=",
+          "size": 974
+        }
+      ],
+      "license": "CC0-1.0"
     }
   ]
 }
