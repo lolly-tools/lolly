@@ -31,3 +31,7 @@ shells/web/dist
 # shipped the blank brand to lolly.tools. Each project's brand is pinned by its
 # own LOLLY_PROFILE env var (or the `suse` default); this file is local-only.
 /.lolly-profile
+
+# Local Claude Code state (tool-permission config + a scheduler lock). Gitignored
+# but rides an archive tarball otherwise; it's build-infra clutter, never served.
+/.claude

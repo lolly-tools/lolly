@@ -115,7 +115,7 @@ var init_tool_schema = __esm({
             height: { type: "integer", minimum: 1 },
             formats: {
               type: "array",
-              items: { type: "string", enum: ["png", "jpg", "jpeg", "svg", "emf", "eps", "eps-cmyk", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "avif", "webm", "mp4", "gif", "apng"] },
+              items: { type: "string", enum: ["png", "jpg", "jpeg", "svg", "svg-anim", "emf", "eps", "eps-cmyk", "dxf", "pdf", "pdf-cmyk", "cmyk-tiff", "tiff", "pptx", "html", "md", "txt", "json", "csv", "ics", "vcf", "ico", "zip", "webp", "webp-anim", "avif", "webm", "mp4", "gif", "apng"] },
               minItems: 1,
               description: "Output formats the tool supports. The host filters action buttons to these. Clipboard is an action (see render.actions), not a format."
             },
@@ -171,8 +171,8 @@ var init_tool_schema = __esm({
             },
             c2pa: {
               type: "boolean",
-              default: false,
-              description: "Pre-select the Content Credentials (C2PA) option in the export panel for PDF exports."
+              default: true,
+              description: "Whether the Content Credentials (C2PA) toggle is pre-checked in the export panel. Default TRUE \u2014 every tool stamps a signed provenance manifest by default (for the C2PA-capable formats it exports). Set FALSE to opt a tool out. Ignored (forced off) for privacy:'on-device' tools, which must never embed provenance into a user's own file. A ?c2pa= link/save value overrides this per export."
             },
             liveMaxEdge: {
               type: "integer",
@@ -584,6 +584,11 @@ var init_tool_schema = __esm({
                       accept: { type: "string", description: 'MIME accept filter for dropped files (default "image/*"). A trailing /* matches a whole type group.' }
                     }
                   },
+                  mdPaste: {
+                    type: "boolean",
+                    default: false,
+                    description: "Adds a 'Paste Markdown' button to the blocks toolbar. It reads the clipboard, splits the Markdown into one block per heading (the heading line \u2192 the block's `heading` field, the section beneath it \u2192 its `body` field, kept as Markdown for the tool's {{markdown}} render), and appends the blocks \u2014 so a whole document lands as editable, page-flowing blocks. A block gets kind:'text' when the input has a `kind` discriminator; other fields start at their defaults."
+                  },
                   importData: {
                     type: "object",
                     description: "Lets the user populate the whole list from a CSV or JSON file (the ingest counterpart to CSV/JSON export). The shell offers an 'Import data' control; the engine (parseDataRows) maps columns onto these fields \u2014 by explicit `columns` map, else by matching each column header/key case-insensitively to a field's id then its label \u2014 and sets the input value. Data stays flat and serialises exactly like hand-entered blocks.",
@@ -636,6 +641,14 @@ var init_tool_schema = __esm({
                       padField: { type: "string", description: "Number sub-field: inner padding in px between the box edge and its text." },
                       groupField: { type: "string", description: "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
                       clipField: { type: "string", description: "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
+                      trackingField: { type: "string", description: "Number sub-field: letter-spacing in px." },
+                      ligaturesField: { type: "string", description: "Boolean sub-field: enable common ligatures." },
+                      alternatesField: { type: "string", description: "Boolean/select sub-field: stylistic alternates." },
+                      shadowField: { type: "string", description: "Boolean sub-field: whether the box casts a drop shadow." },
+                      shadowColorField: { type: "string", description: "Color sub-field: drop-shadow colour." },
+                      shadowXField: { type: "string", description: "Number sub-field: drop-shadow x offset in px." },
+                      shadowYField: { type: "string", description: "Number sub-field: drop-shadow y offset in px." },
+                      shadowBlurField: { type: "string", description: "Number sub-field: drop-shadow blur radius in px." },
                       minSize: { type: "number", description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                       addKinds: {
                         type: "array",
@@ -649,6 +662,38 @@ var init_tool_schema = __esm({
                             icon: { type: "string", description: "Optional inline SVG or glyph for the menu entry." },
                             seed: { type: "object", description: "Field values a newly-added box of this kind starts at (merged over the block's declared defaults).", additionalProperties: true }
                           }
+                        }
+                      },
+                      grid: {
+                        type: "object",
+                        description: "Opt into snap-to-grid: the overlay rounds drag/resize to this lattice (per-axis alignment smart-guides still win; Alt disables).",
+                        properties: {
+                          size: { type: "number", description: "Grid step in canvas px." },
+                          default: { type: "boolean", description: "Whether snap-to-grid starts on." }
+                        }
+                      },
+                      fixedCanvas: { type: "boolean", description: "Lock the canvas to render.width/height: the shell withholds setCanvasSize and ignores reserved ?width/?height, so box coordinates stay 1:1 with the render size (required when a hook draws into a fixed-viewBox overlay, e.g. connectors)." },
+                      connect: {
+                        type: "object",
+                        description: "Opt into connector authoring: a Connect-mode rail button (click a source card, then targets), a live connector preview, and an Auto-arrange (tidy-tree) button. Edges are stored as rows of a SECOND blocks input named by `input`; each *Field below names a sub-field of that connectors block.",
+                        required: ["input"],
+                        additionalProperties: false,
+                        properties: {
+                          input: { type: "string", description: "Input id of the connectors blocks array edges are written to." },
+                          fromField: { type: "string", description: "Edge sub-field holding the source box id. Default 'from'." },
+                          toField: { type: "string", description: "Edge sub-field holding the target box id. Default 'to'." },
+                          styleField: { type: "string", description: "Edge select sub-field: route flavour (straight/elbow/elbow-v/elbow-h/elbow-src/elbow-tgt/curved)." },
+                          arrowField: { type: "string", description: "Edge select sub-field: which ends carry an arrow (none/end/both)." },
+                          headField: { type: "string", description: "Edge select sub-field: arrowhead SHAPE (triangle/open/circle/diamond/bar)." },
+                          colorField: { type: "string", description: "Edge color sub-field: line colour." },
+                          dashField: { type: "string", description: "Edge select sub-field: line dash (solid/dashed/dotted)." },
+                          widthField: { type: "string", description: "Edge number sub-field: line width in px." },
+                          layerClass: { type: "string", description: "CSS class of the tool's rendered connector <svg>, hidden mid-drag while the shell paints a live preview." },
+                          defaultStyle: { type: "string", description: "Route flavour a new edge starts at." },
+                          defaultArrow: { type: "string", description: "Arrow ends a new edge starts at." },
+                          defaultHead: { type: "string", description: "Arrowhead shape a new edge starts at." },
+                          defaultColor: { type: "string", description: "Colour a new edge starts at." },
+                          defaultWidth: { type: "number", description: "Width (px) a new edge starts at." }
                         }
                       }
                     }
@@ -798,6 +843,11 @@ var init_asset_schema = __esm({
           type: "boolean",
           default: false,
           description: "Catalog tier only. If true, fetch bytes at sync time, not on first use."
+        },
+        brandLock: {
+          type: "boolean",
+          default: false,
+          description: "Tokens assets only. When true, this brand is authoritative: the app resolves ITS colours/fonts and IGNORES any user-installed brand, and the brand-customisation UI (the #/start wizard, brand fonts, brand-file import) is disabled. A locked catalog 'eats what it is given'. Omit/false for a customisable brand (e.g. lolly-start)."
         }
       }
     };
@@ -892,9 +942,246 @@ var init_validate = __esm({
   }
 });
 
+// engine/src/x509.ts
+function concatBytes(parts) {
+  let n2 = 0;
+  for (const p of parts) n2 += p.length;
+  const out = new Uint8Array(n2);
+  let o = 0;
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
+  return out;
+}
+function derLen(n2) {
+  if (n2 < 128) return Uint8Array.of(n2);
+  if (n2 < 256) return Uint8Array.of(129, n2);
+  if (n2 < 65536) return Uint8Array.of(130, n2 >>> 8, n2 & 255);
+  return Uint8Array.of(131, n2 >>> 16, n2 >>> 8 & 255, n2 & 255);
+}
+function der(tag, ...content) {
+  const body = concatBytes(content);
+  return concatBytes([Uint8Array.of(tag), derLen(body.length), body]);
+}
+function derUint(bytes) {
+  let i = 0;
+  while (i < bytes.length - 1 && bytes[i] === 0) i++;
+  const v = bytes.subarray(i);
+  return v[0] & 128 ? der(2, Uint8Array.of(0), v) : der(2, v);
+}
+function derOid(oid) {
+  const parts = oid.split(".").map(Number);
+  const bytes = [parts[0] * 40 + parts[1]];
+  for (const p of parts.slice(2)) {
+    const grp = [p & 127];
+    for (let n2 = Math.floor(p / 128); n2 > 0; n2 = Math.floor(n2 / 128)) grp.unshift(n2 & 127 | 128);
+    bytes.push(...grp);
+  }
+  return der(6, Uint8Array.from(bytes));
+}
+function derTime(date) {
+  const p = (v, w = 2) => String(v).padStart(w, "0");
+  const y = date.getUTCFullYear();
+  const rest = p(date.getUTCMonth() + 1) + p(date.getUTCDate()) + p(date.getUTCHours()) + p(date.getUTCMinutes()) + p(date.getUTCSeconds()) + "Z";
+  if (y >= 1950 && y < 2050) return der(23, te.encode(p(y % 100) + rest));
+  return der(24, te.encode(p(y, 4) + rest));
+}
+function ecdsaRawToDer(raw) {
+  const half = raw.length / 2;
+  return derSeq(derUint(raw.subarray(0, half)), derUint(raw.subarray(half)));
+}
+function asDate(v, fallback) {
+  const d = v == null ? new Date(fallback) : v instanceof Date ? v : new Date(v);
+  if (Number.isNaN(d.getTime())) throw new Error("c2pa: invalid date " + v);
+  return d;
+}
+function randomSerial() {
+  const serial = globalThis.crypto.getRandomValues(new Uint8Array(9));
+  serial[0] = serial[0] & 63 | 64;
+  return serial;
+}
+function x501Name(organization, commonName) {
+  return derSeq(
+    derSet(derSeq(derOid("2.5.4.10"), der(12, te.encode(organization)))),
+    // organizationName
+    derSet(derSeq(derOid("2.5.4.3"), der(12, te.encode(commonName))))
+    // commonName
+  );
+}
+async function signTbs(tbs, privateKey) {
+  const raw = new Uint8Array(await subtle.sign({ name: "ECDSA", hash: "SHA-256" }, privateKey, asBufferSource(tbs)));
+  return derSeq(tbs, derSeq(derOid(OID_ECDSA_WITH_SHA256)), der(3, Uint8Array.of(0), ecdsaRawToDer(raw)));
+}
+async function generateSigner(dates = {}) {
+  const notBefore = asDate(dates.notBefore, Date.now() - 6e4);
+  const notAfter = asDate(dates.notAfter, notBefore.getTime() + 365 * 24 * 3600 * 1e3);
+  const pair = await subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
+  const spki = new Uint8Array(await subtle.exportKey("spki", pair.publicKey));
+  const keyId = new Uint8Array(await subtle.digest("SHA-1", new Uint8Array(await subtle.exportKey("raw", pair.publicKey))));
+  const serial = randomSerial();
+  const name = x501Name(SIGNER_O, SIGNER_CN);
+  const algId = derSeq(derOid(OID_ECDSA_WITH_SHA256));
+  const extensions = derSeq(
+    derSeq(derOid("2.5.29.19"), derOctet(derSeq())),
+    // basicConstraints: CA absent = false
+    derSeq(derOid("2.5.29.15"), der(1, Uint8Array.of(255)), derOctet(der(3, Uint8Array.of(7, 128)))),
+    // keyUsage: digitalSignature, critical
+    derSeq(derOid("2.5.29.37"), derOctet(derSeq(derOid("1.3.6.1.5.5.7.3.4")))),
+    // extKeyUsage: emailProtection
+    derSeq(derOid("2.5.29.14"), derOctet(derOctet(keyId))),
+    // subjectKeyIdentifier
+    derSeq(derOid("2.5.29.35"), derOctet(derSeq(der(128, keyId))))
+    // authorityKeyIdentifier: [0] keyid
+  );
+  const tbs = derSeq(
+    der(160, derUint(Uint8Array.of(2))),
+    // [0] version: v3
+    derUint(serial),
+    algId,
+    name,
+    // issuer
+    derSeq(derTime(notBefore), derTime(notAfter)),
+    name,
+    // subject (self-signed)
+    spki,
+    // already a DER SubjectPublicKeyInfo
+    der(163, extensions)
+  );
+  const certDer = await signTbs(tbs, pair.privateKey);
+  return { privateKey: pair.privateKey, certDer };
+}
+var te, subtle, asBufferSource, derSeq, derSet, derOctet, OID_ECDSA_WITH_SHA256, SIGNER_CN, SIGNER_O;
+var init_x509 = __esm({
+  "engine/src/x509.ts"() {
+    "use strict";
+    te = new TextEncoder();
+    subtle = globalThis.crypto.subtle;
+    asBufferSource = (b) => b;
+    derSeq = (...c) => der(48, ...c);
+    derSet = (...c) => der(49, ...c);
+    derOctet = (bytes) => der(4, bytes);
+    OID_ECDSA_WITH_SHA256 = "1.2.840.10045.4.3.2";
+    SIGNER_CN = "Lolly On-Device Credential";
+    SIGNER_O = "Lolly";
+  }
+});
+
+// engine/src/catalog-integrity.ts
+function base64UrlToBytes(str) {
+  const b64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function canonicalJson(value) {
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value) ?? "null";
+  }
+  if (Array.isArray(value)) {
+    return "[" + value.map((v) => canonicalJson(v)).join(",") + "]";
+  }
+  const record2 = value;
+  const parts = [];
+  for (const key of Object.keys(record2).sort()) {
+    if (record2[key] === void 0) continue;
+    parts.push(JSON.stringify(key) + ":" + canonicalJson(record2[key]));
+  }
+  return "{" + parts.join(",") + "}";
+}
+async function sha256Hex(bytes) {
+  const digest = new Uint8Array(await subtle2.digest("SHA-256", asBufferSource2(bytes)));
+  let hex = "";
+  for (const b of digest) hex += b.toString(16).padStart(2, "0");
+  return hex;
+}
+async function verifyEnvelopeSignature(envelope, publicKey) {
+  if (!envelope || typeof envelope !== "object") return { ok: false, reason: "envelope missing" };
+  if (envelope.alg !== CATALOG_SIG_ALG) return { ok: false, reason: `unsupported alg "${String(envelope.alg)}"` };
+  if (!envelope.files || typeof envelope.files !== "object" || Array.isArray(envelope.files)) {
+    return { ok: false, reason: "envelope has no files map" };
+  }
+  if (typeof envelope.signature !== "string" || !envelope.signature) {
+    return { ok: false, reason: "envelope has no signature" };
+  }
+  let sig;
+  try {
+    sig = base64UrlToBytes(envelope.signature);
+  } catch {
+    return { ok: false, reason: "signature is not base64url" };
+  }
+  if (sig.length !== 64) return { ok: false, reason: "signature is not a raw P-256 r||s pair" };
+  const { signature: _sig, ...unsigned } = envelope;
+  const bytes = te2.encode(canonicalJson(unsigned));
+  const ok2 = await subtle2.verify(ECDSA_SHA256, publicKey, asBufferSource2(sig), asBufferSource2(bytes));
+  return ok2 ? { ok: true } : { ok: false, reason: "signature does not verify against the pinned key" };
+}
+async function verifyToolFile(envelope, toolId, filename, bytes) {
+  const key = `${toolId}/${filename}`;
+  const expected = envelope?.files?.[key];
+  if (typeof expected !== "string") {
+    return { ok: false, reason: `"${key}" is not in the signed catalog manifest` };
+  }
+  const actual = await sha256Hex(bytes);
+  if (actual !== expected) {
+    return { ok: false, reason: `"${key}" does not match its signed digest (signed ${expected}, got ${actual})` };
+  }
+  return { ok: true };
+}
+var te2, subtle2, asBufferSource2, CATALOG_SIG_ALG, ECDSA_SHA256;
+var init_catalog_integrity = __esm({
+  "engine/src/catalog-integrity.ts"() {
+    "use strict";
+    te2 = new TextEncoder();
+    subtle2 = globalThis.crypto.subtle;
+    asBufferSource2 = (b) => b;
+    CATALOG_SIG_ALG = "ECDSA-P256-SHA256";
+    ECDSA_SHA256 = { name: "ECDSA", hash: "SHA-256" };
+  }
+});
+
 // engine/src/loader.ts
+async function assertEnvelopeTrusted(integrity) {
+  let pending = envelopeTrust.get(integrity.envelope);
+  if (!pending) {
+    pending = verifyEnvelopeSignature(integrity.envelope, integrity.publicKey);
+    envelopeTrust.set(integrity.envelope, pending);
+  }
+  const result = await pending;
+  if (!result.ok) {
+    throw new ToolLoadError(`catalog integrity: envelope rejected \u2014 ${result.reason}`, []);
+  }
+}
+async function assertFileIntegrity(integrity, toolId, filename, text) {
+  if (text == null) {
+    if (integrity.envelope.files?.[`${toolId}/${filename}`]) {
+      throw new ToolLoadError(
+        `catalog integrity: "${toolId}/${filename}" is signed in the catalog but failed to load \u2014 refusing to run without it`,
+        []
+      );
+    }
+    return;
+  }
+  const result = await verifyToolFile(integrity.envelope, toolId, filename, integrityTextEncoder.encode(text));
+  if (!result.ok) {
+    throw new ToolLoadError(`catalog integrity: ${result.reason}`, []);
+  }
+}
+function warnUnsignedCatalogOnce() {
+  if (warnedUnsignedCatalog) return;
+  warnedUnsignedCatalog = true;
+  console.warn("catalog integrity: unsigned catalog \u2014 tool code is not verified");
+}
 async function loadTool(toolId, fetchFile, opts = {}) {
+  const integrity = opts.integrity ?? null;
+  if (integrity) {
+    await assertEnvelopeTrusted(integrity);
+  } else {
+    warnUnsignedCatalogOnce();
+  }
   const manifestText = await fetchFile(`${toolId}/tool.json`);
+  if (integrity) await assertFileIntegrity(integrity, toolId, "tool.json", manifestText);
   const parsed = JSON.parse(manifestText);
   const { valid, errors } = validateManifest(parsed);
   if (!valid) {
@@ -908,8 +1195,14 @@ async function loadTool(toolId, fetchFile, opts = {}) {
     );
   }
   const declared = manifest.render?.formats ?? [];
-  const textExts = ["ics", "vcf", "csv"].filter((ext) => declared.includes(ext));
+  const textExts = ["ics", "vcf", "csv", "md"].filter((ext) => declared.includes(ext));
   const wantsModuleHooks = manifest.hooks?.module === true;
+  if (wantsModuleHooks && integrity) {
+    throw new ToolLoadError(
+      `catalog integrity: "${toolId}" declares module hooks, whose imported bytes cannot be verified against the signed catalog`,
+      []
+    );
+  }
   if (wantsModuleHooks && !opts.resolveModuleUrl) {
     throw new ToolLoadError(
       `"${toolId}" declares module hooks, but this host provides no module-URL resolver`,
@@ -937,6 +1230,16 @@ async function loadTool(toolId, fetchFile, opts = {}) {
     textTemplates[ext] = result.value;
     if (result.error != null) textTemplateErrors[ext] = result.error;
   });
+  if (integrity) {
+    await assertFileIntegrity(integrity, toolId, "template.html", template);
+    await assertFileIntegrity(integrity, toolId, "styles.css", styles);
+    if (manifest.hooks && !wantsModuleHooks) {
+      await assertFileIntegrity(integrity, toolId, "hooks.js", hooksSource);
+    }
+    for (const ext of textExts) {
+      await assertFileIntegrity(integrity, toolId, `template.${ext}`, textTemplates[ext] ?? null);
+    }
+  }
   return {
     manifest,
     template,
@@ -961,11 +1264,15 @@ async function tryFetch(fetchFile, path) {
     return null;
   }
 }
-var ToolLoadError;
+var integrityTextEncoder, envelopeTrust, warnedUnsignedCatalog, ToolLoadError;
 var init_loader = __esm({
   "engine/src/loader.ts"() {
     "use strict";
     init_validate();
+    init_catalog_integrity();
+    integrityTextEncoder = new TextEncoder();
+    envelopeTrust = /* @__PURE__ */ new WeakMap();
+    warnedUnsignedCatalog = false;
     ToolLoadError = class extends Error {
       validationErrors;
       constructor(message, validationErrors) {
@@ -974,6 +1281,147 @@ var init_loader = __esm({
         this.validationErrors = validationErrors;
       }
     };
+  }
+});
+
+// engine/src/brand-derive.ts
+function oklabToLinearSrgb(L, a, b) {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
+  ];
+}
+function oklabToOklch(L, a, b) {
+  const c = Math.hypot(a, b);
+  return { l: L, c, h: c < 1e-7 ? 0 : normHue(Math.atan2(b, a) * 180 / Math.PI) };
+}
+function labToOklch(L, a, b) {
+  const k = 24389 / 27;
+  const e = 216 / 24389;
+  const fy = (L + 16) / 116;
+  const fx = fy + a / 500;
+  const fz = fy - b / 200;
+  const xr = fx ** 3 > e ? fx ** 3 : (116 * fx - 16) / k;
+  const yr = L > k * e ? fy ** 3 : L / k;
+  const zr = fz ** 3 > e ? fz ** 3 : (116 * fz - 16) / k;
+  const [X, Y, Z] = apply3(D50_TO_D65, xr * D50_WHITE[0], yr * D50_WHITE[1], zr * D50_WHITE[2]);
+  const [l, m, s] = apply3(XYZ_TO_LMS, X, Y, Z);
+  return oklabToOklch(...lmsToOklab(Math.cbrt(l), Math.cbrt(m), Math.cbrt(s)));
+}
+function parseComponent(tok) {
+  if (tok.toLowerCase() === "none") return { n: 0, pct: false };
+  const m = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(%)?$/i.exec(tok);
+  return m ? { n: parseFloat(m[1]), pct: m[2] != null } : null;
+}
+function parseHueComponent(tok) {
+  if (tok.toLowerCase() === "none") return 0;
+  const m = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(deg|rad|grad|turn)?$/i.exec(tok);
+  if (!m) return null;
+  const n2 = parseFloat(m[1]);
+  const unit = (m[2] ?? "deg").toLowerCase();
+  const deg = unit === "rad" ? n2 * 180 / Math.PI : unit === "grad" ? n2 * 0.9 : unit === "turn" ? n2 * 360 : n2;
+  return normHue(deg);
+}
+function parseAlphaComponent(tok) {
+  const c = parseComponent(tok);
+  return c ? clamp01(c.pct ? c.n / 100 : c.n) : null;
+}
+function parseOklch(s) {
+  const m = /^(oklch|lch)\(([^()]*)\)$/i.exec(String(s).trim());
+  if (!m) return null;
+  const isOklch = m[1].toLowerCase() === "oklch";
+  const slash = m[2].split("/");
+  if (slash.length > 2) return null;
+  const parts = slash[0].trim().split(/\s+/);
+  if (parts.length !== 3) return null;
+  const L = parseComponent(parts[0]);
+  const C = parseComponent(parts[1]);
+  const h = parseHueComponent(parts[2]);
+  if (!L || !C || h == null) return null;
+  let alpha2 = null;
+  if (slash.length === 2) {
+    alpha2 = parseAlphaComponent(slash[1].trim());
+    if (alpha2 == null) return null;
+  }
+  const out = isOklch ? {
+    l: clamp01(L.pct ? L.n / 100 : L.n),
+    c: Math.max(0, C.pct ? C.n / 100 * 0.4 : C.n),
+    // CSS: chroma 100% = 0.4
+    h
+  } : (() => {
+    const labL = Math.min(100, Math.max(0, L.n));
+    const chroma = Math.max(0, C.pct ? C.n / 100 * 150 : C.n);
+    const hr = h * Math.PI / 180;
+    return labToOklch(labL, chroma * Math.cos(hr), chroma * Math.sin(hr));
+  })();
+  if (alpha2 != null && alpha2 < 1) out.alpha = alpha2;
+  return out;
+}
+function oklchToHex(c) {
+  const L = clamp01(c.l);
+  const h = normHue(c.h);
+  const hr = h * Math.PI / 180;
+  const toLinear = (chroma) => oklabToLinearSrgb(L, chroma * Math.cos(hr), chroma * Math.sin(hr));
+  let rgb = toLinear(Math.max(0, c.c));
+  if (!inSrgbGamut(rgb)) {
+    let lo = 0;
+    let hi = Math.max(0, c.c);
+    for (let i = 0; i < 24; i++) {
+      const mid = (lo + hi) / 2;
+      if (inSrgbGamut(toLinear(mid))) lo = mid;
+      else hi = mid;
+    }
+    rgb = toLinear(lo);
+  }
+  const byte = (v) => Math.round(linearToSrgb(clamp01(v)) * 255).toString(16).padStart(2, "0");
+  const base = `#${byte(rgb[0])}${byte(rgb[1])}${byte(rgb[2])}`;
+  return c.alpha != null && c.alpha < 1 ? base + Math.round(clamp01(c.alpha) * 255).toString(16).padStart(2, "0") : base;
+}
+var clamp01, normHue, apply3, linearToSrgb, lmsToOklab, D50_WHITE, D50_TO_D65, XYZ_TO_LMS, inSrgbGamut;
+var init_brand_derive = __esm({
+  "engine/src/brand-derive.ts"() {
+    "use strict";
+    clamp01 = (n2) => Math.min(1, Math.max(0, n2));
+    normHue = (h) => (h % 360 + 360) % 360;
+    apply3 = (m, x, y, z) => [
+      m[0] * x + m[1] * y + m[2] * z,
+      m[3] * x + m[4] * y + m[5] * z,
+      m[6] * x + m[7] * y + m[8] * z
+    ];
+    linearToSrgb = (c) => c <= 31308e-7 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
+    lmsToOklab = (l, m, s) => [
+      0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+      1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+      0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s
+    ];
+    D50_WHITE = [0.9642956764295677, 1, 0.8251046025104602];
+    D50_TO_D65 = [
+      0.9554734527042182,
+      -0.023098536874261423,
+      0.0632593086610217,
+      -0.028369706963208136,
+      1.0099954580058226,
+      0.021041398966943008,
+      0.012314001688319899,
+      -0.020507696433477912,
+      1.3303659366080753
+    ];
+    XYZ_TO_LMS = [
+      0.8189330101,
+      0.3618667424,
+      -0.1288597137,
+      0.0329845436,
+      0.9293118715,
+      0.0361456387,
+      0.0482003018,
+      0.2643662691,
+      0.633851707
+    ];
+    inSrgbGamut = (rgb) => rgb.every((v) => v >= -1e-3 && v <= 1 + 1e-3);
   }
 });
 
@@ -1054,8 +1502,8 @@ function resolveAliases(map) {
         if (tv !== void 0) {
           e.value = tv;
           if (e.type == null) {
-            const te4 = map.get(target);
-            if (te4) e.type = te4.type;
+            const te6 = map.get(target);
+            if (te6) e.type = te6.type;
           }
         }
       }
@@ -1124,7 +1572,8 @@ function toSwatch(e) {
     // is a non-null string) that a malformed colour value can never actually hit.
     value: colorToHex(e.value) ?? "",
     description: e.description ?? null,
-    cmyk: ext && isNumberArray(ext.cmyk) ? ext.cmyk : null
+    cmyk: ext && isNumberArray(ext.cmyk) ? ext.cmyk : null,
+    spot: ext && isSpotColor(ext.spot) ? ext.spot : null
   };
 }
 function prettify(slug) {
@@ -1158,14 +1607,18 @@ function colorToHex(value) {
     const [r, g, b] = hslToRgb(num(p[0]), pct(p[1]), pct(p[2]));
     return rgbaToHex(r, g, b, p[3] != null ? alpha(p[3]) : 1);
   }
-  return s;
+  if (/^(?:ok)?lch\(/i.test(s)) {
+    const ok2 = parseOklch(s);
+    if (ok2) return oklchToHex(ok2);
+  }
+  return /^[a-z][a-z0-9-]*$/i.test(s) ? s : null;
 }
 function normHex(s) {
   let h = s.trim().toLowerCase();
   if (/^#[0-9a-f]{3}$/.test(h) || /^#[0-9a-f]{4}$/.test(h)) {
     h = "#" + h.slice(1).split("").map((c) => c + c).join("");
   }
-  return h;
+  return /^#(?:[0-9a-f]{6}|[0-9a-f]{8})$/.test(h) ? h : null;
 }
 function rgbaToHex(r, g, b, a = 1) {
   const h = (n2) => Math.max(0, Math.min(255, Math.round(Number(n2) || 0))).toString(16).padStart(2, "0");
@@ -1199,15 +1652,20 @@ function hslToRgb(h, s, l) {
   };
   return [c(h + 1 / 3) * 255, c(h) * 255, c(h - 1 / 3) * 255];
 }
-var TOKEN_EXT, ALIAS_RE, isRecord, strOrNull, isNumberArray;
+var TOKEN_EXT, ALIAS_RE, isRecord, strOrNull, isNumberArray, isSpotColor;
 var init_tokens = __esm({
   "engine/src/tokens.ts"() {
     "use strict";
+    init_brand_derive();
     TOKEN_EXT = "com.suse.lolly";
     ALIAS_RE = /^\{([^{}]+)\}$/;
     isRecord = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
     strOrNull = (v) => typeof v === "string" ? v : null;
     isNumberArray = (v) => Array.isArray(v) && v.every((n2) => typeof n2 === "number");
+    isSpotColor = (v) => {
+      if (!isRecord(v) || typeof v.name !== "string") return false;
+      return v.book === void 0 || typeof v.book === "string";
+    };
   }
 });
 
@@ -1374,6 +1832,21 @@ function modelToValues(model) {
   for (const i of model) out[i.id] = flattenValue(i.value);
   return out;
 }
+function summarizeInputs(model, { maxValueLen = 48, maxEntries = 24 } = {}) {
+  const out = {};
+  for (const item of model) {
+    if (Object.keys(out).length >= maxEntries) break;
+    if (!item || !SUMMARISABLE_TYPES.has(item.type) || item.bindToProfile) continue;
+    const v = flattenValue(item.value);
+    if (typeof v !== "string" && typeof v !== "number" && typeof v !== "boolean") continue;
+    let s = String(v).trim();
+    if (!s) continue;
+    if (item.unit && typeof v === "number") s += ` ${item.unit}`;
+    if (s.length > maxValueLen) s = s.slice(0, Math.max(1, maxValueLen - 1)) + "\u2026";
+    out[item.id] = s;
+  }
+  return out;
+}
 function modelForHooks(model) {
   return model.map((i) => {
     const v = flattenValue(i.value);
@@ -1384,10 +1857,23 @@ function flattenValue(v) {
   if (!isTokenValue(v)) return v;
   return typeof v.value === "string" ? v.value : "";
 }
+var DEFAULT_FILE_MAX_BYTES, SUMMARISABLE_TYPES;
 var init_inputs = __esm({
   "engine/src/inputs.ts"() {
     "use strict";
     init_tokens();
+    DEFAULT_FILE_MAX_BYTES = 100 * 1024 * 1024;
+    SUMMARISABLE_TYPES = /* @__PURE__ */ new Set([
+      "text",
+      "number",
+      "boolean",
+      "color",
+      "select",
+      "url",
+      "date",
+      "time",
+      "datetime-local"
+    ]);
   }
 });
 
@@ -1487,7 +1973,7 @@ var init_template = __esm({
       }).join("");
       return new Handlebars.SafeString(html);
     });
-    Handlebars.registerHelper("asset", function(ref, field) {
+    Handlebars.registerHelper("asset", (ref, field) => {
       if (!ref || typeof ref !== "object") return "";
       if (typeof field === "string") {
         const v = Reflect.get(ref, field);
@@ -1496,7 +1982,7 @@ var init_template = __esm({
       const url = Reflect.get(ref, "url");
       return url ?? "";
     });
-    Handlebars.registerHelper("media", function(ref, options) {
+    Handlebars.registerHelper("media", (ref, options) => {
       const empty = new Handlebars.SafeString("");
       if (!ref || typeof ref !== "object") return empty;
       const esc2 = Handlebars.escapeExpression;
@@ -1733,1340 +2219,6 @@ var init_tool_url = __esm({
   }
 });
 
-// engine/src/runtime.ts
-async function createRuntime(tool, host, initialState = {}, opts = {}) {
-  if (host.version !== "1") {
-    throw new Error(`Tool requires host bridge v1, got v${host.version}`);
-  }
-  const composeStack = opts.composeStack ?? [];
-  const composeMemo = /* @__PURE__ */ new Map();
-  let setInputSeq = 0;
-  const profile = await host.profile.get();
-  const profileValues = { ...profile };
-  let model = buildInputModel(tool.manifest, { profile: profileValues, initial: initialState });
-  const inputIds = new Set(model.map((i) => i.id));
-  const hookErrors = [];
-  const droppedAssets = [];
-  model = await resolveAssetRefs(model, host, droppedAssets, composeStack, tool.manifest.id);
-  model = await resolveTokenRefs(model, host);
-  let extras = {};
-  let hooks = null;
-  if (tool.hooksSource && tool.manifest.hooks) {
-    hooks = await loadHooks(tool, host);
-    if (hooks.onInit) {
-      try {
-        const patch = await withTimeout2(hooks.onInit({ model: modelForHooks(model), host }), 5e3, tool.manifest.id);
-        if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
-      } catch (e) {
-        hookErrors.push({ hook: "onInit", message: e.message });
-        host.log("error", `onInit ${e.message}`, { toolId: tool.manifest.id });
-      }
-    }
-  }
-  extras = { ...extras, ...await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo) };
-  const listeners = /* @__PURE__ */ new Set();
-  const emit = () => {
-    const state = { model, hydrated: getHydrated() };
-    listeners.forEach((fn) => fn(state));
-  };
-  let liveUnsub = null;
-  let framePending = false;
-  const isLive = () => liveUnsub != null;
-  let meterUnsub = null;
-  let stopMeterSource = null;
-  let levelPending = false;
-  let recordSession = null;
-  const isMetering = () => meterUnsub != null && recordSession == null;
-  const isRecording = () => recordSession != null;
-  function driveLevels(source) {
-    const onLevel = hooks?.onLevel;
-    if (!onLevel) return () => {
-    };
-    return source.subscribe((level) => {
-      if (levelPending) return;
-      levelPending = true;
-      Promise.resolve(onLevel({ level, model: modelForHooks(model), host })).then((patch) => {
-        if (patch && meterUnsub) {
-          ({ model, extras } = mergePatch(model, extras, patch, inputIds));
-          emit();
-        }
-      }).catch((e) => host.log("warn", `onLevel ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
-        levelPending = false;
-      });
-    });
-  }
-  function stopMeterLoop() {
-    if (!meterUnsub) return;
-    meterUnsub();
-    meterUnsub = null;
-    try {
-      stopMeterSource?.();
-    } catch {
-    }
-    stopMeterSource = null;
-  }
-  let ctxCache = null;
-  let ctxModel = null;
-  let ctxExtras = null;
-  function templateContext() {
-    if (ctxModel !== model || ctxExtras !== extras) {
-      ctxCache = { ...modelToValues(model), ...extras };
-      ctxModel = model;
-      ctxExtras = extras;
-    }
-    return ctxCache;
-  }
-  function getHydrated() {
-    return hydrate(tool.template, templateContext());
-  }
-  function getHydratedString(str) {
-    return str ? hydrate(str, templateContext()) : "";
-  }
-  function getHydratedText(str) {
-    return str ? hydrate(str, templateContext(), { raw: true }) : "";
-  }
-  return {
-    getModel: () => model,
-    getHydrated,
-    getHydratedString,
-    manifest: tool.manifest,
-    styles: tool.styles,
-    // Asset refs (from a saved session / URL) that no longer resolve. The shell
-    // reads this once after mount to surface a "left blank" notice.
-    droppedAssets,
-    // Hook failures (currently onInit) so a shell can show a canvas-error banner
-    // instead of a silently-blank canvas. Empty when every hook ran cleanly.
-    hookErrors,
-    async setInput(id, value) {
-      model = updateInput(model, id, value);
-      const seq = ++setInputSeq;
-      emit();
-      if (hooks?.onInput) {
-        try {
-          const patch = await withTimeout2(hooks.onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }), 2e3, tool.manifest.id);
-          if (patch) {
-            ({ model, extras } = mergePatch(model, extras, patch, inputIds));
-            emit();
-          }
-        } catch (e) {
-          host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
-        }
-      }
-      if (host.compose && tool.manifest.composes?.length) {
-        const composeOut = await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo);
-        const changed = Object.keys(composeOut).some((k) => extras[k] !== composeOut[k]);
-        if (seq === setInputSeq && changed) {
-          extras = { ...extras, ...composeOut };
-          emit();
-        }
-      }
-    },
-    subscribe(fn) {
-      listeners.add(fn);
-      fn({ model, hydrated: getHydrated() });
-      return () => listeners.delete(fn);
-    },
-    // Re-notify subscribers with the CURRENT model — no value change. For shell
-    // state that lives outside the input model but still affects the render (e.g.
-    // export dimensions): a shell can force the canvas to re-hydrate through the
-    // one render path instead of mutating the DOM itself. Used to invalidate a
-    // deferred preview (manifest.render.preview) when the capture geometry changes.
-    refresh: emit,
-    // True when this tool declares an `onFrame` hook — i.e. it CAN react to a live
-    // camera. The shell still gates the actual "go live" affordance on host.media
-    // being present, so a tool without a camera shell just runs as a still tool.
-    hasFrameHook: Boolean(hooks?.onFrame),
-    /** Whether the camera-driven loop is currently running. */
-    isLive,
-    /**
-     * Start driving the tool's `onFrame` hook from the host camera. Resolves once
-     * the camera is live; rejects if permission is denied or there's no camera (the
-     * shell shows that error). No-op (returns false) if already live, the tool has
-     * no onFrame, or the shell provides no host.media.
-     */
-    async startLive() {
-      const onFrame = hooks?.onFrame;
-      const media = host.media;
-      if (liveUnsub || !onFrame || !media) return false;
-      await media.start();
-      liveUnsub = media.subscribe((frame) => {
-        if (framePending) return;
-        framePending = true;
-        Promise.resolve(onFrame({ frame, model: modelForHooks(model), host })).then((patch) => {
-          if (patch && liveUnsub) {
-            ({ model, extras } = mergePatch(model, extras, patch, inputIds));
-            emit();
-          }
-        }).catch((e) => host.log("warn", `onFrame ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
-          framePending = false;
-        });
-      }, { maxEdge: tool.manifest.render?.liveMaxEdge });
-      return true;
-    },
-    /**
-     * Stop the camera-driven loop (idempotent). The shell calls this on toggle-off
-     * AND on unmount, so no camera track ever outlives the tool.
-     */
-    stopLive() {
-      if (!liveUnsub) return;
-      liveUnsub();
-      liveUnsub = null;
-      try {
-        host.media?.stop();
-      } catch {
-      }
-    },
-    // True when this tool declares an `onLevel` hook — i.e. it CAN react to live
-    // audio levels. The shell still gates the actual meter/record affordance on
-    // host.recorder being present.
-    hasLevelHook: Boolean(hooks?.onLevel),
-    isMetering,
-    /**
-     * Start driving the tool's `onLevel` hook from the host mic meter (a pre-record
-     * sound check). Rejects if permission is denied or there's no mic (the shell
-     * catches). No-op (false) if already metering, no onLevel, or no host.recorder.
-     */
-    async startMeter() {
-      const onLevel = hooks?.onLevel;
-      const recorder = host.recorder;
-      if (meterUnsub || !onLevel || !recorder) return false;
-      await recorder.meter.start();
-      stopMeterSource = () => recorder.meter.stop();
-      meterUnsub = driveLevels(recorder.meter);
-      return true;
-    },
-    stopMeter: stopMeterLoop,
-    isRecording,
-    /**
-     * Begin a recording session via host.recorder and (if the tool has onLevel)
-     * drive its coaching hook from the session's live levels. Rejects on denial /
-     * missing device. No-op (false) if already recording or no host.recorder.
-     */
-    async startRecording(opts2 = {}) {
-      const recorder = host.recorder;
-      if (recordSession || !recorder) return false;
-      stopMeterLoop();
-      const session = await recorder.record(opts2);
-      recordSession = session;
-      meterUnsub = driveLevels(session);
-      return true;
-    },
-    /**
-     * Finalise the current recording. Stops the level loop first so no in-flight
-     * onLevel repaints after stop, then resolves the media Blob + its MIME type.
-     */
-    async stopRecording() {
-      const session = recordSession;
-      if (!session) return null;
-      if (meterUnsub) {
-        meterUnsub();
-        meterUnsub = null;
-      }
-      recordSession = null;
-      const blob = await session.stop();
-      return { blob, mimeType: blob.type };
-    },
-    cancelRecording() {
-      const session = recordSession;
-      if (!session) return;
-      if (meterUnsub) {
-        meterUnsub();
-        meterUnsub = null;
-      }
-      recordSession = null;
-      try {
-        session.cancel();
-      } catch {
-      }
-    },
-    // Whether this tool produces output via the transform path (a user file in →
-    // transformed file out) rather than the DOM-render path. Shells use it to wire
-    // a "download the result" action to runtime.exportFile instead of export().
-    hasExportFile: Boolean(tool.manifest.hooks?.exportFile),
-    /**
-     * Produce a transformed file from the tool's own inputs (the file-utility
-     * shape: bytes in → bytes out). Runs the tool's `exportFile` hook, which
-     * reads the picked file's bytes (input.value.bytes) and returns the result as
-     * a plain { bytes, mime, filename } record. The shell wraps it in a Blob and
-     * delivers it via host.export.file. NEVER watermarked and NO provenance is
-     * embedded — the bytes are the user's own content, not a generated artifact.
-     */
-    async exportFile(opts2 = {}) {
-      const exportFileHook = hooks?.exportFile;
-      if (!exportFileHook) {
-        throw new Error(`Tool "${tool.manifest.id}" has no exportFile hook`);
-      }
-      const out = await withTimeout2(
-        exportFileHook({ model: modelForHooks(model), host, opts: opts2 }),
-        1e4,
-        tool.manifest.id
-      );
-      if (!out || out.bytes == null) {
-        throw new Error(`exportFile produced no bytes (${tool.manifest.id})`);
-      }
-      return out;
-    },
-    async export(renderedNode, format, opts2 = {}) {
-      if (hooks?.beforeExport) {
-        await hooks.beforeExport({ node: renderedNode, format, opts: opts2, host });
-      }
-      if (opts2.convertPaths === void 0) {
-        const cp = model.find((i) => i.id === "convertPaths");
-        if (cp) opts2 = { ...opts2, convertPaths: Boolean(cp.value) };
-        else if (tool.manifest?.render?.convertPaths === false) opts2 = { ...opts2, convertPaths: false };
-      }
-      const isExperimental = tool.manifest.status === "experimental";
-      const isOnDevice = tool.manifest.privacy === "on-device";
-      let meta = opts2.meta;
-      if (meta === void 0 && opts2.embedMeta !== false && !isOnDevice) {
-        meta = await buildExportMeta(host, tool.manifest, profile);
-      }
-      const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
-      let blob;
-      try {
-        blob = await host.export.render(renderedNode, format, {
-          ...opts2,
-          watermark: opts2.watermark ?? (isExperimental && !isOnDevice),
-          meta,
-          // Tag output with a colour profile by default (sRGB for raster, the
-          // default press condition for CMYK PDF). Thumbnails stay untagged.
-          colorProfile: opts2.colorProfile ?? (opts2.thumbnail ? "none" : "srgb"),
-          ...dataExtra
-        });
-      } finally {
-        if (hooks?.afterExport) {
-          await hooks.afterExport({ node: renderedNode, format, opts: opts2, host });
-        }
-      }
-      return blob;
-    }
-  };
-}
-function buildDataPayload(tool, format, model, getHydratedText) {
-  const dataMime = DATA_FORMATS[format];
-  if (!dataMime) return {};
-  if (format === "json") {
-    const dataText = JSON.stringify(
-      { tool: tool.manifest.id, version: tool.manifest.version, inputs: modelToValues(model) },
-      null,
-      2
-    );
-    return { dataText, dataMime };
-  }
-  const tpl = tool.textTemplates?.[format];
-  if (tpl == null) {
-    const loadError = tool.textTemplateErrors?.[format];
-    const err = new Error(
-      loadError != null ? `Tool "${tool.manifest.id}" couldn't load its template.${format} (${loadError})` : `Tool "${tool.manifest.id}" declares format "${format}" but ships no template.${format}`
-    );
-    err.code = loadError != null ? "TEXT_TEMPLATE_LOAD_FAILED" : "TEXT_TEMPLATE_MISSING";
-    throw err;
-  }
-  return { dataText: getHydratedText(tpl), dataMime };
-}
-function assetRefId(v) {
-  if (!v || typeof v !== "object") return null;
-  const id = v.id;
-  return typeof id === "string" ? id : null;
-}
-function inputNeedsAssetResolve(input) {
-  const v = input.value;
-  if (input.type === "asset" && assetRefId(v) !== null) return true;
-  if (input.type === "blocks" && Array.isArray(v)) {
-    const assetFields = (input.fields ?? []).filter((f) => f.type === "asset");
-    if (!assetFields.length) return false;
-    return v.some((item) => item && typeof item === "object" && assetFields.some((f) => assetRefId(item[f.id]) !== null));
-  }
-  return false;
-}
-async function resolveAssetRefs(model, host, dropped = [], composeStack = [], toolId = "") {
-  if (!model.some(inputNeedsAssetResolve)) return model;
-  const resolveOne = async (id, inputId, label) => {
-    try {
-      if (isToolUrl(id)) {
-        const ref = host.compose?.renderUrl ? await withTimeout2(
-          host.compose.renderUrl(id, { _stack: [...composeStack, toolId] }),
-          COMPOSE_TIMEOUT_MS2,
-          id
-        ) : null;
-        if (ref) return ref;
-        dropped.push({ inputId, label, id });
-        return null;
-      }
-      return await host.assets.get(id);
-    } catch (e) {
-      host.log("warn", `Failed to resolve asset ${id}`, { error: String(e) });
-      dropped.push({ inputId, label, id });
-      return null;
-    }
-  };
-  return Promise.all(
-    model.map(async (input) => {
-      const v = input.value;
-      if (input.type === "asset") {
-        const id = assetRefId(v);
-        if (id !== null) {
-          return { ...input, value: await resolveOne(id, input.id, input.label || input.id) };
-        }
-      }
-      if (input.type === "blocks" && Array.isArray(v)) {
-        const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
-        if (!assetFields.length) return input;
-        const value = await Promise.all(v.map(async (item) => {
-          if (!item || typeof item !== "object") return item;
-          const rec = item;
-          const next = { ...rec };
-          for (const fid of assetFields) {
-            const id = assetRefId(rec[fid]);
-            if (id !== null) {
-              next[fid] = await resolveOne(id, `${input.id}.${fid}`, input.label || input.id);
-            }
-          }
-          return next;
-        }));
-        return { ...input, value };
-      }
-      return input;
-    })
-  );
-}
-async function resolveTokenRefs(model, host) {
-  if (!host.tokens) return model;
-  const needs = model.some((i) => i.type === "color" && (isTokenValue(i.value) || isAlias(i.value)));
-  if (!needs) return model;
-  let set;
-  try {
-    set = await host.tokens.get();
-  } catch {
-    return model;
-  }
-  return model.map((input) => {
-    if (input.type !== "color") return input;
-    const v = input.value;
-    const ref = isTokenValue(v) ? v.ref : isAlias(v) ? v : null;
-    if (!ref) return input;
-    const resolved = set.resolve(ref);
-    if (resolved !== void 0) return { ...input, value: { ref, value: colorToHex(resolved) } };
-    return { ...input, value: isTokenValue(v) ? v : { ref, value: void 0 } };
-  });
-}
-function getHookFactory(tool) {
-  const key = `${tool.manifest.id}@${tool.manifest.version}`;
-  let factory = hookFactoryCache.get(key);
-  if (!factory) {
-    factory = new Function(
-      "host",
-      `${tool.hooksSource}; return {onInit: typeof onInit !== 'undefined' ? onInit : null,onInput: typeof onInput !== 'undefined' ? onInput : null,onFrame: typeof onFrame !== 'undefined' ? onFrame : null,onLevel: typeof onLevel !== 'undefined' ? onLevel : null,beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null};`
-    );
-    hookFactoryCache.set(key, factory);
-  }
-  return factory;
-}
-function hookFn(v) {
-  return typeof v === "function" ? v : null;
-}
-async function loadHooks(tool, host) {
-  const factory = getHookFactory(tool);
-  const mod = factory(host);
-  return {
-    onInit: hookFn(mod.onInit),
-    onInput: hookFn(mod.onInput),
-    onFrame: hookFn(mod.onFrame),
-    onLevel: hookFn(mod.onLevel),
-    beforeRender: hookFn(mod.beforeRender),
-    beforeExport: hookFn(mod.beforeExport),
-    afterExport: hookFn(mod.afterExport),
-    exportFile: hookFn(mod.exportFile)
-  };
-}
-function withTimeout2(promise, ms, toolId) {
-  return new Promise((resolve2, reject) => {
-    const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
-    Promise.resolve(promise).then(
-      (v) => {
-        clearTimeout(t);
-        resolve2(v);
-      },
-      (e) => {
-        clearTimeout(t);
-        reject(e);
-      }
-    );
-  });
-}
-function mergePatch(model, extras, patch, inputIds) {
-  if (!patch || typeof patch !== "object") return { model, extras };
-  const ids = inputIds ?? new Set(model.map((i) => i.id));
-  const newExtras = { ...extras };
-  const modelPatch = {};
-  let hasModelPatch = false;
-  for (const [k, v] of Object.entries(patch)) {
-    if (ids.has(k)) {
-      modelPatch[k] = v;
-      hasModelPatch = true;
-    } else newExtras[k] = v;
-  }
-  const newModel = hasModelPatch ? model.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model;
-  return { model: newModel, extras: newExtras };
-}
-var DATA_FORMATS, hookFactoryCache, COMPOSE_TIMEOUT_MS2;
-var init_runtime = __esm({
-  "engine/src/runtime.ts"() {
-    "use strict";
-    init_inputs();
-    init_template();
-    init_metadata();
-    init_tokens();
-    init_compose();
-    init_tool_url();
-    DATA_FORMATS = { json: "application/json", csv: "text/csv", ics: "text/calendar", vcf: "text/vcard" };
-    hookFactoryCache = /* @__PURE__ */ new Map();
-    COMPOSE_TIMEOUT_MS2 = 1e4;
-  }
-});
-
-// engine/src/units.ts
-function parseDimension(input, defaultUnit = "px") {
-  if (input == null || input === "") return null;
-  if (typeof input === "number") {
-    return Number.isFinite(input) && input > 0 ? { value: input, unit: "px" } : null;
-  }
-  const m = String(input).trim().match(/^([0-9]*\.?[0-9]+)\s*([a-z]+)?$/i);
-  if (!m || m[1] === void 0) return null;
-  const value = parseFloat(m[1]);
-  if (!(value > 0)) return null;
-  const unit = (m[2] || defaultUnit).toLowerCase();
-  return isUnit(unit) ? { value, unit } : null;
-}
-function toPixels(dim, dpi = CSS_DPI) {
-  return dim.unit === "px" ? Math.round(dim.value) : Math.round(toInches(dim) * dpi);
-}
-function toPoints(dim) {
-  return dim.unit === "px" ? dim.value * 72 / CSS_DPI : toInches(dim) * 72;
-}
-function toCssPx(dim) {
-  return dim.unit === "px" ? dim.value : toInches(dim) * CSS_DPI;
-}
-function toCssLength(dim) {
-  return dim.unit === "px" ? `${dim.value}px` : `${dim.value}${dim.unit}`;
-}
-var CSS_DPI, PER_INCH, isUnit, toInches;
-var init_units = __esm({
-  "engine/src/units.ts"() {
-    "use strict";
-    CSS_DPI = 96;
-    PER_INCH = { px: 96, pt: 72, pc: 6, mm: 25.4, cm: 2.54, in: 1 };
-    isUnit = (u) => Object.prototype.hasOwnProperty.call(PER_INCH, u);
-    toInches = (dim) => dim.value / PER_INCH[dim.unit];
-  }
-});
-
-// engine/src/url-mode.ts
-function parseMarks(raw) {
-  if (raw == null) return null;
-  const set = new Set(String(raw).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
-  return {
-    crop: set.has("crop"),
-    registration: set.has("reg") || set.has("registration"),
-    bleed: set.has("bleed"),
-    colorBars: set.has("bars") || set.has("colorbars"),
-    provenance: set.has("prov") || set.has("provenance")
-  };
-}
-function parseC2pa(raw) {
-  if (raw == null) return null;
-  const v = String(raw).trim().toLowerCase();
-  if (v === "off" || v === "0" || v === "false" || v === "no") return { on: false, days: null };
-  const n2 = Number(v);
-  return { on: true, days: [7, 30, 90, 365].includes(n2) ? n2 : null };
-}
-function parseUrlState(searchParams, manifest) {
-  const params = new URLSearchParams(searchParams);
-  const values = {};
-  const inputsByKey = {};
-  const vectorFieldByKey = {};
-  for (const i of manifest.inputs ?? []) {
-    inputsByKey[i.id] = i;
-    if (i.urlKey) inputsByKey[i.urlKey] = i;
-    if (i.type === "vector") {
-      for (const f of i.fields ?? []) vectorFieldByKey[`${i.id}.${f.id}`] = { input: i, field: f };
-    }
-  }
-  for (const [key, raw] of params.entries()) {
-    if (RESERVED.has(key)) continue;
-    const vec = vectorFieldByKey[key];
-    if (vec) {
-      const n2 = Number(raw);
-      if (raw !== "" && !Number.isNaN(n2)) (values[vec.input.id] ??= {})[vec.field.id] = n2;
-      continue;
-    }
-    const input = inputsByKey[key];
-    if (!input) continue;
-    values[input.id] = coerceFromString(input, raw);
-  }
-  const rawW = params.get("width") ?? params.get("w");
-  const rawH = params.get("height") ?? params.get("h");
-  const rawUnit = (params.get("unit") || "").toLowerCase();
-  const rawDpi = params.get("dpi");
-  return {
-    values,
-    format: params.get("format") || null,
-    export: params.has("export"),
-    copy: params.has("copy"),
-    slot: params.get("slot") || null,
-    filename: params.get("filename") || null,
-    version: params.get("_v") || null,
-    width: rawW != null ? Number(rawW) || null : null,
-    height: rawH != null ? Number(rawH) || null : null,
-    // Physical unit for width/height (default px) and the raster DPI for it.
-    unit: isUnit(rawUnit) ? rawUnit : null,
-    dpi: rawDpi != null ? Number(rawDpi) || null : null,
-    // Colour profile / CMYK press condition for the export (see color.js).
-    profile: params.get("profile") || null,
-    // Open-password for the standard `pdf` export (basic lock; clear-text by design).
-    password: params.get("password") || null,
-    // Print prep for pdf / pdf-cmyk: bleed amount (dimension string) and which
-    // crop / registration / bleed / colour-bar marks to draw (see print-marks.js).
-    bleed: params.get("bleed") || null,
-    marks: parseMarks(params.get("marks")),
-    // Content Credentials on/off + ephemeral-cert lifetime (see header).
-    c2pa: parseC2pa(params.get("c2pa"))
-  };
-}
-function serializeUrlState(model, opts = {}) {
-  const params = new URLSearchParams();
-  for (const input of model) {
-    if (input.value === null || input.value === void 0) continue;
-    if (input.type === "file") continue;
-    if (input.type === "vector") {
-      const v = input.value;
-      if (v && typeof v === "object") {
-        const vo = v;
-        for (const f of input.fields ?? []) {
-          if (vo[f.id] !== void 0 && vo[f.id] !== null) params.set(`${input.id}.${f.id}`, String(vo[f.id]));
-        }
-      }
-      continue;
-    }
-    if (input.value === "" && !input.required) continue;
-    params.set(input.id, coerceToString(input, input.value));
-  }
-  if (opts.format) params.set("format", opts.format);
-  if (opts.export) params.set("export", "");
-  if (opts.slot) params.set("slot", opts.slot);
-  if (opts.width) params.set("w", String(opts.width));
-  if (opts.height) params.set("h", String(opts.height));
-  if (opts.unit && opts.unit !== "px") params.set("unit", opts.unit);
-  if (opts.dpi) params.set("dpi", String(opts.dpi));
-  if (opts.profile) params.set("profile", opts.profile);
-  if (opts.password) params.set("password", opts.password);
-  if (opts.bleed) params.set("bleed", opts.bleed);
-  if (opts.marks) params.set("marks", opts.marks);
-  if (opts.c2pa === false) params.set("c2pa", "off");
-  else if (opts.c2pa) params.set("c2pa", [7, 30, 90, 365].includes(Number(opts.c2paDays)) ? String(opts.c2paDays) : "1");
-  return params.toString();
-}
-function coerceFromString(input, raw) {
-  switch (input.type) {
-    case "number":
-      return Number(raw);
-    case "boolean":
-      return raw === "1" || raw === "true";
-    case "color":
-      if (isAlias(raw)) return { ref: raw, _unresolved: true };
-      if (raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw)) return "#" + raw;
-      return raw;
-    case "asset":
-      return { source: isToolUrl(raw) ? "remote" : "library", id: raw, _unresolved: true };
-    case "file":
-      return raw ? { __file: true, path: raw, _unresolved: true } : null;
-    case "blocks":
-      if (raw.startsWith("[")) {
-        try {
-          return JSON.parse(raw);
-        } catch {
-          return [];
-        }
-      }
-      return decodeBlocksCompact(raw, input.fields ?? []);
-    // NOTE: 'vector' has no single-param form — each field is its own flat param
-    // ("<inputId>.<fieldId>"), handled in parseUrlState.
-    default:
-      return raw;
-  }
-}
-function coerceToString(input, value) {
-  if (input.type === "boolean") return value ? "1" : "0";
-  if (input.type === "asset" && value && typeof value === "object") return value.id;
-  if (input.type === "color" && isTokenValue(value)) return value.ref;
-  if (input.type === "blocks") return JSON.stringify(value ?? []);
-  return String(value);
-}
-function decodeBlocksCompact(str, fields) {
-  if (!str || !fields.length) return [];
-  return str.split("~").filter(Boolean).map((item) => {
-    const parts = splitToFields(item, fields.length);
-    const obj = {};
-    fields.forEach((f, i) => {
-      const raw = decodeURIComponent(parts[i] ?? "");
-      if (f.type === "asset") {
-        obj[f.id] = raw ? { source: isToolUrl(raw) ? "remote" : "library", id: raw, _unresolved: true } : null;
-      } else if (f.type === "color" && raw && !raw.startsWith("#")) {
-        obj[f.id] = "#" + raw;
-      } else {
-        obj[f.id] = raw;
-      }
-    });
-    return obj;
-  });
-}
-function splitToFields(str, count) {
-  const parts = str.split(",");
-  if (parts.length <= count) return parts;
-  return [...parts.slice(0, count - 1), parts.slice(count - 1).join(",")];
-}
-var RESERVED;
-var init_url_mode = __esm({
-  "engine/src/url-mode.ts"() {
-    "use strict";
-    init_units();
-    init_tokens();
-    init_tool_url();
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "full", "options", "nostage", "z", "zx"]);
-  }
-});
-
-// engine/src/url-pack.ts
-function base64UrlToBytes(str) {
-  const b64 = str.replace(/-/g, "+").replace(/_/g, "/");
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
-}
-async function inflateRaw(bytes) {
-  const ds = new DecompressionStream("deflate-raw");
-  const writer = ds.writable.getWriter();
-  writer.write(bytes).catch(() => {
-  });
-  writer.close().catch(() => {
-  });
-  const reader = ds.readable.getReader();
-  const chunks = [];
-  let total = 0;
-  try {
-    for (; ; ) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      total += value.byteLength;
-      if (total > MAX_UNPACKED) throw new Error("url-pack: decompressed size exceeds cap");
-      chunks.push(value);
-    }
-  } finally {
-    reader.cancel().catch(() => {
-    });
-  }
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const c of chunks) {
-    out.set(c, off);
-    off += c.byteLength;
-  }
-  return out;
-}
-function isPackAvailable() {
-  return typeof CompressionStream === "function" && typeof DecompressionStream === "function" && typeof Response === "function" && typeof btoa === "function" && typeof atob === "function";
-}
-async function unpackToken(token2) {
-  if (!isPackAvailable() || typeof token2 !== "string" || token2.length < 2 || token2.length > MAX_TOKEN) return null;
-  const tag = token2[0];
-  if (tag !== TAG_DEFLATE_RAW) return null;
-  try {
-    const bytes = base64UrlToBytes(token2.slice(1));
-    return new TextDecoder().decode(await inflateRaw(bytes));
-  } catch {
-    return null;
-  }
-}
-async function expandQuery(query) {
-  if (!query) return query;
-  const sp = new URLSearchParams(query);
-  const token2 = sp.get(PACK_PARAM);
-  if (token2 == null) return query;
-  const decoded = await unpackToken(token2);
-  if (decoded == null) return query;
-  const extras = [];
-  sp.forEach((v, k) => {
-    if (k === PACK_PARAM) return;
-    extras.push(v === "" ? encodeURIComponent(k) : `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
-  });
-  return extras.length ? `${decoded}&${extras.join("&")}` : decoded;
-}
-var PACK_PARAM, TAG_DEFLATE_RAW, MAX_TOKEN, MAX_UNPACKED, ENC_SALT_BYTES, ENC_IV_BYTES, ENC_HEADER;
-var init_url_pack = __esm({
-  "engine/src/url-pack.ts"() {
-    "use strict";
-    PACK_PARAM = "z";
-    TAG_DEFLATE_RAW = "1";
-    MAX_TOKEN = 64 * 1024;
-    MAX_UNPACKED = 256 * 1024;
-    ENC_SALT_BYTES = 16;
-    ENC_IV_BYTES = 12;
-    ENC_HEADER = 4 + ENC_SALT_BYTES + ENC_IV_BYTES;
-  }
-});
-
-// engine/src/color.ts
-function rgbToCmyk(r, g, b) {
-  const k = 1 - Math.max(r, g, b);
-  if (k >= 1) return [0, 0, 0, 1];
-  const d = 1 - k;
-  return [(1 - r - k) / d, (1 - g - k) / d, (1 - b - k) / d, k];
-}
-var init_color = __esm({
-  "engine/src/color.ts"() {
-    "use strict";
-  }
-});
-
-// engine/src/svg-path.ts
-function parseSvgPathArgs(str) {
-  const m = str.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
-  return m ? m.map(Number) : [];
-}
-function parseSvgPath(d) {
-  const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;
-  const subpaths = [];
-  let cur = null;
-  let cx = 0, cy = 0;
-  let sx = 0, sy = 0;
-  let lastCmd = "";
-  let lastCpx = 0, lastCpy = 0;
-  let m;
-  const open = (x, y) => {
-    const sub = { segments: [{ op: "M", x, y }], closed: false };
-    subpaths.push(sub);
-    return sub;
-  };
-  const line = (x, y) => {
-    if (cur) cur.segments.push({ op: "L", x, y });
-  };
-  const cubic = (x1, y1, x2, y2, x, y) => {
-    if (cur) cur.segments.push({ op: "C", x1, y1, x2, y2, x, y });
-  };
-  while ((m = cmdRe.exec(d)) !== null) {
-    const cmd = m[1] ?? "";
-    const nums = parseSvgPathArgs(m[2] ?? "");
-    const abs = cmd === cmd.toUpperCase();
-    const C = cmd.toUpperCase();
-    const at = (i) => nums[i] ?? 0;
-    const ax = (i) => abs ? at(i) : cx + at(i);
-    const ay = (i) => abs ? at(i) : cy + at(i);
-    switch (C) {
-      case "M":
-        for (let i = 0; i + 1 < nums.length; i += 2) {
-          const x = ax(i), y = ay(i + 1);
-          if (i === 0) {
-            cur = open(x, y);
-            sx = x;
-            sy = y;
-          } else line(x, y);
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "L":
-        for (let i = 0; i + 1 < nums.length; i += 2) {
-          const x = ax(i), y = ay(i + 1);
-          line(x, y);
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "H":
-        for (let i = 0; i < nums.length; i++) {
-          cx = abs ? at(i) : cx + at(i);
-          line(cx, cy);
-        }
-        break;
-      case "V":
-        for (let i = 0; i < nums.length; i++) {
-          cy = abs ? at(i) : cy + at(i);
-          line(cx, cy);
-        }
-        break;
-      case "C":
-        for (let i = 0; i + 5 < nums.length; i += 6) {
-          const x1 = ax(i), y1 = ay(i + 1);
-          const x2 = ax(i + 2), y2 = ay(i + 3);
-          const x = ax(i + 4), y = ay(i + 5);
-          cubic(x1, y1, x2, y2, x, y);
-          lastCpx = x2;
-          lastCpy = y2;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "S":
-        for (let i = 0; i + 3 < nums.length; i += 4) {
-          const r1x = lastCmd === "C" || lastCmd === "S" ? 2 * cx - lastCpx : cx;
-          const r1y = lastCmd === "C" || lastCmd === "S" ? 2 * cy - lastCpy : cy;
-          const x2 = ax(i), y2 = ay(i + 1);
-          const x = ax(i + 2), y = ay(i + 3);
-          cubic(r1x, r1y, x2, y2, x, y);
-          lastCpx = x2;
-          lastCpy = y2;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "Q":
-        for (let i = 0; i + 3 < nums.length; i += 4) {
-          const qx1 = ax(i), qy1 = ay(i + 1);
-          const x = ax(i + 2), y = ay(i + 3);
-          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
-          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
-          cubic(x1, y1, x2, y2, x, y);
-          lastCpx = qx1;
-          lastCpy = qy1;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "T":
-        for (let i = 0; i + 1 < nums.length; i += 2) {
-          const qx1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cx - lastCpx : cx;
-          const qy1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cy - lastCpy : cy;
-          const x = ax(i), y = ay(i + 1);
-          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
-          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
-          cubic(x1, y1, x2, y2, x, y);
-          lastCpx = qx1;
-          lastCpy = qy1;
-          cx = x;
-          cy = y;
-        }
-        break;
-      case "A":
-        for (let i = 0; i + 6 < nums.length; i += 7) {
-          const rx = Math.abs(at(i));
-          const ry = Math.abs(at(i + 1));
-          const xRot = at(i + 2) * Math.PI / 180;
-          const la = at(i + 3) ? 1 : 0;
-          const sw = at(i + 4) ? 1 : 0;
-          const x = ax(i + 5), y = ay(i + 6);
-          if (rx < 1e-6 || ry < 1e-6) {
-            line(x, y);
-          } else {
-            for (const [bx1, by1, bx2, by2, bx, by] of svgArcToBeziers(cx, cy, rx, ry, xRot, la, sw, x, y)) {
-              cubic(bx1, by1, bx2, by2, bx, by);
-            }
-          }
-          cx = x;
-          cy = y;
-          lastCpx = cx;
-          lastCpy = cy;
-        }
-        break;
-      case "Z":
-        if (cur) cur.closed = true;
-        cx = sx;
-        cy = sy;
-        break;
-    }
-    lastCmd = C;
-    if (C !== "C" && C !== "S" && C !== "Q" && C !== "T") {
-      lastCpx = cx;
-      lastCpy = cy;
-    }
-  }
-  return subpaths.filter((s) => s.segments.some((seg) => seg.op === "L" || seg.op === "C"));
-}
-function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
-  if (x1 === x2 && y1 === y2) return [];
-  const cosP = Math.cos(phi);
-  const sinP = Math.sin(phi);
-  const dx = (x1 - x2) / 2;
-  const dy = (y1 - y2) / 2;
-  const x1p = cosP * dx + sinP * dy;
-  const y1p = -sinP * dx + cosP * dy;
-  let rx2 = rx * rx, ry2 = ry * ry;
-  const x1p2 = x1p * x1p, y1p2 = y1p * y1p;
-  const lam = x1p2 / rx2 + y1p2 / ry2;
-  if (lam > 1) {
-    const sl = Math.sqrt(lam);
-    rx *= sl;
-    ry *= sl;
-    rx2 = rx * rx;
-    ry2 = ry * ry;
-  }
-  const num2 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
-  const den = rx2 * y1p2 + ry2 * x1p2;
-  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num2 / den);
-  const cxp = coef * rx * y1p / ry;
-  const cyp = -coef * ry * x1p / rx;
-  const cx = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
-  const cy = sinP * cxp + cosP * cyp + (y1 + y2) / 2;
-  const angV = (ux, uy, vx, vy) => {
-    const sign = ux * vy - uy * vx < 0 ? -1 : 1;
-    const dot = ux * vx + uy * vy;
-    const len2 = Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
-    return sign * Math.acos(Math.max(-1, Math.min(1, dot / len2)));
-  };
-  const theta1 = angV(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
-  let dtheta = angV((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
-  if (!fs && dtheta > 0) dtheta -= 2 * Math.PI;
-  if (fs && dtheta < 0) dtheta += 2 * Math.PI;
-  const n2 = Math.max(1, Math.ceil(Math.abs(dtheta) / (Math.PI / 2)));
-  const dt = dtheta / n2;
-  const results = [];
-  for (let i = 0; i < n2; i++) {
-    const t1 = theta1 + i * dt;
-    const t2 = theta1 + (i + 1) * dt;
-    const alpha2 = 4 / 3 * Math.tan(dt / 4);
-    const cos1 = Math.cos(t1), sin1 = Math.sin(t1);
-    const cos2 = Math.cos(t2), sin2 = Math.sin(t2);
-    const ep1x = cosP * (rx * cos1) - sinP * (ry * sin1) + cx;
-    const ep1y = sinP * (rx * cos1) + cosP * (ry * sin1) + cy;
-    const dp1x = cosP * (-rx * sin1) - sinP * (ry * cos1);
-    const dp1y = sinP * (-rx * sin1) + cosP * (ry * cos1);
-    const ep2x = cosP * (rx * cos2) - sinP * (ry * sin2) + cx;
-    const ep2y = sinP * (rx * cos2) + cosP * (ry * sin2) + cy;
-    const dp2x = cosP * (-rx * sin2) - sinP * (ry * cos2);
-    const dp2y = sinP * (-rx * sin2) + cosP * (ry * cos2);
-    results.push([
-      ep1x + alpha2 * dp1x,
-      ep1y + alpha2 * dp1y,
-      ep2x - alpha2 * dp2x,
-      ep2y - alpha2 * dp2y,
-      ep2x,
-      ep2y
-    ]);
-  }
-  return results;
-}
-var init_svg_path = __esm({
-  "engine/src/svg-path.ts"() {
-    "use strict";
-  }
-});
-
-// engine/src/emf.ts
-function record(iType, bodyLen, writeBody) {
-  const size = 8 + bodyLen;
-  const buf = new ArrayBuffer(size);
-  const dv = new DataView(buf);
-  dv.setUint32(0, iType, true);
-  dv.setUint32(4, size, true);
-  if (writeBody) writeBody(dv, 8);
-  return new Uint8Array(buf);
-}
-function bboxOf(points) {
-  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
-  for (const p of points) {
-    if (p.x < left) left = p.x;
-    if (p.y < top) top = p.y;
-    if (p.x > right) right = p.x;
-    if (p.y > bottom) bottom = p.y;
-  }
-  if (left === Infinity) return { left: 0, top: 0, right: 0, bottom: 0 };
-  return { left, top, right, bottom };
-}
-function recMoveTo(x, y) {
-  return record(EMR_MOVETOEX, 8, (dv, o) => {
-    dv.setInt32(o, clampInt(x), true);
-    dv.setInt32(o + 4, clampInt(y), true);
-  });
-}
-function recPoly(iType, pts, anchor) {
-  const n2 = pts.length;
-  const bodyLen = 16 + 4 + 8 * n2;
-  return record(iType, bodyLen, (dv, o) => {
-    setRect(dv, o, bboxOf(anchor ? [anchor, ...pts] : pts));
-    dv.setUint32(o + 16, n2, true);
-    let p = o + 20;
-    for (const pt of pts) {
-      dv.setInt32(p, clampInt(pt.x), true);
-      dv.setInt32(p + 4, clampInt(pt.y), true);
-      p += 8;
-    }
-  });
-}
-function emitPathPrim(prim, out) {
-  const { subpaths, fill, stroke, fillRule } = prim;
-  if (!subpaths?.length) return;
-  const allPts = [];
-  out.push(recSetPolyFillMode(fillRule === "evenodd" ? ALTERNATE : WINDING));
-  if (fill) {
-    out.push(recCreateBrush(H_BRUSH, fill));
-    out.push(recSelectObject(H_BRUSH));
-  } else out.push(recSelectObject(NULL_BRUSH));
-  if (stroke) {
-    out.push(recExtCreatePen(H_PEN, stroke, stroke.width));
-    out.push(recSelectObject(H_PEN));
-  } else out.push(recSelectObject(NULL_PEN));
-  out.push(recBeginPath());
-  for (const sub of subpaths) {
-    const segs = sub.segments;
-    const first = segs[0];
-    if (!first || first.op !== "M") continue;
-    let anchor = { x: first.x, y: first.y };
-    out.push(recMoveTo(anchor.x, anchor.y));
-    allPts.push(anchor);
-    let i = 1;
-    for (let seg = segs[i]; seg !== void 0; seg = segs[i]) {
-      if (seg.op === "L") {
-        const pts = [];
-        let last = anchor;
-        for (let cur = seg; cur !== void 0 && cur.op === "L"; cur = segs[i]) {
-          last = { x: cur.x, y: cur.y };
-          pts.push(last);
-          i++;
-        }
-        out.push(recPoly(EMR_POLYLINETO, pts, anchor));
-        allPts.push(...pts);
-        anchor = last;
-      } else if (seg.op === "C") {
-        const pts = [];
-        let last = anchor;
-        for (let cur = seg; cur !== void 0 && cur.op === "C"; cur = segs[i]) {
-          last = { x: cur.x, y: cur.y };
-          pts.push({ x: cur.x1, y: cur.y1 }, { x: cur.x2, y: cur.y2 }, last);
-          i++;
-        }
-        out.push(recPoly(EMR_POLYBEZIERTO, pts, anchor));
-        allPts.push(...pts);
-        anchor = last;
-      } else {
-        i++;
-      }
-    }
-    if (sub.closed) out.push(recCloseFigure());
-  }
-  out.push(recEndPath());
-  const bbox = bboxOf(allPts);
-  const paint = fill && stroke ? EMR_STROKEANDFILLPATH : fill ? EMR_FILLPATH : EMR_STROKEPATH;
-  out.push(recPaint(paint, bbox));
-  if (fill) {
-    out.push(recSelectObject(NULL_BRUSH));
-    out.push(recDeleteObject(H_BRUSH));
-  }
-  if (stroke) {
-    out.push(recSelectObject(NULL_PEN));
-    out.push(recDeleteObject(H_PEN));
-  }
-}
-function headerMath(ir, opts) {
-  const Wpx = Math.max(1, Math.round(ir.width));
-  const Hpx = Math.max(1, Math.round(ir.height));
-  const wDim = parseDimension(opts.width, opts.unit || "px");
-  const hDim = parseDimension(opts.height, opts.unit || "px");
-  const dpi = opts.dpi !== void 0 && opts.dpi > 0 ? opts.dpi : CSS_DPI;
-  const wIn = wDim ? toInches(wDim) : Wpx / CSS_DPI;
-  const hIn = hDim ? toInches(hDim) : Hpx / CSS_DPI;
-  void dpi;
-  return {
-    Wpx,
-    Hpx,
-    rclFrame: { left: 0, top: 0, right: Math.round(wIn * 2540), bottom: Math.round(hIn * 2540) },
-    mmW: Math.max(1, Math.round(wIn * 25.4)),
-    mmH: Math.max(1, Math.round(hIn * 25.4))
-  };
-}
-function writeHeader(h, nBytes, nRecords) {
-  const buf = new ArrayBuffer(HEADER_SIZE);
-  const dv = new DataView(buf);
-  dv.setUint32(0, EMR_HEADER, true);
-  dv.setUint32(4, HEADER_SIZE, true);
-  setRect(dv, 8, { left: 0, top: 0, right: h.Wpx - 1, bottom: h.Hpx - 1 });
-  setRect(dv, 24, h.rclFrame);
-  dv.setUint32(40, ENHMETA_SIGNATURE, true);
-  dv.setUint32(44, 65536, true);
-  dv.setUint32(48, nBytes, true);
-  dv.setUint32(52, nRecords, true);
-  dv.setUint16(56, N_HANDLES, true);
-  dv.setUint16(58, 0, true);
-  dv.setUint32(60, 0, true);
-  dv.setUint32(64, 0, true);
-  dv.setUint32(68, 0, true);
-  dv.setInt32(72, h.Wpx, true);
-  dv.setInt32(76, h.Hpx, true);
-  dv.setInt32(80, h.mmW, true);
-  dv.setInt32(84, h.mmH, true);
-  return new Uint8Array(buf);
-}
-function emitEmf(ir, opts = {}) {
-  const h = headerMath(ir, opts);
-  const body = [];
-  for (const prim of ir.prims || []) {
-    if (prim?.type === "path") emitPathPrim(prim, body);
-  }
-  body.push(recEof());
-  const nRecords = body.length + 1;
-  const bodyBytes = body.reduce((n2, r) => n2 + r.length, 0);
-  const nBytes = HEADER_SIZE + bodyBytes;
-  const out = new Uint8Array(nBytes);
-  out.set(writeHeader(h, nBytes, nRecords), 0);
-  let off = HEADER_SIZE;
-  for (const r of body) {
-    out.set(r, off);
-    off += r.length;
-  }
-  return out;
-}
-var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, N_HANDLES, colorRef, clampInt, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof;
-var init_emf = __esm({
-  "engine/src/emf.ts"() {
-    "use strict";
-    init_units();
-    EMR_HEADER = 1;
-    EMR_POLYBEZIERTO = 5;
-    EMR_POLYLINETO = 6;
-    EMR_EOF = 14;
-    EMR_SETPOLYFILLMODE = 19;
-    EMR_MOVETOEX = 27;
-    EMR_SELECTOBJECT = 37;
-    EMR_CREATEBRUSHINDIRECT = 39;
-    EMR_DELETEOBJECT = 40;
-    EMR_BEGINPATH = 59;
-    EMR_ENDPATH = 60;
-    EMR_CLOSEFIGURE = 61;
-    EMR_FILLPATH = 62;
-    EMR_STROKEANDFILLPATH = 63;
-    EMR_STROKEPATH = 64;
-    EMR_EXTCREATEPEN = 95;
-    ALTERNATE = 1;
-    WINDING = 2;
-    NULL_BRUSH = 2147483653;
-    NULL_PEN = 2147483656;
-    BS_SOLID = 0;
-    PS_GEOMETRIC_SOLID = 65536;
-    ENHMETA_SIGNATURE = 1179469088;
-    HEADER_SIZE = 88;
-    H_BRUSH = 1;
-    H_PEN = 2;
-    N_HANDLES = 3;
-    colorRef = ({ r, g, b }) => (r & 255 | (g & 255) << 8 | (b & 255) << 16) >>> 0;
-    clampInt = (v) => Math.round(v);
-    setRect = (dv, off, b) => {
-      dv.setInt32(off, clampInt(b.left), true);
-      dv.setInt32(off + 4, clampInt(b.top), true);
-      dv.setInt32(off + 8, clampInt(b.right), true);
-      dv.setInt32(off + 12, clampInt(b.bottom), true);
-    };
-    recBeginPath = () => record(EMR_BEGINPATH, 0);
-    recEndPath = () => record(EMR_ENDPATH, 0);
-    recCloseFigure = () => record(EMR_CLOSEFIGURE, 0);
-    recSetPolyFillMode = (mode) => record(EMR_SETPOLYFILLMODE, 4, (dv, o) => dv.setUint32(o, mode, true));
-    recSelectObject = (handle) => record(EMR_SELECTOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
-    recDeleteObject = (handle) => record(EMR_DELETEOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
-    recCreateBrush = (handle, color) => record(EMR_CREATEBRUSHINDIRECT, 16, (dv, o) => {
-      dv.setUint32(o, handle, true);
-      dv.setUint32(o + 4, BS_SOLID, true);
-      dv.setUint32(o + 8, colorRef(color), true);
-      dv.setUint32(o + 12, 0, true);
-    });
-    recExtCreatePen = (handle, color, width) => record(EMR_EXTCREATEPEN, 44, (dv, o) => {
-      dv.setUint32(o, handle, true);
-      dv.setUint32(o + 4, 0, true);
-      dv.setUint32(o + 8, 0, true);
-      dv.setUint32(o + 12, 0, true);
-      dv.setUint32(o + 16, 0, true);
-      dv.setUint32(o + 20, PS_GEOMETRIC_SOLID, true);
-      dv.setUint32(o + 24, Math.max(1, clampInt(width)), true);
-      dv.setUint32(o + 28, BS_SOLID, true);
-      dv.setUint32(o + 32, colorRef(color), true);
-      dv.setUint32(o + 36, 0, true);
-      dv.setUint32(o + 40, 0, true);
-    });
-    recPaint = (iType, bbox) => record(iType, 16, (dv, o) => setRect(dv, o, bbox));
-    recEof = () => record(EMR_EOF, 12, (dv, o) => {
-      dv.setUint32(o, 0, true);
-      dv.setUint32(o + 4, 16, true);
-      dv.setUint32(o + 8, 20, true);
-    });
-  }
-});
-
-// engine/src/eps.ts
-function colorOp(c, cmyk) {
-  const r = (c.r & 255) / 255, g = (c.g & 255) / 255, b = (c.b & 255) / 255;
-  if (cmyk) {
-    const [cy, m, y, k] = rgbToCmyk(r, g, b);
-    return n(cy) + " " + n(m) + " " + n(y) + " " + n(k) + " setcmykcolor";
-  }
-  return n(r) + " " + n(g) + " " + n(b) + " setrgbcolor";
-}
-function emitPathPrim2(prim, cmyk, out) {
-  const { subpaths, fill, stroke, fillRule } = prim;
-  if (!subpaths || !subpaths.length) return;
-  out.push("newpath");
-  for (const sub of subpaths) {
-    const segs = sub.segments;
-    if (!segs || !segs.length || segs[0]?.op !== "M") continue;
-    for (const s of segs) {
-      if (s.op === "M") out.push(n(s.x) + " " + n(s.y) + " moveto");
-      else if (s.op === "L") out.push(n(s.x) + " " + n(s.y) + " lineto");
-      else if (s.op === "C") out.push(n(s.x1) + " " + n(s.y1) + " " + n(s.x2) + " " + n(s.y2) + " " + n(s.x) + " " + n(s.y) + " curveto");
-    }
-    if (sub.closed) out.push("closepath");
-  }
-  const fillVerb = fillRule === "evenodd" ? "eofill" : "fill";
-  const lw = n(Math.max(0, stroke ? stroke.width : 0)) + " setlinewidth";
-  if (fill && stroke) {
-    out.push("gsave", colorOp(fill, cmyk), fillVerb, "grestore");
-    out.push(colorOp(stroke, cmyk), lw, "stroke");
-  } else if (fill) {
-    out.push(colorOp(fill, cmyk), fillVerb);
-  } else if (stroke) {
-    out.push(colorOp(stroke, cmyk), lw, "stroke");
-  }
-}
-function emitEps(ir, opts = {}) {
-  const Wpx = Math.max(1, Math.round(ir.width));
-  const Hpx = Math.max(1, Math.round(ir.height));
-  const wDim = parseDimension(opts.width, opts.unit || "px");
-  const hDim = parseDimension(opts.height, opts.unit || "px");
-  const Wpt = wDim ? toPoints(wDim) : Wpx * 72 / CSS_DPI;
-  const Hpt = hDim ? toPoints(hDim) : Hpx * 72 / CSS_DPI;
-  const sx = Wpt / Wpx, sy = Hpt / Hpx;
-  const cmyk = Boolean(opts.cmyk);
-  const L = [];
-  L.push("%!PS-Adobe-3.0 EPSF-3.0");
-  L.push("%%Creator: Lolly");
-  if (opts.meta && opts.meta.title) L.push("%%Title: " + String(opts.meta.title).replace(/[\r\n]+/g, " "));
-  L.push("%%BoundingBox: 0 0 " + Math.ceil(Wpt) + " " + Math.ceil(Hpt));
-  L.push("%%HiResBoundingBox: 0 0 " + n(Wpt) + " " + n(Hpt));
-  L.push("%%LanguageLevel: 2");
-  L.push("%%EndComments");
-  L.push("%%BeginProlog");
-  L.push("%%EndProlog");
-  L.push("gsave");
-  L.push("1 setlinejoin 1 setlinecap");
-  L.push("0 " + n(Hpt) + " translate");
-  L.push(n(sx) + " " + n(-sy) + " scale");
-  for (const prim of ir.prims || []) {
-    if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L);
-  }
-  L.push("grestore");
-  L.push("showpage");
-  L.push("%%EOF");
-  return L.join("\n") + "\n";
-}
-var n;
-var init_eps = __esm({
-  "engine/src/eps.ts"() {
-    "use strict";
-    init_units();
-    init_color();
-    n = (v) => {
-      if (!Number.isFinite(v)) return "0";
-      const r = Math.round(v * 1e3) / 1e3;
-      return Object.is(r, -0) ? "0" : String(r);
-    };
-  }
-});
-
 // engine/src/video-meta.ts
 function concat(...parts) {
   const total = parts.reduce((n2, p) => n2 + p.length, 0);
@@ -3221,131 +2373,6 @@ var init_video_meta = __esm({
   }
 });
 
-// engine/src/x509.ts
-function concatBytes(parts) {
-  let n2 = 0;
-  for (const p of parts) n2 += p.length;
-  const out = new Uint8Array(n2);
-  let o = 0;
-  for (const p of parts) {
-    out.set(p, o);
-    o += p.length;
-  }
-  return out;
-}
-function derLen(n2) {
-  if (n2 < 128) return Uint8Array.of(n2);
-  if (n2 < 256) return Uint8Array.of(129, n2);
-  if (n2 < 65536) return Uint8Array.of(130, n2 >>> 8, n2 & 255);
-  return Uint8Array.of(131, n2 >>> 16, n2 >>> 8 & 255, n2 & 255);
-}
-function der(tag, ...content) {
-  const body = concatBytes(content);
-  return concatBytes([Uint8Array.of(tag), derLen(body.length), body]);
-}
-function derUint(bytes) {
-  let i = 0;
-  while (i < bytes.length - 1 && bytes[i] === 0) i++;
-  const v = bytes.subarray(i);
-  return v[0] & 128 ? der(2, Uint8Array.of(0), v) : der(2, v);
-}
-function derOid(oid) {
-  const parts = oid.split(".").map(Number);
-  const bytes = [parts[0] * 40 + parts[1]];
-  for (const p of parts.slice(2)) {
-    const grp = [p & 127];
-    for (let n2 = Math.floor(p / 128); n2 > 0; n2 = Math.floor(n2 / 128)) grp.unshift(n2 & 127 | 128);
-    bytes.push(...grp);
-  }
-  return der(6, Uint8Array.from(bytes));
-}
-function derTime(date) {
-  const p = (v, w = 2) => String(v).padStart(w, "0");
-  const y = date.getUTCFullYear();
-  const rest = p(date.getUTCMonth() + 1) + p(date.getUTCDate()) + p(date.getUTCHours()) + p(date.getUTCMinutes()) + p(date.getUTCSeconds()) + "Z";
-  if (y >= 1950 && y < 2050) return der(23, te.encode(p(y % 100) + rest));
-  return der(24, te.encode(p(y, 4) + rest));
-}
-function ecdsaRawToDer(raw) {
-  const half = raw.length / 2;
-  return derSeq(derUint(raw.subarray(0, half)), derUint(raw.subarray(half)));
-}
-function asDate(v, fallback) {
-  const d = v == null ? new Date(fallback) : v instanceof Date ? v : new Date(v);
-  if (Number.isNaN(d.getTime())) throw new Error("c2pa: invalid date " + v);
-  return d;
-}
-function randomSerial() {
-  const serial = globalThis.crypto.getRandomValues(new Uint8Array(9));
-  serial[0] = serial[0] & 63 | 64;
-  return serial;
-}
-function x501Name(organization, commonName) {
-  return derSeq(
-    derSet(derSeq(derOid("2.5.4.10"), der(12, te.encode(organization)))),
-    // organizationName
-    derSet(derSeq(derOid("2.5.4.3"), der(12, te.encode(commonName))))
-    // commonName
-  );
-}
-async function signTbs(tbs, privateKey) {
-  const raw = new Uint8Array(await subtle.sign({ name: "ECDSA", hash: "SHA-256" }, privateKey, asBufferSource(tbs)));
-  return derSeq(tbs, derSeq(derOid(OID_ECDSA_WITH_SHA256)), der(3, Uint8Array.of(0), ecdsaRawToDer(raw)));
-}
-async function generateSigner(dates = {}) {
-  const notBefore = asDate(dates.notBefore, Date.now() - 6e4);
-  const notAfter = asDate(dates.notAfter, notBefore.getTime() + 365 * 24 * 3600 * 1e3);
-  const pair = await subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"]);
-  const spki = new Uint8Array(await subtle.exportKey("spki", pair.publicKey));
-  const keyId = new Uint8Array(await subtle.digest("SHA-1", new Uint8Array(await subtle.exportKey("raw", pair.publicKey))));
-  const serial = randomSerial();
-  const name = x501Name(SIGNER_O, SIGNER_CN);
-  const algId = derSeq(derOid(OID_ECDSA_WITH_SHA256));
-  const extensions = derSeq(
-    derSeq(derOid("2.5.29.19"), derOctet(derSeq())),
-    // basicConstraints: CA absent = false
-    derSeq(derOid("2.5.29.15"), der(1, Uint8Array.of(255)), derOctet(der(3, Uint8Array.of(7, 128)))),
-    // keyUsage: digitalSignature, critical
-    derSeq(derOid("2.5.29.37"), derOctet(derSeq(derOid("1.3.6.1.5.5.7.3.4")))),
-    // extKeyUsage: emailProtection
-    derSeq(derOid("2.5.29.14"), derOctet(derOctet(keyId))),
-    // subjectKeyIdentifier
-    derSeq(derOid("2.5.29.35"), derOctet(derSeq(der(128, keyId))))
-    // authorityKeyIdentifier: [0] keyid
-  );
-  const tbs = derSeq(
-    der(160, derUint(Uint8Array.of(2))),
-    // [0] version: v3
-    derUint(serial),
-    algId,
-    name,
-    // issuer
-    derSeq(derTime(notBefore), derTime(notAfter)),
-    name,
-    // subject (self-signed)
-    spki,
-    // already a DER SubjectPublicKeyInfo
-    der(163, extensions)
-  );
-  const certDer = await signTbs(tbs, pair.privateKey);
-  return { privateKey: pair.privateKey, certDer };
-}
-var te, subtle, asBufferSource, derSeq, derSet, derOctet, OID_ECDSA_WITH_SHA256, SIGNER_CN, SIGNER_O;
-var init_x509 = __esm({
-  "engine/src/x509.ts"() {
-    "use strict";
-    te = new TextEncoder();
-    subtle = globalThis.crypto.subtle;
-    asBufferSource = (b) => b;
-    derSeq = (...c) => der(48, ...c);
-    derSet = (...c) => der(49, ...c);
-    derOctet = (bytes) => der(4, bytes);
-    OID_ECDSA_WITH_SHA256 = "1.2.840.10045.4.3.2";
-    SIGNER_CN = "Lolly On-Device Credential";
-    SIGNER_O = "Lolly";
-  }
-});
-
 // engine/src/c2pa.ts
 function concatBytes2(parts) {
   let n2 = 0;
@@ -3359,7 +2386,7 @@ function concatBytes2(parts) {
   return out;
 }
 async function sha256(bytes) {
-  return new Uint8Array(await subtle2.digest("SHA-256", asBufferSource2(bytes)));
+  return new Uint8Array(await subtle3.digest("SHA-256", asBufferSource3(bytes)));
 }
 function cborHead(major, n2) {
   const m = major << 5;
@@ -3391,7 +2418,7 @@ function cborEncodeInto(value, out) {
     return;
   }
   if (typeof value === "string") {
-    const b = te2.encode(value);
+    const b = te3.encode(value);
     out.push(cborHead(3, b.length), b);
     return;
   }
@@ -3445,7 +2472,7 @@ function isoBox(type, ...payloads) {
   return out;
 }
 function jumbfSuperbox(uuid, label, ...children) {
-  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te2.encode(label), Uint8Array.of(0));
+  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te3.encode(label), Uint8Array.of(0));
   return isoBox("jumb", jumd, ...children);
 }
 async function coseSign1Detached(signer, payload) {
@@ -3454,7 +2481,7 @@ async function coseSign1Detached(signer, payload) {
     [COSE_HEADER_X5CHAIN, signer.chain ?? [signer.certDer]]
   ]));
   const sigStructure = encodeCbor(["Signature1", protectedBytes, new Uint8Array(0), payload]);
-  const raw = signer.sign ? new Uint8Array(await signer.sign(sigStructure)) : new Uint8Array(await subtle2.sign({ name: "ECDSA", hash: "SHA-256" }, signer.privateKey, asBufferSource2(sigStructure)));
+  const raw = signer.sign ? new Uint8Array(await signer.sign(sigStructure)) : new Uint8Array(await subtle3.sign({ name: "ECDSA", hash: "SHA-256" }, signer.privateKey, asBufferSource3(sigStructure)));
   if (raw.length !== 64) throw new Error(`c2pa: signer returned a ${raw.length}-byte signature; ES256 needs raw 64-byte r||s`);
   return encodeCbor(new CborTag(18, [protectedBytes, /* @__PURE__ */ new Map(), null, raw]));
 }
@@ -3472,31 +2499,73 @@ async function buildC2paManifest({
   environment,
   author,
   authorship = "created",
+  actions: actionSteps,
+  ingredients,
   assetHash,
   format = "application/pdf",
   dates = {},
   signer,
   manifestLabel,
-  instanceId
+  instanceId,
+  claimVersion = 2
 } = {}) {
   const bmff = !!assetHash?.bmff;
   if (!assetHash || !(assetHash.hash instanceof Uint8Array) || !bmff && !Array.isArray(assetHash.exclusions)) {
     throw new Error("c2pa: assetHash requires { exclusions: [{start, length}], hash: Uint8Array } (or { bmff: true, hash })");
   }
+  const v2 = claimVersion !== 1;
   const signedAt = asDate(dates.signedAt, Date.now());
   const sig = signer || await generateSigner(dates);
+  const generatorName = String(claimGenerator || "Lolly");
+  const genInfoMap = generatorInfo && typeof generatorInfo === "object" && Object.keys(generatorInfo).length ? { name: generatorName, ...generatorInfo } : { name: generatorName };
+  const softwareAgent = v2 ? genInfoMap : generatorName;
   const delivered = authorship === "delivered";
+  const baseSteps = actionSteps && actionSteps.length ? actionSteps : [delivered ? { action: "c2pa.published" } : { action: "c2pa.created", digitalSourceType: DIGITAL_SOURCE_TYPE }];
+  const ingList = ingredients ?? [];
+  const ingredientBoxes = [];
+  const ingredientRefs = [];
+  const ingredientParamRefs = [];
+  for (let i = 0; i < ingList.length; i++) {
+    const ing = ingList[i];
+    const activeBox = ing.manifestBoxes[ing.manifestBoxes.length - 1];
+    const label = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : "c2pa.ingredient.v3";
+    const ingAssertion = {
+      "dc:title": ing.title || "Ingredient",
+      ...ing.format && INGREDIENT_MIME[ing.format] ? { "dc:format": INGREDIENT_MIME[ing.format] } : {},
+      relationship: ing.relationship || "parentOf",
+      // activeManifest hashed URI covers the referenced manifest superbox payload
+      // (jumd + content, minus the 8-byte header) — Lolly's hashed-URI convention.
+      activeManifest: { url: `self#jumbf=/c2pa/${ing.activeLabel}`, alg: "sha256", hash: await sha256(activeBox.subarray(8)) },
+      validationResults: {
+        activeManifest: {
+          success: [{ code: "claimSignature.validated", url: `self#jumbf=/c2pa/${ing.activeLabel}/c2pa.signature` }],
+          informational: [],
+          failure: []
+        }
+      }
+    };
+    const box2 = jumbfSuperbox(UUID_CBOR_CONTENT, label, isoBox("cbor", encodeCbor(ingAssertion)));
+    const hash = await sha256(box2.subarray(8));
+    ingredientBoxes.push(box2);
+    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, hash });
+    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, alg: "sha256", hash });
+  }
+  const openedSteps = ingList.map((ing, i) => ({
+    action: "c2pa.opened",
+    ...ing.digitalSourceType ? { digitalSourceType: ing.digitalSourceType } : {},
+    ...ing.title ? { description: `Opened ${ing.title}` } : {},
+    parameters: { ingredients: [ingredientParamRefs[i]] }
+  }));
+  const stepList = [...openedSteps, ...baseSteps];
   const actions = {
-    actions: [delivered ? {
-      action: "c2pa.published",
-      softwareAgent: String(claimGenerator || "Lolly"),
+    actions: stepList.map((s) => ({
+      action: s.action,
+      ...s.digitalSourceType ? { digitalSourceType: s.digitalSourceType } : {},
+      ...s.description ? { description: s.description } : {},
+      ...s.parameters ? { parameters: s.parameters } : {},
+      softwareAgent,
       when: isoSeconds(signedAt)
-    } : {
-      action: "c2pa.created",
-      digitalSourceType: DIGITAL_SOURCE_TYPE,
-      softwareAgent: String(claimGenerator || "Lolly"),
-      when: isoSeconds(signedAt)
-    }]
+    }))
   };
   const hashLabel = bmff ? BMFF_HASH_LABEL : "c2pa.hash.data";
   const hashData = bmff ? {
@@ -3512,7 +2581,8 @@ async function buildC2paManifest({
     hash: assetHash.hash,
     pad: assetHash.pad || new Uint8Array(0)
   };
-  const actionsBox = jumbfSuperbox(UUID_CBOR_CONTENT, "c2pa.actions", isoBox("cbor", encodeCbor(actions)));
+  const actionsLabel = v2 ? "c2pa.actions.v2" : "c2pa.actions";
+  const actionsBox = jumbfSuperbox(UUID_CBOR_CONTENT, actionsLabel, isoBox("cbor", encodeCbor(actions)));
   const hashBox = jumbfSuperbox(UUID_CBOR_CONTENT, hashLabel, isoBox("cbor", encodeCbor(hashData)));
   const storeBoxes = [actionsBox, hashBox];
   let exportBox = null;
@@ -3521,38 +2591,52 @@ async function buildC2paManifest({
     storeBoxes.push(exportBox);
   }
   let authorBox = null;
-  if (author?.name) {
+  if (!v2 && author?.name) {
     const person = { "@type": "Person", name: String(author.name) };
     if (author.email) person.email = String(author.email);
     const work = { "@context": "http://schema.org/", "@type": "CreativeWork", author: [person] };
-    authorBox = jumbfSuperbox(UUID_JSON_CONTENT, CREATIVE_WORK_ASSERTION, isoBox("json", te2.encode(JSON.stringify(work))));
+    authorBox = jumbfSuperbox(UUID_JSON_CONTENT, CREATIVE_WORK_ASSERTION, isoBox("json", te3.encode(JSON.stringify(work))));
     storeBoxes.push(authorBox);
   }
+  let metadataBox = null;
+  if (v2 && author?.name) {
+    const meta = { "@context": DC_CONTEXT, "dc:creator": [String(author.name)] };
+    metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox("json", te3.encode(JSON.stringify(meta))));
+    storeBoxes.push(metadataBox);
+  }
+  for (const box2 of ingredientBoxes) storeBoxes.push(box2);
   const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, "c2pa.assertions", ...storeBoxes);
-  const claim = {
+  const assertionRefs = [
+    { url: `self#jumbf=c2pa.assertions/${actionsLabel}`, hash: await sha256(actionsBox.subarray(8)) },
+    { url: `self#jumbf=c2pa.assertions/${hashLabel}`, hash: await sha256(hashBox.subarray(8)) },
+    ...exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : [],
+    ...authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : [],
+    ...metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : [],
+    ...ingredientRefs
+  ];
+  const claim = v2 ? {
+    ...title ? { "dc:title": String(title) } : {},
+    instanceID: instanceId || urnUuid(),
+    claim_generator_info: genInfoMap,
+    created_assertions: assertionRefs,
+    signature: "self#jumbf=c2pa.signature",
+    alg: "sha256"
+  } : {
     "dc:title": String(title || "Untitled"),
     "dc:format": format,
     instanceID: instanceId || urnUuid(),
-    claim_generator: String(claimGenerator || "Lolly"),
+    claim_generator: generatorName,
     ...generatorInfo ? { claim_generator_info: [generatorInfo] } : {},
     signature: "self#jumbf=c2pa.signature",
-    assertions: [
-      // JUMBF-box hashed URIs cover the superbox PAYLOAD — the jumd
-      // description box and content boxes, NOT the outer 8-byte LBox+TBox
-      // header (matches c2pa-rs, which recreates the box and hashes
-      // write_box_payload).
-      { url: "self#jumbf=c2pa.assertions/c2pa.actions", hash: await sha256(actionsBox.subarray(8)) },
-      { url: `self#jumbf=c2pa.assertions/${hashLabel}`, hash: await sha256(hashBox.subarray(8)) },
-      ...exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : [],
-      ...authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : []
-    ],
+    assertions: assertionRefs,
     alg: "sha256"
   };
   const claimBytes = encodeCbor(claim);
-  const claimBox = jumbfSuperbox(UUID_CLAIM, "c2pa.claim", isoBox("cbor", claimBytes));
+  const claimBox = jumbfSuperbox(UUID_CLAIM, v2 ? "c2pa.claim.v2" : "c2pa.claim", isoBox("cbor", claimBytes));
   const signatureBox = jumbfSuperbox(UUID_SIGNATURE, "c2pa.signature", isoBox("cbor", await coseSign1Detached(sig, claimBytes)));
   const manifest = jumbfSuperbox(UUID_MANIFEST, manifestLabel || urnUuid(), assertionStore, claimBox, signatureBox);
-  return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", manifest);
+  const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
+  return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", ...ingredientManifestBoxes, manifest);
 }
 function bytesToBin(bytes) {
   let s = "";
@@ -3758,7 +2842,7 @@ function catalogWithAttachment(src, fsRef) {
   for (const e of edits.sort((a, b) => b.at - a.at)) out = out.slice(0, e.at) + e.text + out.slice(e.at);
   return out;
 }
-async function embedC2paInPdf(pdfBytes, { title, claimGenerator, generatorInfo, environment, author, authorship, dates = {}, signer } = {}) {
+async function embedC2paInPdf(pdfBytes, { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer } = {}) {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error("C2PA embed: pdfBytes must be a Uint8Array");
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
@@ -3813,6 +2897,8 @@ ${xrefOff}
     environment,
     author,
     authorship,
+    actions,
+    ingredients,
     dates,
     format: "application/pdf",
     assetHash: { exclusions: exclusions2, hash, pad: padBytes },
@@ -4289,7 +3375,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   const container = CONTAINERS[fmt];
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === "bmff";
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer } = opts;
   const sig = signer ?? await generateSigner(dates);
   const internals = {
     signer: { ...sig, sign: sig.sign && sig.sign.bind(sig), chain: sig.chain ?? [sig.certDer] },
@@ -4305,6 +3391,8 @@ async function embedC2pa(bytes, format, opts = {}) {
     environment,
     author,
     authorship,
+    actions,
+    ingredients,
     dates,
     format: container.mime,
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
@@ -4349,15 +3437,15 @@ async function embedC2pa(bytes, format, opts = {}) {
   }
   return final.out;
 }
-var te2, subtle2, asBufferSource2, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, LOLLY_EXPORT_ASSERTION, CREATIVE_WORK_ASSERTION, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, C2PA_BMFF_UUID, BMFF_HASH_LABEL, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, CONTAINERS, C2PA_FORMATS;
+var te3, subtle3, asBufferSource3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, C2PA_BMFF_UUID, BMFF_HASH_LABEL, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, CONTAINERS, C2PA_FORMATS;
 var init_c2pa = __esm({
   "engine/src/c2pa.ts"() {
     "use strict";
     init_video_meta();
     init_x509();
-    te2 = new TextEncoder();
-    subtle2 = globalThis.crypto.subtle;
-    asBufferSource2 = (b) => b;
+    te3 = new TextEncoder();
+    subtle3 = globalThis.crypto.subtle;
+    asBufferSource3 = (b) => b;
     CborTag = class {
       tag;
       value;
@@ -4379,13 +3467,29 @@ var init_c2pa = __esm({
     COSE_HEADER_X5CHAIN = 33;
     isoSeconds = (d) => d.toISOString().slice(0, 19) + "Z";
     DIGITAL_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation";
+    INGREDIENT_MIME = {
+      png: "image/png",
+      apng: "image/apng",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      gif: "image/gif",
+      svg: "image/svg+xml",
+      tiff: "image/tiff",
+      webp: "image/webp",
+      pdf: "application/pdf",
+      mp4: "video/mp4",
+      webm: "video/webm",
+      mkv: "video/x-matroska"
+    };
     LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
     CREATIVE_WORK_ASSERTION = "stds.schema-org.CreativeWork";
+    METADATA_ASSERTION = "cawg.metadata";
+    DC_CONTEXT = { dc: "http://purl.org/dc/elements/1.1/" };
     PDF_WS = " 	\r\n\f\0";
     PDF_DELIM = " 	\r\n\f\0()<>[]{}/%";
     xrefEntryLine = (offset, gen) => `${String(offset).padStart(10, "0")} ${String(gen).padStart(5, "0")} n\r
 `;
-    asciiBytes = (s) => te2.encode(s);
+    asciiBytes = (s) => te3.encode(s);
     CRC_TABLE = (() => {
       const t = new Uint32Array(256);
       for (let n2 = 0; n2 < 256; n2++) {
@@ -4464,6 +3568,1851 @@ var init_c2pa = __esm({
       webm: { place: placeWebm, mime: "video/webm" }
     };
     C2PA_FORMATS = Object.freeze(["pdf", "pdf-cmyk", ...Object.keys(CONTAINERS)]);
+  }
+});
+
+// engine/src/c2pa-verify.ts
+function concatBytes3(parts) {
+  let n2 = 0;
+  for (const p of parts) n2 += p.length;
+  const out = new Uint8Array(n2);
+  let o = 0;
+  for (const p of parts) {
+    out.set(p, o);
+    o += p.length;
+  }
+  return out;
+}
+function decodeItem(b, i, depth = 0) {
+  if (i >= b.length) throw new Error("cbor: truncated");
+  if (depth > MAX_CBOR_DEPTH) throw new Error("cbor: nesting too deep");
+  const ib = b[i++];
+  const major = ib >> 5;
+  let n2 = ib & 31;
+  const indefinite = n2 === 31;
+  const need = (k) => {
+    if (i + k > b.length) throw new Error("cbor: truncated length head");
+  };
+  if (indefinite) {
+    if (major < 2 || major === 6) throw new Error("cbor: reserved indefinite head");
+    if (major === 7) return [CBOR_BREAK, i];
+  } else if (n2 === 24) {
+    need(1);
+    n2 = b[i];
+    i += 1;
+  } else if (n2 === 25) {
+    need(2);
+    n2 = b[i] << 8 | b[i + 1];
+    i += 2;
+  } else if (n2 === 26) {
+    need(4);
+    n2 = b[i] * 16777216 + (b[i + 1] << 16 | b[i + 2] << 8 | b[i + 3]);
+    i += 4;
+  } else if (n2 === 27) {
+    need(8);
+    n2 = Number(new DataView(b.buffer, b.byteOffset + i, 8).getBigUint64(0));
+    i += 8;
+  } else if (n2 > 27) throw new Error("cbor: reserved length head");
+  switch (major) {
+    case 0:
+      return [n2, i];
+    case 1:
+      return [-1 - n2, i];
+    case 2:
+    case 3: {
+      if (indefinite) {
+        const parts = [];
+        for (; ; ) {
+          const [v, j] = decodeItem(b, i, depth + 1);
+          i = j;
+          if (v === CBOR_BREAK) break;
+          parts.push(major === 2 ? v : te4.encode(v));
+        }
+        const whole = concatBytes3(parts);
+        return [major === 2 ? whole : td.decode(whole), i];
+      }
+      if (i + n2 > b.length) throw new Error("cbor: truncated string");
+      return [major === 2 ? b.slice(i, i + n2) : td.decode(b.slice(i, i + n2)), i + n2];
+    }
+    case 4: {
+      const a = [];
+      for (let k = 0; indefinite || k < n2; k++) {
+        const [v, j] = decodeItem(b, i, depth + 1);
+        i = j;
+        if (v === CBOR_BREAK) break;
+        a.push(v);
+      }
+      return [a, i];
+    }
+    case 5: {
+      const m = /* @__PURE__ */ new Map();
+      for (let k = 0; indefinite || k < n2; k++) {
+        const [key, j] = decodeItem(b, i, depth + 1);
+        if (key === CBOR_BREAK) {
+          i = j;
+          break;
+        }
+        const [v, j2] = decodeItem(b, j, depth + 1);
+        m.set(key, v);
+        i = j2;
+      }
+      return [m, i];
+    }
+    case 6: {
+      const [v, j] = decodeItem(b, i, depth + 1);
+      return [{ tag: n2, value: v }, j];
+    }
+    default: {
+      if (n2 === 20) return [false, i];
+      if (n2 === 21) return [true, i];
+      if (n2 === 22 || n2 === 23) return [null, i];
+      const head = ib & 31;
+      if (head === 25) {
+        const h = b[i - 2] << 8 | b[i - 1];
+        const sign = h & 32768 ? -1 : 1;
+        const exp = h >> 10 & 31;
+        const frac = h & 1023;
+        const v = exp === 0 ? sign * frac * 2 ** -24 : exp === 31 ? frac ? NaN : sign * Infinity : sign * (1 + frac / 1024) * 2 ** (exp - 15);
+        return [v, i];
+      }
+      if (head === 26) return [new DataView(b.buffer, b.byteOffset + i - 4, 4).getFloat32(0), i];
+      if (head === 27) return [new DataView(b.buffer, b.byteOffset + i - 8, 8).getFloat64(0), i];
+      throw new Error("cbor: unsupported simple value");
+    }
+  }
+}
+function decodeCbor(bytes) {
+  const [v, end] = decodeItem(bytes, 0);
+  if (end !== bytes.length) throw new Error("cbor: trailing bytes after item");
+  return v;
+}
+function walkBoxes2(bytes, start, end) {
+  const boxes = [];
+  let i = start;
+  while (i < end) {
+    if (i + 8 > end) throw new Error("jumbf: truncated box header");
+    const len2 = new DataView(bytes.buffer, bytes.byteOffset).getUint32(i);
+    const type = String.fromCharCode(bytes[i + 4], bytes[i + 5], bytes[i + 6], bytes[i + 7]);
+    if (len2 < 8 || i + len2 > end) throw new Error(`jumbf: box ${type} overruns its container`);
+    boxes.push({ type, start: i, payloadStart: i + 8, end: i + len2 });
+    i += len2;
+  }
+  return boxes;
+}
+function parseSuperbox(bytes, box2) {
+  if (box2.type !== "jumb") throw new Error(`jumbf: expected superbox, got ${box2.type}`);
+  const kids = walkBoxes2(bytes, box2.payloadStart, box2.end);
+  const desc = kids[0];
+  if (!kids.length || !desc || desc.type !== "jumd") throw new Error("jumbf: superbox missing description box");
+  const uuid = hexOf(bytes.slice(desc.payloadStart, desc.payloadStart + 16));
+  const rest = bytes.slice(desc.payloadStart + 17, desc.end);
+  const nul = rest.indexOf(0);
+  return {
+    uuid,
+    label: nul >= 0 ? td.decode(rest.slice(0, nul)) : "",
+    children: kids.slice(1),
+    box: box2
+  };
+}
+function parseC2paStore(store) {
+  const top = walkBoxes2(store, 0, store.length);
+  if (!top.length) throw new Error("empty manifest store");
+  const s = parseSuperbox(store, top[0]);
+  if (s.label !== "c2pa") throw new Error(`store label is '${s.label}', expected 'c2pa'`);
+  if (!s.children.length) throw new Error("store has no manifest");
+  const manifest = parseSuperbox(store, s.children[s.children.length - 1]);
+  const parts = { manifestLabel: manifest.label, assertions: [], claimVersion: 1 };
+  for (const child of manifest.children) {
+    const sub = parseSuperbox(store, child);
+    if (sub.label === "c2pa.assertions") {
+      for (const a of sub.children) {
+        const ab = parseSuperbox(store, a);
+        parts.assertions.push({
+          label: ab.label,
+          content: contentOf(store, ab),
+          // Hashed URIs cover the superbox payload — after the 8-byte header.
+          payload: store.slice(ab.box.start + 8, ab.box.end)
+        });
+      }
+    } else if (sub.label === "c2pa.claim") {
+      parts.claimBytes = contentOf(store, sub);
+      parts.claimVersion = 1;
+    } else if (sub.label === "c2pa.claim.v2") {
+      parts.claimBytes = contentOf(store, sub);
+      parts.claimVersion = 2;
+    } else if (sub.label === "c2pa.signature") {
+      parts.signatureBytes = contentOf(store, sub);
+    }
+  }
+  if (!parts.claimBytes) throw new Error("manifest has no claim");
+  if (!parts.signatureBytes) throw new Error("manifest has no claim signature");
+  return parts;
+}
+function collectActionChain(store) {
+  const chain2 = [];
+  let root;
+  try {
+    const top = walkBoxes2(store, 0, store.length);
+    if (!top.length) return chain2;
+    root = parseSuperbox(store, top[0]);
+  } catch {
+    return chain2;
+  }
+  if (root.label !== "c2pa") return chain2;
+  for (const manifestBox of root.children) {
+    let manifest;
+    try {
+      manifest = parseSuperbox(store, manifestBox);
+    } catch {
+      continue;
+    }
+    let generator;
+    for (const child of manifest.children) {
+      let sub;
+      try {
+        sub = parseSuperbox(store, child);
+      } catch {
+        continue;
+      }
+      if (sub.label !== "c2pa.claim" && sub.label !== "c2pa.claim.v2") continue;
+      try {
+        const claim = decodeCbor(contentOf(store, sub));
+        if (claim instanceof Map) {
+          const gi = claim.get("claim_generator_info");
+          generator = gi instanceof Map ? gi.get("name") : Array.isArray(gi) && gi[0] instanceof Map ? gi[0].get("name") : claim.get("claim_generator");
+        }
+      } catch {
+      }
+      break;
+    }
+    for (const child of manifest.children) {
+      let sub;
+      try {
+        sub = parseSuperbox(store, child);
+      } catch {
+        continue;
+      }
+      if (sub.label !== "c2pa.assertions") continue;
+      for (const a of sub.children) {
+        let ab;
+        try {
+          ab = parseSuperbox(store, a);
+        } catch {
+          continue;
+        }
+        if (ab.label !== "c2pa.actions" && ab.label !== "c2pa.actions.v2") continue;
+        try {
+          const decoded = decodeCbor(contentOf(store, ab)).get("actions");
+          if (!Array.isArray(decoded)) continue;
+          for (const act of decoded) {
+            const sa = act.get?.("softwareAgent");
+            chain2.push({
+              action: act.get?.("action"),
+              when: act.get?.("when"),
+              softwareAgent: sa instanceof Map ? sa.get("name") : sa,
+              digitalSourceType: act.get?.("digitalSourceType"),
+              description: act.get?.("description"),
+              generator
+            });
+          }
+        } catch {
+        }
+      }
+    }
+  }
+  const seen = /* @__PURE__ */ new Set();
+  return chain2.filter((s) => {
+    const key = JSON.stringify([s.action, s.when, s.softwareAgent, s.digitalSourceType, s.description]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function prepareC2paIngredientFromStore(store, format) {
+  if (!(store instanceof Uint8Array)) return null;
+  let root;
+  try {
+    const top = walkBoxes2(store, 0, store.length);
+    if (!top.length) return null;
+    root = parseSuperbox(store, top[0]);
+  } catch {
+    return null;
+  }
+  if (root.label !== "c2pa" || !root.children.length) return null;
+  const manifestBoxes = root.children.map((b) => store.slice(b.start, b.end));
+  let activeLabel = "";
+  let title;
+  try {
+    const parts = parseC2paStore(store);
+    activeLabel = parts.manifestLabel;
+    const claim = decodeCbor(parts.claimBytes);
+    if (claim instanceof Map) {
+      const t = claim.get("dc:title");
+      if (typeof t === "string") title = t;
+    }
+  } catch {
+    return null;
+  }
+  if (!activeLabel) return null;
+  let digitalSourceType;
+  for (const s of collectActionChain(store)) {
+    const kind = aiKind(s.digitalSourceType);
+    if (kind && (!digitalSourceType || kind === "generated")) {
+      digitalSourceType = s.digitalSourceType;
+      if (kind === "generated") break;
+    }
+  }
+  return { manifestBoxes, activeLabel, title, format, digitalSourceType };
+}
+var td, te4, subtle4, hexOf, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, AI_SOURCE_TYPES, aiKind;
+var init_c2pa_verify = __esm({
+  "engine/src/c2pa-verify.ts"() {
+    "use strict";
+    td = new TextDecoder();
+    te4 = new TextEncoder();
+    subtle4 = globalThis.crypto.subtle;
+    hexOf = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+    CBOR_BREAK = /* @__PURE__ */ Symbol("cbor break");
+    MAX_CBOR_DEPTH = 64;
+    contentOf = (bytes, sub) => bytes.slice(sub.children[0].payloadStart, sub.children[0].end);
+    OID_RSASSA_PSS = Uint8Array.of(6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 10);
+    ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
+    AI_SOURCE_TYPES = {
+      trainedAlgorithmicMedia: "generated",
+      compositeWithTrainedAlgorithmicMedia: "composite"
+    };
+    aiKind = (sourceType) => AI_SOURCE_TYPES[(typeof sourceType === "string" ? sourceType : "").split("/").pop() ?? ""];
+  }
+});
+
+// engine/src/runtime.ts
+async function createRuntime(tool, host, initialState = {}, opts = {}) {
+  if (host.version !== "1") {
+    throw new Error(`Tool requires host bridge v1, got v${host.version}`);
+  }
+  const composeStack = opts.composeStack ?? [];
+  const composeMemo = /* @__PURE__ */ new Map();
+  let setInputSeq = 0;
+  const profile = await host.profile.get();
+  const profileValues = { ...profile };
+  let model = buildInputModel(tool.manifest, { profile: profileValues, initial: initialState });
+  const inputIds = new Set(model.map((i) => i.id));
+  const hookErrors = [];
+  const droppedAssets = [];
+  model = await resolveAssetRefs(model, host, droppedAssets, composeStack, tool.manifest.id);
+  model = await resolveTokenRefs(model, host);
+  let extras = {};
+  function runHook(name, invoke) {
+    const budget = HOOK_BUDGET_MS[name];
+    const started = Date.now();
+    const out = invoke();
+    if (out == null || typeof out.then !== "function") {
+      const elapsed = Date.now() - started;
+      if (elapsed > budget) {
+        host.log("warn", `${name} ran ${elapsed}ms synchronously (budget ${budget}ms \u2014 sync hooks can't be preempted)`, { toolId: tool.manifest.id });
+      }
+      return Promise.resolve(out);
+    }
+    return withTimeout2(out, budget, tool.manifest.id);
+  }
+  let hooks = null;
+  if (tool.hooksSource && tool.manifest.hooks) {
+    hooks = await loadHooks(tool, host);
+    const onInit = hooks.onInit;
+    if (onInit) {
+      try {
+        const patch = await runHook("onInit", () => onInit({ model: modelForHooks(model), host }));
+        if (patch) ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+      } catch (e) {
+        hookErrors.push({ hook: "onInit", message: e.message });
+        host.log("error", `onInit ${e.message}`, { toolId: tool.manifest.id });
+      }
+    }
+  }
+  extras = { ...extras, ...await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo) };
+  const listeners = /* @__PURE__ */ new Set();
+  const emit = () => {
+    const state = { model, hydrated: getHydrated() };
+    listeners.forEach((fn) => fn(state));
+  };
+  let liveUnsub = null;
+  let framePending = false;
+  const isLive = () => liveUnsub != null;
+  let meterUnsub = null;
+  let stopMeterSource = null;
+  let levelPending = false;
+  let recordSession = null;
+  const isMetering = () => meterUnsub != null && recordSession == null;
+  const isRecording = () => recordSession != null;
+  function driveLevels(source) {
+    const onLevel = hooks?.onLevel;
+    if (!onLevel) return () => {
+    };
+    return source.subscribe((level) => {
+      if (levelPending) return;
+      levelPending = true;
+      Promise.resolve(onLevel({ level, model: modelForHooks(model), host })).then((patch) => {
+        if (patch && meterUnsub) {
+          ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+          emit();
+        }
+      }).catch((e) => host.log("warn", `onLevel ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
+        levelPending = false;
+      });
+    });
+  }
+  function stopMeterLoop() {
+    if (!meterUnsub) return;
+    meterUnsub();
+    meterUnsub = null;
+    try {
+      stopMeterSource?.();
+    } catch {
+    }
+    stopMeterSource = null;
+  }
+  let ctxCache = null;
+  let ctxModel = null;
+  let ctxExtras = null;
+  function templateContext() {
+    if (ctxModel !== model || ctxExtras !== extras) {
+      ctxCache = { ...modelToValues(model), ...extras };
+      ctxModel = model;
+      ctxExtras = extras;
+    }
+    return ctxCache;
+  }
+  function getHydrated() {
+    return hydrate(tool.template, templateContext());
+  }
+  function getHydratedString(str) {
+    return str ? hydrate(str, templateContext()) : "";
+  }
+  function getHydratedText(str) {
+    return str ? hydrate(str, templateContext(), { raw: true }) : "";
+  }
+  return {
+    getModel: () => model,
+    getHydrated,
+    getHydratedString,
+    manifest: tool.manifest,
+    styles: tool.styles,
+    // Asset refs (from a saved session / URL) that no longer resolve. The shell
+    // reads this once after mount to surface a "left blank" notice.
+    droppedAssets,
+    // Hook failures (currently onInit) so a shell can show a canvas-error banner
+    // instead of a silently-blank canvas. Empty when every hook ran cleanly.
+    hookErrors,
+    async setInput(id, value) {
+      model = updateInput(model, id, value);
+      const seq = ++setInputSeq;
+      emit();
+      const onInput = hooks?.onInput;
+      if (onInput) {
+        try {
+          const patch = await runHook("onInput", () => onInput({ id, value: flattenValue(value), model: modelForHooks(model), host }));
+          if (patch) {
+            ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+            emit();
+          }
+        } catch (e) {
+          host.log("warn", `onInput ${e.message}`, { toolId: tool.manifest.id });
+        }
+      }
+      if (host.compose && tool.manifest.composes?.length) {
+        const composeOut = await resolveNestedRenders(tool, model, extras, host, composeStack, composeMemo);
+        const changed = Object.keys(composeOut).some((k) => extras[k] !== composeOut[k]);
+        if (seq === setInputSeq && changed) {
+          extras = { ...extras, ...composeOut };
+          emit();
+        }
+      }
+    },
+    subscribe(fn) {
+      listeners.add(fn);
+      fn({ model, hydrated: getHydrated() });
+      return () => listeners.delete(fn);
+    },
+    // Re-notify subscribers with the CURRENT model — no value change. For shell
+    // state that lives outside the input model but still affects the render (e.g.
+    // export dimensions): a shell can force the canvas to re-hydrate through the
+    // one render path instead of mutating the DOM itself. Used to invalidate a
+    // deferred preview (manifest.render.preview) when the capture geometry changes.
+    refresh: emit,
+    // True when this tool declares an `onFrame` hook — i.e. it CAN react to a live
+    // camera. The shell still gates the actual "go live" affordance on host.media
+    // being present, so a tool without a camera shell just runs as a still tool.
+    hasFrameHook: Boolean(hooks?.onFrame),
+    /** Whether the camera-driven loop is currently running. */
+    isLive,
+    /**
+     * Start driving the tool's `onFrame` hook from the host camera. Resolves once
+     * the camera is live; rejects if permission is denied or there's no camera (the
+     * shell shows that error). No-op (returns false) if already live, the tool has
+     * no onFrame, or the shell provides no host.media.
+     */
+    async startLive() {
+      const onFrame = hooks?.onFrame;
+      const media = host.media;
+      if (liveUnsub || !onFrame || !media) return false;
+      await media.start();
+      liveUnsub = media.subscribe((frame) => {
+        if (framePending) return;
+        framePending = true;
+        Promise.resolve(onFrame({ frame, model: modelForHooks(model), host })).then((patch) => {
+          if (patch && liveUnsub) {
+            ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+            emit();
+          }
+        }).catch((e) => host.log("warn", `onFrame ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
+          framePending = false;
+        });
+      }, { maxEdge: tool.manifest.render?.liveMaxEdge });
+      return true;
+    },
+    /**
+     * Stop the camera-driven loop (idempotent). The shell calls this on toggle-off
+     * AND on unmount, so no camera track ever outlives the tool.
+     */
+    stopLive() {
+      if (!liveUnsub) return;
+      liveUnsub();
+      liveUnsub = null;
+      try {
+        host.media?.stop();
+      } catch {
+      }
+    },
+    // True when this tool declares an `onLevel` hook — i.e. it CAN react to live
+    // audio levels. The shell still gates the actual meter/record affordance on
+    // host.recorder being present.
+    hasLevelHook: Boolean(hooks?.onLevel),
+    isMetering,
+    /**
+     * Start driving the tool's `onLevel` hook from the host mic meter (a pre-record
+     * sound check). Rejects if permission is denied or there's no mic (the shell
+     * catches). No-op (false) if already metering, no onLevel, or no host.recorder.
+     */
+    async startMeter() {
+      const onLevel = hooks?.onLevel;
+      const recorder = host.recorder;
+      if (meterUnsub || !onLevel || !recorder) return false;
+      await recorder.meter.start();
+      stopMeterSource = () => recorder.meter.stop();
+      meterUnsub = driveLevels(recorder.meter);
+      return true;
+    },
+    stopMeter: stopMeterLoop,
+    isRecording,
+    /**
+     * Begin a recording session via host.recorder and (if the tool has onLevel)
+     * drive its coaching hook from the session's live levels. Rejects on denial /
+     * missing device. No-op (false) if already recording or no host.recorder.
+     */
+    async startRecording(opts2 = {}) {
+      const recorder = host.recorder;
+      if (recordSession || !recorder) return false;
+      stopMeterLoop();
+      const session = await recorder.record(opts2);
+      recordSession = session;
+      meterUnsub = driveLevels(session);
+      return true;
+    },
+    /**
+     * Finalise the current recording. Stops the level loop first so no in-flight
+     * onLevel repaints after stop, then resolves the media Blob + its MIME type.
+     */
+    async stopRecording() {
+      const session = recordSession;
+      if (!session) return null;
+      if (meterUnsub) {
+        meterUnsub();
+        meterUnsub = null;
+      }
+      recordSession = null;
+      const blob = await session.stop();
+      return { blob, mimeType: blob.type };
+    },
+    cancelRecording() {
+      const session = recordSession;
+      if (!session) return;
+      if (meterUnsub) {
+        meterUnsub();
+        meterUnsub = null;
+      }
+      recordSession = null;
+      try {
+        session.cancel();
+      } catch {
+      }
+    },
+    // Whether this tool produces output via the transform path (a user file in →
+    // transformed file out) rather than the DOM-render path. Shells use it to wire
+    // a "download the result" action to runtime.exportFile instead of export().
+    hasExportFile: Boolean(tool.manifest.hooks?.exportFile),
+    /**
+     * Produce a transformed file from the tool's own inputs (the file-utility
+     * shape: bytes in → bytes out). Runs the tool's `exportFile` hook, which
+     * reads the picked file's bytes (input.value.bytes) and returns the result as
+     * a plain { bytes, mime, filename } record. The shell wraps it in a Blob and
+     * delivers it via host.export.file. NEVER watermarked and NO provenance is
+     * embedded — the bytes are the user's own content, not a generated artifact.
+     */
+    async exportFile(opts2 = {}) {
+      const exportFileHook = hooks?.exportFile;
+      if (!exportFileHook) {
+        throw new Error(`Tool "${tool.manifest.id}" has no exportFile hook`);
+      }
+      const out = await runHook(
+        "exportFile",
+        () => exportFileHook({ model: modelForHooks(model), host, opts: opts2 })
+      );
+      if (!out || out.bytes == null) {
+        throw new Error(`exportFile produced no bytes (${tool.manifest.id})`);
+      }
+      return out;
+    },
+    async export(renderedNode, format, opts2 = {}) {
+      const beforeExport = hooks?.beforeExport;
+      if (beforeExport) {
+        await runHook("beforeExport", () => beforeExport({ node: renderedNode, format, opts: opts2, host }));
+      }
+      if (opts2.convertPaths === void 0) {
+        const cp = model.find((i) => i.id === "convertPaths");
+        if (cp) opts2 = { ...opts2, convertPaths: Boolean(cp.value) };
+        else if (tool.manifest?.render?.convertPaths === false) opts2 = { ...opts2, convertPaths: false };
+      }
+      const isExperimental = tool.manifest.status === "experimental";
+      const isOnDevice = tool.manifest.privacy === "on-device";
+      let meta = opts2.meta;
+      if (meta === void 0 && opts2.embedMeta !== false && !isOnDevice) {
+        meta = await buildExportMeta(host, tool.manifest, profile);
+      }
+      const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
+      let ingredients;
+      if (!isOnDevice && meta !== void 0 && host.assets?.credential) {
+        const ids = /* @__PURE__ */ new Set();
+        const note = (v) => {
+          if (v && typeof v === "object") {
+            const { id, source } = v;
+            if (typeof id === "string" && (source === "user" || source === "library")) ids.add(id);
+          }
+        };
+        for (const input of model) {
+          if (input.type === "asset") note(input.value);
+          else if (input.type === "blocks" && Array.isArray(input.value)) {
+            const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
+            for (const item of input.value) {
+              if (item && typeof item === "object") for (const fid of assetFields) note(item[fid]);
+            }
+          }
+        }
+        const prepared = [];
+        for (const id of ids) {
+          try {
+            const cred = await host.assets.credential(id);
+            const ing = cred?.store ? prepareC2paIngredientFromStore(cred.store, cred.format) : null;
+            if (ing) prepared.push(ing);
+          } catch {
+          }
+        }
+        if (prepared.length) ingredients = prepared;
+      }
+      const c2paInputs = opts2.c2pa && !isOnDevice ? summarizeInputs(model) : void 0;
+      let blob;
+      try {
+        blob = await host.export.render(renderedNode, format, {
+          ...opts2,
+          watermark: opts2.watermark ?? (isExperimental && !isOnDevice),
+          meta,
+          ...ingredients ? { ingredients } : {},
+          ...c2paInputs && Object.keys(c2paInputs).length ? { c2paInputs } : {},
+          // Tag output with a colour profile by default (sRGB for raster, the
+          // default press condition for CMYK PDF). Thumbnails stay untagged.
+          colorProfile: opts2.colorProfile ?? (opts2.thumbnail ? "none" : "srgb"),
+          ...dataExtra
+        });
+      } finally {
+        const afterExport = hooks?.afterExport;
+        if (afterExport) {
+          try {
+            await runHook("afterExport", () => afterExport({ node: renderedNode, format, opts: opts2, host }));
+          } catch (e) {
+            host.log("warn", `afterExport ${e.message}`, { toolId: tool.manifest.id });
+          }
+        }
+      }
+      return blob;
+    }
+  };
+}
+function buildDataPayload(tool, format, model, getHydratedText) {
+  if (format === "md") {
+    const tpl2 = tool.textTemplates?.md;
+    return tpl2 != null ? { dataText: getHydratedText(tpl2), dataMime: "text/markdown" } : {};
+  }
+  const dataMime = DATA_FORMATS[format];
+  if (!dataMime) return {};
+  if (format === "json") {
+    const dataText = JSON.stringify(
+      { tool: tool.manifest.id, version: tool.manifest.version, inputs: modelToValues(model) },
+      null,
+      2
+    );
+    return { dataText, dataMime };
+  }
+  const tpl = tool.textTemplates?.[format];
+  if (tpl == null) {
+    const loadError = tool.textTemplateErrors?.[format];
+    const err = new Error(
+      loadError != null ? `Tool "${tool.manifest.id}" couldn't load its template.${format} (${loadError})` : `Tool "${tool.manifest.id}" declares format "${format}" but ships no template.${format}`
+    );
+    err.code = loadError != null ? "TEXT_TEMPLATE_LOAD_FAILED" : "TEXT_TEMPLATE_MISSING";
+    throw err;
+  }
+  return { dataText: getHydratedText(tpl), dataMime };
+}
+function assetRefId(v) {
+  if (!v || typeof v !== "object") return null;
+  const id = v.id;
+  return typeof id === "string" ? id : null;
+}
+function inputNeedsAssetResolve(input) {
+  const v = input.value;
+  if (input.type === "asset" && assetRefId(v) !== null) return true;
+  if (input.type === "blocks" && Array.isArray(v)) {
+    const assetFields = (input.fields ?? []).filter((f) => f.type === "asset");
+    if (!assetFields.length) return false;
+    return v.some((item) => item && typeof item === "object" && assetFields.some((f) => assetRefId(item[f.id]) !== null));
+  }
+  return false;
+}
+async function resolveAssetRefs(model, host, dropped = [], composeStack = [], toolId = "") {
+  if (!model.some(inputNeedsAssetResolve)) return model;
+  const resolveOne = async (id, inputId, label) => {
+    try {
+      if (isToolUrl(id)) {
+        const ref = host.compose?.renderUrl ? await withTimeout2(
+          host.compose.renderUrl(id, { _stack: [...composeStack, toolId] }),
+          COMPOSE_TIMEOUT_MS2,
+          id
+        ) : null;
+        if (ref) return ref;
+        dropped.push({ inputId, label, id });
+        return null;
+      }
+      return await host.assets.get(id);
+    } catch (e) {
+      host.log("warn", `Failed to resolve asset ${id}`, { error: String(e) });
+      dropped.push({ inputId, label, id });
+      return null;
+    }
+  };
+  return Promise.all(
+    model.map(async (input) => {
+      const v = input.value;
+      if (input.type === "asset") {
+        const id = assetRefId(v);
+        if (id !== null) {
+          return { ...input, value: await resolveOne(id, input.id, input.label || input.id) };
+        }
+      }
+      if (input.type === "blocks" && Array.isArray(v)) {
+        const assetFields = (input.fields ?? []).filter((f) => f.type === "asset").map((f) => f.id);
+        if (!assetFields.length) return input;
+        const value = await Promise.all(v.map(async (item) => {
+          if (!item || typeof item !== "object") return item;
+          const rec = item;
+          const next = { ...rec };
+          for (const fid of assetFields) {
+            const id = assetRefId(rec[fid]);
+            if (id !== null) {
+              next[fid] = await resolveOne(id, `${input.id}.${fid}`, input.label || input.id);
+            }
+          }
+          return next;
+        }));
+        return { ...input, value };
+      }
+      return input;
+    })
+  );
+}
+async function resolveTokenRefs(model, host) {
+  if (!host.tokens) return model;
+  const needs = model.some((i) => i.type === "color" && (isTokenValue(i.value) || isAlias(i.value)));
+  if (!needs) return model;
+  let set;
+  try {
+    set = await host.tokens.get();
+  } catch {
+    return model;
+  }
+  return model.map((input) => {
+    if (input.type !== "color") return input;
+    const v = input.value;
+    const ref = isTokenValue(v) ? v.ref : isAlias(v) ? v : null;
+    if (!ref) return input;
+    const resolved = set.resolve(ref);
+    if (resolved !== void 0) return { ...input, value: { ref, value: colorToHex(resolved) } };
+    return { ...input, value: isTokenValue(v) ? v : { ref, value: void 0 } };
+  });
+}
+function getHookFactory(tool) {
+  const key = `${tool.manifest.id}@${tool.manifest.version}`;
+  let factory = hookFactoryCache.get(key);
+  if (!factory) {
+    factory = new Function(
+      "host",
+      `${tool.hooksSource}; return {onInit: typeof onInit !== 'undefined' ? onInit : null,onInput: typeof onInput !== 'undefined' ? onInput : null,onFrame: typeof onFrame !== 'undefined' ? onFrame : null,onLevel: typeof onLevel !== 'undefined' ? onLevel : null,beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null};`
+    );
+    hookFactoryCache.set(key, factory);
+  }
+  return factory;
+}
+function hookFn(v) {
+  return typeof v === "function" ? v : null;
+}
+async function loadHooks(tool, host) {
+  const factory = getHookFactory(tool);
+  const mod = factory(host);
+  return {
+    onInit: hookFn(mod.onInit),
+    onInput: hookFn(mod.onInput),
+    onFrame: hookFn(mod.onFrame),
+    onLevel: hookFn(mod.onLevel),
+    beforeRender: hookFn(mod.beforeRender),
+    beforeExport: hookFn(mod.beforeExport),
+    afterExport: hookFn(mod.afterExport),
+    exportFile: hookFn(mod.exportFile)
+  };
+}
+function withTimeout2(promise, ms, toolId) {
+  return new Promise((resolve2, reject) => {
+    const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
+    Promise.resolve(promise).then(
+      (v) => {
+        clearTimeout(t);
+        resolve2(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      }
+    );
+  });
+}
+function mergePatch(model, extras, patch, inputIds) {
+  if (!patch || typeof patch !== "object") return { model, extras };
+  const ids = inputIds ?? new Set(model.map((i) => i.id));
+  const newExtras = { ...extras };
+  const modelPatch = {};
+  let hasModelPatch = false;
+  for (const [k, v] of Object.entries(patch)) {
+    if (ids.has(k)) {
+      modelPatch[k] = v;
+      hasModelPatch = true;
+    } else newExtras[k] = v;
+  }
+  const newModel = hasModelPatch ? model.map((input) => input.id in modelPatch ? { ...input, value: modelPatch[input.id] } : input) : model;
+  return { model: newModel, extras: newExtras };
+}
+var HOOK_BUDGET_MS, DATA_FORMATS, hookFactoryCache, COMPOSE_TIMEOUT_MS2;
+var init_runtime = __esm({
+  "engine/src/runtime.ts"() {
+    "use strict";
+    init_inputs();
+    init_template();
+    init_metadata();
+    init_tokens();
+    init_compose();
+    init_tool_url();
+    init_c2pa_verify();
+    HOOK_BUDGET_MS = {
+      onInit: 5e3,
+      onInput: 2e3,
+      beforeRender: 5e3,
+      beforeExport: 5e3,
+      afterExport: 5e3,
+      exportFile: 1e4
+    };
+    DATA_FORMATS = { json: "application/json", csv: "text/csv", ics: "text/calendar", vcf: "text/vcard" };
+    hookFactoryCache = /* @__PURE__ */ new Map();
+    COMPOSE_TIMEOUT_MS2 = 1e4;
+  }
+});
+
+// engine/src/units.ts
+function parseDimension(input, defaultUnit = "px") {
+  if (input == null || input === "") return null;
+  if (typeof input === "number") {
+    return Number.isFinite(input) && input > 0 ? { value: input, unit: "px" } : null;
+  }
+  const m = String(input).trim().match(/^([0-9]*\.?[0-9]+)\s*([a-z]+)?$/i);
+  if (!m || m[1] === void 0) return null;
+  const value = parseFloat(m[1]);
+  if (!(value > 0)) return null;
+  const unit = (m[2] || defaultUnit).toLowerCase();
+  return isUnit(unit) ? { value, unit } : null;
+}
+function toPixels(dim, dpi = CSS_DPI) {
+  return dim.unit === "px" ? Math.round(dim.value) : Math.round(toInches(dim) * dpi);
+}
+function toPoints(dim) {
+  return dim.unit === "px" ? dim.value * 72 / CSS_DPI : toInches(dim) * 72;
+}
+function toCssPx(dim) {
+  return dim.unit === "px" ? dim.value : toInches(dim) * CSS_DPI;
+}
+function toCssLength(dim) {
+  return dim.unit === "px" ? `${dim.value}px` : `${dim.value}${dim.unit}`;
+}
+var CSS_DPI, PER_INCH, isUnit, toInches;
+var init_units = __esm({
+  "engine/src/units.ts"() {
+    "use strict";
+    CSS_DPI = 96;
+    PER_INCH = { px: 96, pt: 72, pc: 6, mm: 25.4, cm: 2.54, in: 1 };
+    isUnit = (u) => Object.hasOwn(PER_INCH, u);
+    toInches = (dim) => dim.value / PER_INCH[dim.unit];
+  }
+});
+
+// engine/src/url-mode.ts
+function parseMarks(raw) {
+  if (raw == null) return null;
+  const set = new Set(String(raw).split(",").map((s) => s.trim().toLowerCase()).filter(Boolean));
+  return {
+    crop: set.has("crop"),
+    registration: set.has("reg") || set.has("registration"),
+    bleed: set.has("bleed"),
+    colorBars: set.has("bars") || set.has("colorbars"),
+    provenance: set.has("prov") || set.has("provenance")
+  };
+}
+function parseC2pa(raw) {
+  if (raw == null) return null;
+  const v = String(raw).trim().toLowerCase();
+  if (v === "off" || v === "0" || v === "false" || v === "no") return { on: false, days: null };
+  const n2 = Number(v);
+  return { on: true, days: [7, 30, 90, 365].includes(n2) ? n2 : null };
+}
+function parseImprint(raw) {
+  if (raw == null) return null;
+  const v = String(raw).trim().toLowerCase();
+  if (v === "off" || v === "0" || v === "false" || v === "no") return false;
+  return true;
+}
+function parseUrlState(searchParams, manifest) {
+  const params = new URLSearchParams(searchParams);
+  const values = {};
+  const inputsByKey = {};
+  const vectorFieldByKey = {};
+  for (const i of manifest.inputs ?? []) {
+    inputsByKey[i.id] = i;
+    if (i.urlKey) inputsByKey[i.urlKey] = i;
+    if (i.type === "vector") {
+      for (const f of i.fields ?? []) vectorFieldByKey[`${i.id}.${f.id}`] = { input: i, field: f };
+    }
+  }
+  for (const [key, raw] of params.entries()) {
+    if (RESERVED.has(key)) continue;
+    const vec = vectorFieldByKey[key];
+    if (vec) {
+      const n2 = Number(raw);
+      if (raw !== "" && !Number.isNaN(n2)) (values[vec.input.id] ??= {})[vec.field.id] = n2;
+      continue;
+    }
+    const input = inputsByKey[key];
+    if (!input) continue;
+    values[input.id] = coerceFromString(input, raw);
+  }
+  const rawW = params.get("width") ?? params.get("w");
+  const rawH = params.get("height") ?? params.get("h");
+  const rawUnit = (params.get("unit") || "").toLowerCase();
+  const rawDpi = params.get("dpi");
+  return {
+    values,
+    format: params.get("format") || null,
+    export: params.has("export"),
+    copy: params.has("copy"),
+    slot: params.get("slot") || null,
+    filename: params.get("filename") || null,
+    version: params.get("_v") || null,
+    width: rawW != null ? Number(rawW) || null : null,
+    height: rawH != null ? Number(rawH) || null : null,
+    // Physical unit for width/height (default px) and the raster DPI for it.
+    unit: isUnit(rawUnit) ? rawUnit : null,
+    dpi: rawDpi != null ? Number(rawDpi) || null : null,
+    // Colour profile / CMYK press condition for the export (see color.js).
+    profile: params.get("profile") || null,
+    // Open-password for the standard `pdf` export (basic lock; clear-text by design).
+    password: params.get("password") || null,
+    // Print prep for pdf / pdf-cmyk: bleed amount (dimension string) and which
+    // crop / registration / bleed / colour-bar marks to draw (see print-marks.js).
+    bleed: params.get("bleed") || null,
+    marks: parseMarks(params.get("marks")),
+    // Content Credentials on/off + ephemeral-cert lifetime (see header).
+    c2pa: parseC2pa(params.get("c2pa")),
+    // Pixel-watermark opt-in for raster exports (see header).
+    imprint: parseImprint(params.get("imprint"))
+  };
+}
+function serializeUrlState(model, opts = {}) {
+  const params = new URLSearchParams();
+  for (const input of model) {
+    if (input.value === null || input.value === void 0) continue;
+    if (input.type === "file") continue;
+    if (input.type === "vector") {
+      const v = input.value;
+      if (v && typeof v === "object") {
+        const vo = v;
+        for (const f of input.fields ?? []) {
+          if (vo[f.id] !== void 0 && vo[f.id] !== null) params.set(`${input.id}.${f.id}`, String(vo[f.id]));
+        }
+      }
+      continue;
+    }
+    if (input.value === "" && !input.required) continue;
+    params.set(input.id, coerceToString(input, input.value));
+  }
+  if (opts.format) params.set("format", opts.format);
+  if (opts.export) params.set("export", "");
+  if (opts.slot) params.set("slot", opts.slot);
+  if (opts.width) params.set("w", String(opts.width));
+  if (opts.height) params.set("h", String(opts.height));
+  if (opts.unit && opts.unit !== "px") params.set("unit", opts.unit);
+  if (opts.dpi) params.set("dpi", String(opts.dpi));
+  if (opts.profile) params.set("profile", opts.profile);
+  if (opts.password) params.set("password", opts.password);
+  if (opts.bleed) params.set("bleed", opts.bleed);
+  if (opts.marks) params.set("marks", opts.marks);
+  if (opts.c2pa === false) params.set("c2pa", "off");
+  else if (opts.c2pa) params.set("c2pa", [7, 30, 90, 365].includes(Number(opts.c2paDays)) ? String(opts.c2paDays) : "1");
+  if (opts.imprint) params.set("imprint", "1");
+  return params.toString();
+}
+function coerceFromString(input, raw) {
+  switch (input.type) {
+    case "number":
+      return Number(raw);
+    case "boolean":
+      return raw === "1" || raw === "true";
+    case "color":
+      if (isAlias(raw)) return { ref: raw, _unresolved: true };
+      if (raw.length === 6 && /^[0-9a-fA-F]{6}$/.test(raw)) return "#" + raw;
+      return raw;
+    case "asset":
+      return { source: isToolUrl(raw) ? "remote" : "library", id: raw, _unresolved: true };
+    case "file":
+      return raw ? { __file: true, path: raw, _unresolved: true } : null;
+    case "blocks":
+      if (raw.startsWith("[")) {
+        try {
+          return JSON.parse(raw);
+        } catch {
+          return [];
+        }
+      }
+      return decodeBlocksCompact(raw, input.fields ?? []);
+    // NOTE: 'vector' has no single-param form — each field is its own flat param
+    // ("<inputId>.<fieldId>"), handled in parseUrlState.
+    default:
+      return raw;
+  }
+}
+function coerceToString(input, value) {
+  if (input.type === "boolean") return value ? "1" : "0";
+  if (input.type === "asset" && value && typeof value === "object") return value.id;
+  if (input.type === "color" && isTokenValue(value)) return value.ref;
+  if (input.type === "blocks") return JSON.stringify(value ?? []);
+  return String(value);
+}
+function decodeBlocksCompact(str, fields) {
+  if (!str || !fields.length) return [];
+  return str.split("~").filter(Boolean).map((item) => {
+    const parts = splitToFields(item, fields.length);
+    const obj = {};
+    fields.forEach((f, i) => {
+      const part = parts[i] ?? "";
+      let raw;
+      try {
+        raw = decodeURIComponent(part);
+      } catch {
+        raw = part;
+      }
+      if (f.type === "asset") {
+        obj[f.id] = raw ? { source: isToolUrl(raw) ? "remote" : "library", id: raw, _unresolved: true } : null;
+      } else if (f.type === "color" && raw && !raw.startsWith("#")) {
+        obj[f.id] = "#" + raw;
+      } else {
+        obj[f.id] = raw;
+      }
+    });
+    return obj;
+  });
+}
+function splitToFields(str, count) {
+  const parts = str.split(",");
+  if (parts.length <= count) return parts;
+  return [...parts.slice(0, count - 1), parts.slice(count - 1).join(",")];
+}
+var RESERVED;
+var init_url_mode = __esm({
+  "engine/src/url-mode.ts"() {
+    "use strict";
+    init_units();
+    init_tokens();
+    init_tool_url();
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "full", "options", "nostage", "z", "zx"]);
+  }
+});
+
+// engine/src/url-pack.ts
+function base64UrlToBytes2(str) {
+  const b64 = str.replace(/-/g, "+").replace(/_/g, "/");
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+async function inflateRaw(bytes) {
+  const ds = new DecompressionStream("deflate-raw");
+  const writer = ds.writable.getWriter();
+  writer.write(bytes).catch(() => {
+  });
+  writer.close().catch(() => {
+  });
+  const reader = ds.readable.getReader();
+  const chunks = [];
+  let total = 0;
+  try {
+    for (; ; ) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > MAX_UNPACKED) throw new Error("url-pack: decompressed size exceeds cap");
+      chunks.push(value);
+    }
+  } finally {
+    reader.cancel().catch(() => {
+    });
+  }
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) {
+    out.set(c, off);
+    off += c.byteLength;
+  }
+  return out;
+}
+function isPackAvailable() {
+  return typeof CompressionStream === "function" && typeof DecompressionStream === "function" && typeof Response === "function" && typeof btoa === "function" && typeof atob === "function";
+}
+async function unpackToken(token2) {
+  if (!isPackAvailable() || typeof token2 !== "string" || token2.length < 2 || token2.length > MAX_TOKEN) return null;
+  const tag = token2[0];
+  if (tag !== TAG_DEFLATE_RAW) return null;
+  try {
+    const bytes = base64UrlToBytes2(token2.slice(1));
+    return new TextDecoder().decode(await inflateRaw(bytes));
+  } catch {
+    return null;
+  }
+}
+async function expandQuery(query) {
+  if (!query) return query;
+  const sp = new URLSearchParams(query);
+  const token2 = sp.get(PACK_PARAM);
+  if (token2 == null) return query;
+  const decoded = await unpackToken(token2);
+  if (decoded == null) return query;
+  const extras = [];
+  sp.forEach((v, k) => {
+    if (k === PACK_PARAM) return;
+    extras.push(v === "" ? encodeURIComponent(k) : `${encodeURIComponent(k)}=${encodeURIComponent(v)}`);
+  });
+  return extras.length ? `${decoded}&${extras.join("&")}` : decoded;
+}
+var PACK_PARAM, TAG_DEFLATE_RAW, MAX_TOKEN, MAX_UNPACKED, ENC_SALT_BYTES, ENC_IV_BYTES, ENC_HEADER;
+var init_url_pack = __esm({
+  "engine/src/url-pack.ts"() {
+    "use strict";
+    PACK_PARAM = "z";
+    TAG_DEFLATE_RAW = "1";
+    MAX_TOKEN = 64 * 1024;
+    MAX_UNPACKED = 256 * 1024;
+    ENC_SALT_BYTES = 16;
+    ENC_IV_BYTES = 12;
+    ENC_HEADER = 4 + ENC_SALT_BYTES + ENC_IV_BYTES;
+  }
+});
+
+// engine/src/color.ts
+function rgbToCmyk(r, g, b) {
+  const k = 1 - Math.max(r, g, b);
+  if (k >= 1) return [0, 0, 0, 1];
+  const d = 1 - k;
+  return [(1 - r - k) / d, (1 - g - k) / d, (1 - b - k) / d, k];
+}
+var init_color = __esm({
+  "engine/src/color.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/svg-path.ts
+function parseSvgPathArgs(str) {
+  const m = str.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+  return m ? m.map(Number) : [];
+}
+function parseArcArgs(str) {
+  const numRe = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
+  const flagRe = /[01]/y;
+  const sepRe = /[\s,]*/y;
+  const out = [];
+  let i = 0;
+  const skipSep = () => {
+    sepRe.lastIndex = i;
+    sepRe.exec(str);
+    i = sepRe.lastIndex;
+  };
+  const grab = (re) => {
+    skipSep();
+    re.lastIndex = i;
+    const mm = re.exec(str);
+    if (!mm) return null;
+    i = re.lastIndex;
+    return mm[0];
+  };
+  while (i < str.length) {
+    const rx = grab(numRe);
+    if (rx === null) break;
+    const ry = grab(numRe);
+    if (ry === null) break;
+    const xrot = grab(numRe);
+    if (xrot === null) break;
+    const laf = grab(flagRe);
+    if (laf === null) break;
+    const swf = grab(flagRe);
+    if (swf === null) break;
+    const x = grab(numRe);
+    if (x === null) break;
+    const y = grab(numRe);
+    if (y === null) break;
+    out.push(Number(rx), Number(ry), Number(xrot), Number(laf), Number(swf), Number(x), Number(y));
+  }
+  return out;
+}
+function parseSvgPath(d) {
+  const cmdRe = /([MLHVCSQTAZmlhvcsqtaz])([^MLHVCSQTAZmlhvcsqtaz]*)/g;
+  const subpaths = [];
+  let cur = null;
+  let cx = 0, cy = 0;
+  let sx = 0, sy = 0;
+  let lastCmd = "";
+  let lastCpx = 0, lastCpy = 0;
+  let m;
+  const open = (x, y) => {
+    const sub = { segments: [{ op: "M", x, y }], closed: false };
+    subpaths.push(sub);
+    return sub;
+  };
+  const line = (x, y) => {
+    if (cur) cur.segments.push({ op: "L", x, y });
+  };
+  const cubic = (x1, y1, x2, y2, x, y) => {
+    if (cur) cur.segments.push({ op: "C", x1, y1, x2, y2, x, y });
+  };
+  while ((m = cmdRe.exec(d)) !== null) {
+    const cmd = m[1] ?? "";
+    const abs = cmd === cmd.toUpperCase();
+    const C = cmd.toUpperCase();
+    const nums = C === "A" ? parseArcArgs(m[2] ?? "") : parseSvgPathArgs(m[2] ?? "");
+    const at = (i) => nums[i] ?? 0;
+    const ax = (i) => abs ? at(i) : cx + at(i);
+    const ay = (i) => abs ? at(i) : cy + at(i);
+    switch (C) {
+      case "M":
+        for (let i = 0; i + 1 < nums.length; i += 2) {
+          const x = ax(i), y = ay(i + 1);
+          if (i === 0) {
+            cur = open(x, y);
+            sx = x;
+            sy = y;
+          } else line(x, y);
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "L":
+        for (let i = 0; i + 1 < nums.length; i += 2) {
+          const x = ax(i), y = ay(i + 1);
+          line(x, y);
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "H":
+        for (let i = 0; i < nums.length; i++) {
+          cx = abs ? at(i) : cx + at(i);
+          line(cx, cy);
+        }
+        break;
+      case "V":
+        for (let i = 0; i < nums.length; i++) {
+          cy = abs ? at(i) : cy + at(i);
+          line(cx, cy);
+        }
+        break;
+      case "C":
+        for (let i = 0; i + 5 < nums.length; i += 6) {
+          const x1 = ax(i), y1 = ay(i + 1);
+          const x2 = ax(i + 2), y2 = ay(i + 3);
+          const x = ax(i + 4), y = ay(i + 5);
+          cubic(x1, y1, x2, y2, x, y);
+          lastCpx = x2;
+          lastCpy = y2;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "S":
+        for (let i = 0; i + 3 < nums.length; i += 4) {
+          const r1x = lastCmd === "C" || lastCmd === "S" ? 2 * cx - lastCpx : cx;
+          const r1y = lastCmd === "C" || lastCmd === "S" ? 2 * cy - lastCpy : cy;
+          const x2 = ax(i), y2 = ay(i + 1);
+          const x = ax(i + 2), y = ay(i + 3);
+          cubic(r1x, r1y, x2, y2, x, y);
+          lastCpx = x2;
+          lastCpy = y2;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "Q":
+        for (let i = 0; i + 3 < nums.length; i += 4) {
+          const qx1 = ax(i), qy1 = ay(i + 1);
+          const x = ax(i + 2), y = ay(i + 3);
+          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
+          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
+          cubic(x1, y1, x2, y2, x, y);
+          lastCpx = qx1;
+          lastCpy = qy1;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "T":
+        for (let i = 0; i + 1 < nums.length; i += 2) {
+          const qx1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cx - lastCpx : cx;
+          const qy1 = lastCmd === "Q" || lastCmd === "T" ? 2 * cy - lastCpy : cy;
+          const x = ax(i), y = ay(i + 1);
+          const x1 = cx + 2 / 3 * (qx1 - cx), y1 = cy + 2 / 3 * (qy1 - cy);
+          const x2 = x + 2 / 3 * (qx1 - x), y2 = y + 2 / 3 * (qy1 - y);
+          cubic(x1, y1, x2, y2, x, y);
+          lastCpx = qx1;
+          lastCpy = qy1;
+          cx = x;
+          cy = y;
+        }
+        break;
+      case "A":
+        for (let i = 0; i + 6 < nums.length; i += 7) {
+          const rx = Math.abs(at(i));
+          const ry = Math.abs(at(i + 1));
+          const xRot = at(i + 2) * Math.PI / 180;
+          const la = at(i + 3) ? 1 : 0;
+          const sw = at(i + 4) ? 1 : 0;
+          const x = ax(i + 5), y = ay(i + 6);
+          if (rx < 1e-6 || ry < 1e-6) {
+            line(x, y);
+          } else {
+            for (const [bx1, by1, bx2, by2, bx, by] of svgArcToBeziers(cx, cy, rx, ry, xRot, la, sw, x, y)) {
+              cubic(bx1, by1, bx2, by2, bx, by);
+            }
+          }
+          cx = x;
+          cy = y;
+          lastCpx = cx;
+          lastCpy = cy;
+        }
+        break;
+      case "Z":
+        if (cur) cur.closed = true;
+        cx = sx;
+        cy = sy;
+        break;
+    }
+    lastCmd = C;
+    if (C !== "C" && C !== "S" && C !== "Q" && C !== "T") {
+      lastCpx = cx;
+      lastCpy = cy;
+    }
+  }
+  return subpaths.filter((s) => s.segments.some((seg) => seg.op === "L" || seg.op === "C"));
+}
+function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
+  if (x1 === x2 && y1 === y2) return [];
+  const cosP = Math.cos(phi);
+  const sinP = Math.sin(phi);
+  const dx = (x1 - x2) / 2;
+  const dy = (y1 - y2) / 2;
+  const x1p = cosP * dx + sinP * dy;
+  const y1p = -sinP * dx + cosP * dy;
+  let rx2 = rx * rx, ry2 = ry * ry;
+  const x1p2 = x1p * x1p, y1p2 = y1p * y1p;
+  const lam = x1p2 / rx2 + y1p2 / ry2;
+  if (lam > 1) {
+    const sl = Math.sqrt(lam);
+    rx *= sl;
+    ry *= sl;
+    rx2 = rx * rx;
+    ry2 = ry * ry;
+  }
+  const num2 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
+  const den = rx2 * y1p2 + ry2 * x1p2;
+  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num2 / den);
+  const cxp = coef * rx * y1p / ry;
+  const cyp = -coef * ry * x1p / rx;
+  const cx = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
+  const cy = sinP * cxp + cosP * cyp + (y1 + y2) / 2;
+  const angV = (ux, uy, vx, vy) => {
+    const sign = ux * vy - uy * vx < 0 ? -1 : 1;
+    const dot = ux * vx + uy * vy;
+    const len2 = Math.sqrt((ux * ux + uy * uy) * (vx * vx + vy * vy));
+    return sign * Math.acos(Math.max(-1, Math.min(1, dot / len2)));
+  };
+  const theta1 = angV(1, 0, (x1p - cxp) / rx, (y1p - cyp) / ry);
+  let dtheta = angV((x1p - cxp) / rx, (y1p - cyp) / ry, (-x1p - cxp) / rx, (-y1p - cyp) / ry);
+  if (!fs && dtheta > 0) dtheta -= 2 * Math.PI;
+  if (fs && dtheta < 0) dtheta += 2 * Math.PI;
+  const n2 = Math.max(1, Math.ceil(Math.abs(dtheta) / (Math.PI / 2)));
+  const dt = dtheta / n2;
+  const results = [];
+  for (let i = 0; i < n2; i++) {
+    const t1 = theta1 + i * dt;
+    const t2 = theta1 + (i + 1) * dt;
+    const alpha2 = 4 / 3 * Math.tan(dt / 4);
+    const cos1 = Math.cos(t1), sin1 = Math.sin(t1);
+    const cos2 = Math.cos(t2), sin2 = Math.sin(t2);
+    const ep1x = cosP * (rx * cos1) - sinP * (ry * sin1) + cx;
+    const ep1y = sinP * (rx * cos1) + cosP * (ry * sin1) + cy;
+    const dp1x = cosP * (-rx * sin1) - sinP * (ry * cos1);
+    const dp1y = sinP * (-rx * sin1) + cosP * (ry * cos1);
+    const ep2x = cosP * (rx * cos2) - sinP * (ry * sin2) + cx;
+    const ep2y = sinP * (rx * cos2) + cosP * (ry * sin2) + cy;
+    const dp2x = cosP * (-rx * sin2) - sinP * (ry * cos2);
+    const dp2y = sinP * (-rx * sin2) + cosP * (ry * cos2);
+    results.push([
+      ep1x + alpha2 * dp1x,
+      ep1y + alpha2 * dp1y,
+      ep2x - alpha2 * dp2x,
+      ep2y - alpha2 * dp2y,
+      ep2x,
+      ep2y
+    ]);
+  }
+  return results;
+}
+var init_svg_path = __esm({
+  "engine/src/svg-path.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/emf.ts
+function record(iType, bodyLen, writeBody) {
+  const size = 8 + bodyLen;
+  const buf = new ArrayBuffer(size);
+  const dv = new DataView(buf);
+  dv.setUint32(0, iType, true);
+  dv.setUint32(4, size, true);
+  if (writeBody) writeBody(dv, 8);
+  return new Uint8Array(buf);
+}
+function bboxOf(points) {
+  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  for (const p of points) {
+    if (p.x < left) left = p.x;
+    if (p.y < top) top = p.y;
+    if (p.x > right) right = p.x;
+    if (p.y > bottom) bottom = p.y;
+  }
+  if (left === Infinity) return { left: 0, top: 0, right: 0, bottom: 0 };
+  return { left, top, right, bottom };
+}
+function recMoveTo(x, y) {
+  return record(EMR_MOVETOEX, 8, (dv, o) => {
+    dv.setInt32(o, clampInt(x), true);
+    dv.setInt32(o + 4, clampInt(y), true);
+  });
+}
+function recPoly(iType, pts, anchor) {
+  const n2 = pts.length;
+  const bodyLen = 16 + 4 + 8 * n2;
+  return record(iType, bodyLen, (dv, o) => {
+    setRect(dv, o, bboxOf(anchor ? [anchor, ...pts] : pts));
+    dv.setUint32(o + 16, n2, true);
+    let p = o + 20;
+    for (const pt of pts) {
+      dv.setInt32(p, clampInt(pt.x), true);
+      dv.setInt32(p + 4, clampInt(pt.y), true);
+      p += 8;
+    }
+  });
+}
+function emitPathPrim(prim, out) {
+  const { subpaths, fill, stroke, fillRule } = prim;
+  if (!subpaths?.length) return;
+  const allPts = [];
+  out.push(recSetPolyFillMode(fillRule === "evenodd" ? ALTERNATE : WINDING));
+  if (fill) {
+    out.push(recCreateBrush(H_BRUSH, fill));
+    out.push(recSelectObject(H_BRUSH));
+  } else out.push(recSelectObject(NULL_BRUSH));
+  if (stroke) {
+    out.push(recExtCreatePen(H_PEN, stroke, stroke.width));
+    out.push(recSelectObject(H_PEN));
+  } else out.push(recSelectObject(NULL_PEN));
+  out.push(recBeginPath());
+  for (const sub of subpaths) {
+    const segs = sub.segments;
+    const first = segs[0];
+    if (!first || first.op !== "M") continue;
+    let anchor = { x: first.x, y: first.y };
+    out.push(recMoveTo(anchor.x, anchor.y));
+    allPts.push(anchor);
+    let i = 1;
+    for (let seg = segs[i]; seg !== void 0; seg = segs[i]) {
+      if (seg.op === "L") {
+        const pts = [];
+        let last = anchor;
+        for (let cur = seg; cur !== void 0 && cur.op === "L"; cur = segs[i]) {
+          last = { x: cur.x, y: cur.y };
+          pts.push(last);
+          i++;
+        }
+        out.push(recPoly(EMR_POLYLINETO, pts, anchor));
+        allPts.push(...pts);
+        anchor = last;
+      } else if (seg.op === "C") {
+        const pts = [];
+        let last = anchor;
+        for (let cur = seg; cur !== void 0 && cur.op === "C"; cur = segs[i]) {
+          last = { x: cur.x, y: cur.y };
+          pts.push({ x: cur.x1, y: cur.y1 }, { x: cur.x2, y: cur.y2 }, last);
+          i++;
+        }
+        out.push(recPoly(EMR_POLYBEZIERTO, pts, anchor));
+        allPts.push(...pts);
+        anchor = last;
+      } else {
+        i++;
+      }
+    }
+    if (sub.closed) out.push(recCloseFigure());
+  }
+  out.push(recEndPath());
+  const bbox = bboxOf(allPts);
+  const paint = fill && stroke ? EMR_STROKEANDFILLPATH : fill ? EMR_FILLPATH : EMR_STROKEPATH;
+  out.push(recPaint(paint, bbox));
+  if (fill) {
+    out.push(recSelectObject(NULL_BRUSH));
+    out.push(recDeleteObject(H_BRUSH));
+  }
+  if (stroke) {
+    out.push(recSelectObject(NULL_PEN));
+    out.push(recDeleteObject(H_PEN));
+  }
+}
+function recStretchDibits(prim) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const bitsLen = pxW * pxH * 4;
+  const size = 120 + bitsLen;
+  const buf = new ArrayBuffer(size);
+  const dv = new DataView(buf);
+  dv.setUint32(0, EMR_STRETCHDIBITS, true);
+  dv.setUint32(4, size, true);
+  setRect(dv, 8, { left: clampInt(prim.x), top: clampInt(prim.y), right: clampInt(prim.x + prim.w), bottom: clampInt(prim.y + prim.h) });
+  dv.setInt32(24, clampInt(prim.x), true);
+  dv.setInt32(28, clampInt(prim.y), true);
+  dv.setInt32(32, 0, true);
+  dv.setInt32(36, 0, true);
+  dv.setInt32(40, pxW, true);
+  dv.setInt32(44, pxH, true);
+  dv.setUint32(48, 80, true);
+  dv.setUint32(52, 40, true);
+  dv.setUint32(56, 120, true);
+  dv.setUint32(60, bitsLen, true);
+  dv.setUint32(64, DIB_RGB_COLORS, true);
+  dv.setUint32(68, SRCCOPY, true);
+  dv.setInt32(72, clampInt(prim.w), true);
+  dv.setInt32(76, clampInt(prim.h), true);
+  dv.setUint32(80, 40, true);
+  dv.setInt32(84, pxW, true);
+  dv.setInt32(88, -pxH, true);
+  dv.setUint16(92, 1, true);
+  dv.setUint16(94, 32, true);
+  dv.setUint32(96, 0, true);
+  dv.setUint32(100, bitsLen, true);
+  dv.setInt32(104, 0, true);
+  dv.setInt32(108, 0, true);
+  dv.setUint32(112, 0, true);
+  dv.setUint32(116, 0, true);
+  const px = new Uint8Array(buf, 120, bitsLen);
+  const rgb = prim.rgb;
+  const n2 = Math.min(pxW * pxH, Math.floor(rgb.length / 3));
+  for (let i = 0; i < n2; i++) {
+    px[i * 4] = rgb[i * 3 + 2];
+    px[i * 4 + 1] = rgb[i * 3 + 1];
+    px[i * 4 + 2] = rgb[i * 3];
+    px[i * 4 + 3] = 0;
+  }
+  return new Uint8Array(buf);
+}
+function headerMath(ir, opts) {
+  const Wpx = Math.max(1, Math.round(ir.width));
+  const Hpx = Math.max(1, Math.round(ir.height));
+  const wDim = parseDimension(opts.width, opts.unit || "px");
+  const hDim = parseDimension(opts.height, opts.unit || "px");
+  const dpi = opts.dpi !== void 0 && opts.dpi > 0 ? opts.dpi : CSS_DPI;
+  const wIn = wDim ? toInches(wDim) : Wpx / CSS_DPI;
+  const hIn = hDim ? toInches(hDim) : Hpx / CSS_DPI;
+  void dpi;
+  return {
+    Wpx,
+    Hpx,
+    rclFrame: { left: 0, top: 0, right: Math.round(wIn * 2540), bottom: Math.round(hIn * 2540) },
+    mmW: Math.max(1, Math.round(wIn * 25.4)),
+    mmH: Math.max(1, Math.round(hIn * 25.4))
+  };
+}
+function writeHeader(h, nBytes, nRecords) {
+  const buf = new ArrayBuffer(HEADER_SIZE);
+  const dv = new DataView(buf);
+  dv.setUint32(0, EMR_HEADER, true);
+  dv.setUint32(4, HEADER_SIZE, true);
+  setRect(dv, 8, { left: 0, top: 0, right: h.Wpx - 1, bottom: h.Hpx - 1 });
+  setRect(dv, 24, h.rclFrame);
+  dv.setUint32(40, ENHMETA_SIGNATURE, true);
+  dv.setUint32(44, 65536, true);
+  dv.setUint32(48, nBytes, true);
+  dv.setUint32(52, nRecords, true);
+  dv.setUint16(56, N_HANDLES, true);
+  dv.setUint16(58, 0, true);
+  dv.setUint32(60, 0, true);
+  dv.setUint32(64, 0, true);
+  dv.setUint32(68, 0, true);
+  dv.setInt32(72, h.Wpx, true);
+  dv.setInt32(76, h.Hpx, true);
+  dv.setInt32(80, h.mmW, true);
+  dv.setInt32(84, h.mmH, true);
+  return new Uint8Array(buf);
+}
+function emitEmf(ir, opts = {}) {
+  const h = headerMath(ir, opts);
+  const body = [];
+  for (const prim of ir.prims || []) {
+    if (prim?.type === "path") emitPathPrim(prim, body);
+    else if (prim?.type === "image") body.push(recStretchDibits(prim));
+  }
+  body.push(recEof());
+  const nRecords = body.length + 1;
+  const bodyBytes = body.reduce((n2, r) => n2 + r.length, 0);
+  const nBytes = HEADER_SIZE + bodyBytes;
+  const out = new Uint8Array(nBytes);
+  out.set(writeHeader(h, nBytes, nRecords), 0);
+  let off = HEADER_SIZE;
+  for (const r of body) {
+    out.set(r, off);
+    off += r.length;
+  }
+  return out;
+}
+var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, EMR_STRETCHDIBITS, SRCCOPY, DIB_RGB_COLORS, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, N_HANDLES, colorRef, clampInt, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof;
+var init_emf = __esm({
+  "engine/src/emf.ts"() {
+    "use strict";
+    init_units();
+    EMR_HEADER = 1;
+    EMR_POLYBEZIERTO = 5;
+    EMR_POLYLINETO = 6;
+    EMR_EOF = 14;
+    EMR_SETPOLYFILLMODE = 19;
+    EMR_MOVETOEX = 27;
+    EMR_SELECTOBJECT = 37;
+    EMR_CREATEBRUSHINDIRECT = 39;
+    EMR_DELETEOBJECT = 40;
+    EMR_BEGINPATH = 59;
+    EMR_ENDPATH = 60;
+    EMR_CLOSEFIGURE = 61;
+    EMR_FILLPATH = 62;
+    EMR_STROKEANDFILLPATH = 63;
+    EMR_STROKEPATH = 64;
+    EMR_EXTCREATEPEN = 95;
+    EMR_STRETCHDIBITS = 81;
+    SRCCOPY = 13369376;
+    DIB_RGB_COLORS = 0;
+    ALTERNATE = 1;
+    WINDING = 2;
+    NULL_BRUSH = 2147483653;
+    NULL_PEN = 2147483656;
+    BS_SOLID = 0;
+    PS_GEOMETRIC_SOLID = 65536;
+    ENHMETA_SIGNATURE = 1179469088;
+    HEADER_SIZE = 88;
+    H_BRUSH = 1;
+    H_PEN = 2;
+    N_HANDLES = 3;
+    colorRef = ({ r, g, b }) => (r & 255 | (g & 255) << 8 | (b & 255) << 16) >>> 0;
+    clampInt = (v) => Math.round(v);
+    setRect = (dv, off, b) => {
+      dv.setInt32(off, clampInt(b.left), true);
+      dv.setInt32(off + 4, clampInt(b.top), true);
+      dv.setInt32(off + 8, clampInt(b.right), true);
+      dv.setInt32(off + 12, clampInt(b.bottom), true);
+    };
+    recBeginPath = () => record(EMR_BEGINPATH, 0);
+    recEndPath = () => record(EMR_ENDPATH, 0);
+    recCloseFigure = () => record(EMR_CLOSEFIGURE, 0);
+    recSetPolyFillMode = (mode) => record(EMR_SETPOLYFILLMODE, 4, (dv, o) => dv.setUint32(o, mode, true));
+    recSelectObject = (handle) => record(EMR_SELECTOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
+    recDeleteObject = (handle) => record(EMR_DELETEOBJECT, 4, (dv, o) => dv.setUint32(o, handle >>> 0, true));
+    recCreateBrush = (handle, color) => record(EMR_CREATEBRUSHINDIRECT, 16, (dv, o) => {
+      dv.setUint32(o, handle, true);
+      dv.setUint32(o + 4, BS_SOLID, true);
+      dv.setUint32(o + 8, colorRef(color), true);
+      dv.setUint32(o + 12, 0, true);
+    });
+    recExtCreatePen = (handle, color, width) => record(EMR_EXTCREATEPEN, 44, (dv, o) => {
+      dv.setUint32(o, handle, true);
+      dv.setUint32(o + 4, 0, true);
+      dv.setUint32(o + 8, 0, true);
+      dv.setUint32(o + 12, 0, true);
+      dv.setUint32(o + 16, 0, true);
+      dv.setUint32(o + 20, PS_GEOMETRIC_SOLID, true);
+      dv.setUint32(o + 24, Math.max(1, clampInt(width)), true);
+      dv.setUint32(o + 28, BS_SOLID, true);
+      dv.setUint32(o + 32, colorRef(color), true);
+      dv.setUint32(o + 36, 0, true);
+      dv.setUint32(o + 40, 0, true);
+    });
+    recPaint = (iType, bbox) => record(iType, 16, (dv, o) => setRect(dv, o, bbox));
+    recEof = () => record(EMR_EOF, 12, (dv, o) => {
+      dv.setUint32(o, 0, true);
+      dv.setUint32(o + 4, 16, true);
+      dv.setUint32(o + 8, 20, true);
+    });
+  }
+});
+
+// engine/src/eps.ts
+function rgbPaletteKey(r, g, b) {
+  return Math.round(r * 100) + "," + Math.round(g * 100) + "," + Math.round(b * 100);
+}
+function colorOp(c, cmyk, palette) {
+  const r = (c.r & 255) / 255, g = (c.g & 255) / 255, b = (c.b & 255) / 255;
+  if (cmyk) {
+    const hit = palette?.get(rgbPaletteKey(r, g, b));
+    const [cy, m, y, k] = hit ? hit.cmyk : rgbToCmyk(r, g, b);
+    return n(cy) + " " + n(m) + " " + n(y) + " " + n(k) + " setcmykcolor";
+  }
+  return n(r) + " " + n(g) + " " + n(b) + " setrgbcolor";
+}
+function emitImagePrim(prim, out) {
+  const pxW = Math.max(1, Math.round(prim.pxW));
+  const pxH = Math.max(1, Math.round(prim.pxH));
+  const need = pxW * pxH * 3;
+  const rgb = prim.rgb;
+  out.push("gsave");
+  out.push(n(prim.x) + " " + n(prim.y) + " translate");
+  out.push(n(prim.w) + " " + n(prim.h) + " scale");
+  out.push("/DeviceRGB setcolorspace");
+  out.push("<< /ImageType 1 /Width " + pxW + " /Height " + pxH + " /BitsPerComponent 8 /Decode [0 1 0 1 0 1] /ImageMatrix [" + pxW + " 0 0 " + pxH + " 0 0] /DataSource currentfile /ASCIIHexDecode filter >> image");
+  let line = "";
+  for (let i = 0; i < need; i++) {
+    line += HEX[i < rgb.length ? rgb[i] : 0];
+    if (line.length >= 64) {
+      out.push(line);
+      line = "";
+    }
+  }
+  if (line) out.push(line);
+  out.push(">");
+  out.push("grestore");
+}
+function emitPathPrim2(prim, cmyk, out, palette) {
+  const { subpaths, fill, stroke, fillRule } = prim;
+  if (!subpaths || !subpaths.length) return;
+  out.push("newpath");
+  for (const sub of subpaths) {
+    const segs = sub.segments;
+    if (!segs || !segs.length || segs[0]?.op !== "M") continue;
+    for (const s of segs) {
+      if (s.op === "M") out.push(n(s.x) + " " + n(s.y) + " moveto");
+      else if (s.op === "L") out.push(n(s.x) + " " + n(s.y) + " lineto");
+      else if (s.op === "C") out.push(n(s.x1) + " " + n(s.y1) + " " + n(s.x2) + " " + n(s.y2) + " " + n(s.x) + " " + n(s.y) + " curveto");
+    }
+    if (sub.closed) out.push("closepath");
+  }
+  const fillVerb = fillRule === "evenodd" ? "eofill" : "fill";
+  const lw = n(Math.max(0, stroke ? stroke.width : 0)) + " setlinewidth";
+  if (fill && stroke) {
+    out.push("gsave", colorOp(fill, cmyk, palette), fillVerb, "grestore");
+    out.push(colorOp(stroke, cmyk, palette), lw, "stroke");
+  } else if (fill) {
+    out.push(colorOp(fill, cmyk, palette), fillVerb);
+  } else if (stroke) {
+    out.push(colorOp(stroke, cmyk, palette), lw, "stroke");
+  }
+}
+function emitEps(ir, opts = {}) {
+  const Wpx = Math.max(1, Math.round(ir.width));
+  const Hpx = Math.max(1, Math.round(ir.height));
+  const wDim = parseDimension(opts.width, opts.unit || "px");
+  const hDim = parseDimension(opts.height, opts.unit || "px");
+  const Wpt = wDim ? toPoints(wDim) : Wpx * 72 / CSS_DPI;
+  const Hpt = hDim ? toPoints(hDim) : Hpx * 72 / CSS_DPI;
+  const sx = Wpt / Wpx, sy = Hpt / Hpx;
+  const cmyk = Boolean(opts.cmyk);
+  const L = [];
+  L.push("%!PS-Adobe-3.0 EPSF-3.0");
+  L.push("%%Creator: Lolly");
+  if (opts.meta && opts.meta.title) L.push("%%Title: " + String(opts.meta.title).replace(/[\r\n]+/g, " "));
+  L.push("%%BoundingBox: 0 0 " + Math.ceil(Wpt) + " " + Math.ceil(Hpt));
+  L.push("%%HiResBoundingBox: 0 0 " + n(Wpt) + " " + n(Hpt));
+  L.push("%%LanguageLevel: 2");
+  L.push("%%EndComments");
+  L.push("%%BeginProlog");
+  L.push("%%EndProlog");
+  L.push("gsave");
+  L.push("1 setlinejoin 1 setlinecap");
+  L.push("0 " + n(Hpt) + " translate");
+  L.push(n(sx) + " " + n(-sy) + " scale");
+  for (const prim of ir.prims || []) {
+    if (prim && prim.type === "path") emitPathPrim2(prim, cmyk, L, opts.cmykPalette);
+    else if (prim && prim.type === "image") emitImagePrim(prim, L);
+  }
+  L.push("grestore");
+  L.push("showpage");
+  L.push("%%EOF");
+  return L.join("\n") + "\n";
+}
+var n, HEX;
+var init_eps = __esm({
+  "engine/src/eps.ts"() {
+    "use strict";
+    init_units();
+    init_color();
+    n = (v) => {
+      if (!Number.isFinite(v)) return "0";
+      const r = Math.round(v * 1e3) / 1e3;
+      return Object.is(r, -0) ? "0" : String(r);
+    };
+    HEX = [];
+    for (let i = 0; i < 256; i++) HEX.push((i < 16 ? "0" : "") + i.toString(16));
   }
 });
 
@@ -4647,7 +5596,7 @@ var init_src = __esm({
     init_tokens();
     init_icon_theme();
     init_photo_treatment();
-    ENGINE_VERSION = "1.19.0";
+    ENGINE_VERSION = "1.32.0";
   }
 });
 
@@ -5135,6 +6084,266 @@ function letterSpacingPx(value) {
   return Number.isFinite(n2) ? n2 : 0;
 }
 
+// shells/web/src/bridge/db.ts
+import { openDB as idbOpen, deleteDB as idbDelete } from "idb";
+var DB_NAME = "lolly";
+var DB_VERSION = 5;
+var OPEN_TIMEOUT_MS = 8e3;
+var REQUIRED_STORES = ["profile", "state", "asset-meta", "asset-blob", "user-assets"];
+function openOnce(timeoutMs = OPEN_TIMEOUT_MS) {
+  let wasBlocked = false;
+  const opening = idbOpen(DB_NAME, DB_VERSION, {
+    upgrade(db, oldVersion) {
+      if (oldVersion < 1) {
+        db.createObjectStore("profile");
+        const stateStore = db.createObjectStore("state", { keyPath: "slot" });
+        stateStore.createIndex("toolId", "toolId");
+        stateStore.createIndex("updatedAt", "updatedAt");
+        const assetMetaStore = db.createObjectStore("asset-meta", { keyPath: "id" });
+        assetMetaStore.createIndex("tier", "tier");
+        assetMetaStore.createIndex("type", "type");
+        db.createObjectStore("asset-blob");
+        db.createObjectStore("user-assets", { keyPath: "id" });
+      }
+      if (oldVersion < 2) {
+        db.createObjectStore("catalog-meta");
+      }
+      if (oldVersion < 3) {
+        db.createObjectStore("generated-previews", { keyPath: "toolId" });
+      }
+      if (oldVersion < 4) {
+        db.createObjectStore("identity");
+      }
+      if (oldVersion < 5) {
+        db.createObjectStore("exports", { keyPath: "id" });
+      }
+    },
+    blocking() {
+      this.close();
+    },
+    blocked() {
+      wasBlocked = true;
+      console.warn("[db] IndexedDB open is blocked \u2014 another Lolly tab/window is holding the database open.");
+    },
+    terminated() {
+      console.error("[db] IndexedDB connection terminated unexpectedly.");
+    }
+  });
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error(
+        "Local database is locked \u2014 another Lolly tab or window may be open. Close other Lolly/localhost tabs (or fully restart your browser) and reload."
+      );
+      err.code = wasBlocked ? "DB_BLOCKED" : "DB_OPEN_TIMEOUT";
+      reject(err);
+    }, timeoutMs);
+  });
+  return Promise.race([opening, timeout]).finally(() => clearTimeout(timer)).catch((err) => {
+    opening.then((db) => {
+      try {
+        db.close();
+      } catch {
+      }
+    }, () => {
+    });
+    throw err;
+  });
+}
+var dbPromise = null;
+function openDB() {
+  if (!dbPromise) {
+    dbPromise = openResilient().catch((e) => {
+      dbPromise = null;
+      throw e;
+    });
+  }
+  return dbPromise;
+}
+async function openResilient() {
+  const deadline = Date.now() + 16e3;
+  for (; ; ) {
+    try {
+      return await openHealed(4e3);
+    } catch (e) {
+      const code = e.code;
+      if ((code === "DB_BLOCKED" || code === "DB_OPEN_TIMEOUT") && Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 300));
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+async function openHealed(timeoutMs) {
+  let db = await openOnce(timeoutMs);
+  const missing = REQUIRED_STORES.filter((name) => !db.objectStoreNames.contains(name));
+  if (missing.length) {
+    console.warn("[db] Rebuilding corrupted lolly DB \u2014 missing stores:", missing.join(", "));
+    db.close();
+    await idbDelete(DB_NAME);
+    db = await openOnce(timeoutMs);
+  }
+  return db;
+}
+
+// shells/web/src/bridge/font-registry.ts
+var PLATFORM_FACES = {
+  outfit: [{ assetId: "", staticUrl: "/fonts/Outfit[wght].ttf", weight: "100 900", style: "normal", unicodeRange: "" }]
+};
+var USER_FONT_PREFIX = "user/fonts/";
+function parseFontFamilies(css) {
+  const out = [];
+  let cur = "";
+  let quote = "";
+  for (const ch of String(css ?? "")) {
+    if (quote) {
+      if (ch === quote) quote = "";
+      else cur += ch;
+    } else if (ch === '"' || ch === "'") {
+      quote = ch;
+    } else if (ch === ",") {
+      out.push(cur.trim());
+      cur = "";
+    } else cur += ch;
+  }
+  out.push(cur.trim());
+  return out.filter(Boolean);
+}
+function parseUnicodeRange(spec) {
+  const out = [];
+  for (const raw of String(spec ?? "").split(",")) {
+    const t = raw.trim();
+    if (!/^u\+/i.test(t)) continue;
+    const body = t.slice(2);
+    if (body.includes("?")) {
+      const lo2 = parseInt(body.replace(/\?/g, "0"), 16);
+      const hi2 = parseInt(body.replace(/\?/g, "F"), 16);
+      if (Number.isFinite(lo2) && Number.isFinite(hi2)) out.push([lo2, hi2]);
+      continue;
+    }
+    const [a, b] = body.split("-");
+    const lo = parseInt(a ?? "", 16);
+    const hi = b == null ? lo : parseInt(b, 16);
+    if (Number.isFinite(lo) && Number.isFinite(hi)) out.push([lo, hi]);
+  }
+  return out;
+}
+function coverageCount(ranges, text) {
+  let n2 = 0;
+  for (const ch of text) {
+    if (/\s/.test(ch)) continue;
+    const cp = ch.codePointAt(0);
+    if (!ranges.length || ranges.some(([lo, hi]) => cp >= lo && cp <= hi)) n2++;
+  }
+  return n2;
+}
+var weightRange = (weight) => {
+  const parts = weight.trim().split(/\s+/).map(Number);
+  return parts.length === 2 && parts.every(Number.isFinite) ? [parts[0], parts[1]] : null;
+};
+function pickFaces(faces, style, text) {
+  const italic = style.fontStyle === "italic" || style.fontStyle === "oblique";
+  const weight = parseInt(style.fontWeight ?? "") || 400;
+  const slantOk = faces.filter((f) => f.style === "italic" === italic);
+  if (!slantOk.length) return [];
+  const variable = slantOk.filter((f) => weightRange(f.weight));
+  let candidates;
+  if (variable.length) {
+    candidates = variable.map((f) => {
+      const [lo, hi] = weightRange(f.weight);
+      return { face: f, variations: [`wght=${Math.min(hi, Math.max(lo, weight))}`] };
+    });
+  } else {
+    const nearest = slantOk.reduce((a, b) => Math.abs(parseInt(b.weight) - weight) < Math.abs(parseInt(a.weight) - weight) ? b : a);
+    candidates = slantOk.filter((f) => f.weight === nearest.weight).map((face) => ({ face }));
+  }
+  return candidates.map((c) => ({ ...c, n: coverageCount(parseUnicodeRange(c.face.unicodeRange), text) })).filter((c) => c.n > 0).sort((a, b) => b.n - a.n).map(({ n: _n, ...c }) => c);
+}
+var registryPromise = null;
+var sfntUrls = /* @__PURE__ */ new Map();
+var sfntPending = /* @__PURE__ */ new Map();
+async function buildRegistry() {
+  const byFamily = /* @__PURE__ */ new Map();
+  for (const [family, faces] of Object.entries(PLATFORM_FACES)) byFamily.set(family, [...faces]);
+  try {
+    const db = await openDB();
+    const records = await db.getAll("user-assets");
+    for (const r of records) {
+      if (r.type !== "font" || !r.id.startsWith(USER_FONT_PREFIX)) continue;
+      const family = String(r.meta?.family ?? "").trim();
+      if (!family) continue;
+      const key = family.toLowerCase();
+      const list = byFamily.get(key)?.filter((f) => f.assetId) ?? [];
+      list.push({
+        assetId: r.id,
+        staticUrl: "",
+        weight: String(r.meta?.weight ?? "400"),
+        style: String(r.meta?.style ?? "normal"),
+        unicodeRange: String(r.meta?.unicodeRange ?? "")
+      });
+      byFamily.set(key, list);
+    }
+  } catch {
+  }
+  return byFamily;
+}
+async function faceUrl(face) {
+  if (face.staticUrl) return face.staticUrl;
+  const cached = sfntUrls.get(face.assetId);
+  if (cached) return cached;
+  const pending = sfntPending.get(face.assetId);
+  if (pending) return pending;
+  const job = (async () => {
+    const db = await openDB();
+    const rec = await db.get("user-assets", face.assetId);
+    if (!rec?.blob) throw new Error(`font-registry: no bytes for ${face.assetId}`);
+    const bytes = new Uint8Array(await rec.blob.arrayBuffer());
+    const isWoff2 = bytes[0] === 119 && bytes[1] === 79 && bytes[2] === 70 && bytes[3] === 50;
+    const sfnt = isWoff2 ? await (await import("woff2-encoder/decompress")).default(bytes) : bytes;
+    const url = URL.createObjectURL(new Blob([sfnt], { type: "font/otf" }));
+    sfntUrls.set(face.assetId, url);
+    return url;
+  })().finally(() => sfntPending.delete(face.assetId));
+  sfntPending.set(face.assetId, job);
+  return job;
+}
+async function resolveVectorFont(style, text) {
+  const families = parseFontFamilies(style.fontFamily);
+  const registry = registryPromise ??= buildRegistry();
+  let faces;
+  try {
+    faces = await registry;
+  } catch {
+    registryPromise = null;
+    faces = /* @__PURE__ */ new Map();
+  }
+  for (const family of families) {
+    const key = family.toLowerCase();
+    if (key === "suse" || key === "suse mono") {
+      const url = resolveSuseFontUrl({ ...style, fontFamily: family });
+      if (url) return { url };
+      continue;
+    }
+    const list = faces.get(key);
+    if (!list?.length) continue;
+    const chain2 = pickFaces(list, style, text);
+    if (!chain2.length) continue;
+    try {
+      const urls = await Promise.all(chain2.map((c) => faceUrl(c.face)));
+      const [primary, ...rest] = chain2.map((c, i) => ({ fontUrl: urls[i], variations: c.variations }));
+      return {
+        url: primary.fontUrl,
+        ...primary.variations ? { variations: primary.variations } : {},
+        ...rest.length ? { fallbacks: rest } : {}
+      };
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
 // shells/web/src/bridge/svg-ir.ts
 var SKIP = /* @__PURE__ */ new Set([
   "defs",
@@ -5235,6 +6444,58 @@ function pointsPath(str, close) {
   for (let i = 2; i + 1 < nums.length; i += 2) d += ` L${nums[i]},${nums[i + 1]}`;
   return d + (close ? " Z" : "");
 }
+function applyElementTransform(el, t) {
+  const nt = { ...t };
+  const transform2 = el.getAttribute?.("transform") || "";
+  if (transform2) {
+    const { sX, sY } = t;
+    const tm = transform2.match(/translate\(\s*([+-]?\d*\.?\d+)[,\s]\s*([+-]?\d*\.?\d+)\s*\)/) ?? transform2.match(/translate\(\s*([+-]?\d*\.?\d+)\s*\)/);
+    const sm = transform2.match(/scale\(\s*([+-]?\d*\.?\d+)(?:[,\s]\s*([+-]?\d*\.?\d+))?\s*\)/);
+    if (tm) {
+      nt.tx += sX * parseFloat(tm[1]);
+      nt.ty += sY * parseFloat(tm[2] ?? "0");
+    }
+    if (sm) {
+      nt.sX = sX * parseFloat(sm[1]);
+      nt.sY = sY * parseFloat(sm[2] ?? sm[1]);
+    }
+  }
+  return nt;
+}
+async function decodeImageToRgb(href, bg) {
+  if (typeof document === "undefined" || typeof createImageBitmap !== "function") return null;
+  try {
+    const blob = await (await fetch(href)).blob();
+    const bmp = await createImageBitmap(blob);
+    const w = bmp.width, h = bmp.height;
+    if (!(w > 0 && h > 0)) {
+      bmp.close?.();
+      return null;
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const cx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!cx) {
+      bmp.close?.();
+      return null;
+    }
+    cx.drawImage(bmp, 0, 0);
+    bmp.close?.();
+    const data = cx.getImageData(0, 0, w, h).data;
+    const rgb = new Uint8Array(w * h * 3);
+    const [br, bgn, bb] = bg;
+    for (let i = 0, j = 0; i < data.length; i += 4, j += 3) {
+      const a = data[i + 3] / 255, ia = 1 - a;
+      rgb[j] = Math.round(data[i] * a + br * ia);
+      rgb[j + 1] = Math.round(data[i + 1] * a + bgn * ia);
+      rgb[j + 2] = Math.round(data[i + 2] * a + bb * ia);
+    }
+    return { w, h, rgb };
+  } catch {
+    return null;
+  }
+}
 async function svgDomToIr(svgEl, ctx = {}) {
   const { host, getComputedStyle } = ctx;
   const LABEL = ctx.label || "EMF";
@@ -5275,27 +6536,14 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (!el.tagName) return;
     const tag = el.tagName.toLowerCase().replace(/^svg:/, "");
     if (SKIP.has(tag)) return;
-    const { tx, ty, sX, sY } = t;
+    const et = applyElementTransform(el, t);
+    const { tx, ty, sX, sY } = et;
     const PX = (v) => (tx + sX * v - vbX) * regX;
     const PY = (v) => (ty + sY * v - vbY) * regY;
     const mapPt = (x, y) => ({ x: PX(x), y: PY(y) });
     const gAvg = (Math.abs(sX) + Math.abs(sY)) / 2;
     const rAvg = (regX + regY) / 2;
     if (tag === "g" || tag === "a" || tag === "svg") {
-      let nt = { ...t };
-      const transform2 = el.getAttribute?.("transform") || "";
-      if (transform2) {
-        const tm = transform2.match(/translate\(\s*([+-]?\d*\.?\d+)[,\s]\s*([+-]?\d*\.?\d+)\s*\)/) ?? transform2.match(/translate\(\s*([+-]?\d*\.?\d+)\s*\)/);
-        const sm = transform2.match(/scale\(\s*([+-]?\d*\.?\d+)(?:[,\s]\s*([+-]?\d*\.?\d+))?\s*\)/);
-        if (tm) {
-          nt.tx += sX * parseFloat(tm[1]);
-          nt.ty += sY * parseFloat(tm[2] ?? "0");
-        }
-        if (sm) {
-          nt.sX = sX * parseFloat(sm[1]);
-          nt.sY = sY * parseFloat(sm[2] ?? sm[1]);
-        }
-      }
       const style2 = parseStyleAttr(el);
       const inh = {
         fill: prop(el, style2, "fill", inherited),
@@ -5307,7 +6555,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
         opacity: void 0
         // group opacity does not inherit as a property; applied per-leaf
       };
-      for (const child of el.children) await visit(child, nt, inh);
+      for (const child of el.children) await visit(child, et, inh);
       return;
     }
     const style = parseStyleAttr(el);
@@ -5334,8 +6582,37 @@ async function svgDomToIr(svgEl, ctx = {}) {
     } else if (tag === "text") {
       await emitText(el, style, { PX, PY, mapPt, gAvg, rAvg, elemOpacity });
       return;
-    } else if (tag === "image" || tag === "use") {
-      warn(`${tag} elements are not yet supported in EMF (skipped)`);
+    } else if (tag === "image") {
+      const href = el.getAttribute("href") || el.getAttribute("xlink:href") || el.getAttributeNS?.("http://www.w3.org/1999/xlink", "href") || "";
+      if (!href) {
+        warn("image with no href (skipped)");
+        return;
+      }
+      const dec = await decodeImageToRgb(href, bg);
+      if (!dec) {
+        warn("image could not be rasterised for this format (skipped)");
+        return;
+      }
+      const bx = PX(len(prop(el, style, "x"), vbW));
+      const by = PY(len(prop(el, style, "y"), vbH));
+      const bw = len(prop(el, style, "width"), vbW) * Math.abs(sX) * regX;
+      const bh = len(prop(el, style, "height"), vbH) * Math.abs(sY) * regY;
+      if (bw < 0.5 || bh < 0.5) return;
+      const par = (prop(el, style, "preserveAspectRatio") || "xMidYMid meet").trim();
+      let x = bx, y = by, w = bw, h = bh;
+      if (!/^none/i.test(par) && dec.w > 0 && dec.h > 0) {
+        const scale = Math.min(bw / dec.w, bh / dec.h);
+        w = dec.w * scale;
+        h = dec.h * scale;
+        const ax = /xMin/i.test(par) ? 0 : /xMax/i.test(par) ? 1 : 0.5;
+        const ay = /YMin/i.test(par) ? 0 : /YMax/i.test(par) ? 1 : 0.5;
+        x = bx + (bw - w) * ax;
+        y = by + (bh - h) * ay;
+      }
+      prims.push({ type: "image", x, y, w, h, pxW: dec.w, pxH: dec.h, rgb: dec.rgb });
+      return;
+    } else if (tag === "use") {
+      warn("use elements are not supported (skipped)");
       return;
     } else {
       for (const child of el.children || []) await visit(child, t, inherited);
@@ -5387,17 +6664,18 @@ async function svgDomToIr(svgEl, ctx = {}) {
       fontStyle: italic ? "italic" : "normal",
       letterSpacing: letterSpacingCss
     };
-    const fontUrl = resolveSuseFontUrl(fontStyleObj);
+    const vf = textApi ? await resolveVectorFont(fontStyleObj, raw) : null;
+    const fontUrl = vf?.url ?? null;
     if (!canVectoriseText(fontStyleObj, fontUrl, Boolean(textApi))) {
       throw new Error(
-        `${LABEL} export requires outlined text, but the run "${raw.slice(0, 24)}" could not be vectorized (font-family "${family || "inherited"}"${textApi ? "" : "; no text-shaping in this shell"}). Use a registered (SUSE) font, or export SVG/PDF.`
+        `${LABEL} export requires outlined text, but the run "${raw.slice(0, 24)}" could not be vectorized (font-family "${family || "inherited"}"${textApi ? "" : "; no text-shaping in this shell"}). Add the font under Profile \u2192 Your brand, or export SVG/PDF.`
       );
     }
     const letterSpacing = letterSpacingPx(letterSpacingCss);
     const features = featureSettingsToHb(prop(el, style, "font-feature-settings", null) ?? cs?.fontFeatureSettings);
     let result;
     try {
-      result = await textApi.toPath({ text: raw, fontUrl, fontSize, features, letterSpacing });
+      result = await textApi.toPath({ text: raw, fontUrl, fontSize, features, letterSpacing, variations: vf.variations, fallbackFonts: vf.fallbacks });
     } catch (e) {
       throw new Error(`EMF export: text shaping failed for "${raw.slice(0, 24)}" \u2014 ${e.message}`);
     }
@@ -5489,6 +6767,31 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     })().catch(() => []);
     return photoTreatmentsCache;
   }
+  let tokensDocCache = null;
+  function tokensDoc() {
+    tokensDocCache ??= (async () => {
+      const asset = assetIndex.assets.find((a) => a.type === "tokens");
+      if (!asset) return null;
+      return JSON.parse(await readFile3(join2(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+    })().catch(() => null);
+    return tokensDocCache;
+  }
+  const tokenSets = /* @__PURE__ */ new Map();
+  async function tokenSet(theme) {
+    const key = theme ?? "";
+    let set = tokenSets.get(key);
+    if (!set) {
+      set = createTokenSet(await tokensDoc(), { theme });
+      tokenSets.set(key, set);
+    }
+    return set;
+  }
+  host.tokens = {
+    get: (opts = {}) => tokenSet(opts.theme),
+    colors: async (opts = {}) => (await tokenSet(opts.theme)).colors(),
+    resolve: async (ref, opts = {}) => (await tokenSet(opts.theme)).resolve(ref),
+    themes: async () => (await tokenSet()).themes()
+  };
   host.assets = {
     async get(id) {
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
@@ -5517,7 +6820,8 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       }
       if (treatment && meta.type === "raster") {
         const def = (await photoTreatments()).find((t) => t.id === treatment);
-        const w2 = fmt.width, h = fmt.height;
+        const dimSrc = fmt.width && fmt.height ? fmt : meta.formats.find((f) => f.width && f.height);
+        const w2 = dimSrc?.width, h = dimSrc?.height;
         if (def && w2 && h) {
           const href = `data:${mimeFor(fmt.format)};base64,${buf.toString("base64")}`;
           const svg = wrapRasterWithTreatment({ href, width: w2, height: h, treatment: def });
@@ -5672,6 +6976,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       const childRuntime = await createRuntime(childTool, host, inputs, { composeStack: _stack });
       const el = w.document.createElement("div");
       el.innerHTML = childRuntime.getHydrated();
+      await applyBrandVars(el, host);
       const fmt = format ?? childTool.manifest.render.formats[0];
       const u = unit || "px";
       const qual = (v) => typeof v === "number" && v > 0 ? u !== "px" ? `${v}${u}` : v : void 0;
@@ -5738,6 +7043,20 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     }
   };
   return host;
+}
+var BRAND_VAR_SLOTS = ["primary", "on-primary", "secondary", "surface", "text", "muted", "edge"];
+async function applyBrandVars(el, host) {
+  if (!host.tokens) return;
+  for (const slot of BRAND_VAR_SLOTS) {
+    let value;
+    try {
+      value = await host.tokens.resolve(`{color.semantic.${slot}}`);
+    } catch {
+      continue;
+    }
+    const css = typeof value === "string" && value ? isAlias(value) ? null : value : colorToHex(value);
+    if (css) el.style.setProperty(`--brand-${slot}`, css);
+  }
 }
 function injectSvgMeta(xml, meta) {
   if (!meta) return xml;
@@ -6045,8 +7364,9 @@ async function getBrowser() {
       } catch (err) {
         const msg = err.message || "";
         if (/executable doesn't exist|Executable doesn't exist|please run/i.test(msg)) {
+          const hosted = !!process.env.VERCEL || process.env.LOLLY_MCP_HOSTED === "1";
           throw new RenderError(
-            `Chromium is not installed for the Tier-B render path. Run \`npm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
+            hosted ? `This format needs the browser render tier, which isn't enabled on this hosted endpoint. What renders here: vector formats (svg, eps, emf), the data formats (html, md, json, csv, ics, vcf), and png for SVG-native tools. Try svg \u2014 it works for every tool \u2014 or png for a simple vector tool (e.g. qr-code).` : `Chromium is not installed for the Tier-B render path. Run \`npm run install:browser\` (downloads Chromium into services/mcp/.browsers), or point LOLLY_BROWSER_CHANNEL / LOLLY_BROWSER_PATH at an existing browser.`
           );
         }
         throw err;
@@ -6159,6 +7479,9 @@ async function render(toolId, query, o = {}) {
   };
   const profile = o.profile ?? {};
   const warnings = [];
+  if (merged.password && exportFmt === "pdf-cmyk") {
+    warnings.push('Password is not applied for pdf-cmyk \u2014 the returned PDF is not protected. Use format "pdf" for an open-password.');
+  }
   let out;
   if (TIER_A.has(exportFmt)) {
     const r = await renderTierA(toolId, values, exportFmt, exportOpts(merged), profile);
@@ -6306,6 +7629,7 @@ var TOOL_DEFS = [
     }
   }
 ];
+var TOOL_ID_RE = /^[a-z0-9-]+$/;
 function textOnly(text) {
   return { content: [{ type: "text", text }] };
 }
@@ -6350,6 +7674,7 @@ ${lines.join("\n")}`;
       case "lolly_describe_tool": {
         const toolId = String(args["toolId"] ?? "");
         if (!toolId) return errorResult("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
         const tool = await loadToolCached(toolId).catch(() => null);
         if (!tool) return errorResult(`Tool not found: ${toolId}. Use lolly_list_tools.`);
         const m = tool.manifest;
@@ -6375,6 +7700,7 @@ ${lines.join("\n")}`;
       case "lolly_build_url": {
         const toolId = String(args["toolId"] ?? "");
         if (!toolId) return errorResult("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}.`);
         const tool = await loadToolCached(toolId).catch(() => null);
         if (!tool) return errorResult(`Tool not found: ${toolId}.`);
         const inputs = args["inputs"] ?? {};
@@ -6388,6 +7714,7 @@ ${links.renderUrl ?? "(unavailable)"}`);
       case "lolly_render": {
         const toolId = String(args["toolId"] ?? "");
         if (!toolId) return errorResult("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
         const tool = await loadToolCached(toolId).catch(() => null);
         if (!tool) return errorResult(`Tool not found: ${toolId}. Use lolly_list_tools.`);
         const inputs = args["inputs"] ?? {};
@@ -6439,6 +7766,7 @@ ${links.renderUrl ?? "(unavailable)"}`);
         const toolId = String(args["toolId"] ?? "");
         const file = args["file"];
         if (!toolId) return errorResult("toolId is required.");
+        if (!TOOL_ID_RE.test(toolId)) return errorResult(`Invalid toolId: ${toolId}. Use lolly_list_tools.`);
         if (!file?.base64) return errorResult("file.base64 is required.");
         const inputs = args["inputs"] ?? {};
         const res = await transform(toolId, { base64: file.base64, name: file.name, mime: file.mime }, inputs);
@@ -6571,18 +7899,18 @@ async function dispatch(req) {
 }
 
 // services/mcp/src/sign.ts
-var te3 = new TextEncoder();
-var subtle3 = globalThis.crypto.subtle;
+var te5 = new TextEncoder();
+var subtle5 = globalThis.crypto.subtle;
 var bytesToB64u = (bytes) => Buffer.from(bytes).toString("base64url");
 var b64uToBytes = (str) => new Uint8Array(Buffer.from(String(str), "base64url"));
 var randomB64u = (n2 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n2)));
 async function hmac(secret, text) {
   if (!secret) throw new Error("signing secret is not set");
-  const key = await subtle3.importKey("raw", te3.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await subtle3.sign("HMAC", key, te3.encode(text)));
+  const key = await subtle5.importKey("raw", te5.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await subtle5.sign("HMAC", key, te5.encode(text)));
 }
 async function sha256B64u(text) {
-  return bytesToB64u(new Uint8Array(await subtle3.digest("SHA-256", te3.encode(text))));
+  return bytesToB64u(new Uint8Array(await subtle5.digest("SHA-256", te5.encode(text))));
 }
 async function signValue(payload, secret) {
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
@@ -6879,11 +8207,17 @@ function send(res, r) {
 }
 var formToObject = (raw) => Object.fromEntries(new URLSearchParams(raw));
 function createGateway(env = process.env) {
+  const mcpEnabled = !!signingSecret(env) || env.LOLLY_MCP_ALLOW_ANONYMOUS === "1";
   return async (req, res) => {
     const method = req.method || "GET";
     if (method === "OPTIONS") {
       res.writeHead(204, CORS);
       res.end();
+      return;
+    }
+    if (!mcpEnabled) {
+      res.writeHead(404, { ...CORS, "content-type": "application/json" });
+      res.end(JSON.stringify({ error: "not_found" }));
       return;
     }
     const url = new URL(req.url || "/", "http://internal");

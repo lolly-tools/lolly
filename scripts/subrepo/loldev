@@ -66,7 +66,15 @@ do_build() {
     npm run --silent validate:catalog || { err "validate:catalog failed for profile '$profile'"; return 1; }
     ok "'$profile' catalog built + validated"
   done
-  [ -n "$starting" ] && node scripts/use-profile.ts "$starting" >/dev/null 2>&1
+  # Restore the pre-gate profile. If none was set (fresh checkout / no
+  # .lolly-profile), the loop above leaves the LAST-iterated SHIP_TARGET
+  # (lolly-start) pinned locally — that is exactly the stale sticky state that
+  # once leaked the blank brand into a lolly.tools deploy. Fall back to
+  # $LOLLY_PROFILE, else profiles.json's default, so we never silently pin the
+  # blank brand on someone who never chose one.
+  local restore="$starting"
+  [ -z "$restore" ] && restore="${LOLLY_PROFILE:-$(node -e 'process.stdout.write(require("./profiles.json").default||"")' 2>/dev/null)}"
+  [ -n "$restore" ] && node scripts/use-profile.ts "$restore" >/dev/null 2>&1
 }
 
 # Pretty end-of-run tally. Reads the PUSHED / FAILED / NOOP globals gtg fills in.
@@ -150,6 +158,35 @@ gtg() {
   [ "${#FAILED[@]}" -eq 0 ]   # exit status reflects success/failure
 }
 
+# Post-deploy brand assertion. The brand a project actually builds is governed
+# ENTIRELY by its Vercel LOLLY_PROFILE env — which this toolkit never sets and,
+# until now, never checked. A missing/typo'd env silently ships the wrong brand
+# to a live domain while ship() still prints a green banner (it once shipped the
+# blank brand to lolly.tools). This reads the freshly-deployed domain's catalog
+# and FAILS the ship if the live tool set doesn't match the set the target's
+# declared profile is supposed to serve. Prod only — a preview deploy gets a
+# throwaway URL and never updates the domain alias, so there's nothing to assert.
+# $1=profile  $2=domain  $3=project id (for the hint).
+verify_deploy() {
+  local profile="$1" domain="$2" id="$3" expected actual tries=0
+  expected="$(node -e 'const p=require("./profiles.json").profiles[process.argv[1]];if(!p)process.exit(3);process.stdout.write(String((require("./"+p.catalog+"/tools/index.json").tools||[]).length))' "$profile" 2>/dev/null)"
+  if [ -z "$expected" ]; then
+    warn "verify: can't read the expected catalog for profile '$profile' — skipping brand assertion for $domain"
+    return 0
+  fi
+  step "verifying $domain is serving the '$profile' brand (expecting $expected tools)"
+  while [ "$tries" -lt 6 ]; do
+    actual="$(curl -fsS --max-time 30 "https://$domain/catalog/tools/index.json" 2>/dev/null \
+      | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{try{process.stdout.write(String((JSON.parse(s).tools||[]).length))}catch(e){process.stdout.write("")}})' 2>/dev/null)"
+    [ "$actual" = "$expected" ] && { ok "verify: $domain serving '$profile' — $actual tools live"; return 0; }
+    tries=$((tries + 1)); sleep 5
+  done
+  err "verify: $domain shipped the WRONG brand — expected profile '$profile' ($expected tools) but the live catalog shows '${actual:-unreadable}' after $tries checks"
+  err "  the deploy is live but built the wrong brand. Check this project's LOLLY_PROFILE env:"
+  err "    VERCEL_ORG_ID=$VERCEL_TEAM_ID VERCEL_PROJECT_ID=$id npx vercel env ls"
+  return 1
+}
+
 # ship = gtg (build + commit + push to GitHub) THEN deploy to Vercel — EVERY
 # project in SHIP_TARGETS, uniformly (currently `bt`→lolly.tools/SUSE and
 # `lolly-start`→lolly.art/blank brand), so `loldev ship` never leaves one site
@@ -183,8 +220,12 @@ ship() {
     rm -f "$log"
     if [ "$rc" -eq 0 ]; then
       ok "shipped $name"
-      line="$domain"; [ -n "$url" ] && line="$line  ·  $url"
-      SHIPPED+=("$line")
+      if [ "$PREVIEW" != 1 ] && ! verify_deploy "$profile" "$domain" "$id"; then
+        SFAILED+=("$name → $domain (deployed, but the WRONG brand is live)")
+      else
+        line="$domain"; [ -n "$url" ] && line="$line  ·  $url"
+        SHIPPED+=("$line")
+      fi
     else
       err "vercel deploy failed: $name (exit $rc)"
       SFAILED+=("$name → $domain")

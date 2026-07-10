@@ -45,8 +45,7 @@ const isNumberArray = (v: unknown): v is number[] =>
   Array.isArray(v) && v.every(n => typeof n === 'number');
 const isSpotColor = (v: unknown): v is SpotColor => {
   if (!isRecord(v) || typeof v.name !== 'string') return false;
-  if (v.book !== undefined && typeof v.book !== 'string') return false;
-  return isNumberArray(v.cmyk) && v.cmyk.length === 4;
+  return v.book === undefined || typeof v.book === 'string';
 };
 
 /**
