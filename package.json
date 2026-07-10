@@ -2,7 +2,7 @@
   "name": "lolly",
   "version": "0.1.0",
   "private": true,
-  "description": "Constraint-first, template-driven on-brand asset generation. Brand packs are swappable profiles (SUSE, lolly-start, …).",
+  "description": "Constraint-first, template-driven asset generation. Brand packs are swappable profiles (SUSE, lolly-start, …).",
   "license": "MPL-2.0",
   "type": "module",
   "engines": {
