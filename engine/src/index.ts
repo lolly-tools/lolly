@@ -397,4 +397,14 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // crop / re-encode steps) for embedC2pa — used by the web catalog's download
 // paths, which now re-sign modified assets with the source credential preserved
 // as an ingredient instead of shipping unsigned bytes.
-export const ENGINE_VERSION = '1.31.0';
+// 1.32.0 — per-swatch print locks, generalized from the primary-anchor-only
+// override. ColorSwatch gains `spot` (SpotColor: name/book/cmyk), read by
+// tokens.ts's toSwatch() from the same $extensions["com.suse.lolly"] object as
+// the existing `cmyk` lock — any colour token, not just the primary ramp's
+// anchor, can now be locked to an exact process CMYK or a named spot ink.
+// eps.ts's emitEps() takes an optional cmykPalette (quantised-RGB → CMYK map,
+// same key scheme as shells/web's buildCmykPaletteMap) so EPS CMYK export can
+// substitute measured/spot inks like the PDF path already does. print-marks.ts's
+// PaletteSwatch/BarCell gain `spotName` so the verification colour bar can
+// annotate a spot-locked cell with its ink name instead of raw CMYK numbers.
+export const ENGINE_VERSION = '1.32.0';

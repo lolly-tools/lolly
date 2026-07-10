@@ -22,3 +22,12 @@ shells/web/dist
 # vercel.json's includeFiles globs and the web build's dist copy see real files.
 /tools
 /catalog
+
+# Local sticky profile choice — a developer's `loldev profile <name>` selection.
+# NEVER ship it: `loldev ship` archives the local tree, and use-profile --auto
+# ranks the sticky file ABOVE the default profile. If it leaked into a deploy
+# whose project has no LOLLY_PROFILE env, it would ship the developer's local
+# brand (e.g. lolly-start) instead of the project's intended one — which once
+# shipped the blank brand to lolly.tools. Each project's brand is pinned by its
+# own LOLLY_PROFILE env var (or the `suse` default); this file is local-only.
+/.lolly-profile

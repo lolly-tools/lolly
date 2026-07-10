@@ -22,6 +22,306 @@
           "size": 10443
         }
       ]
+    },
+    {
+      "id": "lolly/loops/pixel-quest-save-point",
+      "name": "Pixel Quest Save Point",
+      "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "activities"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/pixel-quest-save-point.opus",
+          "checksum": "sha256-Ps4cjw8UjCLvwo8UrMvvlwLVVTeSarzACQk/Kz36JC4=",
+          "size": 621905
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/breezy-afternoon-terrace",
+      "name": "Breezy Afternoon Terrace",
+      "description": "Looping lo-fi beat (jazz-lounge) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "jazzhop"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/breezy-afternoon-terrace.opus",
+          "checksum": "sha256-KRFhhFAREA/IZjBbY25oFZgcLOnI4Q2w0YUPRr0ZE70=",
+          "size": 702508
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/rain-on-the-boulevard",
+      "name": "Rain on the Boulevard",
+      "description": "Looping lo-fi beat (jazz-lounge) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "jazzhop"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/rain-on-the-boulevard.opus",
+          "checksum": "sha256-CpQyl1dokA4usuZImCEhvJQF4DtIoh6SCJfG6gtE6NQ=",
+          "size": 773120
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/fireplace-loop",
+      "name": "Fireplace Loop",
+      "description": "Looping lo-fi beat (rainy-day) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "seasonal-weather"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/fireplace-loop.opus",
+          "checksum": "sha256-o7w9Lz0DBtmNG5oqtY0tAL+Ix0ye4zn9OW9eDLCvtEs=",
+          "size": 749918
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/first-coffee-thoughts",
+      "name": "First Coffee Thoughts",
+      "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "activities"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/first-coffee-thoughts.opus",
+          "checksum": "sha256-XM6/zoiKxLKeN4vG86aDu6eilvp7by/XqiJhyTn8bn8=",
+          "size": 785387
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/continue-screen-dreams",
+      "name": "Continue Screen Dreams",
+      "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "activities"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/continue-screen-dreams.opus",
+          "checksum": "sha256-AIckb8FxrwMzhj0I1dwlXqjNu2APUMS0H8MCkerYUuU=",
+          "size": 796815
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/slow-dance-in-the-living-room",
+      "name": "Slow Dance in the Living Room",
+      "description": "Looping lo-fi beat (soul & slow-jam) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "soul-rnb"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/slow-dance-in-the-living-room.opus",
+          "checksum": "sha256-a3b4W1ufaNbXk0ozNOFV8x4nPIx6MkOpDNul3eHnRj4=",
+          "size": 832053
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/3-am-echoes",
+      "name": "3 AM Echoes",
+      "description": "Looping lo-fi beat (late-night) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "late-night"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/3-am-echoes.opus",
+          "checksum": "sha256-P4foIid0ZZ3DBrSQL38+AnTpgavBsLO0j4MSzZMRsz8=",
+          "size": 817709
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/after-school-rain",
+      "name": "After School Rain",
+      "description": "Looping lo-fi beat (rainy-day) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "seasonal-weather"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/after-school-rain.opus",
+          "checksum": "sha256-3cnTvaJ2Y54WuM5sw336G18MmGWp5lbYQNZzJE0Y28s=",
+          "size": 806193
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/3am-sink-light",
+      "name": "3AM Sink Light",
+      "description": "Looping lo-fi beat (soul & slow-jam) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "soul-rnb"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/3am-sink-light.opus",
+          "checksum": "sha256-mmH3nX+1wbs6qo7YqGZ+5bcacWcLOaPTG37VCDkK8gU=",
+          "size": 800725
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/saxophone-in-the-rain",
+      "name": "Saxophone in the Rain",
+      "description": "Looping lo-fi beat (jazz-lounge) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "jazzhop"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/saxophone-in-the-rain.opus",
+          "checksum": "sha256-7kttMDikHx3MZQMn1U2rQSXRPhDXmNs9FuYKFeRyWgA=",
+          "size": 798861
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/loops/empty-street-static",
+      "name": "Empty Street Static",
+      "description": "Looping lo-fi beat (late-night) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "loop",
+        "beat",
+        "neurospicy",
+        "lofi",
+        "late-night"
+      ],
+      "formats": [
+        {
+          "format": "opus",
+          "url": "/catalog/assets/lolly/loops/empty-street-static.opus",
+          "checksum": "sha256-G7HYbfJsYSy47Yv/DAPFavOCby6K+EBUws0I3mVYp4w=",
+          "size": 833796
+        }
+      ],
+      "license": "CC0-1.0"
     }
   ]
 }
