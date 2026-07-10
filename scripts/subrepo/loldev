@@ -195,9 +195,11 @@ verify_deploy() {
 # target project per deploy without touching the local `.vercel/` link (stays
 # pointed at `bt`, e.g. for `vercel dev`). --archive=tgz tarballs the LOCAL tree
 # for every target, so submodule content ships and Vercel compiles api/
-# functions; each project's own LOLLY_PROFILE env var (Vercel dashboard) is what
-# actually picks the brand it builds. --preview → preview URLs instead of prod,
-# for every target.
+# functions. The brand each target builds is PINNED per-deploy from SHIP_TARGETS
+# via `--build-env LOLLY_PROFILE=<profile>` (repo = source of truth), so the right
+# profile — and therefore the whole brand: palette, tokens, fonts, tools, catalog —
+# always lands on the right domain regardless of dashboard/local state; verify_deploy
+# then asserts it on the live domain. --preview → preview URLs instead of prod.
 ship() {
   local PREVIEW=0 gargs=() a
   for a in "$@"; do [ "$a" = "--preview" ] && PREVIEW=1 || gargs+=("$a"); done
@@ -210,11 +212,19 @@ ship() {
   local entry name id profile domain log rc url line
   for entry in "${SHIP_TARGETS[@]}"; do
     IFS='|' read -r name id profile domain <<<"$entry"
-    phase "🚀" "Deploy → Vercel ($name → $domain, $tgt)"
-    step "tarballing the local tree + building on Vercel"
+    phase "🚀" "Deploy → Vercel ($name → $domain, $profile · $tgt)"
+    step "tarballing the local tree + building on Vercel (LOLLY_PROFILE=$profile)"
     log="$(mktemp -t loldev-ship.XXXXXX)"
+    # PIN the brand at build-time from SHIP_TARGETS (repo = source of truth). `-b`
+    # sets LOLLY_PROFILE for THIS build, so postinstall's use-profile --auto can't
+    # fall through to the tarballed sticky file or the `suse` default and build the
+    # wrong brand — and because the whole brand (palette/tokens/fonts/tools/catalog)
+    # is materialised from the profile, pinning it pins ALL of it. Overrides the
+    # project's dashboard LOLLY_PROFILE for this deploy; that dashboard var stays as
+    # the fallback for Vercel's git-integration auto-deploys, which skip loldev ship.
+    # verify_deploy() below still asserts the live domain afterwards (belt + braces).
     VERCEL_ORG_ID="$VERCEL_TEAM_ID" VERCEL_PROJECT_ID="$id" \
-      npx --yes vercel deploy "${flags[@]}" --archive=tgz --yes 2>&1 | tee "$log"
+      npx --yes vercel deploy "${flags[@]}" --archive=tgz --build-env "LOLLY_PROFILE=$profile" --yes 2>&1 | tee "$log"
     rc=${PIPESTATUS[0]}
     url="$(grep -Eo 'https://[a-zA-Z0-9._~:/?#@!$&%*+=-]+' "$log" | tail -1)"
     rm -f "$log"
