@@ -51,6 +51,10 @@ export {
 } from './print-marks.ts';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.ts';
 export { extractSvgColors } from './svg-colors.ts';
+export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';
+export type {
+  ZzfxSong, ZzfxInstrument, ZzfxChannel, ZzfxPattern, RenderedPcm,
+} from './zzfxm.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
 } from './css-box.ts';
@@ -87,6 +91,8 @@ export {
 } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder } from './pdf-map.ts';
+export { pdfNodesToSvg } from './pdf-svg.ts';
+export type { PdfSvgOptions } from './pdf-svg.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
@@ -407,4 +413,19 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // substitute measured/spot inks like the PDF path already does. print-marks.ts's
 // PaletteSwatch/BarCell gain `spotName` so the verification colour bar can
 // annotate a spot-locked cell with its ink name instead of raw CMYK numbers.
-export const ENGINE_VERSION = '1.32.0';
+// 1.33.0 — additive: zzfxm.ts renders procedural music (ZzFXM songs, a few KB of
+// nested arrays) to raw stereo PCM — renderZzfxm(song) plus the vendored zzfxG
+// (ZzFX Micro synth) / zzfxM (ZzFXM renderer). Pure and DOM-free: the web shell
+// wraps the PCM in an AudioBuffer for the Neurospicy player (in a Worker) and for
+// video music beds (OfflineAudioContext); ingest/generator scripts audition
+// output in Node. One runtime path for hand-authored, MIDI→ZzFXM, MOD→ZzFXM, and
+// generated tracks — no per-format player, WASM, or soundfonts. No bridge change.
+// 1.34.0 — additive: pdf-svg.ts serializes an interpreted PDF page (pdf-map.ts's
+// PdfNodes, pre-finalizeBoxes) to ONE standalone SVG document — the "PDF page as
+// an asset" sibling of the Layout Studio boxes path, sharing the same interpreter
+// so the two ingest surfaces agree. Raster XObjects arrive pre-decoded from the
+// shell as data: URIs (opts.images); group ids survive as <g data-group> so a
+// page SVG re-imported into Layout Studio regroups. Transparent background by
+// default (PDF "paper" is a viewer convention; .ai vector art shouldn't bake a
+// white plate). No bridge change.
+export const ENGINE_VERSION = '1.34.0';
