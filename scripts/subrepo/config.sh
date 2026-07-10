@@ -21,10 +21,13 @@ GIT_HOST="https://github.com"
 # name|project-id|profile|domain: `name`/`id` target a specific Vercel project via
 # VERCEL_ORG_ID/VERCEL_PROJECT_ID env overrides (so the local `.vercel/project.json`
 # link, which stays pointed at `bt` for `vercel dev`/inspect, is never touched);
-# `profile` must be a key in profiles.json — it's what the build gate switches the
-# tools/+catalog views to before validating (each project's OWN LOLLY_PROFILE env
-# var, set in its Vercel dashboard, is what actually picks the brand at build time —
-# this is belt-and-braces so a bad push can't silently break either site).
+# `profile` must be a key in profiles.json. It drives the brand at three points:
+# (1) the build gate switches the tools/+catalog views to it before validating;
+# (2) `loldev ship` pins it per-deploy via `--build-env LOLLY_PROFILE=<profile>` so
+#     the correct brand is built on Vercel deterministically (repo = source of truth);
+# (3) verify_deploy asserts the live domain serves it afterwards.
+# The project's dashboard LOLLY_PROFILE remains as the fallback for Vercel's own
+# git-integration auto-deploys (which don't run through loldev ship).
 VERCEL_TEAM_ID="team_6XAaRitEb6CnNoNPwI3pI6hb"
 SHIP_TARGETS=(
   "bt|prj_13zlzrOV2VHeK0CGUCyHGx4cPLu7|suse|lolly.tools"
