@@ -561,12 +561,14 @@ export interface ColorSwatch {
   spot: SpotColor | null;      // named spot/Pantone lock from $extensions, when present
 }
 
-/** A named spot ink (e.g. Pantone) locked onto a token, with its CMYK equivalent
- *  for preview, non-PDF export, and the Separation alternate-space fallback. */
+/** A named spot ink (e.g. Pantone) locked onto a token. Independent of the
+ *  sibling `cmyk` lock above — a token may carry either, both, or neither:
+ *  `cmyk` is the process-colour fallback (preview, non-PDF export, and the
+ *  Separation alternate-space value) whether or not a spot is also set; when
+ *  neither is set it's derived from the token's own colour at export time. */
 export interface SpotColor {
   name: string;
   book?: string;
-  cmyk: [number, number, number, number];
 }
 
 // ─── Clipboard ──────────────────────────────────────────────────────────────

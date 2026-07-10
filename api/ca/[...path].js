@@ -501,6 +501,20 @@ function emailOnCooldown(email, now) {
   const prev = lastEmailAt.get(email);
   return prev !== void 0 && now - prev < EMAIL_COOLDOWN_MS;
 }
+var IP_WINDOW_MS = 60 * 1e3;
+var IP_MAX_PER_WINDOW = 5;
+var ipHits = /* @__PURE__ */ new Map();
+function ipRateLimited(ip, now) {
+  if (!ip) return false;
+  if (ipHits.size > 5e3) {
+    for (const [k, hits] of ipHits) if (!hits.some((t) => now - t < IP_WINDOW_MS)) ipHits.delete(k);
+  }
+  const recent = (ipHits.get(ip) || []).filter((t) => now - t < IP_WINDOW_MS);
+  ipHits.set(ip, recent);
+  if (recent.length >= IP_MAX_PER_WINDOW) return true;
+  recent.push(now);
+  return false;
+}
 function isAllowedOrigin(origin, env) {
   if (!origin || typeof origin !== "string") return false;
   const list = String(env.CA_ALLOWED_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
@@ -570,7 +584,7 @@ async function routeCallback(env, { provider, query, cookieHeader, redirectUri }
   const token = await mintEnrollToken({ email, provider }, env.CA_SERVICE_SECRET);
   return { status: 200, body: completionPage({ token, origin: state.origin }), type: "text/html; charset=utf-8", headers: clear };
 }
-async function routeEmailStart(env, body) {
+async function routeEmailStart(env, body, ip) {
   const email = typeof body?.email === "string" ? body.email.trim() : "";
   const origin = body?.origin;
   if (!isAllowedOrigin(origin, env)) return { status: 403, json: { error: "origin is not allowlisted" } };
@@ -580,6 +594,7 @@ async function routeEmailStart(env, body) {
   }
   const now = Date.now();
   if (emailOnCooldown(email, now)) return { status: 200, json: { sent: true } };
+  if (ipRateLimited(ip, now)) return { status: 429, json: { error: "too many requests, please try again shortly" } };
   lastEmailAt.set(email, now);
   const days = Number(body?.days);
   const token = await mintEnrollToken(
@@ -606,6 +621,10 @@ If you didn't request this, ignore this email.`
     return { status: 502, json: { error: "sending the verification email failed" } };
   }
   return { status: 200, json: { sent: true } };
+}
+function clientIp(req) {
+  const xff = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+  return xff || req.socket?.remoteAddress || "";
 }
 function parseCookies(header) {
   const out = {};
@@ -687,15 +706,21 @@ async function route(env, req, url, path) {
     } catch (err) {
       return { status: err.statusCode || 400, json: { error: err.message } };
     }
-    return path === "/api/ca/enroll" ? enroll(body || {}, env) : routeEmailStart(env, body || {});
+    return path === "/api/ca/enroll" ? enroll(body || {}, env) : routeEmailStart(env, body || {}, clientIp(req));
   }
   return { status: 404, json: { error: "not found" } };
 }
 function createCaHandler(env = process.env) {
+  const caEnabled = !!(env.CA_SERVICE_SECRET || env.CA_ROOT_KEY_PEM);
   return async function caHandler(req, res) {
     try {
       const url = new URL(req.url, "http://internal");
       const path = url.pathname.replace(/\/+$/, "") || "/";
+      if (!caEnabled) {
+        res.writeHead(404, { "content-type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ error: "not_found" }));
+        return;
+      }
       const requestOrigin = req.headers.origin;
       const cors = isAllowedOrigin(requestOrigin, env) ? { "access-control-allow-origin": requestOrigin, vary: "Origin" } : {};
       if (req.method === "OPTIONS") {

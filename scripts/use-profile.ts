@@ -162,7 +162,10 @@ function main(): void {
   if (auto && !name) {
     // Precedence: LOLLY_PROFILE env (explicit, works on Vercel) → the sticky
     // local choice (.lolly-profile) → the default → first complete fallback.
-    const envChoice = process.env.LOLLY_PROFILE;
+    // Trimmed to match the sticky-file handling (activeProfile trims too): a
+    // stray space/newline in a dashboard env var shouldn't become an "unknown
+    // profile" build failure. Empty string stays falsy → falls through.
+    const envChoice = process.env.LOLLY_PROFILE?.trim();
     const active = activeProfile();
     if (envChoice) {
       target = envChoice;
@@ -198,6 +201,16 @@ function main(): void {
     const missing = [...profile.tools, profile.catalog].filter((r) => !existsSync(join(ROOT, r)));
     console.error(`✗ profile "${target}" is missing: ${missing.join(', ')}`);
     console.error(`  (private packs need: git submodule update --init --checkout ${missing[0]})`);
+    // On Vercel, fail LOUDLY regardless of how the profile was resolved. The
+    // early guard above only covers the incomplete-DEFAULT path; an explicitly
+    // set-but-incomplete LOLLY_PROFILE (e.g. `suse` on a git-build where the
+    // private pack is absent) would otherwise reach here and exit(0) under
+    // --auto, letting the build continue with no tools/catalog views and ship
+    // an empty catalog. Same fail-safe as the default-branch guard.
+    if (process.env.VERCEL) {
+      console.error(`  On Vercel this must not silently continue — deploy via \`loldev ship\` (archive includes the packs), or point LOLLY_PROFILE at a profile whose packs are present.`);
+      process.exit(1);
+    }
     process.exit(auto ? 0 : 1);
   }
   try {
