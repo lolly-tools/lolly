@@ -224,6 +224,37 @@ test('authorship "created" with a Lolly generator → madeWithLolly=true, delive
   assert.equal(r.delivered, false);
 });
 
+// A Lolly-created asset that was re-saved/re-encoded after signing: the file's
+// bytes no longer match the hard binding, but the manifest's own content
+// (claim signature, every hashed-URI assertion — the actions and export
+// context a report shows as edit history / "made from") is still fully
+// verified. That's the "likely" case, not the flat "invalid, no lolly" one.
+test('tamper OUTSIDE the manifest on a Lolly-created asset → likelyMadeWithLolly=true', async () => {
+  const pdf = (await stampedCreatedLolly).slice();
+  const mi = binOf(pdf).indexOf('MediaBox') + 1; // original PDF bytes, excluded from nothing
+  pdf[mi] = pdf[mi]! ^ 0x01;
+  const report: any = await verifyC2pa(pdf);
+  assert.equal(report.state, 'invalid');
+  assert.equal(check(report, 'assertion.dataHash.mismatch').ok, false);
+  assert.equal(report.madeWithLolly, false, 'bytes no longer match — never the flat claim');
+  assert.equal(report.likelyMadeWithLolly, true);
+  assert.ok(check(report, 'claimSignature.validated').ok, 'the manifest content itself is untouched');
+});
+
+// A deeper tamper — inside the claim itself — breaks the claim signature, so
+// the manifest's content can no longer be trusted either. likelyMadeWithLolly
+// must not soften THAT failure into a maybe.
+test('tamper INSIDE the claim on a Lolly-created asset → likelyMadeWithLolly stays false', async () => {
+  const pdf = (await stampedCreatedLolly).slice();
+  const fi = binOf(pdf).indexOf('Created Asset') + 1; // dc:title lives only in the claim
+  pdf[fi] = pdf[fi]! ^ 0x01;
+  const report: any = await verifyC2pa(pdf);
+  assert.equal(report.state, 'invalid');
+  assert.equal(check(report, 'claimSignature.mismatch').ok, false);
+  assert.equal(report.madeWithLolly, false);
+  assert.equal(report.likelyMadeWithLolly, false, 'the claim signature itself failed — the content is not trustworthy');
+});
+
 // v2 records the human author in a CAWG metadata assertion (dc:creator); the
 // verifier reads it back into report.author for the "Produced by" line. (The
 // strict c2pa.metadata assertion forbids creator fields — see c2pa.ts.)

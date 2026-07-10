@@ -33,6 +33,16 @@
  * That is an integrity statement, not an identity proof — any writer could
  * claim the name, which the view copy is honest about.
  *
+ * `likelyMadeWithLolly` softens that verdict for the common re-save case: the
+ * claim signature verified and every hashed-URI-bound assertion (the actions
+ * we render as edit history, the export-context digest, …) matches what the
+ * claim references — so the manifest's CONTENT is trustworthy — but the file's
+ * own bytes no longer match the hard binding (it was re-encoded/re-uploaded/
+ * re-saved through something that left the manifest alone but touched bytes
+ * outside it). We can still honestly show what it was made from and its edit
+ * history; we just can't vouch for the current bytes, hence "likely" rather
+ * than the flat claim.
+ *
  * Like c2pa.js / emf.js / eps.js this is a format authority: no DOM, no
  * Handlebars — fully node:test-able (globalThis.crypto only).
  */
@@ -1113,6 +1123,7 @@ interface C2paReport {
   state: 'valid' | 'invalid' | 'none';
   trusted: boolean;
   madeWithLolly: boolean;
+  likelyMadeWithLolly: boolean;
   delivered: boolean;
   format: SniffFormat | null;
   checks: C2paCheck[];
@@ -1137,7 +1148,9 @@ const AI_SOURCE_TYPES: Record<string, 'generated' | 'composite'> = {
   trainedAlgorithmicMedia: 'generated',
   compositeWithTrainedAlgorithmicMedia: 'composite',
 };
-const aiKind = (sourceType: unknown): 'generated' | 'composite' | undefined =>
+// Exported so read-side callers (e.g. the web shell's catalog/picker badge) can map a
+// captured ingredient's digitalSourceType to the AI kind without re-deriving the slug set.
+export const aiKind = (sourceType: unknown): 'generated' | 'composite' | undefined =>
   AI_SOURCE_TYPES[(typeof sourceType === 'string' ? sourceType : '').split('/').pop() ?? ''];
 
 // Walk EVERY manifest in the store (active + all ingredient/parent manifests)
@@ -1307,6 +1320,11 @@ export function prepareC2paIngredientFromStore(store: Uint8Array, format: string
  *     found, state: 'valid'|'invalid'|'none', trusted, reason?,
  *     format:  sniffed container ('png', 'pdf', …) or null,
  *     madeWithLolly: boolean — credential INTACT and records Lolly as generator,
+ *     likelyMadeWithLolly: boolean — the claim's own content is trustworthy
+ *                (signature verified, every hashed-URI assertion matched) and
+ *                records a Lolly creation, but the file's bytes no longer match
+ *                the hard binding — a softer verdict for a re-saved/re-encoded
+ *                Lolly export; false whenever madeWithLolly is already true,
  *     aiGenerated?: { kind: 'generated'|'composite', sourceType } — set when an
  *                action declares AI/ML-generated pixels (IPTC DigitalSourceType),
  *     history?: the full provenance chain — every manifest's actions flattened,
@@ -1333,7 +1351,7 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   const fail = (code: string, explanation: string): void => { checks.push({ code, ok: false, explanation }); };
   const pass = (code: string, explanation: string): void => { checks.push({ code, ok: true, explanation }); };
   const format = sniffFormat(bytes);
-  const report: C2paReport = { found: false, state: 'none', trusted: false, madeWithLolly: false, delivered: false, format, checks };
+  const report: C2paReport = { found: false, state: 'none', trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, delivered: false, format, checks };
   const pdfBytes = bytes; // the hard binding hashes the whole file, any container
 
   if (!format) {
@@ -1719,7 +1737,19 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   const acts = report.claim!.actions || [];
   const created = acts.some((a) => a.action === 'c2pa.created');
   const names = [report.claim!.claimGenerator, report.claim!.generatorInfo?.name].filter(Boolean).join(' ');
-  report.madeWithLolly = report.state === 'valid' && created && /\blolly\b/i.test(names);
+  const claimsLolly = created && /\blolly\b/i.test(names);
+  report.madeWithLolly = report.state === 'valid' && claimsLolly;
+  // Softer verdict for the common re-save case: every check passed EXCEPT the
+  // hard binding (the file's bytes, not the manifest's content). The claim
+  // signature and every hashed-URI-bound assertion — including the actions and
+  // export-context digest this report shows as edit history / "made from" —
+  // are verified, so that CONTENT is trustworthy; we just can't vouch for the
+  // bytes as they stand now. Never true when madeWithLolly already is.
+  const onlyBindingUnverified = checks.every((c) => c.ok
+    || c.code === 'signingCredential.untrusted'
+    || c.code === 'assertion.dataHash.mismatch'
+    || c.code === 'assertion.bmffHash.mismatch');
+  report.likelyMadeWithLolly = !report.madeWithLolly && onlyBindingUnverified && claimsLolly;
   // "Delivered" = an intact credential over an EXISTING asset the signer
   // distributed but did not create (a c2pa.published action, no creation).
   // Drives the "Delivered by Lolly" / authentic-official-asset verdict.

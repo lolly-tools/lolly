@@ -1758,6 +1758,24 @@ const CONTAINERS: Record<string, Container> = {
 export const C2PA_FORMATS = Object.freeze(['pdf', 'pdf-cmyk', ...Object.keys(CONTAINERS)]);
 
 /**
+ * Re-attach an ALREADY-BUILT C2PA manifest store (verbatim JUMBF, as returned by
+ * extractC2paStore) back into a container, WITHOUT rebuilding or re-signing it. Used to
+ * make a captured Content Credential inspectable again after ingest re-encoded the file
+ * and dropped the in-file manifest (the raw store is preserved separately). The store's
+ * hard binding still references the ORIGINAL bytes, so a verifier will correctly report
+ * the file as modified if `bytes` differ from what was signed — but the manifest's claims
+ * (AI-generated flag, signer identity, action history) read intact. Returns the container
+ * bytes with the store embedded. No signing, no hashing — a pure re-insertion.
+ */
+export function attachC2paStore(bytes: Uint8Array, format: string, store: Uint8Array): Uint8Array {
+  if (!(bytes instanceof Uint8Array)) throw new Error('C2PA attach: bytes must be a Uint8Array');
+  if (!(store instanceof Uint8Array)) throw new Error('C2PA attach: store must be a Uint8Array');
+  const container = CONTAINERS[String(format || '').toLowerCase()];
+  if (!container) throw new Error(`C2PA attach: no container for format '${format}'`);
+  return container.place(bytes, store).out;
+}
+
+/**
  * Embed a signed C2PA manifest into any supported container. `format` is the
  * export format string ('png', 'jpg', 'svg', 'gif', 'tiff', 'cmyk-tiff',
  * 'webp', 'apng', 'mp4', 'webm', 'pdf', 'pdf-cmyk'); PDF routes to the
