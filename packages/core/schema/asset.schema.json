@@ -72,6 +72,11 @@
       "type": "string",
       "description": "e.g. 'internal', 'cc-by-4.0', 'all-rights-reserved'."
     },
+    "aiGenerated": {
+      "type": "string",
+      "enum": ["full", "partial"],
+      "description": "Generative-AI provenance disclosure. 'full' = the asset is wholly AI-generated; 'partial' = it contains AI-generated elements (an AI-composited/edited work). Surfaces a violet 'GEN AI' pill in the catalog + a note in the asset details. Omit for human-made assets. Author this honestly — only for assets actually produced with a trained generative model."
+    },
     "deprecated": {
       "type": "boolean",
       "default": false,

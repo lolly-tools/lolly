@@ -17,8 +17,8 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { embedC2pa, C2PA_FORMATS } from '../engine/src/c2pa.ts';
-import { verifyC2pa, sniffFormat } from '../engine/src/c2pa-verify.ts';
+import { embedC2pa, C2PA_FORMATS, CAPTURE_SOURCE_TYPE } from '../engine/src/c2pa.ts';
+import { verifyC2pa, sniffFormat, extractC2paStore, prepareC2paIngredientFromStore } from '../engine/src/c2pa-verify.ts';
 import { packTiff } from '../engine/src/tiff.ts';
 
 const bytesOf = (s: string): Uint8Array => Uint8Array.from(s, (c) => c.charCodeAt(0) & 0xff);
@@ -479,3 +479,35 @@ test('crafted claims with malformed assertion refs report invalid, never throw',
       JSON.stringify(report.checks));
   }
 });
+
+// ─── recorded-clip provenance (the recorder bridge's self-asserting capture) ──
+// A recorder tool signs its take at capture time (shells/web stampCaptureClip):
+// a c2pa.created step with the digitalCapture source type embedded into the mp4/
+// webm bytes. This proves the engine half end-to-end for BOTH containers: the
+// clip verifies, its created step round-trips digitalCapture, and the store
+// extracts back out as a preparable INGREDIENT — so the signed take both
+// self-asserts AND chains when composited into a top-&-tail / record video.
+for (const [fmt, fixture] of [['mp4', tinyMp4()], ['webm', tinyWebm()]] as Array<[string, Uint8Array]>) {
+  test(`recorded ${fmt} clip: digitalCapture created step verifies + extracts as a chainable ingredient`, async () => {
+    const out = await embedC2pa(fixture, fmt, {
+      ...OPTS,
+      environment: { ...OPTS.environment, format: fmt },
+      actions: [{ action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: 'Recorded live from the camera and microphone' }],
+    });
+    // The clip file self-asserts: it verifies, and its created action is a capture.
+    const report = await verifyC2pa(out);
+    assert.equal(report.state, 'valid', `${fmt} clip should verify`);
+    const created = report.claim?.actions?.find((a) => a.action === 'c2pa.created');
+    assert.ok(created, `${fmt} clip carries a c2pa.created action`);
+    assert.equal(created!.digitalSourceType, CAPTURE_SOURCE_TYPE, 'created step declares digitalCapture');
+    // The store extracts back out (what storeRecordingAsset persists as the asset's
+    // credential) and prepares as an ingredient (what the composition chains).
+    const ex = extractC2paStore(out);
+    assert.ok(ex, `a store extracts from the signed ${fmt} clip`);
+    assert.equal(ex!.format, fmt);
+    const ingredient = prepareC2paIngredientFromStore(ex!.store, ex!.format);
+    assert.ok(ingredient, `the ${fmt} clip credential prepares as an ingredient`);
+    assert.equal(typeof ingredient!.activeLabel, 'string');
+    assert.ok(ingredient!.manifestBoxes.length >= 1, 'ingredient carries the manifest boxes verbatim');
+  });
+}

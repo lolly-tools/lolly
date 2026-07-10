@@ -34,6 +34,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "activities"
@@ -59,6 +60,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "jazzhop"
@@ -84,6 +86,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "jazzhop"
@@ -109,6 +112,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "seasonal-weather"
@@ -134,6 +138,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "activities"
@@ -159,6 +164,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "activities"
@@ -184,6 +190,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "soul-rnb"
@@ -209,6 +216,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "late-night"
@@ -234,6 +242,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "seasonal-weather"
@@ -259,6 +268,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "soul-rnb"
@@ -284,6 +294,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "jazzhop"
@@ -309,6 +320,7 @@
         "audio",
         "loop",
         "beat",
+        "ambient",
         "neurospicy",
         "lofi",
         "late-night"
@@ -499,6 +511,31 @@
           "url": "/catalog/assets/lolly/songs/meadow.zzfxm.json",
           "checksum": "sha256-zahJffOz9cf9z2cQkTCiHXbuQ7wo1UCn+U3O0rBpi38=",
           "size": 974
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/fur-elise",
+      "name": "Für Elise",
+      "description": "Für Elise — a public-domain piano piece, converted from MIDI to a tiny ZzFXM song and synthesised on device. A focus track for Neurospicy Mode, also a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "melodic",
+        "piano",
+        "classical"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/fur-elise.zzfxm.json",
+          "checksum": "sha256-npEm6brgjYJ5Xubrb06EAKhFcQdpOUIHqasEJcF0lXc=",
+          "size": 8542
         }
       ],
       "license": "CC0-1.0"

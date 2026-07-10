@@ -55,6 +55,8 @@ export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';
 export type {
   ZzfxSong, ZzfxInstrument, ZzfxChannel, ZzfxPattern, RenderedPcm,
 } from './zzfxm.ts';
+export { parseMidi, midiToSong, midiToZzfxm } from './midi.ts';
+export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
 } from './css-box.ts';
@@ -73,7 +75,7 @@ export type {
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE } from './c2pa.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore } from './c2pa-verify.ts';
 export type { C2paIngredientData } from './c2pa-verify.ts';
@@ -438,4 +440,19 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // c2paCapture / c2paTextAdded. (2) summarizeInputs now includes `longtext` and stores
 // FULL text (bounded) so the exact rendered copy — a tamper-relevant signal — rides
 // in the tools.lolly.export digest. No bridge signature change.
-export const ENGINE_VERSION = '1.35.0';
+// 1.36.0 — additive: midi.ts converts a Standard MIDI File to a ZzfxSong
+// (midiToZzfxm / parseMidi + midiToSong) — a DOM-free, bounds-hardened SMF parser +
+// note→pattern mapper. Feeds the same zzfxm.ts render path as authored/generated
+// songs, so a .mid uploaded in the web shell (or ingested via scripts/ingest-midi.ts,
+// which now shares this converter) becomes a tiny format:'zzfxm' asset that plays and
+// previews everywhere. No bridge change.
+// 1.37.0 — additive: verifyC2pa() gains report.likelyMadeWithLolly — true when
+// every check passed EXCEPT the hard binding (assertion.dataHash/bmffHash
+// mismatch: the file's bytes, not the manifest, changed after signing) and the
+// claim still records a Lolly creation. The claim signature and every
+// hashed-URI-bound assertion — the actions and export-context digest a report
+// shows as edit history / "made from" — are still verified, so that content is
+// trustworthy even though the bytes can no longer be vouched for (a re-saved,
+// re-encoded, or re-uploaded Lolly export). Always false when madeWithLolly is
+// already true. No bridge change.
+export const ENGINE_VERSION = '1.37.0';
