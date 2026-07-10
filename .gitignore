@@ -2,6 +2,11 @@
 _testlogos/
 shells/web/public/_testlogos/
 
+# Claude Code per-session files (settings.local.json is covered by the global
+# ignore; launch.json is a local harness artifact — never commit either).
+.claude/launch.json
+.claude/settings.local.json
+
 # Logs
 logs
 *.log

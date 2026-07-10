@@ -87,6 +87,178 @@ const TRACKS: Track[] = [
     extraTags: ['melodic', 'calm'],
     description: 'Bright, unhurried bell phrases over an easy pad — open and sunny.',
   },
+
+  // ── drum and bass ────────────────────────────────────────────────────────
+  {
+    slug: 'db-night-signal',
+    name: 'Night Signal',
+    spec: { archetype: 'drumAndBass', seed: 0xb4001d, bpm: 174, scale: 'minorPent', roots: [12, 17, 19, 15, 22], targetSec: 48, lead: 'pad', bass: 'reese', restProb: 0.12, pan: -0.15 },
+    extraTags: ['drum-and-bass', 'dark', 'energetic', 'bass'],
+    description: 'A syncopated breakbeat with a growling, ever-moving bass and a sparse dark pad stabbing through the gaps.',
+  },
+  {
+    slug: 'db-glass-current',
+    name: 'Glass Current',
+    spec: { archetype: 'drumAndBass', seed: 0xe2f9a6, bpm: 168, scale: 'suspended', roots: [12, 19, 17, 14], targetSec: 40, lead: 'glass', bass: 'sub', restProb: 0.28, pan: 0.2 },
+    extraTags: ['drum-and-bass', 'moody', 'melodic', 'atmospheric'],
+    description: 'Fast rolling hats and a deep gliding sub under cool glassy stabs — moody and propulsive.',
+  },
+  {
+    slug: 'db-red-district',
+    name: 'Red District',
+    spec: { archetype: 'drumAndBass', seed: 0xc17b5f, bpm: 172, scale: 'harmonicMinor', roots: [12, 20, 15, 17, 24], targetSec: 55, lead: 'sweep', bass: 'reese', restProb: 0.1, pan: -0.25 },
+    extraTags: ['drum-and-bass', 'dark', 'aggressive', 'bass'],
+    description: 'A driving breakbeat with a snarling bass and a haunting minor-key swell, dark and relentless.',
+  },
+
+  // ── jungle ───────────────────────────────────────────────────────────────
+  {
+    slug: 'jn-undergrowth',
+    name: 'Undergrowth',
+    spec: { archetype: 'jungle', seed: 0x8f3c21, bpm: 174, scale: 'minorPent', roots: [12, 15, 19, 17], targetSec: 42, lead: 'glockenspiel', bass: 'sub', restProb: 0.4, pan: -0.2 },
+    extraTags: ['jungle', 'beat', 'breakbeat', 'dark'],
+    description: 'A dense, chopped breakbeat with ghost snare hits, a deep sub pulse, and a sparkling echo-y bell melody darting through the gaps.',
+  },
+  {
+    slug: 'jn-ragga-transmission',
+    name: 'Ragga Transmission',
+    spec: { archetype: 'jungle', seed: 0xc419e6, bpm: 88, scale: 'phrygianDominant', roots: [12, 19, 13, 20, 17], targetSec: 52, lead: 'bell', bass: 'reese', restProb: 0.6, pan: 0.25 },
+    extraTags: ['jungle', 'beat', 'echo', 'dreamy'],
+    description: 'A half-time jungle groove with a deep wobbling sub, ragga-flavored bell stabs, and plenty of space between the breaks.',
+  },
+
+  // ── classical ────────────────────────────────────────────────────────────
+  {
+    slug: 'cl-morning-sonata',
+    name: 'Morning Sonata',
+    spec: { archetype: 'classical', seed: 0xc1a5e0, bpm: 96, scale: 'majorScale', roots: [12, 19, 21, 17], targetSec: 48, lead: 'harpsichord', restProb: 0.15, pan: 0.1 },
+    extraTags: ['classical', 'graceful', 'melodic'],
+    description: 'A bright, arpeggiated harpsichord dances over a warm string pad through a classic major-key turn.',
+  },
+  {
+    slug: 'cl-autumn-reverie',
+    name: 'Autumn Reverie',
+    spec: { archetype: 'classical', seed: 0x8b3fd2, bpm: 78, scale: 'harmonicMinor', roots: [12, 20, 17, 19, 12], targetSec: 52, lead: 'piano', restProb: 0.3, pan: -0.15 },
+    extraTags: ['classical', 'dreamy', 'strings'],
+    description: 'A wistful piano arpeggio drifts beneath a slow string swell, turning gently through a minor key.',
+  },
+  {
+    slug: 'cl-twilight-waltz',
+    name: 'Twilight Waltz',
+    spec: { archetype: 'classical', seed: 0xe47a19, bpm: 88, scale: 'majorScale', roots: [24, 19, 21, 17], targetSec: 40, lead: 'harpsichord', restProb: 0.22, pan: 0.2 },
+    extraTags: ['classical', 'graceful', 'dreamy'],
+    description: 'A graceful, waltz-like harpsichord arpeggio swirls over lush strings, drifting between light and shadow.',
+  },
+
+  // ── spanish guitar ───────────────────────────────────────────────────────
+  {
+    slug: 'sg-ember-rain',
+    name: 'Ember and Rain',
+    spec: { archetype: 'spanishGuitar', seed: 0xa13f9c, bpm: 96, scale: 'harmonicMinor', roots: [12, 20, 17, 19], targetSec: 48, lead: 'nylonGuitar', restProb: 0.42, pan: -0.12 },
+    extraTags: ['melodic', 'moody', 'spanish-guitar'],
+    description: 'Slow, brooding nylon-guitar arpeggios circle a minor-key progression over a low grounding bass and the faintest hand-claps.',
+  },
+  {
+    slug: 'sg-andalusian-fire',
+    name: 'Andalusian Fire',
+    spec: { archetype: 'spanishGuitar', seed: 0x5e7bd2, bpm: 122, scale: 'phrygianDominant', roots: [12, 13, 20, 22, 19], targetSec: 36, lead: 'nylonGuitar', restProb: 0.2, pan: 0.15 },
+    extraTags: ['rhythm', 'passionate', 'spanish-guitar'],
+    description: 'Fast, fiery flamenco-flavored guitar runs snap between sharp chord stabs and a driving off-beat clap.',
+  },
+
+  // ── cuban ────────────────────────────────────────────────────────────────
+  {
+    slug: 'cb-malecon-sunset',
+    name: 'Malecón Sunset',
+    spec: { archetype: 'cuban', seed: 0xc8a3f1, bpm: 108, scale: 'majorPent', roots: [12, 16, 19, 21], targetSec: 42, lead: 'piano', bass: 'bass', pan: 0.15 },
+    extraTags: ['cuban', 'rhythm', 'beat', 'melodic'],
+    description: 'Bouncy piano-montuno stabs ride a lively son-clave with congas and bongos, bright and sunny like a Havana afternoon.',
+  },
+  {
+    slug: 'cb-havana-midnight',
+    name: 'Havana Midnight',
+    spec: { archetype: 'cuban', seed: 0xe21b7a, bpm: 98, scale: 'harmonicMinor', roots: [12, 15, 19, 20, 17], targetSec: 50, lead: 'epiano', bass: 'sub', pan: -0.15 },
+    extraTags: ['cuban', 'rhythm', 'beat', 'dreamy'],
+    description: 'A slower, sultry son groove — mellow electric-piano montuno and a deep rolling bass under murmuring congas after dark.',
+  },
+
+  // ── bossa nova ───────────────────────────────────────────────────────────
+  {
+    slug: 'bn-copacabana-breeze',
+    name: 'Copacabana Breeze',
+    spec: { archetype: 'bossaNova', seed: 0x6b2e9f, bpm: 122, scale: 'majorScale', roots: [12, 19, 17, 21], targetSec: 48, lead: 'nylonGuitar', pan: 0.12 },
+    extraTags: ['bossa-nova', 'melodic', 'calm'],
+    description: 'Warm nylon guitar comping bounces over a soft brushed snare and a gentle shaker pulse — a sunny, unhurried bossa sway.',
+  },
+  {
+    slug: 'bn-midnight-veranda',
+    name: 'Midnight Veranda',
+    spec: { archetype: 'bossaNova', seed: 0xd174ab, bpm: 117, scale: 'harmonicMinor', roots: [12, 20, 17, 15, 19], targetSec: 52, lead: 'epiano', pan: -0.15 },
+    extraTags: ['bossa-nova', 'dreamy', 'calm'],
+    description: 'Mellow electric piano comps in a minor key over a soft brushed snare and shaker — a hushed, late-night bossa mood.',
+  },
+
+  // ── whimsical ────────────────────────────────────────────────────────────
+  {
+    slug: 'wh-button-jar',
+    name: 'Button Jar',
+    spec: { archetype: 'whimsical', seed: 0xa1c3f2, bpm: 140, scale: 'majorPent', roots: [12, 19, 21, 16], targetSec: 38, lead: 'glockenspiel', restProb: 0.22, pan: 0.1 },
+    extraTags: ['whimsical', 'playful', 'bright', 'melodic'],
+    description: 'A bright, bouncy music-box melody that hops and skips over a plucky little bass line.',
+  },
+  {
+    slug: 'wh-teacup-parade',
+    name: 'Teacup Parade',
+    spec: { archetype: 'whimsical', seed: 0x5e7d91, bpm: 118, scale: 'suspended', roots: [12, 17, 22, 19], targetSec: 48, lead: 'bell', restProb: 0.4, pan: -0.15 },
+    extraTags: ['whimsical', 'dreamy', 'curious', 'melodic'],
+    description: 'A curious, airy bell tune that wanders and pauses unexpectedly, like tiptoeing through a strange garden.',
+  },
+  {
+    slug: 'wh-clockwork-sparrow',
+    name: 'Clockwork Sparrow',
+    spec: { archetype: 'whimsical', seed: 0xc02aab, bpm: 128, scale: 'minorPent', roots: [12, 19, 15, 22, 17], targetSec: 42, lead: 'glass', restProb: 0.18, pan: 0.2 },
+    extraTags: ['whimsical', 'quirky', 'playful', 'melodic'],
+    description: 'A quirky, glassy melody with a mechanical little skip and impish, ticking pauses.',
+  },
+
+  // ── chiptune ─────────────────────────────────────────────────────────────
+  {
+    slug: 'ct-turbo-dash',
+    name: 'Turbo Dash',
+    spec: { archetype: 'chiptune', seed: 0x2f7ae4, bpm: 156, scale: 'majorPent', roots: [12, 16, 19, 24, 21], targetSec: 38, lead: 'pulse', pan: -0.2 },
+    extraTags: ['chiptune', 'energetic', 'arcade', 'beat'],
+    description: 'A buzzy pulse-wave arpeggio sprints over a punchy 8-bit kick, pure retro race-track energy.',
+  },
+  {
+    slug: 'ct-pixel-quest',
+    name: 'Pixel Quest',
+    spec: { archetype: 'chiptune', seed: 0xb81c56, bpm: 144, scale: 'majorScale', roots: [12, 17, 19, 24], targetSec: 46, lead: 'square', pan: 0.15 },
+    extraTags: ['chiptune', 'catchy', 'playful', 'melodic'],
+    description: 'A bright square-wave melody bounces through a cheerful chord march, like a hero setting off on a quest.',
+  },
+
+  // ── lo-fi ────────────────────────────────────────────────────────────────
+  {
+    slug: 'lf-rainy-window',
+    name: 'Rainy Window',
+    spec: { archetype: 'lofi', seed: 0xb17ea5, bpm: 74, scale: 'minorPent', roots: [12, 19, 15, 17], targetSec: 48, lead: 'epiano', bass: 'bass', pan: -0.15 },
+    extraTags: ['lofi', 'beat', 'calm'],
+    description: 'A hazy electric-piano loop over a swung, laid-back beat, like listening to rain through a café window.',
+  },
+  {
+    slug: 'lf-corner-booth',
+    name: 'Corner Booth',
+    spec: { archetype: 'lofi', seed: 0x2f9c41, bpm: 85, scale: 'majorScale', roots: [21, 17, 12, 19], targetSec: 36, lead: 'piano', bass: 'sub', pan: 0.2 },
+    extraTags: ['lofi', 'rhythm', 'focus'],
+    description: 'Late-night jazzy piano stabs ride a deep rolling bass, shuffled just enough to feel unhurried.',
+  },
+  {
+    slug: 'lf-sunday-static',
+    name: 'Sunday Static',
+    spec: { archetype: 'lofi', seed: 0xd48ac0, bpm: 80, scale: 'suspended', roots: [12, 19, 22, 17, 14], targetSec: 52, lead: 'nylonGuitar', bass: 'bass', pan: 0.1 },
+    extraTags: ['lofi', 'melodic', 'dreamy'],
+    description: 'A dusty plucked-guitar loop drifts over a soft shuffled beat, a lazy Sunday with a little vinyl crackle.',
+  },
 ];
 
 interface AssetFormat { format: string; url: string; checksum: string; size?: number }
@@ -143,7 +315,10 @@ for (const t of TRACKS) {
 const index = existsSync(INDEX_PATH)
   ? (JSON.parse(readFileSync(INDEX_PATH, 'utf8')) as { assets: Asset[]; [k: string]: unknown })
   : { assets: [] as Asset[] };
-index.assets = (index.assets ?? []).filter((a) => !a.id.startsWith('lolly/songs/'));
+// Only replace entries THIS script owns (one per TRACKS slug) — songs registered by
+// other sources (e.g. scripts/ingest-midi.ts's fur-elise) must survive a rerun.
+const ownedSlugs = new Set(TRACKS.map((t) => `lolly/songs/${t.slug}`));
+index.assets = (index.assets ?? []).filter((a) => !ownedSlugs.has(a.id));
 index.assets.push(...newEntries);
 writeFileSync(INDEX_PATH, JSON.stringify(index, null, 2) + '\n');
 

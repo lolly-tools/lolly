@@ -336,6 +336,31 @@
       "license": "CC0-1.0"
     },
     {
+      "id": "lolly/songs/fur-elise",
+      "name": "Für Elise",
+      "description": "Für Elise — a public-domain piano piece, converted from MIDI to a tiny ZzFXM song and synthesised on device. A focus track for Neurospicy Mode, also a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "melodic",
+        "piano",
+        "classical"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/fur-elise.zzfxm.json",
+          "checksum": "sha256-npEm6brgjYJ5Xubrb06EAKhFcQdpOUIHqasEJcF0lXc=",
+          "size": 8542
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
       "id": "lolly/songs/drift",
       "name": "Drift",
       "description": "A gentle bell melody over a warm pad with a light offbeat pulse. Generated on device from a few KB of ZzFXM data (~44s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
@@ -516,9 +541,9 @@
       "license": "CC0-1.0"
     },
     {
-      "id": "lolly/songs/fur-elise",
-      "name": "Für Elise",
-      "description": "Für Elise — a public-domain piano piece, converted from MIDI to a tiny ZzFXM song and synthesised on device. A focus track for Neurospicy Mode, also a video music bed. Public domain (CC0).",
+      "id": "lolly/songs/db-night-signal",
+      "name": "Night Signal",
+      "description": "A syncopated breakbeat with a growling, ever-moving bass and a sparse dark pad stabbing through the gaps. Generated on device from a few KB of ZzFXM data (~48s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
       "type": "audio",
       "version": "1.0.0",
       "tier": "on-demand",
@@ -526,16 +551,575 @@
         "audio",
         "song",
         "neurospicy",
-        "melodic",
-        "piano",
-        "classical"
+        "generated",
+        "drum-and-bass",
+        "dark",
+        "energetic",
+        "bass"
       ],
       "formats": [
         {
           "format": "zzfxm",
-          "url": "/catalog/assets/lolly/songs/fur-elise.zzfxm.json",
-          "checksum": "sha256-npEm6brgjYJ5Xubrb06EAKhFcQdpOUIHqasEJcF0lXc=",
-          "size": 8542
+          "url": "/catalog/assets/lolly/songs/db-night-signal.zzfxm.json",
+          "checksum": "sha256-gjS3Jez67oZji6DiSbpBUgz2mMt2K+YYXtgNbMFY1TM=",
+          "size": 1592
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/db-glass-current",
+      "name": "Glass Current",
+      "description": "Fast rolling hats and a deep gliding sub under cool glassy stabs — moody and propulsive. Generated on device from a few KB of ZzFXM data (~40s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "drum-and-bass",
+        "moody",
+        "melodic",
+        "atmospheric"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/db-glass-current.zzfxm.json",
+          "checksum": "sha256-PT312PhJ36v4U7Ic+/HxckbfcHbDR0wrjpGWRVciWHM=",
+          "size": 1288
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/db-red-district",
+      "name": "Red District",
+      "description": "A driving breakbeat with a snarling bass and a haunting minor-key swell, dark and relentless. Generated on device from a few KB of ZzFXM data (~54s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "drum-and-bass",
+        "dark",
+        "aggressive",
+        "bass"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/db-red-district.zzfxm.json",
+          "checksum": "sha256-7JpFykTQOSfgWHsq8EbUNYx8xqXDCUrIRl6qv5BAvFM=",
+          "size": 1604
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/jn-undergrowth",
+      "name": "Undergrowth",
+      "description": "A dense, chopped breakbeat with ghost snare hits, a deep sub pulse, and a sparkling echo-y bell melody darting through the gaps. Generated on device from a few KB of ZzFXM data (~41s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "jungle",
+        "beat",
+        "breakbeat",
+        "dark"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/jn-undergrowth.zzfxm.json",
+          "checksum": "sha256-0pJxPNAuaUxU0W9acWyasNaP+e3ZlttTnfCyHKORxoA=",
+          "size": 1316
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/jn-ragga-transmission",
+      "name": "Ragga Transmission",
+      "description": "A half-time jungle groove with a deep wobbling sub, ragga-flavored bell stabs, and plenty of space between the breaks. Generated on device from a few KB of ZzFXM data (~52s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "jungle",
+        "beat",
+        "echo",
+        "dreamy"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/jn-ragga-transmission.zzfxm.json",
+          "checksum": "sha256-PXjEzM61P78M4nkgkoCWNQ/FrNNP7cy1y7eFcGsQ+KI=",
+          "size": 1515
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/cl-morning-sonata",
+      "name": "Morning Sonata",
+      "description": "A bright, arpeggiated harpsichord dances over a warm string pad through a classic major-key turn. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "classical",
+        "graceful",
+        "melodic"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/cl-morning-sonata.zzfxm.json",
+          "checksum": "sha256-t57OjgbBaQUyvs1Tq8jvz5hLzmvItCmsG+5/FvdcNqY=",
+          "size": 825
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/cl-autumn-reverie",
+      "name": "Autumn Reverie",
+      "description": "A wistful piano arpeggio drifts beneath a slow string swell, turning gently through a minor key. Generated on device from a few KB of ZzFXM data (~52s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "classical",
+        "dreamy",
+        "strings"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/cl-autumn-reverie.zzfxm.json",
+          "checksum": "sha256-D3MV7SXvnFrfIzsL3a+vBC7kMQXfFMK96r28fm4ALUI=",
+          "size": 938
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/cl-twilight-waltz",
+      "name": "Twilight Waltz",
+      "description": "A graceful, waltz-like harpsichord arpeggio swirls over lush strings, drifting between light and shadow. Generated on device from a few KB of ZzFXM data (~41s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "classical",
+        "graceful",
+        "dreamy"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/cl-twilight-waltz.zzfxm.json",
+          "checksum": "sha256-7OZo0goEHJb9jodGZaMYJNTdpp48WSIUolDDXHZyWrU=",
+          "size": 824
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/sg-ember-rain",
+      "name": "Ember and Rain",
+      "description": "Slow, brooding nylon-guitar arpeggios circle a minor-key progression over a low grounding bass and the faintest hand-claps. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "melodic",
+        "moody",
+        "spanish-guitar"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/sg-ember-rain.zzfxm.json",
+          "checksum": "sha256-95wyid720WG87gjPlXZ5MM4G1p9kQ38yIRPaoKK6KcY=",
+          "size": 935
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/sg-andalusian-fire",
+      "name": "Andalusian Fire",
+      "description": "Fast, fiery flamenco-flavored guitar runs snap between sharp chord stabs and a driving off-beat clap. Generated on device from a few KB of ZzFXM data (~35s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "rhythm",
+        "passionate",
+        "spanish-guitar"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/sg-andalusian-fire.zzfxm.json",
+          "checksum": "sha256-ValcYLe+aAYSnkx6A+ke3g4mcSzURuRAZ0ZLydOh1rg=",
+          "size": 1125
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/cb-malecon-sunset",
+      "name": "Malecón Sunset",
+      "description": "Bouncy piano-montuno stabs ride a lively son-clave with congas and bongos, bright and sunny like a Havana afternoon. Generated on device from a few KB of ZzFXM data (~42s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "cuban",
+        "rhythm",
+        "beat",
+        "melodic"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/cb-malecon-sunset.zzfxm.json",
+          "checksum": "sha256-bEV9d1Ln1dkVtTUhAbyafn/8OBz6uXo3HyGBiNWdVrw=",
+          "size": 1217
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/cb-havana-midnight",
+      "name": "Havana Midnight",
+      "description": "A slower, sultry son groove — mellow electric-piano montuno and a deep rolling bass under murmuring congas after dark. Generated on device from a few KB of ZzFXM data (~49s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "cuban",
+        "rhythm",
+        "beat",
+        "dreamy"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/cb-havana-midnight.zzfxm.json",
+          "checksum": "sha256-l7q3Qw85TyGDCDFMtfVF5jr9zppmkL4+Tb2YZI6Iqbc=",
+          "size": 1459
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/bn-copacabana-breeze",
+      "name": "Copacabana Breeze",
+      "description": "Warm nylon guitar comping bounces over a soft brushed snare and a gentle shaker pulse — a sunny, unhurried bossa sway. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "bossa-nova",
+        "melodic",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/bn-copacabana-breeze.zzfxm.json",
+          "checksum": "sha256-hwBscRGDaTtBxtkUeUjohDbkvrBq+jeee+PswY6wVKo=",
+          "size": 1037
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/bn-midnight-veranda",
+      "name": "Midnight Veranda",
+      "description": "Mellow electric piano comps in a minor key over a soft brushed snare and shaker — a hushed, late-night bossa mood. Generated on device from a few KB of ZzFXM data (~51s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "bossa-nova",
+        "dreamy",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/bn-midnight-veranda.zzfxm.json",
+          "checksum": "sha256-pEcBg2/q8+sXSgJtKThQzgMFBQ9KU48ZbfqmRvmaGLo=",
+          "size": 1214
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/wh-button-jar",
+      "name": "Button Jar",
+      "description": "A bright, bouncy music-box melody that hops and skips over a plucky little bass line. Generated on device from a few KB of ZzFXM data (~38s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "whimsical",
+        "playful",
+        "bright",
+        "melodic"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/wh-button-jar.zzfxm.json",
+          "checksum": "sha256-HHJ50kMldKv187tW/6gcRmzRR3Cn9TiXy5IN8K7bn+s=",
+          "size": 799
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/wh-teacup-parade",
+      "name": "Teacup Parade",
+      "description": "A curious, airy bell tune that wanders and pauses unexpectedly, like tiptoeing through a strange garden. Generated on device from a few KB of ZzFXM data (~49s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "whimsical",
+        "dreamy",
+        "curious",
+        "melodic"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/wh-teacup-parade.zzfxm.json",
+          "checksum": "sha256-D/hB4e+HIQIQFZLo+wAEiywr+f/1THOjULZOMeP7+xc=",
+          "size": 785
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/wh-clockwork-sparrow",
+      "name": "Clockwork Sparrow",
+      "description": "A quirky, glassy melody with a mechanical little skip and impish, ticking pauses. Generated on device from a few KB of ZzFXM data (~41s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "whimsical",
+        "quirky",
+        "playful",
+        "melodic"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/wh-clockwork-sparrow.zzfxm.json",
+          "checksum": "sha256-ujjNPX1WonOANHJ1DBkapYTsaKouiEcdXZXmpWtV9fk=",
+          "size": 921
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/ct-turbo-dash",
+      "name": "Turbo Dash",
+      "description": "A buzzy pulse-wave arpeggio sprints over a punchy 8-bit kick, pure retro race-track energy. Generated on device from a few KB of ZzFXM data (~38s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "chiptune",
+        "energetic",
+        "arcade",
+        "beat"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/ct-turbo-dash.zzfxm.json",
+          "checksum": "sha256-LIuLkl9VlQFsDHojalSrl1dWrO+clsjk8ECx9+DSyhQ=",
+          "size": 1287
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/ct-pixel-quest",
+      "name": "Pixel Quest",
+      "description": "A bright square-wave melody bounces through a cheerful chord march, like a hero setting off on a quest. Generated on device from a few KB of ZzFXM data (~47s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "chiptune",
+        "catchy",
+        "playful",
+        "melodic"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/ct-pixel-quest.zzfxm.json",
+          "checksum": "sha256-6O05GEPxT99g+I1jfIhxVvaTurdQXT1flpc6Jqxr3C0=",
+          "size": 1106
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/lf-rainy-window",
+      "name": "Rainy Window",
+      "description": "A hazy electric-piano loop over a swung, laid-back beat, like listening to rain through a café window. Generated on device from a few KB of ZzFXM data (~49s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lofi",
+        "beat",
+        "calm"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/lf-rainy-window.zzfxm.json",
+          "checksum": "sha256-QjbUw1vgZVuhpjqDGr6/RSg3ETnqa6UwGicn6I6tX18=",
+          "size": 1217
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/lf-corner-booth",
+      "name": "Corner Booth",
+      "description": "Late-night jazzy piano stabs ride a deep rolling bass, shuffled just enough to feel unhurried. Generated on device from a few KB of ZzFXM data (~37s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lofi",
+        "rhythm",
+        "focus"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/lf-corner-booth.zzfxm.json",
+          "checksum": "sha256-SUV4bgLwTixhuMdONFdXhLnr94LDvKlLsgsoAMmClYk=",
+          "size": 1183
+        }
+      ],
+      "license": "CC0-1.0"
+    },
+    {
+      "id": "lolly/songs/lf-sunday-static",
+      "name": "Sunday Static",
+      "description": "A dusty plucked-guitar loop drifts over a soft shuffled beat, a lazy Sunday with a little vinyl crackle. Generated on device from a few KB of ZzFXM data (~51s loop). A focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
+      "type": "audio",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "audio",
+        "song",
+        "neurospicy",
+        "generated",
+        "lofi",
+        "melodic",
+        "dreamy"
+      ],
+      "formats": [
+        {
+          "format": "zzfxm",
+          "url": "/catalog/assets/lolly/songs/lf-sunday-static.zzfxm.json",
+          "checksum": "sha256-fSJwnEhxNsXHTYt82Xkiwx7519O5MgnXR+UHgX4bzEs=",
+          "size": 1430
         }
       ],
       "license": "CC0-1.0"

@@ -101,6 +101,10 @@ export interface BlockFieldSpec extends VectorFieldSpec {
   filter?: { tags?: string[]; namespace?: string };
   /** Reference-picker sourcing (rows of another blocks input). */
   optionsFrom?: Record<string, unknown>;
+  /** For a `select` sub-field: append the user's installed brand-font families as
+   *  extra options. The engine ignores it (fonts are a shell concept); the web
+   *  shell fills the list from user-fonts.ts. */
+  brandFonts?: boolean;
   /** Multi-line text entry for these discriminator values; `rows` sets its height. */
   multilineFor?: string[];
   rows?: number;

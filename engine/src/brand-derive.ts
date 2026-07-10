@@ -361,6 +361,12 @@ export interface BrandDeriveOptions {
    *  and every semantic role's preferred step scales proportionally, so the
    *  contrast floors hold at any division count. */
   steps?: number;
+  /** What sits on top of the brand primary (`color.semantic.on-primary`).
+   *  'auto' (default) picks white/black by contrast; 'light' forces white and
+   *  'dark' forces black — a brand-owner override for the common case where the
+   *  contrast pick flips to black on a mid-tone colour the owner wants white text
+   *  on. The live specimen preview keeps a forced (lower-contrast) choice honest. */
+  foreground?: 'auto' | 'light' | 'dark';
   /** Provenance label baked into `$description`. */
   name?: string;
 }
@@ -512,6 +518,7 @@ function buildSemantic(
   p: Oklch,
   F: (typeof FLOORS)[keyof typeof FLOORS],
   high: boolean,
+  foreground: 'auto' | 'light' | 'dark',
 ): Record<string, Tok> {
   const { primary: pRamp, neutral } = ramps;
   const tie: 1 | -1 = spec.dark ? 1 : -1; // ties break toward the higher-contrast side
@@ -573,6 +580,12 @@ function buildSemantic(
     primary = { step, value: pRamp[step - 1]! };
     onPrimary = { value: nudged(step === N ? BLACK : WHITE, emitHex(primary.value), F.onPrimary) };
   }
+  // A brand-owner foreground override wins over the contrast pick: force pure
+  // white ('light') or black ('dark') on the brand button, keeping the primary
+  // step the pair logic chose. Deliberately un-nudged — the owner asked for this
+  // exact ink and the live specimen preview shows them the result.
+  if (foreground === 'light') onPrimary = { value: WHITE };
+  else if (foreground === 'dark') onPrimary = { value: BLACK };
 
   return {
     'primary': slotTok(primary, 'primary', 'Semantic'),
@@ -605,6 +618,7 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
   const contrast = opts.contrast === 'high' ? 'high' : 'comfort';
   const high = contrast === 'high';
   const F = FLOORS[contrast];
+  const foreground = opts.foreground === 'light' || opts.foreground === 'dark' ? opts.foreground : 'auto';
   const steps = Math.round(Math.min(RAMP_STEPS_MAX, Math.max(RAMP_STEPS_MIN, opts.steps ?? RAMP_STEPS_DEFAULT)));
 
   // Ramps: hue held constant per ramp; chroma bells over L, peaking where the
@@ -629,8 +643,8 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
     [name, literalTok({ l: 0.65, c: 0.12, h: nudgeHue(hue, p.h, 8) }, 'Spectrum')]));
 
   const ramps = { primary: primaryRamp, neutral: neutralRamp };
-  const lightSem = buildSemantic({ dark: false, primarySurface: false }, ramps, p, F, high);
-  const darkSem = buildSemantic({ dark: true, primarySurface: surfaceOpt === 'primary' }, ramps, p, F, high);
+  const lightSem = buildSemantic({ dark: false, primarySurface: false }, ramps, p, F, high, foreground);
+  const darkSem = buildSemantic({ dark: true, primarySurface: surfaceOpt === 'primary' }, ramps, p, F, high, foreground);
 
   const themes = [
     { name: 'light', selectedTokenSets: { base: 'enabled', light: 'enabled' } },
@@ -641,7 +655,8 @@ export function deriveBrandTokens(opts: BrandDeriveOptions): Record<string, unkn
   return {
     $description:
       `Derived brand tokens${opts.name ? ` for ${opts.name}` : ''} — ` +
-      `primary ${formatOklch(p)}, scheme ${scheme}, surface ${surfaceOpt}, contrast ${contrast}.`,
+      `primary ${formatOklch(p)}, scheme ${scheme}, surface ${surfaceOpt}, contrast ${contrast}` +
+      `${foreground === 'auto' ? '' : `, ${foreground} foreground`}.`,
     $metadata: { tokenSetOrder: ['base', 'light', 'dark'] },
     $themes: themes,
     base: {

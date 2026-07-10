@@ -146,13 +146,20 @@ function weightOf(b) {
 }
 // Text block font family. The sans stack leads with the brand font var (resolved
 // on the canvas root when a brand sets it; the fallbacks keep headless/CLI renders
-// identical without it). Values are closed keywords, so nothing user-typed reaches
-// the style="" attribute (no CSS injection); unknown values fall back to sans.
+// identical without it). 'sans'/'mono' are closed keywords; any other value is a
+// brand font family the user added to their kit (the font select's brandFonts
+// option list), sanitised to safe chars before it reaches style="" so a family
+// name can never inject CSS. Unknown/empty values fall back to sans.
 var FONTS = {
   'mono': 'var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace)',
   'sans': "var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif)",
 };
-function fontFamily(v) { return FONTS[String(v)] || FONTS.sans; }
+function fontFamily(v) {
+  var key = String(v);
+  if (FONTS[key]) return FONTS[key];
+  var safe = key.replace(/[^\w \-]/g, '').trim(); // letters/digits/space/hyphen only
+  return safe ? ("'" + safe + "', " + FONTS.sans) : FONTS.sans;
+}
 var FITS = { cover: 1, contain: 1, fill: 1, none: 1, 'scale-down': 1 };
 // Whitelisted CSS object-position anchors — the free-canvas 3×3 picker writes one of
 // these. The value lands in a style="" attr, so (like safeColor) only known keywords
