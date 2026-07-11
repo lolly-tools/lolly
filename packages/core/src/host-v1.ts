@@ -130,8 +130,44 @@ export interface HostV1 {
    */
   recorder?: RecorderAPI;
 
+  /**
+   * Perceptual colour tools — extrapolate from brand primitives without
+   * shipping colour science in every tool: ΔEOK distance, APCA + WCAG
+   * contrast, OKLab ramps, data class-breaks, and distinct categorical
+   * palettes (see engine/src/color-tools.ts, the chroma.js-evaluation port).
+   * Pure math, so every method is SYNCHRONOUS and identical across shells —
+   * shells attach the engine's `makeColorApi()` rather than implementing
+   * anything. Optional/additive (v1.40): a tool feature-detects `host.color`
+   * and keeps a small fallback (older shells lack it); not gated by a
+   * `capabilities` flag.
+   */
+  color?: ColorAPI;
+
   /** Logging — goes to console in dev, to a log buffer for support diagnostics. */
   log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, ctx?: object) => void;
+}
+
+// ─── Perceptual colour tools (optional, v1.40) ──────────────────────────────────
+
+/**
+ * All methods are pure and synchronous. Colour arguments accept hex
+ * (`#rgb…#rrggbbaa`) or `oklch()`/`lch()` strings — the forms token values
+ * take; metrics return NaN on unparseable input, `ramp` throws (an authoring
+ * error). Every emitted colour is a gamut-mapped `#rrggbb`.
+ */
+export interface ColorAPI {
+  /** ΔEOK — Euclidean distance in OKLab (0 identical … ≈1 black↔white; ~0.02 is a JND). */
+  deltaE(a: string, b: string): number;
+  /** APCA-W3 Lc, signed (advisory; |60| ≈ body text). WCAG 2.1 stays the compliance number. */
+  apca(text: string, bg: string): number;
+  /** WCAG 2.1 contrast ratio, 1–21 (order-independent). */
+  contrast(a: string, b: string): number;
+  /** `n` colours along a smooth OKLab bezier through `stops`; optional perceptually-even lightness steps. */
+  ramp(stops: string[], n: number, opts?: { correctLightness?: boolean }): string[];
+  /** `n + 1` class boundaries over data — 'e' equal, 'l' log₁₀ (positive data only), 'q' quantile. */
+  breaks(data: number[], mode: 'e' | 'l' | 'q', n: number): number[];
+  /** Up to `n` visually distinct categorical colours, seeded from a brand anchor. */
+  distinct(n: number, opts?: { anchorHex?: string; minDeltaE?: number }): string[];
 }
 
 // ─── Device capture / recorder (optional) ───────────────────────────────────────

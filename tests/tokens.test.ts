@@ -59,6 +59,62 @@ test('does not hang on a reference cycle', () => {
   assert.doesNotThrow(() => ts.resolve('{a.x}'));
 });
 
+// ── Composite alias resolution: gradient stops ────────────────────────────────
+
+test('resolves aliases nested in gradient stops ($value[].color); the raw doc stays untouched', () => {
+  const doc = {
+    color: { $type: 'color', brand: { jungle: { $value: '#30ba78' }, pine: { $value: '{color.brand.jungle}' } } },
+    gradient: {
+      $type: 'gradient',
+      hero: {
+        $value: [
+          { color: '{color.brand.jungle}', position: 0 },
+          { color: '{color.brand.pine}', position: 0.5 },  // through a chained alias
+          { color: '#ffffff', position: 1 },
+          { color: '{color.missing}', position: 0.25 },    // unresolvable — stays as authored
+        ],
+      },
+    },
+  };
+  const ts = createTokenSet(doc);
+  const v = ts.get('gradient.hero')!.value as Array<{ color: unknown; position: number }>;
+  assert.equal(v[0]!.color, '#30ba78');
+  assert.equal(v[1]!.color, '#30ba78');
+  assert.equal(v[2]!.color, '#ffffff');
+  assert.equal(v[3]!.color, '{color.missing}');
+  // The input document belongs to the caller — its stop objects must NOT be rewritten.
+  assert.equal(doc.gradient.hero.$value[0]!.color, '{color.brand.jungle}');
+  // resolve() on the gradient path hands back the same resolved stops.
+  const r = ts.resolve('{gradient.hero}') as Array<{ color: unknown }>;
+  assert.equal(r[0]!.color, '#30ba78');
+});
+
+test('gradient stop alias resolution is cycle-safe', () => {
+  const doc = {
+    color: { $type: 'color', a: { $value: '{color.b}' }, b: { $value: '{color.a}' } },
+    gradient: {
+      $type: 'gradient',
+      loop: { $value: [{ color: '{color.a}', position: 0 }, { color: '#000000', position: 1 }] },
+    },
+  };
+  const ts = createTokenSet(doc);
+  const v = ts.get('gradient.loop')!.value as Array<{ color: unknown }>;
+  assert.equal(v[0]!.color, '{color.a}', 'a cycled target stays as authored');
+  assert.equal(v[1]!.color, '#000000');
+});
+
+test('composite resolution is scoped to gradient-typed tokens', () => {
+  // The same array shape under a non-gradient $type keeps its alias strings —
+  // only $type gradient (own or inherited) opts a token into stop resolution.
+  const doc = {
+    color: { $type: 'color', a: { $value: '#112233' } },
+    other: { thing: { $value: [{ color: '{color.a}', position: 0 }] } },
+  };
+  const ts = createTokenSet(doc);
+  const v = ts.get('other.thing')!.value as Array<{ color: unknown }>;
+  assert.equal(v[0]!.color, '{color.a}');
+});
+
 test('query by type and colour swatches', () => {
   const ts = createTokenSet(BRAND);
   assert.equal(ts.query({ type: 'dimension' }).length, 1);
