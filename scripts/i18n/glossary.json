@@ -5,7 +5,8 @@
     "Geeko",
     "Content Credentials",
     "C2PA",
-    "Pose Geeko"
+    "Pose Geeko",
+    "Neurospicy"
   ],
   "registerNotes": {
     "es": "neutral-informal (tú, not usted)",
@@ -23,6 +24,7 @@
     "ms": "neutral-informal (anda), standard Bahasa Malaysia — not Indonesian",
     "ro": "neutral-informal (tu, not dumneavoastră)",
     "ar": "Modern Standard Arabic (فصحى), neutral-direct register addressing the reader; concise UI phrasing, no dialect, no tashkeel; Western digits; Latin script kept for untranslatable product/technical terms",
+    "bg": "neutral-informal (ти, standard contemporary register for creative professionals)",
     "it": "neutral-informal (tu, not Lei)",
     "no": "neutral-informal (du) — Norwegian Bokmål; there is essentially no formal/informal register distinction in modern usage",
     "ko": "polite standard speech (해요체) — friendly but respectful UI register, the modern SaaS/app default; not deferential formal speech (하십시오체) and not casual banmal (반말)"

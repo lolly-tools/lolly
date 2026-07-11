@@ -49,7 +49,7 @@ const CACHE_PATH = join(I18N_DIR, 'cache.json');
 const GLOSSARY_PATH = join(I18N_DIR, 'glossary.json');
 
 // Canonical language list (engine/src/lang.ts's LANGS, minus 'en' — the source).
-const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'ar', 'it', 'no', 'ko'] as const;
+const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'ar', 'it', 'no', 'ko', 'bg'] as const;
 type Lang = (typeof LANGS)[number];
 
 // Chosen deliberately for this pipeline (see plans/localize.md §4) — not the
@@ -122,7 +122,7 @@ function extractSpaKeys(): string[] {
 interface CorpusDef {
   id: string;
   /** All translatable English source strings, in a stable order. */
-  keys(): string[];
+  keys(): string[] | Promise<string[]>;
   /** Context sentence for the system prompt (what kind of copy this is). */
   context: string;
   /** Where the per-language catalog is written. */
@@ -136,7 +136,63 @@ const SPA_CORPUS: CorpusDef = {
   outPath: lang => join(REPO_ROOT, 'shells', 'web', 'src', 'locales', `${lang}.json`),
 };
 
-const CORPORA: Record<string, CorpusDef> = { spa: SPA_CORPUS };
+// ─── caps corpus: the capability map's prose (a lazy string NAMESPACE) ─────
+// The Dashboard's Capabilities tab (#/d?tab=caps) renders shells/web/src/lib/
+// capabilities-data.ts — ~300 strings, ~22 KB of English, several of them full
+// paragraphs carrying authored inline HTML. Two reasons it is its own corpus
+// rather than more keys in `spa`:
+//   1. Register. The spa prompt tells the model "compact UI microcopy, not
+//      marketing prose" — the exact wrong instruction for a 570-character
+//      paragraph explaining CMYK output intents.
+//   2. Weight. Its catalog is loaded on demand by the one panel that shows it
+//      (i18n.ts's loadNamespace('caps')), so a non-English user doesn't download
+//      a fifth of a boot catalog for a tab they may never open.
+// The strings are plain data, NOT literal t() call sites, so they can't be found
+// by extractSpaKeys's scan — the module is imported and walked instead. Node runs
+// the .ts directly (type-stripping); the module imports nothing, so this is safe.
+const CAPS_DATA_PATH = join(REPO_ROOT, 'shells', 'web', 'src', 'lib', 'capabilities-data.ts');
+
+interface CapsSection {
+  title: string;
+  desc: string;
+  cards: Array<{ title: string; features: Array<{ name: string; desc: string }> }>;
+}
+
+async function extractCapsKeys(): Promise<string[]> {
+  const mod = (await import(pathToFileURL(CAPS_DATA_PATH).href)) as { CAPABILITY_SECTIONS: CapsSection[] };
+  const keys = new Set<string>();
+  for (const section of mod.CAPABILITY_SECTIONS) {
+    keys.add(section.title);
+    keys.add(section.desc);
+    for (const card of section.cards) {
+      keys.add(card.title);
+      for (const feature of card.features) {
+        keys.add(feature.name);
+        keys.add(feature.desc);
+      }
+    }
+  }
+  // Source order, not sorted: the catalog then reads as the page reads, which is
+  // what a human reviewing a diff of it wants.
+  return [...keys];
+}
+
+const CAPS_CORPUS: CorpusDef = {
+  id: 'caps',
+  keys: extractCapsKeys,
+  context:
+    'These strings describe what a design-tool web app called Lolly can do — they are the feature map on its dashboard. ' +
+    'Unlike button labels, many are full explanatory sentences or short paragraphs written for a curious professional ' +
+    '(a designer, a print operator, a developer). Translate them as clear, confident product prose in the target ' +
+    'language — same length, same register, no marketing embellishment and no added explanation. Several contain ' +
+    'authored inline HTML (<code>, <strong>, <em>, <a href="…">): keep every tag, attribute and entity exactly as it ' +
+    'appears and translate only the human text around and inside it. Never translate what sits inside a <code> tag ' +
+    '(they are literal parameters, flags and file formats), nor format/technology names (PNG, SVG, PDF, CMYK, C2PA, ' +
+    'MCP, OAuth 2.1, Tauri, HarfBuzz, IndexedDB, AES-256).',
+  outPath: lang => join(REPO_ROOT, 'shells', 'web', 'src', 'locales', 'caps', `${lang}.json`),
+};
+
+const CORPORA: Record<string, CorpusDef> = { spa: SPA_CORPUS, caps: CAPS_CORPUS };
 
 // ─── tools corpus: gallery-card fields (name/description/featured.blurb) ───
 // Every tool pack this corpus covers — community (public, shared across every
@@ -251,13 +307,42 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
   return { translated: translatedCount, cached: cachedCount, failed: failedCount };
 }
 
-// ─── Validation: placeholders + markdown-ish structure must survive ────────
+// ─── Validation: placeholders + inline HTML must survive ───────────────────
 const PLACEHOLDER_RE = /\{[a-zA-Z0-9_]+\}/g;
+// Authored inline HTML — <code>, <strong>, <em>, <a href="…"> — appears in both
+// corpora (a handful of spa strings, many caps ones). A translation that drops a
+// closing tag, invents one, or "translates" an href silently ships broken markup
+// straight into the DOM, so tags are compared as a multiset: word order may move
+// them around, but the exact same tags must come out the other side.
+const TAG_RE = /<\/?[a-zA-Z][^>]*>/g;
+// `<code>…</code>` wraps literal parameters, flags and formats (e.g. the
+// `&amp;export` URL flag) — never prose, so its inner text must survive
+// byte-for-byte. Prose entities like a rendered `&` MAY become the target
+// language's word for "and", which is why we compare code CONTENTS specifically
+// rather than a blanket entity multiset.
+const CODE_RE = /<code>([\s\S]*?)<\/code>/g;
+
+function tagBag(s: string): string[] {
+  return (s.match(TAG_RE) ?? []).map(tag => tag.replace(/\s+/g, ' ').toLowerCase()).sort();
+}
+function codeBag(s: string): string[] {
+  const out: string[] = [];
+  let m: RegExpExecArray | null;
+  CODE_RE.lastIndex = 0;
+  while ((m = CODE_RE.exec(s))) out.push(m[1]!);
+  return out.sort();
+}
 
 function validate(source: string, translated: string): string | null {
   const srcPh = (source.match(PLACEHOLDER_RE) ?? []).sort();
   const outPh = (translated.match(PLACEHOLDER_RE) ?? []).sort();
   if (srcPh.join(',') !== outPh.join(',')) return `placeholder mismatch: source has [${srcPh}], output has [${outPh}]`;
+  const srcTags = tagBag(source);
+  const outTags = tagBag(translated);
+  if (srcTags.join('') !== outTags.join('')) return `HTML tag mismatch: source has [${srcTags.join(' ')}], output has [${outTags.join(' ')}]`;
+  const srcCode = codeBag(source);
+  const outCode = codeBag(translated);
+  if (srcCode.join(' ') !== outCode.join(' ')) return `<code> content changed: source has [${srcCode.join(' | ')}], output has [${outCode.join(' | ')}]`;
   if (translated.length > source.length * 3 && source.length > 3) return 'output is >3x source length (likely hallucinated padding)';
   if (!translated.trim()) return 'empty output';
   return null;
@@ -275,8 +360,9 @@ function buildSystemPrompt(lang: Lang, corpusContext: string, glossary: Glossary
     `Register: ${register}.`,
     `Never translate these terms — copy them verbatim wherever they appear: ${never}.`,
     'Preserve every {placeholder} token exactly (same braces, same name, same count) — these are runtime interpolations, not prose.',
+    'Preserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags — never a tag name, an attribute value, or the contents of a <code> element.',
     'Preserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.',
-    'Match the source length and tone — this is compact UI microcopy, not marketing prose. Do not pad or embellish.',
+    'Match the source length and register. Do not pad or embellish.',
     'Return ONLY the JSON matching the given schema — one translation per input id, in the same order.',
   ].join('\n');
 }
@@ -373,7 +459,7 @@ async function translateRetry(client: Anthropic, lang: Lang, items: BatchItem[],
 
 // ─── Orchestration ──────────────────────────────────────────────────────────
 async function runCorpus(client: Anthropic | null, corpus: CorpusDef, lang: Lang, cache: Cache, glossary: Glossary): Promise<{ translated: number; cached: number; failed: number }> {
-  const keys = corpus.keys();
+  const keys = await corpus.keys(); // caps reads its strings from a module import
   cache[corpus.id] ??= {};
   cache[corpus.id]![lang] ??= {};
   const langCache = cache[corpus.id]![lang]!;
