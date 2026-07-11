@@ -17,7 +17,7 @@
  * alignment) even when the translation itself is correct.
  */
 
-export const LANGS = ['en', 'zh', 'es', 'ar', 'fr', 'pt', 'de', 'ja', 'it', 'vi', 'tl', 'ko', 'ms', 'nl', 'ro', 'sv', 'cs', 'no', 'zh-hant'] as const;
+export const LANGS = ['en', 'zh', 'es', 'ar', 'fr', 'pt', 'de', 'ja', 'it', 'vi', 'tl', 'ko', 'ms', 'nl', 'ro', 'sv', 'cs', 'no', 'zh-hant', 'bg'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export interface LangMeta {
@@ -49,6 +49,7 @@ export interface LangMeta {
 export function flagEmoji(cc: string): string {
   const s = String(cc ?? '').trim().toUpperCase();
   if (!/^[A-Z]{2}$/.test(s)) return '';
+  if (s === 'AU') return '🐨';
   const RI = 0x1f1e6; // 🇦 — regional indicator symbol letter A
   const A = 'A'.charCodeAt(0);
   return String.fromCodePoint(RI + s.charCodeAt(0) - A, RI + s.charCodeAt(1) - A);
@@ -71,6 +72,7 @@ export const LANG_META: Record<Lang, LangMeta> = {
   ms: { code: 'ms', htmlLang: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay', flags: ['my', 'sg', 'bn'] },
   ro: { code: 'ro', htmlLang: 'ro', nativeName: 'Română', englishName: 'Romanian', flags: ['ro', 'md'] },
   ar: { code: 'ar', htmlLang: 'ar', nativeName: 'العربية', englishName: 'Arabic', dir: 'rtl', flags: ['sa', 'eg', 'ae'] },
+  bg: { code: 'bg', htmlLang: 'bg', nativeName: 'Български', englishName: 'Bulgarian', flags: ['bg'] },
   it: { code: 'it', htmlLang: 'it', nativeName: 'Italiano', englishName: 'Italian', flags: ['it', 'ch'] },
   no: { code: 'no', htmlLang: 'no', nativeName: 'Norsk', englishName: 'Norwegian', flags: ['no'] },
   ko: { code: 'ko', htmlLang: 'ko', nativeName: '한국어', englishName: 'Korean', flags: ['kr'] },

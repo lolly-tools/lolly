@@ -150,5 +150,13 @@
   "focus music",
   "Strip metadata from uploads",
   "privacy",
-  "Removes EXIF, location (GPS) and other embedded metadata from images you upload. Content Credentials (C2PA provenance) are always preserved — a signed or AI-generated image keeps its credential either way."
+  "Removes EXIF, location (GPS) and other embedded metadata from images you upload. Content Credentials (C2PA provenance) are always preserved — a signed or AI-generated image keeps its credential either way.",
+  "Reduce",
+  "No preference",
+  "Less",
+  "Custom",
+  "Standalone",
+  "Minimal UI",
+  "Fullscreen",
+  "Browser tab"
 ]
