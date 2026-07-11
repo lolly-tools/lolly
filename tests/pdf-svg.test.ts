@@ -14,7 +14,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { pdfNodesToSvg } from '../engine/src/pdf-svg.ts';
+import { pdfNodesToSvg, windowPdfSvg } from '../engine/src/pdf-svg.ts';
 import { interpretPdfPage } from '../engine/src/pdf-map.ts';
 import type { PdfNode } from '../engine/src/pdf-map.ts';
 
@@ -140,4 +140,24 @@ test('interpretPdfPage output round-trips: rect + path + text land in one page S
   assert.ok(svg.includes('<path d="M'), 'vector path survives');
   assert.ok(svg.includes('>Hi</tspan>'), 'text survives');
   assert.ok(svg.includes('font-family="TestSans, sans-serif"'));
+});
+
+// ── windowPdfSvg — vector clip via viewBox ──────────────────────────────────────
+test('windowPdfSvg re-frames the root viewBox and stamps the out size', () => {
+  const doc = pdfNodesToSvg([{ kind: 'box', x: 0, y: 0, w: 400, h: 300, rot: 0, fill: '#123456' } as PdfNode], OPTS);
+  const win = windowPdfSvg(doc, { x: 30, y: 75.333, width: 240, height: 135, outWidth: 320, outHeight: 180 });
+  assert.match(win, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="30 75\.33 240 135" width="320" height="180">/);
+  assert.ok(win.includes('fill="#123456"'), 'body is untouched');
+  assert.ok(win.endsWith('</svg>'));
+});
+
+test('windowPdfSvg defaults the out size to the window and floors degenerate rects', () => {
+  const doc = pdfNodesToSvg([], OPTS);
+  const win = windowPdfSvg(doc, { x: 0, y: 10, width: 0.2, height: 0 });
+  assert.match(win, /viewBox="0 10 1 1" width="1" height="1"/);
+});
+
+test('windowPdfSvg leaves a foreign SVG root unchanged', () => {
+  const foreign = '<svg width="10" height="10"><rect/></svg>';
+  assert.equal(windowPdfSvg(foreign, { x: 0, y: 0, width: 5, height: 5 }), foreign);
 });

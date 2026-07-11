@@ -17,7 +17,7 @@
  * alignment) even when the translation itself is correct.
  */
 
-export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'ar'] as const;
+export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'ar', 'it', 'no', 'ko'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export interface LangMeta {
@@ -49,6 +49,9 @@ export const LANG_META: Record<Lang, LangMeta> = {
   ms: { code: 'ms', htmlLang: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay' },
   ro: { code: 'ro', htmlLang: 'ro', nativeName: 'Română', englishName: 'Romanian' },
   ar: { code: 'ar', htmlLang: 'ar', nativeName: 'العربية', englishName: 'Arabic', dir: 'rtl' },
+  it: { code: 'it', htmlLang: 'it', nativeName: 'Italiano', englishName: 'Italian' },
+  no: { code: 'no', htmlLang: 'no', nativeName: 'Norsk', englishName: 'Norwegian' },
+  ko: { code: 'ko', htmlLang: 'ko', nativeName: '한국어', englishName: 'Korean' },
 };
 
 // Informal aliases accepted on parse (country codes people actually type).
@@ -75,6 +78,9 @@ const ALIASES: Record<string, Lang> = {
   'ar-sa': 'ar',
   'ar-eg': 'ar',
   'ar-ae': 'ar',
+  nb: 'no', // Bokmål — the specific written standard this UI register actually uses
+  nn: 'no', // Nynorsk — not a distinct UI translation, collapses to the same Norwegian tag
+  kr: 'ko', // South Korea's country code, commonly typed for "Korean"
 };
 
 export function isLang(v: string): v is Lang {

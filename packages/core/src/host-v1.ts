@@ -880,10 +880,37 @@ export interface CaptureAPI {
    * the experimental watermark all apply downstream exactly as for a template
    * render. Capture is the *source*; export remains the single output path.
    *
+   * The returned ref's `width`/`height` are the ACTUAL captured CSS-px box —
+   * after any `crop` insets and `rangeTo` extension — so callers size their
+   * composite from the result, never from the request. Hosts SHOULD also report
+   * the resolved page geometry in `meta` (`pageWidth`/`pageHeight` in CSS px and
+   * `scrollYPx`, the resolved scroll offset) where the engine can measure it;
+   * callers must treat those as optional (older shells omit them).
+   *
    * Slow and side-effectful (a real navigation + settle), unlike instant
    * template renders — call it from an explicit action, not on every keystroke.
    */
   page(spec: CaptureSpec): Promise<AssetRef>;
+
+  /**
+   * Vector capture — print `url` to a TRUE vector document and return it as an
+   * SVG AssetRef (`type: 'vector'`, `format: 'svg'`, `url` a data: URL holding a
+   * self-contained SVG: text as <text>, boxes/paths as vectors, page images
+   * inlined as data: URIs). Where page() reads pixels, this reads *geometry* —
+   * the same fidelity ladder as the PDF import path (pdf-map.ts), so the result
+   * is crisp at any zoom and re-editable, at the cost of pixel-perfection
+   * (webfonts resolve by family name, exotic paint degrades per the ladder).
+   *
+   * The shell applies the SAME windowing as page(): `scrollDepth` + `height`
+   * frame the region, `crop` trims insets — all as viewBox geometry, so a vector
+   * shot and a raster shot of one spec frame identical content. Omit `height`
+   * to get the full page.
+   *
+   * Optional/additive (v1.45) — only shells whose browser engine can print to a
+   * vector format provide it; callers feature-detect `host.capture.vector` and
+   * fall back to page() (a raster in an <svg> wrapper) where absent.
+   */
+  vector?(spec: CaptureSpec): Promise<AssetRef>;
 }
 
 export interface CaptureSpec {
@@ -898,6 +925,17 @@ export interface CaptureSpec {
    * offset when > 1. Lets the shot frame below-the-fold content.
    */
   scrollDepth?: number;
+  /**
+   * Extend the capture DOWN the page from `scrollDepth` to this scroll position
+   * (same 0..1-fraction / px-offset semantics; values ≤ the resolved
+   * `scrollDepth` mean no extension). The captured image becomes a tall strip:
+   * the viewport at `scrollDepth` plus everything down to the viewport at
+   * `rangeTo` — the strip a scroll animation pans over. Callers derive the pan
+   * distance from the RESULT (`ref.height` − the framed viewport height), so a
+   * host that ignores or clamps this field (older shells; texture limits)
+   * degrades to a shorter — or static — pan, never an error. (v1.45)
+   */
+  rangeTo?: number;
   /** Settle time after load — and after scrolling — before the shot, in ms. */
   waitMs?: number;
   /** Device pixel ratio for a crisp raster; maps onto the export `dpi` concept. */
@@ -908,6 +946,14 @@ export interface CaptureSpec {
    * hide cookie banners, restyle elements, etc.
    */
   css?: string;
+  /**
+   * Trim insets, each a 0..0.9 fraction of the framed viewport box (the TUI's
+   * url-capture semantics, now on the bridge). Applied by the host at capture
+   * time — clip geometry for a raster, viewBox geometry for a vector — so the
+   * returned ref's width/height already reflect the trim. Hosts that predate the
+   * field ignore it (the caller reads the result dims either way). (v1.45)
+   */
+  crop?: { top?: number; right?: number; bottom?: number; left?: number };
 }
 
 // ─── Compose ──────────────────────────────────────────────────────────────────

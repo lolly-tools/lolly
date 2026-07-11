@@ -1,0 +1,20 @@
+{
+  "name": "Registratore vocale",
+  "description": "Registra una nota vocale con un misuratore di livello dal vivo e una guida discreta, poi salvala come MP3.",
+  "featured.blurb": "Registra una nota vocale pulita con guida di livello in tempo reale",
+  "a11yLabel": "Registratore vocale — livello {{default dbText \"idle\"}}",
+  "inputs.title.label": "Etichetta",
+  "inputs.title.help": "Assegna un nome alla scheda di registrazione e al file salvato.",
+  "inputs.targetLevel.label": "Livello target",
+  "inputs.targetLevel.help": "Cosa si considera «perfetto» per i suggerimenti guidati.",
+  "inputs.targetLevel.options.soft": "Basso · microfono vicino",
+  "inputs.targetLevel.options.normal": "Voce normale",
+  "inputs.targetLevel.options.loud": "Alto · ambiente",
+  "inputs.showTips.label": "Suggerimenti guidati",
+  "inputs.showTips.help": "Messaggi in tempo reale come «avvicinati» o «stai distorcendo».",
+  "inputs.theme.label": "Stile scheda",
+  "inputs.theme.options.dark": "Scuro",
+  "inputs.theme.options.light": "Chiaro",
+  "inputs.accent.label": "Accento",
+  "inputs.accent.help": "Lascia vuoto per seguire il colore primario del tuo brand."
+}
