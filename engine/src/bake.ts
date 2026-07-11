@@ -108,3 +108,42 @@ export function bakeAssetRef(ref: AssetRef, opts: { now?: number } = {}): AssetR
 
   return { ...ref, source: 'remote', id: `baked/${now.toString(36)}`, meta };
 }
+
+/**
+ * The link-safe identity of an asset ref — what URL serializers write for an
+ * asset param. A live ref's id already IS its shareable form (a library id or
+ * the canonical embed URL); a baked ref's data: bytes can never ride in a link,
+ * so it degrades to its provenance (meta.bakedFrom — the recipient re-renders
+ * live), else its 'baked/…' id (the recipient drops the slot gracefully).
+ * Every serializer must route through here so the policy can't drift.
+ */
+export function assetIdForUrl(ref: AssetRef): string {
+  if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === 'string') return ref.meta.bakedFrom;
+  return ref.id;
+}
+
+/**
+ * Rewrite block rows for URL serialization. Blocks serialise as JSON of the
+ * whole row, so a baked sub-field ref would inline its entire data: URL
+ * (megabytes) into the query; collapse each one to the same lightweight
+ * unresolved ref URL parsing mints — provenance when it exists (the recipient
+ * re-renders live), else the 'baked/…' id (a graceful drop). Rows without
+ * baked refs pass through untouched (the SAME array when nothing changed).
+ */
+export function blocksForUrl(rows: unknown): unknown {
+  if (!Array.isArray(rows)) return rows;
+  let changed = false;
+  const out = rows.map(row => {
+    if (!row || typeof row !== 'object') return row;
+    const rec = row as Record<string, unknown>;
+    let next: Record<string, unknown> | null = null;
+    for (const [k, v] of Object.entries(rec)) {
+      if (!isBakedRef(v)) continue;
+      const id = assetIdForUrl(v as AssetRef);
+      (next ??= { ...rec })[k] = { source: isToolUrl(id) ? 'remote' : 'library', id, _unresolved: true };
+    }
+    if (next) { changed = true; return next; }
+    return row;
+  });
+  return changed ? out : rows;
+}

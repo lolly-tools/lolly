@@ -15,6 +15,7 @@ import assert from 'node:assert/strict';
 
 import { createRuntime } from '../engine/src/runtime.ts';
 import { resolveNestedRenders, composeKey } from '../engine/src/compose.ts';
+import { assertComposeStack } from '../engine/src/bake.ts';
 import { validateManifest } from '../engine/src/validate.ts';
 
 // A host tool that composes `qr-code`, binding the child's `url` to its own `url`.
@@ -157,8 +158,9 @@ const chainTool = (id: string, child: string | null): any => ({
   template: '{{#if child}}<img src="{{asset child}}">{{else}}<span>leaf</span>{{/if}}',
 });
 
-// A faithful host.compose mirroring the FIXED bridge: guard on _stack, then render
-// the child with the ANCESTOR stack (the engine re-appends the child's own id).
+// A faithful host.compose mirroring the FIXED bridge: the engine-owned guard
+// (assertComposeStack) on _stack, then render the child with the ANCESTOR stack
+// (the engine re-appends the child's own id).
 function chainHost(tools: Record<string, any>, MAX = 3) {
   const calls: Array<{ toolId: string; stack: string[] }> = [];
   const rendered: string[] = [];
@@ -168,8 +170,7 @@ function chainHost(tools: Record<string, any>, MAX = 3) {
       async render(spec: any) {
         const { toolId, inputs = {}, _stack = [] } = spec;
         calls.push({ toolId, stack: [..._stack] });
-        if (_stack.includes(toolId)) throw new Error(`cycle ${[..._stack, toolId].join(' → ')}`);
-        if (_stack.length >= MAX) throw new Error(`max depth ${MAX} (${[..._stack, toolId].join(' → ')})`);
+        assertComposeStack(_stack, toolId, MAX);
         const t = tools[toolId];
         if (!t) throw new Error(`no tool ${toolId}`);
         await createRuntime(t, host, inputs, { composeStack: _stack }); // ancestor stack (M1)

@@ -12,7 +12,7 @@
  * subtag for correct Han-unification glyph selection across fallback fonts).
  */
 
-export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms'] as const;
+export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export interface LangMeta {
@@ -40,6 +40,7 @@ export const LANG_META: Record<Lang, LangMeta> = {
   tl: { code: 'tl', htmlLang: 'tl', nativeName: 'Tagalog', englishName: 'Tagalog' },
   sv: { code: 'sv', htmlLang: 'sv', nativeName: 'Svenska', englishName: 'Swedish' },
   ms: { code: 'ms', htmlLang: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay' },
+  ro: { code: 'ro', htmlLang: 'ro', nativeName: 'Română', englishName: 'Romanian' },
 };
 
 // Informal aliases accepted on parse (country codes people actually type).
