@@ -31,6 +31,7 @@ import { buildExportMeta } from './metadata.ts';
 import { isTokenValue, isAlias, colorToHex } from './tokens.ts';
 import { resolveNestedRenders } from './compose.ts';
 import { isToolUrl } from './tool-url.ts';
+import { isBakedRef } from './bake.ts';
 import type { InputModelItem, InputValue, ProfileValues } from './inputs.ts';
 import type { LoadedTool, ToolManifest } from './loader.ts';
 import type { ComposeMemo } from './compose.ts';
@@ -57,6 +58,8 @@ export interface DroppedAsset {
   inputId: string;
   label: string;
   id: string;
+  /** Why it dropped: 'render-failed' | 'not-found' | 'baked-bytes-lost'. */
+  reason?: string;
 }
 
 /** Export options accepted by runtime.export — the host contract's ExportOpts
@@ -859,12 +862,23 @@ async function resolveAssetRefs(
   // no microtask). Most mounts have no unresolved asset refs at all.
   if (!model.some(inputNeedsAssetResolve)) return model;
 
-  const resolveOne = async (id: string, inputId: string, label: string): Promise<AssetRef | null> => {
+  const resolveOne = async (value: unknown, id: string, inputId: string, label: string): Promise<AssetRef | null> => {
     // Re-resolve any asset ref that carries an id — this covers both the
     // _unresolved URL-mode path AND saved-session refs.  Saved sessions store
     // the full resolved object, but blob: URLs are session-scoped and invalid
     // after a page reload, so we always re-fetch a fresh blob URL from the cache.
     try {
+      // A baked ref is frozen: its bytes ride in a data: URL, so it resolves
+      // as-is on every mount — no bridge call, no compose-stack growth, never a
+      // live re-render. A baked ref WITHOUT data: bytes (e.g. a stale blob: URL
+      // that leaked into a save) has lost its pixels; drop it rather than
+      // re-render, since baking's whole promise is "these exact bytes".
+      if (isBakedRef(value)) {
+        const ref = value as AssetRef;
+        if (typeof ref.url === 'string' && ref.url.startsWith('data:')) return ref;
+        dropped.push({ inputId, label, id, reason: 'baked-bytes-lost' });
+        return null;
+      }
       // A Lolly tool URL as an asset id means "render this tool as my image" —
       // an end user pasted a share link into the picker. Re-render it through
       // compose (not the catalog), so the embedded render is reproduced on every
@@ -881,13 +895,13 @@ async function resolveAssetRefs(
             )
           : null;
         if (ref) return ref;
-        dropped.push({ inputId, label, id });
+        dropped.push({ inputId, label, id, reason: 'render-failed' });
         return null;
       }
       return await host.assets.get(id);
     } catch (e) {
       host.log('warn', `Failed to resolve asset ${id}`, { error: String(e) });
-      dropped.push({ inputId, label, id });
+      dropped.push({ inputId, label, id, reason: 'not-found' });
       return null;
     }
   };
@@ -898,7 +912,7 @@ async function resolveAssetRefs(
       if (input.type === 'asset') {
         const id = assetRefId(v);
         if (id !== null) {
-          return { ...input, value: await resolveOne(id, input.id, input.label || input.id) };
+          return { ...input, value: await resolveOne(v, id, input.id, input.label || input.id) };
         }
       }
       // Blocks may carry asset sub-fields (declared type:'asset'); resolve each
@@ -914,7 +928,7 @@ async function resolveAssetRefs(
           for (const fid of assetFields) {
             const id = assetRefId(rec[fid]);
             if (id !== null) {
-              next[fid] = await resolveOne(id, `${input.id}.${fid}`, input.label || input.id);
+              next[fid] = await resolveOne(rec[fid], id, `${input.id}.${fid}`, input.label || input.id);
             }
           }
           return next;

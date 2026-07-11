@@ -1,5 +1,20 @@
 {
   "name": "語音錄音",
   "description": "錄製語音備忘，搭配即時音量表與溫和的錄音提示，完成後另存為 MP3。",
-  "featured.blurb": "搭配即時音量指引，錄製乾淨的語音備忘"
+  "featured.blurb": "搭配即時音量指引，錄製乾淨的語音備忘",
+  "a11yLabel": "語音錄音 — 音量 {{default dbText \"idle\"}}",
+  "inputs.title.label": "標籤",
+  "inputs.title.help": "為錄音卡片與儲存的檔案命名。",
+  "inputs.targetLevel.label": "目標音量",
+  "inputs.targetLevel.help": "決定提示訊息認定「剛剛好」音量的標準。",
+  "inputs.targetLevel.options.soft": "輕柔 · 貼近麥克風",
+  "inputs.targetLevel.options.normal": "一般說話",
+  "inputs.targetLevel.options.loud": "宏亮 · 房間收音",
+  "inputs.showTips.label": "錄音提示",
+  "inputs.showTips.help": "即時顯示「靠近一點」或「音量過大」等提示。",
+  "inputs.theme.label": "卡片樣式",
+  "inputs.theme.options.dark": "深色",
+  "inputs.theme.options.light": "淺色",
+  "inputs.accent.label": "強調色",
+  "inputs.accent.help": "留空以套用您品牌的主色。"
 }

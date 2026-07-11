@@ -1,5 +1,20 @@
 {
   "name": "Röstinspelare",
   "description": "Spela in ett röstmeddelande med en nivåmätare i realtid och mjuk vägledning, spara sedan som MP3.",
-  "featured.blurb": "Spela in ett rent röstmeddelande med nivåvägledning i realtid"
+  "featured.blurb": "Spela in ett rent röstmeddelande med nivåvägledning i realtid",
+  "a11yLabel": "Röstinspelare — nivå {{default dbText \"idle\"}}",
+  "inputs.title.label": "Etikett",
+  "inputs.title.help": "Namnger inspelningskortet och den sparade filen.",
+  "inputs.targetLevel.label": "Målnivå",
+  "inputs.targetLevel.help": "Vad som räknas som ”precis lagom” för vägledningstipsen.",
+  "inputs.targetLevel.options.soft": "Mjuk · nära mikrofonen",
+  "inputs.targetLevel.options.normal": "Normalt tal",
+  "inputs.targetLevel.options.loud": "Högt · rum",
+  "inputs.showTips.label": "Vägledningstips",
+  "inputs.showTips.help": "Direktmeddelanden som ”kom närmare” eller ”du klipper”.",
+  "inputs.theme.label": "Kortstil",
+  "inputs.theme.options.dark": "Mörkt",
+  "inputs.theme.options.light": "Ljust",
+  "inputs.accent.label": "Accentfärg",
+  "inputs.accent.help": "Lämna tomt för att följa märkets primärfärg."
 }

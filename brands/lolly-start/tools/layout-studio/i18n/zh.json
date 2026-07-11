@@ -1,4 +1,132 @@
 {
   "name": "版面工作室",
-  "featured.blurb": "在开放画布上自由排版"
+  "featured.blurb": "在开放画布上自由排版",
+
+  "inputs.background.label": "画布背景",
+
+  "inputs.boxes.label": "图层",
+  "inputs.boxes.addMenu.label": "添加图层",
+
+  "inputs.boxes.fields.kind.label": "类型",
+  "inputs.boxes.fields.kind.options.box": "方框",
+  "inputs.boxes.fields.kind.options.text": "文本",
+  "inputs.boxes.fields.kind.options.image": "图片",
+
+  "inputs.boxes.fields.x.label": "X",
+  "inputs.boxes.fields.y.label": "Y",
+  "inputs.boxes.fields.w.label": "宽度",
+  "inputs.boxes.fields.h.label": "高度",
+  "inputs.boxes.fields.rot.label": "旋转",
+
+  "inputs.boxes.fields.shape.label": "形状",
+  "inputs.boxes.fields.shape.options.rect": "矩形",
+  "inputs.boxes.fields.shape.options.rounded": "圆角矩形",
+  "inputs.boxes.fields.shape.options.pill": "胶囊形",
+  "inputs.boxes.fields.shape.options.ellipse": "椭圆形",
+
+  "inputs.boxes.fields.radius.label": "圆角半径",
+
+  "inputs.boxes.fields.bg.label": "填充",
+
+  "inputs.boxes.fields.opacity.label": "不透明度",
+
+  "inputs.boxes.fields.image.label": "图片、动画或视频",
+  "inputs.boxes.fields.image.help": "照片、Logo、SVG、GIF、Lottie 动画或短视频（MP4/WebM）。动画和视频会在画布上实时播放；静态导出（PNG/SVG/PDF）只会捕捉当前帧。",
+
+  "inputs.boxes.fields.fit.label": "图片适配",
+  "inputs.boxes.fields.fit.options.contain": "包含（完整显示）",
+  "inputs.boxes.fields.fit.options.cover": "覆盖（裁剪填满）",
+  "inputs.boxes.fields.fit.options.fill": "拉伸",
+
+  "inputs.boxes.fields.blend.label": "混合模式",
+  "inputs.boxes.fields.blend.options.normal": "正常",
+  "inputs.boxes.fields.blend.options.multiply": "正片叠底",
+  "inputs.boxes.fields.blend.options.screen": "滤色",
+  "inputs.boxes.fields.blend.options.overlay": "叠加",
+  "inputs.boxes.fields.blend.options.darken": "变暗",
+  "inputs.boxes.fields.blend.options.lighten": "变亮",
+  "inputs.boxes.fields.blend.options.color-dodge": "颜色减淡",
+  "inputs.boxes.fields.blend.options.color-burn": "颜色加深",
+  "inputs.boxes.fields.blend.options.hard-light": "强光",
+  "inputs.boxes.fields.blend.options.soft-light": "柔光",
+  "inputs.boxes.fields.blend.options.difference": "差值",
+  "inputs.boxes.fields.blend.options.exclusion": "排除",
+  "inputs.boxes.fields.blend.options.hue": "色相",
+  "inputs.boxes.fields.blend.options.saturation": "饱和度",
+  "inputs.boxes.fields.blend.options.color": "颜色",
+  "inputs.boxes.fields.blend.options.luminosity": "明度",
+
+  "inputs.boxes.fields.text.label": "文本",
+  "inputs.boxes.fields.text.help": "富文本：**粗体**、*斜体*／_斜体_，以 - 或 • 开头的行会变成项目符号列表。",
+
+  "inputs.boxes.fields.fg.label": "文字颜色",
+
+  "inputs.boxes.fields.fontSize.label": "文字大小",
+
+  "inputs.boxes.fields.align.label": "对齐",
+  "inputs.boxes.fields.align.options.left": "左",
+  "inputs.boxes.fields.align.options.center": "居中",
+  "inputs.boxes.fields.align.options.right": "右",
+
+  "inputs.boxes.fields.valign.label": "垂直对齐",
+  "inputs.boxes.fields.valign.options.top": "顶部",
+  "inputs.boxes.fields.valign.options.middle": "居中",
+  "inputs.boxes.fields.valign.options.bottom": "底部",
+
+  "inputs.boxes.fields.weight.label": "字重",
+  "inputs.boxes.fields.weight.help": "最重的字重取决于具体字体——等宽字体系列最高只支持特粗体（800）。",
+  "inputs.boxes.fields.weight.options.100": "纤细",
+  "inputs.boxes.fields.weight.options.200": "特细",
+  "inputs.boxes.fields.weight.options.300": "细体",
+  "inputs.boxes.fields.weight.options.400": "常规",
+  "inputs.boxes.fields.weight.options.500": "中等",
+  "inputs.boxes.fields.weight.options.600": "半粗体",
+  "inputs.boxes.fields.weight.options.700": "粗体",
+  "inputs.boxes.fields.weight.options.800": "特粗体",
+  "inputs.boxes.fields.weight.options.900": "特黑",
+
+  "inputs.boxes.fields.font.label": "字体",
+  "inputs.boxes.fields.font.options.sans": "品牌黑体",
+  "inputs.boxes.fields.font.options.mono": "等宽字体",
+
+  "inputs.boxes.fields.lineHeight.label": "行高",
+
+  "inputs.boxes.fields.tracking.label": "字距",
+  "inputs.boxes.fields.tracking.help": "统一的字符间距（字距），单位为像素，会保留在矢量导出中。",
+
+  "inputs.boxes.fields.ligatures.label": "连字",
+  "inputs.boxes.fields.ligatures.help": "标准连字（如 fi、fl 等）。在屏幕预览及描边后的 SVG/PDF/EMF 导出中均生效。",
+
+  "inputs.boxes.fields.alternates.label": "样式替代字形",
+  "inputs.boxes.fields.alternates.help": "OpenType 样式替代字形（salt），如果字体支持的话。",
+
+  "inputs.boxes.fields.group.label": "分组",
+
+  "inputs.boxes.fields.clip.label": "裁剪至",
+
+  "inputs.boxes.fields.pad.label": "文字内边距",
+
+  "inputs.boxes.fields.shadow.label": "阴影",
+  "inputs.boxes.fields.shadow.help": "阴影作用的对象：方框轮廓、文字，还是可见内容（图片的透明通道）。仅栅格导出支持——SVG/PDF 会将其扁平化处理。",
+  "inputs.boxes.fields.shadow.options.none": "无",
+  "inputs.boxes.fields.shadow.options.box": "方框",
+  "inputs.boxes.fields.shadow.options.text": "文字",
+  "inputs.boxes.fields.shadow.options.content": "内容",
+
+  "inputs.boxes.fields.shadowColor.label": "阴影颜色",
+  "inputs.boxes.fields.shadowX.label": "阴影 X",
+  "inputs.boxes.fields.shadowY.label": "阴影 Y",
+  "inputs.boxes.fields.shadowBlur.label": "阴影模糊",
+
+  "inputs.boxes.fields.imgpos.label": "图片位置",
+  "inputs.boxes.fields.imgpos.help": "图片锚定的边缘或角落——决定包含式图片在方框内的位置，或裁剪填满式图片保留画面的哪个部分。在屏幕预览及 PNG/SVG/PDF 导出中均生效。",
+  "inputs.boxes.fields.imgpos.options.left top": "左上",
+  "inputs.boxes.fields.imgpos.options.center top": "上",
+  "inputs.boxes.fields.imgpos.options.right top": "右上",
+  "inputs.boxes.fields.imgpos.options.left center": "左",
+  "inputs.boxes.fields.imgpos.options.center": "居中",
+  "inputs.boxes.fields.imgpos.options.right center": "右",
+  "inputs.boxes.fields.imgpos.options.left bottom": "左下",
+  "inputs.boxes.fields.imgpos.options.center bottom": "下",
+  "inputs.boxes.fields.imgpos.options.right bottom": "右下"
 }

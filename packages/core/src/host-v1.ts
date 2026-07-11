@@ -1003,5 +1003,11 @@ export interface AssetRef {
   //              badge marks it and exports know it flattens to a still
   //   posterUrl  a still fallback frame for a lottie or video (used for the
   //              <video poster> attribute and as the pre-play / export still)
+  //   baked      true for a FROZEN composed render (engine bake.ts): the url is
+  //              a self-contained data: URL, resolved as-is on every mount — no
+  //              compose depth consumed, never live-re-rendered
+  //   bakedAt    epoch ms the bake happened
+  //   bakedFrom  the canonical embed URL the bake rendered from — provenance
+  //              for on-demand re-baking (absent when none could be minted)
   meta?: Record<string, unknown>;
 }

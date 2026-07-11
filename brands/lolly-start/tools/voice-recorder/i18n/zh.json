@@ -1,5 +1,20 @@
 {
   "name": "语音录制",
   "description": "录制语音备忘录，带实时电平表和柔和的录音提示，并保存为 MP3。",
-  "featured.blurb": "借助实时电平提示，录制清晰的语音备忘录"
+  "featured.blurb": "借助实时电平提示，录制清晰的语音备忘录",
+  "a11yLabel": "语音录制器 — 电平 {{default dbText \"idle\"}}",
+  "inputs.title.label": "标签",
+  "inputs.title.help": "为录音卡片和保存的文件命名。",
+  "inputs.targetLevel.label": "目标电平",
+  "inputs.targetLevel.help": "决定录音提示中“刚好合适”的电平标准。",
+  "inputs.targetLevel.options.soft": "轻柔 · 近讲麦克风",
+  "inputs.targetLevel.options.normal": "正常语速",
+  "inputs.targetLevel.options.loud": "响亮 · 房间",
+  "inputs.showTips.label": "录音提示",
+  "inputs.showTips.help": "实时提示，例如“靠近一点”或“声音破音了”。",
+  "inputs.theme.label": "卡片样式",
+  "inputs.theme.options.dark": "深色",
+  "inputs.theme.options.light": "浅色",
+  "inputs.accent.label": "强调色",
+  "inputs.accent.help": "留空则使用品牌主色。"
 }

@@ -1,5 +1,20 @@
 {
   "name": "Grabadora de voz",
   "description": "Graba una nota de voz con un medidor de nivel en vivo y una guía sutil, y guárdala como MP3.",
-  "featured.blurb": "Graba una nota de voz nítida con guía de nivel en vivo"
+  "a11yLabel": "Grabadora de voz — nivel {{default dbText \"idle\"}}",
+  "featured.blurb": "Graba una nota de voz nítida con guía de nivel en vivo",
+  "inputs.title.label": "Etiqueta",
+  "inputs.title.help": "Nombra la tarjeta de grabación y el archivo guardado.",
+  "inputs.targetLevel.label": "Nivel objetivo",
+  "inputs.targetLevel.help": "Lo que se considera «perfecto» para los mensajes de guía.",
+  "inputs.targetLevel.options.soft": "Suave · micro cerca",
+  "inputs.targetLevel.options.normal": "Voz normal",
+  "inputs.targetLevel.options.loud": "Alto · sala",
+  "inputs.showTips.label": "Consejos de guía",
+  "inputs.showTips.help": "Mensajes en vivo como «acércate más» o «estás saturando».",
+  "inputs.theme.label": "Estilo de tarjeta",
+  "inputs.theme.options.dark": "Oscuro",
+  "inputs.theme.options.light": "Claro",
+  "inputs.accent.label": "Acento",
+  "inputs.accent.help": "Déjalo sin definir para seguir el color primario de tu marca."
 }

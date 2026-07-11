@@ -1,5 +1,20 @@
 {
   "name": "Hlasový záznamník",
   "description": "Nahraj hlasovou poznámku s živým ukazatelem hlasitosti a jemným koučováním, pak ji ulož jako MP3.",
-  "featured.blurb": "Nahraj čistou hlasovou poznámku s živým vedením hlasitosti"
+  "featured.blurb": "Nahraj čistou hlasovou poznámku s živým vedením hlasitosti",
+  "a11yLabel": "Hlasový záznamník — úroveň {{default dbText \"idle\"}}",
+  "inputs.title.label": "Popisek",
+  "inputs.title.help": "Pojmenuje kartu nahrávky a uložený soubor.",
+  "inputs.targetLevel.label": "Cílová úroveň",
+  "inputs.targetLevel.help": "Co se počítá za „tak akorát“ pro koučovací tipy.",
+  "inputs.targetLevel.options.soft": "Tichý · mikrofon zblízka",
+  "inputs.targetLevel.options.normal": "Normální řeč",
+  "inputs.targetLevel.options.loud": "Hlasitý · místnost",
+  "inputs.showTips.label": "Koučovací tipy",
+  "inputs.showTips.help": "Živé tipy jako „přibliž se“ nebo „ořezáváš (clipping)“.",
+  "inputs.theme.label": "Styl karty",
+  "inputs.theme.options.dark": "Tmavý",
+  "inputs.theme.options.light": "Světlý",
+  "inputs.accent.label": "Akcentní barva",
+  "inputs.accent.help": "Ponech nevyplněné, pokud chceš použít primární barvu značky."
 }

@@ -12,7 +12,8 @@
  * context as the template (input values + extras), so a child input can bind to
  * a parent value: `{ "url": "{{url}}" }`. Resolution is memoised per entry id so
  * an unrelated keystroke doesn't re-render the child; the host bridge caches the
- * actual render and owns the depth/cycle guards (we thread the tool-id stack).
+ * actual render and enforces the depth/cycle policy via the engine's
+ * assertComposeStack (bake.ts) — we only thread the tool-id stack.
  *
  * No-op (returns {}) when the shell provides no `host.compose` or the tool
  * declares no `composes` — so composition degrades gracefully everywhere.
