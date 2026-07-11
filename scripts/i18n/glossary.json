@@ -21,6 +21,7 @@
     "tl": "neutral-informal, code-switching with English UI terms is natural and expected",
     "sv": "neutral-informal (du — Swedish has no formal/informal distinction in practice)",
     "ms": "neutral-informal (anda), standard Bahasa Malaysia — not Indonesian",
-    "ro": "neutral-informal (tu, not dumneavoastră)"
+    "ro": "neutral-informal (tu, not dumneavoastră)",
+    "ar": "Modern Standard Arabic (فصحى), neutral-direct register addressing the reader; concise UI phrasing, no dialect, no tashkeel; Western digits; Latin script kept for untranslatable product/technical terms"
   }
 }

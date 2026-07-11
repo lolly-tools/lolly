@@ -526,4 +526,11 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // more LANGS entry — ro (Romanian, htmlLang ro) — purely additive to the
 // LANGS/LANG_META tables, same shape as the 1.42.0 additions. No bridge
 // signature change.
-export const ENGINE_VERSION = '1.43.0';
+// 1.44.0 — additive: ar (Arabic, htmlLang ar) — the first right-to-left
+// LANGS entry. LangMeta gains an optional `dir?: 'rtl'` field (absent ⇒ ltr);
+// consumers that stamp <html lang> from LANG_META must now stamp `dir` from
+// the same entry (web shell i18n.ts/index.html pre-paint, docs/build.ts).
+// New ALIASES: ar-sa/ar-eg/ar-ae → ar. Purely additive — no bridge signature
+// change; url-mode's `lang` param, Profile.lang, and the loader's sidecar
+// overlay all iterate LANGS generically.
+export const ENGINE_VERSION = '1.44.0';

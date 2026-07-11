@@ -10,9 +10,14 @@
  * `htmlLang` is the exact value for the `<html lang>` attribute — not always
  * identical to the code itself (Simplified Chinese needs the `Hans` script
  * subtag for correct Han-unification glyph selection across fallback fonts).
+ *
+ * `dir` marks right-to-left scripts ('rtl' — Arabic; absent means ltr). Every
+ * consumer that stamps `<html lang>` must stamp `dir` from the same entry, or
+ * RTL text renders with LTR bidi context (wrong punctuation sides, wrong
+ * alignment) even when the translation itself is correct.
  */
 
-export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro'] as const;
+export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'ar'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export interface LangMeta {
@@ -23,6 +28,8 @@ export interface LangMeta {
   nativeName: string;
   /** English name, for glossary/tooling output. */
   englishName: string;
+  /** Script direction — set ('rtl') only for right-to-left languages; absent ⇒ ltr. */
+  dir?: 'rtl';
 }
 
 export const LANG_META: Record<Lang, LangMeta> = {
@@ -41,6 +48,7 @@ export const LANG_META: Record<Lang, LangMeta> = {
   sv: { code: 'sv', htmlLang: 'sv', nativeName: 'Svenska', englishName: 'Swedish' },
   ms: { code: 'ms', htmlLang: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay' },
   ro: { code: 'ro', htmlLang: 'ro', nativeName: 'Română', englishName: 'Romanian' },
+  ar: { code: 'ar', htmlLang: 'ar', nativeName: 'العربية', englishName: 'Arabic', dir: 'rtl' },
 };
 
 // Informal aliases accepted on parse (country codes people actually type).
@@ -62,6 +70,11 @@ const ALIASES: Record<string, Lang> = {
   hant: 'zh-hant',
   my: 'ms', // Malaysia's country code, commonly typed for "Malaysian"
   fil: 'tl', // Filipino — the modern standardized register of Tagalog
+  // Regioned Arabic tags (browser navigator.language values people paste into
+  // ?lang=) — all one MSA UI register here, so they collapse to the base tag.
+  'ar-sa': 'ar',
+  'ar-eg': 'ar',
+  'ar-ae': 'ar',
 };
 
 export function isLang(v: string): v is Lang {

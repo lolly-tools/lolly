@@ -1,0 +1,20 @@
+{
+  "name": "مسجل الصوت",
+  "description": "سجل ملاحظة صوتية مع مقياس مستوى مباشر وإرشادات لطيفة، ثم احفظها بصيغة MP3.",
+  "featured.blurb": "سجل ملاحظة صوتية نقية مع إرشاد مباشر للمستوى",
+  "a11yLabel": "مسجل الصوت — المستوى {{default dbText \"idle\"}}",
+  "inputs.title.label": "التسمية",
+  "inputs.title.help": "تسمي بطاقة التسجيل والملف المحفوظ.",
+  "inputs.targetLevel.label": "المستوى المستهدف",
+  "inputs.targetLevel.help": "ما يعتبر «مضبوطا تماما» بالنسبة لرسائل الإرشاد.",
+  "inputs.targetLevel.options.soft": "هادئ · ميكروفون قريب",
+  "inputs.targetLevel.options.normal": "كلام عادي",
+  "inputs.targetLevel.options.loud": "مرتفع · غرفة",
+  "inputs.showTips.label": "نصائح الإرشاد",
+  "inputs.showTips.help": "رسائل مباشرة مثل «اقترب أكثر» أو «الصوت مقصوص».",
+  "inputs.theme.label": "نمط البطاقة",
+  "inputs.theme.options.dark": "داكن",
+  "inputs.theme.options.light": "فاتح",
+  "inputs.accent.label": "اللون المميز",
+  "inputs.accent.help": "اتركه بلا تحديد ليتبع اللون الأساسي لعلامتك."
+}
