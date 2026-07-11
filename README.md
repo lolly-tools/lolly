@@ -10,6 +10,8 @@ Deterministic, fast, open-source platform — bring your own brand.
 A platform that hosts a library of small, focused tools that produce deterministic creative assets. 
 Users need no design skill, vendor lock-in or internet and the platform is designed to add premium production-quality rendering certainty to variable data. 
 
+It's also your personal DAM — every logo, palette, font and upload lives in an on-device catalog, hydrated and supercharged by your design system and tools. 
+
 Tools can be used via a:
 * Web app - installable offline progressive web app 
 * Mobile and Desktop installable packages. 
@@ -36,7 +38,6 @@ Tools can be used via a:
 ## What this is **not**
 
 - A general-purpose design tool
-- A DAM
 
 It *does* include an open canvas — Layout Studio — but even there, colours, type
 and assets conform to the brand globals, so free arrangement never becomes

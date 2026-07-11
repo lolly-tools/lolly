@@ -50,6 +50,13 @@
  *                  `off` leaves pixels untouched. Off by default — a durable
  *                  provenance signal COMPLEMENTING the C2PA credential, not a
  *                  hardened one (security-through-obscurity; the key is public).
+ *   - `lang`     — UI/content language as a canonical short code (see
+ *                  engine/src/lang.ts's LANGS: en/es/de/fr/zh/ja/vi). Informal
+ *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
+ *                  the canonical code; unrecognized values parse as null (falls
+ *                  back to the profile/localStorage/browser-default chain). A
+ *                  `lang` on a shared URL applies for that session only — it is
+ *                  never written back to the recipient's saved profile.
  *   - `z`        — a PACKED whole-state token (raw DEFLATE + base64url) that carries
  *                  the entire query for complex tools whose readable form would blow
  *                  past practical URL limits. Expanded back into a plain query by
@@ -85,6 +92,8 @@ import { isUnit } from './units.ts';
 import type { Unit } from './units.ts';
 import { isTokenValue, isAlias } from './tokens.ts';
 import { isToolUrl } from './tool-url.ts';
+import { normalizeLang } from './lang.ts';
+import type { Lang } from './lang.ts';
 import type { BlockFieldSpec, InputManifest, InputSpec, InputValue } from './inputs.ts';
 import type { PrintMarksFlags } from './print-marks.ts';
 import type { AssetRef } from './bridge/host-v1.ts';
@@ -115,6 +124,9 @@ export interface UrlState {
   c2pa: C2paSetting | null;
   /** Pixel-watermark opt-in (the `imprint` param). null ⇒ absent (off). */
   imprint: boolean | null;
+  /** UI/content language (the `lang` param), alias-normalized. null ⇒ absent or
+   *  unrecognized — caller falls back to profile/localStorage/browser default. */
+  lang: Lang | null;
 }
 
 /** The slice of an input model item serializeUrlState reads. */
@@ -145,12 +157,15 @@ export interface SerializeUrlOpts {
   c2paDays?: number | null;
   /** true ⇒ embed the Lolly pixel watermark on raster exports (`imprint=1`). */
   imprint?: boolean;
+  /** UI/content language to stamp on a share link (see `lang` in the header
+   *  comment). Omitted for English — the implicit default. */
+  lang?: string | null;
 }
 
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -253,6 +268,8 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     c2pa:     parseC2pa(params.get('c2pa')),
     // Pixel-watermark opt-in for raster exports (see header).
     imprint:  parseImprint(params.get('imprint')),
+    // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
+    lang:     normalizeLang(params.get('lang')),
   };
 }
 
@@ -295,6 +312,7 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.c2pa === false) params.set('c2pa', 'off');
   else if (opts.c2pa) params.set('c2pa', [7, 30, 90, 365].includes(Number(opts.c2paDays)) ? String(opts.c2paDays) : '1');
   if (opts.imprint) params.set('imprint', '1');
+  if (opts.lang && opts.lang !== 'en') params.set('lang', opts.lang);
   return params.toString();
 }
 

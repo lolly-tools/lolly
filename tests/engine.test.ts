@@ -146,7 +146,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'nostage', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'lang', 'nostage', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 });
@@ -176,6 +176,26 @@ test('url-mode: c2pa param serialize round-trip', () => {
   assert.equal(serializeUrlState([], { c2pa: true, c2paDays: 12 }), 'c2pa=1'); // off-menu → default marker
   assert.equal(serializeUrlState([], { c2pa: false }), 'c2pa=off');
   assert.equal(serializeUrlState([], {}), '');                              // absent → nothing
+});
+
+test('url-mode: lang param — alias normalization + serialize round-trip', () => {
+  const tool = { inputs: [], render: {} };
+  // Canonical codes pass through.
+  assert.equal(parseUrlState('lang=es', tool).lang, 'es');
+  assert.equal(parseUrlState('lang=zh', tool).lang, 'zh');
+  // Informal aliases (country codes people actually type) normalize to canonical.
+  assert.equal(parseUrlState('lang=cn', tool).lang, 'zh');
+  assert.equal(parseUrlState('lang=jp', tool).lang, 'ja');
+  assert.equal(parseUrlState('lang=ZH-CN', tool).lang, 'zh');
+  // Absent/unrecognized → null, so the caller falls back to its own default chain.
+  assert.equal(parseUrlState('', tool).lang, null);
+  assert.equal(parseUrlState('lang=klingon', tool).lang, null);
+  // lang is reserved — never mistaken for a tool input.
+  assert.equal('lang' in parseUrlState('lang=de', tool).values, false);
+  // Serialize: English (the default) is omitted; other languages round-trip.
+  assert.equal(serializeUrlState([], { lang: 'en' }), '');
+  assert.equal(serializeUrlState([], {}), '');
+  assert.equal(serializeUrlState([], { lang: 'de' }), 'lang=de');
 });
 
 test('url-mode: compact blocks fold a raw comma into the last field (no shift)', () => {
