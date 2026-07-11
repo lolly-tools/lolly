@@ -1,4 +1,132 @@
 {
   "name": "Estudio de maquetación",
-  "featured.blurb": "Maquetas libres sobre un lienzo abierto"
+  "featured.blurb": "Maquetas libres sobre un lienzo abierto",
+
+  "inputs.background.label": "Fondo del lienzo",
+
+  "inputs.boxes.label": "Cajas",
+  "inputs.boxes.addMenu.label": "Añadir caja",
+
+  "inputs.boxes.fields.kind.label": "Tipo",
+  "inputs.boxes.fields.kind.options.box": "Caja",
+  "inputs.boxes.fields.kind.options.text": "Texto",
+  "inputs.boxes.fields.kind.options.image": "Imagen",
+
+  "inputs.boxes.fields.x.label": "X",
+  "inputs.boxes.fields.y.label": "Y",
+  "inputs.boxes.fields.w.label": "Ancho",
+  "inputs.boxes.fields.h.label": "Alto",
+  "inputs.boxes.fields.rot.label": "Rotación",
+
+  "inputs.boxes.fields.shape.label": "Forma",
+  "inputs.boxes.fields.shape.options.rect": "Rectángulo",
+  "inputs.boxes.fields.shape.options.rounded": "Redondeado",
+  "inputs.boxes.fields.shape.options.pill": "Píldora",
+  "inputs.boxes.fields.shape.options.ellipse": "Elipse",
+
+  "inputs.boxes.fields.radius.label": "Radio de esquina",
+
+  "inputs.boxes.fields.bg.label": "Relleno",
+
+  "inputs.boxes.fields.opacity.label": "Opacidad",
+
+  "inputs.boxes.fields.image.label": "Imagen, animación o vídeo",
+  "inputs.boxes.fields.image.help": "Una foto, logotipo, SVG, GIF, animación Lottie o un vídeo corto (MP4/WebM). Las animaciones y los vídeos se reproducen en directo en el lienzo; las exportaciones estáticas (PNG/SVG/PDF) capturan el fotograma actual.",
+
+  "inputs.boxes.fields.fit.label": "Ajuste de imagen",
+  "inputs.boxes.fields.fit.options.contain": "Contener (ajustar dentro)",
+  "inputs.boxes.fields.fit.options.cover": "Cubrir (recortar para rellenar)",
+  "inputs.boxes.fields.fit.options.fill": "Estirar",
+
+  "inputs.boxes.fields.blend.label": "Modo de fusión",
+  "inputs.boxes.fields.blend.options.normal": "Normal",
+  "inputs.boxes.fields.blend.options.multiply": "Multiplicar",
+  "inputs.boxes.fields.blend.options.screen": "Trama",
+  "inputs.boxes.fields.blend.options.overlay": "Superponer",
+  "inputs.boxes.fields.blend.options.darken": "Oscurecer",
+  "inputs.boxes.fields.blend.options.lighten": "Aclarar",
+  "inputs.boxes.fields.blend.options.color-dodge": "Sobreexposición de color",
+  "inputs.boxes.fields.blend.options.color-burn": "Subexposición de color",
+  "inputs.boxes.fields.blend.options.hard-light": "Luz fuerte",
+  "inputs.boxes.fields.blend.options.soft-light": "Luz suave",
+  "inputs.boxes.fields.blend.options.difference": "Diferencia",
+  "inputs.boxes.fields.blend.options.exclusion": "Exclusión",
+  "inputs.boxes.fields.blend.options.hue": "Tono",
+  "inputs.boxes.fields.blend.options.saturation": "Saturación",
+  "inputs.boxes.fields.blend.options.color": "Color",
+  "inputs.boxes.fields.blend.options.luminosity": "Luminosidad",
+
+  "inputs.boxes.fields.text.label": "Texto",
+  "inputs.boxes.fields.text.help": "Texto enriquecido: **negrita**, *cursiva* / _cursiva_, y las líneas que empiezan con - o • se convierten en viñetas.",
+
+  "inputs.boxes.fields.fg.label": "Color del texto",
+
+  "inputs.boxes.fields.fontSize.label": "Tamaño del texto",
+
+  "inputs.boxes.fields.align.label": "Alineación",
+  "inputs.boxes.fields.align.options.left": "Izquierda",
+  "inputs.boxes.fields.align.options.center": "Centro",
+  "inputs.boxes.fields.align.options.right": "Derecha",
+
+  "inputs.boxes.fields.valign.label": "Vertical",
+  "inputs.boxes.fields.valign.options.top": "Arriba",
+  "inputs.boxes.fields.valign.options.middle": "Medio",
+  "inputs.boxes.fields.valign.options.bottom": "Abajo",
+
+  "inputs.boxes.fields.weight.label": "Grosor",
+  "inputs.boxes.fields.weight.help": "El grosor máximo disponible depende de la fuente: la familia monoespaciada está limitada a Extranegra (800).",
+  "inputs.boxes.fields.weight.options.100": "Fina",
+  "inputs.boxes.fields.weight.options.200": "Extraligera",
+  "inputs.boxes.fields.weight.options.300": "Ligera",
+  "inputs.boxes.fields.weight.options.400": "Regular",
+  "inputs.boxes.fields.weight.options.500": "Media",
+  "inputs.boxes.fields.weight.options.600": "Seminegra",
+  "inputs.boxes.fields.weight.options.700": "Negrita",
+  "inputs.boxes.fields.weight.options.800": "Extranegra",
+  "inputs.boxes.fields.weight.options.900": "Negra",
+
+  "inputs.boxes.fields.font.label": "Fuente",
+  "inputs.boxes.fields.font.options.sans": "Sans de marca",
+  "inputs.boxes.fields.font.options.mono": "Mono",
+
+  "inputs.boxes.fields.lineHeight.label": "Interlineado",
+
+  "inputs.boxes.fields.tracking.label": "Interletraje",
+  "inputs.boxes.fields.tracking.help": "Espaciado uniforme entre letras (interletraje) en píxeles. Se incorpora en la exportación vectorial.",
+
+  "inputs.boxes.fields.ligatures.label": "Ligaduras",
+  "inputs.boxes.fields.ligatures.help": "Ligaduras estándar (fi, fl, …). Se aplican en pantalla y en la exportación vectorizada a SVG/PDF/EMF.",
+
+  "inputs.boxes.fields.alternates.label": "Alternativos estilísticos",
+  "inputs.boxes.fields.alternates.help": "Alternativos estilísticos OpenType (salt), cuando la fuente los ofrece.",
+
+  "inputs.boxes.fields.group.label": "Grupo",
+
+  "inputs.boxes.fields.clip.label": "Recortar a",
+
+  "inputs.boxes.fields.pad.label": "Espaciado del texto",
+
+  "inputs.boxes.fields.shadow.label": "Sombra",
+  "inputs.boxes.fields.shadow.help": "A qué se aplica la sombra paralela: el contorno de la caja, el texto o el contenido visible (alfa de la imagen). Solo en exportación ráster: SVG/PDF la aplanan.",
+  "inputs.boxes.fields.shadow.options.none": "Ninguna",
+  "inputs.boxes.fields.shadow.options.box": "Caja",
+  "inputs.boxes.fields.shadow.options.text": "Texto",
+  "inputs.boxes.fields.shadow.options.content": "Contenido",
+
+  "inputs.boxes.fields.shadowColor.label": "Color de sombra",
+  "inputs.boxes.fields.shadowX.label": "Sombra X",
+  "inputs.boxes.fields.shadowY.label": "Sombra Y",
+  "inputs.boxes.fields.shadowBlur.label": "Desenfoque de sombra",
+
+  "inputs.boxes.fields.imgpos.label": "Posición de la imagen",
+  "inputs.boxes.fields.imgpos.help": "A qué borde o esquina se ancla la imagen: dónde se sitúa una imagen contenida dentro de la caja, o qué parte de una imagen recortada por cobertura permanece visible. Se respeta en pantalla y en la exportación a PNG/SVG/PDF.",
+  "inputs.boxes.fields.imgpos.options.left top": "Arriba a la izquierda",
+  "inputs.boxes.fields.imgpos.options.center top": "Arriba",
+  "inputs.boxes.fields.imgpos.options.right top": "Arriba a la derecha",
+  "inputs.boxes.fields.imgpos.options.left center": "Izquierda",
+  "inputs.boxes.fields.imgpos.options.center": "Centro",
+  "inputs.boxes.fields.imgpos.options.right center": "Derecha",
+  "inputs.boxes.fields.imgpos.options.left bottom": "Abajo a la izquierda",
+  "inputs.boxes.fields.imgpos.options.center bottom": "Abajo",
+  "inputs.boxes.fields.imgpos.options.right bottom": "Abajo a la derecha"
 }

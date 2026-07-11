@@ -1,5 +1,20 @@
 {
   "name": "Perakam Suara",
   "description": "Rakam nota suara dengan meter aras langsung dan bimbingan lembut, kemudian simpan sebagai MP3.",
-  "featured.blurb": "Rakam nota suara yang jernih dengan bimbingan aras langsung"
+  "a11yLabel": "Perakam suara — aras {{default dbText \"idle\"}}",
+  "featured.blurb": "Rakam nota suara yang jernih dengan bimbingan aras langsung",
+  "inputs.title.label": "Label",
+  "inputs.title.help": "Menamakan kad rakaman dan fail yang disimpan.",
+  "inputs.targetLevel.label": "Aras sasaran",
+  "inputs.targetLevel.help": "Apa yang dikira 'sesuai' untuk gesaan bimbingan.",
+  "inputs.targetLevel.options.soft": "Lembut · mik dekat",
+  "inputs.targetLevel.options.normal": "Pertuturan biasa",
+  "inputs.targetLevel.options.loud": "Kuat · bilik",
+  "inputs.showTips.label": "Tip bimbingan",
+  "inputs.showTips.help": "Gesaan langsung seperti 'dekatkan diri' atau 'bunyi anda klip'.",
+  "inputs.theme.label": "Gaya kad",
+  "inputs.theme.options.dark": "Gelap",
+  "inputs.theme.options.light": "Terang",
+  "inputs.accent.label": "Aksen",
+  "inputs.accent.help": "Biarkan tidak ditetapkan untuk mengikut warna utama jenama anda."
 }

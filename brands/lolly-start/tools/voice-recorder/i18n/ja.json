@@ -1,5 +1,20 @@
 {
   "name": "ボイスレコーダー",
   "description": "リアルタイムのレベルメーターとやさしいコーチングを使ってボイスメモを録音し、MP3として保存できます。",
-  "featured.blurb": "リアルタイムのレベルコーチングでクリアなボイスメモを録音できます。"
+  "a11yLabel": "ボイスレコーダー — レベル {{default dbText \"idle\"}}",
+  "featured.blurb": "リアルタイムのレベルコーチングでクリアなボイスメモを録音できます。",
+  "inputs.title.label": "ラベル",
+  "inputs.title.help": "録音カードと保存されるファイルの名前になります。",
+  "inputs.targetLevel.label": "目標レベル",
+  "inputs.targetLevel.help": "コーチングのプロンプトにおいて『ちょうどよい』とみなすレベルです。",
+  "inputs.targetLevel.options.soft": "ソフト (近接マイク)",
+  "inputs.targetLevel.options.normal": "ノーマル (通常の話し声)",
+  "inputs.targetLevel.options.loud": "ラウド (部屋全体)",
+  "inputs.showTips.label": "コーチングのヒント",
+  "inputs.showTips.help": "「もっと近づいてください」「音が割れています」といったリアルタイムのヒントです。",
+  "inputs.theme.label": "カードのスタイル",
+  "inputs.theme.options.dark": "ダーク",
+  "inputs.theme.options.light": "ライト",
+  "inputs.accent.label": "アクセントカラー",
+  "inputs.accent.help": "未設定のままにすると、ブランドのプライマリカラーに従います。"
 }

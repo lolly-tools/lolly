@@ -92,6 +92,7 @@ import { isUnit } from './units.ts';
 import type { Unit } from './units.ts';
 import { isTokenValue, isAlias } from './tokens.ts';
 import { isToolUrl } from './tool-url.ts';
+import { isBakedRef } from './bake.ts';
 import { normalizeLang } from './lang.ts';
 import type { Lang } from './lang.ts';
 import type { BlockFieldSpec, InputManifest, InputSpec, InputValue } from './inputs.ts';
@@ -356,7 +357,14 @@ function coerceFromString(input: InputSpec, raw: string): InputValue {
 
 function coerceToString(input: UrlSerializableInput, value: InputValue): string {
   if (input.type === 'boolean') return value ? '1' : '0';
-  if (input.type === 'asset' && value && typeof value === 'object') return (value as AssetRef).id;
+  if (input.type === 'asset' && value && typeof value === 'object') {
+    const ref = value as AssetRef;
+    // A baked ref's data: URL can't ride in a link; serialize its provenance
+    // (the canonical embed URL) so the recipient degrades to a live re-render.
+    // No provenance → the 'baked/…' id itself, which degrades to a graceful drop.
+    if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === 'string') return ref.meta.bakedFrom;
+    return ref.id;
+  }
   // A token-backed colour serialises to its reference ('{color.brand.jungle}'),
   // so a shared link re-resolves against the destination's tokens (canonical).
   if (input.type === 'color' && isTokenValue(value)) return value.ref;

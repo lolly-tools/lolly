@@ -1,5 +1,20 @@
 {
   "name": "Sprachrekorder",
   "description": "Nehmen Sie eine Sprachnotiz mit Live-Pegelanzeige und sanfter Anleitung auf und speichern Sie sie als MP3.",
-  "featured.blurb": "Nehmen Sie eine saubere Sprachnotiz mit Live-Pegel-Coaching auf"
+  "featured.blurb": "Nehmen Sie eine saubere Sprachnotiz mit Live-Pegel-Coaching auf",
+  "a11yLabel": "Sprachrekorder — Pegel {{default dbText \"idle\"}}",
+  "inputs.title.label": "Bezeichnung",
+  "inputs.title.help": "Benennt die Aufnahmekarte und die gespeicherte Datei.",
+  "inputs.targetLevel.label": "Zielpegel",
+  "inputs.targetLevel.help": "Was für die Coaching-Hinweise als „genau richtig\" gilt.",
+  "inputs.targetLevel.options.soft": "Leise · Nahmikrofon",
+  "inputs.targetLevel.options.normal": "Normale Sprache",
+  "inputs.targetLevel.options.loud": "Laut · Raum",
+  "inputs.showTips.label": "Coaching-Hinweise",
+  "inputs.showTips.help": "Live-Hinweise wie „näher herangehen\" oder „Sie übersteuern\".",
+  "inputs.theme.label": "Kartenstil",
+  "inputs.theme.options.dark": "Dunkel",
+  "inputs.theme.options.light": "Hell",
+  "inputs.accent.label": "Akzentfarbe",
+  "inputs.accent.help": "Leer lassen, um der Primärfarbe Ihrer Marke zu folgen."
 }

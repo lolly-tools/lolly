@@ -1,5 +1,20 @@
 {
   "name": "Ghi Âm Giọng Nói",
   "description": "Ghi một đoạn ghi âm giọng nói với đồng hồ đo mức âm thanh trực tiếp và hướng dẫn nhẹ nhàng, sau đó lưu dưới dạng MP3.",
-  "featured.blurb": "Ghi âm giọng nói rõ ràng với hướng dẫn mức âm thanh trực tiếp"
+  "a11yLabel": "Máy ghi âm giọng nói — mức {{default dbText \"idle\"}}",
+  "featured.blurb": "Ghi âm giọng nói rõ ràng với hướng dẫn mức âm thanh trực tiếp",
+  "inputs.title.label": "Nhãn",
+  "inputs.title.help": "Đặt tên cho thẻ ghi âm và tệp đã lưu.",
+  "inputs.targetLevel.label": "Mức âm lượng mục tiêu",
+  "inputs.targetLevel.help": "Xác định mức nào được coi là 'vừa đủ' cho các gợi ý hướng dẫn.",
+  "inputs.targetLevel.options.soft": "Nhẹ · mic gần",
+  "inputs.targetLevel.options.normal": "Giọng nói bình thường",
+  "inputs.targetLevel.options.loud": "To · cả phòng",
+  "inputs.showTips.label": "Gợi ý hướng dẫn",
+  "inputs.showTips.help": "Gợi ý trực tiếp như 'lại gần hơn' hoặc 'bạn đang bị vỡ tiếng'.",
+  "inputs.theme.label": "Kiểu thẻ",
+  "inputs.theme.options.dark": "Tối",
+  "inputs.theme.options.light": "Sáng",
+  "inputs.accent.label": "Màu nhấn",
+  "inputs.accent.help": "Để trống để theo màu chính của thương hiệu."
 }

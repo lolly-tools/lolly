@@ -1,4 +1,132 @@
 {
   "name": "Studio ng Layout",
-  "featured.blurb": "Malayang layout sa bukas na canvas"
+  "featured.blurb": "Malayang layout sa bukas na canvas",
+
+  "inputs.background.label": "Background ng Canvas",
+
+  "inputs.boxes.label": "Mga Kahon",
+  "inputs.boxes.addMenu.label": "Magdagdag ng kahon",
+
+  "inputs.boxes.fields.kind.label": "Uri",
+  "inputs.boxes.fields.kind.options.box": "Kahon",
+  "inputs.boxes.fields.kind.options.text": "Teksto",
+  "inputs.boxes.fields.kind.options.image": "Larawan",
+
+  "inputs.boxes.fields.x.label": "X",
+  "inputs.boxes.fields.y.label": "Y",
+  "inputs.boxes.fields.w.label": "Lapad",
+  "inputs.boxes.fields.h.label": "Taas",
+  "inputs.boxes.fields.rot.label": "Pag-ikot",
+
+  "inputs.boxes.fields.shape.label": "Hugis",
+  "inputs.boxes.fields.shape.options.rect": "Parihaba",
+  "inputs.boxes.fields.shape.options.rounded": "Pabilog",
+  "inputs.boxes.fields.shape.options.pill": "Kapsula",
+  "inputs.boxes.fields.shape.options.ellipse": "Elipse",
+
+  "inputs.boxes.fields.radius.label": "Radius ng sulok",
+
+  "inputs.boxes.fields.bg.label": "Fill",
+
+  "inputs.boxes.fields.opacity.label": "Opacity",
+
+  "inputs.boxes.fields.image.label": "Larawan, animasyon, o video",
+  "inputs.boxes.fields.image.help": "Isang larawan, logo, SVG, GIF, Lottie animation, o maikling video (MP4/WebM). Nagpe-play nang live ang mga animation at video sa canvas; kinukunan ng mga still export (PNG/SVG/PDF) ang kasalukuyang frame.",
+
+  "inputs.boxes.fields.fit.label": "Fit ng larawan",
+  "inputs.boxes.fields.fit.options.contain": "Contain (magkasya sa loob)",
+  "inputs.boxes.fields.fit.options.cover": "Cover (i-crop para mapuno)",
+  "inputs.boxes.fields.fit.options.fill": "Stretch",
+
+  "inputs.boxes.fields.blend.label": "Blend mode",
+  "inputs.boxes.fields.blend.options.normal": "Normal",
+  "inputs.boxes.fields.blend.options.multiply": "Multiply",
+  "inputs.boxes.fields.blend.options.screen": "Screen",
+  "inputs.boxes.fields.blend.options.overlay": "Overlay",
+  "inputs.boxes.fields.blend.options.darken": "Darken",
+  "inputs.boxes.fields.blend.options.lighten": "Lighten",
+  "inputs.boxes.fields.blend.options.color-dodge": "Colour dodge",
+  "inputs.boxes.fields.blend.options.color-burn": "Colour burn",
+  "inputs.boxes.fields.blend.options.hard-light": "Hard light",
+  "inputs.boxes.fields.blend.options.soft-light": "Soft light",
+  "inputs.boxes.fields.blend.options.difference": "Difference",
+  "inputs.boxes.fields.blend.options.exclusion": "Exclusion",
+  "inputs.boxes.fields.blend.options.hue": "Hue",
+  "inputs.boxes.fields.blend.options.saturation": "Saturation",
+  "inputs.boxes.fields.blend.options.color": "Kulay",
+  "inputs.boxes.fields.blend.options.luminosity": "Luminosity",
+
+  "inputs.boxes.fields.text.label": "Teksto",
+  "inputs.boxes.fields.text.help": "Rich text: **bold**, *italic* / _italic_, at nagiging bullet ang mga linyang nagsisimula sa - o •.",
+
+  "inputs.boxes.fields.fg.label": "Kulay ng text",
+
+  "inputs.boxes.fields.fontSize.label": "Sukat ng text",
+
+  "inputs.boxes.fields.align.label": "Paghanay",
+  "inputs.boxes.fields.align.options.left": "Kaliwa",
+  "inputs.boxes.fields.align.options.center": "Gitna",
+  "inputs.boxes.fields.align.options.right": "Kanan",
+
+  "inputs.boxes.fields.valign.label": "Patayo",
+  "inputs.boxes.fields.valign.options.top": "Itaas",
+  "inputs.boxes.fields.valign.options.middle": "Gitna",
+  "inputs.boxes.fields.valign.options.bottom": "Ibaba",
+
+  "inputs.boxes.fields.weight.label": "Bigat",
+  "inputs.boxes.fields.weight.help": "Depende sa font kung gaano kabigat ang pinakamabigat na cut — ang mono stack ay limitado hanggang Extrabold (800).",
+  "inputs.boxes.fields.weight.options.100": "Manipis",
+  "inputs.boxes.fields.weight.options.200": "Sobrang Magaan",
+  "inputs.boxes.fields.weight.options.300": "Magaan",
+  "inputs.boxes.fields.weight.options.400": "Regular",
+  "inputs.boxes.fields.weight.options.500": "Katamtaman",
+  "inputs.boxes.fields.weight.options.600": "Medyo Makapal",
+  "inputs.boxes.fields.weight.options.700": "Makapal",
+  "inputs.boxes.fields.weight.options.800": "Sobrang Makapal",
+  "inputs.boxes.fields.weight.options.900": "Pinakamakapal",
+
+  "inputs.boxes.fields.font.label": "Font",
+  "inputs.boxes.fields.font.options.sans": "Brand Sans",
+  "inputs.boxes.fields.font.options.mono": "Mono",
+
+  "inputs.boxes.fields.lineHeight.label": "Puwang ng linya",
+
+  "inputs.boxes.fields.tracking.label": "Puwang ng titik",
+  "inputs.boxes.fields.tracking.help": "Pare-parehong puwang sa pagitan ng mga titik (tracking) sa px. Nakapaloob na ito sa vector export.",
+
+  "inputs.boxes.fields.ligatures.label": "Ligatures",
+  "inputs.boxes.fields.ligatures.help": "Mga standard na ligature (fi, fl, …). May bisa sa screen at sa naka-outline na SVG/PDF/EMF export.",
+
+  "inputs.boxes.fields.alternates.label": "Mga Alternatibong Estilo",
+  "inputs.boxes.fields.alternates.help": "Mga OpenType stylistic alternate (salt), kung available sa font.",
+
+  "inputs.boxes.fields.group.label": "Grupo",
+
+  "inputs.boxes.fields.clip.label": "I-clip sa",
+
+  "inputs.boxes.fields.pad.label": "Padding ng Text",
+
+  "inputs.boxes.fields.shadow.label": "Anino",
+  "inputs.boxes.fields.shadow.help": "Kung saan ilalapat ang drop shadow: sa outline ng kahon, sa text, o sa nakikitang content (alpha ng larawan). Sa raster export lang ito gumagana — pinapaflat ito ng SVG/PDF.",
+  "inputs.boxes.fields.shadow.options.none": "Wala",
+  "inputs.boxes.fields.shadow.options.box": "Kahon",
+  "inputs.boxes.fields.shadow.options.text": "Teksto",
+  "inputs.boxes.fields.shadow.options.content": "Nilalaman",
+
+  "inputs.boxes.fields.shadowColor.label": "Kulay ng anino",
+  "inputs.boxes.fields.shadowX.label": "Anino X",
+  "inputs.boxes.fields.shadowY.label": "Anino Y",
+  "inputs.boxes.fields.shadowBlur.label": "Blur ng anino",
+
+  "inputs.boxes.fields.imgpos.label": "Posisyon ng larawan",
+  "inputs.boxes.fields.imgpos.help": "Saang gilid o sulok naka-anchor ang larawan — kung saan mapupunta ang naka-contain na larawan sa loob ng kahon, o kung aling bahagi ng cover-cropped na larawan ang mananatiling nasa frame. Isinasaalang-alang ito sa screen at sa PNG/SVG/PDF export.",
+  "inputs.boxes.fields.imgpos.options.left top": "Kaliwang itaas",
+  "inputs.boxes.fields.imgpos.options.center top": "Itaas",
+  "inputs.boxes.fields.imgpos.options.right top": "Kanang itaas",
+  "inputs.boxes.fields.imgpos.options.left center": "Kaliwa",
+  "inputs.boxes.fields.imgpos.options.center": "Gitna",
+  "inputs.boxes.fields.imgpos.options.right center": "Kanan",
+  "inputs.boxes.fields.imgpos.options.left bottom": "Kaliwang ibaba",
+  "inputs.boxes.fields.imgpos.options.center bottom": "Ibaba",
+  "inputs.boxes.fields.imgpos.options.right bottom": "Kanang ibaba"
 }

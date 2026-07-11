@@ -1,4 +1,132 @@
 {
   "name": "Layoutstudio",
-  "featured.blurb": "Fria layouter på en öppen yta"
+  "featured.blurb": "Fria layouter på en öppen yta",
+
+  "inputs.background.label": "Kanvasbakgrund",
+
+  "inputs.boxes.label": "Boxar",
+  "inputs.boxes.addMenu.label": "Lägg till box",
+
+  "inputs.boxes.fields.kind.label": "Typ",
+  "inputs.boxes.fields.kind.options.box": "Box",
+  "inputs.boxes.fields.kind.options.text": "Text",
+  "inputs.boxes.fields.kind.options.image": "Bild",
+
+  "inputs.boxes.fields.x.label": "X",
+  "inputs.boxes.fields.y.label": "Y",
+  "inputs.boxes.fields.w.label": "Bredd",
+  "inputs.boxes.fields.h.label": "Höjd",
+  "inputs.boxes.fields.rot.label": "Rotation",
+
+  "inputs.boxes.fields.shape.label": "Form",
+  "inputs.boxes.fields.shape.options.rect": "Rektangel",
+  "inputs.boxes.fields.shape.options.rounded": "Rundad",
+  "inputs.boxes.fields.shape.options.pill": "Piller",
+  "inputs.boxes.fields.shape.options.ellipse": "Ellips",
+
+  "inputs.boxes.fields.radius.label": "Hörnradie",
+
+  "inputs.boxes.fields.bg.label": "Fyllning",
+
+  "inputs.boxes.fields.opacity.label": "Opacitet",
+
+  "inputs.boxes.fields.image.label": "Bild, animation eller video",
+  "inputs.boxes.fields.image.help": "Ett foto, en logotyp, SVG, GIF, en Lottie-animation eller en kort video (MP4/WebM). Animationer och video spelas upp direkt på ytan; statiska exporter (PNG/SVG/PDF) fångar den aktuella bildrutan.",
+
+  "inputs.boxes.fields.fit.label": "Bildanpassning",
+  "inputs.boxes.fields.fit.options.contain": "Anpassa (hela bilden)",
+  "inputs.boxes.fields.fit.options.cover": "Fyll (beskär kanterna)",
+  "inputs.boxes.fields.fit.options.fill": "Sträck ut",
+
+  "inputs.boxes.fields.blend.label": "Blandningsläge",
+  "inputs.boxes.fields.blend.options.normal": "Normal",
+  "inputs.boxes.fields.blend.options.multiply": "Multiplicera",
+  "inputs.boxes.fields.blend.options.screen": "Screen",
+  "inputs.boxes.fields.blend.options.overlay": "Övertoning",
+  "inputs.boxes.fields.blend.options.darken": "Mörkare",
+  "inputs.boxes.fields.blend.options.lighten": "Ljusare",
+  "inputs.boxes.fields.blend.options.color-dodge": "Färgtoning ljusare",
+  "inputs.boxes.fields.blend.options.color-burn": "Färgtoning mörkare",
+  "inputs.boxes.fields.blend.options.hard-light": "Hårt ljus",
+  "inputs.boxes.fields.blend.options.soft-light": "Mjukt ljus",
+  "inputs.boxes.fields.blend.options.difference": "Differens",
+  "inputs.boxes.fields.blend.options.exclusion": "Uteslutning",
+  "inputs.boxes.fields.blend.options.hue": "Nyans",
+  "inputs.boxes.fields.blend.options.saturation": "Mättnad",
+  "inputs.boxes.fields.blend.options.color": "Färg",
+  "inputs.boxes.fields.blend.options.luminosity": "Luminans",
+
+  "inputs.boxes.fields.text.label": "Text",
+  "inputs.boxes.fields.text.help": "Rich text: **fet**, *kursiv* / _kursiv_, och rader som börjar med - eller • blir punktlistor.",
+
+  "inputs.boxes.fields.fg.label": "Textfärg",
+
+  "inputs.boxes.fields.fontSize.label": "Textstorlek",
+
+  "inputs.boxes.fields.align.label": "Justering",
+  "inputs.boxes.fields.align.options.left": "Vänster",
+  "inputs.boxes.fields.align.options.center": "Centrerad",
+  "inputs.boxes.fields.align.options.right": "Höger",
+
+  "inputs.boxes.fields.valign.label": "Vertikal",
+  "inputs.boxes.fields.valign.options.top": "Överst",
+  "inputs.boxes.fields.valign.options.middle": "Mitten",
+  "inputs.boxes.fields.valign.options.bottom": "Nederst",
+
+  "inputs.boxes.fields.weight.label": "Vikt",
+  "inputs.boxes.fields.weight.help": "Hur tungt det tyngsta snittet är beror på typsnittet – mono-stacken är begränsad till Extrafet (800).",
+  "inputs.boxes.fields.weight.options.100": "Tunn",
+  "inputs.boxes.fields.weight.options.200": "Extratunn",
+  "inputs.boxes.fields.weight.options.300": "Lätt",
+  "inputs.boxes.fields.weight.options.400": "Normal",
+  "inputs.boxes.fields.weight.options.500": "Medium",
+  "inputs.boxes.fields.weight.options.600": "Halvfet",
+  "inputs.boxes.fields.weight.options.700": "Fet",
+  "inputs.boxes.fields.weight.options.800": "Extrafet",
+  "inputs.boxes.fields.weight.options.900": "Svart",
+
+  "inputs.boxes.fields.font.label": "Typsnitt",
+  "inputs.boxes.fields.font.options.sans": "Varumärkessans",
+  "inputs.boxes.fields.font.options.mono": "Mono",
+
+  "inputs.boxes.fields.lineHeight.label": "Radavstånd",
+
+  "inputs.boxes.fields.tracking.label": "Kerning",
+  "inputs.boxes.fields.tracking.help": "Enhetligt bokstavsmellanrum (spårning) i px. Bakas in i vektorexporten.",
+
+  "inputs.boxes.fields.ligatures.label": "Ligaturer",
+  "inputs.boxes.fields.ligatures.help": "Standardligaturer (fi, fl, …). Gäller på skärmen och i den konturerade SVG-/PDF-/EMF-exporten.",
+
+  "inputs.boxes.fields.alternates.label": "Stilistiska alternativ",
+  "inputs.boxes.fields.alternates.help": "OpenType-stilalternativ (salt), där typsnittet tillhandahåller dem.",
+
+  "inputs.boxes.fields.group.label": "Grupp",
+
+  "inputs.boxes.fields.clip.label": "Klipp till",
+
+  "inputs.boxes.fields.pad.label": "Textmarginal",
+
+  "inputs.boxes.fields.shadow.label": "Skugga",
+  "inputs.boxes.fields.shadow.help": "Vad slagskuggan tillämpas på: boxens kontur, texten eller det synliga innehållet (bildens alfa). Endast rasterexport – SVG/PDF plattar ut den.",
+  "inputs.boxes.fields.shadow.options.none": "Ingen",
+  "inputs.boxes.fields.shadow.options.box": "Box",
+  "inputs.boxes.fields.shadow.options.text": "Text",
+  "inputs.boxes.fields.shadow.options.content": "Innehåll",
+
+  "inputs.boxes.fields.shadowColor.label": "Skuggfärg",
+  "inputs.boxes.fields.shadowX.label": "Skugga X",
+  "inputs.boxes.fields.shadowY.label": "Skugga Y",
+  "inputs.boxes.fields.shadowBlur.label": "Skuggoskärpa",
+
+  "inputs.boxes.fields.imgpos.label": "Bildposition",
+  "inputs.boxes.fields.imgpos.help": "Vilken kant eller vilket hörn bilden förankras vid – var en innehållen bild placeras inuti boxen, eller vilken del av en täckande beskuren bild som stannar inom ramen. Gäller på skärmen och i PNG-/SVG-/PDF-export.",
+  "inputs.boxes.fields.imgpos.options.left top": "Uppe till vänster",
+  "inputs.boxes.fields.imgpos.options.center top": "Överkant, centrerad",
+  "inputs.boxes.fields.imgpos.options.right top": "Uppe till höger",
+  "inputs.boxes.fields.imgpos.options.left center": "Vänster",
+  "inputs.boxes.fields.imgpos.options.center": "Centrerad",
+  "inputs.boxes.fields.imgpos.options.right center": "Höger",
+  "inputs.boxes.fields.imgpos.options.left bottom": "Nere till vänster",
+  "inputs.boxes.fields.imgpos.options.center bottom": "Nederkant, centrerad",
+  "inputs.boxes.fields.imgpos.options.right bottom": "Nere till höger"
 }

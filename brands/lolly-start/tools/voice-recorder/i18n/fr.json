@@ -1,5 +1,20 @@
 {
   "name": "Enregistreur vocal",
   "description": "Enregistre une note vocale avec un indicateur de niveau en direct et des conseils en douceur, puis enregistre-la en MP3.",
-  "featured.blurb": "Enregistre une note vocale nette avec un accompagnement de niveau en direct"
+  "featured.blurb": "Enregistre une note vocale nette avec un accompagnement de niveau en direct",
+  "a11yLabel": "Enregistreur vocal — niveau {{default dbText \"idle\"}}",
+  "inputs.title.label": "Étiquette",
+  "inputs.title.help": "Nomme la carte d'enregistrement et le fichier enregistré.",
+  "inputs.targetLevel.label": "Niveau cible",
+  "inputs.targetLevel.help": "Ce qui est considéré comme « idéal » pour les conseils d'accompagnement.",
+  "inputs.targetLevel.options.soft": "Doux · micro proche",
+  "inputs.targetLevel.options.normal": "Parole normale",
+  "inputs.targetLevel.options.loud": "Fort · pièce",
+  "inputs.showTips.label": "Conseils d'accompagnement",
+  "inputs.showTips.help": "Des messages en direct comme « rapproche-toi » ou « tu satures ».",
+  "inputs.theme.label": "Style de carte",
+  "inputs.theme.options.dark": "Sombre",
+  "inputs.theme.options.light": "Clair",
+  "inputs.accent.label": "Accent",
+  "inputs.accent.help": "Laisse vide pour suivre la couleur principale de ta marque."
 }

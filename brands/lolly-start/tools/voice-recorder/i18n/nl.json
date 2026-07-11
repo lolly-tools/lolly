@@ -1,5 +1,20 @@
 {
   "name": "Spraakrecorder",
   "description": "Neem een spraakbericht op met een live niveaumeter en zachte begeleiding, en sla het op als MP3.",
-  "featured.blurb": "Neem een heldere spraakopname op met live niveaubegeleiding"
+  "a11yLabel": "Spraakrecorder — niveau {{default dbText \"idle\"}}",
+  "featured.blurb": "Neem een heldere spraakopname op met live niveaubegeleiding",
+  "inputs.title.label": "Label",
+  "inputs.title.help": "Bepaalt de naam van de opnamekaart en het opgeslagen bestand.",
+  "inputs.targetLevel.label": "Doelniveau",
+  "inputs.targetLevel.help": "Wat als 'precies goed' geldt voor de begeleidingstips.",
+  "inputs.targetLevel.options.soft": "Zacht · dicht op de mic",
+  "inputs.targetLevel.options.normal": "Normale spraak",
+  "inputs.targetLevel.options.loud": "Luid · ruimte",
+  "inputs.showTips.label": "Begeleidingstips",
+  "inputs.showTips.help": "Live tips zoals 'kom dichterbij' of 'je clipt'.",
+  "inputs.theme.label": "Kaartstijl",
+  "inputs.theme.options.dark": "Donker",
+  "inputs.theme.options.light": "Licht",
+  "inputs.accent.label": "Accent",
+  "inputs.accent.help": "Laat leeg om de primaire kleur van je merk te volgen."
 }

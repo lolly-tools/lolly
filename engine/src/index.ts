@@ -29,6 +29,10 @@ export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, P
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';
 export { parseEmbedUrl } from './embed.ts';
 export { parseToolUrl, buildEmbedUrl, isToolUrl } from './tool-url.ts';
+export {
+  assertComposeStack, ComposeGuardError, MAX_COMPOSE_DEPTH,
+  bakeAssetRef, isBakedRef, MAX_BAKED_URL_CHARS,
+} from './bake.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate } from './batch.ts';
 export type { BatchRow, BatchTemplateTool } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
@@ -502,4 +506,19 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // zh-hant, my→ms, fil→tl. Purely additive to the LANGS/LANG_META/ALIASES
 // tables — no signature change on url-mode.ts, Profile, or the loader's i18n
 // overlay, all of which already iterate LANGS generically.
-export const ENGINE_VERSION = '1.42.0';
+// 1.43.0 — additive: baked assets + the shared compose guard (bake.ts). (1)
+// bakeAssetRef freezes a composed render (a renderUrl result whose bytes ride
+// in a data: URL, capped at MAX_BAKED_URL_CHARS) into a static asset: id
+// 'baked/<base36 ms>', meta { baked, bakedAt, bakedFrom? } — provenance for
+// on-demand re-baking — with meta.toolUrl (the live-edit key) and any
+// blob:-valued meta removed. The runtime resolves an isBakedRef value AS-IS
+// (no bridge call, no compose-stack growth — a baked embed consumes no compose
+// depth and never live-re-renders); URL mode serializes its bakedFrom so a
+// share-link recipient degrades to a live re-render. DroppedAsset gains an
+// optional `reason` ('render-failed' / 'not-found' / 'baked-bytes-lost'). (2)
+// assertComposeStack / ComposeGuardError / MAX_COMPOSE_DEPTH move the per-shell
+// cycle/depth guards into the engine so every bridge shares one policy.
+// Forward-compat: an OLDER engine re-resolves a baked id via assets.get, which
+// fails ('baked/…' is in no catalog), so the slot drops gracefully. No bridge
+// signature change.
+export const ENGINE_VERSION = '1.43.0';
