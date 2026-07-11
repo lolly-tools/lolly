@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-11T07:33:28.625Z",
+  "generatedAt": "2026-07-11T11:14:28.223Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -50,6 +50,10 @@
         "pt": {
           "name": "Compactar PDF",
           "description": "Reduza um PDF recompactando suas imagens — no seu dispositivo."
+        },
+        "ro": {
+          "name": "Comprimă PDF",
+          "description": "Micșorează un PDF recomprimând imaginile din el — direct pe dispozitivul tău."
         },
         "sv": {
           "name": "Komprimera PDF",
@@ -120,6 +124,10 @@
         "pt": {
           "name": "Contagem Regressiva",
           "description": "Uma contagem regressiva focada com um anel de progresso ao vivo. Clique para pausar."
+        },
+        "ro": {
+          "name": "Numărătoare inversă",
+          "description": "O numărătoare inversă clară, cu un inel de progres live. Dă clic pentru pauză."
         },
         "sv": {
           "name": "Nedräkningstimer",
@@ -197,6 +205,10 @@
         "pt": {
           "name": "Filtro: Duotom",
           "description": "Um duotom de duas cores para qualquer foto — uma cor nas sombras, outra nas luzes."
+        },
+        "ro": {
+          "name": "Filtru: Duoton",
+          "description": "Un duoton pe două culori pentru orice fotografie — o culoare pentru umbre, alta pentru lumini."
         },
         "sv": {
           "name": "Filter: Duoton",
@@ -278,6 +290,10 @@
           "name": "Filtro: Meio-tom",
           "description": "Meio-tom vetorial a partir de qualquer foto — pontos dimensionados pelo brilho."
         },
+        "ro": {
+          "name": "Filtru: Tramă",
+          "description": "Tramă vectorială din orice fotografie — puncte dimensionate în funcție de luminozitate."
+        },
         "sv": {
           "name": "Filter: Raster",
           "description": "Vektorraster från valfritt foto – prickar med storlek efter ljusstyrka."
@@ -354,6 +370,10 @@
         "pt": {
           "name": "Filtro: Esticar Pixels",
           "description": "Espalhe uma coluna de pixels por uma foto a partir de uma linha de limiar. Funciona ao vivo."
+        },
+        "ro": {
+          "name": "Filtru: Întindere de pixeli",
+          "description": "Întinde o coloană de pixeli pe toată fotografia, pornind de la o linie de prag. Funcționează live."
         },
         "sv": {
           "name": "Filter: Pixelsträckning",
@@ -433,6 +453,10 @@
           "name": "Filtro: Posterizar Bitmap",
           "description": "Transforme qualquer foto em separações de cor vetoriais planas, no estilo serigrafia."
         },
+        "ro": {
+          "name": "Filtru: Posterizare Bitmap",
+          "description": "Transformă orice fotografie în separații de culoare vectoriale, plate, în stil serigrafie."
+        },
         "sv": {
           "name": "Filter: Posterisering av bitmap",
           "description": "Konvertera valfritt foto till platta vektorbaserade färgseparationer i screentryck-stil."
@@ -509,6 +533,10 @@
         "pt": {
           "name": "Filtro: Scanline",
           "description": "Efeito vetorial de scanline com 'linhas infinitas' horizontais para qualquer foto"
+        },
+        "ro": {
+          "name": "Filtru: Linii de scanare",
+          "description": "Efect vectorial de linii de scanare orizontale de tip „infinity lines”, din orice fotografie"
         },
         "sv": {
           "name": "Filter: Skanlinjer",
@@ -587,6 +615,10 @@
         "pt": {
           "name": "Filtro: Células de Voronoi",
           "description": "Fragmente qualquer foto em um mosaico de células de Voronoi — cada célula preenchida com a cor mais próxima, em vetor plano."
+        },
+        "ro": {
+          "name": "Filtru: Celule Voronoi",
+          "description": "Sparge orice fotografie într-un mozaic de celule Voronoi — fiecare celulă e umplută cu cea mai apropiată culoare, ca vector plat."
         },
         "sv": {
           "name": "Filter: Voronoi-celler",
@@ -682,6 +714,11 @@
           "description": "Códigos QR para qualquer URL, com controle total de cor e estilo.",
           "blurb": "Códigos QR em qualquer cor da marca"
         },
+        "ro": {
+          "name": "Generator de coduri QR",
+          "description": "Coduri QR pentru orice URL, cu control total asupra culorii și stilului.",
+          "blurb": "Coduri QR în orice culoare de brand"
+        },
         "sv": {
           "name": "QR-kodgenerator",
           "description": "QR-koder för valfri URL, med full kontroll över färg och stil.",
@@ -762,6 +799,10 @@
           "name": "Mapa de Ruas",
           "description": "Mapas vetoriais limpos de quarteirões de qualquer cidade. Funciona offline."
         },
+        "ro": {
+          "name": "Hartă stradală",
+          "description": "Hărți vectoriale clare, cu blocuri stradale, pentru orice oraș. Funcționează offline."
+        },
         "sv": {
           "name": "Gatukarta",
           "description": "Rena vektorkartor över gatukvarter i valfri stad. Fungerar offline."
@@ -836,6 +877,10 @@
           "name": "Remover Dados Ocultos",
           "description": "Revele e remova metadados ocultos de imagens e PDFs — no seu dispositivo."
         },
+        "ro": {
+          "name": "Elimină datele ascunse",
+          "description": "Dezvăluie și elimină metadatele ascunse din imagini și PDF-uri — direct pe dispozitivul tău."
+        },
         "sv": {
           "name": "Ta bort dold data",
           "description": "Visa och ta bort dold metadata från bilder och PDF-filer – på din enhet."
@@ -906,6 +951,10 @@
         "pt": {
           "name": "Assistente de Texto",
           "description": "Formate, decodifique, gere hash e anonimize texto — JSON, JWT e muito mais."
+        },
+        "ro": {
+          "name": "Asistent de text",
+          "description": "Formatează, decodează, aplică hash și anonimizează text — JSON, JWT și altele."
         },
         "sv": {
           "name": "Texthjälp",
@@ -984,6 +1033,10 @@
           "name": "Captura de Tela de URL",
           "description": "Qualquer página da web, em qualquer profundidade de rolagem, com CSS personalizado"
         },
+        "ro": {
+          "name": "Captură URL",
+          "description": "Orice pagină web, la orice nivel de derulare, cu CSS personalizat"
+        },
         "sv": {
           "name": "URL-skärmdump",
           "description": "Vilken webbsida som helst, på valfritt skrolldjup, med egen CSS"
@@ -1060,6 +1113,10 @@
         "pt": {
           "name": "Estúdio de Layout",
           "blurb": "Layouts livres em uma tela aberta"
+        },
+        "ro": {
+          "name": "Studio de layout",
+          "blurb": "Layout-uri libere pe un canvas deschis"
         },
         "sv": {
           "name": "Layoutstudio",
@@ -1147,6 +1204,11 @@
           "description": "Grave uma nota de voz com um medidor de nível ao vivo e dicas gentis, depois salve como MP3.",
           "blurb": "Grave uma nota de voz limpa com orientação de nível ao vivo"
         },
+        "ro": {
+          "name": "Înregistrator vocal",
+          "description": "Înregistrează o notă vocală cu un indicator de nivel live și îndrumări blânde, apoi salveaz-o ca MP3.",
+          "blurb": "Înregistrează o notă vocală clară, cu îndrumare live a nivelului"
+        },
         "sv": {
           "name": "Röstinspelare",
           "description": "Spela in ett röstmeddelande med en nivåmätare i realtid och mjuk vägledning, spara sedan som MP3.",
@@ -1221,6 +1283,10 @@
         "pt": {
           "name": "Paleta de Cores",
           "description": "Veja as cores da marca SUSE — clique em uma amostra para copiar."
+        },
+        "ro": {
+          "name": "Paletă de culori",
+          "description": "Răsfoiește culorile de brand SUSE — dă clic pe o mostră pentru a o copia."
         },
         "sv": {
           "name": "Färgpalett",
@@ -1297,6 +1363,10 @@
         "pt": {
           "name": "Gradiente em Malha",
           "description": "Gradientes suaves em estilo malha a partir das amostras da sua marca. Arraste os pontos de cor diretamente na tela."
+        },
+        "ro": {
+          "name": "Degrade Mesh",
+          "description": "Degrade-uri mesh delicate din mostrele brandului tău. Trage punctele de culoare direct pe canvas."
         },
         "sv": {
           "name": "Nätgradient",
@@ -1389,6 +1459,11 @@
           "name": "Criador de Gráficos",
           "description": "Gráficos alinhados à marca a partir dos seus dados — barras, rosca, pizza ou empilhado.",
           "blurb": "Gráficos alinhados à marca a partir dos seus dados, em qualquer formato"
+        },
+        "ro": {
+          "name": "Generator de grafice",
+          "description": "Grafice în stilul brandului tău, din datele tale — bare, gogoașă, plăcintă sau stivuite.",
+          "blurb": "Grafice în stilul brandului tău, din datele tale, în orice formă"
         },
         "sv": {
           "name": "Diagramskapare",
@@ -1486,6 +1561,11 @@
           "name": "Estúdio de Gráficos D3",
           "description": "Gráficos potentes orientados a dados com D3 — cole uma tabela e o gráfico se monta sozinho. Barras, linhas, áreas, dispersão, pizza, radar, treemap, mapa de calor e muito mais, alinhados à marca e em vetor limpo.",
           "blurb": "Cole uma tabela — o D3 monta o gráfico, alinhado à marca e em vetor limpo"
+        },
+        "ro": {
+          "name": "Studio Grafice D3",
+          "description": "Grafice puternice, generate din datele tale, cu D3 — lipește un tabel și se transformă singur în grafic. Bare, linii, arii, scatter, plăcintă, radar, treemap, heatmap și altele, pe brand și impecabile ca vectori.",
+          "blurb": "Lipește un tabel — D3 îl transformă în grafic, pe brand și impecabil ca vector"
         },
         "sv": {
           "name": "D3-diagramstudio",

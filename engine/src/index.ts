@@ -32,6 +32,7 @@ export { parseToolUrl, buildEmbedUrl, isToolUrl } from './tool-url.ts';
 export {
   assertComposeStack, ComposeGuardError, MAX_COMPOSE_DEPTH,
   bakeAssetRef, isBakedRef, MAX_BAKED_URL_CHARS,
+  assetIdForUrl, blocksForUrl,
 } from './bake.ts';
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate } from './batch.ts';
 export type { BatchRow, BatchTemplateTool } from './batch.ts';
@@ -514,11 +515,15 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // blob:-valued meta removed. The runtime resolves an isBakedRef value AS-IS
 // (no bridge call, no compose-stack growth — a baked embed consumes no compose
 // depth and never live-re-renders); URL mode serializes its bakedFrom so a
-// share-link recipient degrades to a live re-render. DroppedAsset gains an
+// share-link recipient degrades to a live re-render — top-level assets AND
+// block sub-fields alike (assetIdForUrl / blocksForUrl, exported so shell
+// serializers share the one degradation policy). DroppedAsset gains an
 // optional `reason` ('render-failed' / 'not-found' / 'baked-bytes-lost'). (2)
 // assertComposeStack / ComposeGuardError / MAX_COMPOSE_DEPTH move the per-shell
 // cycle/depth guards into the engine so every bridge shares one policy.
 // Forward-compat: an OLDER engine re-resolves a baked id via assets.get, which
-// fails ('baked/…' is in no catalog), so the slot drops gracefully. No bridge
+// fails ('baked/…' is in no catalog), so the slot drops gracefully. (3) One
+// more LANGS entry — ro (Romanian, htmlLang ro) — purely additive to the
+// LANGS/LANG_META tables, same shape as the 1.42.0 additions. No bridge
 // signature change.
 export const ENGINE_VERSION = '1.43.0';
