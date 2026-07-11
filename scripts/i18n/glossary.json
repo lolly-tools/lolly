@@ -13,6 +13,13 @@
     "fr": "neutral-informal (tu, not vous)",
     "zh": "plain, no honorifics",
     "ja": "polite/formal (です/ます)",
-    "vi": "neutral-informal"
+    "vi": "neutral-informal",
+    "pt": "neutral-informal (você, standard Brazilian register, not European Portuguese)",
+    "zh-hant": "plain, no honorifics (Traditional characters, Taiwan/Hong Kong register — distinct from zh's Simplified/mainland register)",
+    "cs": "neutral-informal (tykání, not vykání)",
+    "nl": "neutral-informal (je, not u)",
+    "tl": "neutral-informal, code-switching with English UI terms is natural and expected",
+    "sv": "neutral-informal (du — Swedish has no formal/informal distinction in practice)",
+    "ms": "neutral-informal (anda), standard Bahasa Malaysia — not Indonesian"
   }
 }

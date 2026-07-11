@@ -12,7 +12,7 @@
  * subtag for correct Han-unification glyph selection across fallback fonts).
  */
 
-export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi'] as const;
+export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export interface LangMeta {
@@ -33,6 +33,13 @@ export const LANG_META: Record<Lang, LangMeta> = {
   zh: { code: 'zh', htmlLang: 'zh-Hans', nativeName: '简体中文', englishName: 'Simplified Chinese' },
   ja: { code: 'ja', htmlLang: 'ja', nativeName: '日本語', englishName: 'Japanese' },
   vi: { code: 'vi', htmlLang: 'vi', nativeName: 'Tiếng Việt', englishName: 'Vietnamese' },
+  pt: { code: 'pt', htmlLang: 'pt-BR', nativeName: 'Português (Brasil)', englishName: 'Portuguese (Brazil)' },
+  'zh-hant': { code: 'zh-hant', htmlLang: 'zh-Hant', nativeName: '繁體中文', englishName: 'Traditional Chinese' },
+  cs: { code: 'cs', htmlLang: 'cs', nativeName: 'Čeština', englishName: 'Czech' },
+  nl: { code: 'nl', htmlLang: 'nl', nativeName: 'Nederlands', englishName: 'Dutch' },
+  tl: { code: 'tl', htmlLang: 'tl', nativeName: 'Tagalog', englishName: 'Tagalog' },
+  sv: { code: 'sv', htmlLang: 'sv', nativeName: 'Svenska', englishName: 'Swedish' },
+  ms: { code: 'ms', htmlLang: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay' },
 };
 
 // Informal aliases accepted on parse (country codes people actually type).
@@ -43,6 +50,17 @@ const ALIASES: Record<string, Lang> = {
   'zh-hans': 'zh',
   'zh-hans-cn': 'zh',
   jp: 'ja',
+  br: 'pt',
+  'pt-br': 'pt',
+  pt_br: 'pt',
+  tw: 'zh-hant',
+  hk: 'zh-hant',
+  'zh-tw': 'zh-hant',
+  'zh-hk': 'zh-hant',
+  'zh-hant-tw': 'zh-hant',
+  hant: 'zh-hant',
+  my: 'ms', // Malaysia's country code, commonly typed for "Malaysian"
+  fil: 'tl', // Filipino — the modern standardized register of Tagalog
 };
 
 export function isLang(v: string): v is Lang {

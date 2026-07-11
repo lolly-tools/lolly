@@ -495,4 +495,11 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // every other per-user preference. No bridge signature change; the engine
 // still emits zero user-facing English itself — all display text originates in
 // manifests/templates, which may now ship a per-tool i18n sidecar (see loader.ts).
-export const ENGINE_VERSION = '1.41.0';
+// 1.42.0 — additive: 7 more LANGS entries — pt (Brazilian Portuguese, htmlLang
+// pt-BR), zh-hant (Traditional Chinese, htmlLang zh-Hant — distinct from zh's
+// Simplified/zh-Hans), cs (Czech), nl (Dutch), tl (Tagalog), sv (Swedish), ms
+// (Malay). New ALIASES: br/pt-br/pt_br→pt, tw/hk/zh-tw/zh-hk/zh-hant-tw/hant→
+// zh-hant, my→ms, fil→tl. Purely additive to the LANGS/LANG_META/ALIASES
+// tables — no signature change on url-mode.ts, Profile, or the loader's i18n
+// overlay, all of which already iterate LANGS generically.
+export const ENGINE_VERSION = '1.42.0';
