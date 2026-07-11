@@ -100,12 +100,14 @@ export {
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
 } from './tokens.ts';
 export {
-  parseOklch, formatOklch, hexToOklch, oklchToHex, contrastRatio, deriveBrandTokens,
+  parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';
+export { deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors, makeColorApi } from './color-tools.ts';
+export type { RampOptions, DistinctColorsOptions } from './color-tools.ts';
 export {
   coerceTokensDoc, assembleTokenSetFiles, extractPenpotProject, summarizeTokensDoc,
 } from './brand-import.ts';
@@ -455,4 +457,29 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // trustworthy even though the bytes can no longer be vouched for (a re-saved,
 // re-encoded, or re-uploaded Lolly export). Always false when madeWithLolly is
 // already true. No bridge change.
-export const ENGINE_VERSION = '1.37.0';
+// 1.38.0 — additive: color-tools.ts, the perceptual metrics + ramp math the
+// chroma.js evaluation (plans/chroma-eval.md) chose to PORT rather than adopt:
+// deltaEOk (OKLab distance), apcaContrast (APCA-1.0.98G Lc, advisory — WCAG
+// 2.1 stays the enforced number), rampOklab (bezier through OKLab with
+// optional correctLightness bisection), classBreaks (equal/log/quantile bins),
+// and distinctColors (anchor-seeded greedy-maximin categorical palette —
+// chroma.js has no equivalent). All pure, OKLab-based, gamut-mapped via
+// brand-derive's oklchToHex. No bridge change.
+// 1.39.0 — additive: gradient-token colour plumbing. (1) brand-derive.ts gains
+// mixOklch(a, b, t) — perceptual OKLCH interpolation (shortest-arc hue, an
+// achromatic endpoint adopts the other side's hue) for gradient previews and
+// midpoint stop seeding. (2) tokens.ts resolveAliases now also resolves
+// aliases nested inside a gradient-typed token's stops ($value[].color —
+// scoped composite resolution, cycle-safe, the caller's raw doc left
+// untouched), so a brand gradient whose stops reference palette swatches
+// ({color.ramp.primary.5}) reaches the CLI and tools as concrete colours
+// instead of raw alias strings. No bridge change.
+// 1.40.0 — additive on host: `color` (ColorAPI) — the color-tools primitives
+// behind short tool-facing names (deltaE/apca/contrast/ramp/breaks/distinct),
+// SYNCHRONOUS pure math. Shells attach the engine's makeColorApi() verbatim,
+// so the implementation can never drift between web/CLI/Tauri. Not gated by a
+// capabilities flag (progressive enhancement — tools feature-detect
+// host.color and keep a small fallback for older shells). First consumers:
+// chart-creator + d3 brand-driven series palettes (color.spectrum.* tokens
+// first, distinct() top-up, shipped palette fallback).
+export const ENGINE_VERSION = '1.40.0';

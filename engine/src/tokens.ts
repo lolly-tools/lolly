@@ -148,6 +148,9 @@ function buildMergedMap(doc: UnknownRecord, theme: string | undefined): Map<stri
 }
 
 // Resolve `{path}` aliases in place, following chains, leaving cycles untouched.
+// Gradient-typed tokens additionally get scoped composite resolution: aliases
+// nested in their stops (`$value[].color`) resolve through the same cycle-safe
+// walk — into a NEW array, since the raw stop objects belong to the caller's doc.
 function resolveAliases(map: Map<string, MutableEntry>): Map<string, MutableEntry> {
   const resolving = new Set<string>();
   function resolve(path: string): unknown {
@@ -165,6 +168,19 @@ function resolveAliases(map: Map<string, MutableEntry>): Map<string, MutableEntr
           if (e.type == null) { const te = map.get(target); if (te) e.type = te.type; }
         }
       }
+    } else if (e.type === 'gradient' && Array.isArray(e.value)) {
+      let changed = false;
+      const stops = e.value.map((s): unknown => {
+        if (!isRecord(s) || !isAlias(s.color)) return s;
+        const target = aliasPath(s.color);
+        const tv = target != null ? resolve(target) : undefined;
+        // Unresolvable — or a cycle's still-alias value — stays as authored,
+        // exactly like a whole-value alias would.
+        if (tv === undefined || isAlias(tv)) return s;
+        changed = true;
+        return { ...s, color: tv };
+      });
+      if (changed) e.value = stops;
     }
     e._done = true;
     resolving.delete(path);

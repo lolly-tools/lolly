@@ -12,7 +12,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  parseOklch, formatOklch, hexToOklch, oklchToHex, contrastRatio, deriveBrandTokens,
+  parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
 } from '../engine/src/brand-derive.ts';
 import type { Oklch } from '../engine/src/brand-derive.ts';
 import { createTokenSet, colorToHex } from '../engine/src/tokens.ts';
@@ -153,6 +153,43 @@ test('parseOklch: rejects malformed strings', () => {
     'rgb(1, 2, 3)', '#4f83cc', 'oklch 62% 0.11 250', 'oklch(a b c)', '']) {
     assert.equal(parseOklch(bad), null, bad);
   }
+});
+
+// ── mixOklch ─────────────────────────────────────────────────────────────────
+
+test('mixOklch: linear midpoint in L/C, shortest-arc hue, exact endpoints, t clamped', () => {
+  // Binary-exact component values so the endpoint/midpoint asserts are exact.
+  const a: Oklch = { l: 0.25, c: 0.0625, h: 40 };
+  const b: Oklch = { l: 0.75, c: 0.1875, h: 80 };
+  assert.deepEqual(mixOklch(a, b, 0.5), { l: 0.5, c: 0.125, h: 60 });
+  assert.deepEqual(mixOklch(a, b, 0), a);
+  assert.deepEqual(mixOklch(a, b, 1), b);
+  assert.deepEqual(mixOklch(a, b, -1), a, 't clamps low');
+  assert.deepEqual(mixOklch(a, b, 2), b, 't clamps high');
+});
+
+test('mixOklch: hue takes the short way across 0° (350 ↔ 10 meets at 0)', () => {
+  const a: Oklch = { l: 0.5, c: 0.1, h: 350 };
+  const b: Oklch = { l: 0.5, c: 0.1, h: 10 };
+  const mid = mixOklch(a, b, 0.5).h;
+  assert.ok(Math.abs(mid) < 1e-9 || Math.abs(mid - 360) < 1e-9, `mid ${mid}`);
+  assert.ok(Math.abs(mixOklch(a, b, 0.25).h - 355) < 1e-9, 'quarter stays on the near side');
+  assert.ok(Math.abs(mixOklch(a, b, 0.75).h - 5) < 1e-9);
+});
+
+test("mixOklch: an achromatic endpoint (c < 0.02) adopts the other side's hue", () => {
+  const grey: Oklch = { l: 0.9, c: 0.01, h: 260 }; // its stored hue is noise
+  const teal: Oklch = { l: 0.5, c: 0.12, h: 190 };
+  assert.equal(mixOklch(grey, teal, 0.25).h, 190, 'hue held the whole way in');
+  assert.equal(mixOklch(teal, grey, 0.75).h, 190, 'and the whole way out');
+  // Both achromatic: neither side donates — plain shortest-arc between them.
+  assert.equal(mixOklch({ l: 0.2, c: 0, h: 10 }, { l: 0.8, c: 0.01, h: 350 }, 0.5).h, 0);
+});
+
+test('mixOklch: alpha interpolates against an implicit 1; fully opaque drops the field', () => {
+  const m = mixOklch({ l: 0.5, c: 0.1, h: 0, alpha: 0.2 }, { l: 0.5, c: 0.1, h: 0 }, 0.5);
+  assert.ok(Math.abs((m.alpha ?? 1) - 0.6) < 1e-9, `alpha ${m.alpha}`);
+  assert.equal('alpha' in mixOklch({ l: 0.5, c: 0.1, h: 0 }, { l: 0.5, c: 0.1, h: 0 }, 0.5), false);
 });
 
 // ── contrastRatio ────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-10T23:04:43.684Z",
+  "generatedAt": "2026-07-11T00:44:23.683Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -353,6 +353,88 @@
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z\" /><circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /></svg>",
       "preview": "/catalog/previews/color-palette.svg"
+    },
+    {
+      "id": "mesh-gradient",
+      "name": "Mesh Gradient",
+      "description": "Soft mesh-style gradients from your brand swatches. Drag the colour points right on the canvas.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "everyone",
+      "formats": [
+        "svg",
+        "png",
+        "jpg",
+        "webp",
+        "avif",
+        "webm",
+        "mp4"
+      ],
+      "width": 1600,
+      "height": 900,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
+      "preview": "/catalog/previews/mesh-gradient.svg"
+    },
+    {
+      "id": "chart-creator",
+      "name": "Chart Creator",
+      "description": "On-brand charts from your data — bar, donut, pie or stacked.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "png",
+        "svg",
+        "emf",
+        "pdf",
+        "pdf-cmyk",
+        "cmyk-tiff",
+        "tiff",
+        "pptx",
+        "webp",
+        "csv",
+        "md"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 21v-6\" /><path d=\"M12 21V9\" /><path d=\"M19 21V3\" /></svg>",
+      "preview": "/catalog/previews/chart-creator.svg",
+      "featured": {
+        "order": 5,
+        "blurb": "On-brand charts from your data, any shape"
+      }
+    },
+    {
+      "id": "d3",
+      "name": "D3 Chart Studio",
+      "description": "Powerful data-driven charts with D3 — paste a table and it charts itself. Bars, lines, areas, scatter, pie, radar, treemap, heatmap and more, on-brand and vector-clean.",
+      "version": "1.1.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "md",
+        "png",
+        "svg",
+        "emf",
+        "pdf",
+        "pdf-cmyk",
+        "cmyk-tiff",
+        "tiff",
+        "pptx",
+        "webp",
+        "jpg"
+      ],
+      "width": 1280,
+      "height": 800,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 3v16a2 2 0 0 0 2 2h16\" /><path d=\"M7 15c2.5 0 3-6 5-6s2.5 4 4.5 4 2.5-5 4.5-5\" /><circle cx=\"7\" cy=\"15\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\" /><circle cx=\"12\" cy=\"9\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\" /><circle cx=\"16.5\" cy=\"13\" r=\"1.1\" fill=\"currentColor\" stroke=\"none\" /></svg>",
+      "preview": "/catalog/previews/d3.svg",
+      "featured": {
+        "order": 4,
+        "blurb": "Paste a table — D3 charts it, on-brand and vector-clean"
+      }
     }
   ]
 }

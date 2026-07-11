@@ -123,7 +123,9 @@ function labToOklch(L: number, a: number, b: number): Oklch {
 // ─── Hex parsing / encoding ───────────────────────────────────────────────────
 
 // #rgb/#rgba/#rrggbb/#rrggbbaa → [r, g, b, alpha 0–1], or null.
-function parseHex(s: string): [number, number, number, number] | null {
+// Exported for in-engine reuse (color-tools.ts needs raw sRGB bytes for APCA);
+// not part of the barrel surface.
+export function parseHex(s: string): [number, number, number, number] | null {
   let h = String(s).trim().toLowerCase();
   if (!h.startsWith('#')) return null;
   h = h.slice(1);
@@ -267,6 +269,30 @@ export function oklchToHex(c: Oklch): string {
   return c.alpha != null && c.alpha < 1
     ? base + Math.round(clamp01(c.alpha) * 255).toString(16).padStart(2, '0')
     : base;
+}
+
+/**
+ * Perceptual blend of two OKLCH colours at `t` (0 = `a`, 1 = `b`, clamped):
+ * linear in lightness/chroma/alpha, shortest-arc in hue. An achromatic
+ * endpoint (c < 0.02 — its hue is noise, not a choice) adopts the other
+ * side's hue, so a grey ↔ colour blend deepens in place instead of sweeping
+ * the wheel through whatever stale hue the grey happened to carry.
+ */
+export function mixOklch(a: Oklch, b: Oklch, t: number): Oklch {
+  const k = clamp01(t);
+  const carry = 0.02; // below this chroma a hue carries no visible information
+  const ha = a.c < carry && b.c >= carry ? b.h : a.h;
+  const hb = b.c < carry && a.c >= carry ? a.h : b.h;
+  const arc = ((hb - ha) % 360 + 540) % 360 - 180; // the shorter way round
+  const lerp = (x: number, y: number): number => x + (y - x) * k;
+  const out: Oklch = {
+    l: clamp01(lerp(a.l, b.l)),
+    c: Math.max(0, lerp(a.c, b.c)),
+    h: normHue(ha + arc * k),
+  };
+  const alpha = lerp(a.alpha ?? 1, b.alpha ?? 1);
+  if (alpha < 1) out.alpha = alpha;
+  return out;
 }
 
 // ─── WCAG 2.1 contrast ────────────────────────────────────────────────────────
