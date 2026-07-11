@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-11T06:37:56.469Z",
+  "generatedAt": "2026-07-11T07:33:28.625Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -17,7 +17,61 @@
       "height": 620,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 15 6 6m-6-6v4.8m0-4.8h4.8\" /><path d=\"M9 19.8V15m0 0H4.2M9 15l-6 6\" /><path d=\"M15 4.2V9m0 0h4.8M15 9l6-6\" /><path d=\"M9 4.2V9m0 0H4.2M9 9 3 3\" /></svg>",
-      "preview": "/catalog/previews/compress-pdf.svg"
+      "preview": "/catalog/previews/compress-pdf.svg",
+      "i18n": {
+        "cs": {
+          "name": "Komprese PDF",
+          "description": "Zmenši PDF rekompresí obrázků — přímo v zařízení."
+        },
+        "de": {
+          "name": "PDF komprimieren",
+          "description": "Verkleinern Sie eine PDF-Datei, indem ihre Bilder neu komprimiert werden — direkt auf Ihrem Gerät."
+        },
+        "es": {
+          "name": "Comprimir PDF",
+          "description": "Reduce el tamaño de un PDF recomprimiendo sus imágenes, todo en tu dispositivo."
+        },
+        "fr": {
+          "name": "Compresser un PDF",
+          "description": "Réduis la taille d'un PDF en recompressant ses images — directement sur ton appareil."
+        },
+        "ja": {
+          "name": "PDFを圧縮",
+          "description": "画像を再圧縮してPDFを軽量化します。処理はすべてお使いの端末上で行われます。"
+        },
+        "ms": {
+          "name": "Mampatkan PDF",
+          "description": "Kecilkan saiz PDF dengan memampatkan semula imejnya — terus di peranti anda."
+        },
+        "nl": {
+          "name": "PDF comprimeren",
+          "description": "Verklein een PDF door de afbeeldingen opnieuw te comprimeren — op je eigen apparaat."
+        },
+        "pt": {
+          "name": "Compactar PDF",
+          "description": "Reduza um PDF recompactando suas imagens — no seu dispositivo."
+        },
+        "sv": {
+          "name": "Komprimera PDF",
+          "description": "Krymp en PDF genom att komprimera om bilderna – på din enhet."
+        },
+        "tl": {
+          "name": "I-compress ang PDF",
+          "description": "Paliitin ang PDF sa pamamagitan ng pag-compress ulit ng mga larawan dito — sa mismong device mo."
+        },
+        "vi": {
+          "name": "Nén PDF",
+          "description": "Giảm dung lượng PDF bằng cách nén lại hình ảnh bên trong — ngay trên thiết bị của bạn."
+        },
+        "zh-hant": {
+          "name": "壓縮 PDF",
+          "description": "在你的裝置上重新壓縮 PDF 內的圖片，藉此縮小檔案。"
+        },
+        "zh": {
+          "name": "压缩 PDF",
+          "description": "在本地设备上重新压缩 PDF 中的图片，缩小文件体积。"
+        }
+      }
     },
     {
       "id": "countdown-timer",
@@ -33,7 +87,61 @@
       "height": 1080,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\" /><line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\" /><circle cx=\"12\" cy=\"14\" r=\"8\" /></svg>",
-      "preview": "/catalog/previews/countdown-timer.svg"
+      "preview": "/catalog/previews/countdown-timer.svg",
+      "i18n": {
+        "cs": {
+          "name": "Odpočítávač",
+          "description": "Přehledný odpočet s živým průběhovým kruhem. Kliknutím pozastavíš."
+        },
+        "de": {
+          "name": "Countdown-Timer",
+          "description": "Ein fokussierter Countdown mit einem Live-Fortschrittsring. Klicken Sie zum Pausieren."
+        },
+        "es": {
+          "name": "Temporizador de cuenta atrás",
+          "description": "Una cuenta atrás minimalista con un anillo de progreso en vivo. Haz clic para pausar."
+        },
+        "fr": {
+          "name": "Compte à rebours",
+          "description": "Un compte à rebours épuré avec un anneau de progression en direct. Clique pour mettre en pause."
+        },
+        "ja": {
+          "name": "カウントダウンタイマー",
+          "description": "進捗リングでひと目でわかるカウントダウンです。クリックで一時停止できます。"
+        },
+        "ms": {
+          "name": "Pemasa Kira Undur",
+          "description": "Kira undur yang fokus dengan gelang kemajuan langsung. Klik untuk jeda."
+        },
+        "nl": {
+          "name": "Afteltimer",
+          "description": "Een overzichtelijke aftelklok met een live voortgangsring. Klik om te pauzeren."
+        },
+        "pt": {
+          "name": "Contagem Regressiva",
+          "description": "Uma contagem regressiva focada com um anel de progresso ao vivo. Clique para pausar."
+        },
+        "sv": {
+          "name": "Nedräkningstimer",
+          "description": "En fokuserad nedräkning med en förloppsring i realtid. Klicka för att pausa."
+        },
+        "tl": {
+          "name": "Orasang Countdown",
+          "description": "Isang nakatutok na countdown na may live na progress ring. I-click para mag-pause."
+        },
+        "vi": {
+          "name": "Đồng Hồ Đếm Ngược",
+          "description": "Đếm ngược tập trung với vòng tiến trình trực tiếp. Nhấp để tạm dừng."
+        },
+        "zh-hant": {
+          "name": "倒數計時器",
+          "description": "專注倒數計時，搭配即時進度環，點一下即可暫停。"
+        },
+        "zh": {
+          "name": "倒计时",
+          "description": "带实时进度环的专注倒计时，点击即可暂停。"
+        }
+      }
     },
     {
       "id": "filter-duotone",
@@ -56,7 +164,61 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 18a6 6 0 0 0 0-12v12z\" /></svg>",
-      "preview": "/catalog/previews/filter-duotone.svg"
+      "preview": "/catalog/previews/filter-duotone.svg",
+      "i18n": {
+        "cs": {
+          "name": "Filtr: Duotone",
+          "description": "Dvoubarevný duotone efekt pro libovolnou fotku — stíny jednou barvou, světla druhou."
+        },
+        "de": {
+          "name": "Filter: Duoton",
+          "description": "Ein zweifarbiger Duoton-Effekt für jedes Foto — Schatten in einer Farbe, Lichter in einer anderen."
+        },
+        "es": {
+          "name": "Filtro: Duotono",
+          "description": "Un duotono de dos colores para cualquier foto: un color para las sombras y otro para las luces."
+        },
+        "fr": {
+          "name": "Filtre : Bichromie",
+          "description": "Un effet bichromie à deux couleurs pour n'importe quelle photo — une couleur pour les ombres, une autre pour les lumières."
+        },
+        "ja": {
+          "name": "フィルター: デュオトーン",
+          "description": "写真を2色のデュオトーンに変換します。シャドウとハイライトにそれぞれ異なる色を使用します。"
+        },
+        "ms": {
+          "name": "Penapis: Dwiwarna",
+          "description": "Kesan dwiwarna untuk sebarang foto — satu warna untuk bayang, satu lagi untuk sorotan."
+        },
+        "nl": {
+          "name": "Filter: Duotone",
+          "description": "Een tweekleurige duotone voor elke foto — schaduwen in de ene kleur, lichtpartijen in de andere."
+        },
+        "pt": {
+          "name": "Filtro: Duotom",
+          "description": "Um duotom de duas cores para qualquer foto — uma cor nas sombras, outra nas luzes."
+        },
+        "sv": {
+          "name": "Filter: Duoton",
+          "description": "En tvåfärgad duoton för valfritt foto – en färg i skuggorna, en annan i högdagrarna."
+        },
+        "tl": {
+          "name": "Filter: Duotone",
+          "description": "Two-color duotone para sa kahit anong larawan — isang kulay ang shadows, iba ang highlights."
+        },
+        "vi": {
+          "name": "Bộ Lọc: Hai Tông Màu",
+          "description": "Hiệu ứng hai tông màu cho bất kỳ ảnh nào — vùng tối một màu, vùng sáng một màu khác."
+        },
+        "zh-hant": {
+          "name": "濾鏡：雙色調",
+          "description": "為任何相片套用雙色調效果——陰影一種顏色，亮部另一種顏色。"
+        },
+        "zh": {
+          "name": "滤镜：双色调",
+          "description": "为任意照片添加双色调效果——阴影一种颜色，高光另一种颜色。"
+        }
+      }
     },
     {
       "id": "filter-halftone",
@@ -82,7 +244,61 @@
       "height": 1000,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"5\" r=\"1\" /><circle cx=\"19\" cy=\"5\" r=\"1\" /><circle cx=\"5\" cy=\"5\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"19\" r=\"1\" /><circle cx=\"19\" cy=\"19\" r=\"1\" /><circle cx=\"5\" cy=\"19\" r=\"1\" /></svg>",
-      "preview": "/catalog/previews/filter-halftone.svg"
+      "preview": "/catalog/previews/filter-halftone.svg",
+      "i18n": {
+        "cs": {
+          "name": "Filtr: Rastr",
+          "description": "Vektorový rastr z libovolné fotky — velikost bodů podle jasu."
+        },
+        "de": {
+          "name": "Filter: Raster",
+          "description": "Vektor-Rasterung aus jedem Foto — Punktgröße je nach Helligkeit."
+        },
+        "es": {
+          "name": "Filtro: Semitono",
+          "description": "Semitono vectorial a partir de cualquier foto: puntos cuyo tamaño depende del brillo."
+        },
+        "fr": {
+          "name": "Filtre : Demi-teinte",
+          "description": "Une trame de demi-teinte vectorielle à partir de n'importe quelle photo — des points dont la taille varie selon la luminosité."
+        },
+        "ja": {
+          "name": "フィルター: ハーフトーン",
+          "description": "写真をベクターのハーフトーンに変換します。明るさに応じてドットの大きさが変化します。"
+        },
+        "ms": {
+          "name": "Penapis: Halftone",
+          "description": "Halftone vektor daripada sebarang foto — saiz bintik mengikut kecerahan."
+        },
+        "nl": {
+          "name": "Filter: Halftoon",
+          "description": "Vector-halftoon van elke foto — stipgrootte bepaald door helderheid."
+        },
+        "pt": {
+          "name": "Filtro: Meio-tom",
+          "description": "Meio-tom vetorial a partir de qualquer foto — pontos dimensionados pelo brilho."
+        },
+        "sv": {
+          "name": "Filter: Raster",
+          "description": "Vektorraster från valfritt foto – prickar med storlek efter ljusstyrka."
+        },
+        "tl": {
+          "name": "Filter: Halftone",
+          "description": "Vector halftone mula sa kahit anong larawan — ang laki ng tuldok ay base sa liwanag."
+        },
+        "vi": {
+          "name": "Bộ Lọc: Tram Chấm (Halftone)",
+          "description": "Tram chấm dạng vector từ bất kỳ ảnh nào — kích thước chấm theo độ sáng."
+        },
+        "zh-hant": {
+          "name": "濾鏡：網點",
+          "description": "將任何相片轉換成向量網點圖——網點大小依亮度決定。"
+        },
+        "zh": {
+          "name": "滤镜：网点",
+          "description": "将任意照片转换为矢量网点效果——点的大小随亮度变化。"
+        }
+      }
     },
     {
       "id": "filter-pixel-stretch",
@@ -105,7 +321,61 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><line x1=\"9\" y1=\"4\" x2=\"9\" y2=\"20\"/><line x1=\"9\" y1=\"8.5\" x2=\"18.5\" y2=\"8.5\"/><line x1=\"9\" y1=\"12\" x2=\"15.5\" y2=\"12\"/><line x1=\"9\" y1=\"15.5\" x2=\"19\" y2=\"15.5\"/></svg>",
-      "preview": "/catalog/previews/filter-pixel-stretch.svg"
+      "preview": "/catalog/previews/filter-pixel-stretch.svg",
+      "i18n": {
+        "cs": {
+          "name": "Filtr: Roztažení pixelů",
+          "description": "Rozmaže sloupec pixelů napříč fotkou od prahové linie. Funguje živě."
+        },
+        "de": {
+          "name": "Filter: Pixel-Streckung",
+          "description": "Verwischt eine Pixelspalte quer über ein Foto ab einer Schwellenlinie. Funktioniert live."
+        },
+        "es": {
+          "name": "Filtro: Estiramiento de píxeles",
+          "description": "Difumina una columna de píxeles a lo largo de la foto a partir de una línea de umbral. Funciona en vivo."
+        },
+        "fr": {
+          "name": "Filtre : Étirement de pixels",
+          "description": "Étire une colonne de pixels sur toute la photo à partir d'une ligne de seuil. Fonctionne en direct."
+        },
+        "ja": {
+          "name": "フィルター: ピクセルストレッチ",
+          "description": "しきい値のラインからピクセルの列を写真全体に引き伸ばします。リアルタイムで動作します。"
+        },
+        "ms": {
+          "name": "Penapis: Regangan Piksel",
+          "description": "Regangkan lajur piksel merentasi foto dari garis ambang. Berfungsi secara langsung."
+        },
+        "nl": {
+          "name": "Filter: Pixels uitrekken",
+          "description": "Smeer een kolom pixels uit over een foto vanaf een drempellijn. Werkt live."
+        },
+        "pt": {
+          "name": "Filtro: Esticar Pixels",
+          "description": "Espalhe uma coluna de pixels por uma foto a partir de uma linha de limiar. Funciona ao vivo."
+        },
+        "sv": {
+          "name": "Filter: Pixelsträckning",
+          "description": "Smeta ut en pixelkolumn över ett foto från en tröskellinje. Fungerar live."
+        },
+        "tl": {
+          "name": "Filter: Pag-stretch ng Pixel",
+          "description": "Ikalat ang isang column ng pixels sa buong larawan mula sa threshold line. Gumagana ito nang live."
+        },
+        "vi": {
+          "name": "Bộ Lọc: Kéo Giãn Pixel",
+          "description": "Kéo lem một cột pixel trên ảnh từ một đường ngưỡng. Hoạt động trực tiếp."
+        },
+        "zh-hant": {
+          "name": "濾鏡：像素拉伸",
+          "description": "從門檻線開始，把相片中的一欄像素拖曳暈開，支援即時效果。"
+        },
+        "zh": {
+          "name": "滤镜：像素拉伸",
+          "description": "从一条阈值线开始，将一列像素横向抹开到整张照片上，支持实时预览。"
+        }
+      }
     },
     {
       "id": "filter-posterize",
@@ -129,7 +399,61 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"/><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"/><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"/></svg>",
-      "preview": "/catalog/previews/filter-posterize.svg"
+      "preview": "/catalog/previews/filter-posterize.svg",
+      "i18n": {
+        "cs": {
+          "name": "Filtr: Posterizace bitmapy",
+          "description": "Převede libovolnou fotku na ploché vektorové barevné výtažky ve stylu sítotisku."
+        },
+        "de": {
+          "name": "Filter: Tontrennung (Bitmap)",
+          "description": "Wandelt jedes Foto in flache Vektor-Farbauszüge im Siebdruck-Stil um."
+        },
+        "es": {
+          "name": "Filtro: Posterizar mapa de bits",
+          "description": "Convierte cualquier foto en separaciones de color vectoriales planas, al estilo serigrafía."
+        },
+        "fr": {
+          "name": "Filtre : Postérisation bitmap",
+          "description": "Transforme n'importe quelle photo en aplats vectoriels façon sérigraphie, séparés par couleur."
+        },
+        "ja": {
+          "name": "フィルター: ポスタリゼーション",
+          "description": "写真をスクリーン印刷のようなフラットなベクター色分解画像にトレースします。"
+        },
+        "ms": {
+          "name": "Penapis: Poster Bitmap",
+          "description": "Jejak sebarang foto menjadi pemisahan warna vektor rata bergaya cetakan skrin."
+        },
+        "nl": {
+          "name": "Filter: Posterize-bitmap",
+          "description": "Zet elke foto om in platte vector-kleurscheidingen in zeefdrukstijl."
+        },
+        "pt": {
+          "name": "Filtro: Posterizar Bitmap",
+          "description": "Transforme qualquer foto em separações de cor vetoriais planas, no estilo serigrafia."
+        },
+        "sv": {
+          "name": "Filter: Posterisering av bitmap",
+          "description": "Konvertera valfritt foto till platta vektorbaserade färgseparationer i screentryck-stil."
+        },
+        "tl": {
+          "name": "Filter: I-posterize ang Bitmap",
+          "description": "I-trace ang kahit anong larawan patungo sa flat, screenprint-style na vector color separations."
+        },
+        "vi": {
+          "name": "Bộ Lọc: Phân Cấp Màu Bitmap",
+          "description": "Chuyển bất kỳ ảnh nào thành các lớp màu vector phẳng, kiểu tách màu in lụa."
+        },
+        "zh-hant": {
+          "name": "濾鏡：色階分離",
+          "description": "將任何相片描繪成扁平、絹印風格的向量色彩分版。"
+        },
+        "zh": {
+          "name": "滤镜：色调分离位图",
+          "description": "将任意照片描摹为扁平的丝网印刷风格矢量分色图。"
+        }
+      }
     },
     {
       "id": "filter-scanline",
@@ -152,7 +476,61 @@
       "height": 1000,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 12h10\" /></svg>",
-      "preview": "/catalog/previews/filter-scanline.svg"
+      "preview": "/catalog/previews/filter-scanline.svg",
+      "i18n": {
+        "cs": {
+          "name": "Filtr: Skenovací linie",
+          "description": "Vodorovný vektorový scanline efekt s „nekonečnými liniemi“ z libovolné fotky."
+        },
+        "de": {
+          "name": "Filter: Scanlinien",
+          "description": "Horizontaler Vektor-Scanlinien-Effekt mit „Endlos-Linien“ aus jedem Foto"
+        },
+        "es": {
+          "name": "Filtro: Líneas de escaneo",
+          "description": "Efecto vectorial de líneas de escaneo horizontales de 'líneas infinitas' a partir de cualquier foto"
+        },
+        "fr": {
+          "name": "Filtre : Lignes de balayage",
+          "description": "Un effet vectoriel de lignes de balayage horizontales façon « lignes infinies » à partir de n'importe quelle photo."
+        },
+        "ja": {
+          "name": "フィルター: スキャンライン",
+          "description": "写真に水平の「インフィニティライン」スキャンラインエフェクトを適用するベクター効果です。"
+        },
+        "ms": {
+          "name": "Penapis: Garis Imbas",
+          "description": "Kesan vektor garis imbas 'garis infiniti' mendatar daripada sebarang foto"
+        },
+        "nl": {
+          "name": "Filter: Scanlijn",
+          "description": "Horizontaal scanlijn-vectoreffect met 'oneindige lijnen', van elke foto."
+        },
+        "pt": {
+          "name": "Filtro: Scanline",
+          "description": "Efeito vetorial de scanline com 'linhas infinitas' horizontais para qualquer foto"
+        },
+        "sv": {
+          "name": "Filter: Skanlinjer",
+          "description": "Horisontell vektoreffekt med “oändlighetslinjer” i skanlinjestil, från valfritt foto"
+        },
+        "tl": {
+          "name": "Filter: Scanline",
+          "description": "Horizontal na 'infinity lines' na scanline vector effect mula sa kahit anong larawan"
+        },
+        "vi": {
+          "name": "Bộ Lọc: Dòng Quét (Scanline)",
+          "description": "Hiệu ứng vector dòng quét ngang kiểu 'đường vô cực' từ bất kỳ ảnh nào"
+        },
+        "zh-hant": {
+          "name": "濾鏡：掃描線",
+          "description": "從任何相片產生水平「無限線條」掃描線向量效果"
+        },
+        "zh": {
+          "name": "滤镜：扫描线",
+          "description": "将任意照片转换为水平“无穷线”扫描线矢量效果"
+        }
+      }
     },
     {
       "id": "filter-voronoi",
@@ -176,7 +554,61 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M10 3 L9 10 L3 9\" /><path d=\"M9 10 L15 14\" /><path d=\"M21 13 L15 14 L14 21\" /></svg>",
-      "preview": "/catalog/previews/filter-voronoi.svg"
+      "preview": "/catalog/previews/filter-voronoi.svg",
+      "i18n": {
+        "cs": {
+          "name": "Filtr: Voroného buňky",
+          "description": "Rozbije libovolnou fotku na mozaiku Voroného buněk — každá buňka vyplněná nejbližší barvou, jako plochý vektor."
+        },
+        "de": {
+          "name": "Filter: Voronoi-Zellen",
+          "description": "Zersplittert jedes Foto in ein Voronoi-Zellenmosaik — jede Zelle gefüllt mit der nächstgelegenen Farbe, als flacher Vektor."
+        },
+        "es": {
+          "name": "Filtro: Células de Voronoi",
+          "description": "Fragmenta cualquier foto en un mosaico de células de Voronoi: cada célula se rellena con el color más cercano, en vector plano."
+        },
+        "fr": {
+          "name": "Filtre : Cellules de Voronoï",
+          "description": "Fragmente n'importe quelle photo en mosaïque de cellules de Voronoï — chaque cellule remplie de la couleur la plus proche, en aplat vectoriel."
+        },
+        "ja": {
+          "name": "フィルター: ボロノイセル",
+          "description": "写真をボロノイセルのモザイクに分割します。各セルは最も近い色で塗りつぶされ、フラットなベクターとして出力されます。"
+        },
+        "ms": {
+          "name": "Penapis: Sel Voronoi",
+          "description": "Pecahkan sebarang foto menjadi mozek sel Voronoi — setiap sel diisi dengan warna terdekat, dalam bentuk vektor rata."
+        },
+        "nl": {
+          "name": "Filter: Voronoi-cellen",
+          "description": "Versplinter elke foto tot een Voronoi-celmozaïek — elke cel gevuld met de dichtstbijzijnde kleur, als platte vector."
+        },
+        "pt": {
+          "name": "Filtro: Células de Voronoi",
+          "description": "Fragmente qualquer foto em um mosaico de células de Voronoi — cada célula preenchida com a cor mais próxima, em vetor plano."
+        },
+        "sv": {
+          "name": "Filter: Voronoi-celler",
+          "description": "Splittra valfritt foto till en Voronoi-cellmosaik – varje cell fylld med närmaste färg, som platt vektor."
+        },
+        "tl": {
+          "name": "Filter: Voronoi Cells",
+          "description": "Pira-pirasuhin ang kahit anong larawan patungo sa isang Voronoi cell mosaic — bawat cell ay puno ng pinakamalapit na kulay, bilang flat vector."
+        },
+        "vi": {
+          "name": "Bộ Lọc: Ô Voronoi",
+          "description": "Vỡ bất kỳ ảnh nào thành khảm ô Voronoi — mỗi ô được tô màu gần nhất, dạng vector phẳng."
+        },
+        "zh-hant": {
+          "name": "濾鏡：沃羅諾伊多邊形",
+          "description": "將任何相片打散成沃羅諾伊多邊形鑲嵌畫——每個色塊都填入最接近的顏色，呈現扁平向量效果。"
+        },
+        "zh": {
+          "name": "滤镜：沃罗诺伊单元",
+          "description": "将任意照片打散为沃罗诺伊单元马赛克——每个单元填充最近的颜色，呈现扁平矢量效果。"
+        }
+      }
     },
     {
       "id": "qr-code",
@@ -210,10 +642,70 @@
         "blurb": "QR codes in any brand colour"
       },
       "i18n": {
+        "cs": {
+          "name": "Generátor QR kódů",
+          "description": "QR kódy pro libovolnou adresu URL s plnou kontrolou nad barvami a stylem.",
+          "blurb": "QR kódy v libovolné barvě značky"
+        },
+        "de": {
+          "name": "QR-Code-Generator",
+          "description": "QR-Codes für jede URL, mit voller Kontrolle über Farbe und Stil.",
+          "blurb": "QR-Codes in jeder Markenfarbe"
+        },
         "es": {
           "name": "Generador de códigos QR",
           "description": "Códigos QR para cualquier URL, con control total de color y estilo.",
           "blurb": "Códigos QR en cualquier color de marca"
+        },
+        "fr": {
+          "name": "Générateur de code QR",
+          "description": "Des codes QR pour n'importe quelle URL, avec un contrôle total de la couleur et du style.",
+          "blurb": "Des codes QR dans toutes les couleurs de ta marque"
+        },
+        "ja": {
+          "name": "QRコード生成ツール",
+          "description": "任意のURLからQRコードを作成できます。色やスタイルを自由に調整可能です。",
+          "blurb": "ブランドカラーでQRコードを作成"
+        },
+        "ms": {
+          "name": "Penjana Kod QR",
+          "description": "Kod QR untuk sebarang URL, dengan kawalan penuh warna dan gaya.",
+          "blurb": "Kod QR dalam sebarang warna jenama"
+        },
+        "nl": {
+          "name": "QR-codegenerator",
+          "description": "QR-codes voor elke URL, met volledige controle over kleur en stijl.",
+          "blurb": "QR-codes in elke merkkleur"
+        },
+        "pt": {
+          "name": "Gerador de Código QR",
+          "description": "Códigos QR para qualquer URL, com controle total de cor e estilo.",
+          "blurb": "Códigos QR em qualquer cor da marca"
+        },
+        "sv": {
+          "name": "QR-kodgenerator",
+          "description": "QR-koder för valfri URL, med full kontroll över färg och stil.",
+          "blurb": "QR-koder i valfri varumärkesfärg"
+        },
+        "tl": {
+          "name": "Gumawa ng QR Code",
+          "description": "Mga QR code para sa kahit anong URL, may kumpletong kontrol sa kulay at istilo.",
+          "blurb": "Mga QR code sa kahit anong kulay ng brand"
+        },
+        "vi": {
+          "name": "Trình Tạo Mã QR",
+          "description": "Mã QR cho bất kỳ URL nào, tùy chỉnh toàn bộ màu sắc và kiểu dáng.",
+          "blurb": "Mã QR theo bất kỳ màu thương hiệu nào"
+        },
+        "zh-hant": {
+          "name": "QR Code 產生器",
+          "description": "為任何網址產生 QR Code，顏色與樣式完全可自訂。",
+          "blurb": "任何品牌色都能產生 QR Code"
+        },
+        "zh": {
+          "name": "二维码生成器",
+          "description": "为任意网址生成二维码，颜色和样式完全可控。",
+          "blurb": "任意品牌色都能生成二维码"
         }
       }
     },
@@ -236,7 +728,61 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
-      "preview": "/catalog/previews/street-map.png"
+      "preview": "/catalog/previews/street-map.png",
+      "i18n": {
+        "cs": {
+          "name": "Mapa ulic",
+          "description": "Čisté vektorové mapy ulic libovolného města. Funguje offline."
+        },
+        "de": {
+          "name": "Straßenkarte",
+          "description": "Übersichtliche Vektor-Straßenkarten jeder Stadt. Funktioniert offline."
+        },
+        "es": {
+          "name": "Mapa de calles",
+          "description": "Mapas vectoriales limpios de las calles de cualquier ciudad. Funciona sin conexión."
+        },
+        "fr": {
+          "name": "Carte des rues",
+          "description": "Des cartes vectorielles épurées des rues de n'importe quelle ville. Fonctionne hors ligne."
+        },
+        "ja": {
+          "name": "ストリートマップ",
+          "description": "任意の都市のすっきりとしたベクター街区マップを作成します。オフラインでも動作します。"
+        },
+        "ms": {
+          "name": "Peta Jalan",
+          "description": "Peta blok jalan vektor yang kemas untuk sebarang bandar. Berfungsi luar talian."
+        },
+        "nl": {
+          "name": "Stratenplan",
+          "description": "Strakke vector-stratenplannen van elke stad. Werkt offline."
+        },
+        "pt": {
+          "name": "Mapa de Ruas",
+          "description": "Mapas vetoriais limpos de quarteirões de qualquer cidade. Funciona offline."
+        },
+        "sv": {
+          "name": "Gatukarta",
+          "description": "Rena vektorkartor över gatukvarter i valfri stad. Fungerar offline."
+        },
+        "tl": {
+          "name": "Mapa ng Kalye",
+          "description": "Malinis na vector na mapa ng mga kalye ng kahit anong lungsod. Gumagana kahit offline."
+        },
+        "vi": {
+          "name": "Bản Đồ Đường Phố",
+          "description": "Bản đồ vector các ô phố gọn gàng của bất kỳ thành phố nào. Hoạt động ngoại tuyến."
+        },
+        "zh-hant": {
+          "name": "街道地圖",
+          "description": "任何城市的簡潔向量街廓地圖，離線也能使用。"
+        },
+        "zh": {
+          "name": "街道地图",
+          "description": "生成任意城市的简洁矢量街区地图，支持离线使用。"
+        }
+      }
     },
     {
       "id": "strip-data",
@@ -256,7 +802,61 @@
       "height": 620,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" /></svg>",
-      "preview": "/catalog/previews/strip-data.svg"
+      "preview": "/catalog/previews/strip-data.svg",
+      "i18n": {
+        "cs": {
+          "name": "Odstranění skrytých dat",
+          "description": "Odhal a odstraň skrytá metadata z obrázků a PDF — přímo v zařízení."
+        },
+        "de": {
+          "name": "Versteckte Daten entfernen",
+          "description": "Zeigt versteckte Metadaten in Bildern und PDFs an und entfernt sie — direkt auf Ihrem Gerät."
+        },
+        "es": {
+          "name": "Eliminar datos ocultos",
+          "description": "Revela y elimina metadatos ocultos de imágenes y PDFs, todo en tu dispositivo."
+        },
+        "fr": {
+          "name": "Supprimer les données cachées",
+          "description": "Révèle et supprime les métadonnées cachées des images et des PDF — directement sur ton appareil."
+        },
+        "ja": {
+          "name": "隠しデータの削除",
+          "description": "画像やPDFに含まれる隠しメタデータを確認・削除します。処理はすべてお使いの端末上で行われます。"
+        },
+        "ms": {
+          "name": "Buang Data Tersembunyi",
+          "description": "Dedah dan buang metadata tersembunyi daripada imej dan PDF — terus di peranti anda."
+        },
+        "nl": {
+          "name": "Verborgen data verwijderen",
+          "description": "Toon en verwijder verborgen metadata uit afbeeldingen en PDF's — op je eigen apparaat."
+        },
+        "pt": {
+          "name": "Remover Dados Ocultos",
+          "description": "Revele e remova metadados ocultos de imagens e PDFs — no seu dispositivo."
+        },
+        "sv": {
+          "name": "Ta bort dold data",
+          "description": "Visa och ta bort dold metadata från bilder och PDF-filer – på din enhet."
+        },
+        "tl": {
+          "name": "Alisin ang Nakatagong Data",
+          "description": "Ipakita at alisin ang nakatagong metadata mula sa mga larawan at PDF — sa mismong device mo."
+        },
+        "vi": {
+          "name": "Xóa Dữ Liệu Ẩn",
+          "description": "Hiển thị và xóa siêu dữ liệu ẩn khỏi ảnh và PDF — ngay trên thiết bị của bạn."
+        },
+        "zh-hant": {
+          "name": "移除隱藏資料",
+          "description": "在你的裝置上檢視並移除圖片與 PDF 中隱藏的中繼資料。"
+        },
+        "zh": {
+          "name": "清除隐藏数据",
+          "description": "在本地设备上查看并清除图片和 PDF 中的隐藏元数据。"
+        }
+      }
     },
     {
       "id": "text-helper",
@@ -273,7 +873,61 @@
       "height": 820,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1\" /><path d=\"M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1\" /></svg>",
-      "preview": "/catalog/previews/text-helper.svg"
+      "preview": "/catalog/previews/text-helper.svg",
+      "i18n": {
+        "cs": {
+          "name": "Textový pomocník",
+          "description": "Formátuj, dekóduj, hashuj a anonymizuj text — JSON, JWT a další."
+        },
+        "de": {
+          "name": "Text-Helfer",
+          "description": "Formatieren, dekodieren, hashen und anonymisieren Sie Text — JSON, JWT und mehr."
+        },
+        "es": {
+          "name": "Ayudante de texto",
+          "description": "Da formato, decodifica, aplica hash y anonimiza texto: JSON, JWT y más."
+        },
+        "fr": {
+          "name": "Assistant texte",
+          "description": "Formate, décode, hache et anonymise du texte — JSON, JWT et bien plus."
+        },
+        "ja": {
+          "name": "テキストヘルパー",
+          "description": "テキストの整形、デコード、ハッシュ化、匿名化を行います。JSON、JWTなどに対応しています。"
+        },
+        "ms": {
+          "name": "Pembantu Teks",
+          "description": "Format, nyahkod, cincang dan nyahkenal pasti teks — JSON, JWT dan banyak lagi."
+        },
+        "nl": {
+          "name": "Teksthelper",
+          "description": "Tekst opmaken, decoderen, hashen en anonimiseren — JSON, JWT en meer."
+        },
+        "pt": {
+          "name": "Assistente de Texto",
+          "description": "Formate, decodifique, gere hash e anonimize texto — JSON, JWT e muito mais."
+        },
+        "sv": {
+          "name": "Texthjälp",
+          "description": "Formatera, avkoda, hasha och avidentifiera text – JSON, JWT med mera."
+        },
+        "tl": {
+          "name": "Katulong sa Text",
+          "description": "I-format, i-decode, i-hash, at i-de-identify ang text — JSON, JWT, at marami pa."
+        },
+        "vi": {
+          "name": "Trợ Lý Văn Bản",
+          "description": "Định dạng, giải mã, băm và ẩn danh văn bản — JSON, JWT và nhiều hơn nữa."
+        },
+        "zh-hant": {
+          "name": "文字小幫手",
+          "description": "格式化、解碼、雜湊與去識別化文字——支援 JSON、JWT 等格式。"
+        },
+        "zh": {
+          "name": "文本助手",
+          "description": "格式化、解码、哈希和去标识化文本——支持 JSON、JWT 等。"
+        }
+      }
     },
     {
       "id": "url-shot",
@@ -296,7 +950,61 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z\" /><circle cx=\"12\" cy=\"13\" r=\"3\" /></svg>",
-      "preview": "/catalog/previews/url-shot.svg"
+      "preview": "/catalog/previews/url-shot.svg",
+      "i18n": {
+        "cs": {
+          "name": "Screenshot webu",
+          "description": "Libovolná webová stránka, v libovolné hloubce scrollování, s vlastním CSS."
+        },
+        "de": {
+          "name": "URL-Screenshot",
+          "description": "Jede Webseite, in jeder Scroll-Tiefe, mit individuellem CSS"
+        },
+        "es": {
+          "name": "Captura de pantalla de URL",
+          "description": "Cualquier página web, a cualquier profundidad de desplazamiento, con CSS personalizado"
+        },
+        "fr": {
+          "name": "Capture d'écran d'URL",
+          "description": "N'importe quelle page web, à n'importe quelle profondeur de défilement, avec du CSS personnalisé."
+        },
+        "ja": {
+          "name": "URLスクリーンショット",
+          "description": "任意のWebページを、任意のスクロール位置で、カスタムCSSを適用してスクリーンショット撮影できます。"
+        },
+        "ms": {
+          "name": "Tangkapan Skrin URL",
+          "description": "Sebarang halaman web, pada sebarang kedalaman tatal, dengan CSS tersuai"
+        },
+        "nl": {
+          "name": "URL-screenshot",
+          "description": "Elke webpagina, op elke scrolldiepte, met eigen CSS."
+        },
+        "pt": {
+          "name": "Captura de Tela de URL",
+          "description": "Qualquer página da web, em qualquer profundidade de rolagem, com CSS personalizado"
+        },
+        "sv": {
+          "name": "URL-skärmdump",
+          "description": "Vilken webbsida som helst, på valfritt skrolldjup, med egen CSS"
+        },
+        "tl": {
+          "name": "Screenshot ng URL",
+          "description": "Kahit anong web page, sa kahit anong scroll-depth, may custom na CSS"
+        },
+        "vi": {
+          "name": "Chụp Ảnh Màn Hình URL",
+          "description": "Bất kỳ trang web nào, ở bất kỳ độ cuộn nào, với CSS tùy chỉnh"
+        },
+        "zh-hant": {
+          "name": "網址截圖",
+          "description": "擷取任何網頁在任意捲動深度的畫面，並可套用自訂 CSS"
+        },
+        "zh": {
+          "name": "网页截图",
+          "description": "截取任意网页在任意滚动位置的画面，支持自定义 CSS"
+        }
+      }
     },
     {
       "id": "layout-studio",
@@ -319,6 +1027,60 @@
       "featured": {
         "order": 1,
         "blurb": "Free-form layouts on an open canvas"
+      },
+      "i18n": {
+        "cs": {
+          "name": "Studio rozložení",
+          "blurb": "Volná rozložení na otevřeném plátně"
+        },
+        "de": {
+          "name": "Layout-Studio",
+          "blurb": "Frei gestaltbare Layouts auf einer offenen Zeichenfläche"
+        },
+        "es": {
+          "name": "Estudio de maquetación",
+          "blurb": "Maquetas libres sobre un lienzo abierto"
+        },
+        "fr": {
+          "name": "Studio de mise en page",
+          "blurb": "Des mises en page libres sur un canevas ouvert"
+        },
+        "ja": {
+          "name": "レイアウトスタジオ",
+          "blurb": "自由なキャンバスで作るフリーフォームレイアウト"
+        },
+        "ms": {
+          "name": "Studio Susun Atur",
+          "blurb": "Susun atur bebas bentuk pada kanvas terbuka"
+        },
+        "nl": {
+          "name": "Lay-outstudio",
+          "blurb": "Vrije lay-outs op een open canvas"
+        },
+        "pt": {
+          "name": "Estúdio de Layout",
+          "blurb": "Layouts livres em uma tela aberta"
+        },
+        "sv": {
+          "name": "Layoutstudio",
+          "blurb": "Fria layouter på en öppen yta"
+        },
+        "tl": {
+          "name": "Studio ng Layout",
+          "blurb": "Malayang layout sa bukas na canvas"
+        },
+        "vi": {
+          "name": "Xưởng Bố Cục",
+          "blurb": "Bố cục tự do trên khung vẽ mở"
+        },
+        "zh-hant": {
+          "name": "版面工作室",
+          "blurb": "在開放畫布上自由排版"
+        },
+        "zh": {
+          "name": "版面工作室",
+          "blurb": "在开放画布上自由排版"
+        }
       }
     },
     {
@@ -343,6 +1105,73 @@
       "featured": {
         "order": 2,
         "blurb": "Record a clean voice note with live level coaching"
+      },
+      "i18n": {
+        "cs": {
+          "name": "Hlasový záznamník",
+          "description": "Nahraj hlasovou poznámku s živým ukazatelem hlasitosti a jemným koučováním, pak ji ulož jako MP3.",
+          "blurb": "Nahraj čistou hlasovou poznámku s živým vedením hlasitosti"
+        },
+        "de": {
+          "name": "Sprachrekorder",
+          "description": "Nehmen Sie eine Sprachnotiz mit Live-Pegelanzeige und sanfter Anleitung auf und speichern Sie sie als MP3.",
+          "blurb": "Nehmen Sie eine saubere Sprachnotiz mit Live-Pegel-Coaching auf"
+        },
+        "es": {
+          "name": "Grabadora de voz",
+          "description": "Graba una nota de voz con un medidor de nivel en vivo y una guía sutil, y guárdala como MP3.",
+          "blurb": "Graba una nota de voz nítida con guía de nivel en vivo"
+        },
+        "fr": {
+          "name": "Enregistreur vocal",
+          "description": "Enregistre une note vocale avec un indicateur de niveau en direct et des conseils en douceur, puis enregistre-la en MP3.",
+          "blurb": "Enregistre une note vocale nette avec un accompagnement de niveau en direct"
+        },
+        "ja": {
+          "name": "ボイスレコーダー",
+          "description": "リアルタイムのレベルメーターとやさしいコーチングを使ってボイスメモを録音し、MP3として保存できます。",
+          "blurb": "リアルタイムのレベルコーチングでクリアなボイスメモを録音できます。"
+        },
+        "ms": {
+          "name": "Perakam Suara",
+          "description": "Rakam nota suara dengan meter aras langsung dan bimbingan lembut, kemudian simpan sebagai MP3.",
+          "blurb": "Rakam nota suara yang jernih dengan bimbingan aras langsung"
+        },
+        "nl": {
+          "name": "Spraakrecorder",
+          "description": "Neem een spraakbericht op met een live niveaumeter en zachte begeleiding, en sla het op als MP3.",
+          "blurb": "Neem een heldere spraakopname op met live niveaubegeleiding"
+        },
+        "pt": {
+          "name": "Gravador de Voz",
+          "description": "Grave uma nota de voz com um medidor de nível ao vivo e dicas gentis, depois salve como MP3.",
+          "blurb": "Grave uma nota de voz limpa com orientação de nível ao vivo"
+        },
+        "sv": {
+          "name": "Röstinspelare",
+          "description": "Spela in ett röstmeddelande med en nivåmätare i realtid och mjuk vägledning, spara sedan som MP3.",
+          "blurb": "Spela in ett rent röstmeddelande med nivåvägledning i realtid"
+        },
+        "tl": {
+          "name": "Recorder ng Boses",
+          "description": "Mag-record ng voice note na may live na level meter at magiliw na coaching, tapos i-save bilang MP3.",
+          "blurb": "Mag-record ng malinis na voice note na may live na level coaching"
+        },
+        "vi": {
+          "name": "Ghi Âm Giọng Nói",
+          "description": "Ghi một đoạn ghi âm giọng nói với đồng hồ đo mức âm thanh trực tiếp và hướng dẫn nhẹ nhàng, sau đó lưu dưới dạng MP3.",
+          "blurb": "Ghi âm giọng nói rõ ràng với hướng dẫn mức âm thanh trực tiếp"
+        },
+        "zh-hant": {
+          "name": "語音錄音",
+          "description": "錄製語音備忘，搭配即時音量表與溫和的錄音提示，完成後另存為 MP3。",
+          "blurb": "搭配即時音量指引，錄製乾淨的語音備忘"
+        },
+        "zh": {
+          "name": "语音录制",
+          "description": "录制语音备忘录，带实时电平表和柔和的录音提示，并保存为 MP3。",
+          "blurb": "借助实时电平提示，录制清晰的语音备忘录"
+        }
       }
     },
     {
@@ -359,7 +1188,61 @@
       "height": 1080,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z\" /><circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /></svg>",
-      "preview": "/catalog/previews/color-palette.svg"
+      "preview": "/catalog/previews/color-palette.svg",
+      "i18n": {
+        "cs": {
+          "name": "Paleta barev",
+          "description": "Procházej barvy značky SUSE — klikni na vzorek a zkopíruješ ho."
+        },
+        "de": {
+          "name": "Farbpalette",
+          "description": "Durchsuchen Sie die SUSE-Markenfarben — klicken Sie auf ein Farbfeld, um es zu kopieren."
+        },
+        "es": {
+          "name": "Paleta de colores",
+          "description": "Explora los colores de marca de SUSE: haz clic en una muestra para copiarla."
+        },
+        "fr": {
+          "name": "Palette de couleurs",
+          "description": "Parcours les couleurs de la marque SUSE — clique sur une nuance pour la copier."
+        },
+        "ja": {
+          "name": "カラーパレット",
+          "description": "SUSEのブランドカラーを一覧表示します。スウォッチをクリックしてコピーできます。"
+        },
+        "ms": {
+          "name": "Palet Warna",
+          "description": "Semak imbas warna jenama SUSE — klik petak warna untuk menyalinnya."
+        },
+        "nl": {
+          "name": "Kleurenpalet",
+          "description": "Blader door SUSE-merkkleuren — klik op een kleurstaal om die te kopiëren."
+        },
+        "pt": {
+          "name": "Paleta de Cores",
+          "description": "Veja as cores da marca SUSE — clique em uma amostra para copiar."
+        },
+        "sv": {
+          "name": "Färgpalett",
+          "description": "Bläddra bland SUSE:s varumärkesfärger – klicka på ett färgprov för att kopiera det."
+        },
+        "tl": {
+          "name": "Palette ng Kulay",
+          "description": "Tingnan ang mga kulay ng brand ng SUSE — i-click ang swatch para kopyahin ito."
+        },
+        "vi": {
+          "name": "Bảng Màu",
+          "description": "Duyệt các màu thương hiệu SUSE — nhấp vào một mẫu màu để sao chép."
+        },
+        "zh-hant": {
+          "name": "調色盤",
+          "description": "瀏覽 SUSE 品牌色彩——點選色塊即可複製。"
+        },
+        "zh": {
+          "name": "调色板",
+          "description": "浏览 SUSE 品牌色——点击色块即可复制。"
+        }
+      }
     },
     {
       "id": "mesh-gradient",
@@ -381,7 +1264,61 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
-      "preview": "/catalog/previews/mesh-gradient.png"
+      "preview": "/catalog/previews/mesh-gradient.png",
+      "i18n": {
+        "cs": {
+          "name": "Síťový gradient",
+          "description": "Jemné síťové přechody z barev tvé značky. Barevné body přetáhneš přímo na plátně."
+        },
+        "de": {
+          "name": "Mesh-Verlauf",
+          "description": "Weiche Mesh-Verläufe aus Ihren Markenfarben. Ziehen Sie die Farbpunkte direkt auf der Zeichenfläche."
+        },
+        "es": {
+          "name": "Degradado de malla",
+          "description": "Degradados suaves estilo malla a partir de tus muestras de marca. Arrastra los puntos de color directamente en el lienzo."
+        },
+        "fr": {
+          "name": "Dégradé maillé",
+          "description": "Des dégradés doux façon maillage à partir des couleurs de ta marque. Fais glisser les points de couleur directement sur le canevas."
+        },
+        "ja": {
+          "name": "メッシュグラデーション",
+          "description": "ブランドスウォッチからやわらかなメッシュ風グラデーションを作成します。カラーポイントはキャンバス上で直接ドラッグして調整できます。"
+        },
+        "ms": {
+          "name": "Gradien Jaringan",
+          "description": "Gradien lembut bergaya jaringan daripada petak warna jenama anda. Seret titik warna terus pada kanvas."
+        },
+        "nl": {
+          "name": "Meshverloop",
+          "description": "Zachte meshverlopen uit je merkkleuren. Sleep de kleurpunten direct op het canvas."
+        },
+        "pt": {
+          "name": "Gradiente em Malha",
+          "description": "Gradientes suaves em estilo malha a partir das amostras da sua marca. Arraste os pontos de cor diretamente na tela."
+        },
+        "sv": {
+          "name": "Nätgradient",
+          "description": "Mjuka nätgradienter från dina varumärkesfärger. Dra färgpunkterna direkt på ytan."
+        },
+        "tl": {
+          "name": "Mesh Gradient",
+          "description": "Malambot na mesh-style na gradient mula sa mga swatch ng brand mo. I-drag ang mga color point diretso sa canvas."
+        },
+        "vi": {
+          "name": "Gradient Lưới",
+          "description": "Gradient dạng lưới mềm mại từ các mẫu màu thương hiệu của bạn. Kéo các điểm màu ngay trên khung vẽ."
+        },
+        "zh-hant": {
+          "name": "網格漸層",
+          "description": "用你的品牌色票打造柔和的網格漸層——色點可直接在畫布上拖曳調整。"
+        },
+        "zh": {
+          "name": "网格渐变",
+          "description": "用你的品牌色板生成柔和的网格渐变，直接在画布上拖动颜色点。"
+        }
+      }
     },
     {
       "id": "chart-creator",
@@ -411,6 +1348,73 @@
       "featured": {
         "order": 5,
         "blurb": "On-brand charts from your data, any shape"
+      },
+      "i18n": {
+        "cs": {
+          "name": "Tvorba grafů",
+          "description": "Grafy podle tvé značky z tvých dat — sloupcové, donutové, koláčové nebo skládané.",
+          "blurb": "Grafy podle tvé značky z tvých dat, v libovolném tvaru"
+        },
+        "de": {
+          "name": "Diagramm-Ersteller",
+          "description": "Markenkonforme Diagramme aus Ihren Daten — Balken, Donut, Kreis oder gestapelt.",
+          "blurb": "Markenkonforme Diagramme aus Ihren Daten, in jeder Form"
+        },
+        "es": {
+          "name": "Creador de gráficos",
+          "description": "Gráficos de marca a partir de tus datos: de barras, de dona, circulares o apilados.",
+          "blurb": "Gráficos de marca a partir de tus datos, en cualquier formato"
+        },
+        "fr": {
+          "name": "Créateur de graphiques",
+          "description": "Des graphiques à l'image de ta marque à partir de tes données — barres, anneau, camembert ou empilé.",
+          "blurb": "Des graphiques à l'image de ta marque, dans toutes les formes"
+        },
+        "ja": {
+          "name": "チャートクリエイター",
+          "description": "データからブランドに合わせたチャートを作成します。棒グラフ、ドーナツグラフ、円グラフ、積み上げグラフに対応しています。",
+          "blurb": "データからブランドに合わせたチャートを、どんな形でも作成できます。"
+        },
+        "ms": {
+          "name": "Pencipta Carta",
+          "description": "Carta berjenama daripada data anda — bar, donat, pai atau bertindan.",
+          "blurb": "Carta berjenama daripada data anda, sebarang bentuk"
+        },
+        "nl": {
+          "name": "Grafiekmaker",
+          "description": "Grafieken in je huisstijl, gemaakt van je data — staaf, donut, taart of gestapeld.",
+          "blurb": "Grafieken uit je data, in elke vorm en in je huisstijl"
+        },
+        "pt": {
+          "name": "Criador de Gráficos",
+          "description": "Gráficos alinhados à marca a partir dos seus dados — barras, rosca, pizza ou empilhado.",
+          "blurb": "Gráficos alinhados à marca a partir dos seus dados, em qualquer formato"
+        },
+        "sv": {
+          "name": "Diagramskapare",
+          "description": "Varumärkesanpassade diagram från din data – stapel, ring, cirkel eller staplat.",
+          "blurb": "Varumärkesanpassade diagram från din data, i valfri form"
+        },
+        "tl": {
+          "name": "Gumawa ng Chart",
+          "description": "Mga chart na naaayon sa iyong brand, mula sa data mo — bar, donut, pie, o stacked.",
+          "blurb": "On-brand na mga chart mula sa iyong data, anumang hugis"
+        },
+        "vi": {
+          "name": "Trình Tạo Biểu Đồ",
+          "description": "Biểu đồ đúng chuẩn thương hiệu từ dữ liệu của bạn — cột, donut, tròn hoặc xếp chồng.",
+          "blurb": "Biểu đồ đúng chuẩn thương hiệu từ dữ liệu của bạn, mọi kiểu dáng"
+        },
+        "zh-hant": {
+          "name": "圖表產生器",
+          "description": "從你的資料產生符合品牌規範的圖表——長條圖、環形圖、圓餅圖或堆疊圖。",
+          "blurb": "從你的資料產生符合品牌規範的圖表，任何形式都行"
+        },
+        "zh": {
+          "name": "图表创建器",
+          "description": "根据你的数据生成符合品牌规范的图表——柱状图、环形图、饼图或堆叠图。",
+          "blurb": "根据你的数据生成符合品牌规范的图表，形式任选"
+        }
       }
     },
     {
@@ -441,6 +1445,73 @@
       "featured": {
         "order": 4,
         "blurb": "Paste a table — D3 charts it, on-brand and vector-clean"
+      },
+      "i18n": {
+        "cs": {
+          "name": "D3 Studio grafů",
+          "description": "Výkonné grafy z dat s D3 — vlož tabulku a graf se vytvoří sám. Sloupcové, čárové, plošné, bodové, koláčové, radarové, treemapy, heatmapy a další, podle tvé značky a čistě vektorové.",
+          "blurb": "Vlož tabulku — D3 z ní udělá graf, podle tvé značky a vektorově čistý"
+        },
+        "de": {
+          "name": "D3-Diagrammstudio",
+          "description": "Leistungsstarke datengetriebene Diagramme mit D3 — fügen Sie eine Tabelle ein, und sie visualisiert sich von selbst. Balken, Linien, Flächen, Streudiagramme, Kreisdiagramme, Radar, Treemap, Heatmap und mehr, markenkonform und vektorsauber.",
+          "blurb": "Tabelle einfügen — D3 erstellt das Diagramm, markenkonform und vektorsauber"
+        },
+        "es": {
+          "name": "Estudio de gráficos D3",
+          "description": "Gráficos potentes basados en datos con D3: pega una tabla y se grafica sola. Barras, líneas, áreas, dispersión, circular, radar, mapa de árbol, mapa de calor y más, con estilo de marca y en vector nítido.",
+          "blurb": "Pega una tabla y D3 la grafica, con estilo de marca y en vector nítido"
+        },
+        "fr": {
+          "name": "Studio de graphiques D3",
+          "description": "Des graphiques puissants pilotés par tes données avec D3 — colle un tableau et il se transforme en graphique. Barres, lignes, aires, nuages de points, camembert, radar, treemap, heatmap et bien plus, à l'image de ta marque et en vectoriel net.",
+          "blurb": "Colle un tableau — D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
+        },
+        "ja": {
+          "name": "D3チャートスタジオ",
+          "description": "D3による高機能なデータドリブンチャートです。表を貼り付けるだけで自動的にグラフ化されます。棒、折れ線、面、散布図、円、レーダー、ツリーマップ、ヒートマップなど多彩な種類に対応し、ブランドに合わせたベクター品質で出力します。",
+          "blurb": "表を貼り付けるだけで、D3がブランドに合わせたベクター品質のチャートを作成します。"
+        },
+        "ms": {
+          "name": "Studio Carta D3",
+          "description": "Carta berkuasa dipacu data dengan D3 — tampal jadual dan ia terus menjadi carta. Bar, garis, kawasan, serakan, pai, radar, treemap, peta haba dan banyak lagi, berjenama dan kemas dalam bentuk vektor.",
+          "blurb": "Tampal jadual — D3 terus menjadikannya carta, berjenama dan kemas dalam bentuk vektor"
+        },
+        "nl": {
+          "name": "D3 Grafiekstudio",
+          "description": "Krachtige datagedreven grafieken met D3 — plak een tabel en hij maakt zelf de grafiek. Staafdiagrammen, lijnen, vlakken, spreidingsdiagrammen, taart, radar, treemap, heatmap en meer, in je huisstijl en messcherp als vector.",
+          "blurb": "Plak een tabel — D3 maakt de grafiek, in je huisstijl en messcherp als vector"
+        },
+        "pt": {
+          "name": "Estúdio de Gráficos D3",
+          "description": "Gráficos potentes orientados a dados com D3 — cole uma tabela e o gráfico se monta sozinho. Barras, linhas, áreas, dispersão, pizza, radar, treemap, mapa de calor e muito mais, alinhados à marca e em vetor limpo.",
+          "blurb": "Cole uma tabela — o D3 monta o gráfico, alinhado à marca e em vetor limpo"
+        },
+        "sv": {
+          "name": "D3-diagramstudio",
+          "description": "Kraftfulla datadrivna diagram med D3 – klistra in en tabell så diagramför den sig själv. Stapel, linje, yta, punkt, cirkel, radar, träddiagram, värmekarta med mera, varumärkesanpassat och vektorrent.",
+          "blurb": "Klistra in en tabell – D3 diagramför den, varumärkesanpassat och vektorrent"
+        },
+        "tl": {
+          "name": "Chart Studio ng D3",
+          "description": "Makapangyarihang mga chart na base sa data gamit ang D3 — i-paste lang ang table at awtomatiko na itong gagawing chart. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, at marami pang iba — on-brand at malinis na vector.",
+          "blurb": "I-paste ang table — ico-chart ito ng D3, on-brand at malinis na vector"
+        },
+        "vi": {
+          "name": "Xưởng Biểu Đồ D3",
+          "description": "Biểu đồ mạnh mẽ dựa trên dữ liệu với D3 — dán một bảng vào và nó tự vẽ biểu đồ. Cột, đường, vùng, phân tán, tròn, radar, treemap, heatmap và nhiều hơn nữa, đúng chuẩn thương hiệu và sạch đẹp dạng vector.",
+          "blurb": "Dán một bảng vào — D3 tự vẽ biểu đồ, đúng chuẩn thương hiệu và sạch đẹp dạng vector"
+        },
+        "zh-hant": {
+          "name": "D3 圖表工作室",
+          "description": "以 D3 打造強大的資料圖表——貼上表格資料即可自動產生圖表。支援長條圖、折線圖、面積圖、散佈圖、圓餅圖、雷達圖、樹狀圖、熱區圖等多種形式，符合品牌規範且向量清晰。",
+          "blurb": "貼上表格，D3 自動產生符合品牌規範的向量圖表"
+        },
+        "zh": {
+          "name": "D3 图表工作室",
+          "description": "基于 D3 的强大数据图表——粘贴一份表格即可自动生成图表。支持柱状图、折线图、面积图、散点图、饼图、雷达图、矩形树图、热力图等，符合品牌规范且矢量清晰。",
+          "blurb": "粘贴表格，D3 自动生成符合品牌规范的矢量图表"
+        }
       }
     }
   ]
