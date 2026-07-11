@@ -3,9 +3,13 @@
  * ingest-lofi — convert a curated set of public-domain lo-fi tracks to opus and register them as
  * catalog audio assets under `lolly/loops/` in the BLANK `lolly-start` brand — the focus beats
  * behind "Neurospicy Mode" (they also flow into the video-export music picker, which lists every
- * type:'audio' asset). The SUSE profile has its own drum-break loops via `ingest-loops.ts`; this
- * is the start-profile analogue, and unlike those SUSE breaks these ship with a real, public
- * licence so the blank brand is clean to distribute.
+ * type:'audio' asset). These ship with a real, public licence (CC0), so every brand is clean to
+ * distribute. As of 2026-07-11 they are the ONLY loops in any profile: the 43 SUSE drum-breaks
+ * (`suse/loops/*`) were retired from the catalog because their licence was never established
+ * (they carried `LicenseRef-Unspecified`), and the `ingest-loops.ts` script that generated them
+ * was deleted along with them. The only binary audio the SUSE catalog now ships is these CC0
+ * ambient loops plus the licensed PremiumBeat music (`suse/music/*`); the ZZFXM tracks
+ * (`lolly/songs/*`) are generated on device, not binary. Do not re-introduce unlicensed audio.
  *
  * Source: the Open Lo-Fi collection (github.com/btahir/open-lofi) — 166 tracks generated with
  * Suno v5 and donated to the public domain under CC0 1.0. Default layout:

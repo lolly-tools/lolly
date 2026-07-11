@@ -23,7 +23,7 @@ export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
 export { buildInputModel, summarizeInputs, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export { parseUrlState, serializeUrlState, RESERVED } from './url-mode.ts';
-export { LANGS, LANG_META, isLang, normalizeLang } from './lang.ts';
+export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji } from './lang.ts';
 export type { Lang, LangMeta } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';
@@ -552,4 +552,11 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // can raise the beforeExport budget (the documented "shells with unusual
 // needs" escape hatch) without a deep runtime.ts import. No bridge signature
 // change; every addition is optional/ignorable.
-export const ENGINE_VERSION = '1.45.0';
+// 1.46.0 — additive: LangMeta gains an optional `flags?: readonly string[]` (1–3
+// ISO 3166-1 alpha-2 country codes per language, most-representative first — en →
+// gb/us/au) plus a pure `flagEmoji(cc)` helper (country code → regional-indicator
+// emoji). Purely additive garnish for language pickers — the nativeName stays the
+// accessible label, older consumers ignore the field, and no bridge signature
+// changes. Every LANG_META entry is populated; the field is typed optional so a
+// future language without flags still validates.
+export const ENGINE_VERSION = '1.46.0';
