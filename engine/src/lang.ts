@@ -17,7 +17,7 @@
  * alignment) even when the translation itself is correct.
  */
 
-export const LANGS = ['en', 'es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'ar', 'it', 'no', 'ko'] as const;
+export const LANGS = ['en', 'zh', 'es', 'ar', 'fr', 'pt', 'de', 'ja', 'it', 'vi', 'tl', 'ko', 'ms', 'nl', 'ro', 'sv', 'cs', 'no', 'zh-hant'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export interface LangMeta {
@@ -30,28 +30,50 @@ export interface LangMeta {
   englishName: string;
   /** Script direction — set ('rtl') only for right-to-left languages; absent ⇒ ltr. */
   dir?: 'rtl';
+  /**
+   * 1–3 ISO 3166-1 alpha-2 country codes whose flags stand for this language,
+   * most-representative first (English → gb, us, au). Picker UIs render them with
+   * flagEmoji(); they're decorative garnish beside the nativeName, which stays the
+   * accessible label. Absent on entries that predate the field ⇒ render none.
+   */
+  flags?: readonly string[];
+}
+
+/**
+ * ISO 3166-1 alpha-2 country code → its flag emoji (a regional-indicator pair).
+ * Pure and DOM-free: 'us' → 🇺🇸. Returns '' for anything that isn't two ASCII
+ * letters, so a bad code degrades to no flag rather than mojibake. Note flag
+ * emoji have no glyphs on some platforms (Windows) — callers wanting a guaranteed
+ * render must supply their own images; here they're a progressive garnish.
+ */
+export function flagEmoji(cc: string): string {
+  const s = String(cc ?? '').trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(s)) return '';
+  const RI = 0x1f1e6; // 🇦 — regional indicator symbol letter A
+  const A = 'A'.charCodeAt(0);
+  return String.fromCodePoint(RI + s.charCodeAt(0) - A, RI + s.charCodeAt(1) - A);
 }
 
 export const LANG_META: Record<Lang, LangMeta> = {
-  en: { code: 'en', htmlLang: 'en', nativeName: 'English', englishName: 'English' },
-  es: { code: 'es', htmlLang: 'es', nativeName: 'Español', englishName: 'Spanish' },
-  de: { code: 'de', htmlLang: 'de', nativeName: 'Deutsch', englishName: 'German' },
-  fr: { code: 'fr', htmlLang: 'fr', nativeName: 'Français', englishName: 'French' },
-  zh: { code: 'zh', htmlLang: 'zh-Hans', nativeName: '简体中文', englishName: 'Simplified Chinese' },
-  ja: { code: 'ja', htmlLang: 'ja', nativeName: '日本語', englishName: 'Japanese' },
-  vi: { code: 'vi', htmlLang: 'vi', nativeName: 'Tiếng Việt', englishName: 'Vietnamese' },
-  pt: { code: 'pt', htmlLang: 'pt-BR', nativeName: 'Português (Brasil)', englishName: 'Portuguese (Brazil)' },
-  'zh-hant': { code: 'zh-hant', htmlLang: 'zh-Hant', nativeName: '繁體中文', englishName: 'Traditional Chinese' },
-  cs: { code: 'cs', htmlLang: 'cs', nativeName: 'Čeština', englishName: 'Czech' },
-  nl: { code: 'nl', htmlLang: 'nl', nativeName: 'Nederlands', englishName: 'Dutch' },
-  tl: { code: 'tl', htmlLang: 'tl', nativeName: 'Tagalog', englishName: 'Tagalog' },
-  sv: { code: 'sv', htmlLang: 'sv', nativeName: 'Svenska', englishName: 'Swedish' },
-  ms: { code: 'ms', htmlLang: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay' },
-  ro: { code: 'ro', htmlLang: 'ro', nativeName: 'Română', englishName: 'Romanian' },
-  ar: { code: 'ar', htmlLang: 'ar', nativeName: 'العربية', englishName: 'Arabic', dir: 'rtl' },
-  it: { code: 'it', htmlLang: 'it', nativeName: 'Italiano', englishName: 'Italian' },
-  no: { code: 'no', htmlLang: 'no', nativeName: 'Norsk', englishName: 'Norwegian' },
-  ko: { code: 'ko', htmlLang: 'ko', nativeName: '한국어', englishName: 'Korean' },
+  en: { code: 'en', htmlLang: 'en', nativeName: 'English', englishName: 'English', flags: ['gb', 'us', 'au'] },
+  es: { code: 'es', htmlLang: 'es', nativeName: 'Español', englishName: 'Spanish', flags: ['es', 'mx', 'ar'] },
+  de: { code: 'de', htmlLang: 'de', nativeName: 'Deutsch', englishName: 'German', flags: ['de', 'at', 'ch'] },
+  fr: { code: 'fr', htmlLang: 'fr', nativeName: 'Français', englishName: 'French', flags: ['fr', 'ca', 'be'] },
+  zh: { code: 'zh', htmlLang: 'zh-Hans', nativeName: '简体中文', englishName: 'Simplified Chinese', flags: ['cn', 'sg'] },
+  ja: { code: 'ja', htmlLang: 'ja', nativeName: '日本語', englishName: 'Japanese', flags: ['jp'] },
+  vi: { code: 'vi', htmlLang: 'vi', nativeName: 'Tiếng Việt', englishName: 'Vietnamese', flags: ['vn'] },
+  pt: { code: 'pt', htmlLang: 'pt-BR', nativeName: 'Português (Brasil)', englishName: 'Portuguese (Brazil)', flags: ['br', 'pt'] },
+  'zh-hant': { code: 'zh-hant', htmlLang: 'zh-Hant', nativeName: '繁體中文', englishName: 'Traditional Chinese', flags: ['tw', 'hk'] },
+  cs: { code: 'cs', htmlLang: 'cs', nativeName: 'Čeština', englishName: 'Czech', flags: ['cz'] },
+  nl: { code: 'nl', htmlLang: 'nl', nativeName: 'Nederlands', englishName: 'Dutch', flags: ['nl', 'be'] },
+  tl: { code: 'tl', htmlLang: 'tl', nativeName: 'Tagalog', englishName: 'Tagalog', flags: ['ph'] },
+  sv: { code: 'sv', htmlLang: 'sv', nativeName: 'Svenska', englishName: 'Swedish', flags: ['se'] },
+  ms: { code: 'ms', htmlLang: 'ms', nativeName: 'Bahasa Melayu', englishName: 'Malay', flags: ['my', 'sg', 'bn'] },
+  ro: { code: 'ro', htmlLang: 'ro', nativeName: 'Română', englishName: 'Romanian', flags: ['ro', 'md'] },
+  ar: { code: 'ar', htmlLang: 'ar', nativeName: 'العربية', englishName: 'Arabic', dir: 'rtl', flags: ['sa', 'eg', 'ae'] },
+  it: { code: 'it', htmlLang: 'it', nativeName: 'Italiano', englishName: 'Italian', flags: ['it', 'ch'] },
+  no: { code: 'no', htmlLang: 'no', nativeName: 'Norsk', englishName: 'Norwegian', flags: ['no'] },
+  ko: { code: 'ko', htmlLang: 'ko', nativeName: '한국어', englishName: 'Korean', flags: ['kr'] },
 };
 
 // Informal aliases accepted on parse (country codes people actually type).
