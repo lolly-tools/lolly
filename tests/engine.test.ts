@@ -187,6 +187,25 @@ test('url-mode: lang param — alias normalization + serialize round-trip', () =
   assert.equal(parseUrlState('lang=cn', tool).lang, 'zh');
   assert.equal(parseUrlState('lang=jp', tool).lang, 'ja');
   assert.equal(parseUrlState('lang=ZH-CN', tool).lang, 'zh');
+  // Traditional Chinese is a distinct canonical code from zh (Simplified) — country/script aliases normalize to it.
+  assert.equal(parseUrlState('lang=zh-hant', tool).lang, 'zh-hant');
+  assert.equal(parseUrlState('lang=tw', tool).lang, 'zh-hant');
+  assert.equal(parseUrlState('lang=zh-TW', tool).lang, 'zh-hant');
+  assert.equal(parseUrlState('lang=hk', tool).lang, 'zh-hant');
+  // Brazilian Portuguese — country code + underscore/hyphen region variants.
+  assert.equal(parseUrlState('lang=pt', tool).lang, 'pt');
+  assert.equal(parseUrlState('lang=br', tool).lang, 'pt');
+  assert.equal(parseUrlState('lang=pt-BR', tool).lang, 'pt');
+  assert.equal(parseUrlState('lang=pt_br', tool).lang, 'pt');
+  // Malay/Tagalog — country code + Filipino alias.
+  assert.equal(parseUrlState('lang=ms', tool).lang, 'ms');
+  assert.equal(parseUrlState('lang=my', tool).lang, 'ms');
+  assert.equal(parseUrlState('lang=tl', tool).lang, 'tl');
+  assert.equal(parseUrlState('lang=fil', tool).lang, 'tl');
+  // Czech + Dutch + Swedish — plain canonical codes, no informal aliases needed.
+  assert.equal(parseUrlState('lang=cs', tool).lang, 'cs');
+  assert.equal(parseUrlState('lang=nl', tool).lang, 'nl');
+  assert.equal(parseUrlState('lang=sv', tool).lang, 'sv');
   // Absent/unrecognized → null, so the caller falls back to its own default chain.
   assert.equal(parseUrlState('', tool).lang, null);
   assert.equal(parseUrlState('lang=klingon', tool).lang, null);
