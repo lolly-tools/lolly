@@ -467,6 +467,11 @@ export interface Profile {
    *  defaults into the user's overlay at load; once the user first edits the overlay it's
    *  baked in and set true, so their later un-hides stick and the defaults never re-apply. */
   catalogDefaultsSeeded?: boolean;
+  /** UI/content language as a canonical short code (see engine/src/lang.ts's
+   *  LANGS) — 'es'|'de'|'fr'|'zh'|'ja'|'vi', or unset for English. Written by the
+   *  welcome-dialog and profile-card language pickers; mirrored to `localStorage
+   *  'lang'` for a pre-paint read, and a legal `bindToProfile: "lang"` target. */
+  lang?: string;
 }
 
 // ─── Assets ─────────────────────────────────────────────────────────────────

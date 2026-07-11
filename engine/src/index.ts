@@ -23,6 +23,8 @@ export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
 export { buildInputModel, summarizeInputs, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export { parseUrlState, serializeUrlState, RESERVED } from './url-mode.ts';
+export { LANGS, LANG_META, isLang, normalizeLang } from './lang.ts';
+export type { Lang, LangMeta } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';
 export { parseEmbedUrl } from './embed.ts';
@@ -482,4 +484,15 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // host.color and keep a small fallback for older shells). First consumers:
 // chart-creator + d3 brand-driven series palettes (color.spectrum.* tokens
 // first, distinct() top-up, shipped palette fallback).
-export const ENGINE_VERSION = '1.40.0';
+// 1.41.0 — additive: multi-language groundwork. (1) lang.ts is the shared
+// canonical language table (LANGS: en/es/de/fr/zh/ja/vi, LANG_META for
+// native/English names + <html lang> values, normalizeLang for informal
+// aliases like `cn`/`jp`) used by url-mode.ts, Profile, and tool-manifest i18n
+// sidecars alike. (2) url-mode.ts gains the reserved `lang` param — parsed with
+// alias normalization, serialized (omitted for the English default), never a
+// tool input. (3) Profile (packages/core/src/host-v1.ts) gains `lang?: string`,
+// a legal `bindToProfile: "lang"` target, riding the same profile record as
+// every other per-user preference. No bridge signature change; the engine
+// still emits zero user-facing English itself — all display text originates in
+// manifests/templates, which may now ship a per-tool i18n sidecar (see loader.ts).
+export const ENGINE_VERSION = '1.41.0';
