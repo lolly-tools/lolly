@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-11T11:14:28.223Z",
+  "generatedAt": "2026-07-11T11:56:16.782Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -19,6 +19,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m15 15 6 6m-6-6v4.8m0-4.8h4.8\" /><path d=\"M9 19.8V15m0 0H4.2M9 15l-6 6\" /><path d=\"M15 4.2V9m0 0h4.8M15 9l6-6\" /><path d=\"M9 4.2V9m0 0H4.2M9 9 3 3\" /></svg>",
       "preview": "/catalog/previews/compress-pdf.svg",
       "i18n": {
+        "ar": {
+          "name": "ضغط PDF",
+          "description": "قلص حجم ملف PDF بإعادة ضغط صوره — على جهازك."
+        },
         "cs": {
           "name": "Komprese PDF",
           "description": "Zmenši PDF rekompresí obrázků — přímo v zařízení."
@@ -93,6 +97,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"10\" x2=\"14\" y1=\"2\" y2=\"2\" /><line x1=\"12\" x2=\"15\" y1=\"14\" y2=\"11\" /><circle cx=\"12\" cy=\"14\" r=\"8\" /></svg>",
       "preview": "/catalog/previews/countdown-timer.svg",
       "i18n": {
+        "ar": {
+          "name": "مؤقت العد التنازلي",
+          "description": "عد تنازلي مركز مع حلقة تقدم مباشرة. انقر للإيقاف المؤقت."
+        },
         "cs": {
           "name": "Odpočítávač",
           "description": "Přehledný odpočet s živým průběhovým kruhem. Kliknutím pozastavíš."
@@ -174,6 +182,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 18a6 6 0 0 0 0-12v12z\" /></svg>",
       "preview": "/catalog/previews/filter-duotone.svg",
       "i18n": {
+        "ar": {
+          "name": "مرشح: ثنائي اللون",
+          "description": "معالجة ثنائية اللون لأي صورة — الظلال بلون والإضاءات بلون آخر."
+        },
         "cs": {
           "name": "Filtr: Duotone",
           "description": "Dvoubarevný duotone efekt pro libovolnou fotku — stíny jednou barvou, světla druhou."
@@ -258,6 +270,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"5\" r=\"1\" /><circle cx=\"19\" cy=\"5\" r=\"1\" /><circle cx=\"5\" cy=\"5\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"19\" r=\"1\" /><circle cx=\"19\" cy=\"19\" r=\"1\" /><circle cx=\"5\" cy=\"19\" r=\"1\" /></svg>",
       "preview": "/catalog/previews/filter-halftone.svg",
       "i18n": {
+        "ar": {
+          "name": "مرشح: الألوان النصفية",
+          "description": "ألوان نصفية متجهة من أي صورة — نقاط بحجم يتبع السطوع."
+        },
         "cs": {
           "name": "Filtr: Rastr",
           "description": "Vektorový rastr z libovolné fotky — velikost bodů podle jasu."
@@ -339,6 +355,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><line x1=\"9\" y1=\"4\" x2=\"9\" y2=\"20\"/><line x1=\"9\" y1=\"8.5\" x2=\"18.5\" y2=\"8.5\"/><line x1=\"9\" y1=\"12\" x2=\"15.5\" y2=\"12\"/><line x1=\"9\" y1=\"15.5\" x2=\"19\" y2=\"15.5\"/></svg>",
       "preview": "/catalog/previews/filter-pixel-stretch.svg",
       "i18n": {
+        "ar": {
+          "name": "مرشح: تمديد البكسل",
+          "description": "مدد عمودا من البكسلات عبر الصورة انطلاقا من خط عتبة. يعمل بثا مباشرا."
+        },
         "cs": {
           "name": "Filtr: Roztažení pixelů",
           "description": "Rozmaže sloupec pixelů napříč fotkou od prahové linie. Funguje živě."
@@ -421,6 +441,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"/><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"/><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"/></svg>",
       "preview": "/catalog/previews/filter-posterize.svg",
       "i18n": {
+        "ar": {
+          "name": "مرشح: بوسترة نقطية",
+          "description": "حول أي صورة إلى فرز ألوان متجه مسطح بأسلوب الطباعة الحريرية."
+        },
         "cs": {
           "name": "Filtr: Posterizace bitmapy",
           "description": "Převede libovolnou fotku na ploché vektorové barevné výtažky ve stylu sítotisku."
@@ -502,6 +526,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 12h10\" /></svg>",
       "preview": "/catalog/previews/filter-scanline.svg",
       "i18n": {
+        "ar": {
+          "name": "مرشح: خطوط المسح",
+          "description": "تأثير متجه بخطوط مسح أفقية «خطوط لا نهائية» من أي صورة"
+        },
         "cs": {
           "name": "Filtr: Skenovací linie",
           "description": "Vodorovný vektorový scanline efekt s „nekonečnými liniemi“ z libovolné fotky."
@@ -584,6 +612,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M10 3 L9 10 L3 9\" /><path d=\"M9 10 L15 14\" /><path d=\"M21 13 L15 14 L14 21\" /></svg>",
       "preview": "/catalog/previews/filter-voronoi.svg",
       "i18n": {
+        "ar": {
+          "name": "مرشح: خلايا فورونوي",
+          "description": "حطم أي صورة إلى فسيفساء خلايا فورونوي — كل خلية معبأة بأقرب لون، كمتجه مسطح."
+        },
         "cs": {
           "name": "Filtr: Voroného buňky",
           "description": "Rozbije libovolnou fotku na mozaiku Voroného buněk — každá buňka vyplněná nejbližší barvou, jako plochý vektor."
@@ -674,6 +706,11 @@
         "blurb": "QR codes in any brand colour"
       },
       "i18n": {
+        "ar": {
+          "name": "مولد رموز QR",
+          "description": "رموز QR لأي عنوان URL، مع تحكم كامل في اللون والنمط.",
+          "blurb": "رموز QR بأي لون من ألوان علامتك"
+        },
         "cs": {
           "name": "Generátor QR kódů",
           "description": "QR kódy pro libovolnou adresu URL s plnou kontrolou nad barvami a stylem.",
@@ -767,6 +804,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
       "preview": "/catalog/previews/street-map.png",
       "i18n": {
+        "ar": {
+          "name": "خريطة الشوارع",
+          "description": "خرائط شوارع متجهة نظيفة لأي مدينة. تعمل دون اتصال."
+        },
         "cs": {
           "name": "Mapa ulic",
           "description": "Čisté vektorové mapy ulic libovolného města. Funguje offline."
@@ -845,6 +886,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 21H8a2 2 0 0 1-1.42-.587l-3.994-3.999a2 2 0 0 1 0-2.828l10-10a2 2 0 0 1 2.829 0l5.999 6a2 2 0 0 1 0 2.828L12.834 21\" /><path d=\"m5.082 11.09 8.828 8.828\" /></svg>",
       "preview": "/catalog/previews/strip-data.svg",
       "i18n": {
+        "ar": {
+          "name": "إزالة البيانات المخفية",
+          "description": "اكشف البيانات الوصفية المخفية في الصور وملفات PDF وأزلها — على جهازك."
+        },
         "cs": {
           "name": "Odstranění skrytých dat",
           "description": "Odhal a odstraň skrytá metadata z obrázků a PDF — přímo v zařízení."
@@ -920,6 +965,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1\" /><path d=\"M16 21h1a2 2 0 0 0 2-2v-5c0-1.1.9-2 2-2a2 2 0 0 1-2-2V5a2 2 0 0 0-2-2h-1\" /></svg>",
       "preview": "/catalog/previews/text-helper.svg",
       "i18n": {
+        "ar": {
+          "name": "مساعد النصوص",
+          "description": "تنسيق النص وفك ترميزه وتجزئته وإخفاء هويته — JSON وJWT والمزيد."
+        },
         "cs": {
           "name": "Textový pomocník",
           "description": "Formátuj, dekóduj, hashuj a anonymizuj text — JSON, JWT a další."
@@ -1001,6 +1050,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z\" /><circle cx=\"12\" cy=\"13\" r=\"3\" /></svg>",
       "preview": "/catalog/previews/url-shot.svg",
       "i18n": {
+        "ar": {
+          "name": "لقطة شاشة URL",
+          "description": "أي صفحة ويب، عند أي عمق تمرير، مع CSS مخصص"
+        },
         "cs": {
           "name": "Screenshot webu",
           "description": "Libovolná webová stránka, v libovolné hloubce scrollování, s vlastním CSS."
@@ -1082,6 +1135,10 @@
         "blurb": "Free-form layouts on an open canvas"
       },
       "i18n": {
+        "ar": {
+          "name": "استوديو التخطيط",
+          "blurb": "تخطيطات حرة على لوحة مفتوحة"
+        },
         "cs": {
           "name": "Studio rozložení",
           "blurb": "Volná rozložení na otevřeném plátně"
@@ -1164,6 +1221,11 @@
         "blurb": "Record a clean voice note with live level coaching"
       },
       "i18n": {
+        "ar": {
+          "name": "مسجل الصوت",
+          "description": "سجل ملاحظة صوتية مع مقياس مستوى مباشر وإرشادات لطيفة، ثم احفظها بصيغة MP3.",
+          "blurb": "سجل ملاحظة صوتية نقية مع إرشاد مباشر للمستوى"
+        },
         "cs": {
           "name": "Hlasový záznamník",
           "description": "Nahraj hlasovou poznámku s živým ukazatelem hlasitosti a jemným koučováním, pak ji ulož jako MP3.",
@@ -1252,6 +1314,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z\" /><circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /></svg>",
       "preview": "/catalog/previews/color-palette.svg",
       "i18n": {
+        "ar": {
+          "name": "لوحة الألوان",
+          "description": "تصفح ألوان علامة SUSE — انقر على أي لون لنسخه."
+        },
         "cs": {
           "name": "Paleta barev",
           "description": "Procházej barvy značky SUSE — klikni na vzorek a zkopíruješ ho."
@@ -1332,6 +1398,10 @@
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
       "preview": "/catalog/previews/mesh-gradient.png",
       "i18n": {
+        "ar": {
+          "name": "تدرج شبكي",
+          "description": "تدرجات شبكية ناعمة من ألوان علامتك. اسحب نقاط الألوان مباشرة على اللوحة."
+        },
         "cs": {
           "name": "Síťový gradient",
           "description": "Jemné síťové přechody z barev tvé značky. Barevné body přetáhneš přímo na plátně."
@@ -1420,6 +1490,11 @@
         "blurb": "On-brand charts from your data, any shape"
       },
       "i18n": {
+        "ar": {
+          "name": "منشئ الرسوم البيانية",
+          "description": "رسوم بيانية بهوية علامتك من بياناتك — أعمدة أو حلقي أو دائري أو مكدس.",
+          "blurb": "رسوم بيانية بهوية علامتك من بياناتك، بأي شكل"
+        },
         "cs": {
           "name": "Tvorba grafů",
           "description": "Grafy podle tvé značky z tvých dat — sloupcové, donutové, koláčové nebo skládané.",
@@ -1522,6 +1597,11 @@
         "blurb": "Paste a table — D3 charts it, on-brand and vector-clean"
       },
       "i18n": {
+        "ar": {
+          "name": "استوديو مخططات D3",
+          "description": "مخططات قوية مبنية على البيانات مع D3 — الصق جدولا فيرسم نفسه. أعمدة وخطوط ومساحات ونقاط ودائري ورادار وخريطة شجرية وخريطة حرارية والمزيد، بهوية علامتك وبنقاء متجهي.",
+          "blurb": "الصق جدولا — يرسمه D3 بهوية علامتك وبنقاء متجهي"
+        },
         "cs": {
           "name": "D3 Studio grafů",
           "description": "Výkonné grafy z dat s D3 — vlož tabulku a graf se vytvoří sám. Sloupcové, čárové, plošné, bodové, koláčové, radarové, treemapy, heatmapy a další, podle tvé značky a čistě vektorové.",

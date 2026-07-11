@@ -50,8 +50,8 @@
  *                  `off` leaves pixels untouched. Off by default — a durable
  *                  provenance signal COMPLEMENTING the C2PA credential, not a
  *                  hardened one (security-through-obscurity; the key is public).
- *   - `lang`     — UI/content language as a canonical short code (see
- *                  engine/src/lang.ts's LANGS: en/es/de/fr/zh/ja/vi). Informal
+ *   - `lang`     — UI/content language as a canonical short code (the full set
+ *                  is engine/src/lang.ts's LANGS). Informal
  *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
  *                  the canonical code; unrecognized values parse as null (falls
  *                  back to the profile/localStorage/browser-default chain). A
