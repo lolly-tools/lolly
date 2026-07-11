@@ -1,0 +1,18 @@
+{
+  "neverTranslate": [
+    "Lolly",
+    "SUSE",
+    "Geeko",
+    "Content Credentials",
+    "C2PA",
+    "Pose Geeko"
+  ],
+  "registerNotes": {
+    "es": "neutral-informal (tú, not usted)",
+    "de": "formal (Sie)",
+    "fr": "neutral-informal (tu, not vous)",
+    "zh": "plain, no honorifics",
+    "ja": "polite/formal (です/ます)",
+    "vi": "neutral-informal"
+  }
+}

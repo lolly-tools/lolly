@@ -143,6 +143,29 @@ export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   // Paged tools (render.paged) lay out multiple [data-pdf-page] boxes; the gallery
   // shows each page as its own preview slide instead of input-variant looks.
   if (manifest.render?.paged === true) entry.paged = true;
+  // Gallery-card translations (plans/localize.md §7) — folded from the SAME
+  // tools/<id>/i18n/<lang>.json sidecars engine/src/loader.ts's
+  // applyManifestI18n reads at tool-load time, but only the three fields the
+  // gallery card itself shows (name/description/blurb) — the rest of a
+  // sidecar (input labels, etc.) is loader-only and never reaches the index.
+  // A locale only gets an entry when its sidecar actually supplies one of
+  // these, so the index doesn't carry empty `{}` noise for partial sidecars.
+  const i18nDir = join(ROOT, 'tools', manifest.id, 'i18n');
+  if (existsSync(i18nDir)) {
+    const i18n: Record<string, { name?: string; description?: string; blurb?: string }> = {};
+    for (const file of readdirSync(i18nDir)) {
+      if (!file.endsWith('.json')) continue;
+      const lang = file.replace(/\.json$/, '');
+      let overlay: Record<string, unknown>;
+      try { overlay = JSON.parse(readFileSync(join(i18nDir, file), 'utf8')); } catch { continue; }
+      const localeEntry: { name?: string; description?: string; blurb?: string } = {};
+      if (typeof overlay.name === 'string') localeEntry.name = overlay.name;
+      if (typeof overlay.description === 'string') localeEntry.description = overlay.description;
+      if (typeof overlay['featured.blurb'] === 'string') localeEntry.blurb = overlay['featured.blurb'] as string;
+      if (Object.keys(localeEntry).length) i18n[lang] = localeEntry;
+    }
+    if (Object.keys(i18n).length) entry.i18n = i18n;
+  }
   return entry;
 }
 

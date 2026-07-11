@@ -23,6 +23,7 @@ import type { ComposeEntry } from './compose.ts';
 import type { Capability } from './bridge/host-v1.ts';
 import { verifyEnvelopeSignature, verifyToolFile } from './catalog-integrity.ts';
 import type { CatalogSignatureEnvelope, IntegrityResult } from './catalog-integrity.ts';
+import type { Lang } from './lang.ts';
 
 /** `render` block of a tool manifest (schemas/tool.schema.json `render`). */
 export interface ToolRenderSpec {
@@ -139,6 +140,80 @@ export interface LoadToolOpts {
   resolveModuleUrl?: (path: string) => string;
   /** Verify every fetched tool file against a signed catalog envelope. */
   integrity?: ToolIntegrityOpts;
+  /**
+   * UI/content language for this tool's manifest strings (see
+   * plans/localize.md §7). When set and not 'en', loadTool best-effort fetches
+   * a sibling `i18n/<lang>.json` overlay and merges it onto the returned
+   * manifest's user-facing strings before anything downstream (buildInputModel,
+   * every shell) ever sees it — one overlay point, every shell benefits.
+   * Missing sidecar, missing keys, a malformed file, or (deliberately, for now
+   * — see applyManifestI18n) an integrity-enforced load all fall back to the
+   * manifest's own English strings; a translation problem never fails a tool load.
+   */
+  lang?: Lang;
+}
+
+/** A tool's optional `i18n/<lang>.json` sidecar: a flat, dotted-path overlay
+ *  onto its own manifest fields — sparse (only the strings a translator
+ *  touched), same identity-fallback contract as the SPA's i18n.ts catalogs.
+ *  Keys: "name", "description", "a11yLabel", "inputs.<id>.label",
+ *  "inputs.<id>.help", "inputs.<id>.placeholder", "inputs.<id>.section",
+ *  "inputs.<id>.suffix", "inputs.<id>.options.<value>" (select option label),
+ *  "inputs.<id>.addMenu.label", "inputs.<id>.fields.<fieldId>.label" /
+ *  ".help" / ".placeholder" (blocks/vector sub-fields), and
+ *  "inputs.<id>.fields.<fieldId>.options.<value>" (block sub-field option label).
+ *  `featured.blurb` is intentionally NOT applied here — `featured` isn't part
+ *  of the typed ToolManifest (it's catalog-index-only data); the same sidecar
+ *  file's `featured.blurb` key is read separately by build-catalog-index.ts. */
+export type ToolI18nOverlay = Record<string, string>;
+
+/** Apply a sidecar overlay onto a manifest's user-facing strings, in place.
+ *  Unknown/malformed keys are ignored (best-effort) — validated separately by
+ *  scripts/validate-catalog.ts so authoring mistakes are caught at build time,
+ *  not silently swallowed at runtime. */
+export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverlay): void {
+  for (const [key, value] of Object.entries(overlay)) {
+    if (typeof value !== 'string' || !value) continue;
+    if (key === 'name') { manifest.name = value; continue; }
+    if (key === 'description') { manifest.description = value; continue; }
+    if (key === 'a11yLabel') { manifest.a11yLabel = value; continue; }
+
+    const m = /^inputs\.([^.]+)\.(.+)$/.exec(key);
+    if (!m) continue;
+    const [, inputId, rest] = m as unknown as [string, string, string];
+    const input = manifest.inputs?.find(i => i.id === inputId);
+    if (!input) continue;
+
+    if (rest === 'label' || rest === 'help' || rest === 'placeholder' || rest === 'section' || rest === 'suffix') {
+      (input as unknown as Record<string, string>)[rest] = value;
+      continue;
+    }
+    const optMatch = /^options\.(.+)$/.exec(rest);
+    if (optMatch) {
+      const opt = input.options?.find(o => o.value === optMatch[1]);
+      if (opt) opt.label = value;
+      continue;
+    }
+    if (rest === 'addMenu.label') {
+      if (input.addMenu) input.addMenu.label = value;
+      continue;
+    }
+    const fieldMatch = /^fields\.([^.]+)\.(.+)$/.exec(rest);
+    if (fieldMatch) {
+      const [, fieldId, fieldRest] = fieldMatch as unknown as [string, string, string];
+      const field = input.fields?.find(f => f.id === fieldId);
+      if (!field) continue;
+      if (fieldRest === 'label' || fieldRest === 'help' || fieldRest === 'placeholder') {
+        (field as unknown as Record<string, string>)[fieldRest] = value;
+        continue;
+      }
+      const fieldOptMatch = /^options\.(.+)$/.exec(fieldRest);
+      if (fieldOptMatch) {
+        const fieldOpt = field.options?.find(o => o.value === fieldOptMatch[1]);
+        if (fieldOpt) fieldOpt.label = value;
+      }
+    }
+  }
 }
 
 const integrityTextEncoder = new TextEncoder();
@@ -219,6 +294,23 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
       `Manifest id "${manifest.id}" doesn't match directory "${toolId}"`,
       [],
     );
+  }
+
+  // Translation overlay (see LoadToolOpts.lang / applyManifestI18n above).
+  // Deliberately skipped when integrity is enforced: i18n/<lang>.json isn't
+  // (yet) part of CATALOG_SIGNED_TOOL_FILES, so there's no signed digest to
+  // check it against — applying an unverified overlay under a signed catalog
+  // would be a trust-boundary regression. Extend the signing pipeline
+  // (scripts/checksum-assets.ts, catalog-integrity.ts's file list) before
+  // lifting this restriction.
+  if (opts.lang && opts.lang !== 'en' && !integrity) {
+    try {
+      const overlayText = await fetchFile(`${toolId}/i18n/${opts.lang}.json`);
+      applyManifestI18n(manifest, JSON.parse(overlayText) as ToolI18nOverlay);
+    } catch {
+      // No sidecar for this tool/language, or it failed to parse — the
+      // manifest's own (English) strings are always a valid fallback.
+    }
   }
 
   // Only the manifest is a true dependency (it tells us which optional files even

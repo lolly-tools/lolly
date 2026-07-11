@@ -6,8 +6,8 @@
  * tools talk to the host through the capability bridge passed to their hooks.
  */
 
-export { loadTool, ToolLoadError } from './loader.ts';
-export type { LoadedTool, ToolManifest, ToolFetchFile, LoadToolOpts, ToolIntegrityOpts } from './loader.ts';
+export { loadTool, ToolLoadError, applyManifestI18n } from './loader.ts';
+export type { LoadedTool, ToolManifest, ToolFetchFile, LoadToolOpts, ToolIntegrityOpts, ToolI18nOverlay } from './loader.ts';
 export {
   canonicalJson, sha256Hex, jwkThumbprint, importSpkiOrJwkPublicKey,
   signCatalogEnvelope, verifyEnvelopeSignature, verifyCatalogEnvelope, verifyToolFile,

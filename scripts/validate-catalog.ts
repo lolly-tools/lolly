@@ -42,6 +42,7 @@ import { entryFromManifest } from './build-catalog-index.ts';
 // silently resolve such a clash by entry order.
 import { PALETTE } from '../shells/web/src/palette.ts';
 import { isThemableIconSvg, parseThemedAssetId, parseIconThemesDoc } from '../engine/src/icon-theme.ts';
+import { LANGS } from '../engine/src/lang.ts';
 
 // Fields tools/index.json mirrors from each manifest — kept in sync with
 // scripts/build-catalog-index.ts.
@@ -236,6 +237,41 @@ for (const [toolId, manifest] of toolManifests) {
       if (norm(input.options) !== norm(canon.options)) {
         warnings.push(`[${toolId}] input "${input.id}" options diverge from canonical — breaks bulk-fill in /pro (schemas/canonical-inputs.json)`);
       }
+    }
+  }
+}
+
+// ─── i18n sidecars (plans/localize.md §7) ──────────────────────────────────
+// tools/<id>/i18n/<lang>.json is a flat, dotted-path overlay onto the
+// manifest's own user-facing strings (engine/src/loader.ts's
+// applyManifestI18n applies it at load time; build-catalog-index.ts folds
+// name/description/featured.blurb into the catalog index). Every key must
+// resolve to a real manifest field — an orphaned key (after a manifest
+// refactor renamed/removed an input) would silently translate nothing.
+const SIDECAR_LANGS = new Set(LANGS.filter(l => l !== 'en'));
+for (const [toolId, manifest] of toolManifests) {
+  const i18nDir = join(ROOT, `tools/${toolId}/i18n`);
+  if (!existsSync(i18nDir)) continue;
+  for (const file of readdirSync(i18nDir)) {
+    if (!file.endsWith('.json')) continue;
+    const lang = file.replace(/\.json$/, '');
+    if (!SIDECAR_LANGS.has(lang as any)) {
+      errors.push(`[${toolId}] i18n/${file}: "${lang}" is not a supported language (${[...SIDECAR_LANGS].join(', ')})`);
+      continue;
+    }
+    const overlay = readJsonOptional(`tools/${toolId}/i18n/${file}`);
+    if (!overlay) continue; // readJsonOptional already recorded a parse error
+    if (typeof overlay !== 'object' || Array.isArray(overlay)) {
+      errors.push(`[${toolId}] i18n/${file} must be a flat JSON object`);
+      continue;
+    }
+    for (const [key, value] of Object.entries(overlay)) {
+      if (typeof value !== 'string') {
+        errors.push(`[${toolId}] i18n/${file}: "${key}" value must be a string`);
+        continue;
+      }
+      const reason = unresolvedSidecarKey(manifest, key);
+      if (reason) errors.push(`[${toolId}] i18n/${file}: key "${key}" ${reason}`);
     }
   }
 }
@@ -456,6 +492,42 @@ if (warnings.length) console.log(`  (with ${warnings.length} warning${warnings.l
 
 function readJson(rel: string): any {
   return JSON.parse(readFileSync(join(ROOT, rel), 'utf8'));
+}
+
+// Mirrors the traversal engine/src/loader.ts's applyManifestI18n uses to apply
+// a sidecar overlay — but reports WHY a key doesn't resolve instead of
+// silently skipping it (silent-skip is the right runtime behaviour; a build-time
+// validator's job is to catch the authoring mistake that would cause it).
+function unresolvedSidecarKey(manifest: any, key: string): string | null {
+  if (key === 'name' || key === 'description' || key === 'a11yLabel') return null;
+  if (key === 'featured.blurb') return manifest.featured ? null : 'references featured.blurb but the manifest has no featured block';
+
+  const m = /^inputs\.([^.]+)\.(.+)$/.exec(key);
+  if (!m) return 'does not match any known overlay path (name, description, a11yLabel, featured.blurb, inputs.<id>.…)';
+  const [, inputId, rest] = m as unknown as [string, string, string];
+  const input = (manifest.inputs ?? []).find((i: any) => i.id === inputId);
+  if (!input) return `references unknown input "${inputId}"`;
+
+  if (['label', 'help', 'placeholder', 'section', 'suffix'].includes(rest)) return null;
+  const optMatch = /^options\.(.+)$/.exec(rest);
+  if (optMatch) {
+    const found = (input.options ?? []).some((o: any) => o.value === optMatch[1]);
+    return found ? null : `references unknown option "${optMatch[1]}" on input "${inputId}"`;
+  }
+  if (rest === 'addMenu.label') return input.addMenu ? null : `input "${inputId}" has no addMenu`;
+  const fieldMatch = /^fields\.([^.]+)\.(.+)$/.exec(rest);
+  if (fieldMatch) {
+    const [, fieldId, fieldRest] = fieldMatch as unknown as [string, string, string];
+    const field = (input.fields ?? []).find((f: any) => f.id === fieldId);
+    if (!field) return `references unknown field "${fieldId}" on input "${inputId}"`;
+    if (['label', 'help', 'placeholder'].includes(fieldRest)) return null;
+    const fieldOptMatch = /^options\.(.+)$/.exec(fieldRest);
+    if (fieldOptMatch) {
+      const found = (field.options ?? []).some((o: any) => o.value === fieldOptMatch[1]);
+      return found ? null : `references unknown option "${fieldOptMatch[1]}" on field "${fieldId}" (input "${inputId}")`;
+    }
+  }
+  return 'does not match any known overlay path';
 }
 
 function readJsonOptional(rel: string): any {
