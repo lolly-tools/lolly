@@ -3,7 +3,7 @@
 Powerfully reproducible assets & tools.
 Deterministic, fast, open-source platform — bring your own brand. 
 
-<img src="https://lolly.tools/info/icon-normal.webp" alt="Lolly Icon - Large green and white lollipop candy" width="350"/>
+<img src="https://lolly.tools/info/icon.webp" alt="Lolly Icon - Large green and white lollipop candy" width="350"/>
  
 ## What is Lolly Tools
 
