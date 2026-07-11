@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-11T11:56:16.782Z",
+  "generatedAt": "2026-07-11T17:19:20.008Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -39,9 +39,17 @@
           "name": "Compresser un PDF",
           "description": "Réduis la taille d'un PDF en recompressant ses images — directement sur ton appareil."
         },
+        "it": {
+          "name": "Comprimi PDF",
+          "description": "Riduci le dimensioni di un PDF ricomprimendo le sue immagini — direttamente sul tuo dispositivo."
+        },
         "ja": {
           "name": "PDFを圧縮",
           "description": "画像を再圧縮してPDFを軽量化します。処理はすべてお使いの端末上で行われます。"
+        },
+        "ko": {
+          "name": "PDF 압축",
+          "description": "이미지를 다시 압축해 PDF 파일 크기를 줄여요 — 내 기기에서 바로 처리돼요."
         },
         "ms": {
           "name": "Mampatkan PDF",
@@ -50,6 +58,10 @@
         "nl": {
           "name": "PDF comprimeren",
           "description": "Verklein een PDF door de afbeeldingen opnieuw te comprimeren — op je eigen apparaat."
+        },
+        "no": {
+          "name": "Komprimer PDF",
+          "description": "Krymp en PDF ved å komprimere bildene på nytt — på din enhet."
         },
         "pt": {
           "name": "Compactar PDF",
@@ -117,9 +129,17 @@
           "name": "Compte à rebours",
           "description": "Un compte à rebours épuré avec un anneau de progression en direct. Clique pour mettre en pause."
         },
+        "it": {
+          "name": "Conto alla rovescia",
+          "description": "Un conto alla rovescia essenziale con un anello di avanzamento in tempo reale. Clicca per mettere in pausa."
+        },
         "ja": {
           "name": "カウントダウンタイマー",
           "description": "進捗リングでひと目でわかるカウントダウンです。クリックで一時停止できます。"
+        },
+        "ko": {
+          "name": "카운트다운 타이머",
+          "description": "실시간 진행 링이 있는 집중 카운트다운이에요. 클릭하면 일시정지돼요."
         },
         "ms": {
           "name": "Pemasa Kira Undur",
@@ -128,6 +148,10 @@
         "nl": {
           "name": "Afteltimer",
           "description": "Een overzichtelijke aftelklok met een live voortgangsring. Klik om te pauzeren."
+        },
+        "no": {
+          "name": "Nedtellingsklokke",
+          "description": "En fokusert nedtelling med en fremdriftsring i sanntid. Klikk for å sette på pause."
         },
         "pt": {
           "name": "Contagem Regressiva",
@@ -202,9 +226,17 @@
           "name": "Filtre : Bichromie",
           "description": "Un effet bichromie à deux couleurs pour n'importe quelle photo — une couleur pour les ombres, une autre pour les lumières."
         },
+        "it": {
+          "name": "Filtro: Duotono",
+          "description": "Un duotono a due colori per qualsiasi foto — ombre di un colore, luci di un altro."
+        },
         "ja": {
           "name": "フィルター: デュオトーン",
           "description": "写真を2色のデュオトーンに変換します。シャドウとハイライトにそれぞれ異なる色を使用します。"
+        },
+        "ko": {
+          "name": "필터: 듀오톤",
+          "description": "모든 사진에 어울리는 2색 듀오톤 효과예요 — 그림자는 한 가지 색, 하이라이트는 다른 색으로 표현해요."
         },
         "ms": {
           "name": "Penapis: Dwiwarna",
@@ -213,6 +245,10 @@
         "nl": {
           "name": "Filter: Duotone",
           "description": "Een tweekleurige duotone voor elke foto — schaduwen in de ene kleur, lichtpartijen in de andere."
+        },
+        "no": {
+          "name": "Filter: Duotone",
+          "description": "En tofarget duotone-effekt for ethvert foto — skygger i én farge, høylys i en annen."
         },
         "pt": {
           "name": "Filtro: Duotom",
@@ -290,9 +326,17 @@
           "name": "Filtre : Demi-teinte",
           "description": "Une trame de demi-teinte vectorielle à partir de n'importe quelle photo — des points dont la taille varie selon la luminosité."
         },
+        "it": {
+          "name": "Filtro: Retino",
+          "description": "Retinatura vettoriale da qualsiasi foto — punti la cui dimensione dipende dalla luminosità."
+        },
         "ja": {
           "name": "フィルター: ハーフトーン",
           "description": "写真をベクターのハーフトーンに変換します。明るさに応じてドットの大きさが変化します。"
+        },
+        "ko": {
+          "name": "필터: 하프톤",
+          "description": "모든 사진을 벡터 하프톤으로 변환해요 — 점 크기가 밝기에 따라 달라져요."
         },
         "ms": {
           "name": "Penapis: Halftone",
@@ -301,6 +345,10 @@
         "nl": {
           "name": "Filter: Halftoon",
           "description": "Vector-halftoon van elke foto — stipgrootte bepaald door helderheid."
+        },
+        "no": {
+          "name": "Filter: Raster",
+          "description": "Vektorraster fra ethvert foto – prikkstørrelse etter lysstyrke."
         },
         "pt": {
           "name": "Filtro: Meio-tom",
@@ -375,9 +423,17 @@
           "name": "Filtre : Étirement de pixels",
           "description": "Étire une colonne de pixels sur toute la photo à partir d'une ligne de seuil. Fonctionne en direct."
         },
+        "it": {
+          "name": "Filtro: Stiramento pixel",
+          "description": "Sfuma una colonna di pixel lungo la foto a partire da una linea di soglia. Funziona anche in diretta."
+        },
         "ja": {
           "name": "フィルター: ピクセルストレッチ",
           "description": "しきい値のラインからピクセルの列を写真全体に引き伸ばします。リアルタイムで動作します。"
+        },
+        "ko": {
+          "name": "필터: 픽셀 스트레치",
+          "description": "기준선을 기점으로 픽셀 열을 사진 전체에 번지게 해요. 실시간으로 작동해요."
         },
         "ms": {
           "name": "Penapis: Regangan Piksel",
@@ -386,6 +442,10 @@
         "nl": {
           "name": "Filter: Pixels uitrekken",
           "description": "Smeer een kolom pixels uit over een foto vanaf een drempellijn. Werkt live."
+        },
+        "no": {
+          "name": "Filter: Pikselstrekk",
+          "description": "Smører en pikselkolonne utover et bilde fra en terskellinje. Fungerer live."
         },
         "pt": {
           "name": "Filtro: Esticar Pixels",
@@ -461,9 +521,17 @@
           "name": "Filtre : Postérisation bitmap",
           "description": "Transforme n'importe quelle photo en aplats vectoriels façon sérigraphie, séparés par couleur."
         },
+        "it": {
+          "name": "Filtro: Posterizzazione Bitmap",
+          "description": "Trasforma qualsiasi foto in separazioni cromatiche vettoriali piatte in stile serigrafico."
+        },
         "ja": {
           "name": "フィルター: ポスタリゼーション",
           "description": "写真をスクリーン印刷のようなフラットなベクター色分解画像にトレースします。"
+        },
+        "ko": {
+          "name": "필터: 포스터라이즈 비트맵",
+          "description": "사진을 실크스크린 스타일의 플랫한 벡터 색 분리 이미지로 변환해요."
         },
         "ms": {
           "name": "Penapis: Poster Bitmap",
@@ -472,6 +540,10 @@
         "nl": {
           "name": "Filter: Posterize-bitmap",
           "description": "Zet elke foto om in platte vector-kleurscheidingen in zeefdrukstijl."
+        },
+        "no": {
+          "name": "Filter: Posterisering (bitmap)",
+          "description": "Omdanner ethvert foto til flate vektorbaserte fargeseparasjoner i silketrykk-stil."
         },
         "pt": {
           "name": "Filtro: Posterizar Bitmap",
@@ -546,9 +618,17 @@
           "name": "Filtre : Lignes de balayage",
           "description": "Un effet vectoriel de lignes de balayage horizontales façon « lignes infinies » à partir de n'importe quelle photo."
         },
+        "it": {
+          "name": "Filtro: Linee di scansione",
+          "description": "Effetto vettoriale di linee di scansione orizzontali in stile «linee infinite», da qualsiasi foto"
+        },
         "ja": {
           "name": "フィルター: スキャンライン",
           "description": "写真に水平の「インフィニティライン」スキャンラインエフェクトを適用するベクター効果です。"
+        },
+        "ko": {
+          "name": "필터: 스캔라인",
+          "description": "모든 사진에 수평 '무한선' 스캔라인 벡터 효과를 적용해요"
         },
         "ms": {
           "name": "Penapis: Garis Imbas",
@@ -557,6 +637,10 @@
         "nl": {
           "name": "Filter: Scanlijn",
           "description": "Horizontaal scanlijn-vectoreffect met 'oneindige lijnen', van elke foto."
+        },
+        "no": {
+          "name": "Filter: Skannelinjer",
+          "description": "Horisontal vektoreffekt med «uendelighetslinjer» i skannelinjestil, fra ethvert foto"
         },
         "pt": {
           "name": "Filtro: Scanline",
@@ -632,9 +716,17 @@
           "name": "Filtre : Cellules de Voronoï",
           "description": "Fragmente n'importe quelle photo en mosaïque de cellules de Voronoï — chaque cellule remplie de la couleur la plus proche, en aplat vectoriel."
         },
+        "it": {
+          "name": "Filtro: Celle di Voronoi",
+          "description": "Frantuma qualsiasi foto in un mosaico di celle di Voronoi — ogni cella riempita con il colore più vicino, come vettore piatto."
+        },
         "ja": {
           "name": "フィルター: ボロノイセル",
           "description": "写真をボロノイセルのモザイクに分割します。各セルは最も近い色で塗りつぶされ、フラットなベクターとして出力されます。"
+        },
+        "ko": {
+          "name": "필터: 보로노이 셀",
+          "description": "사진을 보로노이 셀 모자이크로 분해해요 — 각 셀은 가장 가까운 색으로 채워지고, 플랫한 벡터로 표현돼요."
         },
         "ms": {
           "name": "Penapis: Sel Voronoi",
@@ -643,6 +735,10 @@
         "nl": {
           "name": "Filter: Voronoi-cellen",
           "description": "Versplinter elke foto tot een Voronoi-celmozaïek — elke cel gevuld met de dichtstbijzijnde kleur, als platte vector."
+        },
+        "no": {
+          "name": "Filter: Voronoi-celler",
+          "description": "Splitter et hvilket som helst bilde til en Voronoi-cellemosaikk — hver celle fylt med nærmeste farge, som flat vektor."
         },
         "pt": {
           "name": "Filtro: Células de Voronoi",
@@ -731,10 +827,20 @@
           "description": "Des codes QR pour n'importe quelle URL, avec un contrôle total de la couleur et du style.",
           "blurb": "Des codes QR dans toutes les couleurs de ta marque"
         },
+        "it": {
+          "name": "Generatore di codici QR",
+          "description": "Codici QR per qualsiasi URL, con pieno controllo su colore e stile.",
+          "blurb": "Codici QR in qualsiasi colore del brand"
+        },
         "ja": {
           "name": "QRコード生成ツール",
           "description": "任意のURLからQRコードを作成できます。色やスタイルを自由に調整可能です。",
           "blurb": "ブランドカラーでQRコードを作成"
+        },
+        "ko": {
+          "name": "QR 코드 생성기",
+          "description": "모든 URL에 대한 QR 코드를 만들고, 색상과 스타일을 마음대로 조정하세요.",
+          "blurb": "브랜드 색상 그대로 만드는 QR 코드"
         },
         "ms": {
           "name": "Penjana Kod QR",
@@ -745,6 +851,11 @@
           "name": "QR-codegenerator",
           "description": "QR-codes voor elke URL, met volledige controle over kleur en stijl.",
           "blurb": "QR-codes in elke merkkleur"
+        },
+        "no": {
+          "name": "QR-kodgenerator",
+          "description": "QR-koder for enhver URL, med full kontroll over farge og stil.",
+          "blurb": "QR-koder i valgfri merkefarge"
         },
         "pt": {
           "name": "Gerador de Código QR",
@@ -824,9 +935,17 @@
           "name": "Carte des rues",
           "description": "Des cartes vectorielles épurées des rues de n'importe quelle ville. Fonctionne hors ligne."
         },
+        "it": {
+          "name": "Mappa stradale",
+          "description": "Mappe vettoriali essenziali delle strade di qualsiasi città. Funziona offline."
+        },
         "ja": {
           "name": "ストリートマップ",
           "description": "任意の都市のすっきりとしたベクター街区マップを作成します。オフラインでも動作します。"
+        },
+        "ko": {
+          "name": "스트리트 맵",
+          "description": "어떤 도시든 깔끔한 벡터 스트리트 맵으로 표현해요. 오프라인에서도 작동해요."
         },
         "ms": {
           "name": "Peta Jalan",
@@ -835,6 +954,10 @@
         "nl": {
           "name": "Stratenplan",
           "description": "Strakke vector-stratenplannen van elke stad. Werkt offline."
+        },
+        "no": {
+          "name": "Gatekart",
+          "description": "Rene vektor-gatekart for enhver by. Fungerer offline."
         },
         "pt": {
           "name": "Mapa de Ruas",
@@ -906,9 +1029,17 @@
           "name": "Supprimer les données cachées",
           "description": "Révèle et supprime les métadonnées cachées des images et des PDF — directement sur ton appareil."
         },
+        "it": {
+          "name": "Rimuovi dati nascosti",
+          "description": "Rivela e rimuove i metadati nascosti da immagini e PDF — sul tuo dispositivo."
+        },
         "ja": {
           "name": "隠しデータの削除",
           "description": "画像やPDFに含まれる隠しメタデータを確認・削除します。処理はすべてお使いの端末上で行われます。"
+        },
+        "ko": {
+          "name": "숨겨진 데이터 제거",
+          "description": "이미지와 PDF에 숨겨진 메타데이터를 확인하고 제거해요 — 기기에서 바로 처리돼요."
         },
         "ms": {
           "name": "Buang Data Tersembunyi",
@@ -917,6 +1048,10 @@
         "nl": {
           "name": "Verborgen data verwijderen",
           "description": "Toon en verwijder verborgen metadata uit afbeeldingen en PDF's — op je eigen apparaat."
+        },
+        "no": {
+          "name": "Fjern skjulte data",
+          "description": "Vis og fjern skjult metadata fra bilder og PDF-er — på din egen enhet."
         },
         "pt": {
           "name": "Remover Dados Ocultos",
@@ -985,9 +1120,17 @@
           "name": "Assistant texte",
           "description": "Formate, décode, hache et anonymise du texte — JSON, JWT et bien plus."
         },
+        "it": {
+          "name": "Assistente di testo",
+          "description": "Formatta, decodifica, applica hash e anonimizza testo — JSON, JWT e altro."
+        },
         "ja": {
           "name": "テキストヘルパー",
           "description": "テキストの整形、デコード、ハッシュ化、匿名化を行います。JSON、JWTなどに対応しています。"
+        },
+        "ko": {
+          "name": "텍스트 도우미",
+          "description": "텍스트를 포맷팅, 디코딩, 해시, 비식별화해요 — JSON, JWT 등을 지원해요."
         },
         "ms": {
           "name": "Pembantu Teks",
@@ -996,6 +1139,10 @@
         "nl": {
           "name": "Teksthelper",
           "description": "Tekst opmaken, decoderen, hashen en anonimiseren — JSON, JWT en meer."
+        },
+        "no": {
+          "name": "Tekstverktøy",
+          "description": "Formater, dekod, hash og anonymiser tekst — JSON, JWT og mer."
         },
         "pt": {
           "name": "Assistente de Texto",
@@ -1041,8 +1188,10 @@
         "png",
         "jpg",
         "webp",
+        "svg",
         "pdf",
-        "svg"
+        "webm",
+        "mp4"
       ],
       "width": 1280,
       "height": 720,
@@ -1070,9 +1219,17 @@
           "name": "Capture d'écran d'URL",
           "description": "N'importe quelle page web, à n'importe quelle profondeur de défilement, avec du CSS personnalisé."
         },
+        "it": {
+          "name": "Screenshot URL",
+          "description": "Qualsiasi pagina web, a qualsiasi profondità di scroll, con CSS personalizzato"
+        },
         "ja": {
           "name": "URLスクリーンショット",
           "description": "任意のWebページを、任意のスクロール位置で、カスタムCSSを適用してスクリーンショット撮影できます。"
+        },
+        "ko": {
+          "name": "URL 스크린샷",
+          "description": "어떤 웹페이지든, 원하는 스크롤 위치에서, 커스텀 CSS까지 적용해 캡처해요"
         },
         "ms": {
           "name": "Tangkapan Skrin URL",
@@ -1081,6 +1238,10 @@
         "nl": {
           "name": "URL-screenshot",
           "description": "Elke webpagina, op elke scrolldiepte, met eigen CSS."
+        },
+        "no": {
+          "name": "URL Screenshot",
+          "description": "Alle nettsider, uansett scroll-dybde, med egendefinert CSS"
         },
         "pt": {
           "name": "Captura de Tela de URL",
@@ -1155,9 +1316,17 @@
           "name": "Studio de mise en page",
           "blurb": "Des mises en page libres sur un canevas ouvert"
         },
+        "it": {
+          "name": "Layout Studio",
+          "blurb": "Layout in piena libertà su una tela aperta"
+        },
         "ja": {
           "name": "レイアウトスタジオ",
           "blurb": "自由なキャンバスで作るフリーフォームレイアウト"
+        },
+        "ko": {
+          "name": "Layout Studio",
+          "blurb": "열린 캔버스에서 자유롭게 만드는 레이아웃"
         },
         "ms": {
           "name": "Studio Susun Atur",
@@ -1166,6 +1335,10 @@
         "nl": {
           "name": "Lay-outstudio",
           "blurb": "Vrije lay-outs op een open canvas"
+        },
+        "no": {
+          "name": "Layout Studio",
+          "blurb": "Fritt utformbare layouter på et åpent lerret"
         },
         "pt": {
           "name": "Estúdio de Layout",
@@ -1246,10 +1419,20 @@
           "description": "Enregistre une note vocale avec un indicateur de niveau en direct et des conseils en douceur, puis enregistre-la en MP3.",
           "blurb": "Enregistre une note vocale nette avec un accompagnement de niveau en direct"
         },
+        "it": {
+          "name": "Registratore vocale",
+          "description": "Registra una nota vocale con un misuratore di livello dal vivo e una guida discreta, poi salvala come MP3.",
+          "blurb": "Registra una nota vocale pulita con guida di livello in tempo reale"
+        },
         "ja": {
           "name": "ボイスレコーダー",
           "description": "リアルタイムのレベルメーターとやさしいコーチングを使ってボイスメモを録音し、MP3として保存できます。",
           "blurb": "リアルタイムのレベルコーチングでクリアなボイスメモを録音できます。"
+        },
+        "ko": {
+          "name": "음성 녹음기",
+          "description": "실시간 레벨 미터와 부드러운 코칭으로 음성 메모를 녹음하고 MP3로 저장하세요.",
+          "blurb": "실시간 레벨 코칭으로 깔끔한 음성 메모를 녹음해요"
         },
         "ms": {
           "name": "Perakam Suara",
@@ -1260,6 +1443,11 @@
           "name": "Spraakrecorder",
           "description": "Neem een spraakbericht op met een live niveaumeter en zachte begeleiding, en sla het op als MP3.",
           "blurb": "Neem een heldere spraakopname op met live niveaubegeleiding"
+        },
+        "no": {
+          "name": "Stemmeopptaker",
+          "description": "Spill inn en talemelding med nivåmåler i sanntid og skånsom veiledning, og lagre den som MP3.",
+          "blurb": "Spill inn en ren talemelding med nivåveiledning i sanntid"
         },
         "pt": {
           "name": "Gravador de Voz",
@@ -1334,9 +1522,17 @@
           "name": "Palette de couleurs",
           "description": "Parcours les couleurs de la marque SUSE — clique sur une nuance pour la copier."
         },
+        "it": {
+          "name": "Palette colori",
+          "description": "Sfoglia i colori del brand SUSE — clicca su uno swatch per copiarlo."
+        },
         "ja": {
           "name": "カラーパレット",
           "description": "SUSEのブランドカラーを一覧表示します。スウォッチをクリックしてコピーできます。"
+        },
+        "ko": {
+          "name": "컬러 팔레트",
+          "description": "SUSE 브랜드 컬러를 살펴보세요 — 색상 견본을 클릭하면 복사돼요."
         },
         "ms": {
           "name": "Palet Warna",
@@ -1345,6 +1541,10 @@
         "nl": {
           "name": "Kleurenpalet",
           "description": "Blader door SUSE-merkkleuren — klik op een kleurstaal om die te kopiëren."
+        },
+        "no": {
+          "name": "Fargepalett",
+          "description": "Bla gjennom SUSE-merkevarens farger — klikk en fargerute for å kopiere den."
         },
         "pt": {
           "name": "Paleta de Cores",
@@ -1418,9 +1618,17 @@
           "name": "Dégradé maillé",
           "description": "Des dégradés doux façon maillage à partir des couleurs de ta marque. Fais glisser les points de couleur directement sur le canevas."
         },
+        "it": {
+          "name": "Mesh Gradient",
+          "description": "Sfumature morbide in stile mesh dai colori del tuo brand. Trascina i punti colore direttamente sulla tela."
+        },
         "ja": {
           "name": "メッシュグラデーション",
           "description": "ブランドスウォッチからやわらかなメッシュ風グラデーションを作成します。カラーポイントはキャンバス上で直接ドラッグして調整できます。"
+        },
+        "ko": {
+          "name": "메시 그라데이션",
+          "description": "브랜드 컬러로 만드는 부드러운 메시 스타일 그라데이션이에요. 캔버스 위에서 컬러 포인트를 바로 드래그하세요."
         },
         "ms": {
           "name": "Gradien Jaringan",
@@ -1429,6 +1637,10 @@
         "nl": {
           "name": "Meshverloop",
           "description": "Zachte meshverlopen uit je merkkleuren. Sleep de kleurpunten direct op het canvas."
+        },
+        "no": {
+          "name": "Mesh Gradient",
+          "description": "Myke mesh-gradienter fra fargene i merkevaren din. Dra fargepunktene rett på lerretet."
         },
         "pt": {
           "name": "Gradiente em Malha",
@@ -1515,10 +1727,20 @@
           "description": "Des graphiques à l'image de ta marque à partir de tes données — barres, anneau, camembert ou empilé.",
           "blurb": "Des graphiques à l'image de ta marque, dans toutes les formes"
         },
+        "it": {
+          "name": "Chart Creator",
+          "description": "Grafici in linea con il tuo brand a partire dai tuoi dati — a barre, a ciambella, a torta o impilati.",
+          "blurb": "Grafici in linea con il tuo brand a partire dai tuoi dati, in qualsiasi forma"
+        },
         "ja": {
           "name": "チャートクリエイター",
           "description": "データからブランドに合わせたチャートを作成します。棒グラフ、ドーナツグラフ、円グラフ、積み上げグラフに対応しています。",
           "blurb": "データからブランドに合わせたチャートを、どんな形でも作成できます。"
+        },
+        "ko": {
+          "name": "Chart Creator",
+          "description": "데이터로 브랜드에 맞는 차트를 만들어요 — 막대, 도넛, 원형, 누적형.",
+          "blurb": "데이터로 브랜드에 맞는 차트를, 어떤 형태로든"
         },
         "ms": {
           "name": "Pencipta Carta",
@@ -1529,6 +1751,11 @@
           "name": "Grafiekmaker",
           "description": "Grafieken in je huisstijl, gemaakt van je data — staaf, donut, taart of gestapeld.",
           "blurb": "Grafieken uit je data, in elke vorm en in je huisstijl"
+        },
+        "no": {
+          "name": "Chart Creator",
+          "description": "Merkevaretilpassede diagrammer fra dataene dine — søyler, smultring, sirkel eller stablet.",
+          "blurb": "Merkevaretilpassede diagrammer fra dataene dine, i alle former"
         },
         "pt": {
           "name": "Criador de Gráficos",
@@ -1622,10 +1849,20 @@
           "description": "Des graphiques puissants pilotés par tes données avec D3 — colle un tableau et il se transforme en graphique. Barres, lignes, aires, nuages de points, camembert, radar, treemap, heatmap et bien plus, à l'image de ta marque et en vectoriel net.",
           "blurb": "Colle un tableau — D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
         },
+        "it": {
+          "name": "D3 Chart Studio",
+          "description": "Grafici potenti basati sui dati con D3 — incolla una tabella e si trasforma da sola in grafico. Barre, linee, aree, dispersione, torta, radar, treemap, heatmap e altro, coerenti col brand e vettoriali al 100%.",
+          "blurb": "Incolla una tabella — D3 crea il grafico, coerente col brand e vettoriale"
+        },
         "ja": {
           "name": "D3チャートスタジオ",
           "description": "D3による高機能なデータドリブンチャートです。表を貼り付けるだけで自動的にグラフ化されます。棒、折れ線、面、散布図、円、レーダー、ツリーマップ、ヒートマップなど多彩な種類に対応し、ブランドに合わせたベクター品質で出力します。",
           "blurb": "表を貼り付けるだけで、D3がブランドに合わせたベクター品質のチャートを作成します。"
+        },
+        "ko": {
+          "name": "D3 차트 스튜디오",
+          "description": "D3로 만드는 강력한 데이터 기반 차트예요 — 표를 붙여넣기만 하면 저절로 차트가 그려져요. 막대, 선, 영역, 산점도, 원형, 레이더, 트리맵, 히트맵 등 다양한 유형을 브랜드에 맞춰 깔끔한 벡터로 만들어요.",
+          "blurb": "표를 붙여넣으세요 — D3가 브랜드에 맞는 깔끔한 벡터 차트로 만들어 드려요"
         },
         "ms": {
           "name": "Studio Carta D3",
@@ -1636,6 +1873,11 @@
           "name": "D3 Grafiekstudio",
           "description": "Krachtige datagedreven grafieken met D3 — plak een tabel en hij maakt zelf de grafiek. Staafdiagrammen, lijnen, vlakken, spreidingsdiagrammen, taart, radar, treemap, heatmap en meer, in je huisstijl en messcherp als vector.",
           "blurb": "Plak een tabel — D3 maakt de grafiek, in je huisstijl en messcherp als vector"
+        },
+        "no": {
+          "name": "D3 diagramstudio",
+          "description": "Kraftfulle datadrevne diagrammer med D3 — lim inn en tabell, så lager den diagrammet selv. Stolper, linjer, flater, punktdiagram, kakediagram, radar, tremap, varmekart og mer, merkevaretilpasset og vektorrent.",
+          "blurb": "Lim inn en tabell — D3 lager diagrammet, merkevaretilpasset og vektorrent"
         },
         "pt": {
           "name": "Estúdio de Gráficos D3",

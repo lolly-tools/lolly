@@ -153,3 +153,33 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
 
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${body.join('')}</svg>`;
 }
+
+/** A sub-rect of a pdfNodesToSvg document, in its own (point) coordinate space. */
+export interface SvgWindow {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Intrinsic size to stamp on the windowed root (e.g. the CSS-px viewport the
+   *  window represents). Defaults to the window's own width/height. */
+  outWidth?: number;
+  outHeight?: number;
+}
+
+/**
+ * Window a pdfNodesToSvg document to a sub-rect — the vector counterpart of a
+ * raster clip: scroll offset and crop insets become viewBox geometry, so the
+ * "cropped" export is a lossless re-framing of the same vectors. Pure string
+ * surgery on the serializer's own root element (viewBox + width + height are
+ * always its first three attributes, see pdfNodesToSvg) — no DOM, so shells and
+ * tests share it. Returns the input unchanged when the root doesn't match (an
+ * SVG from anywhere else) — callers can pass any svg string safely.
+ */
+export function windowPdfSvg(svg: string, win: SvgWindow): string {
+  const m = /^<svg ([^>]*?)viewBox="[^"]*" width="[^"]*" height="[^"]*">/.exec(svg);
+  if (!m) return svg;
+  const x = r(win.x), y = r(win.y);
+  const w = Math.max(1, r(win.width)), h = Math.max(1, r(win.height));
+  const ow = Math.max(1, r(win.outWidth ?? w)), oh = Math.max(1, r(win.outHeight ?? h));
+  return `<svg ${m[1]}viewBox="${x} ${y} ${w} ${h}" width="${ow}" height="${oh}">` + svg.slice(m[0].length);
+}

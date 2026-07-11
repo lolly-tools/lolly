@@ -17,7 +17,7 @@ export type {
   CatalogSignatureEnvelope, UnsignedCatalogEnvelope, IntegrityResult,
 } from './catalog-integrity.ts';
 export { validateManifest } from './validate.ts';
-export { createRuntime } from './runtime.ts';
+export { createRuntime, HOOK_BUDGET_MS } from './runtime.ts';
 export { hydrate, annotateTemplate } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
@@ -100,8 +100,8 @@ export {
 } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder } from './pdf-map.ts';
-export { pdfNodesToSvg } from './pdf-svg.ts';
-export type { PdfSvgOptions } from './pdf-svg.ts';
+export { pdfNodesToSvg, windowPdfSvg } from './pdf-svg.ts';
+export type { PdfSvgOptions, SvgWindow } from './pdf-svg.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
@@ -533,4 +533,23 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // New ALIASES: ar-sa/ar-eg/ar-ae → ar. Purely additive — no bridge signature
 // change; url-mode's `lang` param, Profile.lang, and the loader's sidecar
 // overlay all iterate LANGS generically.
-export const ENGINE_VERSION = '1.44.0';
+// 1.45.0 — additive: vector + windowed page capture. (1) CaptureSpec gains
+// `crop` (0..0.9 trim insets, the TUI's url-capture semantics promoted onto
+// the bridge — applied by the HOST at capture time, so the returned ref's
+// width/height already reflect the trim) and `rangeTo` (extend the shot below
+// `scrollDepth` into a tall strip for scroll-pan videos; callers derive the
+// pan distance from the RESULT dims, so a host that ignores/clamps the field
+// degrades to a shorter or static pan, never an error). Hosts that predate
+// both fields ignore them via their deserializers — old shell + new tool
+// stays a plain viewport shot. (2) CaptureAPI gains optional `vector(spec)`:
+// print the page to a true vector document and return it as a self-contained
+// SVG AssetRef (type 'vector'), windowed identically to page(). Feature-
+// detected (like compose.renderUrl); the web stub and the extension bridge
+// simply don't grow it. (3) pdf-svg.ts gains windowPdfSvg (crop a pdfNodesToSvg
+// document to a sub-rect via viewBox — pure string surgery, no DOM), exported
+// for the shells that window a vector capture. (4) HOOK_BUDGET_MS is now
+// re-exported from the engine index so a shell that fulfils `capture` natively
+// can raise the beforeExport budget (the documented "shells with unusual
+// needs" escape hatch) without a deep runtime.ts import. No bridge signature
+// change; every addition is optional/ignorable.
+export const ENGINE_VERSION = '1.45.0';
