@@ -49,7 +49,7 @@ const CACHE_PATH = join(I18N_DIR, 'cache.json');
 const GLOSSARY_PATH = join(I18N_DIR, 'glossary.json');
 
 // Canonical language list (engine/src/lang.ts's LANGS, minus 'en' — the source).
-const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'ar', 'it', 'no', 'ko', 'bg'] as const;
+const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'hi', 'bn', 'ur', 'id', 'ar', 'it', 'no', 'ko', 'bg'] as const;
 type Lang = (typeof LANGS)[number];
 
 // Chosen deliberately for this pipeline (see plans/localize.md §4) — not the
@@ -298,8 +298,17 @@ async function runToolsCorpus(client: Anthropic | null, lang: Lang, cache: Cache
     if (tool.blurb) sidecar['featured.blurb'] = resolved.get(`${tool.id}::blurb`) ?? tool.blurb;
     if (!Object.keys(sidecar).length) continue;
     const outDir = join(tool.dir, 'i18n');
+    const outPath = join(outDir, `${lang}.json`);
+    // MERGE with an existing sidecar: this corpus only manages the three
+    // gallery-card fields, but shipped sidecars also carry the full input
+    // key grammar (inputs.*.label/help/options…) written by other passes —
+    // overwriting the file wholesale would silently truncate those.
+    let existing: Record<string, string> = {};
+    if (existsSync(outPath)) {
+      try { existing = JSON.parse(readFileSync(outPath, 'utf8')) as Record<string, string>; } catch { /* rewrite corrupt file */ }
+    }
     mkdirSync(outDir, { recursive: true });
-    writeFileSync(join(outDir, `${lang}.json`), JSON.stringify(sidecar, null, 2) + '\n', 'utf8');
+    writeFileSync(outPath, JSON.stringify({ ...existing, ...sidecar }, null, 2) + '\n', 'utf8');
     filesWritten++;
   }
   console.log(`  [tools/${lang}] wrote ${filesWritten} sidecar files (${Object.keys(overrides).length} overridden)`);

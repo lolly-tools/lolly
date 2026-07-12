@@ -1,0 +1,20 @@
+{
+  "name": "Perekam Suara",
+  "description": "Rekam catatan suara dengan meteran level langsung dan panduan lembut, lalu simpan sebagai MP3.",
+  "featured.blurb": "Rekam catatan suara yang jernih dengan panduan level langsung",
+  "a11yLabel": "Perekam suara — level {{default dbText \"idle\"}}",
+  "inputs.title.label": "Label",
+  "inputs.title.help": "Menamai kartu rekaman dan berkas yang disimpan.",
+  "inputs.targetLevel.label": "Level target",
+  "inputs.targetLevel.help": "Apa yang dianggap 'pas' untuk arahan panduan.",
+  "inputs.targetLevel.options.soft": "Lembut · mik dekat",
+  "inputs.targetLevel.options.normal": "Bicara normal",
+  "inputs.targetLevel.options.loud": "Keras · ruangan",
+  "inputs.showTips.label": "Tips panduan",
+  "inputs.showTips.help": "Arahan langsung seperti ‘mendekatlah’ atau ‘suara Anda pecah’.",
+  "inputs.theme.label": "Gaya kartu",
+  "inputs.theme.options.dark": "Gelap",
+  "inputs.theme.options.light": "Terang",
+  "inputs.accent.label": "Aksen",
+  "inputs.accent.help": "Biarkan tidak diatur untuk mengikuti warna utama merek Anda."
+}

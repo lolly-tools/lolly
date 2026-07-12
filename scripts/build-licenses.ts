@@ -204,6 +204,42 @@ domain (Natural Earth Terms of Use).
 
 ${ISC_BODY}`;
 
+// The vendored libopenmpt WASM tracker-module decoder (src/vendor/libopenmpt/). Built
+// with libopenmpt's DEFAULT internal codecs, so the whole artifact is permissive — no
+// LGPL (libmpg123/libvorbis are opt-in only, behind ALLOW_LGPL=1, which we never set).
+// See scripts/build-libopenmpt-wasm.sh and the vendor README.
+const LIBOPENMPT_TEXT = `Copyright (c) 2004-2026, OpenMPT Project Developers and Contributors
+Copyright (c) 1997-2003, Olivier Lapicque
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+    * Neither the name of the OpenMPT project nor the
+      names of its contributors may be used to endorse or promote products
+      derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Bundled internal codecs, statically linked into the same WASM (all permissive):
+  * minimp3 — CC0-1.0 / public domain (MP3 samples in MO3)
+  * stb_vorbis — public domain OR MIT, © 2017 Sean Barrett (Vorbis samples)
+  * miniz — MIT, © 2013-2014 RAD Game Tools & Valve, © 2010-2014 Rich Geldreich
+The Emscripten runtime glue in libopenmpt.mjs is MIT (© Emscripten authors).`;
+
 // The orphan SVG-path world map used by the daily-card tool.
 const WORLD_MAP_TXT_TEXT = `tools/daily-card/world-map.txt is a low-resolution SVG-path outline of the
 world's coastlines. The file carries no embedded provenance. Its resolution
@@ -240,6 +276,16 @@ const MANIFEST: {
       copyright: 'Copyright 2019 Mike Bostock',
       files: 'tools/meeting-planner/lib/topojson.min.js',
       text: `Copyright 2019 Mike Bostock\n\n${ISC_BODY}`,
+      where: 'web',
+    },
+    {
+      name: 'libopenmpt (compiled WASM)',
+      version: '0.8.7 (Emscripten build)',
+      spdx: 'BSD-3-Clause',
+      copyright: '© 2004-2026 OpenMPT Project Developers & Contributors; © 1997-2003 Olivier Lapicque',
+      files: 'shells/web/src/vendor/libopenmpt/libopenmpt.mjs',
+      text: LIBOPENMPT_TEXT,
+      note: 'Tracker-module (.mod/.xm/.s3m/.it/…) decoder. Built from source with permissive internal codecs only — see scripts/build-libopenmpt-wasm.sh.',
       where: 'web',
     },
   ],

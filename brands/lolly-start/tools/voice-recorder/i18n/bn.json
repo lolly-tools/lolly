@@ -1,0 +1,20 @@
+{
+  "name": "ভয়েস রেকর্ডার",
+  "description": "লাইভ লেভেল মিটার ও হালকা কোচিং সহ একটি ভয়েস নোট রেকর্ড করুন, তারপর MP3 হিসেবে সংরক্ষণ করুন।",
+  "featured.blurb": "লাইভ লেভেল কোচিং সহ একটি পরিষ্কার ভয়েস নোট রেকর্ড করুন",
+  "a11yLabel": "ভয়েস রেকর্ডার — লেভেল {{default dbText \"idle\"}}",
+  "inputs.title.label": "লেবেল",
+  "inputs.title.help": "রেকর্ডিং কার্ড এবং সংরক্ষিত ফাইলের নাম নির্ধারণ করে।",
+  "inputs.targetLevel.label": "টার্গেট লেভেল",
+  "inputs.targetLevel.help": "কোচিং প্রম্পটের জন্য কোনটি 'ঠিক আছে' বলে গণ্য হবে।",
+  "inputs.targetLevel.options.soft": "সফট · কাছের মাইক",
+  "inputs.targetLevel.options.normal": "স্বাভাবিক কথা",
+  "inputs.targetLevel.options.loud": "লাউড · রুম",
+  "inputs.showTips.label": "কোচিং টিপস",
+  "inputs.showTips.help": "‘কাছে আসুন’ বা ‘আপনি ক্লিপ করছেন’-এর মতো লাইভ প্রম্পট।",
+  "inputs.theme.label": "কার্ড স্টাইল",
+  "inputs.theme.options.dark": "ডার্ক",
+  "inputs.theme.options.light": "লাইট",
+  "inputs.accent.label": "অ্যাকসেন্ট",
+  "inputs.accent.help": "আপনার ব্র্যান্ডের প্রাইমারি কালার অনুসরণ করতে এটি সেট না করে রাখুন।"
+}

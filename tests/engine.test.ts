@@ -13,6 +13,7 @@ import { parseUrlState, serializeUrlState, RESERVED } from '../engine/src/url-mo
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.ts';
 import { hydrate, annotateTemplate } from '../engine/src/template.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { LANGS, LANG_META, sortedLangs } from '../engine/src/lang.ts';
 
 // ─── validate ──────────────────────────────────────────────────────────────
 
@@ -206,6 +207,20 @@ test('url-mode: lang param — alias normalization + serialize round-trip', () =
   assert.equal(parseUrlState('lang=cs', tool).lang, 'cs');
   assert.equal(parseUrlState('lang=nl', tool).lang, 'nl');
   assert.equal(parseUrlState('lang=sv', tool).lang, 'sv');
+  // Hindi — canonical code + regioned browser tag.
+  assert.equal(parseUrlState('lang=hi', tool).lang, 'hi');
+  assert.equal(parseUrlState('lang=hi-IN', tool).lang, 'hi');
+  // Bengali — canonical code + both regioned tags (Bangladesh + West Bengal).
+  assert.equal(parseUrlState('lang=bn', tool).lang, 'bn');
+  assert.equal(parseUrlState('lang=bn-BD', tool).lang, 'bn');
+  assert.equal(parseUrlState('lang=bn-IN', tool).lang, 'bn');
+  // Urdu — canonical code + regioned tags.
+  assert.equal(parseUrlState('lang=ur', tool).lang, 'ur');
+  assert.equal(parseUrlState('lang=ur-PK', tool).lang, 'ur');
+  // Indonesian — canonical code + the deprecated ISO 'in' code Android WebViews still emit.
+  assert.equal(parseUrlState('lang=id', tool).lang, 'id');
+  assert.equal(parseUrlState('lang=in', tool).lang, 'id');
+  assert.equal(parseUrlState('lang=in-ID', tool).lang, 'id');
   // Absent/unrecognized → null, so the caller falls back to its own default chain.
   assert.equal(parseUrlState('', tool).lang, null);
   assert.equal(parseUrlState('lang=klingon', tool).lang, null);
@@ -215,6 +230,37 @@ test('url-mode: lang param — alias normalization + serialize round-trip', () =
   assert.equal(serializeUrlState([], { lang: 'en' }), '');
   assert.equal(serializeUrlState([], {}), '');
   assert.equal(serializeUrlState([], { lang: 'de' }), 'lang=de');
+});
+
+test('lang: sortedLangs — the shared picker orderings (speakers default, az)', () => {
+  const pop = sortedLangs();
+  // No-arg IS the most-spoken-first order — the pickers' default.
+  assert.deepEqual(pop, sortedLangs('speakers'));
+  // Same membership as LANGS, every code exactly once, in both orders.
+  assert.deepEqual([...pop].sort(), [...LANGS].sort());
+  assert.deepEqual([...sortedLangs('az')].sort(), [...LANGS].sort());
+  // Speakers: descending; equal-speakers ties keep LANGS order.
+  assert.equal(pop[0], 'en');
+  for (let i = 1; i < pop.length; i++) {
+    const prev = pop[i - 1]!, cur = pop[i]!;
+    assert.ok(
+      LANG_META[prev].speakers > LANG_META[cur].speakers
+      || (LANG_META[prev].speakers === LANG_META[cur].speakers && LANGS.indexOf(prev) < LANGS.indexOf(cur)),
+      `speakers order: ${prev} must outrank ${cur}`,
+    );
+  }
+  // A–Z: ascending by the nativeName the picker actually shows (English collation).
+  const az = sortedLangs('az');
+  for (let i = 1; i < az.length; i++) {
+    assert.ok(
+      LANG_META[az[i - 1]!].nativeName.localeCompare(LANG_META[az[i]!].nativeName, 'en') <= 0,
+      `az order: ${az[i - 1]} must not follow ${az[i]}`,
+    );
+  }
+  assert.notEqual(az[0], 'en'); // proves az isn't the speakers order re-labelled
+  // Pure: fresh array per call, LANGS itself never reordered.
+  assert.notEqual(sortedLangs(), pop);
+  assert.equal(LANGS[0], 'en');
 });
 
 test('url-mode: compact blocks fold a raw comma into the last field (no shift)', () => {
