@@ -1,0 +1,20 @@
+{
+  "name": "Диктофон",
+  "description": "Запиши гласова бележка с индикатор на нивото на живо и ненатрапчиви насоки, а после я запази като MP3.",
+  "featured.blurb": "Запиши чиста гласова бележка с насоки за нивото на живо",
+  "a11yLabel": "Диктофон — ниво {{default dbText \"idle\"}}",
+  "inputs.title.label": "Етикет",
+  "inputs.title.help": "Дава име на картата на записа и на запазения файл.",
+  "inputs.targetLevel.label": "Целево ниво",
+  "inputs.targetLevel.help": "Какво се смята за „точно както трябва“ при подсказките.",
+  "inputs.targetLevel.options.soft": "Тихо · близък микрофон",
+  "inputs.targetLevel.options.normal": "Нормална реч",
+  "inputs.targetLevel.options.loud": "Силно · стая",
+  "inputs.showTips.label": "Насочващи подсказки",
+  "inputs.showTips.help": "Подсказки на живо като „приближи се“ или „звукът клипва“.",
+  "inputs.theme.label": "Стил на картата",
+  "inputs.theme.options.dark": "Тъмен",
+  "inputs.theme.options.light": "Светъл",
+  "inputs.accent.label": "Акцент",
+  "inputs.accent.help": "Остави празно, за да се следва основният цвят на твоя бранд."
+}

@@ -135,3 +135,83 @@ tools/<id>/
 | `schemas/` | `tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json` |
 | `scripts/` | `build-catalog-index.ts`, `checksum-assets.ts`, `validate-catalog.ts` |
 | `docs/` | architecture, authoring guides, positioning, URL mode; `build.ts` builds the info site |
+
+## Features
+
+### Font upload
+
+**How to use:** Users upload TTF, OTF, or WOFF font files via the `#/start` Fonts tab. Uploaded fonts are stored in IndexedDB as user assets and indexed by font family/weight/style metadata. Tools access fonts for text-to-path rendering via `host.text.toPath()` with fallback chains.
+
+**Where code lives:**
+- **Web shell:** `shells/web/src/views/start-studio.ts` (Fonts tab UI) · `shells/web/src/lib/brand-doc.ts` (font asset CRUD)
+- **Engine:** `engine/src/bridge/host-v1.ts` (`text.toPath()` signature) · `engine/src/tokens.ts` (font resolution chain)
+- **Storage:** IndexedDB via `host.state` (web shell) or memory (CLI) — never localStorage
+
+**Config needed:**
+- No hardcoded limits per CLAUDE.md principles (online+performant). Font subsetting and variable-font axis defaults (`axisDefaults` in v1.30) are engine-controlled.
+- Tools declare font inputs as `type: 'asset'` with `assetType: 'font'` in `tool.json`.
+
+**Known limitations & edge cases:**
+- Variable fonts: `host.text.variations` (v1.29+) reports available axes; `axisDefaults` (v1.30+) reports the default instance so jsPDF embedders know the weight. Do not assume weight=400 — retrieve it.
+- Fallback chains: `fallbackFonts` parameter shapes runs across disjoint webfont subsets. `notdef` reports uncovered glyphs so templates can keep a `<text>` fallback. Disjoint subsets (e.g., Arabic + Latin) may require multiple font files.
+- WOFF files are browser-bound; Tauri/CLI must use TTF/OTF for full compatibility.
+- Font upload does NOT auto-subset; large font files consume more IndexedDB quota.
+
+**Test coverage:**
+- `tests/host.text.test.ts` exercises fallback chains and axis defaults
+- No fuzz tests for font parsing (HarfBuzz WASM safety is assumed)
+- CLI fonts: test with `npm run cli -- text-helper --font=<user-font-path>` (if tool supports file input)
+
+---
+
+### Smooth gradients
+
+**How to use:** Mesh gradients are authored in the Mesh Gradient tool and embedded as SVG/PDF assets. Users drag control-point dots to shape multi-stop gradients with color per node. Gradients are rendered as native SVG `<defs><meshpatch>` (or approximated as `<stop>` arrays for compatibility), and exported to PDF as gradient meshes or rasterized tiles.
+
+**Where code lives:**
+- **Community tool:** `community/mesh-gradient/` (Mesh Gradient editor)
+- **Engine:** `engine/src/embed.ts` (SVG gradient serialization) · `engine/src/pdf-map.ts` (PDF gradient mesh rasterization) · `engine/src/color.ts` (OKLab/OKLCH interpolation)
+- **Web shell:** `shells/web/src/lib/mesh-utils.ts` (interactive gradient builder)
+
+**Config needed:**
+- Engine v1.39+ resolves composite gradients with `ramp-step` delete = exclusions. No UI config; gradient stops are purely data-driven.
+- For PDF export: set `format: 'pdf'` in export options. Gradients with >16 stops are tiled (rasterized into chunks) to respect PDF page size limits.
+
+**Known limitations & edge cases:**
+- PDF gradient meshes: limited to ~16 stops per region. More stops trigger automatic tiling (raster fallback), degrading quality.
+- SVG `<meshpatch>`: supported in Chrome/Safari/Inkscape; Firefox uses simplified rasterization. Inline SVG previews always render correctly.
+- Colors: engine uses OKLab for internal interpolation (perceptually even). Exported PDF may show subtle banding with > 256 color stops due to PDF's 8-bit color depth.
+- Animated gradients (e.g., Carousel Maker): mesh gradients do NOT animate natively; use frame-by-frame raster export or SVG `<animate>` overlays.
+
+**Test coverage:**
+- `tests/gradients.test.ts` validates OKLab interpolation and composite stop resolution
+- Integration: `npm run cli -- mesh-gradient --output=mesh.svg` (verify SVG structure)
+- PDF: export a 20-stop gradient as PDF and inspect with `pdftotext` or Acrobat to check mesh structure
+
+---
+
+### Text outline export
+
+**How to use:** Text is converted to SVG/PDF vector outlines via `host.text.toPath()`. Tools call this hook during `beforeExport` to bake text into paths before render. The web shell uses Handlebars `template.html` with standard `<text>` elements; the engine converts them on export if the output format requires vectors (SVG, PDF, EMF, EPS).
+
+**Where code lives:**
+- **Engine:** `engine/src/bridge/host-v1.ts` (`text.toPath()` signature) · `engine/src/template.ts` (Handlebars `<text>` rendering) · `engine/src/svg-path.ts` (SVG path serialization)
+- **PDF/EMF:** `engine/src/pdf-map.ts` · `engine/src/emf.ts` (glyph-to-path conversion via HarfBuzz WASM)
+- **Web shell:** `shells/web/src/bridge/export.ts` (rasterization via `host.export.render()`)
+
+**Config needed:**
+- No explicit config. Text outline conversion is automatic per format: SVG/PDF/EMF/EPS export text as paths; PNG/JPEG/WebP export text as raster.
+- Tools can opt into tighter path accuracy with `textOutline: 'precise'` in `beforeExport` (reserved for future refinement; currently all exports use HarfBuzz default precision).
+
+**Known limitations & edge cases:**
+- Ligatures: HarfBuzz resolves them correctly. Complex scripts (Arabic, Devanagari) are shaped correctly but may not display perfectly if fallback fonts are missing coverage (see Font upload limitations).
+- Variable fonts: the exported weight is determined by `host.text.axisDefaults` (v1.30+). Exporting the same text at different weights requires multiple `host.text.toPath()` calls with explicit axis overrides (API design pending).
+- Performance: text-to-path on large documents (>1000 glyphs) can take 1–2s. Async hook budget (`beforeExport` 5s) is sufficient.
+- Raster export: text is rendered by the browser/Chromium and embeds glyphs as curves, not as separate paths. The "outline" is flattened into pixels.
+- PDF outline accuracy: ±0.1% variance vs SVG is expected (different PDF rendering engines round differently).
+
+**Test coverage:**
+- `tests/text-to-path.test.ts` validates HarfBuzz WASM integration and ligature handling
+- `tests/export.test.ts` exports a text-heavy template to SVG/PDF and verifies path counts match input text length
+- CLI: `npm run cli -- text-helper --text="Hello" --export=svg` and verify `<path>` elements in output (not `<text>`)
+- Playwright integration: `tests/browser-render.test.ts` compares visual text outline rendering across Chrome/Firefox

@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-11T17:19:20.008Z",
+  "generatedAt": "2026-07-12T03:49:54.116Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -23,6 +23,14 @@
           "name": "ضغط PDF",
           "description": "قلص حجم ملف PDF بإعادة ضغط صوره — على جهازك."
         },
+        "bg": {
+          "name": "Компресиране на PDF",
+          "description": "Смали PDF, като прекомпресираш изображенията му — на твоето устройство."
+        },
+        "bn": {
+          "name": "PDF কম্প্রেস",
+          "description": "ছবিগুলো পুনরায় কম্প্রেস করে PDF ছোট করুন — আপনার ডিভাইসেই।"
+        },
         "cs": {
           "name": "Komprese PDF",
           "description": "Zmenši PDF rekompresí obrázků — přímo v zařízení."
@@ -38,6 +46,14 @@
         "fr": {
           "name": "Compresser un PDF",
           "description": "Réduis la taille d'un PDF en recompressant ses images — directement sur ton appareil."
+        },
+        "hi": {
+          "name": "PDF कंप्रेस करें",
+          "description": "PDF की इमेजों को फिर से कंप्रेस करके उसका आकार घटाएँ — आपके डिवाइस पर ही।"
+        },
+        "id": {
+          "name": "Kompres PDF",
+          "description": "Perkecil PDF dengan mengompres ulang gambar di dalamnya — di perangkat Anda."
         },
         "it": {
           "name": "Comprimi PDF",
@@ -79,6 +95,10 @@
           "name": "I-compress ang PDF",
           "description": "Paliitin ang PDF sa pamamagitan ng pag-compress ulit ng mga larawan dito — sa mismong device mo."
         },
+        "ur": {
+          "name": "PDF کمپریس کریں",
+          "description": "PDF کی تصاویر دوبارہ کمپریس کر کے اسے چھوٹا کریں — آپ کے آلے پر۔"
+        },
         "vi": {
           "name": "Nén PDF",
           "description": "Giảm dung lượng PDF bằng cách nén lại hình ảnh bên trong — ngay trên thiết bị của bạn."
@@ -113,6 +133,14 @@
           "name": "مؤقت العد التنازلي",
           "description": "عد تنازلي مركز مع حلقة تقدم مباشرة. انقر للإيقاف المؤقت."
         },
+        "bg": {
+          "name": "Таймер за обратно броене",
+          "description": "Изчистено обратно броене с жив пръстен на напредъка. Щракни за пауза."
+        },
+        "bn": {
+          "name": "কাউন্টডাউন টাইমার",
+          "description": "লাইভ প্রগ্রেস রিং সহ একটি ফোকাসড কাউন্টডাউন। থামাতে ক্লিক করুন।"
+        },
         "cs": {
           "name": "Odpočítávač",
           "description": "Přehledný odpočet s živým průběhovým kruhem. Kliknutím pozastavíš."
@@ -128,6 +156,14 @@
         "fr": {
           "name": "Compte à rebours",
           "description": "Un compte à rebours épuré avec un anneau de progression en direct. Clique pour mettre en pause."
+        },
+        "hi": {
+          "name": "काउंटडाउन टाइमर",
+          "description": "लाइव प्रोग्रेस रिंग के साथ एक फ़ोकस्ड काउंटडाउन। रोकने के लिए क्लिक करें।"
+        },
+        "id": {
+          "name": "Penghitung Waktu Mundur",
+          "description": "Hitung mundur yang fokus dengan cincin progres langsung. Klik untuk jeda."
         },
         "it": {
           "name": "Conto alla rovescia",
@@ -168,6 +204,10 @@
         "tl": {
           "name": "Orasang Countdown",
           "description": "Isang nakatutok na countdown na may live na progress ring. I-click para mag-pause."
+        },
+        "ur": {
+          "name": "کاؤنٹ ڈاؤن ٹائمر",
+          "description": "لائیو پروگریس رِنگ کے ساتھ ایک مرکوز کاؤنٹ ڈاؤن۔ رکنے کے لیے کلک کریں۔"
         },
         "vi": {
           "name": "Đồng Hồ Đếm Ngược",
@@ -210,6 +250,14 @@
           "name": "مرشح: ثنائي اللون",
           "description": "معالجة ثنائية اللون لأي صورة — الظلال بلون والإضاءات بلون آخر."
         },
+        "bg": {
+          "name": "Филтър: Дуотон",
+          "description": "Двуцветен дуотон за всяка снимка — сенките в един цвят, светлите тонове в друг."
+        },
+        "bn": {
+          "name": "ফিল্টার: ডুয়োটোন",
+          "description": "যেকোনো ছবির জন্য দুই রঙের ডুয়োটোন — ছায়া এক রঙে, হাইলাইট আরেক রঙে।"
+        },
         "cs": {
           "name": "Filtr: Duotone",
           "description": "Dvoubarevný duotone efekt pro libovolnou fotku — stíny jednou barvou, světla druhou."
@@ -225,6 +273,14 @@
         "fr": {
           "name": "Filtre : Bichromie",
           "description": "Un effet bichromie à deux couleurs pour n'importe quelle photo — une couleur pour les ombres, une autre pour les lumières."
+        },
+        "hi": {
+          "name": "फ़िल्टर: डुओटोन",
+          "description": "किसी भी फ़ोटो के लिए दो रंगों वाला डुओटोन — शैडो एक रंग में, हाइलाइट दूसरे में।"
+        },
+        "id": {
+          "name": "Filter: Dwiwarna",
+          "description": "Efek dwiwarna untuk foto apa pun — bayangan satu warna, sorotan warna lain."
         },
         "it": {
           "name": "Filtro: Duotono",
@@ -265,6 +321,10 @@
         "tl": {
           "name": "Filter: Duotone",
           "description": "Two-color duotone para sa kahit anong larawan — isang kulay ang shadows, iba ang highlights."
+        },
+        "ur": {
+          "name": "فلٹر: ڈوٹون",
+          "description": "کسی بھی تصویر کے لیے دو رنگوں والا ڈوٹون — سائے ایک رنگ میں اور ہائی لائٹس دوسرے رنگ میں۔"
         },
         "vi": {
           "name": "Bộ Lọc: Hai Tông Màu",
@@ -310,6 +370,14 @@
           "name": "مرشح: الألوان النصفية",
           "description": "ألوان نصفية متجهة من أي صورة — نقاط بحجم يتبع السطوع."
         },
+        "bg": {
+          "name": "Филтър: Растер",
+          "description": "Векторен растер от всяка снимка — точки, оразмерени според яркостта."
+        },
+        "bn": {
+          "name": "ফিল্টার: হাফটোন",
+          "description": "যেকোনো ছবি থেকে ভেক্টর হাফটোন — উজ্জ্বলতা অনুযায়ী ডটের আকার।"
+        },
         "cs": {
           "name": "Filtr: Rastr",
           "description": "Vektorový rastr z libovolné fotky — velikost bodů podle jasu."
@@ -325,6 +393,14 @@
         "fr": {
           "name": "Filtre : Demi-teinte",
           "description": "Une trame de demi-teinte vectorielle à partir de n'importe quelle photo — des points dont la taille varie selon la luminosité."
+        },
+        "hi": {
+          "name": "फ़िल्टर: हाफ़टोन",
+          "description": "किसी भी फ़ोटो से वेक्टर हाफ़टोन — चमक के हिसाब से डॉट्स का आकार।"
+        },
+        "id": {
+          "name": "Filter: Halftone",
+          "description": "Halftone vektor dari foto apa pun — ukuran titik berdasarkan kecerahan."
         },
         "it": {
           "name": "Filtro: Retino",
@@ -365,6 +441,10 @@
         "tl": {
           "name": "Filter: Halftone",
           "description": "Vector halftone mula sa kahit anong larawan — ang laki ng tuldok ay base sa liwanag."
+        },
+        "ur": {
+          "name": "فلٹر: ہاف ٹون",
+          "description": "کسی بھی تصویر سے ویکٹر ہاف ٹون — نقطے چمک کے مطابق سائز کیے گئے۔"
         },
         "vi": {
           "name": "Bộ Lọc: Tram Chấm (Halftone)",
@@ -407,6 +487,14 @@
           "name": "مرشح: تمديد البكسل",
           "description": "مدد عمودا من البكسلات عبر الصورة انطلاقا من خط عتبة. يعمل بثا مباشرا."
         },
+        "bg": {
+          "name": "Филтър: Разтягане на пиксели",
+          "description": "Размажи колона от пиксели през снимката от прагова линия. Работи на живо."
+        },
+        "bn": {
+          "name": "ফিল্টার: পিক্সেল স্ট্রেচ",
+          "description": "একটি থ্রেশহোল্ড লাইন থেকে ছবির ওপর পিক্সেলের একটি কলাম টেনে ছড়িয়ে দিন। লাইভেও কাজ করে।"
+        },
         "cs": {
           "name": "Filtr: Roztažení pixelů",
           "description": "Rozmaže sloupec pixelů napříč fotkou od prahové linie. Funguje živě."
@@ -422,6 +510,14 @@
         "fr": {
           "name": "Filtre : Étirement de pixels",
           "description": "Étire une colonne de pixels sur toute la photo à partir d'une ligne de seuil. Fonctionne en direct."
+        },
+        "hi": {
+          "name": "फ़िल्टर: पिक्सेल स्ट्रेच",
+          "description": "थ्रेशोल्ड रेखा से फ़ोटो के आर-पार पिक्सेल का एक स्तंभ स्मियर करें। लाइव भी काम करता है।"
+        },
+        "id": {
+          "name": "Filter: Regangan Piksel",
+          "description": "Oleskan satu kolom piksel ke seluruh foto dari garis ambang. Bekerja secara langsung."
         },
         "it": {
           "name": "Filtro: Stiramento pixel",
@@ -462,6 +558,10 @@
         "tl": {
           "name": "Filter: Pag-stretch ng Pixel",
           "description": "Ikalat ang isang column ng pixels sa buong larawan mula sa threshold line. Gumagana ito nang live."
+        },
+        "ur": {
+          "name": "فلٹر: پکسل اسٹریچ",
+          "description": "ایک تھریشولڈ لائن سے تصویر پر پکسلز کے کالم کو پھیلائیں۔ لائیو بھی کام کرتا ہے۔"
         },
         "vi": {
           "name": "Bộ Lọc: Kéo Giãn Pixel",
@@ -505,6 +605,14 @@
           "name": "مرشح: بوسترة نقطية",
           "description": "حول أي صورة إلى فرز ألوان متجه مسطح بأسلوب الطباعة الحريرية."
         },
+        "bg": {
+          "name": "Филтър: Постеризация на растер",
+          "description": "Трасирай всяка снимка в плоски векторни цветоотделяния в стил ситопечат."
+        },
+        "bn": {
+          "name": "ফিল্টার: পোস্টারাইজ বিটম্যাপ",
+          "description": "যেকোনো ছবিকে ফ্ল্যাট, স্ক্রিনপ্রিন্ট-ধাঁচের ভেক্টর কালার সেপারেশনে ট্রেস করুন।"
+        },
         "cs": {
           "name": "Filtr: Posterizace bitmapy",
           "description": "Převede libovolnou fotku na ploché vektorové barevné výtažky ve stylu sítotisku."
@@ -520,6 +628,14 @@
         "fr": {
           "name": "Filtre : Postérisation bitmap",
           "description": "Transforme n'importe quelle photo en aplats vectoriels façon sérigraphie, séparés par couleur."
+        },
+        "hi": {
+          "name": "फ़िल्टर: पोस्टराइज़ बिटमैप",
+          "description": "किसी भी फ़ोटो को फ़्लैट, स्क्रीनप्रिंट-स्टाइल वेक्टर कलर सेपरेशन में ट्रेस करें।"
+        },
+        "id": {
+          "name": "Filter: Posterisasi Bitmap",
+          "description": "Ubah foto apa pun menjadi separasi warna vektor datar bergaya sablon."
         },
         "it": {
           "name": "Filtro: Posterizzazione Bitmap",
@@ -560,6 +676,10 @@
         "tl": {
           "name": "Filter: I-posterize ang Bitmap",
           "description": "I-trace ang kahit anong larawan patungo sa flat, screenprint-style na vector color separations."
+        },
+        "ur": {
+          "name": "فلٹر: پوسٹرائز بٹ میپ",
+          "description": "کسی بھی تصویر کو فلیٹ، اسکرین پرنٹ طرز کی ویکٹر کلر سیپریشنز میں تبدیل کریں۔"
         },
         "vi": {
           "name": "Bộ Lọc: Phân Cấp Màu Bitmap",
@@ -602,6 +722,14 @@
           "name": "مرشح: خطوط المسح",
           "description": "تأثير متجه بخطوط مسح أفقية «خطوط لا نهائية» من أي صورة"
         },
+        "bg": {
+          "name": "Филтър: Сканлайн",
+          "description": "Хоризонтален векторен сканлайн ефект „безкрайни линии“ от всяка снимка"
+        },
+        "bn": {
+          "name": "ফিল্টার: স্ক্যানলাইন",
+          "description": "যেকোনো ছবি থেকে অনুভূমিক 'ইনফিনিটি লাইনস' স্ক্যানলাইন ভেক্টর এফেক্ট"
+        },
         "cs": {
           "name": "Filtr: Skenovací linie",
           "description": "Vodorovný vektorový scanline efekt s „nekonečnými liniemi“ z libovolné fotky."
@@ -617,6 +745,14 @@
         "fr": {
           "name": "Filtre : Lignes de balayage",
           "description": "Un effet vectoriel de lignes de balayage horizontales façon « lignes infinies » à partir de n'importe quelle photo."
+        },
+        "hi": {
+          "name": "फ़िल्टर: स्कैनलाइन",
+          "description": "किसी भी फ़ोटो से क्षैतिज 'इन्फ़िनिटी लाइन्स' स्कैनलाइन वेक्टर इफ़ेक्ट"
+        },
+        "id": {
+          "name": "Filter: Scanline",
+          "description": "Efek vektor scanline 'garis tak berhingga' horizontal dari foto apa pun"
         },
         "it": {
           "name": "Filtro: Linee di scansione",
@@ -657,6 +793,10 @@
         "tl": {
           "name": "Filter: Scanline",
           "description": "Horizontal na 'infinity lines' na scanline vector effect mula sa kahit anong larawan"
+        },
+        "ur": {
+          "name": "فلٹر: اسکین لائن",
+          "description": "کسی بھی تصویر سے افقی 'انفینٹی لائنز' اسکین لائن ویکٹر ایفیکٹ"
         },
         "vi": {
           "name": "Bộ Lọc: Dòng Quét (Scanline)",
@@ -700,6 +840,14 @@
           "name": "مرشح: خلايا فورونوي",
           "description": "حطم أي صورة إلى فسيفساء خلايا فورونوي — كل خلية معبأة بأقرب لون، كمتجه مسطح."
         },
+        "bg": {
+          "name": "Филтър: Клетки на Вороной",
+          "description": "Разбий всяка снимка на мозайка от клетки на Вороной — всяка клетка е запълнена с най-близкия цвят, като плосък вектор."
+        },
+        "bn": {
+          "name": "ফিল্টার: ভোরোনোই সেল",
+          "description": "যেকোনো ছবিকে ভোরোনোই সেল মোজাইকে ভেঙে ফেলুন — প্রতিটি সেল নিকটতম রঙে ভরা, ফ্ল্যাট ভেক্টর হিসেবে।"
+        },
         "cs": {
           "name": "Filtr: Voroného buňky",
           "description": "Rozbije libovolnou fotku na mozaiku Voroného buněk — každá buňka vyplněná nejbližší barvou, jako plochý vektor."
@@ -715,6 +863,14 @@
         "fr": {
           "name": "Filtre : Cellules de Voronoï",
           "description": "Fragmente n'importe quelle photo en mosaïque de cellules de Voronoï — chaque cellule remplie de la couleur la plus proche, en aplat vectoriel."
+        },
+        "hi": {
+          "name": "फ़िल्टर: वोरोनोई सेल",
+          "description": "किसी भी फ़ोटो को वोरोनोई सेल मोज़ेक में तोड़ें — हर सेल निकटतम रंग से भरा, फ़्लैट वेक्टर के रूप में।"
+        },
+        "id": {
+          "name": "Filter: Sel Voronoi",
+          "description": "Pecahkan foto apa pun menjadi mosaik sel Voronoi — setiap sel diisi dengan warna terdekat, sebagai vektor datar."
         },
         "it": {
           "name": "Filtro: Celle di Voronoi",
@@ -755,6 +911,10 @@
         "tl": {
           "name": "Filter: Voronoi Cells",
           "description": "Pira-pirasuhin ang kahit anong larawan patungo sa isang Voronoi cell mosaic — bawat cell ay puno ng pinakamalapit na kulay, bilang flat vector."
+        },
+        "ur": {
+          "name": "فلٹر: Voronoi سیلز",
+          "description": "کسی بھی تصویر کو Voronoi سیل موزیک میں توڑ دیں — ہر سیل قریب ترین رنگ سے بھرا ہوا، فلیٹ ویکٹر کی صورت میں۔"
         },
         "vi": {
           "name": "Bộ Lọc: Ô Voronoi",
@@ -807,6 +967,16 @@
           "description": "رموز QR لأي عنوان URL، مع تحكم كامل في اللون والنمط.",
           "blurb": "رموز QR بأي لون من ألوان علامتك"
         },
+        "bg": {
+          "name": "Генератор на QR кодове",
+          "description": "QR кодове за всеки URL, с пълен контрол върху цвета и стила.",
+          "blurb": "QR кодове във всеки брандов цвят"
+        },
+        "bn": {
+          "name": "QR কোড জেনারেটর",
+          "description": "যেকোনো URL-এর জন্য QR কোড, রং ও স্টাইলের পূর্ণ নিয়ন্ত্রণসহ।",
+          "blurb": "যেকোনো ব্র্যান্ড রঙে QR কোড"
+        },
         "cs": {
           "name": "Generátor QR kódů",
           "description": "QR kódy pro libovolnou adresu URL s plnou kontrolou nad barvami a stylem.",
@@ -826,6 +996,16 @@
           "name": "Générateur de code QR",
           "description": "Des codes QR pour n'importe quelle URL, avec un contrôle total de la couleur et du style.",
           "blurb": "Des codes QR dans toutes les couleurs de ta marque"
+        },
+        "hi": {
+          "name": "QR कोड जनरेटर",
+          "description": "किसी भी URL के लिए QR कोड, रंग और शैली पर पूरे नियंत्रण के साथ।",
+          "blurb": "किसी भी ब्रांड रंग में QR कोड"
+        },
+        "id": {
+          "name": "Generator Kode QR",
+          "description": "Kode QR untuk URL apa pun, dengan kontrol penuh atas warna dan gaya.",
+          "blurb": "Kode QR dalam warna brand apa pun"
         },
         "it": {
           "name": "Generatore di codici QR",
@@ -877,6 +1057,11 @@
           "description": "Mga QR code para sa kahit anong URL, may kumpletong kontrol sa kulay at istilo.",
           "blurb": "Mga QR code sa kahit anong kulay ng brand"
         },
+        "ur": {
+          "name": "QR کوڈ جنریٹر",
+          "description": "کسی بھی URL کے لیے QR کوڈز، مکمل رنگ اور اسٹائل کنٹرول کے ساتھ۔",
+          "blurb": "کسی بھی برانڈ رنگ میں QR کوڈز"
+        },
         "vi": {
           "name": "Trình Tạo Mã QR",
           "description": "Mã QR cho bất kỳ URL nào, tùy chỉnh toàn bộ màu sắc và kiểu dáng.",
@@ -919,6 +1104,14 @@
           "name": "خريطة الشوارع",
           "description": "خرائط شوارع متجهة نظيفة لأي مدينة. تعمل دون اتصال."
         },
+        "bg": {
+          "name": "Улична карта",
+          "description": "Чисти векторни карти на уличните блокове на всеки град. Работи офлайн."
+        },
+        "bn": {
+          "name": "স্ট্রিট ম্যাপ",
+          "description": "যেকোনো শহরের পরিচ্ছন্ন ভেক্টর স্ট্রিট-ব্লক মানচিত্র। অফলাইনে কাজ করে।"
+        },
         "cs": {
           "name": "Mapa ulic",
           "description": "Čisté vektorové mapy ulic libovolného města. Funguje offline."
@@ -934,6 +1127,14 @@
         "fr": {
           "name": "Carte des rues",
           "description": "Des cartes vectorielles épurées des rues de n'importe quelle ville. Fonctionne hors ligne."
+        },
+        "hi": {
+          "name": "स्ट्रीट मैप",
+          "description": "किसी भी शहर के साफ़ वेक्टर स्ट्रीट-ब्लॉक मैप। ऑफ़लाइन काम करता है।"
+        },
+        "id": {
+          "name": "Peta Jalan",
+          "description": "Peta blok jalan vektor yang bersih untuk kota mana pun. Berfungsi secara offline."
         },
         "it": {
           "name": "Mappa stradale",
@@ -975,6 +1176,10 @@
           "name": "Mapa ng Kalye",
           "description": "Malinis na vector na mapa ng mga kalye ng kahit anong lungsod. Gumagana kahit offline."
         },
+        "ur": {
+          "name": "اسٹریٹ میپ",
+          "description": "کسی بھی شہر کے صاف ستھرے ویکٹر اسٹریٹ بلاک نقشے۔ آف لائن کام کرتا ہے۔"
+        },
         "vi": {
           "name": "Bản Đồ Đường Phố",
           "description": "Bản đồ vector các ô phố gọn gàng của bất kỳ thành phố nào. Hoạt động ngoại tuyến."
@@ -1013,6 +1218,14 @@
           "name": "إزالة البيانات المخفية",
           "description": "اكشف البيانات الوصفية المخفية في الصور وملفات PDF وأزلها — على جهازك."
         },
+        "bg": {
+          "name": "Премахване на скрити данни",
+          "description": "Разкрий и премахни скритите метаданни от изображения и PDF файлове — на твоето устройство."
+        },
+        "bn": {
+          "name": "লুকানো ডেটা সরান",
+          "description": "ছবি ও PDF থেকে লুকানো মেটাডেটা দেখুন ও মুছে ফেলুন — আপনার ডিভাইসেই।"
+        },
         "cs": {
           "name": "Odstranění skrytých dat",
           "description": "Odhal a odstraň skrytá metadata z obrázků a PDF — přímo v zařízení."
@@ -1028,6 +1241,14 @@
         "fr": {
           "name": "Supprimer les données cachées",
           "description": "Révèle et supprime les métadonnées cachées des images et des PDF — directement sur ton appareil."
+        },
+        "hi": {
+          "name": "छिपा डेटा हटाएँ",
+          "description": "इमेज और PDF से छिपा मेटाडेटा देखें और हटाएँ — आपके डिवाइस पर ही।"
+        },
+        "id": {
+          "name": "Hapus Data Tersembunyi",
+          "description": "Ungkap dan hapus metadata tersembunyi dari gambar dan PDF — di perangkat Anda."
         },
         "it": {
           "name": "Rimuovi dati nascosti",
@@ -1069,6 +1290,10 @@
           "name": "Alisin ang Nakatagong Data",
           "description": "Ipakita at alisin ang nakatagong metadata mula sa mga larawan at PDF — sa mismong device mo."
         },
+        "ur": {
+          "name": "پوشیدہ ڈیٹا ہٹائیں",
+          "description": "تصاویر اور PDF سے پوشیدہ میٹا ڈیٹا ظاہر اور حذف کریں — آپ کے ڈیوائس پر۔"
+        },
         "vi": {
           "name": "Xóa Dữ Liệu Ẩn",
           "description": "Hiển thị và xóa siêu dữ liệu ẩn khỏi ảnh và PDF — ngay trên thiết bị của bạn."
@@ -1104,6 +1329,14 @@
           "name": "مساعد النصوص",
           "description": "تنسيق النص وفك ترميزه وتجزئته وإخفاء هويته — JSON وJWT والمزيد."
         },
+        "bg": {
+          "name": "Текстов помощник",
+          "description": "Форматирай, декодирай, хеширай и деидентифицирай текст — JSON, JWT и още."
+        },
+        "bn": {
+          "name": "টেক্সট হেল্পার",
+          "description": "টেক্সট ফরম্যাট, ডিকোড, হ্যাশ ও ডি-আইডেন্টিফাই করুন — JSON, JWT ও আরও অনেক কিছু।"
+        },
         "cs": {
           "name": "Textový pomocník",
           "description": "Formátuj, dekóduj, hashuj a anonymizuj text — JSON, JWT a další."
@@ -1119,6 +1352,14 @@
         "fr": {
           "name": "Assistant texte",
           "description": "Formate, décode, hache et anonymise du texte — JSON, JWT et bien plus."
+        },
+        "hi": {
+          "name": "टेक्स्ट हेल्पर",
+          "description": "टेक्स्ट को फ़ॉर्मैट, डिकोड, हैश और डी-आइडेंटिफ़ाई करें — JSON, JWT और बहुत कुछ।"
+        },
+        "id": {
+          "name": "Asisten Teks",
+          "description": "Format, decode, hash, dan anonimkan teks — JSON, JWT, dan lainnya."
         },
         "it": {
           "name": "Assistente di testo",
@@ -1159,6 +1400,10 @@
         "tl": {
           "name": "Katulong sa Text",
           "description": "I-format, i-decode, i-hash, at i-de-identify ang text — JSON, JWT, at marami pa."
+        },
+        "ur": {
+          "name": "ٹیکسٹ ہیلپر",
+          "description": "ٹیکسٹ کو فارمیٹ، ڈی کوڈ، ہیش اور ڈی آئیڈینٹیفائی کریں — JSON, JWT اور مزید۔"
         },
         "vi": {
           "name": "Trợ Lý Văn Bản",
@@ -1203,6 +1448,14 @@
           "name": "لقطة شاشة URL",
           "description": "أي صفحة ويب، عند أي عمق تمرير، مع CSS مخصص"
         },
+        "bg": {
+          "name": "Екранна снимка на URL",
+          "description": "Всяка уеб страница, на всякаква дълбочина на превъртане, с персонализиран CSS"
+        },
+        "bn": {
+          "name": "URL স্ক্রিনশট",
+          "description": "যেকোনো ওয়েব পেজ, যেকোনো স্ক্রল-গভীরতায়, কাস্টম CSS সহ"
+        },
         "cs": {
           "name": "Screenshot webu",
           "description": "Libovolná webová stránka, v libovolné hloubce scrollování, s vlastním CSS."
@@ -1218,6 +1471,14 @@
         "fr": {
           "name": "Capture d'écran d'URL",
           "description": "N'importe quelle page web, à n'importe quelle profondeur de défilement, avec du CSS personnalisé."
+        },
+        "hi": {
+          "name": "URL स्क्रीनशॉट",
+          "description": "कोई भी वेब पेज, किसी भी स्क्रॉल-गहराई पर, कस्टम CSS के साथ"
+        },
+        "id": {
+          "name": "Tangkapan Layar URL",
+          "description": "Halaman web apa pun, pada kedalaman gulir mana pun, dengan CSS kustom"
         },
         "it": {
           "name": "Screenshot URL",
@@ -1258,6 +1519,10 @@
         "tl": {
           "name": "Screenshot ng URL",
           "description": "Kahit anong web page, sa kahit anong scroll-depth, may custom na CSS"
+        },
+        "ur": {
+          "name": "URL اسکرین شاٹ",
+          "description": "کوئی بھی ویب پیج، کسی بھی اسکرول گہرائی پر، اپنی مرضی کے CSS کے ساتھ"
         },
         "vi": {
           "name": "Chụp Ảnh Màn Hình URL",
@@ -1300,6 +1565,14 @@
           "name": "استوديو التخطيط",
           "blurb": "تخطيطات حرة على لوحة مفتوحة"
         },
+        "bg": {
+          "name": "Студио за оформление",
+          "blurb": "Свободни оформления върху отворено платно"
+        },
+        "bn": {
+          "name": "লেআউট স্টুডিও",
+          "blurb": "খোলা ক্যানভাসে ফ্রি-ফর্ম লেআউট"
+        },
         "cs": {
           "name": "Studio rozložení",
           "blurb": "Volná rozložení na otevřeném plátně"
@@ -1315,6 +1588,14 @@
         "fr": {
           "name": "Studio de mise en page",
           "blurb": "Des mises en page libres sur un canevas ouvert"
+        },
+        "hi": {
+          "name": "लेआउट स्टूडियो",
+          "blurb": "खुले कैनवास पर फ़्री-फ़ॉर्म लेआउट"
+        },
+        "id": {
+          "name": "Studio Tata Letak",
+          "blurb": "Tata letak bebas di atas kanvas terbuka"
         },
         "it": {
           "name": "Layout Studio",
@@ -1355,6 +1636,10 @@
         "tl": {
           "name": "Studio ng Layout",
           "blurb": "Malayang layout sa bukas na canvas"
+        },
+        "ur": {
+          "name": "لے آؤٹ اسٹوڈیو",
+          "blurb": "کھلے کینوس پر آزاد شکل کے لے آؤٹس"
         },
         "vi": {
           "name": "Xưởng Bố Cục",
@@ -1399,6 +1684,16 @@
           "description": "سجل ملاحظة صوتية مع مقياس مستوى مباشر وإرشادات لطيفة، ثم احفظها بصيغة MP3.",
           "blurb": "سجل ملاحظة صوتية نقية مع إرشاد مباشر للمستوى"
         },
+        "bg": {
+          "name": "Диктофон",
+          "description": "Запиши гласова бележка с индикатор на нивото на живо и ненатрапчиви насоки, а после я запази като MP3.",
+          "blurb": "Запиши чиста гласова бележка с насоки за нивото на живо"
+        },
+        "bn": {
+          "name": "ভয়েস রেকর্ডার",
+          "description": "লাইভ লেভেল মিটার ও হালকা কোচিং সহ একটি ভয়েস নোট রেকর্ড করুন, তারপর MP3 হিসেবে সংরক্ষণ করুন।",
+          "blurb": "লাইভ লেভেল কোচিং সহ একটি পরিষ্কার ভয়েস নোট রেকর্ড করুন"
+        },
         "cs": {
           "name": "Hlasový záznamník",
           "description": "Nahraj hlasovou poznámku s živým ukazatelem hlasitosti a jemným koučováním, pak ji ulož jako MP3.",
@@ -1418,6 +1713,16 @@
           "name": "Enregistreur vocal",
           "description": "Enregistre une note vocale avec un indicateur de niveau en direct et des conseils en douceur, puis enregistre-la en MP3.",
           "blurb": "Enregistre une note vocale nette avec un accompagnement de niveau en direct"
+        },
+        "hi": {
+          "name": "वॉइस रिकॉर्डर",
+          "description": "लाइव लेवल मीटर और हल्की-फुल्की कोचिंग के साथ वॉइस नोट रिकॉर्ड करें, फिर उसे MP3 के रूप में सेव करें।",
+          "blurb": "लाइव लेवल कोचिंग के साथ साफ़ वॉइस नोट रिकॉर्ड करें"
+        },
+        "id": {
+          "name": "Perekam Suara",
+          "description": "Rekam catatan suara dengan meteran level langsung dan panduan lembut, lalu simpan sebagai MP3.",
+          "blurb": "Rekam catatan suara yang jernih dengan panduan level langsung"
         },
         "it": {
           "name": "Registratore vocale",
@@ -1469,6 +1774,11 @@
           "description": "Mag-record ng voice note na may live na level meter at magiliw na coaching, tapos i-save bilang MP3.",
           "blurb": "Mag-record ng malinis na voice note na may live na level coaching"
         },
+        "ur": {
+          "name": "وائس ریکارڈر",
+          "description": "لائیو لیول میٹر اور نرم رہنمائی کے ساتھ ایک وائس نوٹ ریکارڈ کریں، پھر اسے MP3 کے طور پر محفوظ کریں۔",
+          "blurb": "لائیو لیول کوچنگ کے ساتھ صاف وائس نوٹ ریکارڈ کریں"
+        },
         "vi": {
           "name": "Ghi Âm Giọng Nói",
           "description": "Ghi một đoạn ghi âm giọng nói với đồng hồ đo mức âm thanh trực tiếp và hướng dẫn nhẹ nhàng, sau đó lưu dưới dạng MP3.",
@@ -1506,6 +1816,14 @@
           "name": "لوحة الألوان",
           "description": "تصفح ألوان علامة SUSE — انقر على أي لون لنسخه."
         },
+        "bg": {
+          "name": "Цветова палитра",
+          "description": "Разгледай брандовите цветове на SUSE — щракни върху мостра, за да я копираш."
+        },
+        "bn": {
+          "name": "কালার প্যালেট",
+          "description": "SUSE ব্র্যান্ডের রংগুলো দেখুন — কপি করতে সোয়াচে ক্লিক করুন।"
+        },
         "cs": {
           "name": "Paleta barev",
           "description": "Procházej barvy značky SUSE — klikni na vzorek a zkopíruješ ho."
@@ -1521,6 +1839,14 @@
         "fr": {
           "name": "Palette de couleurs",
           "description": "Parcours les couleurs de la marque SUSE — clique sur une nuance pour la copier."
+        },
+        "hi": {
+          "name": "कलर पैलेट",
+          "description": "SUSE ब्रांड के रंग ब्राउज़ करें — कॉपी करने के लिए किसी स्वैच पर क्लिक करें।"
+        },
+        "id": {
+          "name": "Palet Warna",
+          "description": "Jelajahi warna brand SUSE — klik swatch untuk menyalinnya."
         },
         "it": {
           "name": "Palette colori",
@@ -1562,6 +1888,10 @@
           "name": "Palette ng Kulay",
           "description": "Tingnan ang mga kulay ng brand ng SUSE — i-click ang swatch para kopyahin ito."
         },
+        "ur": {
+          "name": "رنگ پیلیٹ",
+          "description": "SUSE برانڈ کے رنگ دیکھیں — کاپی کرنے کے لیے کسی سواچ پر کلک کریں۔"
+        },
         "vi": {
           "name": "Bảng Màu",
           "description": "Duyệt các màu thương hiệu SUSE — nhấp vào một mẫu màu để sao chép."
@@ -1602,6 +1932,14 @@
           "name": "تدرج شبكي",
           "description": "تدرجات شبكية ناعمة من ألوان علامتك. اسحب نقاط الألوان مباشرة على اللوحة."
         },
+        "bg": {
+          "name": "Мрежест градиент",
+          "description": "Меки мрежести градиенти от брандовите ти цветове. Влачи цветните точки директно върху платното."
+        },
+        "bn": {
+          "name": "মেশ গ্রেডিয়েন্ট",
+          "description": "আপনার ব্র্যান্ড সোয়াচ থেকে নরম মেশ-স্টাইল গ্রেডিয়েন্ট। রঙের বিন্দুগুলি সরাসরি ক্যানভাসেই টেনে সরান।"
+        },
         "cs": {
           "name": "Síťový gradient",
           "description": "Jemné síťové přechody z barev tvé značky. Barevné body přetáhneš přímo na plátně."
@@ -1617,6 +1955,14 @@
         "fr": {
           "name": "Dégradé maillé",
           "description": "Des dégradés doux façon maillage à partir des couleurs de ta marque. Fais glisser les points de couleur directement sur le canevas."
+        },
+        "hi": {
+          "name": "मेश ग्रेडिएंट",
+          "description": "आपके ब्रांड स्वैच से नरम मेश-शैली के ग्रेडिएंट। रंग बिंदुओं को सीधे कैनवास पर खींचें।"
+        },
+        "id": {
+          "name": "Gradien Mesh",
+          "description": "Gradien bergaya mesh yang lembut dari swatch brand Anda. Seret titik warna langsung di kanvas."
         },
         "it": {
           "name": "Mesh Gradient",
@@ -1657,6 +2003,10 @@
         "tl": {
           "name": "Mesh Gradient",
           "description": "Malambot na mesh-style na gradient mula sa mga swatch ng brand mo. I-drag ang mga color point diretso sa canvas."
+        },
+        "ur": {
+          "name": "میش گریڈینٹ",
+          "description": "آپ کے برانڈ سویچز سے نرم میش طرز کے گریڈینٹ۔ رنگ پوائنٹس کو براہ راست کینوس پر گھسیٹیں۔"
         },
         "vi": {
           "name": "Gradient Lưới",
@@ -1707,6 +2057,16 @@
           "description": "رسوم بيانية بهوية علامتك من بياناتك — أعمدة أو حلقي أو دائري أو مكدس.",
           "blurb": "رسوم بيانية بهوية علامتك من بياناتك، بأي شكل"
         },
+        "bg": {
+          "name": "Създател на диаграми",
+          "description": "Брандирани диаграми от твоите данни — стълбовидна, пръстеновидна, кръгова или с натрупване.",
+          "blurb": "Брандирани диаграми от твоите данни, във всякаква форма"
+        },
+        "bn": {
+          "name": "চার্ট ক্রিয়েটর",
+          "description": "আপনার ডেটা থেকে অন-ব্র্যান্ড চার্ট — বার, ডোনাট, পাই বা স্ট্যাকড।",
+          "blurb": "আপনার ডেটা থেকে অন-ব্র্যান্ড চার্ট, যেকোনো আকারে"
+        },
         "cs": {
           "name": "Tvorba grafů",
           "description": "Grafy podle tvé značky z tvých dat — sloupcové, donutové, koláčové nebo skládané.",
@@ -1726,6 +2086,16 @@
           "name": "Créateur de graphiques",
           "description": "Des graphiques à l'image de ta marque à partir de tes données — barres, anneau, camembert ou empilé.",
           "blurb": "Des graphiques à l'image de ta marque, dans toutes les formes"
+        },
+        "hi": {
+          "name": "चार्ट क्रिएटर",
+          "description": "आपके डेटा से ऑन-ब्रांड चार्ट — बार, डोनट, पाई या स्टैक्ड।",
+          "blurb": "आपके डेटा से ऑन-ब्रांड चार्ट, किसी भी आकार में"
+        },
+        "id": {
+          "name": "Pembuat Grafik",
+          "description": "Grafik sesuai brand dari data Anda — batang, donat, pai, atau bertumpuk.",
+          "blurb": "Grafik sesuai brand dari data Anda, bentuk apa pun"
         },
         "it": {
           "name": "Chart Creator",
@@ -1776,6 +2146,11 @@
           "name": "Gumawa ng Chart",
           "description": "Mga chart na naaayon sa iyong brand, mula sa data mo — bar, donut, pie, o stacked.",
           "blurb": "On-brand na mga chart mula sa iyong data, anumang hugis"
+        },
+        "ur": {
+          "name": "چارٹ کریئٹر",
+          "description": "آپ کے ڈیٹا سے برانڈ کے مطابق چارٹس — بار، ڈونٹ، پائی یا اسٹیکڈ۔",
+          "blurb": "آپ کے ڈیٹا سے برانڈ کے مطابق چارٹس، ہر شکل میں"
         },
         "vi": {
           "name": "Trình Tạo Biểu Đồ",
@@ -1829,6 +2204,16 @@
           "description": "مخططات قوية مبنية على البيانات مع D3 — الصق جدولا فيرسم نفسه. أعمدة وخطوط ومساحات ونقاط ودائري ورادار وخريطة شجرية وخريطة حرارية والمزيد، بهوية علامتك وبنقاء متجهي.",
           "blurb": "الصق جدولا — يرسمه D3 بهوية علامتك وبنقاء متجهي"
         },
+        "bg": {
+          "name": "D3 студио за диаграми",
+          "description": "Мощни диаграми от твоите данни с D3 — постави таблица и тя сама става диаграма. Стълбове, линии, области, точкови, кръгови, радарни, дървовидни и топлинни карти и още — брандирани и векторно чисти.",
+          "blurb": "Постави таблица — D3 я превръща в диаграма, брандирано и векторно чисто"
+        },
+        "bn": {
+          "name": "D3 চার্ট স্টুডিও",
+          "description": "D3 দিয়ে শক্তিশালী ডেটা-চালিত চার্ট — একটি টেবিল পেস্ট করুন, চার্ট নিজেই তৈরি হয়ে যাবে। বার, লাইন, এরিয়া, স্ক্যাটার, পাই, রাডার, ট্রিম্যাপ, হিটম্যাপ আর আরও অনেক কিছু — অন-ব্র্যান্ড ও ভেক্টর-ক্লিন।",
+          "blurb": "একটি টেবিল পেস্ট করুন — D3 তার চার্ট বানিয়ে দেয়, অন-ব্র্যান্ড ও ভেক্টর-ক্লিন"
+        },
         "cs": {
           "name": "D3 Studio grafů",
           "description": "Výkonné grafy z dat s D3 — vlož tabulku a graf se vytvoří sám. Sloupcové, čárové, plošné, bodové, koláčové, radarové, treemapy, heatmapy a další, podle tvé značky a čistě vektorové.",
@@ -1848,6 +2233,16 @@
           "name": "Studio de graphiques D3",
           "description": "Des graphiques puissants pilotés par tes données avec D3 — colle un tableau et il se transforme en graphique. Barres, lignes, aires, nuages de points, camembert, radar, treemap, heatmap et bien plus, à l'image de ta marque et en vectoriel net.",
           "blurb": "Colle un tableau — D3 le transforme en graphique, à l'image de ta marque et en vectoriel net"
+        },
+        "hi": {
+          "name": "D3 चार्ट स्टूडियो",
+          "description": "D3 के साथ दमदार डेटा-आधारित चार्ट — टेबल पेस्ट करें और वह खुद चार्ट बन जाती है। बार, लाइन, एरिया, स्कैटर, पाई, रडार, ट्रीमैप, हीटमैप और भी बहुत कुछ — ऑन-ब्रांड और वेक्टर-क्लीन।",
+          "blurb": "टेबल पेस्ट करें — D3 उसका चार्ट बना देता है, ऑन-ब्रांड और वेक्टर-क्लीन"
+        },
+        "id": {
+          "name": "Studio Grafik D3",
+          "description": "Grafik berbasis data yang canggih dengan D3 — tempel tabel dan grafiknya terbentuk otomatis. Batang, garis, area, sebar, pai, radar, treemap, heatmap, dan banyak lagi, sesuai brand dan bersih secara vektor.",
+          "blurb": "Tempel tabel — D3 membuat grafiknya, sesuai brand dan bersih secara vektor"
         },
         "it": {
           "name": "D3 Chart Studio",
@@ -1898,6 +2293,11 @@
           "name": "Chart Studio ng D3",
           "description": "Makapangyarihang mga chart na base sa data gamit ang D3 — i-paste lang ang table at awtomatiko na itong gagawing chart. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, at marami pang iba — on-brand at malinis na vector.",
           "blurb": "I-paste ang table — ico-chart ito ng D3, on-brand at malinis na vector"
+        },
+        "ur": {
+          "name": "D3 چارٹ اسٹوڈیو",
+          "description": "D3 کے ساتھ طاقتور ڈیٹا پر مبنی چارٹس — ایک ٹیبل پیسٹ کریں اور یہ خود بخود چارٹ بنا دیتا ہے۔ بار، لائن، ایریا، اسکیٹر، پائی، ریڈار، ٹری میپ، ہیٹ میپ اور مزید، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف۔",
+          "blurb": "ایک ٹیبل پیسٹ کریں — D3 اسے چارٹ کرتا ہے، برانڈ کے مطابق اور ویکٹر لحاظ سے صاف"
         },
         "vi": {
           "name": "Xưởng Biểu Đồ D3",

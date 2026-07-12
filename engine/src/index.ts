@@ -23,8 +23,8 @@ export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
 export { buildInputModel, summarizeInputs, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
 export { parseUrlState, serializeUrlState, RESERVED } from './url-mode.ts';
-export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji } from './lang.ts';
-export type { Lang, LangMeta } from './lang.ts';
+export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
+export type { Lang, LangMeta, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
 export { packEncrypted, unpackEncrypted, hasEncryptedState, isEncryptAvailable, ENC_PARAM } from './url-pack.ts';
 export { parseEmbedUrl } from './embed.ts';
@@ -559,4 +559,23 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // accessible label, older consumers ignore the field, and no bridge signature
 // changes. Every LANG_META entry is populated; the field is typed optional so a
 // future language without flags still validates.
-export const ENGINE_VERSION = '1.46.0';
+// 1.47.0 — additive: hi (Hindi, htmlLang hi, Devanagari, ltr) — one more
+// LANGS/LANG_META entry, ordered before ar in the picker. New ALIASES:
+// hi-in → hi. Purely additive, same shape as the 1.43/1.44 language
+// additions — no bridge signature change; url-mode's `lang` param,
+// Profile.lang, and the loader's sidecar overlay all iterate LANGS
+// generically.
+// 1.48.0 — additive: three LANGS/LANG_META entries — bn (Bengali, htmlLang bn,
+// Bengali script), ur (Urdu, htmlLang ur — the SECOND rtl language after ar;
+// consumers that stamp dir from LANG_META need no change, hand-mirrored maps
+// like the web shell's pre-paint script must add it), and id (Indonesian,
+// htmlLang id — distinct register from ms/Malay). New ALIASES: bn-bd/bn-in → bn,
+// ur-pk/ur-in → ur, and in/in-id/id-id → id (`in` is Indonesian's deprecated
+// ISO 639-1 code, still emitted by Android WebViews). Purely additive — no
+// bridge signature change.
+// 1.49.0 — additive: LangMeta gains a required `speakers` field (approx. total
+// speakers in millions, picker-sort data — not a census) and lang.ts gains
+// sortedLangs(LangSort)/LangSort — the shared language-picker orderings used
+// by every language menu (web shell + /info site): 'speakers' desc = default,
+// az = nativeName A–Z. No bridge signature change.
+export const ENGINE_VERSION = '1.49.0';
