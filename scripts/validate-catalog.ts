@@ -587,7 +587,8 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
   if (!input) return `references unknown input "${inputId}"`;
 
   if (['label', 'help', 'placeholder', 'section', 'suffix'].includes(rest)) return null;
-  const optMatch = /^options\.(.+)$/.exec(rest);
+  // (.*) not (.+): mirrors applyManifestI18n — an option's value may be ''.
+  const optMatch = /^options\.(.*)$/.exec(rest);
   if (optMatch) {
     const found = (input.options ?? []).some((o: any) => o.value === optMatch[1]);
     return found ? null : `references unknown option "${optMatch[1]}" on input "${inputId}"`;
@@ -599,7 +600,7 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
     const field = (input.fields ?? []).find((f: any) => f.id === fieldId);
     if (!field) return `references unknown field "${fieldId}" on input "${inputId}"`;
     if (['label', 'help', 'placeholder'].includes(fieldRest)) return null;
-    const fieldOptMatch = /^options\.(.+)$/.exec(fieldRest);
+    const fieldOptMatch = /^options\.(.*)$/.exec(fieldRest);
     if (fieldOptMatch) {
       const found = (field.options ?? []).some((o: any) => o.value === fieldOptMatch[1]);
       return found ? null : `references unknown option "${fieldOptMatch[1]}" on field "${fieldId}" (input "${inputId}")`;

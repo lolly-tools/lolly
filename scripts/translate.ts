@@ -49,7 +49,7 @@ const CACHE_PATH = join(I18N_DIR, 'cache.json');
 const GLOSSARY_PATH = join(I18N_DIR, 'glossary.json');
 
 // Canonical language list (engine/src/lang.ts's LANGS, minus 'en' — the source).
-const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'hi', 'bn', 'ur', 'id', 'ar', 'it', 'no', 'ko', 'bg'] as const;
+const LANGS = ['es', 'de', 'fr', 'zh', 'ja', 'vi', 'pt', 'zh-hant', 'cs', 'nl', 'tl', 'sv', 'ms', 'ro', 'hi', 'bn', 'ur', 'id', 'ar', 'it', 'no', 'ko', 'bg', 'tr', 'uk', 'pl'] as const;
 type Lang = (typeof LANGS)[number];
 
 // Chosen deliberately for this pipeline (see plans/localize.md §4) — not the

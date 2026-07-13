@@ -17,7 +17,7 @@
  * alignment) even when the translation itself is correct.
  */
 
-export const LANGS = ['en', 'zh', 'es', 'hi', 'bn', 'ur', 'ar', 'fr', 'pt', 'de', 'ja', 'it', 'vi', 'tl', 'ko', 'id', 'ms', 'nl', 'ro', 'sv', 'cs', 'no', 'zh-hant', 'bg'] as const;
+export const LANGS = ['en', 'zh', 'es', 'hi', 'bn', 'ur', 'ar', 'fr', 'pt', 'de', 'ja', 'it', 'vi', 'tl', 'ko', 'id', 'ms', 'nl', 'ro', 'sv', 'cs', 'no', 'zh-hant', 'bg', 'tr', 'uk', 'pl'] as const;
 export type Lang = (typeof LANGS)[number];
 
 export interface LangMeta {
@@ -82,6 +82,9 @@ export const LANG_META: Record<Lang, LangMeta> = {
   id: { code: 'id', htmlLang: 'id', nativeName: 'Bahasa Indonesia', englishName: 'Indonesian', speakers: 200, flags: ['id'] },
   ar: { code: 'ar', htmlLang: 'ar', nativeName: 'العربية', englishName: 'Arabic', dir: 'rtl', speakers: 380, flags: ['sa', 'eg', 'ae'] },
   bg: { code: 'bg', htmlLang: 'bg', nativeName: 'Български', englishName: 'Bulgarian', speakers: 8, flags: ['bg'] },
+  tr: { code: 'tr', htmlLang: 'tr', nativeName: 'Türkçe', englishName: 'Turkish', speakers: 90, flags: ['tr', 'cy'] },
+  uk: { code: 'uk', htmlLang: 'uk', nativeName: 'Українська', englishName: 'Ukrainian', speakers: 40, flags: ['ua'] },
+  pl: { code: 'pl', htmlLang: 'pl', nativeName: 'Polski', englishName: 'Polish', speakers: 45, flags: ['pl'] },
   it: { code: 'it', htmlLang: 'it', nativeName: 'Italiano', englishName: 'Italian', speakers: 68, flags: ['it', 'ch'] },
   no: { code: 'no', htmlLang: 'no', nativeName: 'Norsk', englishName: 'Norwegian', speakers: 5, flags: ['no'] },
   ko: { code: 'ko', htmlLang: 'ko', nativeName: '한국어', englishName: 'Korean', speakers: 82, flags: ['kr'] },
@@ -126,6 +129,13 @@ const ALIASES: Record<string, Lang> = {
   'in-id': 'id',
   'id-id': 'id',
 
+  // Regioned Turkish tags (navigator.language) — one standard-Turkish register
+  // covers both Türkiye and Cyprus.
+  'tr-tr': 'tr',
+  'tr-cy': 'tr',
+  'uk-ua': 'uk', // regioned Ukrainian tag (navigator.language)
+  ua: 'uk', // Ukraine's country code, commonly typed for "Ukrainian" (no ISO 639 collision)
+  'pl-pl': 'pl', // regioned Polish tag (navigator.language)
   nb: 'no', // Bokmål — the specific written standard this UI register actually uses
   nn: 'no', // Nynorsk — not a distinct UI translation, collapses to the same Norwegian tag
   kr: 'ko', // South Korea's country code, commonly typed for "Korean"

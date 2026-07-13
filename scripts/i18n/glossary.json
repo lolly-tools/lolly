@@ -29,6 +29,9 @@
     "id": "Standard Bahasa Indonesia (Anda), contemporary app register — distinctly Indonesian, NOT Malaysian Malay; established Indonesian tech vocabulary (unduh/unggah where natural, common English loanwords where real Indonesian UIs use them); Latin script; Western digits",
     "ar": "Modern Standard Arabic (فصحى), neutral-direct register addressing the reader; concise UI phrasing, no dialect, no tashkeel; Western digits; Latin script kept for untranslatable product/technical terms",
     "bg": "neutral-informal (ти, standard contemporary register for creative professionals)",
+    "tr": "neutral-informal (sen, not siz — the contemporary Turkish app register for creative professionals); correct Turkish casing (dotted İ / dotless ı); established Turkish tech vocabulary (indir/yükle/dışa aktar where natural), Latin script kept for untranslatable product/technical terms; Western digits",
+    "uk": "friendly-neutral contemporary Ukrainian addressing the reader as ви (lowercase — the standard modern app register); concise UI phrasing as used by well-localized apps, established Ukrainian tech vocabulary where natural, Latin script kept for untranslatable product/technical terms; Western digits",
+    "pl": "neutral-informal Polish (ty — the standard modern app register, never Pan/Pani); concise imperatives for actions, established Polish tech vocabulary where natural, Latin script kept for untranslatable product/technical terms; Western digits",
     "it": "neutral-informal (tu, not Lei)",
     "no": "neutral-informal (du) — Norwegian Bokmål; there is essentially no formal/informal register distinction in modern usage",
     "ko": "polite standard speech (해요체) — friendly but respectful UI register, the modern SaaS/app default; not deferential formal speech (하십시오체) and not casual banmal (반말)"

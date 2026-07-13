@@ -298,7 +298,7 @@
         "help": { "type": "string" },
         "type": {
           "type": "string",
-          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "profile", "blocks", "vector", "file"]
+          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file"]
         },
         "required": { "type": "boolean", "default": false },
         "default": { "description": "Type-appropriate default value." },

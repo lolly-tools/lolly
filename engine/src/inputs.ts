@@ -18,7 +18,7 @@ import type { AssetRef, InputFile } from './bridge/host-v1.ts';
 /** An input's declared type (schemas/tool.schema.json `$defs/input.type`). */
 export type InputType =
   | 'text' | 'longtext' | 'number' | 'boolean' | 'color' | 'select' | 'asset'
-  | 'date' | 'time' | 'datetime-local' | 'url' | 'profile' | 'blocks'
+  | 'date' | 'time' | 'datetime-local' | 'url' | 'blocks'
   | 'vector' | 'file';
 
 /** The control a shell should render for a model item (see pickControl). */
