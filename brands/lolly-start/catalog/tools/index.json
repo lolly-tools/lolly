@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-13T02:39:18.836Z",
+  "generatedAt": "2026-07-13T04:15:05.907Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -94,6 +94,10 @@
         "tl": {
           "name": "I-compress ang PDF",
           "description": "Paliitin ang PDF sa pamamagitan ng pag-compress ulit ng mga larawan dito — sa mismong device mo."
+        },
+        "tr": {
+          "name": "PDF Sıkıştır",
+          "description": "Görsellerini yeniden sıkıştırarak bir PDF'yi küçült — cihazında."
         },
         "ur": {
           "name": "PDF کمپریس کریں",
@@ -204,6 +208,10 @@
         "tl": {
           "name": "Orasang Countdown",
           "description": "Isang nakatutok na countdown na may live na progress ring. I-click para mag-pause."
+        },
+        "tr": {
+          "name": "Geri Sayım Zamanlayıcı",
+          "description": "Canlı ilerleme halkalı, odaklanmış bir geri sayım. Duraklatmak için tıkla."
         },
         "ur": {
           "name": "کاؤنٹ ڈاؤن ٹائمر",
@@ -321,6 +329,10 @@
         "tl": {
           "name": "Filter: Duotone",
           "description": "Two-color duotone para sa kahit anong larawan — isang kulay ang shadows, iba ang highlights."
+        },
+        "tr": {
+          "name": "Filtre: Duotone",
+          "description": "Herhangi bir fotoğraf için iki renkli bir duotone — gölgeler bir renk, vurgular başka bir renk."
         },
         "ur": {
           "name": "فلٹر: ڈوٹون",
@@ -442,6 +454,10 @@
           "name": "Filter: Halftone",
           "description": "Vector halftone mula sa kahit anong larawan — ang laki ng tuldok ay base sa liwanag."
         },
+        "tr": {
+          "name": "Filtre: Halftone",
+          "description": "Herhangi bir fotoğraftan vektör halftone — noktalar parlaklığa göre boyutlanır."
+        },
         "ur": {
           "name": "فلٹر: ہاف ٹون",
           "description": "کسی بھی تصویر سے ویکٹر ہاف ٹون — نقطے چمک کے مطابق سائز کیے گئے۔"
@@ -558,6 +574,10 @@
         "tl": {
           "name": "Filter: Pag-stretch ng Pixel",
           "description": "Ikalat ang isang column ng pixels sa buong larawan mula sa threshold line. Gumagana ito nang live."
+        },
+        "tr": {
+          "name": "Filtre: Pixel Stretch",
+          "description": "Bir eşik çizgisinden başlayarak bir piksel sütununu fotoğraf boyunca sürükle. Canlı çalışır."
         },
         "ur": {
           "name": "فلٹر: پکسل اسٹریچ",
@@ -677,6 +697,10 @@
           "name": "Filter: I-posterize ang Bitmap",
           "description": "I-trace ang kahit anong larawan patungo sa flat, screenprint-style na vector color separations."
         },
+        "tr": {
+          "name": "Filtre: Posterize Bitmap",
+          "description": "Herhangi bir fotoğrafı düz, serigrafi tarzı vektör renk ayrımlarına dönüştürür."
+        },
         "ur": {
           "name": "فلٹر: پوسٹرائز بٹ میپ",
           "description": "کسی بھی تصویر کو فلیٹ، اسکرین پرنٹ طرز کی ویکٹر کلر سیپریشنز میں تبدیل کریں۔"
@@ -793,6 +817,10 @@
         "tl": {
           "name": "Filter: Scanline",
           "description": "Horizontal na 'infinity lines' na scanline vector effect mula sa kahit anong larawan"
+        },
+        "tr": {
+          "name": "Filtre: Scanline",
+          "description": "Herhangi bir fotoğraftan yatay 'sonsuzluk çizgileri' scanline vektör efekti"
         },
         "ur": {
           "name": "فلٹر: اسکین لائن",
@@ -911,6 +939,10 @@
         "tl": {
           "name": "Filter: Voronoi Cells",
           "description": "Pira-pirasuhin ang kahit anong larawan patungo sa isang Voronoi cell mosaic — bawat cell ay puno ng pinakamalapit na kulay, bilang flat vector."
+        },
+        "tr": {
+          "name": "Filtre: Voronoi Hücreleri",
+          "description": "Herhangi bir fotoğrafı düz vektör olarak Voronoi hücre mozaiğine ayırır — her hücre en yakın renkle doldurulur."
         },
         "ur": {
           "name": "فلٹر: Voronoi سیلز",
@@ -1057,6 +1089,11 @@
           "description": "Mga QR code para sa kahit anong URL, may kumpletong kontrol sa kulay at istilo.",
           "blurb": "Mga QR code sa kahit anong kulay ng brand"
         },
+        "tr": {
+          "name": "QR Kod Oluşturucu",
+          "description": "Her URL için QR kodları, tam renk ve stil kontrolüyle.",
+          "blurb": "Her marka renginde QR kodları"
+        },
         "ur": {
           "name": "QR کوڈ جنریٹر",
           "description": "کسی بھی URL کے لیے QR کوڈز، مکمل رنگ اور اسٹائل کنٹرول کے ساتھ۔",
@@ -1176,6 +1213,10 @@
           "name": "Mapa ng Kalye",
           "description": "Malinis na vector na mapa ng mga kalye ng kahit anong lungsod. Gumagana kahit offline."
         },
+        "tr": {
+          "name": "Sokak Haritası",
+          "description": "Herhangi bir şehrin temiz vektörel sokak bloğu haritaları. Çevrimdışı çalışır."
+        },
         "ur": {
           "name": "اسٹریٹ میپ",
           "description": "کسی بھی شہر کے صاف ستھرے ویکٹر اسٹریٹ بلاک نقشے۔ آف لائن کام کرتا ہے۔"
@@ -1290,6 +1331,10 @@
           "name": "Alisin ang Nakatagong Data",
           "description": "Ipakita at alisin ang nakatagong metadata mula sa mga larawan at PDF — sa mismong device mo."
         },
+        "tr": {
+          "name": "Gizli Verileri Kaldır",
+          "description": "Görsellerdeki ve PDF'lerdeki gizli meta verileri ortaya çıkar ve kaldır — cihazında."
+        },
         "ur": {
           "name": "پوشیدہ ڈیٹا ہٹائیں",
           "description": "تصاویر اور PDF سے پوشیدہ میٹا ڈیٹا ظاہر اور حذف کریں — آپ کے ڈیوائس پر۔"
@@ -1400,6 +1445,10 @@
         "tl": {
           "name": "Katulong sa Text",
           "description": "I-format, i-decode, i-hash, at i-de-identify ang text — JSON, JWT, at marami pa."
+        },
+        "tr": {
+          "name": "Metin Yardımcısı",
+          "description": "Metni biçimlendir, çöz, hash'le ve anonimleştir — JSON, JWT ve daha fazlası."
         },
         "ur": {
           "name": "ٹیکسٹ ہیلپر",
@@ -1520,6 +1569,10 @@
           "name": "Screenshot ng URL",
           "description": "Kahit anong web page, sa kahit anong scroll-depth, may custom na CSS"
         },
+        "tr": {
+          "name": "URL Ekran Görüntüsü",
+          "description": "Herhangi bir web sayfası, herhangi bir kaydırma derinliğinde, özel CSS ile"
+        },
         "ur": {
           "name": "URL اسکرین شاٹ",
           "description": "کوئی بھی ویب پیج، کسی بھی اسکرول گہرائی پر، اپنی مرضی کے CSS کے ساتھ"
@@ -1636,6 +1689,10 @@
         "tl": {
           "name": "Studio ng Layout",
           "blurb": "Malayang layout sa bukas na canvas"
+        },
+        "tr": {
+          "name": "Düzen Stüdyosu",
+          "blurb": "Açık bir kanvasta serbest biçimli düzenler"
         },
         "ur": {
           "name": "لے آؤٹ اسٹوڈیو",
@@ -1774,6 +1831,11 @@
           "description": "Mag-record ng voice note na may live na level meter at magiliw na coaching, tapos i-save bilang MP3.",
           "blurb": "Mag-record ng malinis na voice note na may live na level coaching"
         },
+        "tr": {
+          "name": "Ses Kaydedici",
+          "description": "Canlı seviye göstergesi ve yumuşak yönlendirmelerle bir ses notunu kayda al, ardından MP3 olarak kaydet.",
+          "blurb": "Canlı seviye rehberliğiyle temiz bir sesli not kaydet"
+        },
         "ur": {
           "name": "وائس ریکارڈر",
           "description": "لائیو لیول میٹر اور نرم رہنمائی کے ساتھ ایک وائس نوٹ ریکارڈ کریں، پھر اسے MP3 کے طور پر محفوظ کریں۔",
@@ -1887,6 +1949,10 @@
         "tl": {
           "name": "Palette ng Kulay",
           "description": "Tingnan ang mga kulay ng brand ng SUSE — i-click ang swatch para kopyahin ito."
+        },
+        "tr": {
+          "name": "Renk Paleti",
+          "description": "Marka renklerine göz at — kopyalamak için bir renk örneğine tıkla."
         },
         "ur": {
           "name": "رنگ پیلیٹ",
@@ -2003,6 +2069,10 @@
         "tl": {
           "name": "Mesh Gradient",
           "description": "Malambot na mesh-style na gradient mula sa mga swatch ng brand mo. I-drag ang mga color point diretso sa canvas."
+        },
+        "tr": {
+          "name": "Mesh Gradyan",
+          "description": "Marka renklerinden yumuşak, mesh tarzı gradyanlar. Renk noktalarını doğrudan kanvas üzerinde sürükle."
         },
         "ur": {
           "name": "میش گریڈینٹ",
@@ -2146,6 +2216,11 @@
           "name": "Gumawa ng Chart",
           "description": "Mga chart na naaayon sa iyong brand, mula sa data mo — bar, donut, pie, o stacked.",
           "blurb": "On-brand na mga chart mula sa iyong data, anumang hugis"
+        },
+        "tr": {
+          "name": "Grafik Oluşturucu",
+          "description": "Verilerinden markana uygun grafikler — çubuk, halka, pasta veya yığılmış.",
+          "blurb": "Verilerinden markana uygun grafikler, her şekilde"
         },
         "ur": {
           "name": "چارٹ کریئٹر",
@@ -2293,6 +2368,11 @@
           "name": "Chart Studio ng D3",
           "description": "Makapangyarihang mga chart na base sa data gamit ang D3 — i-paste lang ang table at awtomatiko na itong gagawing chart. Bars, lines, areas, scatter, pie, radar, treemap, heatmap, at marami pang iba — on-brand at malinis na vector.",
           "blurb": "I-paste ang table — ico-chart ito ng D3, on-brand at malinis na vector"
+        },
+        "tr": {
+          "name": "D3 Grafik Stüdyosu",
+          "description": "D3 ile güçlü, veriye dayalı grafikler — bir tablo yapıştır, kendiliğinden grafiğe dönüşsün. Çubuk, çizgi, alan, dağılım, pasta, radar, ağaç haritası, ısı haritası ve daha fazlası, markana uygun ve vektör netliğinde.",
+          "blurb": "Bir tablo yapıştır — D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
         },
         "ur": {
           "name": "D3 چارٹ اسٹوڈیو",

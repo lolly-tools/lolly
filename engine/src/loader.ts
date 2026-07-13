@@ -188,7 +188,9 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
       (input as unknown as Record<string, string>)[rest] = value;
       continue;
     }
-    const optMatch = /^options\.(.+)$/.exec(rest);
+    // (.*) not (.+): an option's manifest `value` may be the empty string
+    // (e.g. a "Default" choice), and its label must still be translatable.
+    const optMatch = /^options\.(.*)$/.exec(rest);
     if (optMatch) {
       const opt = input.options?.find(o => o.value === optMatch[1]);
       if (opt) opt.label = value;
@@ -207,7 +209,7 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
         (field as unknown as Record<string, string>)[fieldRest] = value;
         continue;
       }
-      const fieldOptMatch = /^options\.(.+)$/.exec(fieldRest);
+      const fieldOptMatch = /^options\.(.*)$/.exec(fieldRest);
       if (fieldOptMatch) {
         const fieldOpt = field.options?.find(o => o.value === fieldOptMatch[1]);
         if (fieldOpt) fieldOpt.label = value;

@@ -593,4 +593,18 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // grep clean of engine/src; the frozen DTCG vendor key 'com.suse.lolly'
 // (tokens.ts TOKEN_EXT / brand-derive.ts VENDOR_EXT) deliberately stays — it
 // is a permanent serialization contract, renameable only via dual-read.
-export const ENGINE_VERSION = '1.50.0';
+// 1.51.0 — additive: LANGS/LANG_META entry tr (Turkish, htmlLang tr, Latin
+// script, ltr — no RTL work; latin-ext font subset already kept). New ALIASES:
+// tr-tr/tr-cy → tr (regioned navigator.language tags). Purely additive, same
+// shape as the 1.47/1.48 language additions — no bridge signature change;
+// hand-mirrored maps (web shell pre-paint HTML_LANG) must add it.
+// 1.52.0 — additive: LANGS/LANG_META entries uk (Ukrainian, Cyrillic script —
+// cyrillic font subset already kept) and pl (Polish — latin-ext already kept);
+// both ltr, no RTL work. New ALIASES: uk-ua/ua → uk, pl-pl → pl. Also fixes
+// applyManifestI18n: an option label whose manifest `value` is the empty
+// string (e.g. a "Default" choice) was untranslatable — the overlay-key
+// matchers required ≥1 char after "options." and silently skipped the key;
+// they now accept the empty value (mirrored in scripts/validate-catalog.ts).
+// No bridge signature change; hand-mirrored maps (web shell pre-paint
+// HTML_LANG) must add the two new languages.
+export const ENGINE_VERSION = '1.52.0';

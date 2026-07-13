@@ -221,6 +221,17 @@ test('url-mode: lang param — alias normalization + serialize round-trip', () =
   assert.equal(parseUrlState('lang=id', tool).lang, 'id');
   assert.equal(parseUrlState('lang=in', tool).lang, 'id');
   assert.equal(parseUrlState('lang=in-ID', tool).lang, 'id');
+  // Turkish — canonical code + regioned tags (Türkiye + Cyprus).
+  assert.equal(parseUrlState('lang=tr', tool).lang, 'tr');
+  assert.equal(parseUrlState('lang=tr-TR', tool).lang, 'tr');
+  assert.equal(parseUrlState('lang=tr-CY', tool).lang, 'tr');
+  // Ukrainian — canonical code, regioned tag, and the country code people type.
+  assert.equal(parseUrlState('lang=uk', tool).lang, 'uk');
+  assert.equal(parseUrlState('lang=uk-UA', tool).lang, 'uk');
+  assert.equal(parseUrlState('lang=ua', tool).lang, 'uk');
+  // Polish — canonical code + regioned tag.
+  assert.equal(parseUrlState('lang=pl', tool).lang, 'pl');
+  assert.equal(parseUrlState('lang=pl-PL', tool).lang, 'pl');
   // Absent/unrecognized → null, so the caller falls back to its own default chain.
   assert.equal(parseUrlState('', tool).lang, null);
   assert.equal(parseUrlState('lang=klingon', tool).lang, null);
