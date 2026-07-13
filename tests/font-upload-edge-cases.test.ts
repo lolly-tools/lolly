@@ -2,6 +2,11 @@
  * Font upload edge case tests
  * Tests: (1) Oversized files >5MB, (2) Corrupted TTF, (3) Duplicate fonts,
  * (4) WOFF2 decompression, (5) Delete in-use fonts, (6) Race conditions
+ *
+ * NOTE: the first three bytes of every console.log line here must be ASCII —
+ * a byte >= 0x80 at byte offset 2 of a raw write intermittently crashes the
+ * `node --test` parent's frame parser ("Unable to deserialize cloned data").
+ * Full explanation in font-upload.integration.test.ts's header.
  */
 
 import { test } from 'node:test';
@@ -36,7 +41,7 @@ test('Edge Case #1: Oversized file (>5MB) should reject with clear error', async
     'Error should mention 5MB limit'
   );
 
-  console.log(`✓ Oversized file rejected: "${result.error}"`);
+  console.log(`  ok Oversized file rejected: "${result.error}"`);
 });
 
 test('Edge Case #1b: File at exactly 5MB should pass validation', async () => {
@@ -49,7 +54,7 @@ test('Edge Case #1b: File at exactly 5MB should pass validation', async () => {
   const result = validateFontFile(exactFile);
 
   assert.equal(result.valid, true, 'File at exactly 5MB should pass');
-  console.log(`✓ 5MB file accepted`);
+  console.log(`  ok 5MB file accepted`);
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -75,7 +80,7 @@ test('Edge Case #2: Corrupted TTF should handle gracefully (no metadata extracti
     null,
     'Corrupted TTF should return null metadata, not throw'
   );
-  console.log(`✓ Corrupted TTF handled gracefully (null metadata)`);
+  console.log(`  ok Corrupted TTF handled gracefully (null metadata)`);
 });
 
 test('Edge Case #2b: Truncated TTF (too short) should handle gracefully', async () => {
@@ -90,7 +95,7 @@ test('Edge Case #2b: Truncated TTF (too short) should handle gracefully', async 
   const metadata = parseFontMetadata(truncatedBuffer);
 
   assert.equal(metadata, null, 'Truncated TTF should return null');
-  console.log(`✓ Truncated TTF handled gracefully (null metadata)`);
+  console.log(`  ok Truncated TTF handled gracefully (null metadata)`);
 });
 
 test('Edge Case #2c: Random binary data (not a font) should return unknown format', async () => {
@@ -101,7 +106,7 @@ test('Edge Case #2c: Random binary data (not a font) should return unknown forma
   const format = detectFontFormat(randomBuffer);
 
   assert.equal(format, 'unknown', 'Random data should detect as unknown format');
-  console.log(`✓ Non-font binary data detected as 'unknown' format`);
+  console.log(`  ok Non-font binary data detected as 'unknown' format`);
 });
 
 test('Edge Case #2d: Invalid MIME type should still validate by magic bytes', async () => {
@@ -122,7 +127,7 @@ test('Edge Case #2d: Invalid MIME type should still validate by magic bytes', as
 
   // Should still pass (permissive MIME check, magic bytes matter more)
   assert.equal(result.valid, true, 'Permissive MIME type check');
-  console.log(`✓ Permissive MIME validation allows application/octet-stream`);
+  console.log(`  ok Permissive MIME validation allows application/octet-stream`);
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -212,7 +217,7 @@ test('Edge Case #3: Duplicate font with same family/weight should increment inde
   assert.ok(outfit, 'Outfit family should exist');
   assert.equal(outfit!.assetIds.length, 2, 'Should have 2 asset IDs');
   console.log(
-    `✓ Duplicate fonts grouped correctly: ${outfit!.assetIds.join(', ')}`
+    `  ok Duplicate fonts grouped correctly: ${outfit!.assetIds.join(', ')}`
   );
 });
 
@@ -234,7 +239,7 @@ test('Edge Case #3b: Same family, different weights should group together', asyn
     /300|400|700/,
     'Weights string should include all weights'
   );
-  console.log(`✓ Multiple weights grouped: ${inter!.weights}`);
+  console.log(`  ok Multiple weights grouped: ${inter!.weights}`);
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -253,7 +258,7 @@ test('Edge Case #4: WOFF2 format detected correctly by magic bytes', async () =>
   const format = detectFontFormat(woff2Buffer);
 
   assert.equal(format, 'woff2', 'Should detect WOFF2 format');
-  console.log(`✓ WOFF2 magic bytes detected correctly`);
+  console.log(`  ok WOFF2 magic bytes detected correctly`);
 });
 
 test('Edge Case #4b: WOFF vs WOFF2 distinction', async () => {
@@ -278,7 +283,7 @@ test('Edge Case #4b: WOFF vs WOFF2 distinction', async () => {
 
   assert.equal(woffFormat, 'woff', 'Should detect WOFF');
   assert.equal(woff2Format, 'woff2', 'Should detect WOFF2');
-  console.log(`✓ WOFF (${woffFormat}) vs WOFF2 (${woff2Format}) distinguished`);
+  console.log(`  ok WOFF (${woffFormat}) vs WOFF2 (${woff2Format}) distinguished`);
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -305,7 +310,7 @@ test('Edge Case #5: Deleting primary font should unregister and promote next', a
   assert.equal(families[0]!.family, 'Sora', 'Sora should be the remaining font');
   assert.equal(families[0]!.primary, true, 'Sora should now be primary');
 
-  console.log(`✓ Primary font deleted, next font promoted automatically`);
+  console.log(`  ok Primary font deleted, next font promoted automatically`);
 });
 
 test('Edge Case #5b: Deleting non-primary font should not affect primary', async () => {
@@ -326,7 +331,7 @@ test('Edge Case #5b: Deleting non-primary font should not affect primary', async
   assert.equal(families[0]!.primary, true, 'Inter remains primary');
   assert.equal(families.length, 1, 'Sora removed');
 
-  console.log(`✓ Non-primary font deleted, primary unchanged`);
+  console.log(`  ok Non-primary font deleted, primary unchanged`);
 });
 
 test('Edge Case #5c: Deleting last font clears primary', async () => {
@@ -344,7 +349,7 @@ test('Edge Case #5c: Deleting last font clears primary', async () => {
   const primary = await host.tokens?.resolve('{font.brand}');
   assert.equal(primary, undefined, 'Primary should be cleared');
 
-  console.log(`✓ Last font deleted, primary cleared to undefined`);
+  console.log(`  ok Last font deleted, primary cleared to undefined`);
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -385,7 +390,7 @@ test('Edge Case #6: Rapid uploads (5 files) should queue without collisions', as
   const rapid = families.find((f) => f.family === 'Rapid')!;
 
   assert.equal(rapid!.assetIds.length, 5, 'All 5 should be grouped');
-  console.log(`✓ 5 rapid uploads completed without collisions: ${rapid!.weights}`);
+  console.log(`  ok 5 rapid uploads completed without collisions: ${rapid!.weights}`);
 });
 
 test('Edge Case #6b: Mixed family rapid uploads should not collide', async () => {
@@ -414,7 +419,7 @@ test('Edge Case #6b: Mixed family rapid uploads should not collide', async () =>
   assert.equal(familyB!.assetIds.length, 2, 'Family-B should have 2 faces');
   assert.equal(familyC!.assetIds.length, 1, 'Family-C should have 1 face');
 
-  console.log(`✓ 5 mixed uploads grouped correctly into 3 families`);
+  console.log(`  ok 5 mixed uploads grouped correctly into 3 families`);
 });
 
 test('Edge Case #6c: Concurrent deletes and uploads should not corrupt state', async () => {
@@ -453,7 +458,7 @@ test('Edge Case #6c: Concurrent deletes and uploads should not corrupt state', a
   );
 
   console.log(
-    `✓ Concurrent delete + upload operations completed safely: ${families.map((f) => f.family).join(', ')}`
+    `  ok Concurrent delete + upload operations completed safely: ${families.map((f) => f.family).join(', ')}`
   );
 });
 

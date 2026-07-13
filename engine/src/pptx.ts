@@ -259,12 +259,16 @@ function themeXml(): string {
   const c = (n: string, hex: string) => `<a:${n}><a:srgbClr val="${hex}"/></a:${n}>`;
   const font = `<a:latin typeface="Calibri"/><a:ea typeface="Calibri"/><a:cs typeface="Calibri"/>`;
   const three = (inner: string) => inner + inner + inner;
+  // Accents/hlink mirror the blank brand's spectrum (brands/lolly-start tokens:
+  // blue/green/amber at oklch(65% .12 h), hlink = primary ramp step 4) — the engine
+  // ships no real brand's palette. Threading a brand pack's tokens into the theme
+  // is a shell-side follow-up; the scheme only surfaces in Office's colour picker.
   return (
     `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
     `<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="Lolly"><a:themeElements>` +
     `<a:clrScheme name="Lolly">` + c('dk1', '000000') + c('lt1', 'FFFFFF') + c('dk2', '44546A') + c('lt2', 'E7E6E6') +
-    c('accent1', '30BA78') + c('accent2', '2453FF') + c('accent3', 'FE7C3F') + c('accent4', 'EFEFEF') +
-    c('accent5', 'A0A0A0') + c('accent6', '6B7280') + c('hlink', '2453FF') + c('folHlink', '6B7280') + `</a:clrScheme>` +
+    c('accent1', '5194D5') + c('accent2', '4DA46B') + c('accent3', 'B28727') + c('accent4', 'EFEFEF') +
+    c('accent5', 'A0A0A0') + c('accent6', '6B7280') + c('hlink', '336699') + c('folHlink', '6B7280') + `</a:clrScheme>` +
     `<a:fontScheme name="Lolly"><a:majorFont>${font}</a:majorFont><a:minorFont>${font}</a:minorFont></a:fontScheme>` +
     `<a:fmtScheme name="Lolly">` +
     `<a:fillStyleLst>${three('<a:solidFill><a:schemeClr val="phClr"/></a:solidFill>')}</a:fillStyleLst>` +

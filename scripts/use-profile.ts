@@ -33,6 +33,16 @@
  * A view is only ever deleted when it is recognisably ours (a symlink, a
  * symlink farm, or a copy carrying the .lolly-view.json marker) — real content
  * at tools/ or catalog/ aborts the switch instead of being clobbered.
+ *
+ * Brand overlays (`"extends": "community"` in a brand-pack tool.json): instead
+ * of the brand pack carrying a whole fork of a community tool, it may carry
+ * only the files that differ. The view dir for that id is then COMPOSED — the
+ * per-file union of the community base and the overlay, overlay winning on
+ * filename collision, recursing one level into subdirs (i18n/, assets/) — and
+ * the `extends` marker itself is stripped from the composed tool.json so view
+ * consumers (engine, shells, catalog scripts) see a plain tool. A declared
+ * overlay whose base is missing fails the build loudly — even under --auto —
+ * never a silent partial tool.
  */
 
 import {
@@ -45,6 +55,13 @@ import { fileURLToPath } from 'node:url';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const MARKER = '.lolly-view.json';
 const STATE_FILE = join(ROOT, '.lolly-profile');
+/** The only base pack `extends` may name in v1 (brand overlays of community tools). */
+const BASE_PACK = 'community';
+
+/** Overlay (extends) authoring errors are fail-closed even under --auto:
+ *  a missing/invalid base must fail the build loudly — postinstall included —
+ *  rather than ship a silent partial tool. */
+class OverlayError extends Error {}
 
 interface Profile { label?: string; tools: string[]; catalog: string }
 interface ProfilesFile { default: string; profiles: Record<string, Profile> }
@@ -89,7 +106,150 @@ function removeView(path: string, what: string): void {
   );
 }
 
+interface ToolPlan { src: string; base?: string } // base set ⇒ overlay compose
+
+/** The overlay marker, if the manifest parses and declares one. A malformed
+ *  tool.json is NOT an overlay — link the dir plainly and let validate:catalog
+ *  report the JSON error with proper context. */
+function readExtends(manifestPath: string): string | null {
+  try {
+    const v = JSON.parse(readFileSync(manifestPath, 'utf8')).extends;
+    return typeof v === 'string' && v.length ? v : null;
+  } catch { return null; }
+}
+
+/**
+ * Resolve the profile's tool roots into a per-id plan BEFORE touching the
+ * existing views, so an overlay error (missing base, extends declared in
+ * community/) aborts with the previous views fully intact — never a
+ * half-built farm. Later roots still win on id collisions.
+ */
+function planTools(profile: Profile): Map<string, ToolPlan> {
+  const plan = new Map<string, ToolPlan>();
+  for (const root of profile.tools) {
+    const rootAbs = join(ROOT, root);
+    for (const entry of readdirSync(rootAbs)) {
+      if (entry.startsWith('.') || entry === 'node_modules') continue;
+      // Underscore-prefixed dirs are pack infrastructure, not tools — e.g.
+      // community/_shared/, the canonical helper corpus that sync-shared-hooks.ts
+      // copies into tool hooks.js. Linking it into the view would make the
+      // catalog validator flag it as a tool with a missing tool.json.
+      if (entry.startsWith('_')) continue;
+      const src = join(rootAbs, entry);
+      if (!statSync(src).isDirectory()) continue; // NOTICE.md, README.md, …
+      const extendsTarget = readExtends(join(src, 'tool.json'));
+      if (!extendsTarget) { plan.set(entry, { src }); continue; }
+      if (root === BASE_PACK) {
+        throw new OverlayError(
+          `${root}/${entry}/tool.json declares "extends" — community tools are overlay BASES; only a brand pack may declare an overlay`,
+        );
+      }
+      if (extendsTarget !== BASE_PACK) {
+        throw new OverlayError(
+          `${root}/${entry}/tool.json declares "extends": "${extendsTarget}" — v1 supports only "${BASE_PACK}" as the base pack`,
+        );
+      }
+      const base = join(ROOT, BASE_PACK, entry);
+      if (!existsSync(join(base, 'tool.json'))) {
+        throw new OverlayError(
+          `${root}/${entry} extends "${BASE_PACK}" but ${BASE_PACK}/${entry}/tool.json does not exist — ` +
+          `an overlay and its base share the same tool id (ids are permanent contracts); refusing to build a partial tool`,
+        );
+      }
+      plan.set(entry, { src, base });
+    }
+  }
+  return plan;
+}
+
+/** Byte offset of the top-level "extends" KEY in raw manifest JSON, or -1.
+ *  A one-pass string- and depth-aware scan (not a parse) so a nested member
+ *  that happens to be named "extends" — e.g. inside an input's config object —
+ *  is never matched. A depth-1 string only counts when a `:` follows it
+ *  (a key, not a member's string value). */
+function topLevelExtendsKeyOffset(raw: string): number {
+  let depth = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (ch === '"') {
+      const keyStart = i;
+      for (i++; i < raw.length && raw[i] !== '"'; i++) {
+        if (raw[i] === '\\') i++; // skip the escaped char (incl. \")
+      }
+      if (depth !== 1 || raw.slice(keyStart + 1, i) !== 'extends') continue;
+      let j = i + 1;
+      while (j < raw.length && ' \t\r\n'.includes(raw[j]!)) j++;
+      if (raw[j] === ':') return keyStart;
+    } else if (ch === '{' || ch === '[') depth++;
+    else if (ch === '}' || ch === ']') depth--;
+  }
+  return -1;
+}
+
+/** Remove the top-level "extends" member from raw manifest JSON while
+ *  preserving every other byte — so a converted overlay's composed tool.json
+ *  stays byte-identical to the pre-conversion fork. The member's line is
+ *  located depth-aware (topLevelExtendsKeyOffset — a NESTED key named
+ *  "extends" is never touched) and stripped whole; if the author formatted
+ *  the member unusually (same line as another member or the opening brace,
+ *  last member with no trailing comma), the stringify-equality guard rejects
+ *  the strip and we fall back to a canonical re-serialise — still correct
+ *  JSON, just reformatted. */
+function stripExtendsField(raw: string): string {
+  const manifest = JSON.parse(raw);
+  if (!('extends' in manifest)) return raw;
+  delete manifest.extends;
+  const keyAt = topLevelExtendsKeyOffset(raw);
+  if (keyAt !== -1) {
+    const lineStart = raw.lastIndexOf('\n', keyAt) + 1;
+    const nextNl = raw.indexOf('\n', keyAt);
+    const stripped = raw.slice(0, lineStart) + (nextNl === -1 ? '' : raw.slice(nextNl + 1));
+    try {
+      if (JSON.stringify(JSON.parse(stripped)) === JSON.stringify(manifest)) return stripped;
+    } catch { /* dangling comma etc. — fall through */ }
+  }
+  return JSON.stringify(manifest, null, 2) + '\n';
+}
+
+/**
+ * Materialise one overlay tool dir into the view: the per-file union of
+ * base + overlay, overlay winning on filename collision. Recurses ONE level
+ * into subdirs (i18n/, assets/); anything deeper is taken wholesale from the
+ * winning side. The composed tool.json is always a REAL file with the
+ * `extends` marker stripped — edits to IT in the view do not write through
+ * (edit the pack source instead); every other composed file keeps the normal
+ * write-through symlink behaviour in symlink mode.
+ */
+function composeToolDir(baseDir: string, overlayDir: string, dest: string, copyMode: boolean, level = 0): void {
+  mkdirSync(dest, { recursive: true });
+  const names = [...new Set([...readdirSync(baseDir), ...readdirSync(overlayDir)])].sort();
+  for (const name of names) {
+    if (name.startsWith('.')) continue; // .DS_Store & co — never tool data
+    const basePath = join(baseDir, name);
+    const overlayPath = join(overlayDir, name);
+    const destPath = join(dest, name);
+    const inOverlay = existsSync(overlayPath);
+    const winner = inOverlay ? overlayPath : basePath;
+    if (level === 0 && name === 'tool.json') {
+      writeFileSync(destPath, stripExtendsField(readFileSync(winner, 'utf8')));
+      continue;
+    }
+    const bothDirs = inOverlay && existsSync(basePath)
+      && statSync(basePath).isDirectory() && statSync(overlayPath).isDirectory();
+    if (bothDirs && level === 0) {
+      composeToolDir(basePath, overlayPath, destPath, copyMode, level + 1);
+      continue;
+    }
+    if (copyMode) cpSync(winner, destPath, { recursive: true, dereference: true });
+    else symlinkSync(relative(dest, winner), destPath, statSync(winner).isDirectory() ? 'dir' : 'file');
+  }
+}
+
 function buildViews(name: string, profile: Profile, copyMode: boolean): void {
+  // Plan first (validates overlay declarations), mutate second — an overlay
+  // error must abort while the previous views are still intact.
+  const plan = planTools(profile);
+
   const toolsView = join(ROOT, 'tools');
   const catalogView = join(ROOT, 'catalog');
   removeView(toolsView, 'tools view');
@@ -109,28 +269,32 @@ function buildViews(name: string, profile: Profile, copyMode: boolean): void {
     symlinkSync(relative(ROOT, catalogSrc), catalogView, 'dir');
   }
 
-  // tools/ → merged farm over the profile's tool roots; later roots win.
+  // tools/ → merged farm over the profile's tool roots; later roots win
+  // (already resolved in the plan). A brand tool declaring
+  // `"extends": "community"` COMPOSES with its base instead of replacing it.
   mkdirSync(toolsView);
   writeFileSync(join(toolsView, MARKER), marker);
   let linked = 0;
-  for (const root of profile.tools) {
-    const rootAbs = join(ROOT, root);
-    for (const entry of readdirSync(rootAbs)) {
-      if (entry.startsWith('.') || entry === 'node_modules') continue;
-      const src = join(rootAbs, entry);
-      if (!statSync(src).isDirectory()) continue; // NOTICE.md, README.md, …
-      const dest = join(toolsView, entry);
-      if (lstatOrNull(dest)) rmSync(dest, { recursive: true, force: true });
-      if (copyMode) cpSync(src, dest, { recursive: true, dereference: true });
-      else symlinkSync(relative(toolsView, src), dest, 'dir');
-      linked++;
+  let composed = 0;
+  for (const [entry, { src, base }] of plan) {
+    const dest = join(toolsView, entry);
+    if (base) {
+      composeToolDir(base, src, dest, copyMode);
+      composed++;
+    } else if (copyMode) {
+      cpSync(src, dest, { recursive: true, dereference: true });
+    } else {
+      symlinkSync(relative(toolsView, src), dest, 'dir');
     }
+    linked++;
   }
 
   writeFileSync(STATE_FILE, name + '\n');
   console.log(
     `✓ profile "${name}"${profile.label ? ` (${profile.label})` : ''} — ` +
-    `${linked} tools from [${profile.tools.join(', ')}], catalog → ${profile.catalog}` +
+    `${linked} tools from [${profile.tools.join(', ')}]` +
+    `${composed ? ` (${composed} composed overlay${composed === 1 ? '' : 's'})` : ''}, ` +
+    `catalog → ${profile.catalog}` +
     `${copyMode ? ' (materialised copies)' : ''}`,
   );
 }
@@ -217,7 +381,9 @@ function main(): void {
     buildViews(target, profile, copyMode);
   } catch (e) {
     console.error(`✗ ${(e as Error).message}`);
-    process.exit(auto ? 0 : 1);
+    // Overlay authoring errors are fail-closed even under --auto (postinstall):
+    // a missing base would otherwise ship a silent partial tool.
+    process.exit(auto && !(e instanceof OverlayError) ? 0 : 1);
   }
 }
 

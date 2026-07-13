@@ -4,7 +4,7 @@
  *
  * An author can write a literal, real-looking image URL in a template:
  *
- *   <img src="https://lolly.tools/tool/qr-code.svg?url=https://suse.com&color=0c322c">
+ *   <img src="https://lolly.tools/tool/qr-code.svg?url=https://example.com&color=111111">
  *
  * Nothing is ever fetched from lolly.tools. A shell recognises this exact shape
  * with `parseEmbedUrl`, renders the named tool LOCALLY (through host.compose),

@@ -4,8 +4,9 @@
  *
  * The web shell walks a sanitized Figma/Penpot/SVG DOM into normalized DesignNodes;
  * this module (DOM-free) turns those into Layout Studio box rows. These cover the
- * matrix maths, the on-brand font/weight/align remaps, box defaulting, id/degenerate
- * handling and the Penpot content flattener end to end.
+ * matrix maths, the font/weight/align remaps (neutral defaults + shell-supplied
+ * brand vocabulary via DesignMapOptions), box defaulting, id/degenerate handling
+ * and the Penpot content flattener end to end.
  *
  * Run with: node --test tests/design-map.test.ts
  */
@@ -20,6 +21,12 @@ import {
 } from '../engine/src/design-map.ts';
 
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) <= eps;
+
+// The SUSE profile's vocabulary, as its web shell threads it in (from the SUSE
+// layout-studio manifest's font select + addKinds seeds) — the engine itself no
+// longer knows these names.
+const SUSE_FONTS = { defaultFamily: 'SUSE', monoFamily: 'SUSE Mono', monoMaxWeight: 800 };
+const SUSE_SEEDS = { boxBg: '#30BA78', textFg: '#0c322c', imageBg: '#eef1f0' };
 
 // ── decomposeMatrix ──────────────────────────────────────────────────────────
 test('decomposeMatrix: identity', () => {
@@ -88,33 +95,51 @@ test('boxGeomFromBBox: 90°-rotated rect gives an unrotated w×h + rot about cen
 
 // ── mapWeight ────────────────────────────────────────────────────────────────
 test('mapWeight: rounds to nearest 100 and clamps 100..900', () => {
-  assert.equal(mapWeight(450, 'SUSE'), '500'); // .5 rounds up
-  assert.equal(mapWeight(430, 'SUSE'), '400');
-  assert.equal(mapWeight(20, 'SUSE'), '100');  // clamps up to 100
-  assert.equal(mapWeight(1000, 'SUSE'), '900'); // clamps down to 900
-  assert.equal(mapWeight('700', 'SUSE'), '700'); // numeric string
-  assert.equal(mapWeight(undefined, 'SUSE'), '700'); // default weight
+  assert.equal(mapWeight(450, 'sans'), '500'); // .5 rounds up
+  assert.equal(mapWeight(430, 'sans'), '400');
+  assert.equal(mapWeight(20, 'sans'), '100');  // clamps up to 100
+  assert.equal(mapWeight(1000, 'sans'), '900'); // clamps down to 900
+  assert.equal(mapWeight('700', 'sans'), '700'); // numeric string
+  assert.equal(mapWeight(undefined, 'sans'), '700'); // default weight
 });
 
-test('mapWeight: SUSE Mono caps at 800', () => {
-  assert.equal(mapWeight(900, 'SUSE Mono'), '800');
-  assert.equal(mapWeight(850, 'SUSE Mono'), '800'); // 850 → 900 → capped 800
-  assert.equal(mapWeight(800, 'SUSE Mono'), '800');
-  assert.equal(mapWeight(400, 'SUSE Mono'), '400'); // below cap untouched
-  assert.equal(mapWeight(900, 'SUSE'), '900'); // sans keeps Black
+test('mapWeight: the mono family caps at monoMaxWeight (default 800)', () => {
+  assert.equal(mapWeight(900, 'mono'), '800');
+  assert.equal(mapWeight(850, 'mono'), '800'); // 850 → 900 → capped 800
+  assert.equal(mapWeight(800, 'mono'), '800');
+  assert.equal(mapWeight(400, 'mono'), '400'); // below cap untouched
+  assert.equal(mapWeight(900, 'sans'), '900'); // sans keeps Black
+});
+
+test('mapWeight: honours a shell-supplied vocabulary (SUSE + custom cap)', () => {
+  assert.equal(mapWeight(900, 'SUSE Mono', SUSE_FONTS), '800');
+  assert.equal(mapWeight(900, 'SUSE', SUSE_FONTS), '900'); // sans keeps Black
+  assert.equal(mapWeight(900, 'mono', SUSE_FONTS), '900'); // only the DECLARED mono family caps
+  // custom monoMaxWeight applies to the custom mono family only
+  const custom = { defaultFamily: 'Inter', monoFamily: 'JetBrains Mono', monoMaxWeight: 700 };
+  assert.equal(mapWeight(900, 'JetBrains Mono', custom), '700');
+  assert.equal(mapWeight(900, 'Inter', custom), '900');
 });
 
 // ── mapFontFamily ────────────────────────────────────────────────────────────
-test('mapFontFamily: monospace names → SUSE Mono, else SUSE', () => {
-  assert.equal(mapFontFamily('Courier New'), 'SUSE Mono');
-  assert.equal(mapFontFamily('Menlo'), 'SUSE Mono');
-  assert.equal(mapFontFamily('Fira Code'), 'SUSE Mono');
-  assert.equal(mapFontFamily('Roboto Mono'), 'SUSE Mono');
-  assert.equal(mapFontFamily('SF Mono, Consolas'), 'SUSE Mono');
-  assert.equal(mapFontFamily('Helvetica Neue'), 'SUSE');
-  assert.equal(mapFontFamily('Inter'), 'SUSE');
-  assert.equal(mapFontFamily(''), 'SUSE');
-  assert.equal(mapFontFamily(undefined), 'SUSE');
+test('mapFontFamily: monospace names → mono, else sans (neutral defaults)', () => {
+  assert.equal(mapFontFamily('Courier New'), 'mono');
+  assert.equal(mapFontFamily('Menlo'), 'mono');
+  assert.equal(mapFontFamily('Fira Code'), 'mono');
+  assert.equal(mapFontFamily('Roboto Mono'), 'mono');
+  assert.equal(mapFontFamily('SF Mono, Consolas'), 'mono');
+  assert.equal(mapFontFamily('Helvetica Neue'), 'sans');
+  assert.equal(mapFontFamily('Inter'), 'sans');
+  assert.equal(mapFontFamily(''), 'sans');
+  assert.equal(mapFontFamily(undefined), 'sans');
+});
+
+test('mapFontFamily: honours a shell-supplied vocabulary', () => {
+  assert.equal(mapFontFamily('Courier New', SUSE_FONTS), 'SUSE Mono');
+  assert.equal(mapFontFamily('Helvetica Neue', SUSE_FONTS), 'SUSE');
+  const custom = { defaultFamily: 'Inter', monoFamily: 'JetBrains Mono' };
+  assert.equal(mapFontFamily('Menlo', custom), 'JetBrains Mono');
+  assert.equal(mapFontFamily('Georgia', custom), 'Inter');
 });
 
 // ── mapAlign ─────────────────────────────────────────────────────────────────
@@ -153,13 +178,13 @@ test('nodeToBox: box kind defaults (seed fill, plain rect, full field set)', () 
   assert.equal(b.rot, 0);
   assert.equal(b.shape, 'rect');   // no radius → plain rect (fidelity, not seed 'rounded')
   assert.equal(b.radius, 0);
-  assert.equal(b.bg, '#30BA78');   // seed default when fill absent
+  assert.equal(b.bg, '#4f84ba');   // neutral seed default when fill absent
   assert.equal(b.opacity, 100);
   assert.equal(b.image, null);
   assert.equal(b.blend, 'normal');
   assert.equal(b.valign, 'middle');
   assert.equal(b.weight, '700');
-  assert.equal(b.font, 'SUSE');
+  assert.equal(b.font, 'sans');
   assert.equal(b.clip, '');
   assert.equal(b.shadow, 'none');
   assert.equal(b.shadowColor, '#00000055');
@@ -194,8 +219,8 @@ test('nodeToBox: text kind maps font/weight/align/colour and text defaults', () 
   assert.equal(b.text, 'Hello\nworld');
   assert.equal(b.fg, '#123456');
   assert.equal(b.fontSize, 34);         // rounded
-  assert.equal(b.font, 'SUSE Mono');    // monospace remap
-  assert.equal(b.weight, '800');        // 850→900 capped to 800 for Mono
+  assert.equal(b.font, 'mono');         // monospace remap (neutral vocabulary)
+  assert.equal(b.weight, '800');        // 850→900 capped to 800 for mono
   assert.equal(b.align, 'center');      // 'centre' normalized
   assert.equal(b.valign, 'top');        // text seed valign
   assert.equal(b.lineHeight, 1.4);
@@ -205,13 +230,42 @@ test('nodeToBox: text kind maps font/weight/align/colour and text defaults', () 
 test('nodeToBox: text kind defaults when only kind given', () => {
   const b = nodeToBox({ kind: 'text', w: 200, h: 50 }, { id: 't0' });
   assert.equal(b.text, '');
-  assert.equal(b.fg, '#0c322c');   // seed text colour fallback
+  assert.equal(b.fg, '#0e1217');   // neutral seed text colour fallback
   assert.equal(b.fontSize, 64);    // text seed size
-  assert.equal(b.font, 'SUSE');
+  assert.equal(b.font, 'sans');
   assert.equal(b.weight, '700');
   assert.equal(b.align, 'left');
   assert.equal(b.valign, 'top');
   assert.equal(b.lineHeight, 1.12);
+});
+
+test('nodeToBox: a shell-supplied vocabulary round-trips the SUSE mapping', () => {
+  const opts = { id: 't1', fonts: SUSE_FONTS, seedColors: SUSE_SEEDS };
+  const mono = nodeToBox({ kind: 'text', w: 300, h: 80, fontFamily: 'Courier New', fontWeight: 850 }, opts);
+  assert.equal(mono.font, 'SUSE Mono'); // monospace remap onto the SUSE pair
+  assert.equal(mono.weight, '800');     // 850→900 capped to 800 for SUSE Mono
+  assert.equal(mono.fg, '#0c322c');     // SUSE seed ink fallback
+  const sans = nodeToBox({ kind: 'text', w: 300, h: 80, fontFamily: 'Inter', fontWeight: 900 }, opts);
+  assert.equal(sans.font, 'SUSE');
+  assert.equal(sans.weight, '900');     // sans keeps Black
+  const box = nodeToBox({ kind: 'box', w: 10, h: 10 }, opts);
+  assert.equal(box.bg, '#30BA78');      // SUSE seed fill
+  const img = nodeToBox({ kind: 'image', w: 10, h: 10, image: {} }, opts);
+  assert.equal(img.bg, '#eef1f0');      // SUSE image seed backing
+});
+
+test('nodeToBox: custom families + seed colours are honoured', () => {
+  const opts = {
+    id: 'x0',
+    fonts: { defaultFamily: 'Inter', monoFamily: 'JetBrains Mono', monoMaxWeight: 700 },
+    seedColors: { boxBg: '#123123', textFg: '#454545', imageBg: '' },
+  };
+  const t = nodeToBox({ kind: 'text', w: 100, h: 20, fontFamily: 'Menlo', fontWeight: 900 }, opts);
+  assert.equal(t.font, 'JetBrains Mono');
+  assert.equal(t.weight, '700');        // custom mono cap
+  assert.equal(t.fg, '#454545');
+  assert.equal(nodeToBox({ kind: 'box', w: 5, h: 5 }, opts).bg, '#123123');
+  assert.equal(nodeToBox({ kind: 'image', w: 5, h: 5 }, opts).bg, ''); // '' = transparent honoured
 });
 
 test('nodeToBox: image kind resolves an asset ref and fit', () => {
@@ -219,7 +273,7 @@ test('nodeToBox: image kind resolves an asset ref and fit', () => {
   assert.equal(b.kind, 'image');
   assert.deepEqual(b.image, { id: 'user/asset/1' });
   assert.equal(b.fit, 'cover');
-  assert.equal(b.bg, '#eef1f0'); // image seed bg when no fill
+  assert.equal(b.bg, '#e1e5ea'); // neutral image seed bg when no fill
   // no/invalid image ref → null, fit falls back to seed 'contain'
   const c = nodeToBox({ kind: 'image', w: 100, h: 100, image: {} }, { id: 'i1' });
   assert.equal(c.image, null);
@@ -255,6 +309,17 @@ test('finalizeBoxes: skips nulls + zero-area points, keeps thin rules and tiny t
 test('finalizeBoxes: honours a custom id prefix', () => {
   const boxes = finalizeBoxes([{ kind: 'box', w: 5, h: 5 }], { prefix: 'imp' });
   assert.equal(boxes[0]!.id, 'imp0');
+});
+
+test('finalizeBoxes: threads fonts + seedColors into every row', () => {
+  const boxes = finalizeBoxes([
+    { kind: 'text', w: 10, h: 10, fontFamily: 'Consolas', fontWeight: 900 },
+    { kind: 'box', w: 10, h: 10 },
+  ], { prefix: 's', fonts: SUSE_FONTS, seedColors: SUSE_SEEDS });
+  assert.equal(boxes[0]!.font, 'SUSE Mono');
+  assert.equal(boxes[0]!.weight, '800');
+  assert.equal(boxes[0]!.fg, '#0c322c');
+  assert.equal(boxes[1]!.bg, '#30BA78');
 });
 
 // ── parsePenpotContent ───────────────────────────────────────────────────────
@@ -402,8 +467,9 @@ test('penpotShapeToNode: text shape → text node via content tree', () => {
   assert.equal(n.kind, 'text');
   assert.equal(n.text, 'Monospace is cool');
   assert.equal(n.fontFamily, 'SUSE Mono');
-  // round-trips through nodeToBox to the mono font + capped weight
-  const box = nodeToBox(n, { id: 't0' });
+  // round-trips through nodeToBox to the mono font (the SUSE vocabulary passed
+  // explicitly, as the SUSE-profile shell does)
+  const box = nodeToBox(n, { id: 't0', fonts: SUSE_FONTS });
   assert.equal(box.font, 'SUSE Mono');
   assert.equal(box.text, 'Monospace is cool');
 });
@@ -438,7 +504,7 @@ test('figmaNodesToNodes: accumulates parent transforms, maps fills + text weight
   assert.deepEqual([Math.round(text.x), Math.round(text.y)], [60, 28]); // 50+10, 20+8
   assert.equal(text.text, 'Hi');
   assert.equal(text.fontWeight, 700); // "Bold"
-  const box = nodeToBox(text, { id: 'f0' });
+  const box = nodeToBox(text, { id: 'f0', fonts: SUSE_FONTS });
   assert.equal(box.weight, '700');
   assert.equal(box.font, 'SUSE');
 });

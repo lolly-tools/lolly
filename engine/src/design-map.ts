@@ -9,15 +9,18 @@
  * Lolly format.
  *
  * PURE and DOM-free: no `document`, no imports from shells/ or tools/, no
- * SUSE-specific network/asset logic. The shell does all DOM/getBBox/getCTM work
+ * brand-specific network/asset logic. The shell does all DOM/getBBox/getCTM work
  * and asset storage; this module only does the maths and field defaulting, so the
  * mapping is unit-testable and identical everywhere the engine runs.
  *
  * Field defaults mirror tools/layout-studio (its addKinds seeds + field defaults),
  * and the colour/weight guards mirror its hooks.js — the imported box looks exactly
- * like a natively-authored one. Only SUSE / SUSE Mono fonts exist, so every imported
- * font remaps to one of them (monospace family names → SUSE Mono). That on-brand
- * remap is intended behaviour, not a bug.
+ * like a natively-authored one. The editor's font select is a closed vocabulary, so
+ * every imported font remaps onto it (monospace family names → the mono family).
+ * WHICH families those are is brand data, not engine knowledge: the shell threads a
+ * `DesignMapOptions` (from the target tool's manifest — its font select values and
+ * addKinds seed colours) through `finalizeBoxes`/`nodeToBox`; the built-in defaults
+ * below mirror the neutral blank-brand (brands/lolly-start) layout-studio fork.
  */
 
 /** A 2-D affine matrix (SVG/CSS convention: [a c e / b d f]). */
@@ -35,6 +38,48 @@ interface KindSeed {
 
 /** A colour-run in a box's markdown text. */
 interface ColorRun { text: string; color?: string; }
+
+/**
+ * The font vocabulary imported text maps onto — the target editor tool's font
+ * select wire values. Every field is optional; anything unset keeps the neutral
+ * defaults (DEFAULT_FONTS below).
+ */
+export interface DesignMapFonts {
+  /** Family every non-monospace import maps to. */
+  defaultFamily?: string;
+  /** Family monospace family names map to. */
+  monoFamily?: string;
+  /** Heaviest 100-step weight the mono family ships (its variable axis ceiling). */
+  monoMaxWeight?: number;
+}
+
+/** Seed colours for imported boxes — the target tool's addKinds seed values. */
+export interface DesignMapSeedColors {
+  /** `box` kind default fill (when the node has no explicit fill). */
+  boxBg?: string;
+  /** `text` kind default ink (when the node has no usable fg). */
+  textFg?: string;
+  /** `image` kind default backing fill. */
+  imageBg?: string;
+}
+
+/**
+ * Brand options a shell threads into the mappers, sourced from the ACTIVE
+ * profile's target tool manifest (its font select + addKinds seeds) so the
+ * engine itself stays brand-free.
+ */
+export interface DesignMapOptions {
+  fonts?: DesignMapFonts;
+  seedColors?: DesignMapSeedColors;
+}
+
+// Neutral defaults — mirror brands/lolly-start/tools/layout-studio (the blank
+// brand's font select values and addKinds seed colours), NOT any real brand's.
+const DEFAULT_FONTS: Required<DesignMapFonts> = {
+  defaultFamily: 'sans',
+  monoFamily: 'mono',
+  monoMaxWeight: 800,
+};
 
 /** The flattened text-style info parsed out of a Penpot content tree. */
 interface PenpotContentInfo {
@@ -105,7 +150,7 @@ interface Box {
   align: 'left' | 'center' | 'right';
   valign: string;
   weight: string;
-  font: 'SUSE' | 'SUSE Mono';
+  font: string;
   lineHeight: number;
   group: string;
   clip: string;
@@ -199,28 +244,34 @@ export function boxGeomFromBBox(
 
 /**
  * Snap an arbitrary font weight onto the variable font's 100-step axis.
- * SUSE Sans covers 100–900; SUSE Mono has no Black cut (tops out at 800), so cap it
- * there — matching tools/layout-studio/hooks.js weightOf so the browser render and
- * the static-TTF vector export agree.
+ * Mono cuts rarely ship a Black, so the mono family is capped at its declared
+ * `monoMaxWeight` (default 800) — matching tools/layout-studio/hooks.js weightOf
+ * so the browser render and the static-TTF vector export agree.
  * @param {number|string} weight
- * @param {string} [font] 'SUSE' | 'SUSE Mono'
+ * @param {string} [font] a font-select wire value (see mapFontFamily).
+ * @param {DesignMapFonts} [fonts] the brand's font vocabulary (neutral default).
  * @returns {string} '100'..'900'
  */
-export function mapWeight(weight: number | string | undefined, font?: string): string {
+export function mapWeight(weight: number | string | undefined, font?: string, fonts?: DesignMapFonts): string {
   let w = clamp(Math.round(num(weight, 700) / 100) * 100, 100, 900);
-  if (String(font) === 'SUSE Mono' && w > 800) w = 800;
+  const monoFamily = (fonts && fonts.monoFamily) ?? DEFAULT_FONTS.monoFamily;
+  const monoMax = (fonts && fonts.monoMaxWeight) ?? DEFAULT_FONTS.monoMaxWeight;
+  if (String(font) === monoFamily && w > monoMax) w = monoMax;
   return String(w);
 }
 
 /**
- * Remap any imported font family onto the only two that exist. Monospace family
- * names (mono/console/courier/menlo/…code) → 'SUSE Mono'; everything else → 'SUSE'.
+ * Remap any imported font family onto the editor's two-family vocabulary.
+ * Monospace family names (mono/console/courier/menlo/…code) → the mono family;
+ * everything else → the default family.
  * @param {string} family raw family string.
- * @returns {'SUSE'|'SUSE Mono'}
+ * @param {DesignMapFonts} [fonts] the brand's font vocabulary (neutral default).
+ * @returns {string} a font-select wire value.
  */
-export function mapFontFamily(family: unknown): 'SUSE' | 'SUSE Mono' {
+export function mapFontFamily(family: unknown, fonts?: DesignMapFonts): string {
   return /mono|consol|courier|menlo|code/i.test(String(family == null ? '' : family))
-    ? 'SUSE Mono' : 'SUSE';
+    ? ((fonts && fonts.monoFamily) ?? DEFAULT_FONTS.monoFamily)
+    : ((fonts && fonts.defaultFamily) ?? DEFAULT_FONTS.defaultFamily);
 }
 
 /**
@@ -271,11 +322,12 @@ export function colorRunsToText(runs: ReadonlyArray<ColorRun>, defaultHex: strin
   }).join('');
 }
 
-// Per-kind non-geometry seeds (mirror tools/layout-studio/tool.json addKinds).
+// Per-kind non-geometry seeds. Colours mirror the NEUTRAL (lolly-start)
+// layout-studio addKinds; a branded shell overrides them via seedColors.
 const SEED: Record<'box' | 'text' | 'image', KindSeed> = {
-  box: { bg: '#30BA78' },
-  text: { bg: '', fg: '#0c322c', fontSize: 64, valign: 'top', lineHeight: 1.12 },
-  image: { bg: '#eef1f0', fit: 'contain' },
+  box: { bg: '#4f84ba' },
+  text: { bg: '', fg: '#0e1217', fontSize: 64, valign: 'top', lineHeight: 1.12 },
+  image: { bg: '#e1e5ea', fit: 'contain' },
 };
 const SHAPES: Record<string, number> = { rect: 1, rounded: 1, pill: 1, ellipse: 1 };
 const FITS: Record<string, number> = { contain: 1, cover: 1, fill: 1 };
@@ -290,18 +342,26 @@ function has(o: unknown, k: string): boolean { return o != null && Object.hasOwn
 /**
  * Turn one normalized DesignNode into a full Layout Studio box row — every field
  * present and defaulted (mirroring the addKinds seeds + field defaults), with the
- * on-brand font/weight/align/colour remaps applied. `kind` drives which fields
- * carry meaning, but all fields are emitted so the row is self-describing.
+ * font/weight/align/colour remaps applied. `kind` drives which fields carry
+ * meaning, but all fields are emitted so the row is self-describing.
  * @param {object} node the DesignNode.
- * @param {{id:string}} opts assigned id (permanent within this import).
+ * @param {{id:string, fonts?:object, seedColors?:object}} opts assigned id
+ *   (permanent within this import) + the brand's DesignMapOptions.
  * @returns {object} a box row.
  */
-export function nodeToBox(node: DesignNode | null | undefined, opts: { id?: unknown } | null | undefined): Box {
+export function nodeToBox(
+  node: DesignNode | null | undefined,
+  opts: ({ id?: unknown } & DesignMapOptions) | null | undefined,
+): Box {
   const n: DesignNode = node || {};
   const o = opts || {};
   const id = o.id != null ? String(o.id) : '';
   const kind: 'box' | 'text' | 'image' = n.kind === 'text' ? 'text' : (n.kind === 'image' ? 'image' : 'box');
   const seed = SEED[kind];
+  const sc = o.seedColors || {};
+  const seedBg = kind === 'box' ? (sc.boxBg ?? seed.bg)
+    : kind === 'image' ? (sc.imageBg ?? seed.bg)
+    : seed.bg; // text seed bg is transparent under every brand
 
   // geometry
   const x = Math.round(num(n.x, 0));
@@ -316,11 +376,11 @@ export function nodeToBox(node: DesignNode | null | undefined, opts: { id?: unkn
   const radius = Math.max(0, Math.round(num(n.radius, shape === 'rounded' ? 16 : 0)));
 
   // fill: honour an explicit fill (incl. '' = none); otherwise the kind's seed bg
-  const bg = has(n, 'fill') ? safeColor(n.fill, '') : seed.bg;
+  const bg = has(n, 'fill') ? safeColor(n.fill, '') : seedBg;
 
   // typography
-  const font = mapFontFamily(n.fontFamily);
-  const weight = mapWeight(n.fontWeight as number | string | undefined, font);
+  const font = mapFontFamily(n.fontFamily, o.fonts);
+  const weight = mapWeight(n.fontWeight as number | string | undefined, font, o.fonts);
   const align = mapAlign(n.textAlign);
   const fontSize = Math.max(1, Math.round(num(n.fontSize, kind === 'text' ? 64 : 48)));
   const lineHeight = num(n.lineHeight, seed.lineHeight != null ? seed.lineHeight : 1.12);
@@ -347,7 +407,7 @@ export function nodeToBox(node: DesignNode | null | undefined, opts: { id?: unkn
     fit,
     blend: BLENDS[n.blend as string] ? (n.blend as string) : 'normal',
     text: n.text != null ? String(n.text) : '',
-    fg: safeColor(n.fg, '#0c322c'),
+    fg: safeColor(n.fg, sc.textFg ?? SEED.text.fg!),
     fontSize,
     align,
     valign: kind === 'text' ? (seed.valign || 'top') : 'middle',
@@ -370,12 +430,13 @@ export function nodeToBox(node: DesignNode | null | undefined, opts: { id?: unkn
  * (`${prefix}${i}`), skipping nulls and degenerate non-text nodes (w<1 || h<1).
  * Input order is preserved (= paint order, back-to-front).
  * @param {object[]} nodes
- * @param {{prefix?:string}} [opts]
+ * @param {{prefix?:string, fonts?:object, seedColors?:object}} [opts] id prefix
+ *   + the brand's DesignMapOptions (threaded into every nodeToBox).
  * @returns {object[]} box rows.
  */
 export function finalizeBoxes(
   nodes: ReadonlyArray<DesignNode | null | undefined> | null | undefined,
-  opts?: { prefix?: unknown } | null,
+  opts?: ({ prefix?: unknown } & DesignMapOptions) | null,
 ): Box[] {
   const prefix = (opts && opts.prefix != null) ? String(opts.prefix) : 'n';
   const list = Array.isArray(nodes) ? nodes : [];
@@ -386,7 +447,7 @@ export function finalizeBoxes(
     // Skip only a true zero-area point; a thin rule/divider (one dimension < 1) is kept
     // and clamped to 1px by nodeToBox, so imported hairlines don't silently vanish.
     if (kind !== 'text' && num(node.w, 0) < 1 && num(node.h, 0) < 1) continue; // degenerate
-    out.push(nodeToBox(node, { id: prefix + out.length }));
+    out.push(nodeToBox(node, { id: prefix + out.length, fonts: opts?.fonts, seedColors: opts?.seedColors }));
   }
   return out;
 }

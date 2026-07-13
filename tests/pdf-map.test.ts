@@ -206,9 +206,10 @@ test('font decode callback maps custom byte codes', () => {
     fonts: { F1: { decode, family: 'Courier', weight: 700 } },
   });
   assert.equal(nodes[0].text, 'Hello');
-  // monospace family → the box maps to SUSE Mono via finalizeBoxes
+  // monospace family → the box maps to the neutral mono family via finalizeBoxes
+  // (a branded shell passes its own vocabulary — see design-map DesignMapOptions)
   const box = finalizeBoxes(nodes, { prefix: 'p' })[0] as any;
-  assert.equal(box.font, 'SUSE Mono');
+  assert.equal(box.font, 'mono');
   assert.equal(box.weight, '700');
 });
 

@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // "DOM" for the same reason as engine/cli: the engine's public types use DOM
+    // structural types (Blob, Element). No DOM APIs are used at runtime.
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["node"]
+  },
+  "include": ["src/**/*"]
+}

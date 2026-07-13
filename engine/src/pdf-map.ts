@@ -72,7 +72,8 @@ export interface PdfFontInfo {
   decode?: FontDecoder;
   /** Composite / Type0 (CID) fonts use 2-byte codes; simple fonts are 1 byte. */
   twoByte?: boolean;
-  /** Family name (for the on-brand SUSE / SUSE Mono remap). */
+  /** Family name (remapped onto the target tool's font vocabulary — see
+   *  design-map.ts `mapFontFamily`/`DesignMapOptions`). */
   family?: string;
   /** A weight hint parsed from the font descriptor / name. */
   weight?: number | string;
