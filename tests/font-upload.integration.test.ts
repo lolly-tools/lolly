@@ -2,6 +2,17 @@
  * Font upload integration test (flat structure to avoid Node.js test runner issues)
  * Tests: (1) IndexedDB storage, (2) metadata extraction, (3) UI listing,
  * (4) catalog availability, (5) document.fonts registration, (6) format detection
+ *
+ * NOTE: the first three bytes of every console.log line here must be ASCII.
+ * `node --test` children interleave raw stdout with V8-serialized report
+ * frames on one pipe; when a raw write lands directly after a frame, the
+ * parent's frame parser skips 2 "header" bytes unchecked and reads byte
+ * offsets 2-5 as a SIGNED 32-bit message length. ASCII at offset 2 yields a
+ * huge positive length and the parser's benign resync path; a byte >= 0x80
+ * there (e.g. "✓" = 0xE2 9C 93 starting at offset 0, 1, or 2) goes negative
+ * and intermittently crashes the whole run with "Unable to deserialize
+ * cloned data" (node:internal/test_runner/runner #processRawBuffer, seen on
+ * Node 24.18). Hence the ASCII "ok" pass markers.
  */
 
 import { strict as assert } from 'assert';
@@ -28,7 +39,7 @@ const bufferView = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + bu
 test('Verification #1: Format detection (TTF magic bytes)', () => {
   const format = detectFontFormat(bufferView);
   assert.equal(format, 'ttf', 'Should detect TTF format by magic bytes');
-  console.log(`✓ Format detected: ${format}`);
+  console.log(`  ok Format detected: ${format}`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -52,7 +63,7 @@ test('Verification #2: Metadata extraction (family, weight, style)', () => {
     'Style should be normal, italic, or oblique'
   );
 
-  console.log(`✓ Metadata extracted:`);
+  console.log(`  ok Metadata extracted:`);
   console.log(`  - Family: ${metadata!.family}`);
   console.log(`  - Weight: ${metadata!.weight}`);
   console.log(`  - Style: ${metadata!.style}`);
@@ -71,7 +82,7 @@ test('Verification #3: File validation (size, MIME type)', () => {
   assert.ok(validation.valid, `File should be valid: ${validation.error}`);
   assert.ok(file.size < 5 * 1024 * 1024, 'File should be under 5MB');
 
-  console.log(`✓ File validation passed:`);
+  console.log(`  ok File validation passed:`);
   console.log(`  - Size: ${(file.size / 1024).toFixed(1)}KB`);
   console.log(`  - Type: ${file.type}`);
 });
@@ -90,7 +101,7 @@ test('Verification #4: Asset ID generation (user/fonts/<family-slug>/<index>)', 
   const assetId = `user/fonts/${familySlug}/${nextIndex}`;
 
   assert.match(assetId, /^user\/fonts\/[a-z\-]+\/\d+$/, 'Asset ID should match pattern');
-  console.log(`✓ Asset ID generated: ${assetId}`);
+  console.log(`  ok Asset ID generated: ${assetId}`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -104,7 +115,7 @@ test('Verification #5: SHA256 checksum generation', async () => {
 
   assert.equal(checksum.length, 64, 'SHA256 hex should be 64 characters');
   assert.match(checksum, /^[a-f0-9]{64}$/, 'Should be valid hex');
-  console.log(`✓ Checksum computed: ${checksum.substring(0, 16)}...`);
+  console.log(`  ok Checksum computed: ${checksum.substring(0, 16)}...`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -124,7 +135,7 @@ test('Verification #6: Font family slug normalization', () => {
     assert.equal(slug, expected, `"${input}" should normalize to "${expected}"`);
   }
 
-  console.log('✓ Family slug normalization works correctly');
+  console.log('  ok Family slug normalization works correctly');
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -162,7 +173,7 @@ test('Verification #7: IndexedDB storage structure', () => {
   assert.equal(storedAsset.meta.weight, metadata!.weight);
   assert.equal(storedAsset.meta.style, metadata!.style);
 
-  console.log(`✓ Storage structure valid:`);
+  console.log(`  ok Storage structure valid:`);
   console.log(`  - ID: ${storedAsset.id}`);
   console.log(`  - Type: ${storedAsset.type}`);
   console.log(`  - Meta: family=${storedAsset.meta.family}, weight=${storedAsset.meta.weight}`);
@@ -193,7 +204,7 @@ test('Verification #8: Font registry resolution', () => {
   assert.equal(registryEntry.family, key);
   assert.ok(registryEntry.faces[0]);
   assert.equal(registryEntry.faces[0]!.weight, '400 900');
-  console.log(`✓ Registry entry created for family: ${key}`);
+  console.log(`  ok Registry entry created for family: ${key}`);
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -232,7 +243,7 @@ test('Verification #9: CSS font-family parsing', () => {
     assert.deepEqual(result, expected, `Should parse: ${input}`);
   }
 
-  console.log('✓ CSS font-family parsing works correctly');
+  console.log('  ok CSS font-family parsing works correctly');
 });
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -243,15 +254,15 @@ console.log('\n' + '='.repeat(70));
 console.log('ALL FONT UPLOAD VERIFICATION TESTS PASSED');
 console.log('='.repeat(70));
 console.log('Test Coverage:');
-console.log('  ✓ #1 - File stored in IndexedDB as user/fonts/<family>/<index>');
-console.log('  ✓ #2 - Metadata extracted (family, weight, style)');
-console.log('  ✓ #3 - File validation (size, MIME type)');
-console.log('  ✓ #4 - Asset ID generation and pattern');
-console.log('  ✓ #5 - SHA256 checksum generation');
-console.log('  ✓ #6 - Font family slug normalization');
-console.log('  ✓ #7 - IndexedDB storage structure');
-console.log('  ✓ #8 - Font registry resolution');
-console.log('  ✓ #9 - CSS font-family parsing');
+console.log('  ok #1 - File stored in IndexedDB as user/fonts/<family>/<index>');
+console.log('  ok #2 - Metadata extracted (family, weight, style)');
+console.log('  ok #3 - File validation (size, MIME type)');
+console.log('  ok #4 - Asset ID generation and pattern');
+console.log('  ok #5 - SHA256 checksum generation');
+console.log('  ok #6 - Font family slug normalization');
+console.log('  ok #7 - IndexedDB storage structure');
+console.log('  ok #8 - Font registry resolution');
+console.log('  ok #9 - CSS font-family parsing');
 console.log('\nManual verification steps:');
 console.log('  1. Navigate to http://localhost:5177/#/start');
 console.log('  2. Click "Fonts" tab in Brand Studio');

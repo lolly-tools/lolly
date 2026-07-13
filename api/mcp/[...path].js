@@ -32,6 +32,11 @@ var init_tool_schema = __esm({
           pattern: "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
           description: "Stable, lowercase, hyphen-separated. NEVER changes once published. URL-safe."
         },
+        extends: {
+          type: "string",
+          enum: ["community"],
+          description: `Brand-overlay marker \u2014 only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: scripts/use-profile.ts composes the profile view from community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the composed tool.json, so shells and the engine never see it. The base community/<id>/tool.json must exist \u2014 a missing base fails the profile build loudly (never a silent partial tool). v1 supports only "community" as the base pack.`
+        },
         name: {
           type: "string",
           description: "Human-readable display name."
@@ -830,6 +835,11 @@ var init_asset_schema = __esm({
           type: "string",
           description: "e.g. 'internal', 'cc-by-4.0', 'all-rights-reserved'."
         },
+        aiGenerated: {
+          type: "string",
+          enum: ["full", "partial"],
+          description: "Generative-AI provenance disclosure. 'full' = the asset is wholly AI-generated; 'partial' = it contains AI-generated elements (an AI-composited/edited work). Surfaces a violet 'GEN AI' pill in the catalog + a note in the asset details. Omit for human-made assets. Author this honestly \u2014 only for assets actually produced with a trained generative model."
+        },
         deprecated: {
           type: "boolean",
           default: false,
@@ -1142,6 +1152,57 @@ var init_catalog_integrity = __esm({
 });
 
 // engine/src/loader.ts
+function applyManifestI18n(manifest, overlay) {
+  for (const [key, value] of Object.entries(overlay)) {
+    if (typeof value !== "string" || !value) continue;
+    if (key === "name") {
+      manifest.name = value;
+      continue;
+    }
+    if (key === "description") {
+      manifest.description = value;
+      continue;
+    }
+    if (key === "a11yLabel") {
+      manifest.a11yLabel = value;
+      continue;
+    }
+    const m = /^inputs\.([^.]+)\.(.+)$/.exec(key);
+    if (!m) continue;
+    const [, inputId, rest] = m;
+    const input = manifest.inputs?.find((i) => i.id === inputId);
+    if (!input) continue;
+    if (rest === "label" || rest === "help" || rest === "placeholder" || rest === "section" || rest === "suffix") {
+      input[rest] = value;
+      continue;
+    }
+    const optMatch = /^options\.(.+)$/.exec(rest);
+    if (optMatch) {
+      const opt = input.options?.find((o) => o.value === optMatch[1]);
+      if (opt) opt.label = value;
+      continue;
+    }
+    if (rest === "addMenu.label") {
+      if (input.addMenu) input.addMenu.label = value;
+      continue;
+    }
+    const fieldMatch = /^fields\.([^.]+)\.(.+)$/.exec(rest);
+    if (fieldMatch) {
+      const [, fieldId, fieldRest] = fieldMatch;
+      const field = input.fields?.find((f) => f.id === fieldId);
+      if (!field) continue;
+      if (fieldRest === "label" || fieldRest === "help" || fieldRest === "placeholder") {
+        field[fieldRest] = value;
+        continue;
+      }
+      const fieldOptMatch = /^options\.(.+)$/.exec(fieldRest);
+      if (fieldOptMatch) {
+        const fieldOpt = field.options?.find((o) => o.value === fieldOptMatch[1]);
+        if (fieldOpt) fieldOpt.label = value;
+      }
+    }
+  }
+}
 async function assertEnvelopeTrusted(integrity) {
   let pending = envelopeTrust.get(integrity.envelope);
   if (!pending) {
@@ -1193,6 +1254,13 @@ async function loadTool(toolId, fetchFile, opts = {}) {
       `Manifest id "${manifest.id}" doesn't match directory "${toolId}"`,
       []
     );
+  }
+  if (opts.lang && opts.lang !== "en" && !integrity) {
+    try {
+      const overlayText = await fetchFile(`${toolId}/i18n/${opts.lang}.json`);
+      applyManifestI18n(manifest, JSON.parse(overlayText));
+    } catch {
+    }
   }
   const declared = manifest.render?.formats ?? [];
   const textExts = ["ics", "vcf", "csv", "md"].filter((ext) => declared.includes(ext));
@@ -1285,6 +1353,12 @@ var init_loader = __esm({
 });
 
 // engine/src/brand-derive.ts
+function linearSrgbToOklab(r, g, b) {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return lmsToOklab(l, m, s);
+}
 function oklabToLinearSrgb(L, a, b) {
   const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
   const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
@@ -1311,6 +1385,15 @@ function labToOklch(L, a, b) {
   const [X, Y, Z] = apply3(D50_TO_D65, xr * D50_WHITE[0], yr * D50_WHITE[1], zr * D50_WHITE[2]);
   const [l, m, s] = apply3(XYZ_TO_LMS, X, Y, Z);
   return oklabToOklch(...lmsToOklab(Math.cbrt(l), Math.cbrt(m), Math.cbrt(s)));
+}
+function parseHex(s) {
+  let h = String(s).trim().toLowerCase();
+  if (!h.startsWith("#")) return null;
+  h = h.slice(1);
+  if (h.length === 3 || h.length === 4) h = [...h].map((c) => c + c).join("");
+  if (h.length !== 6 && h.length !== 8 || /[^0-9a-f]/.test(h)) return null;
+  const n2 = (i) => parseInt(h.slice(i, i + 2), 16);
+  return [n2(0), n2(2), n2(4), h.length === 8 ? n2(6) / 255 : 1];
 }
 function parseComponent(tok) {
   if (tok.toLowerCase() === "none") return { n: 0, pct: false };
@@ -1361,6 +1444,16 @@ function parseOklch(s) {
   if (alpha2 != null && alpha2 < 1) out.alpha = alpha2;
   return out;
 }
+function hexToOklch(hex) {
+  const rgba = parseHex(hex);
+  if (!rgba) return null;
+  const [r, g, b, a] = rgba;
+  const out = oklabToOklch(
+    ...linearSrgbToOklab(srgbToLinear(r / 255), srgbToLinear(g / 255), srgbToLinear(b / 255))
+  );
+  if (a < 1) out.alpha = a;
+  return out;
+}
 function oklchToHex(c) {
   const L = clamp01(c.l);
   const h = normHue(c.h);
@@ -1381,7 +1474,22 @@ function oklchToHex(c) {
   const base = `#${byte(rgb[0])}${byte(rgb[1])}${byte(rgb[2])}`;
   return c.alpha != null && c.alpha < 1 ? base + Math.round(clamp01(c.alpha) * 255).toString(16).padStart(2, "0") : base;
 }
-var clamp01, normHue, apply3, linearToSrgb, lmsToOklab, D50_WHITE, D50_TO_D65, XYZ_TO_LMS, inSrgbGamut;
+function wcagLuminance(hex) {
+  const rgba = parseHex(hex);
+  if (!rgba) return null;
+  const lin = (v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * lin(rgba[0]) + 0.7152 * lin(rgba[1]) + 0.0722 * lin(rgba[2]);
+}
+function contrastRatio(aHex, bHex) {
+  const la = wcagLuminance(aHex);
+  const lb = wcagLuminance(bHex);
+  if (la == null || lb == null) return NaN;
+  return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+}
+var clamp01, normHue, apply3, srgbToLinear, linearToSrgb, lmsToOklab, D50_WHITE, D50_TO_D65, XYZ_TO_LMS, inSrgbGamut;
 var init_brand_derive = __esm({
   "engine/src/brand-derive.ts"() {
     "use strict";
@@ -1392,6 +1500,7 @@ var init_brand_derive = __esm({
       m[3] * x + m[4] * y + m[5] * z,
       m[6] * x + m[7] * y + m[8] * z
     ];
+    srgbToLinear = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
     linearToSrgb = (c) => c <= 31308e-7 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
     lmsToOklab = (l, m, s) => [
       0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
@@ -1489,7 +1598,7 @@ function buildMergedMap(doc, theme) {
 }
 function resolveAliases(map) {
   const resolving = /* @__PURE__ */ new Set();
-  function resolve2(path) {
+  function resolve3(path) {
     const e = map.get(path);
     if (!e) return void 0;
     if (e._done) return e.value;
@@ -1498,7 +1607,7 @@ function resolveAliases(map) {
     if (isAlias(e.value)) {
       const target = aliasPath(e.value);
       if (target != null) {
-        const tv = resolve2(target);
+        const tv = resolve3(target);
         if (tv !== void 0) {
           e.value = tv;
           if (e.type == null) {
@@ -1507,12 +1616,23 @@ function resolveAliases(map) {
           }
         }
       }
+    } else if (e.type === "gradient" && Array.isArray(e.value)) {
+      let changed = false;
+      const stops = e.value.map((s) => {
+        if (!isRecord(s) || !isAlias(s.color)) return s;
+        const target = aliasPath(s.color);
+        const tv = target != null ? resolve3(target) : void 0;
+        if (tv === void 0 || isAlias(tv)) return s;
+        changed = true;
+        return { ...s, color: tv };
+      });
+      if (changed) e.value = stops;
     }
     e._done = true;
     resolving.delete(path);
     return e.value;
   }
-  for (const path of [...map.keys()]) resolve2(path);
+  for (const path of [...map.keys()]) resolve3(path);
   for (const e of map.values()) delete e._done;
   return map;
 }
@@ -1842,7 +1962,8 @@ function summarizeInputs(model, { maxValueLen = 48, maxEntries = 24 } = {}) {
     let s = String(v).trim();
     if (!s) continue;
     if (item.unit && typeof v === "number") s += ` ${item.unit}`;
-    if (s.length > maxValueLen) s = s.slice(0, Math.max(1, maxValueLen - 1)) + "\u2026";
+    const cap = item.type === "text" || item.type === "longtext" ? TEXT_VALUE_CAP : maxValueLen;
+    if (s.length > cap) s = s.slice(0, Math.max(1, cap - 1)) + "\u2026";
     out[item.id] = s;
   }
   return out;
@@ -1857,7 +1978,7 @@ function flattenValue(v) {
   if (!isTokenValue(v)) return v;
   return typeof v.value === "string" ? v.value : "";
 }
-var DEFAULT_FILE_MAX_BYTES, SUMMARISABLE_TYPES;
+var DEFAULT_FILE_MAX_BYTES, SUMMARISABLE_TYPES, TEXT_VALUE_CAP;
 var init_inputs = __esm({
   "engine/src/inputs.ts"() {
     "use strict";
@@ -1865,6 +1986,7 @@ var init_inputs = __esm({
     DEFAULT_FILE_MAX_BYTES = 100 * 1024 * 1024;
     SUMMARISABLE_TYPES = /* @__PURE__ */ new Set([
       "text",
+      "longtext",
       "number",
       "boolean",
       "color",
@@ -1874,6 +1996,7 @@ var init_inputs = __esm({
       "time",
       "datetime-local"
     ]);
+    TEXT_VALUE_CAP = 4e3;
   }
 });
 
@@ -2071,10 +2194,10 @@ async function resolveNestedRenders(tool, model, extras, host, composeStack = []
       inputs[k] = typeof v === "string" ? hydrate(v, ctx, { raw: true }) : v;
     }
     const key = composeKey(spec.tool, inputs, spec.format, spec.width, spec.height);
-    const cached = memo.get(spec.id);
-    if (cached && cached.key === key) {
-      out[spec.id] = cached.ref;
-      ctx[spec.id] = cached.ref;
+    const cached2 = memo.get(spec.id);
+    if (cached2 && cached2.key === key) {
+      out[spec.id] = cached2.ref;
+      ctx[spec.id] = cached2.ref;
       continue;
     }
     try {
@@ -2104,12 +2227,12 @@ async function resolveNestedRenders(tool, model, extras, host, composeStack = []
   return out;
 }
 function withTimeout(promise, ms, toolId) {
-  return new Promise((resolve2, reject) => {
+  return new Promise((resolve3, reject) => {
     const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
     Promise.resolve(promise).then(
       (v) => {
         clearTimeout(t);
-        resolve2(v);
+        resolve3(v);
       },
       (e) => {
         clearTimeout(t);
@@ -2216,6 +2339,65 @@ var init_tool_url = __esm({
     FORMAT_EXT = { png: "png", jpg: "jpg", jpeg: "jpg", webp: "webp", svg: "svg", pdf: "pdf", webm: "webm", mp4: "mp4", gif: "gif", apng: "apng" };
     APP_ROUTES = /* @__PURE__ */ new Set(["tool", "pro", "platform", "capabilities", "profile", "gallery"]);
     MAX_URL = 4096;
+  }
+});
+
+// engine/src/bake.ts
+function assertComposeStack(stack, toolId, maxDepth = MAX_COMPOSE_DEPTH) {
+  const path = [...stack, toolId];
+  if (stack.includes(toolId)) {
+    throw new ComposeGuardError("cycle", path, `cycle ${path.join(" \u2192 ")}`);
+  }
+  if (stack.length >= maxDepth) {
+    throw new ComposeGuardError("depth", path, `max depth ${maxDepth} (${path.join(" \u2192 ")})`);
+  }
+}
+function isBakedRef(v) {
+  if (!v || typeof v !== "object") return false;
+  const meta = v.meta;
+  return !!meta && typeof meta === "object" && meta.baked === true;
+}
+function assetIdForUrl(ref) {
+  if (isBakedRef(ref) && typeof ref.meta?.bakedFrom === "string") return ref.meta.bakedFrom;
+  return ref.id;
+}
+function blocksForUrl(rows) {
+  if (!Array.isArray(rows)) return rows;
+  let changed = false;
+  const out = rows.map((row) => {
+    if (!row || typeof row !== "object") return row;
+    const rec = row;
+    let next = null;
+    for (const [k, v] of Object.entries(rec)) {
+      if (!isBakedRef(v)) continue;
+      const id = assetIdForUrl(v);
+      (next ??= { ...rec })[k] = { source: isToolUrl(id) ? "remote" : "library", id, _unresolved: true };
+    }
+    if (next) {
+      changed = true;
+      return next;
+    }
+    return row;
+  });
+  return changed ? out : rows;
+}
+var MAX_COMPOSE_DEPTH, ComposeGuardError;
+var init_bake = __esm({
+  "engine/src/bake.ts"() {
+    "use strict";
+    init_tool_url();
+    MAX_COMPOSE_DEPTH = 3;
+    ComposeGuardError = class extends Error {
+      code;
+      /** The offending compose path, ancestors first, the rejected tool last. */
+      path;
+      constructor(code, path, message) {
+        super(message);
+        this.name = "ComposeGuardError";
+        this.code = code;
+        this.path = path;
+      }
+    };
   }
 });
 
@@ -3938,6 +4120,10 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let liveUnsub = null;
   let framePending = false;
   const isLive = () => liveUnsub != null;
+  let liveCameraShown = false;
+  let recordedCamera = false;
+  let recordedMic = false;
+  const toolCaps = new Set(tool.manifest.capabilities ?? []);
   let meterUnsub = null;
   let stopMeterSource = null;
   let levelPending = false;
@@ -4004,6 +4190,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
     // instead of a silently-blank canvas. Empty when every hook ran cleanly.
     hookErrors,
     async setInput(id, value) {
+      const priorType = model.find((i) => i.id === id)?.type;
+      if (priorType === "asset" || priorType === "file" || priorType === "url") liveCameraShown = false;
       model = updateInput(model, id, value);
       const seq = ++setInputSeq;
       emit();
@@ -4062,6 +4250,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         Promise.resolve(onFrame({ frame, model: modelForHooks(model), host })).then((patch) => {
           if (patch && liveUnsub) {
             ({ model, extras } = mergePatch(model, extras, patch, inputIds));
+            liveCameraShown = true;
             emit();
           }
         }).catch((e) => host.log("warn", `onFrame ${e.message}`, { toolId: tool.manifest.id })).finally(() => {
@@ -4131,6 +4320,12 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       recordSession = null;
       const blob = await session.stop();
+      if (/^video\//i.test(blob.type)) {
+        recordedCamera = true;
+        if (toolCaps.has("microphone")) recordedMic = true;
+      } else if (/^audio\//i.test(blob.type)) {
+        recordedMic = true;
+      }
       return { blob, mimeType: blob.type };
     },
     cancelRecording() {
@@ -4218,7 +4413,18 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
         }
         if (prepared.length) ingredients = prepared;
       }
-      const c2paInputs = opts2.c2pa && !isOnDevice ? summarizeInputs(model) : void 0;
+      const stampProvenance = opts2.c2pa && !isOnDevice;
+      const c2paInputs = stampProvenance ? summarizeInputs(model) : void 0;
+      const capCamera = liveCameraShown || recordedCamera;
+      const c2paCapture = stampProvenance && (capCamera || recordedMic) ? { ...capCamera ? { camera: true } : {}, ...recordedMic ? { microphone: true } : {} } : void 0;
+      let c2paTextAdded;
+      if (stampProvenance && ingredients?.length) {
+        const textItem = model.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && String(flattenValue(i.value) ?? "").trim());
+        if (textItem) {
+          const s = String(flattenValue(textItem.value)).trim();
+          c2paTextAdded = { sample: s.length > 48 ? s.slice(0, 47) + "\u2026" : s };
+        }
+      }
       let blob;
       try {
         blob = await host.export.render(renderedNode, format, {
@@ -4227,6 +4433,8 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
           meta,
           ...ingredients ? { ingredients } : {},
           ...c2paInputs && Object.keys(c2paInputs).length ? { c2paInputs } : {},
+          ...c2paCapture ? { c2paCapture } : {},
+          ...c2paTextAdded ? { c2paTextAdded } : {},
           // Tag output with a colour profile by default (sRGB for raster, the
           // default press condition for CMYK PDF). Thumbnails stay untagged.
           colorProfile: opts2.colorProfile ?? (opts2.thumbnail ? "none" : "srgb"),
@@ -4289,8 +4497,14 @@ function inputNeedsAssetResolve(input) {
 }
 async function resolveAssetRefs(model, host, dropped = [], composeStack = [], toolId = "") {
   if (!model.some(inputNeedsAssetResolve)) return model;
-  const resolveOne = async (id, inputId, label) => {
+  const resolveOne = async (value, id, inputId, label) => {
     try {
+      if (isBakedRef(value)) {
+        const ref = value;
+        if (typeof ref.url === "string" && ref.url.startsWith("data:")) return ref;
+        dropped.push({ inputId, label, id, reason: "baked-bytes-lost" });
+        return null;
+      }
       if (isToolUrl(id)) {
         const ref = host.compose?.renderUrl ? await withTimeout2(
           host.compose.renderUrl(id, { _stack: [...composeStack, toolId] }),
@@ -4298,13 +4512,13 @@ async function resolveAssetRefs(model, host, dropped = [], composeStack = [], to
           id
         ) : null;
         if (ref) return ref;
-        dropped.push({ inputId, label, id });
+        dropped.push({ inputId, label, id, reason: "render-failed" });
         return null;
       }
       return await host.assets.get(id);
     } catch (e) {
       host.log("warn", `Failed to resolve asset ${id}`, { error: String(e) });
-      dropped.push({ inputId, label, id });
+      dropped.push({ inputId, label, id, reason: "not-found" });
       return null;
     }
   };
@@ -4314,7 +4528,7 @@ async function resolveAssetRefs(model, host, dropped = [], composeStack = [], to
       if (input.type === "asset") {
         const id = assetRefId(v);
         if (id !== null) {
-          return { ...input, value: await resolveOne(id, input.id, input.label || input.id) };
+          return { ...input, value: await resolveOne(v, id, input.id, input.label || input.id) };
         }
       }
       if (input.type === "blocks" && Array.isArray(v)) {
@@ -4327,7 +4541,7 @@ async function resolveAssetRefs(model, host, dropped = [], composeStack = [], to
           for (const fid of assetFields) {
             const id = assetRefId(rec[fid]);
             if (id !== null) {
-              next[fid] = await resolveOne(id, `${input.id}.${fid}`, input.label || input.id);
+              next[fid] = await resolveOne(rec[fid], id, `${input.id}.${fid}`, input.label || input.id);
             }
           }
           return next;
@@ -4388,12 +4602,12 @@ async function loadHooks(tool, host) {
   };
 }
 function withTimeout2(promise, ms, toolId) {
-  return new Promise((resolve2, reject) => {
+  return new Promise((resolve3, reject) => {
     const t = setTimeout(() => reject(new Error(`timed out after ${ms}ms (${toolId})`)), ms);
     Promise.resolve(promise).then(
       (v) => {
         clearTimeout(t);
-        resolve2(v);
+        resolve3(v);
       },
       (e) => {
         clearTimeout(t);
@@ -4427,6 +4641,7 @@ var init_runtime = __esm({
     init_tokens();
     init_compose();
     init_tool_url();
+    init_bake();
     init_c2pa_verify();
     HOOK_BUDGET_MS = {
       onInit: 5e3,
@@ -4475,6 +4690,70 @@ var init_units = __esm({
     PER_INCH = { px: 96, pt: 72, pc: 6, mm: 25.4, cm: 2.54, in: 1 };
     isUnit = (u) => Object.hasOwn(PER_INCH, u);
     toInches = (dim) => dim.value / PER_INCH[dim.unit];
+  }
+});
+
+// engine/src/lang.ts
+function isLang(v) {
+  return LANGS.includes(v);
+}
+function normalizeLang(raw) {
+  if (!raw) return null;
+  const v = raw.trim().toLowerCase();
+  if (isLang(v)) return v;
+  return ALIASES[v] ?? null;
+}
+var LANGS, ALIASES;
+var init_lang = __esm({
+  "engine/src/lang.ts"() {
+    "use strict";
+    LANGS = ["en", "zh", "es", "hi", "bn", "ur", "ar", "fr", "pt", "de", "ja", "it", "vi", "tl", "ko", "id", "ms", "nl", "ro", "sv", "cs", "no", "zh-hant", "bg"];
+    ALIASES = {
+      cn: "zh",
+      "zh-cn": "zh",
+      "zh-hans": "zh",
+      "zh-hans-cn": "zh",
+      jp: "ja",
+      br: "pt",
+      "pt-br": "pt",
+      pt_br: "pt",
+      tw: "zh-hant",
+      hk: "zh-hant",
+      "zh-tw": "zh-hant",
+      "zh-hk": "zh-hant",
+      "zh-hant-tw": "zh-hant",
+      hant: "zh-hant",
+      my: "ms",
+      // Malaysia's country code, commonly typed for "Malaysian"
+      fil: "tl",
+      // Filipino — the modern standardized register of Tagalog
+      // Regioned Arabic tags (browser navigator.language values people paste into
+      // ?lang=) — all one MSA UI register here, so they collapse to the base tag.
+      "ar-sa": "ar",
+      "ar-eg": "ar",
+      "ar-ae": "ar",
+      "hi-in": "hi",
+      // regioned Hindi tag (navigator.language) — one standard-Hindi register here
+      // Regioned Bengali tags — one standard-Bengali (cholito) register covers both.
+      "bn-bd": "bn",
+      "bn-in": "bn",
+      // Regioned Urdu tags — one Modern Standard Urdu register covers both.
+      "ur-pk": "ur",
+      "ur-in": "ur",
+      // Indonesian: `in` is the DEPRECATED ISO 639-1 code (pre-1989) that Android's
+      // Java locale layer still emits (navigator.language 'in'/'in-ID' in WebViews).
+      // It reads like India's country code, but India has no single language, so the
+      // standards-based reading wins.
+      in: "id",
+      "in-id": "id",
+      "id-id": "id",
+      nb: "no",
+      // Bokmål — the specific written standard this UI register actually uses
+      nn: "no",
+      // Nynorsk — not a distinct UI translation, collapses to the same Norwegian tag
+      kr: "ko"
+      // South Korea's country code, commonly typed for "Korean"
+    };
   }
 });
 
@@ -4555,7 +4834,9 @@ function parseUrlState(searchParams, manifest) {
     // Content Credentials on/off + ephemeral-cert lifetime (see header).
     c2pa: parseC2pa(params.get("c2pa")),
     // Pixel-watermark opt-in for raster exports (see header).
-    imprint: parseImprint(params.get("imprint"))
+    imprint: parseImprint(params.get("imprint")),
+    // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
+    lang: normalizeLang(params.get("lang"))
   };
 }
 function serializeUrlState(model, opts = {}) {
@@ -4590,6 +4871,7 @@ function serializeUrlState(model, opts = {}) {
   if (opts.c2pa === false) params.set("c2pa", "off");
   else if (opts.c2pa) params.set("c2pa", [7, 30, 90, 365].includes(Number(opts.c2paDays)) ? String(opts.c2paDays) : "1");
   if (opts.imprint) params.set("imprint", "1");
+  if (opts.lang && opts.lang !== "en") params.set("lang", opts.lang);
   return params.toString();
 }
 function coerceFromString(input, raw) {
@@ -4623,9 +4905,12 @@ function coerceFromString(input, raw) {
 }
 function coerceToString(input, value) {
   if (input.type === "boolean") return value ? "1" : "0";
-  if (input.type === "asset" && value && typeof value === "object") return value.id;
+  if (input.type === "asset" && value && typeof value === "object") {
+    const ref = value;
+    return assetIdForUrl(ref);
+  }
   if (input.type === "color" && isTokenValue(value)) return value.ref;
-  if (input.type === "blocks") return JSON.stringify(value ?? []);
+  if (input.type === "blocks") return JSON.stringify(blocksForUrl(value) ?? []);
   return String(value);
 }
 function decodeBlocksCompact(str, fields) {
@@ -4664,7 +4949,9 @@ var init_url_mode = __esm({
     init_units();
     init_tokens();
     init_tool_url();
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "full", "options", "nostage", "z", "zx"]);
+    init_bake();
+    init_lang();
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "lang", "full", "options", "nostage", "z", "zx"]);
   }
 });
 
@@ -5416,6 +5703,214 @@ var init_eps = __esm({
   }
 });
 
+// engine/src/color-tools.ts
+function toOklch(input) {
+  const s = String(input).trim();
+  return s.startsWith("#") ? hexToOklch(s) : parseOklch(s);
+}
+function oklchToLab(c) {
+  const hr = c.h * Math.PI / 180;
+  return [c.l, c.c * Math.cos(hr), c.c * Math.sin(hr)];
+}
+function labToOklch2(L, a, b) {
+  const c = Math.hypot(a, b);
+  return { l: L, c, h: c < 1e-7 ? 0 : normHue2(Math.atan2(b, a) * 180 / Math.PI) };
+}
+function toLab(input) {
+  const c = toOklch(input);
+  return c ? oklchToLab(c) : null;
+}
+function deltaEOk(aColor, bColor) {
+  const a = toLab(aColor);
+  const b = toLab(bColor);
+  if (!a || !b) return NaN;
+  return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+}
+function toRgbBytes(input) {
+  const s = String(input).trim();
+  if (s.startsWith("#")) return parseHex(s);
+  const c = parseOklch(s);
+  return c ? parseHex(oklchToHex(c)) : null;
+}
+function apcaY(r, g, b) {
+  const { mainTRC } = SA98G.exponents;
+  const { sRco, sGco, sBco } = SA98G.colorSpace;
+  const y = sRco * (r / 255) ** mainTRC + sGco * (g / 255) ** mainTRC + sBco * (b / 255) ** mainTRC;
+  const { blkThrs, blkClmp } = SA98G.clamps;
+  return y > blkThrs ? y : y + (blkThrs - y) ** blkClmp;
+}
+function apcaContrast(textColor, bgColor) {
+  const txt = toRgbBytes(textColor);
+  const bg = toRgbBytes(bgColor);
+  if (!txt || !bg) return NaN;
+  const a = txt[3];
+  const t = a >= 1 ? [txt[0], txt[1], txt[2]] : [txt[0] * a + bg[0] * (1 - a), txt[1] * a + bg[1] * (1 - a), txt[2] * a + bg[2] * (1 - a)];
+  const ytxt = apcaY(t[0], t[1], t[2]);
+  const ybg = apcaY(bg[0], bg[1], bg[2]);
+  const { normBG, normTXT, revTXT, revBG } = SA98G.exponents;
+  const { loClip, deltaYmin } = SA98G.clamps;
+  const { scaleBoW, loBoWoffset, scaleWoB, loWoBoffset } = SA98G.scalers;
+  if (Math.abs(ybg - ytxt) < deltaYmin) return 0;
+  let sapc;
+  if (ybg > ytxt) {
+    sapc = (ybg ** normBG - ytxt ** normTXT) * scaleBoW;
+    return sapc < loClip ? 0 : (sapc - loBoWoffset) * 100;
+  }
+  sapc = (ybg ** revBG - ytxt ** revTXT) * scaleWoB;
+  return sapc > -loClip ? 0 : (sapc + loWoBoffset) * 100;
+}
+function bezierAt(points, t) {
+  const n2 = points.length - 1;
+  if (n2 === 0) return points[0];
+  const row = [1];
+  for (let i = 1; i <= n2; i++) row.push(row[i - 1] * (n2 - i + 1) / i);
+  const out = [0, 0, 0];
+  for (let i = 0; i <= n2; i++) {
+    const w = row[i] * (1 - t) ** (n2 - i) * t ** i;
+    out[0] += w * points[i][0];
+    out[1] += w * points[i][1];
+    out[2] += w * points[i][2];
+  }
+  return out;
+}
+function rampOklab(stops, n2, opts = {}) {
+  if (!Array.isArray(stops) || stops.length === 0) {
+    throw new Error("rampOklab: at least one stop is required");
+  }
+  const points = stops.map((s, i) => {
+    const lab = toLab(s);
+    if (!lab) throw new Error(`rampOklab: unparseable stop ${i}: ${JSON.stringify(s)}`);
+    return lab;
+  });
+  const count = Math.floor(n2);
+  if (count <= 0) return [];
+  const L0 = points[0][0];
+  const L1 = points[points.length - 1][0];
+  const correct = opts.correctLightness === true && Math.abs(L1 - L0) > 1e-6;
+  const tFor = (t) => {
+    if (!correct) return t;
+    const ideal = L0 + (L1 - L0) * t;
+    let lo = 0;
+    let hi = 1;
+    let mid = t;
+    for (let i = 0; i < 20; i++) {
+      const dl = bezierAt(points, mid)[0] - ideal;
+      if (Math.abs(dl) <= 1e-4) break;
+      if (dl * Math.sign(L1 - L0) > 0) hi = mid;
+      else lo = mid;
+      mid = (lo + hi) / 2;
+    }
+    return mid;
+  };
+  const out = [];
+  for (let i = 0; i < count; i++) {
+    const t = count === 1 ? 0 : i / (count - 1);
+    const [L, a, b] = bezierAt(points, tFor(t));
+    out.push(oklchToHex(labToOklch2(clamp(L, 0, 1), a, b)));
+  }
+  return out;
+}
+function classBreaks(data, mode, n2) {
+  const values = (Array.isArray(data) ? data : []).filter((v) => Number.isFinite(v));
+  if (values.length === 0) return [];
+  const bins = Math.max(1, Math.floor(n2));
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  if (mode === "e") {
+    return Array.from({ length: bins + 1 }, (_, i) => min + (max - min) * i / bins);
+  }
+  if (mode === "l") {
+    if (min <= 0) {
+      throw new Error("classBreaks: log mode needs every value > 0");
+    }
+    const lmin = Math.log10(min);
+    const lmax = Math.log10(max);
+    return Array.from({ length: bins + 1 }, (_, i) => 10 ** (lmin + (lmax - lmin) * i / bins));
+  }
+  const sorted = [...values].sort((a, b) => a - b);
+  return Array.from({ length: bins + 1 }, (_, i) => {
+    const pos = (sorted.length - 1) * i / bins;
+    const lo = Math.floor(pos);
+    const hi = Math.min(sorted.length - 1, lo + 1);
+    return sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo);
+  });
+}
+function distinctColors(n2, opts = {}) {
+  const count = Math.floor(n2);
+  if (count <= 0) return [];
+  const anchor = opts.anchorHex != null ? toOklch(opts.anchorHex) : null;
+  const minDeltaE = Number.isFinite(opts.minDeltaE) ? Math.max(0, opts.minDeltaE) : 0.02;
+  const baseL = clamp(anchor?.l ?? 0.65, 0.35, 0.8);
+  const baseC = clamp(anchor?.c ?? 0.12, 0.08, 0.2);
+  const baseH = anchor?.h ?? 250;
+  const chosen = [];
+  const add = (c) => {
+    const hex = oklchToHex(c);
+    const lab = oklchToLab(hexToOklch(hex));
+    chosen.push({ hex, lab });
+  };
+  add(anchor ?? { l: baseL, c: baseC, h: baseH });
+  const pool = [];
+  const seen = new Set(chosen.map((c) => c.hex));
+  for (const dc of [1, 0.55]) {
+    for (const dl of [0, -0.14, 0.14]) {
+      for (let k = 0; k < 24; k++) {
+        const c = {
+          l: clamp(baseL + dl, 0.25, 0.9),
+          c: baseC * dc,
+          h: normHue2(baseH + k * 15)
+        };
+        const hex = oklchToHex(c);
+        if (seen.has(hex)) continue;
+        seen.add(hex);
+        pool.push({ hex, lab: oklchToLab(hexToOklch(hex)) });
+      }
+    }
+  }
+  const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+  while (chosen.length < count && pool.length > 0) {
+    let bestIdx = -1;
+    let bestMin = -1;
+    for (let i = 0; i < pool.length; i++) {
+      let minD = Infinity;
+      for (const c of chosen) minD = Math.min(minD, dist(pool[i].lab, c.lab));
+      if (minD > bestMin) {
+        bestMin = minD;
+        bestIdx = i;
+      }
+    }
+    if (bestIdx < 0 || bestMin < minDeltaE) break;
+    chosen.push(pool[bestIdx]);
+    pool.splice(bestIdx, 1);
+  }
+  return chosen.slice(0, count).map((c) => c.hex);
+}
+function makeColorApi() {
+  return {
+    deltaE: deltaEOk,
+    apca: apcaContrast,
+    contrast: contrastRatio,
+    ramp: rampOklab,
+    breaks: classBreaks,
+    distinct: distinctColors
+  };
+}
+var normHue2, clamp, SA98G;
+var init_color_tools = __esm({
+  "engine/src/color-tools.ts"() {
+    "use strict";
+    init_brand_derive();
+    normHue2 = (h) => (h % 360 + 360) % 360;
+    clamp = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
+    SA98G = {
+      exponents: { mainTRC: 2.4, normBG: 0.56, normTXT: 0.57, revTXT: 0.62, revBG: 0.65 },
+      colorSpace: { sRco: 0.2126729, sGco: 0.7151522, sBco: 0.072175 },
+      clamps: { blkThrs: 0.022, blkClmp: 1.414, loClip: 0.1, deltaYmin: 5e-4 },
+      scalers: { scaleBoW: 1.14, loBoWoffset: 0.027, scaleWoB: 1.14, loWoBoffset: 0.027 }
+    };
+  }
+});
+
 // engine/src/icon-theme.ts
 function parseThemedAssetId(id) {
   if (typeof id !== "string" || id.includes("://")) return { baseId: id, theme: null };
@@ -5588,15 +6083,17 @@ var init_src = __esm({
     init_url_mode();
     init_url_pack();
     init_tool_url();
+    init_bake();
     init_units();
     init_svg_path();
     init_emf();
     init_eps();
     init_c2pa();
     init_tokens();
+    init_color_tools();
     init_icon_theme();
     init_photo_treatment();
-    ENGINE_VERSION = "1.32.0";
+    ENGINE_VERSION = "1.50.0";
   }
 });
 
@@ -5794,9 +6291,7 @@ import { readFile as readFile5 } from "node:fs/promises";
 // shells/cli/src/bridge.ts
 init_src();
 import { readFile as readFile3 } from "node:fs/promises";
-import { existsSync as existsSync2 } from "node:fs";
-import { join as join2, dirname as dirname2 } from "node:path";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
+import { join as join3 } from "node:path";
 
 // shells/web/src/bridge/pdf.ts
 var PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
@@ -5924,7 +6419,7 @@ async function canvasToJpeg(canvas, quality) {
   if (typeof canvas.convertToBlob === "function") {
     return canvas.convertToBlob({ type: "image/jpeg", quality });
   }
-  return new Promise((resolve2) => canvas.toBlob(resolve2, "image/jpeg", quality));
+  return new Promise((resolve3) => canvas.toBlob(resolve3, "image/jpeg", quality));
 }
 async function recodeJpeg(jpgBytes, { maxDim, quality, grayscale }) {
   let bmp;
@@ -6290,8 +6785,8 @@ async function buildRegistry() {
 }
 async function faceUrl(face) {
   if (face.staticUrl) return face.staticUrl;
-  const cached = sfntUrls.get(face.assetId);
-  if (cached) return cached;
+  const cached2 = sfntUrls.get(face.assetId);
+  if (cached2) return cached2;
   const pending = sfntPending.get(face.assetId);
   if (pending) return pending;
   const job = (async () => {
@@ -6692,7 +7187,18 @@ async function svgDomToIr(svgEl, ctx = {}) {
       segments: sub.segments.map((seg) => mapSeg(seg, place))
     }));
     if (!subpaths.length) return;
-    prims.push({ type: "path", subpaths, fill: rgbObj(rgb), stroke: null, fillRule: "nonzero" });
+    const strokeStr = prop(el, style, "stroke", null);
+    const strokeRgb = strokeStr ? parseColor(strokeStr) : null;
+    const strokeOpacity = m.elemOpacity * parseFloat(prop(el, style, "stroke-opacity", null) ?? prop(el, style, "opacity", null) ?? "1");
+    let stroke = null;
+    if (strokeRgb && strokeOpacity >= 0.01) {
+      const flatStroke = flatten(strokeRgb, strokeOpacity, bg);
+      const nonScaling = prop(el, style, "vector-effect", null) === "non-scaling-stroke";
+      const strokeMul = (nonScaling ? 1 : m.gAvg) * m.rAvg;
+      const strokeWidth = parseFloat(prop(el, style, "stroke-width", null) ?? cs?.strokeWidth ?? "1") * strokeMul;
+      stroke = flatStroke ? { ...rgbObj(flatStroke), width: Math.max(1, strokeWidth) } : null;
+    }
+    prims.push({ type: "path", subpaths, fill: rgbObj(rgb), stroke, fillRule: "nonzero" });
   }
   await visit(svgEl, { tx: 0, ty: 0, sX: 1, sY: 1 }, null);
   return { width: Math.round(canvasW), height: Math.round(canvasH), prims };
@@ -6713,19 +7219,36 @@ function safeComputed(fn, el) {
   }
 }
 
-// shells/cli/src/bridge.ts
-function resolveRepoRoot() {
-  const marker = (root) => existsSync2(join2(root, "catalog", "assets", "index.json"));
-  if (process.env.LOLLY_ROOT && marker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
-  const rel = join2(dirname2(fileURLToPath2(import.meta.url)), "..", "..", "..");
-  if (marker(rel)) return rel;
-  if (marker(process.cwd())) return process.cwd();
-  return rel;
+// packages/node-shell/src/repo-root.ts
+import { existsSync as existsSync2 } from "node:fs";
+import { join as join2, dirname as dirname2 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+function hasMarker(root) {
+  return existsSync2(join2(root, "catalog", "tools", "index.json")) || existsSync2(join2(root, "catalog", "assets", "index.json"));
 }
-var REPO_ROOT2 = resolveRepoRoot();
+var cached = null;
+function repoRoot() {
+  if (!cached) cached = resolve();
+  return cached;
+}
+function resolve() {
+  if (process.env.LOLLY_ROOT && hasMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
+  let dir = dirname2(fileURLToPath2(import.meta.url));
+  for (; ; ) {
+    if (hasMarker(dir)) return dir;
+    const parent = dirname2(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  if (hasMarker(process.cwd())) return process.cwd();
+  return join2(dirname2(fileURLToPath2(import.meta.url)), "..", "..", "..");
+}
+
+// shells/cli/src/bridge.ts
+var REPO_ROOT2 = repoRoot();
 async function createCliBridge({ profile = {}, dom } = {}) {
   const w = dom.window;
-  const assetCatalogPath = join2(REPO_ROOT2, "catalog", "assets", "index.json");
+  const assetCatalogPath = join3(REPO_ROOT2, "catalog", "assets", "index.json");
   const assetIndex = JSON.parse(await readFile3(assetCatalogPath, "utf8"));
   const assetById = new Map(assetIndex.assets.map((a) => [a.id, a]));
   const state = /* @__PURE__ */ new Map();
@@ -6752,7 +7275,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile3(join2(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile3(join3(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -6762,7 +7285,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile3(join2(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile3(join3(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -6772,7 +7295,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     tokensDocCache ??= (async () => {
       const asset = assetIndex.assets.find((a) => a.type === "tokens");
       if (!asset) return null;
-      return JSON.parse(await readFile3(join2(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+      return JSON.parse(await readFile3(join3(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
     })().catch(() => null);
     return tokensDocCache;
   }
@@ -6792,6 +7315,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     resolve: async (ref, opts = {}) => (await tokenSet(opts.theme)).resolve(ref),
     themes: async () => (await tokenSet()).themes()
   };
+  host.color = makeColorApi();
   host.assets = {
     async get(id) {
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
@@ -6800,7 +7324,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
       const fmt = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      const localPath = join2(REPO_ROOT2, fmt.url.replace(/^\//, ""));
+      const localPath = join3(REPO_ROOT2, fmt.url.replace(/^\//, ""));
       let buf = await readFile3(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt.format === "json") {
@@ -6964,14 +7488,12 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     }
   };
   host.pdf = createPdfAPI();
-  const composeFetchFile = async (p) => readFile3(join2(REPO_ROOT2, "tools", p), "utf8");
+  const composeFetchFile = async (p) => readFile3(join3(REPO_ROOT2, "tools", p), "utf8");
   host.compose = {
     async render(spec) {
       const { toolId, inputs = {}, format, width, height, unit, dpi, _stack = [] } = spec ?? {};
       if (typeof toolId !== "string" || !toolId) throw new Error("compose: missing toolId");
-      const path = [..._stack, toolId];
-      if (_stack.includes(toolId)) throw new Error(`cycle ${path.join(" \u2192 ")}`);
-      if (_stack.length >= 3) throw new Error(`max compose depth (${path.join(" \u2192 ")})`);
+      assertComposeStack(_stack, toolId);
       const childTool = await loadTool(toolId, composeFetchFile);
       const childRuntime = await createRuntime(childTool, host, inputs, { composeStack: _stack });
       const el = w.document.createElement("div");
@@ -7003,7 +7525,8 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       } catch {
         return null;
       }
-      const st = parseUrlState(parsed.query, childTool.manifest);
+      const query = await expandQuery(parsed.query);
+      const st = parseUrlState(query, childTool.manifest);
       const supported = (childTool.manifest.render?.formats ?? []).map((f) => String(f).toLowerCase());
       const norm = (f) => {
         const x = String(f || "").toLowerCase();
@@ -7030,7 +7553,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
         return null;
       }
       if (!ref) return null;
-      const q = new URLSearchParams(parsed.query);
+      const q = new URLSearchParams(query);
       for (const k of RESERVED) q.delete(k);
       if (width) q.set("w", String(width));
       if (height) q.set("h", String(height));
@@ -7039,7 +7562,12 @@ async function createCliBridge({ profile = {}, dom } = {}) {
         if (dpi) q.set("dpi", String(dpi));
       }
       const id = buildEmbedUrl({ toolId: parsed.toolId, format, query: q.toString() });
-      return { ...ref, id: id ?? ref.id };
+      if (!id) return null;
+      return {
+        ...ref,
+        id,
+        meta: { ...ref.meta || {}, tool: parsed.toolId, name: childTool.manifest.name ?? parsed.toolId, toolUrl: id }
+      };
     }
   };
   return host;
@@ -7158,7 +7686,7 @@ import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFile as readFile4, stat } from "node:fs/promises";
 import { existsSync as existsSync3 } from "node:fs";
-import { join as join3, resolve, extname, normalize } from "node:path";
+import { join as join4, resolve as resolve2, extname, normalize } from "node:path";
 var MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -7189,15 +7717,15 @@ async function webShellBase() {
   return (await served).base;
 }
 async function buildAndServe() {
-  const dist = process.env.LOLLY_WEB_DIST || join3(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync3(join3(dist, "index.html"))) {
-    if (!existsSync3(join3(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist = process.env.LOLLY_WEB_DIST || join4(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync3(join4(dist, "index.html"))) {
+    if (!existsSync3(join4(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync3(join3(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
+    if (!existsSync3(join4(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
   }
   return serveDist(dist);
 }
@@ -7213,17 +7741,17 @@ function buildWebShell() {
   });
 }
 function serveDist(dist) {
-  const root = resolve(dist);
+  const root = resolve2(dist);
   const server = createServer(async (req, res) => {
     try {
       const urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-      let filePath = resolve(root, "." + normalize(urlPath));
+      let filePath = resolve2(root, "." + normalize(urlPath));
       if (!filePath.startsWith(root)) {
         res.writeHead(403).end();
         return;
       }
       if (urlPath === "/" || !existsSync3(filePath) || !(await stat(filePath)).isFile()) {
-        filePath = join3(root, "index.html");
+        filePath = join4(root, "index.html");
       }
       const data = await readFile4(filePath);
       res.setHeader("Content-Type", MIME[extname(filePath)] ?? "application/octet-stream");
@@ -7792,7 +8320,7 @@ async function serverInstructions() {
 // services/mcp/src/resources.ts
 init_src();
 import { readFile as readFile6 } from "node:fs/promises";
-import { join as join4 } from "node:path";
+import { join as join5 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -7806,7 +8334,7 @@ async function tokensResource(uri) {
   const idx = JSON.parse(await readFile6(ASSET_INDEX, "utf8"));
   const tokenAsset = idx.assets.find((a) => a.type === "tokens");
   if (!tokenAsset) return { uri, mimeType: "application/json", text: JSON.stringify({ colors: [], note: "No tokens asset in catalog." }) };
-  const doc = JSON.parse(await readFile6(join4(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const doc = JSON.parse(await readFile6(join5(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -8165,7 +8693,7 @@ function readBody(req) {
   if (pre !== void 0 && pre !== null && typeof req.on !== "function") {
     return Promise.resolve(typeof pre === "string" || Buffer.isBuffer(pre) ? String(pre) : JSON.stringify(pre));
   }
-  return new Promise((resolve2, reject) => {
+  return new Promise((resolve3, reject) => {
     let size = 0;
     const chunks = [];
     req.on("data", (c) => {
@@ -8177,7 +8705,7 @@ function readBody(req) {
       }
       chunks.push(c);
     });
-    req.on("end", () => resolve2(Buffer.concat(chunks).toString("utf8")));
+    req.on("end", () => resolve3(Buffer.concat(chunks).toString("utf8")));
     req.on("error", reject);
   });
 }

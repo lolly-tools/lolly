@@ -98,6 +98,7 @@ export {
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode,
   figmaNodesToNodes, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
+export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder } from './pdf-map.ts';
 export { pdfNodesToSvg, windowPdfSvg } from './pdf-svg.ts';
@@ -578,4 +579,18 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // sortedLangs(LangSort)/LangSort — the shared language-picker orderings used
 // by every language menu (web shell + /info site): 'speakers' desc = default,
 // az = nativeName A–Z. No bridge signature change.
-export const ENGINE_VERSION = '1.49.0';
+// 1.50.0 — additive: design-map de-brands. mapFontFamily/mapWeight/nodeToBox/
+// finalizeBoxes accept optional DesignMapOptions ({ fonts: { defaultFamily,
+// monoFamily, monoMaxWeight }, seedColors: { boxBg, textFg, imageBg } }) so the
+// SHELL supplies the target tool's font vocabulary + addKinds seed colours from
+// the active brand pack; the engine's built-in defaults are the neutral
+// lolly-start values ('sans'/'mono', mono capped at 800). Box.font widens
+// 'SUSE'|'SUSE Mono' → string. Existing callers compile unchanged (options are
+// optional); un-threaded callers now emit the neutral vocabulary instead of
+// SUSE's. The PPTX theme (pptx.ts themeXml) likewise drops the hardcoded brand
+// accents for lolly-start-spectrum neutrals (accent1-3 + hlink; theme-picker
+// data only — rendered shapes carry explicit colours). Brand hex values now
+// grep clean of engine/src; the frozen DTCG vendor key 'com.suse.lolly'
+// (tokens.ts TOKEN_EXT / brand-derive.ts VENDOR_EXT) deliberately stays — it
+// is a permanent serialization contract, renameable only via dual-read.
+export const ENGINE_VERSION = '1.50.0';

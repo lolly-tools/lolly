@@ -12,6 +12,11 @@
       "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
       "description": "Stable, lowercase, hyphen-separated. NEVER changes once published. URL-safe."
     },
+    "extends": {
+      "type": "string",
+      "enum": ["community"],
+      "description": "Brand-overlay marker — only valid on a tool inside a brand pack (brands/<brand>/tools/<id>/), never on a community tool. Declares this directory a per-file OVERLAY of the base pack's tool with the SAME id: scripts/use-profile.ts composes the profile view from community/<id>/ plus this dir (overlay file wins on filename collision, recursing one level into subdirs such as i18n/ and assets/) and strips this field from the composed tool.json, so shells and the engine never see it. The base community/<id>/tool.json must exist — a missing base fails the profile build loudly (never a silent partial tool). v1 supports only \"community\" as the base pack."
+    },
     "name": {
       "type": "string",
       "description": "Human-readable display name."

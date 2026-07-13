@@ -1,0 +1,5 @@
+# api/**/*.js are GENERATED esbuild bundles (scripts/build-mcp-fn.ts /
+# scripts/build-ca-fn.ts), committed only so Vercel sees them at
+# function-detection time. Never hand-edit — CI regenerates and fails on drift.
+# (The sibling .js.map files are gitignored, so no entry for them.)
+api/**/*.js linguist-generated=true

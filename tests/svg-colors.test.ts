@@ -3,13 +3,13 @@
  * Unit tests for engine/src/svg-colors.ts — extractSvgColors(), the pure,
  * DOM-free scan that pulls the distinct colours out of raw SVG source text.
  *
- * Run with: node --test engine/src/svg-colors.test.ts
+ * Run with: node --test tests/svg-colors.test.ts
  */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { extractSvgColors } from './svg-colors.ts';
+import { extractSvgColors } from '../engine/src/svg-colors.ts';
 
 // ── presentation attributes ──────────────────────────────────────────────────
 

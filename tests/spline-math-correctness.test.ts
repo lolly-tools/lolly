@@ -17,13 +17,22 @@ import { rampOklab, hexToOklch, deltaEOk } from '../engine/src/index.ts';
 
 const HEX6 = /^#[0-9a-f]{6}$/;
 
-// Helper to measure execution time in milliseconds
-function benchmark(label: string, fn: () => void): number {
-  const start = performance.now();
-  fn();
-  const elapsed = performance.now() - start;
-  console.log(`  [${label}] ${elapsed.toFixed(3)}ms`);
-  return elapsed;
+// Helper to measure execution time in milliseconds. Best-of-N: the suite runs
+// under `node --test` with many child processes competing for cores, and
+// scheduler preemption / GC only ever ADD wall time — so the minimum over a
+// few runs is the noise-robust estimate of true cost (the first runs double
+// as JIT warm-up). A single sample here made the scaling-ratio assertion
+// flake under full-suite load.
+function benchmark(label: string, fn: () => void, runs = 5): number {
+  let best = Infinity;
+  for (let i = 0; i < runs; i++) {
+    const start = performance.now();
+    fn();
+    const elapsed = performance.now() - start;
+    if (elapsed < best) best = elapsed;
+  }
+  console.log(`  [${label}] ${best.toFixed(3)}ms (best of ${runs})`);
+  return best;
 }
 
 // Helper for approximate equality

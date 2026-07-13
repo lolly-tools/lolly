@@ -286,7 +286,7 @@ test('Gradient: round-trip hex→oklch→hex preserves bit-perfect color', () =>
     const reimported = oklchToHex(oklch!);
     assert.equal(reimported, hex, `${hex} round-trips through oklch`);
 
-    console.log(`  ✓ ${hex}`);
+    console.log(`  ok ${hex}`);
   }
 });
 

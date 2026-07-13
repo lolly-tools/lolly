@@ -6,13 +6,19 @@
  *        (3) Verify preview shows vibrant magenta (OKLab), not muddy brown (RGB)
  *        (4) Export to SVG
  *        (5) Check SVG color stops are OKLab-interpolated
- *        (6) Re-import SVG and verify mode is remembered
+ *        (6) Re-import the SVG's stop colours through the engine's real parser
+ *            (extractSvgColors) and verify the ramp round-trips
  *        (7) Compare muddy (linear RGB) vs vibrant (OKLab) visually
+ *
+ * NOTE: the first three bytes of every console.log line here must be ASCII —
+ * a byte >= 0x80 at byte offset 2 of a raw write intermittently crashes the
+ * `node --test` parent's frame parser ("Unable to deserialize cloned data").
+ * Full explanation in font-upload.integration.test.ts's header.
  */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rampOklab, deltaEOk } from '../engine/src/index.ts';
+import { rampOklab, deltaEOk, extractSvgColors } from '../engine/src/index.ts';
 import { hexToOklch, oklchToHex, parseHex } from '../engine/src/brand-derive.ts';
 
 const HEX6 = /^#[0-9a-f]{6}$/i;
@@ -138,7 +144,7 @@ test('(3) OKLab smooth ramp maintains vibrant colors throughout', () => {
   // A good threshold for "vibrant" is keeping chroma above 0.08
   assert.ok(minChroma > 0.08, `Minimum chroma (${minChroma.toFixed(3)}) stays vibrant, not muddy`);
 
-  console.log(`  ✓ OKLab gradient maintains vibrant colors throughout ramp`);
+  console.log(`  ok OKLab gradient maintains vibrant colors throughout ramp`);
 });
 
 // ─── Test 4: Export to SVG ─────────────────────────────────────────────────
@@ -169,7 +175,7 @@ test('(4) Export gradient to SVG format', () => {
   assert.equal((svgGradient.match(/stop-color/g) ?? []).length, ramp.length, `SVG has ${ramp.length} stops`);
 
   console.log(`  SVG export:\n${svgGradient}`);
-  console.log(`  ✓ Generated SVG with ${ramp.length} OKLab-interpolated stops`);
+  console.log(`  ok Generated SVG with ${ramp.length} OKLab-interpolated stops`);
 });
 
 // ─── Test 5: Verify SVG color stops are OKLab-interpolated ──────────────────
@@ -196,36 +202,43 @@ test('(5) SVG color stops preserve OKLab interpolation integrity', () => {
   assert.ok(deltaEOk(rampSmooth[0]!, red) < 0.01, 'SVG start endpoint matches red');
   assert.ok(deltaEOk(rampSmooth[10]!, blue) < 0.01, 'SVG end endpoint matches blue');
 
-  console.log(`  ✓ SVG export preserves OKLab gradient integrity across all stops`);
+  console.log(`  ok SVG export preserves OKLab gradient integrity across all stops`);
 });
 
-// ─── Test 6: Re-import SVG and verify mode is remembered ───────────────────
+// ─── Test 6: Re-import SVG gradient through the engine's real SVG parser ────
 
-test('(6) Re-import SVG gradient and preserve smooth mode flag', () => {
+test('(6) Re-import SVG gradient stops via extractSvgColors round-trips the ramp', () => {
   const red = '#ff0000';
   const blue = '#0000ff';
-  const stops = [red, blue];
+  const original = rampOklab([red, blue], 21);
 
-  // Generate original OKLab ramp
-  const original = rampOklab(stops, 21);
+  // Serialize the ramp as a real SVG gradient (same shape test 4 exports).
+  const svgStops = original.map((hex, i) => {
+    const position = (i / (original.length - 1)) * 100;
+    return `<stop offset="${position.toFixed(1)}%" stop-color="${hex}" />`;
+  }).join('\n      ');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10">
+  <defs>
+    <linearGradient id="grad-smooth" x1="0%" y1="0%" x2="100%" y2="0%">
+      ${svgStops}
+    </linearGradient>
+  </defs>
+  <rect width="10" height="10" fill="url(#grad-smooth)" />
+</svg>`;
 
-  // Simulate re-import: extract colors from SVG and compare
-  const reimported = original.slice(); // Simulate re-reading from SVG
+  // Re-import through the engine's actual SVG colour extraction — the same
+  // path the web shell runs when an SVG is dropped back in. stop-color
+  // attributes come back as normalised hex, deduplicated in first-seen order.
+  const reimported = extractSvgColors(svg);
+  const expected = [...new Set(original.map((h) => h.toLowerCase()))];
 
-  // Verify that mode metadata would be preserved
-  const metadata = {
-    smooth: true,
-    mode: 'oklch',
-    stops: [red, blue],
-    ramp: reimported,
-  };
+  assert.deepEqual(reimported.map((h) => h.toLowerCase()), expected,
+    'every gradient stop colour survives the SVG round-trip, in order');
+  for (const c of reimported) {
+    assert.match(c, HEX6, `re-imported stop is a real colour, not a paint-server ref: ${c}`);
+  }
 
-  assert.equal(metadata.smooth, true, 'smooth mode flag preserved');
-  assert.equal(metadata.mode, 'oklch', 'interpolation mode is OKLab/OKLCH');
-  assert.deepEqual(metadata.stops, stops, 'gradient stops preserved');
-  assert.equal(metadata.ramp.length, 21, 'ramp size preserved');
-
-  console.log(`  ✓ Re-imported gradient maintains smooth=true, mode=oklch`);
+  console.log(`  ok Re-imported ${reimported.length} gradient stops through extractSvgColors`);
 });
 
 // ─── Test 7: Verify correctLightness option produces smooth perceptual steps ───
@@ -241,7 +254,7 @@ test('(7) OKLab correctLightness produces smooth lightness progression', () => {
 
   console.log('\n  Lightness Progression Comparison:');
   console.log('  Index | correctLightness=true | correctLightness=false');
-  console.log('  ───── | ───────────────────── | ──────────────────────');
+  console.log('  ----- | --------------------- | ----------------------');
 
   const smoothLightnesses: number[] = [];
   const plainLightnesses: number[] = [];
@@ -276,7 +289,7 @@ test('(7) OKLab correctLightness produces smooth lightness progression', () => {
   assert.ok(smoothStepVar <= plainStepVar + 0.001,
     `OKLab with correctLightness has more even lightness progression (${smoothStepVar.toFixed(6)} vs ${plainStepVar.toFixed(6)})`);
 
-  console.log(`  ✓ OKLab correctLightness produces smooth perceptual progression`);
+  console.log(`  ok OKLab correctLightness produces smooth perceptual progression`);
 });
 
-console.log('\n✅ All gradient smooth end-to-end tests passed');
+console.log('\nAll gradient smooth end-to-end tests passed');

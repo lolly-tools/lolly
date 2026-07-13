@@ -28,12 +28,15 @@ function num(v, d) {
   var x = typeof v === 'number' ? v : parseFloat(v);
   return isFinite(x) ? x : d;
 }
+// === lolly:shared clamp — generated from community/_shared/math.js; edit there and run npm run sync:shared ===
 function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+// === /lolly:shared clamp ===
 
 // Only let a value through if it's a shape CSS colour can't be smuggled past —
 // box fill/text colour come from colour inputs, but a hand-edited URL could carry
 // anything, and these land inside a style="" attribute, so guard against
 // property-injection via a stray ';'.
+// === lolly:shared safeColor — generated from community/_shared/math.js; edit there and run npm run sync:shared ===
 function safeColor(v, fallback) {
   var s = String(v == null ? '' : v).trim();
   if (!s) return fallback;
@@ -42,6 +45,7 @@ function safeColor(v, fallback) {
   if (/^[a-zA-Z]+$/.test(s)) return s; // named colour (e.g. "transparent", "tomato")
   return fallback;
 }
+// === /lolly:shared safeColor ===
 
 // Coerce a manifest/URL boolean (real boolean, or "true"/"1"/"on" string) to a
 // boolean, falling back to `dflt` for empty/unknown values.
@@ -55,10 +59,12 @@ function boolVal(v, dflt) {
 }
 
 // Escape a string for safe inclusion in raw HTML output ({{{ }}} in the template).
+// === lolly:shared esc — generated from community/_shared/text.js; edit there and run npm run sync:shared ===
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+// === /lolly:shared esc ===
 
 // Inline emphasis on an ALREADY-escaped fragment: **bold** first, then *italic* /
 // _italic_. The markers are literal chars in the escaped text and we only ever inject

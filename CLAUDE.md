@@ -43,15 +43,15 @@ npm run build:info           # build the docs/info site once (docs/build.ts → 
 
 ### Tests
 
-The engine contract test suite lives at the repo root (`tests/`, node:test, no framework). Run with `npm test`, or directly:
+The engine contract test suite lives at the repo root (`tests/`, node:test, no framework); `npm test` runs it together with the co-located suites in `packages/core/test/`, `shells/web/src/**` and `services/mcp/test/` (see the `test` script in `package.json`, and `tests/README.md` for layout + gated tests). To run just the repo-root suite:
 
 ```bash
-node --test "tests/**/*.test.ts" "tests/**/*.test.js"
+node --test "tests/**/*.test.ts"
 ```
 
 Use the quoted glob, not `node --test tests/` — on current Node the bare directory form tries to load `tests` as a module instead of discovering test files. The tests import engine modules across the workspace boundary via `../engine/src`, so the repo root owns the run.
 
-There is no lint script configured. The codebase is **TypeScript** — engine, both shells, `scripts/`, `docs/build.ts`, and `tests/`; the only `.js` left in the migrated TS projects (engine, shells-web/cli/tui, tests, scripts) are tool `hooks.js`, which ship as tool *data* (not compiled); Tauri `bridge-overrides/`, the vite configs, the web service worker (`shells/web/public/sw.js`), the chrome-extension, the `api/` functions and vendored libs (`tools/*/lib/*.min.js`) remain `.js`. The `typecheck` script runs `tsc -p` across every project — `engine/`, `shells/web/`, `shells/cli/`, and `tests/`. Node runs the `.ts` directly via native type-stripping; Vite/esbuild handle the web build.
+Linting is Biome (`biome.json` at the repo root; `npm run lint` / `npm run lint:fix`) — advisory only, NOT a CI gate, and the baseline carries thousands of pre-existing findings (~3,000 errors as of 2026-07-13), so never treat a clean `biome lint` as a precondition and don't try to fix the backlog in passing. The codebase is **TypeScript** — engine, the shells, `packages/`, `scripts/`, `docs/build.ts`, and `tests/`; the only `.js` left in the migrated TS projects are tool `hooks.js`, which ship as tool *data* (not compiled); Tauri `bridge-overrides/`, the vite configs, the web service worker (`shells/web/public/sw.js`), the chrome-extension, the generated `api/` bundles and vendored libs (`tools/*/lib/*.min.js`) remain `.js`. The `typecheck` script runs `tsc -p` across every project — `packages/core`, `packages/node-shell`, `engine/`, `shells/web/` (+ its tests tsconfig), `shells/cli/`, `shells/tui/`, `tests/`, `scripts/`, and `services/mcp`. Node runs the `.ts` directly via native type-stripping; Vite/esbuild handle the web build.
 
 ## Architecture
 
@@ -66,13 +66,13 @@ tools/      ← VIEW (gitignored): the active profile's merged tool set — comm
 catalog/    ← VIEW (gitignored): symlink to the active brand's catalog.
 ```
 
-- `engine/` has **no** dependency on a DOM library, framework, or storage backend (see `engine/package.json` — only `handlebars` + `ajv`). Everything platform-specific is injected at runtime by the shell via the bridge.
+- `engine/` has **no** dependency on a DOM library, framework, or storage backend (see `engine/package.json` — only `handlebars`, `ajv`, and the workspace tool-author SDK `@lolly-tools/core`). Everything platform-specific is injected at runtime by the shell via the bridge.
 - **Tools never import from the engine** and never touch the DOM/filesystem/network directly. They call `host.*` methods. This is what makes one tool run unchanged in browser, Tauri, and CLI.
-- **Repository split (done — brand-pack layout since 2026-07-08):** content is mounted as packs: `community/` → public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) (the 13 brand-agnostic tools: utilities, qr-code, street-map, filter-*), `brands/suse/` → **private** `suse-lolly` (33 SUSE tools + the full SUSE catalog, incl. tokens and the PremiumBeat music — private, so the old 2026-08-29 public-removal deadline no longer applies to it), plus `services/mcp`, `services/ca`, `docs/`, and every `shells/*` as public submodules. `engine/`, `schemas/`, `api/`, `scripts/`, `tests/`, `brands/lolly-start/`, and `profiles.json` stay in this parent repo. The repo-root `tools/` and `catalog/` are gitignored **profile views** built by `scripts/use-profile.ts` (symlink farm; real copies on Vercel where `postinstall` runs with `VERCEL=1`, and the views are `.vercelignore`d) — every script/shell/deploy path still consumes those two paths unchanged. `brands/suse` is `update = none` in `.gitmodules` so public clones (and CI) skip the private pack and fall back to the `lolly-start` profile. The split toolkit + day-to-day workflow live in `scripts/subrepo/` (see its README); `loldev profile <name>` switches profiles. Editing a SUSE tool touches two repos (`suse-lolly` + parent pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated `index.json`, parent pointer). The no-cross-imports rule stays enforced so the split stays clean. **Do not add SUSE-specific or DOM-specific logic to `engine/`, and never commit the `tools/`/`catalog/` views.** The retired public `lolly-suse-tools` / `lolly-suse-catalog` repos await archiving (music must leave the public one before 2026-08-29).
+- **Repository split (done — brand-pack layout since 2026-07-08):** content is mounted as packs: `community/` → public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools) (the 17 brand-agnostic tools: utilities, qr-code, street-map, filter-*), `brands/suse/` → **private** `suse-lolly` (31 SUSE tools + the full SUSE catalog, incl. tokens and the PremiumBeat music — private, so the old 2026-08-29 public-removal deadline no longer applies to it), plus `services/mcp`, `services/ca`, `docs/`, and every `shells/*` as public submodules. `engine/`, `schemas/`, `api/`, `scripts/`, `tests/`, `brands/lolly-start/`, and `profiles.json` stay in this parent repo. The repo-root `tools/` and `catalog/` are gitignored **profile views** built by `scripts/use-profile.ts` (symlink farm; real copies on Vercel where `postinstall` runs with `VERCEL=1`, and the views are `.vercelignore`d) — every script/shell/deploy path still consumes those two paths unchanged. `brands/suse` is `update = none` in `.gitmodules` so public clones (and CI) skip the private pack and fall back to the `lolly-start` profile. The split toolkit + day-to-day workflow live in `scripts/subrepo/` (see its README); `loldev profile <name>` switches profiles. Editing a SUSE tool touches two repos (`suse-lolly` + parent pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated `index.json`, parent pointer). The no-cross-imports rule stays enforced so the split stays clean. **Do not add SUSE-specific or DOM-specific logic to `engine/`, and never commit the `tools/`/`catalog/` views.** The retired public `lolly-suse-tools` / `lolly-suse-catalog` repos await archiving (music must leave the public one before 2026-08-29).
 
 ### The Capability Bridge (`engine/src/bridge/host-v1.ts`)
 
-The versioned contract between tools and shells (current `ENGINE_VERSION = '1.30.0'`, `engine/src/index.ts` — a changelog comment block above the const tracks each minor). `HostV1` exposes the required `profile`, `assets`, `state`, `clipboard`, `export`, and `log`, plus optional/additive APIs (added in minor versions, never removed): `net` (allowlisted fetch), `tokens` (DTCG design tokens), `text` (text-to-path via HarfBuzz WASM — v1.29 adds `variations` for variable-font weights and a `fallbackFonts` chain for disjoint webfont subsets; `fallbackFonts` shapes a run across disjoint webfont subsets, `notdef` reports uncovered glyphs so callers can keep a `<text>` fallback, and v1.30 `axisDefaults` reports a variable font's default instance so a jsPDF-embed caller knows the weight it'll get), `pdf` (analyze/strip/compress), `capture` (rasterise a live URL), `compose` (nested tool renders — `render()` for authored `composes`, plus `renderUrl()` (v1.3) for the end-user path where a Lolly tool link pasted into the asset picker becomes an image; a tool-sourced asset's id is its canonical embed URL, re-rendered on load — see `engine/src/tool-url.ts`), and `media` (v1.4 — a live camera frame source for motion-reactive tools; DOM-free RGBA frames drive a tool's `onFrame` hook, e.g. the `filter-*` tools' "Go live" mode. Progressive enhancement — NOT gated by the `camera` capability flag; the runtime owns the frame loop via `startLive()`/`stopLive()`), and `recorder` (v1.17 — mic/AV capture + a DOM-free audio-level meter driving the `onLevel` hook for the recording tools; gated by the `microphone`/`camera` capabilities). `export` itself has `render()` (rasterise a DOM node), `download()`, and `file()` — the v1.1 on-device transform path (file-in → bytes-out), which never watermarks or embeds provenance. Rules that matter when editing it:
+The versioned contract between tools and shells (current `ENGINE_VERSION = '1.50.0'`, `engine/src/index.ts` — a changelog comment block above the const tracks each minor; read the live value there rather than trusting this number). The contract's canonical definition lives in `packages/core/src/host-v1.ts` (the tool-author SDK `@lolly-tools/core`, so third parties can build against it without depending on the engine); `engine/src/bridge/host-v1.ts` is now a type re-export of it, and engine/shell code keeps importing from that path unchanged. `HostV1` exposes the required `profile`, `assets`, `state`, `clipboard`, `export`, and `log`, plus optional/additive APIs (added in minor versions, never removed): `net` (allowlisted fetch), `tokens` (DTCG design tokens), `text` (text-to-path via HarfBuzz WASM — v1.29 adds `variations` for variable-font weights and a `fallbackFonts` chain for disjoint webfont subsets; `fallbackFonts` shapes a run across disjoint webfont subsets, `notdef` reports uncovered glyphs so callers can keep a `<text>` fallback, and v1.30 `axisDefaults` reports a variable font's default instance so a jsPDF-embed caller knows the weight it'll get), `pdf` (analyze/strip/compress), `capture` (rasterise a live URL), `compose` (nested tool renders — `render()` for authored `composes`, plus `renderUrl()` (v1.3) for the end-user path where a Lolly tool link pasted into the asset picker becomes an image; a tool-sourced asset's id is its canonical embed URL, re-rendered on load — see `engine/src/tool-url.ts`), and `media` (v1.4 — a live camera frame source for motion-reactive tools; DOM-free RGBA frames drive a tool's `onFrame` hook, e.g. the `filter-*` tools' "Go live" mode. Progressive enhancement — NOT gated by the `camera` capability flag; the runtime owns the frame loop via `startLive()`/`stopLive()`), and `recorder` (v1.17 — mic/AV capture + a DOM-free audio-level meter driving the `onLevel` hook for the recording tools; gated by the `microphone`/`camera` capabilities). `export` itself has `render()` (rasterise a DOM node), `download()`, and `file()` — the v1.1 on-device transform path (file-in → bytes-out), which never watermarks or embeds provenance. Rules that matter when editing it:
 
 - Methods may be **added** in a minor version; never removed or signature-changed without a major bump. When v2 ships, v1 must keep working.
 - **No platform-specific methods** on the bridge. If only Tauri can do something, it goes behind a `capabilities` flag declared in `tool.json`, and shells that can't fulfill it expose a stub/error.
@@ -124,94 +124,34 @@ tools/<id>/
 
 | Path | Role |
 |---|---|
-| `engine/src/` | `index.ts` (public surface), `loader.ts`, `runtime.ts`, `inputs.ts`, `template.ts`, `validate.ts`, `url-mode.ts`, `units.ts`, `color.ts`, `print-marks.ts`, `emf.ts`, `svg-path.ts`, `tokens.ts`, `compose.ts`, `embed.ts`, `metadata.ts`, `tool-url.ts`, `c2pa.ts`, `c2pa-verify.ts`, `x509.ts`, `video-meta.ts`, `apng.ts`, `batch.ts`, `css-box.ts`, `data-import.ts`, `design-map.ts`, `eps.ts`, `icon-theme.ts`, `media-sniff.ts`, `pdf-crypto-r6.ts`, `pdf-map.ts`, `pdfx.ts`, `photo-treatment.ts`, `tiff.ts`, `url-pack.ts`, `zip-crypto.ts`, `bridge/host-v1.ts` (43 TS modules) |
+| `engine/src/` | 55 top-level TS modules + `bridge/host-v1.ts` (a type re-export of `@lolly-tools/core/host-v1`). Core: `index.ts` (public surface), `loader.ts`, `runtime.ts`, `inputs.ts`, `template.ts`, `validate.ts`, `url-mode.ts`, `units.ts`. The rest are format/feature modules: `apng.ts`, `bake.ts`, `batch.ts`, `brand-derive.ts`, `brand-import.ts`, `brand-schemes.ts`, `c2pa.ts`, `c2pa-trust.ts`, `c2pa-verify.ts`, `catalog-integrity.ts`, `color.ts`, `color-tools.ts`, `compose.ts`, `css-box.ts`, `css-paint.ts`, `data-import.ts`, `design-map.ts`, `dxf.ts`, `embed.ts`, `emf.ts`, `eps.ts`, `file-metadata.ts`, `icon-theme.ts`, `lang.ts`, `media-sniff.ts`, `metadata.ts`, `midi.ts`, `pdf-crypto-r6.ts`, `pdf-map.ts`, `pdf-svg.ts`, `pdfx.ts`, `photo-treatment.ts`, `pixel-watermark.ts`, `pptx.ts`, `print-marks.ts`, `strip-metadata.ts`, `svg-colors.ts`, `svg-path.ts`, `tiff.ts`, `tokens.ts`, `tool-url.ts`, `url-pack.ts`, `video-meta.ts`, `webp-anim.ts`, `x509.ts`, `zip-crypto.ts`, `zzfxm.ts` |
 | `shells/web/` | Vite PWA. Bridge impls under `src/bridge/`, views under `src/views/`, catalog sync under `src/catalog/` (all `.ts`) |
 | `shells/cli/` | `bin/lolly.ts` (entry), `src/run.ts` (jsdom render), `src/bridge.ts` (CLI bridge) |
 | `shells/tauri-desktop`, `shells/tauri-mobile` | Tauri shells with `bridge-overrides/` |
-| `community/` | 13 brand-agnostic tool dirs (qr-code, street-map, strip-data, text-helper, filter-*, …) — public submodule `lolly-tools` |
-| `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (33 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |
-| `brands/lolly-start/` | parent-owned blank brand: near-empty `catalog/` (one neutral tokens asset) — where the brand-import (DTCG) experience gets built |
+| `community/` | 17 brand-agnostic tool dirs (qr-code, street-map, strip-data, text-helper, mesh-gradient, chart-creator, d3, color-palette, compress-pdf, countdown-timer, url-shot, filter-*) — public submodule `lolly-tools` |
+| `brands/suse/` | PRIVATE submodule `suse-lolly`: `tools/` (31 SUSE tool dirs) + `catalog/` (assets incl. `assets/suse/tokens/brand.json`, fonts, previews, og, generated `tools/index.json`) |
+| `brands/lolly-start/` | parent-owned blank brand: `tools/` (2 tool dirs: layout-studio, voice-recorder) + a neutral `catalog/` (assets/fonts/og/previews + generated `tools/index.json`) — where the brand-import (DTCG) experience gets built |
 | `tools/`, `catalog/` | gitignored profile VIEWS of the above (scripts/use-profile.ts + profiles.json) — what every script/shell actually reads |
-| `schemas/` | `tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json` |
-| `scripts/` | `build-catalog-index.ts`, `checksum-assets.ts`, `validate-catalog.ts` |
+| `packages/` | `core` (`@lolly-tools/core` — canonical `host-v1.ts` contract + tool-author SDK), `node-shell` (shared Node host pieces for CLI/TUI) |
+| `schemas/` | `tool.schema.json`, `asset.schema.json`, `asset-ref.schema.json`, `tokens.schema.json`, `canonical-inputs.json` |
+| `scripts/` | `build-catalog-index.ts`, `checksum-assets.ts`, `validate-catalog.ts`, `use-profile.ts`, `ingest-brand.ts`, … |
+| `api/` | Vercel serverless functions. `api/mcp/[...path].js` and `api/ca/[...path].js` are GENERATED esbuild bundles (`scripts/build-mcp-fn.ts` / `scripts/build-ca-fn.ts`) — never hand-edit them; CI's api-bundles job rebuilds and fails on drift |
 | `docs/` | architecture, authoring guides, positioning, URL mode; `build.ts` builds the info site |
 
 ## Features
 
 ### Font upload
 
-**How to use:** Users upload TTF, OTF, or WOFF font files via the `#/start` Fonts tab. Uploaded fonts are stored in IndexedDB as user assets and indexed by font family/weight/style metadata. Tools access fonts for text-to-path rendering via `host.text.toPath()` with fallback chains.
-
-**Where code lives:**
-- **Web shell:** `shells/web/src/views/start-studio.ts` (Fonts tab UI) · `shells/web/src/lib/brand-doc.ts` (font asset CRUD)
-- **Engine:** `engine/src/bridge/host-v1.ts` (`text.toPath()` signature) · `engine/src/tokens.ts` (font resolution chain)
-- **Storage:** IndexedDB via `host.state` (web shell) or memory (CLI) — never localStorage
-
-**Config needed:**
-- No hardcoded limits per CLAUDE.md principles (online+performant). Font subsetting and variable-font axis defaults (`axisDefaults` in v1.30) are engine-controlled.
-- Tools declare font inputs as `type: 'asset'` with `assetType: 'font'` in `tool.json`.
-
-**Known limitations & edge cases:**
-- Variable fonts: `host.text.variations` (v1.29+) reports available axes; `axisDefaults` (v1.30+) reports the default instance so jsPDF embedders know the weight. Do not assume weight=400 — retrieve it.
-- Fallback chains: `fallbackFonts` parameter shapes runs across disjoint webfont subsets. `notdef` reports uncovered glyphs so templates can keep a `<text>` fallback. Disjoint subsets (e.g., Arabic + Latin) may require multiple font files.
-- WOFF files are browser-bound; Tauri/CLI must use TTF/OTF for full compatibility.
-- Font upload does NOT auto-subset; large font files consume more IndexedDB quota.
-
-**Test coverage:**
-- `tests/host.text.test.ts` exercises fallback chains and axis defaults
-- No fuzz tests for font parsing (HarfBuzz WASM safety is assumed)
-- CLI fonts: test with `npm run cli -- text-helper --font=<user-font-path>` (if tool supports file input)
+Users add fonts in the web shell's brand editor Fonts tab (`shells/web/src/lib/brand-editor.ts`) — upload a TTF/OTF/WOFF file, or pick a Google Font that is fetched once and kept on-device (`shells/web/src/lib/google-fonts.ts`). Uploaded faces are validated and their family/weight/style metadata parsed by `shells/web/src/lib/font-utils.ts`, then stored in IndexedDB as user font assets by `shells/web/src/user-fonts.ts`. For vector export, `shells/web/src/bridge/font-registry.ts` resolves a computed `font-family` stack to an actual fetchable font file — SUSE statics first, then user fonts (decompressing woff2 to sfnt on-device, since HarfBuzz can't read woff2), then the platform Outfit face — and returns an ordered fallback chain so disjoint Google-font unicode subsets shape correctly. Test coverage: `tests/font-upload.integration.test.ts` and `tests/font-upload-edge-cases.test.ts` (font-utils/user-fonts against the real modules), plus co-located `shells/web/src/bridge/font-registry.test.ts` and `shells/web/src/user-fonts.test.ts`.
 
 ---
 
 ### Smooth gradients
 
-**How to use:** Mesh gradients are authored in the Mesh Gradient tool and embedded as SVG/PDF assets. Users drag control-point dots to shape multi-stop gradients with color per node. Gradients are rendered as native SVG `<defs><meshpatch>` (or approximated as `<stop>` arrays for compatibility), and exported to PDF as gradient meshes or rasterized tiles.
-
-**Where code lives:**
-- **Community tool:** `community/mesh-gradient/` (Mesh Gradient editor)
-- **Engine:** `engine/src/embed.ts` (SVG gradient serialization) · `engine/src/pdf-map.ts` (PDF gradient mesh rasterization) · `engine/src/color.ts` (OKLab/OKLCH interpolation)
-- **Web shell:** `shells/web/src/lib/mesh-utils.ts` (interactive gradient builder)
-
-**Config needed:**
-- Engine v1.39+ resolves composite gradients with `ramp-step` delete = exclusions. No UI config; gradient stops are purely data-driven.
-- For PDF export: set `format: 'pdf'` in export options. Gradients with >16 stops are tiled (rasterized into chunks) to respect PDF page size limits.
-
-**Known limitations & edge cases:**
-- PDF gradient meshes: limited to ~16 stops per region. More stops trigger automatic tiling (raster fallback), degrading quality.
-- SVG `<meshpatch>`: supported in Chrome/Safari/Inkscape; Firefox uses simplified rasterization. Inline SVG previews always render correctly.
-- Colors: engine uses OKLab for internal interpolation (perceptually even). Exported PDF may show subtle banding with > 256 color stops due to PDF's 8-bit color depth.
-- Animated gradients (e.g., Carousel Maker): mesh gradients do NOT animate natively; use frame-by-frame raster export or SVG `<animate>` overlays.
-
-**Test coverage:**
-- `tests/gradients.test.ts` validates OKLab interpolation and composite stop resolution
-- Integration: `npm run cli -- mesh-gradient --output=mesh.svg` (verify SVG structure)
-- PDF: export a 20-stop gradient as PDF and inspect with `pdftotext` or Acrobat to check mesh structure
+"Smooth" means perceptual OKLab interpolation instead of muddy linear-RGB blends. The math lives in the engine: `rampOklab` in `engine/src/color-tools.ts` (exported from `engine/src/index.ts`), with OKLCH conversions in `engine/src/brand-derive.ts`; gradient token entries (`type: 'gradient'`) resolve through `engine/src/tokens.ts`. Brand palette gradients are authored in the web shell's brand editor (`shells/web/src/lib/brand-editor.ts`). The Mesh Gradient tool (`community/mesh-gradient/`) is an ordinary data-only tool, not an engine feature: its `hooks.js` builds the whole SVG as a string of stacked `<radialGradient>`s over a base fill (there is no SVG `<meshpatch>` anywhere in this codebase). Test coverage: `tests/gradient-round-trip.test.ts` (gradient tokens round-trip), `tests/gradient-complex-scenarios.test.ts` and `tests/gradient-smooth-e2e.test.ts` (rampOklab behaviour, including re-import of SVG stop colours via the real `extractSvgColors` parser), and `tests/svg-colors.test.ts` (`engine/src/svg-colors.ts`).
 
 ---
 
 ### Text outline export
 
-**How to use:** Text is converted to SVG/PDF vector outlines via `host.text.toPath()`. Tools call this hook during `beforeExport` to bake text into paths before render. The web shell uses Handlebars `template.html` with standard `<text>` elements; the engine converts them on export if the output format requires vectors (SVG, PDF, EMF, EPS).
-
-**Where code lives:**
-- **Engine:** `engine/src/bridge/host-v1.ts` (`text.toPath()` signature) · `engine/src/template.ts` (Handlebars `<text>` rendering) · `engine/src/svg-path.ts` (SVG path serialization)
-- **PDF/EMF:** `engine/src/pdf-map.ts` · `engine/src/emf.ts` (glyph-to-path conversion via HarfBuzz WASM)
-- **Web shell:** `shells/web/src/bridge/export.ts` (rasterization via `host.export.render()`)
-
-**Config needed:**
-- No explicit config. Text outline conversion is automatic per format: SVG/PDF/EMF/EPS export text as paths; PNG/JPEG/WebP export text as raster.
-- Tools can opt into tighter path accuracy with `textOutline: 'precise'` in `beforeExport` (reserved for future refinement; currently all exports use HarfBuzz default precision).
-
-**Known limitations & edge cases:**
-- Ligatures: HarfBuzz resolves them correctly. Complex scripts (Arabic, Devanagari) are shaped correctly but may not display perfectly if fallback fonts are missing coverage (see Font upload limitations).
-- Variable fonts: the exported weight is determined by `host.text.axisDefaults` (v1.30+). Exporting the same text at different weights requires multiple `host.text.toPath()` calls with explicit axis overrides (API design pending).
-- Performance: text-to-path on large documents (>1000 glyphs) can take 1–2s. Async hook budget (`beforeExport` 5s) is sufficient.
-- Raster export: text is rendered by the browser/Chromium and embeds glyphs as curves, not as separate paths. The "outline" is flattened into pixels.
-- PDF outline accuracy: ±0.1% variance vs SVG is expected (different PDF rendering engines round differently).
-
-**Test coverage:**
-- `tests/text-to-path.test.ts` validates HarfBuzz WASM integration and ligature handling
-- `tests/export.test.ts` exports a text-heavy template to SVG/PDF and verifies path counts match input text length
-- CLI: `npm run cli -- text-helper --text="Hello" --export=svg` and verify `<path>` elements in output (not `<text>`)
-- Playwright integration: `tests/browser-render.test.ts` compares visual text outline rendering across Chrome/Firefox
+On vector export (SVG/PDF) the web shell converts rendered HTML text runs into real `<path>` outlines so recipients don't need the font installed. The walk lives in `shells/web/src/bridge/export.ts`, which shapes each line via `host.text.toPath` — the HarfBuzz-WASM-backed bridge primitive implemented in `shells/web/src/bridge/text.ts`, whose contract (including `variations`, `fallbackFonts`, `notdef`, and `axisDefaults`) is defined in `packages/core/src/host-v1.ts`. Pure helpers in `shells/web/src/bridge/text-svg.ts` handle SUSE font-file resolution, baseline placement, and font-feature/letter-spacing parsing; `shells/web/src/bridge/font-registry.ts` supplies the font file + fallback chain. A run with no resolvable font file falls back to a plain SVG `<text>` element. Test coverage: `shells/web/src/bridge/text-svg.test.ts` and `font-registry.test.ts` cover the pure helpers only — the actual `<path>` emission in `shells/web/src/bridge/export.ts` has **no direct test coverage** and is verified manually by exporting an HTML tool to SVG.

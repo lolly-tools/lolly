@@ -5,7 +5,7 @@
  * Every tool's input state must be expressible as URL params. This module
  * handles the round-trip.
  *
- *   tooldomain.com/qr-codes/?url=https://suse.com&theme=dark&format=png&export
+ *   tooldomain.com/qr-codes/?url=https://example.com&theme=dark&format=png&export
  *
  * The CLI shell uses the SAME conversion — CLI is just URL mode under a
  * different transport. This guarantees CLI and GUI never drift.
