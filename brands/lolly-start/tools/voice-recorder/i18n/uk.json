@@ -1,0 +1,20 @@
+{
+  "name": "Диктофон",
+  "description": "Запишіть голосову нотатку з індикатором рівня в реальному часі та м'якими підказками, потім збережіть як MP3.",
+  "a11yLabel": "Диктофон — рівень {{default dbText \"неактивний\"}}",
+  "featured.blurb": "Записуйте чисту голосову нотатку з підказками рівня в реальному часі.",
+  "inputs.title.label": "Підпис",
+  "inputs.title.help": "Задає назву картки запису та збереженого файлу.",
+  "inputs.targetLevel.label": "Цільовий рівень",
+  "inputs.targetLevel.help": "Що вважається 'в самий раз' для підказок з коучингу.",
+  "inputs.targetLevel.options.soft": "Тихо · близько до мікрофона",
+  "inputs.targetLevel.options.normal": "Звичайна мова",
+  "inputs.targetLevel.options.loud": "Голосно · в кімнаті",
+  "inputs.showTips.label": "Підказки з коучингу",
+  "inputs.showTips.help": "Підказки в реальному часі, як-от «наблизьтеся» чи «занадто голосно».",
+  "inputs.theme.label": "Стиль плашки",
+  "inputs.theme.options.dark": "Темна",
+  "inputs.theme.options.light": "Світлий",
+  "inputs.accent.label": "Акцент",
+  "inputs.accent.help": "Залиште незаданим, щоб використати основний колір бренду."
+}

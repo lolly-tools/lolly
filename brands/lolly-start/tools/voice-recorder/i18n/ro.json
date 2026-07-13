@@ -1,5 +1,19 @@
 {
   "name": "Înregistrator vocal",
   "description": "Înregistrează o notă vocală cu un indicator de nivel live și îndrumări blânde, apoi salveaz-o ca MP3.",
-  "featured.blurb": "Înregistrează o notă vocală clară, cu îndrumare live a nivelului"
+  "featured.blurb": "Înregistrează o notă vocală clară, cu îndrumare live a nivelului",
+  "a11yLabel": "Reportofon — nivel {{default dbText \"idle\"}}",
+  "inputs.title.label": "Etichetă",
+  "inputs.title.help": "Denumește cardul înregistrării și fișierul salvat.",
+  "inputs.targetLevel.label": "Nivel țintă",
+  "inputs.targetLevel.help": "Ce este considerat „potrivit” pentru sugestiile de îndrumare.",
+  "inputs.targetLevel.options.soft": "Slab · microfon apropiat",
+  "inputs.targetLevel.options.normal": "Vorbire normală",
+  "inputs.targetLevel.options.loud": "Puternic · cameră",
+  "inputs.showTips.label": "Sfaturi de îndrumare",
+  "inputs.showTips.help": "Sugestii live precum „apropie-te” sau „ai clipping”.",
+  "inputs.theme.label": "Stil card",
+  "inputs.theme.options.dark": "Întunecat",
+  "inputs.theme.options.light": "Luminos",
+  "inputs.accent.help": "Lasă necompletat pentru a urma culoarea principală a brandului tău."
 }

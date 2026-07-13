@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-13T04:15:05.907Z",
+  "generatedAt": "2026-07-13T04:30:22.925Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -79,6 +79,10 @@
           "name": "Komprimer PDF",
           "description": "Krymp en PDF ved å komprimere bildene på nytt — på din enhet."
         },
+        "pl": {
+          "name": "Kompresuj PDF",
+          "description": "Zmniejsz plik PDF, kompresując ponownie jego obrazy — na Twoim urządzeniu."
+        },
         "pt": {
           "name": "Compactar PDF",
           "description": "Reduza um PDF recompactando suas imagens — no seu dispositivo."
@@ -98,6 +102,10 @@
         "tr": {
           "name": "PDF Sıkıştır",
           "description": "Görsellerini yeniden sıkıştırarak bir PDF'yi küçült — cihazında."
+        },
+        "uk": {
+          "name": "Стиснути PDF",
+          "description": "Зменшіть розмір PDF, повторно стиснувши зображення в ньому — на вашому пристрої."
         },
         "ur": {
           "name": "PDF کمپریس کریں",
@@ -193,6 +201,10 @@
           "name": "Nedtellingsklokke",
           "description": "En fokusert nedtelling med en fremdriftsring i sanntid. Klikk for å sette på pause."
         },
+        "pl": {
+          "name": "Minutnik odliczający",
+          "description": "Skoncentrowane odliczanie z pierścieniem postępu na żywo. Kliknij, aby wstrzymać."
+        },
         "pt": {
           "name": "Contagem Regressiva",
           "description": "Uma contagem regressiva focada com um anel de progresso ao vivo. Clique para pausar."
@@ -212,6 +224,10 @@
         "tr": {
           "name": "Geri Sayım Zamanlayıcı",
           "description": "Canlı ilerleme halkalı, odaklanmış bir geri sayım. Duraklatmak için tıkla."
+        },
+        "uk": {
+          "name": "Таймер зворотного відліку",
+          "description": "Зосереджений зворотний відлік із живим кільцем прогресу. Клацніть, щоб призупинити."
         },
         "ur": {
           "name": "کاؤنٹ ڈاؤن ٹائمر",
@@ -307,12 +323,16 @@
           "description": "Kesan dwiwarna untuk sebarang foto — satu warna untuk bayang, satu lagi untuk sorotan."
         },
         "nl": {
-          "name": "Filter: Duotone",
+          "name": "Filter: Duotoon",
           "description": "Een tweekleurige duotone voor elke foto — schaduwen in de ene kleur, lichtpartijen in de andere."
         },
         "no": {
           "name": "Filter: Duotone",
           "description": "En tofarget duotone-effekt for ethvert foto — skygger i én farge, høylys i en annen."
+        },
+        "pl": {
+          "name": "Filtr: Dwutonowy",
+          "description": "Dwukolorowy duotone dla każdego zdjęcia — jeden kolor dla cieni, inny dla świateł."
         },
         "pt": {
           "name": "Filtro: Duotom",
@@ -333,6 +353,10 @@
         "tr": {
           "name": "Filtre: Duotone",
           "description": "Herhangi bir fotoğraf için iki renkli bir duotone — gölgeler bir renk, vurgular başka bir renk."
+        },
+        "uk": {
+          "name": "Фільтр: дуотон",
+          "description": "Двоколірний дуотон для будь-якого фото — один колір для тіней, інший для світлих ділянок."
         },
         "ur": {
           "name": "فلٹر: ڈوٹون",
@@ -438,6 +462,10 @@
           "name": "Filter: Raster",
           "description": "Vektorraster fra ethvert foto – prikkstørrelse etter lysstyrke."
         },
+        "pl": {
+          "name": "Filtr: Rastr (halftone)",
+          "description": "Wektorowy rastr z każdego zdjęcia — rozmiar punktów zależny od jasności."
+        },
         "pt": {
           "name": "Filtro: Meio-tom",
           "description": "Meio-tom vetorial a partir de qualquer foto — pontos dimensionados pelo brilho."
@@ -457,6 +485,10 @@
         "tr": {
           "name": "Filtre: Halftone",
           "description": "Herhangi bir fotoğraftan vektör halftone — noktalar parlaklığa göre boyutlanır."
+        },
+        "uk": {
+          "name": "Фільтр: Растрування",
+          "description": "Векторне растрування будь-якого фото — розмір точок залежить від яскравості."
         },
         "ur": {
           "name": "فلٹر: ہاف ٹون",
@@ -559,6 +591,10 @@
           "name": "Filter: Pikselstrekk",
           "description": "Smører en pikselkolonne utover et bilde fra en terskellinje. Fungerer live."
         },
+        "pl": {
+          "name": "Filtr: Rozciąganie pikseli",
+          "description": "Rozmazuje kolumnę pikseli po zdjęciu od linii progowej. Działa na żywo."
+        },
         "pt": {
           "name": "Filtro: Esticar Pixels",
           "description": "Espalhe uma coluna de pixels por uma foto a partir de uma linha de limiar. Funciona ao vivo."
@@ -578,6 +614,10 @@
         "tr": {
           "name": "Filtre: Pixel Stretch",
           "description": "Bir eşik çizgisinden başlayarak bir piksel sütununu fotoğraf boyunca sürükle. Canlı çalışır."
+        },
+        "uk": {
+          "name": "Фільтр: Розтягування пікселів",
+          "description": "Розмазує стовпець пікселів по фото від лінії порогу. Працює в реальному часі."
         },
         "ur": {
           "name": "فلٹر: پکسل اسٹریچ",
@@ -681,6 +721,10 @@
           "name": "Filter: Posterisering (bitmap)",
           "description": "Omdanner ethvert foto til flate vektorbaserte fargeseparasjoner i silketrykk-stil."
         },
+        "pl": {
+          "name": "Filtr: Posteryzacja bitmapy",
+          "description": "Zamień dowolne zdjęcie w płaskie, wektorowe separacje kolorów w stylu sitodruku."
+        },
         "pt": {
           "name": "Filtro: Posterizar Bitmap",
           "description": "Transforme qualquer foto em separações de cor vetoriais planas, no estilo serigrafia."
@@ -700,6 +744,10 @@
         "tr": {
           "name": "Filtre: Posterize Bitmap",
           "description": "Herhangi bir fotoğrafı düz, serigrafi tarzı vektör renk ayrımlarına dönüştürür."
+        },
+        "uk": {
+          "name": "Фільтр: Постеризація у растрі",
+          "description": "Перетворення будь-якого фото на плоскі векторні кольорові розділення у стилі шовкографії."
         },
         "ur": {
           "name": "فلٹر: پوسٹرائز بٹ میپ",
@@ -802,6 +850,10 @@
           "name": "Filter: Skannelinjer",
           "description": "Horisontal vektoreffekt med «uendelighetslinjer» i skannelinjestil, fra ethvert foto"
         },
+        "pl": {
+          "name": "Filtr: Linie skanujące",
+          "description": "Efekt wektorowych poziomych linii skanujących „infinity lines” z dowolnego zdjęcia"
+        },
         "pt": {
           "name": "Filtro: Scanline",
           "description": "Efeito vetorial de scanline com 'linhas infinitas' horizontais para qualquer foto"
@@ -821,6 +873,10 @@
         "tr": {
           "name": "Filtre: Scanline",
           "description": "Herhangi bir fotoğraftan yatay 'sonsuzluk çizgileri' scanline vektör efekti"
+        },
+        "uk": {
+          "name": "Фільтр: Скан-лінії",
+          "description": "Ефект горизонтальних «ліній нескінченності» скан-лінії з будь-якого фото"
         },
         "ur": {
           "name": "فلٹر: اسکین لائن",
@@ -924,6 +980,10 @@
           "name": "Filter: Voronoi-celler",
           "description": "Splitter et hvilket som helst bilde til en Voronoi-cellemosaikk — hver celle fylt med nærmeste farge, som flat vektor."
         },
+        "pl": {
+          "name": "Filtr: Komórki Voronoi",
+          "description": "Rozbij dowolne zdjęcie w mozaikę komórek Voronoi — każda komórka wypełniona najbliższym kolorem, jako płaski wektor."
+        },
         "pt": {
           "name": "Filtro: Células de Voronoi",
           "description": "Fragmente qualquer foto em um mosaico de células de Voronoi — cada célula preenchida com a cor mais próxima, em vetor plano."
@@ -943,6 +1003,10 @@
         "tr": {
           "name": "Filtre: Voronoi Hücreleri",
           "description": "Herhangi bir fotoğrafı düz vektör olarak Voronoi hücre mozaiğine ayırır — her hücre en yakın renkle doldurulur."
+        },
+        "uk": {
+          "name": "Фільтр: Комірки Вороного",
+          "description": "Розбиває будь-яке фото на мозаїку комірок Вороного — кожна комірка заповнена найближчим кольором, як плоский вектор."
         },
         "ur": {
           "name": "فلٹر: Voronoi سیلز",
@@ -1069,6 +1133,11 @@
           "description": "QR-koder for enhver URL, med full kontroll over farge og stil.",
           "blurb": "QR-koder i valgfri merkefarge"
         },
+        "pl": {
+          "name": "Generator kodów QR",
+          "description": "Kody QR dla dowolnego adresu URL, z pełną kontrolą kolorów i stylu.",
+          "blurb": "Kody QR w każdym kolorze marki"
+        },
         "pt": {
           "name": "Gerador de Código QR",
           "description": "Códigos QR para qualquer URL, com controle total de cor e estilo.",
@@ -1093,6 +1162,11 @@
           "name": "QR Kod Oluşturucu",
           "description": "Her URL için QR kodları, tam renk ve stil kontrolüyle.",
           "blurb": "Her marka renginde QR kodları"
+        },
+        "uk": {
+          "name": "Генератор QR-кодів",
+          "description": "QR-коди для будь-якої URL-адреси з повним контролем кольору й стилю.",
+          "blurb": "QR-коди у будь-якому брендовому кольорі"
         },
         "ur": {
           "name": "QR کوڈ جنریٹر",
@@ -1197,6 +1271,10 @@
           "name": "Gatekart",
           "description": "Rene vektor-gatekart for enhver by. Fungerer offline."
         },
+        "pl": {
+          "name": "Mapa ulic",
+          "description": "Czyste, wektorowe mapy siatki ulic dla każdego miasta. Działa offline."
+        },
         "pt": {
           "name": "Mapa de Ruas",
           "description": "Mapas vetoriais limpos de quarteirões de qualquer cidade. Funciona offline."
@@ -1216,6 +1294,10 @@
         "tr": {
           "name": "Sokak Haritası",
           "description": "Herhangi bir şehrin temiz vektörel sokak bloğu haritaları. Çevrimdışı çalışır."
+        },
+        "uk": {
+          "name": "Карта вулиць",
+          "description": "Чисті векторні карти вуличних квартàлів будь-якого міста. Працює офлайн."
         },
         "ur": {
           "name": "اسٹریٹ میپ",
@@ -1315,6 +1397,10 @@
           "name": "Fjern skjulte data",
           "description": "Vis og fjern skjult metadata fra bilder og PDF-er — på din egen enhet."
         },
+        "pl": {
+          "name": "Usuń ukryte dane",
+          "description": "Wykryj i usuń ukryte metadane ze zdjęć i plików PDF — na Twoim urządzeniu."
+        },
         "pt": {
           "name": "Remover Dados Ocultos",
           "description": "Revele e remova metadados ocultos de imagens e PDFs — no seu dispositivo."
@@ -1334,6 +1420,10 @@
         "tr": {
           "name": "Gizli Verileri Kaldır",
           "description": "Görsellerdeki ve PDF'lerdeki gizli meta verileri ortaya çıkar ve kaldır — cihazında."
+        },
+        "uk": {
+          "name": "Видалення прихованих даних",
+          "description": "Виявляйте та видаляйте приховані метадані із зображень і PDF — на вашому пристрої."
         },
         "ur": {
           "name": "پوشیدہ ڈیٹا ہٹائیں",
@@ -1430,6 +1520,10 @@
           "name": "Tekstverktøy",
           "description": "Formater, dekod, hash og anonymiser tekst — JSON, JWT og mer."
         },
+        "pl": {
+          "name": "Pomocnik tekstu",
+          "description": "Formatuj, dekoduj, hashuj i anonimizuj tekst — JSON, JWT i inne."
+        },
         "pt": {
           "name": "Assistente de Texto",
           "description": "Formate, decodifique, gere hash e anonimize texto — JSON, JWT e muito mais."
@@ -1449,6 +1543,10 @@
         "tr": {
           "name": "Metin Yardımcısı",
           "description": "Metni biçimlendir, çöz, hash'le ve anonimleştir — JSON, JWT ve daha fazlası."
+        },
+        "uk": {
+          "name": "Текстовий помічник",
+          "description": "Форматуйте, декодуйте, хешуйте та деідентифікуйте текст — JSON, JWT та інше."
         },
         "ur": {
           "name": "ٹیکسٹ ہیلپر",
@@ -1550,8 +1648,12 @@
           "description": "Elke webpagina, op elke scrolldiepte, met eigen CSS."
         },
         "no": {
-          "name": "URL Screenshot",
+          "name": "URL-skjermbilde",
           "description": "Alle nettsider, uansett scroll-dybde, med egendefinert CSS"
+        },
+        "pl": {
+          "name": "Zrzut ekranu URL",
+          "description": "Każda strona internetowa, na dowolnej głębokości przewijania, z własnym CSS"
         },
         "pt": {
           "name": "Captura de Tela de URL",
@@ -1572,6 +1674,10 @@
         "tr": {
           "name": "URL Ekran Görüntüsü",
           "description": "Herhangi bir web sayfası, herhangi bir kaydırma derinliğinde, özel CSS ile"
+        },
+        "uk": {
+          "name": "Скриншот URL",
+          "description": "Будь-яка веб-сторінка, на будь-якій глибині прокручування, з власним CSS"
         },
         "ur": {
           "name": "URL اسکرین شاٹ",
@@ -1674,6 +1780,10 @@
           "name": "Layout Studio",
           "blurb": "Fritt utformbare layouter på et åpent lerret"
         },
+        "pl": {
+          "name": "Layout Studio",
+          "blurb": "Swobodne układy na otwartym płótnie"
+        },
         "pt": {
           "name": "Estúdio de Layout",
           "blurb": "Layouts livres em uma tela aberta"
@@ -1693,6 +1803,10 @@
         "tr": {
           "name": "Düzen Stüdyosu",
           "blurb": "Açık bir kanvasta serbest biçimli düzenler"
+        },
+        "uk": {
+          "name": "Студія макетів",
+          "blurb": "Довільні макети на відкритому канвасі"
         },
         "ur": {
           "name": "لے آؤٹ اسٹوڈیو",
@@ -1811,6 +1925,11 @@
           "description": "Spill inn en talemelding med nivåmåler i sanntid og skånsom veiledning, og lagre den som MP3.",
           "blurb": "Spill inn en ren talemelding med nivåveiledning i sanntid"
         },
+        "pl": {
+          "name": "Nagrywanie głosu",
+          "description": "Nagraj notatkę głosową z licznikiem poziomu na żywo i delikatnymi wskazówkami, a następnie zapisz jako MP3.",
+          "blurb": "Nagraj czystą notatkę głosową z pomocą wskaźnika poziomu na żywo"
+        },
         "pt": {
           "name": "Gravador de Voz",
           "description": "Grave uma nota de voz com um medidor de nível ao vivo e dicas gentis, depois salve como MP3.",
@@ -1835,6 +1954,11 @@
           "name": "Ses Kaydedici",
           "description": "Canlı seviye göstergesi ve yumuşak yönlendirmelerle bir ses notunu kayda al, ardından MP3 olarak kaydet.",
           "blurb": "Canlı seviye rehberliğiyle temiz bir sesli not kaydet"
+        },
+        "uk": {
+          "name": "Диктофон",
+          "description": "Запишіть голосову нотатку з індикатором рівня в реальному часі та м'якими підказками, потім збережіть як MP3.",
+          "blurb": "Записуйте чисту голосову нотатку з підказками рівня в реальному часі."
         },
         "ur": {
           "name": "وائس ریکارڈر",
@@ -1934,6 +2058,10 @@
           "name": "Fargepalett",
           "description": "Bla gjennom SUSE-merkevarens farger — klikk en fargerute for å kopiere den."
         },
+        "pl": {
+          "name": "Paleta kolorów",
+          "description": "Przeglądaj kolory swojej marki — kliknij próbkę, aby ją skopiować."
+        },
         "pt": {
           "name": "Paleta de Cores",
           "description": "Veja as cores da marca SUSE — clique em uma amostra para copiar."
@@ -1953,6 +2081,10 @@
         "tr": {
           "name": "Renk Paleti",
           "description": "Marka renklerine göz at — kopyalamak için bir renk örneğine tıkla."
+        },
+        "uk": {
+          "name": "Палітра кольорів",
+          "description": "Перегляньте кольори вашого бренду — клацніть зразок, щоб скопіювати його."
         },
         "ur": {
           "name": "رنگ پیلیٹ",
@@ -2054,6 +2186,10 @@
           "name": "Mesh Gradient",
           "description": "Myke mesh-gradienter fra fargene i merkevaren din. Dra fargepunktene rett på lerretet."
         },
+        "pl": {
+          "name": "Gradient siatkowy",
+          "description": "Miękkie gradienty siatkowe z próbek kolorów Twojej marki. Przesuwaj punkty kolorów bezpośrednio na płótnie."
+        },
         "pt": {
           "name": "Gradiente em Malha",
           "description": "Gradientes suaves em estilo malha a partir das amostras da sua marca. Arraste os pontos de cor diretamente na tela."
@@ -2073,6 +2209,10 @@
         "tr": {
           "name": "Mesh Gradyan",
           "description": "Marka renklerinden yumuşak, mesh tarzı gradyanlar. Renk noktalarını doğrudan kanvas üzerinde sürükle."
+        },
+        "uk": {
+          "name": "Сітковий градієнт",
+          "description": "М'які градієнти у стилі сітки з ваших брендових зразків. Перетягуйте точки кольору прямо на полотні."
         },
         "ur": {
           "name": "میش گریڈینٹ",
@@ -2193,9 +2333,14 @@
           "blurb": "Grafieken uit je data, in elke vorm en in je huisstijl"
         },
         "no": {
-          "name": "Chart Creator",
+          "name": "Diagramskaper",
           "description": "Merkevaretilpassede diagrammer fra dataene dine — søyler, smultring, sirkel eller stablet.",
           "blurb": "Merkevaretilpassede diagrammer fra dataene dine, i alle former"
+        },
+        "pl": {
+          "name": "Kreator wykresów",
+          "description": "Wykresy w barwach marki na podstawie Twoich danych — słupkowe, pierścieniowe, kołowe lub skumulowane.",
+          "blurb": "Wykresy w barwach marki na podstawie Twoich danych, w każdej formie"
         },
         "pt": {
           "name": "Criador de Gráficos",
@@ -2221,6 +2366,11 @@
           "name": "Grafik Oluşturucu",
           "description": "Verilerinden markana uygun grafikler — çubuk, halka, pasta veya yığılmış.",
           "blurb": "Verilerinden markana uygun grafikler, her şekilde"
+        },
+        "uk": {
+          "name": "Конструктор діаграм",
+          "description": "Фірмові діаграми з ваших даних — стовпчикові, кільцеві, кругові або накопичувальні.",
+          "blurb": "Фірмові діаграми з ваших даних, будь-якої форми"
         },
         "ur": {
           "name": "چارٹ کریئٹر",
@@ -2349,6 +2499,11 @@
           "description": "Kraftfulle datadrevne diagrammer med D3 — lim inn en tabell, så lager den diagrammet selv. Stolper, linjer, flater, punktdiagram, kakediagram, radar, tremap, varmekart og mer, merkevaretilpasset og vektorrent.",
           "blurb": "Lim inn en tabell — D3 lager diagrammet, merkevaretilpasset og vektorrent"
         },
+        "pl": {
+          "name": "D3 Chart Studio",
+          "description": "Zaawansowane wykresy oparte na danych, zasilane przez D3 — wklej tabelę, a wykres utworzy się sam. Słupkowe, liniowe, obszarowe, punktowe, kołowe, radarowe, mapy drzewa, mapy ciepła i więcej, w barwach marki i w czystej wektorowej jakości.",
+          "blurb": "Wklej tabelę — D3 utworzy wykres, w barwach marki i w czystej wektorowej jakości"
+        },
         "pt": {
           "name": "Estúdio de Gráficos D3",
           "description": "Gráficos potentes orientados a dados com D3 — cole uma tabela e o gráfico se monta sozinho. Barras, linhas, áreas, dispersão, pizza, radar, treemap, mapa de calor e muito mais, alinhados à marca e em vetor limpo.",
@@ -2373,6 +2528,11 @@
           "name": "D3 Grafik Stüdyosu",
           "description": "D3 ile güçlü, veriye dayalı grafikler — bir tablo yapıştır, kendiliğinden grafiğe dönüşsün. Çubuk, çizgi, alan, dağılım, pasta, radar, ağaç haritası, ısı haritası ve daha fazlası, markana uygun ve vektör netliğinde.",
           "blurb": "Bir tablo yapıştır — D3 onu grafiğe dönüştürsün, markana uygun ve vektör netliğinde"
+        },
+        "uk": {
+          "name": "Студія діаграм D3",
+          "description": "Потужні діаграми на основі даних із D3 — вставте таблицю, і вона побудує діаграму сама. Стовпчикові, лінійні, площинні, точкові, кругові, радарні, дерево-карти, теплові карти й інше — фірмові та чисто векторні.",
+          "blurb": "Вставте таблицю — D3 побудує діаграму, фірмово і чисто векторно"
         },
         "ur": {
           "name": "D3 چارٹ اسٹوڈیو",
