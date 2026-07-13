@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-13T04:30:22.925Z",
+  "generatedAt": "2026-07-13T04:46:01.134Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2080,7 +2080,7 @@
         },
         "tr": {
           "name": "Renk Paleti",
-          "description": "Marka renklerine göz at — kopyalamak için bir renk örneğine tıkla."
+          "description": "SUSE marka renklerine göz at — kopyalamak için bir renk örneğine tıkla."
         },
         "uk": {
           "name": "Палітра кольорів",
