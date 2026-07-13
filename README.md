@@ -26,7 +26,7 @@ Tools can be used via a:
 * Unlimited scale, No SaaS fees. 
 * Low-or-Zero server costs: Lolly uses local device compute. 
 * Builds for Mac, Linux, iOS, Android, web, and the command line. 
-* Huge format support: SVG · EMF · PDF · Print PDF (CMYK) · CMYK TIFF · PNG · JPEG · WebP · AVIF · ICO · WebM · MP4 · GIF · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP 
+* Huge format support: SVG · EMF · PDF · Print PDF (CMYK) · CMYK TIFF · PNG · JPEG · WebP · AVIF · ICO · WebM · MP4 · GIF · MP3 · M4A · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP — plus audio and tracker input (WAV · OGG · FLAC · MIDI · MOD). 
 * Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars, and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
 * Works 100% Offline.
