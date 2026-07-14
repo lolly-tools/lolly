@@ -55,6 +55,9 @@ export interface SelectOption {
   width?: number;
   height?: number;
   unit?: string;
+  /** Icon name (shells/web/src/lib/icons.ts) shown instead of the label when the
+   *  input renders as `display: 'icon-toggle'`. The engine only carries it. */
+  icon?: string;
 }
 
 /** One field of a `vector` compound input. */
@@ -154,7 +157,9 @@ export interface InputSpec {
   min?: number;
   max?: number;
   step?: number;
-  display?: 'input' | 'slider';
+  /** `slider` is a number-input variant; `icon-toggle` is a select variant (a
+   *  compact button that cycles its options, labelled by each option's `icon`). */
+  display?: 'input' | 'slider' | 'icon-toggle';
   // color
   palette?: string;
   swatchesOnly?: boolean;
@@ -173,6 +178,12 @@ export interface InputSpec {
   // they mirror schemas/tool.schema.json, same as the block sub-field members).
   /** Sidebar section (collapsible group) this input renders under. */
   section?: string;
+  /** Render this input's control INSIDE the named sibling input's control row
+   *  (leading), instead of on its own labelled row — for a compact modifier that
+   *  belongs to another control, e.g. a fit toggle on an asset slot. It stays an
+   *  ordinary input everywhere else (URL params, hooks, state, undo). The engine
+   *  only carries it; the web shell places it. */
+  attachTo?: string;
   placeholder?: string;
   /** Unit label shown beside a slider value (e.g. "mm"). */
   unit?: string;

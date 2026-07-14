@@ -314,6 +314,10 @@
           "type": "object",
           "description": "Conditional visibility: the input renders in the sidebar only while every { otherInputId: value } pair here matches the current model (e.g. { \"vectorize\": true }).",
           "additionalProperties": true
+        },
+        "attachTo": {
+          "type": "string",
+          "description": "Id of a sibling input. Renders THIS input's control inside that input's control row (leading) instead of on its own labelled row — for a compact modifier belonging to another control, e.g. a fit toggle on an asset slot. It stays an ordinary input everywhere else (URL params, hooks, state, undo); only its placement changes. Pair with display:'icon-toggle' to keep it to one button. Ignored if the target id does not exist."
         }
       },
       "allOf": [
@@ -382,6 +386,12 @@
           "then": {
             "required": ["options"],
             "properties": {
+              "display": {
+                "type": "string",
+                "enum": ["select", "icon-toggle"],
+                "default": "select",
+                "description": "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3."
+              },
               "options": {
                 "type": "array",
                 "items": {
@@ -390,6 +400,7 @@
                   "properties": {
                     "value": { "type": "string" },
                     "label": { "type": "string" },
+                    "icon": { "type": "string", "description": "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown." },
                     "width": { "type": "number", "exclusiveMinimum": 0, "description": "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override." },
                     "height": { "type": "number", "exclusiveMinimum": 0, "description": "Export height this option implies, in `unit`." },
                     "unit": { "type": "string", "enum": ["px", "mm", "cm", "in", "pt"], "description": "Unit for this option's width/height. Defaults to 'mm' when width/height are present." }
