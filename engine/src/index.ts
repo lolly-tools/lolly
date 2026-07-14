@@ -607,4 +607,24 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // they now accept the empty value (mirrored in scripts/validate-catalog.ts).
 // No bridge signature change; hand-mirrored maps (web shell pre-paint
 // HTML_LANG) must add the two new languages.
-export const ENGINE_VERSION = '1.52.0';
+// 1.53.0 — release-freeze hardening (plans/action-plan.md). (1) loadTool now
+// ENFORCES a manifest's `engineVersion` range: a tool whose range excludes the
+// running ENGINE_VERSION is REFUSED, not warned (P0-3) — the load-bearing floor
+// of the fast-catalog / slow-binary model. New dependency-free range check in
+// semver-range.ts (satisfiesRange); no `semver` dep added. (2) New
+// session-record.ts (sessionVersionStamp / migrateSessionRecord /
+// SESSION_FORMAT_VERSION): every saved-session record now carries formatVersion
+// + engineVersion, and the state bridges read them through a migrate-or-warn
+// branch on load (P0-5). Both purely additive to the engine surface; no bridge
+// signature change. ENGINE_VERSION also moves to version.ts (re-exported here)
+// so the loader can read it without an index↔loader import cycle.
+export { ENGINE_VERSION } from './version.ts';
+export { satisfiesRange, parseVersion } from './semver-range.ts';
+export { encodeFsToken, decodeFsToken } from './fs-token.ts';
+export {
+  sessionVersionStamp,
+  migrateSessionRecord,
+  SESSION_FORMAT_VERSION,
+  SESSION_READER_VERSION,
+} from './session-record.ts';
+export type { SessionVersionStamp, StoredSessionRecord, SessionLogger } from './session-record.ts';

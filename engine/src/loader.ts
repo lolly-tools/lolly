@@ -24,6 +24,8 @@ import type { Capability } from './bridge/host-v1.ts';
 import { verifyEnvelopeSignature, verifyToolFile } from './catalog-integrity.ts';
 import type { CatalogSignatureEnvelope, IntegrityResult } from './catalog-integrity.ts';
 import type { Lang } from './lang.ts';
+import { ENGINE_VERSION } from './version.ts';
+import { satisfiesRange } from './semver-range.ts';
 
 /** `render` block of a tool manifest (schemas/tool.schema.json `render`). */
 export interface ToolRenderSpec {
@@ -294,6 +296,21 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   if (manifest.id !== toolId) {
     throw new ToolLoadError(
       `Manifest id "${manifest.id}" doesn't match directory "${toolId}"`,
+      [],
+    );
+  }
+
+  // Engine-compatibility floor (P0-3). Tools sync to clients as data, ahead of
+  // the binary; a tool needing a newer engine than this build implements must be
+  // REFUSED here — before its template/hooks are even fetched — not half-loaded
+  // to call a method that isn't there and die. `engineVersion` is schema-required
+  // (validateManifest ran above), so it's present; the range is matched against
+  // the running ENGINE_VERSION with a dependency-free caret/tilde/comparator
+  // check (semver-range.ts). This is the load-bearing element of the whole
+  // fast-catalog / slow-binary model — it fails closed, deliberately.
+  if (!satisfiesRange(ENGINE_VERSION, manifest.engineVersion)) {
+    throw new ToolLoadError(
+      `"${toolId}" requires engine ${manifest.engineVersion}, but this build implements ${ENGINE_VERSION} — refusing to load`,
       [],
     );
   }
