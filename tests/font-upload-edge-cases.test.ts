@@ -1,16 +1,28 @@
 /**
  * Font upload edge case tests
  * Tests: (1) Oversized files >5MB, (2) Corrupted TTF, (3) Duplicate fonts,
- * (4) WOFF2 decompression, (5) Delete in-use fonts, (6) Race conditions
+ * (4) WOFF2 decompression, (5) Delete in-use fonts, (6) Race conditions,
+ * (7) A real sfnt — the platform Outfit face
  *
- * NOTE: the first three bytes of every console.log line here must be ASCII —
- * a byte >= 0x80 at byte offset 2 of a raw write intermittently crashes the
- * `node --test` parent's frame parser ("Unable to deserialize cloned data").
- * Full explanation in font-upload.integration.test.ts's header.
+ * NOTE: the first three bytes of every console.log line here must be ASCII.
+ * `node --test` children interleave raw stdout with V8-serialized report frames
+ * on one pipe; when a raw write lands directly after a frame, the parent's frame
+ * parser skips 2 "header" bytes unchecked and reads byte offsets 2-5 as a SIGNED
+ * 32-bit message length. ASCII at offset 2 yields a huge positive length and the
+ * parser's benign resync path; a byte >= 0x80 there (e.g. "✓" = 0xE2 9C 93
+ * starting at offset 0, 1, or 2) goes negative and intermittently crashes the
+ * whole run with "Unable to deserialize cloned data"
+ * (node:internal/test_runner/runner #processRawBuffer, seen on Node 24.18).
+ * Hence the ASCII "ok" pass markers. The trailing summary block is safe because
+ * its non-ASCII check marks sit well past offset 2 of that write.
+ * (This explanation used to live in font-upload.integration.test.ts, deleted
+ * 2026-07-14 — it was 1/3 tautologies and read a fixture never committed.)
  */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { validateFontFile, detectFontFormat, parseFontMetadata } from '../shells/web/src/lib/font-utils.ts';
 import type { UserFontsHost, UserFontFamily } from '../shells/web/src/user-fonts.ts';
 import {
@@ -466,6 +478,75 @@ test('Edge Case #6c: Concurrent deletes and uploads should not corrupt state', a
 // Summary
 // ──────────────────────────────────────────────────────────────────────────────
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Test 7: A real sfnt (every other case here feeds synthetic or corrupt bytes)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The platform Outfit face, shipped in the web shell and always present (the
+ * imports above already require the shells/web submodule to be mounted). Read
+ * lazily INSIDE each test on purpose: the deleted font-upload.integration.test.ts
+ * did this at module scope against a /tmp path that was never committed, so the
+ * throw took the whole file down instead of one test.
+ */
+const OUTFIT_TTF = fileURLToPath(new URL('../shells/web/public/fonts/Outfit[wght].ttf', import.meta.url));
+
+function outfitBytes(): ArrayBuffer {
+  const buf = readFileSync(OUTFIT_TTF);
+  return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+}
+
+test('Edge Case #7: Real TTF (Outfit) parses to a usable family/weight/style', async () => {
+  const bytes = outfitBytes();
+
+  assert.equal(detectFontFormat(bytes), 'ttf', 'Real Outfit face should detect as TTF by magic bytes');
+
+  const meta = parseFontMetadata(bytes);
+  assert.ok(meta, 'Real sfnt should yield metadata');
+  assert.equal(meta!.style, 'normal');
+  assert.ok(
+    meta!.weight >= 100 && meta!.weight <= 900,
+    `Weight should be a valid CSS weight, got ${meta!.weight}`
+  );
+  console.log(`  ok Real TTF parsed: family=${meta!.family}, weight=${meta!.weight}, style=${meta!.style}`);
+});
+
+test('Edge Case #7b: Variable font family comes from nameID 16, not the instance-tied nameID 1', () => {
+  // Outfit[wght].ttf carries nameID 1 = "Outfit Thin" (legacy, describing the
+  // default instance) alongside nameID 16 = "Outfit" (typographic family). Only
+  // nameID 16 groups every weight under one family — reading nameID 1 mislabels the
+  // Fonts tab, slugs the asset id "outfit-thin", and makes font-registry miss a
+  // `font-family: Outfit` stack. Name records are ordered by nameId, so a
+  // return-on-first-match loop silently picks 1; that regression is what this pins.
+  const meta = parseFontMetadata(outfitBytes());
+
+  assert.equal(meta!.family, 'Outfit');
+  assert.notEqual(meta!.family, 'Outfit Thin', 'Must not fall back to the instance-tied legacy family');
+  console.log(`  ok Typographic family preferred: ${meta!.family}`);
+});
+
+test("Edge Case #7c: Variable font weight reflects the fvar default instance", () => {
+  // Not a round number by accident: Outfit[wght].ttf declares fvar wght
+  // min=100 DEFAULT=100 max=900 and OS/2 usWeightClass=100, so Thin genuinely IS
+  // this file's default instance. Pins that we read the file's real default rather
+  // than assuming the conventional 400.
+  const meta = parseFontMetadata(outfitBytes());
+
+  assert.equal(meta!.weight, 100, 'Should report the fvar/OS-2 default instance (Thin), not a presumed 400');
+  console.log(`  ok Default instance weight: ${meta!.weight}`);
+});
+
+test('Edge Case #7d: Real TTF passes upload validation end to end', () => {
+  const buf = readFileSync(OUTFIT_TTF);
+  const file = new File([buf], 'Outfit[wght].ttf', { type: 'font/ttf' });
+
+  const result = validateFontFile(file);
+
+  assert.equal(result.valid, true, `Real font should pass validation, got: ${result.error}`);
+  assert.ok(buf.byteLength < 5 * 1024 * 1024, 'Guard: fixture must stay under the 5MB cap this asserts against');
+  console.log(`  ok Real TTF validated (${buf.byteLength} bytes)`);
+});
+
 console.log('\n' + '='.repeat(80));
 console.log('FONT UPLOAD EDGE CASE TESTS - SUMMARY');
 console.log('='.repeat(80));
@@ -487,4 +568,8 @@ Test Coverage:
   ✓ #6 - 5 rapid uploads without index collisions
   ✓ #6b - Mixed family rapid uploads grouped correctly
   ✓ #6c - Concurrent delete + upload operations safe
+  ✓ #7 - Real Outfit TTF parses to a usable family/weight/style
+  ✓ #7b - Variable-font family read from nameID 16, not instance-tied nameID 1
+  ✓ #7c - Variable-font weight reflects the fvar default instance
+  ✓ #7d - Real TTF passes upload validation end to end
 `);
