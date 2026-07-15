@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-14T21:29:11.861Z",
+  "generatedAt": "2026-07-15T13:24:59.327Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2555,6 +2555,24 @@
           "blurb": "粘贴表格，D3 自动生成符合品牌规范的矢量图表"
         }
       }
+    },
+    {
+      "id": "prompt-to-image",
+      "name": "Prompt to Image",
+      "description": "AI models are cheaper at processing images than they are text",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "png",
+        "webp"
+      ],
+      "width": 1024,
+      "height": 1024,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M7 8h4\" /><path d=\"M7 12h4\" /><path d=\"M7 16h4\" /><path d=\"M14 8h3\" /><path d=\"M14 12h3\" /><path d=\"M14 16h3\" /></svg>",
+      "preview": "/catalog/previews/prompt-to-image.webp"
     }
   ]
 }
