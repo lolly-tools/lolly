@@ -78,8 +78,17 @@ export { emitDxf } from './dxf.ts';
 export { buildPptxParts, EMU_PER_INCH, EMU_PER_PX } from './pptx.ts';
 export type {
   PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
-  PptxTable, PptxTableCell, PptxLine, PptxTheme,
+  PptxTable, PptxTableCell, PptxLine, PptxTheme, PptxPath,
 } from './pptx.ts';
+export { svgToCustGeomPaths } from './svg-custgeom.ts';
+export { rebrandPptxParts } from './pptx-patch.ts';
+export type { RebrandPlan, RebrandTheme, RebrandReport, PartMap } from './pptx-patch.ts';
+export { isPptx, readPptx } from './pptx-read.ts';
+export type {
+  PptxParts, XmlParser, PptxDeckRead, PptxReadSlide, PptxReadNode, PptxReadTheme,
+  PptxReadColor, PptxReadRun, PptxReadPara, PptxTextNode, PptxShapeNode, PptxPicNode,
+  PptxTableNode, PptxUnknownNode,
+} from './pptx-read.ts';
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
 } from './pdfx.ts';
@@ -117,6 +126,8 @@ export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';
 export { deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors, makeColorApi } from './color-tools.ts';
 export type { RampOptions, DistinctColorsOptions } from './color-tools.ts';
+export { nearestBrandColor, mapPaletteToBrand, mapFontsToBrand } from './brand-map.ts';
+export type { BrandSwatch, RoleHint, NearestBrandColorOptions, NearestBrandColor, BrandFonts } from './brand-map.ts';
 export {
   coerceTokensDoc, assembleTokenSetFiles, extractPenpotProject, summarizeTokensDoc,
 } from './brand-import.ts';
@@ -654,6 +665,19 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // borders, p:xfrm prefix vs a:off/a:ext. Deferred (separate track, spec saved): native
 // c:chart — the `presentation` tool composes our chart tools (d3/org-chart/chart-
 // creator) into vector pictures instead.
+// 1.57.0 — additive: NATIVE-vector PPTX for flat SVG art. (1) pptx.ts gains a `path`
+// shape (PptxPath) — arbitrary M/L/C subpaths lowered to a:custGeom / a:pathLst
+// (moveTo/lnTo/cubicBezTo/close) inside one a:path w=cx h=cy, solid fill + solid
+// stroke; all subpaths collapse into one path so holes cut out. (2) new svg-custgeom.ts
+// `svgToCustGeomPaths(svgText, targetW, targetH)` — a DOM-free scan that walks the tag
+// stream, tracks the group transform stack + inherited fill/stroke/stroke-width,
+// converts path/rect/circle/ellipse/line/polygon/polyline to `d`, and maps coords
+// through (group transforms) ∘ (viewBox → target EMU) into PptxPath[]; returns null
+// (→ raster fallback) on gradients/filters/masks/clip-paths/opacity/blend/image/text/
+// use/style/currentColor/unknown-named-colour/rotate-or-skew/unreadable-viewBox, so a
+// non-flat SVG never regresses. The web shell's export-pptx tries it first for an
+// <svg>/SVG <img>/SVG background and emits native shapes when it succeeds. Reuses
+// parseSvgPath + colorToHex; no bridge/host method added or changed.
 export { ENGINE_VERSION } from './version.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';

@@ -80,7 +80,7 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL — cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'preview', 'options'];
+const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'profile', 'c2pa', 'preview', 'options'];
 
 function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
@@ -91,6 +91,19 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   if (dims.height && dims.height > 0) p.set('height', String(dims.height));
   if (unit !== 'px') { p.set('unit', unit); p.set('dpi', String(dims.dpi || 300)); }
   if (dims.password) p.set('password', dims.password);   // standard PDF open-password
+  // Print prep + provenance controls the web auto-export already honours (tool.ts reads
+  // ?bleed/?marks/?imprint/?profile/?c2pa via parseUrlState). Threading them here is the
+  // whole of the P3 fix: the geometry/watermark/press-intent lives in the web shell; the
+  // Node shells were simply never carrying the values into the URL that drives it.
+  if (dims.bleed) p.set('bleed', dims.bleed);                    // e.g. "3mm"
+  if (dims.marks) p.set('marks', dims.marks);                    // CSV: crop,reg,bleed,bars,prov
+  if (dims.imprint) p.set('imprint', '1');                       // durable pixel watermark
+  if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
+  // Content Credentials: forward the setting so the web shell is the single c2pa authority
+  // for the browser tier (the Node post-stamp is skipped when this path ran — see run.ts /
+  // engine-render.ts — which avoids the pre-existing double-stamp).
+  if (dims.c2pa === false) p.set('c2pa', 'off');
+  else if (dims.c2pa) p.set('c2pa', [7, 30, 90, 365].includes(Number(dims.c2paDays)) ? String(dims.c2paDays) : '1');
   p.set('export', '1'); // presence flag → the web shell auto-exports on load
   return `${base}/#/tool/${encodeURIComponent(toolId)}?${p.toString()}`;
 }
@@ -103,7 +116,24 @@ function timeoutFor(fmt: string): number {
   return 60_000;
 }
 
-export interface RenderDims { width?: number; height?: number; unit?: string; dpi?: number; password?: string }
+export interface RenderDims {
+  width?: number; height?: number; unit?: string; dpi?: number;
+  /** Standard PDF open-password (basic RC4 lock). */
+  password?: string;
+  /** Bleed amount as a dimension string (e.g. "3mm") for the print formats. */
+  bleed?: string;
+  /** Print marks CSV (crop,reg,bleed,bars,prov) for the print formats. */
+  marks?: string;
+  /** Embed the durable Lolly pixel watermark on raster exports. */
+  imprint?: boolean;
+  /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
+   *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
+  pressProfile?: string;
+  /** Content Credentials: true/off/undefined. undefined ⇒ the web shell's tool default. */
+  c2pa?: boolean | null;
+  /** Ephemeral-certificate lifetime in days (7/30/90/365) when c2pa is on. */
+  c2paDays?: number | null;
+}
 
 /**
  * Render a tool to bytes by driving the web shell in Chromium and capturing its

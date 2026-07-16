@@ -60,7 +60,8 @@ export interface HostV1 {
   /**
    * Text-to-path primitive. Shape and outline a text run into an SVG path.
    * Backed by HarfBuzz WASM — correct shaping including GPOS, ligatures, kerning.
-   * Optional: not all shells implement it (CLI has no DOM context).
+   * DOM-free (HarfBuzz needs no layout engine), so the web PWA, the CLI, and the TUI
+   * all provide it; a shell can still legitimately omit it (feature-detected).
    */
   text?: TextAPI;
 

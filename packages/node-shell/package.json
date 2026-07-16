@@ -14,7 +14,10 @@
     "./browsers": "./src/browsers.ts",
     "./webshell-render": "./src/webshell-render.ts",
     "./raster": "./src/raster.ts",
-    "./c2pa-opts": "./src/c2pa-opts.ts"
+    "./c2pa-opts": "./src/c2pa-opts.ts",
+    "./text": "./src/text.ts",
+    "./render-integrity": "./src/render-integrity.ts",
+    "./url-capture": "./src/url-capture.ts"
   },
   "files": [
     "src",
@@ -27,6 +30,7 @@
     "@lolly-tools/core": "*",
     "@lolly/engine": "*",
     "@resvg/resvg-js": "^2.6.2",
+    "harfbuzzjs": "^1.4.0",
     "playwright-core": "^1.49.0"
   },
   "devDependencies": {

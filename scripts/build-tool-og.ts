@@ -18,14 +18,16 @@
  *   1. Author override — tools/<id>/og.{png,jpg,jpeg,webp} (committed, raster). Lets a
  *      tool ship its own preferred art; it WINS over the generated default.
  *   2. Generated default — a gallery-tile card (tool icon + name + description + a
- *      framed preview of the tool's own output) rendered by docs/og-image.ts into
- *      catalog/og/<id>.png. These are COMMITTED (like catalog/previews) and served at
- *      /catalog/og/<id>.png. Rendering needs @resvg/resvg-js, which does NOT reliably
- *      install on the Vercel build (it was a devDep; promoting it to a dependency still
- *      didn't take because the build restores a stale node_modules cache and npm no-ops
- *      "up to date"). So we commit the cards: build:web / dev:web refresh them LOCALLY
- *      (where resvg works), and the git deploy ships those bytes. On a resvg-less build
- *      the cards are left untouched (never wiped) and the stubs still point at them.
+ *      framed preview of the tool's own output) laid out by docs/og-image.ts and
+ *      rasterised through OUR OWN render path (Chromium via Playwright — see
+ *      scripts/lib/rasterize-svg-browser.ts), NOT a second SVG interpreter like resvg.
+ *      One render path means a card is shaped the way the app paints the tool, and a
+ *      brand illustration can't drift to a black-bodied Geeko the way resvg did. Cards
+ *      land at catalog/og/<id>.png, are COMMITTED (like catalog/previews) and served at
+ *      /catalog/og/<id>.png. The browser isn't available on the Vercel build, so — as
+ *      before — build:web / dev:web refresh the cards LOCALLY and the git deploy ships
+ *      those bytes; a browser-less build leaves them untouched (never wiped) and the
+ *      stubs still point at them.
  *   3. Fallback — the generic /og.png only when a tool has no committed card at all.
  *
  * Serving: this deploy's catch-all rewrite (/(.*) → /index.html, no cleanUrls) serves
@@ -40,20 +42,16 @@
  * Source of truth is the committed catalog/tools/index.json — it already carries each
  * tool's name, description and inlined icon SVG, so this needs no manifest walk and
  * works on a plain git deploy. Output dirs are git-ignored and rebuilt each run,
- * mirroring the /info OG images. The share card is rendered with @resvg/resvg-js, a
- * build-time-only dep: if it's missing, stubs still emit but point at og.png.
+ * mirroring the /info OG images. The share card is rasterised through Chromium
+ * (Playwright, a build-time-only devDep): if the browser is missing, stubs still emit
+ * but point at the committed cards / og.png.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
-import { resolve, dirname, basename, join } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { spawnSync } from 'node:child_process';
-import { tmpdir } from 'node:os';
 import { createToolCardRenderer } from '../docs/og-image.ts';
-
-// The @resvg/resvg-js Resvg class is imported dynamically (build-time-only dep); this
-// captures its constructor type for the `Resvg` handle without a runtime import.
-type ResvgClass = typeof import('@resvg/resvg-js').Resvg;
+import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 
 // Catalog index entries are dynamic JSON; only the fields this script reads are typed.
 interface ToolEntry {
@@ -89,9 +87,9 @@ const PUBLIC  = resolve(ROOT, 'shells/web/public');
 // /t/<id> share URL onto it. See the og: comment block at the top of this file.
 const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact static file)
 // Generated default cards are COMMITTED here (served /catalog/og/<id>.png), mirroring
-// the committed catalog/previews — so a git deploy ships them even though @resvg/resvg-js
-// fails to install on the Vercel build (devDep pruning + stale build cache). Locally,
-// where resvg works, build:web refreshes these; commit the changes like previews.
+// the committed catalog/previews — so a git deploy ships them even though the render
+// browser (Playwright/Chromium) isn't installed on the Vercel build. Locally, where the
+// browser is available, build:web refreshes these; commit the changes like previews.
 const OG_DIR   = resolve(ROOT, 'catalog/og');  // → /catalog/og/<id>.png (committed)
 const FALLBACK_IMG = `${SITE_URL}/og.png`;
 const FALLBACK_DESC = 'Generate on-brand assets from simple inputs. Works offline.';
@@ -148,16 +146,14 @@ function stubHtml(
 `;
 }
 
-// The tool's preview thumbnail (catalog index `preview` path), turned into a PNG
-// data-URI the card can embed. PNG previews are inlined as-is; SVG previews are
-// rasterised to PNG first (they're self-contained brand vectors — but a crawler only
-// takes raster). Returns null when there's no preview file OR the rasterise failed, so
-// the card falls back to a placeholder icon rather than the build dying.
-//
-// The SVG rasterise runs in a CHILD PROCESS (scripts/rasterize-preview.ts): resvg is
-// native and can *panic* on some preview geometry (e.g. multi-page-pdf.svg → a geom.rs
-// unwrap), and a Rust panic aborts the process uncatchably — in-process it would take
-// the whole build:web down. Isolated, a panic just fails that one child → icon-only card.
+// The tool's preview thumbnail (catalog index `preview` path), as a data-URI the card
+// embeds in an <image>. A committed PNG preview is inlined as-is; an SVG preview rides
+// in AS SVG — the same browser that rasterises the whole card paints it in one pass
+// (isolated, like an <img>, so a brand illustration renders exactly as the gallery shows
+// it). This is the key change from the resvg era: previews are no longer pre-flattened to
+// PNG by a second, drifting interpreter (which is what turned the Geeko's gradient-filled
+// body black). Returns null when there's no preview file, so the card falls back to a
+// placeholder icon rather than the build dying.
 function previewDataUri(previewPath: string | undefined): string | null {
   if (!previewPath) return null;
   const file = resolve(ROOT, previewPath.replace(/^\//, ''));
@@ -166,25 +162,7 @@ function previewDataUri(previewPath: string | undefined): string | null {
     return `data:image/png;base64,${readFileSync(file).toString('base64')}`;
   }
   if (file.endsWith('.svg')) {
-    const out = join(tmpdir(), `lolly-og-${basename(file, '.svg')}.png`);
-    try {
-      const res = spawnSync(
-        process.execPath,
-        [resolve(ROOT, 'scripts/rasterize-preview.ts'), file, out, '820'],   // ~2× the card's preview box for crispness
-        { cwd: ROOT, stdio: 'ignore', timeout: 30000 },
-      );
-      if (res.status === 0 && existsSync(out)) {
-        const uri = `data:image/png;base64,${readFileSync(out).toString('base64')}`;
-        rmSync(out, { force: true });
-        return uri;
-      }
-      if (existsSync(out)) rmSync(out, { force: true });
-      // Non-zero exit / SIGABRT (resvg panicked) — skip the preview for this tool.
-      console.log(`tool-og: preview rasterise skipped for ${basename(file)} (resvg failed) — icon-only card`);
-      return null;
-    } catch {
-      return null;
-    }
+    return `data:image/svg+xml,${encodeURIComponent(readFileSync(file, 'utf8'))}`;
   }
   return null;
 }
@@ -193,22 +171,20 @@ async function main(): Promise<void> {
   const index = JSON.parse(readFileSync(resolve(ROOT, 'catalog/tools/index.json'), 'utf8'));
   const tools: ToolEntry[] = Array.isArray(index.tools) ? index.tools : [];
 
-  // Renderer is best-effort: a missing build-time resvg degrades stubs to og.png
-  // rather than failing the whole web build (mirrors docs/og-image.ts).
+  // Renderer is best-effort: a missing browser (or SUSE fonts) degrades stubs to the
+  // committed cards / og.png rather than failing the whole web build (mirrors docs/og-image.ts).
   let renderer: ReturnType<typeof createToolCardRenderer> | null = null;
-  let Resvg: ResvgClass | null = null;
-  // On Vercel, DON'T rasterise: cards are committed and ship via git (see header).
-  // resvg now installs there but can hard-crash (a native Rust panic — uncatchable
-  // by try/catch — on some tool's preview SVG, e.g. multi-page-pdf), which would
-  // abort `build:web` and fail the whole deploy. Refresh cards locally instead.
+  let rasterizer: SvgRasterizer | null = null;
+  // On Vercel, DON'T rasterise: cards are committed and ship via git (see header), and
+  // Playwright's browser isn't installed there anyway. Refresh cards locally instead.
   if (process.env.VERCEL) {
-    console.log('tool-og: on Vercel — using committed cards, skipping resvg rasterisation');
+    console.log('tool-og: on Vercel — using committed cards, skipping browser rasterisation');
   } else {
     try {
-      ({ Resvg } = await import('@resvg/resvg-js'));
-      renderer = createToolCardRenderer(Resvg, ROOT);
+      rasterizer = await createSvgRasterizer(ROOT);
+      renderer = createToolCardRenderer(rasterizer.rasterize);
     } catch (e) {
-      console.log(`tool-og: card generation skipped (${(e as Error).message}); stubs fall back to og.png`);
+      console.log(`tool-og: card generation skipped (${(e as Error).message}); stubs fall back to committed cards / og.png`);
     }
   }
 
@@ -238,7 +214,7 @@ async function main(): Promise<void> {
         try {
           const preview = previewDataUri(t.preview);
           if (preview) withPreview++;
-          const png = renderer.render({ name: t.name, description: t.description as string, iconSvg: t.icon as string, previewDataUri: preview ?? undefined });
+          const png = await renderer.render({ name: t.name, description: t.description as string, iconSvg: t.icon as string, previewDataUri: preview ?? undefined });
           writeFileSync(resolve(OG_DIR, `${t.id}.png`), png);
           cards++;
         } catch (e) {
@@ -260,9 +236,11 @@ async function main(): Promise<void> {
     stubs++;
   }
 
+  await rasterizer?.close();
+
   const total = tools.filter(t => t.id && t.name).length;
   console.log(`✓ tool-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed (${withPreview} with preview, ${overrides} author override${overrides === 1 ? '' : 's'}); ${total - overrides} tools point at committed cards`);
-  if (!renderer) console.log('tool-og: resvg unavailable — kept committed catalog/og cards (regenerate locally with build:web/dev:web).');
+  if (!renderer) console.log('tool-og: browser unavailable — kept committed catalog/og cards (regenerate locally with build:web/dev:web).');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

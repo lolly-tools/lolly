@@ -23,22 +23,20 @@
  * Card art is a dark "brand-system" panel (docs/og-image.ts → createViewCardRenderer):
  * pine field, a green app-icon tile, the view title + one-line description, a large
  * translucent watermark of the same icon — cohesive as a family, distinct from the light
- * tool gallery-tile cards. Rendering needs @resvg/resvg-js, which does NOT reliably
- * install on the Vercel build, so — exactly like the tool cards and catalog/previews —
- * the rendered PNGs are COMMITTED at catalog/og/views/<slug>.png (served
- * /catalog/og/views/<slug>.png). build:web / dev:web refresh them LOCALLY (where resvg
- * works); a resvg-less Vercel build leaves the committed bytes untouched and the stubs
- * still point at them. Stubs (HTML, no rasterizer) are git-ignored and rebuilt each run.
+ * tool gallery-tile cards. Rendering goes through OUR OWN render path (Chromium via
+ * Playwright — scripts/lib/rasterize-svg-browser.ts), not resvg, so a card is shaped the
+ * way the app paints and can't drift. The browser isn't on the Vercel build, so — exactly
+ * like the tool cards and catalog/previews — the PNGs are COMMITTED at
+ * catalog/og/views/<slug>.png (served /catalog/og/views/<slug>.png). build:web / dev:web
+ * refresh them LOCALLY; a browser-less build leaves the committed bytes untouched and the
+ * stubs still point at them. Stubs (HTML, no rasteriser) are git-ignored, rebuilt each run.
  */
 
-import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
+import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createViewCardRenderer } from '../docs/og-image.ts';
-
-// The @resvg/resvg-js Resvg class is imported dynamically (build-time-only dep); this
-// captures its constructor type for the `Resvg` handle without a runtime import.
-type ResvgClass = typeof import('@resvg/resvg-js').Resvg;
+import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = 'https://lolly.tools';
@@ -50,8 +48,8 @@ const PUBLIC   = resolve(ROOT, 'shells/web/public');
 // shell → generic OG). See build-tool-og.ts for the full serving rationale.
 const STUB_DIR = resolve(PUBLIC, 'view');            // → /view/<slug>.html   (exact static file)
 // Cards are COMMITTED here (served /catalog/og/views/<slug>.png), mirroring the committed
-// tool cards + catalog/previews — so a git deploy ships them even though @resvg/resvg-js
-// fails to install on the Vercel build. Locally, build:web refreshes these; commit them.
+// tool cards + catalog/previews — so a git deploy ships them even though the render browser
+// isn't installed on the Vercel build. Locally, build:web refreshes these; commit them.
 const OG_DIR   = resolve(ROOT, 'catalog/og/views');  // → /catalog/og/views/<slug>.png (committed)
 
 const esc = (s: unknown): string => String(s)
@@ -159,36 +157,37 @@ function stubHtml({ slug, title, description, hash, image }:
 }
 
 async function main(): Promise<void> {
-  // Renderer is best-effort: a missing build-time resvg degrades cards to the committed
-  // bytes (or, first time, none) rather than failing the whole web build.
+  // Renderer is best-effort: a missing browser (or SUSE fonts) degrades cards to the
+  // committed bytes (or, first time, none) rather than failing the whole web build.
   let renderer: ReturnType<typeof createViewCardRenderer> | null = null;
+  let rasterizer: SvgRasterizer | null = null;
   // On Vercel, DON'T rasterise: cards are committed and ship via git (see header +
-  // build-tool-og.ts). Refresh cards locally instead.
+  // build-tool-og.ts), and the render browser isn't installed there. Refresh locally.
   if (process.env.VERCEL) {
-    console.log('view-og: on Vercel — using committed cards, skipping resvg rasterisation');
+    console.log('view-og: on Vercel — using committed cards, skipping browser rasterisation');
   } else {
     try {
-      const { Resvg } = await import('@resvg/resvg-js');
-      renderer = createViewCardRenderer(Resvg as unknown as ResvgClass, ROOT);
+      rasterizer = await createSvgRasterizer(ROOT);
+      renderer = createViewCardRenderer(rasterizer.rasterize);
     } catch (e) {
       console.log(`view-og: card generation skipped (${(e as Error).message}); stubs point at committed cards`);
     }
   }
 
-  // Stubs (HTML, no resvg needed) are git-ignored and rebuilt from scratch each run.
-  // Cards (catalog/og/views/<slug>.png) are COMMITTED and only (re)written when resvg is
-  // available — never wiped — so a Vercel build (where resvg won't install) keeps the
-  // committed cards rather than deleting them.
+  // Stubs (HTML, no browser needed) are git-ignored and rebuilt from scratch each run.
+  // Cards (catalog/og/views/<slug>.png) are COMMITTED and only (re)written when the
+  // browser is available — never wiped — so a Vercel build keeps the committed cards
+  // rather than deleting them.
   rmSync(STUB_DIR, { recursive: true, force: true });
   mkdirSync(STUB_DIR, { recursive: true });
   mkdirSync(OG_DIR, { recursive: true });
 
   let cards = 0, stubs = 0;
   for (const v of VIEWS) {
-    // Refresh the committed card when resvg is available (local build:web / dev:web).
+    // Refresh the committed card when the browser is available (local build:web / dev:web).
     if (renderer) {
       try {
-        const png = renderer.render({ title: v.title, description: v.description, iconSvg: v.icon });
+        const png = await renderer.render({ title: v.title, description: v.description, iconSvg: v.icon });
         writeFileSync(resolve(OG_DIR, `${v.slug}.png`), png);
         cards++;
       } catch (e) {
@@ -205,8 +204,10 @@ async function main(): Promise<void> {
     stubs++;
   }
 
+  await rasterizer?.close();
+
   console.log(`✓ view-og: ${stubs} stub${stubs === 1 ? '' : 's'}, ${cards} card${cards === 1 ? '' : 's'} refreshed`);
-  if (!renderer && !process.env.VERCEL) console.log('view-og: resvg unavailable — kept committed catalog/og/views cards (regenerate locally with build:web/dev:web).');
+  if (!renderer && !process.env.VERCEL) console.log('view-og: browser unavailable — kept committed catalog/og/views cards (regenerate locally with build:web/dev:web).');
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

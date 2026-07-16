@@ -12,7 +12,7 @@ import { repoRoot } from './repo-root.ts';
 /** Formats the DOM-free engine writes on its own (svg/emf/eps + text/data). Everything
  *  else — raster, pdf, video — is produced by the raster tiers (resvg fast path, else
  *  the scoped Chromium driving the built web shell — see webshell-render.ts). */
-export const NODE_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'html', 'json', 'csv', 'ics', 'vcf', 'txt', 'md'];
+export const NODE_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'html', 'json', 'csv', 'ics', 'vcf', 'txt', 'md'];
 
 // Catalog fonts feed resvg so text-bearing SVG tools rasterise with the brand faces,
 // not whatever the OS happens to have.
