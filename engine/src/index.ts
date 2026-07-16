@@ -78,11 +78,12 @@ export { emitDxf } from './dxf.ts';
 export { buildPptxParts, EMU_PER_INCH, EMU_PER_PX } from './pptx.ts';
 export type {
   PptxSlide, PptxShape, PptxRect, PptxText, PptxPic, PptxRun, PptxPara, PptxFill, PptxMedia, PptxBuildOpts,
+  PptxTable, PptxTableCell, PptxLine, PptxTheme,
 } from './pptx.ts';
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
 } from './pdfx.ts';
-export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE } from './c2pa.ts';
+export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore } from './c2pa-verify.ts';
 export type { C2paIngredientData } from './c2pa-verify.ts';
@@ -618,6 +619,41 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // branch on load (P0-5). Both purely additive to the engine surface; no bridge
 // signature change. ENGINE_VERSION also moves to version.ts (re-exported here)
 // so the loader can read it without an index↔loader import cycle.
+// 1.54.0 — additive: DISPLAY capture on host.recorder. (1) RecordOpts gains
+// `source: 'device' | 'screen'` (default 'device', so every existing caller is
+// byte-for-byte unchanged) + `systemAudio`, so a screen recording is the same
+// RecordSession a camera take is. (2) New RecorderAPI.still(StillOpts) → Blob:
+// one frame, source released immediately — a screenshot has no session to stop.
+// (3) isAvailable() accepts 'screen'. (4) New `screen` capability + render.capture
+// value 'screen' (both schema copies). The browser's own picker is the selection
+// UI — a page cannot enumerate, name, or pre-answer it — so the engine never
+// learns what a display source IS, only the bytes the user chose to hand over.
+// 1.55.0 — additive: PPTX speaker notes. PptxSlide gains an OPTIONAL `notes`
+// string; buildPptxParts (pptx.ts) emits a p:notes part per noted slide plus one
+// shared notesMaster, and wires the slide→notesSlide rel, the notesMasterIdLst
+// and the content-type Overrides. Gated on the note being non-blank, so a deck
+// without notes is byte-for-byte unchanged. Three OOXML traps found against real
+// PowerPoint decks, not the spec prose: notesMasterIdLst must precede sldIdLst
+// (CT_Presentation is an xsd:sequence); a theme part is 1:1 with a master, so the
+// notes master needs its OWN theme2.xml (sharing theme1 is a known repair
+// trigger); and a notesSlide relates only to the notesMaster — the slide→notes
+// direction is the sole binding. The web shell's renderPptx reads each note from
+// a display:none [data-slide-notes] node, so tools opt in with pure tool data.
+// 1.56.0 — additive: PPTX native rich elements (feeds the `presentation` tool; the
+// engine stays DOM-free and brand-free). Three additions to pptx.ts, all opt-in so a
+// deck that uses none is byte-for-byte unchanged: (1) rich text — PptxPara gains
+// bullet (round/number/custom-glyph), 0–8 indent `level`, line/space spacing, and
+// PptxRun gains `underline`; a bare {runs, align} still serializes to the old
+// `<a:pPr algn>`. (2) native tables — a new PptxTable shape emits an inline a:tbl in a
+// p:graphicFrame (header row, per-cell fill/border/align, colSpan/rowSpan merges via a
+// rectangular hMerge/vMerge grid) needing NO extra part/rel/content-type. (3) themed
+// master from VALUES — PptxBuildOpts.theme (hexes + font names the shell resolves from
+// brand tokens) overrides the neutral clrScheme/fontScheme in theme1.xml (+ notes
+// theme2.xml); the engine never reads tokens or a brand pack. OOXML order traps
+// respected: a:pPr children (lnSpc→spcBef→spcAft→bullet), a:tcPr fill AFTER the four
+// borders, p:xfrm prefix vs a:off/a:ext. Deferred (separate track, spec saved): native
+// c:chart — the `presentation` tool composes our chart tools (d3/org-chart/chart-
+// creator) into vector pictures instead.
 export { ENGINE_VERSION } from './version.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';

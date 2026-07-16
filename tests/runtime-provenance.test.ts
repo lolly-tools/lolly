@@ -37,6 +37,11 @@ function makeHost(opts: { store?: Uint8Array | null } = {}) {
   const rendered: any[] = [];
   let frameCb: ((f: any) => void) | null = null;
   let recBlob: Blob | null = null;
+  // Whether the recorder session reports an actually-acquired mic (v1.54). undefined =
+  // the session doesn't report it (older shells) → the runtime falls back to the tool's
+  // declared capability. A boolean is the honest "a mic was / wasn't captured" fact.
+  let recMicActive: boolean | undefined;
+  let lastRecordOpts: any = null;
   const host: any = {
     version: '1',
     profile: { get: async () => ({}) },
@@ -51,7 +56,10 @@ function makeHost(opts: { store?: Uint8Array | null } = {}) {
     recorder: {
       isAvailable: () => true,
       meter: { start: async () => {}, stop: () => {}, subscribe: () => () => {} },
-      record: async () => ({ subscribe: () => () => {}, stop: async () => recBlob, cancel: () => {} }),
+      record: async (o: any) => {
+        lastRecordOpts = o ?? null;
+        return { subscribe: () => () => {}, stop: async () => recBlob, cancel: () => {}, micActive: recMicActive };
+      },
     },
   };
   if ('store' in opts) {
@@ -64,6 +72,8 @@ function makeHost(opts: { store?: Uint8Array | null } = {}) {
     host, rendered,
     pushFrame: (f: any) => frameCb && frameCb(f),
     setRecBlob: (b: Blob) => { recBlob = b; },
+    setMicActive: (v: boolean | undefined) => { recMicActive = v; },
+    lastRecordOpts: () => lastRecordOpts,
   };
 }
 
@@ -146,6 +156,87 @@ test('a video take on a camera-only tool marks camera, not the mic', async () =>
   await rt.stopRecording();
   await rt.export({} as any, 'png', { c2pa: true });
   assert.deepEqual(rendered[0].c2paCapture, { camera: true });
+});
+
+// ─── screen capture (v1.54) — the runtime side of the screencap fixes ─────────
+// exportActionSteps proves the SOURCE-TYPE mapping; these prove the runtime derives
+// the right c2paCapture from a SCREEN take, so a still exported through the export bar
+// afterwards never inherits a camera claim, and a denied mic is never stamped as
+// narration. These guard the two highest-severity confirmed review findings.
+
+// A screencap-style tool: a screen take that can also grab the mic for narration.
+function screenTool(capabilities: string[] = ['screen', 'microphone']): any {
+  return {
+    manifest: {
+      id: `prov-${++toolSeq}`, name: 'Screencap', version: '1.0.0', engineVersion: '^1.54.0', status: 'official',
+      render: { width: 10, height: 10, formats: ['png'], capture: 'screen' },
+      inputs: [{ id: 'shot', type: 'asset' }],
+      capabilities,
+    },
+    template: '<b>x</b>',
+  };
+}
+
+test('a screen recording marks screenCapture (screen), NOT the camera', async () => {
+  const { host, rendered, setRecBlob, setMicActive, lastRecordOpts } = makeHost();
+  setRecBlob(new Blob([new Uint8Array(4)], { type: 'video/mp4' }));
+  setMicActive(true);   // narration granted
+  const rt = await createRuntime(screenTool(), host, {});
+  await rt.startRecording({ source: 'screen' });
+  await rt.stopRecording();
+  await rt.export({} as any, 'png', { c2pa: true });
+  // The exact bug finding #4 caught: a screen take must NOT set camera. It's a screen
+  // origin, with the granted mic — never "captured live from the camera".
+  assert.equal(rendered[0].c2paCapture.screen, true);
+  assert.equal(rendered[0].c2paCapture.camera, undefined, 'a screen take must never claim the camera');
+  assert.equal(rendered[0].c2paCapture.microphone, true);
+  assert.equal(lastRecordOpts()?.source, 'screen', 'the runtime forwards the screen source to the recorder');
+});
+
+test('a screen recording with the mic DENIED is not stamped as narration', async () => {
+  const { host, rendered, setRecBlob, setMicActive } = makeHost();
+  setRecBlob(new Blob([new Uint8Array(4)], { type: 'video/mp4' }));
+  // Tool DECLARES 'microphone', user ticked Narrate — but the mic was actually blocked.
+  // The credential must reflect what was captured (silent), not what was requested.
+  setMicActive(false);
+  const rt = await createRuntime(screenTool(['screen', 'microphone']), host, {});
+  await rt.startRecording({ source: 'screen' });
+  await rt.stopRecording();
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.equal(rendered[0].c2paCapture.screen, true);
+  assert.equal(rendered[0].c2paCapture.microphone, undefined, 'a denied mic must not be claimed as narration');
+});
+
+test('startRecording resolves the actually-acquired mic state so the shell can warn', async () => {
+  const { host, setRecBlob, setMicActive } = makeHost();
+  setRecBlob(new Blob([new Uint8Array(4)], { type: 'video/mp4' }));
+  setMicActive(false);
+  const rt = await createRuntime(screenTool(), host, {});
+  const res = await rt.startRecording({ source: 'screen' });
+  assert.deepEqual(res, { started: true, micActive: false });
+});
+
+test('stopRecording surfaces micActive so the saved clip is stamped honestly', async () => {
+  const { host, setRecBlob, setMicActive } = makeHost();
+  setRecBlob(new Blob([new Uint8Array(4)], { type: 'video/mp4' }));
+  setMicActive(true);
+  const rt = await createRuntime(screenTool(), host, {});
+  await rt.startRecording({ source: 'screen' });
+  const res = await rt.stopRecording();
+  assert.equal(res?.micActive, true);
+});
+
+test('regression: a plain video take (no source) still marks the camera, unchanged', async () => {
+  // The screen branch keys off recordSource === "screen"; a normal camera recorder tool
+  // (startRecording with no opts) must behave exactly as before 1.54.
+  const { host, rendered, setRecBlob } = makeHost();
+  setRecBlob(new Blob([new Uint8Array(4)], { type: 'video/webm' }));
+  const rt = await createRuntime(recorderTool(['camera', 'microphone']), host, {});
+  await rt.startRecording();
+  await rt.stopRecording();
+  await rt.export({} as any, 'png', { c2pa: true });
+  assert.deepEqual(rendered[0].c2paCapture, { camera: true, microphone: true });
+  assert.equal(rendered[0].c2paCapture.screen, undefined);
 });
 
 test('text over an OPENED (credentialed) asset → c2paTextAdded with a sample', async () => {

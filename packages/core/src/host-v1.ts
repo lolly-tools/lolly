@@ -121,12 +121,13 @@ export interface HostV1 {
    * plain numbers (AudioLevel) and finished Blobs — never a MediaStream or <video>,
    * so the engine stays DOM-free exactly as it does for `media`/`capture`. UNLIKE
    * `media`, capture prompts for a permission that a shell may be unable to grant,
-   * so it IS gated behind the `microphone` (and, for video capture, `camera`)
-   * capability in tool.json; the headless CLI provides no `recorder` at all. The
-   * runtime drives a tool's `onLevel` hook from the meter and orchestrates a
-   * recording session (see runtime.startMeter / startRecording). Optional/additive
-   * (v1.17) — a tool feature-detects `host.recorder`. (See host.export.file for how
-   * the recorded bytes reach the user: the transform path, never watermarked.)
+   * so it IS gated behind the `microphone` (and, for video capture, `camera`;
+   * for display capture, `screen`) capability in tool.json; the headless CLI
+   * provides no `recorder` at all. The runtime drives a tool's `onLevel` hook from
+   * the meter and orchestrates a recording session (see runtime.startMeter /
+   * startRecording). Optional/additive (v1.17) — a tool feature-detects
+   * `host.recorder`. (See host.export.file for how the recorded bytes reach the
+   * user: the transform path, never watermarked.)
    */
   recorder?: RecorderAPI;
 
@@ -175,11 +176,12 @@ export interface ColorAPI {
 export interface RecorderAPI {
   /**
    * Whether device capture of the given kind is usable right now (a secure context
-   * exposing getUserMedia + MediaRecorder). Sync + cheap, so a shell can decide
-   * whether to offer a "record" affordance. `kind` defaults to 'audio'. A `true`
-   * here does not pre-grant permission — the prompt happens on meter.start()/record().
+   * exposing getUserMedia + MediaRecorder; for 'screen', getDisplayMedia). Sync +
+   * cheap, so a shell can decide whether to offer a "record" affordance. `kind`
+   * defaults to 'audio'. A `true` here does not pre-grant permission — the prompt
+   * happens on meter.start()/record()/still().
    */
-  isAvailable(kind?: 'audio' | 'video'): boolean;
+  isAvailable(kind?: 'audio' | 'video' | 'screen'): boolean;
 
   /**
    * Live input-level meter, DOM-free — a pre-record "sound check". Prompts for the
@@ -199,6 +201,43 @@ export interface RecorderAPI {
    * on stop(), the finished Blob.
    */
   record(opts?: RecordOpts): Promise<RecordSession>;
+
+  /**
+   * Grab ONE still frame and resolve to its encoded bytes — a screenshot (v1.54).
+   * Where record() opens a session that runs until stop(), this opens the source,
+   * takes a single frame, and releases it immediately: the picker/permission is the
+   * whole interaction, so there is nothing to stop() and no session to leak.
+   *
+   * `source: 'screen'` prompts the display picker (whole screen / a window / a tab —
+   * the user's choice IS the selection, made by browser-native UI a page cannot
+   * spoof or pre-answer) and is gated behind the `screen` capability. Rejects if the
+   * user dismisses the picker (NotAllowedError) or the shell can't grab a frame.
+   *
+   * DOM-free like the rest of `recorder`: the shell owns the MediaStream and the
+   * frame grab; the engine only ever receives the finished Blob.
+   */
+  still(opts?: StillOpts): Promise<Blob>;
+}
+
+export interface StillOpts {
+  /**
+   * What to photograph. 'screen' prompts the display picker; 'camera' takes a frame
+   * from the camera. Default 'screen' — the camera path already has host.media.
+   */
+  source?: 'screen' | 'camera';
+  /**
+   * Encoded image type. Default 'image/png' — lossless, which is what a screenshot of
+   * text and UI wants. A shell falls back to PNG where the type is unsupported, so read
+   * the returned Blob's `type` rather than assuming.
+   */
+  type?: 'image/png' | 'image/jpeg' | 'image/webp';
+  /** Quality 0..1 for the lossy types. Ignored for PNG. Default 0.92. */
+  quality?: number;
+  /** Downscale: longest edge in px. Omit for the source's native resolution (the default —
+   *  a screenshot scaled down is a blurry screenshot). */
+  maxEdge?: number;
+  /** Provenance stamped into the finished Blob (best-effort, per format). */
+  meta?: ExportMeta;
 }
 
 export interface MeterAPI {
@@ -259,10 +298,31 @@ export interface AudioLevel {
 }
 
 export interface RecordOpts {
+  /**
+   * Where the video track comes from (v1.54). 'device' = the camera (getUserMedia);
+   * 'screen' = the display picker (getDisplayMedia — whole screen / a window / a tab,
+   * chosen in browser-native UI), gated behind the `screen` capability. Default
+   * 'device', so every pre-1.54 caller keeps its exact behaviour. Ignored when
+   * `video` is false: there is no such thing as an audio-only screen.
+   */
+  source?: 'device' | 'screen';
   /** Capture the microphone. Default true. */
   audio?: boolean;
-  /** Capture the camera too (an audio+video clip). Default false (audio-only). */
+  /** Capture the camera (or, with source:'screen', the display) — an audio+video clip.
+   *  Default false (audio-only). */
   video?: boolean;
+  /**
+   * Also capture the source's own audio — tab/system sound (v1.54). Only meaningful
+   * with source:'screen'; the user grants it in the SAME picker as the video (there is
+   * no separate prompt), and may withhold it, so the finished clip can be silent even
+   * with this true. Mixed with the mic track when `audio` is also true, so a narrated
+   * screen recording is one track. Ignored for source:'device'. Default false.
+   *
+   * Platform reality this cannot paper over: system-wide audio is Chromium-on-
+   * Windows/ChromeOS only; elsewhere the user gets tab audio (Chromium) or nothing
+   * (Safari/Firefox). Never promise the user sound you can't know you'll get.
+   */
+  systemAudio?: boolean;
   /**
    * Preferred container. The shell falls back across containers exactly like the
    * video-export path (a browser that can't encode the requested one uses what it
@@ -272,7 +332,8 @@ export interface RecordOpts {
   /** Video downscale: longest edge in px (mirrors MediaAPI subscribe maxEdge). Ignored for audio-only. */
   maxEdge?: number;
   /** Which camera to prefer for a video capture (v1.21). 'user' (front/selfie, default) or
-   *  'environment' (rear). Ignored for audio-only; falls back to any camera if unavailable. */
+   *  'environment' (rear). Ignored for audio-only and for source:'screen'; falls back to any
+   *  camera if unavailable. */
   facingMode?: 'user' | 'environment';
   /** Hard ceiling on clip length in ms; the session auto-stops when reached. */
   maxMs?: number;
@@ -292,6 +353,16 @@ export interface RecordSession {
   stop(): Promise<Blob>;
   /** Discard the recording and release the devices — no Blob is produced. */
   cancel(): void;
+  /**
+   * Whether a microphone track was ACTUALLY acquired for this session (v1.54).
+   * Distinguishes a granted mic from a requested-but-denied one: a screen recording
+   * proceeds without the mic if the user blocks it, so `audio: true` in the request
+   * does NOT prove a mic was captured. Callers use this to keep the provenance honest
+   * (never stamp "with microphone narration" on a silent take) and to warn the user.
+   * Known synchronously once record() resolves. Undefined on shells/paths that don't
+   * report it — treat undefined as "unknown", not "no mic".
+   */
+  readonly micActive?: boolean;
 }
 
 // ─── Live media (optional) ─────────────────────────────────────────────────────
@@ -356,7 +427,11 @@ export interface MediaFrame {
  * with the enum in schemas/tool.schema.json.
  */
 export type Capability =
-  | 'network' | 'filesystem' | 'clipboard' | 'camera' | 'microphone' | 'ffmpeg' | 'wasm' | 'capture' | 'compose';
+  | 'network' | 'filesystem' | 'clipboard' | 'camera' | 'microphone' | 'ffmpeg' | 'wasm' | 'capture' | 'compose'
+  // 'screen' (v1.54) — display capture via host.recorder (getDisplayMedia). Distinct from
+  // 'capture', which rasterises a URL the tool names; 'screen' photographs whatever the
+  // USER picks from their own desktop, so it's the more sensitive of the two.
+  | 'screen';
 
 // ─── PDF (optional) ───────────────────────────────────────────────────────────
 

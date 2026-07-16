@@ -84,6 +84,19 @@ export interface ExportFileResult {
 export interface RecordResult {
   blob: Blob;
   mimeType: string;
+  /** Whether a microphone track was actually captured (v1.54) — a granted mic, not a
+   *  requested-but-denied one. Lets the shell keep the saved take's provenance honest
+   *  (never claim "with microphone narration" on a silent screen recording). Undefined
+   *  when the session doesn't report it. */
+  micActive?: boolean;
+}
+
+/** What runtime.startRecording resolves to — whether the take started, and (v1.54)
+ *  whether a mic was actually acquired, so a screen-capture UI can warn the user at
+ *  the START of a long take that their narration isn't being recorded. */
+export interface StartRecordingResult {
+  started: boolean;
+  micActive?: boolean;
 }
 
 /**
@@ -183,7 +196,7 @@ export interface Runtime {
    * already recording or no host.recorder. Stops any pre-record meter first so the
    * take and the sound-check share the one mic the shell opened.
    */
-  startRecording(opts?: RecordOpts): Promise<boolean>;
+  startRecording(opts?: RecordOpts): Promise<StartRecordingResult>;
   /**
    * Finalise the current recording and resolve the captured media (Blob + the MIME
    * type actually encoded), or null if not recording. The shell routes the bytes: a
@@ -334,6 +347,15 @@ export async function createRuntime(
   let liveCameraShown = false;
   let recordedCamera = false;
   let recordedMic = false;
+  // A SCREEN take is a distinct origin from a camera take — IPTC screenCapture, not
+  // digitalCapture. Tracked separately so a screenshot exported after a screen recording
+  // never inherits the camera's "captured live from the camera" claim (which would be a
+  // false statement in a signed manifest). `recordSource` is the source of the in-flight
+  // take; `recordMicActive` is whether that take actually got a mic (a screen take can be
+  // denied the mic and still record), so provenance/UX reflect what was captured.
+  let recordedScreen = false;
+  let recordSource: 'device' | 'screen' | undefined;
+  let recordMicActive: boolean | undefined;
   const toolCaps = new Set(tool.manifest.capabilities ?? []);
 
   // ── Audio level meter + recording (onLevel) ───────────────────────────────────
@@ -571,14 +593,18 @@ export async function createRuntime(
      */
     async startRecording(opts = {}) {
       const recorder = host.recorder;
-      if (recordSession || !recorder) return false;
+      if (recordSession || !recorder) return { started: false };
       // Share the single mic: drop any pre-record sound-check meter first.
       stopMeterLoop();
       const session = await recorder.record(opts); // may reject — the shell catches
       recordSession = session;
+      // Remember what this take IS, so stopRecording/export stamp the right origin and the
+      // shell can warn at once if a requested mic was actually denied.
+      recordSource = opts.source === 'screen' ? 'screen' : 'device';
+      recordMicActive = session.micActive;
       // Drive onLevel from the live session so coaching keeps updating during the take.
       meterUnsub = driveLevels(session);
-      return true;
+      return { started: true, micActive: session.micActive };
     },
 
     /**
@@ -591,12 +617,22 @@ export async function createRuntime(
       if (meterUnsub) { meterUnsub(); meterUnsub = null; }
       recordSession = null;
       const blob = await session.stop();
-      // Mark the capture for export provenance. A video take carries the camera
-      // (and the mic too, when this tool declares one); an audio take, the mic
-      // alone. Sticky — the take IS the content, re-composited across later edits.
-      if (/^video\//i.test(blob.type)) { recordedCamera = true; if (toolCaps.has('microphone')) recordedMic = true; }
-      else if (/^audio\//i.test(blob.type)) { recordedMic = true; }
-      return { blob, mimeType: blob.type };
+      // Mark the capture for export provenance. Sticky — the take IS the content,
+      // re-composited across later edits. A video take from the DISPLAY is a screen
+      // capture (screenCapture), NOT a camera one — so a still exported afterwards
+      // through the export bar never falsely claims the camera. The mic flag reflects
+      // what was ACTUALLY captured (recordMicActive), not the tool's declared
+      // capability: a screen take whose mic was denied is silent, and the credential
+      // must not claim narration. Fall back to the declared capability only when the
+      // session didn't report (older shells / undefined).
+      const micGot = recordMicActive ?? toolCaps.has('microphone');
+      if (/^video\//i.test(blob.type)) {
+        if (recordSource === 'screen') { recordedScreen = true; if (micGot) recordedMic = true; }
+        else { recordedCamera = true; if (micGot) recordedMic = true; }
+      } else if (/^audio\//i.test(blob.type)) {
+        recordedMic = true;
+      }
+      return { blob, mimeType: blob.type, micActive: recordMicActive };
     },
 
     cancelRecording() {
@@ -722,9 +758,17 @@ export async function createRuntime(
       // Live-capture provenance: declare the origin honestly when this session's
       // render came from a device sensor (a filter's live camera frame, or a
       // recorder take). Biased against over-claiming — see the flag tracking above.
+      // Screen capture is its own IPTC origin and takes precedence: a screenshot exported
+      // after a screen recording must read screenCapture, never "captured from the camera".
+      // exportActionSteps checks cap.screen first, so screen + mic → a narrated screen
+      // capture, not a camera one.
       const capCamera = liveCameraShown || recordedCamera;
-      const c2paCapture = stampProvenance && (capCamera || recordedMic)
-        ? { ...(capCamera ? { camera: true as const } : {}), ...(recordedMic ? { microphone: true as const } : {}) }
+      const c2paCapture = stampProvenance && (recordedScreen || capCamera || recordedMic)
+        ? {
+            ...(recordedScreen ? { screen: true as const } : {}),
+            ...(capCamera ? { camera: true as const } : {}),
+            ...(recordedMic ? { microphone: true as const } : {}),
+          }
         : undefined;
       // Text-added provenance: honest ONLY when rendered text sits over an OPENED
       // asset (an ingredient is present) — a genuine edit on someone else's image.

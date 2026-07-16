@@ -100,6 +100,9 @@ export interface RenderSpec {
   layout?: string;
   export?: boolean;
   dims?: boolean;
+  /** Set false to offer pixels only — the download bar hides the physical-unit
+   *  selector + DPI field, so an on-screen pixel is an exported pixel. */
+  units?: boolean;
   paged?: boolean;
   printMarks?: boolean;
   transparentBg?: boolean;

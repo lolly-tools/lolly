@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-15T13:24:59.327Z",
+  "generatedAt": "2026-07-16T08:09:38.147Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2573,6 +2573,68 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M7 8h4\" /><path d=\"M7 12h4\" /><path d=\"M7 16h4\" /><path d=\"M14 8h3\" /><path d=\"M14 12h3\" /><path d=\"M14 16h3\" /></svg>",
       "preview": "/catalog/previews/prompt-to-image.webp"
+    },
+    {
+      "id": "screencap",
+      "name": "Screen Capture",
+      "description": "Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop — the export stays the exact pixels you captured.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "utility",
+      "capabilities": [
+        "screen",
+        "microphone"
+      ],
+      "formats": [
+        "png",
+        "jpg",
+        "webp"
+      ],
+      "width": 7680,
+      "height": 4320,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H5a2 2 0 0 0-2 2v3\" /><path d=\"M16 3h3a2 2 0 0 1 2 2v3\" /><path d=\"M8 21H5a2 2 0 0 1-2-2v-3\" /><path d=\"M16 21h3a2 2 0 0 0 2-2v-3\" /><rect width=\"8\" height=\"6\" x=\"8\" y=\"9\" rx=\"1\" /></svg>",
+      "preview": "/catalog/previews/screencap.webp"
+    },
+    {
+      "id": "slides",
+      "name": "Slides",
+      "description": "Build a deck where every slide arranges other Lolly tools in a chosen layout, with its own title, background and speaker notes — then export to PowerPoint, PDF, GIF or MP4.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "designer",
+      "formats": [
+        "pptx",
+        "pdf",
+        "mp4",
+        "webm",
+        "gif"
+      ],
+      "width": 1920,
+      "height": 1920,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"16\" height=\"11\" rx=\"1.5\" /><path d=\"M7 19h6\" /><path d=\"M10 15v4\" /><path d=\"M21 7v9a2 2 0 0 1-2 2\" /></svg>",
+      "preview": "/catalog/previews/slides.webp"
+    },
+    {
+      "id": "deck-studio",
+      "name": "Deck Studio",
+      "description": "Build a native, editable PowerPoint deck — real text, bullets, tables and brand theme — from a simple slide builder, pasted Markdown, or a JSON spec. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "designer",
+      "formats": [
+        "pptx",
+        "pdf",
+        "png",
+        "html"
+      ],
+      "width": 1280,
+      "height": 720,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"1.5\"/><path d=\"M7 20h10\"/><path d=\"M12 17v3\"/><path d=\"M6.5 8.5h6\"/><path d=\"M6.5 11.5h4\"/><rect x=\"14.5\" y=\"8\" width=\"3.5\" height=\"5.5\" rx=\"0.5\"/></svg>",
+      "preview": "/catalog/previews/deck-studio.webp",
+      "paged": true
     }
   ]
 }

@@ -125,6 +125,11 @@
           "default": true,
           "description": "Set false to hide the export dimension inputs in the download bar."
         },
+        "units": {
+          "type": "boolean",
+          "default": true,
+          "description": "Set false to offer pixels only — hides the physical-unit (mm/cm/in/pt) selector and the DPI field in the download bar. Width/height stay in px, so an on-screen pixel is an exported pixel. Use for tools whose output is inherently pixel-measured (screen assets, favicons, token-cost images) where a physical print size is meaningless and would make width/height inputs disagree with the true raster resolution."
+        },
         "paged": {
           "type": "boolean",
           "default": false,
@@ -197,8 +202,8 @@
         },
         "capture": {
           "type": "string",
-          "enum": ["audio", "video", "av"],
-          "description": "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder — also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder — use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
+          "enum": ["audio", "video", "av", "screen"],
+          "description": "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder — also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder — use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). 'screen' = display capture (requires the 'screen' capability): the shell mounts a Screenshot + Record pair and the browser's own picker chooses the screen/window/tab, so the tool never names or sees a target it wasn't handed. Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
         },
         "aspectWarning": {
           "type": "object",
@@ -222,9 +227,9 @@
       "type": "array",
       "items": {
         "type": "string",
-        "enum": ["network", "filesystem", "clipboard", "camera", "microphone", "ffmpeg", "wasm", "capture", "compose"]
+        "enum": ["network", "filesystem", "clipboard", "camera", "microphone", "ffmpeg", "wasm", "capture", "compose", "screen"]
       },
-      "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera' recording tool is unavailable in the headless CLI)."
+      "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder — the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
     },
     "composes": {
       "type": "array",
