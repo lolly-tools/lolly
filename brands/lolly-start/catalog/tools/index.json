@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-16T08:09:38.147Z",
+  "generatedAt": "2026-07-16T18:19:09.445Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1209,7 +1209,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
-      "preview": "/catalog/previews/street-map.webp",
+      "preview": "/catalog/previews/street-map.png",
       "i18n": {
         "ar": {
           "name": "خريطة الشوارع",
@@ -2124,7 +2124,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
-      "preview": "/catalog/previews/mesh-gradient.webp",
+      "preview": "/catalog/previews/mesh-gradient.png",
       "i18n": {
         "ar": {
           "name": "تدرج شبكي",
@@ -2572,7 +2572,7 @@
       "height": 1024,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M7 8h4\" /><path d=\"M7 12h4\" /><path d=\"M7 16h4\" /><path d=\"M14 8h3\" /><path d=\"M14 12h3\" /><path d=\"M14 16h3\" /></svg>",
-      "preview": "/catalog/previews/prompt-to-image.webp"
+      "preview": "/catalog/previews/prompt-to-image.svg"
     },
     {
       "id": "screencap",
@@ -2594,7 +2594,7 @@
       "height": 4320,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H5a2 2 0 0 0-2 2v3\" /><path d=\"M16 3h3a2 2 0 0 1 2 2v3\" /><path d=\"M8 21H5a2 2 0 0 1-2-2v-3\" /><path d=\"M16 21h3a2 2 0 0 0 2-2v-3\" /><rect width=\"8\" height=\"6\" x=\"8\" y=\"9\" rx=\"1\" /></svg>",
-      "preview": "/catalog/previews/screencap.webp"
+      "preview": "/catalog/previews/screencap.svg"
     },
     {
       "id": "slides",
@@ -2614,7 +2614,7 @@
       "height": 1920,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"16\" height=\"11\" rx=\"1.5\" /><path d=\"M7 19h6\" /><path d=\"M10 15v4\" /><path d=\"M21 7v9a2 2 0 0 1-2 2\" /></svg>",
-      "preview": "/catalog/previews/slides.webp"
+      "preview": "/catalog/previews/slides.svg"
     },
     {
       "id": "deck-studio",
@@ -2633,8 +2633,28 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"1.5\"/><path d=\"M7 20h10\"/><path d=\"M12 17v3\"/><path d=\"M6.5 8.5h6\"/><path d=\"M6.5 11.5h4\"/><rect x=\"14.5\" y=\"8\" width=\"3.5\" height=\"5.5\" rx=\"0.5\"/></svg>",
-      "preview": "/catalog/previews/deck-studio.webp",
+      "preview": "/catalog/previews/deck-studio.png",
       "paged": true
+    },
+    {
+      "id": "deck-builder",
+      "name": "Deck Builder",
+      "description": "Build a slide deck with a live on-canvas editor — edit text, colours and images directly on each slide.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "designer",
+      "formats": [
+        "pptx",
+        "pdf",
+        "mp4",
+        "webm",
+        "gif"
+      ],
+      "width": 1920,
+      "height": 1920,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"16\" height=\"11\" rx=\"1.5\" /><path d=\"M7 19h6\" /><path d=\"M10 15v4\" /><path d=\"M21 7v9a2 2 0 0 1-2 2\" /></svg>",
+      "preview": "/catalog/previews/deck-builder.webp"
     }
   ]
 }

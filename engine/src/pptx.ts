@@ -26,6 +26,8 @@
  * strings + byte arrays, no zip, no DOM, no deps.
  */
 
+import { parseSvgPath } from './svg-path.ts';
+
 export const EMU_PER_INCH = 914400;
 export const EMU_PER_PX = EMU_PER_INCH / 96; // CSS px at the 96-DPI convention
 
@@ -58,6 +60,13 @@ export interface PptxPara {
 }
 
 export interface PptxRect { kind: 'rect'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number }; radius?: number; }
+/** A NATIVE custom-geometry vector shape (`p:sp` with `a:custGeom`). Its `paths` are
+ *  SVG `d` strings whose coordinates already live in this shape's EMU box space
+ *  (0..cx, 0..cy) — the emitter parses each with parseSvgPath and lowers M/L/C/Z to
+ *  a:moveTo / a:lnTo / a:cubicBezTo / a:close inside one `a:path w=cx h=cy`, so holes
+ *  (opposite-wound subpaths) survive. Solid fill + solid stroke only; svg-custgeom.ts
+ *  bails to a raster pic for gradients/filters/opacity/blend. */
+export interface PptxPath { kind: 'path'; x: number; y: number; cx: number; cy: number; rot?: number; fill?: PptxFill; line?: { color: string; w: number }; paths: Array<{ d: string }>; }
 export interface PptxText { kind: 'text'; x: number; y: number; cx: number; cy: number; rot?: number; paras: PptxPara[]; anchor?: 't' | 'ctr' | 'b'; }
 /** A picture. `media` is the index (into the slide's media[]) of the raster blip;
  *  `svg`, when set, is the index of an .svg part embedded via svgBlip (media is then
@@ -98,7 +107,7 @@ export interface PptxTable {
   firstRow?: boolean;
   styleId?: string;
 }
-export type PptxShape = PptxRect | PptxText | PptxPic | PptxTable;
+export type PptxShape = PptxRect | PptxText | PptxPic | PptxTable | PptxPath;
 
 export interface PptxMedia { bytes: Uint8Array; ext: 'png' | 'jpeg' | 'emf' | 'svg'; }
 /** `notes` is the slide's speaker note (PowerPoint's Notes pane). Blank/absent =>
@@ -187,6 +196,40 @@ function geomXml(radius?: number, cx = 0, cy = 0): string {
 function rectXml(r: PptxRect, id: number): string {
   return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="rect${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
     `<p:spPr>${xfrmXml(r)}${geomXml(r.radius, r.cx, r.cy)}${fillXml(r.fill)}${lineXml(r.line)}</p:spPr>` +
+    `<p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
+}
+
+// ─── custom geometry (a:custGeom) ─────────────────────────────────────────────
+// The path coordinate space is the shape's own EMU box (a:path w=cx h=cy), so the
+// `d` coords — already scaled into 0..cx / 0..cy by svg-custgeom.ts — map 1:1 to the
+// ext. ALL subpaths of ALL `d` strings collapse into ONE a:path so a hole (an
+// opposite-wound inner subpath, e.g. the counter of an "O") cuts out instead of
+// becoming its own filled shape. A `d` that parses to nothing yields an empty a:path
+// (schema still valid), never a missing pathLst → PowerPoint repair.
+function custGeomXml(shape: PptxPath): string {
+  const w = Math.max(1, Math.round(shape.cx));
+  const h = Math.max(1, Math.round(shape.cy));
+  let segs = '';
+  for (const p of shape.paths ?? []) {
+    for (const sub of parseSvgPath(p?.d ?? '')) {
+      const first = sub.segments[0];
+      if (!first || first.op !== 'M') continue;
+      segs += `<a:moveTo><a:pt x="${finInt(first.x)}" y="${finInt(first.y)}"/></a:moveTo>`;
+      for (let i = 1; i < sub.segments.length; i++) {
+        const s = sub.segments[i]!;
+        if (s.op === 'L') segs += `<a:lnTo><a:pt x="${finInt(s.x)}" y="${finInt(s.y)}"/></a:lnTo>`;
+        else if (s.op === 'C') segs += `<a:cubicBezTo><a:pt x="${finInt(s.x1)}" y="${finInt(s.y1)}"/><a:pt x="${finInt(s.x2)}" y="${finInt(s.y2)}"/><a:pt x="${finInt(s.x)}" y="${finInt(s.y)}"/></a:cubicBezTo>`;
+      }
+      if (sub.closed) segs += `<a:close/>`;
+    }
+  }
+  return `<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/><a:rect l="0" t="0" r="${w}" b="${h}"/>` +
+    `<a:pathLst><a:path w="${w}" h="${h}">${segs}</a:path></a:pathLst></a:custGeom>`;
+}
+
+function pathXml(shape: PptxPath, id: number): string {
+  return `<p:sp><p:nvSpPr><p:cNvPr id="${id}" name="path${id}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
+    `<p:spPr>${xfrmXml(shape)}${custGeomXml(shape)}${fillXml(shape.fill)}${lineXml(shape.line)}</p:spPr>` +
     `<p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>`;
 }
 
@@ -394,6 +437,7 @@ function shapeXml(shape: PptxShape, id: number): string {
     case 'text':  return textXml(shape, id);
     case 'pic':   return picXml(shape, id);
     case 'table': return tableXml(shape, id);
+    case 'path':  return pathXml(shape, id);
   }
 }
 

@@ -136,14 +136,19 @@ var init_tool_schema = __esm({
             },
             layout: {
               type: "string",
-              enum: ["sidebar", "canvas", "editor", "document"],
+              enum: ["sidebar", "canvas", "editor", "document", "deck"],
               default: "sidebar",
-              description: "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area \u2014 a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged. 'document' is a chromeless multi-page flowing-document surface (paged tools): it keeps the render/export controls like 'editor' but mounts a rich-text document editor (on-canvas format ribbon, per-block controls, contenteditable, rich-HTML paste) over a 'blocks' input whose rows are content blocks (heading/text/lolly/table). Pagination lives in the tool's hook, so CLI/URL render the same document with no editor."
+              description: "Presentation of the tool's interface. 'sidebar' (default) renders inputs in the left control panel. 'canvas' hides the sidebar and presents the tool as a full-bleed working area \u2014 a single declared 'file' input is shown as a drag-and-drop / click-to-pick zone on the canvas itself (for on-device file utilities). 'editor' hides the sidebar too, but keeps the fixed-size render canvas AND the full render/export controls (render pill + export popup): a chromeless WYSIWYG surface. A tool using 'editor' declares one 'blocks' input carrying a `canvas` flag (which maps its geometry fields); the web shell mounts a direct-manipulation overlay (select / drag / resize / rotate / z-order / align / distribute) that reads and writes that flat blocks array. Data stays flat and URL-expressible, so CLI/URL mode render the same artwork with no overlay. Input semantics are unchanged. 'document' is a chromeless multi-page flowing-document surface (paged tools): it keeps the render/export controls like 'editor' but mounts a rich-text document editor (on-canvas format ribbon, per-block controls, contenteditable, rich-HTML paste) over a 'blocks' input whose rows are content blocks (heading/text/lolly/table). Pagination lives in the tool's hook, so CLI/URL render the same document with no editor. 'deck' is a slide-deck editor: it KEEPS the input sidebar (not chromeless) and mounts a live on-canvas overlay (deck-editor.js) over a 'blocks' input whose rows are slides \u2014 click a slide to edit its text/colour/images in place, navigate a thumbnail rail. Bounded DOM: an edit-mode hook render-mode shows one active slide plus tiny thumbnails, and the overlay restores a full-deck render before export."
             },
             dims: {
               type: "boolean",
               default: true,
               description: "Set false to hide the export dimension inputs in the download bar."
+            },
+            units: {
+              type: "boolean",
+              default: true,
+              description: "Set false to offer pixels only \u2014 hides the physical-unit (mm/cm/in/pt) selector and the DPI field in the download bar. Width/height stay in px, so an on-screen pixel is an exported pixel. Use for tools whose output is inherently pixel-measured (screen assets, favicons, token-cost images) where a physical print size is meaningless and would make width/height inputs disagree with the true raster resolution."
             },
             paged: {
               type: "boolean",
@@ -217,8 +222,8 @@ var init_tool_schema = __esm({
             },
             capture: {
               type: "string",
-              enum: ["audio", "video", "av"],
-              description: "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder \u2014 also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder \u2014 use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
+              enum: ["audio", "video", "av", "screen"],
+              description: "Marks a device-recording tool (requires host.recorder + the matching 'microphone'/'camera' capability). Tells the shell which record affordance to mount: 'audio' = mic-only (a voice recorder \u2014 also shows a live level meter when the tool declares an onLevel hook); 'video' = camera-only, SILENT (no mic track); 'av' = camera+mic (a talking-head/video recorder \u2014 use this, not 'video', when the clip needs sound, and declare BOTH 'camera' and 'microphone'; the shell also shows an audio-level + background-noise coaching HUD). 'screen' = display capture (requires the 'screen' capability): the shell mounts a Screenshot + Record pair and the browser's own picker chooses the screen/window/tab, so the tool never names or sees a target it wasn't handed. Absent = no record button. The recorded bytes reach the user via the transform path (host.export.file, never watermarked) or, for a compositing tool, become a template asset the render wraps."
             },
             aspectWarning: {
               type: "object",
@@ -242,9 +247,9 @@ var init_tool_schema = __esm({
           type: "array",
           items: {
             type: "string",
-            enum: ["network", "filesystem", "clipboard", "camera", "microphone", "ffmpeg", "wasm", "capture", "compose"]
+            enum: ["network", "filesystem", "clipboard", "camera", "microphone", "ffmpeg", "wasm", "capture", "compose", "screen"]
           },
-          description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera' recording tool is unavailable in the headless CLI)."
+          description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder \u2014 the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
         },
         composes: {
           type: "array",
@@ -318,7 +323,7 @@ var init_tool_schema = __esm({
             help: { type: "string" },
             type: {
               type: "string",
-              enum: ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "profile", "blocks", "vector", "file"]
+              enum: ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file"]
             },
             required: { type: "boolean", default: false },
             default: { description: "Type-appropriate default value." },
@@ -334,6 +339,10 @@ var init_tool_schema = __esm({
               type: "object",
               description: 'Conditional visibility: the input renders in the sidebar only while every { otherInputId: value } pair here matches the current model (e.g. { "vectorize": true }).',
               additionalProperties: true
+            },
+            attachTo: {
+              type: "string",
+              description: "Id of a sibling input. Renders THIS input's control inside that input's control row (leading) instead of on its own labelled row \u2014 for a compact modifier belonging to another control, e.g. a fit toggle on an asset slot. It stays an ordinary input everywhere else (URL params, hooks, state, undo); only its placement changes. Pair with display:'icon-toggle' to keep it to one button. Ignored if the target id does not exist."
             }
           },
           allOf: [
@@ -402,6 +411,12 @@ var init_tool_schema = __esm({
               then: {
                 required: ["options"],
                 properties: {
+                  display: {
+                    type: "string",
+                    enum: ["select", "icon-toggle"],
+                    default: "select",
+                    description: "'icon-toggle' renders the select as ONE compact button that cycles its options, showing the current option's `icon` instead of a dropdown. Intended for 2-state modifiers (with attachTo); a longer option list still cycles, but a dropdown reads better past ~3."
+                  },
                   options: {
                     type: "array",
                     items: {
@@ -410,6 +425,7 @@ var init_tool_schema = __esm({
                       properties: {
                         value: { type: "string" },
                         label: { type: "string" },
+                        icon: { type: "string", description: "Icon name from the web shell's registry (shells/web/src/lib/icons.ts), shown instead of the label when display is 'icon-toggle'. Falls back to the label if the name is unknown." },
                         width: { type: "number", exclusiveMinimum: 0, description: "Export width this option implies, in `unit`. With `height`, selecting the option sets the export dimensions (so a 'size' select drives the printed page size). The shell applies it to the export bar; the user can still override." },
                         height: { type: "number", exclusiveMinimum: 0, description: "Export height this option implies, in `unit`." },
                         unit: { type: "string", enum: ["px", "mm", "cm", "in", "pt"], description: "Unit for this option's width/height. Defaults to 'mm' when width/height are present." }
@@ -1151,6 +1167,99 @@ var init_catalog_integrity = __esm({
   }
 });
 
+// engine/src/version.ts
+var ENGINE_VERSION;
+var init_version = __esm({
+  "engine/src/version.ts"() {
+    "use strict";
+    ENGINE_VERSION = "1.56.0";
+  }
+});
+
+// engine/src/semver-range.ts
+function parseVersion(v) {
+  const core = String(v).trim().replace(/^[v=\s]+/, "").split(/[-+]/)[0];
+  if (!core) return null;
+  const parts = core.split(".");
+  const out = [];
+  for (let i = 0; i < 3; i++) {
+    const seg = parts[i];
+    const n2 = seg === void 0 || seg === "" ? 0 : Number(seg);
+    if (!Number.isFinite(n2) || n2 < 0) return null;
+    out.push(Math.floor(n2));
+  }
+  return out;
+}
+function cmp(a, b) {
+  return a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
+}
+function isWild(s) {
+  return s === void 0 || s === "" || s === "*" || s === "x" || s === "X";
+}
+function termToPredicate(term) {
+  const t = term.trim();
+  if (t === "" || t === "*" || t === "x" || t === "X") return () => true;
+  const m = /^(\^|~|>=|<=|>|<|=)?\s*v?(.+)$/.exec(t);
+  if (!m) return () => false;
+  const op = m[1] ?? "";
+  const core = m[2].split(/[-+]/)[0] ?? "";
+  const seg = core.split(".");
+  const majW = isWild(seg[0]);
+  const minW = isWild(seg[1]);
+  const patW = isWild(seg[2]);
+  const maj = majW ? 0 : Math.floor(Number(seg[0]));
+  const min = minW ? 0 : Math.floor(Number(seg[1]));
+  const pat = patW ? 0 : Math.floor(Number(seg[2]));
+  if ([maj, min, pat].some((n2) => !Number.isFinite(n2) || n2 < 0)) return () => false;
+  const base = [maj, min, pat];
+  const atLeast = (lo) => (v) => cmp(v, lo) >= 0;
+  const below = (hi) => (v) => cmp(v, hi) < 0;
+  const and = (a, b) => (v) => a(v) && b(v);
+  switch (op) {
+    case ">=":
+      return atLeast(base);
+    case ">":
+      return (v) => cmp(v, base) > 0;
+    case "<=":
+      return (v) => cmp(v, base) <= 0;
+    case "<":
+      return below(base);
+    case "^": {
+      let hi;
+      if (maj > 0) hi = [maj + 1, 0, 0];
+      else if (min > 0) hi = [0, min + 1, 0];
+      else hi = [0, 0, pat + 1];
+      return and(atLeast(base), below(hi));
+    }
+    case "~": {
+      const hi = minW ? [maj + 1, 0, 0] : [maj, min + 1, 0];
+      return and(atLeast(base), below(hi));
+    }
+    default: {
+      if (majW) return () => true;
+      if (minW) return and(atLeast([maj, 0, 0]), below([maj + 1, 0, 0]));
+      if (patW) return and(atLeast([maj, min, 0]), below([maj, min + 1, 0]));
+      return (v) => cmp(v, base) === 0;
+    }
+  }
+}
+function satisfiesRange(version, range) {
+  const v = parseVersion(version);
+  if (!v) return false;
+  const r = String(range).trim();
+  if (r === "" || r === "*") return true;
+  return r.split("||").some((group) => {
+    const terms = group.trim().split(/[\s,]+/).filter(Boolean);
+    if (terms.length === 0) return true;
+    return terms.every((term) => termToPredicate(term)(v));
+  });
+}
+var init_semver_range = __esm({
+  "engine/src/semver-range.ts"() {
+    "use strict";
+  }
+});
+
 // engine/src/loader.ts
 function applyManifestI18n(manifest, overlay) {
   for (const [key, value] of Object.entries(overlay)) {
@@ -1176,7 +1285,7 @@ function applyManifestI18n(manifest, overlay) {
       input[rest] = value;
       continue;
     }
-    const optMatch = /^options\.(.+)$/.exec(rest);
+    const optMatch = /^options\.(.*)$/.exec(rest);
     if (optMatch) {
       const opt = input.options?.find((o) => o.value === optMatch[1]);
       if (opt) opt.label = value;
@@ -1195,7 +1304,7 @@ function applyManifestI18n(manifest, overlay) {
         field[fieldRest] = value;
         continue;
       }
-      const fieldOptMatch = /^options\.(.+)$/.exec(fieldRest);
+      const fieldOptMatch = /^options\.(.*)$/.exec(fieldRest);
       if (fieldOptMatch) {
         const fieldOpt = field.options?.find((o) => o.value === fieldOptMatch[1]);
         if (fieldOpt) fieldOpt.label = value;
@@ -1252,6 +1361,12 @@ async function loadTool(toolId, fetchFile, opts = {}) {
   if (manifest.id !== toolId) {
     throw new ToolLoadError(
       `Manifest id "${manifest.id}" doesn't match directory "${toolId}"`,
+      []
+    );
+  }
+  if (!satisfiesRange(ENGINE_VERSION, manifest.engineVersion)) {
+    throw new ToolLoadError(
+      `"${toolId}" requires engine ${manifest.engineVersion}, but this build implements ${ENGINE_VERSION} \u2014 refusing to load`,
       []
     );
   }
@@ -1338,6 +1453,8 @@ var init_loader = __esm({
     "use strict";
     init_validate();
     init_catalog_integrity();
+    init_version();
+    init_semver_range();
     integrityTextEncoder = new TextEncoder();
     envelopeTrust = /* @__PURE__ */ new WeakMap();
     warnedUnsignedCatalog = false;
@@ -1353,10 +1470,10 @@ var init_loader = __esm({
 });
 
 // engine/src/brand-derive.ts
-function linearSrgbToOklab(r, g, b) {
-  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
-  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
-  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+function linearSrgbToOklab(r, g2, b) {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g2 + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g2 + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g2 + 0.6299787005 * b);
   return lmsToOklab(l, m, s);
 }
 function oklabToLinearSrgb(L, a, b) {
@@ -1447,9 +1564,9 @@ function parseOklch(s) {
 function hexToOklch(hex) {
   const rgba = parseHex(hex);
   if (!rgba) return null;
-  const [r, g, b, a] = rgba;
+  const [r, g2, b, a] = rgba;
   const out = oklabToOklch(
-    ...linearSrgbToOklab(srgbToLinear(r / 255), srgbToLinear(g / 255), srgbToLinear(b / 255))
+    ...linearSrgbToOklab(srgbToLinear(r / 255), srgbToLinear(g2 / 255), srgbToLinear(b / 255))
   );
   if (a < 1) out.alpha = a;
   return out;
@@ -1464,9 +1581,9 @@ function oklchToHex(c) {
     let lo = 0;
     let hi = Math.max(0, c.c);
     for (let i = 0; i < 24; i++) {
-      const mid = (lo + hi) / 2;
-      if (inSrgbGamut(toLinear(mid))) lo = mid;
-      else hi = mid;
+      const mid2 = (lo + hi) / 2;
+      if (inSrgbGamut(toLinear(mid2))) lo = mid2;
+      else hi = mid2;
     }
     rgb = toLinear(lo);
   }
@@ -1704,10 +1821,10 @@ function colorToHex(value) {
   if (isRecord(value)) {
     if (typeof value.hex === "string") return normHex(value.hex);
     if (Array.isArray(value.components)) {
-      const [r, g, b] = value.components;
+      const [r, g2, b] = value.components;
       return rgbaToHex(
         Number(r) * 255,
-        Number(g) * 255,
+        Number(g2) * 255,
         Number(b) * 255,
         value.alpha == null ? 1 : Number(value.alpha)
       );
@@ -1724,8 +1841,8 @@ function colorToHex(value) {
   }
   if (m = /^hsla?\(([^)]+)\)$/i.exec(s)) {
     const p = (m[1] ?? "").split(/[,/]/).map((x) => x.trim());
-    const [r, g, b] = hslToRgb(num(p[0]), pct(p[1]), pct(p[2]));
-    return rgbaToHex(r, g, b, p[3] != null ? alpha(p[3]) : 1);
+    const [r, g2, b] = hslToRgb(num(p[0]), pct(p[1]), pct(p[2]));
+    return rgbaToHex(r, g2, b, p[3] != null ? alpha(p[3]) : 1);
   }
   if (/^(?:ok)?lch\(/i.test(s)) {
     const ok2 = parseOklch(s);
@@ -1740,9 +1857,9 @@ function normHex(s) {
   }
   return /^#(?:[0-9a-f]{6}|[0-9a-f]{8})$/.test(h) ? h : null;
 }
-function rgbaToHex(r, g, b, a = 1) {
+function rgbaToHex(r, g2, b, a = 1) {
   const h = (n2) => Math.max(0, Math.min(255, Math.round(Number(n2) || 0))).toString(16).padStart(2, "0");
-  const base = `#${h(r)}${h(g)}${h(b)}`;
+  const base = `#${h(r)}${h(g2)}${h(b)}`;
   return a >= 1 ? base : base + h(a * 255);
 }
 function num(x) {
@@ -2977,16 +3094,16 @@ function parsePdf(bin) {
   return { startxref, entries, root, maxNum, infoRaw: infoM ? infoM[0] : null, idRaw: idM ? idM[0] : null };
 }
 function catalogSource(bin, info) {
-  const { num: num2, gen } = info.root;
-  const headRe = new RegExp(`^${num2}\\s+${gen}\\s+obj\\b`);
+  const { num: num3, gen } = info.root;
+  const headRe = new RegExp(`^${num3}\\s+${gen}\\s+obj\\b`);
   let at = -1;
-  const entry = info.entries.get(num2);
+  const entry = info.entries.get(num3);
   if (entry && entry.type === "n") {
     const i2 = skipWs(bin, entry.offset);
     if (headRe.test(bin.slice(i2, i2 + 32))) at = i2;
   }
   if (at < 0) {
-    const re = new RegExp(`(?:^|[^0-9])(${num2}\\s+${gen}\\s+obj)\\b`, "g");
+    const re = new RegExp(`(?:^|[^0-9])(${num3}\\s+${gen}\\s+obj)\\b`, "g");
     for (let m; m = re.exec(bin); ) at = m.index + m[0].length - m[1].length;
   }
   if (at < 0) throw new Error("C2PA embed: cannot locate the PDF Catalog object");
@@ -3552,9 +3669,9 @@ function seekHeadHasEntry(bytes, scan, seekId) {
 }
 async function embedC2pa(bytes, format, opts = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("C2PA embed: bytes must be a Uint8Array");
-  const fmt = String(format || "").toLowerCase();
-  if (fmt === "pdf" || fmt === "pdf-cmyk") return embedC2paInPdf(bytes, opts);
-  const container = CONTAINERS[fmt];
+  const fmt2 = String(format || "").toLowerCase();
+  if (fmt2 === "pdf" || fmt2 === "pdf-cmyk") return embedC2paInPdf(bytes, opts);
+  const container = CONTAINERS[fmt2];
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === "bmff";
   const { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer } = opts;
@@ -4123,6 +4240,9 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   let liveCameraShown = false;
   let recordedCamera = false;
   let recordedMic = false;
+  let recordedScreen = false;
+  let recordSource;
+  let recordMicActive;
   const toolCaps = new Set(tool.manifest.capabilities ?? []);
   let meterUnsub = null;
   let stopMeterSource = null;
@@ -4300,12 +4420,14 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
      */
     async startRecording(opts2 = {}) {
       const recorder = host.recorder;
-      if (recordSession || !recorder) return false;
+      if (recordSession || !recorder) return { started: false };
       stopMeterLoop();
       const session = await recorder.record(opts2);
       recordSession = session;
+      recordSource = opts2.source === "screen" ? "screen" : "device";
+      recordMicActive = session.micActive;
       meterUnsub = driveLevels(session);
-      return true;
+      return { started: true, micActive: session.micActive };
     },
     /**
      * Finalise the current recording. Stops the level loop first so no in-flight
@@ -4320,13 +4442,19 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       }
       recordSession = null;
       const blob = await session.stop();
+      const micGot = recordMicActive ?? toolCaps.has("microphone");
       if (/^video\//i.test(blob.type)) {
-        recordedCamera = true;
-        if (toolCaps.has("microphone")) recordedMic = true;
+        if (recordSource === "screen") {
+          recordedScreen = true;
+          if (micGot) recordedMic = true;
+        } else {
+          recordedCamera = true;
+          if (micGot) recordedMic = true;
+        }
       } else if (/^audio\//i.test(blob.type)) {
         recordedMic = true;
       }
-      return { blob, mimeType: blob.type };
+      return { blob, mimeType: blob.type, micActive: recordMicActive };
     },
     cancelRecording() {
       const session = recordSession;
@@ -4416,7 +4544,11 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const stampProvenance = opts2.c2pa && !isOnDevice;
       const c2paInputs = stampProvenance ? summarizeInputs(model) : void 0;
       const capCamera = liveCameraShown || recordedCamera;
-      const c2paCapture = stampProvenance && (capCamera || recordedMic) ? { ...capCamera ? { camera: true } : {}, ...recordedMic ? { microphone: true } : {} } : void 0;
+      const c2paCapture = stampProvenance && (recordedScreen || capCamera || recordedMic) ? {
+        ...recordedScreen ? { screen: true } : {},
+        ...capCamera ? { camera: true } : {},
+        ...recordedMic ? { microphone: true } : {}
+      } : void 0;
       let c2paTextAdded;
       if (stampProvenance && ingredients?.length) {
         const textItem = model.find((i) => (i.type === "text" || i.type === "longtext") && !i.bindToProfile && String(flattenValue(i.value) ?? "").trim());
@@ -4707,7 +4839,7 @@ var LANGS, ALIASES;
 var init_lang = __esm({
   "engine/src/lang.ts"() {
     "use strict";
-    LANGS = ["en", "zh", "es", "hi", "bn", "ur", "ar", "fr", "pt", "de", "ja", "it", "vi", "tl", "ko", "id", "ms", "nl", "ro", "sv", "cs", "no", "zh-hant", "bg"];
+    LANGS = ["en", "zh", "es", "hi", "bn", "ur", "ar", "fr", "pt", "de", "ja", "it", "vi", "tl", "ko", "id", "ms", "nl", "ro", "sv", "cs", "no", "zh-hant", "bg", "tr", "uk", "pl"];
     ALIASES = {
       cn: "zh",
       "zh-cn": "zh",
@@ -4747,6 +4879,16 @@ var init_lang = __esm({
       in: "id",
       "in-id": "id",
       "id-id": "id",
+      // Regioned Turkish tags (navigator.language) — one standard-Turkish register
+      // covers both Türkiye and Cyprus.
+      "tr-tr": "tr",
+      "tr-cy": "tr",
+      "uk-ua": "uk",
+      // regioned Ukrainian tag (navigator.language)
+      ua: "uk",
+      // Ukraine's country code, commonly typed for "Ukrainian" (no ISO 639 collision)
+      "pl-pl": "pl",
+      // regioned Polish tag (navigator.language)
       nb: "no",
       // Bokmål — the specific written standard this UI register actually uses
       nn: "no",
@@ -5036,11 +5178,11 @@ var init_url_pack = __esm({
 });
 
 // engine/src/color.ts
-function rgbToCmyk(r, g, b) {
-  const k = 1 - Math.max(r, g, b);
+function rgbToCmyk(r, g2, b) {
+  const k = 1 - Math.max(r, g2, b);
   if (k >= 1) return [0, 0, 0, 1];
   const d = 1 - k;
-  return [(1 - r - k) / d, (1 - g - k) / d, (1 - b - k) / d, k];
+  return [(1 - r - k) / d, (1 - g2 - k) / d, (1 - b - k) / d, k];
 }
 var init_color = __esm({
   "engine/src/color.ts"() {
@@ -5257,9 +5399,9 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
     rx2 = rx * rx;
     ry2 = ry * ry;
   }
-  const num2 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
+  const num3 = Math.max(0, rx2 * ry2 - rx2 * y1p2 - ry2 * x1p2);
   const den = rx2 * y1p2 + ry2 * x1p2;
-  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num2 / den);
+  const coef = (fa === fs ? -1 : 1) * Math.sqrt(num3 / den);
   const cxp = coef * rx * y1p / ry;
   const cyp = -coef * ry * x1p / rx;
   const cx = cosP * cxp - sinP * cyp + (x1 + x2) / 2;
@@ -5553,7 +5695,7 @@ var init_emf = __esm({
     H_BRUSH = 1;
     H_PEN = 2;
     N_HANDLES = 3;
-    colorRef = ({ r, g, b }) => (r & 255 | (g & 255) << 8 | (b & 255) << 16) >>> 0;
+    colorRef = ({ r, g: g2, b }) => (r & 255 | (g2 & 255) << 8 | (b & 255) << 16) >>> 0;
     clampInt = (v) => Math.round(v);
     setRect = (dv, off, b) => {
       dv.setInt32(off, clampInt(b.left), true);
@@ -5596,17 +5738,17 @@ var init_emf = __esm({
 });
 
 // engine/src/eps.ts
-function rgbPaletteKey(r, g, b) {
-  return Math.round(r * 100) + "," + Math.round(g * 100) + "," + Math.round(b * 100);
+function rgbPaletteKey(r, g2, b) {
+  return Math.round(r * 100) + "," + Math.round(g2 * 100) + "," + Math.round(b * 100);
 }
 function colorOp(c, cmyk, palette) {
-  const r = (c.r & 255) / 255, g = (c.g & 255) / 255, b = (c.b & 255) / 255;
+  const r = (c.r & 255) / 255, g2 = (c.g & 255) / 255, b = (c.b & 255) / 255;
   if (cmyk) {
-    const hit = palette?.get(rgbPaletteKey(r, g, b));
-    const [cy, m, y, k] = hit ? hit.cmyk : rgbToCmyk(r, g, b);
+    const hit = palette?.get(rgbPaletteKey(r, g2, b));
+    const [cy, m, y, k] = hit ? hit.cmyk : rgbToCmyk(r, g2, b);
     return n(cy) + " " + n(m) + " " + n(y) + " " + n(k) + " setcmykcolor";
   }
-  return n(r) + " " + n(g) + " " + n(b) + " setrgbcolor";
+  return n(r) + " " + n(g2) + " " + n(b) + " setrgbcolor";
 }
 function emitImagePrim(prim, out) {
   const pxW = Math.max(1, Math.round(prim.pxW));
@@ -5703,6 +5845,157 @@ var init_eps = __esm({
   }
 });
 
+// engine/src/dxf.ts
+function num2(v) {
+  if (!Number.isFinite(v)) return "0.0";
+  let r = Math.round(v * 1e4) / 1e4;
+  if (Object.is(r, -0)) r = 0;
+  return Number.isInteger(r) ? r.toFixed(1) : String(r);
+}
+function g(out, code, value) {
+  out.push(String(code), String(value));
+}
+function nearestAci(c) {
+  let best = 7, bestD = Infinity;
+  for (const e of ACI) {
+    const dr = c.r - e.r, dg = c.g - e.g, db = c.b - e.b;
+    const d = dr * dr + dg * dg + db * db;
+    if (d < bestD) {
+      bestD = d;
+      best = e.i;
+    }
+  }
+  return best;
+}
+function flattenCubic(p0, p1, p2, p3, tol, out, depth = 0) {
+  const dx = p3.x - p0.x, dy = p3.y - p0.y;
+  const d1 = Math.abs((p1.x - p3.x) * dy - (p1.y - p3.y) * dx);
+  const d2 = Math.abs((p2.x - p3.x) * dy - (p2.y - p3.y) * dx);
+  if (depth >= 16 || (d1 + d2) * (d1 + d2) <= tol * tol * (dx * dx + dy * dy)) {
+    out.push({ x: p3.x, y: p3.y });
+    return;
+  }
+  const p01 = mid(p0, p1), p12 = mid(p1, p2), p23 = mid(p2, p3);
+  const p012 = mid(p01, p12), p123 = mid(p12, p23), p0123 = mid(p012, p123);
+  flattenCubic(p0, p01, p012, p0123, tol, out, depth + 1);
+  flattenCubic(p0123, p123, p23, p3, tol, out, depth + 1);
+}
+function subpathVertices(segments, tol) {
+  const pts = [];
+  let cur = { x: 0, y: 0 };
+  for (const s of segments) {
+    if (s.op === "M") {
+      cur = { x: s.x, y: s.y };
+      pts.push(cur);
+    } else if (s.op === "L") {
+      cur = { x: s.x, y: s.y };
+      pts.push(cur);
+    } else if (s.op === "C") {
+      flattenCubic(cur, { x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }, { x: s.x, y: s.y }, tol, pts);
+      cur = { x: s.x, y: s.y };
+    }
+  }
+  return pts;
+}
+function emitDxf(ir, opts = {}) {
+  const Wpx = Math.max(1, Math.round(ir.width));
+  const Hpx = Math.max(1, Math.round(ir.height));
+  const wDim = parseDimension(opts.width, opts.unit || "px");
+  const hDim = parseDimension(opts.height, opts.unit || "px");
+  const Wmm = (wDim ? toInches(wDim) : Wpx / CSS_DPI) * MM_PER_INCH;
+  const Hmm = (hDim ? toInches(hDim) : Hpx / CSS_DPI) * MM_PER_INCH;
+  const sx = Wmm / Wpx, sy = Hmm / Hpx;
+  const MX = (x) => x * sx;
+  const MY = (y) => Hmm - y * sy;
+  const tol = 0.2;
+  const ent = [];
+  let droppedImages = 0;
+  for (const prim of ir.prims || []) {
+    if (!prim) continue;
+    if (prim.type === "image") {
+      droppedImages++;
+      continue;
+    }
+    if (prim.type !== "path" || !prim.subpaths?.length) continue;
+    const paint = prim.fill ?? prim.stroke;
+    const aci = paint ? nearestAci(paint) : 7;
+    for (const sub of prim.subpaths) {
+      const pts = subpathVertices(sub.segments, tol);
+      if (pts.length < 2) continue;
+      g(ent, 0, "POLYLINE");
+      g(ent, 8, "0");
+      g(ent, 62, aci);
+      g(ent, 66, 1);
+      g(ent, 70, sub.closed ? 1 : 0);
+      for (const p of pts) {
+        g(ent, 0, "VERTEX");
+        g(ent, 8, "0");
+        g(ent, 10, num2(MX(p.x)));
+        g(ent, 20, num2(MY(p.y)));
+        g(ent, 30, "0.0");
+      }
+      g(ent, 0, "SEQEND");
+    }
+  }
+  const out = [];
+  g(out, 0, "SECTION");
+  g(out, 2, "HEADER");
+  g(out, 9, "$ACADVER");
+  g(out, 1, "AC1009");
+  g(out, 9, "$INSUNITS");
+  g(out, 70, 4);
+  g(out, 9, "$EXTMIN");
+  g(out, 10, "0.0");
+  g(out, 20, "0.0");
+  g(out, 30, "0.0");
+  g(out, 9, "$EXTMAX");
+  g(out, 10, num2(Wmm));
+  g(out, 20, num2(Hmm));
+  g(out, 30, "0.0");
+  g(out, 0, "ENDSEC");
+  g(out, 0, "SECTION");
+  g(out, 2, "TABLES");
+  g(out, 0, "TABLE");
+  g(out, 2, "LAYER");
+  g(out, 70, 1);
+  g(out, 0, "LAYER");
+  g(out, 2, "0");
+  g(out, 70, 0);
+  g(out, 62, 7);
+  g(out, 6, "CONTINUOUS");
+  g(out, 0, "ENDTAB");
+  g(out, 0, "ENDSEC");
+  g(out, 0, "SECTION");
+  g(out, 2, "ENTITIES");
+  for (const line of ent) out.push(line);
+  g(out, 0, "ENDSEC");
+  g(out, 0, "EOF");
+  return { text: out.join("\n") + "\n", droppedImages };
+}
+var MM_PER_INCH, ACI, mid;
+var init_dxf = __esm({
+  "engine/src/dxf.ts"() {
+    "use strict";
+    init_units();
+    MM_PER_INCH = 25.4;
+    ACI = [
+      { i: 7, r: 0, g: 0, b: 0 },
+      // default (black on light bg)
+      { i: 7, r: 255, g: 255, b: 255 },
+      // default (white index → also black on light bg)
+      { i: 1, r: 255, g: 0, b: 0 },
+      { i: 2, r: 255, g: 255, b: 0 },
+      { i: 3, r: 0, g: 255, b: 0 },
+      { i: 4, r: 0, g: 255, b: 255 },
+      { i: 5, r: 0, g: 0, b: 255 },
+      { i: 6, r: 255, g: 0, b: 255 },
+      { i: 8, r: 128, g: 128, b: 128 },
+      { i: 9, r: 192, g: 192, b: 192 }
+    ];
+    mid = (a, b) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 });
+  }
+});
+
 // engine/src/color-tools.ts
 function toOklch(input) {
   const s = String(input).trim();
@@ -5732,10 +6025,10 @@ function toRgbBytes(input) {
   const c = parseOklch(s);
   return c ? parseHex(oklchToHex(c)) : null;
 }
-function apcaY(r, g, b) {
+function apcaY(r, g2, b) {
   const { mainTRC } = SA98G.exponents;
   const { sRco, sGco, sBco } = SA98G.colorSpace;
-  const y = sRco * (r / 255) ** mainTRC + sGco * (g / 255) ** mainTRC + sBco * (b / 255) ** mainTRC;
+  const y = sRco * (r / 255) ** mainTRC + sGco * (g2 / 255) ** mainTRC + sBco * (b / 255) ** mainTRC;
   const { blkThrs, blkClmp } = SA98G.clamps;
   return y > blkThrs ? y : y + (blkThrs - y) ** blkClmp;
 }
@@ -5792,15 +6085,15 @@ function rampOklab(stops, n2, opts = {}) {
     const ideal = L0 + (L1 - L0) * t;
     let lo = 0;
     let hi = 1;
-    let mid = t;
+    let mid2 = t;
     for (let i = 0; i < 20; i++) {
-      const dl = bezierAt(points, mid)[0] - ideal;
+      const dl = bezierAt(points, mid2)[0] - ideal;
       if (Math.abs(dl) <= 1e-4) break;
-      if (dl * Math.sign(L1 - L0) > 0) hi = mid;
-      else lo = mid;
-      mid = (lo + hi) / 2;
+      if (dl * Math.sign(L1 - L0) > 0) hi = mid2;
+      else lo = mid2;
+      mid2 = (lo + hi) / 2;
     }
-    return mid;
+    return mid2;
   };
   const out = [];
   for (let i = 0; i < count; i++) {
@@ -5953,24 +6246,24 @@ function hexToRgb(hex) {
   if (h.length !== 6 || /[^0-9a-fA-F]/.test(h)) return null;
   return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
-function rgbToHsl(r, g, b) {
+function rgbToHsl(r, g2, b) {
   r /= 255;
-  g /= 255;
+  g2 /= 255;
   b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  const max = Math.max(r, g2, b), min = Math.min(r, g2, b), d = max - min;
   const l = (max + min) / 2;
   let h = 0, s = 0;
   if (d) {
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h = max === r ? (g2 - b) / d + (g2 < b ? 6 : 0) : max === g2 ? (b - r) / d + 2 : (r - g2) / d + 4;
     h /= 6;
   }
   return [h, s, l];
 }
 function hslToHex(h, s, l) {
-  let r, g, b;
+  let r, g2, b;
   if (!s) {
-    r = g = b = l;
+    r = g2 = b = l;
   } else {
     const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
     const p = 2 * l - q;
@@ -5982,11 +6275,11 @@ function hslToHex(h, s, l) {
       return p;
     };
     r = hue(h + 1 / 3);
-    g = hue(h);
+    g2 = hue(h);
     b = hue(h - 1 / 3);
   }
   const to = (x) => Math.round(x * 255).toString(16).padStart(2, "0");
-  return `#${to(r)}${to(g)}${to(b)}`;
+  return `#${to(r)}${to(g2)}${to(b)}`;
 }
 function monochromeRecolor(svgText, baseColor) {
   if (typeof svgText !== "string" || !svgText.includes("<svg")) return null;
@@ -6073,7 +6366,6 @@ var init_photo_treatment = __esm({
 });
 
 // engine/src/index.ts
-var ENGINE_VERSION;
 var init_src = __esm({
   "engine/src/index.ts"() {
     "use strict";
@@ -6088,12 +6380,13 @@ var init_src = __esm({
     init_svg_path();
     init_emf();
     init_eps();
+    init_dxf();
     init_c2pa();
     init_tokens();
     init_color_tools();
     init_icon_theme();
     init_photo_treatment();
-    ENGINE_VERSION = "1.50.0";
+    init_version();
   }
 });
 
@@ -6286,12 +6579,12 @@ init_schema();
 
 // services/mcp/src/render.ts
 init_src();
-import { readFile as readFile5 } from "node:fs/promises";
+import { readFile as readFile6 } from "node:fs/promises";
 
 // shells/cli/src/bridge.ts
 init_src();
-import { readFile as readFile3 } from "node:fs/promises";
-import { join as join3 } from "node:path";
+import { readFile as readFile4 } from "node:fs/promises";
+import { join as join5 } from "node:path";
 
 // shells/web/src/bridge/pdf.ts
 var PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
@@ -6886,8 +7179,8 @@ function parseColor(input) {
   if (m) {
     const parts = m[1].split(",").map((s) => s.trim());
     const ch = (s) => s.endsWith("%") ? Math.round(parseFloat(s) * 2.55) : parseInt(s, 10);
-    const r = ch(parts[0]), g = ch(parts[1]), b = ch(parts[2]);
-    if ([r, g, b].every(Number.isFinite)) return [r, g, b];
+    const r = ch(parts[0]), g2 = ch(parts[1]), b = ch(parts[2]);
+    if ([r, g2, b].every(Number.isFinite)) return [r, g2, b];
     return null;
   }
   return NAMED[c] ?? null;
@@ -6900,7 +7193,7 @@ function flatten(rgb, alpha2, bg) {
     Math.round(rgb[2] * alpha2 + bg[2] * (1 - alpha2))
   ];
 }
-var rgbObj = ([r, g, b]) => ({ r, g, b });
+var rgbObj = ([r, g2, b]) => ({ r, g: g2, b });
 function parseStyleAttr(el) {
   const s = el.getAttribute?.("style");
   if (!s) return {};
@@ -7244,12 +7537,326 @@ function resolve() {
   return join2(dirname2(fileURLToPath2(import.meta.url)), "..", "..", "..");
 }
 
+// packages/node-shell/src/text.ts
+import { readFile as readFile3 } from "node:fs/promises";
+import { existsSync as existsSync3 } from "node:fs";
+import { join as join3 } from "node:path";
+import { fileURLToPath as fileURLToPath3 } from "node:url";
+var _hb = null;
+async function loadHarfBuzz() {
+  if (!_hb) _hb = await import("harfbuzzjs");
+  return _hb;
+}
+var faceCache = /* @__PURE__ */ new Map();
+var fontCache = /* @__PURE__ */ new Map();
+async function loadFontBytes(fontUrl, repoRoot2) {
+  if (fontUrl.startsWith("data:")) {
+    const comma = fontUrl.indexOf(",");
+    if (comma === -1) throw new Error(`host.text (node): malformed data: font URL`);
+    const meta = fontUrl.slice(5, comma);
+    const data = fontUrl.slice(comma + 1);
+    const buf = /;base64/i.test(meta) ? Buffer.from(data, "base64") : Buffer.from(decodeURIComponent(data), "binary");
+    return new Uint8Array(buf);
+  }
+  if (/^https?:\/\//i.test(fontUrl)) {
+    const r = await fetch(fontUrl);
+    if (!r.ok) throw new Error(`host.text (node): font fetch failed (${r.status}) ${fontUrl}`);
+    return new Uint8Array(await r.arrayBuffer());
+  }
+  let filePath;
+  if (fontUrl.startsWith("file://")) {
+    filePath = fileURLToPath3(fontUrl);
+  } else if (fontUrl.startsWith("/")) {
+    filePath = join3(repoRoot2, fontUrl.slice(1));
+    if (!existsSync3(filePath) && fontUrl.startsWith("/fonts/")) {
+      filePath = join3(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
+    }
+  } else {
+    filePath = join3(repoRoot2, fontUrl);
+  }
+  return new Uint8Array(await readFile3(filePath));
+}
+async function loadFace(fontUrl, repoRoot2) {
+  if (faceCache.has(fontUrl)) return faceCache.get(fontUrl);
+  const hb = await loadHarfBuzz();
+  const buf = await loadFontBytes(fontUrl, repoRoot2);
+  if (buf.length >= 4 && buf[0] === 119 && buf[1] === 79 && buf[2] === 70 && buf[3] === 50) {
+    throw new Error(`host.text (node): ${fontUrl} is woff2, which the terminal shells can't decode \u2014 provide an sfnt (ttf/otf) font.`);
+  }
+  const blob = new hb.Blob(buf);
+  const face = new hb.Face(blob);
+  const entry = { blob, face, upem: face.upem, unicodes: new Set(face.collectUnicodes()) };
+  faceCache.set(fontUrl, entry);
+  return entry;
+}
+async function loadFont(fontUrl, repoRoot2, variations) {
+  const vars = Array.isArray(variations) ? variations.filter((v) => typeof v === "string") : [];
+  const key = vars.length ? `${fontUrl}|${vars.join(",")}` : fontUrl;
+  if (fontCache.has(key)) return fontCache.get(key);
+  const { face, upem, unicodes } = await loadFace(fontUrl, repoRoot2);
+  const hb = _hb;
+  const font = new hb.Font(face);
+  if (vars.length) {
+    const parsed = vars.map((v) => hb.Variation.fromString(v)).filter(Boolean);
+    if (parsed.length) font.setVariations(parsed);
+  }
+  const entry = { font, upem, unicodes };
+  fontCache.set(key, entry);
+  return entry;
+}
+function segmentByFace(text, chain2) {
+  const segs = [];
+  let cur = 0;
+  for (const ch of text) {
+    const cp = ch.codePointAt(0);
+    if (!/\s/.test(ch) && !chain2[cur].unicodes.has(cp)) {
+      const next = chain2.findIndex((f) => f.unicodes.has(cp));
+      if (next !== -1) cur = next;
+    }
+    const last = segs[segs.length - 1];
+    if (last && last.face === cur) last.text += ch;
+    else segs.push({ text: ch, face: cur });
+  }
+  return segs;
+}
+function fmt(n2) {
+  return Math.round(n2 * 100) / 100;
+}
+function transformPath(pathStr, offsetX, offsetY, scale) {
+  return pathStr.replace(/([MLCQZ])([^MLCQZ]*)/g, (_, cmd, args) => {
+    if (cmd === "Z") return "Z";
+    const nums = args.match(/-?\d*\.?\d+(?:[eE][+-]?\d+)?/g);
+    if (!nums) return cmd;
+    const out = [];
+    for (let i = 0; i + 1 < nums.length; i += 2) {
+      out.push(
+        `${fmt((+nums[i] + offsetX) * scale)},${fmt(-(+nums[i + 1] + offsetY) * scale)}`
+      );
+    }
+    return cmd + out.join(" ");
+  });
+}
+function createNodeTextAPI({ repoRoot: repoRoot2 }) {
+  return {
+    async toPath({ text, fontUrl, fontSize, features, letterSpacing = 0, variations, fallbackFonts }) {
+      if (!text || !text.trim()) {
+        return { d: "", advanceWidth: 0, bbox: null, notdef: 0 };
+      }
+      const chain2 = [
+        await loadFont(fontUrl, repoRoot2, variations),
+        ...await Promise.all((fallbackFonts ?? []).map((f) => loadFont(f.fontUrl, repoRoot2, f.variations)))
+      ];
+      const hb = _hb;
+      const feats = Array.isArray(features) ? features.map((f) => hb.Feature.fromString(f)).filter(Boolean) : [];
+      let penPx = 0;
+      let d = "";
+      let notdef = 0;
+      let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+      for (const seg of segmentByFace(text, chain2)) {
+        const { font, upem } = chain2[seg.face];
+        const scale = fontSize / upem;
+        const lsUnits = Number.isFinite(letterSpacing) && letterSpacing ? letterSpacing / scale : 0;
+        const originUnits = penPx / scale;
+        const buf = new hb.Buffer();
+        buf.addText(seg.text);
+        buf.guessSegmentProperties();
+        hb.shape(font, buf, feats.length ? feats : void 0);
+        let penX = 0;
+        for (const g2 of buf.getGlyphInfosAndPositions()) {
+          const {
+            codepoint: glyphId,
+            xAdvance = 0,
+            xOffset = 0,
+            yOffset = 0
+          } = g2;
+          if (glyphId === 0) notdef++;
+          const ox = originUnits + penX + xOffset;
+          const oy = yOffset;
+          const rawPath = font.glyphToPath(glyphId);
+          if (rawPath) d += transformPath(rawPath, ox, oy, scale);
+          const ext = font.glyphExtents(glyphId);
+          if (ext) {
+            const bx1 = (ox + ext.xBearing) * scale;
+            const bx2 = (ox + ext.xBearing + ext.width) * scale;
+            const by1 = -(oy + ext.yBearing) * scale;
+            const by2 = -(oy + ext.yBearing + ext.height) * scale;
+            if (bx1 < x1) x1 = bx1;
+            if (by1 < y1) y1 = by1;
+            if (bx2 > x2) x2 = bx2;
+            if (by2 > y2) y2 = by2;
+          }
+          penX += xAdvance + lsUnits;
+        }
+        penPx += penX * scale;
+      }
+      return {
+        d,
+        advanceWidth: penPx,
+        bbox: x1 !== Infinity ? { x1, y1, x2, y2 } : null,
+        notdef
+      };
+    },
+    /** Warm the font cache without shaping. Call fire-and-forget. */
+    async preload(fontUrl) {
+      await loadFace(fontUrl, repoRoot2);
+    },
+    /** The font's variable-axis defaults (tag → value), `{}` for a static font. */
+    async axisDefaults(fontUrl) {
+      const { face } = await loadFace(fontUrl, repoRoot2);
+      const out = {};
+      const infos = face.getAxisInfos();
+      for (const [tag, info] of Object.entries(infos)) out[tag] = info.default;
+      return out;
+    }
+  };
+}
+
+// packages/node-shell/src/browsers.ts
+import { join as join4 } from "node:path";
+import { existsSync as existsSync4 } from "node:fs";
+var INSTALL_BROWSERS_DIR = join4(repoRoot(), ".browsers");
+var SIBLING_BROWSERS_DIR = join4(repoRoot(), "services", "mcp", ".browsers");
+var BrowserError = class extends Error {
+};
+function resolveBrowsersDir() {
+  if (process.env.PLAYWRIGHT_BROWSERS_PATH) return process.env.PLAYWRIGHT_BROWSERS_PATH;
+  if (existsSync4(INSTALL_BROWSERS_DIR)) return INSTALL_BROWSERS_DIR;
+  if (existsSync4(SIBLING_BROWSERS_DIR)) return SIBLING_BROWSERS_DIR;
+  return INSTALL_BROWSERS_DIR;
+}
+var browserPromise = null;
+async function getBrowser() {
+  if (!browserPromise) {
+    browserPromise = (async () => {
+      const channel = process.env.LOLLY_BROWSER_CHANNEL;
+      const executablePath = process.env.LOLLY_BROWSER_PATH;
+      if (!channel && !executablePath) {
+        process.env.PLAYWRIGHT_BROWSERS_PATH ??= resolveBrowsersDir();
+      }
+      const { chromium } = await import("playwright-core");
+      try {
+        return await chromium.launch({
+          ...channel ? { channel } : {},
+          ...executablePath ? { executablePath } : {},
+          args: ["--no-sandbox"]
+        });
+      } catch (err) {
+        const msg = err.message || "";
+        if (/executable doesn't exist|Executable doesn't exist|please run|not been downloaded/i.test(msg)) {
+          throw new BrowserError(
+            "Raster/PDF/video export needs a headless browser. Run `lolly install-browser` (or `npm run install:browser` in shells/cli \u2014 downloads Chromium once, ~150 MB), or set LOLLY_BROWSER_CHANNEL=chrome to use an already-installed Chrome/Edge with no download. (svg and data formats need no browser.)"
+          );
+        }
+        throw err;
+      }
+    })().catch((err) => {
+      browserPromise = null;
+      throw err;
+    });
+  }
+  return browserPromise;
+}
+
+// packages/node-shell/src/url-capture.ts
+var clamp012 = (n2) => Number.isFinite(n2) ? Math.min(0.9, Math.max(0, n2)) : 0;
+function recolorCss(p) {
+  switch (p.recolor) {
+    case "invert":
+      return "html{filter:invert(1) hue-rotate(180deg)!important}";
+    case "grayscale":
+      return "html{filter:grayscale(1)!important}";
+    case "sepia":
+      return "html{filter:sepia(0.9)!important}";
+    case "hue":
+      return `html{filter:hue-rotate(${Math.round(p.hue) || 0}deg)!important}`;
+    case "tint":
+      return `html{filter:grayscale(1) contrast(1.05)!important}`;
+    default:
+      return "";
+  }
+}
+async function captureUrl(params, format, dims) {
+  const fmt2 = format.toLowerCase() === "jpeg" ? "jpg" : format.toLowerCase();
+  if (!params.url) throw new BrowserError("Enter a URL to capture.");
+  if (!["png", "jpg", "pdf", "svg", "webp"].includes(fmt2)) {
+    throw new BrowserError(`url-shot can't produce "${format}" \u2014 use png, jpg, pdf, or svg.`);
+  }
+  if (fmt2 === "webp") {
+    throw new BrowserError("WebP capture needs the desktop app \u2014 in the terminal use png, jpg, pdf, or svg.");
+  }
+  const width = Math.max(1, Math.round(dims.width || 1280));
+  const height = Math.max(1, Math.round(dims.height || 720));
+  const dpr = dims.dpi && dims.dpi > 96 ? dims.dpi / 96 : 1;
+  const browser = await getBrowser();
+  const ctx = await browser.newContext({
+    viewport: { width, height },
+    deviceScaleFactor: dpr,
+    serviceWorkers: "block"
+  });
+  try {
+    const page2 = await ctx.newPage();
+    await page2.goto(params.url, { waitUntil: "load", timeout: 45e3 }).catch((e) => {
+      throw new BrowserError(`Couldn't load ${params.url}: ${e.message}`);
+    });
+    const zoom = Number.isFinite(params.zoom) && params.zoom > 0 ? params.zoom : 1;
+    const zoomCss = Math.abs(zoom - 1) > 1e-3 ? `html{zoom:${zoom}!important}` : "";
+    const styles = [recolorCss(params), zoomCss, params.css || ""].filter(Boolean).join("\n");
+    if (styles) await page2.addStyleTag({ content: styles }).catch(() => {
+    });
+    if (params.recolor === "tint" && params.tintColor) {
+      await page2.evaluate((color) => {
+        const o = document.createElement("div");
+        o.style.cssText = `position:fixed;inset:0;background:${color};mix-blend-mode:multiply;pointer-events:none;z-index:2147483647`;
+        document.documentElement.appendChild(o);
+      }, params.tintColor).catch(() => {
+      });
+    }
+    if (params.scrollDepth > 0) {
+      await page2.evaluate((d) => {
+        const max = Math.max(0, document.body.scrollHeight - window.innerHeight);
+        window.scrollTo(0, d > 1 ? d : d * max);
+      }, params.scrollDepth).catch(() => {
+      });
+    }
+    if (params.waitMs > 0) await page2.waitForTimeout(Math.min(15e3, params.waitMs));
+    if (fmt2 === "pdf") {
+      const pdf = await page2.pdf({
+        width: `${width}px`,
+        height: `${height}px`,
+        printBackground: true,
+        pageRanges: "1",
+        margin: { top: 0, right: 0, bottom: 0, left: 0 }
+      });
+      return { bytes: new Uint8Array(pdf), mime: "application/pdf" };
+    }
+    const l = clamp012(params.cropLeft), r = clamp012(params.cropRight);
+    const t = clamp012(params.cropTop), b = clamp012(params.cropBottom);
+    const clipW = Math.max(1, Math.round(width * (1 - l - r)));
+    const clipH = Math.max(1, Math.round(height * (1 - t - b)));
+    const clip = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
+    const shotType = fmt2 === "jpg" ? "jpeg" : "png";
+    const png = await page2.screenshot({
+      type: shotType,
+      ...shotType === "jpeg" ? { quality: 92 } : {},
+      clip
+    });
+    if (fmt2 === "svg") {
+      const b64 = Buffer.from(png).toString("base64");
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${clipW}" height="${clipH}" viewBox="0 0 ${clipW} ${clipH}"><image width="${clipW}" height="${clipH}" href="data:image/png;base64,${b64}"/></svg>`;
+      return { bytes: new TextEncoder().encode(svg), mime: "image/svg+xml" };
+    }
+    return { bytes: new Uint8Array(png), mime: fmt2 === "jpg" ? "image/jpeg" : "image/png" };
+  } finally {
+    await ctx.close();
+  }
+}
+
 // shells/cli/src/bridge.ts
 var REPO_ROOT2 = repoRoot();
 async function createCliBridge({ profile = {}, dom } = {}) {
   const w = dom.window;
-  const assetCatalogPath = join3(REPO_ROOT2, "catalog", "assets", "index.json");
-  const assetIndex = JSON.parse(await readFile3(assetCatalogPath, "utf8"));
+  const assetCatalogPath = join5(REPO_ROOT2, "catalog", "assets", "index.json");
+  const assetIndex = JSON.parse(await readFile4(assetCatalogPath, "utf8"));
   const assetById = new Map(assetIndex.assets.map((a) => [a.id, a]));
   const state = /* @__PURE__ */ new Map();
   const host = {
@@ -7275,7 +7882,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile3(join3(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile4(join5(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -7285,7 +7892,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile3(join3(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile4(join5(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -7295,7 +7902,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     tokensDocCache ??= (async () => {
       const asset = assetIndex.assets.find((a) => a.type === "tokens");
       if (!asset) return null;
-      return JSON.parse(await readFile3(join3(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+      return JSON.parse(await readFile4(join5(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
     })().catch(() => null);
     return tokensDocCache;
   }
@@ -7316,6 +7923,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     themes: async () => (await tokenSet()).themes()
   };
   host.color = makeColorApi();
+  host.text = createNodeTextAPI({ repoRoot: REPO_ROOT2 });
   host.assets = {
     async get(id) {
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
@@ -7323,11 +7931,11 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       const baseId = theme ? themedBase : treatedBase;
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
-      const fmt = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      const localPath = join3(REPO_ROOT2, fmt.url.replace(/^\//, ""));
-      let buf = await readFile3(localPath);
+      const fmt2 = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
+      const localPath = join5(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
+      let buf = await readFile4(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
-      if (meta.type === "palette" && fmt.format === "json") {
+      if (meta.type === "palette" && fmt2.format === "json") {
         try {
           const parsed = JSON.parse(buf.toString("utf8"));
           extraMeta = { ...extraMeta, ...parsed };
@@ -7344,33 +7952,33 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       }
       if (treatment && meta.type === "raster") {
         const def = (await photoTreatments()).find((t) => t.id === treatment);
-        const dimSrc = fmt.width && fmt.height ? fmt : meta.formats.find((f) => f.width && f.height);
+        const dimSrc = fmt2.width && fmt2.height ? fmt2 : meta.formats.find((f) => f.width && f.height);
         const w2 = dimSrc?.width, h = dimSrc?.height;
         if (def && w2 && h) {
-          const href = `data:${mimeFor(fmt.format)};base64,${buf.toString("base64")}`;
+          const href = `data:${mimeFor(fmt2.format)};base64,${buf.toString("base64")}`;
           const svg = wrapRasterWithTreatment({ href, width: w2, height: h, treatment: def });
           return {
             source: "library",
             id,
             type: meta.type,
-            format: fmt.format,
+            format: fmt2.format,
             url: `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`,
             version: meta.version,
-            checksum: fmt.checksum,
+            checksum: fmt2.checksum,
             meta: { ...extraMeta, treatment, baseId }
           };
         }
       }
-      const mime = mimeFor(fmt.format);
+      const mime = mimeFor(fmt2.format);
       const url = `data:${mime};base64,${buf.toString("base64")}`;
       return {
         source: "library",
         id,
         type: meta.type,
-        format: fmt.format,
+        format: fmt2.format,
         url,
         version: meta.version,
-        checksum: fmt.checksum,
+        checksum: fmt2.checksum,
         meta: extraMeta
       };
     },
@@ -7470,7 +8078,14 @@ async function createCliBridge({ profile = {}, dom } = {}) {
         const text = emitEps(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk: format === "eps-cmyk", meta: opts.meta });
         return new Blob([text], { type: "application/postscript" });
       }
-      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, eps, json, csv, ics, vcf), or run the Tauri-bundled CLI for raster/pdf/zip.`);
+      if (format === "dxf") {
+        const svg = node.querySelector("svg") ?? (node.tagName?.toLowerCase() === "svg" ? node : null);
+        if (!svg) throw new Error("DXF export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
+        const ir = await svgDomToIr(svg, { host, background: opts.background, label: "DXF" });
+        const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
+        return new Blob([text], { type: "image/vnd.dxf" });
+      }
+      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, eps, dxf, json, csv, ics, vcf), or run the Tauri-bundled CLI for raster/pdf/zip.`);
     },
     async download() {
       throw new Error("CLI cannot trigger a browser download \u2014 pipe the blob to a file via --output");
@@ -7483,12 +8098,33 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     }
   };
   host.capture = {
-    async page() {
-      throw new Error("Page capture needs a browser engine \u2014 unavailable in the node CLI. Use the desktop app, or a headless-Chromium build.");
+    async page(spec) {
+      const { bytes, mime } = await captureUrl(
+        {
+          url: spec.url,
+          scrollDepth: spec.scrollDepth ?? 0,
+          waitMs: spec.waitMs ?? 500,
+          css: spec.css ?? "",
+          cropLeft: spec.crop?.left ?? 0,
+          cropRight: spec.crop?.right ?? 0,
+          cropTop: spec.crop?.top ?? 0,
+          cropBottom: spec.crop?.bottom ?? 0,
+          recolor: "none",
+          tintColor: "#111111",
+          hue: 0,
+          // recolor 'none' ⇒ tint unused
+          zoom: 1
+          // zoom rides in spec.css (html{zoom:…})
+        },
+        "png",
+        { width: spec.width, height: spec.height ?? spec.width, dpi: (spec.dpr ?? 1) * 96 }
+      );
+      const url = `data:${mime};base64,${Buffer.from(bytes).toString("base64")}`;
+      return { source: "remote", id: `capture:${spec.url}`, type: "raster", format: "png", url, width: spec.width, height: spec.height };
     }
   };
   host.pdf = createPdfAPI();
-  const composeFetchFile = async (p) => readFile3(join3(REPO_ROOT2, "tools", p), "utf8");
+  const composeFetchFile = async (p) => readFile4(join5(REPO_ROOT2, "tools", p), "utf8");
   host.compose = {
     async render(spec) {
       const { toolId, inputs = {}, format, width, height, unit, dpi, _stack = [] } = spec ?? {};
@@ -7499,17 +8135,17 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       const el = w.document.createElement("div");
       el.innerHTML = childRuntime.getHydrated();
       await applyBrandVars(el, host);
-      const fmt = format ?? childTool.manifest.render.formats[0];
+      const fmt2 = format ?? childTool.manifest.render.formats[0];
       const u = unit || "px";
       const qual = (v) => typeof v === "number" && v > 0 ? u !== "px" ? `${v}${u}` : v : void 0;
-      const blob = await host.export.render(el, fmt, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
+      const blob = await host.export.render(el, fmt2, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
       const buf = Buffer.from(await blob.arrayBuffer());
       return {
         source: "remote",
         id: `compose:${toolId}`,
-        type: fmt === "svg" ? "vector" : "raster",
-        format: fmt,
-        url: `data:${mimeFor(fmt)};base64,${buf.toString("base64")}`
+        type: fmt2 === "svg" ? "vector" : "raster",
+        format: fmt2,
+        url: `data:${mimeFor(fmt2)};base64,${buf.toString("base64")}`
       };
     },
     // Render a pasted/stored Lolly tool URL to an AssetRef whose id is the
@@ -7657,11 +8293,11 @@ function withHost(profile, fn) {
   return enqueue(async () => {
     const { JSDOM } = await import("jsdom");
     const dom = new JSDOM('<!DOCTYPE html><html><body><div id="canvas"></div></body></html>');
-    const g = globalThis;
-    const prev = { window: g["window"], document: g["document"], Element: g["Element"] };
-    g["window"] = dom.window;
-    g["document"] = dom.window.document;
-    g["Element"] = dom.window.Element;
+    const g2 = globalThis;
+    const prev = { window: g2["window"], document: g2["document"], Element: g2["Element"] };
+    g2["window"] = dom.window;
+    g2["document"] = dom.window.document;
+    g2["Element"] = dom.window.Element;
     try {
       const host = await createCliBridge({ dom, profile });
       host.log = (level, msg, ctx) => {
@@ -7670,9 +8306,9 @@ function withHost(profile, fn) {
       };
       return await fn(dom, host);
     } finally {
-      g["window"] = prev.window;
-      g["document"] = prev.document;
-      g["Element"] = prev.Element;
+      g2["window"] = prev.window;
+      g2["document"] = prev.document;
+      g2["Element"] = prev.Element;
       try {
         dom.window.close?.();
       } catch {
@@ -7684,9 +8320,9 @@ function withHost(profile, fn) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
-import { readFile as readFile4, stat } from "node:fs/promises";
-import { existsSync as existsSync3 } from "node:fs";
-import { join as join4, resolve as resolve2, extname, normalize } from "node:path";
+import { readFile as readFile5, stat } from "node:fs/promises";
+import { existsSync as existsSync5 } from "node:fs";
+import { join as join6, resolve as resolve2, extname, normalize } from "node:path";
 var MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -7717,15 +8353,15 @@ async function webShellBase() {
   return (await served).base;
 }
 async function buildAndServe() {
-  const dist = process.env.LOLLY_WEB_DIST || join4(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync3(join4(dist, "index.html"))) {
-    if (!existsSync3(join4(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist = process.env.LOLLY_WEB_DIST || join6(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync5(join6(dist, "index.html"))) {
+    if (!existsSync5(join6(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync3(join4(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
+    if (!existsSync5(join6(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
   }
   return serveDist(dist);
 }
@@ -7750,10 +8386,10 @@ function serveDist(dist) {
         res.writeHead(403).end();
         return;
       }
-      if (urlPath === "/" || !existsSync3(filePath) || !(await stat(filePath)).isFile()) {
-        filePath = join4(root, "index.html");
+      if (urlPath === "/" || !existsSync5(filePath) || !(await stat(filePath)).isFile()) {
+        filePath = join6(root, "index.html");
       }
-      const data = await readFile4(filePath);
+      const data = await readFile5(filePath);
       res.setHeader("Content-Type", MIME[extname(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.end(data);
@@ -7780,8 +8416,8 @@ function normFormat(f) {
   const x = String(f ?? "").toLowerCase();
   return x === "jpeg" ? "jpg" : x;
 }
-function mimeForFormat(fmt) {
-  switch (normFormat(fmt)) {
+function mimeForFormat(fmt2) {
+  switch (normFormat(fmt2)) {
     case "svg":
       return "image/svg+xml";
     case "png":
@@ -7833,8 +8469,8 @@ function mimeForFormat(fmt) {
       return "application/octet-stream";
   }
 }
-function isTextFormat(fmt) {
-  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk"].includes(normFormat(fmt));
+function isTextFormat(fmt2) {
+  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk"].includes(normFormat(fmt2));
 }
 function targetPx(width, unit, dpi) {
   if (!width || width <= 0) return void 0;
@@ -7852,16 +8488,16 @@ function exportOpts(o) {
   if (o.password) opts.password = o.password;
   return opts;
 }
-async function renderTierA(toolId, values, fmt, opts, profile) {
+async function renderTierA(toolId, values, fmt2, opts, profile) {
   return withHost(profile, async (dom, host) => {
     const tool = await loadToolCached(toolId);
     const runtime = await createRuntime(tool, host, values);
     const canvas = dom.window.document.getElementById("canvas");
     if (!canvas) throw new RenderError("render canvas missing");
     canvas.innerHTML = runtime.getHydrated();
-    const blob = await runtime.export(canvas, fmt, opts);
+    const blob = await runtime.export(canvas, fmt2, opts);
     const bytes = new Uint8Array(await blob.arrayBuffer());
-    return { bytes, mime: blob.type || mimeForFormat(fmt) };
+    return { bytes, mime: blob.type || mimeForFormat(fmt2) };
   });
 }
 async function svgToPng(svg, width, background) {
@@ -7873,10 +8509,10 @@ async function svgToPng(svg, width, background) {
   });
   return r.render().asPng();
 }
-var browserPromise = null;
-async function getBrowser() {
-  if (!browserPromise) {
-    browserPromise = (async () => {
+var browserPromise2 = null;
+async function getBrowser2() {
+  if (!browserPromise2) {
+    browserPromise2 = (async () => {
       const channel = process.env.LOLLY_BROWSER_CHANNEL;
       const executablePath = process.env.LOLLY_BROWSER_PATH;
       if (!channel && !executablePath) {
@@ -7900,17 +8536,17 @@ async function getBrowser() {
         throw err;
       }
     })().catch((err) => {
-      browserPromise = null;
+      browserPromise2 = null;
       throw err;
     });
   }
-  return browserPromise;
+  return browserPromise2;
 }
 var EXPORT_URL_RESERVED = ["format", "export", "copy", "width", "w", "height", "h", "unit", "dpi", "password", "profile", "c2pa", "preview", "options"];
-function exportUrl(base, toolId, query, fmt, o) {
+function exportUrl(base, toolId, query, fmt2, o) {
   const p = new URLSearchParams(query);
   for (const k of EXPORT_URL_RESERVED) p.delete(k);
-  p.set("format", fmt);
+  p.set("format", fmt2);
   const unit = o.unit || "px";
   if (o.width && o.width > 0) p.set("width", String(o.width));
   if (o.height && o.height > 0) p.set("height", String(o.height));
@@ -7919,24 +8555,24 @@ function exportUrl(base, toolId, query, fmt, o) {
     p.set("dpi", String(o.dpi || 300));
   }
   if (o.colorProfile) p.set("profile", o.colorProfile);
-  if (o.password && fmt === "pdf") p.set("password", o.password);
+  if (o.password && fmt2 === "pdf") p.set("password", o.password);
   p.set("export", "1");
   const q = p.toString();
   const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
   return tmpl.replace("{id}", encodeURIComponent(toolId)).replace("{query}", q);
 }
-function exportTimeoutMs(fmt) {
-  const f = normFormat(fmt);
+function exportTimeoutMs(fmt2) {
+  const f = normFormat(fmt2);
   if (f === "webm" || f === "mp4" || f === "gif" || f === "apng") return 18e4;
   if (f === "pdf" || f === "pdf-cmyk" || f === "cmyk-tiff" || f === "tiff") return 9e4;
   return 6e4;
 }
-async function renderTierB(toolId, query, fmt, o) {
+async function renderTierB(toolId, query, fmt2, o) {
   const base = await webShellBase();
-  const url = exportUrl(base, toolId, query, fmt, o);
+  const url = exportUrl(base, toolId, query, fmt2, o);
   let browser;
   try {
-    browser = await getBrowser();
+    browser = await getBrowser2();
   } catch (e) {
     if (e instanceof RenderError) throw e;
     throw new RenderError(`Tier-B browser unavailable: ${e.message}`);
@@ -7944,34 +8580,34 @@ async function renderTierB(toolId, query, fmt, o) {
   const ctx = await browser.newContext({ serviceWorkers: "block", acceptDownloads: true });
   try {
     const page2 = await ctx.newPage();
-    const downloadP = page2.waitForEvent("download", { timeout: exportTimeoutMs(fmt) });
+    const downloadP = page2.waitForEvent("download", { timeout: exportTimeoutMs(fmt2) });
     await page2.goto(url, { waitUntil: "commit", timeout: 3e4 });
     let download;
     try {
       download = await downloadP;
     } catch {
       throw new RenderError(
-        `Tool "${toolId}" produced no "${fmt}" export within the time limit \u2014 the tool may have failed to render, or the format isn't supported in the browser. Check the inputs.`
+        `Tool "${toolId}" produced no "${fmt2}" export within the time limit \u2014 the tool may have failed to render, or the format isn't supported in the browser. Check the inputs.`
       );
     }
     const path = await download.path();
     if (!path) throw new RenderError(`Tier-B download for "${toolId}" yielded no file.`);
-    const bytes = new Uint8Array(await readFile5(path));
+    const bytes = new Uint8Array(await readFile6(path));
     await download.delete().catch(() => {
     });
-    return { bytes, mime: mimeForFormat(fmt) };
+    return { bytes, mime: mimeForFormat(fmt2) };
   } finally {
     await ctx.close();
   }
 }
-async function stampC2pa(bytes, fmt, toolName, toolId, o) {
+async function stampC2pa(bytes, fmt2, toolName, toolId, o) {
   const days = o.c2pa?.days ?? 30;
   const profile = o.profile ?? {};
-  const stamped = await embedC2pa(bytes, fmt, {
+  const stamped = await embedC2pa(bytes, fmt2, {
     title: toolName,
     claimGenerator: "Lolly lolly.tools",
     generatorInfo: { name: "Lolly", version: ENGINE_VERSION },
-    environment: { surface: "mcp", engine: "node", os: process.platform, format: fmt, tool: toolId },
+    environment: { surface: "mcp", engine: "node", os: process.platform, format: fmt2, tool: toolId },
     ...profile.useDetails === true && profile.firstname ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } } : {},
     dates: { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) }
   });
@@ -7988,11 +8624,11 @@ async function render(toolId, query, o = {}) {
   }
   const q = await expandQuery(query);
   const st = parseUrlState(q, tool.manifest);
-  const fmt = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
-  if (!supported.has(fmt)) {
-    throw new RenderError(`Tool "${toolId}" does not support format "${fmt}". Supported: ${formats.join(", ")}`);
+  const fmt2 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
+  if (!supported.has(fmt2)) {
+    throw new RenderError(`Tool "${toolId}" does not support format "${fmt2}". Supported: ${formats.join(", ")}`);
   }
-  const exportFmt = fmt === "jpg" && !formats.includes("jpg") ? "jpg" : fmt;
+  const exportFmt = fmt2 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt2;
   const values = { ...st.values };
   if (o.transparentBg !== void 0) values["transparentBg"] = o.transparentBg;
   if (o.convertPaths !== void 0) values["convertPaths"] = o.convertPaths;
@@ -8035,9 +8671,9 @@ async function render(toolId, query, o = {}) {
       warnings.push(`Content Credentials not attached \u2014 ${e.message}`);
     }
   } else if (merged.c2pa?.on) {
-    warnings.push(`Format "${fmt}" cannot carry Content Credentials \u2014 skipped.`);
+    warnings.push(`Format "${fmt2}" cannot carry Content Credentials \u2014 skipped.`);
   }
-  return { bytes, mime: out.mime, format: fmt, tier: out.tier, warnings };
+  return { bytes, mime: out.mime, format: fmt2, tier: out.tier, warnings };
 }
 async function transform(toolId, file, inputs = {}, profile = {}) {
   const tool = await loadToolCached(toolId);
@@ -8272,21 +8908,21 @@ ${links.renderUrl ?? "(unavailable)"}`);
         ].filter(Boolean).join("\n");
         const content = [{ type: "text", text: header }];
         const b64 = Buffer.from(result.bytes).toString("base64");
-        const fmt = normFormat(result.format);
+        const fmt2 = normFormat(result.format);
         const RASTER = ["png", "jpg", "webp", "avif", "gif", "apng"];
-        if (RASTER.includes(fmt)) {
+        if (RASTER.includes(fmt2)) {
           content.push({ type: "image", data: b64, mimeType: result.mime });
-        } else if (fmt === "svg") {
+        } else if (fmt2 === "svg") {
           try {
             const preview = await render(toolId, links.query, { ...opts, format: "png" });
             content.push({ type: "image", data: Buffer.from(preview.bytes).toString("base64"), mimeType: "image/png" });
           } catch {
           }
           content.push({ type: "resource", resource: { uri: `${links.renderUrl ?? `lolly://render/${toolId}.svg`}`, mimeType: "image/svg+xml", text: new TextDecoder().decode(result.bytes) } });
-        } else if (isTextFormat(fmt)) {
-          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
+        } else if (isTextFormat(fmt2)) {
+          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt2}`, mimeType: result.mime, text: new TextDecoder().decode(result.bytes) } });
         } else {
-          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt}`, mimeType: result.mime, blob: b64 } });
+          content.push({ type: "resource", resource: { uri: links.renderUrl ?? `lolly://render/${toolId}.${fmt2}`, mimeType: result.mime, blob: b64 } });
         }
         return { content };
       }
@@ -8319,8 +8955,8 @@ async function serverInstructions() {
 
 // services/mcp/src/resources.ts
 init_src();
-import { readFile as readFile6 } from "node:fs/promises";
-import { join as join5 } from "node:path";
+import { readFile as readFile7 } from "node:fs/promises";
+import { join as join7 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -8331,10 +8967,10 @@ var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://asset/{id}", name: "Brand asset", description: "A catalog asset (logo, palette, font) resolved to bytes.", mimeType: "application/octet-stream" }
 ];
 async function tokensResource(uri) {
-  const idx = JSON.parse(await readFile6(ASSET_INDEX, "utf8"));
+  const idx = JSON.parse(await readFile7(ASSET_INDEX, "utf8"));
   const tokenAsset = idx.assets.find((a) => a.type === "tokens");
   if (!tokenAsset) return { uri, mimeType: "application/json", text: JSON.stringify({ colors: [], note: "No tokens asset in catalog." }) };
-  const doc = JSON.parse(await readFile6(join5(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const doc = JSON.parse(await readFile7(join7(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }

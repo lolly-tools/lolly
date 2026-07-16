@@ -222,6 +222,44 @@ for (const id of toolManifests.keys()) {
   }
 }
 
+// ─── Pre-rendered look bundle (first-paint guard) ───────────────────────────
+// The gallery's example carousel + featured hero are bundle-FIRST: renderFeaturedVariant
+// (shells/web/src/lib/featured-render.ts) asks bundledLook() for a committed data-URI out
+// of catalog/previews/bundle.json BEFORE it will touch the engine, and only falls through
+// to a LIVE off-screen render when a look is missing from the bundle or its sig no longer
+// matches. That fallback is SILENT — the tile still fills, just by mounting a runtime — so
+// editing a look's values in a manifest can quietly put an engine render back on the
+// first-paint path. This guards the invariant that a pre-rendered look stays pre-rendered.
+//
+// The sig is one contract across three files and all three must agree:
+//   build-preview-bundle.ts  JSON.stringify(looks[i].values ?? {})   ← written here
+//   featured-render.ts:135   JSON.stringify(values)                  ← compared on the client
+//   this check                                                        ← keeps them honest
+//
+// Severity split mirrors the tolerance the preview-path check above already applies:
+// a STALE sig is an error (a demonstrable manifest↔bundle drift, always fixable by
+// regenerating), while an ABSENT look is only a warning — build-previews is best-effort
+// by design ("a look that fails just isn't bundled, and the gallery live-renders it as
+// before"), so a missing entry must not turn a documented graceful degrade into a red
+// build. No bundle at all = a checkout that hasn't generated previews: skip entirely.
+const previewBundle = readJsonOptional('catalog/previews/bundle.json');
+if (previewBundle) {
+  for (const [id, manifest] of toolManifests) {
+    // Canonical source is `examples`; `featured.variants` is the pre-`examples` alias.
+    // Order MUST match build-preview-bundle.ts's looksOf() so the `<id>:<i>` keys line up.
+    const looks: any[] = manifest.examples ?? manifest.featured?.variants ?? [];
+    looks.forEach((look: any, i: number) => {
+      const entry = previewBundle[`${id}:${i}`];
+      const sig = JSON.stringify(look?.values ?? {});
+      if (!entry) {
+        warnings.push(`[${id}] example look ${i} is absent from catalog/previews/bundle.json — the gallery will LIVE-RENDER it on first paint; run \`npm run previews\` then \`npm run build:catalog\``);
+      } else if (entry.sig !== sig) {
+        errors.push(`[${id}] example look ${i} bundle sig is stale — the gallery will silently fall back to a live render on first paint; run \`npm run previews\` then \`npm run build:catalog\``);
+      }
+    });
+  }
+}
+
 // ─── Canonical input registry (soft check) ──────────────────────────────────
 // Tools SHOULD reuse canonical input ids + constraints so the /pro batch grid
 // collapses them into one bulk-writable column. Divergence is a warning, not an
