@@ -13,4 +13,4 @@
  * is DELIBERATELY decoupled from the product/release version. Do not collapse
  * them.
  */
-export const ENGINE_VERSION = '1.53.0';
+export const ENGINE_VERSION = '1.56.0';

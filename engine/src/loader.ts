@@ -37,6 +37,9 @@ export interface ToolRenderSpec {
   export?: boolean;
   layout?: string;
   dims?: boolean;
+  /** Set false to offer pixels only — the download bar hides the physical-unit
+   *  selector + DPI field, so an on-screen pixel is an exported pixel. */
+  units?: boolean;
   paged?: boolean;
   /** Multi-page ("carousel") editor config (schema `render.pages`). Present only on
    *  editor-layout tools whose canvas is a strip of N same-size `[data-pdf-page]`
@@ -44,6 +47,9 @@ export interface ToolRenderSpec {
   pages?: { count: string; width: string; height: string; gap?: number; min?: number; max?: number };
   printMarks?: boolean;
   transparentBg?: boolean;
+  /** Marks a device-recording tool (schema `render.capture`): which record affordance
+   *  the shell mounts. 'screen' (v1.54) is display capture via host.recorder. */
+  capture?: 'audio' | 'video' | 'av' | 'screen';
   /** Requested longest edge (px) for live camera frames (see host-v1 MediaAPI). */
   liveMaxEdge?: number;
   convertPaths?: boolean;

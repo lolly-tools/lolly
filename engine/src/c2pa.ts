@@ -363,6 +363,14 @@ export const DIGITAL_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcety
 // surface it as "Captured by a camera" (engine c2pa-verify + web Verify view).
 export const CAPTURE_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/digitalCapture';
 
+// IPTC DigitalSourceType for a screenshot / screen recording — "a capture of the
+// contents of the screen of a computer or mobile device". DISTINCT from
+// digitalCapture on purpose: that term means a sensor recorded the real world, which
+// a screen capture never did, so reusing it would over-claim the file's origin (the
+// one thing a credential must never do). Nothing here infers this — only a caller
+// that KNOWS it captured a display sets the flag.
+export const SCREEN_SOURCE_TYPE = 'http://cv.iptc.org/newscodes/digitalsourcetype/screenCapture';
+
 // Output formats that are a genuine re-encode/render of the authored design
 // (so a c2pa.converted step is honest) vs vector-native / text serialisations
 // that ARE the created asset and warrant no conversion step.
@@ -417,8 +425,10 @@ export function exportActionSteps(format: string, flags: {
   watermarked?: boolean;
   imprint?: boolean;
   audio?: boolean;
-  /** The render's essence was captured from a device sensor — created → digitalCapture. */
-  capture?: { camera?: boolean; microphone?: boolean };
+  /** The render's essence was captured from a device sensor — created → digitalCapture.
+   *  `screen` instead means a display was captured (a screenshot / screen recording) →
+   *  created → screenCapture, which is a different IPTC term and a different claim. */
+  capture?: { camera?: boolean; microphone?: boolean; screen?: boolean };
   /** Text was placed over an opened asset (gate on ingredients) — appends "Added text". */
   textAdded?: boolean;
   /** Short teaser of that text for the step label (full copy rides in the input digest). */
@@ -429,10 +439,16 @@ export function exportActionSteps(format: string, flags: {
   // Origin: a captured essence (camera/mic) declares digitalCapture with an honest
   // description; otherwise the software-authored default (digitalCreation).
   const cap = flags.capture;
+  // A display capture is its OWN source type, not a sensor capture — check it first so a
+  // narrated screen recording (screen + microphone) never reads as a mic recording of the
+  // real world. The screen is what the essence IS; the mic is a track laid over it.
+  const screened = !!cap?.screen;
   const captured = !!(cap && (cap.camera || cap.microphone));
-  const created: C2paActionInput = captured
-    ? { action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap!) }
-    : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE };
+  const created: C2paActionInput = screened
+    ? { action: 'c2pa.created', digitalSourceType: SCREEN_SOURCE_TYPE, description: captureDescription(cap!) }
+    : captured
+      ? { action: 'c2pa.created', digitalSourceType: CAPTURE_SOURCE_TYPE, description: captureDescription(cap!) }
+      : { action: 'c2pa.created', digitalSourceType: DIGITAL_SOURCE_TYPE };
   const steps: C2paActionInput[] = [created];
   if (flags.cmyk) steps.push({ action: 'c2pa.color_adjustments', description: 'Converted colours to CMYK for print' });
   if (flags.paletteColors) steps.push({ action: 'c2pa.color_adjustments', description: `Snapped colours to the brand palette (${flags.paletteColors} colour${flags.paletteColors === 1 ? '' : 's'})` });
@@ -450,7 +466,11 @@ export function exportActionSteps(format: string, flags: {
 }
 
 // The created step's description for a captured essence — camera, mic, or both.
-function captureDescription(cap: { camera?: boolean; microphone?: boolean }): string {
+function captureDescription(cap: { camera?: boolean; microphone?: boolean; screen?: boolean }): string {
+  // Screen first, and it never claims the camera: a display capture's essence came from
+  // the screen. The mic is worth naming because it recorded the room, which the rest of
+  // the file did not.
+  if (cap.screen) return cap.microphone ? 'Captured from the screen with microphone narration' : 'Captured from the screen';
   if (cap.camera && cap.microphone) return 'Recorded live from the camera and microphone';
   if (cap.camera) return 'Captured live from the camera';
   return 'Recorded live from the microphone';
