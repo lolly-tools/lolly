@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-16T18:19:09.445Z",
+  "generatedAt": "2026-07-17T16:48:39.728Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -269,6 +269,38 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\" /><path d=\"M12 18a6 6 0 0 0 0-12v12z\" /></svg>",
       "preview": "/catalog/previews/filter-duotone.svg",
+      "examples": [
+        {
+          "label": "Midnight duo",
+          "values": {
+            "colorFg": "#1a1a2e",
+            "colorBg": "#93c5fd"
+          }
+        },
+        {
+          "label": "Forest print",
+          "values": {
+            "colorFg": "#0f3d2e",
+            "colorBg": "#e7f4ec"
+          }
+        },
+        {
+          "label": "Coral pop",
+          "values": {
+            "colorFg": "#7c2d12",
+            "colorBg": "#ffd3bd",
+            "saturation": 130
+          }
+        },
+        {
+          "label": "Screen glow",
+          "values": {
+            "colorFg": "#f5efe6",
+            "colorBg": "#0b1021",
+            "blendMode": "screen"
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "مرشح: ثنائي اللون",
@@ -401,6 +433,47 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"5\" r=\"1\" /><circle cx=\"19\" cy=\"5\" r=\"1\" /><circle cx=\"5\" cy=\"5\" r=\"1\" /><circle cx=\"12\" cy=\"12\" r=\"1\" /><circle cx=\"19\" cy=\"12\" r=\"1\" /><circle cx=\"5\" cy=\"12\" r=\"1\" /><circle cx=\"12\" cy=\"19\" r=\"1\" /><circle cx=\"19\" cy=\"19\" r=\"1\" /><circle cx=\"5\" cy=\"19\" r=\"1\" /></svg>",
       "preview": "/catalog/previews/filter-halftone.svg",
+      "examples": [
+        {
+          "label": "Newsprint",
+          "values": {
+            "colorSource": "solid",
+            "fgColor": "#1a1a2e",
+            "bgColor": "#f5efe6",
+            "gridSize": 34,
+            "dither": "floyd"
+          }
+        },
+        {
+          "label": "Comic dots",
+          "values": {
+            "colorSource": "solid",
+            "fgColor": "#7c2d12",
+            "bgColor": "#ffd3bd",
+            "gridSize": 18,
+            "dotScale": 1.3
+          }
+        },
+        {
+          "label": "Diamond weave",
+          "values": {
+            "shape": "diamond",
+            "gridSize": 28,
+            "dotScale": 1.15
+          }
+        },
+        {
+          "label": "Coarse squares",
+          "values": {
+            "shape": "square",
+            "colorSource": "solid",
+            "fgColor": "#f5efe6",
+            "bgColor": "#0b1021",
+            "gridSize": 10,
+            "invert": true
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "مرشح: الألوان النصفية",
@@ -530,6 +603,33 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"16\" rx=\"2\"/><line x1=\"9\" y1=\"4\" x2=\"9\" y2=\"20\"/><line x1=\"9\" y1=\"8.5\" x2=\"18.5\" y2=\"8.5\"/><line x1=\"9\" y1=\"12\" x2=\"15.5\" y2=\"12\"/><line x1=\"9\" y1=\"15.5\" x2=\"19\" y2=\"15.5\"/></svg>",
       "preview": "/catalog/previews/filter-pixel-stretch.svg",
+      "examples": [
+        {
+          "label": "Right smear",
+          "values": {
+            "direction": "right",
+            "threshold": 42,
+            "spread": 100
+          }
+        },
+        {
+          "label": "Falling glitch",
+          "values": {
+            "direction": "down",
+            "threshold": 60,
+            "feather": 40
+          }
+        },
+        {
+          "label": "Soft echo",
+          "values": {
+            "direction": "left",
+            "threshold": 30,
+            "spread": 70,
+            "feather": 100
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "مرشح: تمديد البكسل",
@@ -660,6 +760,30 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z\"/><path d=\"m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65\"/><path d=\"m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65\"/></svg>",
       "preview": "/catalog/previews/filter-posterize.svg",
+      "examples": [
+        {
+          "label": "Tri-tone poster",
+          "values": {
+            "steps": 3,
+            "smoothing": 80
+          }
+        },
+        {
+          "label": "Ink threshold",
+          "values": {
+            "threshold": true,
+            "thresholdLevel": 55
+          }
+        },
+        {
+          "label": "Soft ten-step",
+          "values": {
+            "steps": 10,
+            "smoothing": 100,
+            "saturation": 120
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "مرشح: بوسترة نقطية",
@@ -789,6 +913,41 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 7V5a2 2 0 0 1 2-2h2\" /><path d=\"M17 3h2a2 2 0 0 1 2 2v2\" /><path d=\"M21 17v2a2 2 0 0 1-2 2h-2\" /><path d=\"M7 21H5a2 2 0 0 1-2-2v-2\" /><path d=\"M7 12h10\" /></svg>",
       "preview": "/catalog/previews/filter-scanline.svg",
+      "examples": [
+        {
+          "label": "CRT phosphor",
+          "values": {
+            "highlight": "#eaffea",
+            "light": "#a7f3d0",
+            "mid": "#10b981",
+            "shade": "#065f46",
+            "shadow": "#02100a"
+          }
+        },
+        {
+          "label": "Amber terminal",
+          "values": {
+            "highlight": "#fff7e6",
+            "light": "#fcd9a0",
+            "mid": "#f2a65a",
+            "shade": "#8a4b12",
+            "shadow": "#1c0f02",
+            "lineSize": 18,
+            "gapSize": 14
+          }
+        },
+        {
+          "label": "Cold cathode",
+          "values": {
+            "highlight": "#f0f9ff",
+            "light": "#bae6fd",
+            "mid": "#38bdf8",
+            "shade": "#075985",
+            "shadow": "#020617",
+            "everyLine": true
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "مرشح: خطوط المسح",
@@ -919,6 +1078,34 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" /><path d=\"M10 3 L9 10 L3 9\" /><path d=\"M9 10 L15 14\" /><path d=\"M21 13 L15 14 L14 21\" /></svg>",
       "preview": "/catalog/previews/filter-voronoi.svg",
+      "examples": [
+        {
+          "label": "Stained glass",
+          "values": {
+            "cells": 40,
+            "edgeWidth": 1.5,
+            "edgeColor": "#1a1a2e"
+          }
+        },
+        {
+          "label": "Fine mosaic",
+          "values": {
+            "cells": 400,
+            "jitter": 100,
+            "edgeWidth": 0
+          }
+        },
+        {
+          "label": "Warm shatter",
+          "values": {
+            "cells": 120,
+            "treatmentColor": "#f2a65a",
+            "treatmentIntensity": 60,
+            "edgeWidth": 0.6,
+            "edgeColor": "#ffffff"
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "مرشح: خلايا فورونوي",
@@ -1057,6 +1244,45 @@
         "order": 10,
         "blurb": "QR codes in any brand colour"
       },
+      "examples": [
+        {
+          "label": "Ink on paper",
+          "values": {
+            "url": "https://lolly.tools",
+            "color": "#1a1a2e",
+            "background": "#faf7f2"
+          }
+        },
+        {
+          "label": "Brand primary, joined modules",
+          "values": {
+            "url": "https://lolly.tools",
+            "color": "{color.semantic.primary}",
+            "background": "{color.semantic.surface}",
+            "join": true
+          }
+        },
+        {
+          "label": "Night mode",
+          "values": {
+            "url": "https://lolly.tools/gallery",
+            "color": "#93c5fd",
+            "background": "#0b1021",
+            "padding": 6
+          }
+        },
+        {
+          "label": "High-redundancy seal",
+          "values": {
+            "url": "https://lolly.tools/#/valid",
+            "ecl": "H",
+            "padding": 2,
+            "join": true,
+            "color": "#0f766e",
+            "background": "#ecfdf5"
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "مولد رموز QR",
@@ -1210,6 +1436,46 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
       "preview": "/catalog/previews/street-map.png",
+      "examples": [
+        {
+          "label": "Paris in ink",
+          "values": {
+            "city": "paris",
+            "roadColor": "#1a1a2e",
+            "waterColor": "#93c5fd",
+            "background": "#faf7f2"
+          }
+        },
+        {
+          "label": "Tokyo neon",
+          "values": {
+            "city": "tokyo",
+            "theme": "dark",
+            "roadColor": "#22d3ee",
+            "waterColor": "#0e7490",
+            "background": "#0b1021"
+          }
+        },
+        {
+          "label": "Amsterdam canals",
+          "values": {
+            "city": "amsterdam",
+            "roadColor": "#94a3b8",
+            "waterColor": "#0ea5e9",
+            "waterWeight": 10,
+            "background": "#ffffff"
+          }
+        },
+        {
+          "label": "Brand-primary Berlin",
+          "values": {
+            "city": "berlin",
+            "roadColor": "{color.semantic.primary}",
+            "waterColor": "{color.semantic.secondary}",
+            "background": "{color.semantic.surface}"
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "خريطة الشوارع",
@@ -1984,19 +2250,70 @@
     },
     {
       "id": "color-palette",
-      "name": "Color Palette",
-      "description": "Browse your brand colors — click a swatch to copy it.",
-      "version": "1.1.0",
-      "status": "official",
+      "name": "Palette Lab",
+      "description": "Grow a palette from one seed colour — harmony accents, perceptual OKLab ramps and WCAG/APCA readability badges, with DTCG tokens and CSV export.",
+      "version": "2.0.0",
+      "status": "community",
       "category": "utility",
       "formats": [
-        "html"
+        "svg",
+        "png",
+        "jpg",
+        "webp",
+        "csv"
       ],
-      "width": 1080,
-      "height": 1080,
-      "exportable": false,
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z\" /><circle cx=\"13.5\" cy=\"6.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"17.5\" cy=\"10.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"6.5\" cy=\"12.5\" r=\".5\" fill=\"currentColor\" /><circle cx=\"8.5\" cy=\"7.5\" r=\".5\" fill=\"currentColor\" /></svg>",
       "preview": "/catalog/previews/color-palette.svg",
+      "examples": [
+        {
+          "label": "Ocean triad",
+          "values": {
+            "seed": "#2563eb",
+            "harmony": "triad-3",
+            "steps": 7,
+            "neutrals": true
+          }
+        },
+        {
+          "label": "Terracotta complement",
+          "values": {
+            "seed": "#c2410c",
+            "harmony": "complement",
+            "steps": 9,
+            "neutrals": true
+          }
+        },
+        {
+          "label": "Forest tetrad",
+          "values": {
+            "seed": "#166534",
+            "harmony": "tetrad-4",
+            "steps": 7,
+            "neutrals": false
+          }
+        },
+        {
+          "label": "Violet adjacents",
+          "values": {
+            "seed": "#7c3aed",
+            "harmony": "adjacent-3",
+            "steps": 5,
+            "neutrals": true
+          }
+        },
+        {
+          "label": "Coral free four",
+          "values": {
+            "seed": "#ff6b6b",
+            "harmony": "free-4",
+            "steps": 11,
+            "neutrals": true
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "لوحة الألوان",
@@ -2125,6 +2442,76 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
       "preview": "/catalog/previews/mesh-gradient.png",
+      "examples": [
+        {
+          "label": "Sunset haze",
+          "values": {
+            "count": 3,
+            "color1": "#ff9a8b",
+            "color2": "#f2a65a",
+            "color3": "#ffd3bd",
+            "blend": "screen",
+            "spread": 95,
+            "blur": 10,
+            "grain": 30
+          }
+        },
+        {
+          "label": "Aurora night",
+          "values": {
+            "count": 4,
+            "color1": "#22d3ee",
+            "color2": "#a78bfa",
+            "color3": "#10b981",
+            "color4": "#0b1021",
+            "blend": "screen",
+            "spread": 110,
+            "blur": 8,
+            "grain": 60
+          }
+        },
+        {
+          "label": "Deep sea",
+          "values": {
+            "count": 3,
+            "color1": "#0ea5e9",
+            "color2": "#1e3a8a",
+            "color3": "#0f766e",
+            "blend": "normal",
+            "spread": 80,
+            "blur": 14,
+            "grain": 20
+          }
+        },
+        {
+          "label": "Paper grain",
+          "values": {
+            "count": 2,
+            "color1": "#f5efe6",
+            "color2": "#e2e8f0",
+            "blend": "normal",
+            "spread": 140,
+            "blur": 20,
+            "grain": 100,
+            "grainBlend": "overlay"
+          }
+        },
+        {
+          "label": "Candy pop",
+          "values": {
+            "count": 5,
+            "color1": "#f472b6",
+            "color2": "#60a5fa",
+            "color3": "#facc15",
+            "color4": "#34d399",
+            "color5": "#f97316",
+            "blend": "hard-light",
+            "spread": 130,
+            "blur": 2,
+            "grain": 0
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "تدرج شبكي",
@@ -2261,6 +2648,134 @@
         "order": 5,
         "blurb": "On-brand charts from your data, any shape"
       },
+      "examples": [
+        {
+          "label": "Donut with legend",
+          "values": {
+            "chartType": "donut",
+            "heading": "Where the budget goes",
+            "showLegend": true,
+            "background": "#ffffff",
+            "color": "#1a1a2e",
+            "data": [
+              {
+                "label": "Cloud",
+                "value": "38",
+                "color": "#0f766e"
+              },
+              {
+                "label": "Hardware",
+                "value": "24",
+                "color": "#f2a65a"
+              },
+              {
+                "label": "Services",
+                "value": "22",
+                "color": "#334155"
+              },
+              {
+                "label": "Support",
+                "value": "16",
+                "color": "#93c5fd"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Ranked bars",
+          "values": {
+            "chartType": "horizontal-bar",
+            "heading": "Top regions",
+            "cornerRadius": 6,
+            "background": "#faf7f2",
+            "color": "#1a1a2e",
+            "width": 1280,
+            "height": 800,
+            "data": [
+              {
+                "label": "EMEA",
+                "value": "44",
+                "color": "#134e4a"
+              },
+              {
+                "label": "Americas",
+                "value": "37",
+                "color": "#0f766e"
+              },
+              {
+                "label": "APAC",
+                "value": "29",
+                "color": "#14b8a6"
+              },
+              {
+                "label": "LATAM",
+                "value": "18",
+                "color": "#5eead4"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Dark pie, percent labels",
+          "values": {
+            "chartType": "pie",
+            "valueFormat": "percent",
+            "background": "#1a1a2e",
+            "color": "#f5efe6",
+            "strokeWidth": 4,
+            "strokeColor": "#1a1a2e",
+            "data": [
+              {
+                "label": "Organic",
+                "value": "52",
+                "color": "#f2a65a"
+              },
+              {
+                "label": "Referral",
+                "value": "31",
+                "color": "#ffd3bd"
+              },
+              {
+                "label": "Paid",
+                "value": "17",
+                "color": "#7c2d12"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Minimal columns",
+          "values": {
+            "chartType": "vertical-bar",
+            "dataLabels": false,
+            "cornerRadius": 8,
+            "background": "#ffffff",
+            "color": "#334155",
+            "data": [
+              {
+                "label": "Q1",
+                "value": "42",
+                "color": "#cbd5e1"
+              },
+              {
+                "label": "Q2",
+                "value": "49",
+                "color": "#94a3b8"
+              },
+              {
+                "label": "Q3",
+                "value": "55",
+                "color": "#64748b"
+              },
+              {
+                "label": "Q4",
+                "value": "61",
+                "color": "#334155"
+              }
+            ]
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "منشئ الرسوم البيانية",
@@ -2423,6 +2938,55 @@
         "order": 4,
         "blurb": "Paste a table — D3 charts it, on-brand and vector-clean"
       },
+      "examples": [
+        {
+          "label": "Trend line",
+          "values": {
+            "chartType": "line",
+            "heading": "Signups are compounding",
+            "data": "Month,Signups,Churned\nJan,120,30\nFeb,150,32\nMar,210,28\nApr,260,35\nMay,330,31\nJun,410,29",
+            "showPoints": true,
+            "palette": "cool"
+          }
+        },
+        {
+          "label": "Donut of segments",
+          "values": {
+            "chartType": "donut",
+            "data": "Segment,Share\nEnterprise,38\nSMB,27\nPartner,20\nSelf-serve,15",
+            "palette": "warm",
+            "showValues": true,
+            "legendPosition": "right"
+          }
+        },
+        {
+          "label": "Stacked bars",
+          "values": {
+            "chartType": "bar",
+            "stackMode": "stacked",
+            "data": "Quarter,North,South,East\nQ1,42,28,12\nQ2,49,35,18\nQ3,55,41,24\nQ4,61,48,31",
+            "palette": "mono",
+            "cornerRadius": 4
+          }
+        },
+        {
+          "label": "Radar profile",
+          "values": {
+            "chartType": "radar",
+            "data": "Axis,Design,Engineering\nStrategy,7,5\nCraft,8,9\nSpeed,6,8\nRigour,7,9\nStory,9,6",
+            "fillOpacity": 40,
+            "palette": "diverging"
+          }
+        },
+        {
+          "label": "Waffle share",
+          "values": {
+            "chartType": "waffle",
+            "data": "Status,Count\nDone,68\nIn progress,22\nBlocked,10",
+            "palette": "warm"
+          }
+        }
+      ],
       "i18n": {
         "ar": {
           "name": "استوديو مخططات D3",
@@ -2572,7 +3136,40 @@
       "height": 1024,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M7 8h4\" /><path d=\"M7 12h4\" /><path d=\"M7 16h4\" /><path d=\"M14 8h3\" /><path d=\"M14 12h3\" /><path d=\"M14 16h3\" /></svg>",
-      "preview": "/catalog/previews/prompt-to-image.svg"
+      "preview": "/catalog/previews/prompt-to-image.svg",
+      "examples": [
+        {
+          "label": "Two-column brief",
+          "values": {
+            "columns": "2",
+            "text": "You are a naming consultant.\n\nGiven a product description, propose five names.\n\nRules:\n- one or two syllables\n- easy to say out loud\n- nothing that collides with a trademark\n- a one-line rationale for each",
+            "width": 1280,
+            "height": 800
+          }
+        },
+        {
+          "label": "Compact card",
+          "values": {
+            "columns": "1",
+            "padding": 64,
+            "lineHeight": 1.5,
+            "text": "Summarise this thread in three bullet points.\n\nKeep every number exactly as written. If a decision was made, state it first.",
+            "width": 1024,
+            "height": 640
+          }
+        },
+        {
+          "label": "Tall checklist",
+          "values": {
+            "columns": "1",
+            "keepLines": true,
+            "paraGap": 1.4,
+            "text": "Release checklist:\n\n1. Changelog written\n2. Screenshots refreshed\n3. Version bumped\n4. Tags pushed\n5. Announcement drafted",
+            "width": 900,
+            "height": 1200
+          }
+        }
+      ]
     },
     {
       "id": "screencap",
@@ -2634,6 +3231,47 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"1.5\"/><path d=\"M7 20h10\"/><path d=\"M12 17v3\"/><path d=\"M6.5 8.5h6\"/><path d=\"M6.5 11.5h4\"/><rect x=\"14.5\" y=\"8\" width=\"3.5\" height=\"5.5\" rx=\"0.5\"/></svg>",
       "preview": "/catalog/previews/deck-studio.png",
+      "examples": [
+        {
+          "label": "Boardroom title",
+          "values": {
+            "deck": [
+              {
+                "layout": "title",
+                "heading": "Quarterly business review",
+                "subtitle": "FY26 · Q3",
+                "accent": "#0f766e"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Quote slide",
+          "values": {
+            "deck": [
+              {
+                "layout": "quote",
+                "heading": "Make the easy path the on-brand path",
+                "subtitle": "Design ops",
+                "accent": "#f2a65a"
+              }
+            ]
+          }
+        },
+        {
+          "label": "Section break",
+          "values": {
+            "deck": [
+              {
+                "layout": "section",
+                "heading": "Roadmap",
+                "subtitle": "What lands next quarter",
+                "accent": "#7c2d12"
+              }
+            ]
+          }
+        }
+      ],
       "paged": true
     },
     {
@@ -2655,6 +3293,161 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"16\" height=\"11\" rx=\"1.5\" /><path d=\"M7 19h6\" /><path d=\"M10 15v4\" /><path d=\"M21 7v9a2 2 0 0 1-2 2\" /></svg>",
       "preview": "/catalog/previews/deck-builder.webp"
+    },
+    {
+      "id": "rebrand-deck",
+      "name": "Rebrand a Deck",
+      "description": "Upload a PowerPoint deck and snap its colours and fonts to your brand — rebuilt on your device, nothing uploaded.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "pptx"
+      ],
+      "width": 760,
+      "height": 620,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 13.5Z\" /><path d=\"M12 15v2.5\" /><path d=\"m8.5 21 3.5-3.5L15.5 21\" /><path d=\"M12 6.4s-2.4 2.5-2.4 4a2.4 2.4 0 0 0 4.8 0c0-1.5-2.4-4-2.4-4Z\" /></svg>",
+      "preview": "/catalog/previews/rebrand-deck.webp"
+    },
+    {
+      "id": "convert-image",
+      "name": "Convert Image",
+      "description": "Turn HEIC, TIFF or any photo into WebP, JPEG or PNG — on your device.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "webp",
+        "jpg",
+        "png"
+      ],
+      "width": 760,
+      "height": 620,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\"/><circle cx=\"8\" cy=\"8\" r=\"1.6\"/><path d=\"m3 14 4-4 5 5\"/><path d=\"M21 11v6a4 4 0 0 1-4 4h-6\"/><path d=\"m14 18 3 3 3-3\"/></svg>",
+      "preview": "/catalog/previews/convert-image.webp"
+    },
+    {
+      "id": "wordmark",
+      "name": "Wordmark",
+      "description": "Type a word, get a pure-path vector wordmark in your brand font — recipients never need the font installed.",
+      "version": "1.0.1",
+      "status": "community",
+      "category": "everyone",
+      "formats": [
+        "svg",
+        "emf",
+        "eps",
+        "eps-cmyk",
+        "dxf",
+        "pdf",
+        "pdf-cmyk",
+        "cmyk-tiff",
+        "tiff",
+        "png",
+        "jpeg",
+        "webp",
+        "avif"
+      ],
+      "width": 1200,
+      "height": 400,
+      "exportable": true,
+      "preview": "/catalog/previews/wordmark.svg",
+      "examples": [
+        {
+          "label": "Brand semibold",
+          "values": {
+            "text": "Aurora",
+            "weight": 600,
+            "size": 160,
+            "color": "#0c322c"
+          },
+          "theme": "light"
+        },
+        {
+          "label": "Hairline, wide-tracked",
+          "values": {
+            "text": "ATELIER",
+            "weight": 100,
+            "tracking": 24,
+            "size": 140,
+            "color": "#1a1a2e"
+          },
+          "theme": "light"
+        },
+        {
+          "label": "Black, tight",
+          "values": {
+            "text": "Bold&Co",
+            "weight": 900,
+            "tracking": -2,
+            "size": 180,
+            "color": "#111111"
+          },
+          "theme": "light"
+        },
+        {
+          "label": "Mono reverse",
+          "values": {
+            "text": "lolly.tools",
+            "font": "mono",
+            "weight": 500,
+            "tracking": 4,
+            "size": 120,
+            "color": "#ffffff"
+          },
+          "theme": "dark"
+        }
+      ]
+    },
+    {
+      "id": "audiogram",
+      "name": "Audiogram",
+      "description": "Turn a voice clip or song into a branded waveform video — animated bars, wave or ring, ready for social.",
+      "version": "1.0.2",
+      "status": "community",
+      "category": "everyone",
+      "formats": [
+        "png",
+        "webm",
+        "mp4",
+        "gif",
+        "html"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"3\" y1=\"10\" x2=\"3\" y2=\"14\"/><line x1=\"6.5\" y1=\"7\" x2=\"6.5\" y2=\"17\"/><line x1=\"10\" y1=\"4\" x2=\"10\" y2=\"20\"/><line x1=\"13.5\" y1=\"8\" x2=\"13.5\" y2=\"16\"/><line x1=\"17\" y1=\"5.5\" x2=\"17\" y2=\"18.5\"/><line x1=\"20.5\" y1=\"10\" x2=\"20.5\" y2=\"14\"/></svg>",
+      "preview": "/catalog/previews/audiogram.webp",
+      "examples": [
+        {
+          "label": "Podcast quote — bars",
+          "values": {
+            "title": "Slow is smooth, smooth is fast",
+            "subtitle": "The Build Notes podcast · Ep. 41",
+            "style": "bars"
+          }
+        },
+        {
+          "label": "Broadcast — wave",
+          "values": {
+            "title": "Morning briefing",
+            "subtitle": "Live weekdays · 06:00",
+            "style": "wave"
+          }
+        },
+        {
+          "label": "Release — ring",
+          "values": {
+            "title": "New episode out now",
+            "subtitle": "Listen anywhere",
+            "style": "ring"
+          }
+        }
+      ]
     }
   ]
 }

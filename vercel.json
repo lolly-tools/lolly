@@ -35,6 +35,7 @@
     { "source": "/c", "destination": "/view/c.html" },
     { "source": "/p", "destination": "/view/p.html" },
     { "source": "/profile", "destination": "/view/profile.html" },
+    { "source": "/tool/:file([a-z0-9-]+\\.[a-z0-9-]+)", "destination": "/api/mcp/[...path]" },
     { "source": "/api/ca/:path*", "destination": "/api/ca/[...path]" },
     { "source": "/api/mcp", "destination": "/api/mcp/[...path]" },
     { "source": "/api/mcp/:path*", "destination": "/api/mcp/[...path]" },

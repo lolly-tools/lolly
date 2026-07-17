@@ -3,14 +3,17 @@
 #   test            — full repo suite (engine contract tests + core/web/mcp)
 #   typecheck       — tsc -p across every project
 #   validate        — catalog manifests/index drift + asset checksums
+#   smoke           — render every catalog tool at manifest defaults (headless,
+#                     browser-free); a hooks.js regression that renders blank
+#                     fails here instead of shipping green
 #   build + budget  — production web build (hard gate), then the boot-path
 #                     bundle budget (scripts/check-bundle-budget.ts is
 #                     deliberately NOT part of build:web, so CI runs it after).
 #   api-bundles     — regenerate the committed api/ function bundles and fail
 #                     on drift (they are generated esbuild output, like
 #                     catalog/tools/index.json).
-# All gates (test / typecheck / validate / build+budget / api-bundles) exit
-# non-zero on failure and BLOCK. The bundle-budget step is a hard gate again as of the boot
+# All gates (test / typecheck / validate / smoke / build+budget / api-bundles)
+# exit non-zero on failure and BLOCK. The bundle-budget step is a hard gate again as of the boot
 # diet (2026-07-08): boot JS is ~66 KB gz vs the 115 KB budget, after the engine
 # barrel was pulled off the boot path (it had dragged c2pa-trust/design-map/
 # pdf-map/pptx/emf/… onto first paint). See plans/fable-advice.md.
@@ -128,6 +131,31 @@ jobs:
       - name: Validate catalog (no manifest/index drift, asset checksums)
         run: npm run validate:catalog
 
+  # Catalog-wide render gate — `lolly smoke` renders every tool in the active profile
+  # at manifest defaults (sequential, browser-free: first Node-native format, html as
+  # the layout fallback) and exits non-zero on any failed render. CI checks out the
+  # public submodules only (brands/suse is `update = none`), so postinstall builds the
+  # lolly-start fallback profile — the community tools are what gets smoked here; a
+  # SUSE-profile smoke is a local/`loldev` concern.
+  smoke:
+    name: smoke (render every tool)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (workspaces)
+        run: npm ci
+
+      - name: Smoke-render the catalog (headless, no browser)
+        run: npm run smoke
+
   build:
     name: build + bundle budget
     runs-on: ubuntu-latest
@@ -175,3 +203,35 @@ jobs:
 
       - name: No drift (stale bundle? rerun build:mcp-fn / build:ca-fn and commit)
         run: git diff --exit-code -- api/
+
+  # Self-test of the in-tree composite action (action/ — ready to split into
+  # lolly-tools/render-action, plans/fable-new-potential.md §5.4). Exercises the
+  # real consumer path end-to-end: the action checks out lolly at THIS commit,
+  # npm ci builds the lolly-start fallback profile, and qr-code renders to SVG
+  # browser-free (Tier A) — so the action stays green before the split.
+  render-action:
+    name: render-action self-test
+    runs-on: ubuntu-latest
+    steps:
+      # No submodules: this job only needs action/ itself — the action performs
+      # its own pinned lolly checkout into a work dir.
+      - uses: actions/checkout@v4
+
+      - name: Render qr-code via the composite action (svg, no browser)
+        id: render
+        uses: ./action
+        with:
+          tool: qr-code
+          args: --url=https://lolly.tools
+          format: svg
+          lolly-ref: ${{ github.sha }}
+
+      - name: Assert the render landed and the outputs are wired
+        env:
+          OUT_DIR: ${{ steps.render.outputs.out-dir }}
+          FILES: ${{ steps.render.outputs.files }}
+        run: |
+          test -s "$OUT_DIR/qr-code.svg"
+          grep -q '<svg' "$OUT_DIR/qr-code.svg"
+          [ "$FILES" = "qr-code.svg" ]
+          echo "rendered: $FILES → $OUT_DIR"

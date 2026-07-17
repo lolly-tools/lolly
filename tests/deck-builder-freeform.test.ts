@@ -124,10 +124,71 @@ test('freeform box geometry: px on the 1920 canvas → % of the slide', { skip: 
 
 test('freeform text box: same markdown renderer + inline styling', { skip: SKIP }, async () => {
   const { html } = await mount(MIXED_DECK);
-  // '# Hi' → an <h1> inside the box (mdBox), colour + font-size (96/1920 = 5cqw) + align inline
-  assert.match(html, /class="sl-box-text" style="text-align: center; color: #ff0000; font-size: 5cqw;">\s*<h1>Hi<\/h1>/);
+  // '# Hi' → an <h1> inside the box (mdBox), colour + align inline. The authored size
+  // (96/1920 = 5cqw) rides --fs, NOT font-size: styles.css reads it back as
+  // `calc(var(--fs) * var(--fit))` so the fit pass can scale the box without destroying
+  // the size it scales from. The <h1> sits inside .sl-box-fit — the content-sized child
+  // the fit pass measures against the box.
+  assert.match(html, /class="sl-box-text" data-valign="t"\s+style="text-align: center; color: #ff0000; --fs: 5cqw;"><div class="sl-box-fit"><h1>Hi<\/h1>/);
   // second text box: subhead + bullet list
   assert.match(html, /<h2>Rotated<\/h2><ul><li>one<\/li><li>two<\/li><\/ul>/);
+});
+
+test('table cells honour backslash-escaped pipes (\\| → literal |)', { skip: SKIP }, async () => {
+  // The deck-editor pptx importer writes cell pipes as `\|`; splitRow must treat
+  // them as content, not delimiters, and must not leave the backslash behind.
+  const { rt, html } = await mount([{
+    mode: 'layout',
+    content: '# T\n\n| Head | N |\n| --- | --- |\n| Yes \\| No | 2 |',
+  }]);
+  assert.deepEqual(rt.hookErrors, [], 'no hook errors');
+  assert.match(html, /<td>Yes \| No<\/td><td>2<\/td>/, 'two cells, escaped pipe rendered literally');
+  assert.doesNotMatch(html, /<td>Yes \\<\/td>/, 'no shredded cell with a stray backslash');
+});
+
+// ── text fit + vertical position ─────────────────────────────────────────────
+// The fit MEASUREMENT is a browser thing (jsdom has no layout, so the template's pass
+// self-disables on !clientWidth). What IS testable here is the contract it rides on: the
+// hook has to emit the attribute the pass keys off and the --fs the CSS multiplies, or the
+// pass has nothing to act on.
+
+test('text box: valign reads compact codes AND full words, defaults to top', { skip: SKIP }, async () => {
+  const { rt, html } = await mount([{
+    mode: 'freeform',
+    boxes: [
+      { kind: 'text', x: 0, y: 0, w: 400, h: 400, text: 'a', valign: 'b' },
+      { kind: 'text', x: 0, y: 500, w: 400, h: 400, text: 'b', valign: 'middle' },   // layout-studio's spelling
+      { kind: 'text', x: 0, y: 1000, w: 400, h: 400, text: 'c' },                    // absent → top
+      { kind: 'text', x: 0, y: 1400, w: 400, h: 400, text: 'd', valign: 'sideways' },// junk → top
+    ],
+  }]);
+  assert.deepEqual(rt.hookErrors, []);
+  const valigns = [...html.matchAll(/class="sl-box-text" data-valign="(\w)"/g)].map(m => m[1]);
+  assert.deepEqual(valigns, ['b', 'm', 't', 't']);
+});
+
+test('text box: fit emits the data-fit hook the template pass keys off', { skip: SKIP }, async () => {
+  const { html } = await mount([{
+    mode: 'freeform',
+    boxes: [
+      { kind: 'text', x: 0, y: 0, w: 400, h: 400, text: 'fitted', fit: true },
+      { kind: 'text', x: 0, y: 500, w: 400, h: 400, text: 'not fitted' },
+    ],
+  }]);
+  // Match the box ELEMENTS, not the whole document: the template's fit pass is inline
+  // <script> further down and its source mentions data-fit too.
+  const boxes = [...html.matchAll(/<div class="sl-box-text"[^>]*>/g)].map(m => m[0]);
+  assert.equal(boxes.length, 2);
+  assert.match(boxes[0]!, /data-fit="box"/, 'the opted-in box is a fit root');
+  assert.doesNotMatch(boxes[1]!, /data-fit/, 'the opted-out box carries no fit attribute at all');
+});
+
+test('text box: the authored size rides --fs so the fit multiplier can scale it', { skip: SKIP }, async () => {
+  const { html } = await mount([{ mode: 'freeform', boxes: [{ kind: 'text', x: 0, y: 0, w: 400, h: 400, text: 'x', fontSize: 96 }] }]);
+  // --fs, never font-size: styles.css reads `calc(var(--fs) * var(--fit))`, so a bare
+  // font-size here would be overwritten by the pass and the authored size lost.
+  assert.match(html, /--fs: 5cqw;/);
+  assert.doesNotMatch(html, /font-size: 5cqw/);
 });
 
 test('freeform image box: safe src only (javascript: dropped)', { skip: SKIP }, async () => {
@@ -177,8 +238,9 @@ test('shape box: filled rounded card → .sl-box-shape with fill + cqw radius + 
   assert.match(html, /class="sl-box sl-box--box"/, 'wrapper carries the box kind class');
   // Solid fill from safeColor (case preserved).
   assert.match(html, /<div class="sl-box-shape" style="background:#30BA78/, 'solid fill applied');
-  // Corner radius is SLIDE-RELATIVE (cqw), not fixed px: 24/1920*100 = 1.25cqw.
-  assert.match(html, /border-radius:calc\(1\.25cqw\)/, 'round radius is calc(cqw), scales with the slide');
+  // Corner radius is SLIDE-RELATIVE (cqw), not fixed px: 24/1920*100 = 1.25cqw. A single
+  // `radius` number paints all four corners, so it emits as four equal values.
+  assert.match(html, /border-radius:calc\(1\.25cqw\) calc\(1\.25cqw\) calc\(1\.25cqw\) calc\(1\.25cqw\)/, 'round radius is calc(cqw), scales with the slide');
   // Border is slide-relative too: 4/1920*100 = 0.2083cqw.
   assert.match(html, /border: 0\.2083cqw solid #0c322c/, 'border width is cqw, colour sanitised');
   // A shape box carries NO text/img child of its own.
@@ -190,6 +252,39 @@ test('shape box: geometry reuses the same px→% mapping as text/image boxes', {
   const { html } = await mount([SHAPE_SLIDE]);
   // 100/1920 = 5.2083%, 800/1920 = 41.6667%, 400/1920 = 20.8333%
   assert.match(html, /left: 5\.2083%; top: 5\.2083%; width: 41\.6667%; height: 20\.8333%;/);
+});
+
+test('shape box: per-corner radius → four cqw corners in CSS order', { skip: SKIP }, async () => {
+  const { rt, html } = await mount([{
+    mode: 'freeform',
+    // [topLeft, topRight, bottomRight, bottomLeft] — CSS corner order, native px.
+    boxes: [{ kind: 'box', x: 0, y: 0, w: 960, h: 480, fill: '#30BA78', radius: [96, 0, 48, 0] }],
+  }]);
+  assert.deepEqual(rt.hookErrors, []);
+  // 96/1920 = 5cqw, 48/1920 = 2.5cqw — each corner scales with the slide independently.
+  assert.match(html, /border-radius:calc\(5cqw\) calc\(0cqw\) calc\(2\.5cqw\) calc\(0cqw\)/);
+});
+
+test('shape box: a rect honours its authored radius (radius is the control, shape is the geometry)', { skip: SKIP }, async () => {
+  // `round` is not a distinct geometry — a rectangle WITH a radius is the rounded shape.
+  // Both spellings must paint the same corners, or the two controls contradict each other.
+  const rect = await mount([{ mode: 'freeform', boxes: [{ kind: 'box', x: 0, y: 0, w: 400, h: 200, fill: '#111111', shape: 'rect', radius: 24 }] }]);
+  const round = await mount([{ mode: 'freeform', boxes: [{ kind: 'box', x: 0, y: 0, w: 400, h: 200, fill: '#111111', shape: 'round', radius: 24 }] }]);
+  assert.match(rect.html, /border-radius:calc\(1\.25cqw\) calc\(1\.25cqw\) calc\(1\.25cqw\) calc\(1\.25cqw\)/);
+  assert.equal(rect.html, round.html, 'rect+radius and round+radius render identically');
+});
+
+test('shape box: a malformed radius degrades to square corners, never throws', { skip: SKIP }, async () => {
+  const { rt, html } = await mount([{
+    mode: 'freeform',
+    boxes: [
+      { kind: 'box', x: 0, y: 0, w: 400, h: 200, fill: '#111111', radius: 'nonsense' },
+      { kind: 'box', x: 0, y: 300, w: 400, h: 200, fill: '#222222', radius: [-40, null, 'x', undefined] },
+    ],
+  }]);
+  assert.deepEqual(rt.hookErrors, [], 'no hook errors');
+  assert.match(html, /background:#111111; border-radius:0;/, 'unparseable radius → square');
+  assert.match(html, /background:#222222; border-radius:0;/, 'negatives/junk clamp to 0 → square');
 });
 
 test('shape variants: pill → 9999px, ellipse → 50%, rect/absent → 0', { skip: SKIP }, async () => {
@@ -230,8 +325,9 @@ test('a text box and a shape box on one slide both render and layer in ARRAY ord
   // Array order is z-order (later boxes stack above earlier ones): the shape is first
   // in the array so it appears FIRST in the DOM, under the text.
   assert.ok(iShape < iText, 'shape (array[0]) precedes text (array[1]) in DOM = z-order');
-  // The text box still renders its markdown through the shared renderer, untouched.
-  assert.match(html, /class="sl-box-text"[^>]*>\s*<h1>On top<\/h1>/);
+  // The text box still renders its markdown through the shared renderer, untouched —
+  // inside .sl-box-fit, the content-sized child the fit pass measures.
+  assert.match(html, /class="sl-box-text"[^>]*><div class="sl-box-fit"><h1>On top<\/h1>/);
 });
 
 // ── starter deck + accent→mono logo (later refinements) ───────────────────────

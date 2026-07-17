@@ -29,6 +29,7 @@ import { deltaEOk } from './color-tools.ts';
 import { hexToOklch } from './brand-derive.ts';
 import type { Oklch } from './brand-derive.ts';
 import { colorToHex } from './tokens.ts';
+import type { RebrandTheme } from './pptx-patch.ts';
 
 // ─── Caps (a hostile input is the threat model) ───────────────────────────────
 
@@ -48,6 +49,10 @@ const NEUTRAL_CHROMA = 0.03;
 // (black↔white = 1; a just-noticeable difference ≈ 0.02, so 0.12 is a loose
 // "same-ish colour" bound).
 const DEFAULT_THRESHOLD = 0.12;
+
+// Two accents within a JND (ΔEOK ≈ 0.02) read as the same colour — the second
+// adds nothing to a colour scheme, so it's dropped before slot filling.
+const ACCENT_DEDUPE = 0.02;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -118,6 +123,7 @@ interface Candidate {
   name?: string;
   role?: string;
   chroma: number;
+  l: number;
 }
 
 function toCandidate(sw: BrandSwatch): Candidate | null {
@@ -126,7 +132,7 @@ function toCandidate(sw: BrandSwatch): Candidate | null {
   if (!hex) return null;
   const oklch = hexToOklch(hex);
   if (!oklch) return null;
-  const c: Candidate = { hex, chroma: oklch.c };
+  const c: Candidate = { hex, chroma: oklch.c, l: oklch.l };
   if (typeof sw.name === 'string') c.name = sw.name;
   if (typeof sw.role === 'string') c.role = sw.role;
   return c;
@@ -313,4 +319,107 @@ export function mapFontsToBrand(families: string[], brandFonts: BrandFonts): Map
     if (typeof target === 'string' && target.length > 0) out.set(raw, target);
   }
   return out;
+}
+
+// ─── 4. suggestRebrandTheme ───────────────────────────────────────────────────
+
+// pptx-patch's theme swap writes hexNorm form (hash-less UPPERCASE 6-hex), so
+// emit exactly that: brand-map's normalised `#rrggbb(aa)` with the hash and any
+// alpha dropped (DrawingML srgbClr carries none).
+function toSchemeHex(hex: string): string {
+  return hex.slice(1, 7).toUpperCase();
+}
+
+const ACCENT_SLOTS = ['accent1', 'accent2', 'accent3', 'accent4', 'accent5', 'accent6'] as const;
+
+/**
+ * Map brand swatches (+ fonts) onto the 12 clrScheme slots of a pptx-patch
+ * RebrandTheme — the "one call from brand tokens to a theme plan" entry.
+ *
+ * Heuristic:
+ *  - Swatches parse via the same toBrandHex/hexToOklch path as the mappers;
+ *    unparseable entries are skipped, the set is capped at MAX_SWATCHES.
+ *  - Neutrals are swatches with OKLCH chroma < 0.03. dk1 = the darkest neutral
+ *    by L (else darkest overall), lt1 = the lightest neutral (else lightest
+ *    overall); dk2/lt2 = the second-darkest/-lightest DISTINCT neutral on the
+ *    dark/light side of the dk1/lt1 lightness midpoint, falling back to
+ *    dk1/lt1 — a two-neutral ink+surface brand must not invert the slots.
+ *  - Accents come from the chromatic swatches: those whose declared role
+ *    matches the accent family (ROLE_ALIASES) first, preserving input order,
+ *    then the remaining chromatics in input order; near-duplicates
+ *    (ΔEOK < 0.02) are dropped. accent1..accent6 are filled by CYCLING through
+ *    that list when it holds fewer than six — an omitted slot would keep the
+ *    OLD brand colour in the deck, so cycling keeps the output on-brand. With
+ *    no chromatics at all, every accent slot is omitted.
+ *  - hlink = the first accent (omitted when there are none); folHlink = hlink.
+ *  - majorFont = minorFont = fonts.brand, when non-empty.
+ *
+ * Colour values are emitted in pptx-patch's theme-write form (hash-less
+ * uppercase 6-hex). Empty/garbage input yields {} (or fonts-only).
+ */
+export function suggestRebrandTheme(swatches: BrandSwatch[], fonts?: BrandFonts): RebrandTheme {
+  const theme: RebrandTheme = {};
+
+  const cands: Candidate[] = [];
+  if (Array.isArray(swatches)) {
+    for (const sw of swatches) {
+      if (cands.length >= MAX_SWATCHES) break;
+      const c = toCandidate(sw);
+      if (c) cands.push(c);
+    }
+  }
+
+  const neutrals = cands.filter(c => c.chroma < NEUTRAL_CHROMA);
+  const chromatics = cands.filter(c => c.chroma >= NEUTRAL_CHROMA);
+
+  if (cands.length > 0) {
+    // Sort a copy; input order stays authoritative for the accent pass below.
+    const byL = [...(neutrals.length > 0 ? neutrals : cands)].sort((a, b) => a.l - b.l);
+    const dk1 = byL[0]!;
+    const lt1 = byL[byL.length - 1]!;
+    theme.dk1 = toSchemeHex(dk1.hex);
+    theme.lt1 = toSchemeHex(lt1.hex);
+    // Second-darkest/-lightest DISTINCT neutral, kept on its own side of the
+    // dk1/lt1 lightness midpoint — with a two-neutral brand (ink + surface)
+    // the second-darkest IS the surface, which would invert dk2/lt2 and set
+    // dk2 body text white-on-white. Off-side (or lone/absent) candidates fall
+    // back to dk1/lt1 so the slot never keeps the old deck's colour.
+    const midL = (dk1.l + lt1.l) / 2;
+    const dk2 = neutrals.length > 0
+      ? byL.find(c => c.hex !== dk1.hex && c.l < midL) ?? dk1
+      : dk1;
+    const lt2 = neutrals.length > 0
+      ? [...byL].reverse().find(c => c.hex !== lt1.hex && c.l > midL) ?? lt1
+      : lt1;
+    theme.dk2 = toSchemeHex(dk2.hex);
+    theme.lt2 = toSchemeHex(lt2.hex);
+  }
+
+  if (chromatics.length > 0) {
+    const isAccentRoled = (c: Candidate) =>
+      c.role != null && roleMatches(c.role, ROLE_ALIASES.accent);
+    const ordered = [
+      ...chromatics.filter(isAccentRoled),
+      ...chromatics.filter(c => !isAccentRoled(c)),
+    ];
+    const accents: Candidate[] = [];
+    for (const c of ordered) {
+      if (accents.length >= ACCENT_SLOTS.length) break;
+      if (accents.some(a => deltaEOk(a.hex, c.hex) < ACCENT_DEDUPE)) continue;
+      accents.push(c);
+    }
+    for (let i = 0; i < ACCENT_SLOTS.length; i++) {
+      theme[ACCENT_SLOTS[i]!] = toSchemeHex(accents[i % accents.length]!.hex);
+    }
+    theme.hlink = toSchemeHex(accents[0]!.hex);
+    theme.folHlink = theme.hlink;
+  }
+
+  const brandFont = fonts?.brand;
+  if (typeof brandFont === 'string' && brandFont.length > 0) {
+    theme.majorFont = brandFont;
+    theme.minorFont = brandFont;
+  }
+
+  return theme;
 }

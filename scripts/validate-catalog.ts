@@ -519,6 +519,113 @@ for (const [toolId, manifest] of toolManifests) {
   }
 }
 
+// ─── Example looks (examples / deprecated featured.variants) ────────────────
+// A look's `values` seed the gallery preview render exactly like batch-row
+// values: renderRowToBlob spreads them into createRuntime's initialState, which
+// resolves them BY INPUT ID ONLY (engine/src/inputs.ts resolveInitialValue). A
+// key that matches nothing — or only a urlKey, which is URL-mode transport, not
+// runtime state — silently renders the tool's DEFAULT look instead of the
+// authored one, so both are errors. Asset refs get the same resolve-at-mount
+// guarantee as input defaults: a typo'd id would only 404 at gallery paint.
+{
+  // Formats the gallery strip can show as an <img> — mirrors displayFormatOf/
+  // rasterFormatOf in shells/web/src/lib/featured-render.ts.
+  const DISPLAYABLE = new Set(['svg', 'png', 'jpg', 'jpeg', 'webp']);
+  // A look whose asset value can't resolve at gallery-render time. Catalog ids
+  // ride in a ref object (the URL-mode shape — assetRefId in engine/src/runtime.ts
+  // ignores bare strings), optionally with a ?theme= suffix; http(s)/data refs
+  // (e.g. canonical tool-embed URLs rendered via compose) resolve at runtime and
+  // can't be checked here.
+  const checkAssetValue = (toolId: string, at: string, spec: any, value: unknown): void => {
+    if (spec.type !== 'asset' || value == null) return;
+    if (typeof value === 'string') {
+      errors.push(`[${toolId}] ${at}: asset input "${spec.id}" value ${JSON.stringify(value)} is a bare string — the runtime only resolves ref objects; use {"source":"library","id":"<asset-id>","_unresolved":true}`);
+      return;
+    }
+    const id = (value as { id?: unknown })?.id;
+    if (typeof id !== 'string' || /^(https?|data|blob):/.test(id)) return; // non-ref / runtime-fetched
+    const { baseId, theme } = parseThemedAssetId(id);
+    if (baseId.includes('?')) {
+      errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") has a malformed ?theme= suffix (theme ids are [a-z0-9-])`);
+    } else if (!assetById.has(baseId)) {
+      errors.push(`[${toolId}] ${at}: asset "${id}" (input "${spec.id}") not in catalog`);
+    } else if (theme && !iconThemePalettes.some(p => p.themes.some(t => t.id === theme))) {
+      errors.push(`[${toolId}] ${at}: asset theme "${theme}" (input "${spec.id}") not in any icon-themes palette`);
+    }
+  };
+
+  for (const [toolId, manifest] of toolManifests) {
+    const sources: Array<[string, any[]]> = [];
+    if (Array.isArray(manifest.examples)) sources.push(['examples', manifest.examples]);
+    if (Array.isArray(manifest.featured?.variants)) sources.push(['featured.variants', manifest.featured.variants]);
+    if (!sources.length) continue;
+
+    // A look on a tool with no displayable format can never render in the strip —
+    // renderFeaturedVariant throws and the tile silently keeps its static preview.
+    const formats: string[] = manifest.render?.formats ?? [];
+    if (!formats.some(f => DISPLAYABLE.has(f))) {
+      warnings.push(`[${toolId}] declares example looks but no gallery-displayable format (svg/png/jpg/jpeg/webp) — the preview strip can never render them`);
+    }
+
+    const inputById = new Map<string, any>((manifest.inputs ?? []).map((i: any) => [i.id, i]));
+    const idByUrlKey = new Map<string, string>();
+    for (const i of manifest.inputs ?? []) {
+      if (typeof i.urlKey === 'string') idByUrlKey.set(i.urlKey, i.id);
+    }
+
+    for (const [src, looks] of sources) {
+      // Advisory, like the canonical-input checks: each look is a live off-screen
+      // engine render on the gallery, so an oversized strip is a perf smell, not
+      // a correctness break.
+      if (looks.length > 8) {
+        warnings.push(`[${toolId}] ${src} has ${looks.length} looks — each is a live gallery render; keep it to 8 or fewer`);
+      }
+      looks.forEach((look: any, i: number) => {
+        const at = `${src}[${i}]`;
+        if (look?.label !== undefined && (typeof look.label !== 'string' || !look.label.trim())) {
+          errors.push(`[${toolId}] ${at}: label must be a non-empty string`);
+        }
+        const values = look?.values;
+        if (!values || typeof values !== 'object' || Array.isArray(values)) return; // shape is schema-enforced
+        for (const [key, value] of Object.entries(values)) {
+          const input = inputById.get(key);
+          if (!input) {
+            // width/height are honoured by featured-render as per-example preview
+            // dimensions even when the tool declares no such inputs.
+            if (key === 'width' || key === 'height') continue;
+            const idForUrlKey = idByUrlKey.get(key);
+            errors.push(idForUrlKey
+              ? `[${toolId}] ${at}: values key "${key}" is input "${idForUrlKey}"'s urlKey — example values seed the runtime by input id (urlKey is URL-mode transport only)`
+              : `[${toolId}] ${at}: values key "${key}" is not a declared input id`);
+            continue;
+          }
+          checkAssetValue(toolId, at, input, value);
+          // Blocks rows: keys must be declared field ids (an unknown key is as
+          // silently inert as an unknown top-level key); asset-typed fields get
+          // the same ref resolution check.
+          if (input.type === 'blocks' && Array.isArray(value)) {
+            const fieldById = new Map<string, any>((input.fields ?? []).map((f: any) => [f.id, f]));
+            value.forEach((row: any, r: number) => {
+              if (!row || typeof row !== 'object' || Array.isArray(row)) {
+                errors.push(`[${toolId}] ${at}: values.${key}[${r}] must be an object of field values`);
+                return;
+              }
+              for (const [fk, fv] of Object.entries(row)) {
+                const field = fieldById.get(fk);
+                if (!field) {
+                  errors.push(`[${toolId}] ${at}: values.${key}[${r}] key "${fk}" is not a declared field of blocks input "${key}"`);
+                  continue;
+                }
+                checkAssetValue(toolId, `${at} values.${key}[${r}]`, field, fv);
+              }
+            });
+          }
+        }
+      });
+    }
+  }
+}
+
 // ─── Brand overlay declarations (extends) ───────────────────────────────────
 // A brand-pack tool may declare `"extends": "community"` — scripts/use-profile.ts
 // then composes its view dir per-file from community/<id>/ + the overlay

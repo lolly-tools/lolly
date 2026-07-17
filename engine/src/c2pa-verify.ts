@@ -1124,6 +1124,11 @@ interface C2paReport {
   trusted: boolean;
   madeWithLolly: boolean;
   likelyMadeWithLolly: boolean;
+  // The active manifest is NOT a (likely) Lolly creation, but the intact
+  // credential's preserved provenance chain records Lolly steps — a Lolly
+  // export later opened/edited/re-signed by another tool. Credits the Lolly
+  // leg without claiming the whole file.
+  partsMadeWithLolly: boolean;
   delivered: boolean;
   format: SniffFormat | null;
   checks: C2paCheck[];
@@ -1351,7 +1356,7 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   const fail = (code: string, explanation: string): void => { checks.push({ code, ok: false, explanation }); };
   const pass = (code: string, explanation: string): void => { checks.push({ code, ok: true, explanation }); };
   const format = sniffFormat(bytes);
-  const report: C2paReport = { found: false, state: 'none', trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, delivered: false, format, checks };
+  const report: C2paReport = { found: false, state: 'none', trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, partsMadeWithLolly: false, delivered: false, format, checks };
   const pdfBytes = bytes; // the hard binding hashes the whole file, any container
 
   if (!format) {
@@ -1750,6 +1755,14 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
     || c.code === 'assertion.dataHash.mismatch'
     || c.code === 'assertion.bmffHash.mismatch');
   report.likelyMadeWithLolly = !report.madeWithLolly && onlyBindingUnverified && claimsLolly;
+  // "Parts made with Lolly": an INTACT credential whose active manifest isn't a
+  // Lolly creation, but whose preserved chain records Lolly steps (softwareAgent
+  // or recording manifest's generator) — a Lolly export that another tool later
+  // opened/edited and re-signed. Requires state 'valid' so the chain content
+  // shown was actually captured by a verified manifest, not loose bytes.
+  report.partsMadeWithLolly = report.state === 'valid' && !report.madeWithLolly && !report.likelyMadeWithLolly
+    && (report.history ?? []).some((s) => /\blolly\b/i.test(
+      `${typeof s.softwareAgent === 'string' ? s.softwareAgent : ''} ${typeof s.generator === 'string' ? s.generator : ''}`));
   // "Delivered" = an intact credential over an EXISTING asset the signer
   // distributed but did not create (a c2pa.published action, no creation).
   // Drives the "Delivered by Lolly" / authentic-official-asset verdict.

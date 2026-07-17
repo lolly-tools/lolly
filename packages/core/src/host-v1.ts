@@ -77,6 +77,18 @@ export interface HostV1 {
   pdf?: PdfAPI;
 
   /**
+   * PPTX inspect + rebrand. Reads an uploaded .pptx deck (slide count, theme,
+   * the literal colours/fonts in use) and produces a surgically re-themed copy:
+   * only the brand-bearing OOXML values are rewritten — every other byte passes
+   * through verbatim, so SmartArt, charts, animations and media survive. Backed
+   * by the engine's pptx primitives plus a zip codec in the shell — optional
+   * and additive like net/text/pdf: a shell that can't provide it just doesn't
+   * offer deck rebranding, and tools must feature-detect `host.pptx`. Runs
+   * locally; the bytes are never uploaded.
+   */
+  pptx?: PptxAPI;
+
+  /**
    * Page capture — rasterise a live URL to an image. Only shells with a real,
    * authoritative browser engine can fulfil it: Tauri's native webview and the
    * CLI's headless Chromium. The web PWA *cannot* — a page cannot read pixels
@@ -145,6 +157,18 @@ export interface HostV1 {
    */
   color?: ColorAPI;
 
+  /**
+   * Image decode / resize / re-encode — on-device conversion (HEIC → JPEG,
+   * compress-to-WebP, downscale) as a first-class capability instead of
+   * upload-pipeline plumbing. DOM-free CONTRACT: encoded bytes (or a Blob) in,
+   * encoded bytes + dimensions out — the shell owns the decoder/encoder (WASM,
+   * canvas, native codecs); the engine never sees a canvas or an <img>.
+   * Optional/additive like pdf/pptx (v1.60) and not gated by a `capabilities`
+   * flag: a tool feature-detects `host.images` and degrades where it's absent.
+   * Runs locally; the bytes are never uploaded.
+   */
+  images?: ImagesAPI;
+
   /** Logging — goes to console in dev, to a log buffer for support diagnostics. */
   log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, ctx?: object) => void;
 }
@@ -170,6 +194,119 @@ export interface ColorAPI {
   breaks(data: number[], mode: 'e' | 'l' | 'q', n: number): number[];
   /** Up to `n` visually distinct categorical colours, seeded from a brand anchor. */
   distinct(n: number, opts?: { anchorHex?: string; minDeltaE?: number }): string[];
+  /**
+   * The ACCENT colours of a classic colour-harmony scheme, seeded from
+   * `seedHex` (hex forms only — normalise oklch()/lch() first). The seed
+   * itself is never returned (it is the scheme's 0° member), so a k-colour
+   * scheme yields k−1 accents; each keeps the seed's OKLCH lightness/chroma
+   * and rotates only the hue, emitted gamut-mapped. `kind` defaults to
+   * 'complement'. An unparseable seed falls back to a neutral mid-blue rather
+   * than throwing — the picker always has something to show (this is the
+   * brand editor's generator, engine/src/brand-schemes.ts, attached).
+   * Optional/additive (v1.60); feature-detect on older hosts.
+   */
+  schemes?(seedHex: string, kind?: ColorSchemeKind): ColorSchemeAccent[];
+}
+
+/** The harmony schemes `schemes()` accepts (mirrors engine brand-schemes.ts —
+ *  the numeral is the scheme's TOTAL colour count, seed included). */
+export type ColorSchemeKind =
+  | 'complement' | 'adjacent-3' | 'triad-3' | 'tetrad-4'
+  | 'free-2' | 'free-3' | 'free-4';
+
+/** One generated harmony accent: its gamut-mapped sRGB hex, the OKLCH it was
+ *  emitted from, and the normalised hue (degrees, [0,360) — same as `oklch.h`,
+ *  surfaced for callers that sort/group swatches by hue). */
+export interface ColorSchemeAccent {
+  hex: string;
+  oklch: { l: number; c: number; h: number };
+  hue: number;
+}
+
+// ─── Images (optional, v1.60) ────────────────────────────────────────────────
+
+/**
+ * On-device image transforms. Every method accepts raw encoded bytes or a Blob
+ * (the two forms user files arrive in — InputFile.bytes, picker Blobs) and
+ * resolves to plain bytes + dimensions, so the contract stays DOM-free.
+ * Decode-bomb guards, EXIF-orientation baking, and per-format support are the
+ * SHELL's responsibility — read the RESULT's mime/width/height rather than
+ * assuming a request was honoured exactly (a shell may fall back, e.g. PNG
+ * where WebP encoding is unsupported).
+ */
+export interface ImagesAPI {
+  /**
+   * Decode enough of the image to report its pixel dimensions and detected
+   * MIME type (sniffed from the bytes, never from a filename). Dimensions are
+   * the ORIENTED ones (EXIF rotation applied), matching what resize/encode
+   * produce. Rejects when the bytes are not a decodable image on this shell.
+   */
+  decode(input: Uint8Array | Blob): Promise<ImageInfo>;
+
+  /**
+   * Downscale the image (aspect preserved; never upscales) and return it
+   * re-encoded. `maxEdge` caps the longest edge; explicit `width`/`height`
+   * fit the image WITHIN that box. Output format defaults per the shell
+   * (typically the source format where re-encodable) — pass `format` to pin
+   * it. An animated source flattens to its first frame.
+   */
+  resize(input: Uint8Array | Blob, opts: ImageResizeOpts): Promise<ImageResult>;
+
+  /**
+   * Re-encode the image into `format` at its full (oriented) size — the
+   * convert path: HEIC → JPEG, PNG → WebP, … `quality` applies to the lossy
+   * formats. An animated source flattens to its first frame.
+   */
+  encode(input: Uint8Array | Blob, opts: ImageEncodeOpts): Promise<ImageResult>;
+}
+
+export interface ImageInfo {
+  /** Oriented pixel width (EXIF rotation applied). */
+  width: number;
+  /** Oriented pixel height. */
+  height: number;
+  /** MIME type sniffed from the bytes, e.g. 'image/heic'. */
+  mime: string;
+  /** True for an animated container (GIF/APNG/animated WebP) — a resize/encode
+   *  flattens it to a still. Absent when the shell can't tell. */
+  animated?: boolean;
+}
+
+/** Encodings host.images can emit. Deliberately narrower than what it can
+ *  READ (HEIC/AVIF/TIFF decode in, but only web-safe formats out). */
+export type ImageEncodeFormat = 'webp' | 'jpeg' | 'png';
+
+export interface ImageResizeOpts {
+  /** Longest-edge cap in px (aspect preserved). */
+  maxEdge?: number;
+  /** Fit-within target width in px. */
+  width?: number;
+  /** Fit-within target height in px. */
+  height?: number;
+  /** Output encoding; defaults per the shell (see resize()). */
+  format?: ImageEncodeFormat;
+  /** Quality 0..1 for the lossy formats. Ignored for PNG. */
+  quality?: number;
+}
+
+export interface ImageEncodeOpts {
+  /** Target encoding. */
+  format: ImageEncodeFormat;
+  /** Quality 0..1 for the lossy formats. Ignored for PNG. */
+  quality?: number;
+}
+
+/** An encoded transform result — the mime/dimensions of `bytes`, which may
+ *  differ from the request (shell fallbacks; never-upscale clamping). */
+export interface ImageResult {
+  /** The encoded image. */
+  bytes: Uint8Array;
+  /** MIME type of `bytes`. */
+  mime: string;
+  /** Output pixel width. */
+  width: number;
+  /** Output pixel height. */
+  height: number;
 }
 
 // ─── Device capture / recorder (optional) ───────────────────────────────────────
@@ -493,6 +630,133 @@ export interface PdfFinding {
   detail: string;
   /** 'warn' flags personally-identifying / fingerprinting data; '' is neutral. */
   tone: '' | 'warn';
+}
+
+// ─── PPTX (optional) ──────────────────────────────────────────────────────────
+
+export interface PptxAPI {
+  /**
+   * Report what a deck carries — slide count, the read theme, and the distinct
+   * literal colours + explicit typefaces found on slides — for a "what will
+   * change" review UI. Read-only; never mutates the input, and NEVER throws:
+   * bytes that aren't a readable .pptx resolve with `ok: false` (a picker feeds
+   * arbitrary files here, so "not a deck" is an expected answer, not an error).
+   * Pass the active brand's swatches/fonts in `opts` to get nearest-brand
+   * `suggested` values per colour/font plus a ready-made `themeSuggestion`.
+   */
+  inspect(bytes: Uint8Array, opts?: PptxInspectOpts): Promise<PptxInspectResult>;
+
+  /**
+   * Produce a re-themed copy of the deck. Surgical: only the values the plan
+   * names are rewritten (theme slots, literal colour remaps, explicit typeface
+   * remaps, embedded-font stripping); every untouched part is byte-identical.
+   * THROWS a friendly Error when the bytes are not a .pptx — by the time a
+   * rebrand runs the tool has committed to the file, so failure is exceptional
+   * (inspect() is the never-throwing probe). Runs locally.
+   */
+  rebrand(bytes: Uint8Array, plan?: PptxRebrandPlan): Promise<PptxRebrandResult>;
+}
+
+/** One brand colour offered as a rebrand target. */
+export interface PptxBrandSwatch {
+  /** Any common hex form; the host normalises. */
+  hex: string;
+  /** Display label, e.g. 'Jungle'. */
+  name?: string;
+  /** Role hint ('bg'/'ink'/'accent'/'neutral' families) — improves slot mapping. */
+  role?: string;
+}
+
+/** The brand's font slots (family names as they should appear in the deck). */
+export interface PptxBrandFonts {
+  brand?: string;
+  serif?: string;
+  mono?: string;
+}
+
+export interface PptxInspectOpts {
+  /** Brand swatches to suggest against. Non-empty ⇒ the result carries per-colour
+   *  `suggested` values and a `themeSuggestion`. */
+  swatches?: PptxBrandSwatch[];
+  /** Brand fonts to suggest against (per-font `suggested` values). */
+  fonts?: PptxBrandFonts;
+}
+
+/** One distinct literal colour found on the slides. */
+export interface PptxInspectColor {
+  /** The colour as found, normalised to `#RRGGBB`. */
+  hex: string;
+  /** Nearest brand swatch as `#RRGGBB` (present when opts.swatches given). */
+  suggested?: string;
+  /** True when the nearest match is a perceptual stretch — surface it for a human. */
+  review?: boolean;
+}
+
+/** One distinct explicit typeface found in the deck. */
+export interface PptxInspectFont {
+  family: string;
+  /** Brand replacement family (present when opts.fonts given). */
+  suggested?: string;
+}
+
+export interface PptxInspectResult {
+  /** False when the bytes aren't a readable .pptx — every other field is then empty/zero. */
+  ok: boolean;
+  slideCount: number;
+  /** The deck's read theme: clrScheme slot → `#RRGGBB`, plus the scheme faces. */
+  theme: { colors: Record<string, string>; majorFont?: string; minorFont?: string };
+  /**
+   * Distinct LITERAL (non-scheme-linked) colours found on slides, in first-
+   * appearance order, capped at 256. Scheme-linked colours are deliberately
+   * absent: they follow the theme, so the theme swap rebrands them for free —
+   * this list is exactly the residue a colorMap must handle.
+   */
+  colors: PptxInspectColor[];
+  /** Distinct explicit typefaces incl. the theme major/minor, capped at 64. */
+  fonts: PptxInspectFont[];
+  /** A ready-made theme plan from the brand swatches (present when opts.swatches
+   *  is non-empty). Colour slots are `#RRGGBB` — pass it to rebrand() as-is. */
+  themeSuggestion?: PptxRebrandTheme;
+}
+
+/** A brand theme as flat values — the 12 clrScheme slots + the scheme faces.
+ *  As plan input the colour slots accept `#RRGGBB` or any common hex form (the
+ *  host/engine strip the hash and normalise on write); inspect's
+ *  `themeSuggestion` always emits `#RRGGBB`. Any slot omitted is left as-is. */
+export interface PptxRebrandTheme {
+  dk1?: string; lt1?: string; dk2?: string; lt2?: string;
+  accent1?: string; accent2?: string; accent3?: string;
+  accent4?: string; accent5?: string; accent6?: string;
+  hlink?: string; folHlink?: string;
+  majorFont?: string; minorFont?: string;
+}
+
+export interface PptxRebrandPlan {
+  /** Overwrite the given theme colour slots + scheme fonts in every theme part. */
+  theme?: PptxRebrandTheme;
+  /** Literal colour remap, `from -> to`. Keys accept any common hex form; the
+   *  host normalises them to the engine's hexNorm form before matching. */
+  colorMap?: Record<string, string>;
+  /** Explicit-typeface remap, exact family name `from -> to`. */
+  fontMap?: Record<string, string>;
+  /** Remove all embedded-font machinery (list element, parts, rels, content type). */
+  dropEmbeddedFonts?: boolean;
+}
+
+/** What the rebrand actually changed. */
+export interface PptxRebrandReport {
+  themesPatched: number;
+  colorsRemapped: number;
+  fontsRemapped: number;
+  embeddedFontsStripped: number;
+  /** Part paths of the slides whose bytes changed. */
+  slidesTouched: string[];
+}
+
+export interface PptxRebrandResult {
+  /** The re-themed deck, ready to download. */
+  bytes: Uint8Array;
+  report: PptxRebrandReport;
 }
 
 // ─── Profile ────────────────────────────────────────────────────────────────
@@ -888,6 +1152,20 @@ export interface TextAPI {
    * Optional/additive (v1.30); absent on older hosts. (v1.30)
    */
   axisDefaults?(fontUrl: string): Promise<Record<string, number>>;
+
+  /**
+   * Resolve a font FAMILY the host knows — brand statics, user-uploaded faces,
+   * on-device Google Fonts, the platform face — to a fetchable font file
+   * usable as `fontUrl` in toPath()/preload(). `opts` picks the nearest face:
+   * `weight` (CSS 100–900, default 400) and `italic` (default false). When the
+   * resolved file is a VARIABLE font, `variations` carries the HarfBuzz axis
+   * settings (e.g. ['wght=700']) needed to reach the requested weight — pass
+   * them through to toPath(), which otherwise shapes the default instance.
+   * Resolves null when no file can be found for the family (the caller keeps
+   * its <text>/CSS fallback). Optional/additive (v1.60); absent on older
+   * hosts — feature-detect `host.text?.fontUrl`.
+   */
+  fontUrl?(family: string, opts?: { weight?: number; italic?: boolean }): Promise<{ url: string; variations?: string[] } | null>;
 }
 
 export interface TextToPathOpts {

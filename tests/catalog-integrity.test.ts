@@ -11,10 +11,19 @@
  * signed digest map (fail CLOSED: tampered hooks.js, stripped-but-signed
  * hooks.js, unsigned extra files, module hooks). The unsigned path must keep
  * working exactly as before, with a single console warning per process.
+ *
+ * i18n sidecars (i18n/<lang>.json) are signed too, with a softer failure mode:
+ * an unverifiable overlay is dropped (tool loads in English), never applied,
+ * and never fails the tool — including under an old pre-sidecar envelope.
  */
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
 
 import {
   canonicalJson, sha256Hex, jwkThumbprint, importSpkiOrJwkPublicKey,
@@ -24,6 +33,8 @@ import {
 import type { CatalogSignatureEnvelope } from '../engine/src/catalog-integrity.ts';
 import { loadTool, ToolLoadError } from '../engine/src/loader.ts';
 import { derToPem } from '../engine/src/x509.ts';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
@@ -54,6 +65,13 @@ const TOOL_FILES: Record<string, string> = {
 };
 
 const INDEX_BYTES = te.encode(JSON.stringify({ version: '1', tools: [{ id: 'demo' }] }));
+
+// A German sidecar + the same catalog with it present, for the i18n tests.
+const SIDECAR_DE = JSON.stringify({ name: 'Démo', 'inputs.title.label': 'Titel' });
+const TOOL_FILES_I18N: Record<string, string> = {
+  ...TOOL_FILES,
+  'demo/i18n/de.json': SIDECAR_DE,
+};
 
 /** Sign an envelope over the given files + index (defaults to the fixtures). */
 async function makeEnvelope(
@@ -242,4 +260,84 @@ test('unsigned path still loads, warning exactly once per process', async () => 
   }
   const integrityWarnings = warnings.filter(w => w.includes('unsigned catalog'));
   assert.equal(integrityWarnings.length, 1);
+});
+
+// ─── i18n sidecars under a signed catalog ─────────────────────────────────────
+// (These stay AFTER the once-per-process warning test above: its unsigned
+// loadTool call must be the first one the process makes.)
+
+test('a signed i18n sidecar verifies and its translations apply', async () => {
+  const envelope = await makeEnvelope(TOOL_FILES_I18N);
+  const tool = await loadTool('demo', makeFetchFile(TOOL_FILES_I18N), {
+    integrity: { envelope, publicKey }, lang: 'de',
+  });
+  assert.equal(tool.manifest.name, 'Démo');
+  assert.equal((tool.manifest.inputs[0] as { label?: string }).label, 'Titel');
+});
+
+test('a tampered sidecar is dropped — tool loads in English, no throw', async () => {
+  const envelope = await makeEnvelope(TOOL_FILES_I18N);
+  const files = { ...TOOL_FILES_I18N, 'demo/i18n/de.json': JSON.stringify({ name: 'Böse' }) };
+  const tool = await loadTool('demo', makeFetchFile(files), {
+    integrity: { envelope, publicKey }, lang: 'de',
+  });
+  assert.equal(tool.manifest.name, 'Demo');
+});
+
+test('an envelope signed before sidecars existed loads in English (compat, no throw)', async () => {
+  const envelope = await makeEnvelope(TOOL_FILES); // no demo/i18n/de.json digest
+  const tool = await loadTool('demo', makeFetchFile(TOOL_FILES_I18N), {
+    integrity: { envelope, publicKey }, lang: 'de',
+  });
+  assert.equal(tool.manifest.name, 'Demo');
+});
+
+test('a signed-but-stripped sidecar downgrades to English, never fails the tool', async () => {
+  const envelope = await makeEnvelope(TOOL_FILES_I18N);
+  const tool = await loadTool('demo', makeFetchFile(TOOL_FILES), { // sidecar 404s
+    integrity: { envelope, publicKey }, lang: 'de',
+  });
+  assert.equal(tool.manifest.name, 'Demo');
+});
+
+test('a no-sidecar tool with a lang set signs and loads exactly as before', async () => {
+  const envelope = await makeEnvelope();
+  const tool = await loadTool('demo', makeFetchFile(TOOL_FILES), {
+    integrity: { envelope, publicKey }, lang: 'de',
+  });
+  assert.equal(tool.manifest.name, 'Demo');
+  assert.equal(tool.hooksSource, TOOL_FILES['demo/hooks.js']);
+});
+
+test('unsigned path still applies a sidecar overlay (unchanged behavior)', async () => {
+  const tool = await loadTool('demo', makeFetchFile(TOOL_FILES_I18N), { lang: 'de' });
+  assert.equal(tool.manifest.name, 'Démo');
+});
+
+test('sign-catalog.ts digests i18n sidecars into the envelope (end to end)', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-sign-'));
+  const toolDir = join(dir, 'tools', 'demo');
+  mkdirSync(join(toolDir, 'i18n'), { recursive: true });
+  for (const [path, text] of Object.entries(TOOL_FILES_I18N)) {
+    writeFileSync(join(dir, 'tools', path), text);
+  }
+  writeFileSync(join(toolDir, 'i18n', 'README.txt'), 'not a sidecar'); // must NOT be signed
+  const indexPath = join(dir, 'index.json');
+  writeFileSync(indexPath, Buffer.from(INDEX_BYTES));
+  const keyPath = join(dir, 'key.jwk.json');
+  writeFileSync(keyPath, JSON.stringify(await subtle.exportKey('jwk', privateKey)));
+  const outPath = join(dir, 'index.sig.json');
+  execFileSync(process.execPath, [
+    join(ROOT, 'scripts/sign-catalog.ts'),
+    '--keyfile', keyPath, '--tools', join(dir, 'tools'), '--index', indexPath, '--out', outPath,
+  ], { stdio: 'pipe' });
+  const envelope = JSON.parse(readFileSync(outPath, 'utf8')) as CatalogSignatureEnvelope;
+  assert.ok(envelope.files['demo/i18n/de.json'], 'sidecar digest missing from envelope');
+  assert.equal(envelope.files['demo/i18n/README.txt'], undefined);
+  assert.equal((await verifyCatalogEnvelope(envelope, INDEX_BYTES, publicKey)).ok, true);
+  // The envelope the script wrote drives the loader: translations apply.
+  const tool = await loadTool('demo', makeFetchFile(TOOL_FILES_I18N), {
+    integrity: { envelope, publicKey }, lang: 'de',
+  });
+  assert.equal(tool.manifest.name, 'Démo');
 });

@@ -231,6 +231,24 @@
       },
       "description": "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder — the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
     },
+    "network": {
+      "type": "object",
+      "required": ["allowlist"],
+      "additionalProperties": false,
+      "description": "Configuration for the 'network' capability: which URLs host.net.fetch may reach. Only meaningful alongside capabilities:[\"network\"]. Fail-closed — without this block (or for a URL no entry matches) every host.net fetch rejects.",
+      "properties": {
+        "allowlist": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "description": "https URLs the host permits. A trailing /* makes an entry a prefix wildcard (\"https://api.example.com/*\" allows everything under that path); the wildcard must follow a path separator, so a prefix can never bleed into a lookalike host (\"https://api.example.com*\" would also match https://api.example.com.evil.io/). Without it the entry allows that exact URL only. The same matching rules apply on every shell.",
+          "items": {
+            "type": "string",
+            "pattern": "^https://[^*\\s]+(/\\*)?$"
+          }
+        }
+      }
+    },
     "composes": {
       "type": "array",
       "maxItems": 24,
@@ -419,7 +437,7 @@
           "if": { "properties": { "type": { "const": "asset" } } },
           "then": {
             "properties": {
-              "assetType": { "type": "string", "enum": ["vector", "raster", "image", "video", "lottie", "any"] },
+              "assetType": { "type": "string", "enum": ["vector", "raster", "image", "video", "audio", "lottie", "any"] },
               "filter": {
                 "type": "object",
                 "description": "Constraints passed to host.assets.query(). Limits the picker.",
@@ -520,7 +538,7 @@
                     "max": { "type": "number" },
                     "step": { "type": "number" },
                     "display": { "type": "string", "enum": ["input", "slider"], "default": "input" },
-                    "assetType": { "type": "string", "enum": ["vector", "raster", "image", "video", "lottie", "any"] },
+                    "assetType": { "type": "string", "enum": ["vector", "raster", "image", "video", "audio", "lottie", "any"] },
                     "allowUpload": { "type": "boolean", "default": false },
                     "filter": {
                       "type": "object",

@@ -16,6 +16,7 @@ import assert from 'node:assert/strict';
 import {
   deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors,
   makeColorApi, contrastRatio, hexToOklch,
+  SCHEME_KINDS, generateSchemeAccents,
 } from '../engine/src/index.ts';
 
 const HEX6 = /^#[0-9a-f]{6}$/;
@@ -201,4 +202,18 @@ test('makeColorApi maps every ColorAPI method onto the engine primitive', () => 
   assert.deepEqual(api.distinct(4, { anchorHex: '#30ba78' }), distinctColors(4, { anchorHex: '#30ba78' }));
   // Synchronous throughout — a hook can call these inline, no await.
   assert.equal(typeof api.contrast('#000000', '#ffffff'), 'number');
+});
+
+test('makeColorApi schemes() (v1.60) matches generateSchemeAccents for every kind', () => {
+  const api = makeColorApi();
+  const seed = '#30ba78';
+  for (const { id, count } of SCHEME_KINDS) {
+    const viaApi = api.schemes!(seed, id);
+    assert.deepEqual(viaApi, generateSchemeAccents(seed, id), `schemes(${id})`);
+    assert.equal(viaApi.length, count - 1, `${id} yields count − 1 accents`);
+    for (const accent of viaApi) assert.match(accent.hex, HEX6);
+  }
+  // kind omitted → 'complement'; unparseable seed → the generator's fallback, not a throw.
+  assert.deepEqual(api.schemes!(seed), generateSchemeAccents(seed, 'complement'));
+  assert.deepEqual(api.schemes!('not-a-colour'), generateSchemeAccents('not-a-colour', 'complement'));
 });

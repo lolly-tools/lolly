@@ -7,7 +7,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   WEBM_CODECS, MP4_CODECS, WEBM_AUDIO_CODECS, MP4_AUDIO_CODECS,
-  videoMimeCandidates,
+  videoMimeCandidates, videoBitrate, LIVE_BITS_PER_PIXEL,
 } from '../shells/web/src/bridge/video-mime.ts';
 
 test('silent candidates prefer the requested container, then fall back', () => {
@@ -41,4 +41,22 @@ test('every candidate is a well-formed video/* mimetype', () => {
     ...videoMimeCandidates('webm', { audio: true }), ...videoMimeCandidates('mp4', { audio: true }),
   ];
   for (const mime of all) assert.match(mime, /^video\/(webm|mp4)(;codecs=[\w.,]+)?$/);
+});
+
+test('videoBitrate scales with pixels × fps and clamps to 1–24 Mbps', () => {
+  // 1080p30 at the offline default: 1920×1080×30×0.1 ≈ 6.2 Mbps — inside the clamp.
+  assert.equal(videoBitrate(1920, 1080, 30), Math.round(1920 * 1080 * 30 * 0.1));
+  // Tiny clip floors at 1 Mbps rather than a degenerate rate.
+  assert.equal(videoBitrate(64, 64, 10), 1_000_000);
+  // Runaway request (URL-driven 4K60) ceilings at 24 Mbps.
+  assert.equal(videoBitrate(3840, 2160, 60), 24_000_000);
+  // Zero/absent dimensions still yield a sane floor, never 0 or NaN.
+  assert.equal(videoBitrate(0, 0, 0), 1_000_000);
+});
+
+test('live capture tier outbids the offline default for the same geometry', () => {
+  const live = videoBitrate(1920, 1080, 30, LIVE_BITS_PER_PIXEL);
+  assert.equal(live, Math.round(1920 * 1080 * 30 * LIVE_BITS_PER_PIXEL));
+  assert.ok(live > videoBitrate(1920, 1080, 30), 'live tier must exceed the offline default');
+  assert.ok(live <= 24_000_000, 'live tier still respects the ceiling');
 });

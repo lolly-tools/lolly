@@ -24,6 +24,46 @@
       ]
     },
     {
+      "id": "lolly/palette/photo-treatments",
+      "name": "Photo Colour Treatments",
+      "description": "Colour treatments for photo assets, derived from the starter tokens: greyscale + soft duotone washes. Regenerate after replacing the tokens (engine derivePhotoTreatmentsDoc).",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "palette",
+        "photo-treatments"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/palette/photo-treatments.json",
+          "checksum": "sha256-STtay4YTVHT5rFd0RF5DEH3bF25O7T/PeWwYMwDGFIQ=",
+          "size": 1252
+        }
+      ]
+    },
+    {
+      "id": "lolly/palette/icon-themes",
+      "name": "Icon Duo Themes",
+      "description": "Colour pairings for themable two-colour icons (c1 accent / c2 base), derived from the starter tokens. Regenerate after replacing the tokens (engine deriveIconThemesDoc).",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "palette",
+        "icon-themes"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/palette/icon-themes.json",
+          "checksum": "sha256-fco8lmRB9bVPWmAJ74wKwhWP88XXWydLx+lDfnM4v6E=",
+          "size": 941
+        }
+      ]
+    },
+    {
       "id": "lolly/loops/pixel-quest-save-point",
       "name": "Pixel Quest Save Point",
       "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0).",
