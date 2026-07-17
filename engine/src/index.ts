@@ -49,6 +49,8 @@ export { analyzeLsb } from './steganalysis.ts';
 export type { LsbAnalysis } from './steganalysis.ts';
 export { decodeTrustmarkPayload, TRUSTMARK_PAYLOAD_BITS } from './trustmark.ts';
 export type { TrustmarkDecodeResult, TrustmarkSchemaName } from './trustmark.ts';
+export { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS, CONTENTSEAL_DEFAULT_TAU } from './contentseal.ts';
+export type { ContentSealConsensus } from './contentseal.ts';
 export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
@@ -103,6 +105,11 @@ export type { C2paActionInput } from './c2pa.ts';
 export { verifyC2pa, verifyC2paPdf, extractC2paFromPdf, prepareC2paIngredient, prepareC2paIngredientFromStore, extractC2paStore } from './c2pa-verify.ts';
 export type { C2paIngredientData } from './c2pa-verify.ts';
 export { c2paTrustAnchors } from './c2pa-trust.ts';
+export {
+  verifySeal, parseSealRecord, parseSealRecords, computeSealDigest, assembleSealMessage,
+  resolveRanges, verifySealSignature, importSealKey,
+} from './seal.ts';
+export type { SealRecord, SealRange, SealVerifyResult, SealPublicKeyResolver } from './seal.ts';
 export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
 export { packWebpAnim } from './webp-anim.ts';
