@@ -45,6 +45,10 @@ export {
   embedWatermark, detectWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH, DETECT_THRESHOLD,
 } from './pixel-watermark.ts';
 export type { EmbedOptions, DetectResult, WatermarkGeometry } from './pixel-watermark.ts';
+export { analyzeLsb } from './steganalysis.ts';
+export type { LsbAnalysis } from './steganalysis.ts';
+export { decodeTrustmarkPayload, TRUSTMARK_PAYLOAD_BITS } from './trustmark.ts';
+export type { TrustmarkDecodeResult, TrustmarkSchemaName } from './trustmark.ts';
 export {
   UNITS, CSS_DPI, isUnit, parseDimension,
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
@@ -64,6 +68,8 @@ export type {
 } from './zzfxm.ts';
 export { parseMidi, midiToSong, midiToZzfxm } from './midi.ts';
 export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
+export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
+export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
 } from './css-box.ts';
@@ -126,7 +132,7 @@ export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';
 export { deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors, makeColorApi } from './color-tools.ts';
 export type { RampOptions, DistinctColorsOptions } from './color-tools.ts';
-export { nearestBrandColor, mapPaletteToBrand, mapFontsToBrand } from './brand-map.ts';
+export { nearestBrandColor, mapPaletteToBrand, mapFontsToBrand, suggestRebrandTheme } from './brand-map.ts';
 export type { BrandSwatch, RoleHint, NearestBrandColorOptions, NearestBrandColor, BrandFonts } from './brand-map.ts';
 export {
   coerceTokensDoc, assembleTokenSetFiles, extractPenpotProject, summarizeTokensDoc,
@@ -142,6 +148,8 @@ export {
   parsePhotoTreatmentsDoc, treatmentFilterSvg, wrapRasterWithTreatment,
 } from './photo-treatment.ts';
 export type { PhotoTreatment, PhotoTreatmentsDoc, ParsedTreatedAssetId, RasterTreatmentWrap } from './photo-treatment.ts';
+export { derivePhotoTreatmentsDoc, deriveIconThemesDoc } from './brand-treatments.ts';
+export type { DerivedPhotoTreatments, DerivedIconThemes } from './brand-treatments.ts';
 export {
   hashR6, preparePassword, buildEncryptDictValues, encryptObjectBytes,
 } from './pdf-crypto-r6.ts';
@@ -678,6 +686,46 @@ export type { ZipTier, ZipEntryInput, AesZipKeys } from './zip-crypto.ts';
 // non-flat SVG never regresses. The web shell's export-pptx tries it first for an
 // <svg>/SVG <img>/SVG background and emits native shapes when it succeeds. Reuses
 // parseSvgPath + colorToHex; no bridge/host method added or changed.
+// 1.58.0 — additive: pptx rebrand bridge. New optional host.pptx (PptxAPI):
+// inspect() reads an uploaded .pptx (slide count, theme, literal colours/fonts
+// with nearest-brand suggestions) and rebrand() surgically re-themes it
+// (pptx-patch) — shells unzip/rezip with fflate and inject DOMParser; engine
+// stays zip- and DOM-free. New suggestRebrandTheme in brand-map.ts maps brand
+// swatches onto the 12 clrScheme slots.
+// 1.59.0 — additive: C2paReport.partsMadeWithLolly — an INTACT credential whose
+// active manifest isn't a (likely) Lolly creation but whose preserved provenance
+// chain records Lolly steps (a Lolly export later edited/re-signed by another
+// tool). Surfaced as the amber "Parts made with Lolly" pip/pill in /verify and
+// `~ Parts made with Lolly` in `lolly validate`. Also: file-metadata.ts reads
+// bare-XMP IPTC DigitalSourceType + Credit (JPEG/PNG/SVG + MP4/QuickTime uuid
+// box) into FileMetadata.ai — the declaration layer behind the AI banner and
+// the SynthID/Meta likelihood pips.
+// 1.60.0 — additive: four contract pieces for the Wave-2 surface plays, all
+// optional/feature-detected. (1) host.color gains schemes(seedHex, kind?) —
+// the brand editor's pure harmony generator (brand-schemes.ts
+// generateSchemeAccents; kinds complement/adjacent-3/triad-3/tetrad-4/
+// free-2..4, default 'complement') attached to makeColorApi(), so a tool
+// (Palette Lab) generates scheme accents without shipping colour science;
+// SCHEME_KINDS stays the barrel export for shell picker UIs. (2) New optional
+// host.images (ImagesAPI) — CONTRACT ONLY this minor: decode (bytes|Blob →
+// oriented dims + sniffed mime), resize (maxEdge / fit-within, never
+// upscales), encode (convert to webp/jpeg/png) — the web bridge's existing
+// HEIC decode + bomb-guarded resize machinery to be exposed the host.pdf way;
+// DOM-free bytes-in/bytes-out, shells implement in a later pass. (3) host.text
+// gains optional fontUrl(family, {weight?, italic?}) — CONTRACT ONLY: resolve
+// an installed/registered family to a fetchable font file plus the
+// variable-font `variations` needed to hit the requested weight, so a
+// wordmark-style tool can drive toPath() from a family name. (4) The ZzFXM
+// composer moves into the engine: new zzfx-compose.ts (composeSong + the
+// PRESETS/SCALES bank, body verbatim from scripts/lib/zzfx-music.ts, which is
+// now a re-export shim) — pure and deterministic, renders via the existing
+// renderZzfxm, so shells can generate music beds/tracks at runtime. No v1
+// method changed. Plus a barrel-only addition: brand-treatments.ts
+// (derivePhotoTreatmentsDoc / deriveIconThemesDoc) — pure, deterministic
+// derivation of a brand's photo-treatments + icon-themes palette docs from its
+// token document (or resolved swatches) via the OKLCH machinery, consumed by
+// scripts/ingest-brand.ts and the lolly-start neutral set so blank/ingested
+// brands get real treatment/theme strips instead of inert ones.
 export { ENGINE_VERSION } from './version.ts';
 export { satisfiesRange, parseVersion } from './semver-range.ts';
 export { encodeFsToken, decodeFsToken } from './fs-token.ts';

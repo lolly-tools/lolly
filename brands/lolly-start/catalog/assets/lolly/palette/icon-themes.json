@@ -1,0 +1,43 @@
+{
+  "name": "Icon Duo Themes",
+  "description": "Colour pairings for themable two-colour icons, derived from the brand palette: c1 = accent, c2 = base. 'brand' is the default pairing. previewBg is the surface a light pairing needs behind it to stay visible in pickers/previews.",
+  "themes": [
+    {
+      "id": "brand",
+      "label": "Brand",
+      "c1": "#4f84ba",
+      "c2": "#0b1219"
+    },
+    {
+      "id": "tint",
+      "label": "Tint",
+      "c1": "#b4d8ff",
+      "c2": "#4f84ba"
+    },
+    {
+      "id": "jade",
+      "label": "Jade",
+      "c1": "#4da46b",
+      "c2": "#06381b"
+    },
+    {
+      "id": "rose",
+      "label": "Rose",
+      "c1": "#c36f9d",
+      "c2": "#461d34"
+    },
+    {
+      "id": "amber",
+      "label": "Amber",
+      "c1": "#b28727",
+      "c2": "#3d2a00"
+    },
+    {
+      "id": "paper",
+      "label": "Paper",
+      "c1": "#ffffff",
+      "c2": "#f0f0f0",
+      "previewBg": "#0b1219"
+    }
+  ]
+}

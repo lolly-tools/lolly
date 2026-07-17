@@ -7,7 +7,7 @@
  *
  * Each track is a few KB of ZzFXM data yet ~30–60s long (a handful of reused
  * patterns arranged into a longer sequence; low BPM stretches patterns so length
- * costs almost no data). Composition helpers live in ./lib/zzfx-music.ts.
+ * costs almost no data). Composition helpers live in engine/src/zzfx-compose.ts.
  *
  * Run:  node scripts/gen-music.ts   then `npm run build:catalog` (fills
  * checksums/sizes) and `npm run validate:catalog`.
@@ -20,7 +20,7 @@ import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderZzfxm, type ZzfxSong } from '../engine/src/zzfxm.ts';
-import { composeSong, type SongSpec } from './lib/zzfx-music.ts';
+import { composeSong, type SongSpec } from '../engine/src/zzfx-compose.ts';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const SONGS_DIR = join(ROOT, 'brands/lolly-start/catalog/assets/lolly/songs');

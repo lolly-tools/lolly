@@ -18,9 +18,13 @@
  *
  * The emitted pack mirrors brands/lolly-start/catalog: the extracted document
  * lands verbatim at catalog/assets/<name>/tokens/brand.json, indexed as the
- * pack's single core-tier `tokens` asset (the web shell's token bridge
- * discovers the first `type:"tokens"` asset generically, so the colour picker
- * lights up with the brand's palette as soon as the profile is active).
+ * pack's core-tier `tokens` asset (the web shell's token bridge discovers the
+ * first `type:"tokens"` asset generically, so the colour picker lights up with
+ * the brand's palette as soon as the profile is active). Photo-treatment and
+ * icon-theme palette docs are DERIVED from the same document (engine
+ * brand-treatments.ts) and written under catalog/assets/<name>/palette/, so
+ * uploaded photos and themable icons get one-tap on-brand washes/pairings out
+ * of the box — the icon-themes doc is skipped when the palette has no accent.
  * catalog/tools/index.json is NOT written here — `npm run build:catalog`
  * generates it once the profile is active.
  *
@@ -43,6 +47,7 @@ import {
   assembleTokenSetFiles, coerceTokensDoc, extractPenpotProject, summarizeTokensDoc,
 } from '../engine/src/brand-import.ts';
 import type { TokensExtraction } from '../engine/src/brand-import.ts';
+import { deriveIconThemesDoc, derivePhotoTreatmentsDoc } from '../engine/src/brand-treatments.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -213,23 +218,61 @@ function emitPack(
 
   // Same SRI form as scripts/checksum-assets.ts, so build:catalog is a no-op on it.
   const checksum = `sha256-${createHash('sha256').update(brandBytes).digest('base64')}`;
+  const assets: Record<string, unknown>[] = [{
+    id: `${args.ns}/tokens/brand`,
+    name: `${args.label} Design Tokens`,
+    type: 'tokens',
+    version: '1.0.0',
+    tier: 'core',
+    tags: ['tokens', 'brand', 'dtcg'],
+    formats: [{
+      format: 'json',
+      url: `/catalog/assets/${args.ns}/tokens/brand.json`,
+      checksum,
+      size: brandBytes.length,
+    }],
+  }];
+
+  // Derived palette docs (engine brand-treatments.ts): photo treatments always
+  // (greyscale survives even an accent-free palette); icon themes only when the
+  // palette yields at least one pairing (the validator rejects an empty
+  // themes[] doc). Written + indexed exactly like a hand-authored catalog's.
+  const paletteDir = join(out, 'catalog/assets', args.ns, 'palette');
+  const paletteDocs: [slug: string, payload: { name: string; description: string } | null, blurb: string][] = [
+    ['photo-treatments', derivePhotoTreatmentsDoc(doc),
+      'Colour treatments for photo assets, derived from the brand tokens: greyscale + soft duotone washes.'],
+    [
+      'icon-themes',
+      (() => { const d = deriveIconThemesDoc(doc); return d.themes.length ? d : null; })(),
+      'Colour pairings for themable two-colour icons (c1 accent / c2 base), derived from the brand tokens.',
+    ],
+  ];
+  for (const [slug, payload, blurb] of paletteDocs) {
+    if (!payload) continue;
+    mkdirSync(paletteDir, { recursive: true });
+    const bytes = Buffer.from(JSON.stringify(payload, null, 2) + '\n');
+    writeFileSync(join(paletteDir, `${slug}.json`), bytes);
+    assets.push({
+      id: `${args.ns}/palette/${slug}`,
+      name: payload.name,
+      description: blurb,
+      type: 'palette',
+      version: '1.0.0',
+      tier: 'on-demand',
+      tags: ['palette', slug],
+      formats: [{
+        format: 'json',
+        url: `/catalog/assets/${args.ns}/palette/${slug}.json`,
+        checksum: `sha256-${createHash('sha256').update(bytes).digest('base64')}`,
+        size: bytes.length,
+      }],
+    });
+  }
+
   const index = {
     version: '1',
     generatedAt: new Date().toISOString(),
-    assets: [{
-      id: `${args.ns}/tokens/brand`,
-      name: `${args.label} Design Tokens`,
-      type: 'tokens',
-      version: '1.0.0',
-      tier: 'core',
-      tags: ['tokens', 'brand', 'dtcg'],
-      formats: [{
-        format: 'json',
-        url: `/catalog/assets/${args.ns}/tokens/brand.json`,
-        checksum,
-        size: brandBytes.length,
-      }],
-    }],
+    assets,
   };
   writeFileSync(join(out, 'catalog/assets/index.json'), JSON.stringify(index, null, 2) + '\n');
 
@@ -260,7 +303,8 @@ version in \`catalog/assets/index.json\`.
    \`npm run previews\`.
 `);
 
-  console.log(`✓ brand pack written to ${args.out} (brand.json ${brandBytes.length} bytes, ${checksum})`);
+  const derived = assets.slice(1).map(a => (a.id as string).split('/').pop()).join(' + ') || 'none';
+  console.log(`✓ brand pack written to ${args.out} (brand.json ${brandBytes.length} bytes, ${checksum}; derived palette docs: ${derived})`);
 }
 
 interface ProfilesFile {

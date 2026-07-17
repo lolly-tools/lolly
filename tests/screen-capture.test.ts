@@ -78,13 +78,14 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.57.0', () => {
+test('ENGINE_VERSION is 1.60.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
-  // Moved 1.56.0 → 1.57.0 by the deliberate PPTX native-vector (custGeom) bump; the
-  // ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.57.0');
+  // Moved 1.59.0 → 1.60.0 by the deliberate Wave-2 surface bump (which landed on
+  // top of 1.59.0's partsMadeWithLolly / AI-declaration metadata); the ^1.54.0
+  // screencap floor below is unaffected (a minor bump still satisfies it).
+  assert.equal(ENGINE_VERSION, '1.60.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
@@ -112,8 +113,9 @@ test('loadTool accepts a tool that requires ^1.54.0 (the screencap engineVersion
   assert.equal(tool.manifest.render.capture, 'screen');
 });
 
-test('loadTool REFUSES a screencap tool pinned to a future engine (^1.58.0)', async () => {
-  // Tracks ENGINE_VERSION: 1.57.0 is now the running engine, so the "future" pin
-  // this asserts refusal of has to stay one minor ahead of it.
-  await assert.rejects(loadTool('screencap', makeFetchFile('^1.58.0')), ToolLoadError);
+test('loadTool REFUSES a screencap tool pinned to a future engine', async () => {
+  // Derived from ENGINE_VERSION (one minor ahead) so a deliberate engine bump
+  // can never silently turn this "future" pin into the present.
+  const [maj, min] = ENGINE_VERSION.split('.').map(Number);
+  await assert.rejects(loadTool('screencap', makeFetchFile(`^${maj}.${min! + 1}.0`)), ToolLoadError);
 });

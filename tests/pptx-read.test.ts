@@ -18,8 +18,7 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-// @ts-expect-error jsdom ships no type declarations (no @types/jsdom).
-import { JSDOM } from 'jsdom';
+import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 
 import { isPptx, readPptx } from '../engine/src/pptx-read.ts';
 import type { PptxParts, PptxReadNode, PptxTextNode, PptxShapeNode, PptxPicNode, PptxTableNode } from '../engine/src/pptx-read.ts';

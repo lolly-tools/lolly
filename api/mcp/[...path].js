@@ -251,6 +251,24 @@ var init_tool_schema = __esm({
           },
           description: "Declares what host capabilities this tool needs. The host disables the tool on shells that can't provide them (e.g. an ffmpeg-using tool is unavailable in the web shell; a 'microphone'/'camera'/'screen' recording tool is unavailable in the headless CLI). 'screen' (v1.54) is DISPLAY capture via host.recorder \u2014 the user picks a screen/window/tab in browser-native UI; distinct from 'capture', which rasterises a URL the tool itself names."
         },
+        network: {
+          type: "object",
+          required: ["allowlist"],
+          additionalProperties: false,
+          description: `Configuration for the 'network' capability: which URLs host.net.fetch may reach. Only meaningful alongside capabilities:["network"]. Fail-closed \u2014 without this block (or for a URL no entry matches) every host.net fetch rejects.`,
+          properties: {
+            allowlist: {
+              type: "array",
+              minItems: 1,
+              maxItems: 32,
+              description: 'https URLs the host permits. A trailing /* makes an entry a prefix wildcard ("https://api.example.com/*" allows everything under that path); the wildcard must follow a path separator, so a prefix can never bleed into a lookalike host ("https://api.example.com*" would also match https://api.example.com.evil.io/). Without it the entry allows that exact URL only. The same matching rules apply on every shell.',
+              items: {
+                type: "string",
+                pattern: "^https://[^*\\s]+(/\\*)?$"
+              }
+            }
+          }
+        },
         composes: {
           type: "array",
           maxItems: 24,
@@ -439,7 +457,7 @@ var init_tool_schema = __esm({
               if: { properties: { type: { const: "asset" } } },
               then: {
                 properties: {
-                  assetType: { type: "string", enum: ["vector", "raster", "image", "video", "lottie", "any"] },
+                  assetType: { type: "string", enum: ["vector", "raster", "image", "video", "audio", "lottie", "any"] },
                   filter: {
                     type: "object",
                     description: "Constraints passed to host.assets.query(). Limits the picker.",
@@ -540,7 +558,7 @@ var init_tool_schema = __esm({
                         max: { type: "number" },
                         step: { type: "number" },
                         display: { type: "string", enum: ["input", "slider"], default: "input" },
-                        assetType: { type: "string", enum: ["vector", "raster", "image", "video", "lottie", "any"] },
+                        assetType: { type: "string", enum: ["vector", "raster", "image", "video", "audio", "lottie", "any"] },
                         allowUpload: { type: "boolean", default: false },
                         filter: {
                           type: "object",
@@ -1022,6 +1040,14 @@ function asDate(v, fallback) {
   if (Number.isNaN(d.getTime())) throw new Error("c2pa: invalid date " + v);
   return d;
 }
+function pemToDer(pem) {
+  const b64 = String(pem).replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
+  if (!b64) throw new Error("x509: no PEM body found");
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
 function randomSerial() {
   const serial = globalThis.crypto.getRandomValues(new Uint8Array(9));
   serial[0] = serial[0] & 63 | 64;
@@ -1172,7 +1198,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.56.0";
+    ENGINE_VERSION = "1.60.0";
   }
 });
 
@@ -1370,9 +1396,11 @@ async function loadTool(toolId, fetchFile, opts = {}) {
       []
     );
   }
-  if (opts.lang && opts.lang !== "en" && !integrity) {
+  if (opts.lang && opts.lang !== "en") {
     try {
-      const overlayText = await fetchFile(`${toolId}/i18n/${opts.lang}.json`);
+      const sidecar = `i18n/${opts.lang}.json`;
+      const overlayText = await fetchFile(`${toolId}/${sidecar}`);
+      if (integrity) await assertFileIntegrity(integrity, toolId, sidecar, overlayText);
       applyManifestI18n(manifest, JSON.parse(overlayText));
     } catch {
     }
@@ -2274,11 +2302,11 @@ async function buildExportMeta(host, manifest, profile) {
   } else {
     p = profile;
   }
-  const clean = (s) => s == null ? "" : String(s).trim();
+  const clean2 = (s) => s == null ? "" : String(s).trim();
   const optedIn = p.useDetails === true;
-  const author = optedIn ? [clean(p.firstname), clean(p.lastname)].filter(Boolean).join(" ") : "";
-  const contact = optedIn ? [clean(p.email), clean(p.phone)].filter(Boolean).join(" \xB7 ") : "";
-  const tool = clean(manifest?.name) || clean(manifest?.id);
+  const author = optedIn ? [clean2(p.firstname), clean2(p.lastname)].filter(Boolean).join(" ") : "";
+  const contact = optedIn ? [clean2(p.email), clean2(p.phone)].filter(Boolean).join(" \xB7 ") : "";
+  const tool = clean2(manifest?.name) || clean2(manifest?.id);
   const description = ["Made with https://lolly.tools", tool && `: ${tool}`, author && `by ${author}`].filter(Boolean).join(" ");
   return {
     software: "Lolly",
@@ -3206,7 +3234,7 @@ ${xrefOff}
   let manifestLen = (await build(dummyHash, [{ start: pdfBytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round = 0; round < 8 && !placeholder; round++) {
+  for (let round2 = 0; round2 < 8 && !placeholder; round2++) {
     const l = layoutFor(manifestLen);
     const m = await build(dummyHash, [{ start: l.manifestOffset, length: manifestLen }], pad);
     if (m.length === manifestLen) {
@@ -3700,7 +3728,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   let manifestLen = (await build(dummyHash, [{ start: bytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round = 0; round < 8 && !layout; round++) {
+  for (let round2 = 0; round2 < 8 && !layout; round2++) {
     const probe = container.place(bytes, new Uint8Array(manifestLen));
     const m = await build(dummyHash, probe.exclusions, pad);
     if (m.length === manifestLen) {
@@ -3882,6 +3910,16 @@ function concatBytes3(parts) {
   }
   return out;
 }
+async function sha2562(bytes) {
+  return new Uint8Array(await subtle4.digest("SHA-256", asBufferSource4(bytes)));
+}
+function bytesToBin2(bytes) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 32768) {
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
+  }
+  return s;
+}
 function decodeItem(b, i, depth = 0) {
   if (i >= b.length) throw new Error("cbor: truncated");
   if (depth > MAX_CBOR_DEPTH) throw new Error("cbor: nesting too deep");
@@ -4047,6 +4085,570 @@ function parseC2paStore(store) {
   if (!parts.signatureBytes) throw new Error("manifest has no claim signature");
   return parts;
 }
+function extractC2paFromPdf(pdfBytes) {
+  const bin = bytesToBin2(pdfBytes);
+  if (!bin.startsWith("%PDF-")) throw new Error("not a PDF file");
+  let fsAt = -1;
+  for (let m, re = /\/AFRelationship\s*\/C2PA_Manifest\b/g; m = re.exec(bin); ) fsAt = m.index;
+  if (fsAt < 0) return null;
+  let objHead = null;
+  for (let m, re = /(\d+)\s+(\d+)\s+obj\b/g; (m = re.exec(bin)) && m.index < fsAt; ) objHead = m;
+  const dictEnd = bin.indexOf("endobj", fsAt);
+  if (!objHead || dictEnd < 0) throw new Error("malformed C2PA filespec object");
+  const dictSrc = bin.slice(objHead.index, dictEnd);
+  const ef = /\/EF\s*<<([^>]*)>>/.exec(dictSrc);
+  const fRef = ef && /\/(?:F|UF)\s+(\d+)\s+(\d+)\s+R/.exec(ef[1]);
+  if (!fRef) throw new Error("C2PA filespec has no readable /EF stream reference");
+  let at = -1;
+  for (let m, re = new RegExp(`(?:^|[^0-9])(${fRef[1]}\\s+${fRef[2]}\\s+obj)\\b`, "g"); m = re.exec(bin); ) {
+    at = m.index + m[0].length - m[1].length;
+  }
+  if (at < 0) throw new Error("C2PA manifest stream object not found");
+  const streamKw = bin.indexOf("stream", at);
+  if (streamKw < 0) throw new Error("C2PA manifest object has no stream");
+  const head = bin.slice(at, streamKw);
+  if (/\/Filter\b/.test(head)) throw new Error("C2PA manifest stream is compressed; cannot read");
+  if (/\/Length\s+\d+\s+\d+\s+R/.test(head)) throw new Error("C2PA manifest stream has an indirect /Length; cannot read");
+  const lenM = /\/Length\s+(\d+)/.exec(head);
+  if (!lenM) throw new Error("C2PA manifest stream has no /Length");
+  let start = streamKw + 6;
+  if (bin[start] === "\r") start++;
+  if (bin[start] === "\n") start++;
+  const length = +lenM[1];
+  if (start + length > pdfBytes.length) throw new Error("C2PA manifest stream overruns the file");
+  return { manifest: pdfBytes.slice(start, start + length), start };
+}
+function sniffFormat(bytes) {
+  if (bytes.length < 12) return null;
+  if (bytes[0] === 137 && ascii(bytes, 1, 3) === "PNG") return "png";
+  if (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return "jpeg";
+  if (ascii(bytes, 0, 3) === "GIF") return "gif";
+  if (ascii(bytes, 0, 4) === "%PDF") return "pdf";
+  if (ascii(bytes, 0, 4) === "RIFF" && ascii(bytes, 8, 4) === "WEBP") return "webp";
+  if (bytes[0] === 73 && bytes[1] === 73 && bytes[2] === 42 || bytes[0] === 77 && bytes[1] === 77 && bytes[3] === 42) return "tiff";
+  if (ascii(bytes, 4, 4) === "ftyp") {
+    const brand = ascii(bytes, 8, 4);
+    const image = ["avif", "avis", "heic", "heix", "hevc", "heim", "heis", "hevm", "hevs", "mif1", "mif2", "msf1"];
+    return image.includes(brand) ? null : "mp4";
+  }
+  if (bytes[0] === 26 && bytes[1] === 69 && bytes[2] === 223 && bytes[3] === 163) {
+    return bytesToBin2(bytes.subarray(0, 64)).includes("matroska") ? "mkv" : "webm";
+  }
+  const headBin = bytesToBin2(bytes.subarray(0, 4096));
+  if (/<svg[\s>]/.test(headBin)) return "svg";
+  return null;
+}
+function extractC2paFromPng(png) {
+  const dv = new DataView(png.buffer, png.byteOffset);
+  const found = [];
+  for (let i = 8; i + 8 <= png.length; ) {
+    const len2 = dv.getUint32(i);
+    const type = ascii(png, i + 4, 4);
+    const end = i + len2 + 12;
+    if (end > png.length) throw new Error("malformed PNG chunk");
+    if (type === "caBX") found.push(png.slice(i + 8, i + 8 + len2));
+    if (type === "IEND") break;
+    i = end;
+  }
+  if (found.length > 1) throw new Error("PNG has more than one caBX chunk");
+  return found.length ? { manifest: found[0] } : null;
+}
+function extractC2paFromJpeg(jpeg) {
+  const boxes = /* @__PURE__ */ new Map();
+  for (let i = 2; i + 4 <= jpeg.length; ) {
+    if (jpeg[i] !== 255) break;
+    const marker = jpeg[i + 1];
+    if (marker >= 208 && marker <= 217) {
+      i += 2;
+      continue;
+    }
+    const le = jpeg[i + 2] << 8 | jpeg[i + 3];
+    const end = i + 2 + le;
+    if (end > jpeg.length) throw new Error("malformed JPEG segment");
+    if (marker === 235 && le > 18) {
+      const c = jpeg.subarray(i + 4, end);
+      if (c[0] === 74 && c[1] === 80) {
+        const en = c[2] << 8 | c[3];
+        const z = (c[4] << 24 | c[5] << 16 | c[6] << 8 | c[7]) >>> 0;
+        let group = boxes.get(en);
+        if (!group) {
+          group = [];
+          boxes.set(en, group);
+        }
+        group.push({ z, body: c });
+      }
+    }
+    if (marker === 218) break;
+    i = end;
+  }
+  const stores = [];
+  for (const group of boxes.values()) {
+    group.sort((a, b) => a.z - b.z);
+    const first = group[0].body;
+    if (!(first.length > 28 && ascii(first, 24, 4) === "c2pa")) continue;
+    const parts = group.map((s, idx) => idx === 0 ? s.body.subarray(8) : s.body.subarray(16));
+    const manifest = new Uint8Array(parts.reduce((n2, p) => n2 + p.length, 0));
+    let o = 0;
+    for (const p of parts) {
+      manifest.set(p, o);
+      o += p.length;
+    }
+    stores.push(manifest);
+  }
+  if (stores.length > 1) throw new Error("JPEG has more than one manifest store");
+  return stores.length ? { manifest: stores[0] } : null;
+}
+function extractC2paFromGif(gif) {
+  if (ascii(gif, 0, 3) !== "GIF") throw new Error("not a GIF");
+  const packed = gif[10];
+  let i = 13;
+  if (packed & 128) i += 3 * (1 << (packed & 7) + 1);
+  while (i < gif.length) {
+    const b = gif[i];
+    if (b === 44 || b === 59) break;
+    if (b !== 33) throw new Error("malformed GIF block");
+    const label = gif[i + 1];
+    let j = i + 2;
+    if (j >= gif.length) throw new Error("truncated GIF block");
+    if (label === 255 || label === 1 || label === 249) j += 1 + gif[j];
+    const isC2pa = label === 255 && ascii(gif, i + 3, 8) === "C2PA_GIF" && gif[i + 11] === 1 && gif[i + 12] === 0 && gif[i + 13] === 0;
+    const parts = [];
+    while (j < gif.length && gif[j] !== 0) {
+      const n2 = gif[j];
+      if (j + 1 + n2 > gif.length) throw new Error("malformed GIF sub-blocks");
+      if (isC2pa) parts.push(gif.subarray(j + 1, j + 1 + n2));
+      j += 1 + n2;
+    }
+    if (j >= gif.length) throw new Error("truncated GIF sub-blocks");
+    j += 1;
+    if (isC2pa) {
+      const manifest = new Uint8Array(parts.reduce((n2, p) => n2 + p.length, 0));
+      let o = 0;
+      for (const p of parts) {
+        manifest.set(p, o);
+        o += p.length;
+      }
+      return { manifest };
+    }
+    i = j;
+  }
+  return null;
+}
+function extractC2paFromSvg(svg) {
+  const bin = bytesToBin2(svg);
+  const m = /<c2pa:manifest[^>]*>([^<]*)<\/c2pa:manifest>/.exec(bin);
+  if (!m) return null;
+  const b64 = m[1].trim();
+  if (!b64) return null;
+  if (!/^[A-Za-z0-9+/]+={0,2}$/.test(b64)) throw new Error("SVG manifest is not valid base64");
+  const s = atob(b64);
+  const manifest = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) manifest[i] = s.charCodeAt(i);
+  return { manifest };
+}
+function extractC2paFromTiff(tiff) {
+  const le = tiff[0] === 73;
+  const dv = new DataView(tiff.buffer, tiff.byteOffset);
+  if (dv.getUint16(2, le) !== 42) throw new Error("BigTIFF is not supported");
+  const readIfd2 = (off2) => {
+    const count = dv.getUint16(off2, le);
+    if (off2 + 2 + count * 12 + 4 > tiff.length) throw new Error("malformed TIFF IFD");
+    const entries = [];
+    for (let k = 0; k < count; k++) {
+      const e = off2 + 2 + k * 12;
+      entries.push({ tag: dv.getUint16(e, le), type: dv.getUint16(e + 2, le), count: dv.getUint32(e + 4, le), valueOffset: dv.getUint32(e + 8, le) });
+    }
+    return { entries, next: dv.getUint32(off2 + 2 + count * 12, le) };
+  };
+  const seen = /* @__PURE__ */ new Set();
+  let off = dv.getUint32(4, le);
+  let first = null;
+  let last = null;
+  while (off && !seen.has(off)) {
+    seen.add(off);
+    const ifd = readIfd2(off);
+    if (!first) first = ifd;
+    last = ifd;
+    off = ifd.next;
+  }
+  if (!last) return null;
+  const entry = last.entries.find((e) => e.tag === 52545) || first.entries.find((e) => e.tag === 52545);
+  if (!entry) return null;
+  if (entry.type !== 7) throw new Error("TIFF C2PA entry must be type UNDEFINED(7)");
+  if (entry.valueOffset + entry.count > tiff.length) throw new Error("TIFF C2PA value overruns the file");
+  return { manifest: tiff.slice(entry.valueOffset, entry.valueOffset + entry.count) };
+}
+function extractC2paFromWebp(webp) {
+  const dv = new DataView(webp.buffer, webp.byteOffset);
+  for (let i = 12; i + 8 <= webp.length; ) {
+    const size = dv.getUint32(i + 4, true);
+    if (i + 8 + size > webp.length) throw new Error("malformed WebP chunk");
+    if (ascii(webp, i, 4) === "C2PA") return { manifest: webp.slice(i + 8, i + 8 + size) };
+    i += 8 + size + (size & 1);
+  }
+  return null;
+}
+function bmffTopBoxes(bytes) {
+  const out = [];
+  let off = 0;
+  while (off < bytes.length) {
+    if (off + 8 > bytes.length) throw new Error("truncated MP4 box header");
+    let size = u32At(bytes, off);
+    let hdr = 8;
+    if (size === 1) {
+      if (off + 16 > bytes.length) throw new Error("truncated MP4 box header");
+      size = u32At(bytes, off + 8) * 2 ** 32 + u32At(bytes, off + 12);
+      hdr = 16;
+      if (!Number.isSafeInteger(size)) throw new Error("malformed MP4 box size");
+    } else if (size === 0) {
+      size = bytes.length - off;
+    }
+    if (size < hdr || off + size > bytes.length) throw new Error("malformed MP4 box");
+    out.push({ off, size, hdr, type: ascii(bytes, off + 4, 4) });
+    off += size;
+  }
+  return out;
+}
+function extractC2paFromMp4(mp4) {
+  const boxes = bmffTopBoxes(mp4);
+  const found = [];
+  for (const b of boxes.filter((x) => isC2paBmffBox(mp4, x))) {
+    const boxEnd = b.off + b.size;
+    const p = b.off + b.hdr + 16 + 4;
+    if (p > boxEnd) throw new Error("malformed C2PA box");
+    let q = p;
+    while (q < boxEnd && mp4[q] !== 0) q++;
+    if (q >= boxEnd) throw new Error("malformed C2PA box purpose");
+    if (ascii(mp4, p, q - p) !== "manifest") continue;
+    q += 1 + 8;
+    if (q > boxEnd) throw new Error("malformed C2PA box");
+    found.push(mp4.slice(q, boxEnd));
+  }
+  if (found.length > 1) throw new Error("MP4 has more than one C2PA manifest box");
+  return found.length ? { manifest: found[0] } : null;
+}
+function ebmlChildren(bytes, start, end) {
+  const out = [];
+  let off = start;
+  while (off < end) {
+    const id = readId(bytes, off);
+    const size = id && readVint(bytes, off + id.width);
+    if (!id || !size) throw new Error("malformed Matroska element");
+    if (size.unknown) break;
+    const dataOff = off + id.width + size.width;
+    const dataEnd = dataOff + size.value;
+    if (dataEnd > end || dataEnd <= off) throw new Error("malformed Matroska element");
+    out.push({ id: id.value, off, dataOff, dataEnd });
+    off = dataEnd;
+  }
+  return out;
+}
+function extractC2paFromWebm(webm) {
+  if (!idAt(webm, 0, EBML_ID)) throw new Error("not an EBML file");
+  const headSize = readVint(webm, EBML_ID.length);
+  if (!headSize || headSize.unknown) throw new Error("malformed EBML header");
+  const segOff = EBML_ID.length + headSize.width + headSize.value;
+  if (!idAt(webm, segOff, SEGMENT_ID)) throw new Error("no Matroska Segment");
+  const segSize = readVint(webm, segOff + SEGMENT_ID.length);
+  if (!segSize) throw new Error("malformed Matroska Segment");
+  const start = segOff + SEGMENT_ID.length + segSize.width;
+  const end = segSize.unknown ? webm.length : start + segSize.value;
+  if (end > webm.length) throw new Error("truncated Matroska Segment");
+  const found = [];
+  for (const el of ebmlChildren(webm, start, end)) {
+    if (el.id !== MKV_ATTACHMENTS) continue;
+    for (const file of ebmlChildren(webm, el.dataOff, el.dataEnd)) {
+      if (file.id !== MKV_ATTACHEDFILE) continue;
+      let mime = null;
+      let data = null;
+      for (const f of ebmlChildren(webm, file.dataOff, file.dataEnd)) {
+        if (f.id === MKV_FILEMIMETYPE) mime = ascii(webm, f.dataOff, f.dataEnd - f.dataOff);
+        if (f.id === MKV_FILEDATA) data = webm.slice(f.dataOff, f.dataEnd);
+      }
+      if (mime !== C2PA_ATTACHMENT_MIME) continue;
+      if (!data || !data.length) throw new Error("Matroska C2PA attachment has no data");
+      found.push(data);
+    }
+  }
+  if (found.length > 1) throw new Error("Matroska file has more than one C2PA attachment");
+  return found.length ? { manifest: found[0] } : null;
+}
+function derTlv(b, i) {
+  if (i + 2 > b.length) throw new Error("der: truncated");
+  const tag = b[i];
+  let len2 = b[i + 1];
+  let j = i + 2;
+  if (len2 & 128) {
+    const k = len2 & 127;
+    len2 = 0;
+    for (let x = 0; x < k; x++) len2 = len2 * 256 + b[j++];
+  }
+  if (j + len2 > b.length) throw new Error("der: length overruns buffer");
+  return { tag, start: i, contentStart: j, end: j + len2 };
+}
+function derChildren(b, tlv) {
+  const kids = [];
+  let i = tlv.contentStart;
+  while (i < tlv.end) {
+    const c = derTlv(b, i);
+    kids.push(c);
+    i = c.end;
+  }
+  return kids;
+}
+function decodeOid(b, tlv) {
+  const bytes = b.slice(tlv.contentStart, tlv.end);
+  const parts = [Math.floor(bytes[0] / 40), bytes[0] % 40];
+  let v = 0;
+  for (let i = 1; i < bytes.length; i++) {
+    v = v * 128 + (bytes[i] & 127);
+    if (!(bytes[i] & 128)) {
+      parts.push(v);
+      v = 0;
+    }
+  }
+  return parts.join(".");
+}
+function decodeTime(b, tlv) {
+  const s = td.decode(b.slice(tlv.contentStart, tlv.end));
+  const four = tlv.tag === 24;
+  const yy = four ? +s.slice(0, 4) : +s.slice(0, 2) < 50 ? 2e3 + +s.slice(0, 2) : 1900 + +s.slice(0, 2);
+  const o = four ? 2 : 0;
+  return new Date(Date.UTC(yy, +s.slice(2 + o, 4 + o) - 1, +s.slice(4 + o, 6 + o), +s.slice(6 + o, 8 + o), +s.slice(8 + o, 10 + o), +s.slice(10 + o, 12 + o)));
+}
+function decodeName(cert, nameTlv) {
+  const out = {};
+  for (const rdn of derChildren(cert, nameTlv)) {
+    for (const atv of derChildren(cert, rdn)) {
+      const [oidTlv, valTlv] = derChildren(cert, atv);
+      if (!oidTlv || !valTlv || oidTlv.tag !== 6) continue;
+      const oid = decodeOid(cert, oidTlv);
+      const val = td.decode(cert.slice(valTlv.contentStart, valTlv.end));
+      if (oid === "2.5.4.3" && out.commonName == null) out.commonName = val;
+      if (oid === "2.5.4.10" && out.organization == null) out.organization = val;
+    }
+  }
+  return out;
+}
+function decodeExtensions(cert, kids, shift) {
+  const out = { sanEmails: [], isCa: false };
+  try {
+    const wrap = kids.slice(shift + 6).find((k) => k.tag === 163);
+    if (!wrap) return out;
+    const [seq] = derChildren(cert, wrap);
+    if (!seq || seq.tag !== 48) return out;
+    for (const ext of derChildren(cert, seq)) {
+      if (ext.tag !== 48) continue;
+      const parts = derChildren(cert, ext);
+      const value = parts[parts.length - 1];
+      if (!parts[0] || parts[0].tag !== 6 || !value || value.tag !== 4) continue;
+      const oid = decodeOid(cert, parts[0]);
+      if (oid === "2.5.29.17") {
+        const names = derTlv(cert, value.contentStart);
+        if (names.tag !== 48 || names.end > value.end) continue;
+        for (const gn of derChildren(cert, names)) {
+          if (gn.tag === 129) out.sanEmails.push(td.decode(cert.slice(gn.contentStart, gn.end)));
+        }
+      } else if (oid === "2.5.29.19") {
+        const bc = derTlv(cert, value.contentStart);
+        if (bc.tag !== 48 || bc.end > value.end) continue;
+        const [ca] = derChildren(cert, bc);
+        out.isCa = !!ca && ca.tag === 1 && ca.end > ca.contentStart && cert[ca.contentStart] !== 0;
+      }
+    }
+  } catch {
+  }
+  return out;
+}
+function parseCertSigAlg(cert, algId) {
+  try {
+    const kids = derChildren(cert, algId);
+    const oidTlv = kids[0];
+    if (!oidTlv || oidTlv.tag !== 6) return null;
+    const oid = hexOf(cert.slice(oidTlv.contentStart, oidTlv.end));
+    const fixed = SIG_ALGS[oid];
+    if (fixed) return { ...fixed };
+    if (oid === SIG_OID_ED25519) return { scheme: "ed25519" };
+    if (oid === SIG_OID_RSA_PSS) {
+      let hash = "SHA-1";
+      let saltLength = 20;
+      const params = kids[1];
+      if (params && params.tag === 48) {
+        for (const field of derChildren(cert, params)) {
+          if (field.tag === 160) {
+            const h = derChildren(cert, field)[0];
+            if (h && h.tag === 6) hash = HASH_OIDS[hexOf(cert.slice(h.contentStart, h.end))] || hash;
+          } else if (field.tag === 162) {
+            const s = derChildren(cert, field)[0];
+            if (s && s.tag === 2) {
+              let n2 = 0;
+              for (const b of cert.slice(s.contentStart, s.end)) n2 = n2 * 256 + b;
+              saltLength = n2;
+            }
+          }
+        }
+      }
+      return { scheme: "rsa-pss", hash, saltLength };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+function parseCertificate(cert) {
+  const top = derTlv(cert, 0);
+  const topKids = derChildren(cert, top);
+  const tbs = topKids[0];
+  const sigAlgTlv = topKids[1];
+  const sigTlv = topKids[2];
+  const kids = derChildren(cert, tbs);
+  const shift = kids[0].tag === 160 ? 1 : 0;
+  const issuerTlv = kids[shift + 2];
+  const validity = derChildren(cert, kids[shift + 3]);
+  const subjectTlv = kids[shift + 4];
+  const spkiTlv = kids[shift + 5];
+  const issuerBytes = cert.slice(issuerTlv.start, issuerTlv.end);
+  const subjectBytes = cert.slice(subjectTlv.start, subjectTlv.end);
+  const ext = decodeExtensions(cert, kids, shift);
+  return {
+    subject: decodeName(cert, subjectTlv),
+    issuer: decodeName(cert, issuerTlv),
+    notBefore: decodeTime(cert, validity[0]),
+    notAfter: decodeTime(cert, validity[1]),
+    selfSigned: hexOf(issuerBytes) === hexOf(subjectBytes),
+    spki: cert.slice(spkiTlv.start, spkiTlv.end),
+    // Additive (1.11.0) — the chain-verification raw material. signatureRaw is
+    // the signatureValue BIT STRING content minus its unused-bits byte: for
+    // ECDSA that is still a DER ECDSA-Sig-Value (ecdsaDerToRaw converts).
+    tbsBytes: cert.slice(tbs.start, tbs.end),
+    signatureRaw: sigTlv && sigTlv.tag === 3 && sigTlv.end > sigTlv.contentStart + 1 ? cert.slice(sigTlv.contentStart + 1, sigTlv.end) : null,
+    sigAlg: sigAlgTlv ? parseCertSigAlg(cert, sigAlgTlv) : null,
+    issuerBytes,
+    subjectBytes,
+    sanEmails: ext.sanEmails,
+    isCa: ext.isCa
+  };
+}
+function ecdsaDerToRaw(derSig, size = 32) {
+  const [r, s] = derChildren(derSig, derTlv(derSig, 0));
+  if (!r || !s || r.tag !== 2 || s.tag !== 2) throw new Error("der: not an ECDSA-Sig-Value");
+  const out = new Uint8Array(size * 2);
+  let at = 0;
+  for (const int of [r, s]) {
+    let i = int.contentStart;
+    while (i < int.end && derSig[i] === 0) i++;
+    const v = derSig.subarray(i, int.end);
+    if (v.length > size) throw new Error("der: ECDSA integer wider than the curve");
+    out.set(v, at + size - v.length);
+    at += size;
+  }
+  return out;
+}
+function ecParamsOf(spki) {
+  try {
+    const algId = derChildren(spki, derTlv(spki, 0))[0];
+    const curveOid = derChildren(spki, algId)[1];
+    if (!curveOid || curveOid.tag !== 6) return null;
+    return EC_CURVES[hexOf(spki.slice(curveOid.contentStart, curveOid.end))] ?? null;
+  } catch {
+    return null;
+  }
+}
+async function signedBy(child, signer) {
+  if (!child.signatureRaw || !child.sigAlg || hexOf(child.issuerBytes) !== hexOf(signer.subjectBytes)) return false;
+  const sa = child.sigAlg;
+  try {
+    if (sa.scheme === "ecdsa") {
+      const ec = ecParamsOf(signer.spki);
+      if (!ec) return false;
+      const key2 = await subtle4.importKey("spki", asBufferSource4(signer.spki), { name: "ECDSA", namedCurve: ec.curve }, false, ["verify"]);
+      return await subtle4.verify({ name: "ECDSA", hash: sa.hash }, key2, asBufferSource4(ecdsaDerToRaw(child.signatureRaw, ec.size)), asBufferSource4(child.tbsBytes));
+    }
+    if (sa.scheme === "rsa") {
+      const key2 = await subtle4.importKey("spki", asBufferSource4(normalizeRsaSpki(signer.spki)), { name: "RSASSA-PKCS1-v1_5", hash: sa.hash }, false, ["verify"]);
+      return await subtle4.verify({ name: "RSASSA-PKCS1-v1_5" }, key2, asBufferSource4(child.signatureRaw), asBufferSource4(child.tbsBytes));
+    }
+    if (sa.scheme === "rsa-pss") {
+      const key2 = await subtle4.importKey("spki", asBufferSource4(normalizeRsaSpki(signer.spki)), { name: "RSA-PSS", hash: sa.hash }, false, ["verify"]);
+      return await subtle4.verify({ name: "RSA-PSS", saltLength: sa.saltLength }, key2, asBufferSource4(child.signatureRaw), asBufferSource4(child.tbsBytes));
+    }
+    const key = await subtle4.importKey("spki", asBufferSource4(signer.spki), { name: "Ed25519" }, false, ["verify"]);
+    return await subtle4.verify({ name: "Ed25519" }, key, asBufferSource4(child.signatureRaw), asBufferSource4(child.tbsBytes));
+  } catch {
+    return false;
+  }
+}
+async function chainsToAnchor(leaf, chainDers, trustAnchors) {
+  const anchors = [];
+  for (const der2 of trustAnchors) {
+    try {
+      anchors.push(parseCertificate(der2));
+    } catch {
+    }
+  }
+  const intermediates = [];
+  for (const der2 of chainDers.slice(1, 1 + MAX_CHAIN_INTERMEDIATES)) {
+    if (der2 instanceof Uint8Array) {
+      try {
+        const c = parseCertificate(der2);
+        if (c.isCa) intermediates.push(c);
+      } catch {
+      }
+    }
+  }
+  let current = leaf;
+  const used = /* @__PURE__ */ new Set();
+  for (let hop = 0; hop <= intermediates.length; hop++) {
+    for (const anchor of anchors) {
+      try {
+        if (await signedBy(current, anchor)) return anchor;
+      } catch {
+      }
+    }
+    let next = null;
+    for (const mid2 of intermediates) {
+      if (used.has(mid2) || hexOf(mid2.subjectBytes) !== hexOf(current.issuerBytes)) continue;
+      try {
+        if (await signedBy(current, mid2)) {
+          next = mid2;
+          break;
+        }
+      } catch {
+      }
+    }
+    if (!next) break;
+    used.add(next);
+    current = next;
+  }
+  return null;
+}
+function derWrap(tag, body) {
+  let head;
+  if (body.length < 128) head = Uint8Array.of(tag, body.length);
+  else if (body.length < 256) head = Uint8Array.of(tag, 129, body.length);
+  else head = Uint8Array.of(tag, 130, body.length >>> 8, body.length & 255);
+  return concatBytes3([head, body]);
+}
+function normalizeRsaSpki(spki) {
+  const top = derTlv(spki, 0);
+  const [algTlv, keyTlv] = derChildren(spki, top);
+  const oid = derTlv(spki, algTlv.contentStart);
+  const oidBytes = spki.slice(oid.start, oid.end);
+  if (oidBytes.length !== OID_RSASSA_PSS.length || !oidBytes.every((b, i) => b === OID_RSASSA_PSS[i])) return spki;
+  return derWrap(48, concatBytes3([ALGID_RSA_ENCRYPTION, spki.slice(keyTlv.start, keyTlv.end)]));
+}
+async function verifyCoseSignature(alg, spki, sigRaw, sigStructure) {
+  if (alg.kind === "ecdsa") {
+    const key2 = await subtle4.importKey("spki", asBufferSource4(spki), { name: "ECDSA", namedCurve: alg.curve }, false, ["verify"]);
+    return subtle4.verify({ name: "ECDSA", hash: alg.hash }, key2, asBufferSource4(sigRaw), asBufferSource4(sigStructure));
+  }
+  if (alg.kind === "rsa-pss") {
+    const key2 = await subtle4.importKey("spki", asBufferSource4(normalizeRsaSpki(spki)), { name: "RSA-PSS", hash: alg.hash }, false, ["verify"]);
+    return subtle4.verify({ name: "RSA-PSS", saltLength: alg.saltLength }, key2, asBufferSource4(sigRaw), asBufferSource4(sigStructure));
+  }
+  const key = await subtle4.importKey("spki", asBufferSource4(spki), { name: "Ed25519" }, false, ["verify"]);
+  return subtle4.verify({ name: "Ed25519" }, key, asBufferSource4(sigRaw), asBufferSource4(sigStructure));
+}
 function collectActionChain(store) {
   const chain2 = [];
   let root;
@@ -4163,19 +4765,388 @@ function prepareC2paIngredientFromStore(store, format) {
   }
   return { manifestBoxes, activeLabel, title, format, digitalSourceType };
 }
-var td, te4, subtle4, hexOf, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, AI_SOURCE_TYPES, aiKind;
+async function verifyC2pa(bytes, { trustAnchors } = {}) {
+  if (!(bytes instanceof Uint8Array)) throw new Error("verifyC2pa: bytes must be a Uint8Array");
+  const checks = [];
+  const fail2 = (code, explanation) => {
+    checks.push({ code, ok: false, explanation });
+  };
+  const pass = (code, explanation) => {
+    checks.push({ code, ok: true, explanation });
+  };
+  const format = sniffFormat(bytes);
+  const report = { found: false, state: "none", trusted: false, madeWithLolly: false, likelyMadeWithLolly: false, partsMadeWithLolly: false, delivered: false, format, checks };
+  const pdfBytes = bytes;
+  if (!format) {
+    report.reason = "unrecognised file format \u2014 Content Credentials are checked in pdf, png, jpg, gif, svg, tiff, webp, mp4 and webm files";
+    return report;
+  }
+  let extracted;
+  try {
+    extracted = EXTRACTORS[format](bytes);
+  } catch (err) {
+    const msg = err.message;
+    report.reason = msg;
+    if (/not a PDF/.test(msg)) return report;
+    report.found = true;
+    report.state = "invalid";
+    fail2("credential.unreadable", msg);
+    return report;
+  }
+  if (!extracted) {
+    report.reason = "no Content Credentials found";
+    return report;
+  }
+  report.found = true;
+  let parts;
+  let claim;
+  try {
+    parts = parseC2paStore(extracted.manifest);
+    const decodedClaim = decodeCbor(parts.claimBytes);
+    if (!(decodedClaim instanceof Map)) throw new Error("claim is not a CBOR map");
+    claim = decodedClaim;
+  } catch (err) {
+    report.state = "invalid";
+    report.reason = `credential is malformed: ${err.message}`;
+    fail2("credential.unreadable", err.message);
+    return report;
+  }
+  const actionsAssertion = parts.assertions.find((a) => a.label === "c2pa.actions" || a.label === "c2pa.actions.v2");
+  let actions = [];
+  try {
+    const decoded = actionsAssertion && decodeCbor(actionsAssertion.content).get("actions");
+    if (Array.isArray(decoded)) {
+      actions = decoded.map((a) => {
+        const sa = a.get?.("softwareAgent");
+        return {
+          action: a.get?.("action"),
+          when: a.get?.("when"),
+          // v2 softwareAgent is a { name, version } map; surface its name.
+          softwareAgent: sa instanceof Map ? sa.get("name") : sa,
+          // IPTC provenance kind of this step (digitalCapture / digitalCreation /
+          // trainedAlgorithmicMedia …) — the signal behind the AI-generated flag.
+          digitalSourceType: a.get?.("digitalSourceType"),
+          description: a.get?.("description")
+        };
+      });
+    }
+  } catch {
+  }
+  const mapToObj = (m) => {
+    if (!(m instanceof Map)) return null;
+    const o = {};
+    for (const [k, v] of m) if (typeof k === "string" && (typeof v === "string" || typeof v === "number" || typeof v === "boolean")) o[k] = v;
+    return o;
+  };
+  const genInfo = claim.get("claim_generator_info");
+  report.claim = {
+    title: claim.get("dc:title"),
+    format: claim.get("dc:format"),
+    claimGenerator: claim.get("claim_generator"),
+    generatorInfo: mapToObj(Array.isArray(genInfo) ? genInfo[0] : genInfo),
+    instanceId: claim.get("instanceID"),
+    manifestLabel: parts.manifestLabel,
+    actions
+  };
+  const chain2 = collectActionChain(extracted.manifest);
+  if (chain2.length) report.history = chain2;
+  for (const s of chain2) {
+    const kind = aiKind(s.digitalSourceType);
+    if (kind && (!report.aiGenerated || kind === "generated")) {
+      report.aiGenerated = { kind, sourceType: s.digitalSourceType };
+      if (kind === "generated") break;
+    }
+  }
+  const exportAssertion = parts.assertions.find((a) => a.label === LOLLY_EXPORT_ASSERTION);
+  if (exportAssertion) {
+    try {
+      const decoded = decodeCbor(exportAssertion.content);
+      const env = mapToObj(decoded);
+      if (env) {
+        const rawInputs = decoded instanceof Map ? decoded.get("inputs") : void 0;
+        if (rawInputs instanceof Map) {
+          const inputs = {};
+          for (const [k, v] of rawInputs) if (typeof k === "string" && typeof v === "string") inputs[k] = v;
+          if (Object.keys(inputs).length) env.inputs = inputs;
+        }
+        report.environment = env;
+      }
+    } catch {
+    }
+  }
+  const metaAssertion = parts.assertions.find((a) => a.label === "cawg.metadata" || a.label === "c2pa.metadata");
+  if (metaAssertion) {
+    try {
+      const creator = JSON.parse(td.decode(metaAssertion.content))?.["dc:creator"];
+      const name = Array.isArray(creator) ? creator[0] : creator;
+      if (name) report.author = { name: String(name) };
+    } catch {
+    }
+  }
+  const creativeWork = parts.assertions.find((a) => a.label === "stds.schema-org.CreativeWork");
+  if (!report.author && creativeWork) {
+    try {
+      const person = JSON.parse(td.decode(creativeWork.content))?.author?.[0];
+      if (person?.name) report.author = { name: String(person.name), ...person.email ? { email: String(person.email) } : {} };
+    } catch {
+    }
+  }
+  const refs = parts.claimVersion === 2 ? [
+    ...Array.isArray(claim.get("created_assertions")) ? claim.get("created_assertions") : [],
+    ...Array.isArray(claim.get("gathered_assertions")) ? claim.get("gathered_assertions") : []
+  ] : claim.get("assertions");
+  for (const ref of Array.isArray(refs) ? refs : []) {
+    const url = ref instanceof Map ? ref.get("url") : null;
+    const hash = ref instanceof Map ? ref.get("hash") : null;
+    if (typeof url !== "string" || !(hash instanceof Uint8Array)) {
+      fail2("assertion.hashedURI.mismatch", "malformed assertion reference in the claim");
+      continue;
+    }
+    const label = url.startsWith(HASHED_URI_PREFIX) ? url.slice(HASHED_URI_PREFIX.length) : null;
+    const assertion = label && parts.assertions.find((a) => a.label === label);
+    if (!assertion) {
+      fail2("assertion.missing", `claim references ${url} but the store has no such assertion`);
+      continue;
+    }
+    if (hexOf(await sha2562(assertion.payload)) === hexOf(hash)) {
+      pass("assertion.hashedURI.match", `hashed uri matched: ${url}`);
+    } else {
+      fail2("assertion.hashedURI.mismatch", `hash does not match assertion data: ${url}`);
+    }
+  }
+  let signerAlg = null;
+  let claimSigValid = null;
+  let anchorMatch = null;
+  let leafInsideValidity = false;
+  let leafSanEmail = null;
+  try {
+    const cose = decodeCbor(parts.signatureBytes);
+    if (cose?.tag !== 18) throw new Error("claim signature is not COSE_Sign1_Tagged");
+    const [protBytes, unprotected, , sigRaw] = cose.value;
+    const prot = decodeCbor(protBytes);
+    const alg = COSE_ALGS[String(prot.get(1))];
+    const unprot = unprotected;
+    const chain3 = prot.get(33) ?? prot.get("x5chain") ?? unprot?.get(33) ?? unprot?.get("x5chain");
+    const chainDers = Array.isArray(chain3) ? chain3 : [chain3];
+    const certDer = chainDers[0];
+    if (!(certDer instanceof Uint8Array)) throw new Error("no x5chain certificate in signature headers");
+    const cert = parseCertificate(certDer);
+    signerAlg = alg?.name || `COSE alg ${String(prot.get(1))}`;
+    report.signer = {
+      commonName: cert.subject.commonName,
+      organization: cert.subject.organization,
+      notBefore: cert.notBefore.toISOString(),
+      notAfter: cert.notAfter.toISOString(),
+      selfSigned: cert.selfSigned,
+      alg: signerAlg
+    };
+    if (!alg) {
+      fail2("claimSignature.mismatch", `unsupported signing algorithm (${signerAlg}) \u2014 cannot verify on-device`);
+    } else {
+      const sigStructure = encodeCbor(["Signature1", protBytes, new Uint8Array(0), parts.claimBytes]);
+      try {
+        claimSigValid = await verifyCoseSignature(alg, cert.spki, sigRaw, sigStructure);
+      } catch {
+        fail2("claimSignature.mismatch", `${alg.name} signatures cannot be verified on this device`);
+        claimSigValid = null;
+      }
+      if (claimSigValid === true) pass("claimSignature.validated", "claim signature valid");
+      else if (claimSigValid === false) fail2("claimSignature.mismatch", "claim signature is not valid");
+    }
+    const now2 = Date.now();
+    leafInsideValidity = now2 >= cert.notBefore.getTime() && now2 <= cert.notAfter.getTime();
+    if (leafInsideValidity) {
+      pass("claimSignature.insideValidity", "signing certificate within its validity window");
+    } else {
+      fail2("signingCredential.expired", "signing certificate expired (or not yet valid)");
+    }
+    leafSanEmail = cert.sanEmails[0] ?? null;
+    if (Array.isArray(trustAnchors) && trustAnchors.length) {
+      anchorMatch = await chainsToAnchor(cert, chainDers, trustAnchors);
+    }
+  } catch (err) {
+    fail2("claimSignature.mismatch", `claim signature could not be verified: ${err.message}`);
+  }
+  const hashData = parts.assertions.find((a) => a.label === "c2pa.hash.data");
+  const bmffHash = parts.assertions.find((a) => /^c2pa\.hash\.bmff(\.v\d+)?$/.test(a.label));
+  if (!hashData && bmffHash) {
+    try {
+      const hd = decodeCbor(bmffHash.content);
+      if ((hd.get("alg") || "sha256") !== "sha256") throw new Error(`unsupported hash alg ${String(hd.get("alg"))}`);
+      if (hd.get("merkle")) throw new Error("fragmented (Merkle) BMFF bindings are not supported on this device");
+      const version = bmffHash.label === "c2pa.hash.bmff" ? 1 : Number(bmffHash.label.slice("c2pa.hash.bmff.v".length));
+      if (version > 3) throw new Error(`BMFF hash version v${version} is newer than this device's verifier`);
+      const exclusions = (hd.get("exclusions") || []).map((e) => ({
+        xpath: e.get("xpath"),
+        data: e.get("data"),
+        length: e.get("length"),
+        subset: e.get("subset"),
+        version: e.get("version"),
+        flags: e.get("flags")
+      }));
+      for (const e of exclusions) {
+        if (typeof e.xpath !== "string" || !/^\/[a-zA-Z0-9 ]{4}$/.test(e.xpath) || e.subset != null || e.version != null || e.flags != null) {
+          throw new Error("this BMFF exclusion form is not supported on this device");
+        }
+      }
+      const excluded = (b) => exclusions.some((e) => e.xpath === `/${b.type}` && (e.length == null || e.length === b.size) && (e.data || []).every((d) => {
+        const off = b.off + d.get("offset");
+        const value = d.get("value");
+        return value instanceof Uint8Array && off + value.length <= b.off + b.size && value.every((v, i) => bytes[off + i] === v);
+      }));
+      const spans = [];
+      for (const b of bmffTopBoxes(bytes)) {
+        if (excluded(b)) continue;
+        if (version >= 2) {
+          const marker = new Uint8Array(8);
+          for (let i = 7, n2 = b.off; i >= 0; i--) {
+            marker[i] = n2 % 256;
+            n2 = Math.floor(n2 / 256);
+          }
+          spans.push(marker);
+        }
+        spans.push(bytes.subarray(b.off, b.off + b.size));
+      }
+      if (hexOf(await sha2562(concatBytes3(spans))) === hexOf(hd.get("hash"))) {
+        pass("assertion.bmffHash.match", "BMFF hash valid");
+      } else {
+        fail2("assertion.bmffHash.mismatch", "the file bytes do not match the credential \u2014 the file changed after signing");
+      }
+    } catch (err) {
+      fail2("assertion.bmffHash.mismatch", `hard binding could not be checked: ${err.message}`);
+    }
+  } else if (!hashData) {
+    fail2("assertion.dataHash.mismatch", "no hard binding (c2pa.hash.data or c2pa.hash.bmff) in the manifest");
+  } else {
+    try {
+      const hd = decodeCbor(hashData.content);
+      if ((hd.get("alg") || "sha256") !== "sha256") throw new Error(`unsupported hash alg ${String(hd.get("alg"))}`);
+      const exclusions = (hd.get("exclusions") || []).map((e) => ({ start: e.get("start"), length: e.get("length") })).sort((a, b) => a.start - b.start);
+      const spans = [];
+      let at = 0;
+      for (const e of exclusions) {
+        if (!(Number.isInteger(e.start) && Number.isInteger(e.length)) || e.start < at || e.start + e.length > pdfBytes.length) {
+          throw new Error("exclusion ranges are out of order or out of range");
+        }
+        spans.push(pdfBytes.subarray(at, e.start));
+        at = e.start + e.length;
+      }
+      spans.push(pdfBytes.subarray(at));
+      if (hexOf(await sha2562(concatBytes3(spans))) === hexOf(hd.get("hash"))) {
+        pass("assertion.dataHash.match", "data hash valid");
+      } else {
+        fail2("assertion.dataHash.mismatch", "the file bytes do not match the credential \u2014 the file changed after signing");
+      }
+    } catch (err) {
+      fail2("assertion.dataHash.mismatch", `hard binding could not be checked: ${err.message}`);
+    }
+  }
+  if (anchorMatch && claimSigValid === true) {
+    const otherFailure = checks.some((c) => !c.ok && c.code !== "signingCredential.expired");
+    if (!otherFailure) {
+      report.signer.identity = {
+        email: leafSanEmail,
+        issuer: anchorMatch.subject.commonName || anchorMatch.subject.organization
+      };
+      report.trusted = leafInsideValidity;
+    }
+  }
+  if (report.signer?.identity) {
+    const who = report.signer.identity.email || report.signer.commonName;
+    pass("signingCredential.trusted", report.trusted ? `signing certificate chains to a pinned CA root \u2014 verified identity: ${who}` : `signing certificate chains to a pinned CA root \u2014 verified identity: ${who} (certificate has since expired; signing time cannot be proven \u2014 no timestamp authority yet)`);
+  } else {
+    fail2("signingCredential.untrusted", "signing certificate untrusted \u2014 an ephemeral on-device key, not a CA-issued identity");
+  }
+  report.state = checks.every((c) => c.ok || c.code === "signingCredential.untrusted") ? "valid" : "invalid";
+  const acts = report.claim.actions || [];
+  const created = acts.some((a) => a.action === "c2pa.created");
+  const names = [report.claim.claimGenerator, report.claim.generatorInfo?.name].filter(Boolean).join(" ");
+  const claimsLolly = created && /\blolly\b/i.test(names);
+  report.madeWithLolly = report.state === "valid" && claimsLolly;
+  const onlyBindingUnverified = checks.every((c) => c.ok || c.code === "signingCredential.untrusted" || c.code === "assertion.dataHash.mismatch" || c.code === "assertion.bmffHash.mismatch");
+  report.likelyMadeWithLolly = !report.madeWithLolly && onlyBindingUnverified && claimsLolly;
+  report.partsMadeWithLolly = report.state === "valid" && !report.madeWithLolly && !report.likelyMadeWithLolly && (report.history ?? []).some((s) => /\blolly\b/i.test(
+    `${typeof s.softwareAgent === "string" ? s.softwareAgent : ""} ${typeof s.generator === "string" ? s.generator : ""}`
+  ));
+  report.delivered = report.state === "valid" && !created && acts.some((a) => a.action === "c2pa.published");
+  return report;
+}
+var td, te4, subtle4, asBufferSource4, hexOf, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, EXTRACTORS, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, EC_CURVES, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX, AI_SOURCE_TYPES, aiKind;
 var init_c2pa_verify = __esm({
   "engine/src/c2pa-verify.ts"() {
     "use strict";
+    init_c2pa();
+    init_video_meta();
     td = new TextDecoder();
     te4 = new TextEncoder();
     subtle4 = globalThis.crypto.subtle;
+    asBufferSource4 = (b) => b;
     hexOf = (b) => Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
     CBOR_BREAK = /* @__PURE__ */ Symbol("cbor break");
     MAX_CBOR_DEPTH = 64;
     contentOf = (bytes, sub) => bytes.slice(sub.children[0].payloadStart, sub.children[0].end);
+    ascii = (b, o, n2) => String.fromCharCode(...b.subarray(o, o + n2));
+    u32At = (b, o) => (b[o] << 24 | b[o + 1] << 16 | b[o + 2] << 8 | b[o + 3]) >>> 0;
+    isC2paBmffBox = (bytes, b) => b.type === "uuid" && b.size >= b.hdr + 16 && C2PA_BMFF_UUID.every((v, i) => bytes[b.off + b.hdr + i] === v);
+    MKV_ATTACHMENTS = 423732329;
+    MKV_ATTACHEDFILE = 24999;
+    MKV_FILEMIMETYPE = 18016;
+    MKV_FILEDATA = 18012;
+    EXTRACTORS = {
+      pdf: extractC2paFromPdf,
+      png: extractC2paFromPng,
+      jpeg: extractC2paFromJpeg,
+      gif: extractC2paFromGif,
+      svg: extractC2paFromSvg,
+      tiff: extractC2paFromTiff,
+      webp: extractC2paFromWebp,
+      mp4: extractC2paFromMp4,
+      webm: extractC2paFromWebm,
+      mkv: extractC2paFromWebm
+    };
+    SIG_ALGS = {
+      "2a8648ce3d040302": { scheme: "ecdsa", hash: "SHA-256" },
+      // ecdsa-with-SHA256
+      "2a8648ce3d040303": { scheme: "ecdsa", hash: "SHA-384" },
+      // ecdsa-with-SHA384
+      "2a8648ce3d040304": { scheme: "ecdsa", hash: "SHA-512" },
+      // ecdsa-with-SHA512
+      "2a864886f70d01010b": { scheme: "rsa", hash: "SHA-256" },
+      // sha256WithRSAEncryption
+      "2a864886f70d01010c": { scheme: "rsa", hash: "SHA-384" },
+      // sha384WithRSAEncryption
+      "2a864886f70d01010d": { scheme: "rsa", hash: "SHA-512" }
+      // sha512WithRSAEncryption
+    };
+    SIG_OID_RSA_PSS = "2a864886f70d01010a";
+    SIG_OID_ED25519 = "2b6570";
+    HASH_OIDS = {
+      "608648016503040201": "SHA-256",
+      "608648016503040202": "SHA-384",
+      "608648016503040203": "SHA-512",
+      "2b0e03021a": "SHA-1"
+    };
+    EC_CURVES = {
+      "2a8648ce3d030107": { curve: "P-256", hash: "SHA-256", size: 32 },
+      // prime256v1
+      "2b81040022": { curve: "P-384", hash: "SHA-384", size: 48 },
+      // secp384r1
+      "2b81040023": { curve: "P-521", hash: "SHA-512", size: 66 }
+      // secp521r1
+    };
+    MAX_CHAIN_INTERMEDIATES = 8;
+    COSE_ALGS = {
+      "-7": { kind: "ecdsa", curve: "P-256", hash: "SHA-256", name: "ES256" },
+      "-35": { kind: "ecdsa", curve: "P-384", hash: "SHA-384", name: "ES384" },
+      "-36": { kind: "ecdsa", curve: "P-521", hash: "SHA-512", name: "ES512" },
+      "-37": { kind: "rsa-pss", hash: "SHA-256", saltLength: 32, name: "PS256" },
+      "-38": { kind: "rsa-pss", hash: "SHA-384", saltLength: 48, name: "PS384" },
+      "-39": { kind: "rsa-pss", hash: "SHA-512", saltLength: 64, name: "PS512" },
+      "-8": { kind: "ed25519", name: "Ed25519" }
+    };
     OID_RSASSA_PSS = Uint8Array.of(6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 10);
     ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
+    HASHED_URI_PREFIX = "self#jumbf=c2pa.assertions/";
     AI_SOURCE_TYPES = {
       trainedAlgorithmicMedia: "generated",
       compositeWithTrainedAlgorithmicMedia: "composite"
@@ -5177,6 +6148,488 @@ var init_url_pack = __esm({
   }
 });
 
+// engine/src/file-metadata.ts
+function sniff(b) {
+  if (b.length < 4) return "";
+  if (b[0] === 255 && b[1] === 216) return "JPEG";
+  if (b[0] === 137 && b[1] === 80 && b[2] === 78 && b[3] === 71) return "PNG";
+  if (b[0] === 71 && b[1] === 73 && b[2] === 70 && b[3] === 56) return "GIF";
+  if (b[0] === 73 && b[1] === 73 && b[2] === 42 && b[3] === 0 || b[0] === 77 && b[1] === 77 && b[2] === 0 && b[3] === 42) return "TIFF";
+  if (b[0] === 82 && b[1] === 73 && b[2] === 70 && b[3] === 70 && b.length >= 12 && b[8] === 87 && b[9] === 69 && b[10] === 66 && b[11] === 80) return "WebP";
+  if (b.length >= 12 && matchAscii(b, 4, "ftyp")) return matchAscii(b, 8, "qt  ") ? "QuickTime" : "MP4";
+  const head = new TextDecoder("utf-8").decode(b.subarray(0, Math.min(b.length, 512)));
+  if (/<svg[\s>]/i.test(head) || /^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096))))) return "SVG";
+  return "";
+}
+function matchAscii(b, off, str) {
+  for (let i = 0; i < str.length; i++) if (b[off + i] !== str.charCodeAt(i)) return false;
+  return true;
+}
+function clip(s) {
+  return s.length > MAX_VALUE_CHARS ? s.slice(0, MAX_VALUE_CHARS) + "\u2026" : s;
+}
+function readIfd(dv, off, le) {
+  const out = [];
+  if (off <= 0 || off + 2 > dv.byteLength) return out;
+  const n2 = dv.getUint16(off, le);
+  let p = off + 2;
+  for (let i = 0; i < n2; i++) {
+    if (p + 12 > dv.byteLength) break;
+    const tag = dv.getUint16(p, le);
+    const type = dv.getUint16(p + 2, le);
+    const count = dv.getUint32(p + 4, le);
+    const size = (TYPE_SIZE[type] || 1) * count;
+    const valueOffset = size > 4 ? dv.getUint32(p + 8, le) : p + 8;
+    out.push({ tag, type, count, size, valueOffset, le });
+    p += 12;
+  }
+  return out;
+}
+function asciiVal(dv, e) {
+  if (e.type !== 2) return null;
+  let s = "";
+  const max = Math.min(e.count, MAX_VALUE_CHARS);
+  for (let i = 0; i < max; i++) {
+    const off = e.valueOffset + i;
+    if (off >= dv.byteLength) break;
+    const c = dv.getUint8(off);
+    if (c === 0) break;
+    s += String.fromCharCode(c);
+  }
+  return s.trim() || null;
+}
+function scalar(dv, e) {
+  try {
+    if (e.type === 3) return dv.getUint16(e.valueOffset, e.le);
+    if (e.type === 4) return dv.getUint32(e.valueOffset, e.le);
+    if (e.type === 5) {
+      if (e.valueOffset + 8 > dv.byteLength) return null;
+      const num3 = dv.getUint32(e.valueOffset, e.le), den = dv.getUint32(e.valueOffset + 4, e.le);
+      return den ? num3 / den : 0;
+    }
+  } catch {
+  }
+  return null;
+}
+function rationals(dv, e, want) {
+  if (e.type !== 5) return null;
+  const out = [];
+  for (let i = 0; i < Math.min(e.count, want); i++) {
+    const o = e.valueOffset + i * 8;
+    if (o + 8 > dv.byteLength) return null;
+    const num3 = dv.getUint32(o, e.le), den = dv.getUint32(o + 4, e.le);
+    out.push(den ? num3 / den : 0);
+  }
+  return out.length === want ? out : null;
+}
+function round(n2, dp = 1) {
+  return (Math.round(n2 * 10 ** dp) / 10 ** dp).toString();
+}
+function readGps(dv, off, le) {
+  let latRef = null, lonRef = null;
+  let lat = null, lon = null;
+  let alt = null, altRef = 0;
+  for (const e of readIfd(dv, off, le)) {
+    if (e.tag === 1) latRef = asciiVal(dv, e);
+    else if (e.tag === 3) lonRef = asciiVal(dv, e);
+    else if (e.tag === 2) lat = rationals(dv, e, 3);
+    else if (e.tag === 4) lon = rationals(dv, e, 3);
+    else if (e.tag === 5) altRef = dv.getUint8(e.valueOffset);
+    else if (e.tag === 6) {
+      const a = rationals(dv, e, 1);
+      if (a) alt = a[0];
+    }
+  }
+  if (!lat || !lon) return null;
+  const dec = (dms, ref) => {
+    const d = dms[0] + dms[1] / 60 + dms[2] / 3600;
+    return ref === "S" || ref === "W" ? -d : d;
+  };
+  const r = { lat: dec(lat, latRef), lon: dec(lon, lonRef) };
+  if (alt != null) r.alt = altRef === 1 ? -alt : alt;
+  return r;
+}
+function readExif(bytes, base, len2, out) {
+  if (len2 < 8 || base < 0 || base + len2 > bytes.length) return;
+  let dv;
+  try {
+    dv = new DataView(bytes.buffer, bytes.byteOffset + base, len2);
+  } catch {
+    return;
+  }
+  const b0 = dv.getUint8(0), b1 = dv.getUint8(1);
+  let le;
+  if (b0 === 73 && b1 === 73) le = true;
+  else if (b0 === 77 && b1 === 77) le = false;
+  else return;
+  if (dv.getUint16(2, le) !== 42) return;
+  const push = (label, value, group, sensitive = false) => {
+    if (value == null || value === "") return;
+    out.fields.push({ label, value, group, sensitive });
+  };
+  const ifd0 = readIfd(dv, dv.getUint32(4, le), le);
+  const byTag = /* @__PURE__ */ new Map();
+  for (const e of ifd0) byTag.set(e.tag, e);
+  const make = byTag.has(271) ? asciiVal(dv, byTag.get(271)) : null;
+  const model = byTag.has(272) ? asciiVal(dv, byTag.get(272)) : null;
+  push("Camera", [make, model].filter(Boolean).join(" ") || null, "device", true);
+  push("Software", byTag.has(305) ? asciiVal(dv, byTag.get(305)) : null, "software");
+  push("Artist", byTag.has(315) ? asciiVal(dv, byTag.get(315)) : null, "authorship", true);
+  push("Copyright", byTag.has(33432) ? asciiVal(dv, byTag.get(33432)) : null, "authorship");
+  push("Image description", byTag.has(270) ? asciiVal(dv, byTag.get(270)) : null, "description");
+  push("Modified", byTag.has(306) ? asciiVal(dv, byTag.get(306)) : null, "timestamps");
+  if (byTag.has(274)) {
+    const o = scalar(dv, byTag.get(274));
+    if (o != null && ORIENTATION[o]) push("Orientation", ORIENTATION[o], "technical");
+  }
+  const exifPtr = byTag.get(34665);
+  if (exifPtr) {
+    const sub = /* @__PURE__ */ new Map();
+    for (const e of readIfd(dv, scalar(dv, exifPtr) ?? 0, le)) sub.set(e.tag, e);
+    const et = sub.has(33434) ? scalar(dv, sub.get(33434)) : null;
+    if (et != null && et > 0) push("Exposure", et < 1 ? `1/${Math.round(1 / et)} s` : `${round(et)} s`, "capture");
+    const fn = sub.has(33437) ? scalar(dv, sub.get(33437)) : null;
+    if (fn != null && fn > 0) push("Aperture", `f/${round(fn)}`, "capture");
+    const iso = sub.has(34855) ? scalar(dv, sub.get(34855)) : null;
+    if (iso != null && iso > 0) push("ISO", `ISO ${iso}`, "capture");
+    const fl = sub.has(37386) ? scalar(dv, sub.get(37386)) : null;
+    if (fl != null && fl > 0) push("Focal length", `${round(fl)} mm`, "capture");
+    push("Taken", sub.has(36867) ? asciiVal(dv, sub.get(36867)) : null, "timestamps");
+    push("Lens", [
+      sub.has(42035) ? asciiVal(dv, sub.get(42035)) : null,
+      sub.has(42036) ? asciiVal(dv, sub.get(42036)) : null
+    ].filter(Boolean).join(" ") || null, "device");
+    push("Camera serial", sub.has(42033) ? asciiVal(dv, sub.get(42033)) : null, "device", true);
+    const px = sub.has(40962) ? scalar(dv, sub.get(40962)) : null;
+    const py = sub.has(40963) ? scalar(dv, sub.get(40963)) : null;
+    if (px && py) push("Dimensions", `${px} \xD7 ${py} px`, "technical");
+  }
+  const gpsPtr = byTag.get(34853);
+  if (gpsPtr) {
+    const g2 = readGps(dv, scalar(dv, gpsPtr) ?? 0, le);
+    if (g2) {
+      out.gps = { lat: g2.lat, lon: g2.lon };
+      out.mapUrl = `https://www.openstreetmap.org/?mlat=${g2.lat.toFixed(6)}&mlon=${g2.lon.toFixed(6)}#map=15/${g2.lat.toFixed(5)}/${g2.lon.toFixed(5)}`;
+      push("Coordinates", `${g2.lat.toFixed(6)}, ${g2.lon.toFixed(6)}`, "location", true);
+      if (g2.alt != null) push("Altitude", `${round(g2.alt)} m`, "location", true);
+    }
+  }
+}
+function readXmp(text, out) {
+  const grab = (re) => {
+    const m = re.exec(text);
+    if (!m) return null;
+    const t = clip((m[1] || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim());
+    return t || null;
+  };
+  const tool = grab(/xmp:CreatorTool>\s*([\s\S]*?)<\/xmp:CreatorTool>/i) || grab(/xmp:CreatorTool=["']([^"']+)["']/i);
+  if (tool && !out.fields.some((f) => f.group === "software" && f.value === tool)) {
+    out.fields.push({ label: "Created with", value: tool, group: "software" });
+  }
+  const creator = grab(/<dc:creator>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i) || grab(/<dc:creator>([\s\S]*?)<\/dc:creator>/i);
+  if (creator) out.fields.push({ label: "Creator", value: creator, group: "authorship", sensitive: true });
+  const rights = grab(/<dc:rights>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i) || grab(/<dc:rights>([\s\S]*?)<\/dc:rights>/i);
+  if (rights) out.fields.push({ label: "Rights", value: rights, group: "authorship" });
+  const credit = grab(/[\w-]+:Credit>\s*([\s\S]*?)<\/[\w-]+:Credit>/i) || grab(/[\w-]+:Credit\s*=\s*["']([^"']+)["']/i);
+  if (credit && !out.fields.some((f) => f.label === "Credit")) {
+    out.fields.push({ label: "Credit", value: credit, group: "authorship" });
+  }
+  const dst = grab(/[\w-]+:DigitalSourceType\s*>\s*([^<\s]+?)\s*</i) || grab(/[\w-]+:DigitalSourceType\s*=\s*["']([^"']+)["']/i);
+  if (dst) {
+    const slug = dst.split("/").pop() ?? dst;
+    if (!out.fields.some((f) => f.label === "Digital source type")) {
+      out.fields.push({ label: "Digital source type", value: slug, group: "software" });
+    }
+    const kind = aiKind(dst);
+    if (kind && (!out.ai || kind === "generated" && out.ai.kind === "composite")) {
+      out.ai = { kind, sourceType: dst, credit: credit ?? out.ai?.credit };
+    }
+  }
+  if (out.ai && !out.ai.credit && credit) out.ai.credit = credit;
+}
+function sniffAppended(b, off) {
+  const at = (o, s) => matchAscii(b, off + o, s);
+  if (at(0, "PK") || at(0, "PK")) return "zip archive";
+  if (b[off] === 31 && b[off + 1] === 139) return "gzip data";
+  if (at(0, "Rar!")) return "RAR archive";
+  if (at(0, "%PDF")) return "PDF document";
+  if (at(4, "ftyp")) return "video (motion photo)";
+  if (b[off] === 255 && b[off + 1] === 216) return "JPEG image";
+  if (b[off] === 137 && at(1, "PNG")) return "PNG image";
+  if (at(0, "GIF8")) return "GIF image";
+  if (at(0, "MZ")) return "Windows executable";
+  if (b[off] === 127 && at(1, "ELF")) return "ELF executable";
+  let printable = 0;
+  const scan = Math.min(256, b.length - off);
+  for (let i = 0; i < scan; i++) {
+    const c = b[off + i];
+    if (c === 9 || c === 10 || c === 13 || c >= 32 && c < 127) printable++;
+  }
+  return scan > 0 && printable / scan > 0.9 ? "text" : "binary data";
+}
+function fmtBytes(n2) {
+  if (n2 < 1024) return `${n2} B`;
+  if (n2 < 1024 * 1024) return `${Math.round(n2 / 1024)} KB`;
+  return `${(n2 / 1024 / 1024).toFixed(1)} MB`;
+}
+function noteAppended(bytes, off, out) {
+  const len2 = bytes.length - off;
+  if (len2 <= 0) return;
+  const kind = sniffAppended(bytes, off);
+  out.appended = { bytes: len2, kind };
+  out.fields.push({
+    label: "Appended data",
+    value: `${kind} \u2014 ${fmtBytes(len2)} after the image ends`,
+    group: "technical",
+    sensitive: kind !== "video (motion photo)"
+  });
+}
+function jpegEnd(bytes, scanStart) {
+  let q = scanStart;
+  while (q + 1 < bytes.length) {
+    if (bytes[q] !== 255) {
+      q++;
+      continue;
+    }
+    const m = bytes[q + 1];
+    if (m === 255) {
+      q++;
+      continue;
+    }
+    if (m === 0 || m >= 208 && m <= 215) {
+      q += 2;
+      continue;
+    }
+    if (m === 217) return q + 2;
+    if (m === 1) {
+      q += 2;
+      continue;
+    }
+    if (q + 4 > bytes.length) return null;
+    const len2 = bytes[q + 2] << 8 | bytes[q + 3];
+    if (len2 < 2) return null;
+    q += 2 + len2;
+  }
+  return null;
+}
+function readJpeg(bytes, out) {
+  let p = 2;
+  let xmp = "";
+  while (p + 4 <= bytes.length && out.fields.length < MAX_FIELDS) {
+    if (bytes[p] !== 255) break;
+    let marker = bytes[p + 1];
+    while (marker === 255 && p + 2 < bytes.length) {
+      p++;
+      marker = bytes[p + 1];
+    }
+    if (marker === 218 || marker === 217) {
+      const end = marker === 217 ? p + 2 : p + 4 <= bytes.length ? jpegEnd(bytes, p + 2 + (bytes[p + 2] << 8 | bytes[p + 3])) : null;
+      if (end != null) noteAppended(bytes, end, out);
+      break;
+    }
+    if (marker >= 208 && marker <= 215 || marker === 1) {
+      p += 2;
+      continue;
+    }
+    const len2 = bytes[p + 2] << 8 | bytes[p + 3];
+    if (len2 < 2 || p + 2 + len2 > bytes.length) break;
+    const dataStart = p + 4, dataLen = len2 - 2;
+    if (marker === 225) {
+      if (matchAscii(bytes, dataStart, "Exif\0\0")) readExif(bytes, dataStart + 6, dataLen - 6, out);
+      else if (matchAscii(bytes, dataStart, "http://ns.adobe.com/xap/") && xmp.length < MAX_TEXT_SCAN) {
+        xmp += new TextDecoder("utf-8").decode(bytes.subarray(dataStart, dataStart + dataLen));
+      }
+    } else if (marker === 226 && matchAscii(bytes, dataStart, "ICC_PROFILE\0")) {
+      if (!out.fields.some((f) => f.label === "ICC colour profile")) {
+        out.fields.push({ label: "ICC colour profile", value: "embedded profile", group: "technical" });
+      }
+    } else if (marker === 237) {
+      out.fields.push({ label: "IPTC / Photoshop", value: "caption & author data", group: "authorship" });
+    } else if (marker === 254) {
+      const c = clip(new TextDecoder("utf-8").decode(bytes.subarray(dataStart, dataStart + dataLen)).trim());
+      if (c) out.fields.push({ label: "Comment", value: c, group: "description" });
+    }
+    p += 2 + len2;
+  }
+  if (xmp) readXmp(xmp, out);
+}
+function pngText(bytes, start, len2, kind, out) {
+  let nul = start;
+  const end = start + len2;
+  while (nul < end && bytes[nul] !== 0) nul++;
+  if (nul >= end) return;
+  const keyword = new TextDecoder("latin1").decode(bytes.subarray(start, nul));
+  let textStart = nul + 1;
+  if (kind === "iTXt") {
+    const compressed = bytes[textStart] === 1;
+    textStart += 2;
+    let z = textStart;
+    while (z < end && bytes[z] !== 0) z++;
+    textStart = z + 1;
+    z = textStart;
+    while (z < end && bytes[z] !== 0) z++;
+    textStart = z + 1;
+    if (compressed) {
+      out.fields.push({ label: keyword || "Text", value: "compressed text chunk", group: "description" });
+      return;
+    }
+  }
+  if (textStart >= end) return;
+  if (keyword === "XML:com.adobe.xmp") {
+    const packetEnd = Math.min(end, textStart + MAX_TEXT_SCAN);
+    readXmp(new TextDecoder("utf-8").decode(bytes.subarray(textStart, packetEnd)), out);
+    return;
+  }
+  const value = clip(new TextDecoder(kind === "iTXt" ? "utf-8" : "latin1").decode(bytes.subarray(textStart, Math.min(end, textStart + MAX_VALUE_CHARS * 4))).trim());
+  if (!value) return;
+  const m = PNG_KEYWORD_GROUP[keyword] ?? { group: "description" };
+  out.fields.push({ label: keyword || "Text", value, group: m.group, sensitive: m.sensitive });
+}
+function readPng(bytes, out) {
+  let p = 8;
+  while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
+    const len2 = (bytes[p] << 24 | bytes[p + 1] << 16 | bytes[p + 2] << 8 | bytes[p + 3]) >>> 0;
+    const type = String.fromCharCode(bytes[p + 4], bytes[p + 5], bytes[p + 6], bytes[p + 7]);
+    const dataStart = p + 8;
+    const end = dataStart + len2;
+    if (end + 4 > bytes.length && type !== "IEND") break;
+    if (type === "eXIf") readExif(bytes, dataStart, len2, out);
+    else if (type === "tEXt") pngText(bytes, dataStart, len2, "tEXt", out);
+    else if (type === "iTXt") pngText(bytes, dataStart, len2, "iTXt", out);
+    else if (type === "zTXt") out.fields.push({ label: "Compressed text", value: "zTXt chunk", group: "description" });
+    else if (type === "tIME") out.fields.push({ label: "Last modified", value: "embedded timestamp", group: "timestamps" });
+    p = end + 4;
+    if (type === "IEND") {
+      noteAppended(bytes, p, out);
+      break;
+    }
+  }
+}
+function readWebp(bytes, out) {
+  let p = 12;
+  while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
+    const fourcc2 = String.fromCharCode(bytes[p], bytes[p + 1], bytes[p + 2], bytes[p + 3]);
+    const size = (bytes[p + 4] | bytes[p + 5] << 8 | bytes[p + 6] << 16 | bytes[p + 7] * 16777216) >>> 0;
+    const dataStart = p + 8;
+    if (dataStart + size > bytes.length) break;
+    if (fourcc2 === "EXIF") {
+      const off = matchAscii(bytes, dataStart, "Exif\0\0") ? dataStart + 6 : dataStart;
+      readExif(bytes, off, dataStart + size - off, out);
+    } else if (fourcc2 === "XMP ") {
+      readXmp(new TextDecoder("utf-8").decode(bytes.subarray(dataStart, dataStart + size)), out);
+    }
+    p = dataStart + size + (size & 1);
+  }
+}
+function readBmff(bytes, out) {
+  let p = 0;
+  while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
+    let size = (bytes[p] << 24 | bytes[p + 1] << 16 | bytes[p + 2] << 8 | bytes[p + 3]) >>> 0;
+    const type = String.fromCharCode(bytes[p + 4], bytes[p + 5], bytes[p + 6], bytes[p + 7]);
+    let header = 8;
+    if (size === 1) {
+      if (p + 16 > bytes.length) return;
+      size = ((bytes[p + 8] << 24 | bytes[p + 9] << 16 | bytes[p + 10] << 8 | bytes[p + 11]) >>> 0) * 4294967296 + ((bytes[p + 12] << 24 | bytes[p + 13] << 16 | bytes[p + 14] << 8 | bytes[p + 15]) >>> 0);
+      header = 16;
+    } else if (size === 0) {
+      size = bytes.length - p;
+    }
+    if (size < header || size > bytes.length - p) return;
+    if (type === "uuid" && size >= header + 16 && XMP_BOX_UUID.every((v, i) => bytes[p + header + i] === v)) {
+      const start = p + header + 16;
+      const end = Math.min(p + size, start + MAX_TEXT_SCAN);
+      readXmp(new TextDecoder("utf-8").decode(bytes.subarray(start, end)), out);
+    }
+    p += size;
+  }
+}
+function readSvg(bytes, out) {
+  const text = new TextDecoder("utf-8").decode(bytes.length > MAX_TEXT_SCAN ? bytes.subarray(0, MAX_TEXT_SCAN) : bytes);
+  const clean2 = (s) => s ? clip(s.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()) || null : null;
+  let editor = null;
+  const gen = /<!--[^>]*Generator:\s*([^\n]*?)(?:-->|SVG (?:Export|Version))/i.exec(text);
+  if (gen) editor = clean2(gen[1])?.replace(/[,;]\s*$/, "") ?? null;
+  const ink = /inkscape:version=["']([^"']+)["']/i.exec(text);
+  if (!editor && ink) editor = `Inkscape ${(ink[1] || "").split(" ")[0]}`;
+  if (!editor && /xmlns:sketch=/i.test(text)) editor = "Sketch";
+  if (!editor && /xmlns:figma=/i.test(text)) editor = "Figma";
+  if (editor) out.fields.push({ label: "Created with", value: editor, group: "software", sensitive: true });
+  const doc = /sodipodi:docname=["']([^"']+)["']/i.exec(text);
+  if (doc) out.fields.push({ label: "Original filename", value: doc[1], group: "description", sensitive: true });
+  const title = clean2(/<title[^>]*>([\s\S]*?)<\/title>/i.exec(text)?.[1]);
+  if (title) out.fields.push({ label: "Title", value: title, group: "description" });
+  const desc = clean2(/<desc[^>]*>([\s\S]*?)<\/desc>/i.exec(text)?.[1]);
+  if (desc) out.fields.push({ label: "Description", value: desc, group: "description" });
+  readXmp(text, out);
+  if (/[A-Za-z]:\\|\/Users\/|\/home\//.test(text)) {
+    out.fields.push({ label: "Local file path", value: "a path is embedded in a comment", group: "description", sensitive: true });
+  }
+  const imgs = (text.match(/(?:href|xlink:href)\s*=\s*["']data:image\//gi) || []).length;
+  if (imgs) out.fields.push({ label: "Embedded images", value: `${imgs} image${imgs > 1 ? "s" : ""}`, group: "technical" });
+}
+function extractFileMetadata(bytes) {
+  const out = { format: "", fields: [] };
+  try {
+    out.format = sniff(bytes);
+    switch (out.format) {
+      case "JPEG":
+        readJpeg(bytes, out);
+        break;
+      case "PNG":
+        readPng(bytes, out);
+        break;
+      case "WebP":
+        readWebp(bytes, out);
+        break;
+      case "TIFF":
+        readExif(bytes, 0, bytes.length, out);
+        break;
+      case "SVG":
+        readSvg(bytes, out);
+        break;
+      case "MP4":
+      case "QuickTime":
+        readBmff(bytes, out);
+        break;
+    }
+  } catch {
+  }
+  return out;
+}
+var MAX_FIELDS, MAX_VALUE_CHARS, MAX_TEXT_SCAN, TYPE_SIZE, ORIENTATION, PNG_KEYWORD_GROUP, XMP_BOX_UUID;
+var init_file_metadata = __esm({
+  "engine/src/file-metadata.ts"() {
+    "use strict";
+    init_c2pa_verify();
+    MAX_FIELDS = 64;
+    MAX_VALUE_CHARS = 2048;
+    MAX_TEXT_SCAN = 16 * 1024 * 1024;
+    TYPE_SIZE = { 1: 1, 2: 1, 3: 2, 4: 4, 5: 8, 7: 1, 9: 4, 10: 8 };
+    ORIENTATION = {
+      1: "Normal",
+      2: "Mirrored horizontally",
+      3: "Rotated 180\xB0",
+      4: "Mirrored vertically",
+      5: "Mirrored + rotated 270\xB0 CW",
+      6: "Rotated 90\xB0 CW",
+      7: "Mirrored + rotated 90\xB0 CW",
+      8: "Rotated 270\xB0 CW"
+    };
+    PNG_KEYWORD_GROUP = {
+      Software: { group: "software" },
+      Author: { group: "authorship", sensitive: true },
+      Artist: { group: "authorship", sensitive: true },
+      Copyright: { group: "authorship" },
+      Title: { group: "description" },
+      Description: { group: "description" },
+      Comment: { group: "description" },
+      Source: { group: "software" },
+      "Creation Time": { group: "timestamps" }
+    };
+    XMP_BOX_UUID = [190, 122, 207, 203, 151, 169, 66, 232, 156, 113, 153, 148, 145, 227, 175, 172];
+  }
+});
+
 // engine/src/color.ts
 function rgbToCmyk(r, g2, b) {
   const k = 1 - Math.max(r, g2, b);
@@ -5996,6 +7449,2238 @@ var init_dxf = __esm({
   }
 });
 
+// engine/src/pptx-patch.ts
+function xmlDecode(s) {
+  return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#x?[0-9A-Fa-f]+;/g, (m) => {
+    const hex = /^&#x/i.test(m);
+    const code = Number.parseInt(m.slice(hex ? 3 : 2, -1), hex ? 16 : 10);
+    return Number.isFinite(code) && code > 0 && code <= 1114111 ? String.fromCodePoint(code) : m;
+  }).replace(/&amp;/g, "&");
+}
+function xmlEncode(s) {
+  return s.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function hexNorm(v) {
+  const h = v.replace("#", "").replace(/[^0-9A-Fa-f]/g, "").slice(0, 6).toUpperCase();
+  return h.length === 6 ? h : h.padStart(6, "0");
+}
+function rewriteTagAttr(xml, qname, attr, map) {
+  let count = 0;
+  const tagRe = new RegExp(`<${reEsc(qname)}(?=[\\s/>])[^>]*>`, "g");
+  const attrRe = new RegExp(`(\\s${reEsc(attr)}=")([^"]*)(")`);
+  const text = xml.replace(tagRe, (tag) => {
+    let changed = false;
+    const out = tag.replace(attrRe, (whole, pre, val, post) => {
+      const nv = map(val);
+      if (nv === void 0 || nv === val) return whole;
+      changed = true;
+      return pre + nv + post;
+    });
+    if (changed) count++;
+    return out;
+  });
+  return { text, count };
+}
+function setThemeSlot(xml, slot, hex) {
+  const re = new RegExp(`<a:${reEsc(slot)}(?=[\\s>])[^>]*>[\\s\\S]*?</a:${reEsc(slot)}>`);
+  const replacement = `<a:${slot}><a:srgbClr val="${hex}"/></a:${slot}>`;
+  let changed = false;
+  const text = xml.replace(re, (m) => {
+    if (m === replacement) return m;
+    changed = true;
+    return replacement;
+  });
+  return { text, changed };
+}
+function setSchemeFont(xml, which, face) {
+  const enc = xmlEncode(face);
+  const re = new RegExp(`(<a:${which}Font>\\s*<a:latin(?=[\\s/>])[^>]*?\\stypeface=")([^"]*)(")`);
+  let changed = false;
+  const text = xml.replace(re, (whole, pre, val, post) => {
+    if (val === enc) return whole;
+    changed = true;
+    return pre + enc + post;
+  });
+  return { text, changed };
+}
+function patchTheme(xml, theme) {
+  let text = xml;
+  let changed = false;
+  for (const slot of SLOT_ORDER) {
+    const v = theme[slot];
+    if (!v) continue;
+    const r = setThemeSlot(text, slot, hexNorm(v));
+    text = r.text;
+    changed = changed || r.changed;
+  }
+  if (theme.majorFont) {
+    const r = setSchemeFont(text, "major", theme.majorFont);
+    text = r.text;
+    changed = changed || r.changed;
+  }
+  if (theme.minorFont) {
+    const r = setSchemeFont(text, "minor", theme.minorFont);
+    text = r.text;
+    changed = changed || r.changed;
+  }
+  return { text, changed };
+}
+function remapColors(xml, colorMap) {
+  const lookup = (raw) => {
+    const key = hexNorm(raw);
+    const to = colorMap.get(key);
+    return to === void 0 ? void 0 : hexNorm(to);
+  };
+  const a = rewriteTagAttr(xml, "a:srgbClr", "val", lookup);
+  const b = rewriteTagAttr(a.text, "a:sysClr", "lastClr", lookup);
+  return { text: b.text, count: a.count + b.count };
+}
+function remapFonts(xml, fontMap) {
+  const lookup = (raw) => {
+    const to = fontMap.get(xmlDecode(raw));
+    return to === void 0 ? void 0 : xmlEncode(to);
+  };
+  let text = xml;
+  let count = 0;
+  for (const q of ["a:latin", "a:ea", "a:cs"]) {
+    const r = rewriteTagAttr(text, q, "typeface", lookup);
+    text = r.text;
+    count += r.count;
+  }
+  return { text, count };
+}
+function stripEmbeddedFontLst(xml) {
+  return xml.replace(/<p:embeddedFontLst(?=[\s>])[^>]*>[\s\S]*?<\/p:embeddedFontLst>/g, "").replace(/<p:embeddedFontLst\s*\/>/g, "");
+}
+function stripFontRels(xml) {
+  return xml.replace(
+    /<Relationship(?=[\s/>])[^>]*\/>/g,
+    (rel) => /Type="[^"]*\/font"/.test(rel) || /Target="[^"]*\.fntdata"/i.test(rel) ? "" : rel
+  );
+}
+function stripFntDataDefault(xml) {
+  return xml.replace(/<Default(?=[\s/>])[^>]*Extension="fntdata"[^>]*\/>/gi, "");
+}
+function rebrandPptxParts(parts, plan = {}) {
+  const out = {};
+  const report = {
+    themesPatched: 0,
+    colorsRemapped: 0,
+    fontsRemapped: 0,
+    embeddedFontsStripped: 0,
+    slidesTouched: []
+  };
+  const theme = plan.theme;
+  const colorMap = plan.colorMap && plan.colorMap.size ? plan.colorMap : void 0;
+  const fontMap = plan.fontMap && plan.fontMap.size ? plan.fontMap : void 0;
+  const drop = plan.dropEmbeddedFonts === true;
+  for (const [path, value] of Object.entries(parts)) {
+    const p = norm(path);
+    if (drop && isFntData(p)) {
+      report.embeddedFontsStripped++;
+      continue;
+    }
+    const inScope = theme && isTheme(p) || colorMap && isColorRemapPart(p) || fontMap && isFontRemapPart(p) || drop && (isPresentation(p) || isPresentationRels(p) || isContentTypes(p));
+    if (!inScope) {
+      out[path] = value;
+      continue;
+    }
+    const original = typeof value === "string" ? value : DEC.decode(value);
+    if (original.length > MAX_PART_CHARS) {
+      out[path] = value;
+      continue;
+    }
+    let text = original;
+    if (theme && isTheme(p)) {
+      const r = patchTheme(text, theme);
+      text = r.text;
+      if (r.changed) report.themesPatched++;
+    }
+    if (colorMap && isColorRemapPart(p)) {
+      const r = remapColors(text, colorMap);
+      text = r.text;
+      report.colorsRemapped += r.count;
+    }
+    if (fontMap && isFontRemapPart(p)) {
+      const r = remapFonts(text, fontMap);
+      text = r.text;
+      report.fontsRemapped += r.count;
+    }
+    if (drop && isPresentation(p)) text = stripEmbeddedFontLst(text);
+    if (drop && isPresentationRels(p)) text = stripFontRels(text);
+    if (drop && isContentTypes(p)) text = stripFntDataDefault(text);
+    if (text === original) {
+      out[path] = value;
+      continue;
+    }
+    if (isSlide(p)) report.slidesTouched.push(path);
+    out[path] = typeof value === "string" ? text : ENC.encode(text);
+  }
+  return { parts: out, report };
+}
+var MAX_PART_CHARS, DEC, ENC, SLOT_ORDER, norm, isTheme, isSlide, isLayout, isMaster, isChart, isDiagramColors, isPresentation, isTableStyles, isPresentationRels, isContentTypes, isFntData, isColorRemapPart, isFontRemapPart, reEsc;
+var init_pptx_patch = __esm({
+  "engine/src/pptx-patch.ts"() {
+    "use strict";
+    MAX_PART_CHARS = 32 * 1024 * 1024;
+    DEC = new TextDecoder("utf-8", { fatal: false });
+    ENC = new TextEncoder();
+    SLOT_ORDER = [
+      "dk1",
+      "lt1",
+      "dk2",
+      "lt2",
+      "accent1",
+      "accent2",
+      "accent3",
+      "accent4",
+      "accent5",
+      "accent6",
+      "hlink",
+      "folHlink"
+    ];
+    norm = (p) => p.replace(/^\/+/, "").toLowerCase();
+    isTheme = (p) => /^ppt\/theme\/theme[^/]*\.xml$/.test(p);
+    isSlide = (p) => /^ppt\/slides\/slide[^/]*\.xml$/.test(p);
+    isLayout = (p) => /^ppt\/slidelayouts\/slidelayout[^/]*\.xml$/.test(p);
+    isMaster = (p) => /^ppt\/slidemasters\/slidemaster[^/]*\.xml$/.test(p);
+    isChart = (p) => /^ppt\/charts\/chart[^/]*\.xml$/.test(p);
+    isDiagramColors = (p) => /^ppt\/diagrams\/[^/]*colors[^/]*\.xml$/.test(p);
+    isPresentation = (p) => p === "ppt/presentation.xml";
+    isTableStyles = (p) => p === "ppt/tablestyles.xml";
+    isPresentationRels = (p) => p === "ppt/_rels/presentation.xml.rels";
+    isContentTypes = (p) => p === "[content_types].xml";
+    isFntData = (p) => /^ppt\/fonts\/[^/]*\.fntdata$/.test(p);
+    isColorRemapPart = (p) => isSlide(p) || isLayout(p) || isMaster(p) || isChart(p) || isDiagramColors(p);
+    isFontRemapPart = (p) => isSlide(p) || isLayout(p) || isMaster(p) || isChart(p) || isPresentation(p) || isTableStyles(p);
+    reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+});
+
+// engine/src/pptx-read.ts
+function localName(nodeName, localHint) {
+  const raw = localHint || nodeName || "";
+  const i = raw.indexOf(":");
+  return i >= 0 ? raw.slice(i + 1) : raw;
+}
+function elemLocal(el) {
+  return localName(el.nodeName, el.localName ?? null);
+}
+function isElement(n2) {
+  return n2 != null && n2.nodeType === ELEMENT_NODE;
+}
+function childElements(el) {
+  const out = [];
+  const kids = el.childNodes;
+  for (let i = 0; i < kids.length; i++) {
+    const n2 = kids[i];
+    if (isElement(n2)) out.push(n2);
+  }
+  return out;
+}
+function firstChildByLocal(el, local) {
+  const kids = el.childNodes;
+  for (let i = 0; i < kids.length; i++) {
+    const n2 = kids[i];
+    if (isElement(n2) && elemLocal(n2) === local) return n2;
+  }
+  return null;
+}
+function childrenByLocal(el, local) {
+  return childElements(el).filter((c) => elemLocal(c) === local);
+}
+function descendantByLocal(root, local) {
+  let visits = 0;
+  const stack = [root];
+  while (stack.length) {
+    const el = stack.pop();
+    if (++visits > MAX_DFS_VISITS) return null;
+    if (el !== root && elemLocal(el) === local) return el;
+    const kids = el.childNodes;
+    for (let i = kids.length - 1; i >= 0; i--) {
+      const n2 = kids[i];
+      if (isElement(n2)) stack.push(n2);
+    }
+  }
+  return null;
+}
+function attrByLocal(el, local) {
+  const direct = el.getAttribute(local);
+  if (direct != null) return direct;
+  const attrs = el.attributes;
+  if (!attrs) return null;
+  for (let i = 0; i < attrs.length; i++) {
+    const a = attrs[i];
+    if (localName(a.name, a.localName ?? null) === local) return a.value;
+  }
+  return null;
+}
+function textOf(el) {
+  if (!el) return "";
+  const t = el.textContent ?? "";
+  return t.length > MAX_TEXT_LEN ? t.slice(0, MAX_TEXT_LEN) : t;
+}
+function toInt(v, def = 0) {
+  if (v == null) return def;
+  const n2 = Number.parseInt(v, 10);
+  if (!Number.isFinite(n2)) return def;
+  return Math.max(-MAX_COORD, Math.min(MAX_COORD, n2));
+}
+function truthy(v) {
+  return v === "1" || v === "true" || v === "on";
+}
+function normHex2(v) {
+  if (!v) return void 0;
+  const hex = v.replace(/[^0-9a-fA-F]/g, "").toUpperCase();
+  if (hex.length < 6) return void 0;
+  return hex.slice(0, 6);
+}
+function makeStore(parts) {
+  const lower = /* @__PURE__ */ new Map();
+  const keys = [];
+  for (const k of Object.keys(parts)) {
+    keys.push(k);
+    if (!lower.has(k.toLowerCase())) lower.set(k.toLowerCase(), k);
+  }
+  const decode = (raw) => {
+    if (typeof raw === "string") return raw.length > MAX_PART_CHARS2 ? null : raw;
+    if (raw.byteLength > MAX_PART_BYTES) return null;
+    try {
+      return new TextDecoder("utf-8").decode(raw);
+    } catch {
+      return null;
+    }
+  };
+  return {
+    keys: () => keys,
+    get(path) {
+      let raw = parts[path];
+      if (raw === void 0) {
+        const real = lower.get(path.toLowerCase());
+        if (real === void 0) return null;
+        raw = parts[real];
+      }
+      if (raw === void 0) return null;
+      return decode(raw);
+    }
+  };
+}
+function parsePart(store, path, parseXml) {
+  const xml = store.get(path);
+  if (xml == null || xml.length === 0) return null;
+  let doc;
+  try {
+    doc = parseXml(xml);
+  } catch {
+    return null;
+  }
+  const root = doc?.documentElement;
+  if (!root) return null;
+  if (elemLocal(root) === "parsererror") return null;
+  return doc;
+}
+function dirOf(path) {
+  const i = path.lastIndexOf("/");
+  return i < 0 ? "" : path.slice(0, i);
+}
+function baseOf(path) {
+  const i = path.lastIndexOf("/");
+  return i < 0 ? path : path.slice(i + 1);
+}
+function resolveTarget(baseDir, target) {
+  if (!target) return target;
+  if (target.startsWith("/")) return target.slice(1);
+  const segs = (baseDir ? baseDir.split("/") : []).concat(target.split("/"));
+  const out = [];
+  for (const s of segs) {
+    if (s === "" || s === ".") continue;
+    if (s === "..") out.pop();
+    else out.push(s);
+  }
+  return out.join("/");
+}
+function relsPathFor(partPath) {
+  const dir = dirOf(partPath);
+  const base = baseOf(partPath);
+  return (dir ? `${dir}/` : "") + `_rels/${base}.rels`;
+}
+function parseRels(store, partPath, parseXml) {
+  const doc = parsePart(store, relsPathFor(partPath), parseXml);
+  if (!doc?.documentElement) return [];
+  const baseDir = dirOf(partPath);
+  const out = [];
+  for (const rel of childElements(doc.documentElement)) {
+    if (elemLocal(rel) !== "Relationship") continue;
+    const id = attrByLocal(rel, "Id") || "";
+    const type = attrByLocal(rel, "Type") || "";
+    const target = attrByLocal(rel, "Target") || "";
+    const mode = attrByLocal(rel, "TargetMode") || "";
+    const external = mode.toLowerCase() === "external";
+    out.push({ id, type, external, target: external ? target : resolveTarget(baseDir, target) });
+    if (out.length > 1e5) break;
+  }
+  return out;
+}
+function schemeSlotToThemeKey(slot) {
+  switch (slot) {
+    case "bg1":
+      return "lt1";
+    case "tx1":
+      return "dk1";
+    case "bg2":
+      return "lt2";
+    case "tx2":
+      return "dk2";
+    default:
+      return slot;
+  }
+}
+function resolveScheme(slot, theme) {
+  const hex = theme.colors[schemeSlotToThemeKey(slot)];
+  return hex ? { scheme: slot, hex } : { scheme: slot };
+}
+function readColor(container, theme) {
+  if (!container) return void 0;
+  for (const c of childElements(container)) {
+    const ln = elemLocal(c);
+    if (ln === "srgbClr") {
+      const hex = normHex2(attrByLocal(c, "val"));
+      if (hex) return { hex };
+    } else if (ln === "schemeClr") {
+      const slot = attrByLocal(c, "val");
+      if (slot) return resolveScheme(slot, theme);
+    } else if (ln === "sysClr") {
+      const hex = normHex2(attrByLocal(c, "lastClr") || attrByLocal(c, "val"));
+      if (hex) return { hex };
+    }
+  }
+  return void 0;
+}
+function pickThemePart(store) {
+  if (store.get("ppt/theme/theme1.xml") != null) return "ppt/theme/theme1.xml";
+  const themes = store.keys().filter((k) => /^ppt\/theme\/theme\d+\.xml$/i.test(k)).sort();
+  return themes[0] ?? null;
+}
+function readTheme(store, parseXml) {
+  const theme = { colors: {} };
+  const path = pickThemePart(store);
+  if (!path) return theme;
+  const doc = parsePart(store, path, parseXml);
+  if (!doc?.documentElement) return theme;
+  const root = doc.documentElement;
+  const clrScheme = descendantByLocal(root, "clrScheme");
+  if (clrScheme) {
+    for (const slotEl of childElements(clrScheme)) {
+      const slot = elemLocal(slotEl);
+      if (!THEME_SLOTS.includes(slot)) continue;
+      for (const c of childElements(slotEl)) {
+        const ln = elemLocal(c);
+        const hex = ln === "srgbClr" ? normHex2(attrByLocal(c, "val")) : ln === "sysClr" ? normHex2(attrByLocal(c, "lastClr") || attrByLocal(c, "val")) : void 0;
+        if (hex) {
+          theme.colors[slot] = hex;
+          break;
+        }
+      }
+    }
+  }
+  const fontScheme = descendantByLocal(root, "fontScheme");
+  if (fontScheme) {
+    const major = firstChildByLocal(fontScheme, "majorFont");
+    const minor = firstChildByLocal(fontScheme, "minorFont");
+    const majorLatin = major ? firstChildByLocal(major, "latin") : null;
+    const minorLatin = minor ? firstChildByLocal(minor, "latin") : null;
+    const mj = majorLatin ? attrByLocal(majorLatin, "typeface") : null;
+    const mn = minorLatin ? attrByLocal(minorLatin, "typeface") : null;
+    if (mj) theme.majorFont = mj;
+    if (mn) theme.minorFont = mn;
+  }
+  return theme;
+}
+function readXfrm(container) {
+  const box2 = { xEmu: 0, yEmu: 0, cxEmu: 0, cyEmu: 0 };
+  if (!container) return box2;
+  const xfrm = firstChildByLocal(container, "xfrm");
+  if (!xfrm) return box2;
+  const off = firstChildByLocal(xfrm, "off");
+  const ext = firstChildByLocal(xfrm, "ext");
+  if (off) {
+    box2.xEmu = toInt(attrByLocal(off, "x"));
+    box2.yEmu = toInt(attrByLocal(off, "y"));
+  }
+  if (ext) {
+    box2.cxEmu = toInt(attrByLocal(ext, "cx"));
+    box2.cyEmu = toInt(attrByLocal(ext, "cy"));
+  }
+  const rot = attrByLocal(xfrm, "rot");
+  if (rot) {
+    const deg = toInt(rot) / 6e4;
+    if (deg) box2.rot = deg;
+  }
+  return box2;
+}
+function readRun(r, theme) {
+  const t = firstChildByLocal(r, "t");
+  const text = textOf(t);
+  const rPr = firstChildByLocal(r, "rPr");
+  const run = { text };
+  if (rPr) {
+    if (truthy(attrByLocal(rPr, "b"))) run.bold = true;
+    if (truthy(attrByLocal(rPr, "i"))) run.italic = true;
+    const u = attrByLocal(rPr, "u");
+    if (u && u !== "none") run.underline = true;
+    const sz = attrByLocal(rPr, "sz");
+    if (sz) {
+      const pt = toInt(sz) / 100;
+      if (pt > 0) run.sizePt = pt;
+    }
+    const latin = firstChildByLocal(rPr, "latin");
+    const face = latin ? attrByLocal(latin, "typeface") : null;
+    if (face) run.font = face;
+    const color = readColor(firstChildByLocal(rPr, "solidFill"), theme);
+    if (color) run.color = color;
+  }
+  if (text.length > 0 || run.bold || run.italic || run.underline || run.sizePt || run.color || run.font) return run;
+  return null;
+}
+function readTxBody(txBody, theme) {
+  const paras = [];
+  if (!txBody) return paras;
+  const pEls = childrenByLocal(txBody, "p");
+  for (const pEl of pEls) {
+    if (paras.length >= MAX_PARAS) break;
+    const runs = [];
+    for (const child of childElements(pEl)) {
+      if (runs.length >= MAX_RUNS_PER_PARA) break;
+      const ln = elemLocal(child);
+      if (ln === "r") {
+        const run = readRun(child, theme);
+        if (run) runs.push(run);
+      } else if (ln === "br") {
+        runs.push({ text: "\n" });
+      } else if (ln === "fld") {
+        const text = textOf(firstChildByLocal(child, "t"));
+        if (text) runs.push({ text });
+      }
+    }
+    paras.push({ runs });
+  }
+  return paras;
+}
+function paraHasText(paras) {
+  for (const p of paras) for (const r of p.runs) if (r.text.trim().length > 0) return true;
+  return false;
+}
+function readSp(sp, theme) {
+  const spPr = firstChildByLocal(sp, "spPr");
+  const box2 = readXfrm(spPr);
+  let geom;
+  let fill;
+  let line;
+  if (spPr) {
+    const prstGeom = firstChildByLocal(spPr, "prstGeom");
+    geom = prstGeom && attrByLocal(prstGeom, "prst") || void 0;
+    fill = readColor(firstChildByLocal(spPr, "solidFill"), theme);
+    const ln = firstChildByLocal(spPr, "ln");
+    if (ln) line = readColor(firstChildByLocal(ln, "solidFill"), theme);
+  }
+  const paras = readTxBody(firstChildByLocal(sp, "txBody"), theme);
+  if (paraHasText(paras)) {
+    const node2 = { type: "text", ...box2, paras };
+    if (geom) node2.geom = geom;
+    if (fill) node2.fill = fill;
+    return node2;
+  }
+  const node = { type: "shape", ...box2 };
+  if (geom) node.geom = geom;
+  if (fill) node.fill = fill;
+  if (line) node.line = line;
+  return node;
+}
+function readPic(pic, slideRelsById) {
+  const spPr = firstChildByLocal(pic, "spPr");
+  const box2 = readXfrm(spPr);
+  const node = { type: "pic", ...box2 };
+  const blipFill = firstChildByLocal(pic, "blipFill");
+  const blip = blipFill ? firstChildByLocal(blipFill, "blip") : null;
+  const embed = blip ? attrByLocal(blip, "embed") || attrByLocal(blip, "link") : null;
+  if (embed) {
+    node.embed = embed;
+    const rel = slideRelsById.get(embed);
+    if (rel && !rel.external) node.media = rel.target;
+  }
+  return node;
+}
+function readGraphicFrame(gf, theme) {
+  const box2 = readXfrm(gf);
+  const graphic = firstChildByLocal(gf, "graphic");
+  const gData = graphic ? firstChildByLocal(graphic, "graphicData") : null;
+  const tbl = gData ? firstChildByLocal(gData, "tbl") : null;
+  if (tbl) {
+    const rows = [];
+    for (const tr of childrenByLocal(tbl, "tr")) {
+      if (rows.length >= MAX_TABLE_ROWS) break;
+      const cells = [];
+      for (const tc of childrenByLocal(tr, "tc")) {
+        if (cells.length >= MAX_TABLE_COLS) break;
+        const paras = readTxBody(firstChildByLocal(tc, "txBody"), theme);
+        cells.push(paras.map((p) => p.runs.map((r) => r.text).join("")).join("\n"));
+      }
+      rows.push(cells);
+    }
+    return { type: "table", ...box2, rows };
+  }
+  const uri = gData ? attrByLocal(gData, "uri") : null;
+  const node = { type: "unknown", ...box2 };
+  if (uri) node.tag = uri;
+  return node;
+}
+function walkTree(tree, theme, slideRelsById, out, depth) {
+  if (depth > MAX_GROUP_DEPTH) return;
+  for (const child of childElements(tree)) {
+    if (out.length >= MAX_NODES_PER_SLIDE) return;
+    const ln = elemLocal(child);
+    try {
+      switch (ln) {
+        case "sp":
+          out.push(readSp(child, theme));
+          break;
+        case "cxnSp":
+          out.push(readSp(child, theme));
+          break;
+        case "pic":
+          out.push(readPic(child, slideRelsById));
+          break;
+        case "graphicFrame":
+          out.push(readGraphicFrame(child, theme));
+          break;
+        case "grpSp":
+          walkTree(child, theme, slideRelsById, out, depth + 1);
+          break;
+        case "nvGrpSpPr":
+        case "grpSpPr":
+          break;
+        // group's own metadata — skip
+        default:
+          break;
+      }
+    } catch {
+    }
+  }
+}
+function readNotes(store, notesPath, parseXml) {
+  const doc = parsePart(store, notesPath, parseXml);
+  if (!doc?.documentElement) return void 0;
+  const spTree = descendantByLocal(doc.documentElement, "spTree");
+  if (!spTree) return void 0;
+  let bodyText = null;
+  const allParts = [];
+  for (const sp of childrenByLocal(spTree, "sp")) {
+    const nvSpPr = firstChildByLocal(sp, "nvSpPr");
+    const nvPr = nvSpPr ? firstChildByLocal(nvSpPr, "nvPr") : null;
+    const ph = nvPr ? firstChildByLocal(nvPr, "ph") : null;
+    const phType = ph ? attrByLocal(ph, "type") : null;
+    const paras = readTxBody(firstChildByLocal(sp, "txBody"), { colors: {} });
+    const text = paras.map((p) => p.runs.map((r) => r.text).join("")).join("\n").trim();
+    if (phType === "body" && bodyText == null) bodyText = text;
+    else if (phType !== "sldNum" && phType !== "dt" && text) allParts.push(text);
+  }
+  const result = (bodyText && bodyText.length ? bodyText : allParts.join("\n")).trim();
+  return result.length ? result : void 0;
+}
+function slidePathsInOrder(store, parseXml) {
+  const pres = parsePart(store, "ppt/presentation.xml", parseXml);
+  const rels = parseRels(store, "ppt/presentation.xml", parseXml);
+  const byId = new Map(rels.map((r) => [r.id, r]));
+  const ordered = [];
+  if (pres?.documentElement) {
+    const sldIdLst = descendantByLocal(pres.documentElement, "sldIdLst");
+    if (sldIdLst) {
+      for (const sldId of childrenByLocal(sldIdLst, "sldId")) {
+        const relId = readRid(sldId);
+        const rel = relId ? byId.get(relId) : void 0;
+        if (rel && !rel.external && rel.target) ordered.push(rel.target);
+        if (ordered.length >= MAX_SLIDES) break;
+      }
+    }
+  }
+  if (ordered.length) return ordered;
+  return store.keys().filter((k) => /^ppt\/slides\/slide\d+\.xml$/i.test(k)).sort((a, b) => slideNum(a) - slideNum(b)).slice(0, MAX_SLIDES);
+}
+function readRid(el) {
+  const attrs = el.attributes;
+  if (attrs) {
+    for (let i = 0; i < attrs.length; i++) {
+      const a = attrs[i];
+      const full = a.name || "";
+      if (full === "r:id" || full.endsWith(":id") && full !== "id") return a.value;
+    }
+  }
+  return null;
+}
+function slideNum(path) {
+  const m = /slide(\d+)\.xml$/i.exec(path);
+  return m?.[1] ? Number.parseInt(m[1], 10) : 0;
+}
+function isPptx(parts) {
+  if (!parts || typeof parts !== "object") return false;
+  const v = parts["ppt/presentation.xml"];
+  if (v !== void 0) return typeof v === "string" ? v.length > 0 : v.byteLength > 0;
+  for (const k of Object.keys(parts)) {
+    if (k.toLowerCase() === "ppt/presentation.xml") {
+      const raw = parts[k];
+      if (raw === void 0) return false;
+      return typeof raw === "string" ? raw.length > 0 : raw.byteLength > 0;
+    }
+  }
+  return false;
+}
+function readPptx(parts, parseXml) {
+  const deck = {
+    widthEmu: DEFAULT_W_EMU,
+    heightEmu: DEFAULT_H_EMU,
+    theme: { colors: {} },
+    slides: []
+  };
+  if (!parts || typeof parts !== "object" || typeof parseXml !== "function") return deck;
+  const store = makeStore(parts);
+  try {
+    deck.theme = readTheme(store, parseXml);
+  } catch {
+  }
+  try {
+    const pres = parsePart(store, "ppt/presentation.xml", parseXml);
+    if (pres?.documentElement) {
+      const sldSz = descendantByLocal(pres.documentElement, "sldSz");
+      if (sldSz) {
+        const cx = toInt(attrByLocal(sldSz, "cx"), 0);
+        const cy = toInt(attrByLocal(sldSz, "cy"), 0);
+        if (cx > 0) deck.widthEmu = cx;
+        if (cy > 0) deck.heightEmu = cy;
+      }
+    }
+  } catch {
+  }
+  let slidePaths = [];
+  try {
+    slidePaths = slidePathsInOrder(store, parseXml);
+  } catch {
+    slidePaths = [];
+  }
+  for (let i = 0; i < slidePaths.length && i < MAX_SLIDES; i++) {
+    const path = slidePaths[i];
+    if (path === void 0) continue;
+    const slide = { index: i, nodes: [] };
+    try {
+      const doc = parsePart(store, path, parseXml);
+      if (doc?.documentElement) {
+        const rels = parseRels(store, path, parseXml);
+        const relsById = new Map(rels.map((r) => [r.id, r]));
+        const spTree = descendantByLocal(doc.documentElement, "spTree");
+        if (spTree) walkTree(spTree, deck.theme, relsById, slide.nodes, 0);
+        const notesRel = rels.find((r) => /notesSlide$/i.test(r.type) && !r.external);
+        if (notesRel) {
+          const notes = readNotes(store, notesRel.target, parseXml);
+          if (notes) slide.notes = notes;
+        }
+      }
+    } catch {
+    }
+    deck.slides.push(slide);
+  }
+  return deck;
+}
+var MAX_PART_BYTES, MAX_PART_CHARS2, MAX_SLIDES, MAX_NODES_PER_SLIDE, MAX_GROUP_DEPTH, MAX_PARAS, MAX_RUNS_PER_PARA, MAX_TABLE_ROWS, MAX_TABLE_COLS, MAX_TEXT_LEN, MAX_DFS_VISITS, MAX_COORD, DEFAULT_W_EMU, DEFAULT_H_EMU, ELEMENT_NODE, THEME_SLOTS;
+var init_pptx_read = __esm({
+  "engine/src/pptx-read.ts"() {
+    "use strict";
+    MAX_PART_BYTES = 24 * 1024 * 1024;
+    MAX_PART_CHARS2 = 16 * 1024 * 1024;
+    MAX_SLIDES = 2e3;
+    MAX_NODES_PER_SLIDE = 8e3;
+    MAX_GROUP_DEPTH = 16;
+    MAX_PARAS = 4e3;
+    MAX_RUNS_PER_PARA = 4e3;
+    MAX_TABLE_ROWS = 2e3;
+    MAX_TABLE_COLS = 512;
+    MAX_TEXT_LEN = 2e5;
+    MAX_DFS_VISITS = 2e5;
+    MAX_COORD = 1e11;
+    DEFAULT_W_EMU = 12192e3;
+    DEFAULT_H_EMU = 6858e3;
+    ELEMENT_NODE = 1;
+    THEME_SLOTS = [
+      "dk1",
+      "lt1",
+      "dk2",
+      "lt2",
+      "accent1",
+      "accent2",
+      "accent3",
+      "accent4",
+      "accent5",
+      "accent6",
+      "hlink",
+      "folHlink"
+    ];
+  }
+});
+
+// engine/src/c2pa-trust.ts
+function c2paTrustAnchors() {
+  if (cache) return cache;
+  const pems = C2PA_TRUST_ANCHORS_PEM + "\n" + C2PA_OFFICIAL_TRUST_LIST_PEM;
+  const blocks = pems.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g) || [];
+  const ders = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const b of blocks) {
+    const key = b.replace(/[^A-Za-z0-9+/]/g, "");
+    if (seen.has(key)) continue;
+    seen.add(key);
+    try {
+      ders.push(pemToDer(b));
+    } catch {
+    }
+  }
+  cache = ders;
+  return ders;
+}
+var C2PA_TRUST_ANCHORS_PEM, C2PA_OFFICIAL_TRUST_LIST_PEM, cache;
+var init_c2pa_trust = __esm({
+  "engine/src/c2pa-trust.ts"() {
+    "use strict";
+    init_x509();
+    C2PA_TRUST_ANCHORS_PEM = `# Google C2PA hierarchy (NOT in the Adobe/C2PA list below; sourced from Google PKI)
+Google C2PA Root CA G3 (Google LLC) \u2014 fetched from http://pki.goog/c2pa/root-g3.crt
+-----BEGIN CERTIFICATE-----
+MIICLjCCAbOgAwIBAgIUUZK4AROFKiXQZ1UG7FG6qPGc1g8wCgYIKoZIzj0EAwMw
+QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
+b2dsZSBDMlBBIFJvb3QgQ0EgRzMwIBcNMjUwNTA4MjIzMjIxWhgPMjA1MDA1MDgy
+MjMyMjFaMEMxCzAJBgNVBAYTAlVTMRMwEQYDVQQKDApHb29nbGUgTExDMR8wHQYD
+VQQDDBZHb29nbGUgQzJQQSBSb290IENBIEczMHYwEAYHKoZIzj0CAQYFK4EEACID
+YgAEhv9f/juKcPpe3Fm7eAISMuSyS+tBxn0aYHC83J+qAsFWREGN9p6PN/OBoouP
+zpOFRxvrlWoWmAI3p1lXyPg4E3eg7SNChgopUIpihGu6qlhP8rLXf3p8bhI5FTQ2
+MaF2o2YwZDASBgNVHRMBAf8ECDAGAQH/AgECMA4GA1UdDwEB/wQEAwIBBjAfBgNV
+HSMEGDAWgBScXNiJU0PnWtWB2wPeGX8EKiotqjAdBgNVHQ4EFgQUnFzYiVND51rV
+gdsD3hl/BCoqLaowCgYIKoZIzj0EAwMDaQAwZgIxAIyVEe5bdUMkk6BthEWy9QSE
+Mb74BOyK8/8pgMX0NPwLlo1ikLNY78ov+k21vZrEZQIxANQ91muDXgPjAMAkzAlK
+i32Z9VBB37ynTveKVC7ofTW0ZFfIIYYpWUR1+C4m2yRkOQ==
+-----END CERTIFICATE-----
+
+# C2PA / Content Authenticity trust list \u2014 https://verify.contentauthenticity.org/trust/anchors.pem
+## This interim trust list is now frozen.  C2PA has published an official trust list, and new anchor certificates should be added to that list. NOTE: Content Credentials are still valid which were signed using certificates chaining back to root certs on this list. Validators can still refer to this trust list, but should distinguish between Content Credentials signed with certs tracing back to these and those signed with certs tracing back to root certs on the official C2PA trust list.  
+## Currently, the verifier at https://verify.contentauthenticity.org/ uses this list.  
+## 
+
+Leica C2PA Root 
+-----BEGIN CERTIFICATE-----
+MIIDCDCCAq2gAwIBAgIQfj2771gNZMLyE3lSWlq8UDAKBggqhkjOPQQDAjCBojEL
+MAkGA1UEBhMCREUxGDAWBgNVBAoTD0xlaWNhIENhbWVyYSBBRzEbMBkGA1UEAxMS
+TGVpY2EgQzJQQSBSb290IENBMRAwDgYDVQQHEwdXZXR6bGFyMQ4wDAYDVQQREwUz
+NTU3ODEYMBYGA1UECRMPQW0gTGVpdHotUGFyayA1MQ8wDQYDVQQFEwYyMDIzLTEx
+DzANBgNVBAgTBkhlc3NlbjAgFw0yMzA3MDQxMjM1MzNaGA8yMDczMDcwNDEyMzUz
+M1owgaIxCzAJBgNVBAYTAkRFMRgwFgYDVQQKEw9MZWljYSBDYW1lcmEgQUcxGzAZ
+BgNVBAMTEkxlaWNhIEMyUEEgUm9vdCBDQTEQMA4GA1UEBxMHV2V0emxhcjEOMAwG
+A1UEERMFMzU1NzgxGDAWBgNVBAkTD0FtIExlaXR6LVBhcmsgNTEPMA0GA1UEBRMG
+MjAyMy0xMQ8wDQYDVQQIEwZIZXNzZW4wWTATBgcqhkjOPQIBBggqhkjOPQMBBwNC
+AATYWHZLNiNnug3OVuNy0DbdTFEDDuVfzZeqis2yX2AgqZ9fM2R7UqC01v5pMx/N
+xRMSV/Q/DD6wR0dwtkXaxohko4HAMIG9MA8GA1UdEwEB/wQFMAMBAf8wHQYDVR0O
+BBYEFK1aJ39jgaFAW/vnqbxTtDBFVI77MDUGCCsGAQUFBwEBBCkwJzAlBggrBgEF
+BQcwAYYZaHR0cDovL29jc3AubGVpY2Euc3lzdGVtczAOBgNVHQ8BAf8EBAMCAQYw
+RAYDVR0fBD0wOzA5oDegNYYzaHR0cDovL2NybC5sZWljYS5zeXN0ZW1zL2NybC9s
+ZWljYV9jMnBhX3Jvb3RfY2EuY3JsMAoGCCqGSM49BAMCA0kAMEYCIQCMmLG+9WqL
+EFo+xkgDMaihJTTpbWDfSCcNrMfb9KEl+wIhAORyQm7Wchx4fmMQKYubFjeYCZtP
+u+FSiisFK83vwhTQ
+-----END CERTIFICATE-----
+
+Microsoft Root 
+-----BEGIN CERTIFICATE-----
+MIIFrzCCA5egAwIBAgIQaCjVTH5c2r1DOa4MwVoqNTANBgkqhkiG9w0BAQwFADBf
+MQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMTAw
+LgYDVQQDEydNaWNyb3NvZnQgU3VwcGx5IENoYWluIFJTQSBSb290IENBIDIwMjIw
+HhcNMjIwMjE3MDAxMjM2WhcNNDcwMjE3MDAyMTA5WjBfMQswCQYDVQQGEwJVUzEe
+MBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMTAwLgYDVQQDEydNaWNyb3Nv
+ZnQgU3VwcGx5IENoYWluIFJTQSBSb290IENBIDIwMjIwggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQCeJQFmGR9kNMGdOSNiHXGLVuol0psf7ycBgr932JQz
+gxhIm1Cee5ZkwtDDX0X/MpzoFxe9eO11mF86BggrHDebRkqQCrCvRpI+M4kq+rjn
+MmPzI8du0hT7Jlju/gaEVPrBHzeq29TsViq/Sb3M6wLtxk78rBm1EjVpFYkXTaNo
+6mweKZoJ8856IcYJ0RnqjzBGaTtoBCt8ii3WY13qbdY5nr0GPlvuLxFbKGunUqRo
+Xkyk6q7OI79MNnHagUVQjsqGzv9Tw7hDsyTuB3qitPrHCh17xlI1MewIH4SAklv4
+sdo51snn5YkEflF/9OZqZEdJ6vjspvagQ1P+2sMjJNgl2hMsKrc/lN53HEx4HGr5
+mo/rahV3d61JhM4QQMeZSA/Vlh6AnHOhOKEDb9NNINC1Q+T3LngPTve8v2XabZAL
+W7/e6icnmWT4OXxzPdYh0u7W81MRLlXD3OrxKVfeUaF4c5ALL/XJdTbrjdJtjnld
+uho4/98ZAajSyNHW8uuK9S7RzJMTm5yQeGVjeQTE8Z6fjDrzZAz+mB2T4o9WpWNT
+I7hucxZFGrb3ew/NpDL/Wv6WjeGHeNtwg6gkhWkgwm0SDeV59ipZz9ar54HmoLGI
+LQiMC7HP12w2r575A2fZQXOpq0W4cWBYGNQWLGW60QXeksVQEBGQzkfM+6+/I8Cf
+BQIDAQABo2cwZTAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNV
+HQ4EFgQUC7NoO6/ar+5wpXbZIffMRBYH0PgwEAYJKwYBBAGCNxUBBAMCAQAwEQYD
+VR0gBAowCDAGBgRVHSAAMA0GCSqGSIb3DQEBDAUAA4ICAQBIxzf//8FoV9eLQ2ZG
+OiZrL+j63mihj0fxPTSVetpVMfSV0jhfLLqPpY1RMWqJVWhsK0JkaoUkoFEDx93R
+cljtbB6M2JHF50kRnRl6N1ged0T7wgiYQsRN45uKDs9ARU8bgHBZjJOB6A/VyCaV
+qfcfdwa4yu+c++hm2uU54NLSYsOn1LYYmiebJlBKcpfVs1sqpP1fL37mYqMnZgz6
+2RnMER0xqAFSCOZUDJljK+rYhNS0CBbvvkpbiFj0Bhag63pd4cdE1rsvVVYl8J4M
+5A8S28B/r1ZdxokOcalWEuS5nKhkHrVHlZKu0HDIk318WljxBfFKuGxyGKmuH1eZ
+JnRm9R0P313w5zdbX7rwtO/kYwd+HzIYaalwWpL5eZxY1H6/cl1TRituo5lg1oWM
+ZncWdq/ixRhb4l0INtZmNxdl8C7PoeW85o0NZbRWU12fyK9OblHPiL6S6jD7LOd1
+P0JgxHHnl59zx5/K0bhsI+pQKB0OQ8z1qRtA66aY5eUPxZIvpZbH1/o8GO4dG2ED
+/YbnJEEzvdjztmB88xyCA9Vgr9/0IKTkgQYiWsyFM31k+OS4v4AX1PshP2Ou54+3
+F0Tsci41yQvQgR3pcgMJQdnfCUjmzbeyHGAlGVLzPRJJ7Z2UIo5xKPjBB1Rz3TgI
+tIWPFGyqAK9Aq7WHzrY5XHP5kA==
+-----END CERTIFICATE-----
+
+Adobe Root 
+-----BEGIN CERTIFICATE-----
+MIIFpDCCA4ygAwIBAgIQXfEvX1enw+GwAtiTJwzd4TANBgkqhkiG9w0BAQsFADBs
+MQswCQYDVQQGEwJVUzEjMCEGA1UEChMaQWRvYmUgU3lzdGVtcyBJbmNvcnBvcmF0
+ZWQxHTAbBgNVBAsTFEFkb2JlIFRydXN0IFNlcnZpY2VzMRkwFwYDVQQDExBBZG9i
+ZSBSb290IENBIEcyMB4XDTE2MTEyOTAwMDAwMFoXDTQ2MTEyODIzNTk1OVowbDEL
+MAkGA1UEBhMCVVMxIzAhBgNVBAoTGkFkb2JlIFN5c3RlbXMgSW5jb3Jwb3JhdGVk
+MR0wGwYDVQQLExRBZG9iZSBUcnVzdCBTZXJ2aWNlczEZMBcGA1UEAxMQQWRvYmUg
+Um9vdCBDQSBHMjCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBALbacmKb
+7oN7MqJG44ojMpdXrC1zdFHLBv97MuaXDKzI59kgZ0hK900lgU8iXW9p2iwYQs/F
+bJ0+cTRxUlKhthpbnRTNu42R5LGI+XAPbQznxqfr82ScT11BwF/mF4hATOsDy5Xv
+sqXmjji9HCN5V8MicQTJcQ6zK9W9U52m7lLt3vK1T/eQKFL9UBd+JN032AoSGxOL
+oxQ55qlJp8bVTBbBX220ZwrnGpl2Q59F7Mwc9KQSUG/6kJ/maqi7l5E//eUgj+CP
++WO82cW5XQmMp5aSZ6hg1dW2dBLDddEZe7/zl43eWp+S8DRByzQofDt+yAKkp7MJ
+K5Vdhh4RnMGdAkkg1s7e2osxG090hIfqwV4pE5m7QT4ikNJmxxorvZNETfO+FxCJ
+o72i7yMymZWHmKXObvluPvByzqVpuFPldywKvZgHIte730TZ2JZtnArX638/APjD
+KH3hJRJNnx8KH2/WWNTek2IY8vuyMMrFukKMzDiglqfL2QGzyWpObMTazhvP/Z2M
+MjtWVtMoZeGceUTfSq64HNwzFkZoz3rOPYu1ZYw493PEjqaY5fxIMtBd/kv2m5WS
+FUUwBA2eJWKkx0u/cZ91ZAfxSwuGbaplDvr9NzIJXRdtiZRAI4fptFOVzSNvCQ9C
+zK7QQRrbbLdFjsMP3VxSfsIJcrcMATSDLm6BAgMBAAGjQjBAMA4GA1UdDwEB/wQE
+AwIBBjAPBgNVHRMBAf8EBTADAQH/MB0GA1UdDgQWBBSmHOFtVCRMqI9Icr9uqYzV
+5Owx1DANBgkqhkiG9w0BAQsFAAOCAgEAlfp1Y79qJhM2l0QgpaXieeEB7wgURNlA
+QRPQOjw24NlmnM4Kquzx9LSVoP1EPlTx+3ku0dGcTYhZiBsLTeOTjMT4j36j5jKT
+WfWuuGwQboawtSftbmW7Bsy5x8ZEU7g70toZR2HVlXbaR46ChinHlNu79IXBtWZs
+bdG+/btjGrVg6cQAs3U/GAFsoL4G1MkqV6shDvHQNjlzEBbkS0Idcvt+J3sqn/Om
+JU8tAqzNx7e2RLUI2ZH4DT1QjVadgik5UVM9AAeTS1gTsIp3nCCid2aF0MpeIZp1
+u25E8yQRxBYeVFoj1ZYtxwYfcz3X6A68gIb6ZBeRzPq+wt8bEpS8h47O6hJ5pyNB
+bdqBDe6SVdwz7ZUtjGBEJM5oc68j+QNShnke23/duIeK0jopwpyCeEtFckyNjAoL
+YsrGG3+MQQGVDqgYZ/W8Ow0AQz/Zt0RfcqQmfCdbxWbTusR8lpZf8reaPU2X5adp
+YDpY8W+rVNULcsk/Sj+BZ8YpcrMk90BbXf2K7bbzQw2ODtzHphL6SQkt3Ja6oKLa
+WRvQTsaK7K8w+WSilfCtt4u4AAxByxlwmt/KHeMfHZskty/rHLyk7kwgtRzXdvpA
+7quYkGyLWtTtZoB5J1b7OYUraMDuqG1s39jMchHjda1GqOwsBWxDqC4HqtdY7TK2
+ofZLvqTHvT4=
+-----END CERTIFICATE-----
+
+Truepic Root 
+-----BEGIN CERTIFICATE-----
+MIIFbzCCA1egAwIBAgIUQfJJVcjenVsqV04ke2B6+nMusbowDQYJKoZIhvcNAQEM
+BQAwPzEPMA0GA1UEAwwGUm9vdENBMQ0wCwYDVQQLDARMZW5zMRAwDgYDVQQKDAdU
+cnVlcGljMQswCQYDVQQGEwJVUzAeFw0yMTEyMDkyMDA0MTdaFw0zNjEyMDUyMDA0
+MTZaMD8xDzANBgNVBAMMBlJvb3RDQTENMAsGA1UECwwETGVuczEQMA4GA1UECgwH
+VHJ1ZXBpYzELMAkGA1UEBhMCVVMwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIK
+AoICAQDpdmLCqEXVSqb2GVireQbWQHTh9fo3Sja9r9grNAgH4iqEKS7Wlv+zDFmB
+lWEfED/e1teBFy8sXqQTZM/nqfEuOAYbepJl535Olp/vOUryAMx78M2svGGug8xG
+IOTXGJPekK9sqUwgNe6lgAP7v648d2ygw58MHZ/y20B3XMgiWMwVeM24PHYfQ/bp
+zYz3AkG9lrmHbFu8Aily4jFe2b6VI1JbQYgo6DM2uPl7l3VRK2a857+WZioco425
+a1xWnv/sJYxPjLEBNq3BDkAJ8vz4DbKnGbRg4mwFQLpLY7bGJVfU14xEbDfuoz/K
+ZBO8D2ktLGQGtFdldtsbVGdGvyvuOz/gcwJ/Vq5om7+8OkByiCw50bjU1caReS4q
+842VZt1Hw6P3MUsfjHycG+xwYwu0jC4DXl1xCdnuRtYlYZhP8TkUUCN5XeLdnyAm
+HIlItkhxin9+2UcNUJUFckyuR2Y5rqAMWZslzb22vPV1QAuBB+wHFPjJrMPMWuw6
+3wOBqLAPhplMUp//Ixbo6RXuhs5duNn7Jq6FLx5Eu6sZOiF/MuFnGpvKWr0LrGkP
+bnc7wPcFMafh/7Ha9IhAGsD4sELsgTNWcklyPYxLESy+DHptF9nLc+6SAzDPy4ci
+qB0tSRS/jehD6hQ5XdTcyYUjjFUlG04uRqImKJhEQVN8/A/GGQIDAQABo2MwYTAP
+BgNVHRMBAf8EBTADAQH/MB8GA1UdIwQYMBaAFFi68anyDedFBgqwKadalzDqJz0L
+MB0GA1UdDgQWBBRYuvGp8g3nRQYKsCmnWpcw6ic9CzAOBgNVHQ8BAf8EBAMCAYYw
+DQYJKoZIhvcNAQEMBQADggIBAIM3f+uTGlEhxinXEASr0MfbUZOK1i58KyDM35Ot
+NOHrXv4+z468US40tSYYizto2tpALygkAh0ddywgayOGwLaKR00IkIVwbEH4UVho
+pR1QK7PXmmqrF8MTe60TNUiRgC6NUzzKyCIZzIy5e4Q3Cx8uMnNYniaU0TPZeWF9
+pWRiIPc7QOZPl3pAUMtHMFv1z5Ww+vJ6iUHKSQFCSs6vy+/fdiWLfdgok6mvXbw1
+EE6J6DIypwZU275v5L4UM9b40uNqlSdk6ckraNcj2whsx7D8fpXwKjvkCbihWt8l
+gd05fL/7tJBnO/YorriTtBqtUviLnnTc0iEjC5S6yo/HIEWJUL+VK8hH4Tvq4e7Q
+W5KC2/hFQ40CyOIuq0QMfjml+Uwp/4zW6LGK+OA09VhQ1dilztXvOE+tZorPTwy5
+CPRDi5Mjou6ZQy8LbhSdzrjVJGmEbv/7bsDDxHB/zN4Xb8LrtS89hoGDowu/y/vh
+p4/IGuK7iAYb7mLrho0Xl9FUnavgYSm/tMh9UvcZ4Hs5ZeOhdbr5cbxVKDrCGwTs
+77U+mI4JBR4WdoORw/CMyjLF7mkO3QZmr0YhTLMdRzn6/yPkotg9OAbLEM1cVZSt
+wiz6O4c5amE4Nx+V6hBaLctoD23No45vnrnBDCF3BcVmFcQPBGF450dzKAnuY25a
+wpEZ
+-----END CERTIFICATE-----
+
+Microsoft RNC Root
+-----BEGIN CERTIFICATE-----
+MIIFzDCCA7SgAwIBAgIQVJjS0dRbGZVIE3nIEcCHmTANBgkqhkiG9w0BAQwFADB3
+MQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMUgw
+RgYDVQQDEz9NaWNyb3NvZnQgSWRlbnRpdHkgVmVyaWZpY2F0aW9uIFJvb3QgQ2Vy
+dGlmaWNhdGUgQXV0aG9yaXR5IDIwMjAwHhcNMjAwNDE2MTgzNjE2WhcNNDUwNDE2
+MTg0NDQwWjB3MQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBv
+cmF0aW9uMUgwRgYDVQQDEz9NaWNyb3NvZnQgSWRlbnRpdHkgVmVyaWZpY2F0aW9u
+IFJvb3QgQ2VydGlmaWNhdGUgQXV0aG9yaXR5IDIwMjAwggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQCzkSoHgwZn/Z6d4MfAt6TmQgR/D6bbX/vVWtdFoPt3
+C/CA86ZtWk15U9ighoRXRSDHolT7x6K/isduNfOiFcQvTuNKhZZJDf++mdgU9rwn
+B+5Cmyv1C5IG5P1pE2WokXLymITrgz0O5NdxEkghyw3t9kdJt5v5yccXtoRP/7is
+mtdzZ0mF44a9N0DQJYbU3rXCbWJq1al4vC1vSfnlbBQU/RTH02UWN97LbrxeKY39
+YpsVLNYF5rmJMjOjYsfX1lJnCMQu9FYrnguHzOyntKaq6wXNGVelOgsEJxyRZ54t
+Yi0vHr7awCDLBBnKM/uJvpjicqByNb554ZyDb+RtF2+Q8z0AhnU4jtDgSZq729P4
+MMrVV4hoTXLTv21/cdj9vQ2ukmRIt1tveSa1zZuVIYTR7w8yPXtXjPNFB0x84F4Y
+DjV2i22eyzZ0qwX44HNdMlaUZ5clCsY1PZSX58FEi4D9wfj0dBnlMPYG+yFXPgYc
+i2sVhidJe4KTylnodUfoPzj0x1N5oLa04lxR771fOMET5ngMlVouxUBZKMwPJMDs
+ugl3I5k4prYc2se6ILbXN9h/N68I4ztx225zG32ZcrDkhjNZdLUWAHtQbcaGE9r9
+xDmCPSQAmmDaupTABVEsNKxQmROHu7MFgLJNMAJcuCaDXbRjc++uI5VPYCi+N9Vb
+pQIDAQABo1QwUjAOBgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNV
+HQ4EFgQUyH7SaoUqG8oZmAQHJ89QEE9oqKIwEAYJKwYBBAGCNxUBBAMCAQAwDQYJ
+KoZIhvcNAQEMBQADggIBAK9q3eYZ5y2UQxlOy+lQlWSlA5ECi+I2gDsVolLCFhm2
+alpddEMw9Jv/YHQJsSEekBZtxSSPXGaIY/RPzH3yEkxAEIsBn9qpyK7ylRvPnQXr
+ST50oGhb5VYsZRyCflPaVtlGF3mSRcQQNghSKRfLL6byftRpJIoej7BzDcwcSquy
+qu2nkWMBZCKoMrh+MiizZ3MtkbTcMQEL90cKpvHXSu1WYMQsCKN7QLC8dCdSh9a+
+iN03ioluZ4gd9cldoP62qzqA1xqXPBc2IkEerE3Vg+Y8OL1PMOlUqdO2BMMydmG7
+sBjFKxizwIDVt5WwXlFNIvzsWKro2JS0pS7tkt7nGHwhV91VY/e/bc0f0qZ3KHDH
+4ls6WwjSW07IAJaz4YM2r4YKZVx09ursemp0oPBL7u+Uo6xQ8oft1zowg8n7fVe+
+5eP4QcrlZK6zo+xY7IWazO+56vNWGLlcc5qvxXcXg1nbNxoYclSlQdK2I3WjQ5rl
+d3yWebdBjb/s3ICgn9F3dVhfNRPgJRpnC33OJfoHCuRhIdjUHOUHxjaZ9JbQxhX+
+Ts3Xroud2xb9BMaSvdSI5qmjqrv3ZDg7X8wM0DW+dBkDpsWqTKJhNoI+HfMrvJdd
+20t4Oy31O+9gI+j17AsjNpWvmGa/U9N7uGlKKpZmacSUxvRfbqyYeIiABlyisu2i
+-----END CERTIFICATE-----
+
+Click/Nodle Root
+-----BEGIN CERTIFICATE-----
+MIICHDCCAaGgAwIBAgITEkGhSPCEEtphvbOmfJRJGv/f3TAKBggqhkjOPQQDAzA9
+MR0wGwYDVQQKExRDb250ZW50U2lnbiBieSBOb2RsZTEcMBoGA1UEAxMTQ29udGVu
+dFNpZ24gUm9vdCBDQTAeFw0yMzExMjAyMzIzMzJaFw0zMzExMTcyMzIzMzFaMD0x
+HTAbBgNVBAoTFENvbnRlbnRTaWduIGJ5IE5vZGxlMRwwGgYDVQQDExNDb250ZW50
+U2lnbiBSb290IENBMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEKKjUvBHg3eBRpS38
+LIuBZ4kfP/pfQw2CzsgT95JqZBrPnlkYvTcEg7tIEriPgVHLC5pXHMSbbQFIYEJ8
+YLXHY335sBmhnomZFDM1yqN0P3PK/cfsMKIZ5aIkAhD93fqGo2MwYTAOBgNVHQ8B
+Af8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUDK+bQAU+9IPexRNP
+ElBJtbIbSRIwHwYDVR0jBBgwFoAUDK+bQAU+9IPexRNPElBJtbIbSRIwCgYIKoZI
+zj0EAwMDaQAwZgIxAI6PtQ946M7E9Ex4fFb9djgYIbVqJ8Em4ywOFddNAR6DvD8D
+u0ZmTtCWBQqWvFxG4gIxAM7eUjCRqT6YLjbsD7eB6k3VPdm46erzQd/Cad820I2E
+ThMCsJUSjNKONkZH/JuQJA==
+-----END CERTIFICATE-----
+
+Samsung Root
+-----BEGIN CERTIFICATE-----
+MIICjzCCAfCgAwIBAgIEXHYjDTAKBggqhkjOPQQDBDBZMQswCQYDVQQGEwJLUjET
+MBEGA1UEBxMKU3V3b24gY2l0eTEXMBUGA1UECxMOU2Ftc3VuZyBNb2JpbGUxHDAa
+BgNVBAMTE1NhbXN1bmcgY29ycG9yYXRpb24wHhcNMTkwMjI3MDU0MTMzWhcNMzkw
+MjIyMDU0MTMzWjBZMQswCQYDVQQGEwJLUjETMBEGA1UEBxMKU3V3b24gY2l0eTEX
+MBUGA1UECxMOU2Ftc3VuZyBNb2JpbGUxHDAaBgNVBAMTE1NhbXN1bmcgY29ycG9y
+YXRpb24wgZswEAYHKoZIzj0CAQYFK4EEACMDgYYABAGFsa4uumqXkjZYmasTmQRV
+k6j52ADjqYqtUl/+yDN/Oza7sz1zVj1mQISKJiSFMUT289tqyZR9fJvCBnYQzfQD
+UAE93XbifclsQN+wH/CcwfUByCwnIkU9sRNmLLjYWHCL7YEIDltwd7tKt2REhhKx
+0FFooGhmxqnEHSAA6zSNI9Ffk6NjMGEwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8B
+Af8EBAMCAQYwHQYDVR0OBBYEFGbsTn+ECfTAKlYSkIP+hkA01S7/MB8GA1UdIwQY
+MBaAFGbsTn+ECfTAKlYSkIP+hkA01S7/MAoGCCqGSM49BAMEA4GMADCBiAJCAeGM
+gCL5SfTUycZWd+37+cQIFSn5E1AzLIDw1ps1heoWoTj0dM9SPmWBo/TlWZrbtD4G
+yH2VI7vz3wkpB9W7oT9RAkIAluAfQFNEqCoYndVEyGhu5RjG412BQdNbh8Y5NzZy
+mu4/Zg7pC0ctus6hdJ8J5DjekOEh6tTy8poqNYC+wvHgAJg=
+-----END CERTIFICATE-----
+
+Metaphysic PRO
+-----BEGIN CERTIFICATE-----
+MIICEzCCAbmgAwIBAgIUVIrV56rbRKoLP81rfblb/2mrQPkwCgYIKoZIzj0EAwIw
+WjELMAkGA1UEBhMCR0IxFzAVBgNVBAoMDk1ldGFwaHlzaWMgUFJPMRcwFQYDVQQL
+DA5NZXRhcGh5c2ljIFBSTzEZMBcGA1UEAwwQTWV0YXBoeXNpY1Jvb3RDQTAeFw0y
+NDA5MDMxMDM4NTBaFw0zNDA5MDExMDM4NTBaMFoxCzAJBgNVBAYTAkdCMRcwFQYD
+VQQKDA5NZXRhcGh5c2ljIFBSTzEXMBUGA1UECwwOTWV0YXBoeXNpYyBQUk8xGTAX
+BgNVBAMMEE1ldGFwaHlzaWNSb290Q0EwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNC
+AAQeOqzGfyAbOjAM4Mf7xeWppTYdolsa7w4BKbXVrBtY5lS4lWrDR3m5JzB31BlL
+hR+3pq0AmtdVMz9heQgHD5rRo10wWzAdBgNVHQ4EFgQUC+M9/xDkKCtSA7GVwbFG
+YFEH3aowHwYDVR0jBBgwFoAUC+M9/xDkKCtSA7GVwbFGYFEH3aowDAYDVR0TBAUw
+AwEB/zALBgNVHQ8EBAMCAQYwCgYIKoZIzj0EAwIDSAAwRQIgPb9+Evw000uDjMQg
+3TeRvzhl8+B+03OG5WoyyjZvb90CIQCTDCIltIkUr0/EYTJf6VLKM7mBAZlWX4s2
+Bz3E79YeEQ==
+-----END CERTIFICATE-----
+
+Canon Inc.
+-----BEGIN CERTIFICATE-----
+MIICBzCCAaygAwIBAgIUapyBGpjTU7rmwk5Y6gO5m3d2hBYwCgYIKoZIzj0EAwIw
+YDELMAkGA1UEBhMCSlAxDjAMBgNVBAgTBVRva3lvMQ8wDQYDVQQHEwZPdGEta3Ux
+EzARBgNVBAoTCkNhbm9uIEluYy4xGzAZBgNVBAMTEkNhbm9uIEMyUEEgUm9vdCBD
+QTAgFw0yNDEwMTcwNzI1MDZaGA8yMDY0MTAxNjA3MjIxM1owYDELMAkGA1UEBhMC
+SlAxDjAMBgNVBAgTBVRva3lvMQ8wDQYDVQQHEwZPdGEta3UxEzARBgNVBAoTCkNh
+bm9uIEluYy4xGzAZBgNVBAMTEkNhbm9uIEMyUEEgUm9vdCBDQTBZMBMGByqGSM49
+AgEGCCqGSM49AwEHA0IABFnVKwHeC+Cx3gDiLhatGQObilqx5huCx3iQ4dF98gsr
+oT1fBIL3yUyWtXK4yt3yfYt/t1sUozjTWQboJiZKLvejQjBAMA8GA1UdEwEB/wQF
+MAMBAf8wHQYDVR0OBBYEFNuSgKOKZTMu1E0kQKoSAICI5R7TMA4GA1UdDwEB/wQE
+AwIBhjAKBggqhkjOPQQDAgNJADBGAiEA2GLR9KHDjO+0Wf9PKsTckmKeSzvz6cGh
+54p6z6Z7lAECIQDx7lT/5ByzxTbYB36Pd6x+9eqkvM69QddPh+pRpvYk/A==
+-----END CERTIFICATE-----
+
+Fujifilm
+-----BEGIN CERTIFICATE-----
+MIIB4jCCAYegAwIBAgIRAI3b5qRoBIlWVln9WIRMnmMwCgYIKoZIzj0EAwIwTzEL
+MAkGA1UEBhMCSlAxHTAbBgNVBAoMFEZVSklGSUxNIENvcnBvcmF0aW9uMSEwHwYD
+VQQDDBhGVUpJRklMTSBDMlBBIFJvb3QgQ0EgRzEwIBcNMjQxMjA5MjI1ODQ3WhgP
+MjA3NDEyMDkyMzU4MjBaME8xCzAJBgNVBAYTAkpQMR0wGwYDVQQKDBRGVUpJRklM
+TSBDb3Jwb3JhdGlvbjEhMB8GA1UEAwwYRlVKSUZJTE0gQzJQQSBSb290IENBIEcx
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE6Xo4h6qtgkxn+LAWDsDU5GSCHYjj
+Zm4tHIEmmdyJrZCDYEyXfPhvSS09XKyXIDIEwQcdZU9gAsZdjNjP8cVva6NCMEAw
+DwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUjBEQ4pKsJIoIJzI2jJqKQ+78Mfww
+DgYDVR0PAQH/BAQDAgGGMAoGCCqGSM49BAMCA0kAMEYCIQDTnTnmnXrgRZpdDY9i
+YlXwoF5tJpTaU30UFLUO9PdtpAIhAMoOjajOcuooANmO4ZSFobiaw6wGndE0BxyZ
+ic3gTwMF
+-----END CERTIFICATE-----
+
+Pinterest
+-----BEGIN CERTIFICATE-----
+MIIF7DCCA9SgAwIBAgIJAMm9DzS6qm7hMA0GCSqGSIb3DQEBCwUAMIGCMQswCQYD
+VQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5pYTEWMBQGA1UEBxMNU2FuIEZyYW5j
+aXNjbzEXMBUGA1UEChMOUGludGVyZXN0IEluYy4xLTArBgNVBAMTJFBpbnRlcmVz
+dCBSb290IENlcnRpZmljYXRlIEF1dGhvcml0eTAeFw0yNDA3MzEyMTMxMjRaFw0z
+NDA4MDMyMTMxMjRaMIGCMQswCQYDVQQGEwJVUzETMBEGA1UECBMKQ2FsaWZvcm5p
+YTEWMBQGA1UEBxMNU2FuIEZyYW5jaXNjbzEXMBUGA1UEChMOUGludGVyZXN0IElu
+Yy4xLTArBgNVBAMTJFBpbnRlcmVzdCBSb290IENlcnRpZmljYXRlIEF1dGhvcml0
+eTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBANlgMDVxsvPvDRA7m3oJ
+vr7ZqRcJxHW/wOSQjcKEWLe4nAQS+vRfe19A+mT/jzPdmILS5HNp2hm6cXgsDlWK
+nlHZzPYr5X4lBTATSjh+yjGfNOdeqmdSshi7fPo5FqhdpTfKFaDMrRx8+7YumQGI
+fB1cxRMTYDQLD/rU5CZOkiPZzTgo5l6Obgo6WtfHsSBUZkXujLmA9w5B6pU2vj8/
+8kxknUung5JJ/XEyO3nGBjVpvXfqGhy/UHnVuVDlIpqf8Xu3LJ3mVnDYlfBVb9AO
+R8Fl3Le48k/AkeGWIZXgwoSVCd8UelwEv9AcROSOEe5nVM+5nEsk1symdiXnpHdp
+GRTfvlpbzi02J4t7tjbdSnnA4uigioNskiD0armJU88luFAJPncQH/gy8SFN5XdT
+NLJjauNduwkNwpfOcWEEqDxxTH+ErbCyvwb5+FBweZSlf23U5k1fLKcm7yW79o9E
+uPBt9H5yaP2WvDrvIxIhhrtrvmVLqyPVfiNFe7DYnt0Z+BOk/eax8nC1SyjvAzrh
+BUWKgbOb45YB3dn0XBmnCoiaMoq9GjmtUk1k1v5IUBgp8P8cVEMor2kX6PrEQGFA
+H0wQSkSxGFAuemeY1t/dEI9paUc57uNdKvvN/CjElmytNvluYRwREAZTSjpd4ngz
+z/gHxiiy8TlA7IZBaTCXEah3AgMBAAGjYzBhMA8GA1UdEwEB/wQFMAMBAf8wDgYD
+VR0PAQH/BAQDAgGGMB0GA1UdDgQWBBQwHanMifxO2QnKWAP9FT8C+iGXozAfBgNV
+HSMEGDAWgBQwHanMifxO2QnKWAP9FT8C+iGXozANBgkqhkiG9w0BAQsFAAOCAgEA
+DxTjUe0RU6KoLvgYmXYMWJlhtJw3B0rEQYA7+ICHQPBPhElTyoHnSZQUBWIOqSWB
+VjgYOvyX8E9EAVaHRBel4pQOn6b3chK50xm3psjGU7bZhf0DISMGlrHHLmxSU705
+5JsYE0SOYuNTYp7rb9Rbbj1UTMI0PtAKIMVxWeWiEOoYWX78urQO9XD02OVHFSTI
+HlKtA91mNrCO9I99pJeM9Shh485b5B9cSvOfvtTX8bdWHL8nFFWXjgrB4XnPsrKy
+chTb5+4CxnIVps8x4bu8BGNu/NDck/+XrB1wvpPP/StIPY52ZVXvXzGXDUMvW91d
+j7uRx6Te3sro0csNlhLMvZJRnk+VTvUB5/XsTAKZ4YlX2QZ3YuG/VWjt6NPtE5gQ
++QqksZUdhyRKoIY8kGk540PD+3UAgwHnbrPznNc0EoMBphe4oI9zKb6BB1tpivGy
+vL6ZFIKcKPJSmtaB95tipnFkTTmJmgxY0bWD2GXnjS6w+EpMhdiXYWg+ALdGZwb0
+B5JosgHQw2NGCZ9aVimITFynJUTOtFcXaO8MxsKdri0rNDp+dWsHlKtbQYaxolCC
+M4YU9ykc8OCDySb4NwX7m59GDA0xELtiDyW4hGagAY+bzzUfigZY9jzuTCq2tkX5
+s6SDrqImp50u2dqUUAfvBDHTNutzbhkxow+sQ+lfr4k=
+-----END CERTIFICATE-----
+
+ATOM
+-----BEGIN CERTIFICATE-----
+MIICmzCCAiCgAwIBAgIUAJqo+ansD9x4r/iaYV5AaQX5jQAwCgYIKoZIzj0EAwMw
+fDELMAkGA1UEBhMCVVMxDjAMBgNVBAgTBVRleGFzMQ8wDQYDVQQHEwZBdXN0aW4x
+GjAYBgNVBAoTEUFUT00gVGVjaG5vbG9naWVzMRYwFAYDVQQLEw1BVE9NIFNlY3Vy
+aXR5MRgwFgYDVQQDEw9BVE9NIHJvb3QgQ0EgdjEwHhcNMjQwOTA5MTkwODM4WhcN
+MzQwOTA3MTkwODM3WjB8MQswCQYDVQQGEwJVUzEOMAwGA1UECBMFVGV4YXMxDzAN
+BgNVBAcTBkF1c3RpbjEaMBgGA1UEChMRQVRPTSBUZWNobm9sb2dpZXMxFjAUBgNV
+BAsTDUFUT00gU2VjdXJpdHkxGDAWBgNVBAMTD0FUT00gcm9vdCBDQSB2MTB2MBAG
+ByqGSM49AgEGBSuBBAAiA2IABH0eAjxr8/wDSO6EfnE574peDRuGVRr0dTvnwoMl
+MilfqJDPe873y3GmzOEj0nTGB/AHPNW1HOKePYoEaK51/66peq6JOxcVIUShQOwI
+U1ZdCSIDbRD0kezWXn7P/9El1aNjMGEwDgYDVR0PAQH/BAQDAgEGMA8GA1UdEwEB
+/wQFMAMBAf8wHQYDVR0OBBYEFI3x7N/TGB5W9WHtVnpPqyS0jRNXMB8GA1UdIwQY
+MBaAFI3x7N/TGB5W9WHtVnpPqyS0jRNXMAoGCCqGSM49BAMDA2kAMGYCMQCZvUp0
+2Zo8gDDMyC1gO+TMTNY6nfZ7XXH1SeV0BaVeBGJLhHnTWfpvkN23+/adwiMCMQD1
+p6P/cqH4SNa2P/G0nzPn21Z8SblSfGelbA+EkQf9LyNi/v8o08i4oUrB1vhWbIc=
+-----END CERTIFICATE-----
+
+Trufo
+-----BEGIN CERTIFICATE-----
+MIIBmDCCAUqgAwIBAgIUYASaeSSTolrnAdi1g2Fbv7PDxJEwBQYDK2VwMEoxCzAJ
+BgNVBAYTAlVTMREwDwYDVQQIDAhOZXcgWW9yazEVMBMGA1UECgwMVHJ1Zm8gKFJv
+b3QpMREwDwYDVQQDDAh0cnVmby5haTAeFw0yNDA4MTIyMjE3MDdaFw0yNTA4MTIy
+MjE3MDdaMEoxCzAJBgNVBAYTAlVTMREwDwYDVQQIDAhOZXcgWW9yazEVMBMGA1UE
+CgwMVHJ1Zm8gKFJvb3QpMREwDwYDVQQDDAh0cnVmby5haTAqMAUGAytlcAMhABFI
+CkU3vtCVG4D2VtxqAmQyKZROrBVEnFl8vpmg4CM+o0IwQDAPBgNVHRMBAf8EBTAD
+AQH/MA4GA1UdDwEB/wQEAwICBDAdBgNVHQ4EFgQUXa+ujzojES7nhreHkIzbDqeL
+OLkwBQYDK2VwA0EALT8wJCiGqgBqVzWf6xvus5PwAhnGx8/U3/+NIl3uFO3fUhUt
+2z62xjVd+G2ivv6AZ4VnCjou757WbNqsY3B5Aw==
+-----END CERTIFICATE-----
+
+vivo
+-----BEGIN CERTIFICATE-----
+MIICrjCCAhCgAwIBAgIJEJ5cSOlh/nYsMAoGCCqGSM49BAMEMHYxOTA3BgNVBAMM
+MHZpdm8gQ29udGVudCBQcm92ZW5hbmNlIGFuZCBBdXRoZW50aWNpdHkgUm9vdCBD
+QTELMAkGA1UEBhMCQ04xLDAqBgNVBAoMI3Zpdm8gTW9iaWxlIENvbW11bmljYXRp
+b24gQ28uLCBMdGQuMCAXDTI1MDQxNjAyNTUzOFoYDzIwNTUwNDE2MDI1NTM4WjB2
+MTkwNwYDVQQDDDB2aXZvIENvbnRlbnQgUHJvdmVuYW5jZSBhbmQgQXV0aGVudGlj
+aXR5IFJvb3QgQ0ExCzAJBgNVBAYTAkNOMSwwKgYDVQQKDCN2aXZvIE1vYmlsZSBD
+b21tdW5pY2F0aW9uIENvLiwgTHRkLjCBmzAQBgcqhkjOPQIBBgUrgQQAIwOBhgAE
+AadjySUWxUJN7q9UtkC1169XLrnhqEcOfB3AAE+uQkehChJjR8mBcTAKCGpQHxem
+0qxe13rlWj8scCWExoUy4j/eAUCU1rhA9nsaNmqZuQetemoaFsxB+uzFTan7eC2K
+GGUTWyEEJsVpZRnzhV1HLKHJ+gEaRCeYkEkGcxRm6Yic6HzAo0IwQDAPBgNVHRMB
+Af8EBTADAQH/MA4GA1UdDwEB/wQEAwIBhjAdBgNVHQ4EFgQUZMn3MXRQRGJUI+Jb
+ij8quKQc5GEwCgYIKoZIzj0EAwQDgYsAMIGHAkE2v363BCPhkErUyhrBl5KzCrxy
+dzCskvifOy2pj0DHPtE1R8iBMJL9L7SqLRiwWFtzKIDjHzrYva/XGZ3vstpcCgJC
+ALYmHM4xMXsNqb1hiWIxi1gqm92ddR+PSbVIJygODlJPiDT0xPEro6kTP7GKaxpH
+GQdAQ3jeFxZgws/1Fymnxrbq
+-----END CERTIFICATE-----
+
+Nikon
+-----BEGIN CERTIFICATE-----
+MIICIDCCAcagAwIBAgIUIvXHQ3rquXoskDjpVb+2YuMICyEwCgYIKoZIzj0EAwIw
+bTELMAkGA1UEBhMCSlAxDjAMBgNVBAgTBVRva3lvMRUwEwYDVQQHEwxTaGluYWdh
+d2Eta3UxGjAYBgNVBAoTEU5JS09OIENPUlBPUkFUSU9OMRswGQYDVQQDExJOaWtv
+biBDMlBBIFJvb3QgQ0EwIBcNMjUwMzA2MDAyODQzWhgPMjA2NTAzMDUwMDI0MTFa
+MG0xCzAJBgNVBAYTAkpQMQ4wDAYDVQQIEwVUb2t5bzEVMBMGA1UEBxMMU2hpbmFn
+YXdhLWt1MRowGAYDVQQKExFOSUtPTiBDT1JQT1JBVElPTjEbMBkGA1UEAxMSTmlr
+b24gQzJQQSBSb290IENBMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE9wzVICOz
+P8cseW53DEbdqyO7BG4FWYWilujIo0csh+3uSmSJGYdg0PBa261uIxj4CO5Q2Ks5
+AM4j843TRAIRCqNCMEAwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUgrs99zxZ
+Shz1QQTOPfUnnro4LFcwDgYDVR0PAQH/BAQDAgGGMAoGCCqGSM49BAMCA0gAMEUC
+IQCGT6MDGYwqq1/jM6urTcKH+pIJqOLtoc0+cALTYX+hcwIgI+Iue20LU7DAUf64
+lhrU52JWzJ2F0/nHEwxKCR/p92Y=
+-----END CERTIFICATE-----
+
+Sony
+-----BEGIN CERTIFICATE-----
+MIICNTCCAbugAwIBAgIUczN9H4VpMZo+I4l+f4pDY6JMAOcwCgYIKoZIzj0EAwMw
+RzELMAkGA1UEBhMCSlAxGTAXBgNVBAoMEFNPTlkgQ29ycG9yYXRpb24xHTAbBgNV
+BAMMFFNPTlkgQzJQQSBSb290IENBIEcyMCAXDTI1MDgwNDAzNTMzM1oYDzIwNjUw
+NzI1MDM1MzMyWjBHMQswCQYDVQQGEwJKUDEZMBcGA1UECgwQU09OWSBDb3Jwb3Jh
+dGlvbjEdMBsGA1UEAwwUU09OWSBDMlBBIFJvb3QgQ0EgRzIwdjAQBgcqhkjOPQIB
+BgUrgQQAIgNiAASLHbxrLtoC+469rNSLnkJjSacR0SFSseGs1teFY8gG5cVVy93Z
+qoupA5QMR49indgIC3wqXZAP9aJqVCpUyQL2QN9gHndDpH5JRnmJH9zxXjWq21dD
+Lfs8rpNEiJT9XkGjZjBkMBIGA1UdEwEB/wQIMAYBAf8CAQIwHwYDVR0jBBgwFoAU
+yhnK7M21f7YIRJTDHYremJuCpkwwHQYDVR0OBBYEFMoZyuzNtX+2CESUwx2K3pib
+gqZMMA4GA1UdDwEB/wQEAwIBBjAKBggqhkjOPQQDAwNoADBlAjAZKmS4lqMFBW+Q
+sJqQTp66xIHP9WwEU34ig6ckz9x/Je3TNbrN90FLaHTxDCQXJuECMQDJ0IO8tfPK
+ZerQ8KDvnksbA35Pb2DGcPqtgxqw29DNbJhxu5o4Mna89A991qyPF6g=
+-----END CERTIFICATE-----
+
+Digicert Trusted Timestamp Sha256 CA
+-----BEGIN CERTIFICATE-----
+MIIGrjCCBJagAwIBAgIQBzY3tyRUfNhHrP0oZipeWzANBgkqhkiG9w0BAQsFADBi
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+d3cuZGlnaWNlcnQuY29tMSEwHwYDVQQDExhEaWdpQ2VydCBUcnVzdGVkIFJvb3Qg
+RzQwHhcNMjIwMzIzMDAwMDAwWhcNMzcwMzIyMjM1OTU5WjBjMQswCQYDVQQGEwJV
+UzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xOzA5BgNVBAMTMkRpZ2lDZXJ0IFRy
+dXN0ZWQgRzQgUlNBNDA5NiBTSEEyNTYgVGltZVN0YW1waW5nIENBMIICIjANBgkq
+hkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAxoY1BkmzwT1ySVFVxyUDxPKRN6mXUaHW
+0oPRnkyibaCwzIP5WvYRoUQVQl+kiPNo+n3znIkLf50fng8zH1ATCyZzlm34V6gC
+ff1DtITaEfFzsbPuK4CEiiIY3+vaPcQXf6sZKz5C3GeO6lE98NZW1OcoLevTsbV1
+5x8GZY2UKdPZ7Gnf2ZCHRgB720RBidx8ald68Dd5n12sy+iEZLRS8nZH92GDGd1f
+tFQLIWhuNyG7QKxfst5Kfc71ORJn7w6lY2zkpsUdzTYNXNXmG6jBZHRAp8ByxbpO
+H7G1WE15/tePc5OsLDnipUjW8LAxE6lXKZYnLvWHpo9OdhVVJnCYJn+gGkcgQ+ND
+Y4B7dW4nJZCYOjgRs/b2nuY7W+yB3iIU2YIqx5K/oN7jPqJz+ucfWmyU8lKVEStY
+dEAoq3NDzt9KoRxrOMUp88qqlnNCaJ+2RrOdOqPVA+C/8KI8ykLcGEh/FDTP0kyr
+75s9/g64ZCr6dSgkQe1CvwWcZklSUPRR8zZJTYsg0ixXNXkrqPNFYLwjjVj33GHe
+k/45wPmyMKVM1+mYSlg+0wOI/rOP015LdhJRk8mMDDtbiiKowSYI+RQQEgN9XyO7
+ZONj4KbhPvbCdLI/Hgl27KtdRnXiYKNYCQEoAA6EVO7O6V3IXjASvUaetdN2udIO
+a5kM0jO0zbECAwEAAaOCAV0wggFZMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0O
+BBYEFLoW2W1NhS9zKXaaL3WMaiCPnshvMB8GA1UdIwQYMBaAFOzX44LScV1kTN8u
+Zz/nupiuHA9PMA4GA1UdDwEB/wQEAwIBhjATBgNVHSUEDDAKBggrBgEFBQcDCDB3
+BggrBgEFBQcBAQRrMGkwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRpZ2ljZXJ0
+LmNvbTBBBggrBgEFBQcwAoY1aHR0cDovL2NhY2VydHMuZGlnaWNlcnQuY29tL0Rp
+Z2lDZXJ0VHJ1c3RlZFJvb3RHNC5jcnQwQwYDVR0fBDwwOjA4oDagNIYyaHR0cDov
+L2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0VHJ1c3RlZFJvb3RHNC5jcmwwIAYD
+VR0gBBkwFzAIBgZngQwBBAIwCwYJYIZIAYb9bAcBMA0GCSqGSIb3DQEBCwUAA4IC
+AQB9WY7Ak7ZvmKlEIgF+ZtbYIULhsBguEE0TzzBTzr8Y+8dQXeJLKftwig2qKWn8
+acHPHQfpPmDI2AvlXFvXbYf6hCAlNDFnzbYSlm/EUExiHQwIgqgWvalWzxVzjQEi
+Jc6VaT9Hd/tydBTX/6tPiix6q4XNQ1/tYLaqT5Fmniye4Iqs5f2MvGQmh2ySvZ18
+0HAKfO+ovHVPulr3qRCyXen/KFSJ8NWKcXZl2szwcqMj+sAngkSumScbqyQeJsG3
+3irr9p6xeZmBo1aGqwpFyd/EjaDnmPv7pp1yr8THwcFqcdnGE4AJxLafzYeHJLtP
+o0m5d2aR8XKc6UsCUqc3fpNTrDsdCEkPlM05et3/JWOZJyw9P2un8WbDQc1PtkCb
+ISFA0LcTJM3cHXg65J6t5TRxktcma+Q4c6umAU+9Pzt4rUyt+8SVe+0KXzM5h0F4
+ejjpnOHdI/0dKNPH+ejxmF/7K9h+8kaddSweJywm228Vex4Ziza4k9Tm8heZWcpw
+8De/mADfIBZPJ/tgZxahZrrdVcA6KYawmKAr7ZVBtzrVFZgxtGIJDwq9gdkT/r+k
+0fNX2bwE+oLeMt8EifAAzV3C+dAjfwAL5HYCJtnwZXZCpimHCUcr5n8apIUP/JiW
+9lVUKx+A+sDyDivl1vupL0QVSucTDh3bNzgaoSv27dZ8/A==
+-----END CERTIFICATE-----
+
+-----BEGIN CERTIFICATE-----
+MIIGtDCCBJygAwIBAgIQDcesVwX/IZkuQEMiDDpJhjANBgkqhkiG9w0BAQsFADBi
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+d3cuZGlnaWNlcnQuY29tMSEwHwYDVQQDExhEaWdpQ2VydCBUcnVzdGVkIFJvb3Qg
+RzQwHhcNMjUwNTA3MDAwMDAwWhcNMzgwMTE0MjM1OTU5WjBpMQswCQYDVQQGEwJV
+UzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMTOERpZ2lDZXJ0IFRy
+dXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2IDIwMjUgQ0ExMIIC
+IjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAtHgx0wqYQXK+PEbAHKx126NG
+aHS0URedTa2NDZS1mZaDLFTtQ2oRjzUXMmxCqvkbsDpz4aH+qbxeLho8I6jY3xL1
+IusLopuW2qftJYJaDNs1+JH7Z+QdSKWM06qchUP+AbdJgMQB3h2DZ0Mal5kYp77j
+YMVQXSZH++0trj6Ao+xh/AS7sQRuQL37QXbDhAktVJMQbzIBHYJBYgzWIjk8eDrY
+hXDEpKk7RdoX0M980EpLtlrNyHw0Xm+nt5pnYJU3Gmq6bNMI1I7Gb5IBZK4ivbVC
+iZv7PNBYqHEpNVWC2ZQ8BbfnFRQVESYOszFI2Wv82wnJRfN20VRS3hpLgIR4hjzL
+0hpoYGk81coWJ+KdPvMvaB0WkE/2qHxJ0ucS638ZxqU14lDnki7CcoKCz6eum5A1
+9WZQHkqUJfdkDjHkccpL6uoG8pbF0LJAQQZxst7VvwDDjAmSFTUms+wV/FbWBqi7
+fTJnjq3hj0XbQcd8hjj/q8d6ylgxCZSKi17yVp2NL+cnT6Toy+rN+nM8M7LnLqCr
+O2JP3oW//1sfuZDKiDEb1AQ8es9Xr/u6bDTnYCTKIsDq1BtmXUqEG1NqzJKS4kOm
+xkYp2WyODi7vQTCBZtVFJfVZ3j7OgWmnhFr4yUozZtqgPrHRVHhGNKlYzyjlroPx
+ul+bgIspzOwbtmsgY1MCAwEAAaOCAV0wggFZMBIGA1UdEwEB/wQIMAYBAf8CAQAw
+HQYDVR0OBBYEFO9vU0rp5AZ8esrikFb2L9RJ7MtOMB8GA1UdIwQYMBaAFOzX44LS
+cV1kTN8uZz/nupiuHA9PMA4GA1UdDwEB/wQEAwIBhjATBgNVHSUEDDAKBggrBgEF
+BQcDCDB3BggrBgEFBQcBAQRrMGkwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRp
+Z2ljZXJ0LmNvbTBBBggrBgEFBQcwAoY1aHR0cDovL2NhY2VydHMuZGlnaWNlcnQu
+Y29tL0RpZ2lDZXJ0VHJ1c3RlZFJvb3RHNC5jcnQwQwYDVR0fBDwwOjA4oDagNIYy
+aHR0cDovL2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0VHJ1c3RlZFJvb3RHNC5j
+cmwwIAYDVR0gBBkwFzAIBgZngQwBBAIwCwYJYIZIAYb9bAcBMA0GCSqGSIb3DQEB
+CwUAA4ICAQAXzvsWgBz+Bz0RdnEwvb4LyLU0pn/N0IfFiBowf0/Dm1wGc/Do7oVM
+Y2mhXZXjDNJQa8j00DNqhCT3t+s8G0iP5kvN2n7Jd2E4/iEIUBO41P5F448rSYJ5
+9Ib61eoalhnd6ywFLerycvZTAz40y8S4F3/a+Z1jEMK/DMm/axFSgoR8n6c3nuZB
+9BfBwAQYK9FHaoq2e26MHvVY9gCDA/JYsq7pGdogP8HRtrYfctSLANEBfHU16r3J
+05qX3kId+ZOczgj5kjatVB+NdADVZKON/gnZruMvNYY2o1f4MXRJDMdTSlOLh0HC
+n2cQLwQCqjFbqrXuvTPSegOOzr4EWj7PtspIHBldNE2K9i697cvaiIo2p61Ed2p8
+xMJb82Yosn0z4y25xUbI7GIN/TpVfHIqQ6Ku/qjTY6hc3hsXMrS+U0yy+GWqAXam
+4ToWd2UQ1KYT70kZjE4YtL8Pbzg0c1ugMZyZZd/BdHLiRu7hAWE6bTEm4XYRkA6T
+l4KSFLFk43esaUeqGkH/wyW4N7OigizwJWeukcyIPbAvjSabnf7+Pu0VrFgoiovR
+Diyx3zEdmcif/sYQsfch28bZeUz2rtY/9TCA6TD8dC3JE3rYkrhLULy7Dc90G6e8
+BlqmyIjlgp2+VqsS9/wQD7yFylIz0scmbKvFoW2jNrbM1pD2T7m3XA==
+-----END CERTIFICATE-----
+
+Cybertrust
+-----BEGIN CERTIFICATE-----
+MIICjDCCAhGgAwIBAgIUKS9xW5O7D2rrjSeBl+MynP8pF0owCgYIKoZIzj0EAwMw
+czELMAkGA1UEBhMCSlAxIzAhBgNVBAoTGkN5YmVydHJ1c3QgSmFwYW4gQ28uLCBM
+dGQuMT8wPQYDVQQDEzZDeWJlcnRydXN0IGlUcnVzdCBDMlBBIFJvb3QgQ2VydGlm
+aWNhdGlvbiBBdXRob3JpdHkgRzEwHhcNMjUwNzMwMDUxMzQ1WhcNNDAwNzI0MDUx
+MzQ1WjBzMQswCQYDVQQGEwJKUDEjMCEGA1UEChMaQ3liZXJ0cnVzdCBKYXBhbiBD
+by4sIEx0ZC4xPzA9BgNVBAMTNkN5YmVydHJ1c3QgaVRydXN0IEMyUEEgUm9vdCBD
+ZXJ0aWZpY2F0aW9uIEF1dGhvcml0eSBHMTB2MBAGByqGSM49AgEGBSuBBAAiA2IA
+BDB8+JiYghpSphkIz5RriMmGcPKuPwY1OizPf+hGz2IahGdyIZWLZc/lFzGpBKUF
+ba8rbL9RbYbQIC/3/X1K91v3WrX4aC0X3Uixjr4GRfA+tYBIuPKSITvHiAe++wR6
+2KNmMGQwEgYDVR0TAQH/BAgwBgEB/wIBAjAOBgNVHQ8BAf8EBAMCAQYwHwYDVR0j
+BBgwFoAU/+TJjy4pArwGGk2IJUY8z/Vq7yQwHQYDVR0OBBYEFP/kyY8uKQK8BhpN
+iCVGPM/1au8kMAoGCCqGSM49BAMDA2kAMGYCMQCLfT3mtiiNRkHTpnDgPGjjjuZj
+aeyWkVI2COOpC1FnKptXLbrjjIQnq40K4pfZtyECMQDW/GoK9UT+8hsccKPl35IB
+0EkJAzKgs8AzqaV0lV2PjfJEo2rXqIsSk7SLcPfNTu0=
+-----END CERTIFICATE-----
+
+Bria.ai
+-----BEGIN CERTIFICATE-----
+MIICnTCCAf6gAwIBAgIRAPvDTK/w7D6vl0WjbhX93q0wCgYIKoZIzj0EAwQwaDEL
+MAkGA1UEBhMCSUwxJTAjBgNVBAoMHEJyaWEgQXJ0aWZpY2lhbCBJbnRlbGxpZ2Vu
+Y2UxMjAwBgNVBAMMKUJyaWEgQXJ0aWZpY2lhbCBJbnRlbGxpZ2VuY2UgQzJQQSBS
+b290IENBMB4XDTI1MDgxMzA5NDQwMFoXDTQ1MDgxMzEwNDQwMFowaDELMAkGA1UE
+BhMCSUwxJTAjBgNVBAoMHEJyaWEgQXJ0aWZpY2lhbCBJbnRlbGxpZ2VuY2UxMjAw
+BgNVBAMMKUJyaWEgQXJ0aWZpY2lhbCBJbnRlbGxpZ2VuY2UgQzJQQSBSb290IENB
+MIGbMBAGByqGSM49AgEGBSuBBAAjA4GGAAQBm4KD4uRHzKuT9K5+60mkCmRZtvOV
+oPFxqOgnzeIymEL1gcwMSLilogpDGvlCdp3AxlSu85dRH/J7HvtuYwX9pLIBbo6O
+1UqbwSqI4NnC78YQN+OFEY1oQFGYga3GnqHmqGc3zVpFCkEOok0Om0vxIE1mBp7f
+hFwBzkWQZjgp15+K2uWjRjBEMBIGA1UdEwEB/wQIMAYBAf8CAQEwHQYDVR0OBBYE
+FDeC4ZhoAbBHTfS6DUU4N/8h/rifMA8GA1UdDwEB/wQFAwMHBgAwCgYIKoZIzj0E
+AwQDgYwAMIGIAkIBScJ6SavNV7yjqsWuyaLCAQL9jrrD7Yv9aqO5EPf+MmcfT8ZM
+4n5rqQluxv4ieJ6Jeo0YsbkWYdRiUUlnFuEdbPkCQgFR42wDXEjulMA7mwMjKyBs
+Y8Iz2SQmZKEG5OUOEDlDUoxOworLQ9dywuycjdMDWjfMZHaLMeGGofeAqAOLmreB
+Qg==
+-----END CERTIFICATE-----
+
+DigiCert Trusted G4 Timestamping RSA4096 SHA256 2025 CAI
+-----BEGIN CERTIFICATE-----
+MIIGtDCCBJygAwIBAgIQDcesVwX/IZkuQEMiDDpJhjANBgkqhkiG9w0BAQsFADBi
+MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3
+d3cuZGlnaWNlcnQuY29tMSEwHwYDVQQDExhEaWdpQ2VydCBUcnVzdGVkIFJvb3Qg
+RzQwHhcNMjUwNTA3MDAwMDAwWhcNMzgwMTE0MjM1OTU5WjBpMQswCQYDVQQGEwJV
+UzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xQTA/BgNVBAMTOERpZ2lDZXJ0IFRy
+dXN0ZWQgRzQgVGltZVN0YW1waW5nIFJTQTQwOTYgU0hBMjU2IDIwMjUgQ0ExMIIC
+IjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAtHgx0wqYQXK+PEbAHKx126NG
+aHS0URedTa2NDZS1mZaDLFTtQ2oRjzUXMmxCqvkbsDpz4aH+qbxeLho8I6jY3xL1
+IusLopuW2qftJYJaDNs1+JH7Z+QdSKWM06qchUP+AbdJgMQB3h2DZ0Mal5kYp77j
+YMVQXSZH++0trj6Ao+xh/AS7sQRuQL37QXbDhAktVJMQbzIBHYJBYgzWIjk8eDrY
+hXDEpKk7RdoX0M980EpLtlrNyHw0Xm+nt5pnYJU3Gmq6bNMI1I7Gb5IBZK4ivbVC
+iZv7PNBYqHEpNVWC2ZQ8BbfnFRQVESYOszFI2Wv82wnJRfN20VRS3hpLgIR4hjzL
+0hpoYGk81coWJ+KdPvMvaB0WkE/2qHxJ0ucS638ZxqU14lDnki7CcoKCz6eum5A1
+9WZQHkqUJfdkDjHkccpL6uoG8pbF0LJAQQZxst7VvwDDjAmSFTUms+wV/FbWBqi7
+fTJnjq3hj0XbQcd8hjj/q8d6ylgxCZSKi17yVp2NL+cnT6Toy+rN+nM8M7LnLqCr
+O2JP3oW//1sfuZDKiDEb1AQ8es9Xr/u6bDTnYCTKIsDq1BtmXUqEG1NqzJKS4kOm
+xkYp2WyODi7vQTCBZtVFJfVZ3j7OgWmnhFr4yUozZtqgPrHRVHhGNKlYzyjlroPx
+ul+bgIspzOwbtmsgY1MCAwEAAaOCAV0wggFZMBIGA1UdEwEB/wQIMAYBAf8CAQAw
+HQYDVR0OBBYEFO9vU0rp5AZ8esrikFb2L9RJ7MtOMB8GA1UdIwQYMBaAFOzX44LS
+cV1kTN8uZz/nupiuHA9PMA4GA1UdDwEB/wQEAwIBhjATBgNVHSUEDDAKBggrBgEF
+BQcDCDB3BggrBgEFBQcBAQRrMGkwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmRp
+Z2ljZXJ0LmNvbTBBBggrBgEFBQcwAoY1aHR0cDovL2NhY2VydHMuZGlnaWNlcnQu
+Y29tL0RpZ2lDZXJ0VHJ1c3RlZFJvb3RHNC5jcnQwQwYDVR0fBDwwOjA4oDagNIYy
+aHR0cDovL2NybDMuZGlnaWNlcnQuY29tL0RpZ2lDZXJ0VHJ1c3RlZFJvb3RHNC5j
+cmwwIAYDVR0gBBkwFzAIBgZngQwBBAIwCwYJYIZIAYb9bAcBMA0GCSqGSIb3DQEB
+CwUAA4ICAQAXzvsWgBz+Bz0RdnEwvb4LyLU0pn/N0IfFiBowf0/Dm1wGc/Do7oVM
+Y2mhXZXjDNJQa8j00DNqhCT3t+s8G0iP5kvN2n7Jd2E4/iEIUBO41P5F448rSYJ5
+9Ib61eoalhnd6ywFLerycvZTAz40y8S4F3/a+Z1jEMK/DMm/axFSgoR8n6c3nuZB
+9BfBwAQYK9FHaoq2e26MHvVY9gCDA/JYsq7pGdogP8HRtrYfctSLANEBfHU16r3J
+05qX3kId+ZOczgj5kjatVB+NdADVZKON/gnZruMvNYY2o1f4MXRJDMdTSlOLh0HC
+n2cQLwQCqjFbqrXuvTPSegOOzr4EWj7PtspIHBldNE2K9i697cvaiIo2p61Ed2p8
+xMJb82Yosn0z4y25xUbI7GIN/TpVfHIqQ6Ku/qjTY6hc3hsXMrS+U0yy+GWqAXam
+4ToWd2UQ1KYT70kZjE4YtL8Pbzg0c1ugMZyZZd/BdHLiRu7hAWE6bTEm4XYRkA6T
+l4KSFLFk43esaUeqGkH/wyW4N7OigizwJWeukcyIPbAvjSabnf7+Pu0VrFgoiovR
+Diyx3zEdmcif/sYQsfch28bZeUz2rtY/9TCA6TD8dC3JE3rYkrhLULy7Dc90G6e8
+BlqmyIjlgp2+VqsS9/wQD7yFylIz0scmbKvFoW2jNrbM1pD2T7m3XA==
+-----END CERTIFICATE-----
+
+GlobalSign R45 AATL TimeStamping Root CA 2021
+-----BEGIN CERTIFICATE-----
+MIIG3DCCBMSgAwIBAgIQebn/cy+pQ5Sn2ln1CsvVmjANBgkqhkiG9w0BAQwFADBT
+MQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xvYmFsU2lnbiBudi1zYTEpMCcGA1UE
+AxMgR2xvYmFsU2lnbiBUaW1lc3RhbXBpbmcgUm9vdCBSNDUwHhcNMjEwNTE5MDAw
+MDAwWhcNMzgwNTE4MjM1OTU5WjBgMQswCQYDVQQGEwJCRTEZMBcGA1UEChMQR2xv
+YmFsU2lnbiBudi1zYTE2MDQGA1UEAxMtR2xvYmFsU2lnbiBSNDUgQUFUTCBUaW1l
+U3RhbXBpbmcgUm9vdCBDQSAyMDIxMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC
+CgKCAgEAych7DZaDMRQPKpfVMEOYILf7NPpYOmm9doM7wLPoj4YrflMiBe+2wh2W
+rXj4s5bXRun9jY+tc0bO/wNe4c4RRReWHm0jlGqNVEDWaXqFIS//z741eOR8Ji3D
+8dpKJgVtCzV2AA25WecnILMZwe12sDHrxWtsCGmES7MLfXbgycrpT/c3DXb9h7tY
+RBS3AMj1uT1yV+hKWgUGyhJPfIP6/lZSVsnjx4iNX3291d5ilZdGJ+6BAErsiKDt
+plj3qESUuCY1VN26vTYnU2DUeKvEzLuvB17NjpYfs085dAzUIdIqXPz+TWhEJcDt
+2F2M+6cuSRXYgjffqWFTFctybmXqQAUHTL1mHWVCiqxo7hl4oXc+vSOsIgHARa4N
+j22YikT7lTnzfKG7/9zGPs9rINvwLGDEaTDc7/cLTu2D8qmKWKRel6vFBXjd/p7e
+R61LG8Yy8fpnMirrjein9mF8Fbtf6jcV14ot1W5q0ia6aLmmHekAj1D64EpGaaYm
+/xX/690IDYvWLSv6iBWly3bRudxCMEd5lB/aavYzEmng3Rx+YrzLw7FmpMvb6xIo
+QuYnFYmajRREBB4/x0lg5ENX/jnFgK1IKP9lWIzgkuLST0zb5HTTb8E4dIGTdFJe
+Ji61R/nqde+gruJhcDEOSC+K6Sgkie50JUzKO+dBaPilgmQoHOMCAwEAAaOCAZ0w
+ggGZMA4GA1UdDwEB/wQEAwIBhjATBgNVHSUEDDAKBggrBgEFBQcDCDASBgNVHRMB
+Af8ECDAGAQH/AgEAMB0GA1UdDgQWBBTI2NPuw6KaC8Z0KTukom3nj+rlxTAfBgNV
+HSMEGDAWgBRGshx34XsV8KU5oXDe0cQu6m2y3jCBjgYIKwYBBQUHAQEEgYEwfzA3
+BggrBgEFBQcwAYYraHR0cDovL29jc3AuZ2xvYmFsc2lnbi5jb20vdGltZXN0YW1w
+cm9vdHI0NTBEBggrBgEFBQcwAoY4aHR0cDovL3NlY3VyZS5nbG9iYWxzaWduLmNv
+bS9jYWNlcnQvdGltZXN0YW1wcm9vdHI0NS5jcnQwPwYDVR0fBDgwNjA0oDKgMIYu
+aHR0cDovL2NybC5nbG9iYWxzaWduLmNvbS90aW1lc3RhbXByb290cjQ1LmNybDBM
+BgNVHSAERTBDMEEGCSsGAQQBoDIBHzA0MDIGCCsGAQUFBwIBFiZodHRwczovL3d3
+dy5nbG9iYWxzaWduLmNvbS9yZXBvc2l0b3J5LzANBgkqhkiG9w0BAQwFAAOCAgEA
+mA1ofXMAeG3hXva+VK+Rboe556ZETrNki6dZ7zXyklvW1HERbWzsJIHgoQ0E8WVB
+JQM1eafsXF+bk70mXHKf6WLTE00WUUHcgIQFxID0E9wNXhfbWzVjjgWiMESVwmK2
+U292CUIiS996wkwfHGdnM/Zdyx5gX2diEeAFMBP8Q5tS19AWzWj7QwTwIJ2zfDdt
+szdl+d08myBFfTK3RRwLVft8vK6jYgBs8mEq6eN576Vjsyy4e4vk+HWmQJDywnf+
+szpCWS1OLcGdsh4jFVbOHgG+BzBcZ6PC73DKNXmjD7Olz4rvuB7SdIRihPkxn6Cw
+31Q8oceJ9Hct/+w624fEyOC/IxH4OQH4bkXoio67HNjIP+NcmAUfShFMn6iLeU4d
+sPYLPep4JF7R56E9OiLNs9w6I4mrCyz2SA5kDAsmvA78mR38pt9wfz0EtrWpvco1
+OM0gVo3ZoW6G9rcfeFvLqTDHv2oXwndJQTM/sqtunZJYG1kYIe1vmqIbzUhXFNiN
+Qk02Al7kcQkP04I1iCgKb2WbuTiqFJyEmc+MK3dCHegogA/ghDF6PXOCNhaYGwnz
+G0ill4psyi682cWZQAh81M1esRBAN8Tzr322rqfZlZqrFw12XwuF0NY/Bot25sCQ
+1VgmfeJHKFHbwB87c6Mld32QUOo0MF7QzshvQOrA4AA=
+-----END CERTIFICATE-----
+
+GlobalSign Timestamping CA - SHA384 - G4
+-----BEGIN CERTIFICATE-----
+MIIGWTCCBEGgAwIBAgINAewckkDe/S5AXXxHdDANBgkqhkiG9w0BAQwFADBMMSAw
+HgYDVQQLExdHbG9iYWxTaWduIFJvb3QgQ0EgLSBSNjETMBEGA1UEChMKR2xvYmFs
+U2lnbjETMBEGA1UEAxMKR2xvYmFsU2lnbjAeFw0xODA2MjAwMDAwMDBaFw0zNDEy
+MTAwMDAwMDBaMFsxCzAJBgNVBAYTAkJFMRkwFwYDVQQKExBHbG9iYWxTaWduIG52
+LXNhMTEwLwYDVQQDEyhHbG9iYWxTaWduIFRpbWVzdGFtcGluZyBDQSAtIFNIQTM4
+NCAtIEc0MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA8ALiMCP64Bvh
+mnSzr3WDX6lHUsdhOmN8OSN5bXT8MeR0EhmW+s4nYluuB4on7lejxDXtszTHrMMM
+64BmbdEoSsEsu7lw8nKujPeZWl12rr9EqHxBJI6PusVP/zZBq6ct/XhOQ4j+kxkX
+2e4xz7yKO25qxIjw7pf23PMYoEuZHA6HpybhiMmg5ZninvScTD9dW+y279Jlz0UL
+VD2xVFMHi5luuFSZiqgxkjvyen38DljfgWrhsGweZYIq1CHHlP5CljvxC7F/f0aY
+Doc9emXr0VapLr37WD21hfpTmU1bdO1yS6INgjcZDNCr6lrB7w/Vmbk/9E818ZwP
+0zcTUtklNO2W7/hn6gi+j0l6/5Cx1PcpFdf5DV3Wh0MedMRwKLSAe70qm7uE4Q6s
+bw25tfZtVv6KHQk+JA5nJsf8sg2glLCylMx75mf+pliy1NhBEsFV/W6RxbuxTAhL
+ntRCBm8bGNU26mSuzv31BebiZtAOBSGssREGIxnk+wU0ROoIrp1JZxGLguWtWoan
+Zv0zAwHemSX5cW7pnF0CTGA8zwKPAf1y7pLxpxLeQhJN7Kkm5XcCrA5XDAnRYZ4m
+iPzIsk3bZPBFn7rBP1Sj2HYClWxqjcoiXPYMBOMp+kuwHNM3dITZHWarNHOPHn18
+XpbWPRmwl+qMUJFtr1eGfhA3HWsaFN8CAwEAAaOCASkwggElMA4GA1UdDwEB/wQE
+AwIBhjASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBTqFsZp5+PLV0U5M6Tw
+QL7Qw71lljAfBgNVHSMEGDAWgBSubAWjkxPioufi1xzWx/B/yGdToDA+BggrBgEF
+BQcBAQQyMDAwLgYIKwYBBQUHMAGGImh0dHA6Ly9vY3NwMi5nbG9iYWxzaWduLmNv
+bS9yb290cjYwNgYDVR0fBC8wLTAroCmgJ4YlaHR0cDovL2NybC5nbG9iYWxzaWdu
+LmNvbS9yb290LXI2LmNybDBHBgNVHSAEQDA+MDwGBFUdIAAwNDAyBggrBgEFBQcC
+ARYmaHR0cHM6Ly93d3cuZ2xvYmFsc2lnbi5jb20vcmVwb3NpdG9yeS8wDQYJKoZI
+hvcNAQEMBQADggIBAH/iiNlXZytCX4GnCQu6xLsoGFbWTL/bGwdwxvsLCa0AOmAz
+HznGFmsZQEklCB7km/fWpA2PHpbyhqIX3kG/T+G8q83uwCOMxoX+SxUk+RhE7B/C
+pKzQss/swlZlHb1/9t6CyLefYdO1RkiYlwJnehaVSttixtCzAsw0SEVV3ezpSp9e
+FO1yEHF2cNIPlvPqN1eUkRiv3I2ZOBlYwqmhfqJuFSbqtPl/KufnSGRpL9KaoXL2
+9yRLdFp9coY1swJXH4uc/LusTN763lNMg/0SsbZJVU91naxvSsguarnKiMMSME6y
+CHOfXqHWmc7pfUuWLMwWaxjN5Fk3hgks4kXWss1ugnWl2o0et1sviC49ffHykTAF
+nM57fKDFrK9RBvARxx0wxVFWYOh8lT0i49UKJFMnl4D6SIknLHniPOWbHuOqhIKJ
+PsBK9SH+YhDtHTD89szqSCd8i3VCf2vL86VrlR8EWDQKie2CUOTRe6jJ5r5IqitV
+2Y23JSAOG1Gg1GOqg+pscmFKyfpDxMZXxZ22PLCLsLkcMe+97xTYFEBsIB3CLegL
+xo1tjLZx7VIh/j72n585Gq6s0i96ILH0rKod4i0UnfqWah3GPMrz2Ry/U02kR1l8
+lcRDQfkl4iwQfoH5DZSnffK1CfXYYHJAUJUg1ENEvvqglecgWbZ4xqRqqiKb
+-----END CERTIFICATE-----
+
+SSL.com Timestamping Issuing RSA CA R1
+-----BEGIN CERTIFICATE-----
+MIIG/DCCBOSgAwIBAgIQbVIYcIfoI02FYADQgI+TVjANBgkqhkiG9w0BAQsFADB8
+MQswCQYDVQQGEwJVUzEOMAwGA1UECAwFVGV4YXMxEDAOBgNVBAcMB0hvdXN0b24x
+GDAWBgNVBAoMD1NTTCBDb3Jwb3JhdGlvbjExMC8GA1UEAwwoU1NMLmNvbSBSb290
+IENlcnRpZmljYXRpb24gQXV0aG9yaXR5IFJTQTAeFw0xOTExMTMxODUwMDVaFw0z
+NDExMTIxODUwMDVaMHMxCzAJBgNVBAYTAlVTMQ4wDAYDVQQIDAVUZXhhczEQMA4G
+A1UEBwwHSG91c3RvbjERMA8GA1UECgwIU1NMIENvcnAxLzAtBgNVBAMMJlNTTC5j
+b20gVGltZXN0YW1waW5nIElzc3VpbmcgUlNBIENBIFIxMIICIjANBgkqhkiG9w0B
+AQEFAAOCAg8AMIICCgKCAgEArlEQE9L5PCCgIIXeyVAcZMnh/cXpNP8KfzFI6HJa
+xV6oYf3xh/dRXPu35tDBwhOwPsJjoqgY/Tg6yQGBqt65t94wpx0rAgTVgEGMqGri
+6vCI6rEtSZVy9vagzTDHcGfFDc0Eu71mTAyeNCUhjaYTBkyANqp9m6IRrYEXOKdd
+/eREsqVDmhryd7dBTS9wbipm+mHLTHEFBdrKqKDM3fPYdBOro3bwQ6OmcDZ1qMY+
+2Jn1o0l4N9wORrmPcpuEGTOThFYKPHm8/wfoMocgizTYYeDG/+MbwkwjFZjWKwb4
+hoHT2WK8pvGW/OE0Apkrl9CZSy2ulitWjuqpcCEm2/W1RofOunpCm5Qv10T9tIAL
+tQo73GHIlIDU6xhYPH/ACYEDzgnNfwgnWiUmMISaUnYXijp0IBEoDZmGT4RTguiC
+mjAFF5OVNbY03BQoBb7wK17SuGswFlDjtWN33ZXSAS+i45My1AmCTZBV6obAVXDz
+LgdJ1A1ryyXz4prLYyfJReEuhAsVp5VouzhJVcE57dRrUanmPcnb7xi57VPhXnCu
+w26hw1Hd+ulK3jJEgbc3rwHPWqqGT541TI7xaldaWDo85k4lR2bQHPNGwHxXuSy3
+yczyOg57TcqqG6cE3r0KR6jwzfaqjTvN695GsPAPY/h2YksNgF+XBnUD9JBtL4c3
+4AcCAwEAAaOCAYEwggF9MBIGA1UdEwEB/wQIMAYBAf8CAQAwHwYDVR0jBBgwFoAU
+3QQJB6L1en1SUxKSle44gCUNplkwgYMGCCsGAQUFBwEBBHcwdTBRBggrBgEFBQcw
+AoZFaHR0cDovL3d3dy5zc2wuY29tL3JlcG9zaXRvcnkvU1NMY29tUm9vdENlcnRp
+ZmljYXRpb25BdXRob3JpdHlSU0EuY3J0MCAGCCsGAQUFBzABhhRodHRwOi8vb2Nz
+cHMuc3NsLmNvbTA/BgNVHSAEODA2MDQGBFUdIAAwLDAqBggrBgEFBQcCARYeaHR0
+cHM6Ly93d3cuc3NsLmNvbS9yZXBvc2l0b3J5MBMGA1UdJQQMMAoGCCsGAQUFBwMI
+MDsGA1UdHwQ0MDIwMKAuoCyGKmh0dHA6Ly9jcmxzLnNzbC5jb20vc3NsLmNvbS1y
+c2EtUm9vdENBLmNybDAdBgNVHQ4EFgQUDJ0QJY6apxuZh0PPCH7hvYGQ9M8wDgYD
+VR0PAQH/BAQDAgGGMA0GCSqGSIb3DQEBCwUAA4ICAQCSGXUNplpCzxkH2fL8lPrA
+m/AV6USWWi9xM91Q5RN7mZN3D8T7cm1Xy7qmnItFukgdtiUzLbQokDJyFTrF1pyL
+gGw/2hU3FJEywSN8crPsBGo812lyWFgAg0uOwUYw7WJQ1teICycX/Fug0KB94xwx
+hsvJBiRTpQyhu/2Kyu1Bnx7QQBA1XupcmfhbQrK5O3Q/yIi//kN0OkhQEiS0NlyP
+PYoRboHWC++wogzV6yNjBbKUBrMFxABqR7mkA0x1Kfy3Ud08qyLC5Z86C7JFBrMB
+fyhfPpKVlIiiTQuKz1rTa8ZW12ERoHRHcfEjI1EwwpZXXK5J5RcW6h7FZq/cZE9k
+LRZhvnRKtb+X7CCtLx2h61ozDJmifYvuKhiUg9LLWH0Or9D3XU+xKRsRnfOuwHWu
+hWch8G7kEmnTG9CtD9Dgtq+68KgVHtAWjKk2ui1s1iLYAYxnDm13jMZm0KpRM9mL
+QHBK5Gb4dFgAQwxOFPBslf99hXWgLyYE33vTIi9p0gYqGHv4OZh1ElgGsvyKdUUJ
+kAr5hfbDX6pYScJI8v9VNYm1JEyFAV9x4MpskL6kE2Sy8rOqS9rQnVnIyPWLi8N9
+K4GZvPit/Oy+8nFL6q5kN2SZbox5d69YYFe+rN1sDD4CpNWwBBTI/q0V4pkgvhL9
+9IV2XasjHZf4peSrHdL4Rg==
+-----END CERTIFICATE-----
+
+Microsoft C2PA AL2 Root CA 2025
+-----BEGIN CERTIFICATE-----
+MIIFjzCCA3egAwIBAgIQEnO0shHK6IxLTfxxgTIJkDANBgkqhkiG9w0BAQwFADBX
+MQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9uMSgw
+JgYDVQQDEx9NaWNyb3NvZnQgQzJQQSBBTDIgUm9vdCBDQSAyMDI1MB4XDTI1MTIx
+NjIwNTEzM1oXDTQ1MTIxNjIwNTg1MFowVzELMAkGA1UEBhMCVVMxHjAcBgNVBAoT
+FU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjEoMCYGA1UEAxMfTWljcm9zb2Z0IEMyUEEg
+QUwyIFJvb3QgQ0EgMjAyNTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIB
+AMzpMnj7KOLhCDiNkbhHRY28nt+dapImPvfBbI6CVpGh/sCSydJX6ZDI8hCQ184t
+88fXwvTOMwrNO5vFRv8x2DuoAMlFm0CuT1rwb4cQcDNkFc/MltC0LX8yy3WjauyL
+gS4DsQNy4SYrFW5vyQd7mnqKn3hUoV4tRPSrHtM2/aGIDtw3kFUgeMdHwIP68gn0
+r2nmmNazoUs3hSF+lulEpKX6m0aIbWuNZQHIM+OuvELZD/Mi4VKI0awfa0c57une
+KLNV3s1R1wev3D5ZeUYVChkpgiYOpjIaGzpMzLXqiE/L5q0sVJrzO+Ada2yX2MAy
+AmCGPa+u2gsSqwFnFSNPpi9u6KYjmJuOCyPaXTE/MNlPK/pvpbkoSQG+GI2j1ST5
+i9xqw39bAvZzWrlZWv+tNrvDaKMc/1uUOJuIpmqtMfzdJfkaf6djItEJi+vGhwMp
+fD2WOjxoaPMjP0Fp+GuSDwHgz9q2E8qtTbnKGd9ZbewhjPIu9voiQSGP9I2nMiyS
+uVbJ2IuYW6X2KjMU6+fxkjK/1c2rfY7W3od67IVGSzKVkP/aiZAX1iqikD7W+fMP
+cgPF7qCPO2mL7TbfVv3C/Yz5BItgw5KM3iVFV6wjOoYHWRdwXI4bMFwbgJxagvso
+RGA8kVP5ZPrx04FW+qKBMidVfQkJNZSz6mH+j4bw9H4dAgMBAAGjVzBVMA4GA1Ud
+DwEB/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgECMB0GA1UdDgQWBBRlk7SgJPWG
+qFZLi0w+GI13Cfjq4TAQBgkrBgEEAYI3FQEEAwIBADANBgkqhkiG9w0BAQwFAAOC
+AgEAfqfoE/Rpe02glLPpuy0gvBIxi7YKlur5hOB8CCsYAA8EatP54GqBEfAXOaSJ
+1x2H7dYkbn6lK9hpY8+cEtXPqiEafLCMoe2FvD9YI16fS0EVn5+qvnNSvKIULQpO
+xeObJCnemwudMPcKBIjZhRgysZucQJcvGRD7ECpatzugUKx8JmC8xQv4YMrCBXdY
+R19S5REYzfh3S/koUUd2AkEkkNtEPzzC+LjWL9zY3RderiD536TYl7Ej3HQ8QlVW
+3CwMFwqC6I8Nfmb+hmSsvJxGwd45P9IOrnQGNUlBvnXapYFl4h9H46DgJ9ViAruM
+MTSSKGUmLygBu8tj7aIHtSjBzt5MDWWHBy9w+tEjNY35eEpMNaLpG7R00/zNNXT5
+vfqatpFxtLIKkesY4vCv8FJpZAoBMKGodAtTsrt+7lspQlnC8eNZNu/s/QDK/Li7
+hwXFmpP4Jlp+Af7tL+ZF9+4UMfEEts6H6xbREYS+5XJRLlWDZkrxThU4D4Iz7V6A
+edg2W+70uokQWuqqwACzQvQMlrC1ccUd7/2Ld5DpVcy8vXd+GqQqgWC3zlVUZf+1
+f2qnVH+ewkpo6VmeVXOdiCgfQJIS8rkEMJfjmQkEYZj0qOD4Oof+BxnrUGaSGrBr
+dbTpTnNA8vv2MUw5th3vRbfKMlAOXtgaJligciyEyqo/ObE=
+-----END CERTIFICATE-----
+
+Microsoft C2PA Claims AL2 PCA 2025
+-----BEGIN CERTIFICATE-----
+MIIHWzCCBUOgAwIBAgITMwAAAAKdUKaYIhWE3gAAAAAAAjANBgkqhkiG9w0BAQwF
+ADBXMQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9u
+MSgwJgYDVQQDEx9NaWNyb3NvZnQgQzJQQSBBTDIgUm9vdCBDQSAyMDI1MB4XDTI1
+MTIxNzAwMjQwMloXDTQwMTIxNzAwMzQwMlowWjELMAkGA1UEBhMCVVMxHjAcBgNV
+BAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiTWljcm9zb2Z0IEMy
+UEEgQ2xhaW1zIEFMMiBQQ0EgMjAyNTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCC
+AgoCggIBAJvoCfGqERkDSz54E9egXnLSobAm8S/1THQLshhQ5rKzmP2yZQyGU6F+
+l81NUvS9rOoeQ11qj+kYfCgoBXA6mCl4984Fvf2HTW3DsmmgcU+r1ej2ARg2k4Ab
+wW6pZtINDxl4Z227VRCh6BaESef6CXJ2Gj1k0tPlimUTG2GIAmt2J4oNcS6e4J1L
+5ky1E2661DBd97BGiC+hxxTr0SlWySVm9Y4Cqdv6LV8+rLB6weyeub2iI2VC7SbI
+JC9RjgnDEjy7iH+R1xX55TTfNUl32WWR8TmzCH5vIoIv8LHrcPh4JgM1IGEIoop1
+Fg9YLRIw6O8HNuV7GdMd9NTqFuUemgAL6hzKPL8ZjWwJAyZtviFfY7yxzyIR1uYg
+fa0finBxX2EueyJKqgB1PrdVRDXo0aCda8Y9n++G+3ZOyiR0Y7t4Hh4Qhbhxn9YI
+br+5kDlgCbBzPhvWQWvG9tAwabJ/v1DfTj9WD3AtnLVhwQGnF7grFf0PpG5jzDSk
+k5Qq0e8K57d3hfBqUym3DN7L9Ft7jaqx8FN4qdbDLq2RYCqtYGUCZFAqG2OlFXwZ
+5ZYB+mEp73z8rynatISCe5iecVj1wWifHeqO4V2y2G4ak/3kjRmUfdH38/Lid4kA
+3IOrmHKoRsyv39tRMh5HdiZl3WfhNINnaKEe30DXCyVS7Uw4eC8PAgMBAAGjggIb
+MIICFzAOBgNVHQ8BAf8EBAMCAQYwEAYJKwYBBAGCNxUBBAMCAQAwHQYDVR0OBBYE
+FGOg44wa0jSIJI2CVgCZvQU8TIywMFwGA1UdIARVMFMwUQYMKwYBBAGCN0yDfQED
+MEEwPwYIKwYBBQUHAgEWM2h0dHA6Ly93d3cubWljcm9zb2Z0LmNvbS9wa2lvcHMv
+ZG9jcy9yZXBvc2l0b3J5Lmh0bTAfBgNVHSUEGDAWBgorBgEEAYPoXgIBBggrBgEF
+BQcDJDAZBgkrBgEEAYI3FAIEDB4KAFMAdQBiAEMAQTASBgNVHRMBAf8ECDAGAQH/
+AgEBMB8GA1UdIwQYMBaAFGWTtKAk9YaoVkuLTD4YjXcJ+OrhMGIGA1UdHwRbMFkw
+V6BVoFOGUWh0dHA6Ly93d3cubWljcm9zb2Z0LmNvbS9wa2lvcHMvY3JsL01pY3Jv
+c29mdCUyMEMyUEElMjBBTDIlMjBSb290JTIwQ0ElMjAyMDI1LmNybDCBoAYIKwYB
+BQUHAQEEgZMwgZAwXwYIKwYBBQUHMAKGU2h0dHA6Ly93d3cubWljcm9zb2Z0LmNv
+bS9wa2lvcHMvY2VydHMvTWljcm9zb2Z0JTIwQzJQQSUyMEFMMiUyMFJvb3QlMjBD
+QSUyMDIwMjUuY3J0MC0GCCsGAQUFBzABhiFodHRwOi8vb25lb2NzcC5taWNyb3Nv
+ZnQuY29tL29jc3AwDQYJKoZIhvcNAQEMBQADggIBAIYyo6vn0nxk7OCmf7Ue0v+a
+FAgdsai7V/3hZsZ6lvxKnirsbS+uaZPQNsThDWhr/umBSCF/jtFA+dgzTTuQuarl
+MDP7uUwVYdUguImIwNXxbeSzn8iYA7Q9/p6XWPoeHavhRrZ5ujV/IuIed8IU+cUx
+pNudZnKTFvDuAs5Pi9V6ruAA4zMmN7rJKsQj720aynTGycnb15QxY6H7qmDnZbZL
+eyCR7o08El1oQiFhqTTx0Ev0PkcB9IbhqgH3g60Jrtmgdni7IydaHOV4eaZPzdfD
+ZSK8MUmGyMY8s6H2uE4gMzRGt6kk8cq0UDU31XfPFaCPLymbolCofPZsgIprJ+FI
+VPzLtI0yYO8gCk/axInATP8JaMX+MhTioII/eQsMgHuxKuJhHqbkdi2BcBKrSGT/
+n7ap1PDh54EY6niT5fcdTyv0liXE95WqTDDIHM4qpTLM6MCJGXY85h0h0x11vnq5
+C4t8tlTAGBPU5h9RSwxVG8OsLqwRN3Yq+LrHvI7U3uPDUIeh0qfJJ8KCCjyWRx/o
+7T3ctIX31Bso8GGEmkoMLNhFdUCR09uEzmCARmzSJcNgeMoifMDnm5t+jEIloRoa
+QEqADZ+wDIanhs9siV2ITjEO5WJgWvbNuCm7W5QWYdyE+O/AIQeaQcL+sYeieBTW
+Dp7rRMfzLp0Q/u3Ap8x2
+-----END CERTIFICATE-----
+
+Microsoft C2PA Time Stamp Authority PCA 2025
+-----BEGIN CERTIFICATE-----
+MIIHWTCCBUGgAwIBAgITMwAAAAOscVbt3sExSQAAAAAAAzANBgkqhkiG9w0BAQwF
+ADBXMQswCQYDVQQGEwJVUzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9u
+MSgwJgYDVQQDEx9NaWNyb3NvZnQgQzJQQSBBTDIgUm9vdCBDQSAyMDI1MB4XDTI1
+MTIxNzAxMDg1OVoXDTQwMTIxNzAxMTg1OVowZDELMAkGA1UEBhMCVVMxHjAcBgNV
+BAoTFU1pY3Jvc29mdCBDb3Jwb3JhdGlvbjE1MDMGA1UEAxMsTWljcm9zb2Z0IEMy
+UEEgVGltZSBTdGFtcCBBdXRob3JpdHkgUENBIDIwMjUwggIiMA0GCSqGSIb3DQEB
+AQUAA4ICDwAwggIKAoICAQCl/OdW45/qglcIWBMZU8UZPW/IYRoT/FtW/lADBAVe
+XO7x9qALK1i4GN59hjjGC7TQ0xq++4iCu4Yr59Nq/TrroHwtGSaKFvD17op4itkY
+R0D3HpXh4KN3QLk1tPUNLFssX6vpJK9PzA1k0C8b3lzc6D0eqppc71fetcx4szDe
+Qdr+4+6sdG+a4YDufxPpCxFJcLAuN5ZJifw1vsUojrqk3qvNQ7S6ncNg2yMoNnKj
+HUMydV+clkmL14sv72idLla4Ui7mlhJPwR71XO8Nmbprp8UatnAEM7vYzciSaj5/
+pzlEsc7CU2XnX2zDY5aCmK5nuf1pZMg8twVZNuCocQeKainA6fUTL3GjmHQE65aJ
+nJMwFeydrhuw0PhW2yUyGi39k62bWUoQ0FTc+wiOHZSdSlfmA6077uFYLqrN46Ah
+dAE3j/B8gXfDF6SH5yf371uMLXN8v+bhlMecd4CITf7RcRaKR3CwehisyCAa6Cof
+vdeoQn6OrtafEtIJygtbvXDqB9s4oi/jhEgslZrEc28HTGYVSmJhF51iM6Y7+9Jy
+L5+SrpIDP1sT+py28Nsih0nFSrKIhjDr1KZvEt6cIVVkIQ+YKaBq8t+v3ICggD3r
+/tl9fH2gi8SCNdTPtVzgpIBTr+CqkcTz49rFJMitwCqQrsQ0wZdDticPFzVefrN7
+PQIDAQABo4ICDzCCAgswDgYDVR0PAQH/BAQDAgEGMBAGCSsGAQQBgjcVAQQDAgEA
+MB0GA1UdDgQWBBTDnJKxCj6dN91rCyuBpb7tE8RfGTBcBgNVHSAEVTBTMFEGDCsG
+AQQBgjdMg30BAzBBMD8GCCsGAQUFBwIBFjNodHRwOi8vd3d3Lm1pY3Jvc29mdC5j
+b20vcGtpb3BzL2RvY3MvcmVwb3NpdG9yeS5odG0wEwYDVR0lBAwwCgYIKwYBBQUH
+AwgwGQYJKwYBBAGCNxQCBAweCgBTAHUAYgBDAEEwEgYDVR0TAQH/BAgwBgEB/wIB
+ADAfBgNVHSMEGDAWgBRlk7SgJPWGqFZLi0w+GI13Cfjq4TBiBgNVHR8EWzBZMFeg
+VaBThlFodHRwOi8vd3d3Lm1pY3Jvc29mdC5jb20vcGtpb3BzL2NybC9NaWNyb3Nv
+ZnQlMjBDMlBBJTIwQUwyJTIwUm9vdCUyMENBJTIwMjAyNS5jcmwwgaAGCCsGAQUF
+BwEBBIGTMIGQMF8GCCsGAQUFBzAChlNodHRwOi8vd3d3Lm1pY3Jvc29mdC5jb20v
+cGtpb3BzL2NlcnRzL01pY3Jvc29mdCUyMEMyUEElMjBBTDIlMjBSb290JTIwQ0El
+MjAyMDI1LmNydDAtBggrBgEFBQcwAYYhaHR0cDovL29uZW9jc3AubWljcm9zb2Z0
+LmNvbS9vY3NwMA0GCSqGSIb3DQEBDAUAA4ICAQAgW1VWrhRwRwvGYwLA6226MUps
+bP99X0i8vA1b9HXwT2BttePPOTmFdcrJgbxZqx/F54iUzxanpr3BCg72B0dAekUN
+/+Iu2LgFx1VtAdNXdw9DwuHzU2t9aR/qn7tCZZmXtAqfUy3dXyR3qaOZBjcJQIi1
+ZOdYDJJ3WL4YqsvliWRo+fWcCcix54b+vea4nrIfXx56zhP+vQ7N+3wKyQNe6kz+
+AekrMuzPWgMdgQKLKbL2XKeR4eiGe4UMQqyGYxJXZk8pvVpk5wEh8sSIoVwb6t54
+AssWB04L+bl/vQ7die5zMqn69iPc2F32FfpbrkvtsfZRKpijQ+jEuReUsUa4USBG
+Wyu4NWrkNi3BJ8hvgki4HMkRmlXJ2YKgUsaK0W8IVIpSvoTs2MYaK9oKOhlNMtRj
+az9H8sMmnZ1F14nJpABGzW9dJz0abCu7zwoUDvArb9Tu4UiEgAtI/hmzAT4iidNY
+qzgfkrkYkKD7ht1YNHxOreixwtosuF/ykc6MQoVti+8YTle7Hl8SDlp/JE4U2mnM
+EvyaEC2i5g5DGBH9bkq7+ZR4wJ9rEA8eMjjZoC6yrUbjfv2N+gUwqrtPENsas2z4
+x3sizPOefAIye4i1uTYYdbiXHBTuetSuMmuWtRld1howmo5dLeOE5PUoyToTqwyL
+6vbyMW1uoSaUAH+mKw==
+-----END CERTIFICATE-----
+`;
+    C2PA_OFFICIAL_TRUST_LIST_PEM = `Subject	CN=Google C2PA Media Services 1P ICA G3, O=Google LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIIC3DCCAmOgAwIBAgIUQfqlIUd2IVjaf5ss/439Fgke7j4wCgYIKoZIzj0EAwMw
+QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
+b2dsZSBDMlBBIFJvb3QgQ0EgRzMwHhcNMjUwNTA4MjIzNjI2WhcNMzAwNTA4MjIz
+NjI2WjBRMQswCQYDVQQGEwJVUzETMBEGA1UECgwKR29vZ2xlIExMQzEtMCsGA1UE
+AwwkR29vZ2xlIEMyUEEgTWVkaWEgU2VydmljZXMgMVAgSUNBIEczMHYwEAYHKoZI
+zj0CAQYFK4EEACIDYgAEuCPlUxSiltqnB2lx2ES7FK+TVZWmAxRzzDjTzKZ8umoq
+yvCqSLOkZBrOieaLqrp+rnzt0EADWWH3X62NqzEXRewW6rb/lS7VXkVCM02gC0Zg
+JW7+PCsZgLoUBUQ+nkN5o4IBCDCCAQQwFwYDVR0gBBAwDjAMBgorBgEEAYPoXgEB
+MA4GA1UdDwEB/wQEAwIBBjAfBgNVHSUEGDAWBggrBgEFBQcDBAYKKwYBBAGD6F4C
+ATASBgNVHRMBAf8ECDAGAQH/AgEAMGQGCCsGAQUFBwEBBFgwVjAsBggrBgEFBQcw
+AoYgaHR0cDovL3BraS5nb29nL2MycGEvcm9vdC1nMy5jcnQwJgYIKwYBBQUHMAGG
+Gmh0dHA6Ly9jMnBhLW9jc3AucGtpLmdvb2cvMB8GA1UdIwQYMBaAFJxc2IlTQ+da
+1YHbA94ZfwQqKi2qMB0GA1UdDgQWBBTae+G9tCyKheAQ1muax0rx+t/2NzAKBggq
+hkjOPQQDAwNnADBkAjACxtEE3NW13bwN1u/51ericNF6rkEhYVESDO6Jqb5cX37H
+wg0X9S2rH+vXaoFZIHsCMC03wCKKomDHgqV47UtyyHpZlo5IZACW72Xdc4gipdWM
+EmhvPk88dvxbYtn+LVd9zA==
+-----END CERTIFICATE-----
+
+Subject	CN=Google C2PA Mobile A 1P ICA G3 L1, O=Google LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIIC2TCCAmCgAwIBAgIUdEQo46dHfO396b1NFkYHqblfVzAwCgYIKoZIzj0EAwMw
+QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
+b2dsZSBDMlBBIFJvb3QgQ0EgRzMwHhcNMjUwNTA4MjIzNjI3WhcNMzAwNTA4MjIz
+NjI3WjBOMQswCQYDVQQGEwJVUzETMBEGA1UECgwKR29vZ2xlIExMQzEqMCgGA1UE
+AwwhR29vZ2xlIEMyUEEgTW9iaWxlIEEgMVAgSUNBIEczIEwxMHYwEAYHKoZIzj0C
+AQYFK4EEACIDYgAEiso7FbPFqaTmLWL6vJq0Q0FTLVILWVg1nyG1kR2JkEc5E9WW
+k62YSJreXbX6axJqDGecSk5kvqcb9EVJ+wymonRaqy7Gk9c6fi9Hr1mK2mfJZRlX
+CIXeMXeneVG8NMJ8o4IBCDCCAQQwFwYDVR0gBBAwDjAMBgorBgEEAYPoXgEBMA4G
+A1UdDwEB/wQEAwIBBjAfBgNVHSUEGDAWBggrBgEFBQcDBAYKKwYBBAGD6F4CATAS
+BgNVHRMBAf8ECDAGAQH/AgEAMGQGCCsGAQUFBwEBBFgwVjAsBggrBgEFBQcwAoYg
+aHR0cDovL3BraS5nb29nL2MycGEvcm9vdC1nMy5jcnQwJgYIKwYBBQUHMAGGGmh0
+dHA6Ly9jMnBhLW9jc3AucGtpLmdvb2cvMB8GA1UdIwQYMBaAFJxc2IlTQ+da1YHb
+A94ZfwQqKi2qMB0GA1UdDgQWBBSu91pCmLI7HftmLBUUmRZ631vvlDAKBggqhkjO
+PQQDAwNnADBkAjA6bs5IFiYOZjmln6Bii/ShnzrqTn4GxKdCZhP79ul9iPz+mQyn
+pORTyTY84SsxzicCMCI2tAB6n8FQ5BkN1apEUG5gcJlrrNd1rdqtBNXJZHXqYG1m
+7T4gYBB4PHNYYFBGfA==
+-----END CERTIFICATE-----
+
+Subject	CN=Google C2PA Mobile A 1P ICA G3, O=Google LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIIC1jCCAl2gAwIBAgIUXKoTHSLJjkXHIxvKY29YmxgOzoowCgYIKoZIzj0EAwMw
+QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
+b2dsZSBDMlBBIFJvb3QgQ0EgRzMwHhcNMjUwNTA4MjIzNjI4WhcNMzAwNTA4MjIz
+NjI4WjBLMQswCQYDVQQGEwJVUzETMBEGA1UECgwKR29vZ2xlIExMQzEnMCUGA1UE
+AwweR29vZ2xlIEMyUEEgTW9iaWxlIEEgMVAgSUNBIEczMHYwEAYHKoZIzj0CAQYF
+K4EEACIDYgAEx5s4bjuNRDlYKtdj4Dd14esDWyBAk+fNPHFGlDcWX2lTdxgeeKYF
+caw7ZdhD5fWAqUZ++M5wdXXUoGHDFAwfPmTaRKzZupUu7uMFZtolBzAuT2I51meH
+EfMHU95kRkTIo4IBCDCCAQQwDgYDVR0PAQH/BAQDAgEGMB8GA1UdJQQYMBYGCCsG
+AQUFBwMEBgorBgEEAYPoXgIBMBIGA1UdEwEB/wQIMAYBAf8CAQAwFwYDVR0gBBAw
+DjAMBgorBgEEAYPoXgEBMGQGCCsGAQUFBwEBBFgwVjAsBggrBgEFBQcwAoYgaHR0
+cDovL3BraS5nb29nL2MycGEvcm9vdC1nMy5jcnQwJgYIKwYBBQUHMAGGGmh0dHA6
+Ly9jMnBhLW9jc3AucGtpLmdvb2cvMB8GA1UdIwQYMBaAFJxc2IlTQ+da1YHbA94Z
+fwQqKi2qMB0GA1UdDgQWBBQOccStRBCOVzAFalyyAs6XkvF+IDAKBggqhkjOPQQD
+AwNnADBkAjBjAj22bX3vKs/3Q4K0qE7jPwY3BljcaGyhTg9Gk6ni0+3TxuluLCq+
+zITXauG0qy0CMFfS4bUxKdwCjWOnamLCA9xiaO82my0UN0kvxNMFflLsmeO4PL+N
+I/u3EJ347o+4jA==
+-----END CERTIFICATE-----
+
+Subject	CN=Google C2PA Mobile B 1P ICA G3 L1, O=Google LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIIC2zCCAmCgAwIBAgIUBpMF/2hh9GWQEhKn4uebRk7j2PcwCgYIKoZIzj0EAwMw
+QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
+b2dsZSBDMlBBIFJvb3QgQ0EgRzMwHhcNMjUwNTA4MjIzNjI3WhcNMzAwNTA4MjIz
+NjI3WjBOMQswCQYDVQQGEwJVUzETMBEGA1UECgwKR29vZ2xlIExMQzEqMCgGA1UE
+AwwhR29vZ2xlIEMyUEEgTW9iaWxlIEIgMVAgSUNBIEczIEwxMHYwEAYHKoZIzj0C
+AQYFK4EEACIDYgAEKGv3Fd3J1vOPfrR744lpYlGc05lZ57UyVDKGHTPj71PuwW19
+oHO932WXXf+K4jBkotgXeBChrhrTiUGxBdrmYRB1m6MyAJ/wT3xw06YRcGxoiW0b
+IhbMN4YNIAMW76Noo4IBCDCCAQQwFwYDVR0gBBAwDjAMBgorBgEEAYPoXgEBMA4G
+A1UdDwEB/wQEAwIBBjAfBgNVHSUEGDAWBggrBgEFBQcDBAYKKwYBBAGD6F4CATAS
+BgNVHRMBAf8ECDAGAQH/AgEAMGQGCCsGAQUFBwEBBFgwVjAsBggrBgEFBQcwAoYg
+aHR0cDovL3BraS5nb29nL2MycGEvcm9vdC1nMy5jcnQwJgYIKwYBBQUHMAGGGmh0
+dHA6Ly9jMnBhLW9jc3AucGtpLmdvb2cvMB8GA1UdIwQYMBaAFJxc2IlTQ+da1YHb
+A94ZfwQqKi2qMB0GA1UdDgQWBBRLBf7gDA1hOViJqHtuE8btC3KB8TAKBggqhkjO
+PQQDAwNpADBmAjEAhfcU5E3IKMRw/Wxd9YfUdxTpi5HM99JiHG0KmFxcPGd8tDBA
+XkoxEV/OYIEeyVl4AjEA1QH3goidp0++w4rQ6P8wbdw3BtlkSJpGsQ4WQc0i5bWz
+KyN/WtDOZj/RG3+bqaw+
+-----END CERTIFICATE-----
+
+Subject	CN=Google C2PA Mobile B 1P ICA G3, O=Google LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIIC1zCCAl2gAwIBAgIUac3GAHq5vTwO71pE75SNo8wcJVcwCgYIKoZIzj0EAwMw
+QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
+b2dsZSBDMlBBIFJvb3QgQ0EgRzMwHhcNMjUwNTA4MjIzNjI3WhcNMzAwNTA4MjIz
+NjI3WjBLMQswCQYDVQQGEwJVUzETMBEGA1UECgwKR29vZ2xlIExMQzEnMCUGA1UE
+AwweR29vZ2xlIEMyUEEgTW9iaWxlIEIgMVAgSUNBIEczMHYwEAYHKoZIzj0CAQYF
+K4EEACIDYgAEbns1saor1bu/tYfe1ozY2yZwBgkcmIcmr552foAPn5v4zmS61OEs
+C5VwKHBgi9uTuXZ8SSV1KSPyysqrgm542XLPWsMlkuWRfneQBANeLAk6aEBqDASo
+DJ7Aoube5tuao4IBCDCCAQQwDgYDVR0PAQH/BAQDAgEGMB8GA1UdJQQYMBYGCCsG
+AQUFBwMEBgorBgEEAYPoXgIBMBIGA1UdEwEB/wQIMAYBAf8CAQAwFwYDVR0gBBAw
+DjAMBgorBgEEAYPoXgEBMGQGCCsGAQUFBwEBBFgwVjAsBggrBgEFBQcwAoYgaHR0
+cDovL3BraS5nb29nL2MycGEvcm9vdC1nMy5jcnQwJgYIKwYBBQUHMAGGGmh0dHA6
+Ly9jMnBhLW9jc3AucGtpLmdvb2cvMB8GA1UdIwQYMBaAFJxc2IlTQ+da1YHbA94Z
+fwQqKi2qMB0GA1UdDgQWBBT4N2ZAjPoDJR1+UgU4KwafcJT5mDAKBggqhkjOPQQD
+AwNoADBlAjEAg2SjBAAmAOvOLd1kKYZQzkiD6KSXe4+3zALTs5SQCK3xmmkxsFzJ
+bBCIiuTbxsrIAjAhQm+LpSxSwkIZiwWI7rGiJMv7BCj38HhiQpmR5lr+anbBOQty
+UsWhYsCGlDmiWzA=
+-----END CERTIFICATE-----
+
+Subject	CN=Google C2PA Root CA G3, O=Google LLC, C=US
+-----BEGIN CERTIFICATE-----
+MIICLjCCAbOgAwIBAgIUUZK4AROFKiXQZ1UG7FG6qPGc1g8wCgYIKoZIzj0EAwMw
+QzELMAkGA1UEBhMCVVMxEzARBgNVBAoMCkdvb2dsZSBMTEMxHzAdBgNVBAMMFkdv
+b2dsZSBDMlBBIFJvb3QgQ0EgRzMwIBcNMjUwNTA4MjIzMjIxWhgPMjA1MDA1MDgy
+MjMyMjFaMEMxCzAJBgNVBAYTAlVTMRMwEQYDVQQKDApHb29nbGUgTExDMR8wHQYD
+VQQDDBZHb29nbGUgQzJQQSBSb290IENBIEczMHYwEAYHKoZIzj0CAQYFK4EEACID
+YgAEhv9f/juKcPpe3Fm7eAISMuSyS+tBxn0aYHC83J+qAsFWREGN9p6PN/OBoouP
+zpOFRxvrlWoWmAI3p1lXyPg4E3eg7SNChgopUIpihGu6qlhP8rLXf3p8bhI5FTQ2
+MaF2o2YwZDASBgNVHRMBAf8ECDAGAQH/AgECMA4GA1UdDwEB/wQEAwIBBjAfBgNV
+HSMEGDAWgBScXNiJU0PnWtWB2wPeGX8EKiotqjAdBgNVHQ4EFgQUnFzYiVND51rV
+gdsD3hl/BCoqLaowCgYIKoZIzj0EAwMDaQAwZgIxAIyVEe5bdUMkk6BthEWy9QSE
+Mb74BOyK8/8pgMX0NPwLlo1ikLNY78ov+k21vZrEZQIxANQ91muDXgPjAMAkzAlK
+i32Z9VBB37ynTveKVC7ofTW0ZFfIIYYpWUR1+C4m2yRkOQ==
+-----END CERTIFICATE-----
+
+Subject	CN=SSL.com C2PA RSA Root CA 2025, O=SSL Corporation, C=US
+-----BEGIN CERTIFICATE-----
+MIIFlDCCA3ygAwIBAgIUExeshkq/ESresWEq3YWcEUTmxvowDQYJKoZIhvcNAQEL
+BQAwTzEmMCQGA1UEAwwdU1NMLmNvbSBDMlBBIFJTQSBSb290IENBIDIwMjUxGDAW
+BgNVBAoMD1NTTCBDb3Jwb3JhdGlvbjELMAkGA1UEBhMCVVMwIBcNMjUxMTA3MTYy
+NzEzWhgPMjA1MDExMDExNjI3MTNaME8xJjAkBgNVBAMMHVNTTC5jb20gQzJQQSBS
+U0EgUm9vdCBDQSAyMDI1MRgwFgYDVQQKDA9TU0wgQ29ycG9yYXRpb24xCzAJBgNV
+BAYTAlVTMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA07LXx05AgfZn
+F6CPMzpPwA+vGxfqi2Pw3/gvhAe4UdzmasSutCRK9sK66DZYta4AbYPS0/2IToqo
+1n33f9/XrmQ62uM3XAyKXfg8UWUaj2WsyA3dIxY5l80B0S0EX0V1HpP6ygw1IDfJ
+/KKkknn/0o14zmNkRzLpqQDOMoL4s+kli8NtkEOG8M8NrH5QJCNRL7lN0DG8TvRa
+10Zfwyxnd4yw9DT2HWJInjC+Hww9QZua/u6bTy0pFHV0vVCgKQuPtbX8b60998t4
+b56trGesWapUefIEu6GH1CkQu7nhsk1Rf59+uPv1NQLOm7wbyghHtQQ00baR/687
+r7/qXxRLV1CFNH3nAgFfHkD8N07GWS5C1OOmkUPrc2f9tdKWOJ6USDJCOX1DkTee
+o9RgwSJfLueDtAOp19dlBo2UW79A2MGN6VI119DoW04VUjxmPHLIWtt08ZRTHzvN
+2I2DA3ic5Wt4pgSLXDZ6ztlFX4Y6nXwVFdWae9zwLpm9ttsF4fepLyPAUTuT9m0j
+/oeQt3KmyxIukYD8I1PiSQ6YDLIiWFZcYC8LMyiYmQEX6spsE+IF37lx2nZ1OF+D
+AOSCYYamZx6HYShgN4zN1QYTMJdxbz5JgRTIIioVdJTqeF/5GsSGP6f9Eym8ND9j
+LQzm8MBEMfvlAgw0q1ieN2Q9INSN3qMCAwEAAaNmMGQwEgYDVR0TAQH/BAgwBgEB
+/wIBAjAOBgNVHQ8BAf8EBAMCAQYwHQYDVR0OBBYEFPwqSnU6gPqZY5Pwc1fsvpOw
+fcN7MB8GA1UdIwQYMBaAFPwqSnU6gPqZY5Pwc1fsvpOwfcN7MA0GCSqGSIb3DQEB
+CwUAA4ICAQBAqkR9j5wKs0T7e9gHTUWlLAnkWLyZI7AuEoXimyJ7Ocy1EwZyu3TD
+Z2jCecLNXENnUwjuKaEm/8sCwzrVqpxzIgkS1jVLuVURlrj2+apT/7wBw8LCKMZ6
+cDhQJV3A1+9hyCc5ozkE1LgcJfWELrBWeBuj8rWLAf0DDgtwaED7nS9c9P8UgrxH
+YTMe2AHWEfczXBirx5ubpNaokR0W01aSdXa97ohoS+ZmK0bxvmWCugI4tfsypsVl
+lV2iD9v/BPLCVHP+7ot520mE21WdQKD69M54V8KAqfmNoG6I3TB2EcKJ0NpKI0zW
+niSX05NDrv70INu+vAI8Sso/mRMHpuo03/0iTm3z8J4ACjwP071U0R3wCjTxN8z2
+95EwOf1/JQH5h0njkarxFsWsnHJtWwE3kGEibO3ivB2U3FyS1osN0bEA4X5CSeMF
+GDJFCXVB0l4/KeHHNRk3DEVjr5dzcwt/C2DLj9VuaeWEWuVbA3/PDR/MnZzDtPj1
+TVLswGkWKwG+AyJaHkLysZD0IKwL4SZGGCRvyKw+G5Go0vvHVyUMPHqVTBApxY9l
+pt6absyMPdRnf+w0tdFlhCd2rauRA0HX7JZ5xqnYjkfk0m7MpoauCsQR9udJvv5H
+pMv7wvJRchf62/pPnjLKhN/dx9LR/EVqBPbPMhqdzO6ObQdqUJzXPQ==
+-----END CERTIFICATE-----
+
+Subject	CN=SSL.com C2PA ECC Root CA 2025, O=SSL Corporation, C=US
+-----BEGIN CERTIFICATE-----
+MIICRTCCAcugAwIBAgIUHTAeXakkTyAFDkZfyu8YyCO9ubgwCgYIKoZIzj0EAwIw
+TzEmMCQGA1UEAwwdU1NMLmNvbSBDMlBBIEVDQyBSb290IENBIDIwMjUxGDAWBgNV
+BAoMD1NTTCBDb3Jwb3JhdGlvbjELMAkGA1UEBhMCVVMwIBcNMjUwNzE4MTU1MTQ5
+WhgPMjA1MDA3MTIxNTUxNDlaME8xJjAkBgNVBAMMHVNTTC5jb20gQzJQQSBFQ0Mg
+Um9vdCBDQSAyMDI1MRgwFgYDVQQKDA9TU0wgQ29ycG9yYXRpb24xCzAJBgNVBAYT
+AlVTMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEo3WOe9pIesN2XWe6KQdiUO+cU1mr
++Bs8opia0I+IA5m8oYhBJmJWPxLea7PH6tlW6f5wqkIOaeJkJ7X1pz3IHPjO8qkX
+imKjiUwt/B7IoEj6rhoqkAV4AMO2BMxbS1MUo2YwZDASBgNVHRMBAf8ECDAGAQH/
+AgECMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUU50WGoV8zfcRPowvdPbBkJ1O
+g6swHwYDVR0jBBgwFoAUU50WGoV8zfcRPowvdPbBkJ1Og6swCgYIKoZIzj0EAwID
+aAAwZQIxALxN0Q+F+9KXOnYUKcW70UuxgitT8iwjTBGCIXJbJw4XaMtVdVGf4HwY
+NITBgr+rWwIwczO4trazVV27OTCl8xNR0IH4UuyFgBVuzMsIj8IPkQw5mVhtvhY7
+nNgp3Dyy2LeE
+-----END CERTIFICATE-----
+
+Subject	emailAddress=ca@trufo.ai, CN=Trufo C2PA Root CA (2025, ECC P384), OU=CA Division, O=Trufo Inc., L=New York, ST=New York, C=US
+-----BEGIN CERTIFICATE-----
+MIIDOTCCAr6gAwIBAgIUbXqcPd1r9yQm/fznG9RlSWyXiwswCgYIKoZIzj0EAwMw
+gagxCzAJBgNVBAYTAlVTMREwDwYDVQQIDAhOZXcgWW9yazERMA8GA1UEBwwITmV3
+IFlvcmsxEzARBgNVBAoMClRydWZvIEluYy4xFDASBgNVBAsMC0NBIERpdmlzaW9u
+MRowGAYJKoZIhvcNAQkBFgtjYUB0cnVmby5haTEsMCoGA1UEAwwjVHJ1Zm8gQzJQ
+QSBSb290IENBICgyMDI1LCBFQ0MgUDM4NCkwHhcNMjUxMjMwMTkwNTAzWhcNNDUx
+MjI1MTkwNTAzWjCBqDELMAkGA1UEBhMCVVMxETAPBgNVBAgMCE5ldyBZb3JrMREw
+DwYDVQQHDAhOZXcgWW9yazETMBEGA1UECgwKVHJ1Zm8gSW5jLjEUMBIGA1UECwwL
+Q0EgRGl2aXNpb24xGjAYBgkqhkiG9w0BCQEWC2NhQHRydWZvLmFpMSwwKgYDVQQD
+DCNUcnVmbyBDMlBBIFJvb3QgQ0EgKDIwMjUsIEVDQyBQMzg0KTB2MBAGByqGSM49
+AgEGBSuBBAAiA2IABAp0qnhIwMtN6LeGdBVtHLPn85ecetr/lqcXFk8ypK9ukJzU
+8LLv55Kh/MYTgEnuIKEOPhDxLDRdahc0mAjRnql4kLk395abw9WZjrBPek3qjv0q
+ITR8VPYFABuZ5FRKx6OBpjCBozAdBgNVHQ4EFgQUA9Vfr36D5QQdWYAnSjT/Rf3r
+SXgwHwYDVR0jBBgwFoAUA9Vfr36D5QQdWYAnSjT/Rf3rSXgwEgYDVR0TAQH/BAgw
+BgEB/wIBAjAOBgNVHQ8BAf8EBAMCAQYwPQYDVR0gBDYwNDAyBgorBgEEAYPoPAEB
+MCQwIgYIKwYBBQUHAgEWFmh0dHBzOi8vdHJ1Zm8uYWkvY3BjcHMwCgYIKoZIzj0E
+AwMDaQAwZgIxAMUeYWZyxS2maiVkNETL29RAuLn/gHYTkt97l6evXwHLN46v28mI
+39BIf6slyWnrCwIxAPRs/FJ+DoA0d/PCkrF946S+pG7vRqLnjB9OhMdmrMPvzaqx
+KQYOBVx7SE4Kz48W8A==
+-----END CERTIFICATE-----
+
+Subject	CN=vivo Content Provenance and Authenticity Root CA, O=vivo Mobile Communication Co., Ltd., C=CN
+-----BEGIN CERTIFICATE-----
+MIIC0zCCAjSgAwIBAgIJAMIN3t2/xTDAMAoGCCqGSM49BAMEMHYxOTA3BgNVBAMM
+MHZpdm8gQ29udGVudCBQcm92ZW5hbmNlIGFuZCBBdXRoZW50aWNpdHkgUm9vdCBD
+QTEsMCoGA1UECgwjdml2byBNb2JpbGUgQ29tbXVuaWNhdGlvbiBDby4sIEx0ZC4x
+CzAJBgNVBAYTAkNOMCAXDTI1MDkxODA5MDkxM1oYDzIwNTUwOTExMDkwOTEzWjB2
+MTkwNwYDVQQDDDB2aXZvIENvbnRlbnQgUHJvdmVuYW5jZSBhbmQgQXV0aGVudGlj
+aXR5IFJvb3QgQ0ExLDAqBgNVBAoMI3Zpdm8gTW9iaWxlIENvbW11bmljYXRpb24g
+Q28uLCBMdGQuMQswCQYDVQQGEwJDTjCBmzAQBgcqhkjOPQIBBgUrgQQAIwOBhgAE
+ANQigNuQ6RnYFSK2BWkaksR3fRFFytX4nzX3E4hLV/N/7m/XttNHxNDase0cAXwR
+9pO23p6fb/9NbifILv2wzPn2ASMr306Y2frv/UjJ5J6WgHet2OFywRaPjFjJWRuk
+4JCy0qoSxyyx230g8GYdacZzIqSzVTW7/Xz4mjnWDTOB/Db+o2YwZDASBgNVHRMB
+Af8ECDAGAQH/AgECMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUgB0dwwUcpK4u
+7az42vKC2y+nnY8wHwYDVR0jBBgwFoAUgB0dwwUcpK4u7az42vKC2y+nnY8wCgYI
+KoZIzj0EAwQDgYwAMIGIAkIB9cjlRbw8I0+0VAIOENCEzKOfp2risHuo3KVqyaSV
+K/T6KzMNvpq3ihA6ZjnuH9i5y5XWV//awWbFJDSuT0Bq+pwCQgHuthBjGmDl/nyc
+r3MxJErDVYZBh4b140LQBU60MtiPERVYwme03ukGImPW/OKbEWYmnhHyMAf1ym/3
+UK/lOv3G2w==
+-----END CERTIFICATE-----
+
+Subject	CN=Xiaomi Root CA(EC-P384), O=Xiaomi Inc., L=Beijing, ST=Beijing, C=CN
+-----BEGIN CERTIFICATE-----
+MIICeDCCAf6gAwIBAgITAJQBmyrWaBV3JOroB8uDgC0MxDAKBggqhkjOPQQDAzBp
+MQswCQYDVQQGEwJDTjEQMA4GA1UECBMHQmVpamluZzEQMA4GA1UEBxMHQmVpamlu
+ZzEUMBIGA1UEChMLWGlhb21pIEluYy4xIDAeBgNVBAMTF1hpYW9taSBSb290IENB
+KEVDLVAzODQpMCAXDTI1MDkyNTAxMjI0MFoYDzIwNTAwOTE5MDEyMjQwWjBpMQsw
+CQYDVQQGEwJDTjEQMA4GA1UECBMHQmVpamluZzEQMA4GA1UEBxMHQmVpamluZzEU
+MBIGA1UEChMLWGlhb21pIEluYy4xIDAeBgNVBAMTF1hpYW9taSBSb290IENBKEVD
+LVAzODQpMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEDOfbCvQLZmlcAW7uOnEiCJ3K
+pVxu+qYxrwBDbSIRsDc2xg9o94+8pX+mveme5SsSsKM/0ouu5+ECwhkxRof/1BDQ
+21cK+n4HBY0G7P3RltI6moeDv4bdVvC4ni+yJpFvo2YwZDAdBgNVHQ4EFgQUm8DQ
+DCIUeaz1o+Cc286YCgebcc4wHwYDVR0jBBgwFoAUm8DQDCIUeaz1o+Cc286YCgeb
+cc4wEgYDVR0TAQH/BAgwBgEB/wIBAjAOBgNVHQ8BAf8EBAMCAQYwCgYIKoZIzj0E
+AwMDaAAwZQIwUfj3heoA8iZfAMqHrZwarUM71v3Y1gqlltdgOzv9mix5O/EDxHcQ
+m26a9NrrMTXmAjEAgwjR42dkym44QlV+QXR05vuMf1o/bdAXmJKvhjDgPTK9VYRa
+gFLaTqFtjuZfDg3L
+-----END CERTIFICATE-----
+
+Subject	CN=DigiCert RSA4096 Root for C2PA G1, O=DigiCert, Inc., C=US
+-----BEGIN CERTIFICATE-----
+MIIFljCCA36gAwIBAgIQL2uv995UIpTpN6WRLwYnHDANBgkqhkiG9w0BAQwFADBS
+MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xKjAoBgNVBAMT
+IURpZ2lDZXJ0IFJTQTQwOTYgUm9vdCBmb3IgQzJQQSBHMTAgFw0yNTA4MjcwMDAw
+MDBaGA8yMDUwMDgyNjIzNTk1OVowUjELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDkRp
+Z2lDZXJ0LCBJbmMuMSowKAYDVQQDEyFEaWdpQ2VydCBSU0E0MDk2IFJvb3QgZm9y
+IEMyUEEgRzEwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQDTX44Mw12/
+in3jeV80FcoutZhxtvhZQHAdiFtiYd9Y+quavnHRqtcexRZQ0n1XtGXeiusE72M6
+G4dwdTsHXoXVNXjwrO9a/fA/46u+/T5ZU6FyRQdahwQNIXL5PVfqrjwX2Ta2Gby2
+z4tbhfzxtgJSosJGJsCGq5mGiBXIqBkbua0YOvuX1WifAuDQun84bw+qwCCWxSty
+QuUcZMm6xl24ye5RZnz8xkctz/p68kgNa9IhJlHrZ3CAe1zEu3PrNS7Oq/uzN06t
+Ji6rkpXCV6GlhN0RlEPmUb3pg8kYqQ9uca7u4UTyl/F9QqG2xMDgAtNDrfNbWpyO
+fnoYGNQvQyD5M7slsz9j9sUcKwspaz8zmuu31UXPqmvME+UalDvFeknQZP+ft9Uv
+8eICovCQxvy1Iwg3sjc2hO0lbYYn/JqGARg+5jP/SlkY4dSypdYBtBaAfVxTd+iQ
+m4k1oAEIP7ujyQ+1U0F9gygQPwQrMOcyYINgkcsp36rb1znuxlIF6LIcfO1bkVSx
+vHqd0CVP8vwrYXKJOr4dES1s4k12kxv+csvZWiuSqY0uhFUSMSE5id5zWW7H6ZCX
+3J3Ati2MjyRjyyejDbTQdTS3wlF4f4bLaWidMWSZ3JCyZABXpj46RtdbhZgV7I7B
+ZTXCI6FIBuUaiZzW9RHhVzR+qrfBOx40mwIDAQABo2YwZDASBgNVHRMBAf8ECDAG
+AQH/AgECMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUVusnOJo+SNZygIWbesMH
+UVoE8+UwHwYDVR0jBBgwFoAUVusnOJo+SNZygIWbesMHUVoE8+UwDQYJKoZIhvcN
+AQEMBQADggIBAIjcpKt4FeVibq6zP1m2RUagL6PEW+8o5CC5kv0mDMcCgqNTsyNJ
+lr/1yYzzpEC82QaCZ34g4eMXnOwq+5jF5xQ5b7RV7X9nFuPXh7r2CittMkBLPKp/
+jSApyfEI2qgNtPWc5voKRgPrkSuHu+wB5gTg7AkN9CCZeaauMesIIn7/8lWOSho9
+a5DVCJekYh+WcfnSP6l0ilRw1WhnAtPwadhcQ9zJxKe6LSdsH3yNJhViIQNrBhlA
+O3BNZF1q2JfOM6TCiY/I+M8AfzuvxF/xyxeDlcRNo6QbfAvUybDOsleg9NxO+EK3
+VXTInzaWidoX9TRdEx0iiERj9OB7ehZBwTUllBH6UtxFy3X7YRSnO8ZdjtEERJmk
+BNZztgd4KWBnaFMERI0ObiqN1az0uqe8sRULEJ1Ay79sTsJtiemNChMxmYb83XU1
+1wSX/W54tD6vPQPCwn84AeLgYSfA10QwRyAo99pwmjZzrCx5uBH7jCVYBkP7iQ6h
+o3yHror7znE8LJrrWytOuumEFzxQ0NSaXjrDRKCLKTKnr8niIj+lB/SJsBua52a6
+HHRckrpDokgPSPOYI4A+ZGC//Ron9i3S8ce2dQHAWNCqB2ADtnu4Yf36OfmHdrCL
+hzIxlPKKDPXwgxv7NTRFs1d7KcIpjYuZp71eZA74ZqxDgVa7CMkhdgML
+-----END CERTIFICATE-----
+
+Subject	CN=DigiCert ECC P384 Root for C2PA G1, O=DigiCert, Inc., C=US
+-----BEGIN CERTIFICATE-----
+MIICSTCCAc+gAwIBAgIQCZ2yarc/T5eBQYVHCJTdyjAKBggqhkjOPQQDAzBTMQsw
+CQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xKzApBgNVBAMTIkRp
+Z2lDZXJ0IEVDQyBQMzg0IFJvb3QgZm9yIEMyUEEgRzEwIBcNMjUwODI3MDAwMDAw
+WhgPMjA1MDA4MjYyMzU5NTlaMFMxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdp
+Q2VydCwgSW5jLjErMCkGA1UEAxMiRGlnaUNlcnQgRUNDIFAzODQgUm9vdCBmb3Ig
+QzJQQSBHMTB2MBAGByqGSM49AgEGBSuBBAAiA2IABNHiy4U9/SpPSnQ3ogU+q3mn
+M/f9zmLuqF8krS0LNUC0T81Nu57WCGSb6149CVpkRRC6BYlfGcBWVYXar4aX10oX
+ggSiFPi93ovkAfUN9wikKqVu6amI7tRQPKXJ95UsFaNmMGQwEgYDVR0TAQH/BAgw
+BgEB/wIBAjAOBgNVHQ8BAf8EBAMCAQYwHQYDVR0OBBYEFPQYEa4JgolO/Ju0M/b0
+370CTpQ2MB8GA1UdIwQYMBaAFPQYEa4JgolO/Ju0M/b0370CTpQ2MAoGCCqGSM49
+BAMDA2gAMGUCMQCg31cyC7If2VPMUvqEr08WB6QhRVpAa+GNRlKUOJlSMq/y2tm+
+80RTxpV2RsYC9UsCMGkKQ0Yx4FIs1RhYtXVIgTyHrSxGne4/457DlIS+IMIJN5Yd
+gMNj6G6tzM47QDGl2w==
+-----END CERTIFICATE-----
+
+Subject	CN=DigiCert RSA4096 L1 Claim Signing ICA for C2PA G1, O=DigiCert, Inc., C=US
+-----BEGIN CERTIFICATE-----
+MIIGxDCCBKygAwIBAgIQJ4BVBbBmDXnyAtI0JLlo5TANBgkqhkiG9w0BAQwFADBS
+MQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xKjAoBgNVBAMT
+IURpZ2lDZXJ0IFJTQTQwOTYgUm9vdCBmb3IgQzJQQSBHMTAeFw0yNTA4MjcwMDAw
+MDBaFw0zMDA4MjYyMzU5NTlaMGIxCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5EaWdp
+Q2VydCwgSW5jLjE6MDgGA1UEAxMxRGlnaUNlcnQgUlNBNDA5NiBMMSBDbGFpbSBT
+aWduaW5nIElDQSBmb3IgQzJQQSBHMTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCC
+AgoCggIBAKiOlc644cuaOoCElG+yGHBmAtfXRw3fSBfRTCf/9yaMQiyEGCxP8HKT
+fxtdqD8zmXqePLCLzGM2ccGJx3w5RzpFdOhopwGIKsTm+C1wHmZc5Lws5wst7rFQ
+stF8nIN9TBP5H6elZcoNaUhqCJ0bxmeXp6J0iiRKiuLF2j0Grfv4cBL8+XlLRE3g
+Of1yqEsEZktfK9qeCUuugltxXwL1WP8IKgtkMeLo0QZQSAg4R+gyX6C1j64nlAtV
+RewqSrug+Rkquz94doEscaq3w+ypp8pJ9ovpn9Zdx6PArh4uK90YB/ThB92Voi2x
+K8T9D8xnzpONwBfKPiUS502160mZuF09Xgm6zBNRPFKmAdhN73QV4i5Hn2rv5104
+AR4QGvz5Egh/bZ5RElIutD/CvVrOS1fykm6ZIVuxqHUx0pxWkAsjRyCE+fuhczhW
+QfVy2EUst98kNjUZC/OFF4TxfcWt7xu7CKNZb3rE7nrbMAbPLKPZjAlT7GlmEhaa
+dw/Y3ap0sPnO3BtsBP3kOSed3lP3zEfokBLSYsQtwDWzdWanGE3nB2HvBmcviYdi
+P48gXP/5uybnVlKUHXb0gBtdYzNTBx3ynoUrWtbNwvMuTKv6mmnuLxhGiEWEK+BY
+StlfOiPvUdpyr+TMsaujPpWq9IUX6qmsOcl1gfujK/lJ3kuvSUm3AgMBAAGjggGE
+MIIBgDASBgNVHRMBAf8ECDAGAQH/AgEAMBcGA1UdIAQQMA4wDAYKKwYBBAGD6F4B
+ATAOBgNVHQ8BAf8EBAMCAQYwgYYGCCsGAQUFBwEBBHoweDAoBggrBgEFBQcwAYYc
+aHR0cDovL29jc3Aub25lLmRpZ2ljZXJ0LmNvbTBMBggrBgEFBQcwAoZAaHR0cDov
+L2NhY2VydHMub25lLmRpZ2ljZXJ0LmNvbS9EaWdpQ2VydFJTQTQwOTZSb290Zm9y
+QzJQQUcxLmNydDBNBgNVHR8ERjBEMEKgQKA+hjxodHRwOi8vY3JsLm9uZS5kaWdp
+Y2VydC5jb20vRGlnaUNlcnRSU0E0MDk2Um9vdGZvckMyUEFHMS5jcmwwKQYDVR0l
+BCIwIAYKKwYBBAGD6F4CAQYIKwYBBQUHAwQGCCsGAQUFBwMkMB0GA1UdDgQWBBTC
+mxzaIdNwH6lU5HUf8IFpzcgbRTAfBgNVHSMEGDAWgBRW6yc4mj5I1nKAhZt6wwdR
+WgTz5TANBgkqhkiG9w0BAQwFAAOCAgEAt8Kn2LQMxbL10BAx5ebm1G/TMTrgQN9y
+f18ZE5qNk3ipoFFtijZzRT5zidKi+/956V11nPMgm90W/CMtapHImj3Da4eoShzl
+7N6hPjGYuHJUFfCYaJFxgz0r2sdFYc0drpOlfLa+WVUmgXM8QhbWiHcyk37z8Ega
+6p1fjFVH6QqKWwXhSuR5aH0QflBHJKdWRkRZSTNBU2Hj1FOqhZBPPM+jvLGWgkQg
+hpQTrO9pTILZ0nb3rTkvClimBewUwTkjoB8M4UHifHcXJ7/RnFzj+KHR5kWdzVTz
+uCLcIlTNeACYQZaAj/eT9vzI1n6IUoU04R/9STijYHr05VbH1jM94rDJzjE8Hjf+
+f8YV9X/38Rc3gcH1hLzAKqwIyF/XieaquJLXY90O1Ads/WTrNRlf5A4109FKnELd
+w8R9vOneDvslbrHxu/MmoanzJlqxW1Sw6tlU0G2kMfyIH9y0RLmTiJndW9UXyzMU
+tGID1N2lhdO0BmwBuzCbZWRHCD0NcP9l5Kc8fCL95OgdpRbivEFeGynZZiCjvrJ9
+tT+uGWQiBbTlEgR57e1KsEPFKxb0M81ewNEo+vhxaSoWvXv84ZM/Zc9a0ZqPMEPr
+3073hQvLguizQTWJQstDjzlmOWF7K6hnI70rTNLhZBEFC3XJlBYxbUMlGdH4ebLc
+9IUUXRE00ws=
+-----END CERTIFICATE-----
+
+Subject	CN=DigiCert ECC P384 L1 Claim Signing ICA for C2PA G1, O=DigiCert, Inc., C=US
+-----BEGIN CERTIFICATE-----
+MIIDdzCCAv2gAwIBAgIQUhYZxg4djFjAWbZwab2qqTAKBggqhkjOPQQDAzBTMQsw
+CQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNlcnQsIEluYy4xKzApBgNVBAMTIkRp
+Z2lDZXJ0IEVDQyBQMzg0IFJvb3QgZm9yIEMyUEEgRzEwHhcNMjUwODI3MDAwMDAw
+WhcNMzAwODI2MjM1OTU5WjBjMQswCQYDVQQGEwJVUzEXMBUGA1UEChMORGlnaUNl
+cnQsIEluYy4xOzA5BgNVBAMTMkRpZ2lDZXJ0IEVDQyBQMzg0IEwxIENsYWltIFNp
+Z25pbmcgSUNBIGZvciBDMlBBIEcxMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEJ2hi
+wBWq/Dldnu/FxGwfHDAmRxezmmKQtIWSd/HYfiJW2T9wNJmSPywB5Kl7WBJXyaxy
+Uwhn8tpDqBypcT0hlN8Mi8Cql9yj9t2MJXN3KshCyBiQWjcKnZoOFhW83E1oo4IB
+hDCCAYAwEgYDVR0TAQH/BAgwBgEB/wIBADAXBgNVHSAEEDAOMAwGCisGAQQBg+he
+AQEwTQYDVR0fBEYwRDBCoECgPoY8aHR0cDovL2NybC5vbmUuZGlnaWNlcnQuY29t
+L0RpZ2lDZXJ0RUNDUDM4NFJvb3Rmb3JDMlBBRzEuY3JsMA4GA1UdDwEB/wQEAwIB
+BjCBhgYIKwYBBQUHAQEEejB4MCgGCCsGAQUFBzABhhxodHRwOi8vb2NzcC5vbmUu
+ZGlnaWNlcnQuY29tMEwGCCsGAQUFBzAChkBodHRwOi8vY2FjZXJ0cy5vbmUuZGln
+aWNlcnQuY29tL0RpZ2lDZXJ0RUNDUDM4NFJvb3Rmb3JDMlBBRzEuY3J0MCkGA1Ud
+JQQiMCAGCisGAQQBg+heAgEGCCsGAQUFBwMEBggrBgEFBQcDJDAdBgNVHQ4EFgQU
+JqGs/hW9GFhOR/R0fNP8EaPxlocwHwYDVR0jBBgwFoAU9BgRrgmCiU78m7Qz9vTf
+vQJOlDYwCgYIKoZIzj0EAwMDaAAwZQIwa6ohDos9g13+HZlgKR45C5K3qug4QUi3
+tHu79IL601lgQSDgpnclOmJOuWxZFxfGAjEA3kAU5JV6no1hQpZdtb11g+B5wCHW
+bUVPYZLXZ1Ie2RaND1QmLeYYKbuqsC58ZtSw
+-----END CERTIFICATE-----
+
+Subject	CN=Adobe Product Issuing CA vault-a-or2.adobe.net cai, O=Adobe Inc, L=San Jose, ST=California, C=US
+-----BEGIN CERTIFICATE-----
+MIIDhDCCAwugAwIBAgIUTNz+Jl3kNFEJK5md8Tp/Cwsm/B4wCgYIKoZIzj0EAwMw
+bzELMAkGA1UEBhMCVVMxETAPBgNVBAcTCFNhbiBKb3NlMRMwEQYDVQQKEwpBZG9i
+ZSBJbmMuMRAwDgYDVQQLEwdQcm9kdWN0MSYwJAYDVQQDEx1BZG9iZSBQcm9kdWN0
+IEludGVybWVkaWF0ZSBDQTAeFw0yNTExMTkxODI5NDRaFw0zMDExMjAwMDMwMTRa
+MIGGMTswOQYDVQQDEzJBZG9iZSBQcm9kdWN0IElzc3VpbmcgQ0EgdmF1bHQtYS1v
+cjIuYWRvYmUubmV0IGNhaTESMBAGA1UEChMJQWRvYmUgSW5jMQswCQYDVQQGEwJV
+UzERMA8GA1UEBxMIU2FuIEpvc2UxEzARBgNVBAgTCkNhbGlmb3JuaWEwdjAQBgcq
+hkjOPQIBBgUrgQQAIgNiAASArJB/ZRkabuyoSoGy/6JS124LqMOeKRTruZ4GIxZ3
+Rg2UKXeWDINVsgXVewJalg98T0HgeXyXM8Ia0y0dLQUhxT++kVaascgJBuevPs8z
+5Z+n+grN03x6ttUORdJ4O9qjggFOMIIBSjASBgNVHRMBAf8ECDAGAQH/AgEAMB8G
+A1UdIwQYMBaAFBldp+77+M3A85KlrD7gVNgW7D8UMFsGCCsGAQUFBwEBBE8wTTBL
+BggrBgEFBQcwAoY/aHR0cDovL3BraS1jZG4uYWRvYmUubmV0L2NhL2Fkb2JlX2lu
+dGVybmFsX2ludGVybWVkaWF0ZV9wcm9kdWN0ME0GA1UdHwRGMEQwQqBAoD6GPGh0
+dHA6Ly9wa2ktY2RuLmFkb2JlLm5ldC9hZG9iZV9pbnRlcm5hbF9pbnRlcm1lZGlh
+dGVfcHJvZHVjdDAOBgNVHQ8BAf8EBAMCAQYwHQYDVR0OBBYEFC76762PJu/wKMyE
+92MRuG8aw1sIMBcGA1UdIAQQMA4wDAYKKwYBBAGD6F4BATAfBgNVHSUEGDAWBgor
+BgEEAYPoXgIBBggrBgEFBQcDBDAKBggqhkjOPQQDAwNnADBkAjAfjQ+ZR+qrZcyW
+iOVr07JrjClkluOhKPreYGCIQjRXvZPiFPDorO1df9tEIPmJ2Q4CMAIfpEWAmTsA
+ggP/MIJIBoTabnBjhwmUcaqRdjK/LuT3KvwkZzZ6R7iPDkQs0d+dQA==
+-----END CERTIFICATE-----
+
+Subject	CN=Irdeto C2PA Root CA G1, O=Irdeto BV, C=NL
+-----BEGIN CERTIFICATE-----
+MIICLDCCAbGgAwIBAgIUL8JDbqsQllkL9gozEdKhKc9GFAcwCgYIKoZIzj0EAwMw
+QjELMAkGA1UEBhMCTkwxEjAQBgNVBAoMCUlyZGV0byBCVjEfMB0GA1UEAwwWSXJk
+ZXRvIEMyUEEgUm9vdCBDQSBHMTAgFw0yNTEyMDUxMjQ0NDBaGA8yMDUwMTIwNTEy
+NDQ0MFowQjELMAkGA1UEBhMCTkwxEjAQBgNVBAoMCUlyZGV0byBCVjEfMB0GA1UE
+AwwWSXJkZXRvIEMyUEEgUm9vdCBDQSBHMTB2MBAGByqGSM49AgEGBSuBBAAiA2IA
+BEOtgkWt4t4r3Fvn2vDshY1KcZ63/VTaZN7K2uiAcCeztiH+ZSFf4hA5cSCABRJ+
+VkWZYLvnhNLsCVbtEij6mDN5hf4VIUdUNgUonGZ6tkL1Djs3CUIkjD+nH/HXbCSj
+pqNmMGQwEgYDVR0TAQH/BAgwBgEB/wIBAjAOBgNVHQ8BAf8EBAMCAQYwHQYDVR0O
+BBYEFGs1MrTyCBABc00WKVK0njUakyplMB8GA1UdIwQYMBaAFGs1MrTyCBABc00W
+KVK0njUakyplMAoGCCqGSM49BAMDA2kAMGYCMQCB1h+esIhAsddoGkZI1aXwwCFM
+wL/cHskaM8JZsvUfcecGQmG08ZVesfUeCzei0SECMQCLjWbR4LY1mgfF+PzlieDZ
+9DTcd5qOpJaSf90/8AnQA/UWGtRGqJsrmERInDoXEOA=
+-----END CERTIFICATE-----
+
+Subject	emailAddress=ca@tauth.io, CN=Tauth Root CA, OU=CA Division, O=Tauth Labs Inc., L=New York, ST=New York, C=US
+-----BEGIN CERTIFICATE-----
+MIIDjzCCAxWgAwIBAgIUW6zwDse+LBk8Yvy/u3p7lSjnaA4wCgYIKoZIzj0EAwMw
+gZcxCzAJBgNVBAYTAlVTMREwDwYDVQQIDAhOZXcgWW9yazERMA8GA1UEBwwITmV3
+IFlvcmsxGDAWBgNVBAoMD1RhdXRoIExhYnMgSW5jLjEUMBIGA1UECwwLQ0EgRGl2
+aXNpb24xFjAUBgNVBAMMDVRhdXRoIFJvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2Nh
+QHRhdXRoLmlvMB4XDTI2MDEwNTE2MDgzMVoXDTQ1MTIzMTE2MDgzMVowgZcxCzAJ
+BgNVBAYTAlVTMREwDwYDVQQIDAhOZXcgWW9yazERMA8GA1UEBwwITmV3IFlvcmsx
+GDAWBgNVBAoMD1RhdXRoIExhYnMgSW5jLjEUMBIGA1UECwwLQ0EgRGl2aXNpb24x
+FjAUBgNVBAMMDVRhdXRoIFJvb3QgQ0ExGjAYBgkqhkiG9w0BCQEWC2NhQHRhdXRo
+LmlvMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAETgpV7Q9tsMzXFPduTyVt71IRRfU0
+yeZGVuXmVO6zyUXxqGCg07jafnMyv24pRwJ9Bk+ROhslNWFS0NhXjIINDuk4h5Ji
+KcEEGBJIlGl7jOB/MPLF/HU7CfURT2ayXKXmo4IBHjCCARowHQYDVR0OBBYEFB3R
+AQfd1ulUQKBf+J34TnS1CxI+MIHXBgNVHSMEgc8wgcyAFB3RAQfd1ulUQKBf+J34
+TnS1CxI+oYGdpIGaMIGXMQswCQYDVQQGEwJVUzERMA8GA1UECAwITmV3IFlvcmsx
+ETAPBgNVBAcMCE5ldyBZb3JrMRgwFgYDVQQKDA9UYXV0aCBMYWJzIEluYy4xFDAS
+BgNVBAsMC0NBIERpdmlzaW9uMRYwFAYDVQQDDA1UYXV0aCBSb290IENBMRowGAYJ
+KoZIhvcNAQkBFgtjYUB0YXV0aC5pb4IUW6zwDse+LBk8Yvy/u3p7lSjnaA4wDwYD
+VR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8EBAMCAYYwCgYIKoZIzj0EAwMDaAAwZQIx
+AJzhLaivtrjOMyEAuoHQRIhN2u7kw2iWZZyAT6FJH4+GBYudax0dfewXeIvC0MH5
+SwIwAKojdigAO86Xvk6++B875ZpTjQIysPX0bGumbmAwcAmsqum9JLLIRCDz+7Kt
+WrRP
+-----END CERTIFICATE-----
+
+Subject	CN=HUAWEI C2PA ECC384 Root CA E346, O=Huawei Technologies Co., Ltd., C=CN
+-----BEGIN CERTIFICATE-----
+MIICoDCCAiagAwIBAgIIKsblXSNLwF8wCgYIKoZIzj0EAwMwXzELMAkGA1UEBhMC
+Q04xJjAkBgNVBAoMHUh1YXdlaSBUZWNobm9sb2dpZXMgQ28uLCBMdGQuMSgwJgYD
+VQQDDB9IVUFXRUkgQzJQQSBFQ0MzODQgUm9vdCBDQSBFMzQ2MB4XDTI2MDQxMzAx
+NTQxMFoXDTQ2MDQwODAxNTQxMFowXzELMAkGA1UEBhMCQ04xJjAkBgNVBAoMHUh1
+YXdlaSBUZWNobm9sb2dpZXMgQ28uLCBMdGQuMSgwJgYDVQQDDB9IVUFXRUkgQzJQ
+QSBFQ0MzODQgUm9vdCBDQSBFMzQ2MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEOrBo
+SivfM2LRlG3B4r52hE0vDjQR2iWv9sKTZXzkscQIasoH+uYBDDie9VcosH4Mfq/U
+xN8ojhW7BZW38LT38SmYpJPZirtzKTyCD4ha4dU8tLcHoJsOn3p+kBw09Bvoo4Gu
+MIGrMB8GA1UdIwQYMBaAFM/OyEcEDscO78w/okatAmz35ypMMB0GA1UdDgQWBBTP
+zshHBA7HDu/MP6JGrQJs9+cqTDASBgNVHRMBAf8ECDAGAQH/AgECMEUGCCsGAQUF
+BwELBDkwNzA1BggrBgEFBQcwBYYpaHR0cDovL2NhLmh1YXdlaWNsb3VkLmNvbS9y
+ZXBvc2l0b3J5Lmh0bWwwDgYDVR0PAQH/BAQDAgEGMAoGCCqGSM49BAMDA2gAMGUC
+MDCsqpRvJIPw6OAQi2Rj0CWnwJgK75YK5gj+K9xomIDu8ai/2ExrifL8JgROQOeZ
+egIxAL3tT3Dp84wP18ohYU83gkRcA8j9B3T4BRpxY1Ew9IJMYJ2zqz0weFjAEGNC
+9Z36XQ==
+-----END CERTIFICATE-----
+
+Subject	CN=Huanyu Trust C2PA EC-384 Root CA, O=Huanyu Trust Ltd, C=CN
+-----BEGIN CERTIFICATE-----
+MIICTTCCAdOgAwIBAgIUCqsLOXYNHdz0EBDsWKcrsiBcF10wCgYIKoZIzj0EAwMw
+UzELMAkGA1UEBhMCQ04xGTAXBgNVBAoTEEh1YW55dSBUcnVzdCBMdGQxKTAnBgNV
+BAMTIEh1YW55dSBUcnVzdCBDMlBBIEVDLTM4NCBSb290IENBMCAXDTI2MDQxMzA2
+MDUwOVoYDzIwNTEwNDEzMDYwNTA5WjBTMQswCQYDVQQGEwJDTjEZMBcGA1UEChMQ
+SHVhbnl1IFRydXN0IEx0ZDEpMCcGA1UEAxMgSHVhbnl1IFRydXN0IEMyUEEgRUMt
+Mzg0IFJvb3QgQ0EwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAARDnAlELrIETK81oB6E
+/ZfbkGSH9YPhGdFpXTzDCHD3IsKPQdPPv/mF319XjdrZMECxpH9rbmWGuWrhq6K8
+zIGO27H2MUE658XNu6aO5xcZV/YdAMkG/YWPYo9CmCT4/SujZjBkMBIGA1UdEwEB
+/wQIMAYBAf8CAQIwHwYDVR0jBBgwFoAUYc0ZfGc1yTPouBQYj81mEEdaefswHQYD
+VR0OBBYEFGHNGXxnNckz6LgUGI/NZhBHWnn7MA4GA1UdDwEB/wQEAwIBBjAKBggq
+hkjOPQQDAwNoADBlAjEAqfQxNSnmGxtt1QBKJbaY8AyUiaJxzX5MnH0l/ielnc6D
+qBhIcALvKKc3a8MizR01AjB85bwUFBgs6WlIWZ6sFDDbCQzrWpPU11YQnj/mGom7
+yXjL/2axHPWPY2Do/ldP5mc=
+-----END CERTIFICATE-----
+
+Subject	CN=Verimago Root CA, O=Verimago LLC, ST=Washington, C=US
+-----BEGIN CERTIFICATE-----
+MIICTjCCAdSgAwIBAgIVAOFSVdVKiaIUGZlbNzPTi5bS/Gy+MAoGCCqGSM49BAMD
+MFQxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpXYXNoaW5ndG9uMRUwEwYDVQQKEwxW
+ZXJpbWFnbyBMTEMxGTAXBgNVBAMTEFZlcmltYWdvIFJvb3QgQ0EwHhcNMjYwNTE1
+MDE0NjUwWhcNNDYwNTE1MDE0NjUwWjBUMQswCQYDVQQGEwJVUzETMBEGA1UECBMK
+V2FzaGluZ3RvbjEVMBMGA1UEChMMVmVyaW1hZ28gTExDMRkwFwYDVQQDExBWZXJp
+bWFnbyBSb290IENBMHYwEAYHKoZIzj0CAQYFK4EEACIDYgAExn74thYXg89OFcXC
+obav4kqQAt0YDK4h28ovPP5RJWs77BBRwUhbdb0C6SMVFJ+MuyUK/cBoua+cSIOh
+N6prHNqeHbZMi3nzlbVfEbDDWm9hy+OxXtOLlJQYL5zjUgkco2YwZDASBgNVHRMB
+Af8ECDAGAQH/AgECMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQUAkmvpVkpKvS1
+2ZHgaoysoshW7XowHwYDVR0jBBgwFoAUAkmvpVkpKvS12ZHgaoysoshW7XowCgYI
+KoZIzj0EAwMDaAAwZQIwDqzc2oVzZezm4GeER3jPUDWNj4zsqdXciOoGO0JkAHmC
+vyUBt8FH9vZK9d6bZ9DEAjEA5eFk9oFV8cm8pyJ2+hKo5ji/iip8A0T5U2GwHQyN
+W4GXdTaTwkzPD7X6whoLKKB/
+-----END CERTIFICATE-----
+
+Subject	CN=Verimago Claim Signing Issuing CA, O=Verimago LLC, ST=Washington, C=US
+-----BEGIN CERTIFICATE-----
+MIIDTDCCAtOgAwIBAgIUNcPH/7deevUcZvKM0EQGUJN99PMwCgYIKoZIzj0EAwMw
+VDELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24xFTATBgNVBAoTDFZl
+cmltYWdvIExMQzEZMBcGA1UEAxMQVmVyaW1hZ28gUm9vdCBDQTAeFw0yNjA1MTUw
+MTQ2NTBaFw0zMTA1MTUwNzQ2NTBaMGUxCzAJBgNVBAYTAlVTMRMwEQYDVQQIEwpX
+YXNoaW5ndG9uMRUwEwYDVQQKEwxWZXJpbWFnbyBMTEMxKjAoBgNVBAMTIVZlcmlt
+YWdvIENsYWltIFNpZ25pbmcgSXNzdWluZyBDQTB2MBAGByqGSM49AgEGBSuBBAAi
+A2IABPB0fzGODSoLVNkTQWekSBkL6rD2h2//WP+4f1pdl9K8K0Z8Bt0SrlOXNtrp
+I/ytOybRwV7nH3TDAWkZV833jc8Gjgqs7P0Q4ZZc4+4WIey3eD9084B8rLXs3/K/
+q7NyHaOCAVMwggFPMBIGA1UdEwEB/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEG
+MCkGA1UdJQQiMCAGCisGAQQBg+heAgEGCCsGAQUFBwMEBggrBgEFBQcDJDAXBgNV
+HSAEEDAOMAwGCisGAQQBg+heAQEwHQYDVR0OBBYEFCM0wx5MWMCrBF5eYt8J9b41
+TMwcMB8GA1UdIwQYMBaAFAJJr6VZKSr0tdmR4GqMrKLIVu16MDsGA1UdHwQ0MDIw
+MKAuoCyGKmh0dHA6Ly9jYS52ZXJpbWFnby5pby9jcmwvaW50ZXJtZWRpYXRlLmNy
+bDBoBggrBgEFBQcBAQRcMFowJgYIKwYBBQUHMAGGGmh0dHA6Ly9jYS52ZXJpbWFn
+by5pby9vY3NwMDAGCCsGAQUFBzAChiRodHRwOi8vY2EudmVyaW1hZ28uaW8vY2Vy
+dHMvcm9vdC5wZW0wCgYIKoZIzj0EAwMDZwAwZAIwDq2qaR9as+lyVFcwsUTlMIm/
+OGxgW4dqVg7jlsBST+3xvS0nIpZUS7lcF44FVcFdAjA5abgOYS/ie7NXxp3smYtu
+FoKzc/V7TAaL0VS/HGB3x7sTa+D6HIY3/ls33Dy/4Gk=
+-----END CERTIFICATE-----
+
+Subject	CN=Snowball ECC P384 Root CA for C2PA G1, O=Snowball Technology Co., Ltd., C=CN
+-----BEGIN CERTIFICATE-----
+MIICiTCCAg6gAwIBAgIUVlsRGj1G9vJ4ws2jMYyFlFcKUokwCgYIKoZIzj0EAwMw
+ZTELMAkGA1UEBhMCQ04xJjAkBgNVBAoMHVNub3diYWxsIFRlY2hub2xvZ3kgQ28u
+LCBMdGQuMS4wLAYDVQQDDCVTbm93YmFsbCBFQ0MgUDM4NCBSb290IENBIGZvciBD
+MlBBIEcxMB4XDTI2MDYxODA5MzkxOVoXDTQ2MDYxMzA5MzkxOVowZTELMAkGA1UE
+BhMCQ04xJjAkBgNVBAoMHVNub3diYWxsIFRlY2hub2xvZ3kgQ28uLCBMdGQuMS4w
+LAYDVQQDDCVTbm93YmFsbCBFQ0MgUDM4NCBSb290IENBIGZvciBDMlBBIEcxMHYw
+EAYHKoZIzj0CAQYFK4EEACIDYgAELJUrcxeVmmYrb8Kl/YVAYYFiyuiqiIa6z/1n
+FoCpB2JV/Qkwjdns7rOvLheWBi1s880NcwqD/KD9t9/SOgWTfD+WOAhtPioAql2Y
+YUl0toOUzoXaAOB3+HIQRiKsL2RIo38wfTASBgNVHRMBAf8ECDAGAQH/AgECMA4G
+A1UdDwEB/wQEAwIBBjAdBgNVHQ4EFgQU6R4F1vboIaKQly8jCAQX2lQhWPQwHwYD
+VR0jBBgwFoAU6R4F1vboIaKQly8jCAQX2lQhWPQwFwYDVR0gBBAwDjAMBgorBgEE
+AYPoXgEBMAoGCCqGSM49BAMDA2kAMGYCMQD6/xszsnZoYt+gYIsgYKTMFARxRpB5
+N16s2u2hgkuFs4zyLco1z7gOk0mv6EbBkm0CMQCcsqIQnr45MVjDUdn9L//VdGDO
+6H+P67vBdmvb3LiLTB+Ey/JYYfnHHIKzJrRG4ls=
+-----END CERTIFICATE-----
+
+Subject	CN=Snowball ECC P384 Claim Signing ICA for C2PA G1, O=Snowball Technology Co., Ltd., C=CN
+-----BEGIN CERTIFICATE-----
+MIIDrjCCAzSgAwIBAgIUMPJ1KkDp+fvHaZOBsdKSnPm/hdowCgYIKoZIzj0EAwMw
+ZTELMAkGA1UEBhMCQ04xJjAkBgNVBAoMHVNub3diYWxsIFRlY2hub2xvZ3kgQ28u
+LCBMdGQuMS4wLAYDVQQDDCVTbm93YmFsbCBFQ0MgUDM4NCBSb290IENBIGZvciBD
+MlBBIEcxMB4XDTI2MDYxODA5NDQ1OVoXDTMxMDYxOTA5NDQ1OVowbzELMAkGA1UE
+BhMCQ04xJjAkBgNVBAoMHVNub3diYWxsIFRlY2hub2xvZ3kgQ28uLCBMdGQuMTgw
+NgYDVQQDDC9Tbm93YmFsbCBFQ0MgUDM4NCBDbGFpbSBTaWduaW5nIElDQSBmb3Ig
+QzJQQSBHMTB2MBAGByqGSM49AgEGBSuBBAAiA2IABJvqMpOfFPJuwAV3s2YGMbe7
+mRj48rsUZsJrMSOWU3SnssFtPEWTFh8QyM88zaFuprKC8nm53vnEMkGG+YtmZdBf
+zsmayZqs9Rq6EQchDSF2vVNvE9wxAqhKJIawhYSTe6OCAZkwggGVMBIGA1UdEwEB
+/wQIMAYBAf8CAQAwDgYDVR0PAQH/BAQDAgEGMCkGA1UdJQQiMCAGCisGAQQBg+he
+AgEGCCsGAQUFBwMEBggrBgEFBQcDJDAdBgNVHQ4EFgQUt0FFkasBa70GGSB6Ntn5
+2UCzqwYwHwYDVR0jBBgwFoAU6R4F1vboIaKQly8jCAQX2lQhWPQwFwYDVR0gBBAw
+DjAMBgorBgEEAYPoXgEBMIGUBggrBgEFBQcBAQSBhzCBhDAtBggrBgEFBQcwAYYh
+aHR0cDovL29jc3AuYzJwYS5zbm93YmFsbHRlY2guY29tMFMGCCsGAQUFBzAChkdo
+dHRwOi8vY2FjZXJ0cy5jMnBhLnNub3diYWxsdGVjaC5jb20vU25vd2JhbGxFQ0NQ
+Mzg0Um9vdENBZm9yQzJQQUcxLmNydDBUBgNVHR8ETTBLMEmgR6BFhkNodHRwOi8v
+Y3JsLmMycGEuc25vd2JhbGx0ZWNoLmNvbS9Tbm93YmFsbEVDQ1AzODRSb290Q0Fm
+b3JDMlBBRzEuY3JsMAoGCCqGSM49BAMDA2gAMGUCMQCp0U69fhqepzep6uvRFmGg
+e+mgVJX1a2JsC3m+W6GAA62UruIAskoTmrEC0iZXMwYCMAcKDRNtDSwk9balyQ/8
+RUPGGwGS2AvOsUC0H84jMBNCL+DlPg7dJz1gc32QCv9sWA==
+-----END CERTIFICATE-----
+
+Subject	CN=Encypher C2PA Root CA 2026, OU=CA Division, O=Encypher Corp., L=San Francisco, ST=California, C=US
+-----BEGIN CERTIFICATE-----
+MIIDFDCCApqgAwIBAgIUS2zOIYRKaa59snU3NcNFadfTtoAwCgYIKoZIzj0EAwMw
+gY4xCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1T
+YW4gRnJhbmNpc2NvMRcwFQYDVQQKDA5FbmN5cGhlciBDb3JwLjEUMBIGA1UECwwL
+Q0EgRGl2aXNpb24xIzAhBgNVBAMMGkVuY3lwaGVyIEMyUEEgUm9vdCBDQSAyMDI2
+MB4XDTI2MDUyMjEzNDk1NloXDTQ2MDUxNzEzNDk1NlowgY4xCzAJBgNVBAYTAlVT
+MRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMRcw
+FQYDVQQKDA5FbmN5cGhlciBDb3JwLjEUMBIGA1UECwwLQ0EgRGl2aXNpb24xIzAh
+BgNVBAMMGkVuY3lwaGVyIEMyUEEgUm9vdCBDQSAyMDI2MHYwEAYHKoZIzj0CAQYF
+K4EEACIDYgAE27XmRBc4mE0dYfUhLiuPiAnY3tRDMke9evylB+VgyMspT1svR9h3
+KXxr8tml+1oM82US+pw2jJenfUxoUJGVDY/lvwl+4Q+7vawXFd26yPv/CQSnhI+w
+05+yiSiwshIOo4G2MIGzMBIGA1UdEwEB/wQIMAYBAf8CAQEwDgYDVR0PAQH/BAQD
+AgEGMB0GA1UdDgQWBBS3gC7ps3/HLQbb3uuqL4U8gDnKEDAfBgNVHSMEGDAWgBS3
+gC7ps3/HLQbb3uuqL4U8gDnKEDBNBgNVHSAERjBEMEIGCisGAQQBg+heAQEwNDAy
+BggrBgEFBQcCARYmaHR0cHM6Ly9jYS5lbmN5cGhlci5jb20vcmVwb3NpdG9yeS9j
+cHMwCgYIKoZIzj0EAwMDaAAwZQIwYeb83YEb/Oh9uELuvO9jpb85orRWWQiceqf0
+sCwxtJw07/giyy/hI1BFvbQZcfkLAjEAj8jfwuJSJ9LjeeYL/VXStQWDHewxbIou
+IKdYpS9ZBidpsi+01tpQY1j7apLAXMHO
+-----END CERTIFICATE-----
+
+Subject	CN=Encypher C2PA Issuing CA 2026, OU=CA Division, O=Encypher Corp., L=San Francisco, ST=California, C=US
+-----BEGIN CERTIFICATE-----
+MIID6zCCA3GgAwIBAgIUXzMIOXOrlyOjfKthGAPSSBM5n3UwCgYIKoZIzj0EAwMw
+gY4xCzAJBgNVBAYTAlVTMRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1T
+YW4gRnJhbmNpc2NvMRcwFQYDVQQKDA5FbmN5cGhlciBDb3JwLjEUMBIGA1UECwwL
+Q0EgRGl2aXNpb24xIzAhBgNVBAMMGkVuY3lwaGVyIEMyUEEgUm9vdCBDQSAyMDI2
+MB4XDTI2MDUyMjEzNDk1NloXDTMxMDUyMzEzNDk1NlowgZExCzAJBgNVBAYTAlVT
+MRMwEQYDVQQIDApDYWxpZm9ybmlhMRYwFAYDVQQHDA1TYW4gRnJhbmNpc2NvMRcw
+FQYDVQQKDA5FbmN5cGhlciBDb3JwLjEUMBIGA1UECwwLQ0EgRGl2aXNpb24xJjAk
+BgNVBAMMHUVuY3lwaGVyIEMyUEEgSXNzdWluZyBDQSAyMDI2MHYwEAYHKoZIzj0C
+AQYFK4EEACIDYgAEINEuEOHZL9o8vKynpXV9O+04syCIj+WeydlgTMJBMhiZ8MhE
+yig+4R0kmGpX/RZjgSSQh/aQ4NYpv9SHx1r1t3agJEpfYv/jZB4AfeGC47OiEREe
+wKHBWD1cVg6qrFtVo4IBiTCCAYUwEgYDVR0TAQH/BAgwBgEB/wIBADAOBgNVHQ8B
+Af8EBAMCAQYwIAYDVR0lBBkwFwYKKwYBBAGD6F4CAQYJKoZIhvcvAQEFMB0GA1Ud
+DgQWBBT5K7GC8GHRLCg4CpI6Owg8ubeZ8DAfBgNVHSMEGDAWgBS3gC7ps3/HLQbb
+3uuqL4U8gDnKEDA3BgNVHR8EMDAuMCygKqAohiZodHRwOi8vY2EuZW5jeXBoZXIu
+Y29tL2NybC9yb290LWNhLmNybDB1BggrBgEFBQcBAQRpMGcwJwYIKwYBBQUHMAGG
+G2h0dHA6Ly9jYS5lbmN5cGhlci5jb20vb2NzcDA8BggrBgEFBQcwAoYwaHR0cDov
+L2NhLmVuY3lwaGVyLmNvbS9yZXBvc2l0b3J5L2lzc3VpbmctY2EuY3J0ME0GA1Ud
+IARGMEQwQgYKKwYBBAGD6F4BATA0MDIGCCsGAQUFBwIBFiZodHRwczovL2NhLmVu
+Y3lwaGVyLmNvbS9yZXBvc2l0b3J5L2NwczAKBggqhkjOPQQDAwNoADBlAjABzhlt
+QpFyat0q5DZPJh+XvWnRAUej/4yrnPkQgtZZufnTVg9csupYAtdD8EVvkJ8CMQDK
+aReb1d/xaGyypi9HwEqVRaEClhopAogb+8VtoUbBD/3mKv0rGlYOUa9heE2DRkw=
+-----END CERTIFICATE-----
+
+Subject	CN=TrustAsia C2PA RSA Root CA, O=TrustAsia Technologies, Inc., C=CN
+-----BEGIN CERTIFICATE-----
+MIIFqDCCA5CgAwIBAgIUNqYa1cdsY+cp091HGRPKXzrE4kwwDQYJKoZIhvcNAQEM
+BQAwWTELMAkGA1UEBhMCQ04xJTAjBgNVBAoMHFRydXN0QXNpYSBUZWNobm9sb2dp
+ZXMsIEluYy4xIzAhBgNVBAMMGlRydXN0QXNpYSBDMlBBIFJTQSBSb290IENBMCAX
+DTI2MDYwNTAzNTMwMFoYDzIwNTEwNjA1MDM1MjU5WjBZMQswCQYDVQQGEwJDTjEl
+MCMGA1UECgwcVHJ1c3RBc2lhIFRlY2hub2xvZ2llcywgSW5jLjEjMCEGA1UEAwwa
+VHJ1c3RBc2lhIEMyUEEgUlNBIFJvb3QgQ0EwggIiMA0GCSqGSIb3DQEBAQUAA4IC
+DwAwggIKAoICAQCvgJqlqXZ+SYbtl9dLK4SQ5Gt9KrPbOmWEeMYnh8UdB3+KzkrG
+6PSZ1/s6KDIiEPNH1Sno7UOnTWzZ50Ce3Qq4PKFJBb9iJ0cbtw4qGOjHDhgXhozv
+nPQhXy6uiEODKgsKRaZwxT7xer3ZOAbX/30tQDwyAavoEtb+F+o2faYxHwjojUnK
+zO0Aaz68h7U5zMHgdMUvkqc0B5NIpoTixCj7Om2X0XROWAFx7ELrVxMmyL4PCWOj
+caRXoP5QlDHiIc5Ck9/HD6VYr2jJG/8BFZqk9l+mgNlxjaIbp0D/B3D7WvxcGOFR
+qiRJRni3LAsdVAMGPs/msUVBsYnTIEWb1o8qvkKpPOE0OtseEhWIQX4EDTA3Kim1
+xVqcS3+9irfDf7Jda2vOX1mamZa+Y89xCZcG7ce4u0fpE/NOs46dymoG/zU0uUvd
+KOtzvddNuDOWymROa6SVG6uETSdVFRsQfR/Dp8MQegVLB6ITAfnXHc3Pn67B1ncs
+L359DcwlZkqYGegsz//8ToRAlSSA/9C9vzlXfbGIg2HHtToHcwa6BjDkRpfdm6nk
+egfCvoaWT4k/9vDQNXvg8Wee1vpUDKhB7y1SSaSkm+7wr8fV4ovFGSrbygpr0BuG
+m+ShU3Vh+8UXAICPntscPAgNXidB9A8Zgib5rJjiVi0sxizPYueAchPQDwIDAQAB
+o2YwZDASBgNVHRMBAf8ECDAGAQH/AgECMA4GA1UdDwEB/wQEAwIBBjAdBgNVHQ4E
+FgQUCdViRLQz3hH0IboHIKjSrMMHRYAwHwYDVR0jBBgwFoAUCdViRLQz3hH0IboH
+IKjSrMMHRYAwDQYJKoZIhvcNAQEMBQADggIBAHInmN938SAQOkERvIrZDi14uVmZ
+P5GgqQ6ZH4BF77RFcQcDl7Id+3WBf1WqSl0zyuq6HulYyM6pWikh0W5K/NBBLlt+
+zXtEHbW71jhAhCKALdbclT+KuqRRQbrzATXPyYB5Jb/7xlUIofilo70+lqNwahsy
+Y5F+6XlOZ4JuA84RdfxGdyn/IJlOJ9mc2RbI6aAxMuFcsot483gOYtkU4Og0g9M7
+XsdLT2VXwuVk3hXwc7UWlZUm1Vn6dGmrcSj41wGlw9JGMU87OfzYFseGBDGDc2Xv
+njFCY+SBAEWGk4m6ugNGat8OKBVNpnYGp0iNODMtQXJ0aUCvOziFPJY9li08sUDe
+HI9ZwLB+yADsaC1gaX4eloRFsIyyl7YRQEY1/EfVw3wnN+XBJYyBw9v1RtpXDh/v
+O2ezzXc1sdH/WgXMGGrRdiCAZb5mFkjTEoKXVnkGMn7bnJKuFgDQPWerA24Jck1J
+QTuQBXJOAt8FVaYMjL6wPSIv84UjVXIRkOP4ZOydpYgykEl5LfOWcQtA4U6h+obS
+35aB8YE1KC9rIeEE8q5onGo6tRYJzh+mB/XSUP35fNbwe4FkI3I6ZpNSS6wt9HY0
+DCYCNhAz7KP8RwexR/stlYyeUxbj3+jxK4AOGTZQEKBBWkoqfrPCDpybwpXCxxP5
+qtj6+iKCvpx9jmvr
+-----END CERTIFICATE-----
+
+Subject	CN=TrustAsia C2PA ECC Root CA, O=TrustAsia Technologies, Inc., C=CN
+-----BEGIN CERTIFICATE-----
+MIICWjCCAd+gAwIBAgIUdUWMu3G69tNb9bwz/0KTupxLm1kwCgYIKoZIzj0EAwMw
+WTELMAkGA1UEBhMCQ04xJTAjBgNVBAoMHFRydXN0QXNpYSBUZWNobm9sb2dpZXMs
+IEluYy4xIzAhBgNVBAMMGlRydXN0QXNpYSBDMlBBIEVDQyBSb290IENBMCAXDTI2
+MDYwNTAzNTAwMFoYDzIwNTEwNjA1MDM0OTU5WjBZMQswCQYDVQQGEwJDTjElMCMG
+A1UECgwcVHJ1c3RBc2lhIFRlY2hub2xvZ2llcywgSW5jLjEjMCEGA1UEAwwaVHJ1
+c3RBc2lhIEMyUEEgRUNDIFJvb3QgQ0EwdjAQBgcqhkjOPQIBBgUrgQQAIgNiAAQL
+ERY0d7ug9MiCqmXnDjDs2med9zfTqTWOcG3OD5Q6FSEgNUcjT5Qy7xzKn1MfqaY4
+Ye3sf+Do7cCDR6AiFW6SqLQobfJ70jMDsSQYlrCCjMLvb+NdNPhED43s8fgehxyj
+ZjBkMBIGA1UdEwEB/wQIMAYBAf8CAQIwDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQW
+BBT13DKCd7Jlz2rEe0vBlwo/CoR2mDAfBgNVHSMEGDAWgBT13DKCd7Jlz2rEe0vB
+lwo/CoR2mDAKBggqhkjOPQQDAwNpADBmAjEAwp2Jie8k6/haTc/df3QsX+Ttg7Wp
+ARtYTwJSP4Z+ggpf39sZ+7QPOE50BqBj9Q6zAjEAjZ+5glED9tav6r3jWuMOmKTB
+kobBXzvjqTDLGG570BbSQfNmS3HRC6u5YTIpElpb
+-----END CERTIFICATE-----
+`;
+    cache = null;
+  }
+});
+
+// engine/src/brand-schemes.ts
+function generateSchemeAccents(primaryHex, scheme) {
+  const primary = hexToOklch(primaryHex) ?? FALLBACK_PRIMARY;
+  const rotations = SCHEME_ROTATIONS[scheme] ?? [];
+  return rotations.map((delta) => {
+    const hue = normHue2(primary.h + delta);
+    const oklch = { l: primary.l, c: primary.c, h: hue };
+    return { hex: oklchToHex(oklch), oklch, hue };
+  });
+}
+var SCHEME_ROTATIONS, FALLBACK_PRIMARY, normHue2;
+var init_brand_schemes = __esm({
+  "engine/src/brand-schemes.ts"() {
+    "use strict";
+    init_brand_derive();
+    SCHEME_ROTATIONS = {
+      complement: [180],
+      "adjacent-3": [-30, 30],
+      "triad-3": [120, 240],
+      "tetrad-4": [90, 180, 270],
+      "free-2": [180],
+      "free-3": [120, 240],
+      "free-4": [90, 180, 270]
+    };
+    FALLBACK_PRIMARY = { l: 0.62, c: 0.11, h: 250 };
+    normHue2 = (h) => (h % 360 + 360) % 360;
+  }
+});
+
 // engine/src/color-tools.ts
 function toOklch(input) {
   const s = String(input).trim();
@@ -6007,7 +9692,7 @@ function oklchToLab(c) {
 }
 function labToOklch2(L, a, b) {
   const c = Math.hypot(a, b);
-  return { l: L, c, h: c < 1e-7 ? 0 : normHue2(Math.atan2(b, a) * 180 / Math.PI) };
+  return { l: L, c, h: c < 1e-7 ? 0 : normHue3(Math.atan2(b, a) * 180 / Math.PI) };
 }
 function toLab(input) {
   const c = toOklch(input);
@@ -6151,7 +9836,7 @@ function distinctColors(n2, opts = {}) {
         const c = {
           l: clamp(baseL + dl, 0.25, 0.9),
           c: baseC * dc,
-          h: normHue2(baseH + k * 15)
+          h: normHue3(baseH + k * 15)
         };
         const hex = oklchToHex(c);
         if (seen.has(hex)) continue;
@@ -6185,15 +9870,19 @@ function makeColorApi() {
     contrast: contrastRatio,
     ramp: rampOklab,
     breaks: classBreaks,
-    distinct: distinctColors
+    distinct: distinctColors,
+    // v1.60: the brand editor's harmony generator (brand-schemes.ts), attached
+    // verbatim so tool-facing scheme accents can never drift from the editor's.
+    schemes: (seedHex, kind = "complement") => generateSchemeAccents(seedHex, kind)
   };
 }
-var normHue2, clamp, SA98G;
+var normHue3, clamp, SA98G;
 var init_color_tools = __esm({
   "engine/src/color-tools.ts"() {
     "use strict";
     init_brand_derive();
-    normHue2 = (h) => (h % 360 + 360) % 360;
+    init_brand_schemes();
+    normHue3 = (h) => (h % 360 + 360) % 360;
     clamp = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
     SA98G = {
       exponents: { mainTRC: 2.4, normBG: 0.56, normTXT: 0.57, revTXT: 0.62, revBG: 0.65 },
@@ -6201,6 +9890,199 @@ var init_color_tools = __esm({
       clamps: { blkThrs: 0.022, blkClmp: 1.414, loClip: 0.1, deltaYmin: 5e-4 },
       scalers: { scaleBoW: 1.14, loBoWoffset: 0.027, scaleWoB: 1.14, loWoBoffset: 0.027 }
     };
+  }
+});
+
+// engine/src/brand-map.ts
+function toBrandHex(input) {
+  if (typeof input !== "string") return null;
+  let s = input.trim().replace(/^['"]+|['"]+$/g, "").trim();
+  if (!s) return null;
+  if (/^[0-9a-fA-F]{3,4}$/.test(s) || /^[0-9a-fA-F]{6}$/.test(s) || /^[0-9a-fA-F]{8}$/.test(s)) {
+    s = `#${s}`;
+  }
+  const hx = colorToHex(s);
+  return typeof hx === "string" && hx.startsWith("#") ? hx : null;
+}
+function toCandidate(sw) {
+  if (!sw || typeof sw !== "object") return null;
+  const hex = toBrandHex(sw.hex);
+  if (!hex) return null;
+  const oklch = hexToOklch(hex);
+  if (!oklch) return null;
+  const c = { hex, chroma: oklch.c, l: oklch.l };
+  if (typeof sw.name === "string") c.name = sw.name;
+  if (typeof sw.role === "string") c.role = sw.role;
+  return c;
+}
+function roleMatches(role, wanted) {
+  const r = role.trim().toLowerCase();
+  if (!r) return false;
+  return wanted.some((w) => r === w || r.includes(w));
+}
+function nearestBrandColor(hex, swatches, opts = {}) {
+  const srcHex = toBrandHex(hex);
+  if (!srcHex) return null;
+  const srcOklch = hexToOklch(srcHex);
+  if (!srcOklch) return null;
+  if (!Array.isArray(swatches) || swatches.length === 0) return null;
+  const cands = [];
+  for (const sw of swatches) {
+    if (cands.length >= MAX_SWATCHES) break;
+    const c = toCandidate(sw);
+    if (c) cands.push(c);
+  }
+  if (cands.length === 0) return null;
+  const threshold = Number.isFinite(opts.threshold) ? Math.max(0, opts.threshold) : DEFAULT_THRESHOLD;
+  const srcNeutral = srcOklch.c < NEUTRAL_CHROMA;
+  let pool = cands.filter((c) => c.chroma < NEUTRAL_CHROMA === srcNeutral);
+  if (pool.length === 0) pool = cands;
+  const hint = opts.roleHint;
+  if (hint && ROLE_ALIASES[hint]) {
+    const wanted = ROLE_ALIASES[hint];
+    const roled = pool.filter((c) => c.role != null && roleMatches(c.role, wanted));
+    if (roled.length > 0) pool = roled;
+  }
+  let best = null;
+  let bestD = Number.POSITIVE_INFINITY;
+  for (const c of pool) {
+    const d = deltaEOk(srcHex, c.hex);
+    if (!Number.isFinite(d)) continue;
+    if (d < bestD) {
+      bestD = d;
+      best = c;
+    }
+  }
+  if (!best || !Number.isFinite(bestD)) return null;
+  const out = { hex: best.hex, deltaE: bestD, review: bestD > threshold };
+  if (best.name != null) out.name = best.name;
+  if (best.role != null) out.role = best.role;
+  return out;
+}
+function normFamilyKey(family) {
+  let s = family.trim();
+  const comma = s.indexOf(",");
+  if (comma >= 0) s = s.slice(0, comma);
+  s = s.trim().replace(/^['"]+|['"]+$/g, "").trim();
+  return s.replace(/\s+/g, " ").toLowerCase();
+}
+function targetForClass(cls, fonts) {
+  if (cls === "serif") return fonts.serif ?? fonts.brand;
+  if (cls === "mono") return fonts.mono ?? fonts.brand;
+  return fonts.brand;
+}
+function mapFontsToBrand(families, brandFonts) {
+  const out = /* @__PURE__ */ new Map();
+  if (!Array.isArray(families) || !brandFonts || typeof brandFonts !== "object") return out;
+  let seen = 0;
+  for (const raw of families) {
+    if (seen >= MAX_FONTS) break;
+    seen++;
+    if (typeof raw !== "string") continue;
+    if (out.has(raw)) continue;
+    const key = normFamilyKey(raw);
+    if (!key) continue;
+    const cls = FONT_CLASS[key] ?? "sans";
+    const target = targetForClass(cls, brandFonts);
+    if (typeof target === "string" && target.length > 0) out.set(raw, target);
+  }
+  return out;
+}
+function toSchemeHex(hex) {
+  return hex.slice(1, 7).toUpperCase();
+}
+function suggestRebrandTheme(swatches, fonts) {
+  const theme = {};
+  const cands = [];
+  if (Array.isArray(swatches)) {
+    for (const sw of swatches) {
+      if (cands.length >= MAX_SWATCHES) break;
+      const c = toCandidate(sw);
+      if (c) cands.push(c);
+    }
+  }
+  const neutrals = cands.filter((c) => c.chroma < NEUTRAL_CHROMA);
+  const chromatics = cands.filter((c) => c.chroma >= NEUTRAL_CHROMA);
+  if (cands.length > 0) {
+    const byL = [...neutrals.length > 0 ? neutrals : cands].sort((a, b) => a.l - b.l);
+    const dk1 = byL[0];
+    const lt1 = byL[byL.length - 1];
+    theme.dk1 = toSchemeHex(dk1.hex);
+    theme.lt1 = toSchemeHex(lt1.hex);
+    const midL = (dk1.l + lt1.l) / 2;
+    const dk2 = neutrals.length > 0 ? byL.find((c) => c.hex !== dk1.hex && c.l < midL) ?? dk1 : dk1;
+    const lt2 = neutrals.length > 0 ? [...byL].reverse().find((c) => c.hex !== lt1.hex && c.l > midL) ?? lt1 : lt1;
+    theme.dk2 = toSchemeHex(dk2.hex);
+    theme.lt2 = toSchemeHex(lt2.hex);
+  }
+  if (chromatics.length > 0) {
+    const isAccentRoled = (c) => c.role != null && roleMatches(c.role, ROLE_ALIASES.accent);
+    const ordered = [
+      ...chromatics.filter(isAccentRoled),
+      ...chromatics.filter((c) => !isAccentRoled(c))
+    ];
+    const accents = [];
+    for (const c of ordered) {
+      if (accents.length >= ACCENT_SLOTS.length) break;
+      if (accents.some((a) => deltaEOk(a.hex, c.hex) < ACCENT_DEDUPE)) continue;
+      accents.push(c);
+    }
+    for (let i = 0; i < ACCENT_SLOTS.length; i++) {
+      theme[ACCENT_SLOTS[i]] = toSchemeHex(accents[i % accents.length].hex);
+    }
+    theme.hlink = toSchemeHex(accents[0].hex);
+    theme.folHlink = theme.hlink;
+  }
+  const brandFont = fonts?.brand;
+  if (typeof brandFont === "string" && brandFont.length > 0) {
+    theme.majorFont = brandFont;
+    theme.minorFont = brandFont;
+  }
+  return theme;
+}
+var MAX_SWATCHES, MAX_FONTS, NEUTRAL_CHROMA, DEFAULT_THRESHOLD, ACCENT_DEDUPE, ROLE_ALIASES, FONT_CLASS, ACCENT_SLOTS;
+var init_brand_map = __esm({
+  "engine/src/brand-map.ts"() {
+    "use strict";
+    init_color_tools();
+    init_brand_derive();
+    init_tokens();
+    MAX_SWATCHES = 1024;
+    MAX_FONTS = 4096;
+    NEUTRAL_CHROMA = 0.03;
+    DEFAULT_THRESHOLD = 0.12;
+    ACCENT_DEDUPE = 0.02;
+    ROLE_ALIASES = {
+      bg: ["bg", "background", "surface", "canvas", "paper", "base", "lt1", "lt2"],
+      ink: ["ink", "text", "fg", "foreground", "body", "dk1", "dk2"],
+      accent: ["accent", "primary", "secondary", "brand", "highlight"],
+      neutral: ["neutral", "grey", "gray", "muted", "mono"]
+    };
+    FONT_CLASS = {
+      // Sans → brand
+      calibri: "sans",
+      arial: "sans",
+      "arial narrow": "sans",
+      "segoe ui": "sans",
+      helvetica: "sans",
+      "helvetica neue": "sans",
+      verdana: "sans",
+      tahoma: "sans",
+      aptos: "sans",
+      "aptos display": "sans",
+      // Serif → serif (fallback brand)
+      cambria: "serif",
+      "times new roman": "serif",
+      georgia: "serif",
+      garamond: "serif",
+      "book antiqua": "serif",
+      // Mono → mono
+      consolas: "mono",
+      "courier new": "mono",
+      "lucida console": "mono",
+      monaco: "mono"
+    };
+    ACCENT_SLOTS = ["accent1", "accent2", "accent3", "accent4", "accent5", "accent6"];
   }
 });
 
@@ -6376,14 +10258,20 @@ var init_src = __esm({
     init_url_pack();
     init_tool_url();
     init_bake();
+    init_file_metadata();
     init_units();
     init_svg_path();
     init_emf();
     init_eps();
     init_dxf();
+    init_pptx_patch();
+    init_pptx_read();
     init_c2pa();
+    init_c2pa_verify();
+    init_c2pa_trust();
     init_tokens();
     init_color_tools();
+    init_brand_map();
     init_icon_theme();
     init_photo_treatment();
     init_version();
@@ -6579,6 +10467,97 @@ init_schema();
 
 // services/mcp/src/render.ts
 init_src();
+
+// packages/node-shell/src/render-integrity.ts
+var RenderIntegrityError = class extends Error {
+  reason;
+  hookErrors;
+  constructor(reason, message, hookErrors = []) {
+    super(message);
+    this.name = "RenderIntegrityError";
+    this.reason = reason;
+    this.hookErrors = hookErrors;
+  }
+};
+function assertRenderOk({ hookErrors, format, bytes }) {
+  if (hookErrors && hookErrors.length) {
+    const detail = hookErrors.map((e) => `${e.hook} failed: ${e.message}`).join("; ");
+    throw new RenderIntegrityError(
+      "hook-failed",
+      `render produced no usable output \u2014 ${detail}. No file was written.`,
+      hookErrors
+    );
+  }
+  if (isSvgFormat(format) && isDegenerateSvg(bytes)) {
+    throw new RenderIntegrityError(
+      "degenerate-svg",
+      "render produced no usable output \u2014 the SVG has no size and no drawable content (the tool likely failed to render). No file was written."
+    );
+  }
+}
+function isSvgFormat(format) {
+  return format.toLowerCase() === "svg";
+}
+var NON_DRAWING = /<(?:title|desc|metadata|style|script|defs)\b[\s\S]*?<\/(?:title|desc|metadata|style|script|defs)>/gi;
+function isDegenerateSvg(bytes) {
+  const s = utf8(bytes);
+  const open = s.match(/<svg\b[^>]*>/i);
+  if (!open) return false;
+  const tag = open[0];
+  const vb = tag.match(/viewBox\s*=\s*["']([^"']*)["']/i);
+  let positiveViewBox = false;
+  if (vb) {
+    const nums = (vb[1].trim().match(/-?\d*\.?\d+(?:e[+-]?\d+)?/gi) ?? []).map(Number);
+    positiveViewBox = nums.length === 4 && Number.isFinite(nums[2]) && Number.isFinite(nums[3]) && nums[2] > 0 && nums[3] > 0;
+  }
+  if (positiveViewBox) return false;
+  const w = attrNum(tag, "width");
+  const h = attrNum(tag, "height");
+  if (w > 0 && h > 0) return false;
+  const body = s.slice((open.index ?? 0) + tag.length).replace(/<\/svg>[\s\S]*$/i, "");
+  const stripped = body.replace(NON_DRAWING, "");
+  const hasDrawable = /<[a-zA-Z]/.test(stripped);
+  return !hasDrawable;
+}
+function attrNum(tag, name) {
+  const m = tag.match(new RegExp(`${name}\\s*=\\s*["']([^"']*)["']`, "i"));
+  if (!m) return NaN;
+  const n2 = parseFloat(m[1]);
+  return Number.isFinite(n2) ? n2 : NaN;
+}
+function utf8(bytes) {
+  return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("utf8");
+}
+
+// packages/node-shell/src/c2pa-opts.ts
+init_src();
+function buildExportC2paOpts(o) {
+  const { surface, manifest, model, format, dims = {}, profile = {} } = o;
+  const days = o.days ?? 30;
+  const name = manifest.name || manifest.id;
+  const inputs = summarizeInputs(model);
+  const unit = dims.unit || "px";
+  const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
+  return {
+    title: name,
+    claimGenerator: "Lolly lolly.tools",
+    generatorInfo: { name: "Lolly", version: ENGINE_VERSION },
+    environment: {
+      surface,
+      engine: `node ${process.version}`,
+      os: process.platform,
+      format,
+      tool: name,
+      date: (/* @__PURE__ */ new Date()).toISOString(),
+      ...sizeLine ? { dimensions: sizeLine } : {},
+      ...Object.keys(inputs).length ? { inputs } : {}
+    },
+    ...profile.useDetails === true && profile.firstname ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } } : {},
+    dates: { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) }
+  };
+}
+
+// services/mcp/src/render.ts
 import { readFile as readFile6 } from "node:fs/promises";
 
 // shells/cli/src/bridge.ts
@@ -6818,6 +10797,215 @@ function createPdfAPI() {
   };
 }
 
+// shells/web/src/bridge/pptx.ts
+init_src();
+var MAX_PPTX_BYTES = 100 * 1024 * 1024;
+var MAX_ZIP_ENTRY_BYTES = 128 * 1024 * 1024;
+var MAX_ZIP_TOTAL_BYTES = 512 * 1024 * 1024;
+async function inflatePptx(bytes) {
+  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  if (u8.length > MAX_PPTX_BYTES) {
+    throw new Error(`This file is too large to open (over ${Math.round(MAX_PPTX_BYTES / 1024 / 1024)} MB).`);
+  }
+  const { unzip, unzipSync } = await import("fflate");
+  let total = 0;
+  let bomb = null;
+  const filter = (f) => {
+    total += f.originalSize || 0;
+    if ((f.originalSize || 0) > MAX_ZIP_ENTRY_BYTES || total > MAX_ZIP_TOTAL_BYTES) {
+      bomb = f.name;
+      return false;
+    }
+    return true;
+  };
+  const guard = (data) => {
+    if (bomb) throw new Error(`This file expands too large to open (${bomb}).`);
+    return data;
+  };
+  if (typeof Worker === "undefined") return Promise.resolve().then(() => guard(unzipSync(u8, { filter })));
+  return new Promise((resolve3, reject) => {
+    unzip(u8, { filter }, (err, data) => {
+      if (err) return reject(err);
+      try {
+        resolve3(guard(data));
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });
+}
+var MAX_INSPECT_COLORS = 256;
+var MAX_INSPECT_FONTS = 64;
+function literalHex(c) {
+  if (!c || "scheme" in c || !c.hex) return null;
+  return `#${c.hex.toUpperCase()}`;
+}
+var emptyInspect = () => ({ ok: false, slideCount: 0, theme: { colors: {} }, colors: [], fonts: [] });
+function hashThemeSuggestion(theme) {
+  const out = {};
+  for (const [slot, v] of Object.entries(theme)) {
+    if (typeof v !== "string" || !v) continue;
+    out[slot] = slot === "majorFont" || slot === "minorFont" ? v : `#${v.replace(/^#/, "").toUpperCase()}`;
+  }
+  return out;
+}
+async function inspectPptx(bytes, opts, parseXml) {
+  try {
+    const parts = await inflatePptx(bytes);
+    if (!isPptx(parts)) return emptyInspect();
+    const deck = readPptx(parts, parseXml);
+    const colors = [];
+    const seenColor = /* @__PURE__ */ new Set();
+    const addColor = (c) => {
+      const hex = literalHex(c);
+      if (!hex || seenColor.has(hex) || colors.length >= MAX_INSPECT_COLORS) return;
+      seenColor.add(hex);
+      colors.push({ hex });
+    };
+    const fonts = [];
+    const seenFont = /* @__PURE__ */ new Set();
+    const addFont = (family) => {
+      if (!family) return;
+      const key = family.toLowerCase();
+      if (seenFont.has(key) || fonts.length >= MAX_INSPECT_FONTS) return;
+      seenFont.add(key);
+      fonts.push({ family });
+    };
+    for (const slide of deck.slides) {
+      for (const node of slide.nodes) {
+        if (node.type === "text") {
+          addColor(node.fill);
+          for (const para of node.paras) {
+            for (const run of para.runs) {
+              addColor(run.color);
+              addFont(run.font);
+            }
+          }
+        } else if (node.type === "shape") {
+          addColor(node.fill);
+          addColor(node.line);
+        }
+      }
+    }
+    addFont(deck.theme.majorFont);
+    addFont(deck.theme.minorFont);
+    const themeColors = {};
+    for (const [slot, hex] of Object.entries(deck.theme.colors)) themeColors[slot] = `#${hex.toUpperCase()}`;
+    const theme = { colors: themeColors };
+    if (deck.theme.majorFont) theme.majorFont = deck.theme.majorFont;
+    if (deck.theme.minorFont) theme.minorFont = deck.theme.minorFont;
+    const result = { ok: true, slideCount: deck.slides.length, theme, colors, fonts };
+    const swatches = opts?.swatches;
+    if (Array.isArray(swatches) && swatches.length > 0) {
+      for (const c of colors) {
+        const near = nearestBrandColor(c.hex, swatches);
+        if (near) {
+          c.suggested = `#${near.hex.slice(1, 7).toUpperCase()}`;
+          c.review = near.review;
+        }
+      }
+      result.themeSuggestion = hashThemeSuggestion(suggestRebrandTheme(swatches, opts?.fonts));
+    }
+    if (opts?.fonts) {
+      const byFamily = mapFontsToBrand(fonts.map((f) => f.family), opts.fonts);
+      for (const f of fonts) {
+        const to = byFamily.get(f.family);
+        if (to) f.suggested = to;
+      }
+    }
+    return result;
+  } catch {
+    return emptyInspect();
+  }
+}
+function hexKey(v) {
+  let s = v.trim().replace(/^#/, "");
+  if (/^[0-9a-fA-F]{3,4}$/.test(s)) s = s.replace(/[0-9a-fA-F]/g, (ch) => ch + ch);
+  if (/^[0-9a-fA-F]{8}$/.test(s)) s = s.slice(0, 6);
+  return /^[0-9a-fA-F]{6}$/.test(s) ? s.toUpperCase() : null;
+}
+async function rebrandPptx(bytes, plan) {
+  const parts = await inflatePptx(bytes);
+  if (!isPptx(parts)) throw new Error("Not a PowerPoint (.pptx) file.");
+  const enginePlan = {};
+  if (plan?.theme) {
+    const theme = {};
+    for (const [slot, v] of Object.entries(plan.theme)) {
+      if (typeof v === "string" && v) theme[slot] = v;
+    }
+    if (Object.keys(theme).length > 0) enginePlan.theme = theme;
+  }
+  if (plan?.colorMap) {
+    const colorMap = /* @__PURE__ */ new Map();
+    for (const [from, to] of Object.entries(plan.colorMap)) {
+      const key = hexKey(from);
+      if (key && typeof to === "string" && to) colorMap.set(key, to);
+    }
+    if (colorMap.size > 0) enginePlan.colorMap = colorMap;
+  }
+  if (plan?.fontMap) {
+    const fontMap = /* @__PURE__ */ new Map();
+    for (const [from, to] of Object.entries(plan.fontMap)) {
+      if (from && typeof to === "string" && to) fontMap.set(from, to);
+    }
+    if (fontMap.size > 0) enginePlan.fontMap = fontMap;
+  }
+  if (plan?.dropEmbeddedFonts === true) enginePlan.dropEmbeddedFonts = true;
+  const { parts: outParts, report } = rebrandPptxParts(parts, enginePlan);
+  const { zipSync } = await import("fflate");
+  const enc = new TextEncoder();
+  const files = {};
+  for (const [path, content] of Object.entries(outParts)) {
+    files[path] = typeof content === "string" ? enc.encode(content) : content;
+  }
+  return { bytes: zipSync(files), report };
+}
+function createPptxAPI(opts = {}) {
+  const parseXml = opts.parseXml ?? ((xml) => new DOMParser().parseFromString(xml, "application/xml"));
+  return {
+    inspect: (bytes, o) => inspectPptx(bytes, o, parseXml),
+    rebrand: (bytes, plan) => rebrandPptx(bytes, plan)
+  };
+}
+
+// shells/web/src/bridge/net.ts
+var MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
+function createNetAPI({ allowlist = [] }) {
+  return {
+    async fetch(url, init) {
+      const allowed = allowlist.some((pattern) => matches(pattern, url));
+      if (!allowed) {
+        throw new Error(`Tool tried to fetch disallowed URL: ${url}`);
+      }
+      return capResponse(await fetch(url, init), MAX_RESPONSE_BYTES);
+    }
+  };
+}
+function capResponse(res, cap) {
+  const declared = Number(res.headers.get("content-length"));
+  if (Number.isFinite(declared) && declared > cap) {
+    throw new Error(`net: response is ${declared} bytes \u2014 over the ${cap}-byte limit`);
+  }
+  if (!res.body || typeof TransformStream !== "function") return res;
+  let total = 0;
+  const counted = res.body.pipeThrough(new TransformStream({
+    transform(chunk, controller) {
+      total += chunk.byteLength;
+      if (total > cap) controller.error(new Error(`net: response exceeds the ${cap}-byte limit`));
+      else controller.enqueue(chunk);
+    }
+  }));
+  return new Response(counted, { status: res.status, statusText: res.statusText, headers: res.headers });
+}
+function matches(pattern, url) {
+  if (pattern.endsWith("*")) {
+    let prefix = pattern.slice(0, -1);
+    if (!prefix.endsWith("/")) prefix += "/";
+    return url.startsWith(prefix);
+  }
+  return url === pattern;
+}
+
 // shells/web/src/bridge/svg-ir.ts
 init_src();
 
@@ -6875,7 +11063,7 @@ function letterSpacingPx(value) {
 // shells/web/src/bridge/db.ts
 import { openDB as idbOpen, deleteDB as idbDelete } from "idb";
 var DB_NAME = "lolly";
-var DB_VERSION = 5;
+var DB_VERSION = 6;
 var OPEN_TIMEOUT_MS = 8e3;
 var REQUIRED_STORES = ["profile", "state", "asset-meta", "asset-blob", "user-assets"];
 function openOnce(timeoutMs = OPEN_TIMEOUT_MS) {
@@ -6904,6 +11092,9 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS) {
       }
       if (oldVersion < 5) {
         db.createObjectStore("exports", { keyPath: "id" });
+      }
+      if (oldVersion < 6) {
+        db.createObjectStore("trustmark-models");
       }
     },
     blocking() {
@@ -7538,7 +11729,7 @@ function resolve() {
 }
 
 // packages/node-shell/src/text.ts
-import { readFile as readFile3 } from "node:fs/promises";
+import { readFile as readFile3, readdir } from "node:fs/promises";
 import { existsSync as existsSync3 } from "node:fs";
 import { join as join3 } from "node:path";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
@@ -7621,6 +11812,74 @@ function segmentByFace(text, chain2) {
 }
 function fmt(n2) {
   return Math.round(n2 * 100) / 100;
+}
+var FONT_DIRS = [
+  { rel: join3("catalog", "fonts", "ttf"), url: "/catalog/fonts/ttf/" },
+  { rel: join3("shells", "web", "public", "fonts"), url: "/fonts/" }
+];
+var WEIGHT_NAMES = {
+  thin: 100,
+  hairline: 100,
+  extralight: 200,
+  ultralight: 200,
+  light: 300,
+  regular: 400,
+  normal: 400,
+  book: 400,
+  medium: 500,
+  semibold: 600,
+  demibold: 600,
+  bold: 700,
+  extrabold: 800,
+  ultrabold: 800,
+  black: 900,
+  heavy: 900
+};
+var normFamily = (s) => s.toLowerCase().replace(/[\s_-]+/g, "");
+function parseFontStem(stem) {
+  const ax = stem.indexOf("[");
+  const variable = ax !== -1;
+  let base = (variable ? stem.slice(0, ax) : stem).replace(/[-_\s]+$/, "");
+  let weight = 400;
+  let italic = false;
+  const dash = base.lastIndexOf("-");
+  if (dash !== -1) {
+    const face = base.slice(dash + 1).toLowerCase();
+    const stemWeight = face.replace(/italic$/, "");
+    if (face === "italic" || stemWeight in WEIGHT_NAMES) {
+      italic = face.endsWith("italic");
+      if (stemWeight in WEIGHT_NAMES) weight = WEIGHT_NAMES[stemWeight];
+      base = base.slice(0, dash);
+    }
+  }
+  return { family: normFamily(base), weight, italic, variable };
+}
+var diskFaceCache = /* @__PURE__ */ new Map();
+function scanDiskFaces(repoRoot2) {
+  let cached2 = diskFaceCache.get(repoRoot2);
+  if (!cached2) {
+    cached2 = (async () => {
+      const faces = [];
+      for (const dir of FONT_DIRS) {
+        const abs = join3(repoRoot2, dir.rel);
+        if (!existsSync3(abs)) continue;
+        let names;
+        try {
+          names = await readdir(abs);
+        } catch {
+          continue;
+        }
+        for (const name of names) {
+          const m = name.match(/^(.+)\.(ttf|otf)$/i);
+          if (!m) continue;
+          faces.push({ url: dir.url + name, ...parseFontStem(m[1]) });
+        }
+      }
+      return faces;
+    })();
+    diskFaceCache.set(repoRoot2, cached2);
+  }
+  return cached2;
 }
 function transformPath(pathStr, offsetX, offsetY, scale) {
   return pathStr.replace(/([MLCQZ])([^MLCQZ]*)/g, (_, cmd, args) => {
@@ -7707,6 +11966,30 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
       const infos = face.getAxisInfos();
       for (const [tag, info] of Object.entries(infos)) out[tag] = info.default;
       return out;
+    },
+    /**
+     * Resolve a font FAMILY to a font file on disk (v1.60) — the headless
+     * counterpart of the web registry, over the same locations loadFontBytes
+     * reads. A variable face carries the `wght` setting for the requested
+     * weight (HarfBuzz clamps to the axis range); a static family narrows to
+     * the nearest weight. Italic is strict, mirroring the web registry —
+     * outlining an upright face for an italic run would silently un-slant the
+     * text — so an italic request with no italic face resolves null and the
+     * caller keeps its fallback.
+     */
+    async fontUrl(family, opts) {
+      if (typeof family !== "string" || !family.trim()) return null;
+      const want = normFamily(family);
+      const weight = Math.min(900, Math.max(100, Number(opts?.weight) || 400));
+      const italic = Boolean(opts?.italic);
+      const matches2 = (await scanDiskFaces(repoRoot2)).filter((f) => f.family === want && f.italic === italic);
+      if (!matches2.length) return null;
+      const dir = FONT_DIRS.find((d) => matches2[0].url.startsWith(d.url));
+      const pool = matches2.filter((f) => f.url.startsWith(dir.url));
+      const variable = pool.find((f) => f.variable);
+      if (variable) return { url: variable.url, variations: [`wght=${weight}`] };
+      const nearest = pool.reduce((a, b) => Math.abs(b.weight - weight) < Math.abs(a.weight - weight) ? b : a);
+      return { url: nearest.url };
     }
   };
 }
@@ -7833,12 +12116,12 @@ async function captureUrl(params, format, dims) {
     const t = clamp012(params.cropTop), b = clamp012(params.cropBottom);
     const clipW = Math.max(1, Math.round(width * (1 - l - r)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
-    const clip = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
+    const clip2 = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
     const shotType = fmt2 === "jpg" ? "jpeg" : "png";
     const png = await page2.screenshot({
       type: shotType,
       ...shotType === "jpeg" ? { quality: 92 } : {},
-      clip
+      clip: clip2
     });
     if (fmt2 === "svg") {
       const b64 = Buffer.from(png).toString("base64");
@@ -7853,7 +12136,7 @@ async function captureUrl(params, format, dims) {
 
 // shells/cli/src/bridge.ts
 var REPO_ROOT2 = repoRoot();
-async function createCliBridge({ profile = {}, dom } = {}) {
+async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   const w = dom.window;
   const assetCatalogPath = join5(REPO_ROOT2, "catalog", "assets", "index.json");
   const assetIndex = JSON.parse(await readFile4(assetCatalogPath, "utf8"));
@@ -7924,6 +12207,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
   };
   host.color = makeColorApi();
   host.text = createNodeTextAPI({ repoRoot: REPO_ROOT2 });
+  host.net = createNetAPI({ allowlist: networkAllowlist });
   host.assets = {
     async get(id) {
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
@@ -8124,6 +12408,7 @@ async function createCliBridge({ profile = {}, dom } = {}) {
     }
   };
   host.pdf = createPdfAPI();
+  host.pptx = createPptxAPI({ parseXml: (xml) => new w.DOMParser().parseFromString(xml, "application/xml") });
   const composeFetchFile = async (p) => readFile4(join5(REPO_ROOT2, "tools", p), "utf8");
   host.compose = {
     async render(spec) {
@@ -8164,11 +12449,11 @@ async function createCliBridge({ profile = {}, dom } = {}) {
       const query = await expandQuery(parsed.query);
       const st = parseUrlState(query, childTool.manifest);
       const supported = (childTool.manifest.render?.formats ?? []).map((f) => String(f).toLowerCase());
-      const norm = (f) => {
+      const norm2 = (f) => {
         const x = String(f || "").toLowerCase();
         return x === "jpeg" ? "jpg" : x;
       };
-      const format = norm(opts.format) || norm(parsed.format) || (supported.includes("svg") ? "svg" : supported[0]);
+      const format = norm2(opts.format) || norm2(parsed.format) || (supported.includes("svg") ? "svg" : supported[0]);
       const width = opts.width ?? st.width ?? void 0;
       const height = opts.height ?? st.height ?? void 0;
       const unit = opts.unit ?? st.unit ?? void 0;
@@ -8409,7 +12694,8 @@ function serveDist(dist) {
 }
 
 // services/mcp/src/render.ts
-var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
+var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
+var MAX_RASTER_EDGE_PX = 1e4;
 var RenderError = class extends Error {
 };
 function normFormat(f) {
@@ -8440,6 +12726,8 @@ function mimeForFormat(fmt2) {
     case "eps":
     case "eps-cmyk":
       return "application/postscript";
+    case "dxf":
+      return "image/vnd.dxf";
     case "tiff":
     case "cmyk-tiff":
       return "image/tiff";
@@ -8470,7 +12758,7 @@ function mimeForFormat(fmt2) {
   }
 }
 function isTextFormat(fmt2) {
-  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk"].includes(normFormat(fmt2));
+  return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt2));
 }
 function targetPx(width, unit, dpi) {
   if (!width || width <= 0) return void 0;
@@ -8497,14 +12785,30 @@ async function renderTierA(toolId, values, fmt2, opts, profile) {
     canvas.innerHTML = runtime.getHydrated();
     const blob = await runtime.export(canvas, fmt2, opts);
     const bytes = new Uint8Array(await blob.arrayBuffer());
+    try {
+      assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt2, bytes });
+    } catch (e) {
+      if (e instanceof RenderIntegrityError) throw new RenderError(e.message);
+      throw e;
+    }
     return { bytes, mime: blob.type || mimeForFormat(fmt2) };
   });
 }
 async function svgToPng(svg, width, background) {
   const { Resvg } = await import("@resvg/resvg-js");
+  const probe = new Resvg(svg, { font: { loadSystemFonts: false } });
+  const iw = probe.width, ih = probe.height;
+  if (!(iw > 0) || !(ih > 0)) throw new RenderError("SVG has no rasterisable size");
+  const capScale = Math.min(MAX_RASTER_EDGE_PX / iw, MAX_RASTER_EDGE_PX / ih);
+  const wantScale = width && width > 0 ? width / iw : 1;
+  const scale = Math.min(wantScale, capScale);
+  if (iw * scale < 1 || ih * scale < 1) {
+    throw new RenderError("SVG aspect ratio is too extreme to rasterise within the size cap \u2014 export svg instead.");
+  }
+  const fitTo = width && width > 0 && scale === wantScale ? { mode: "width", value: Math.round(width) } : { mode: "zoom", value: scale };
   const r = new Resvg(svg, {
     ...background ? { background } : {},
-    fitTo: width ? { mode: "width", value: width } : { mode: "original" },
+    fitTo,
     font: { fontDirs: [FONTS_DIR], loadSystemFonts: true }
   });
   return r.render().asPng();
@@ -8600,18 +12904,17 @@ async function renderTierB(toolId, query, fmt2, o) {
     await ctx.close();
   }
 }
-async function stampC2pa(bytes, fmt2, toolName, toolId, o) {
-  const days = o.c2pa?.days ?? 30;
-  const profile = o.profile ?? {};
-  const stamped = await embedC2pa(bytes, fmt2, {
-    title: toolName,
-    claimGenerator: "Lolly lolly.tools",
-    generatorInfo: { name: "Lolly", version: ENGINE_VERSION },
-    environment: { surface: "mcp", engine: "node", os: process.platform, format: fmt2, tool: toolId },
-    ...profile.useDetails === true && profile.firstname ? { author: { name: [profile.firstname, profile.lastname].filter(Boolean).join(" "), ...profile.email ? { email: profile.email } : {} } } : {},
-    dates: { notBefore: new Date(Date.now() - 6e4), notAfter: new Date(Date.now() + days * 864e5) }
+async function stampC2pa(bytes, fmt2, manifest, values, o) {
+  const opts = buildExportC2paOpts({
+    surface: "mcp",
+    manifest,
+    model: buildInputModel(manifest, { initial: values }),
+    format: fmt2,
+    dims: { width: o.width ?? null, height: o.height ?? null, unit: o.unit ?? null, dpi: o.dpi ?? null },
+    days: o.c2pa?.days,
+    profile: o.profile
   });
-  return stamped;
+  return embedC2pa(bytes, fmt2, opts);
 }
 async function render(toolId, query, o = {}) {
   const tool = await loadToolCached(toolId);
@@ -8657,16 +12960,22 @@ async function render(toolId, query, o = {}) {
       const png = await svgToPng(new TextDecoder().decode(svg.bytes), px, merged.background);
       out = { bytes: png, mime: "image/png", tier: "A(resvg)" };
     } catch (e) {
+      if (o.noBrowser) {
+        throw e instanceof RenderError ? e : new RenderError(`SVG\u2192PNG render failed: ${e.message}`);
+      }
       warnings.push(`SVG\u2192PNG fast path unavailable (${e.message}); trying the browser tier.`);
       out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
     }
   } else {
+    if (o.noBrowser) {
+      throw new RenderError(`Format "${fmt2}" needs the browser render tier, which is not available for this request.`);
+    }
     out = { ...await renderTierB(toolId, q, exportFmt, merged), tier: "B" };
   }
   let bytes = out.bytes;
   if (merged.c2pa?.on && C2PA_FORMATS.includes(exportFmt) && !(exportFmt === "pdf" && merged.password)) {
     try {
-      bytes = await stampC2pa(bytes, exportFmt, tool.manifest.name, toolId, merged);
+      bytes = await stampC2pa(bytes, exportFmt, tool.manifest, values, merged);
     } catch (e) {
       warnings.push(`Content Credentials not attached \u2014 ${e.message}`);
     }
@@ -8704,6 +13013,17 @@ async function transform(toolId, file, inputs = {}, profile = {}) {
 
 // services/mcp/src/tools.ts
 var WEB_BASE = (process.env.LOLLY_WEB_BASE || "https://lolly.tools").replace(/\/$/, "");
+var FILE_ARG = {
+  type: "object",
+  description: "The input file.",
+  properties: {
+    base64: { type: "string", description: "File bytes, base64-encoded." },
+    name: { type: "string", description: "Original filename, e.g. photo.jpg." },
+    mime: { type: "string", description: "MIME type, e.g. image/jpeg." }
+  },
+  required: ["base64"],
+  additionalProperties: false
+};
 var RENDER_ARGS = {
   toolId: { type: "string", description: "The tool id (from lolly_list_tools)." },
   inputs: { type: "object", description: "The tool's inputs. Get the exact schema from lolly_describe_tool.", additionalProperties: true },
@@ -8775,20 +13095,20 @@ var TOOL_DEFS = [
       type: "object",
       properties: {
         toolId: RENDER_ARGS.toolId,
-        file: {
-          type: "object",
-          description: "The input file.",
-          properties: {
-            base64: { type: "string", description: "File bytes, base64-encoded." },
-            name: { type: "string", description: "Original filename, e.g. photo.jpg." },
-            mime: { type: "string", description: "MIME type, e.g. image/jpeg." }
-          },
-          required: ["base64"],
-          additionalProperties: false
-        },
+        file: FILE_ARG,
         inputs: RENDER_ARGS.inputs
       },
       required: ["toolId", "file"],
+      additionalProperties: false
+    }
+  },
+  {
+    name: "lolly_verify",
+    description: "Verify a file's Content Credentials (C2PA) on-device: was it genuinely made with Lolly, who signed it, and has it changed since export. Returns the verdict, signer identity, edit history, and embedded file metadata (EXIF/XMP) as text + JSON. Bytes in, verdict out \u2014 nothing leaves the server.",
+    inputSchema: {
+      type: "object",
+      properties: { file: FILE_ARG },
+      required: ["file"],
       additionalProperties: false
     }
   }
@@ -8812,6 +13132,65 @@ function buildLinks(manifest, inputs, o) {
   const editUrl = query ? `${WEB_BASE}/#/tool/${manifest.id}?${query}` : `${WEB_BASE}/#/tool/${manifest.id}`;
   const renderUrl = buildEmbedUrl({ toolId: manifest.id, format: o.format ?? manifest.render.formats[0], query });
   return { query, editUrl, renderUrl };
+}
+function exampleLooks(m, cap) {
+  const t = m;
+  const ex = t.examples?.length ? t.examples : t.featured?.variants ?? [];
+  return ex.slice(0, cap).map((v) => ({ ...v.label ? { label: v.label } : {}, inputs: v.values }));
+}
+var clean = (v) => String(v).replace(/[\u0000-\u001f\u007f-\u009f]/g, " ");
+function verifyVerdict(report) {
+  const fails = report.checks.filter((c) => !c.ok && c.code !== "signingCredential.untrusted");
+  const expiredOnly = fails.length === 1 && fails[0].code === "signingCredential.expired";
+  if (report.madeWithLolly) return { verdict: "made-with-lolly", headline: "Made with Lolly \u2014 credential intact, file unchanged since export" };
+  if (report.delivered && report.trusted) return { verdict: "delivered-by-lolly", headline: "Delivered by Lolly \u2014 verified authentic official asset; delivered by Lolly, not created by it" };
+  if (report.likelyMadeWithLolly) return { verdict: "likely-made-with-lolly", headline: "Likely made with Lolly \u2014 the credential's own content checks out and records a Lolly export, but this file's bytes no longer match it" };
+  if (expiredOnly) return { verdict: "credential-expired", headline: "Credential expired \u2014 the file still matches what was signed; the one-year on-device certificate has lapsed" };
+  if (report.state === "valid") return { verdict: "credential-intact", headline: "Credential intact \u2014 signed on-device (integrity, not identity)" };
+  if (report.state === "invalid") return { verdict: "credential-broken", headline: "Credential broken \u2014 the file no longer matches what was signed" };
+  return { verdict: "no-credential", headline: "No Content Credentials found" };
+}
+function verifyText(name, report, headline) {
+  const lines = [`${name}${report.format ? `  [${report.format}]` : ""}`, headline];
+  if (report.reason && report.state !== "invalid") lines.push(`  ${clean(report.reason)}`);
+  if (report.claim && !report.madeWithLolly) {
+    lines.push(report.trusted ? "  (fields below are the CA-verified signer's own claim)" : "  (fields below are self-asserted by whoever signed the file)");
+  }
+  if (report.claim) {
+    const c = report.claim;
+    const s = report.signer || {};
+    const env = report.environment || {};
+    const signedAt = c.actions?.find((a) => a.when)?.when;
+    const generator = c.generatorInfo?.name ? `${c.generatorInfo.name}${c.generatorInfo.version ? " " + c.generatorInfo.version : ""}` : c.claimGenerator;
+    const id = report.signer?.identity;
+    const facts = [
+      ["Title", c.title],
+      ["Identity", report.trusted && id && `${id.email || s.commonName}${id.issuer ? ` \u2014 verified by ${id.issuer}` : ""}`],
+      ["Tool", env.tool],
+      ["Produced by", report.author && `${report.author.name}${report.author.email ? ` <${report.author.email}>` : ""}`],
+      [report.delivered ? "Delivered by" : "Made with", generator],
+      ["Signed", signedAt],
+      ["Where", [env.surface, env.engine, env.os].filter(Boolean).join(" \xB7 ")],
+      ["Signer", s.commonName],
+      ["Issuer", s.organization && `${s.organization}${s.selfSigned ? " (self-signed)" : ""}`],
+      ["Algorithm", s.alg],
+      ["Manifest", c.manifestLabel]
+    ];
+    for (const [k, v] of facts) if (v) lines.push(`  ${k.padEnd(11)} ${clean(v)}`);
+  }
+  const history = report.history ?? [];
+  if (history.length) {
+    lines.push("Edit history (incl. ingredient/parent manifests):");
+    for (const h of history) {
+      const who = h.softwareAgent || h.generator;
+      lines.push(`  \u2013 ${clean(h.action)}${h.when ? ` @ ${clean(h.when)}` : ""}${who ? ` (${clean(who)})` : ""}${h.description ? ` \u2014 ${clean(h.description)}` : ""}`);
+    }
+  }
+  for (const chk of report.checks) {
+    const mark = chk.ok ? "\u2713" : chk.code === "signingCredential.untrusted" ? "\u2139" : "\u2715";
+    lines.push(`  ${mark} ${clean(chk.code)} \u2014 ${clean(chk.explanation)}`);
+  }
+  return lines.join("\n");
 }
 function c2paSetting(v) {
   if (v === void 0 || v === null) return null;
@@ -8843,8 +13222,7 @@ ${lines.join("\n")}`;
         if (!tool) return errorResult(`Tool not found: ${toolId}. Use lolly_list_tools.`);
         const m = tool.manifest;
         const schema = toolInputSchema(m);
-        const featured = m.featured;
-        const examples = (featured?.variants ?? []).slice(0, 2).map((v) => ({ label: v.label, inputs: v.values }));
+        const examples = exampleLooks(m, 2);
         const doc = {
           id: m.id,
           name: m.name,
@@ -8941,6 +13319,24 @@ ${links.renderUrl ?? "(unavailable)"}`);
           ]
         };
       }
+      case "lolly_verify": {
+        const file = args["file"];
+        if (!file?.base64) return errorResult("file.base64 is required.");
+        const bytes = Uint8Array.from(Buffer.from(file.base64, "base64"));
+        const report = await verifyC2pa(bytes, { trustAnchors: [...c2paTrustAnchors()] });
+        let metadata = null;
+        try {
+          metadata = extractFileMetadata(bytes);
+        } catch {
+        }
+        const { verdict, headline } = verifyVerdict(report);
+        return {
+          content: [
+            { type: "text", text: verifyText(file.name ?? "file", report, headline) },
+            { type: "text", text: JSON.stringify({ verdict, report, metadata }, null, 2) }
+          ]
+        };
+      }
       default:
         return errorResult(`Unknown tool: ${name}`);
     }
@@ -8950,7 +13346,87 @@ ${links.renderUrl ?? "(unavailable)"}`);
 }
 async function serverInstructions() {
   const { tools } = await loadIndex();
-  return `Lolly MCP server (engine ${ENGINE_VERSION}) \u2014 generate on-brand SUSE creative assets. ${tools.length} tools available. Workflow: lolly_list_tools \u2192 lolly_describe_tool \u2192 lolly_render. Use lolly_build_url for a shareable/editable link without rendering, and lolly_transform for on-device file utilities. Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://tool/{id}, lolly://asset/{id}, lolly://tokens).`;
+  return `Lolly MCP server (engine ${ENGINE_VERSION}) \u2014 generate on-brand SUSE creative assets. ${tools.length} tools available. Workflow: lolly_list_tools \u2192 lolly_describe_tool \u2192 lolly_render. Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, and lolly_verify to check a file's Content Credentials (C2PA). Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens).`;
+}
+var GENERIC_PROMPT = "create-branded-asset";
+var GENERIC_PROMPT_DEF = {
+  name: GENERIC_PROMPT,
+  description: "Guided workflow: turn a plain-language brief into an on-brand asset with the right Lolly tool.",
+  arguments: [
+    { name: "brief", description: "What to make, in plain language (content, audience, occasion).", required: true },
+    { name: "format", description: "Preferred output format (e.g. svg, png, pdf)." }
+  ]
+};
+async function toolPromptDef(toolId) {
+  const { manifest: m } = await loadToolCached(toolId);
+  const schema = toolInputSchema(m);
+  const props = schema["properties"] ?? {};
+  const required = new Set(schema["required"] ?? []);
+  const ids = Object.keys(props).sort((a, b) => Number(required.has(b)) - Number(required.has(a)));
+  const promptArgs = ids.slice(0, 10).map((pid) => ({
+    name: pid,
+    ...props[pid]?.description ? { description: props[pid].description } : {},
+    ...required.has(pid) ? { required: true } : {}
+  }));
+  const featured = m.featured;
+  return {
+    name: m.id,
+    description: featured?.blurb || m.description || m.name,
+    ...promptArgs.length ? { arguments: promptArgs } : {}
+  };
+}
+async function listPrompts() {
+  const { tools } = await loadIndex();
+  const prompts = [GENERIC_PROMPT_DEF];
+  for (const t of tools.filter((t2) => t2.featured)) {
+    const def = await toolPromptDef(t.id).catch(() => null);
+    if (def) prompts.push(def);
+  }
+  return prompts;
+}
+async function getPrompt(name, args = {}) {
+  if (name === GENERIC_PROMPT) {
+    const { tools } = await loadIndex();
+    const listing = tools.map((t) => `\u2022 ${t.id} \u2014 ${t.name}${t.description ? `: ${t.description}` : ""}`).join("\n");
+    const head = [
+      "You are creating an on-brand asset with Lolly (the brand's constraint-first asset generator).",
+      args["brief"] ? `Brief: ${args["brief"]}` : "No brief was provided \u2014 ask the user what they need first.",
+      ...args["format"] ? [`Preferred format: ${args["format"]}`] : []
+    ].join("\n");
+    const text2 = `${head}
+
+Workflow:
+1. Pick the best-fitting tool from the catalog below (or call lolly_list_tools to search).
+2. Call lolly_describe_tool with its toolId for the exact input schema and examples.
+3. Call lolly_render with the toolId, your inputs, and a supported format.
+4. Share the returned editable lolly.tools link so the user can fine-tune the result.
+
+Catalog:
+${listing}`;
+    return { description: GENERIC_PROMPT_DEF.description, messages: [{ role: "user", content: { type: "text", text: text2 } }] };
+  }
+  if (!TOOL_ID_RE.test(name)) return null;
+  const tool = await loadToolCached(name).catch(() => null);
+  if (!tool) return null;
+  const m = tool.manifest;
+  const looks = exampleLooks(m, 3);
+  const given = Object.entries(args).filter(([, v]) => v !== void 0 && v !== "");
+  const text = [
+    `Create an on-brand asset with the Lolly tool "${m.id}" (${m.name}).`,
+    ...m.description ? [m.description] : [],
+    "",
+    "Steps:",
+    `1. Call lolly_describe_tool with toolId "${m.id}" for the exact input JSON Schema.`,
+    `2. Choose inputs${looks.length ? " \u2014 example looks that show the tool's range:" : "."}`,
+    ...looks.length ? [JSON.stringify(looks, null, 2)] : [],
+    `3. Call lolly_render with toolId "${m.id}" and a format from: ${m.render.formats.join(", ")}.`,
+    ...given.length ? ["", "User-provided inputs to honour:", JSON.stringify(Object.fromEntries(given), null, 2)] : []
+  ].join("\n");
+  const featured = m.featured;
+  return {
+    description: featured?.blurb || m.description || m.name,
+    messages: [{ role: "user", content: { type: "text", text } }]
+  };
 }
 
 // services/mcp/src/resources.ts
@@ -8960,10 +13436,12 @@ import { join as join7 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
+  { uri: "lolly://assets", name: "Brand asset listing", description: "Every catalog asset id with its type, name, tags and formats \u2014 the ids lolly://asset/{id} resolves.", mimeType: "application/json" },
   { uri: "lolly://tokens", name: "Brand design tokens", description: "On-brand colour swatches (DTCG) with names and CMYK.", mimeType: "application/json" }
 ];
 var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://tool/{id}", name: "Tool details", description: "A tool manifest summary + input JSON Schema + examples.", mimeType: "application/json" },
+  { uriTemplate: "lolly://tool/{id}/preview", name: "Tool preview", description: "The tool's committed catalog preview (SVG), where one exists.", mimeType: "image/svg+xml" },
   { uriTemplate: "lolly://asset/{id}", name: "Brand asset", description: "A catalog asset (logo, palette, font) resolved to bytes.", mimeType: "application/octet-stream" }
 ];
 async function tokensResource(uri) {
@@ -8978,6 +13456,28 @@ function parseDataUrl(url) {
   const m = /^data:([^;,]+)?(;base64)?,(.*)$/s.exec(url);
   if (!m) return null;
   return { mime: m[1] || "application/octet-stream", base64: m[2] ? m[3] : Buffer.from(decodeURIComponent(m[3])).toString("base64") };
+}
+async function assetsListing(uri) {
+  const idx = JSON.parse(await readFile7(ASSET_INDEX, "utf8"));
+  const assets = idx.assets.map((a) => ({
+    id: a.id,
+    type: a.type,
+    ...a.name ? { name: a.name } : {},
+    tags: a.tags ?? [],
+    formats: (a.formats ?? []).map((f) => f.format)
+  }));
+  return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
+}
+var PREVIEWS_DIR = join7(REPO_ROOT, "catalog", "previews");
+async function previewResource(uri, id) {
+  for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
+    try {
+      const text = await readFile7(join7(PREVIEWS_DIR, file), "utf8");
+      return { uri, mimeType: "image/svg+xml", text };
+    } catch {
+    }
+  }
+  throw new Error(`No SVG preview for tool: ${id}`);
 }
 async function assetResource(uri, id) {
   return withHost({}, async (_dom, host) => {
@@ -8995,7 +13495,10 @@ async function readResource(uri) {
     const idx = await loadIndex();
     return { uri, mimeType: "application/json", text: JSON.stringify(idx, null, 2) };
   }
+  if (uri === "lolly://assets") return assetsListing(uri);
   if (uri === "lolly://tokens") return tokensResource(uri);
+  const previewMatch = /^lolly:\/\/tool\/([a-z0-9-]+)\/preview$/.exec(uri);
+  if (previewMatch) return previewResource(uri, previewMatch[1]);
   const toolMatch = /^lolly:\/\/tool\/([a-z0-9-]+)$/.exec(uri);
   if (toolMatch) {
     const tool = await loadToolCached(toolMatch[1]).catch(() => null);
@@ -9051,7 +13554,14 @@ async function dispatch(req) {
         return ok(id, { contents: [await readResource(params.uri)] });
       }
       case "prompts/list":
-        return ok(id, { prompts: [] });
+        return ok(id, { prompts: await listPrompts() });
+      case "prompts/get": {
+        const params = req.params ?? {};
+        if (!params.name) return fail(id, ERR.INVALID_PARAMS, "prompts/get requires a name");
+        const prompt = await getPrompt(params.name, params.arguments ?? {});
+        if (!prompt) return fail(id, ERR.INVALID_PARAMS, `Unknown prompt: ${params.name}`);
+        return ok(id, prompt);
+      }
       default:
         if (isNotification) return null;
         return fail(id, ERR.METHOD_NOT_FOUND, `Method not found: ${req.method}`);
@@ -9060,6 +13570,122 @@ async function dispatch(req) {
     if (isNotification) return null;
     return fail(id, ERR.INTERNAL, e.message);
   }
+}
+
+// services/mcp/src/render-get.ts
+init_src();
+import { createHash } from "node:crypto";
+var PATH_RE = /\/tool\/([a-z0-9][a-z0-9-]*[a-z0-9])\.([a-z0-9-]{1,12})$/;
+function matchRenderGetPath(path) {
+  const m = PATH_RE.exec(path);
+  return m ? { toolId: m[1], ext: m[2] } : null;
+}
+var MAX_QUERY = 4096;
+var MAX_EDGE_PX = 1e4;
+var MAX_DPI = 1200;
+var RL_WINDOW_MS = 6e4;
+var RL_MAX_IPS = 1e4;
+var rlHits = /* @__PURE__ */ new Map();
+function rateLimit(ip, limit) {
+  const now2 = Date.now();
+  let hits = rlHits.get(ip);
+  if (!hits) {
+    if (rlHits.size >= RL_MAX_IPS) {
+      const oldest = rlHits.keys().next().value;
+      if (oldest !== void 0) rlHits.delete(oldest);
+    }
+    hits = [];
+    rlHits.set(ip, hits);
+  }
+  while (hits.length && hits[0] <= now2 - RL_WINDOW_MS) hits.shift();
+  if (hits.length >= limit) return { ok: false, retryAfter: Math.max(1, Math.ceil((hits[0] + RL_WINDOW_MS - now2) / 1e3)) };
+  hits.push(now2);
+  return { ok: true, retryAfter: 0 };
+}
+var NO_STORE = {
+  "content-type": "application/json; charset=utf-8",
+  "cache-control": "no-store",
+  "x-robots-tag": "noindex"
+};
+function errorResponse(status, error, extra = {}) {
+  return { status, headers: { ...NO_STORE, ...extra }, body: JSON.stringify({ error }) };
+}
+function dimensionError(params) {
+  const rawDpi = params.get("dpi");
+  const dpi = rawDpi != null ? Number(rawDpi) : 300;
+  if (rawDpi != null && (!Number.isFinite(dpi) || dpi <= 0 || dpi > MAX_DPI)) return `dpi must be between 1 and ${MAX_DPI}`;
+  const unit = (params.get("unit") || "px").toLowerCase();
+  for (const [name, alias] of [["width", "w"], ["height", "h"]]) {
+    const raw = params.get(name) ?? params.get(alias);
+    if (raw == null) continue;
+    const n2 = Number(raw);
+    if (!Number.isFinite(n2) || n2 <= 0) return `${name} must be a positive number`;
+    let px = n2;
+    if (unit !== "px") {
+      const dim = parseDimension(`${n2}${unit}`);
+      if (dim) px = toPixels(dim, dpi);
+    }
+    if (px > MAX_EDGE_PX) return `${name} exceeds the ${MAX_EDGE_PX}px output cap`;
+  }
+  return null;
+}
+function etagMatches(ifNoneMatch, etag) {
+  if (!ifNoneMatch) return false;
+  return ifNoneMatch.split(",").some((t) => t.trim().replace(/^W\//, "") === etag);
+}
+async function renderGet(path, query, opts) {
+  const env = opts.env ?? process.env;
+  if (env.LOLLY_DISABLE_RENDER_GET === "1") return errorResponse(404, "not_found");
+  const match = matchRenderGetPath(path);
+  if (!match) return errorResponse(404, "not_found");
+  const fmt2 = normFormat(match.ext);
+  const pngRequested = fmt2 === "png";
+  if (!TIER_A.has(fmt2) && !pngRequested) {
+    return errorResponse(400, `Format "${fmt2}" needs the browser render tier, which this public endpoint does not run. Available here: ${[...TIER_A].join(", ")} \u2014 plus png for SVG-native tools.`);
+  }
+  if (query.length > MAX_QUERY) return errorResponse(400, `Query too long (max ${MAX_QUERY} characters).`);
+  const expanded = await expandQuery(query);
+  const params = new URLSearchParams(expanded);
+  const dimErr = dimensionError(params);
+  if (dimErr) return errorResponse(400, dimErr);
+  const index = await loadIndex();
+  const entry = index.tools.find((t) => t.id === match.toolId);
+  if (!entry || entry.status !== "official" && entry.status !== "community") {
+    return errorResponse(404, "not_found");
+  }
+  const formats = (entry.formats ?? []).map((f) => f.toLowerCase());
+  if (pngRequested && !formats.includes("svg")) {
+    return errorResponse(400, "png is only served for SVG-native tools on this endpoint \u2014 request svg, or use the app for full raster.");
+  }
+  const etag = `"${createHash("sha256").update(`${ENGINE_VERSION}|${index.version}|${index.generatedAt}|${match.toolId}.${fmt2}?${expanded}`).digest("hex").slice(0, 32)}"`;
+  const cacheHeaders = {
+    "cache-control": "public, s-maxage=86400, stale-while-revalidate=604800",
+    etag,
+    "x-robots-tag": "noindex"
+  };
+  if (etagMatches(opts.ifNoneMatch, etag)) return { status: 304, headers: cacheHeaders };
+  const limit = Number(env.LOLLY_RENDER_GET_RPM) > 0 ? Number(env.LOLLY_RENDER_GET_RPM) : 60;
+  const rl = rateLimit(opts.ip || "unknown", limit);
+  if (!rl.ok) return errorResponse(429, "Too many renders from this address \u2014 slow down.", { "retry-after": String(rl.retryAfter) });
+  let result;
+  try {
+    result = await render(match.toolId, expanded, { format: fmt2, c2pa: { on: false, days: null }, noBrowser: true });
+  } catch (e) {
+    if (e instanceof RenderError) return errorResponse(400, e.message);
+    return errorResponse(500, `Render failed: ${e.message}`);
+  }
+  const mime = result.mime || mimeForFormat(fmt2);
+  return {
+    status: 200,
+    headers: {
+      ...cacheHeaders,
+      "content-type": isTextFormat(fmt2) && !mime.includes("charset") ? `${mime}; charset=utf-8` : mime,
+      "content-security-policy": "sandbox",
+      "x-content-type-options": "nosniff",
+      "content-disposition": `inline; filename="${match.toolId}.${fmt2}"`
+    },
+    body: result.bytes
+  };
 }
 
 // services/mcp/src/sign.ts
@@ -9379,13 +14005,25 @@ function createGateway(env = process.env) {
       res.end();
       return;
     }
+    const url = new URL(req.url || "/", "http://internal");
+    const path = url.pathname.replace(/\/+$/, "") || "/";
+    if ((method === "GET" || method === "HEAD") && matchRenderGetPath(path)) {
+      const fwd = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim();
+      const r = await renderGet(path, url.search.replace(/^\?/, ""), {
+        ip: fwd || req.socket?.remoteAddress || "unknown",
+        ifNoneMatch: req.headers["if-none-match"],
+        env
+      });
+      res.writeHead(r.status, { ...CORS, ...r.headers });
+      if (method === "HEAD" || r.body === void 0) res.end();
+      else res.end(typeof r.body === "string" ? r.body : Buffer.from(r.body));
+      return;
+    }
     if (!mcpEnabled) {
       res.writeHead(404, { ...CORS, "content-type": "application/json" });
       res.end(JSON.stringify({ error: "not_found" }));
       return;
     }
-    const url = new URL(req.url || "/", "http://internal");
-    const path = url.pathname.replace(/\/+$/, "") || "/";
     const base = baseUrlOf(req);
     if (method === "GET" && path.includes("oauth-authorization-server")) return send(res, authorizationServerMetadata(base));
     if (method === "GET" && path.includes("oauth-protected-resource")) return send(res, protectedResourceMetadata(base));

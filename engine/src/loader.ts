@@ -93,6 +93,10 @@ export interface ToolManifest {
   render: ToolRenderSpec;
   inputs: InputSpec[];
   capabilities?: Capability[];
+  /** 'network'-capability config (schema `network`): the https URL allowlist the
+   *  shell builds host.net from. A trailing `*` on an entry is a prefix wildcard;
+   *  otherwise it permits that exact URL. Absent ⇒ every host.net fetch rejects. */
+  network?: { allowlist: string[] };
   /** Nested renders (tool composition) — see engine/src/compose.ts. */
   composes?: ComposeEntry[];
   hooks?: ToolHookFlags;
@@ -154,8 +158,8 @@ export interface LoadToolOpts {
    * a sibling `i18n/<lang>.json` overlay and merges it onto the returned
    * manifest's user-facing strings before anything downstream (buildInputModel,
    * every shell) ever sees it — one overlay point, every shell benefits.
-   * Missing sidecar, missing keys, a malformed file, or (deliberately, for now
-   * — see applyManifestI18n) an integrity-enforced load all fall back to the
+   * Missing sidecar, missing keys, a malformed file, or a sidecar that fails
+   * integrity verification under a signed catalog all fall back to the
    * manifest's own English strings; a translation problem never fails a tool load.
    */
   lang?: Lang;
@@ -322,19 +326,22 @@ export async function loadTool(toolId: string, fetchFile: ToolFetchFile, opts: L
   }
 
   // Translation overlay (see LoadToolOpts.lang / applyManifestI18n above).
-  // Deliberately skipped when integrity is enforced: i18n/<lang>.json isn't
-  // (yet) part of CATALOG_SIGNED_TOOL_FILES, so there's no signed digest to
-  // check it against — applying an unverified overlay under a signed catalog
-  // would be a trust-boundary regression. Extend the signing pipeline
-  // (scripts/checksum-assets.ts, catalog-integrity.ts's file list) before
-  // lifting this restriction.
-  if (opts.lang && opts.lang !== 'en' && !integrity) {
+  // Under integrity the sidecar must match its signed digest (sign-catalog.ts
+  // enumerates i18n/<lang>.json per tool — CATALOG_SIGNED_I18N_SIDECAR). Fail
+  // CLOSED, but only on the overlay: a sidecar that is unsigned (old envelope),
+  // tampered, or stripped-in-transit is DROPPED — never applied — and never
+  // fails the tool. Unlike a stripped hooks.js, a lost translation only
+  // downgrades the language, so English fallback is the right severity.
+  if (opts.lang && opts.lang !== 'en') {
     try {
-      const overlayText = await fetchFile(`${toolId}/i18n/${opts.lang}.json`);
+      const sidecar = `i18n/${opts.lang}.json`;
+      const overlayText = await fetchFile(`${toolId}/${sidecar}`);
+      if (integrity) await assertFileIntegrity(integrity, toolId, sidecar, overlayText);
       applyManifestI18n(manifest, JSON.parse(overlayText) as ToolI18nOverlay);
     } catch {
-      // No sidecar for this tool/language, or it failed to parse — the
-      // manifest's own (English) strings are always a valid fallback.
+      // No sidecar for this tool/language, a failed integrity check, or a
+      // malformed file — the manifest's own (English) strings are always a
+      // valid fallback.
     }
   }
 

@@ -39,6 +39,7 @@
 
 import { hexToOklch, oklchToHex, parseOklch, parseHex, contrastRatio } from './brand-derive.ts';
 import type { Oklch } from './brand-derive.ts';
+import { generateSchemeAccents } from './brand-schemes.ts';
 import type { ColorAPI } from './bridge/host-v1.ts';
 
 // ─── Input parsing / OKLab plumbing ───────────────────────────────────────────
@@ -383,5 +384,8 @@ export function makeColorApi(): ColorAPI {
     ramp: rampOklab,
     breaks: classBreaks,
     distinct: distinctColors,
+    // v1.60: the brand editor's harmony generator (brand-schemes.ts), attached
+    // verbatim so tool-facing scheme accents can never drift from the editor's.
+    schemes: (seedHex, kind = 'complement') => generateSchemeAccents(seedHex, kind),
   };
 }

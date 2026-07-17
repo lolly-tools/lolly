@@ -1,0 +1,172 @@
+# Lolly Render — composite GitHub Action, built in-tree and ready to split into
+# lolly-tools/render-action (plans/fable-new-potential.md §5.4).
+#
+# Wraps the CLI shell's URL-mode render path: one `lolly <tool> --k=v` render, or a
+# `lolly batch rows.csv` CSV fan-out, on a pinned checkout of lolly-tools/lolly.
+# Every step is the same command a developer runs locally — no packaging, no npm
+# publish (out of scope by design). See README.md for copy-paste workflows.
+name: 'Lolly Render'
+description: >-
+  Render on-brand assets (SVG/PNG/PDF/…) from Lolly tools in CI — a single render
+  or a CSV batch, via the same URL-mode CLI as lolly.tools.
+author: 'lolly-tools'
+branding:
+  icon: 'image'
+  color: 'purple'
+
+inputs:
+  tool:
+    description: >-
+      Tool id to render (e.g. qr-code). Ignored when `rows` is set.
+    required: false
+    default: ''
+  args:
+    description: >-
+      Flags for the tool as one shell-quoted string of --key=value pairs
+      (e.g. --url=https://example.com --padding=2). Keys are the tool's input ids —
+      the same names as its URL params; reserved params (width, height, unit, dpi,
+      bleed, marks, c2pa, …) work too. Quote values that contain spaces:
+      --text="Hello world".
+    required: false
+    default: ''
+  rows:
+    description: >-
+      Workspace-relative path of a batch CSV/TSV — the header names a toolId column
+      plus one column per tool input (print a starter grid with
+      `lolly batch --template=<tool>`). When set, `tool`/`args`/`format` are ignored
+      and every row renders into out-dir.
+    required: false
+    default: ''
+  format:
+    description: >-
+      Export format for the single render (svg, png, pdf, …). Batch rows carry
+      their own format column.
+    required: false
+    default: 'svg'
+  out-dir:
+    description: >-
+      Workspace-relative directory that receives the rendered files (created if
+      missing).
+    required: false
+    default: './lolly-out'
+  browser:
+    description: >-
+      'true' installs the scoped Chromium (lolly install-browser --with-deps) and
+      builds the web shell — the Tier-B path required for raster/pdf/video exports
+      of HTML-layout tools. SVG/EMF/EPS/DXF, the data formats, and PNG of
+      SVG-native tools render browser-free, so leave this 'false' unless a render
+      fails asking for it. Adds several minutes to the job.
+    required: false
+    default: 'false'
+  lolly-ref:
+    description: >-
+      Git ref of lolly-tools/lolly to render with. Pin a tag for reproducible
+      renders; 'v1' is a placeholder until render-action tags releases — pass a
+      commit SHA (or 'main') meanwhile.
+    required: false
+    default: 'v1'
+  profile-root:
+    description: >-
+      Optional workspace-relative path of a brand-pack profile root — a directory
+      carrying tools/ and catalog/ with a built catalog/tools/index.json. Exported
+      as LOLLY_ROOT (marker-validated) so renders read that pack instead of the
+      checkout's fallback profile.
+    required: false
+    default: ''
+  token:
+    description: >-
+      Token for the lolly checkout. lolly-tools/lolly is public, so the default
+      github.token always works; pass a PAT only to render from a private fork or
+      mirror.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  out-dir:
+    description: 'Absolute path of the directory holding the rendered files.'
+    value: ${{ steps.render.outputs.out-dir }}
+  files:
+    description: 'Newline-separated list of rendered files, relative to out-dir.'
+    value: ${{ steps.render.outputs.files }}
+
+runs:
+  using: 'composite'
+  steps:
+    # The private brands/suse pack is `update = none` in .gitmodules, so a public
+    # checkout gets the community tools only and the npm postinstall builds the
+    # lolly-start fallback profile — exactly what the parent repo's own CI renders.
+    - name: 'Checkout lolly (${{ inputs.lolly-ref }})'
+      uses: actions/checkout@v4
+      with:
+        repository: lolly-tools/lolly
+        ref: ${{ inputs.lolly-ref }}
+        token: ${{ inputs.token }}
+        path: .lolly-render-action
+        submodules: recursive
+        persist-credentials: false
+
+    - name: 'Set up Node 22'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: 'npm'
+        cache-dependency-path: .lolly-render-action/package-lock.json
+
+    - name: 'Install workspaces (postinstall builds the profile views)'
+      shell: bash
+      working-directory: .lolly-render-action
+      run: npm ci
+
+    - name: 'Install scoped Chromium + build the web shell (Tier B)'
+      if: inputs.browser == 'true'
+      shell: bash
+      working-directory: .lolly-render-action
+      run: |
+        node shells/cli/bin/lolly.ts install-browser --with-deps
+        npm run build:web
+
+    - name: 'Render'
+      id: render
+      shell: bash
+      working-directory: .lolly-render-action
+      # Inputs ride in as env — never interpolated into the script — except `args`,
+      # which is shell-parsed by design so quoted values survive word splitting.
+      env:
+        IN_TOOL: ${{ inputs.tool }}
+        IN_ARGS: ${{ inputs.args }}
+        IN_ROWS: ${{ inputs.rows }}
+        IN_FORMAT: ${{ inputs.format }}
+        IN_OUT_DIR: ${{ inputs.out-dir }}
+        IN_BROWSER: ${{ inputs.browser }}
+        IN_PROFILE_ROOT: ${{ inputs.profile-root }}
+      run: |
+        set -euo pipefail
+        abspath() { case "$1" in /*) printf '%s\n' "$1";; *) printf '%s\n' "$GITHUB_WORKSPACE/${1#./}";; esac; }
+        out_dir="$(abspath "$IN_OUT_DIR")"
+        mkdir -p "$out_dir"
+        if [ -n "$IN_PROFILE_ROOT" ]; then
+          LOLLY_ROOT="$(abspath "$IN_PROFILE_ROOT")"
+          export LOLLY_ROOT
+        fi
+        # LOLLY_ROOT redirects repo-root resolution wholesale — keep the Tier-B web
+        # dist pointing at THIS checkout, not the brand pack.
+        if [ "$IN_BROWSER" = "true" ]; then
+          export LOLLY_WEB_DIST="${LOLLY_WEB_DIST:-$PWD/shells/web/dist}"
+        fi
+        if [ -n "$IN_ROWS" ]; then
+          node shells/cli/bin/lolly.ts batch "$(abspath "$IN_ROWS")" --out-dir="$out_dir"
+        else
+          if [ -z "$IN_TOOL" ]; then
+            echo "::error::Set either 'tool' (single render) or 'rows' (batch CSV)."
+            exit 1
+          fi
+          # `args` is one shell-quoted string → argv (quotes inside it survive).
+          eval "set -- $IN_ARGS"
+          node shells/cli/bin/lolly.ts "$IN_TOOL" "$@" --export="$IN_FORMAT" --output="$out_dir/$IN_TOOL.$IN_FORMAT"
+        fi
+        {
+          echo "out-dir=$out_dir"
+          echo 'files<<LOLLY_FILES_EOF'
+          (cd "$out_dir" && find . -type f ! -name '.*' | sed 's|^\./||' | LC_ALL=C sort)
+          echo 'LOLLY_FILES_EOF'
+        } >> "$GITHUB_OUTPUT"

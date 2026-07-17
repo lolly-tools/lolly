@@ -174,6 +174,10 @@ export interface ToolManifest {
   featured?: boolean;
   examples?: unknown[];
   capabilities?: Capability[];
+  /** `'network'`-capability config: the https URL allowlist the host builds `host.net`
+   *  from. A trailing `*` on an entry is a prefix wildcard; otherwise it permits that
+   *  exact URL. Absent ⇒ every `host.net` fetch rejects. */
+  network?: { allowlist: string[] };
   composes?: ComposeEntry[];
   hooks?: ToolHookFlags;
 }

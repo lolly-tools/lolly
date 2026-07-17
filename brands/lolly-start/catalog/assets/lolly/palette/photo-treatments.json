@@ -1,0 +1,49 @@
+{
+  "name": "Photo Colour Treatments",
+  "description": "Colour treatments for photo assets, derived from the brand palette: greyscale plus soft two-colour duotone washes (shadow maps to shadows, highlight to highlights) and a three-stop deep tritone. Chosen at pick time and baked into a self-contained SVG at resolve. 'None' is the plain photo (no id suffix).",
+  "treatments": [
+    {
+      "id": "greyscale",
+      "label": "Greyscale",
+      "kind": "greyscale",
+      "previewBg": "#f0f0f0"
+    },
+    {
+      "id": "brand",
+      "label": "Brand",
+      "kind": "duotone",
+      "shadow": "#0f253b",
+      "highlight": "#d7eaff"
+    },
+    {
+      "id": "jade",
+      "label": "Jade",
+      "kind": "duotone",
+      "shadow": "#062c15",
+      "highlight": "#d1f2d9"
+    },
+    {
+      "id": "rose",
+      "label": "Rose",
+      "kind": "duotone",
+      "shadow": "#38172a",
+      "highlight": "#ffddee"
+    },
+    {
+      "id": "amber",
+      "label": "Amber",
+      "kind": "duotone",
+      "shadow": "#312100",
+      "highlight": "#f8e6c4"
+    },
+    {
+      "id": "deep",
+      "label": "Deep",
+      "kind": "duotone",
+      "shadow": "#000000",
+      "mid": "#0f253b",
+      "highlight": "#4f84ba",
+      "previewBg": "#0f253b"
+    }
+  ]
+}

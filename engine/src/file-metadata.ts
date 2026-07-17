@@ -12,7 +12,10 @@
 // yields fewer fields, never an exception.
 //
 // PDF is deliberately NOT handled here (it needs a parser the shells already
-// expose via host.pdf.analyze); this covers the raster + vector formats.
+// expose via host.pdf.analyze); this covers the raster + vector formats, plus
+// the XMP packet in MP4/QuickTime video (the AI-declaration carrier there).
+
+import { aiKind } from './c2pa-verify.ts';
 
 export type MetaGroup =
   | 'location'
@@ -44,6 +47,29 @@ export interface FileMetadata {
   gps?: { lat: number; lon: number };
   /** A ready map link for the fix (OpenStreetMap; opened only if the viewer clicks). */
   mapUrl?: string;
+  /**
+   * AI provenance declared in BARE metadata — the IPTC `DigitalSourceType` XMP
+   * tag generators write alongside their invisible pixel watermarks (Gemini/
+   * Imagen next to SynthID, Midjourney, Meta AI, …) even when no C2PA manifest
+   * is present. `credit` carries the accompanying credit line when one exists
+   * (e.g. "Made with Google AI"). A sidecar tag, trivially stripped: presence
+   * is a genuine declaration, absence proves nothing.
+   */
+  ai?: { kind: 'generated' | 'composite'; sourceType: string; credit?: string };
+  /**
+   * Bytes riding AFTER the image container ends (past PNG IEND / JPEG EOI) —
+   * the most common "hidden payload in an image" pattern in the wild: appended
+   * zips (polyglots), smuggled files, stego-loader configs. Deterministic and
+   * always sized; `kind` is a best-effort sniff of what the payload is. Note
+   * the legitimate case: motion photos (Samsung/Pixel) append an MP4 here.
+   */
+  appended?: { bytes: number; kind: string };
+  /**
+   * LSB steganalysis verdict — populated by pixel-capable SHELLS (the analysis
+   * is pixel-domain, engine/src/steganalysis.ts; this byte reader can't decode
+   * pixels). An amber heuristic, never proof.
+   */
+  lsb?: { suspicious: boolean; score: number };
 }
 
 // The order sections read top-to-bottom in a clinical layout.
@@ -73,6 +99,8 @@ function sniff(b: Uint8Array): string {
       (b[0] === 0x4d && b[1] === 0x4d && b[2] === 0x00 && b[3] === 0x2a)) return 'TIFF';
   if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
       b.length >= 12 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return 'WebP';
+  // ISO BMFF video (mp4/m4v/mov) — an ftyp box first; 'qt  ' brand is QuickTime.
+  if (b.length >= 12 && matchAscii(b, 4, 'ftyp')) return matchAscii(b, 8, 'qt  ') ? 'QuickTime' : 'MP4';
   // SVG (and other XML) — decode a small prefix and look for the root element.
   const head = new TextDecoder('utf-8').decode(b.subarray(0, Math.min(b.length, 512)));
   if (/<svg[\s>]/i.test(head) || (/^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096)))))) return 'SVG';
@@ -288,6 +316,102 @@ function readXmp(text: string, out: FileMetadata): void {
   const rights = grab(/<dc:rights>[\s\S]*?<rdf:li[^>]*>([\s\S]*?)<\/rdf:li>/i)
     || grab(/<dc:rights>([\s\S]*?)<\/dc:rights>/i);
   if (rights) out.fields.push({ label: 'Rights', value: rights, group: 'authorship' });
+
+  // Credit line (photoshop:Credit) — where AI generators identify themselves in
+  // prose ("Made with Google AI", "Imagined with AI").
+  const credit = grab(/[\w-]+:Credit>\s*([\s\S]*?)<\/[\w-]+:Credit>/i)
+    || grab(/[\w-]+:Credit\s*=\s*["']([^"']+)["']/i);
+  if (credit && !out.fields.some((f) => f.label === 'Credit')) {
+    out.fields.push({ label: 'Credit', value: credit, group: 'authorship' });
+  }
+
+  // IPTC DigitalSourceType (Iptc4xmpExt namespace, but prefixes vary) — the
+  // standard machine-readable "how these pixels came to be" declaration, and
+  // the sidecar AI flag written by Gemini/Imagen, Midjourney, Meta AI, …
+  const dst = grab(/[\w-]+:DigitalSourceType\s*>\s*([^<\s]+?)\s*</i)
+    || grab(/[\w-]+:DigitalSourceType\s*=\s*["']([^"']+)["']/i);
+  if (dst) {
+    const slug = dst.split('/').pop() ?? dst;
+    if (!out.fields.some((f) => f.label === 'Digital source type')) {
+      out.fields.push({ label: 'Digital source type', value: slug, group: 'software' });
+    }
+    // Full-AI ("generated") outranks the mixed-in ("composite") case, matching
+    // the C2PA-side precedence in c2pa-verify.ts.
+    const kind = aiKind(dst);
+    if (kind && (!out.ai || (kind === 'generated' && out.ai.kind === 'composite'))) {
+      out.ai = { kind, sourceType: dst, credit: credit ?? out.ai?.credit };
+    }
+  }
+  if (out.ai && !out.ai.credit && credit) out.ai.credit = credit;
+}
+
+// ── Appended payloads (bytes after the container ends) ───────────────────────────
+
+// Best-effort sniff of what a trailing payload is. Neutral wording — a motion
+// photo's appended MP4 is legitimate and common; a zip/executable is the
+// smuggling pattern worth flagging loudly.
+function sniffAppended(b: Uint8Array, off: number): string {
+  const at = (o: number, s: string): boolean => matchAscii(b, off + o, s);
+  if (at(0, 'PK\x03\x04') || at(0, 'PK\x05\x06')) return 'zip archive';
+  if (b[off] === 0x1f && b[off + 1] === 0x8b) return 'gzip data';
+  if (at(0, 'Rar!')) return 'RAR archive';
+  if (at(0, '%PDF')) return 'PDF document';
+  if (at(4, 'ftyp')) return 'video (motion photo)';
+  if (b[off] === 0xff && b[off + 1] === 0xd8) return 'JPEG image';
+  if (b[off] === 0x89 && at(1, 'PNG')) return 'PNG image';
+  if (at(0, 'GIF8')) return 'GIF image';
+  if (at(0, 'MZ')) return 'Windows executable';
+  if (b[off] === 0x7f && at(1, 'ELF')) return 'ELF executable';
+  let printable = 0;
+  const scan = Math.min(256, b.length - off);
+  for (let i = 0; i < scan; i++) {
+    const c = b[off + i]!;
+    if (c === 9 || c === 10 || c === 13 || (c >= 32 && c < 127)) printable++;
+  }
+  return scan > 0 && printable / scan > 0.9 ? 'text' : 'binary data';
+}
+
+function fmtBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
+
+// Record a trailing payload of `len` bytes starting at `off`.
+function noteAppended(bytes: Uint8Array, off: number, out: FileMetadata): void {
+  const len = bytes.length - off;
+  if (len <= 0) return;
+  const kind = sniffAppended(bytes, off);
+  out.appended = { bytes: len, kind };
+  out.fields.push({
+    label: 'Appended data',
+    value: `${kind} — ${fmtBytes(len)} after the image ends`,
+    group: 'technical',
+    sensitive: kind !== 'video (motion photo)',
+  });
+}
+
+// Find the true end of a JPEG's entropy-coded data: from the first SOS scan,
+// FF D9 cannot legitimately appear INSIDE scan data (FF bytes are stuffed as
+// FF 00; only RST markers FF D0–D7 are allowed), so the first real EOI marker
+// ends the image. Marker segments BETWEEN progressive scans are skipped via
+// their length fields (a Huffman table may legally contain the bytes FF D9).
+// Returns the offset just past EOI, or null when the structure runs out.
+function jpegEnd(bytes: Uint8Array, scanStart: number): number | null {
+  let q = scanStart;
+  while (q + 1 < bytes.length) {
+    if (bytes[q] !== 0xff) { q++; continue; }
+    const m = bytes[q + 1]!;
+    if (m === 0xff) { q++; continue; }                    // fill byte
+    if (m === 0x00 || (m >= 0xd0 && m <= 0xd7)) { q += 2; continue; } // stuffed / RST
+    if (m === 0xd9) return q + 2;                          // EOI
+    if (m === 0x01) { q += 2; continue; }                  // TEM — standalone
+    if (q + 4 > bytes.length) return null;
+    const len = ((bytes[q + 2]! << 8) | bytes[q + 3]!);    // next scan's header segment
+    if (len < 2) return null;
+    q += 2 + len;
+  }
+  return null;
 }
 
 // ── JPEG ─────────────────────────────────────────────────────────────────────────
@@ -299,7 +423,14 @@ function readJpeg(bytes: Uint8Array, out: FileMetadata): void {
     if (bytes[p] !== 0xff) break;
     let marker = bytes[p + 1]!;
     while (marker === 0xff && p + 2 < bytes.length) { p++; marker = bytes[p + 1]!; }
-    if (marker === 0xda || marker === 0xd9) break; // SOS / EOI
+    if (marker === 0xda || marker === 0xd9) {
+      // Metadata segments end here. Locate the true end-of-image so bytes
+      // smuggled AFTER the EOI marker get surfaced as an appended payload.
+      const end = marker === 0xd9 ? p + 2
+        : p + 4 <= bytes.length ? jpegEnd(bytes, p + 2 + ((bytes[p + 2]! << 8) | bytes[p + 3]!)) : null;
+      if (end != null) noteAppended(bytes, end, out);
+      break;
+    }
     if ((marker >= 0xd0 && marker <= 0xd7) || marker === 0x01) { p += 2; continue; }
     const len = (bytes[p + 2]! << 8) | bytes[p + 3]!;
     if (len < 2 || p + 2 + len > bytes.length) break;
@@ -355,6 +486,14 @@ function pngText(bytes: Uint8Array, start: number, len: number, kind: 'tEXt' | '
     if (compressed) { out.fields.push({ label: keyword || 'Text', value: 'compressed text chunk', group: 'description' }); return; }
   }
   if (textStart >= end) return;
+  // An XMP packet rides in an iTXt chunk under this reserved keyword (XMP spec
+  // part 3) — PNG is where Midjourney/Google AI outputs carry their AI
+  // declaration. Parse it as XMP instead of dumping the raw packet as prose.
+  if (keyword === 'XML:com.adobe.xmp') {
+    const packetEnd = Math.min(end, textStart + MAX_TEXT_SCAN);
+    readXmp(new TextDecoder('utf-8').decode(bytes.subarray(textStart, packetEnd)), out);
+    return;
+  }
   const value = clip(new TextDecoder(kind === 'iTXt' ? 'utf-8' : 'latin1').decode(bytes.subarray(textStart, Math.min(end, textStart + MAX_VALUE_CHARS * 4))).trim());
   if (!value) return;
   const m = PNG_KEYWORD_GROUP[keyword] ?? { group: 'description' as MetaGroup };
@@ -375,7 +514,7 @@ function readPng(bytes: Uint8Array, out: FileMetadata): void {
     else if (type === 'zTXt') out.fields.push({ label: 'Compressed text', value: 'zTXt chunk', group: 'description' });
     else if (type === 'tIME') out.fields.push({ label: 'Last modified', value: 'embedded timestamp', group: 'timestamps' });
     p = end + 4;
-    if (type === 'IEND') break;
+    if (type === 'IEND') { noteAppended(bytes, p, out); break; }
   }
 }
 
@@ -395,6 +534,39 @@ function readWebp(bytes: Uint8Array, out: FileMetadata): void {
       readXmp(new TextDecoder('utf-8').decode(bytes.subarray(dataStart, dataStart + size)), out);
     }
     p = dataStart + size + (size & 1); // chunks are padded to even length
+  }
+}
+
+// ── MP4 / QuickTime (ISO BMFF) ───────────────────────────────────────────────────
+// Videos carry their XMP packet in a top-level `uuid` box with a fixed UUID
+// (XMP spec part 3, MPEG-4). That packet is where AI generators declare their
+// output (IPTC DigitalSourceType) — the video-side analogue of the JPEG/PNG
+// path above. Only top-level boxes are walked; media payloads are skipped.
+const XMP_BOX_UUID = [0xbe, 0x7a, 0xcf, 0xcb, 0x97, 0xa9, 0x42, 0xe8, 0x9c, 0x71, 0x99, 0x94, 0x91, 0xe3, 0xaf, 0xac];
+
+function readBmff(bytes: Uint8Array, out: FileMetadata): void {
+  let p = 0;
+  while (p + 8 <= bytes.length && out.fields.length < MAX_FIELDS) {
+    let size = (((bytes[p]! << 24) | (bytes[p + 1]! << 16) | (bytes[p + 2]! << 8) | bytes[p + 3]!) >>> 0);
+    const type = String.fromCharCode(bytes[p + 4]!, bytes[p + 5]!, bytes[p + 6]!, bytes[p + 7]!);
+    let header = 8;
+    if (size === 1) {
+      // 64-bit largesize (routine for a big mdat) — read it and keep walking.
+      if (p + 16 > bytes.length) return;
+      size = (((bytes[p + 8]! << 24) | (bytes[p + 9]! << 16) | (bytes[p + 10]! << 8) | bytes[p + 11]!) >>> 0) * 0x1_0000_0000
+        + (((bytes[p + 12]! << 24) | (bytes[p + 13]! << 16) | (bytes[p + 14]! << 8) | bytes[p + 15]!) >>> 0);
+      header = 16;
+    } else if (size === 0) {
+      size = bytes.length - p; // "to end of file" (last box only)
+    }
+    if (size < header || size > bytes.length - p) return; // truncated / hostile
+    if (type === 'uuid' && size >= header + 16
+        && XMP_BOX_UUID.every((v, i) => bytes[p + header + i] === v)) {
+      const start = p + header + 16;
+      const end = Math.min(p + size, start + MAX_TEXT_SCAN);
+      readXmp(new TextDecoder('utf-8').decode(bytes.subarray(start, end)), out);
+    }
+    p += size;
   }
 }
 
@@ -449,6 +621,7 @@ export function extractFileMetadata(bytes: Uint8Array): FileMetadata {
       case 'WebP': readWebp(bytes, out); break;
       case 'TIFF': readExif(bytes, 0, bytes.length, out); break;
       case 'SVG': readSvg(bytes, out); break;
+      case 'MP4': case 'QuickTime': readBmff(bytes, out); break;
       // GIF and others carry little structured metadata worth surfacing.
     }
   } catch { /* best-effort: return whatever was gathered before the fault */ }

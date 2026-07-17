@@ -17,6 +17,9 @@
  *   - strip-metadata: stripMetadata(bytes, fmt)             — the clean-copy byte surgery
  *   - video-meta    : embedMp4Meta / embedWebmMeta          — container walkers (shared with the c2pa read side)
  *   - data-import   : parseDataRows(text)                   — CSV/JSON → blocks rows
+ *   - pptx-read     : readPptx(parts, parseXml) + isPptx    — the .pptx part-map reader
+ *   - pptx-patch    : rebrandPptxParts(parts, plan)         — the surgical .pptx rebrand
+ *   - pptx-bridge   : createPptxAPI().inspect(bytes)        — the web bridge's capped unzip + inspect end-to-end
  */
 
 import { embedC2paInPdf, embedC2pa, encodeCbor } from '../../engine/src/c2pa.ts';
@@ -29,6 +32,11 @@ import { stripMetadata, type StripFormat } from '../../engine/src/strip-metadata
 import { embedMp4Meta, embedWebmMeta, videoProvenanceTags } from '../../engine/src/video-meta.ts';
 import { parseDataRows } from '../../engine/src/data-import.ts';
 import { packTiff } from '../../engine/src/tiff.ts';
+import { isPptx, readPptx, type PptxParts } from '../../engine/src/pptx-read.ts';
+import { rebrandPptxParts, type PartMap, type RebrandPlan } from '../../engine/src/pptx-patch.ts';
+import { createPptxAPI, looksLikePptxFile } from '../../shells/web/src/bridge/pptx.ts';
+import { zipSync } from 'fflate';
+import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 
 export interface FuzzTarget {
   name: string;
@@ -287,8 +295,224 @@ export const dataImportTarget: FuzzTarget = {
   },
 };
 
+// ── pptx fixtures (mirroring tests/pptx-read.test.ts + tests/pptx-patch.test.ts;
+//    each seed stays small — mutants past 64 KB escape the hang assertion) ─────
+
+// jsdom stands in for the shell's native DOMParser — built ONCE at module scope
+// (a JSDOM window is far too expensive to build per invoke).
+const jsdomWin = new JSDOM('').window;
+const jsdomParser = new jsdomWin.DOMParser();
+const parseXml = (xml: string): Document => jsdomParser.parseFromString(xml, 'application/xml') as unknown as Document;
+
+const NS_P = 'http://schemas.openxmlformats.org/presentationml/2006/main';
+const NS_A = 'http://schemas.openxmlformats.org/drawingml/2006/main';
+const NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+const NS_PKG_REL = 'http://schemas.openxmlformats.org/package/2006/relationships';
+const XML_DECL = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+
+const READ_PRESENTATION = `${XML_DECL}<p:presentation xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">` +
+  `<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>` +
+  `<p:sldIdLst><p:sldId id="256" r:id="rId2"/></p:sldIdLst>` +
+  `<p:sldSz cx="9144000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`;
+
+const READ_PRESENTATION_RELS = `${XML_DECL}<Relationships xmlns="${NS_PKG_REL}">` +
+  `<Relationship Id="rId1" Type="${NS_R}/slideMaster" Target="slideMasters/slideMaster1.xml"/>` +
+  `<Relationship Id="rId2" Type="${NS_R}/slide" Target="slides/slide1.xml"/>` +
+  `<Relationship Id="rId3" Type="${NS_R}/theme" Target="theme/theme1.xml"/></Relationships>`;
+
+const READ_THEME = `${XML_DECL}<a:theme xmlns:a="${NS_A}" name="FuzzTheme"><a:themeElements>` +
+  `<a:clrScheme name="Fuzz">` +
+  `<a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1>` +
+  `<a:dk2><a:srgbClr val="44546A"/></a:dk2><a:lt2><a:srgbClr val="E7E6E6"/></a:lt2>` +
+  `<a:accent1><a:srgbClr val="4472C4"/></a:accent1><a:accent2><a:srgbClr val="ED7D31"/></a:accent2>` +
+  `<a:accent3><a:srgbClr val="A5A5A5"/></a:accent3><a:accent4><a:srgbClr val="FFC000"/></a:accent4>` +
+  `<a:accent5><a:srgbClr val="5B9BD5"/></a:accent5><a:accent6><a:srgbClr val="70AD47"/></a:accent6>` +
+  `<a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme>` +
+  `<a:fontScheme name="Fuzz">` +
+  `<a:majorFont><a:latin typeface="Calibri Light"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont>` +
+  `<a:minorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme>` +
+  `<a:fmtScheme name="Fuzz"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst></a:fmtScheme>` +
+  `</a:themeElements></a:theme>`;
+
+// spTree carries a text box, a rect, a picture, a table, and a grouped ellipse —
+// every node kind the reader emits, so mutation reaches every branch.
+const READ_SLIDE = `${XML_DECL}<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>` +
+  `<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>` +
+  `<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></a:xfrm></p:grpSpPr>` +
+  `<p:sp><p:nvSpPr><p:cNvPr id="2" name="TextBox 1"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>` +
+  `<p:spPr><a:xfrm rot="5400000"><a:off x="838200" y="365125"/><a:ext cx="2743200" cy="1143000"/></a:xfrm>` +
+  `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>` +
+  `<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" sz="1800" b="1">` +
+  `<a:solidFill><a:schemeClr val="accent1"/></a:solidFill><a:latin typeface="Calibri"/></a:rPr><a:t>Hello</a:t></a:r></a:p></p:txBody></p:sp>` +
+  `<p:sp><p:nvSpPr><p:cNvPr id="3" name="Rect 2"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
+  `<p:spPr><a:xfrm><a:off x="4000000" y="2000000"/><a:ext cx="1000000" cy="500000"/></a:xfrm>` +
+  `<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="FF0000"/></a:solidFill>` +
+  `<a:ln w="12700"><a:solidFill><a:schemeClr val="tx1"/></a:solidFill></a:ln></p:spPr>` +
+  `<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp>` +
+  `<p:pic><p:nvPicPr><p:cNvPr id="4" name="Pic 3"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>` +
+  `<p:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>` +
+  `<p:spPr><a:xfrm><a:off x="100" y="200"/><a:ext cx="300" cy="400"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>` +
+  `<p:graphicFrame><p:nvGraphicFramePr><p:cNvPr id="5" name="Table 4"/><p:cNvGraphicFramePr/><p:nvPr/></p:nvGraphicFramePr>` +
+  `<p:xfrm><a:off x="500000" y="3000000"/><a:ext cx="2000000" cy="800000"/></p:xfrm>` +
+  `<a:graphic><a:graphicData uri="${NS_A}/table"><a:tbl><a:tblPr firstRow="1"/>` +
+  `<a:tblGrid><a:gridCol w="1000000"/><a:gridCol w="1000000"/></a:tblGrid>` +
+  `<a:tr h="400000"><a:tc><a:txBody><a:bodyPr/><a:p><a:r><a:rPr lang="en-US"/><a:t>A1</a:t></a:r></a:p></a:txBody><a:tcPr/></a:tc>` +
+  `<a:tc><a:txBody><a:bodyPr/><a:p><a:r><a:rPr lang="en-US"/><a:t>B1</a:t></a:r></a:p></a:txBody><a:tcPr/></a:tc></a:tr></a:tbl></a:graphicData></a:graphic></p:graphicFrame>` +
+  `<p:grpSp><p:nvGrpSpPr><p:cNvPr id="6" name="Group 5"/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>` +
+  `<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="100" cy="100"/><a:chOff x="0" y="0"/><a:chExt cx="100" cy="100"/></a:xfrm></p:grpSpPr>` +
+  `<p:sp><p:nvSpPr><p:cNvPr id="7" name="Oval"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>` +
+  `<p:spPr><a:xfrm><a:off x="10" y="20"/><a:ext cx="30" cy="40"/></a:xfrm>` +
+  `<a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom><a:solidFill><a:schemeClr val="accent2"/></a:solidFill></p:spPr></p:sp></p:grpSp>` +
+  `</p:spTree></p:cSld></p:sld>`;
+
+const READ_SLIDE_RELS = `${XML_DECL}<Relationships xmlns="${NS_PKG_REL}">` +
+  `<Relationship Id="rId1" Type="${NS_R}/notesSlide" Target="../notesSlides/notesSlide1.xml"/>` +
+  `<Relationship Id="rId2" Type="${NS_R}/image" Target="../media/image1.png"/></Relationships>`;
+
+const READ_NOTES = `${XML_DECL}<p:notes xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}"><p:cSld><p:spTree>` +
+  `<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>` +
+  `<p:sp><p:nvSpPr><p:cNvPr id="3" name="Notes Placeholder 2"/><p:cNvSpPr/><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr/>` +
+  `<p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US"/><a:t>Speaker note</a:t></a:r></a:p></p:txBody></p:sp>` +
+  `</p:spTree></p:cSld></p:notes>`;
+
+const PPTX_READ_PARTS: PptxParts = {
+  'ppt/presentation.xml': READ_PRESENTATION,
+  'ppt/_rels/presentation.xml.rels': READ_PRESENTATION_RELS,
+  'ppt/theme/theme1.xml': READ_THEME,
+  'ppt/slides/slide1.xml': READ_SLIDE,
+  'ppt/slides/_rels/slide1.xml.rels': READ_SLIDE_RELS,
+  'ppt/notesSlides/notesSlide1.xml': READ_NOTES,
+  'ppt/media/image1.png': Uint8Array.of(0x89, 0x50, 0x4e, 0x47),
+};
+const PPTX_READ_SLOTS = [
+  'ppt/presentation.xml', 'ppt/_rels/presentation.xml.rels', 'ppt/theme/theme1.xml',
+  'ppt/slides/slide1.xml', 'ppt/slides/_rels/slide1.xml.rels',
+] as const;
+
+export const pptxReadTarget: FuzzTarget = {
+  name: 'pptx-read',
+  async seeds() {
+    const enc = new TextEncoder();
+    return [READ_PRESENTATION, READ_PRESENTATION_RELS, READ_THEME, READ_SLIDE, READ_SLIDE_RELS, READ_NOTES].map((s) => enc.encode(s));
+  },
+  // Contract (file-metadata precedent): never throws — a hostile part degrades
+  // to defaults/no nodes, so the only findings are hang/alloc/stack-overflow.
+  async invoke(bytes) {
+    for (const slot of PPTX_READ_SLOTS) readPptx({ ...PPTX_READ_PARTS, [slot]: bytes }, parseXml);
+    isPptx({ 'ppt/presentation.xml': bytes });
+  },
+};
+
+const PATCH_THEME = `${XML_DECL}<a:theme xmlns:a="${NS_A}" name="Office"><a:themeElements>` +
+  `<a:clrScheme name="Office">` +
+  `<a:dk1><a:sysClr val="windowText" lastClr="000000"/></a:dk1><a:lt1><a:sysClr val="window" lastClr="FFFFFF"/></a:lt1>` +
+  `<a:dk2><a:srgbClr val="44546A"/></a:dk2><a:lt2><a:srgbClr val="E7E6E6"/></a:lt2>` +
+  `<a:accent1><a:srgbClr val="4472C4"/></a:accent1><a:accent2><a:srgbClr val="ED7D31"/></a:accent2>` +
+  `<a:accent3><a:srgbClr val="A5A5A5"/></a:accent3><a:accent4><a:srgbClr val="FFC000"/></a:accent4>` +
+  `<a:accent5><a:srgbClr val="5B9BD5"/></a:accent5><a:accent6><a:srgbClr val="70AD47"/></a:accent6>` +
+  `<a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme>` +
+  `<a:fontScheme name="Office">` +
+  `<a:majorFont><a:latin typeface="Calibri Light" panose="020F0302020204030204"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont>` +
+  `<a:minorFont><a:latin typeface="Calibri" panose="020F0502020204030204"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme>` +
+  `<a:fmtScheme name="Office"><a:fillStyleLst/><a:lnStyleLst/><a:effectStyleLst/><a:bgFillStyleLst/></a:fmtScheme>` +
+  `</a:themeElements></a:theme>`;
+
+const PATCH_SLIDE = `${XML_DECL}<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">` +
+  `<p:cSld><p:spTree><p:sp><p:spPr>` +
+  `<a:solidFill><a:schemeClr val="accent1"/></a:solidFill>` +
+  `<a:ln><a:solidFill><a:srgbClr val="FF0000"/></a:solidFill></a:ln>` +
+  `</p:spPr><p:txBody><a:p><a:r><a:rPr lang="en-US"><a:latin typeface="Arial"/><a:cs typeface="Arial"/></a:rPr><a:t>Hi &amp; bye</a:t></a:r></a:p></p:txBody>` +
+  `</p:sp></p:spTree></p:cSld></p:sld>`;
+
+const PATCH_CHART = `${XML_DECL}<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="${NS_A}">` +
+  `<c:chart><c:plotArea><c:ser><c:spPr><a:solidFill><a:srgbClr val="FF0000"/></a:solidFill></c:spPr></c:ser></c:plotArea></c:chart>` +
+  `<c:txPr><a:p><a:pPr><a:defRPr><a:latin typeface="Arial"/></a:defRPr></a:pPr></a:p></c:txPr></c:chartSpace>`;
+
+const PATCH_PRESENTATION = `${XML_DECL}<p:presentation xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}" embedTrueTypeFonts="1">` +
+  `<p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>` +
+  `<p:sldIdLst><p:sldId id="256" r:id="rId2"/></p:sldIdLst>` +
+  `<p:sldSz cx="12192000" cy="6858000"/><p:notesSz cx="6858000" cy="9144000"/>` +
+  `<p:embeddedFontLst><p:embeddedFont><p:font typeface="MyBrandFont"/><p:regular r:id="rId5"/></p:embeddedFont></p:embeddedFontLst>` +
+  `<p:defaultTextStyle><a:lvl1pPr><a:defRPr><a:latin typeface="Arial"/></a:defRPr></a:lvl1pPr></p:defaultTextStyle></p:presentation>`;
+
+const PATCH_PRES_RELS = `${XML_DECL}<Relationships xmlns="${NS_PKG_REL}">` +
+  `<Relationship Id="rId1" Type="${NS_R}/slideMaster" Target="slideMasters/slideMaster1.xml"/>` +
+  `<Relationship Id="rId2" Type="${NS_R}/slide" Target="slides/slide1.xml"/>` +
+  `<Relationship Id="rId5" Type="${NS_R}/font" Target="fonts/font1.fntdata"/></Relationships>`;
+
+const PATCH_CONTENT_TYPES = `${XML_DECL}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">` +
+  `<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>` +
+  `<Default Extension="xml" ContentType="application/xml"/>` +
+  `<Default Extension="fntdata" ContentType="application/x-fontdata"/>` +
+  `<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>` +
+  `<Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/></Types>`;
+
+const PPTX_PATCH_PARTS: PartMap = {
+  '[Content_Types].xml': PATCH_CONTENT_TYPES,
+  'ppt/presentation.xml': PATCH_PRESENTATION,
+  'ppt/_rels/presentation.xml.rels': PATCH_PRES_RELS,
+  'ppt/theme/theme1.xml': PATCH_THEME,
+  'ppt/slides/slide1.xml': PATCH_SLIDE,
+  'ppt/charts/chart1.xml': PATCH_CHART,
+  'ppt/fonts/font1.fntdata': Uint8Array.of(0x4c, 0x50, 0x00, 0x01),
+  'ppt/media/image1.png': Uint8Array.of(0x89, 0x50, 0x4e, 0x47),
+};
+// Built once, fully deterministic (mirrors tests/pptx-patch.test.ts PLAN).
+const PPTX_PATCH_PLAN: RebrandPlan = {
+  theme: { dk1: '101010', accent1: '112233', majorFont: 'Poppins', minorFont: 'Inter' },
+  colorMap: new Map([['FF0000', '00FF00'], ['5B9BD5', '999999'], ['4472C4', '112233']]),
+  fontMap: new Map([['Arial', 'Helvetica'], ['Calibri', 'Roboto']]),
+  dropEmbeddedFonts: true,
+};
+const PPTX_PATCH_SLOTS = [
+  'ppt/theme/theme1.xml', 'ppt/slides/slide1.xml', 'ppt/presentation.xml',
+  'ppt/_rels/presentation.xml.rels', '[Content_Types].xml', 'ppt/charts/chart1.xml',
+] as const;
+
+export const pptxPatchTarget: FuzzTarget = {
+  name: 'pptx-patch',
+  async seeds() {
+    const enc = new TextEncoder();
+    return [PATCH_THEME, PATCH_SLIDE, PATCH_CHART, PATCH_PRESENTATION, PATCH_PRES_RELS, PATCH_CONTENT_TYPES].map((s) => enc.encode(s));
+  },
+  // Contract (file-metadata precedent): never throws — an unmatched/hostile
+  // pattern passes through verbatim, so the only findings are hang/alloc/stack.
+  async invoke(bytes) {
+    for (const slot of PPTX_PATCH_SLOTS) rebrandPptxParts({ ...PPTX_PATCH_PARTS, [slot]: bytes }, PPTX_PATCH_PLAN);
+  },
+};
+
+// The web bridge's consumer surface over the same parsers: capped zip inflation
+// (inflatePptx) + inspect end-to-end, on whole zipped decks rather than bare
+// parts. inspect NEVER throws by contract — hostile bytes must resolve ok:false
+// — so ANY throw is a finding, alongside the runner's hang/alloc classes (the
+// zip-bomb caps). rebrand's inflatePptx throws are its committed-file contract,
+// not exercised here. Built at module scope, reusing pptx-read's jsdom adapter.
+const pptxBridgeApi = createPptxAPI({ parseXml });
+
+function zipParts(parts: Record<string, string | Uint8Array>): Uint8Array {
+  const enc = new TextEncoder();
+  const files: Record<string, Uint8Array> = {};
+  for (const [path, v] of Object.entries(parts)) files[path] = typeof v === 'string' ? enc.encode(v) : v;
+  return zipSync(files);
+}
+
+export const pptxBridgeTarget: FuzzTarget = {
+  name: 'pptx-bridge',
+  async seeds() {
+    // Two small VALID zipped decks from the existing fixture part maps (~1-2 KB
+    // each zipped), so mutation reaches both the zip framing and the XML inside.
+    return [zipParts(PPTX_READ_PARTS), zipParts(PPTX_PATCH_PARTS)];
+  },
+  async invoke(bytes) {
+    looksLikePptxFile({ name: 'x.pptx' });
+    await pptxBridgeApi.inspect(bytes);
+  },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
+  pptxReadTarget, pptxPatchTarget, pptxBridgeTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

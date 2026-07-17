@@ -19,7 +19,7 @@
  * shaping .notdef.
  */
 
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -162,6 +162,82 @@ function fmt(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+// ── Family → font file (host.text.fontUrl, v1.60) ────────────────────────────
+// The headless registry: the SAME disk locations loadFontBytes already reads —
+// the active catalog's static sfnts and the web shell's public fonts dir (where
+// the Outfit platform face lives). Filenames follow the FamilyName-FaceName
+// convention (`SUSE-SemiBold.ttf`, `SUSEMono-BoldItalic.ttf`) with variable
+// faces carrying an axis suffix (`Outfit[wght].ttf`); woff2 siblings are
+// skipped (loadFace rejects them anyway). Scanned once per repo root.
+
+const FONT_DIRS: Array<{ rel: string; url: string }> = [
+  { rel: join('catalog', 'fonts', 'ttf'), url: '/catalog/fonts/ttf/' },
+  { rel: join('shells', 'web', 'public', 'fonts'), url: '/fonts/' },
+];
+
+const WEIGHT_NAMES: Record<string, number> = {
+  thin: 100, hairline: 100, extralight: 200, ultralight: 200, light: 300,
+  regular: 400, normal: 400, book: 400, medium: 500, semibold: 600, demibold: 600,
+  bold: 700, extrabold: 800, ultrabold: 800, black: 900, heavy: 900,
+};
+
+interface DiskFace {
+  url: string;
+  family: string;   // normalised: lowercase, no spaces/hyphens ('SUSE Mono' ≡ 'SUSEMono')
+  weight: number;   // static face weight; meaningless when variable
+  italic: boolean;
+  variable: boolean;
+}
+
+const normFamily = (s: string): string => s.toLowerCase().replace(/[\s_-]+/g, '');
+
+/** Parse a font file stem into family/weight/italic. An unrecognised face token
+ *  folds into the family (`Space-Grotesk` stays one family, weight 400). */
+function parseFontStem(stem: string): Omit<DiskFace, 'url'> {
+  const ax = stem.indexOf('[');
+  const variable = ax !== -1;
+  let base = (variable ? stem.slice(0, ax) : stem).replace(/[-_\s]+$/, '');
+  let weight = 400;
+  let italic = false;
+  const dash = base.lastIndexOf('-');
+  if (dash !== -1) {
+    const face = base.slice(dash + 1).toLowerCase();
+    const stemWeight = face.replace(/italic$/, '');
+    if (face === 'italic' || stemWeight in WEIGHT_NAMES) {
+      italic = face.endsWith('italic');
+      if (stemWeight in WEIGHT_NAMES) weight = WEIGHT_NAMES[stemWeight]!;
+      base = base.slice(0, dash);
+    }
+  }
+  return { family: normFamily(base), weight, italic, variable };
+}
+
+/** repoRoot → scanned faces (memoised for the life of the process). */
+const diskFaceCache = new Map<string, Promise<DiskFace[]>>();
+
+function scanDiskFaces(repoRoot: string): Promise<DiskFace[]> {
+  let cached = diskFaceCache.get(repoRoot);
+  if (!cached) {
+    cached = (async () => {
+      const faces: DiskFace[] = [];
+      for (const dir of FONT_DIRS) {
+        const abs = join(repoRoot, dir.rel);
+        if (!existsSync(abs)) continue;
+        let names: string[];
+        try { names = await readdir(abs); } catch { continue; }
+        for (const name of names) {
+          const m = name.match(/^(.+)\.(ttf|otf)$/i);
+          if (!m) continue; // sfnt only — woff2 is headlessly unreadable
+          faces.push({ url: dir.url + name, ...parseFontStem(m[1]!) });
+        }
+      }
+      return faces;
+    })();
+    diskFaceCache.set(repoRoot, cached);
+  }
+  return cached;
+}
+
 /**
  * Transform a glyph path string from HarfBuzz font units (Y-up, origin at the glyph's
  * pen+offset position) to SVG pixels (Y-down, baseline at y=0).
@@ -273,6 +349,36 @@ export function createNodeTextAPI({ repoRoot }: { repoRoot: string }): TextAPI {
       const infos = face.getAxisInfos();
       for (const [tag, info] of Object.entries(infos)) out[tag] = info.default;
       return out;
+    },
+
+    /**
+     * Resolve a font FAMILY to a font file on disk (v1.60) — the headless
+     * counterpart of the web registry, over the same locations loadFontBytes
+     * reads. A variable face carries the `wght` setting for the requested
+     * weight (HarfBuzz clamps to the axis range); a static family narrows to
+     * the nearest weight. Italic is strict, mirroring the web registry —
+     * outlining an upright face for an italic run would silently un-slant the
+     * text — so an italic request with no italic face resolves null and the
+     * caller keeps its fallback.
+     */
+    async fontUrl(family, opts) {
+      if (typeof family !== 'string' || !family.trim()) return null;
+      const want = normFamily(family);
+      const weight = Math.min(900, Math.max(100, Number(opts?.weight) || 400));
+      const italic = Boolean(opts?.italic);
+      const matches = (await scanDiskFaces(repoRoot)).filter(f => f.family === want && f.italic === italic);
+      if (!matches.length) return null;
+      // Faces scan in FONT_DIRS order, so the first match's dir is the highest-
+      // precedence one carrying this family — the catalog's brand faces shadow
+      // a same-named platform face. Within that dir a variable face covers
+      // every weight and is preferred (as the web registry does).
+      const dir = FONT_DIRS.find(d => matches[0]!.url.startsWith(d.url))!;
+      const pool = matches.filter(f => f.url.startsWith(dir.url));
+      const variable = pool.find(f => f.variable);
+      if (variable) return { url: variable.url, variations: [`wght=${weight}`] };
+      const nearest = pool.reduce((a, b) =>
+        Math.abs(b.weight - weight) < Math.abs(a.weight - weight) ? b : a);
+      return { url: nearest.url };
     },
   };
 }

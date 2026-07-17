@@ -14,7 +14,8 @@
  *     indexHash: sha256 hex of the EXACT catalog/tools/index.json bytes
  *     files:     '<toolId>/<filename>' → sha256 hex, for every tool file the
  *                loader can fetch (tool.json, template.html, styles.css,
- *                hooks.js, template.{ics,vcf,csv,md})
+ *                hooks.js, template.{ics,vcf,csv,md}, plus each i18n/<lang>.json
+ *                sidecar the tool ships)
  *     signature: base64url raw-r||s ECDSA P-256/SHA-256 over the canonical-JSON
  *                bytes of the envelope MINUS this field
  *   }
@@ -44,11 +45,18 @@ const asBufferSource = (b: Uint8Array): BufferSource => b as unknown as BufferSo
 export const CATALOG_SIG_ALG = 'ECDSA-P256-SHA256';
 /** Where the envelope lives, relative to the catalog root (sibling of tools/index.json). */
 export const CATALOG_SIG_PATH = 'tools/index.sig.json';
-/** Tool-directory filenames covered by the signature — exactly the set loadTool can fetch. */
+/** Fixed tool-directory filenames covered by the signature. Together with the
+ *  i18n sidecars (below), exactly the set loadTool can fetch. */
 export const CATALOG_SIGNED_TOOL_FILES = [
   'tool.json', 'template.html', 'styles.css', 'hooks.js',
   'template.ics', 'template.vcf', 'template.csv', 'template.md',
 ] as const;
+/** Per-tool i18n sidecars (`i18n/<lang>.json`) are signed too — but they're
+ *  per-language and OPTIONAL per tool, so the signer enumerates whatever exists
+ *  on disk against this pattern instead of a fixed list. Signer and any
+ *  validator share it so an envelope key like `qr-code/i18n/de.json` means
+ *  exactly one thing on both sides. */
+export const CATALOG_SIGNED_I18N_SIDECAR = /^i18n\/[a-z0-9-]+\.json$/;
 
 const EC_P256 = { name: 'ECDSA', namedCurve: 'P-256' } as const;
 const ECDSA_SHA256 = { name: 'ECDSA', hash: 'SHA-256' } as const;
