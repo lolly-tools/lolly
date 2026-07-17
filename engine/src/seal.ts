@@ -38,7 +38,6 @@
  *     DNS is UNVERIFIED here (no samples / no network in the test env).
  */
 
-const td = new TextDecoder();
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
 
@@ -465,8 +464,7 @@ function decodeSignature(value: string, sf: string): Uint8Array {
     case 'hex':
     case 'HEX': return hexToBytes(value);
     case 'bin': return binStringToBytes(value);
-    case 'base64':
-    default: return base64ToBytes(value);
+    default: return base64ToBytes(value); // 'base64' (the default)
   }
 }
 
@@ -613,7 +611,7 @@ function ecdsaDerToRaw(der: Uint8Array, size: number): Uint8Array {
     if (der[i] !== 0x02) throw new Error('seal: ECDSA integer expected');
     const len = der[i + 1]!;
     let start = i + 2;
-    let end = start + len;
+    const end = start + len;
     if (end > der.length) throw new Error('seal: ECDSA integer overruns');
     while (start < end && der[start] === 0) start++; // drop sign pad
     i = end;
