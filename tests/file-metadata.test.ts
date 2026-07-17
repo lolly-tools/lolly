@@ -191,3 +191,85 @@ test('extractFileMetadata: QuickTime brand sniffs as QuickTime; truncated boxes 
   assert.doesNotThrow(() => extractFileMetadata(truncated));
   assert.equal(extractFileMetadata(truncated).format, 'MP4');
 });
+
+// ── GIF (block-walk to the trailer 0x3B) ──────────────────────────────────────
+
+// A minimal, well-formed GIF89a stream: header + logical screen descriptor (no
+// global colour table) + one trivial image (no local colour table, a single
+// one-byte LZW sub-block) + trailer — then `trailing`.
+function gifThen(trailing: number[]): Uint8Array {
+  const header = 'GIF89a';
+  const lsd = [...u16le(1), ...u16le(1), 0, 0, 0]; // 1x1 canvas, no GCT, bg 0, aspect 0
+  const image = [
+    0x2c, ...u16le(0), ...u16le(0), ...u16le(1), ...u16le(1), 0, // image descriptor, no LCT
+    2,    // LZW minimum code size
+    1, 0, // one sub-block: 1 byte of data
+    0,    // block terminator
+  ];
+  return bytesOf(header, lsd, image, [0x3b], trailing);
+}
+
+test('extractFileMetadata: zip appended after GIF trailer is surfaced with correct offset', () => {
+  const cleanLen = gifThen([]).length;
+  const meta = extractFileMetadata(gifThen([...new TextEncoder().encode('PK\x03\x04'), 9, 9]));
+  assert.equal(meta.format, 'GIF');
+  assert.equal(meta.appended?.kind, 'zip archive');
+  assert.equal(meta.appended?.bytes, 6);
+  assert.equal(meta.appended?.offset, cleanLen, 'offset must point exactly at the first trailing byte');
+});
+
+test('extractFileMetadata: clean GIF (nothing past the trailer) has no appended payload', () => {
+  const meta = extractFileMetadata(gifThen([]));
+  assert.equal(meta.format, 'GIF');
+  assert.equal(meta.appended, undefined);
+});
+
+test('extractFileMetadata: truncated or malformed GIF never throws and records nothing', () => {
+  // Chopped off mid-image-data — the trailer never appears.
+  const full = gifThen([1, 2, 3]);
+  const truncated = full.subarray(0, full.length - 10);
+  assert.doesNotThrow(() => extractFileMetadata(truncated));
+  assert.equal(extractFileMetadata(truncated).appended, undefined);
+
+  // An unrecognised block introducer mid-stream (not 0x2C / 0x21 / 0x3B).
+  const header = 'GIF89a';
+  const lsd = [...u16le(1), ...u16le(1), 0, 0, 0];
+  const garbage = bytesOf(header, lsd, [0xff, 1, 2, 3]);
+  assert.doesNotThrow(() => extractFileMetadata(garbage));
+  assert.equal(extractFileMetadata(garbage).appended, undefined);
+
+  // Too short to even carry a logical screen descriptor.
+  const tiny = bytesOf('GIF89a', [1, 2]);
+  assert.doesNotThrow(() => extractFileMetadata(tiny));
+  assert.equal(extractFileMetadata(tiny).appended, undefined);
+});
+
+// ── APNG (structurally a PNG — regression, not a new code path) ───────────────
+// APNG reuses the PNG signature and IEND terminator; readPng's chunk walk steps
+// over every chunk generically by its length field, so acTL/fcTL/fdAT (which
+// match none of its known chunk-type branches) are skipped exactly like any
+// other unrecognised chunk and the walk still reaches IEND correctly. This
+// locks in that the existing PNG path needs no APNG-specific code.
+function apngThen(trailing: number[]): Uint8Array {
+  const sig = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+  const chunk = (type: string, data: number[]): number[] =>
+    [...u32be(data.length), ...[...type].map((c) => c.charCodeAt(0)), ...data, 0, 0, 0, 0]; // CRC unchecked by the reader
+  const acTL = chunk('acTL', [...u32be(2), ...u32be(0)]); // 2 frames, loop forever
+  const fcTL = chunk('fcTL', new Array(26).fill(0));      // frame control (content unchecked by the walker)
+  const idat = chunk('IDAT', [1, 2, 3, 4]);               // default-image data
+  const fdat = chunk('fdAT', [0, 0, 0, 1, 5, 6, 7, 8]);   // frame data (sequence number + bytes)
+  const iend = chunk('IEND', []);
+  return bytesOf(sig, acTL, fcTL, idat, fdat, iend, trailing);
+}
+
+test('extractFileMetadata: APNG (acTL/fcTL/fdAT) already catches appended data via the PNG IEND path', () => {
+  const clean = apngThen([]);
+  const cleanMeta = extractFileMetadata(clean);
+  assert.equal(cleanMeta.format, 'PNG');
+  assert.equal(cleanMeta.appended, undefined);
+
+  const dirty = extractFileMetadata(apngThen([...new TextEncoder().encode('PK\x03\x04'), 1, 2, 3]));
+  assert.equal(dirty.appended?.kind, 'zip archive');
+  assert.equal(dirty.appended?.bytes, 7);
+  assert.equal(dirty.appended?.offset, clean.length, 'offset must point exactly at the first trailing byte');
+});

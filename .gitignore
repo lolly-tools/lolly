@@ -210,8 +210,9 @@ shells/web/public/t/
 # images are committed instead (catalog/og/views/) so they ship on a resvg-less deploy.
 shells/web/public/view/
 
-# Vendored Adobe TrustMark ONNX decoder models — Andy-run download
-# (scripts/fetch-trustmark-models.ts), never committed; see shells/web/.gitignore.
+# Vendored on-device watermark ONNX models — Andy-run, never committed; see
+# shells/web/.gitignore. Adobe TrustMark decoders via scripts/fetch-trustmark-models.ts;
+# Meta Content Seal (Pixel Seal) extractor via scripts/convert-contentseal-onnx.py.
 shells/web/public/models/
 # …and the onnxruntime-web wasm/mjs runtime copied beside them (served at /ort/).
 shells/web/public/ort/

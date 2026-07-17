@@ -57,13 +57,15 @@ export interface FileMetadata {
    */
   ai?: { kind: 'generated' | 'composite'; sourceType: string; credit?: string };
   /**
-   * Bytes riding AFTER the image container ends (past PNG IEND / JPEG EOI) —
-   * the most common "hidden payload in an image" pattern in the wild: appended
-   * zips (polyglots), smuggled files, stego-loader configs. Deterministic and
-   * always sized; `kind` is a best-effort sniff of what the payload is. Note
-   * the legitimate case: motion photos (Samsung/Pixel) append an MP4 here.
+   * Bytes riding AFTER the image container ends (past PNG IEND / JPEG EOI /
+   * GIF trailer) — the most common "hidden payload in an image" pattern in
+   * the wild: appended zips (polyglots), smuggled files, stego-loader
+   * configs. Deterministic and always sized; `kind` is a best-effort sniff
+   * of what the payload is, `offset` is the exact byte index it starts at
+   * (so a caller can slice the original bytes to extract it). Note the
+   * legitimate case: motion photos (Samsung/Pixel) append an MP4 here.
    */
-  appended?: { bytes: number; kind: string };
+  appended?: { bytes: number; kind: string; offset: number };
   /**
    * LSB steganalysis verdict — populated by pixel-capable SHELLS (the analysis
    * is pixel-domain, engine/src/steganalysis.ts; this byte reader can't decode
@@ -382,7 +384,7 @@ function noteAppended(bytes: Uint8Array, off: number, out: FileMetadata): void {
   const len = bytes.length - off;
   if (len <= 0) return;
   const kind = sniffAppended(bytes, off);
-  out.appended = { bytes: len, kind };
+  out.appended = { bytes: len, kind, offset: off };
   out.fields.push({
     label: 'Appended data',
     value: `${kind} — ${fmtBytes(len)} after the image ends`,
@@ -518,6 +520,73 @@ function readPng(bytes: Uint8Array, out: FileMetadata): void {
   }
 }
 
+// ── GIF ────────────────────────────────────────────────────────────────────────
+// GIF carries little structured metadata worth surfacing (no EXIF/XMP-equivalent
+// container), but its block structure is walkable enough to find the true end
+// of the data stream — the trailer byte 0x3B — so the same appended-payload
+// pattern caught after PNG IEND / JPEG EOI is caught here too. Best-effort and
+// hostile-input-safe throughout: any block that runs past the end of the buffer,
+// or an unrecognised block introducer, just stops (records nothing) rather than
+// guessing or over-reading. Structure (GIF89a spec): 6-byte header + 7-byte
+// Logical Screen Descriptor (+ an optional Global Color Table), then a sequence
+// of Image Descriptor (0x2C) / Extension (0x21) blocks until the Trailer (0x3B).
+
+// Walks a run of length-prefixed sub-blocks starting at `start` (a byte giving
+// the next chunk's length, 0 = terminator) — the shape shared by every GIF
+// extension body and by image data after its LZW-min-code-size byte. Returns
+// the offset just past the terminating zero-length block, or null if the
+// buffer runs out first.
+function gifSubBlocksEnd(bytes: Uint8Array, start: number): number | null {
+  let p = start;
+  while (p < bytes.length) {
+    const size = bytes[p]!;
+    p += 1;
+    if (size === 0) return p;
+    p += size;
+    if (p > bytes.length) return null;
+  }
+  return null;
+}
+
+// Hostile-input guard: a strictly-increasing offset already bounds this loop by
+// the buffer length, but cap it anyway (matches MAX_FIELDS's belt-and-suspenders
+// style elsewhere in this file) rather than relying solely on that invariant.
+const MAX_GIF_BLOCKS = 1_000_000;
+
+function readGif(bytes: Uint8Array, out: FileMetadata): void {
+  if (bytes.length < 13) return; // 6-byte header + 7-byte logical screen descriptor
+  const packed = bytes[10]!; // logical screen descriptor's packed byte
+  let p = 13;
+  if (packed & 0x80) p += 3 * (2 ** ((packed & 0x07) + 1)); // global color table
+  if (p > bytes.length) return;
+
+  for (let i = 0; i < MAX_GIF_BLOCKS && p < bytes.length; i++) {
+    const introducer = bytes[p]!;
+    if (introducer === 0x3b) { noteAppended(bytes, p + 1, out); return; } // trailer
+    if (introducer === 0x2c) {
+      // Image Descriptor: introducer(1) + left/top/width/height(8) + packed(1).
+      if (p + 10 > bytes.length) return;
+      const imgPacked = bytes[p + 9]!;
+      let q = p + 10;
+      if (imgPacked & 0x80) q += 3 * (2 ** ((imgPacked & 0x07) + 1)); // local color table
+      if (q >= bytes.length) return; // needs at least the LZW-min-code-size byte
+      const end = gifSubBlocksEnd(bytes, q + 1);
+      if (end == null) return;
+      p = end;
+      continue;
+    }
+    if (introducer === 0x21) {
+      // Extension: introducer(1) + label(1) + sub-blocks.
+      if (p + 2 > bytes.length) return;
+      const end = gifSubBlocksEnd(bytes, p + 2);
+      if (end == null) return;
+      p = end;
+      continue;
+    }
+    return; // unrecognised block introducer — malformed; stop rather than guess
+  }
+}
+
 // ── WebP (RIFF) ──────────────────────────────────────────────────────────────────
 
 function readWebp(bytes: Uint8Array, out: FileMetadata): void {
@@ -618,11 +687,12 @@ export function extractFileMetadata(bytes: Uint8Array): FileMetadata {
     switch (out.format) {
       case 'JPEG': readJpeg(bytes, out); break;
       case 'PNG': readPng(bytes, out); break;
+      case 'GIF': readGif(bytes, out); break;
       case 'WebP': readWebp(bytes, out); break;
       case 'TIFF': readExif(bytes, 0, bytes.length, out); break;
       case 'SVG': readSvg(bytes, out); break;
       case 'MP4': case 'QuickTime': readBmff(bytes, out); break;
-      // GIF and others carry little structured metadata worth surfacing.
+      // Other formats carry little structured metadata worth surfacing.
     }
   } catch { /* best-effort: return whatever was gathered before the fault */ }
   return out;
