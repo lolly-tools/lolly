@@ -179,6 +179,54 @@ test('url-mode: c2pa param serialize round-trip', () => {
   assert.equal(serializeUrlState([], {}), '');                              // absent → nothing
 });
 
+test('url-mode: imprint param — default-on parse/serialize round-trip', () => {
+  // Mirrors export.ts's imprintCapable / tool-actions.ts's isImprintFmt — the
+  // raster formats the Lolly pixel watermark actually survives. Kept as an
+  // inline list (like the RESERVED test above) so a drift in either real gate
+  // has to be a deliberate, visible edit here too.
+  const IMPRINT_FORMATS = ['png', 'jpg', 'jpeg', 'webp', 'avif', 'tiff'];
+  const tool = { inputs: [], render: {} };
+  // What the web shell's exportDefaults/headless-export logic does with the
+  // parsed value: false ⇒ explicit opt-out; true/null (absent) ⇒ applied for
+  // an imprint-capable format (see views/tool.ts).
+  const applied = (urlImprint: boolean | null, fmt: string): boolean =>
+    urlImprint !== false && IMPRINT_FORMATS.includes(fmt);
+
+  // Invariant 1: no `imprint` param → parses as null (absent), and a raster
+  // export applies the mark by default.
+  assert.equal(parseUrlState('', tool).imprint, null);
+  assert.equal(applied(parseUrlState('', tool).imprint, 'png'), true);
+
+  // Invariant 2: `imprint=0` / `imprint=off` → explicit OFF, and it survives a
+  // serialize → parse round trip (unlike c2pa's own off value, imprint has no
+  // lifetime to preserve, so the round trip is exactly '0').
+  assert.equal(parseUrlState('imprint=0', tool).imprint, false);
+  assert.equal(parseUrlState('imprint=off', tool).imprint, false);
+  const qsOff = serializeUrlState([], { imprint: false });
+  assert.equal(qsOff, 'imprint=0');
+  assert.equal(parseUrlState(qsOff, tool).imprint, false);
+  assert.equal(applied(false, 'png'), false);
+
+  // Invariant 3: existing `imprint=1`/`on`/empty links still read as ON — and
+  // because ON is now the default, serializing the on state omits the param
+  // rather than re-writing it (a plain link stays clean).
+  assert.equal(parseUrlState('imprint=1', tool).imprint, true);
+  assert.equal(parseUrlState('imprint=on', tool).imprint, true);
+  assert.equal(parseUrlState('imprint=', tool).imprint, true);
+  assert.equal(serializeUrlState([], { imprint: true }), '');
+  assert.equal(serializeUrlState([], {}), '');
+
+  // Invariant 4: non-raster formats are never imprint-capable, regardless of
+  // the param — vector/print/animation/data formats stay excluded.
+  for (const fmt of ['svg', 'pdf', 'pdf-cmyk', 'cmyk-tiff', 'html', 'gif', 'apng', 'mp4', 'webm', 'zip', 'eps', 'dxf', 'json', 'csv']) {
+    assert.equal(IMPRINT_FORMATS.includes(fmt), false, `${fmt} must not be imprint-capable`);
+    assert.equal(applied(null, fmt), false, `${fmt} must never be imprinted even when absent defaults to on`);
+  }
+
+  // imprint is reserved — never mistaken for a tool input.
+  assert.equal('imprint' in parseUrlState('imprint=0', tool).values, false);
+});
+
 test('url-mode: lang param — alias normalization + serialize round-trip', () => {
   const tool = { inputs: [], render: {} };
   // Canonical codes pass through.

@@ -42,9 +42,13 @@ export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
 export { stripMetadata, isStrippableFormat } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
 export {
-  embedWatermark, detectWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH, DETECT_THRESHOLD,
+  embedWatermark, detectWatermark, canCarryWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH,
+  DETECT_THRESHOLD, MIN_IMPRINT_BLOCKS, detectionThreshold, V2_BAND_SIZE,
 } from './pixel-watermark.ts';
 export type { EmbedOptions, DetectResult, WatermarkGeometry } from './pixel-watermark.ts';
+export { detectWatermarkSearch, bilinearResampleRgba, SEARCH_DETECT_FLOOR } from './watermark-search.ts';
+export type { SearchResult } from './watermark-search.ts';
+export { unfilterPng } from './png-unfilter.ts';
 export { analyzeLsb } from './steganalysis.ts';
 export type { LsbAnalysis } from './steganalysis.ts';
 export { decodeTrustmarkPayload, TRUSTMARK_PAYLOAD_BITS } from './trustmark.ts';
@@ -91,11 +95,11 @@ export type {
 export { svgToCustGeomPaths } from './svg-custgeom.ts';
 export { rebrandPptxParts } from './pptx-patch.ts';
 export type { RebrandPlan, RebrandTheme, RebrandReport, PartMap } from './pptx-patch.ts';
-export { isPptx, readPptx } from './pptx-read.ts';
+export { isPptx, readPptx, pptxMediaImages } from './pptx-read.ts';
 export type {
   PptxParts, XmlParser, PptxDeckRead, PptxReadSlide, PptxReadNode, PptxReadTheme,
   PptxReadColor, PptxReadRun, PptxReadPara, PptxTextNode, PptxShapeNode, PptxPicNode,
-  PptxTableNode, PptxUnknownNode,
+  PptxTableNode, PptxUnknownNode, PptxMediaImage,
 } from './pptx-read.ts';
 export {
   buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,

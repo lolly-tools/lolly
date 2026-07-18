@@ -369,7 +369,7 @@ export interface StillOpts {
    * the returned Blob's `type` rather than assuming.
    */
   type?: 'image/png' | 'image/jpeg' | 'image/webp';
-  /** Quality 0..1 for the lossy types. Ignored for PNG. Default 0.92. */
+  /** Quality 0..1 for the lossy types. Ignored for PNG. Default 0.97. */
   quality?: number;
   /** Downscale: longest edge in px. Omit for the source's native resolution (the default —
    *  a screenshot scaled down is a blurry screenshot). */

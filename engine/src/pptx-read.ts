@@ -795,6 +795,39 @@ export function isPptx(parts: PptxParts): boolean {
   return false;
 }
 
+/** A raster media part of a .pptx that pixel-domain detection can read. */
+export interface PptxMediaImage {
+  /** The zip part path, e.g. "ppt/media/image3.png". */
+  path: string;
+  /** The decode MIME the shell hands createImageBitmap. */
+  mime: 'image/png' | 'image/jpeg';
+}
+
+/**
+ * Enumerate the raster image parts of an unzipped .pptx that carry pixels a
+ * watermark detector can read: `ppt/media/*.{png,jpg,jpeg}`. Vector / metafile
+ * media (`.svg`/`.emf`/`.wmf`) hold no pixel mark by construction and are
+ * omitted, as is every non-media part (docProps thumbnails, XML, rels, …).
+ * Deterministic (sorted by path) and capped at `max` so a deck carrying
+ * hundreds of images bounds a caller's decode work. Pure + DOM-free: the shell
+ * owns the unzip (fflate) and the pixel decode (canvas); this only names the
+ * parts worth decoding. Empty parts are skipped (nothing to decode; the
+ * detector no-ops on them anyway).
+ */
+export function pptxMediaImages(parts: PptxParts, max = 64): PptxMediaImage[] {
+  const out: PptxMediaImage[] = [];
+  if (!parts || typeof parts !== 'object' || !(max > 0)) return out;
+  for (const path of Object.keys(parts).sort()) {
+    const m = /^ppt\/media\/[^/]+\.(png|jpe?g)$/i.exec(path);
+    if (!m) continue;
+    const raw = parts[path];
+    if (raw === undefined || (typeof raw === 'string' ? raw.length === 0 : raw.byteLength === 0)) continue;
+    out.push({ path, mime: /png/i.test(m[1]!) ? 'image/png' : 'image/jpeg' });
+    if (out.length >= max) break;
+  }
+  return out;
+}
+
 /**
  * Parse an unzipped .pptx part map into a read-model. Never throws: a malformed
  * or hostile part yields whatever parsed and skips the rest.

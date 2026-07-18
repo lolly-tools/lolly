@@ -1360,7 +1360,11 @@ export async function verifyC2pa(bytes: Uint8Array, { trustAnchors }: { trustAnc
   const pdfBytes = bytes; // the hard binding hashes the whole file, any container
 
   if (!format) {
-    report.reason = 'unrecognised file format — Content Credentials are checked in pdf, png, jpg, gif, svg, tiff, webp, mp4 and webm files';
+    // C2PA-scoped, NOT a whole-file verdict: /verify (and MCP) inspect the file
+    // for much more — the Lolly Imprint, SEAL, embedded metadata, appended data —
+    // so this must never read as "unrecognised / can't inspect", only as "this
+    // format doesn't carry Content Credentials".
+    report.reason = 'no Content Credentials — these are embedded only in pdf, png, jpg, gif, svg, tiff, webp, mp4 and webm files';
     return report;
   }
 

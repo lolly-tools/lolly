@@ -104,7 +104,9 @@ test('junk bytes → unrecognised container, no credential invented', async () =
   assert.equal(report.found, false);
   assert.equal(report.state, 'none');
   assert.equal(report.format, null);
-  assert.match(report.reason, /unrecognised file format/);
+  // C2PA-scoped reason — must not claim the whole file is "unrecognised"
+  // (/verify inspects it for the Imprint, SEAL, metadata, appended data too).
+  assert.match(report.reason, /no Content Credentials/);
 });
 
 test('magic bytes with a broken body → found-but-unreadable, honestly invalid', async () => {
