@@ -38,33 +38,11 @@
  *     DNS is UNVERIFIED here (no samples / no network in the test env).
  */
 
+import { asBufferSource, bytesToBin, bytesToHex, concatBytes, base64ToBytes as strictBase64ToBytes } from './bytes.ts';
+import { derTlv, derChildren, ecdsaDerToRaw, EC_CURVES } from './der-read.ts';
+
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
-
-// TS 5.7+ widens Uint8Array to Uint8Array<ArrayBufferLike>; WebCrypto wants an
-// ArrayBuffer-backed BufferSource. Every buffer here is ArrayBuffer-backed, so
-// this is a type-only widening, erased at runtime (matches c2pa-verify.ts).
-const asBufferSource = (b: Uint8Array): BufferSource => b as unknown as BufferSource;
-
-function concatBytes(parts: Uint8Array[]): Uint8Array {
-  let n = 0;
-  for (const p of parts) n += p.length;
-  const out = new Uint8Array(n);
-  let o = 0;
-  for (const p of parts) { out.set(p, o); o += p.length; }
-  return out;
-}
-
-// Byte-transparent binary string (each char == one byte; TextDecoder('latin1')
-// would remap 0x80–0x9f, so we build it by hand). Used so record offsets found
-// in the string map 1:1 onto file byte offsets.
-function bytesToBin(bytes: Uint8Array): string {
-  let s = '';
-  for (let i = 0; i < bytes.length; i += 0x8000) {
-    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000) as unknown as number[]);
-  }
-  return s;
-}
 
 // ─── encodings ─────────────────────────────────────────────────────────────
 
@@ -75,10 +53,7 @@ function base64ToBytes(input: string): Uint8Array {
   const pad = s.length % 4;
   if (pad === 1) throw new Error('seal: bad base64 length');
   if (pad) s += '='.repeat(4 - pad);
-  const bin = atob(s);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
+  return strictBase64ToBytes(s);
 }
 
 function hexToBytes(input: string): Uint8Array {
@@ -255,15 +230,10 @@ function findSigValueSpan(rec: string): { valStart: number; valEnd: number } | n
     const valEnd = end - 1;
     const valStart = rec.lastIndexOf('"', valEnd - 1) + 1;
     if (valStart <= 0) return null;
-    if (!/(?:^|\s)s\s*=\s*$/.test(rec.slice(0, valStart - 1))) {
-      // The char before the opening quote must complete `s=` (last attribute).
-      // Be lenient: also accept `s =` / trailing spaces handled by the regex.
-      // Fall through to the &quot; check only if this fails.
-    } else {
-      return { valStart, valEnd };
-    }
-    // Even if the strict s= check didn't match (odd spacing), the last quoted
-    // region is still the value by the "s must be last" invariant.
+    // Deliberately NOT validated: that the chars before the opening quote spell
+    // `s=`. By the "signature must be the last attribute" invariant the last
+    // quoted region is the value regardless of attribute-name spacing quirks,
+    // so any key= oddity here is tolerated rather than rejected.
     return { valStart, valEnd };
   }
   // Entity-quoted form: … s=&quot;VALUE&quot;
@@ -553,35 +523,22 @@ const EC_SPKI_LEN: Record<number, { curve: string; size: number }> = {
   120: { curve: 'P-384', size: 48 },
   156: { curve: 'P-521', size: 66 },
 };
-// EC named-curve OIDs (hex of the OID content) → curve params.
-const EC_CURVE_OIDS: Record<string, { curve: string; size: number }> = {
-  '2a8648ce3d030107': { curve: 'P-256', size: 32 }, // prime256v1
-  '2b81040022': { curve: 'P-384', size: 48 },       // secp384r1
-  '2b81040023': { curve: 'P-521', size: 66 },       // secp521r1
-};
 
 // Read the named curve out of an EC SPKI's AlgorithmIdentifier (best-effort;
-// falls back to the byte-length heuristic). Minimal, bounds-checked DER walk.
+// falls back to the byte-length heuristic). Uses the shared bounds-checked DER
+// walk + EC named-curve OID table from der-read.ts.
 function ecCurveOf(spki: Uint8Array): { curve: string; size: number } | null {
   try {
     // SEQUENCE { AlgorithmIdentifier SEQUENCE { ecPublicKey OID, curve OID }, BIT STRING }
-    if (spki[0] !== 0x30) return EC_SPKI_LEN[spki.length] ?? null;
-    let i = 2;
-    if (spki[1]! & 0x80) i = 2 + (spki[1]! & 0x7f);
-    if (spki[i] !== 0x30) return EC_SPKI_LEN[spki.length] ?? null;
-    const algLen = spki[i + 1]!;
-    let j = i + 2;
-    const algEnd = j + algLen;
-    // Skip the first OID (ecPublicKey), then read the curve OID.
-    while (j < algEnd && j + 1 < spki.length) {
-      const tag = spki[j]!;
-      const len = spki[j + 1]!;
-      if (tag === 0x06) {
-        const hex = Array.from(spki.subarray(j + 2, j + 2 + len), (b) => b.toString(16).padStart(2, '0')).join('');
-        const byOid = EC_CURVE_OIDS[hex];
-        if (byOid) return byOid;
-      }
-      j += 2 + len;
+    const top = derTlv(spki, 0);
+    if (top.tag !== 0x30) return EC_SPKI_LEN[spki.length] ?? null;
+    const algId = derChildren(spki, top)[0];
+    if (!algId || algId.tag !== 0x30) return EC_SPKI_LEN[spki.length] ?? null;
+    // Skip the first OID (ecPublicKey — not in the curve table), match the curve OID.
+    for (const kid of derChildren(spki, algId)) {
+      if (kid.tag !== 0x06) continue;
+      const byOid = EC_CURVES[bytesToHex(spki.subarray(kid.contentStart, kid.end))];
+      if (byOid) return byOid;
     }
     return EC_SPKI_LEN[spki.length] ?? null;
   } catch {
@@ -600,31 +557,8 @@ export async function importSealKey(spki: Uint8Array, keyAlg: 'rsa' | 'ec', dige
   return subtle.importKey('spki', asBufferSource(spki), { name: 'ECDSA', namedCurve: ec.curve }, false, ['verify']);
 }
 
-// DER ECDSA-Sig-Value (SEQUENCE { INTEGER r, INTEGER s }) → fixed-width raw
-// r||s (IEEE P1363), which is what WebCrypto ECDSA verify accepts. Strips each
-// INTEGER's leading sign pad, left-pads back to the curve field width.
-function ecdsaDerToRaw(der: Uint8Array, size: number): Uint8Array {
-  if (der[0] !== 0x30) throw new Error('seal: ECDSA signature is not DER');
-  let i = 2;
-  if (der[1]! & 0x80) i = 2 + (der[1]! & 0x7f);
-  const readInt = (): Uint8Array => {
-    if (der[i] !== 0x02) throw new Error('seal: ECDSA integer expected');
-    const len = der[i + 1]!;
-    let start = i + 2;
-    const end = start + len;
-    if (end > der.length) throw new Error('seal: ECDSA integer overruns');
-    while (start < end && der[start] === 0) start++; // drop sign pad
-    i = end;
-    return der.subarray(start, end);
-  };
-  const r = readInt();
-  const s = readInt();
-  if (r.length > size || s.length > size) throw new Error('seal: ECDSA integer wider than the curve');
-  const out = new Uint8Array(size * 2);
-  out.set(r, size - r.length);
-  out.set(s, size * 2 - s.length);
-  return out;
-}
+// DER ECDSA-Sig-Value → fixed-width raw r||s (IEEE P1363), which is what
+// WebCrypto ECDSA verify accepts: shared ecdsaDerToRaw from der-read.ts.
 
 /**
  * Verify a SEAL signature. `message` is the exact pre-image WebCrypto hashes

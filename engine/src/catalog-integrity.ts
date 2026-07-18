@@ -34,13 +34,10 @@
  */
 
 import { pemToDer } from './x509.ts';
+import { asBufferSource, base64ToBytes, bytesToHex, sha256 } from './bytes.ts';
 
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
-// TS 5.7+ widens Uint8Array to Uint8Array<ArrayBufferLike>; WebCrypto wants an
-// ArrayBuffer-backed BufferSource. Every buffer here is ArrayBuffer-backed, so
-// this is a type-only widening, erased at runtime.
-const asBufferSource = (b: Uint8Array): BufferSource => b as unknown as BufferSource;
 
 export const CATALOG_SIG_ALG = 'ECDSA-P256-SHA256';
 /** Where the envelope lives, relative to the catalog root (sibling of tools/index.json). */
@@ -93,11 +90,7 @@ function bytesToBase64Url(bytes: Uint8Array): string {
 }
 
 function base64UrlToBytes(str: string): Uint8Array {
-  const b64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
+  return base64ToBytes(str.replace(/-/g, '+').replace(/_/g, '/'));
 }
 
 /**
@@ -125,10 +118,7 @@ export function canonicalJson(value: unknown): string {
 
 /** Lowercase sha256 hex of the given bytes. */
 export async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = new Uint8Array(await subtle.digest('SHA-256', asBufferSource(bytes)));
-  let hex = '';
-  for (const b of digest) hex += b.toString(16).padStart(2, '0');
-  return hex;
+  return bytesToHex(await sha256(bytes));
 }
 
 /**

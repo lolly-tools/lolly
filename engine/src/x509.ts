@@ -20,23 +20,18 @@
  * matching the COSE alg the C2PA writer hardcodes.
  */
 
+import { asBufferSource, base64ToBytes, bytesToBin, concatBytes } from './bytes.ts';
+import { derTlv, derChildren, ecdsaRawToDer } from './der-read.ts';
+import type { DerTlv } from './der-read.ts';
+
+// Raw r||s ↔ DER ECDSA-Sig-Value conversion lives in der-read.ts now;
+// re-exported so existing importers of this module keep working.
+export { ecdsaRawToDer };
+
 const te = new TextEncoder();
 const subtle = globalThis.crypto.subtle;
-// TS 5.7+ widens Uint8Array to Uint8Array<ArrayBufferLike>; WebCrypto wants an
-// ArrayBuffer-backed BufferSource. Every buffer here is ArrayBuffer-backed, so
-// this is a type-only widening, erased at runtime.
-const asBufferSource = (b: Uint8Array): BufferSource => b as unknown as BufferSource;
 
 type DateInput = Date | string | number | null | undefined;
-
-function concatBytes(parts: Uint8Array[]): Uint8Array {
-  let n = 0;
-  for (const p of parts) n += p.length;
-  const out = new Uint8Array(n);
-  let o = 0;
-  for (const p of parts) { out.set(p, o); o += p.length; }
-  return out;
-}
 
 // ─── DER writers ──────────────────────────────────────────────────────────────
 
@@ -85,67 +80,30 @@ export function derTime(date: Date): Uint8Array {
   return der(0x18, te.encode(p(y, 4) + rest));
 }
 
-// WebCrypto ECDSA signatures are raw r||s; X.509 wants DER ECDSA-Sig-Value.
-export function ecdsaRawToDer(raw: Uint8Array): Uint8Array {
-  const half = raw.length / 2;
-  return derSeq(derUint(raw.subarray(0, half)), derUint(raw.subarray(half)));
-}
-
 export function asDate(v: DateInput, fallback: number | string): Date {
   const d = v == null ? new Date(fallback) : v instanceof Date ? v : new Date(v);
   if (Number.isNaN(d.getTime())) throw new Error('c2pa: invalid date ' + v);
   return d;
 }
 
-// ─── minimal DER reader ───────────────────────────────────────────────────────
-// Just enough TLV walking to pull the public-key point out of an SPKI (for
-// RFC 5280 key identifiers) and to copy a CA cert's subject Name verbatim;
-// c2pa-verify.js owns the full read side.
-
-interface Tlv {
-  tag: number;
-  start: number;
-  contentStart: number;
-  end: number;
-}
-
-function readTlv(b: Uint8Array, i: number): Tlv {
-  if (i + 2 > b.length) throw new Error('x509: truncated DER');
-  const tag = b[i]!;
-  let len = b[i + 1]!;
-  let j = i + 2;
-  if (len & 0x80) {
-    const k = len & 0x7f;
-    len = 0;
-    for (let x = 0; x < k; x++) len = len * 256 + b[j++]!;
-  }
-  if (j + len > b.length) throw new Error('x509: DER length overruns buffer');
-  return { tag, start: i, contentStart: j, end: j + len };
-}
-
-function readChildren(b: Uint8Array, tlv: Tlv): Tlv[] {
-  const kids: Tlv[] = [];
-  let i = tlv.contentStart;
-  while (i < tlv.end) {
-    const c = readTlv(b, i);
-    kids.push(c);
-    i = c.end;
-  }
-  return kids;
-}
+// ─── minimal DER reads ────────────────────────────────────────────────────────
+// The shared bounds-checked TLV walker lives in der-read.ts; here it's used
+// just to pull the public-key point out of an SPKI (for RFC 5280 key
+// identifiers) and to copy a CA cert's subject Name verbatim; c2pa-verify.ts
+// owns the full certificate read side.
 
 // RFC 5280 §4.2.1.2 method (1) key identifier: SHA-1 of the subjectPublicKey
 // BIT STRING value — which for EC is exactly the raw uncompressed point.
 async function keyIdOf(spkiDer: Uint8Array): Promise<Uint8Array> {
-  const [, bits] = readChildren(spkiDer, readTlv(spkiDer, 0));
+  const [, bits] = derChildren(spkiDer, derTlv(spkiDer, 0));
   if (!bits || bits.tag !== 0x03) throw new Error('x509: SPKI has no subjectPublicKey BIT STRING');
   return new Uint8Array(await subtle.digest('SHA-1', asBufferSource(spkiDer.subarray(bits.contentStart + 1, bits.end))));
 }
 
 // tbsCertificate: [0] version?, serial, sigAlg, issuer, validity, subject, SPKI, …
 function certNameAndKey(certDer: Uint8Array): { subjectBytes: Uint8Array; spkiDer: Uint8Array } {
-  const [tbs] = readChildren(certDer, readTlv(certDer, 0));
-  const kids = readChildren(certDer, tbs!);
+  const [tbs] = derChildren(certDer, derTlv(certDer, 0));
+  const kids: DerTlv[] = derChildren(certDer, tbs!);
   const shift = kids[0]!.tag === 0xa0 ? 1 : 0;
   return {
     subjectBytes: certDer.slice(kids[shift + 4]!.start, kids[shift + 4]!.end),
@@ -159,19 +117,12 @@ function certNameAndKey(certDer: Uint8Array): { subjectBytes: Uint8Array; spkiDe
 export function pemToDer(pem: string): Uint8Array {
   const b64 = String(pem).replace(/-----[^-]+-----/g, '').replace(/\s+/g, '');
   if (!b64) throw new Error('x509: no PEM body found');
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
+  return base64ToBytes(b64);
 }
 
 /** DER bytes → PEM with 64-char body lines. label: 'CERTIFICATE' | 'PRIVATE KEY'. */
 export function derToPem(der: Uint8Array, label: string): string {
-  let bin = '';
-  for (let i = 0; i < der.length; i += 0x8000) {
-    bin += String.fromCharCode.apply(null, der.subarray(i, i + 0x8000) as unknown as number[]);
-  }
-  const body = btoa(bin).replace(/(.{64})/g, '$1\n').trimEnd();
+  const body = btoa(bytesToBin(der)).replace(/(.{64})/g, '$1\n').trimEnd();
   return `-----BEGIN ${label}-----\n${body}\n-----END ${label}-----\n`;
 }
 

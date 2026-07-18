@@ -1,0 +1,634 @@
+# Engine changelog
+
+One entry per ENGINE_VERSION minor (the bridge contract version in `src/version.ts`,
+re-exported from `src/index.ts`). Additive-only within v1: methods are added in
+minors, never removed or signature-changed without a major bump.
+
+Moved verbatim from the comment block that used to live in `src/index.ts`.
+
+1.1.0 — additive: `file` input type, the transform output path
+(host.export.file + the `exportFile` hook + runtime.exportFile), and the
+`privacy: 'on-device'` utility marker. All backwards-compatible with ^1.0.0
+tools; no v1 method was removed or changed.
+
+1.2.0 — additive: tool composition / nested renders — the optional
+`host.compose` capability + manifest `composes` (rendered via resolveNestedRenders
+into `{{asset <id>}}` extras). Backwards-compatible; shells without compose just
+don't resolve composes (the {{#if}} slot stays empty).
+
+1.3.0 — additive: end-user tool-as-image. A Lolly tool URL (share link / embed
+URL) pasted into the asset picker becomes an asset whose `id` is the canonical
+embed URL; the runtime re-renders it on load via the new optional
+`host.compose.renderUrl` (see tool-url.js). Backwards-compatible; a shell
+without renderUrl simply leaves such an asset blank.
+
+1.4.0 — additive: live media. The optional `host.media` capability (a camera
+frame source) plus a new `onFrame` hook + runtime.startLive/stopLive let a tool
+react to a live camera stream frame-by-frame (e.g. a filter that responds to
+motion). Pure progressive enhancement: the hook is only driven where the shell
+provides host.media; a shell without it (or a tool without onFrame) is unaffected,
+and such tools keep working as ordinary still-image tools. No v1 method changed.
+
+1.5.0 — additive: packed URL state. A whole readable query can be compressed into
+a single reserved `z` param (raw DEFLATE + base64url — url-pack.js: packQuery /
+unpackToken / expandQuery) so complex tools stay shareable past the ~2000-char URL
+ceiling. Pure URL-mode enhancement — no bridge/host method added or changed; the
+codec is native (CompressionStream) with graceful fallback to the readable form.
+
+1.6.0 — additive: themable two-colour icons. An asset id may carry a colour
+pairing (`<baseId>?theme=<themeId>` — icon-theme.js) which shell bridges parse
+before catalog lookup and bake into the resolved SVG at resolve time; pairings
+are catalog data (a palette-type asset tagged "icon-themes"), never engine code.
+No v1 method signature changed — host.assets.get/isAvailable simply accept the
+suffixed id form; a shell that ignores it still resolves the base asset.
+
+1.7.0 — additive: two independent format extensions.
+  • `parseDataRows` (data-import.js) maps a user's CSV/JSON file onto a `blocks`
+    input's sub-fields, driven by the new manifest `blocks.importData` — the
+    ingest counterpart to CSV/JSON export. Pure; the result flows through the
+    ordinary input-set path (URL/save-safe).
+  • `packTiff` (tiff.js) is a baseline RGB/grayscale TIFF emitter backing the new
+    `tiff` export format (the DeviceCMYK TIFF keeps its bespoke shell encoder).
+No bridge/host method was added or changed; older tools are unaffected.
+
+1.8.0 — additive: on-device Content Credentials verification (c2pa-verify.js —
+verifyC2paPdf / extractC2paFromPdf). The read-side counterpart to the 1.x C2PA
+embedder: extracts a PDF's manifest, re-checks hashed URIs, the COSE claim
+signature, cert validity and the hard binding, and reports c2pa-rs-style
+status codes. Backs the web shell's /valid view and the CLI `validate`
+command. Pure engine module; no bridge/host method added or changed.
+
+1.9.0 — additive: Content Credentials for every embeddable raster/vector
+container. embedC2pa(bytes, format, opts) stamps png/apng, jpg, gif, svg,
+tiff/cmyk-tiff and webp (byte-matching c2pa-rs's asset handlers, same
+two-pass hard binding as the PDF path), the claim gains
+claim_generator_info + digitalSourceType + an optional `tools.lolly.export`
+environment assertion, and verifyC2pa() sniffs + verifies all of the above.
+mp4/webm (BMFF/Matroska hashing) and avif stay unstamped for now; ico, eps,
+emf and the text/data formats have no C2PA container. No bridge change.
+
+1.10.0 — additive: Content Credentials for video. embedC2pa stamps mp4 (the
+spec's BMFF binding: manifest in a top-level C2PA `uuid` box appended last —
+stco/co64 never shift — under c2pa.hash.bmff.v2, whose box-walk hash matches
+c2patool byte-for-byte) and webm (no standardised Matroska binding exists,
+so the manifest rides as a `manifest.c2pa` attachment, application/c2pa,
+under the ordinary data-hash binding; SeekHead indexed when there's Void
+room). verifyC2pa sniffs mp4/webm/mkv, extracts both carriers and validates
+c2pa.hash.bmff.v1–v3 flat bindings (foreign c2patool-signed mp4s included;
+fragmented/Merkle reported honestly as uncheckable). No bridge change.
+
+1.11.0 — additive: Content Credentials identity. embedC2pa / embedC2paInPdf
+accept opts.signer ({ privateKey | sign(bytes) → raw 64-byte r||s, certDer,
+chain }) so a CA-issued device credential replaces the ephemeral self-signed
+signer (chain bytes frozen per embed; ES256/P-256 only), and verifyC2pa
+accepts { trustAnchors } (root cert DERs) to verify the x5chain and report a
+trusted identity instead of the unconditional untrusted row. The DER/X.509
+authority moved from c2pa.js to x509.js (byte-identical output), which adds
+pemToDer / derToPem / generateCaRoot / issueLeafCert — the leaf follows the
+c2pa-rs profile (O + CN subject, emailProtection EKU, SKI/AKI, SAN
+rfc822Name = verified email). Pure options on pure functions; no bridge
+change.
+
+1.12.0 — additive: richer text shaping on host.text.toPath. The already-declared
+`features` (OpenType tags, e.g. ['liga=0', 'salt=1']) is now honoured — passed to
+HarfBuzz so ligatures/stylistic-alternates toggles bake into the outlined paths —
+and a new `letterSpacing` (px) adds uniform tracking to the pen advance, so
+letter-spaced text stays outlined (SVG/PDF/EMF) instead of falling back to a live
+<text> element. Additive optional opts on an existing method; no bridge change.
+
+1.13.0 — additive: PDF / Adobe Illustrator (.ai) design import. `interpretPdfPage`
+(pdf-map.js) reconstructs a page's content stream into editable DesignNodes —
+rectangles/ellipses/text/optional-content-group layers become boxes with real
+(y-flipped) coordinates, arbitrary paths become baked SVG `_vectorPath` images, and
+form XObjects recurse — the PDF counterpart to the Figma/Penpot walkers. Helpers
+`parseToUnicode` / `toUnicodeDecoder` recover text from embedded/subset fonts. Pure
+engine module; the shell (pdf-import.js) owns the pdf-lib byte work. No bridge change.
+
+1.14.0 — additive: AES-256 (R6 / ISO 32000-2) PDF standard-security-handler
+encryptor (pdf-crypto-r6.js) — the pure crypto behind the "Strong lock" export
+tier. buildEncryptDictValues computes /U /O /UE /OE /Perms and encryptObjectBytes
+wraps each object (IV ‖ AES-256-CBC-PKCS#7, one file key for all objects); DOM-free
+(globalThis.crypto only) with all randomness injected as params, so it round-trips a
+fixed byte vector. Applied encrypt-last over finished PDF bytes; the shell owns the
+pdf-lib object walk + /Encrypt dict assembly. Pure engine module; no bridge change.
+
+1.15.0 — additive: two-tier whole-zip encryption (zip-crypto.js) — the crypto
+behind the "lock this download" option. buildEncryptedZip frames an encrypted zip
+from pre-compressed entries: `standard` = traditional PKWARE ZipCrypto (opens
+anywhere incl. Windows Explorer, weak), `strong` = WinZip AES-256 / AE-2 (PBKDF2-
+SHA1 + AES-256 little-endian CTR + HMAC-SHA1; strong, but not Windows Explorer's
+built-in extract). DOM-free (globalThis.crypto only; bundles a small AES core for
+the LE-CTR keystream since subtle has no ECB and is too slow per-block); all
+randomness injected as params so it round-trips a fixed vector. Verified against
+`unzip -P` and pyzipper. Shell compresses with fflate + hands over bytes + CRC; no
+bridge method changed.
+
+1.16.0 — additive: animated + video assets, end to end.
+  • `sniffAnimatedRaster` / `sniffVideoContainer` (media-sniff.js) classify an
+    upload from its header bytes so a shell can tell an animated GIF/APNG/animated-
+    WebP from a still one (same MIME, different container) and store it VERBATIM
+    instead of flattening it through a canvas re-encode. Pure, DOM-free.
+  • a logic-less `{{media <asset>}}` template helper emits the right element per
+    asset type — <img> for raster/vector (unchanged), a data-lottie-src marker for
+    lottie (reuses the existing enhancer), and <video autoplay loop muted playsinline>
+    for video — so any tool can consume the new asset kinds without per-tool if/else.
+    Every attribute is escaped (SafeString discipline, like the `markdown` helper).
+  • AssetRef.meta.posterUrl is documented as the still fallback frame for a video
+    (used for <video poster> and as the export/pre-play still), mirroring lottie.
+Helpers are not part of the HostV1 contract, so no bridge version moved; older
+shells still render the emitted markup (and, absent the shell's export snapshot,
+simply drop the moving frame to a still). No v1 method changed.
+
+1.17.0 — additive: device capture. New optional `host.recorder` (RecorderAPI)
+records the microphone (and optionally the camera) to a Blob and exposes a
+DOM-free live level meter (AudioLevel = rms/peak/dbfs/clipping/t) — the audio
+counterpart to host.media's camera frames; the shell owns getUserMedia +
+MediaRecorder + AnalyserNode, the engine sees only numbers + Blobs. New
+`microphone` Capability (record prompts for a grant a shell may lack, so unlike
+media it IS capability-gated; the CLI provides no recorder). Runtime gains an
+`onLevel` hook (drop-overlap, not time-boxed, mirroring onFrame) plus
+startMeter/stopMeter (sound-check) and startRecording/stopRecording/cancelRecording
+orchestration. ExportOpts.audio gains fadeIn/fadeOut (seconds) — a GainNode
+envelope baked into the muxed bed, so music fades need no pre-faded assets.
+
+1.18.0 — additive: honest provenance modes. embedC2pa / buildC2paManifest /
+embedC2paInPdf accept opts.authorship ('created' | 'delivered', default
+'created'). 'delivered' writes the standard c2pa.published action with NO
+digitalCreation source type — for an existing asset a signer distributes but
+did not author (surfaced as "Delivered by Lolly"). verifyC2pa now requires a
+c2pa.created action for `madeWithLolly` (a delivered asset may name Lolly
+without ever reading as authored by it) and adds `report.delivered`
+(intact + a c2pa.published action, not created). The created path is
+byte-unchanged. No bridge change.
+
+1.19.0 — additive: honest audio-level coaching. AudioLevel (host.recorder meter +
+record session) gains OPTIONAL noiseFloor/snr/hum/hiss fields — a slow min-hold
+noise floor, signal-to-noise ratio, and two spectral cues (mains-band HUM ratio,
+spectral-flatness HISS) computed off the AnalyserNode the shell already builds, so
+a tool can honestly warn "noisy room / electrical hum / hiss" not just clipping.
+Older tools ignore the extra fields. The web meter now opens RAW (noiseSuppression/
+AGC/echoCancellation OFF) so the sound-check measures the true room; the RECORDING
+session keeps suppression ON for a clean file. No method signatures changed.
+
+1.20.0 — additive: AudioLevel gains OPTIONAL `steady` (0..1) — the steadiness of the
+loudness envelope over ~1.5s (rms coefficient-of-variation, inverted). A fan/AC/hiss
+holds a constant rms (steady→1); speech modulates it (steady→0). Lets coaching tell
+constant background NOISE from SPEECH regardless of level — a mid-level hiss that a
+min-hold noise floor + snr would mistake for "speaking" now reads as a drone. Computed
+off the rms the meter already tracks; older tools ignore it. No method signatures changed.
+
+1.21.0 — additive: front/rear camera selection. RecordOpts gains OPTIONAL `facingMode`
+('user' | 'environment') and MediaAPI.start() gains an OPTIONAL { facingMode } argument,
+so a video-capture tool can offer a flip-camera control (record the scene, not the selfie).
+Both default to 'user'; existing callers and shells that ignore it are unaffected — a
+shared/ref-counted media stream keeps its original camera (flip = stop then start).
+
+1.22.0 — additive: DXF export. `emitDxf` (dxf.ts) is a fourth sink on the SVG
+vector pipeline (alongside emitEmf / emitEps): it serializes the same normalized
+device-px IR into an ASCII DXF R12 (AC1009) document — POLYLINE entities with
+béziers flattened to a flatness tolerance, y-flipped and scaled to millimetres
+($INSUNITS = 4), colour as a nearest AutoCAD Color Index — for CAD / laser-cut /
+vinyl / CNC interchange. Text is outlined upstream (no TEXT entities); the raster
+escape-hatch has no line-art form and is dropped (count returned so the shell can
+warn). Pure, imports only units.ts; no bridge/host method added or changed.
+
+1.23.0 — additive: PPTX (PowerPoint) export. `buildPptxParts` (pptx.ts) assembles
+the OOXML part tree for a deck (content types, relationships, a minimal slide
+master + blank layout + theme, presentation.xml, docProps) and serializes each
+slide's SHAPES to DrawingML — pic (raster at native res, OR a real embedded SVG via
+PowerPoint's asvg:svgBlip extension so vectors extract at full fidelity), text
+(editable text box), rect (solid/gradient/border block). The shell walks the DOM
+into shapes + media and zips with fflate. Purpose: transport a page's treated
+images + vectors into PowerPoint as independent, extractable objects (layout
+secondary). Pure: strings + byte arrays, no zip, no DOM, no deps. No bridge change.
+
+1.24.0 — C2PA 2.x claims. buildC2paManifest / embedC2pa / embedC2paInPdf now emit a
+v2 claim (`c2pa.claim.v2`) by default — the format Gemini and every current C2PA
+validator (c2patool, contentcredentials.org / c2pa-rs) produce and read: no free-text
+claim_generator, no dc:format, a REQUIRED single claim_generator_info map, references
+split into created_assertions (+ optional gathered_assertions), the actions assertion
+relabelled c2pa.actions.v2 (softwareAgent a generator-info map), and the schema.org
+CreativeWork author assertion dropped (the 2.x spec removed it). Box UUIDs, the
+data-hash / BMFF bindings, the COSE ES256 envelope, the x509 signer, and every
+per-format embedder are version-independent and unchanged; the two-pass length-freeze
+carries the differently-shaped-but-deterministic v2 claim. buildC2paManifest keeps an
+internal `claimVersion` (default 2; `1` builds the legacy c2pa.claim) purely so the
+verifier's v1-read path stays test-covered — the embedders never request it, so Lolly
+only ever WRITES v2. verifyC2pa now READS both: it branches on the claim box label,
+reads created_assertions + gathered_assertions and the single-map claim_generator_info,
+and recognises c2pa.actions.v2 — so external v2 credentials (Gemini "Nano Banana",
+Adobe, OpenAI, …) verify on-device instead of failing `credential.unreadable`. No
+bridge change.
+
+1.25.0 — additive: catalog signing + runtime integrity verification
+(catalog-integrity.ts — closes the SOVEREIGNTY.md "catalog origin is a trust
+anchor" boundary). A deployment signs its tool catalog at build time
+(scripts/sign-catalog.ts writes catalog/tools/index.sig.json: a sha256 per
+tool file — hooks.js included — plus a hash of the exact index.json bytes,
+ECDSA P-256/SHA-256 over the canonical-JSON envelope; canonicalJson is the
+single shared serialization on both sides). A shell that pins the public key
+passes loadTool's new optional `integrity` opts ({ envelope, publicKey }):
+the loader then verifies every fetched tool file BEFORE the runtime can
+compile hooks.js — a tampered, stripped-but-signed, or unsigned-extra file
+is a hard ToolLoadError (fail closed; this also closes the tryFetch
+silent-strip hole for signed hooks.js/styles.css), and module-hooks tools
+are refused outright since their imported bytes never pass through the
+loader. Without integrity opts nothing changes except a one-time
+"unsigned catalog" console warning (the dev/compat path). Pure engine
+module, DOM-free (globalThis.crypto.subtle only); no bridge change.
+
+1.26.0 — additive: honest export action history + ingredient credential
+preservation. (1) buildC2paManifest / embedC2pa / embedC2paInPdf accept
+`actions` (a C2paActionInput[] — action code + optional digitalSourceType +
+description), REPLACING the historic single created/published action; the new
+exportActionSteps(format, flags) assembles an honest list from what an export
+actually did (c2pa.created + c2pa.color_adjustments on CMYK/brand-palette +
+c2pa.edited on print marks / experimental watermark + c2pa.converted on a
+raster/video/PDF render — vector/text outputs add nothing). No `actions` →
+byte-identical to before. verifyC2pa now surfaces each action's `description`.
+(2) `ingredients` (C2paIngredient[] from prepareC2paIngredient /
+prepareC2paIngredientFromStore, sourced from extractC2paStore) carry a placed
+credentialed asset's manifests VERBATIM into the new store as a MULTI-manifest
+store (ingredient manifests before the active one), plus a c2pa.ingredient.v3
+assertion (activeManifest hashed-URI) and a c2pa.opened action that propagates
+the ingredient's AI/ML digitalSourceType onto the NEW asset's own active
+manifest (the opened action also carries parameters.ingredients, and the
+c2pa.ingredient.v3 assertion its required validationResults) — so an AI or
+camera origin is never laundered away (the AI flag fires from Lolly's signed
+actions even if the ingredient manifests are stripped). Bridge (additive):
+host.assets.credential?(id) returns a user upload's captured manifest store
+(kept at ingest, manifest-only — no pixels/EXIF), and ExportOpts.ingredients
+threads it runtime → export. Both the multi-action and multi-manifest outputs
+validate as `Valid` in the reference c2patool (contentauth c2pa-rs) — see the
+gated conformance test tests/c2pa-c2patool-conformance.test.ts — with only the
+expected self-signed untrusted markers.
+
+
+1.27.0 — richer, self-describing exports + a JPEG multi-manifest read fix.
+(1) New summarizeInputs(model) returns a compact scalar-input digest (id →
+short string: colours, sizes, toggles, short text; skips uploads, repeating
+groups, long text, and profile-bound PII). The runtime derives it when C2PA
+stamping is on and threads it via ExportOpts.c2paInputs; each shell records it
+(plus the export date + output dimensions) under the tools.lolly.export
+assertion, so an inspected asset shows "what it was made from / where / when /
+how big". verifyC2pa now surfaces report.environment.inputs (the nested digest,
+string→string only). Purely additive — no digest → byte-identical to before.
+(2) extractC2paFromJpeg now reassembles the manifest store by APP11 box-instance
+(En) + sequence (Z) instead of scanning every segment for the store UUID — an
+assertion URL that plants "c2pa" in a continuation chunk no longer trips a false
+"more than one manifest store" rejection (multi-manifest JPEGs, e.g. a design
+composed from AI-generated ingredients, now verify like their PNG/PDF siblings).
+
+1.28.0 — additive: OKLCH-native brand tokens. brand-derive.ts is the engine's
+sRGB↔OKLCH authority (parseOklch/formatOklch/hexToOklch/oklchToHex — with
+deterministic chroma-reduction gamut mapping — plus WCAG 2.1 contrastRatio)
+and deriveBrandTokens(), which turns one brand colour into a complete layered
+DTCG document (base ramps + brand-tinted spectrum + contrast-enforced
+light/dark semantic slots) in exactly the shape createTokenSet consumes.
+colorToHex now reads oklch()/lch() strings via that module, and the barrel
+exports the brand-import container extractors (coerceTokensDoc /
+assembleTokenSetFiles / extractPenpotProject / summarizeTokensDoc). Pure
+engine modules; no bridge change.
+
+1.29.0 — additive on host.text: TextToPathOpts.variations (HarfBuzz axis
+settings, e.g. ['wght=700']) so a VARIABLE face outlines at the run's actual
+weight; TextPathResult.notdef (missing-glyph count) so a caller can prefer
+its <text> fallback over outlining tofu; and TextToPathOpts.fallbackFonts (an
+ordered face chain, shaped segment-by-segment) for the disjoint unicode
+subsets a webfont family ships as. All optional; older hosts keep working.
+
+1.30.0 — additive on host.text: TextAPI.axisDefaults() returns a variable
+font's default-instance axis values, so a caller that embeds the raw file
+into a renderer with no variable-axis control (jsPDF) can tell whether it'll
+render at the weight it asked for. Optional; absent on older hosts.
+
+1.31.0 — provenance chains for DERIVED assets. (1) The runtime's export-time
+ingredient sweep now also notes library/catalog-sourced asset inputs (source
+'library', not just 'user'), so a credentialed CATALOG image placed into a
+tool carries its chain — host.assets.credential(id) may serve those ids by
+extracting the store from the asset's own bytes (semantics widened, signature
+unchanged). (2) c2pa.ts exports C2paActionInput + DIGITAL_SOURCE_TYPE so a
+shell can assemble an honest custom history (recolour / colour treatment /
+crop / re-encode steps) for embedC2pa — used by the web catalog's download
+paths, which now re-sign modified assets with the source credential preserved
+as an ingredient instead of shipping unsigned bytes.
+
+1.32.0 — per-swatch print locks, generalized from the primary-anchor-only
+override. ColorSwatch gains `spot` (SpotColor: name/book/cmyk), read by
+tokens.ts's toSwatch() from the same $extensions["com.suse.lolly"] object as
+the existing `cmyk` lock — any colour token, not just the primary ramp's
+anchor, can now be locked to an exact process CMYK or a named spot ink.
+eps.ts's emitEps() takes an optional cmykPalette (quantised-RGB → CMYK map,
+same key scheme as shells/web's buildCmykPaletteMap) so EPS CMYK export can
+substitute measured/spot inks like the PDF path already does. print-marks.ts's
+PaletteSwatch/BarCell gain `spotName` so the verification colour bar can
+annotate a spot-locked cell with its ink name instead of raw CMYK numbers.
+
+1.33.0 — additive: zzfxm.ts renders procedural music (ZzFXM songs, a few KB of
+nested arrays) to raw stereo PCM — renderZzfxm(song) plus the vendored zzfxG
+(ZzFX Micro synth) / zzfxM (ZzFXM renderer). Pure and DOM-free: the web shell
+wraps the PCM in an AudioBuffer for the Neurospicy player (in a Worker) and for
+video music beds (OfflineAudioContext); ingest/generator scripts audition
+output in Node. One runtime path for hand-authored, MIDI→ZzFXM, MOD→ZzFXM, and
+generated tracks — no per-format player, WASM, or soundfonts. No bridge change.
+
+1.34.0 — additive: pdf-svg.ts serializes an interpreted PDF page (pdf-map.ts's
+PdfNodes, pre-finalizeBoxes) to ONE standalone SVG document — the "PDF page as
+an asset" sibling of the Layout Studio boxes path, sharing the same interpreter
+so the two ingest surfaces agree. Raster XObjects arrive pre-decoded from the
+shell as data: URIs (opts.images); group ids survive as <g data-group> so a
+page SVG re-imported into Layout Studio regroups. Transparent background by
+default (PDF "paper" is a viewer convention; .ai vector art shouldn't bake a
+white plate). No bridge change.
+
+1.35.0 — additive: deeper, honest capture/text provenance. (1) exportActionSteps
+gains `capture` ({camera,microphone}) — a live camera frame or a mic/AV recording
+swaps the created step's IPTC source type to the new CAPTURE_SOURCE_TYPE
+(digitalCapture) with a "captured/recorded live" description — and `textAdded`
+(+`textSample`), appending a c2pa.edited "Added text" step for text placed OVER an
+opened asset. The runtime derives both from actual sensor use (onFrame /
+stopRecording) and an ingredient being present, threading them via new ExportOpts
+c2paCapture / c2paTextAdded. (2) summarizeInputs now includes `longtext` and stores
+FULL text (bounded) so the exact rendered copy — a tamper-relevant signal — rides
+in the tools.lolly.export digest. No bridge signature change.
+
+1.36.0 — additive: midi.ts converts a Standard MIDI File to a ZzfxSong
+(midiToZzfxm / parseMidi + midiToSong) — a DOM-free, bounds-hardened SMF parser +
+note→pattern mapper. Feeds the same zzfxm.ts render path as authored/generated
+songs, so a .mid uploaded in the web shell (or ingested via scripts/ingest-midi.ts,
+which now shares this converter) becomes a tiny format:'zzfxm' asset that plays and
+previews everywhere. No bridge change.
+
+1.37.0 — additive: verifyC2pa() gains report.likelyMadeWithLolly — true when
+every check passed EXCEPT the hard binding (assertion.dataHash/bmffHash
+mismatch: the file's bytes, not the manifest, changed after signing) and the
+claim still records a Lolly creation. The claim signature and every
+hashed-URI-bound assertion — the actions and export-context digest a report
+shows as edit history / "made from" — are still verified, so that content is
+trustworthy even though the bytes can no longer be vouched for (a re-saved,
+re-encoded, or re-uploaded Lolly export). Always false when madeWithLolly is
+already true. No bridge change.
+
+1.38.0 — additive: color-tools.ts, the perceptual metrics + ramp math the
+chroma.js evaluation (plans/chroma-eval.md) chose to PORT rather than adopt:
+deltaEOk (OKLab distance), apcaContrast (APCA-1.0.98G Lc, advisory — WCAG
+2.1 stays the enforced number), rampOklab (bezier through OKLab with
+optional correctLightness bisection), classBreaks (equal/log/quantile bins),
+and distinctColors (anchor-seeded greedy-maximin categorical palette —
+chroma.js has no equivalent). All pure, OKLab-based, gamut-mapped via
+brand-derive's oklchToHex. No bridge change.
+
+1.39.0 — additive: gradient-token colour plumbing. (1) brand-derive.ts gains
+mixOklch(a, b, t) — perceptual OKLCH interpolation (shortest-arc hue, an
+achromatic endpoint adopts the other side's hue) for gradient previews and
+midpoint stop seeding. (2) tokens.ts resolveAliases now also resolves
+aliases nested inside a gradient-typed token's stops ($value[].color —
+scoped composite resolution, cycle-safe, the caller's raw doc left
+untouched), so a brand gradient whose stops reference palette swatches
+({color.ramp.primary.5}) reaches the CLI and tools as concrete colours
+instead of raw alias strings. No bridge change.
+
+1.40.0 — additive on host: `color` (ColorAPI) — the color-tools primitives
+behind short tool-facing names (deltaE/apca/contrast/ramp/breaks/distinct),
+SYNCHRONOUS pure math. Shells attach the engine's makeColorApi() verbatim,
+so the implementation can never drift between web/CLI/Tauri. Not gated by a
+capabilities flag (progressive enhancement — tools feature-detect
+host.color and keep a small fallback for older shells). First consumers:
+chart-creator + d3 brand-driven series palettes (color.spectrum.* tokens
+first, distinct() top-up, shipped palette fallback).
+
+1.41.0 — additive: multi-language groundwork. (1) lang.ts is the shared
+canonical language table (LANGS: en/es/de/fr/zh/ja/vi, LANG_META for
+native/English names + <html lang> values, normalizeLang for informal
+aliases like `cn`/`jp`) used by url-mode.ts, Profile, and tool-manifest i18n
+sidecars alike. (2) url-mode.ts gains the reserved `lang` param — parsed with
+alias normalization, serialized (omitted for the English default), never a
+tool input. (3) Profile (packages/core/src/host-v1.ts) gains `lang?: string`,
+a legal `bindToProfile: "lang"` target, riding the same profile record as
+every other per-user preference. No bridge signature change; the engine
+still emits zero user-facing English itself — all display text originates in
+manifests/templates, which may now ship a per-tool i18n sidecar (see loader.ts).
+
+1.42.0 — additive: 7 more LANGS entries — pt (Brazilian Portuguese, htmlLang
+pt-BR), zh-hant (Traditional Chinese, htmlLang zh-Hant — distinct from zh's
+Simplified/zh-Hans), cs (Czech), nl (Dutch), tl (Tagalog), sv (Swedish), ms
+(Malay). New ALIASES: br/pt-br/pt_br→pt, tw/hk/zh-tw/zh-hk/zh-hant-tw/hant→
+zh-hant, my→ms, fil→tl. Purely additive to the LANGS/LANG_META/ALIASES
+tables — no signature change on url-mode.ts, Profile, or the loader's i18n
+overlay, all of which already iterate LANGS generically.
+
+1.43.0 — additive: baked assets + the shared compose guard (bake.ts). (1)
+bakeAssetRef freezes a composed render (a renderUrl result whose bytes ride
+in a data: URL, capped at MAX_BAKED_URL_CHARS) into a static asset: id
+'baked/<base36 ms>', meta { baked, bakedAt, bakedFrom? } — provenance for
+on-demand re-baking — with meta.toolUrl (the live-edit key) and any
+blob:-valued meta removed. The runtime resolves an isBakedRef value AS-IS
+(no bridge call, no compose-stack growth — a baked embed consumes no compose
+depth and never live-re-renders); URL mode serializes its bakedFrom so a
+share-link recipient degrades to a live re-render — top-level assets AND
+block sub-fields alike (assetIdForUrl / blocksForUrl, exported so shell
+serializers share the one degradation policy). DroppedAsset gains an
+optional `reason` ('render-failed' / 'not-found' / 'baked-bytes-lost'). (2)
+assertComposeStack / ComposeGuardError / MAX_COMPOSE_DEPTH move the per-shell
+cycle/depth guards into the engine so every bridge shares one policy.
+Forward-compat: an OLDER engine re-resolves a baked id via assets.get, which
+fails ('baked/…' is in no catalog), so the slot drops gracefully. (3) One
+more LANGS entry — ro (Romanian, htmlLang ro) — purely additive to the
+LANGS/LANG_META tables, same shape as the 1.42.0 additions. No bridge
+signature change.
+
+1.44.0 — additive: ar (Arabic, htmlLang ar) — the first right-to-left
+LANGS entry. LangMeta gains an optional `dir?: 'rtl'` field (absent ⇒ ltr);
+consumers that stamp <html lang> from LANG_META must now stamp `dir` from
+the same entry (web shell i18n.ts/index.html pre-paint, docs/build.ts).
+New ALIASES: ar-sa/ar-eg/ar-ae → ar. Purely additive — no bridge signature
+change; url-mode's `lang` param, Profile.lang, and the loader's sidecar
+overlay all iterate LANGS generically.
+
+1.45.0 — additive: vector + windowed page capture. (1) CaptureSpec gains
+`crop` (0..0.9 trim insets, the TUI's url-capture semantics promoted onto
+the bridge — applied by the HOST at capture time, so the returned ref's
+width/height already reflect the trim) and `rangeTo` (extend the shot below
+`scrollDepth` into a tall strip for scroll-pan videos; callers derive the
+pan distance from the RESULT dims, so a host that ignores/clamps the field
+degrades to a shorter or static pan, never an error). Hosts that predate
+both fields ignore them via their deserializers — old shell + new tool
+stays a plain viewport shot. (2) CaptureAPI gains optional `vector(spec)`:
+print the page to a true vector document and return it as a self-contained
+SVG AssetRef (type 'vector'), windowed identically to page(). Feature-
+detected (like compose.renderUrl); the web stub and the extension bridge
+simply don't grow it. (3) pdf-svg.ts gains windowPdfSvg (crop a pdfNodesToSvg
+document to a sub-rect via viewBox — pure string surgery, no DOM), exported
+for the shells that window a vector capture. (4) HOOK_BUDGET_MS is now
+re-exported from the engine index so a shell that fulfils `capture` natively
+can raise the beforeExport budget (the documented "shells with unusual
+needs" escape hatch) without a deep runtime.ts import. No bridge signature
+change; every addition is optional/ignorable.
+
+1.46.0 — additive: LangMeta gains an optional `flags?: readonly string[]` (1–3
+ISO 3166-1 alpha-2 country codes per language, most-representative first — en →
+gb/us/au) plus a pure `flagEmoji(cc)` helper (country code → regional-indicator
+emoji). Purely additive garnish for language pickers — the nativeName stays the
+accessible label, older consumers ignore the field, and no bridge signature
+changes. Every LANG_META entry is populated; the field is typed optional so a
+future language without flags still validates.
+
+1.47.0 — additive: hi (Hindi, htmlLang hi, Devanagari, ltr) — one more
+LANGS/LANG_META entry, ordered before ar in the picker. New ALIASES:
+hi-in → hi. Purely additive, same shape as the 1.43/1.44 language
+additions — no bridge signature change; url-mode's `lang` param,
+Profile.lang, and the loader's sidecar overlay all iterate LANGS
+generically.
+
+1.48.0 — additive: three LANGS/LANG_META entries — bn (Bengali, htmlLang bn,
+Bengali script), ur (Urdu, htmlLang ur — the SECOND rtl language after ar;
+consumers that stamp dir from LANG_META need no change, hand-mirrored maps
+like the web shell's pre-paint script must add it), and id (Indonesian,
+htmlLang id — distinct register from ms/Malay). New ALIASES: bn-bd/bn-in → bn,
+ur-pk/ur-in → ur, and in/in-id/id-id → id (`in` is Indonesian's deprecated
+ISO 639-1 code, still emitted by Android WebViews). Purely additive — no
+bridge signature change.
+
+1.49.0 — additive: LangMeta gains a required `speakers` field (approx. total
+speakers in millions, picker-sort data — not a census) and lang.ts gains
+sortedLangs(LangSort)/LangSort — the shared language-picker orderings used
+by every language menu (web shell + /info site): 'speakers' desc = default,
+az = nativeName A–Z. No bridge signature change.
+
+1.50.0 — additive: design-map de-brands. mapFontFamily/mapWeight/nodeToBox/
+finalizeBoxes accept optional DesignMapOptions ({ fonts: { defaultFamily,
+monoFamily, monoMaxWeight }, seedColors: { boxBg, textFg, imageBg } }) so the
+SHELL supplies the target tool's font vocabulary + addKinds seed colours from
+the active brand pack; the engine's built-in defaults are the neutral
+lolly-start values ('sans'/'mono', mono capped at 800). Box.font widens
+'SUSE'|'SUSE Mono' → string. Existing callers compile unchanged (options are
+optional); un-threaded callers now emit the neutral vocabulary instead of
+SUSE's. The PPTX theme (pptx.ts themeXml) likewise drops the hardcoded brand
+accents for lolly-start-spectrum neutrals (accent1-3 + hlink; theme-picker
+data only — rendered shapes carry explicit colours). Brand hex values now
+grep clean of engine/src; the frozen DTCG vendor key 'com.suse.lolly'
+(tokens.ts TOKEN_EXT / brand-derive.ts VENDOR_EXT) deliberately stays — it
+is a permanent serialization contract, renameable only via dual-read.
+
+1.51.0 — additive: LANGS/LANG_META entry tr (Turkish, htmlLang tr, Latin
+script, ltr — no RTL work; latin-ext font subset already kept). New ALIASES:
+tr-tr/tr-cy → tr (regioned navigator.language tags). Purely additive, same
+shape as the 1.47/1.48 language additions — no bridge signature change;
+hand-mirrored maps (web shell pre-paint HTML_LANG) must add it.
+
+1.52.0 — additive: LANGS/LANG_META entries uk (Ukrainian, Cyrillic script —
+cyrillic font subset already kept) and pl (Polish — latin-ext already kept);
+both ltr, no RTL work. New ALIASES: uk-ua/ua → uk, pl-pl → pl. Also fixes
+applyManifestI18n: an option label whose manifest `value` is the empty
+string (e.g. a "Default" choice) was untranslatable — the overlay-key
+matchers required ≥1 char after "options." and silently skipped the key;
+they now accept the empty value (mirrored in scripts/validate-catalog.ts).
+No bridge signature change; hand-mirrored maps (web shell pre-paint
+HTML_LANG) must add the two new languages.
+
+1.53.0 — release-freeze hardening (plans/action-plan.md). (1) loadTool now
+ENFORCES a manifest's `engineVersion` range: a tool whose range excludes the
+running ENGINE_VERSION is REFUSED, not warned (P0-3) — the load-bearing floor
+of the fast-catalog / slow-binary model. New dependency-free range check in
+semver-range.ts (satisfiesRange); no `semver` dep added. (2) New
+session-record.ts (sessionVersionStamp / migrateSessionRecord /
+SESSION_FORMAT_VERSION): every saved-session record now carries formatVersion
++ engineVersion, and the state bridges read them through a migrate-or-warn
+branch on load (P0-5). Both purely additive to the engine surface; no bridge
+signature change. ENGINE_VERSION also moves to version.ts (re-exported here)
+so the loader can read it without an index↔loader import cycle.
+
+1.54.0 — additive: DISPLAY capture on host.recorder. (1) RecordOpts gains
+`source: 'device' | 'screen'` (default 'device', so every existing caller is
+byte-for-byte unchanged) + `systemAudio`, so a screen recording is the same
+RecordSession a camera take is. (2) New RecorderAPI.still(StillOpts) → Blob:
+one frame, source released immediately — a screenshot has no session to stop.
+(3) isAvailable() accepts 'screen'. (4) New `screen` capability + render.capture
+value 'screen' (both schema copies). The browser's own picker is the selection
+UI — a page cannot enumerate, name, or pre-answer it — so the engine never
+learns what a display source IS, only the bytes the user chose to hand over.
+
+1.55.0 — additive: PPTX speaker notes. PptxSlide gains an OPTIONAL `notes`
+string; buildPptxParts (pptx.ts) emits a p:notes part per noted slide plus one
+shared notesMaster, and wires the slide→notesSlide rel, the notesMasterIdLst
+and the content-type Overrides. Gated on the note being non-blank, so a deck
+without notes is byte-for-byte unchanged. Three OOXML traps found against real
+PowerPoint decks, not the spec prose: notesMasterIdLst must precede sldIdLst
+(CT_Presentation is an xsd:sequence); a theme part is 1:1 with a master, so the
+notes master needs its OWN theme2.xml (sharing theme1 is a known repair
+trigger); and a notesSlide relates only to the notesMaster — the slide→notes
+direction is the sole binding. The web shell's renderPptx reads each note from
+a display:none [data-slide-notes] node, so tools opt in with pure tool data.
+
+1.56.0 — additive: PPTX native rich elements (feeds the `presentation` tool; the
+engine stays DOM-free and brand-free). Three additions to pptx.ts, all opt-in so a
+deck that uses none is byte-for-byte unchanged: (1) rich text — PptxPara gains
+bullet (round/number/custom-glyph), 0–8 indent `level`, line/space spacing, and
+PptxRun gains `underline`; a bare {runs, align} still serializes to the old
+`<a:pPr algn>`. (2) native tables — a new PptxTable shape emits an inline a:tbl in a
+p:graphicFrame (header row, per-cell fill/border/align, colSpan/rowSpan merges via a
+rectangular hMerge/vMerge grid) needing NO extra part/rel/content-type. (3) themed
+master from VALUES — PptxBuildOpts.theme (hexes + font names the shell resolves from
+brand tokens) overrides the neutral clrScheme/fontScheme in theme1.xml (+ notes
+theme2.xml); the engine never reads tokens or a brand pack. OOXML order traps
+respected: a:pPr children (lnSpc→spcBef→spcAft→bullet), a:tcPr fill AFTER the four
+borders, p:xfrm prefix vs a:off/a:ext. Deferred (separate track, spec saved): native
+c:chart — the `presentation` tool composes our chart tools (d3/org-chart/chart-
+creator) into vector pictures instead.
+
+1.57.0 — additive: NATIVE-vector PPTX for flat SVG art. (1) pptx.ts gains a `path`
+shape (PptxPath) — arbitrary M/L/C subpaths lowered to a:custGeom / a:pathLst
+(moveTo/lnTo/cubicBezTo/close) inside one a:path w=cx h=cy, solid fill + solid
+stroke; all subpaths collapse into one path so holes cut out. (2) new svg-custgeom.ts
+`svgToCustGeomPaths(svgText, targetW, targetH)` — a DOM-free scan that walks the tag
+stream, tracks the group transform stack + inherited fill/stroke/stroke-width,
+converts path/rect/circle/ellipse/line/polygon/polyline to `d`, and maps coords
+through (group transforms) ∘ (viewBox → target EMU) into PptxPath[]; returns null
+(→ raster fallback) on gradients/filters/masks/clip-paths/opacity/blend/image/text/
+use/style/currentColor/unknown-named-colour/rotate-or-skew/unreadable-viewBox, so a
+non-flat SVG never regresses. The web shell's export-pptx tries it first for an
+<svg>/SVG <img>/SVG background and emits native shapes when it succeeds. Reuses
+parseSvgPath + colorToHex; no bridge/host method added or changed.
+
+1.58.0 — additive: pptx rebrand bridge. New optional host.pptx (PptxAPI):
+inspect() reads an uploaded .pptx (slide count, theme, literal colours/fonts
+with nearest-brand suggestions) and rebrand() surgically re-themes it
+(pptx-patch) — shells unzip/rezip with fflate and inject DOMParser; engine
+stays zip- and DOM-free. New suggestRebrandTheme in brand-map.ts maps brand
+swatches onto the 12 clrScheme slots.
+
+1.59.0 — additive: C2paReport.partsMadeWithLolly — an INTACT credential whose
+active manifest isn't a (likely) Lolly creation but whose preserved provenance
+chain records Lolly steps (a Lolly export later edited/re-signed by another
+tool). Surfaced as the amber "Parts made with Lolly" pip/pill in /verify and
+`~ Parts made with Lolly` in `lolly validate`. Also: file-metadata.ts reads
+bare-XMP IPTC DigitalSourceType + Credit (JPEG/PNG/SVG + MP4/QuickTime uuid
+box) into FileMetadata.ai — the declaration layer behind the AI banner and
+the SynthID/Meta likelihood pips.
+
+1.60.0 — additive: four contract pieces for the Wave-2 surface plays, all
+optional/feature-detected. (1) host.color gains schemes(seedHex, kind?) —
+the brand editor's pure harmony generator (brand-schemes.ts
+generateSchemeAccents; kinds complement/adjacent-3/triad-3/tetrad-4/
+free-2..4, default 'complement') attached to makeColorApi(), so a tool
+(Palette Lab) generates scheme accents without shipping colour science;
+SCHEME_KINDS stays the barrel export for shell picker UIs. (2) New optional
+host.images (ImagesAPI) — CONTRACT ONLY this minor: decode (bytes|Blob →
+oriented dims + sniffed mime), resize (maxEdge / fit-within, never
+upscales), encode (convert to webp/jpeg/png) — the web bridge's existing
+HEIC decode + bomb-guarded resize machinery to be exposed the host.pdf way;
+DOM-free bytes-in/bytes-out, shells implement in a later pass. (3) host.text
+gains optional fontUrl(family, {weight?, italic?}) — CONTRACT ONLY: resolve
+an installed/registered family to a fetchable font file plus the
+variable-font `variations` needed to hit the requested weight, so a
+wordmark-style tool can drive toPath() from a family name. (4) The ZzFXM
+composer moves into the engine: new zzfx-compose.ts (composeSong + the
+PRESETS/SCALES bank, body verbatim from scripts/lib/zzfx-music.ts, which is
+now a re-export shim) — pure and deterministic, renders via the existing
+renderZzfxm, so shells can generate music beds/tracks at runtime. No v1
+method changed. Plus a barrel-only addition: brand-treatments.ts
+(derivePhotoTreatmentsDoc / deriveIconThemesDoc) — pure, deterministic
+derivation of a brand's photo-treatments + icon-themes palette docs from its
+token document (or resolved swatches) via the OKLCH machinery, consumed by
+scripts/ingest-brand.ts and the lolly-start neutral set so blank/ingested
+brands get real treatment/theme strips instead of inert ones.

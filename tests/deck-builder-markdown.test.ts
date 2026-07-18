@@ -20,23 +20,22 @@ import { dirname, join } from 'node:path';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { baseHost } from './helpers/host.ts';
 
-const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'tools');
-const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
+// deck-builder is a community tool — always present in a full checkout. Load it
+// from the SOURCE pack (community/), not the gitignored tools/ profile view, so
+// the suite never silently skips: a missing dir means the tool was renamed or
+// deleted, which must FAIL here.
+const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
+const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 
-const SKIP = !existsSync(join(TOOLS_DIR, 'deck-builder/tool.json'))
-  && 'deck-builder tool view not built (run npm run profile)';
+assert.ok(existsSync(join(COMMUNITY_DIR, 'deck-builder', 'tool.json')),
+  'community/deck-builder/tool.json is missing — the tool was renamed or deleted');
 
-const tool: any = SKIP ? null : await loadTool('deck-builder', fetchFile);
+const tool: any = await loadTool('deck-builder', fetchFile);
 
-function makeHost() {
-  return {
-    version: '1',
-    profile: { get: async () => ({}) },
-    assets: { get: async (id: string) => ({ id, url: 'asset:' + id }) },
-    log: () => {},
-  } as any;
-}
+// The shared minimal stub host (helpers/host.ts).
+const makeHost = () => baseHost();
 
 async function mount(deck: unknown) {
   const rt = await createRuntime(tool, makeHost(), { deck: deck as never });
@@ -66,7 +65,7 @@ const CONTENT = [
   'See [our site](https://example.com) and [danger](javascript:alert(1)) plus `inline code`.',
 ].join('\n');
 
-test('layout body: pipe table with per-column alignment + escaped cells', { skip: SKIP }, async () => {
+test('layout body: pipe table with per-column alignment + escaped cells', async () => {
   const { rt, html } = await mount([{ content: CONTENT }]);
   assert.deepEqual(rt.hookErrors, [], 'no hook errors');
 
@@ -80,18 +79,18 @@ test('layout body: pipe table with per-column alignment + escaped cells', { skip
   assert.match(html, /<td style="text-align:left">Tables<\/td><td style="text-align:right">done<\/td>/);
 });
 
-test('SECURITY: an <img onerror> in a cell is escaped, never a live tag', { skip: SKIP }, async () => {
+test('SECURITY: an <img onerror> in a cell is escaped, never a live tag', async () => {
   const { html } = await mount([{ content: CONTENT }]);
   assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/, 'the cell is escaped text');
   assert.doesNotMatch(html, /<img src=x onerror/, 'no executable <img> reaches the output');
 });
 
-test('layout body: ordered list → <ol class="sl-ol">', { skip: SKIP }, async () => {
+test('layout body: ordered list → <ol class="sl-ol">', async () => {
   const { html } = await mount([{ content: CONTENT }]);
   assert.match(html, /<ol class="sl-ol"><li>First<\/li><li>Second<\/li><\/ol>/);
 });
 
-test('layout body: 3-level nested bullet list (nested <ul> inside <li>)', { skip: SKIP }, async () => {
+test('layout body: 3-level nested bullet list (nested <ul> inside <li>)', async () => {
   const { html } = await mount([{ content: CONTENT }]);
   assert.match(
     html,
@@ -99,13 +98,13 @@ test('layout body: 3-level nested bullet list (nested <ul> inside <li>)', { skip
   );
 });
 
-test('inline: safe link keeps its href; inline code becomes <code>', { skip: SKIP }, async () => {
+test('inline: safe link keeps its href; inline code becomes <code>', async () => {
   const { html } = await mount([{ content: CONTENT }]);
   assert.match(html, /<a href="https:\/\/example\.com">our site<\/a>/);
   assert.match(html, /<code>inline code<\/code>/);
 });
 
-test('SECURITY: a javascript: link produces NO href (text only)', { skip: SKIP }, async () => {
+test('SECURITY: a javascript: link produces NO href (text only)', async () => {
   const { html } = await mount([{ content: CONTENT }]);
   assert.doesNotMatch(html, /javascript:/, 'the dangerous scheme is dropped entirely');
   assert.doesNotMatch(html, /href="javascript/, 'no javascript: href is emitted');
@@ -114,7 +113,7 @@ test('SECURITY: a javascript: link produces NO href (text only)', { skip: SKIP }
 
 // The freeform box path shares the SAME parser, so tables/ordered/nested/links must
 // also work there — with the box's bare-tag class map (no sl-* classes).
-test('freeform box: same parser renders bare-tag table + ordered list + link', { skip: SKIP }, async () => {
+test('freeform box: same parser renders bare-tag table + ordered list + link', async () => {
   const boxes = [{
     kind: 'text', x: 100, y: 100, w: 900, h: 700,
     text: [
@@ -139,7 +138,7 @@ test('freeform box: same parser renders bare-tag table + ordered list + link', {
 });
 
 // Ragged indentation and mixed markers must never throw (robustness invariant).
-test('ragged indentation renders without throwing', { skip: SKIP }, async () => {
+test('ragged indentation renders without throwing', async () => {
   const content = [
     '# T',
     '',
@@ -154,7 +153,7 @@ test('ragged indentation renders without throwing', { skip: SKIP }, async () => 
 });
 
 // A bare `---` (a Marp slide rule / HR) must NOT be mistaken for a table separator.
-test('a line of dashes is not treated as a table separator', { skip: SKIP }, async () => {
+test('a line of dashes is not treated as a table separator', async () => {
   const { rt, html } = await mount([{ content: '# T\n\nintro\n\n---\n\nmore' }]);
   assert.deepEqual(rt.hookErrors, []);
   assert.doesNotMatch(html, /<table/, 'no phantom table from a bare --- rule');

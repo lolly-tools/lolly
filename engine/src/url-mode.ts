@@ -51,6 +51,12 @@
  *                  it off; absent/`1`/`on`/empty leaves it on. A durable provenance
  *                  signal COMPLEMENTING the C2PA credential, not a hardened one
  *                  (security-through-obscurity; the key is public).
+ *   - `durable`  — OPT-IN durable Content Credential for raster exports: a neural
+ *                  TrustMark-format watermark carrying Lolly's identifier, so the
+ *                  "made with Lolly" link survives a metadata strip and a
+ *                  TrustMark-aware tool can recover it. Off by default (heavy
+ *                  neural encode + a fetched model); `durable=1`/`on` turns it on.
+ *                  See plans/durable-content-credentials.md.
  *   - `lang`     — UI/content language as a canonical short code (the full set
  *                  is engine/src/lang.ts's LANGS). Informal
  *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
@@ -129,6 +135,11 @@ export interface UrlState {
    *  true ⇒ explicit opt-in (redundant with the default, kept for back-compat
    *  with existing `imprint=1`/`on` links). */
   imprint: boolean | null;
+  /** Durable Content Credential toggle (the `durable` param) — an opt-in neural
+   *  TrustMark-format watermark carrying Lolly's id (raster only). Off by default,
+   *  so unlike `imprint` there is no null/absent distinction: true only for an
+   *  explicit `durable=1`/`on`. See the header + plans/durable-content-credentials.md. */
+  durable: boolean;
   /** UI/content language (the `lang` param), alias-normalized. null ⇒ absent or
    *  unrecognized — caller falls back to profile/localStorage/browser default. */
   lang: Lang | null;
@@ -164,6 +175,9 @@ export interface SerializeUrlOpts {
    *  false ⇒ explicit opt-out, written as `imprint=0`; true/undefined ⇒ the
    *  default, so the param is omitted (nothing to override). */
   imprint?: boolean;
+  /** Durable Content Credential (the `durable` param). Opt-in, off by default —
+   *  serialised as `durable=1` only when true; omitted otherwise. */
+  durable?: boolean;
   /** UI/content language to stamp on a share link (see `lang` in the header
    *  comment). Omitted for English — the implicit default. */
   lang?: string | null;
@@ -172,7 +186,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -207,6 +221,14 @@ function parseImprint(raw: string | null): boolean | null {
   const v = String(raw).trim().toLowerCase();
   if (v === 'off' || v === '0' || v === 'false' || v === 'no') return false;
   return true;
+}
+
+// Parse the opt-in `durable` param (durable TrustMark credential). Off unless the
+// value is affirmative — `durable=1`/`on`/empty ⇒ true; absent/`0`/`off` ⇒ false.
+function parseDurable(raw: string | null): boolean {
+  if (raw == null) return false;
+  const v = String(raw).trim().toLowerCase();
+  return !(v === 'off' || v === '0' || v === 'false' || v === 'no');
 }
 
 /**
@@ -276,6 +298,8 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     c2pa:     parseC2pa(params.get('c2pa')),
     // Pixel-watermark opt-in for raster exports (see header).
     imprint:  parseImprint(params.get('imprint')),
+    // Opt-in durable Content Credential for raster exports (see header).
+    durable:  parseDurable(params.get('durable')),
     // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
     lang:     normalizeLang(params.get('lang')),
   };
@@ -322,6 +346,8 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   // Default-on, like c2pa: only an explicit opt-out needs a param — writing
   // `imprint=1` for the default state would just be noise on every link.
   if (opts.imprint === false) params.set('imprint', '0');
+  // Opt-in, off by default: only an explicit request writes the param.
+  if (opts.durable) params.set('durable', '1');
   if (opts.lang && opts.lang !== 'en') params.set('lang', opts.lang);
   return params.toString();
 }

@@ -20,6 +20,7 @@
  */
 
 import type { ExportMeta } from './bridge/host-v1.ts';
+import { concatBytes } from './bytes.ts';
 
 /** Per-container tag values normalised from an ExportMeta record. */
 export interface VideoProvenanceTags {
@@ -71,13 +72,8 @@ interface SeekSplice {
 
 const utf8 = (s: string): Uint8Array => new TextEncoder().encode(s);
 
-function concat(...parts: Uint8Array[]): Uint8Array {
-  const total = parts.reduce((n, p) => n + p.length, 0);
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const p of parts) { out.set(p, off); off += p.length; }
-  return out;
-}
+// Local variadic form of the shared concatBytes (bytes.ts).
+const concat = (...parts: Uint8Array[]): Uint8Array => concatBytes(parts);
 
 /**
  * Normalise an ExportMeta record into the per-container tag values. `date` is

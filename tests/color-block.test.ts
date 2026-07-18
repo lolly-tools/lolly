@@ -30,29 +30,35 @@ import { dirname, join } from 'node:path';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { parseUrlState, serializeUrlState } from '../engine/src/url-mode.ts';
+import { baseHost } from './helpers/host.ts';
 
-const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'tools');
-const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
+// color-block ships in the (private) SUSE brand pack. Load it from the SOURCE
+// pack, not the gitignored tools/ profile view, so this suite is profile-
+// independent: skip ONLY when the pack itself isn't mounted (public CI /
+// lolly-start checkouts); with the pack mounted, a missing tool dir means the
+// tool was renamed or deleted — that must FAIL loudly, never silently skip.
+const SUSE_TOOLS = join(dirname(fileURLToPath(import.meta.url)), '..', 'brands', 'suse', 'tools');
+const fetchFile = (path: string) => readFile(join(SUSE_TOOLS, path), 'utf8');
 
-// color-block ships in the (private) SUSE brand pack; under a profile without
-// it (lolly-start / public CI) there is no tool to load — skip the suite.
-const SKIP_SUSE = !existsSync(join(TOOLS_DIR, 'color-block/tool.json'))
-  && 'SUSE brand pack not mounted (see profiles.json)';
+const PACK_MOUNTED = existsSync(SUSE_TOOLS);
+const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
+if (PACK_MOUNTED) {
+  assert.ok(existsSync(join(SUSE_TOOLS, 'color-block', 'tool.json')),
+    'brands/suse/tools/color-block/tool.json is missing — pack is mounted, so the tool was renamed or deleted');
+}
 
 // Load + validate the real tool once; createRuntime never mutates it (only the
 // web shell annotates the template), so it's safe to share across mounts.
 const tool: any = SKIP_SUSE ? null : await loadTool('color-block', fetchFile);
 
-// A stub host. Asset ids resolve to "asset:<id>" so the rendered logo src reveals
-// exactly which mark the hook picked. `fetched` records every resolved id.
+// The shared stub host (helpers/host.ts) with an assets override: ids still
+// resolve to "asset:<id>" so the rendered logo src reveals exactly which mark
+// the hook picked, and `fetched` records every resolved id.
 function makeHost() {
   const fetched: string[] = [];
-  const host: any = {
-    version: '1',
-    profile: { get: async () => ({}) },
+  const host: any = baseHost({
     assets: { get: async (id: string) => { fetched.push(id); return { id, url: 'asset:' + id }; } },
-    log: () => {},
-  };
+  });
   return { host, fetched };
 }
 

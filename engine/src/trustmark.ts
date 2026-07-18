@@ -691,3 +691,127 @@ export function decodeTrustmarkPayload(bits: ArrayLike<number | boolean>): Trust
     return { valid: false, version: -1, schema: 'unknown', dataBits: '', payloadHex: '' };
   }
 }
+
+/**
+ * Inverse of decodeTrustmarkPayload: given a schema version (0–3) and exactly
+ * that schema's number of data bits, returns the 100-bit TrustMark packet (a
+ * 0/1 number[]) that decodeTrustmarkPayload round-trips back to `valid:true`
+ * with the identical data bits. This is the pure DATA-LAYER encode — the BCH
+ * framing a neural TrustMark ENCODER would then hide in pixels. That neural
+ * encoder is NOT in this repo: Adobe ships ONNX for DECODE only; encoding lives
+ * in their Python package's PyTorch weights, so embedding is a torch→ONNX
+ * conversion job, not a model fetch (see plans/durable-content-credentials.md).
+ * Nothing here touches pixels — bits in, 100-bit packet out.
+ *
+ * Unlike the decoder (fed untrusted file bytes, never throws), this is fed our
+ * OWN values, so a bad version or wrong data length is a programming error and
+ * throws. Verified by round-trip against decodeTrustmarkPayload for all four
+ * schemas (no committed test yet — checked via a scratchpad round-trip while
+ * the verifier suite was being edited elsewhere).
+ */
+export function encodeTrustmarkPayload(dataBits: ArrayLike<number | boolean> | string, version: number): number[] {
+  const info = SCHEMA_INFO[version];
+  const engine = schemaEngine(version);
+  if (!info || !engine) throw new Error(`trustmark: unknown schema version ${version} (expected 0–3)`);
+
+  const dataArr: number[] = typeof dataBits === 'string'
+    ? Array.from(dataBits, (c) => (c === '1' ? 1 : 0))
+    : Array.from({ length: dataBits.length }, (_, i) => (dataBits[i] ? 1 : 0));
+  if (dataArr.length !== info.dataBits) {
+    throw new Error(`trustmark: ${info.name} needs ${info.dataBits} data bits, got ${dataArr.length}`);
+  }
+
+  // Parity over the data bytes, packed exactly as the decoder recomputes them.
+  const dataBytes = bitsToBytes(dataArr);
+  const eccBytes = bchEncode(engine, dataBytes);
+  // The ECC region is (96 − dataBits) bits — precisely the code's m·t parity
+  // bits (56/35/28/21 for the four schemas). Taking exactly that many bits
+  // MSB-first is what decode re-reads at bits[dataBits..96); the parity's low
+  // padding bits within the last ecc byte are zero, so the round-trip is exact.
+  const eccRegionBits = ECC_REGION_BITS - info.dataBits;
+  const eccBitStr = bytesToBitString(eccBytes, eccRegionBits);
+
+  // data ‖ parity (= 96-bit ECC region) ‖ 4-bit version field. The version
+  // field's top 2 bits are always 0; its low 2 bits carry the version, mirroring
+  // decode's `bitArr[len-2]*2 + bitArr[len-1]`.
+  const out: number[] = [];
+  for (const b of dataArr) out.push(b);
+  for (const c of eccBitStr) out.push(c === '1' ? 1 : 0);
+  out.push(0, 0, (version >> 1) & 1, version & 1);
+  return out; // length === TRUSTMARK_PAYLOAD_BITS (100)
+}
+
+// ─── Lolly durable-credential recognition (PROVISIONAL) ──────────────────────
+// A C2PA 2.1 Durable Content Credential carries only an IDENTIFIER in the
+// watermark; the manifest is recovered by RESOLVING that id (a manifest store /
+// Adobe's CAI Soft Binding Resolution API). That resolution half is deferred to
+// a SUSE-domain deployment (server infra — see plans/durable-content-
+// credentials.md). What needs NO server, and is not deferred, is Lolly
+// recognising its OWN durable mark on-device: a fixed magic tag our decoder
+// already reads back. Useful on its own the moment an encoder can embed it.
+//
+// PROVISIONAL: only the magic + scheme-version are committed as the
+// self-recognition contract. The RESERVED id field's semantics (producer id /
+// content nonce) are pending the CAI details — it is zero today.
+//
+// Schema choice: BCH_SUPER (version 0) — the strongest error correction (t=8),
+// i.e. the most damage-durable of the four, at the cost of the fewest data bits
+// (40). Durability is the whole point of a durable credential.
+
+/** The TrustMark schema Lolly embeds its durable id under (BCH_SUPER, t=8). */
+export const LOLLY_DURABLE_SCHEMA_VERSION = 0;
+const LOLLY_MAGIC_BITS = 16;
+/** 16-bit "this is a Lolly durable mark" tag, in the leading data bits. */
+const LOLLY_MAGIC_VALUE = 0x1011;
+const LOLLY_SCHEME_BITS = 4;
+/** Durable-id LAYOUT revision — bump if the reserved-field meaning changes. */
+const LOLLY_SCHEME_VALUE = 1;
+/** Remaining data bits reserved for the CAI-defined id (20 for BCH_SUPER). */
+const LOLLY_RESERVED_BITS = SCHEMA_INFO[LOLLY_DURABLE_SCHEMA_VERSION]!.dataBits - LOLLY_MAGIC_BITS - LOLLY_SCHEME_BITS;
+
+function intToBits(value: number, width: number): number[] {
+  const bits: number[] = new Array(width);
+  for (let i = 0; i < width; i++) bits[width - 1 - i] = (value >>> i) & 1;
+  return bits;
+}
+function bitsToInt(bits: readonly number[]): number {
+  let v = 0;
+  for (const b of bits) v = ((v << 1) | (b ? 1 : 0)) >>> 0;
+  return v >>> 0;
+}
+
+export interface LollyDurable {
+  /** The reserved id field (PROVISIONAL, 0 until the CAI id scheme is defined). */
+  reservedId: number;
+}
+
+/**
+ * Builds the 100-bit packet for Lolly's own durable mark: magic ‖ scheme ‖
+ * reserved-id, BCH-framed under BCH_SUPER. `reservedId` is a placeholder for
+ * the future CAI-defined id (default 0). The bits are ready for a neural
+ * encoder to hide in pixels — no pixels are touched here.
+ */
+export function buildLollyDurablePayload(reservedId = 0): number[] {
+  const data = [
+    ...intToBits(LOLLY_MAGIC_VALUE, LOLLY_MAGIC_BITS),
+    ...intToBits(LOLLY_SCHEME_VALUE, LOLLY_SCHEME_BITS),
+    ...intToBits(reservedId >>> 0, LOLLY_RESERVED_BITS),
+  ];
+  return encodeTrustmarkPayload(data, LOLLY_DURABLE_SCHEMA_VERSION);
+}
+
+/**
+ * Pure on-device recognition: if a decoded TrustMark payload is one of Lolly's
+ * own durable marks (right schema, magic and layout revision), returns its
+ * fields; otherwise null. No network, no manifest lookup — this is exactly the
+ * "identify Lolly's mark" half that works without the resolution server.
+ */
+export function readLollyDurable(decoded: TrustmarkDecodeResult): LollyDurable | null {
+  if (!decoded.valid || decoded.version !== LOLLY_DURABLE_SCHEMA_VERSION) return null;
+  const bits = Array.from(decoded.dataBits, (c) => (c === '1' ? 1 : 0));
+  if (bits.length !== SCHEMA_INFO[LOLLY_DURABLE_SCHEMA_VERSION]!.dataBits) return null;
+  const magic = bitsToInt(bits.slice(0, LOLLY_MAGIC_BITS));
+  const scheme = bitsToInt(bits.slice(LOLLY_MAGIC_BITS, LOLLY_MAGIC_BITS + LOLLY_SCHEME_BITS));
+  if (magic !== LOLLY_MAGIC_VALUE || scheme !== LOLLY_SCHEME_VALUE) return null;
+  return { reservedId: bitsToInt(bits.slice(LOLLY_MAGIC_BITS + LOLLY_SCHEME_BITS)) };
+}

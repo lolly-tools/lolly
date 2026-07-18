@@ -30,24 +30,10 @@ const skip = sharp ? false : 'sharp not available';
 
 interface Img { data: Uint8Array; width: number; height: number }
 
-// Multi-scale "photo-like" content — smooth low-frequency blobs + mid-frequency
-// ripples + mild grain, so real JPEG behaves as it would on a photograph
-// (unlike flat or purely periodic synthetic fills).
-function photoLike(w: number, h: number, seed = 1): Uint8Array {
-  const px = new Uint8Array(w * h * 4);
-  let a = seed >>> 0;
-  const rnd = (): number => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; };
-  const ph = [rnd() * 6.28, rnd() * 6.28, rnd() * 6.28, rnd() * 6.28];
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const p = (y * w + x) * 4;
-    const lo = 90 + 60 * Math.sin((x / w) * 3 + ph[0]!) + 50 * Math.cos((y / h) * 2.3 + ph[1]!);
-    const mid = 25 * Math.sin((x + y) / 18 + ph[2]!) + 20 * Math.cos((x - y) / 13 + ph[3]!);
-    const v = Math.max(0, Math.min(255, lo + mid + (rnd() - 0.5) * 14));
-    px[p] = v; px[p + 1] = Math.max(0, Math.min(255, v * 0.85 + 18));
-    px[p + 2] = Math.max(0, Math.min(255, 235 - v * 0.7)); px[p + 3] = 255;
-  }
-  return px;
-}
+// Multi-scale "photo-like" content — the shared, CALIBRATED generator (see
+// helpers/photo-like.ts): the measured envelope in this file's header was tuned
+// against it.
+import { photoLike } from './helpers/photo-like.ts';
 
 async function toRaw(buf: Buffer): Promise<Img> {
   const { data, info } = await sharp!(buf).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

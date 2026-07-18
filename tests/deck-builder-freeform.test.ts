@@ -25,27 +25,23 @@ import { dirname, join } from 'node:path';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { baseHost } from './helpers/host.ts';
 
-const TOOLS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'tools');
-const fetchFile = (path: string) => readFile(join(TOOLS_DIR, path), 'utf8');
+// deck-builder is a community tool — always present in a full checkout. Load it
+// from the SOURCE pack (community/), not the gitignored tools/ profile view, so
+// the suite never silently skips: a missing dir means the tool was renamed or
+// deleted, which must FAIL here.
+const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
+const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
 
-// deck-builder is a community tool → present under every profile. Skip only if the
-// views aren't built at all.
-const SKIP = !existsSync(join(TOOLS_DIR, 'deck-builder/tool.json'))
-  && 'deck-builder tool view not built (run npm run profile)';
+assert.ok(existsSync(join(COMMUNITY_DIR, 'deck-builder', 'tool.json')),
+  'community/deck-builder/tool.json is missing — the tool was renamed or deleted');
 
-const tool: any = SKIP ? null : await loadTool('deck-builder', fetchFile);
+const tool: any = await loadTool('deck-builder', fetchFile);
 
-function makeHost() {
-  const host: any = {
-    version: '1',
-    profile: { get: async () => ({}) },
-    // No token/logo capabilities → the hook uses its static fallbacks.
-    assets: { get: async (id: string) => ({ id, url: 'asset:' + id }) },
-    log: () => {},
-  };
-  return host;
-}
+// The shared minimal stub host (helpers/host.ts).
+// No token/logo capabilities → the hook uses its static fallbacks.
+const makeHost = () => baseHost();
 
 async function mount(deck: unknown) {
   const rt = await createRuntime(tool, makeHost(), { deck: deck as never });
@@ -64,7 +60,7 @@ const MIXED_DECK = [
   { mode: 'freeform', theme: 'dark', boxes: FREEFORM_BOXES },
 ];
 
-test('deck-builder loads with the new mode + boxes sub-fields', { skip: SKIP }, () => {
+test('deck-builder loads with the new mode + boxes sub-fields', () => {
   const fields = (tool.manifest.inputs.find((i: any) => i.id === 'deck').fields as any[]);
   const mode = fields.find(f => f.id === 'mode');
   const boxes = fields.find(f => f.id === 'boxes');
@@ -75,20 +71,20 @@ test('deck-builder loads with the new mode + boxes sub-fields', { skip: SKIP }, 
   assert.ok(boxes, 'deck has a `boxes` sub-field');
 });
 
-test('animation OFF by default: an unset transition rests STILL (sl-frozen on slide 0), never auto-plays', { skip: SKIP }, async () => {
+test('animation OFF by default: an unset transition rests STILL (sl-frozen on slide 0), never auto-plays', async () => {
   const { html } = await mount([{ content: '# One' }, { content: '# Two' }, { content: '# Three' }]);
   assert.match(html, /class="slides sl-frozen"/, 'resting deck is static (sl-frozen)');
   assert.doesNotMatch(html, /class="slides sl-anim"/, 'does NOT auto-play (no sl-anim)');
   assert.match(html, /sl-frozen \.sl-slide--0\s*\{\s*opacity:1/, 'slide 0 is held visible under the freeze');
 });
 
-test('animation is opt-in: choosing a transition (and no focus) lets an unfocused deck play', { skip: SKIP }, async () => {
+test('animation is opt-in: choosing a transition (and no focus) lets an unfocused deck play', async () => {
   const rt = await createRuntime(tool, makeHost(), { deck: [{ content: '# One' }, { content: '# Two' }], transition: 'fade', focusSlide: 0 });
   const html = rt.getHydrated() as string;
   assert.match(html, /class="slides sl-anim"/, 'an explicit transition + no focus plays (sl-anim)');
 });
 
-test('a mixed deck: layout slide unchanged, freeform slide renders boxes', { skip: SKIP }, async () => {
+test('a mixed deck: layout slide unchanged, freeform slide renders boxes', async () => {
   const { rt, html } = await mount(MIXED_DECK);
   assert.deepEqual(rt.hookErrors, [], 'no hook errors');
 
@@ -112,7 +108,7 @@ test('a mixed deck: layout slide unchanged, freeform slide renders boxes', { ski
   assert.doesNotMatch(s1, /class="sl-grid"/);
 });
 
-test('freeform box geometry: px on the 1920 canvas → % of the slide', { skip: SKIP }, async () => {
+test('freeform box geometry: px on the 1920 canvas → % of the slide', async () => {
   const { html } = await mount(MIXED_DECK);
   // 100/1920 = 5.2083%, 800/1920 = 41.6667%, 200/1920 = 10.4167%
   assert.match(html, /left: 5\.2083%; top: 5\.2083%; width: 41\.6667%; height: 10\.4167%;/);
@@ -122,7 +118,7 @@ test('freeform box geometry: px on the 1920 canvas → % of the slide', { skip: 
   assert.equal((html.match(/class="sl-box /g) ?? []).length, 4);
 });
 
-test('freeform text box: same markdown renderer + inline styling', { skip: SKIP }, async () => {
+test('freeform text box: same markdown renderer + inline styling', async () => {
   const { html } = await mount(MIXED_DECK);
   // '# Hi' → an <h1> inside the box (mdBox), colour + align inline. The authored size
   // (96/1920 = 5cqw) rides --fs, NOT font-size: styles.css reads it back as
@@ -134,7 +130,7 @@ test('freeform text box: same markdown renderer + inline styling', { skip: SKIP 
   assert.match(html, /<h2>Rotated<\/h2><ul><li>one<\/li><li>two<\/li><\/ul>/);
 });
 
-test('table cells honour backslash-escaped pipes (\\| → literal |)', { skip: SKIP }, async () => {
+test('table cells honour backslash-escaped pipes (\\| → literal |)', async () => {
   // The deck-editor pptx importer writes cell pipes as `\|`; splitRow must treat
   // them as content, not delimiters, and must not leave the backslash behind.
   const { rt, html } = await mount([{
@@ -152,7 +148,7 @@ test('table cells honour backslash-escaped pipes (\\| → literal |)', { skip: S
 // hook has to emit the attribute the pass keys off and the --fs the CSS multiplies, or the
 // pass has nothing to act on.
 
-test('text box: valign reads compact codes AND full words, defaults to top', { skip: SKIP }, async () => {
+test('text box: valign reads compact codes AND full words, defaults to top', async () => {
   const { rt, html } = await mount([{
     mode: 'freeform',
     boxes: [
@@ -167,7 +163,7 @@ test('text box: valign reads compact codes AND full words, defaults to top', { s
   assert.deepEqual(valigns, ['b', 'm', 't', 't']);
 });
 
-test('text box: fit emits the data-fit hook the template pass keys off', { skip: SKIP }, async () => {
+test('text box: fit emits the data-fit hook the template pass keys off', async () => {
   const { html } = await mount([{
     mode: 'freeform',
     boxes: [
@@ -183,7 +179,7 @@ test('text box: fit emits the data-fit hook the template pass keys off', { skip:
   assert.doesNotMatch(boxes[1]!, /data-fit/, 'the opted-out box carries no fit attribute at all');
 });
 
-test('text box: the authored size rides --fs so the fit multiplier can scale it', { skip: SKIP }, async () => {
+test('text box: the authored size rides --fs so the fit multiplier can scale it', async () => {
   const { html } = await mount([{ mode: 'freeform', boxes: [{ kind: 'text', x: 0, y: 0, w: 400, h: 400, text: 'x', fontSize: 96 }] }]);
   // --fs, never font-size: styles.css reads `calc(var(--fs) * var(--fit))`, so a bare
   // font-size here would be overwritten by the pass and the authored size lost.
@@ -191,20 +187,20 @@ test('text box: the authored size rides --fs so the fit multiplier can scale it'
   assert.doesNotMatch(html, /font-size: 5cqw/);
 });
 
-test('freeform image box: safe src only (javascript: dropped)', { skip: SKIP }, async () => {
+test('freeform image box: safe src only (javascript: dropped)', async () => {
   const { html } = await mount(MIXED_DECK);
   assert.match(html, /<img class="sl-box-img" src="https:\/\/x\/a\.png"/);
   assert.doesNotMatch(html, /javascript:alert/);   // dangerous scheme never reaches an <img>
 });
 
-test('freeform slide still gets theme chrome (bg/ink + page number)', { skip: SKIP }, async () => {
+test('freeform slide still gets theme chrome (bg/ink + page number)', async () => {
   const { html } = await mount(MIXED_DECK);
   const s1 = 'sl-slide--1' + html.split('sl-slide--1').slice(1).join('sl-slide--1');
   assert.match(s1, /--bg:[^;]+; --ink:[^;]+; --accent:/);  // theme colours inlined
   assert.match(s1, /class="sl-pageno"/);                   // page number chrome
 });
 
-test('boxes as a JSON string renders identically to an array', { skip: SKIP }, async () => {
+test('boxes as a JSON string renders identically to an array', async () => {
   const arr = await mount(MIXED_DECK);
   const jsonForm = await mount([
     MIXED_DECK[0],
@@ -214,7 +210,7 @@ test('boxes as a JSON string renders identically to an array', { skip: SKIP }, a
   assert.equal(jsonForm.html, arr.html, 'JSON-string boxes match array boxes byte-for-byte');
 });
 
-test('malformed boxes render an empty canvas, never throw', { skip: SKIP }, async () => {
+test('malformed boxes render an empty canvas, never throw', async () => {
   const { rt, html } = await mount([{ mode: 'freeform', boxes: 'not json {' }]);
   assert.deepEqual(rt.hookErrors, []);
   assert.match(html, /class="sl-canvas"/);
@@ -230,7 +226,7 @@ const SHAPE_SLIDE = {
   boxes: [{ kind: 'box', x: 100, y: 100, w: 800, h: 400, fill: '#30BA78', shape: 'round', radius: 24, lineColor: '#0c322c', lineWidth: 4 }],
 };
 
-test('shape box: filled rounded card → .sl-box-shape with fill + cqw radius + cqw border', { skip: SKIP }, async () => {
+test('shape box: filled rounded card → .sl-box-shape with fill + cqw radius + cqw border', async () => {
   const { rt, html } = await mount([SHAPE_SLIDE]);
   assert.deepEqual(rt.hookErrors, [], 'no hook errors');
 
@@ -248,13 +244,13 @@ test('shape box: filled rounded card → .sl-box-shape with fill + cqw radius + 
   assert.doesNotMatch(shape.split('</div>')[0] + '</div>', /sl-box-text|sl-box-img/);
 });
 
-test('shape box: geometry reuses the same px→% mapping as text/image boxes', { skip: SKIP }, async () => {
+test('shape box: geometry reuses the same px→% mapping as text/image boxes', async () => {
   const { html } = await mount([SHAPE_SLIDE]);
   // 100/1920 = 5.2083%, 800/1920 = 41.6667%, 400/1920 = 20.8333%
   assert.match(html, /left: 5\.2083%; top: 5\.2083%; width: 41\.6667%; height: 20\.8333%;/);
 });
 
-test('shape box: per-corner radius → four cqw corners in CSS order', { skip: SKIP }, async () => {
+test('shape box: per-corner radius → four cqw corners in CSS order', async () => {
   const { rt, html } = await mount([{
     mode: 'freeform',
     // [topLeft, topRight, bottomRight, bottomLeft] — CSS corner order, native px.
@@ -265,7 +261,7 @@ test('shape box: per-corner radius → four cqw corners in CSS order', { skip: S
   assert.match(html, /border-radius:calc\(5cqw\) calc\(0cqw\) calc\(2\.5cqw\) calc\(0cqw\)/);
 });
 
-test('shape box: a rect honours its authored radius (radius is the control, shape is the geometry)', { skip: SKIP }, async () => {
+test('shape box: a rect honours its authored radius (radius is the control, shape is the geometry)', async () => {
   // `round` is not a distinct geometry — a rectangle WITH a radius is the rounded shape.
   // Both spellings must paint the same corners, or the two controls contradict each other.
   const rect = await mount([{ mode: 'freeform', boxes: [{ kind: 'box', x: 0, y: 0, w: 400, h: 200, fill: '#111111', shape: 'rect', radius: 24 }] }]);
@@ -274,7 +270,7 @@ test('shape box: a rect honours its authored radius (radius is the control, shap
   assert.equal(rect.html, round.html, 'rect+radius and round+radius render identically');
 });
 
-test('shape box: a malformed radius degrades to square corners, never throws', { skip: SKIP }, async () => {
+test('shape box: a malformed radius degrades to square corners, never throws', async () => {
   const { rt, html } = await mount([{
     mode: 'freeform',
     boxes: [
@@ -287,7 +283,7 @@ test('shape box: a malformed radius degrades to square corners, never throws', {
   assert.match(html, /background:#222222; border-radius:0;/, 'negatives/junk clamp to 0 → square');
 });
 
-test('shape variants: pill → 9999px, ellipse → 50%, rect/absent → 0', { skip: SKIP }, async () => {
+test('shape variants: pill → 9999px, ellipse → 50%, rect/absent → 0', async () => {
   const { html } = await mount([{
     mode: 'freeform',
     boxes: [
@@ -301,7 +297,7 @@ test('shape variants: pill → 9999px, ellipse → 50%, rect/absent → 0', { sk
   assert.match(html, /background:#333333; border-radius:0;/, 'rect/absent → 0');
 });
 
-test('shape box: transparent (no fill) + no border emits a bare shape div, never raw input', { skip: SKIP }, async () => {
+test('shape box: transparent (no fill) + no border emits a bare shape div, never raw input', async () => {
   const { rt, html } = await mount([{ mode: 'freeform', boxes: [{ kind: 'box', x: 0, y: 0, w: 100, h: 100, fill: 'not a color</style>' }] }]);
   assert.deepEqual(rt.hookErrors, []);
   // Bogus fill is rejected by safeColor → no background declared, no injection.
@@ -309,7 +305,7 @@ test('shape box: transparent (no fill) + no border emits a bare shape div, never
   assert.doesNotMatch(html, /not a color/, 'the rejected raw fill never reaches the output');
 });
 
-test('a text box and a shape box on one slide both render and layer in ARRAY order', { skip: SKIP }, async () => {
+test('a text box and a shape box on one slide both render and layer in ARRAY order', async () => {
   const { rt, html } = await mount([{
     mode: 'freeform',
     boxes: [
@@ -332,7 +328,7 @@ test('a text box and a shape box on one slide both render and layer in ARRAY ord
 
 // ── starter deck + accent→mono logo (later refinements) ───────────────────────
 
-test('default deck ships a single starter slide', { skip: SKIP }, () => {
+test('default deck ships a single starter slide', () => {
   const d = (tool.manifest.inputs.find((i: any) => i.id === 'deck').default as any[]);
   assert.equal(Array.isArray(d) ? d.length : -1, 1, 'one welcoming starter slide');
 });
@@ -357,13 +353,13 @@ function logoHost() {
 const renderLogo = async (slide: any) =>
   (await createRuntime(tool, logoHost(), { deck: [slide], brandLogo: true, pageNumbers: true })).getHydrated() as string;
 
-test('accent scheme forces the MONO logo (accent bg ≈ the brand logomark colour)', { skip: SKIP }, async () => {
+test('accent scheme forces the MONO logo (accent bg ≈ the brand logomark colour)', async () => {
   const html = await renderLogo({ content: '# A', theme: 'accent' });
   assert.match(html, /-MONO\.svg/, 'accent uses a mono logo');
   assert.doesNotMatch(html, /-COLOR\.svg/, 'accent does NOT use a colour logo');
 });
 
-test('non-accent schemes keep the COLOUR logo (light + dark sides)', { skip: SKIP }, async () => {
+test('non-accent schemes keep the COLOUR logo (light + dark sides)', async () => {
   assert.match(await renderLogo({ content: '# A', theme: 'light' }), /ON-LIGHT-COLOR\.svg/);
   assert.match(await renderLogo({ content: '# A', theme: 'dark' }), /ON-DARK-COLOR\.svg/);
 });

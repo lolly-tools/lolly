@@ -75,6 +75,16 @@ export const WATERMARK_VERSION = 2;
 // + a higher activity gate raised PSNR (imprinted-vs-original) by ~1–2 dB and
 // concentrated the mark in textured blocks; see the robustness suite for the numbers.
 export const DEFAULT_STRENGTH = 3.8;
+// Gentler strength for LOSSLESS delivery (png, RGB tiff). DEFAULT_STRENGTH is
+// sized to survive JPEG/WebP/AVIF quantization down to ~q50; a lossless format
+// faces no quantization, so the mark needs far less energy to read back. Measured
+// on semi-textured content (the case that actually shows a mark — genuinely
+// smooth blocks are skipped by the activity gate, so nothing is embedded there):
+// at 2.0 the imprinted-vs-original PSNR rises ~+5 dB over 3.8 (about half the mark
+// amplitude — visibly subtler on gradients/logos) while detection still clears the
+// threshold by ~×8–9. Lossy formats keep DEFAULT_STRENGTH (and its robustness
+// suite) untouched. Applied by the shell export bridge per format, not here.
+export const LOSSLESS_STRENGTH = 2.0;
 export const DETECT_THRESHOLD = 0.035;
 
 // The normalized-correlation score's null distribution has std ≈ 1/√n (n =

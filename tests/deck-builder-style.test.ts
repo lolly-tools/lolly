@@ -102,16 +102,27 @@ test('an unterminated code fence still renders (consumes to EOF, no throw)', { s
   assert.match(html, /<pre class="sl-pre"><code>runaway\nmore<\/code><\/pre>/);
 });
 
-// ── per-element size / weight overrides → --ds-* custom properties ──────────────
+// ── per-element size / weight / font overrides → --ds-* custom properties ───────
 
 test('an untouched deck emits NO --ds-* custom properties', { skip: SKIP }, async () => {
   const { html } = await mount({ deck: [{ content: '# T' }] });
   assert.doesNotMatch(html, /--ds-/, 'defaults stay unset so the deck computes as before');
 });
 
+test('an element is only emitted when its chip (<el>On) is on', { skip: SKIP }, async () => {
+  // Values set but the chip is OFF → nothing applies (the chip is the on/off switch).
+  const off = await mount({ deck: [{ content: '# T' }], h1Size: 130, h1Weight: '700' });
+  assert.doesNotMatch(off.html, /--ds-h1-/, 'chip off → no h1 override, even with values set');
+  // Same values, chip ON → they apply.
+  const on = await mount({ deck: [{ content: '# T' }], h1On: true, h1Size: 130, h1Weight: '700' });
+  assert.match(on.html, /--ds-h1-scale:1\.3;/);
+  assert.match(on.html, /--ds-h1-weight:700;/);
+});
+
 test('size % becomes a ratio scale var; weight becomes a weight var', { skip: SKIP }, async () => {
   const { rt, html } = await mount({
     deck: [{ content: '# T' }],
+    h2On: true, h1On: true, tableOn: true, codeOn: true,
     h2Size: 150, h1Weight: '800', tableSize: 50, codeWeight: '500',
   });
   assert.deepEqual(rt.hookErrors, []);
@@ -119,7 +130,7 @@ test('size % becomes a ratio scale var; weight becomes a weight var', { skip: SK
   assert.match(html, /--ds-h1-weight:800;/);
   assert.match(html, /--ds-table-scale:0\.5;/, '50% → 0.5');
   assert.match(html, /--ds-code-weight:500;/);
-  // A size left at 100 and a weight left at Default emit nothing.
+  // A size left at 100 and a weight left at Default emit nothing (chip on, value default).
   assert.doesNotMatch(html, /--ds-h2-weight/, 'untouched h2 weight stays unset');
   assert.doesNotMatch(html, /--ds-h1-scale/, 'untouched h1 size stays unset');
 });
@@ -127,6 +138,7 @@ test('size % becomes a ratio scale var; weight becomes a weight var', { skip: SK
 test('the full 100–900 weight scale is accepted (Thin … Black)', { skip: SKIP }, async () => {
   const { rt, html } = await mount({
     deck: [{ content: '# T' }],
+    h1On: true, h2On: true, h3On: true,
     h1Weight: '100', h2Weight: '200', h3Weight: '900',
   });
   assert.deepEqual(rt.hookErrors, []);
@@ -138,11 +150,37 @@ test('the full 100–900 weight scale is accepted (Thin … Black)', { skip: SKI
 test('size is clamped to 25–300%; a bogus weight is ignored', { skip: SKIP }, async () => {
   const { html } = await mount({
     deck: [{ content: '# T' }],
+    ulOn: true, olOn: true, quoteOn: true,
     ulSize: 9000, olSize: 1, quoteWeight: 'heaviest',
   });
   assert.match(html, /--ds-ul-scale:3;/, '9000% clamps to 300% → 3');
   assert.match(html, /--ds-ol-scale:0\.25;/, '1% clamps to 25% → 0.25');
   assert.doesNotMatch(html, /--ds-quote-weight/, 'an out-of-range weight is dropped, not emitted');
+});
+
+test('a brand font → a quoted --ds-*-family with a sensible fallback baked in', { skip: SKIP }, async () => {
+  const { rt, html } = await mount({
+    deck: [{ content: '# T' }],
+    h1On: true, codeOn: true,
+    h1Font: 'Poppins', codeFont: 'JetBrains Mono',
+  });
+  assert.deepEqual(rt.hookErrors, []);
+  // A text element falls back to the brand font; code falls back to the mono stack.
+  assert.match(html, /--ds-h1-family:'Poppins', var\(--font-brand[^;]*;/);
+  assert.match(html, /--ds-code-family:'JetBrains Mono', ui-monospace[^;]*;/);
+});
+
+test('SECURITY: a hostile font name is stripped of style-breakout characters', { skip: SKIP }, async () => {
+  const { html } = await mount({
+    deck: [{ content: '# T' }],
+    h1On: true, h1Font: "Evil'; } body { color:red } .x{",
+  });
+  const m = html.match(/--ds-h1-family:'([^']*)'/);
+  assert.ok(m, 'family var is still emitted');
+  const val = m?.[1] ?? '';
+  assert.doesNotMatch(val, /[;{}'"]/, 'no quote / semicolon / brace survives inside the value');
+  assert.match(val, /^Evil/, 'the benign leading text is kept');
+  assert.doesNotMatch(html, /body \{ color:red \}/, 'no injected rule reaches the output');
 });
 
 // ── raw custom CSS ─────────────────────────────────────────────────────────────

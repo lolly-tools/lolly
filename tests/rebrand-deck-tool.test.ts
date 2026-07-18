@@ -20,15 +20,22 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
+import { baseHost } from './helpers/host.ts';
 
 const COMMUNITY_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'community');
 const fetchFile = (path: string) => readFile(join(COMMUNITY_DIR, path), 'utf8');
+
+// rebrand-deck is a community tool — always present in a full checkout; a
+// missing dir means it was renamed or deleted, which must FAIL loudly here.
+assert.ok(existsSync(join(COMMUNITY_DIR, 'rebrand-deck', 'tool.json')),
+  'community/rebrand-deck/tool.json is missing — the tool was renamed or deleted');
 
 const tool: any = await loadTool('rebrand-deck', fetchFile);
 
@@ -65,19 +72,17 @@ const INSPECT_RESULT = {
   themeSuggestion: { dk1: '#0C322C', lt1: '#FFFFFF', accent1: '#30BA78', majorFont: 'Inter', minorFont: 'Inter' },
 };
 
+// The shared stub host (helpers/host.ts) extended with the capabilities this
+// tool exercises: host.tokens always, host.pptx unless the test drops it.
 function makeHost({ pptx = true }: { pptx?: boolean } = {}) {
   const calls = { inspect: [] as any[][], rebrand: [] as any[][] };
-  const host: any = {
-    version: '1',
-    profile: { get: async () => ({}) },
-    log: () => {},
-    tokens: {
-      colors: async () => [
-        { value: '#30BA78', name: 'Jungle', path: 'color.brand.jungle' },
-        { value: '', name: 'Broken', path: 'color.broken' },   // must be dropped
-      ],
-      resolve: async (ref: string) => (ref === '{font.brand}' ? ['Inter', 'sans-serif'] : undefined),
-    },
+  const host: any = baseHost();
+  host.tokens = {
+    colors: async () => [
+      { value: '#30BA78', name: 'Jungle', path: 'color.brand.jungle' },
+      { value: '', name: 'Broken', path: 'color.broken' },   // must be dropped
+    ],
+    resolve: async (ref: string) => (ref === '{font.brand}' ? ['Inter', 'sans-serif'] : undefined),
   };
   if (pptx) {
     host.pptx = {

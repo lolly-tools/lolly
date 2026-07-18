@@ -14,8 +14,15 @@
  *      FINDS it. embed → real resize → Tier 2 recovers a MODERATE ratio and, honestly,
  *      does NOT recover an aggressive downscale.
  *
+ * GATED: the full false-positive battery (16 trials x the full grid, ~25s — most
+ * of the whole suite's wall time) only runs with WATERMARK_FULL=1, following the
+ * BENCH=1 precedent in color-ramp.test.ts. The default run keeps a reduced
+ * battery (one photo-like base + one JPEG derivative) so the check still
+ * executes on every `npm test`. The recovery tests always run in full.
+ *
  * Skips cleanly if sharp can't load. Run:
  *   node --test tests/watermark-search.test.ts
+ *   WATERMARK_FULL=1 node --test tests/watermark-search.test.ts   # full FP battery
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -29,24 +36,9 @@ const skip = sharp ? false : 'sharp not available';
 
 interface Img { data: Uint8Array; width: number; height: number }
 
-// Photo-like content (same generator family as the robustness suite): smooth
-// low-frequency blobs + mid-frequency ripples + mild grain, so real JPEG/resize
-// behave as they would on a photograph.
-function photoLike(w: number, h: number, seed = 1): Uint8Array {
-  const px = new Uint8Array(w * h * 4);
-  let a = seed >>> 0;
-  const rnd = (): number => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; };
-  const ph = [rnd() * 6.28, rnd() * 6.28, rnd() * 6.28, rnd() * 6.28];
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const p = (y * w + x) * 4;
-    const lo = 90 + 60 * Math.sin((x / w) * 3 + ph[0]!) + 50 * Math.cos((y / h) * 2.3 + ph[1]!);
-    const mid = 25 * Math.sin((x + y) / 18 + ph[2]!) + 20 * Math.cos((x - y) / 13 + ph[3]!);
-    const v = Math.max(0, Math.min(255, lo + mid + (rnd() - 0.5) * 14));
-    px[p] = v; px[p + 1] = Math.max(0, Math.min(255, v * 0.85 + 18));
-    px[p + 2] = Math.max(0, Math.min(255, 235 - v * 0.7)); px[p + 3] = 255;
-  }
-  return px;
-}
+// Photo-like content — the shared, CALIBRATED generator (see helpers/photo-like.ts):
+// the SEARCH_DETECT_FLOOR and score envelopes below were measured against it.
+import { photoLike } from './helpers/photo-like.ts';
 
 // Flat mid-grey fill — a degenerate case the robustness suite never covers.
 function flat(w: number, h: number, v = 128): Uint8Array {
@@ -90,19 +82,32 @@ const search = (i: Img, tier: 1 | 2) => detectWatermarkSearch(i.data, { width: i
 // is loud and the floor stays auditable. 0/N here bounds the FP rate at ≲ 3/N (~14%
 // at 95% for N≈21) — this is the smoke test; the floor's real calibration came from
 // the 320-trial sweep documented on SEARCH_DETECT_FLOOR.
+//
+// WATERMARK_FULL=1 runs the full 16-trial battery (~25s: every content type x
+// size crossed with real JPEG/resize/crop derivatives). The default run keeps a
+// reduced battery — one photo-like base + one JPEG derivative — so the check
+// still executes (and the FULL grid still runs per trial) on every `npm test`.
+const FULL = process.env.WATERMARK_FULL === '1';
+
 test('the full search never false-positives on unmarked content', { skip }, async () => {
   const trials: Img[] = [];
-  for (const s of [128, 192, 256, 384]) {
-    trials.push({ data: photoLike(s, s, s * 3 + 1), width: s, height: s });
-    trials.push({ data: noise(s, s, s * 7 + 5), width: s, height: s });
-  }
-  trials.push({ data: flat(256, 256), width: 256, height: 256 });
-  // Cross two unmarked bases with real derivatives so the grid also sees JPEG-
-  // blocking / resample / crop statistics, not just pristine content.
   const base: Img = { data: photoLike(256, 256, 999), width: 256, height: 256 };
-  trials.push(await jpeg(base, 80), await jpeg(base, 50), await resize(base, 0.75), await resize(base, 1.5), await cropLT(base, 3, 5));
-  const base2: Img = { data: photoLike(384, 384, 4242), width: 384, height: 384 };
-  trials.push(await jpeg(base2, 60), await cropLT(base2, 11, 2));
+  if (FULL) {
+    for (const s of [128, 192, 256, 384]) {
+      trials.push({ data: photoLike(s, s, s * 3 + 1), width: s, height: s });
+      trials.push({ data: noise(s, s, s * 7 + 5), width: s, height: s });
+    }
+    trials.push({ data: flat(256, 256), width: 256, height: 256 });
+    // Cross two unmarked bases with real derivatives so the grid also sees JPEG-
+    // blocking / resample / crop statistics, not just pristine content.
+    trials.push(await jpeg(base, 80), await jpeg(base, 50), await resize(base, 0.75), await resize(base, 1.5), await cropLT(base, 3, 5));
+    const base2: Img = { data: photoLike(384, 384, 4242), width: 384, height: 384 };
+    trials.push(await jpeg(base2, 60), await cropLT(base2, 11, 2));
+  } else {
+    // Reduced battery (1 content type x 1 derivative) — same trials as two of the
+    // full battery's cells, so scores stay comparable run to run.
+    trials.push(base, await jpeg(base, 80));
+  }
 
   let falsePos = 0, maxScore = 0;
   for (const t of trials) {

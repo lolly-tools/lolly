@@ -27,22 +27,15 @@
  * changelog 1.14.0.
  */
 
-const subtle = globalThis.crypto.subtle;
+import { asBufferSource, concatBytes } from './bytes.ts';
 
-// The lib's BufferSource wants an ArrayBuffer-backed view; our Uint8Arrays are
-// generic (ArrayBufferLike). Same widening cast c2pa.ts/x509.ts use at subtle calls.
-const asBufferSource = (b: Uint8Array): BufferSource => b as unknown as BufferSource;
+const subtle = globalThis.crypto.subtle;
 
 const ZERO_IV = new Uint8Array(16);
 
-function concat(...parts: Uint8Array[]): Uint8Array {
-  let len = 0;
-  for (const p of parts) len += p.length;
-  const out = new Uint8Array(len);
-  let o = 0;
-  for (const p of parts) { out.set(p, o); o += p.length; }
-  return out;
-}
+// Local variadic form of the shared concatBytes — the R6 hash loop reads
+// better as concat(a, b, c).
+const concat = (...parts: Uint8Array[]): Uint8Array => concatBytes(parts);
 
 async function digest(algo: 'SHA-256' | 'SHA-384' | 'SHA-512', data: Uint8Array): Promise<Uint8Array> {
   return new Uint8Array(await subtle.digest(algo, asBufferSource(data)));

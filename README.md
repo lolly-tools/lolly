@@ -169,13 +169,16 @@ loldev help                              # every command
 
 ## Current tools
 
-The SUSE catalog ships **46 tools** today — 45 listed in the gallery, plus one unlisted helper (Asset Export, the render-anything embed endpoint). Generated from `catalog/tools/index.json`:
+<!-- tools-table:start -->
+The SUSE catalog ships **57 tools** today — 56 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
 | 3D | Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation. |
 | Animated Ad | Build animated ads from layered scenes for any standard size. |
+| Audiogram | Turn a voice clip or song into a branded waveform video — animated bars, wave or ring, ready for social. |
 | Bag Video | An animated, on-brand video for bag visuals. |
+| Booth Studio | Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch. |
 | Brand Lockup | Official SUSE logo lockups — chameleon, wordmark and a name. |
 | Calendar ICS | Turn event details into a calendar (.ics) file for any calendar app. |
 | Carousel Maker | Design a multi-page carousel on one canvas — set 1–6 same-size pages, drop objects onto each page, export an image sequence or a multi-page PDF. |
@@ -184,9 +187,12 @@ The SUSE catalog ships **46 tools** today — 45 listed in the gallery, plus one
 | Color Block | Colour blocks — text, image, logo — auto-arranged into a grid. |
 | Color Palette | Browse SUSE brand colors — click a swatch to copy it. |
 | Compress PDF | Shrink a PDF by recompressing its images — on your device. |
+| Convert Image | Turn HEIC, TIFF or any photo into WebP, JPEG or PNG — on your device. |
 | Countdown Timer | A focused countdown with a live progress ring. Click to pause. |
 | D3 Chart Studio | Powerful data-driven charts with D3 — paste a table and it charts itself. Bars, lines, areas, scatter, pie, radar, treemap, heatmap and more, on-brand and vector-clean. |
 | Day Brief | Quote of the day with live weather, time and a map for any city. |
+| Deck Builder | Build a slide deck with a live on-canvas editor — edit text, colours and images directly on each slide. |
+| Deck Studio | Build a native, editable PowerPoint deck — real text, bullets, tables and brand theme — from a simple slide builder, pasted Markdown, or a JSON spec. Charts and diagrams come from your other Lolly tools. Exports .pptx (editable), plus PDF and PNG. |
 | Diagram Builder | Org charts, flowcharts, timelines and more — from cards, text, Mermaid or CSV. |
 | Doc Studio | Write a multi-page document on the canvas — rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
 | Dynamic Layout | A do-anything layout that recomposes around whatever you add, at any size. |
@@ -199,17 +205,22 @@ The SUSE catalog ships **46 tools** today — 45 listed in the gallery, plus one
 | Filter: Scanline | Horizontal 'infinity lines' scanline vector effect from any photo |
 | Filter: Voronoi Cells | Shatter any photo into a Voronoi cell mosaic — each cell filled with the nearest colour, as flat vector. |
 | Flow Chart | Build flow charts on an open canvas — drag cards, connect them, and the lines route and stick to the boxes. |
-| Layout Studio | Free-form layouts on an open canvas. |
+| Layout Studio |  |
 | Logo | Place the SUSE logo — it auto-picks the right variant and exports vector. |
 | Logo Lockup: Grid (NASCAR) | Arrange a pile of logos into a clean, even sponsor grid — the “NASCAR” wall. |
 | Logo Lockup: Partner | The SUSE logo beside a partner's, with a divider between — light or dark. |
 | Lottie Ad | Build animated ads from layered scenes, each carrying a Lottie motion asset, for any standard size. |
 | Meeting Planner | Plan a global meeting and see the time for every teammate's timezone. |
+| Mesh Gradient | Soft mesh-style gradients from your brand swatches. Drag the colour points right on the canvas. |
 | Multi-Page PDF | Build a multi-page PDF — a cover, flowing content blocks, and a back page. |
 | Pose Geeko | Pose the SUSE Geeko with sliders — eyes, blink and limbs. No animation, just a still you can dial in and export print-ready. |
+| Prompt to Image | AI models are cheaper at processing images than they are text |
 | QR Code Generator | QR codes for any URL, with full color and style control. |
 | Quote Card | On-brand quote cards for social posts and slides. |
+| Rebrand a Deck | Upload a PowerPoint deck and snap its colours and fonts to your brand — rebuilt on your device, nothing uploaded. |
 | Record | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
+| Screen Capture | Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop — the export stays the exact pixels you captured. |
+| Slides | Build a deck where every slide arranges other Lolly tools in a chosen layout, with its own title, background and speaker notes — then export to PowerPoint, PDF, GIF or MP4. |
 | Street Map | Clean vector street-block maps of any city. Works offline. |
 | Strip Hidden Data | Reveal and remove hidden metadata from images and PDFs — on your device. |
 | Text Helper | Format, decode, hash and de-identify text — JSON, JWT and more. |
@@ -218,6 +229,8 @@ The SUSE catalog ships **46 tools** today — 45 listed in the gallery, plus one
 | Voice Recorder | Record a voice note with a live level meter and gentle coaching, then save it as MP3. |
 | Wayfinding Signage | Directional event signs — destinations, each with an arrow. Print-ready. |
 | Web Icon Maker | Favicon and app-icon maker — a multi-size .ico, plus PNG and SVG. |
+| Wordmark | Type a word, get a pure-path vector wordmark in your brand font — recipients never need the font installed. |
+<!-- tools-table:end -->
 
 The `utility` "Offline Utilities" section always renders last in the gallery.
 
@@ -226,7 +239,7 @@ The `utility` "Offline Utilities" section always renders last in the gallery.
 Every unit now lives in its own repo under [github.com/lolly-tools](https://github.com/lolly-tools), pinned as a submodule of this umbrella (see [Repository layout](#repository-layout)).
 
 - **Code** — `engine/`, `shells/*`, `services/*`, `docs/` — is **[MPL-2.0](LICENSE)**.
-- **`tools/`** (`lolly-suse-tools`) and **`catalog/`** (`lolly-suse-catalog`) hold SUSE-specific content; see each repo's `NOTICE.md`. Licensed music (`catalog/assets/suse/music/`, PremiumBeat) ships in the catalog repo **only until 2026-08-29**, when it is removed (see `catalog/NOTICE.md`).
+- **Tool content ships as brand packs.** `community/` (public [`lolly-tools`](https://github.com/lolly-tools/lolly-tools)) holds the brand-agnostic tools; `brands/suse/` (private `suse-lolly`) holds the SUSE tools and catalog — including its licensed PremiumBeat music, which stays private with the pack. The repo-root `tools/` and `catalog/` are gitignored profile *views* assembled from those packs; see each pack's `NOTICE.md`.
 - **`catalog/fonts/`** ships the **SUSE** and **SUSE Mono** typefaces under the [SIL Open Font License 1.1](catalog/fonts/OFL.txt) — neither the MPL nor SUSE-proprietary ("SUSE" is a SUSE trademark).
 
 Bundled third-party attributions are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

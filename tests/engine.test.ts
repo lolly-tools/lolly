@@ -147,7 +147,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'lang', 'nostage', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'lang', 'nostage', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 });

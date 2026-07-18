@@ -158,13 +158,19 @@ export interface InputSpec {
   max?: number;
   step?: number;
   /** `slider` is a number-input variant; `icon-toggle` is a select variant (a
-   *  compact button that cycles its options, labelled by each option's `icon`). */
-  display?: 'input' | 'slider' | 'icon-toggle';
+   *  compact button that cycles its options, labelled by each option's `icon`);
+   *  `pill` is a boolean variant rendered as an inline chip toggle (the web shell
+   *  flows consecutive pill booleans into one wrapped chip bar). */
+  display?: 'input' | 'slider' | 'icon-toggle' | 'pill';
   // color
   palette?: string;
   swatchesOnly?: boolean;
   // select
   options?: SelectOption[];
+  /** For a `select` input: append the user's installed brand-font families as extra
+   *  options. The engine ignores it (fonts are a shell concept); the web shell fills
+   *  the list from user-fonts.ts. Mirrors the same member on a block sub-field. */
+  brandFonts?: boolean;
   // asset
   assetType?: string;
   filter?: Record<string, unknown>;
