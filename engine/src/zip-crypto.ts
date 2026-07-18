@@ -24,8 +24,9 @@
  * ae2-ref.mjs + verify.py (vs pyzipper). See engine changelog 1.15.0.
  */
 
+import { asBufferSource, concatBytes } from './bytes.ts';
+
 const subtle = globalThis.crypto.subtle;
-const asBufferSource = (b: Uint8Array): BufferSource => b as unknown as BufferSource;
 
 export type ZipTier = 'standard' | 'strong';
 
@@ -61,16 +62,6 @@ export function crc32(bytes: Uint8Array): number {
 }
 
 const crc32Byte = (crc: number, b: number): number => (CRC_TABLE[(crc ^ b) & 0xff]! ^ (crc >>> 8)) >>> 0;
-
-// ── Little helpers ──────────────────────────────────────────────────────────
-function concatBytes(parts: Uint8Array[]): Uint8Array<ArrayBuffer> {
-  let len = 0;
-  for (const p of parts) len += p.length;
-  const out = new Uint8Array(len);
-  let o = 0;
-  for (const p of parts) { out.set(p, o); o += p.length; }
-  return out;
-}
 
 // ── Standard PKWARE ZipCrypto ───────────────────────────────────────────────
 // One fresh key state per file; keys always advance from the PLAINTEXT byte.
@@ -117,7 +108,10 @@ export function zipCryptoEncrypt(pw: Uint8Array, compressed: Uint8Array, crc: nu
 
 // ── AES-256 block cipher (encrypt only) — pure, for the WinZip LE-CTR keystream.
 //    subtle exposes no ECB/raw block, and per-block subtle calls are far too slow
-//    for image-sized members, so we bundle a compact table-free core. ───────────
+//    for image-sized members, so we bundle a compact table-free core. Not constant-
+//    time (data-dependent branches in mul/xtime, table-built S-box) — fine here:
+//    encrypt-only, always the user's own content, never a secret-keyed oracle an
+//    attacker can time. Do not reuse this core anywhere key/plaintext is untrusted. ──
 const AES_SBOX = (() => {
   const sbox = new Uint8Array(256);
   const p = new Uint8Array(256);

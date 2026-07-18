@@ -19,86 +19,47 @@
 import { validateManifest } from './validate.ts';
 import type { ValidationIssue } from './validate.ts';
 import type { InputSpec } from './inputs.ts';
-import type { ComposeEntry } from './compose.ts';
-import type { Capability } from './bridge/host-v1.ts';
+import type {
+  RenderSpec,
+  ToolHookFlags as ToolHookFlagsBase,
+  ToolManifest as ToolManifestBase,
+} from '@lolly-tools/core';
 import { verifyEnvelopeSignature, verifyToolFile } from './catalog-integrity.ts';
 import type { CatalogSignatureEnvelope, IntegrityResult } from './catalog-integrity.ts';
 import type { Lang } from './lang.ts';
 import { ENGINE_VERSION } from './version.ts';
 import { satisfiesRange } from './semver-range.ts';
 
-/** `render` block of a tool manifest (schemas/tool.schema.json `render`). */
-export interface ToolRenderSpec {
-  width: number;
-  height: number;
-  /** Output formats the tool supports (schema enum; the engine treats them as opaque). */
-  formats: string[];
-  actions?: unknown[];
-  export?: boolean;
-  layout?: string;
-  dims?: boolean;
-  /** Set false to offer pixels only — the download bar hides the physical-unit
-   *  selector + DPI field, so an on-screen pixel is an exported pixel. */
-  units?: boolean;
-  paged?: boolean;
-  /** Multi-page ("carousel") editor config (schema `render.pages`). Present only on
-   *  editor-layout tools whose canvas is a strip of N same-size `[data-pdf-page]`
-   *  frames; names the number-input ids the page count/size are read from. */
-  pages?: { count: string; width: string; height: string; gap?: number; min?: number; max?: number };
-  printMarks?: boolean;
-  transparentBg?: boolean;
-  /** Marks a device-recording tool (schema `render.capture`): which record affordance
-   *  the shell mounts. 'screen' (v1.54) is display capture via host.recorder. */
-  capture?: 'audio' | 'video' | 'av' | 'screen';
-  /** Requested longest edge (px) for live camera frames (see host-v1 MediaAPI). */
-  liveMaxEdge?: number;
-  convertPaths?: boolean;
-  preview?: Record<string, unknown>;
-  video?: Record<string, unknown>;
-  aspectWarning?: Record<string, unknown>;
-}
+/** `render` block of a tool manifest — the canonical shape lives in the
+ *  tool-author SDK (`@lolly-tools/core` {@link RenderSpec}, mirroring
+ *  schemas/tool.schema.json); re-exported under the engine's historical name. */
+export type ToolRenderSpec = RenderSpec;
 
-/** Which hooks a tool's hooks.js declares (schemas/tool.schema.json `hooks`). */
-export interface ToolHookFlags {
+/**
+ * Which hooks a tool's hooks.js declares. The schema-mirrored flags live in
+ * `@lolly-tools/core` (ToolHookFlags); the engine adds `module`, which loadTool
+ * implements but schemas/tool.schema.json does not yet admit (its `hooks` block
+ * is `additionalProperties: false` — see the note in tests/catalog-integrity.test.ts).
+ */
+export interface ToolHookFlags extends ToolHookFlagsBase {
   /** hooks.js is a standard ES module (named exports, sibling imports allowed);
    *  the host loads it via dynamic import instead of evaluating source text. */
   module?: boolean;
-  onInit?: boolean;
-  onInput?: boolean;
-  onFrame?: boolean;
-  beforeRender?: boolean;
-  beforeExport?: boolean;
-  afterExport?: boolean;
-  exportFile?: boolean;
 }
 
 /**
  * A parsed + schema-validated tool manifest (schemas/tool.schema.json).
  * Produced only by loadTool, which validates the JSON before asserting this
  * shape — everything downstream (runtime, shells) trusts it.
+ *
+ * The field set is canonical in the tool-author SDK (`@lolly-tools/core`
+ * ToolManifest — the schema-mirrored authoring type); the engine narrows the
+ * two members whose runtime semantics it owns: `inputs` uses the engine's
+ * {@link InputSpec} (the single source of input semantics — see inputs.ts),
+ * and `hooks` admits the engine-implemented `module` flag.
  */
-export interface ToolManifest {
-  id: string;
-  name: string;
-  description?: string;
-  /** Handlebars template for the canvas's accessible label. */
-  a11yLabel?: string;
-  version: string;
-  engineVersion: string;
-  status: 'official' | 'community' | 'experimental';
-  category?: string;
-  /** 'on-device' marks a privacy utility: never watermarked, no provenance. */
-  privacy?: 'on-device';
-  tags?: string[];
-  render: ToolRenderSpec;
+export interface ToolManifest extends Omit<ToolManifestBase, 'inputs' | 'hooks'> {
   inputs: InputSpec[];
-  capabilities?: Capability[];
-  /** 'network'-capability config (schema `network`): the https URL allowlist the
-   *  shell builds host.net from. A trailing `*` on an entry is a prefix wildcard;
-   *  otherwise it permits that exact URL. Absent ⇒ every host.net fetch rejects. */
-  network?: { allowlist: string[] };
-  /** Nested renders (tool composition) — see engine/src/compose.ts. */
-  composes?: ComposeEntry[];
   hooks?: ToolHookFlags;
 }
 

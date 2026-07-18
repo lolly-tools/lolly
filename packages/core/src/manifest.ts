@@ -107,7 +107,10 @@ export interface RenderSpec {
   printMarks?: boolean;
   transparentBg?: boolean;
   c2pa?: boolean;
-  capture?: Record<string, unknown>;
+  /** Marks a device-recording tool (requires `host.recorder` + the matching
+   *  `'microphone'`/`'camera'` capability): which record affordance the shell
+   *  mounts. `'screen'` is display capture via `host.recorder`. */
+  capture?: 'audio' | 'video' | 'av' | 'screen';
   /** Requested longest edge (px) for live-camera frames (see `MediaAPI`). */
   liveMaxEdge?: number;
   convertPaths?: boolean;
@@ -171,7 +174,11 @@ export interface ToolManifest {
   /** `'on-device'` marks a privacy utility: never watermarked, no embedded provenance. */
   privacy?: 'on-device';
   tags?: string[];
-  featured?: boolean;
+  /** Marks this tool for the gallery's "Featured" hero row — its presence (even
+   *  `{}`) includes the tool. `blurb` is the one-line hook shown over the hero
+   *  tile; `order` an ascending sort key; `variants` a DEPRECATED alias for
+   *  top-level `examples` (which wins when both are present). */
+  featured?: { blurb?: string; order?: number; variants?: unknown[] };
   examples?: unknown[];
   capabilities?: Capability[];
   /** `'network'`-capability config: the https URL allowlist the host builds `host.net`

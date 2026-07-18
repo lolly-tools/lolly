@@ -20,9 +20,18 @@ import { exportSizeDriver, aspectWarning } from '../shells/web/src/views/export-
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // The real-manifest tests read tools that ship in the (private) SUSE brand
-// pack; under a profile without it (lolly-start / public CI) they can't run.
-const SKIP_SUSE = !existsSync(join(ROOT, 'tools/multi-page-pdf/tool.json'))
-  && 'SUSE brand pack not mounted (see profiles.json)';
+// pack; under a checkout without it (public CI) they can't run. Gate on the
+// SOURCE pack, not the gitignored tools/ profile view: with the pack mounted,
+// a missing tool means it was renamed or deleted — FAIL, don't skip.
+const SUSE_TOOLS = join(ROOT, 'brands', 'suse', 'tools');
+const PACK_MOUNTED = existsSync(SUSE_TOOLS);
+const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
+if (PACK_MOUNTED) {
+  for (const id of ['multi-page-pdf', 'event-name-badge']) {
+    assert.ok(existsSync(join(SUSE_TOOLS, id, 'tool.json')),
+      `brands/suse/tools/${id}/tool.json is missing — pack is mounted, so the tool was renamed or deleted`);
+  }
+}
 
 test('detects a select whose options carry width/height and maps each value to dims', () => {
   const d = exportSizeDriver({
@@ -107,7 +116,7 @@ test('aspectWarning returns null with no config or invalid dimensions', () => {
 });
 
 test('the real multi-page-pdf manifest warns on landscape but not portrait', { skip: SKIP_SUSE }, () => {
-  const manifest = JSON.parse(readFileSync(join(ROOT, 'tools/multi-page-pdf/tool.json'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(join(SUSE_TOOLS, 'multi-page-pdf/tool.json'), 'utf8'));
   assert.ok(manifest.render.aspectWarning, 'manifest declares an aspect guard');
   // The removed A4-landscape size (297 × 210) is exactly what the guard should catch.
   assert.ok(aspectWarning(manifest, 297, 210));
@@ -120,7 +129,7 @@ test('the real multi-page-pdf manifest warns on landscape but not portrait', { s
 });
 
 test('the real event-name-badge manifest wires its size select to export dims', { skip: SKIP_SUSE }, () => {
-  const manifest = JSON.parse(readFileSync(join(ROOT, 'tools/event-name-badge/tool.json'), 'utf8'));
+  const manifest = JSON.parse(readFileSync(join(SUSE_TOOLS, 'event-name-badge/tool.json'), 'utf8'));
   const d = exportSizeDriver(manifest)!;
   assert.equal(d.id, 'size');
   // A6 landscape must export 148 × 105 mm — the exact case the user flagged.

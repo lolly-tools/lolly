@@ -13,6 +13,8 @@
 // Best-effort throughout: a format this module can't confidently parse is
 // returned untouched rather than risk corrupting it.
 
+import { concatBytes } from './bytes.ts';
+
 export type StripFormat = 'jpeg' | 'png' | 'svg';
 
 /** Formats this module (or the shell's host.pdf.strip) can produce a clean copy of. */
@@ -21,15 +23,6 @@ const STRIPPABLE = new Set(['JPEG', 'PNG', 'SVG', 'PDF']);
 /** True when `format` (as reported by extractFileMetadata / a C2PA sniff, e.g. "JPEG", "PDF") can be cleaned — directly by stripMetadata() for jpeg/png/svg, or via host.pdf.strip() for pdf. */
 export function isStrippableFormat(format: string | null | undefined): boolean {
   return !!format && STRIPPABLE.has(format.toUpperCase());
-}
-
-function concatBytes(parts: Uint8Array[]): Uint8Array {
-  let n = 0;
-  for (const p of parts) n += p.length;
-  const out = new Uint8Array(n);
-  let o = 0;
-  for (const p of parts) { out.set(p, o); o += p.length; }
-  return out;
 }
 
 // ── JPEG: drop APP1 (EXIF/XMP), APP2 (ICC), APP13 (IPTC/Photoshop), COM ───────

@@ -2,8 +2,8 @@
 // Golden + parity tests for the editor's connector routing geometry
 // (shells/web/src/views/free-canvas-math.ts). This math was lifted out of
 // free-canvas.ts so it could be tested, and it MIRRORS the committed-render routing in
-// tools/org-chart/hooks.js. These golden values lock the shell path output; the parity
-// test at the end guards the elbow fractions from drifting between the two files.
+// brands/suse/tools/org-chart/hooks.js. These golden values lock the shell path output;
+// the parity test at the end guards the elbow fractions from drifting between the two files.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
@@ -12,9 +12,17 @@ import {
 } from '../shells/web/src/views/free-canvas-math.ts';
 
 // org-chart ships in the (private) SUSE brand pack; the hook↔shell parity
-// tests can only run when the pack is mounted (see profiles.json).
-const SKIP_SUSE = !existsSync(new URL('../tools/org-chart/hooks.js', import.meta.url))
-  && 'SUSE brand pack not mounted (see profiles.json)';
+// tests can only run when the pack is mounted (see profiles.json). Gate on the
+// SOURCE pack, not the gitignored tools/ profile view: with the pack mounted, a
+// missing hooks.js means the tool was renamed or deleted — FAIL, don't skip.
+const SUSE_PACK = new URL('../brands/suse/tools/', import.meta.url);
+const HOOK_URL = new URL('org-chart/hooks.js', SUSE_PACK);
+const PACK_MOUNTED = existsSync(SUSE_PACK);
+const SKIP_SUSE = !PACK_MOUNTED && 'SUSE brand pack not mounted (see profiles.json)';
+if (PACK_MOUNTED) {
+  assert.ok(existsSync(HOOK_URL),
+    'brands/suse/tools/org-chart/hooks.js is missing — pack is mounted, so the tool was renamed or deleted');
+}
 
 // A stacked pair (a above b) and a diagonal pair (a up-left of b), in native px.
 const aTop = { x: 0, y: 0, w: 100, h: 50 };
@@ -82,9 +90,9 @@ test('smoothEdgePath: renders a single cubic S-curve (golden)', () => {
 });
 
 test('parity: the tool hook and the shell math share the elbow fractions', { skip: SKIP_SUSE }, () => {
-  // tools/org-chart/hooks.js (committed render) and free-canvas-math.ts (editor preview)
+  // org-chart/hooks.js (committed render) and free-canvas-math.ts (editor preview)
   // hand-mirror the routing. If someone re-tunes the elbow bend in one, this fails.
-  const hook = readFileSync(new URL('../tools/org-chart/hooks.js', import.meta.url), 'utf8');
+  const hook = readFileSync(HOOK_URL, 'utf8');
   const shell = readFileSync(new URL('../shells/web/src/views/free-canvas-math.ts', import.meta.url), 'utf8');
   for (const frac of ['0.18', '0.82']) {
     assert.ok(hook.includes(frac), `hooks.js should encode elbow fraction ${frac}`);
@@ -110,7 +118,7 @@ test('edgeWaypoints: arc-flip bows the opposite side; arc-wide bows deeper', () 
 });
 
 test('parity: the tool hook and the shell math share the arc variants', { skip: SKIP_SUSE }, () => {
-  const hook = readFileSync(new URL('../tools/org-chart/hooks.js', import.meta.url), 'utf8');
+  const hook = readFileSync(HOOK_URL, 'utf8');
   const shell = readFileSync(new URL('../shells/web/src/views/free-canvas-math.ts', import.meta.url), 'utf8');
   for (const key of ['arc-wide', 'arc-flip', 'arc-flip-wide']) {
     assert.ok(hook.includes(key), `hooks.js should encode arc variant ${key}`);

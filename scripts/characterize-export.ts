@@ -189,9 +189,9 @@ type RenderFn = (toolId: string, query: string, format: string, dims?: unknown) 
 
 async function main(): Promise<void> {
   // Dynamic import keeps this script's own tsconfig project from having to resolve
-  // shells/cli's graph at typecheck time; the modules are plain .ts run by node.
-  const { renderViaWebShell, closeWebShell } = await import('../shells/cli/src/webshell-render.ts') as { renderViaWebShell: RenderFn; closeWebShell: () => Promise<void> };
-  const { closeBrowser, browserInstalled } = await import('../shells/cli/src/browser.ts') as { closeBrowser: () => Promise<void>; browserInstalled: () => boolean };
+  // the node-shell package graph at typecheck time; the modules are plain .ts run by node.
+  const { renderViaWebShell, closeWebShell } = await import('@lolly-tools/node-shell/webshell-render') as { renderViaWebShell: RenderFn; closeWebShell: () => Promise<void> };
+  const { closeBrowser, browserInstalled } = await import('@lolly-tools/node-shell/browsers') as { closeBrowser: () => Promise<void>; browserInstalled: () => boolean };
 
   if (!browserInstalled()) {
     console.error('✗ no Chromium for playwright-core. Set LOLLY_BROWSER_CHANNEL=chrome, or run `npm run cli -- install-browser`.');

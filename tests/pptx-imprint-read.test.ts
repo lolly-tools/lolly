@@ -38,25 +38,11 @@ let sharp: (typeof import('sharp'))['default'] | undefined;
 try { sharp = (await import('sharp')).default; } catch { /* optional */ }
 const skip = sharp ? false : 'sharp not available';
 
-// Multi-scale "photo-like" RGBA — smooth blobs + ripples + mild grain, so real
-// codecs behave as they would on a photograph and there are plenty of non-flat
-// 8×8 blocks for the embed floor (MIN_IMPRINT_BLOCKS ≈ 594; 384² = 2304 blocks).
-// Same generator shape as tests/pixel-watermark-robustness.test.ts.
-function photoLike(w: number, h: number, seed = 1): Uint8Array {
-  const px = new Uint8Array(w * h * 4);
-  let a = seed >>> 0;
-  const rnd = (): number => { a = (a * 1664525 + 1013904223) >>> 0; return a / 4294967296; };
-  const ph = [rnd() * 6.28, rnd() * 6.28, rnd() * 6.28, rnd() * 6.28];
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-    const p = (y * w + x) * 4;
-    const lo = 90 + 60 * Math.sin((x / w) * 3 + ph[0]!) + 50 * Math.cos((y / h) * 2.3 + ph[1]!);
-    const mid = 25 * Math.sin((x + y) / 18 + ph[2]!) + 20 * Math.cos((x - y) / 13 + ph[3]!);
-    const v = Math.max(0, Math.min(255, lo + mid + (rnd() - 0.5) * 14));
-    px[p] = v; px[p + 1] = Math.max(0, Math.min(255, v * 0.85 + 18));
-    px[p + 2] = Math.max(0, Math.min(255, 235 - v * 0.7)); px[p + 3] = 255;
-  }
-  return px;
-}
+// Multi-scale "photo-like" RGBA — the shared, CALIBRATED generator (see
+// helpers/photo-like.ts): real codecs behave as they would on a photograph and
+// there are plenty of non-flat 8x8 blocks for the embed floor
+// (MIN_IMPRINT_BLOCKS ~ 594; 384^2 = 2304 blocks).
+import { photoLike } from './helpers/photo-like.ts';
 
 // Encode a raw RGBA image to PNG/JPEG bytes, exactly as buildPptxParts stores
 // `ppt/media/imageN_M.ext` — verbatim in the zip, no re-encode. Round-trips the

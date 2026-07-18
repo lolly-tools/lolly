@@ -127,6 +127,48 @@ test('mp4: iTunes keys carry encoder, artist, date, title, comment', () => {
   assert.ok(raw.includes('PUBLISHER'));
 });
 
+// ── MP4 fast-start offset patching (regression, ex video-meta-mp4.test.ts) ───
+// Regression test for the MP4 provenance corruption fix (engine/src/video-meta.ts).
+// A fast-start MP4 has `moov` BEFORE `mdat`; embedding a `udta` into `moov` shifts
+// `mdat`, so every stco/co64 chunk offset must be bumped by udta.length or the
+// file is unplayable. Progressive files (mdat before moov) must be left alone.
+
+// Minimal tag set — enough to make embedMp4Meta insert a udta.
+const STCO_TAGS = { title: '', artist: '', date: '', comment: '', encoder: 'Lolly', encodedBy: '', publisher: '' };
+const findStcoOffset = (b: Uint8Array): number => {
+  for (let i = 0; i + 16 < b.length; i++) {
+    if (b[i] === 115 && b[i + 1] === 116 && b[i + 2] === 99 && b[i + 3] === 111) return readU32(b, i + 12); // 'stco' → first offset
+  }
+  return -1;
+};
+const moovWithStco = (chunkOff: number): Uint8Array =>
+  mp4box('moov', mp4box('trak', mp4box('mdia', mp4box('minf', mp4box('stbl', mp4box('stco', be32(0), be32(1), be32(chunkOff)))))));
+
+test('fast-start (moov before mdat): stco chunk offset is shifted by udta.length', () => {
+  const mdatData = utf8('SAMPLEDATA');
+  const moovLen = moovWithStco(0).length;          // length is offset-independent
+  const chunkOff = moovLen + 8;                     // first mdat data byte (after mdat's 8-byte header)
+  const file = concat(moovWithStco(chunkOff), mp4box('mdat', mdatData));
+  assert.equal(file[chunkOff], mdatData[0], 'fixture: offset points at mdat data');
+
+  const out = embedMp4Meta(file, STCO_TAGS);
+  const delta = out.length - file.length;
+  assert.ok(delta > 0, 'udta was inserted');
+  const patched = findStcoOffset(out);
+  assert.equal(patched, chunkOff + delta, 'chunk offset bumped by udta.length');
+  assert.equal(out[patched], mdatData[0], 'patched offset still lands on the sample data');
+});
+
+test('progressive (mdat before moov): offsets left untouched', () => {
+  const mdatData = utf8('SAMPLEDATA');
+  const mdat = mp4box('mdat', mdatData);
+  const chunkOff = 8;                               // mdat data start (mdat is first)
+  const file = concat(mdat, moovWithStco(chunkOff));
+  const out = embedMp4Meta(file, STCO_TAGS);
+  assert.ok(out.length > file.length, 'udta inserted');
+  assert.equal(findStcoOffset(out), chunkOff, 'offset unchanged (nothing shifted before mdat)');
+});
+
 test('mp4: bails untouched on missing moov, existing udta, or 64-bit sizes', () => {
   const noMoov = concat(mp4box('ftyp', utf8('isom')), mp4box('mdat', utf8('x')));
   assert.equal(embedMp4Meta(noMoov, TAGS), noMoov);

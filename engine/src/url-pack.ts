@@ -43,6 +43,8 @@
 
 // The single reserved query param that carries a whole packed state. Mirrored in
 // url-mode.ts's RESERVED set so a stray `z` is never mistaken for a tool input.
+import { asBufferSource } from './bytes.ts';
+
 export const PACK_PARAM = 'z';
 
 // Codec tag (first char of the `z` value). '1' = raw DEFLATE, no dictionary.
@@ -190,8 +192,6 @@ const PBKDF2_ITERATIONS = 210_000; // OWASP-2023 PBKDF2-SHA256 floor; stored per
 const ENC_SALT_BYTES = 16;
 const ENC_IV_BYTES = 12;          // AES-GCM standard nonce
 const ENC_HEADER = 4 + ENC_SALT_BYTES + ENC_IV_BYTES; // iterations(u32 BE) ‖ salt ‖ iv
-
-const asBufferSource = (b: Uint8Array): BufferSource => b as unknown as BufferSource;
 
 /** True when encrypted links are possible here (packing codec + WebCrypto subtle). */
 export function isEncryptAvailable(): boolean {

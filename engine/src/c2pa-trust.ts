@@ -25,11 +25,45 @@
  * anchor here — whatever its key type — genuinely confers trust ONLY when a
  * real credential's x5chain cryptographically reaches it AND the COSE claim
  * signature verifies (presence in this list alone never trusts anything).
- * Lolly's OWN device-credential CA is NOT here — each shell pins it separately
- * (see shells/web/src/views/valid.ts). Malformed/foreign entries are skipped,
- * never fatal. To refresh: re-fetch both sources as-is and re-paste verbatim.
+ * Lolly's OWN device-credential CA is NOT part of the vendored list —
+ * c2paTrustAnchors() never includes it. It ships separately as
+ * LOLLY_CA_ROOT_PEM below, and only defaultTrustAnchors({ includeLollyRoot:
+ * true }) (engine/src/c2pa-verdict.ts) folds it in — today that is the web
+ * /valid view's policy; the CLI and MCP verify against the vendored list
+ * only. Malformed/foreign entries are skipped, never fatal. To refresh:
+ * re-fetch both sources as-is and re-paste verbatim.
  */
 import { pemToDer } from './x509.ts';
+
+/**
+ * The pinned Lolly CA root certificate — the trust anchor for Lolly's own
+ * Content-Credentials identity (see docs/content-credentials-identity.md).
+ * CANONICAL COPY: shells/web/src/ca-root.ts still carries a duplicate for the
+ * /valid view until that view adopts defaultTrustAnchors; a drift guard in
+ * tests/c2pa-verdict.test.ts pins the two byte-identical.
+ *
+ * PUBLIC data (a certificate, not a key), committed the same way a browser
+ * ships its root store. The matching private key lives only in the CA
+ * service's environment (CA_ROOT_KEY_PEM — services/ca reads it from env,
+ * nothing key-shaped is ever committed).
+ *
+ * Empty string = no root configured yet: defaultTrustAnchors degrades to the
+ * vendored list only, matching the export signer's ephemeral self-signed
+ * fallback. Generate a real root with `node services/ca/scripts/gen-root.mjs`
+ * and paste the cert PEM here (and only the cert).
+ */
+export const LOLLY_CA_ROOT_PEM: string = `-----BEGIN CERTIFICATE-----
+MIIBfzCCASWgAwIBAgIJYuNtbizhTpDxMAoGCCqGSM49BAMCMCMxDjAMBgNVBAoM
+BUxvbGx5MREwDwYDVQQDDAhMb2xseSBDQTAeFw0yNjA3MDMwODAzMzRaFw0zNjA2
+MzAwODAzMzRaMCMxDjAMBgNVBAoMBUxvbGx5MREwDwYDVQQDDAhMb2xseSBDQTBZ
+MBMGByqGSM49AgEGCCqGSM49AwEHA0IABO+aVLOX36sW5bli3KPftPeLWTM52Ve1
+JOM5tR4xm28Y4QyVL8jMDr0i9lYMhZSbihOab7pByPxFWHQlIhOCZKyjQjBAMA8G
+A1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBSd10s7BWWS
+eiTqJtI/6lNG0waHLjAKBggqhkjOPQQDAgNIADBFAiBrFbwvtUema/wVSG4hcJ/U
+Kg4yp6mk8T65OID5F5a6aQIhAO8Y82p4j6izN7HXL0dh8GZmMjy2flcHjX1/0+zL
+0Ap7
+-----END CERTIFICATE-----
+`;
 
 const C2PA_TRUST_ANCHORS_PEM = `# Google C2PA hierarchy (NOT in the Adobe/C2PA list below; sourced from Google PKI)
 Google C2PA Root CA G3 (Google LLC) — fetched from http://pki.goog/c2pa/root-g3.crt

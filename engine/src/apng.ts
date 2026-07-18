@@ -11,9 +11,11 @@
  * data re-wrapped as fdAT chunks (everything else from those frames is
  * dropped). Sequence numbers are shared across fcTL/fdAT per the APNG spec.
  *
- * Like emf.js / eps.js this is a byte-format authority: no DOM, no deps,
- * fully node:test-able.
+ * Like emf.js / eps.js this is a byte-format authority: no DOM, no external
+ * deps, fully node:test-able.
  */
+
+import { crc32 } from './zip-crypto.ts';
 
 interface PngChunk {
   type: string;
@@ -42,20 +44,8 @@ function readU32(bytes: Uint8Array, off: number): number {
   return ((bytes[off]! << 24) | (bytes[off + 1]! << 16) | (bytes[off + 2]! << 8) | bytes[off + 3]!) >>> 0;
 }
 
-let CRC_TABLE: Int32Array | null = null;
-function crc32(bytes: Uint8Array): number {
-  if (!CRC_TABLE) {
-    CRC_TABLE = new Int32Array(256);
-    for (let n = 0; n < 256; n++) {
-      let c = n;
-      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
-      CRC_TABLE[n] = c;
-    }
-  }
-  let crc = -1;
-  for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]!) & 0xff]! ^ (crc >>> 8);
-  return (crc ^ -1) >>> 0;
-}
+// PNG CRC-32 is the standard reflected 0xEDB88320 / init+xorout 0xFFFFFFFF —
+// exactly the table-based crc32 zip-crypto.ts exports (imported above).
 
 // Serialize one chunk: length + 4-char type + data + CRC(type‖data).
 function chunk(type: string, data: Uint8Array): Uint8Array {

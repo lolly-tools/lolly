@@ -15,6 +15,8 @@
  * (apng.ts) is big-endian — hence the separate little-endian helpers here.
  */
 
+import { concatBytes as concat } from './bytes.ts';
+
 export interface PackWebpAnimOptions {
   /** Per-frame display time in ms; a number applies to all frames, an array is
    *  per-frame (missing/invalid entries fall back to 67). Clamped to ≥1. */
@@ -31,15 +33,6 @@ export interface PackWebpAnimOptions {
 
 const u16LE = (v: number): number[] => [v & 0xff, (v >>> 8) & 0xff];
 const u24LE = (v: number): number[] => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff];
-
-function concat(parts: Uint8Array[]): Uint8Array {
-  let total = 0;
-  for (const p of parts) total += p.length;
-  const out = new Uint8Array(total);
-  let off = 0;
-  for (const p of parts) { out.set(p, off); off += p.length; }
-  return out;
-}
 
 // One RIFF chunk: fourcc(4) + u32LE payloadSize + payload + pad(0x00 iff size is
 // odd). The pad byte is part of the enclosing RIFF but is NOT counted in the
