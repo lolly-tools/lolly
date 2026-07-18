@@ -43,13 +43,14 @@
  *                  tool's `render.c2pa` default. With an enrolled identity the
  *                  certificate window was fixed at enrolment and the lifetime
  *                  value is ignored.
- *   - `imprint`  — Lolly pixel watermark for raster exports (`png`/`jpg`/`webp`).
- *                  `imprint=1` (or empty/`on`) embeds an imperceptible, on-device
- *                  DCT spread-spectrum mark that survives metadata stripping and
- *                  recompression (see engine/src/pixel-watermark.ts); absent/`0`/
- *                  `off` leaves pixels untouched. Off by default — a durable
- *                  provenance signal COMPLEMENTING the C2PA credential, not a
- *                  hardened one (security-through-obscurity; the key is public).
+ *   - `imprint`  — Lolly pixel watermark for raster exports (`png`/`jpg`/`webp`/
+ *                  `avif`/`tiff`). On by default, like `c2pa` — an imperceptible,
+ *                  on-device DCT spread-spectrum mark that survives metadata
+ *                  stripping and recompression (see engine/src/pixel-watermark.ts)
+ *                  is embedded unless explicitly disabled. `imprint=0`/`off` turns
+ *                  it off; absent/`1`/`on`/empty leaves it on. A durable provenance
+ *                  signal COMPLEMENTING the C2PA credential, not a hardened one
+ *                  (security-through-obscurity; the key is public).
  *   - `lang`     — UI/content language as a canonical short code (the full set
  *                  is engine/src/lang.ts's LANGS). Informal
  *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
@@ -123,7 +124,10 @@ export interface UrlState {
   bleed: string | null;
   marks: PrintMarksFlags | null;
   c2pa: C2paSetting | null;
-  /** Pixel-watermark opt-in (the `imprint` param). null ⇒ absent (off). */
+  /** Pixel-watermark setting (the `imprint` param). null ⇒ absent — caller
+   *  applies the default-on behaviour; false ⇒ explicit `imprint=0` opt-out;
+   *  true ⇒ explicit opt-in (redundant with the default, kept for back-compat
+   *  with existing `imprint=1`/`on` links). */
   imprint: boolean | null;
   /** UI/content language (the `lang` param), alias-normalized. null ⇒ absent or
    *  unrecognized — caller falls back to profile/localStorage/browser default. */
@@ -156,7 +160,9 @@ export interface SerializeUrlOpts {
   /** false = force off; truthy = on (lifetime from c2paDays, else default). */
   c2pa?: boolean;
   c2paDays?: number | null;
-  /** true ⇒ embed the Lolly pixel watermark on raster exports (`imprint=1`). */
+  /** Lolly pixel watermark for raster exports. On by default like `c2pa` —
+   *  false ⇒ explicit opt-out, written as `imprint=0`; true/undefined ⇒ the
+   *  default, so the param is omitted (nothing to override). */
   imprint?: boolean;
   /** UI/content language to stamp on a share link (see `lang` in the header
    *  comment). Omitted for English — the implicit default. */
@@ -193,8 +199,9 @@ function parseC2pa(raw: string | null): C2paSetting | null {
   return { on: true, days: [7, 30, 90, 365].includes(n) ? n : null };
 }
 
-// Parse the `imprint` param (pixel-watermark opt-in). null when absent (off);
-// false for an explicit off; true for on. Empty value (`?imprint`) reads as on.
+// Parse the `imprint` param (pixel-watermark opt-in/out). null when absent —
+// the caller applies the default-on behaviour; false for an explicit
+// `imprint=0`/`off`; true for on. Empty value (`?imprint`) reads as on.
 function parseImprint(raw: string | null): boolean | null {
   if (raw == null) return null;
   const v = String(raw).trim().toLowerCase();
@@ -312,7 +319,9 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.marks) params.set('marks', opts.marks);
   if (opts.c2pa === false) params.set('c2pa', 'off');
   else if (opts.c2pa) params.set('c2pa', [7, 30, 90, 365].includes(Number(opts.c2paDays)) ? String(opts.c2paDays) : '1');
-  if (opts.imprint) params.set('imprint', '1');
+  // Default-on, like c2pa: only an explicit opt-out needs a param — writing
+  // `imprint=1` for the default state would just be noise on every link.
+  if (opts.imprint === false) params.set('imprint', '0');
   if (opts.lang && opts.lang !== 'en') params.set('lang', opts.lang);
   return params.toString();
 }

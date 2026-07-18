@@ -131,7 +131,7 @@ export async function captureUrl(
     const shotType = fmt === 'jpg' ? 'jpeg' : 'png';
     const png = await page.screenshot({
       type: shotType as 'png' | 'jpeg',
-      ...(shotType === 'jpeg' ? { quality: 92 } : {}),
+      ...(shotType === 'jpeg' ? { quality: 97 } : {}),
       clip,
     });
 

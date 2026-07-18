@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  embedWatermark, detectWatermark, DETECT_THRESHOLD,
+  embedWatermark, detectWatermark, canCarryWatermark, DETECT_THRESHOLD, MIN_IMPRINT_BLOCKS,
 } from '../engine/src/pixel-watermark.ts';
 
 // A deterministic textured RGBA buffer — a smooth gradient plus per-pixel white
@@ -103,6 +103,48 @@ test('images smaller than one 8×8 block are a no-op (returned unchanged, absent
   const d = detectWatermark(tiny, { width: w, height: h });
   assert.equal(d.present, false);
   assert.equal(d.blocks, 0);
+});
+
+// ── canCarryWatermark — the imprint-on-embed size floor ──────────────────────
+// The PDF/PPTX embed chokepoints (shells/web/src/bridge/export*.ts) gate every
+// Lolly-rendered raster on this before imprinting, so a tiny gradient chip or icon
+// isn't marked with a signal it could never carry durably.
+
+test('canCarryWatermark: the boolean is exactly floor(w/8)·floor(h/8) ≥ MIN_IMPRINT_BLOCKS', () => {
+  // Independent recomputation of the block count — never calls the same code path.
+  const blocks = (w: number, h: number): number => Math.floor(w / 8) * Math.floor(h / 8);
+  for (const [w, h] of [[64, 64], [232, 232], [239, 239], [240, 240], [248, 248], [1280, 720], [100, 1600], [300, 50]] as const) {
+    assert.equal(canCarryWatermark(w, h), blocks(w, h) >= MIN_IMPRINT_BLOCKS, `${w}×${h} (${blocks(w, h)} blocks vs floor ${MIN_IMPRINT_BLOCKS})`);
+  }
+});
+
+test('canCarryWatermark: the floor sits at the documented ~195px crossover', () => {
+  // The docstring/comment claims a ~195² px crossover (≈ 594 blocks) under the v2
+  // 22-coefficient band (up from v1's ~240²/≈871 at 15 coefficients — more
+  // coefficients per block lowers the σ-crossover). Pin it so a future band/
+  // threshold retune that moves the crossover updates the copy too.
+  assert.ok(MIN_IMPRINT_BLOCKS >= 550 && MIN_IMPRINT_BLOCKS <= 650, `MIN_IMPRINT_BLOCKS ${MIN_IMPRINT_BLOCKS} should be ~594 (a ~195² image)`);
+  assert.equal(canCarryWatermark(240, 240), true, '240² (900 blocks) clears the floor');
+  assert.equal(canCarryWatermark(200, 200), true, '200² (625 blocks) clears the floor');
+  assert.equal(canCarryWatermark(192, 192), false, '192² (576 blocks) is below the floor');
+});
+
+test('canCarryWatermark: rejects sub-block and tiny-icon rasters', () => {
+  assert.equal(canCarryWatermark(5, 5), false, 'smaller than one 8×8 block');
+  assert.equal(canCarryWatermark(64, 64), false, 'a typical icon is too small');
+  assert.equal(canCarryWatermark(0, 0), false);
+});
+
+test('canCarryWatermark: an ACCEPTED size genuinely round-trips a detectable mark', () => {
+  // Ties the floor to real engine behaviour (not just its own formula): the
+  // smallest accepted square must actually carry a mark the detector reads back.
+  const s = 240;                                   // just over the floor (900 ≥ ~871)
+  assert.equal(canCarryWatermark(s, s), true);
+  const orig = texture(s, s);
+  const marked = embedWatermark(orig, { width: s, height: s });
+  const after = detectWatermark(marked, { width: s, height: s });
+  assert.equal(after.present, true, `marked ${s}² score ${after.score} should clear the size-adjusted threshold`);
+  assert.equal(detectWatermark(orig, { width: s, height: s }).present, false, 'unmarked must stay clean');
 });
 
 test('detection survives a hard center crop (spread-spectrum redundancy)', () => {
