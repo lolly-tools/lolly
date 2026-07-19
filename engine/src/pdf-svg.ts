@@ -85,13 +85,35 @@ function pathEl(n: PdfNode): string {
     ? ` stroke="${safeAttrColor(st.color, '#000000')}" stroke-width="${r(Math.max(0.3, +st.width || 1))}"`
     : '';
   if (fill === 'none' && !stroke) return '';
-  return `<path d="${d}" fill="${fill}"${stroke ? `${stroke} fill-rule="nonzero"` : ''}${opacityAttr(n)}/>`;
+  const rule = n._vectorFillRule === 'evenodd'
+    ? ' fill-rule="evenodd"'
+    : (stroke ? ' fill-rule="nonzero"' : '');
+  return `<path d="${d}" fill="${fill}"${stroke}${rule}${opacityAttr(n)}/>`;
 }
 
 function imageEl(n: PdfNode, images: Record<string, string>): string {
   const href = n._imageXObject ? images[n._imageXObject] : undefined;
   if (!href || !/^data:image\//i.test(href)) return ''; // self-contained or nothing
   return `<image x="${r(n.x)}" y="${r(n.y)}" width="${r(n.w)}" height="${r(n.h)}" preserveAspectRatio="none" href="${escapeXml(href)}"${opacityAttr(n)}${rotateAttr(n)}/>`;
+}
+
+// Outlined text: the same baseline/line geometry as textEl, but each line is a
+// real <path> of glyph outlines (font units already resolved to SVG px by the
+// shaper) placed by a translate — so the SVG needs no font at render time. Only
+// used for un-rotated runs (the shell keeps rotated text as <text>).
+function outlinedTextEl(n: PdfNode): string {
+  const lines = n._outlinePath ?? [];
+  if (!lines.length) return '';
+  const size = Math.max(1, +(n.fontSize ?? 0) || 12);
+  const baseline0 = n.y + size * 0.8;
+  const fill = safeAttrColor(n.fg, '#000000');
+  const parts: string[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const d = lines[i];
+    if (!d) continue;
+    parts.push(`<g transform="translate(${r(n.x)} ${r(baseline0 + i * size * 1.4)})"><path d="${d}" fill="${fill}"/></g>`);
+  }
+  return parts.join('');
 }
 
 // Text: the interpreter puts the box top at (baseline − 0.8·size) and sizes the box
@@ -128,6 +150,26 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     if (bg !== 'none') body.push(`<rect x="0" y="0" width="${w}" height="${h}" fill="${bg}"/>`);
   }
 
+  // Interpreter clip stacks (`W`/`W*`) → shared <clipPath> defs; a clipped node is
+  // wrapped in one <g clip-path> per stack entry (nested groups = intersection).
+  // Without this, a print engine's soft shadows — large low-alpha shapes cut down
+  // by a clip — render as giant plates.
+  const clipDefs = new Map<string, string>();
+  const clipId = (c: NonNullable<PdfNode['_clips']>[number]): string => {
+    const key = `${c.evenOdd ? 'e' : 'n'}|${c.d}`;
+    let id = clipDefs.get(key);
+    if (!id) {
+      id = `pclip${clipDefs.size}`;
+      clipDefs.set(key, id);
+    }
+    return id;
+  };
+  const clipWrap = (n: PdfNode, el: string): string => {
+    if (!el || !n._clips?.length) return el;
+    const open = n._clips.map((c) => `<g clip-path="url(#${clipId(c)})">`).join('');
+    return `${open}${el}${'</g>'.repeat(n._clips.length)}`;
+  };
+
   // Contiguous same-group runs become a <g data-group>: the interpreter resolves
   // groups from properly-nested frames, so members are always adjacent in paint order.
   let openGroup = '';
@@ -143,15 +185,20 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     let el = '';
     if (n._vectorPath) el = pathEl(n);
     else if (n._imageXObject) el = imageEl(n, images);
+    else if (n._outlinePath?.length) el = outlinedTextEl(n);
     else if (n.kind === 'text') el = textEl(n);
     else if (n.kind === 'box') el = n.shape === 'ellipse' ? ellipseEl(n) : rectEl(n);
     if (!el) continue;
     setGroup(n.group ?? '');
-    body.push(el);
+    body.push(clipWrap(n, el));
   }
   setGroup('');
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${body.join('')}</svg>`;
+  const defs = clipDefs.size
+    ? `<defs>${[...clipDefs.entries()].map(([key, id]) =>
+        `<clipPath id="${id}"><path d="${escapeXml(key.slice(2))}"${key.startsWith('e|') ? ' clip-rule="evenodd"' : ''}/></clipPath>`).join('')}</defs>`
+    : '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${defs}${body.join('')}</svg>`;
 }
 
 /** A sub-rect of a pdfNodesToSvg document, in its own (point) coordinate space. */

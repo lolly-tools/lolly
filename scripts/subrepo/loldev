@@ -15,6 +15,7 @@
 #   loldev status | st                 what's dirty / ahead, per repo
 #   loldev build                       build:catalog + validate:catalog
 #   loldev previews                    regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes
+#   loldev shots [--accept|--only=…]   capture + compare the docs screenshots (url-shot recipe links in docs/*.md → docs/shots/); also runs inside every gtg
 #   loldev verify [--clone]            full post-split build/run verification
 #   loldev profile [name] [--copy]     show or switch the content profile (suse / lolly-start):
 #                                      rebuilds the tools/ + catalog/ views from the packs
@@ -75,6 +76,22 @@ do_build() {
   local restore="$starting"
   [ -z "$restore" ] && restore="${LOLLY_PROFILE:-$(node -e 'process.stdout.write(require("./profiles.json").default||"")' 2>/dev/null)}"
   [ -n "$restore" ] && node scripts/use-profile.ts "$restore" >/dev/null 2>&1
+
+  # Docs screenshots — capture the web shell (pinned to the neutral lolly-start
+  # brand; the script switches + restores the profile itself) at every url-shot
+  # recipe link written inline in docs/*.md and compare against the committed
+  # docs/shots/ baselines (scripts/build-docs-shots.ts — Chromium + a local vite
+  # build, so this only runs on a build machine, never on Vercel). Exit 2 = shots
+  # changed: warn but keep going — the committed (still-valid) baselines ship;
+  # promoting new pixels is a deliberate `npm run docs:shots -- --accept`. Any
+  # other failure blocks the gate.
+  step "docs screenshots (capture + compare, lolly-start brand)"
+  npm run --silent docs:shots
+  local shotrc=$?
+  if [ "$shotrc" = 0 ]; then ok "docs screenshots verified"
+  elif [ "$shotrc" = 2 ]; then warn "docs screenshots CHANGED — review, then promote with: npm run docs:shots -- --accept"
+  else err "docs screenshot capture failed"; return 1
+  fi
 }
 
 # Pretty end-of-run tally. Reads the PUSHED / FAILED / NOOP globals gtg fills in.
@@ -264,6 +281,7 @@ case "$cmd" in
   build)        do_build ;;
   validate)     npm run validate:catalog ;;
   previews)     npm run previews ;;
+  shots)        npm run docs:shots -- "$@" ;;
   verify)       bash "$SUB/verify.sh" "$@" ;;
   profile|brand) node scripts/use-profile.ts "$@" ;;
   pull|up)      git pull --ff-only origin main && git submodule update --init --recursive \

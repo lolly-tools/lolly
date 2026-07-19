@@ -334,6 +334,10 @@
           "enum": ["author", "contact", "description", "copyright", "license"],
           "description": "If set, this input's value is embedded into the export's provenance metadata (EXIF/XMP/PNG text + the C2PA manifest) under this field, overriding the profile-derived default. 'copyright' and 'license' are user-asserted IP fields with no profile source (see the embed-track-image tool)."
         },
+        "matchExportFormat": {
+          "type": "boolean",
+          "description": "For an asset/file input: the default export format follows this input's uploaded format (a dropped JPEG defaults the export to jpg) until the user picks a format. The uploaded format must be one the tool's render.formats offers, else the first format is used."
+        },
         "group": {
           "type": "string",
           "description": "Optional grouping tag. The reserved value 'export' moves an input out of the sidebar into the export panel; the engine injects its own export-group toggles (transparentBg, convertPaths). Any other value is a free-form label for related controls."

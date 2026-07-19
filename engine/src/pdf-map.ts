@@ -57,15 +57,53 @@ export interface PdfNode {
   _imageXObject?: string;
   _vectorPath?: string;
   _vectorFill?: string;
+  /** PDF even-odd fill (the starred f/B operators) — REQUIRED for ring-shaped
+   *  fills: an inner subpath is a hole only under this rule; nonzero would fill
+   *  it solid. */
+  _vectorFillRule?: 'evenodd';
   _vectorStroke?: { color: string; width: number } | null;
   _vectorViewBox?: { x: number; y: number; w: number; h: number };
+  /** A text node's glyphs outlined to SVG path `d` strings, one per line (baseline
+   *  at y=0, pen at x=0 — HarfBuzz's frame). Set by a shell that can shape text
+   *  (pdf-import's outlineText hook); when present, pdf-svg emits real `<path>`
+   *  outlines instead of a font-dependent `<text>`, so the SVG is self-contained
+   *  and pixel-faithful without the recipient's fonts. */
+  _outlinePath?: string[];
   /** Enclosing group ids, outermost→innermost (OCG layers / form XObjects / q…Q blocks).
    *  Resolved to the final flat `group` after the walk, then deleted. */
   _groupPath?: string[];
+  /** Active clipping paths (outermost→innermost), baked into box space — the
+   *  `W`/`W*` stack in force when this node painted. Print engines draw soft
+   *  shadows as LARGE low-alpha shapes cut down by a clip; ignoring the clip
+   *  renders them as giant plates. Serializers intersect these (pdf-svg emits
+   *  nested <clipPath> wraps); the layout-import path may ignore them. */
+  _clips?: ClipPath[];
 }
+
+/** One clipping path in box space (`d` as an SVG path string). */
+export interface ClipPath { d: string; evenOdd: boolean }
 
 /** Byte codes → text. Provided per font by the shell (from ToUnicode / Encoding). */
 export type FontDecoder = (codes: number[]) => string;
+
+/**
+ * A Type3 font: glyphs are per-character PDF content streams (vector drawing
+ * procedures), not an embedded outline font. Chromium's printToPDF emits app text
+ * this way, so executing the CharProcs is how a screenshot's text becomes real
+ * `<path>` outlines of the EXACT glyphs it rendered — no font resolution, any face.
+ */
+export interface Type3Font {
+  /** Glyph space → text space, [a b c d e f] (typically [0.001 0 0 ±0.001 0 0]). */
+  fontMatrix: number[];
+  /** Glyph name → decoded content-stream text (the drawing procedure). */
+  charProcs: Record<string, string>;
+  /** Byte code → glyph name (from /Encoding /Differences). */
+  encoding: Record<number, string>;
+  /** Byte code → advance width, in glyph space (scaled by fontMatrix). */
+  widths: Record<number, number>;
+  /** The font's own resources — CharProcs run against these. */
+  resources: PdfResources;
+}
 
 export interface PdfFontInfo {
   /** Decode raw string bytes to text. Falls back to Latin-1 (fine for ASCII) if absent. */
@@ -77,6 +115,9 @@ export interface PdfFontInfo {
   family?: string;
   /** A weight hint parsed from the font descriptor / name. */
   weight?: number | string;
+  /** Present for Type3 fonts — text is drawn by executing these glyph procedures
+   *  instead of emitting a font-dependent `<text>`. */
+  type3?: Type3Font;
 }
 
 export interface PdfResources {
@@ -326,6 +367,9 @@ interface GState {
   font: string;
   fontSize: number;
   leading: number;
+  /** Active clip stack. COPY-ON-WRITE — cloneState shares the array, so append
+   *  via `s.clips = [...s.clips, c]`, never mutate in place. */
+  clips: ClipPath[];
 }
 function cloneState(s: GState): GState { return { ...s }; }
 
@@ -346,14 +390,25 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
   let gseq = 0;   // unique id generator for q…Q + form-XObject group frames (shared across runs)
   const MAX = 4000;
 
-  const run = (content: string, res: PdfResources, baseCtm: Mat, depth: number, parentGroups: string[]): void => {
+  const run = (content: string, res: PdfResources, baseCtm: Mat, depth: number, parentGroups: string[], baseClips: ClipPath[] = [], baseFill = ''): void => {
     if (depth > 12) return;
     const toks = tokenize(content || '');
     let s: GState = {
-      ctm: baseCtm, fill: '', stroke: '', fillAlpha: 1, strokeAlpha: 1, lineWidth: 1,
-      font: '', fontSize: 0, leading: 0,
+      ctm: baseCtm, fill: baseFill, stroke: '', fillAlpha: 1, strokeAlpha: 1, lineWidth: 1,
+      font: '', fontSize: 0, leading: 0, clips: baseClips,
     };
     const stack: GState[] = [];
+
+    // `W`/`W*` marks the CURRENT path as a pending clip; it takes effect at the
+    // path's terminating paint/no-op operator (usually `re W n`).
+    let pendingClip: false | 'nonzero' | 'evenodd' = false;
+    const applyPendingClip = (): void => {
+      if (pendingClip && segs.length) {
+        const baked = serializePath(segs);
+        if (baked.d) s.clips = [...s.clips, { d: baked.d, evenOdd: pendingClip === 'evenodd' }];
+      }
+      pendingClip = false;
+    };
 
     // Current path, baked into box space at construction time.
     let segs: Seg[] = [];
@@ -418,13 +473,46 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       }
     };
 
+    // Type3: draw each code's glyph procedure at the pen (the live text matrix
+    // `tm`), then advance `tm` by the glyph width — so subsequent shows continue
+    // from the right place. The glyph's fills inherit the text fill colour (d1
+    // glyphs are uncoloured). `tm` doubles as the pen: a following Td/Tm resets it.
+    const drawType3 = (codes: number[], t3: Type3Font): void => {
+      if (!codes.length || count >= MAX) return;
+      const fm = t3.fontMatrix;
+      const fmMat: Mat = { a: fm[0] ?? 0.001, b: fm[1] ?? 0, c: fm[2] ?? 0, d: fm[3] ?? 0.001, e: fm[4] ?? 0, f: fm[5] ?? 0 };
+      const scale: Mat = { a: s.fontSize || 1, b: 0, c: 0, d: s.fontSize || 1, e: 0, f: 0 };
+      const gid = 'g' + (++gseq);
+      for (const code of codes) {
+        const proc = t3.encoding[code] ? t3.charProcs[t3.encoding[code]!] : undefined;
+        if (proc && count < MAX) {
+          const glyphCtm = matMul(matMul(matMul(s.ctm, tm), scale), fmMat);
+          run(proc, t3.resources, glyphCtm, depth + 1, [...gpath(), gid], s.clips, s.fill);
+        }
+        const adv = (t3.widths[code] ?? 0) * (fm[0] ?? 0.001) * (s.fontSize || 0);
+        tm = matMul(tm, { a: 1, b: 0, c: 0, d: 1, e: adv, f: 0 });
+      }
+    };
+
     const showString = (codes: number[] | null): void => {
       if (!codes || !codes.length) return;
+      const fi = res.fonts && res.fonts[s.font];
+      if (fi?.type3) { drawType3(codes, fi.type3); return; }
       if (!originSet) onTextMove();
       textBuf += decodeStr(codes, s.font);
     };
     const showTJ = (arr: Tok[] | null): void => {
       if (!Array.isArray(arr)) return;
+      const fi = res.fonts && res.fonts[s.font];
+      if (fi?.type3) {
+        // Each string segment draws glyphs; a numeric adjustment shifts the pen
+        // left by amount/1000 of the font size (PDF TJ semantics).
+        for (const el of arr) {
+          if (el.t === 'str') drawType3(el.v, fi.type3);
+          else if (el.t === 'num') tm = matMul(tm, { a: 1, b: 0, c: 0, d: 1, e: -(el.v / 1000) * (s.fontSize || 0), f: 0 });
+        }
+        return;
+      }
       if (!originSet) onTextMove();
       for (const el of arr) {
         if (el.t === 'str') textBuf += decodeStr(el.v, s.font);
@@ -446,42 +534,59 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           fontWeight: (res.fonts && res.fonts[textFont] && res.fonts[textFont]!.weight) || 400,
           text: txt,
           _groupPath: gpath(),
+          ...(s.clips.length ? { _clips: s.clips } : {}),
         });
         count++;
       }
       textBuf = ''; originSet = false;
     };
 
-    const paintPath = (mode: 'fill' | 'stroke' | 'both'): void => {
+    const paintPath = (mode: 'fill' | 'stroke' | 'both', evenOdd = false): void => {
       if (!segs.length || count >= MAX) { segs = []; return; }
       const fillCol = (mode === 'stroke') ? '' : s.fill;
       const strokeCol = (mode === 'fill') ? '' : s.stroke;
       const alpha = clamp(Math.round((mode === 'stroke' ? s.strokeAlpha : s.fillAlpha) * 100), 0, 100);
 
-      if (fillCol && mode !== 'stroke') {
+      const clip = s.clips.length ? { _clips: s.clips } : {};
+      // The rect/ellipse fast paths only apply to a SINGLE subpath: a multi-
+      // subpath fill (e.g. a shadow ring = outer + inner circle under even-odd)
+      // must stay a real path or the inner subpath's hole is lost.
+      const subpaths = segs.reduce((c2, sg) => c2 + (sg.op === 'm' ? 1 : 0), 0);
+      if (fillCol && mode !== 'stroke' && subpaths === 1) {
         const rect = asRectangle(segs);
         if (rect) {
           nodes.push({ kind: 'box', x: rect.x, y: rect.y, w: rect.w, h: rect.h, rot: rect.rot,
-            fill: safeColor(fillCol, ''), opacity: alpha, shape: 'rect', _groupPath: gpath() });
+            fill: safeColor(fillCol, ''), opacity: alpha, shape: 'rect', _groupPath: gpath(), ...clip });
           count++; segs = []; return;
         }
         const ell = asEllipse(segs);
         if (ell) {
           nodes.push({ kind: 'box', x: ell.x, y: ell.y, w: ell.w, h: ell.h, rot: 0,
-            fill: safeColor(fillCol, ''), opacity: alpha, shape: 'ellipse', _groupPath: gpath() });
+            fill: safeColor(fillCol, ''), opacity: alpha, shape: 'ellipse', _groupPath: gpath(), ...clip });
           count++; segs = []; return;
         }
       }
 
       const baked = serializePath(segs);
-      if (baked.w >= 1 && baked.h >= 1) {
+      // A stroked straight line is degenerate in one axis but its stroke width
+      // gives it real area — floor its box at 1 so it isn't dropped (icon glyphs
+      // print as individual `m l S` segments). A FILL only needs positive extent:
+      // a thin glyph stem (an 'i', an 'l' at a small size) is ~0.5px wide, so a
+      // 1px floor would drop it — Type3 text is filled glyphs, so admit anything
+      // with real area and reject only sub-pixel noise.
+      const bw = strokeCol ? Math.max(baked.w, 1) : baked.w;
+      const bh = strokeCol ? Math.max(baked.h, 1) : baked.h;
+      const minDim = strokeCol ? 1 : 0.06;
+      if (bw >= minDim && bh >= minDim) {
         nodes.push({
-          kind: 'image', x: baked.x, y: baked.y, w: baked.w, h: baked.h, rot: 0, fit: 'fill', opacity: alpha,
+          kind: 'image', x: baked.x, y: baked.y, w: bw, h: bh, rot: 0, fit: 'fill', opacity: alpha,
           _vectorPath: baked.d,
           _vectorFill: fillCol ? safeColor(fillCol, 'none') : 'none',
           _vectorStroke: strokeCol ? { color: safeColor(strokeCol, '#000000'), width: Math.max(0.3, s.lineWidth * scaleMag(s.ctm)) } : null,
           _vectorViewBox: { x: baked.x, y: baked.y, w: baked.w, h: baked.h },
           _groupPath: gpath(),
+          ...clip,
+          ...(evenOdd ? { _vectorFillRule: 'evenodd' as const } : {}),
         });
         count++;
       }
@@ -511,8 +616,14 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         case 'G': s.stroke = rgbHex(args[0]!, args[0]!, args[0]!); break;
         case 'k': s.fill = cmykHex(args); break;
         case 'K': s.stroke = cmykHex(args); break;
-        case 'sc': case 'scn': { const col = scColor(args); if (col) s.fill = col; break; }
-        case 'SC': case 'SCN': { const col = scColor(args); if (col) s.stroke = col; break; }
+        // sc/scn: numeric operands → a real colour; a pattern NAME with no usable
+        // tint → a colour we can't reproduce (a tiling/shading pattern, e.g. the
+        // checkerboard pasteboard). CLEAR the paint in that case rather than let it
+        // inherit the previous fill — a stale colour (often black) would flood the
+        // pattern-filled shape. An uncoloured pattern (PaintType 2) carries its tint
+        // in the numeric operands, which scColor already resolves.
+        case 'sc': case 'scn': { const col = scColor(args); if (col) s.fill = col; else if (nameArg) s.fill = ''; break; }
+        case 'SC': case 'SCN': { const col = scColor(args); if (col) s.stroke = col; else if (nameArg) s.stroke = ''; break; }
         case 'cs': case 'CS': break;
 
         case 'm': cxU = startXU = args[0]!; cyU = startYU = args[1]!; push(args[0]!, args[1]!, 'm'); break;
@@ -528,11 +639,18 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         }
         case 'h': if (segs.length) { push(startXU, startYU, 'l'); cxU = startXU; cyU = startYU; } break;
 
-        case 'f': case 'F': case 'f*': paintPath('fill'); break;
-        case 'S': case 's': paintPath('stroke'); break;
-        case 'B': case 'B*': case 'b': case 'b*': paintPath('both'); break;
-        case 'n': segs = []; break;
-        case 'W': case 'W*': break;
+        // A pending W/W* applies at the path's terminating operator. Applying it
+        // just BEFORE the paint deviates from the spec by one op (the painted
+        // path self-clips — a no-op, a path clipped by itself is itself) and
+        // keeps the common `re W n` clip-only sequence exact.
+        case 'f': case 'F': applyPendingClip(); paintPath('fill'); break;
+        case 'f*': applyPendingClip(); paintPath('fill', true); break;
+        case 'S': case 's': applyPendingClip(); paintPath('stroke'); break;
+        case 'B': case 'b': applyPendingClip(); paintPath('both'); break;
+        case 'B*': case 'b*': applyPendingClip(); paintPath('both', true); break;
+        case 'n': applyPendingClip(); segs = []; break;
+        case 'W': pendingClip = 'nonzero'; break;
+        case 'W*': pendingClip = 'evenodd'; break;
 
         case 'BT': tm = IDENTITY; tlm = IDENTITY; textBuf = ''; originSet = false; break;
         case 'ET': flushText(); break;
@@ -552,12 +670,14 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           if (xo && xo.kind === 'image' && count < MAX) {
             const geom = boxGeomFromBBox({ x: 0, y: 0, width: 1, height: 1 }, s.ctm);
             nodes.push({ kind: 'image', x: geom.x, y: geom.y, w: geom.w, h: geom.h, rot: geom.rot,
-              fit: 'fill', opacity: clamp(Math.round(s.fillAlpha * 100), 0, 100), _imageXObject: xo.imageKey || nameArg, _groupPath: gpath() });
+              fit: 'fill', opacity: clamp(Math.round(s.fillAlpha * 100), 0, 100), _imageXObject: xo.imageKey || nameArg, _groupPath: gpath(),
+              ...(s.clips.length ? { _clips: s.clips } : {}) });
             count++;
           } else if (xo && xo.kind === 'form') {
             const fm = (xo.matrix && xo.matrix.length >= 6) ? matMul(s.ctm, fromArr(xo.matrix)) : s.ctm;
-            // A form XObject is a natural group of its contents.
-            run(xo.content || '', xo.resources || {}, fm, depth + 1, [...gpath(), 'g' + (++gseq)]);
+            // A form XObject is a natural group of its contents — inheriting the
+            // caller's clip stack, exactly like its graphics state.
+            run(xo.content || '', xo.resources || {}, fm, depth + 1, [...gpath(), 'g' + (++gseq)], s.clips);
           }
           break;
         }

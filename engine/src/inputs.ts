@@ -152,6 +152,11 @@ export interface InputSpec {
    *  source. See engine/src/metadata.ts (buildExportMeta) and the embed-track-image
    *  tool. Carried onto InputModelItem via this extends. */
   bindToMeta?: 'author' | 'contact' | 'description' | 'copyright' | 'license';
+  /** For an `asset`/`file` input: the export format DEFAULTS to this input's uploaded
+   *  format (a dropped JPEG defaults the export to jpg) until the user picks a format
+   *  themselves. The uploaded format must be one the tool offers. Read by the web
+   *  shell's renderActions; see the embed-track-image tool. */
+  matchExportFormat?: boolean;
   group?: string;
   showIf?: Record<string, InputValue>;
   // text / longtext
