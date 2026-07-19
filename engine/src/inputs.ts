@@ -146,6 +146,12 @@ export interface InputSpec {
   required?: boolean;
   default?: InputValue;
   bindToProfile?: string;
+  /** Embed this input's value into the export's provenance metadata under the named
+   *  field (EXIF/XMP/PNG text + the C2PA manifest), overriding the profile-derived
+   *  default. 'copyright'/'license' are USER-ASSERTED IP fields with no profile
+   *  source. See engine/src/metadata.ts (buildExportMeta) and the embed-track-image
+   *  tool. Carried onto InputModelItem via this extends. */
+  bindToMeta?: 'author' | 'contact' | 'description' | 'copyright' | 'license';
   group?: string;
   showIf?: Record<string, InputValue>;
   // text / longtext

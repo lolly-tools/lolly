@@ -281,7 +281,7 @@ const xrefEntryLine = (offset: number, gen: number): string => `${String(offset)
  * table (jsPDF-style); cross-reference streams throw a clear Error the
  * shell treats as "cannot attach".
  */
-export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
+export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer }: EmbedOptions = {}): Promise<Uint8Array> {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error('C2PA embed: pdfBytes must be a Uint8Array');
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
@@ -329,7 +329,7 @@ export async function embedC2paInPdf(pdfBytes: Uint8Array, { title, claimGenerat
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates, format: 'application/pdf',
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates, format: 'application/pdf',
     assetHash: { exclusions, hash, pad: padBytes },
     ...internals,
   });
@@ -1072,7 +1072,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === 'bmff';
 
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer } = opts;
   // As in embedC2paInPdf: signer + chain bytes frozen once per embed so every
   // pass across the two-pass layout signs identical protected-header bytes.
   const sig: Signer = signer ?? (await generateSigner(dates));
@@ -1084,7 +1084,7 @@ export async function embedC2pa(bytes: Uint8Array, format: string, opts: EmbedOp
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
   const build = (hash: Uint8Array, exclusions: Exclusion[], padBytes: Uint8Array): Promise<Uint8Array> => buildC2paManifest({
-    title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates, format: container.mime,
+    title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates, format: container.mime,
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
     ...internals,
   });

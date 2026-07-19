@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-17T16:48:39.728Z",
+  "generatedAt": "2026-07-19T00:07:20.135Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3292,7 +3292,7 @@
       "height": 1920,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"16\" height=\"11\" rx=\"1.5\" /><path d=\"M7 19h6\" /><path d=\"M10 15v4\" /><path d=\"M21 7v9a2 2 0 0 1-2 2\" /></svg>",
-      "preview": "/catalog/previews/deck-builder.webp"
+      "preview": "/catalog/previews/deck-builder.svg"
     },
     {
       "id": "rebrand-deck",
@@ -3309,7 +3309,7 @@
       "height": 620,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 13.5Z\" /><path d=\"M12 15v2.5\" /><path d=\"m8.5 21 3.5-3.5L15.5 21\" /><path d=\"M12 6.4s-2.4 2.5-2.4 4a2.4 2.4 0 0 0 4.8 0c0-1.5-2.4-4-2.4-4Z\" /></svg>",
-      "preview": "/catalog/previews/rebrand-deck.webp"
+      "preview": "/catalog/previews/rebrand-deck.svg"
     },
     {
       "id": "convert-image",
@@ -3328,7 +3328,7 @@
       "height": 620,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\"/><circle cx=\"8\" cy=\"8\" r=\"1.6\"/><path d=\"m3 14 4-4 5 5\"/><path d=\"M21 11v6a4 4 0 0 1-4 4h-6\"/><path d=\"m14 18 3 3 3-3\"/></svg>",
-      "preview": "/catalog/previews/convert-image.webp"
+      "preview": "/catalog/previews/convert-image.svg"
     },
     {
       "id": "wordmark",
@@ -3421,7 +3421,7 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><line x1=\"3\" y1=\"10\" x2=\"3\" y2=\"14\"/><line x1=\"6.5\" y1=\"7\" x2=\"6.5\" y2=\"17\"/><line x1=\"10\" y1=\"4\" x2=\"10\" y2=\"20\"/><line x1=\"13.5\" y1=\"8\" x2=\"13.5\" y2=\"16\"/><line x1=\"17\" y1=\"5.5\" x2=\"17\" y2=\"18.5\"/><line x1=\"20.5\" y1=\"10\" x2=\"20.5\" y2=\"14\"/></svg>",
-      "preview": "/catalog/previews/audiogram.webp",
+      "preview": "/catalog/previews/audiogram.svg",
       "examples": [
         {
           "label": "Podcast quote — bars",
@@ -3448,6 +3448,25 @@
           }
         }
       ]
+    },
+    {
+      "id": "embed-track-image",
+      "name": "Embed & Track Image",
+      "description": "Stamp your author, copyright and licence into any image — plus an invisible Lolly Imprint and Content Credentials — before you share it.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "utility",
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg"
+      ],
+      "width": 1080,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"4\" width=\"14\" height=\"11.5\" rx=\"2\"/><circle cx=\"6.8\" cy=\"8.3\" r=\"1.25\"/><path d=\"M2.5 12.8l3.4-2.9 2.6 2.1 3.2-3.1 4.3 4.2\"/><path d=\"M17.4 12.3l4.1 1.55v3.05c0 2.25-1.75 3.7-4.1 4.5-2.35-.8-4.1-2.25-4.1-4.5v-3.05z\"/><path d=\"M15.5 17.9l1.35 1.35 2.4-2.5\"/></svg>",
+      "preview": "/catalog/previews/embed-track-image.svg"
     }
   ]
 }
