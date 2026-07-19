@@ -705,7 +705,9 @@ export async function createRuntime(
       // supplied its own `meta` or opted out (e.g. thumbnails) with embedMeta:false.
       let meta = opts.meta;
       if (meta === undefined && opts.embedMeta !== false && !isOnDevice) {
-        meta = await buildExportMeta(host, tool.manifest, profile);
+        // Pass the input model so bindToMeta inputs (the artist's author/copyright/
+        // licence declaration) merge over the profile-derived provenance.
+        meta = await buildExportMeta(host, tool.manifest, profile, model);
       }
       // Data/text formats are produced from the input model (and optional sibling
       // text templates), not the rendered DOM. The engine hydrates the text here

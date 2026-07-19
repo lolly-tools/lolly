@@ -1115,7 +1115,12 @@ export interface ExportOpts {
   c2paTextAdded?: { sample?: string };
 }
 
-// Provenance only — no copyright/licence/ownership fields (can't be asserted safely).
+// Provenance attribution, auto-assembled from the profile + tool. The trailing two
+// are USER-ASSERTED IP fields, filled ONLY when a tool's inputs carry them via
+// `bindToMeta` (e.g. embed-track-image, where the artist explicitly declares the
+// copyright/licence of their OWN work). They are NEVER auto-derived from the profile
+// — Lolly won't assert ownership the user didn't state — and, like every EXIF
+// Copyright / XMP dc:rights out there, they are self-declared, not verified facts.
 export interface ExportMeta {
   software: string;     // "Lolly"
   source: string;       // "https://lolly.tools"
@@ -1123,6 +1128,13 @@ export interface ExportMeta {
   author: string;       // "First Last" — '' if the user hasn't set a profile
   contact: string;      // "email · phone" — '' if none
   description: string;  // human-readable credit line
+  /** Rights/copyright notice, e.g. "© 2026 Jane Doe. All rights reserved." User-
+   *  asserted (bindToMeta 'copyright'); omitted/'' when none. Written to EXIF
+   *  Copyright, PNG Copyright, SVG dc:rights, and the C2PA manifest's dc:rights. */
+  copyright?: string;
+  /** Licence label and/or URL, e.g. "CC BY 4.0 · https://creativecommons.org/licenses/by/4.0/".
+   *  User-asserted (bindToMeta 'license'); omitted/'' when none. */
+  license?: string;
 }
 
 // ─── Text-to-path ───────────────────────────────────────────────────────────

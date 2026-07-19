@@ -8,10 +8,12 @@
  * mechanism (PNG iTXt, JPEG EXIF, PDF info dict, SVG <metadata>, …). This is the
  * clean path from author → asset: provenance travels with the file, not the app.
  *
- * Scope: provenance ONLY — who/what made the file. Deliberately NO copyright,
- * licence, or ownership assertions (the platform can't safely assert those).
- * Personal fields (author/contact) appear only if the user filled in their
- * profile; the "Lolly" software/source tags are always stamped.
+ * Scope: provenance — who/what made the file — PLUS user-asserted copyright/licence
+ * when a tool's inputs supply them via `bindToMeta` (the artist declaring the IP of
+ * their OWN work; see the embed-track-image tool). Those two are NEVER auto-derived
+ * from the profile — Lolly won't assert ownership the user didn't state. Personal
+ * fields (author/contact) appear only if the user filled in their profile; the
+ * "Lolly" software/source tags are always stamped.
  */
 import type { ExportMeta, Profile, ProfileAPI } from './bridge/host-v1.ts';
 
@@ -26,10 +28,17 @@ export interface MetadataManifest {
   name?: string;
 }
 
+/** The slice of an input-model item buildExportMeta reads for bindToMeta merging. */
+export interface MetadataInput {
+  bindToMeta?: 'author' | 'contact' | 'description' | 'copyright' | 'license';
+  value?: unknown;
+}
+
 export async function buildExportMeta(
   host: MetadataHost | null | undefined,
   manifest: MetadataManifest | null | undefined,
   profile?: Profile | null,
+  inputs?: ReadonlyArray<MetadataInput> | null,
 ): Promise<ExportMeta> {
   // The runtime already resolved the profile at mount; callers pass it through to
   // avoid a redundant lookup. Fall back to fetching when omitted.
@@ -51,7 +60,7 @@ export async function buildExportMeta(
   const description = ['Made with https://lolly.tools', tool && `: ${tool}`, author && `by ${author}`]
     .filter(Boolean).join(' ');
 
-  return {
+  const meta: ExportMeta = {
     software: 'Lolly',
     source: 'https://lolly.tools',
     tool,
@@ -59,4 +68,18 @@ export async function buildExportMeta(
     contact,                                                  // '' if none
     description,
   };
+
+  // bindToMeta: a tool's own inputs supply/override provenance fields — the artist's
+  // explicit author/copyright/licence declaration for their OWN work. Trimmed string
+  // values; empty ones are skipped so a blank input never wipes a profile default.
+  // copyright/license have no profile source, so they only ever arrive this way.
+  if (inputs) {
+    for (const i of inputs) {
+      const field = i.bindToMeta;
+      if (!field) continue;
+      const v = clean(i.value == null ? '' : String(i.value));
+      if (v) meta[field] = v;
+    }
+  }
+  return meta;
 }

@@ -151,6 +151,9 @@ interface BuildC2paManifestOptions {
   environment?: unknown;
   author?: Author | null;
   authorship?: Authorship;
+  /** User-asserted copyright + licence, emitted as `dc:rights` in the v2
+   *  cawg.metadata assertion (from buildExportMeta / an input's bindToMeta). */
+  rights?: string;
   /**
    * Explicit action history for the actions assertion. When present and
    * non-empty it REPLACES the default single created/published action — each
@@ -183,6 +186,8 @@ export interface EmbedOptions {
   environment?: unknown;
   author?: Author | null;
   authorship?: Authorship;
+  /** User-asserted copyright + licence → `dc:rights` in the manifest. */
+  rights?: string;
   actions?: C2paActionInput[];
   ingredients?: C2paIngredient[];
   dates?: Dates;
@@ -535,6 +540,7 @@ export async function buildC2paManifest({
   environment,
   author,
   authorship = 'created',
+  rights,
   actions: actionSteps,
   ingredients,
   assetHash,
@@ -693,9 +699,13 @@ export async function buildC2paManifest({
   // v2: the human author rides in the spec-clean c2pa.metadata assertion
   // (JSON-LD, Dublin Core dc:creator) instead of the removed schema.org one.
   let metadataBox: Uint8Array | null = null;
-  if (v2 && author?.name) {
-    const meta = { '@context': DC_CONTEXT, 'dc:creator': [String(author.name)] };
-    metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(meta))));
+  if (v2 && (author?.name || rights)) {
+    // JSON-LD cawg.metadata: dc:creator (author) + dc:rights (user-asserted
+    // copyright/licence). Either one alone is enough to emit the assertion.
+    const metaLd: Record<string, unknown> = { '@context': DC_CONTEXT };
+    if (author?.name) metaLd['dc:creator'] = [String(author.name)];
+    if (rights) metaLd['dc:rights'] = String(rights);
+    metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox('json', te.encode(JSON.stringify(metaLd))));
     storeBoxes.push(metadataBox);
   }
   // The ingredient assertions were built up-front (their hashes feed the opened
