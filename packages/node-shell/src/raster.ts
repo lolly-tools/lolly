@@ -68,3 +68,26 @@ export async function rasterizeSvgToPng(svg: string, width: number, height: numb
   });
   return r.render().asPng();
 }
+
+/**
+ * matchExportFormat (web parity — shells/web/src/views/tool-actions.ts): a manifest can
+ * flag one `asset`/`file` input so the export format DEFAULTS to the uploaded file's own
+ * format (a dropped JPEG → jpg) until the user picks one explicitly. Reads `format` off
+ * a resolved AssetRef, or the mime subtype off a FileRef, normalises the synonyms
+ * (jpeg→jpg, svg+xml→svg), and only answers with a format the tool actually declares.
+ * Returns null when the flag is absent, the input is empty, or the format isn't offered.
+ */
+export function matchedExportFormat(
+  manifest: { inputs?: Array<{ id: string; matchExportFormat?: boolean }>; render?: { formats?: string[] } },
+  model: ReadonlyArray<{ id: string; value: unknown }>,
+): string | null {
+  const flagged = (manifest.inputs ?? []).find(i => i.matchExportFormat);
+  if (!flagged) return null;
+  const v = model.find(m => m.id === flagged.id)?.value as { format?: string; mime?: string } | null | undefined;
+  if (!v || typeof v !== 'object') return null;
+  let f = (v.format ? String(v.format) : v.mime ? String(v.mime).split('/')[1] ?? '' : '').toLowerCase();
+  if (f === 'jpeg') f = 'jpg';
+  if (f === 'svg+xml') f = 'svg';
+  const formats = (manifest.render?.formats ?? []).map(x => x.toLowerCase());
+  return f && formats.includes(f) ? f : null;
+}

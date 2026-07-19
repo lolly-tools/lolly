@@ -80,7 +80,7 @@ function serveDist(): Promise<Served> {
 
 // Reserved params we set ourselves on the export URL — cleared from the inbound query
 // first so the export dims/format/password win over anything the saved session encoded.
-const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'profile', 'c2pa', 'preview', 'options'];
+const EXPORT_URL_RESERVED = ['format', 'export', 'copy', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'password', 'bleed', 'marks', 'imprint', 'durable', 'profile', 'c2pa', 'preview', 'options'];
 
 function exportUrl(base: string, toolId: string, query: string, fmt: string, dims: RenderDims): string {
   const p = new URLSearchParams(query);
@@ -98,6 +98,7 @@ function exportUrl(base: string, toolId: string, query: string, fmt: string, dim
   if (dims.bleed) p.set('bleed', dims.bleed);                    // e.g. "3mm"
   if (dims.marks) p.set('marks', dims.marks);                    // CSV: crop,reg,bleed,bars,prov
   if (dims.imprint) p.set('imprint', '1');                       // durable pixel watermark
+  if (dims.durable) p.set('durable', '1');                       // neural TrustMark credential
   if (dims.pressProfile) p.set('profile', dims.pressProfile);    // URL 'profile' = CMYK press condition
   // Content Credentials: forward the setting so the web shell is the single c2pa authority
   // for the browser tier (the Node post-stamp is skipped when this path ran — see run.ts /
@@ -126,6 +127,9 @@ export interface RenderDims {
   marks?: string;
   /** Embed the durable Lolly pixel watermark on raster exports. */
   imprint?: boolean;
+  /** Embed the opt-in durable Content Credential (neural TrustMark mark) on raster
+   *  exports — the web shell's durableEmbedCanvas runs it (?durable=1). */
+  durable?: boolean;
   /** CMYK press condition (e.g. "fogra39") for pdf-cmyk / cmyk-tiff. Named distinctly
    *  from the CLI's --profile (the user-profile FILE) to avoid the url-mode collision. */
   pressProfile?: string;
@@ -135,6 +139,100 @@ export interface RenderDims {
   c2paDays?: number | null;
 }
 
+/** One file's deep-scan outcome from deepScanViaWebShell. */
+export interface DeepScanResult {
+  file: string;
+  /** False when the /valid view never offered a scan for this batch (no decodable
+   *  raster, WASM unavailable) or the detector download failed. */
+  scanned: boolean;
+  /** Lolly's OWN durable identifier decoded from the pixels (TrustMark-format,
+   *  error-correction passed) — the ?durable=1 mark, readable after a metadata strip. */
+  lollyDurable: boolean;
+  /** A generic/foreign Adobe TrustMark payload decoded (not Lolly's id). */
+  trustmark: boolean;
+  /** A Meta Content Seal mark decoded. */
+  contentSeal: boolean;
+  /** The human-readable note the /valid view rendered for this file, if any. */
+  note: string | null;
+}
+
+/**
+ * Drive the web shell's /#/valid deep scan (the neural TrustMark / Content Seal
+ * detectors) over local files and report, per file, whether Lolly's durable mark —
+ * or a foreign watermark — was decoded from the pixels. This is the verify-side
+ * counterpart of the ?durable=1 export: the same on-device ONNX decode the browser
+ * runs, driven headlessly so `lolly validate --deep` and the TUI can read the mark.
+ * The models are served from the built dist (fetched fresh per run — the ephemeral
+ * browser context has no IndexedDB cache), so it needs the same build:web setup as
+ * the render tier. A negative result is NOT proof of absence (per the watermark
+ * detectors' own policy) — callers must word it that way.
+ */
+export async function deepScanViaWebShell(files: string[]): Promise<DeepScanResult[]> {
+  const base = await webShellBase();
+  const browser = await getBrowser();
+  const ctx = await browser.newContext({ serviceWorkers: 'block' });
+  try {
+    const page = await ctx.newPage();
+    await page.goto(`${base}/#/valid`, { waitUntil: 'load', timeout: 30_000 });
+    await page.setInputFiles('input[type="file"]', files);
+    // The consent banner injects only after the per-file verdicts + passive pixel
+    // checks land, and only when something in the batch is deep-scannable.
+    const enable = page.locator('[data-deep-scan-enable]');
+    const offered = await enable.first().waitFor({ state: 'visible', timeout: 45_000 }).then(() => true, () => false);
+    if (!offered) {
+      return files.map(f => ({ file: f, scanned: false, lollyDurable: false, trustmark: false, contentSeal: false, note: null }));
+    }
+    await enable.first().click();
+    // Success removes the banner (then scans run file-by-file); a failed download
+    // leaves the banner up with an error message. Wait for either.
+    await page.waitForFunction(() => {
+      const banner = document.querySelector('[data-deepscan-banner]');
+      if (!banner) return true;
+      const msg = banner.querySelector('[data-deepscan-banner-msg]')?.textContent || '';
+      return /couldn|failed/i.test(msg);
+    }, { timeout: 180_000 });
+    const failed = await page.locator('[data-deepscan-banner]').count();
+    if (failed) {
+      return files.map(f => ({ file: f, scanned: false, lollyDurable: false, trustmark: false, contentSeal: false, note: null }));
+    }
+    // The per-file scans pop results in sequentially with no "all done" marker —
+    // poll until the findings snapshot is stable for a quiet period.
+    const snapshot = (): Promise<Array<{ pips: string[]; note: string }>> => page.evaluate((count: number) =>
+      Array.from({ length: count }, (_, i) => {
+        const block = document.querySelector(`[data-deepscan-block="${i}"]`);
+        const scope = block?.closest('.valid-item') ?? document;
+        const pips = [...scope.querySelectorAll('[data-deepscan-pip]')].map(p => (p.textContent || '').replace(/\s+/g, ' ').trim());
+        const note = (block?.querySelector(`[data-deepscan-result="${i}"]`)?.textContent || '').replace(/\s+/g, ' ').trim();
+        return { pips, note };
+      }), files.length);
+    const QUIET_MS = 8_000, MAX_MS = 240_000, STEP_MS = 1_000;
+    let last = JSON.stringify(await snapshot());
+    let quiet = 0;
+    for (let waited = 0; waited < MAX_MS && quiet < QUIET_MS; waited += STEP_MS) {
+      await page.waitForTimeout(STEP_MS);
+      const now = JSON.stringify(await snapshot());
+      quiet = now === last ? quiet + STEP_MS : 0;
+      last = now;
+    }
+    const found = JSON.parse(last) as Array<{ pips: string[]; note: string }>;
+    // Text-matched against the /valid view's own en strings (the served dist runs
+    // untranslated here) — the durable note's heading is the most specific signal.
+    return files.map((f, i) => {
+      const r = found[i] ?? { pips: [], note: '' };
+      const hay = [r.note, ...r.pips].join(' · ');
+      const lollyDurable = /durable lolly credential|lolly durable mark/i.test(hay);
+      return {
+        file: f, scanned: true, lollyDurable,
+        trustmark: !lollyDurable && /trustmark/i.test(hay),
+        contentSeal: /content seal/i.test(hay),
+        note: r.note || null,
+      };
+    });
+  } finally {
+    await ctx.close();
+  }
+}
+
 /**
  * Render a tool to bytes by driving the web shell in Chromium and capturing its
  * download. `query` is the tool's current URL-state (serializeUrlState).
@@ -142,6 +240,21 @@ export interface RenderDims {
 export async function renderViaWebShell(
   toolId: string, query: string, format: string, dims: RenderDims = {},
 ): Promise<{ bytes: Uint8Array; mime: string }> {
+  // The durable embed is best-effort INSIDE the web shell (it never fails an export),
+  // so a dist without the encoder model would silently write an UNMARKED file while
+  // the caller believes it's protected. Fail loud up front instead — the mark is the
+  // whole point of ?durable=1. Only checkable for a local dist; a remote
+  // LOLLY_WEB_BASE serves its own models (or not) and we can't see its filesystem.
+  if (dims.durable && !process.env.LOLLY_WEB_BASE) {
+    const dist = process.env.LOLLY_WEB_DIST || join(repoRoot(), 'shells', 'web', 'dist');
+    if (!existsSync(join(dist, 'models', 'trustmark', 'encoder_Q.onnx'))) {
+      throw new BrowserError(
+        `The durable credential needs the TrustMark encoder model, which isn't in the built ` +
+        `web shell (${join(dist, 'models', 'trustmark', 'encoder_Q.onnx')}). Rebuild it with ` +
+        `\`npm run build:web\` (the model ships in shells/web/public), or export without --durable.`,
+      );
+    }
+  }
   const base = await webShellBase();
   const url = exportUrl(base, toolId, query, format, dims);
   const browser = await getBrowser();

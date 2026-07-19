@@ -90,7 +90,7 @@ gitignore_extra() {
     # relevant ones here so the standalone subrepo never commits dist/vercel/etc.
     shells/web)   printf '%s\n' '.DS_Store' 'node_modules/' 'dist/' '.vercel' 'coverage' \
                     'public/_testlogos/' 'public/info/*.html' 'public/info/logos/' 'public/info/og/' \
-                    'public/t/' 'public/view/' ;;
+                    'public/info/shots/' 'public/t/' 'public/view/' ;;
     shells/tauri-desktop|shells/tauri-mobile)
                   printf '%s\n' '.DS_Store' 'node_modules/' 'dist/' '.vercel' 'src-tauri/target/' 'src-tauri/gen/' ;;
     *)            printf '%s\n' '.DS_Store' 'node_modules/' 'dist/' ;;

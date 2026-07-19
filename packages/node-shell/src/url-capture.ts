@@ -34,6 +34,13 @@ export interface CaptureParams {
   tintColor: string;     // colour for the 'tint' recolor
   hue: number;           // degrees for the 'hue' recolor
   zoom: number;          // browser zoom level (1 = 100%); magnifies before the shot
+  /**
+   * Optional page-init script run BEFORE the target page's own scripts, on every
+   * navigation (Playwright addInitScript). The end-user url-shot tool never sets
+   * this — it exists only so the docs-shots pipeline can seed localStorage (e.g.
+   * dismiss the first-run welcome) so a gallery-route capture isn't occluded.
+   */
+  initScript?: string;
 }
 
 export interface CaptureDims { width: number; height: number; dpi: number }
@@ -79,10 +86,19 @@ export async function captureUrl(
     serviceWorkers: 'block',
   });
   try {
+    // Runs before the page's own scripts (docs pipeline uses it to pre-dismiss
+    // the first-run welcome); no-op for the end-user tool, which never sets it.
+    if (params.initScript) await ctx.addInitScript({ content: params.initScript });
     const page = await ctx.newPage();
     await page.goto(params.url, { waitUntil: 'load', timeout: 45_000 }).catch((e: Error) => {
       throw new BrowserError(`Couldn't load ${params.url}: ${e.message}`);
     });
+
+    // Webfonts race the load event — a shot taken before they resolve bakes the
+    // fallback face into the pixels. Settle them explicitly (cheap after load).
+    await page
+      .evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined))
+      .catch(() => {});
 
     // Browser zoom → a `zoom` on <html> (like Ctrl/Cmd +): magnifies the page so
     // even a bitmap shot is enlarged and crisp, not upscaled. scrollHeight reflows
