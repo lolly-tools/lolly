@@ -100,24 +100,42 @@ interface Opts {
   noBuild: boolean;
   url: string | null;
   only: string[];
+  /** Locales to ALSO capture for every `localize=1` recipe (`--lang=es,de`). Each
+   *  is rendered with `?lang=<loc>` injected → `<slug>.<loc>.<format>`; English is
+   *  always captured. Empty = English only (the default, so a plain run stays fast). */
+  locales: string[];
 }
 
 function parseOpts(argv: string[]): Opts {
-  const o: Opts = { accept: false, list: false, noBuild: false, url: null, only: [] };
+  const o: Opts = { accept: false, list: false, noBuild: false, url: null, only: [], locales: [] };
   for (const a of argv) {
     if (a === '--accept') o.accept = true;
     else if (a === '--list') o.list = true;
     else if (a === '--no-build') o.noBuild = true;
     else if (a.startsWith('--url=')) o.url = a.slice(6);
     else if (a.startsWith('--only=')) o.only = a.slice(7).split(',').map((s) => s.trim()).filter(Boolean);
+    else if (a.startsWith('--lang=')) o.locales = a.slice(7).split(',').map((s) => s.trim()).filter(Boolean);
     else console.warn(`⚠  ignoring unknown option ${a}`);
   }
   return o;
 }
 
+/** Inject `?lang=<loc>` into an app route's hash query so the shell renders in that
+ *  locale (peekUrlLang reads the hash query). Appends with `&` when a query exists. */
+function localizeRoute(route: string, lang: string): string {
+  return `${route}${route.includes('?') ? '&' : '?'}lang=${lang}`;
+}
+
+/** Committed baseline filename: `<slug>.<format>`, or `<slug>.<lang>.<format>` for a
+ *  per-locale variant. The single source of truth for the on-disk shot path. */
+function shotFileName(shot: ShotDef): string {
+  return `${shot.slug}${shot.lang ? `.${shot.lang}` : ''}.${shot.format}`;
+}
+
 interface ShotResult {
   slug: string;
   format: string;
+  lang?: string;
   verdict?: ShotVerdict;
   error?: string;
   wrote: boolean;
@@ -175,6 +193,16 @@ async function main(): Promise<void> {
       const r = await captureOne(sharp, baseUrl, shot);
       results.push(r);
       reportLine(r);
+      // Per-locale variants: same recipe, `?lang=<loc>` injected into the route,
+      // written to `<slug>.<loc>.<format>`. Only for recipes that opted in.
+      if (shot.localize && opts.locales.length) {
+        for (const lang of opts.locales) {
+          const variant: ShotDef = { ...shot, route: localizeRoute(shot.route, lang), lang };
+          const rv = await captureOne(sharp, baseUrl, variant);
+          results.push(rv);
+          reportLine(rv);
+        }
+      }
     }
   } finally {
     // getBrowser()'s Chromium is shared across captures and would otherwise hold
@@ -216,10 +244,24 @@ function scanDocs(): ShotDef[] {
   return [...byName.values()];
 }
 
+/** The locales a page can be published in (docs/i18n/<loc>/). A `localize=1` recipe
+ *  may have a committed `<slug>.<loc>.<format>` for any of these, so those are not
+ *  orphans even on a plain (English-only) run. */
+function knownLocales(): string[] {
+  const dir = join(DOCS_DIR, 'i18n');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name);
+}
+
 /** Baselines on disk that no recipe declares any more — stale, safe to delete. */
 function warnOrphans(shots: ShotDef[]): void {
   if (!existsSync(SHOTS_DIR)) return;
-  const expected = new Set(shots.map((s) => `${s.slug}.${s.format}`));
+  const locales = knownLocales();
+  const expected = new Set<string>();
+  for (const s of shots) {
+    expected.add(`${s.slug}.${s.format}`);
+    if (s.localize) for (const loc of locales) expected.add(`${s.slug}.${loc}.${s.format}`);
+  }
   const orphans = readdirSync(SHOTS_DIR).filter((f) => /\.(svg|png|jpg)$/.test(f) && !expected.has(f));
   if (orphans.length) console.warn(`⚠  orphan baselines (no recipe declares them — delete from ${rel(SHOTS_DIR)}): ${orphans.join(', ')}`);
 }
@@ -343,7 +385,7 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   }
 
   const newImg = await decodeShot(sharp, bytes);
-  const baselinePath = join(SHOTS_DIR, `${shot.slug}.${shot.format}`);
+  const baselinePath = join(SHOTS_DIR, shotFileName(shot));
   let oldBytes: number | undefined;
   let oldImg: RawImage | undefined;
   if (existsSync(baselinePath)) {
@@ -363,7 +405,7 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   // Content Credentials only on a real (re)write: the C2PA signature carries a
   // timestamp, so stamping every run would churn bytes for unchanged pixels.
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
-  return { slug: shot.slug, format: shot.format, verdict, wrote: promote, bytes: bytes.byteLength };
+  return { slug: shot.slug, format: shot.format, lang: shot.lang, verdict, wrote: promote, bytes: bytes.byteLength };
 }
 
 /** RGBA pixels of a raster shot. */
@@ -469,7 +511,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
     height: Math.max(1, Math.round(dims.height * (1 - clamp(shot.cropTop) - clamp(shot.cropBottom)))),
   };
   const newText = new TextDecoder().decode(bytes);
-  const baselinePath = join(SHOTS_DIR, `${shot.slug}.${shot.format}`);
+  const baselinePath = join(SHOTS_DIR, shotFileName(shot));
   let oldText: string | undefined;
   let oldBytes: number | undefined;
   if (existsSync(baselinePath)) {
@@ -481,7 +523,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   const verdict = classifyVectorShot({ newText, newBytes: bytes.byteLength, expected, oldText, oldBytes });
   const promote = verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
-  return { slug: shot.slug, format: shot.format, verdict, wrote: promote, bytes: bytes.byteLength };
+  return { slug: shot.slug, format: shot.format, lang: shot.lang, verdict, wrote: promote, bytes: bytes.byteLength };
 }
 
 async function imprintRaster(sharp: Sharp, raster: Uint8Array, format: string): Promise<Uint8Array> {
@@ -534,7 +576,7 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
 // ── Reporting ─────────────────────────────────────────────────────────────────
 
 function reportLine(r: ShotResult): void {
-  const name = `${r.slug}.${r.format}`.padEnd(22);
+  const name = `${r.slug}${r.lang ? `.${r.lang}` : ''}.${r.format}`.padEnd(22);
   if (r.error) {
     console.log(`  ✗ ${name} FAILED — ${r.error}`);
     return;

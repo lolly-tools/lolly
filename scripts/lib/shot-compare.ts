@@ -244,6 +244,19 @@ export interface ShotDef {
    * raise it just enough to absorb the flutter, never to paper over real change.
    */
   pixelDiffFrac?: number;
+  /**
+   * Recipe opted into per-locale capture (`localize=1`): the pipeline also renders
+   * it once per `--lang` locale with `?lang=<loc>` injected into the app route,
+   * writing `<slug>.<loc>.<format>`. Only mark recipes whose app UI actually
+   * localizes (chrome, labels) - tool-output shots don't change by language.
+   */
+  localize?: boolean;
+  /**
+   * Set on a per-locale capture VARIANT (never parsed from a recipe): the locale
+   * whose `?lang=` is injected into `route` and whose code suffixes the output
+   * filename. Absent on the canonical English shot.
+   */
+  lang?: string;
   /** The verbatim recipe URL as written in the markdown (identity for dedup). */
   raw: string;
 }
@@ -298,6 +311,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
       cropSelector: q.get('cropSelector') ?? undefined,
       css: q.get('css') ?? undefined,
       pixelDiffFrac: tolerance,
+      localize: q.get('localize') === '1' || q.get('localize') === 'true',
     });
   }
   return { recipes, problems };
