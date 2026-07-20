@@ -20,8 +20,8 @@
 import type { ExportMeta } from './bridge/host-v1.ts';
 
 // TIFF field types
-const ASCII = 2, SHORT = 3, LONG = 4, RATIONAL = 5;
-const TYPE_SIZE: Record<number, number> = { 2: 1, 3: 2, 4: 4, 5: 8 };
+const ASCII = 2, SHORT = 3, LONG = 4, RATIONAL = 5, UNDEFINED = 7;
+const TYPE_SIZE: Record<number, number> = { 2: 1, 3: 2, 4: 4, 5: 8, 7: 1 };
 
 /** One IFD entry, either an inline scalar (`n`) or an out-of-line blob (`data`). */
 interface Entry {
@@ -47,6 +47,9 @@ export interface PackTiffOptions {
   meta?: Partial<ExportMeta>;
   /** ImageDescription (falls back to meta.description). */
   description?: string;
+  /** ICC profile bytes → InterColorProfile tag (34675). Carries the colour space
+   *  the samples are in — e.g. a Rec.2100-PQ profile (its cicp tag) makes an HDR TIFF. */
+  icc?: Uint8Array;
 }
 
 /**
@@ -110,6 +113,9 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray, opts: PackTiffO
   num(296, SHORT, 2);                                  // ResolutionUnit: inch
   asciiTag(305, meta.software);                        // Software
   asciiTag(315, meta.author);                          // Artist
+  if (opts.icc?.length) {                              // InterColorProfile (ICC)
+    entries.push({ tag: 34675, type: UNDEFINED, count: opts.icc.length, data: opts.icc as Uint8Array });
+  }
 
   entries.sort((a, b) => a.tag - b.tag);
 

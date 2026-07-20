@@ -632,3 +632,20 @@ derivation of a brand's photo-treatments + icon-themes palette docs from its
 token document (or resolved swatches) via the OKLCH machinery, consumed by
 scripts/ingest-brand.ts and the lolly-start neutral set so blank/ingested
 brands get real treatment/theme strips instead of inert ones.
+
+1.61.0 — additive: HDR raster export. New engine module hdr.ts —
+hdrBoostToPQ(rgba, opts) transforms an 8-bit sRGB canvas render into
+Rec.2100-PQ code values in place, boosting pixels that match the active
+brand's primary colours (passed in as `targets` — brand-agnostic, the engine
+never derives them) toward peak luminance so they glow on HDR displays. The
+boost is a hue-preserving luminance multiplier gated on OKLab lightness: mid-
+and-above colours punch to peak (white hits it; a saturated mid primary isn't
+far behind), rolling off below mid so dark primaries are calmed, not blown out
+(dark areas stay dark and give the glow its contrast). Near-white is a default
+target so white text glows. Barrel exports pqEncode + the HDR_PQ_CICP tuple.
+color.ts gains pqBt2020IccProfile() — a generated ICC v4 BT.2020+PQ display
+profile whose `cicp` tag (9,16,0,1) is the HDR signal colour-managed apps key
+off (JPEG); the shared ICC layout was factored into buildIcc() and the sRGB
+builder now rides it (byte-identical output). Pure/DOM-free; shells apply the
+transform to canvas pixels and embed the profile / PNG cICP chunk at export.
+No v1 method changed.

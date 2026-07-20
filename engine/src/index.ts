@@ -22,7 +22,8 @@ export { hydrate, annotateTemplate } from './template.ts';
 export { sniffAnimatedRaster, sniffVideoContainer } from './media-sniff.ts';
 export type { AnimatedRasterKind, VideoContainer } from './media-sniff.ts';
 export { buildInputModel, summarizeInputs, DEFAULT_FILE_MAX_BYTES } from './inputs.ts';
-export { parseUrlState, serializeUrlState, RESERVED } from './url-mode.ts';
+export { parseUrlState, serializeUrlState, serializeHdr, RESERVED, HDR_DEFAULTS } from './url-mode.ts';
+export type { HdrSettings } from './url-mode.ts';
 export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
 export type { Lang, LangMeta, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
@@ -62,9 +63,11 @@ export {
   toInches, isPhysical, toPixels, toPoints, toCssPx, toCssLength, toUnit,
 } from './units.ts';
 export {
-  srgbIccProfile, iccProfileBytes, COLOR_PROFILES,
+  srgbIccProfile, pqBt2020IccProfile, iccProfileBytes, COLOR_PROFILES,
   rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
 } from './color.ts';
+export { hdrBoostToPQ, pqEncode, HDR_PQ_CICP } from './hdr.ts';
+export type { HdrBoostOptions } from './hdr.ts';
 export {
   computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
 } from './print-marks.ts';

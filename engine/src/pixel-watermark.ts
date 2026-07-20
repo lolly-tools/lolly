@@ -67,13 +67,15 @@ export const WATERMARK_VERSION = 2;
 // — see tests/pixel-watermark-robustness.test.ts. Measured at the v2 scheme
 // (strength 3.8, 22 mid-band coefficients):
 //   marked, non-resized true positives:  0.11 – 0.66   (JPEG q50→q95, PNG, 8px crop)
-//   unmarked false-positive ceiling:     ~0.017        (worst positive correlation)
-// so 0.035 sits cleanly between, with margin on both sides (min true-positive
-// ≈ ×3.3 the threshold; worst false-positive ≈ ×0.5). Resize is NOT reliably
-// detected (the 8×8 grid shifts) — a documented v1/v2 limitation, not a threshold
-// to be tuned around. Lowering strength 5.5→3.8 + spreading over more coefficients
-// + a higher activity gate raised PSNR (imprinted-vs-original) by ~1–2 dB and
-// concentrated the mark in textured blocks; see the robustness suite for the numbers.
+//   unmarked photo false-positive ceiling: ~0.017       (worst positive correlation)
+// The old 0.035 floor sat between those, but a wider corpus surfaced an
+// out-of-distribution false positive: an unmarked Rec.2100-PQ (HDR) JPEG scored
+// 0.0418 on the plain detect — PQ's luma statistics correlate more strongly with
+// the mid-band pattern than SDR photos do. Since a false "made with Lolly" is a
+// TRUST failure, the floor was raised 0.035 → 0.06: it now clears that HDR FP by
+// ×1.4 while genuine marks (min 0.11) still pass by ×1.8 (our own tool-logo scores
+// 0.20 lossy / 0.11 lossless). Resize is NOT reliably detected (the 8×8 grid
+// shifts) — a documented v1/v2 limitation, not a threshold to be tuned around.
 export const DEFAULT_STRENGTH = 3.8;
 // Gentler strength for LOSSLESS delivery (png, RGB tiff). DEFAULT_STRENGTH is
 // sized to survive JPEG/WebP/AVIF quantization down to ~q50; a lossless format
@@ -85,15 +87,15 @@ export const DEFAULT_STRENGTH = 3.8;
 // threshold by ~×8–9. Lossy formats keep DEFAULT_STRENGTH (and its robustness
 // suite) untouched. Applied by the shell export bridge per format, not here.
 export const LOSSLESS_STRENGTH = 2.0;
-export const DETECT_THRESHOLD = 0.035;
+export const DETECT_THRESHOLD = 0.06;
 
 // The normalized-correlation score's null distribution has std ≈ 1/√n (n =
 // mid-band coefficients scanned), so a FIXED threshold is too lax on small
 // images — few blocks ⇒ a wide null ⇒ chance correlations. The effective
 // threshold is therefore the fixed floor OR a σ-based floor, whichever is
-// higher: large images use 0.035 (which also rejects the resize artifact, whose
-// score scales with √n too); small images demand more. At the crossover (~594
-// scanned blocks, a ~195² image, with the v2 22-coefficient band) both terms meet.
+// higher: large images use 0.06 (which also rejects the resize artifact, whose
+// score scales with √n too); small images demand more. At the crossover (~200
+// scanned blocks, with the v2 22-coefficient band: 4/√(200·22) ≈ 0.06) both terms meet.
 //
 // DETECT_MIN_SIGMA encodes a single-hypothesis ~4-σ one-sided bar (present fires
 // on score > threshold, not |score| > threshold), so α₀ ≈ 1 − Φ(4) ≈ 3.2e-5.
@@ -233,7 +235,14 @@ export const V2_BAND_SIZE = V2_MIDBAND.length;
 // raster format outright, and embedWatermark already no-ops flat/sub-block input.
 // It is a NECESSARY, not sufficient, floor: flat blocks don't count toward
 // detection, so a real image needs at least this many blocks and usually more.
-export const MIN_IMPRINT_BLOCKS = Math.ceil((DETECT_MIN_SIGMA / DETECT_THRESHOLD) ** 2 / MIDBAND.length);
+// Derived from the ORIGINAL 0.035 robustness crossover, deliberately DECOUPLED from
+// DETECT_THRESHOLD. That detection floor was later raised (0.035→0.06) to reject an
+// HDR false positive, but tightening DETECTION must not quietly expand which images
+// we IMPRINT — the embeddable-size range is robustness-calibrated on its own (the
+// smallest sizes have no margin left after a real JPEG/resize round-trip). So this
+// stays the ≈594-block / ~195² floor regardless of the detection threshold.
+const MIN_IMPRINT_THRESHOLD = 0.035;
+export const MIN_IMPRINT_BLOCKS = Math.ceil((DETECT_MIN_SIGMA / MIN_IMPRINT_THRESHOLD) ** 2 / MIDBAND.length);
 
 /**
  * True when an RGBA raster is large enough that embedding a Lolly watermark is
