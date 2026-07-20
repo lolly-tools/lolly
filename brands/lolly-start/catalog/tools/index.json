@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-20T15:36:07.406Z",
+  "generatedAt": "2026-07-20T17:47:15.266Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2316,108 +2316,108 @@
       ],
       "i18n": {
         "ar": {
-          "name": "لوحة الألوان",
-          "description": "تصفح ألوان علامة SUSE — انقر على أي لون لنسخه."
+          "name": "مختبر الألوان",
+          "description": "أنشئ لوحة ألوان من لون بذرة واحد - لمسات التناسق، وتدرجات OKLab الإدراكية، وشارات قابلية القراءة WCAG/APCA، مع رموز DTCG وتصدير CSV."
         },
         "bg": {
-          "name": "Цветова палитра",
-          "description": "Разгледай брандовите цветове на SUSE — щракни върху мостра, за да я копираш."
+          "name": "Лаборатория за палитри",
+          "description": "Изгради палитра от един начален цвят - хармонични акценти, перцептивни OKLab преливки и значки за четимост WCAG/APCA, с DTCG токени и CSV експорт."
         },
         "bn": {
-          "name": "কালার প্যালেট",
-          "description": "SUSE ব্র্যান্ডের রংগুলো দেখুন — কপি করতে সোয়াচে ক্লিক করুন।"
+          "name": "প্যালেট ল্যাব",
+          "description": "একটি বীজ রং থেকে প্যালেট বানান - হারমনি অ্যাকসেন্ট, পারসেপচুয়াল OKLab র‍্যাম্প এবং WCAG/APCA রিডেবিলিটি ব্যাজ, সাথে DTCG টোকেন ও CSV এক্সপোর্ট।"
         },
         "cs": {
-          "name": "Paleta barev",
-          "description": "Procházej barvy značky SUSE — klikni na vzorek a zkopíruješ ho."
+          "name": "Laboratoř palet",
+          "description": "Vytvoř paletu z jedné výchozí barvy - harmonické akcenty, percepční OKLab přechody a odznaky čitelnosti WCAG/APCA, s tokeny DTCG a exportem CSV."
         },
         "de": {
-          "name": "Farbpalette",
-          "description": "Durchsuchen Sie die SUSE-Markenfarben — klicken Sie auf ein Farbfeld, um es zu kopieren."
+          "name": "Paletten-Labor",
+          "description": "Erstellen Sie eine Palette aus einer Startfarbe - Harmonie-Akzente, perzeptuelle OKLab-Verläufe und WCAG/APCA-Lesbarkeits-Badges, mit DTCG-Tokens und CSV-Export."
         },
         "es": {
-          "name": "Paleta de colores",
-          "description": "Explora los colores de marca de SUSE: haz clic en una muestra para copiarla."
+          "name": "Laboratorio de paletas",
+          "description": "Genera una paleta a partir de un color semilla - acentos armónicos, rampas perceptuales OKLab y distintivos de legibilidad WCAG/APCA, con tokens DTCG y exportación CSV."
         },
         "fr": {
-          "name": "Palette de couleurs",
-          "description": "Parcours les couleurs de la marque SUSE — clique sur une nuance pour la copier."
+          "name": "Labo Palette",
+          "description": "Fais pousser une palette à partir d'une couleur germe - accents harmoniques, rampes OKLab perceptuelles et badges de lisibilité WCAG/APCA, avec tokens DTCG et export CSV."
         },
         "hi": {
-          "name": "कलर पैलेट",
-          "description": "SUSE ब्रांड के रंग ब्राउज़ करें — कॉपी करने के लिए किसी स्वैच पर क्लिक करें।"
+          "name": "पैलेट लैब",
+          "description": "एक बीज रंग से पैलेट विकसित करें - हार्मनी एक्सेंट, परसेप्चुअल OKLab रैंप और WCAG/APCA पठनीयता बैज, DTCG टोकन और CSV एक्सपोर्ट के साथ।"
         },
         "id": {
-          "name": "Palet Warna",
-          "description": "Jelajahi warna brand SUSE — klik swatch untuk menyalinnya."
+          "name": "Lab Palet",
+          "description": "Kembangkan palet dari satu warna benih - aksen harmoni, gradasi OKLab persepsual, dan lencana keterbacaan WCAG/APCA, dengan token DTCG dan ekspor CSV."
         },
         "it": {
-          "name": "Palette colori",
-          "description": "Sfoglia i colori del brand SUSE — clicca su uno swatch per copiarlo."
+          "name": "Laboratorio Palette",
+          "description": "Genera una palette da un colore di partenza - accenti armonici, rampe percettive OKLab e badge di leggibilità WCAG/APCA, con token DTCG ed export CSV."
         },
         "ja": {
-          "name": "カラーパレット",
-          "description": "SUSEのブランドカラーを一覧表示します。スウォッチをクリックしてコピーできます。"
+          "name": "パレットラボ",
+          "description": "1つのシード色からパレットを育てます - ハーモニーアクセント、知覚的なOKLabランプ、WCAG/APCA可読性バッジ、DTCGトークンとCSVエクスポートに対応。"
         },
         "ko": {
-          "name": "컬러 팔레트",
-          "description": "SUSE 브랜드 컬러를 살펴보세요 — 색상 견본을 클릭하면 복사돼요."
+          "name": "팔레트 랩",
+          "description": "하나의 시드 컬러에서 팔레트를 키워보세요 - 조화 강조색, 지각적 OKLab 램프, WCAG/APCA 가독성 배지를 DTCG 토큰과 CSV 내보내기로 함께 제공해요."
         },
         "ms": {
-          "name": "Palet Warna",
-          "description": "Semak imbas warna jenama SUSE — klik petak warna untuk menyalinnya."
+          "name": "Makmal Palet",
+          "description": "Tumbuhkan palet daripada satu warna benih - aksen harmoni, gradasi OKLab persepsi dan lencana kebolehbacaan WCAG/APCA, dengan token DTCG dan eksport CSV."
         },
         "nl": {
-          "name": "Kleurenpalet",
-          "description": "Blader door SUSE-merkkleuren — klik op een kleurstaal om die te kopiëren."
+          "name": "Paletlab",
+          "description": "Laat een palet groeien uit één basiskleur - harmonieaccenten, perceptuele OKLab-verlopen en WCAG/APCA-leesbaarheidsbadges, met DTCG-tokens en CSV-export."
         },
         "no": {
-          "name": "Fargepalett",
-          "description": "Bla gjennom SUSE-merkevarens farger — klikk en fargerute for å kopiere den."
+          "name": "Palettlab",
+          "description": "Dyrk en palett fra én frøfarge - harmoniaksenter, perseptuelle OKLab-fargeoverganger og WCAG/APCA-lesbarhetsmerker, med DTCG-tokens og CSV-eksport."
         },
         "pl": {
-          "name": "Paleta kolorów",
-          "description": "Przeglądaj kolory swojej marki — kliknij próbkę, aby ją skopiować."
+          "name": "Laboratorium palet",
+          "description": "Zbuduj paletę z jednego koloru bazowego - akcenty harmoniczne, percepcyjne rampy OKLab i odznaki czytelności WCAG/APCA, z tokenami DTCG i eksportem CSV."
         },
         "pt": {
-          "name": "Paleta de Cores",
-          "description": "Veja as cores da marca SUSE — clique em uma amostra para copiar."
+          "name": "Laboratório de Paletas",
+          "description": "Gere uma paleta a partir de uma cor-semente - acentos de harmonia, rampas perceptuais OKLab e selos de legibilidade WCAG/APCA, com tokens DTCG e exportação CSV."
         },
         "ro": {
-          "name": "Paletă de culori",
-          "description": "Răsfoiește culorile de brand SUSE — dă clic pe o mostră pentru a o copia."
+          "name": "Laborator de palete",
+          "description": "Creează o paletă dintr-o culoare de bază - accente de armonie, gradații OKLab perceptuale și insigne de lizibilitate WCAG/APCA, cu tokenuri DTCG și export CSV."
         },
         "sv": {
-          "name": "Färgpalett",
-          "description": "Bläddra bland SUSE:s varumärkesfärger – klicka på ett färgprov för att kopiera det."
+          "name": "Palettlabb",
+          "description": "Odla en palett från en fröfärg - harmoniaccenter, perceptuella OKLab-ramper och WCAG/APCA-läsbarhetsmärken, med DTCG-tokens och CSV-export."
         },
         "tl": {
-          "name": "Palette ng Kulay",
-          "description": "Tingnan ang mga kulay ng brand ng SUSE — i-click ang swatch para kopyahin ito."
+          "name": "Palette Lab",
+          "description": "Magpalago ng palette mula sa isang seed na kulay - mga harmony accent, perceptual OKLab ramp, at WCAG/APCA readability badge, kasama ang DTCG tokens at CSV export."
         },
         "tr": {
-          "name": "Renk Paleti",
-          "description": "SUSE marka renklerine göz at — kopyalamak için bir renk örneğine tıkla."
+          "name": "Palet Laboratuvarı",
+          "description": "Tek bir tohum renkten palet büyüt - uyum vurguları, algısal OKLab geçişleri ve WCAG/APCA okunabilirlik rozetleri, DTCG token'ları ve CSV dışa aktarımıyla."
         },
         "uk": {
-          "name": "Палітра кольорів",
-          "description": "Перегляньте кольори вашого бренду — клацніть зразок, щоб скопіювати його."
+          "name": "Лабораторія палітри",
+          "description": "Виростіть палітру з одного вихідного кольору - акценти гармонії, перцептивні OKLab градієнти та значки читабельності WCAG/APCA, з токенами DTCG та експортом у CSV."
         },
         "ur": {
-          "name": "رنگ پیلیٹ",
-          "description": "SUSE برانڈ کے رنگ دیکھیں — کاپی کرنے کے لیے کسی سواچ پر کلک کریں۔"
+          "name": "پیلیٹ لیب",
+          "description": "ایک بیج رنگ سے پیلیٹ اگائیں - ہارمونی ایکسنٹس، ادراکی OKLab ریمپس اور WCAG/APCA پڑھنے کی اہلیت کے بیجز، DTCG ٹوکنز اور CSV ایکسپورٹ کے ساتھ۔"
         },
         "vi": {
-          "name": "Bảng Màu",
-          "description": "Duyệt các màu thương hiệu SUSE — nhấp vào một mẫu màu để sao chép."
+          "name": "Lab Bảng Màu",
+          "description": "Phát triển bảng màu từ một màu gốc - điểm nhấn hài hòa, dải màu OKLab theo cảm nhận và nhãn độ dễ đọc WCAG/APCA, cùng token DTCG và xuất CSV."
         },
         "zh-hant": {
-          "name": "調色盤",
-          "description": "瀏覽 SUSE 品牌色彩——點選色塊即可複製。"
+          "name": "調色盤實驗室",
+          "description": "從一個種子顏色長出色票 - 和諧強調色、感知式 OKLab 漸層，以及 WCAG/APCA 可讀性徽章，並支援 DTCG tokens 與 CSV 匯出。"
         },
         "zh": {
-          "name": "调色板",
-          "description": "浏览 SUSE 品牌色——点击色块即可复制。"
+          "name": "调色实验室",
+          "description": "从一个种子颜色生成调色板 - 和谐强调色、感知性 OKLab 渐变和 WCAG/APCA 可读性徽章，配备 DTCG 令牌和 CSV 导出。"
         }
       }
     },
@@ -3169,7 +3169,113 @@
             "height": 1200
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "من نص إلى صورة",
+          "description": "نماذج الذكاء الاصطناعي أرخص في معالجة الصور منها في معالجة النص"
+        },
+        "bg": {
+          "name": "Промпт към изображение",
+          "description": "AI моделите обработват изображения по-евтино, отколкото текст"
+        },
+        "bn": {
+          "name": "প্রম্পট থেকে ছবি",
+          "description": "AI মডেলগুলোর জন্য টেক্সটের চেয়ে ছবি প্রসেস করা সস্তা"
+        },
+        "cs": {
+          "name": "Prompt na obrázek",
+          "description": "AI modely zpracovávají obrázky levněji než text"
+        },
+        "de": {
+          "name": "Prompt zu Bild",
+          "description": "KI-Modelle sind beim Verarbeiten von Bildern günstiger als bei Text."
+        },
+        "es": {
+          "name": "Prompt a imagen",
+          "description": "Los modelos de IA son más baratos procesando imágenes que texto"
+        },
+        "fr": {
+          "name": "Prompt vers image",
+          "description": "Les modèles d'IA coûtent moins cher pour traiter des images que du texte."
+        },
+        "hi": {
+          "name": "Prompt to Image",
+          "description": "AI मॉडल टेक्स्ट की तुलना में इमेज प्रोसेस करने में सस्ते होते हैं"
+        },
+        "id": {
+          "name": "Prompt ke Gambar",
+          "description": "Model AI lebih murah memproses gambar daripada teks"
+        },
+        "it": {
+          "name": "Prompt a immagine",
+          "description": "I modelli IA costano meno per elaborare immagini che testo"
+        },
+        "ja": {
+          "name": "プロンプトから画像",
+          "description": "AIモデルはテキストより画像の処理の方が低コストです"
+        },
+        "ko": {
+          "name": "프롬프트를 이미지로",
+          "description": "AI 모델은 텍스트보다 이미지를 처리하는 비용이 더 저렴해요"
+        },
+        "ms": {
+          "name": "Prompt to Image",
+          "description": "Model AI lebih murah untuk memproses imej berbanding teks"
+        },
+        "nl": {
+          "name": "Prompt naar afbeelding",
+          "description": "AI-modellen verwerken afbeeldingen goedkoper dan tekst"
+        },
+        "no": {
+          "name": "Prompt til bilde",
+          "description": "AI-modeller er billigere til å behandle bilder enn tekst"
+        },
+        "pl": {
+          "name": "Prompt na obraz",
+          "description": "Modele AI taniej przetwarzają obrazy niż tekst"
+        },
+        "pt": {
+          "name": "Prompt para Imagem",
+          "description": "Modelos de IA são mais baratos para processar imagens do que texto"
+        },
+        "ro": {
+          "name": "Prompt la imagine",
+          "description": "Modelele AI procesează imaginile mai ieftin decât textul"
+        },
+        "sv": {
+          "name": "Prompt till bild",
+          "description": "AI-modeller är billigare på att bearbeta bilder än text"
+        },
+        "tl": {
+          "name": "Prompt to Image",
+          "description": "Mas mura para sa mga AI model ang pagproseso ng larawan kaysa text"
+        },
+        "tr": {
+          "name": "Prompt'tan Görsele",
+          "description": "Yapay zeka modelleri görüntüleri işlemekte metinden daha ucuzdur"
+        },
+        "uk": {
+          "name": "Промпт → зображення",
+          "description": "ШІ-моделям дешевше обробляти зображення, ніж текст"
+        },
+        "ur": {
+          "name": "پرامپٹ سے تصویر",
+          "description": "AI ماڈلز کے لیے متن کے مقابلے تصاویر پروسیس کرنا سستا ہے"
+        },
+        "vi": {
+          "name": "Prompt sang Ảnh",
+          "description": "Mô hình AI xử lý ảnh rẻ hơn xử lý văn bản"
+        },
+        "zh-hant": {
+          "name": "提示轉圖片",
+          "description": "AI 模型處理圖片比處理文字更便宜"
+        },
+        "zh": {
+          "name": "提示生成图像",
+          "description": "AI 模型处理图片比处理文本更便宜"
+        }
+      }
     },
     {
       "id": "screencap",
@@ -3191,7 +3297,113 @@
       "height": 4320,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3H5a2 2 0 0 0-2 2v3\" /><path d=\"M16 3h3a2 2 0 0 1 2 2v3\" /><path d=\"M8 21H5a2 2 0 0 1-2-2v-3\" /><path d=\"M16 21h3a2 2 0 0 0 2-2v-3\" /><rect width=\"8\" height=\"6\" x=\"8\" y=\"9\" rx=\"1\" /></svg>",
-      "preview": "/catalog/previews/screencap.svg"
+      "preview": "/catalog/previews/screencap.svg",
+      "i18n": {
+        "ar": {
+          "name": "التقاط الشاشة",
+          "description": "التقط صورة أو سجل شاشتك بالكامل أو نافذة أو علامة تبويب في المتصفح. اسحب على المساحة للقص - يحتفظ التصدير بنفس البكسلات التي التقطتها بالضبط."
+        },
+        "bg": {
+          "name": "Заснемане на екрана",
+          "description": "Направи екранна снимка или запис на целия екран, прозорец или раздел на браузъра. Плъзни върху платното, за да изрежеш - износът запазва точно пикселите, които си заснел."
+        },
+        "bn": {
+          "name": "স্ক্রিন ক্যাপচার",
+          "description": "আপনার পুরো স্ক্রিন, একটি উইন্ডো, বা একটি ব্রাউজার ট্যাব স্ক্রিনশট বা রেকর্ড করুন। ক্রপ করতে ক্যানভাসে ড্র্যাগ করুন - এক্সপোর্ট আপনার ক্যাপচার করা ঠিক পিক্সেলেই থাকে।"
+        },
+        "cs": {
+          "name": "Snímání obrazovky",
+          "description": "Pořiď screenshot nebo nahrávku celé obrazovky, okna nebo karty prohlížeče. Tažením na plátně ořízneš - export zůstane přesně v pixelech, které jsi zachytil."
+        },
+        "de": {
+          "name": "Bildschirmaufnahme",
+          "description": "Screenshot oder Aufnahme Ihres gesamten Bildschirms, eines Fensters oder eines Browser-Tabs. Ziehen Sie auf dem Canvas, um zuzuschneiden - der Export behält genau die Pixel, die Sie aufgenommen haben."
+        },
+        "es": {
+          "name": "Captura de pantalla",
+          "description": "Captura o graba toda la pantalla, una ventana o una pestaña del navegador. Arrastra en el lienzo para recortar - la exportación conserva exactamente los píxeles que capturaste."
+        },
+        "fr": {
+          "name": "Capture d'écran",
+          "description": "Capture ou enregistre tout ton écran, une fenêtre ou un onglet de navigateur. Glisse sur le canevas pour recadrer - l'export conserve exactement les pixels capturés."
+        },
+        "hi": {
+          "name": "स्क्रीन कैप्चर",
+          "description": "अपनी पूरी स्क्रीन, किसी विंडो, या ब्राउज़र टैब का स्क्रीनशॉट लें या रिकॉर्ड करें। क्रॉप करने के लिए कैनवास पर ड्रैग करें - एक्सपोर्ट में वही पिक्सेल रहते हैं जो आपने कैप्चर किए।"
+        },
+        "id": {
+          "name": "Tangkap Layar",
+          "description": "Ambil tangkapan layar atau rekam seluruh layar, jendela, atau tab browser Anda. Seret pada kanvas untuk memotong - hasil ekspor tetap sama persis dengan piksel yang Anda tangkap."
+        },
+        "it": {
+          "name": "Cattura schermo",
+          "description": "Fai uno screenshot o registra l'intero schermo, una finestra o una scheda del browser. Trascina sulla tela per ritagliare - l'esportazione mantiene esattamente i pixel catturati."
+        },
+        "ja": {
+          "name": "スクリーンキャプチャ",
+          "description": "画面全体、ウィンドウ、ブラウザタブをスクリーンショットまたは録画します。キャンバス上をドラッグしてクロップします - エクスポートはキャプチャしたピクセルのままです。"
+        },
+        "ko": {
+          "name": "화면 캡처",
+          "description": "화면 전체, 창, 브라우저 탭을 스크린샷으로 찍거나 녹화해요. 캔버스를 드래그해 잘라내요 - 내보내기는 캡처한 픽셀 그대로예요."
+        },
+        "ms": {
+          "name": "Tangkapan Skrin",
+          "description": "Ambil tangkapan skrin atau rakam keseluruhan skrin, tetingkap, atau tab pelayar anda. Seret pada kanvas untuk memotong - eksport kekal pada piksel tepat yang anda tangkap."
+        },
+        "nl": {
+          "name": "Schermopname",
+          "description": "Maak een screenshot of neem je hele scherm, een venster of browsertab op. Sleep op het canvas om bij te snijden - de export bevat precies de pixels die je hebt vastgelegd."
+        },
+        "no": {
+          "name": "Skjermopptak",
+          "description": "Ta et skjermbilde eller ta opp hele skjermen, et vindu eller en nettleserfane. Dra på lerretet for å beskjære - eksporten beholder nøyaktig de pikslene du fanget."
+        },
+        "pl": {
+          "name": "Przechwytywanie ekranu",
+          "description": "Zrób zrzut lub nagraj cały ekran, okno albo kartę przeglądarki. Przeciągnij na płótnie, aby przyciąć - eksport zachowuje dokładnie te piksele, które przechwyciłeś."
+        },
+        "pt": {
+          "name": "Captura de Tela",
+          "description": "Tire uma captura de tela ou grave a tela inteira, uma janela ou uma aba do navegador. Arraste na tela para recortar - a exportação mantém exatamente os pixels capturados."
+        },
+        "ro": {
+          "name": "Captură de ecran",
+          "description": "Fă un screenshot sau înregistrează întregul ecran, o fereastră sau un tab de browser. Trage pe canvas pentru a decupa - exportul păstrează exact pixelii pe care i-ai capturat."
+        },
+        "sv": {
+          "name": "Skärmupptagning",
+          "description": "Ta en skärmdump eller spela in hela skärmen, ett fönster eller en webbläsarflik. Dra på duken för att beskära - exporten behåller exakt de pixlar du fångade."
+        },
+        "tl": {
+          "name": "Screen Capture",
+          "description": "Mag-screenshot o mag-record ng buong screen mo, isang window, o isang browser tab. I-drag sa canvas para i-crop - mananatili sa export ang eksaktong mga pixel na na-capture mo."
+        },
+        "tr": {
+          "name": "Ekran Yakalama",
+          "description": "Tüm ekranının, bir pencerenin veya bir tarayıcı sekmesinin görüntüsünü al ya da kaydını yap. Kırpmak için tuvalde sürükle - dışa aktarım tam olarak yakaladığın pikselleri korur."
+        },
+        "uk": {
+          "name": "Захоплення екрана",
+          "description": "Робіть скріншот або записуйте весь екран, вікно чи вкладку браузера. Перетягніть на полотні, щоб обрізати - експорт зберігає точні пікселі, які ви захопили."
+        },
+        "ur": {
+          "name": "اسکرین کیپچر",
+          "description": "اپنی پوری اسکرین، کسی ونڈو، یا براؤزر ٹیب کا اسکرین شاٹ لیں یا ریکارڈ کریں۔ کاٹنے کے لیے کینوس پر ڈریگ کریں - ایکسپورٹ بالکل وہی پکسلز رکھتا ہے جو آپ نے کیپچر کیے۔"
+        },
+        "vi": {
+          "name": "Chụp màn hình",
+          "description": "Chụp ảnh hoặc quay lại toàn bộ màn hình, một cửa sổ, hoặc một tab trình duyệt. Kéo trên canvas để cắt - bản xuất giữ đúng các pixel bạn đã chụp."
+        },
+        "zh-hant": {
+          "name": "螢幕擷取",
+          "description": "截圖或錄製整個螢幕、視窗或瀏覽器分頁。在畫布上拖曳即可裁切 - 匯出的像素會與你擷取的完全相同。"
+        },
+        "zh": {
+          "name": "屏幕捕捉",
+          "description": "截图或录制整个屏幕、窗口或浏览器标签页。在画布上拖动可裁剪 - 导出内容与你捕获的像素完全一致。"
+        }
+      }
     },
     {
       "id": "slides",
@@ -3211,7 +3423,113 @@
       "height": 1920,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"16\" height=\"11\" rx=\"1.5\" /><path d=\"M7 19h6\" /><path d=\"M10 15v4\" /><path d=\"M21 7v9a2 2 0 0 1-2 2\" /></svg>",
-      "preview": "/catalog/previews/slides.svg"
+      "preview": "/catalog/previews/slides.svg",
+      "i18n": {
+        "ar": {
+          "name": "شرائح",
+          "description": "أنشئ عرضا تقديميا ترتب فيه كل شريحة أدوات Lolly أخرى في تخطيط مختار، بعنوانها وخلفيتها وملاحظات المتحدث الخاصة بها - ثم صدر إلى PowerPoint أو PDF أو GIF أو MP4."
+        },
+        "bg": {
+          "name": "Слайдове",
+          "description": "Създай презентация, в която всеки слайд подрежда други инструменти на Lolly в избрано оформление, със свое заглавие, фон и бележки за лектора - после експортирай в PowerPoint, PDF, GIF или MP4."
+        },
+        "bn": {
+          "name": "স্লাইড",
+          "description": "এমন একটি ডেক তৈরি করুন যেখানে প্রতিটি স্লাইড অন্যান্য Lolly টুলকে একটি বেছে নেওয়া লেআউটে সাজায়, নিজস্ব শিরোনাম, ব্যাকগ্রাউন্ড ও স্পিকার নোটসহ - তারপর PowerPoint, PDF, GIF বা MP4-এ এক্সপোর্ট করুন।"
+        },
+        "cs": {
+          "name": "Snímky",
+          "description": "Vytvoř prezentaci, kde každý snímek uspořádá další nástroje Lolly do zvoleného rozvržení, s vlastním názvem, pozadím a poznámkami pro řečníka - pak exportuj do PowerPoint, PDF, GIF nebo MP4."
+        },
+        "de": {
+          "name": "Folien",
+          "description": "Erstellen Sie eine Präsentation, in der jede Folie andere Lolly-Tools in einem gewählten Layout anordnet, mit eigenem Titel, Hintergrund und Referentennotizen - dann exportieren Sie nach PowerPoint, PDF, GIF oder MP4."
+        },
+        "es": {
+          "name": "Diapositivas",
+          "description": "Crea una presentación donde cada diapositiva organiza otras herramientas de Lolly en un diseño elegido, con su propio título, fondo y notas del orador - luego expórtala a PowerPoint, PDF, GIF o MP4."
+        },
+        "fr": {
+          "name": "Diapositives",
+          "description": "Crée un diaporama où chaque diapositive organise d'autres outils Lolly dans une mise en page choisie, avec son propre titre, son arrière-plan et ses notes du présentateur - puis exporte en PowerPoint, PDF, GIF ou MP4."
+        },
+        "hi": {
+          "name": "स्लाइड्स",
+          "description": "एक डेक बनाएं जिसमें हर स्लाइड अन्य Lolly टूल्स को चुने गए लेआउट में व्यवस्थित करती है, अपने खुद के शीर्षक, बैकग्राउंड और स्पीकर नोट्स के साथ - फिर PowerPoint, PDF, GIF या MP4 में एक्सपोर्ट करें।"
+        },
+        "id": {
+          "name": "Slide",
+          "description": "Buat deck di mana setiap slide menyusun tool Lolly lain dalam layout pilihan, dengan judul, latar belakang, dan catatan pembicara sendiri - lalu ekspor ke PowerPoint, PDF, GIF, atau MP4."
+        },
+        "it": {
+          "name": "Diapositive",
+          "description": "Crea un deck in cui ogni slide dispone altri strumenti Lolly in un layout scelto, con titolo, sfondo e note del relatore propri - poi esporta in PowerPoint, PDF, GIF o MP4."
+        },
+        "ja": {
+          "name": "スライド",
+          "description": "各スライドで他のLollyツールを選んだレイアウトに配置し、タイトル、背景、スピーカーノートを個別に設定できるデッキを作成します - その後PowerPoint、PDF、GIF、MP4にエクスポートできます。"
+        },
+        "ko": {
+          "name": "슬라이드",
+          "description": "모든 슬라이드가 선택한 레이아웃으로 다른 Lolly 도구를 배치하고, 각자 제목, 배경, 발표자 노트를 갖는 덱을 만드세요 - 그런 다음 PowerPoint, PDF, GIF 또는 MP4로 내보내요."
+        },
+        "ms": {
+          "name": "Slaid",
+          "description": "Bina dek di mana setiap slaid menyusun alat Lolly lain dalam susun atur pilihan, dengan tajuk, latar belakang dan nota pembentang sendiri - kemudian eksport ke PowerPoint, PDF, GIF atau MP4."
+        },
+        "nl": {
+          "name": "Dia's",
+          "description": "Bouw een deck waarin elke dia andere Lolly-tools in een gekozen lay-out rangschikt, met een eigen titel, achtergrond en sprekersnotities - exporteer daarna naar PowerPoint, PDF, GIF of MP4."
+        },
+        "no": {
+          "name": "Lysbilder",
+          "description": "Bygg en presentasjon der hvert lysbilde ordner andre Lolly-verktøy i et valgt oppsett, med egen tittel, bakgrunn og talernotater - eksporter deretter til PowerPoint, PDF, GIF eller MP4."
+        },
+        "pl": {
+          "name": "Slajdy",
+          "description": "Buduj prezentację, w której każdy slajd układa inne narzędzia Lolly w wybranym układzie, z własnym tytułem, tłem i notatkami prelegenta - a potem eksportuj do PowerPoint, PDF, GIF lub MP4."
+        },
+        "pt": {
+          "name": "Slides",
+          "description": "Crie um deck em que cada slide organiza outras ferramentas da Lolly em um layout escolhido, com título, fundo e notas do apresentador próprios - depois exporte para PowerPoint, PDF, GIF ou MP4."
+        },
+        "ro": {
+          "name": "Slide-uri",
+          "description": "Creează o prezentare în care fiecare slide aranjează alte instrumente Lolly într-un aspect ales, cu titlu, fundal și note pentru vorbitor proprii - apoi exportă în PowerPoint, PDF, GIF sau MP4."
+        },
+        "sv": {
+          "name": "Bilder",
+          "description": "Bygg ett bildspel där varje bild arrangerar andra Lolly-verktyg i en vald layout, med egen titel, bakgrund och talaranteckningar - exportera sedan till PowerPoint, PDF, GIF eller MP4."
+        },
+        "tl": {
+          "name": "Slides",
+          "description": "Gumawa ng deck kung saan inaayos ng bawat slide ang ibang Lolly tools sa napiling layout, na may sariling title, background, at speaker notes - pagkatapos ay i-export sa PowerPoint, PDF, GIF, o MP4."
+        },
+        "tr": {
+          "name": "Slaytlar",
+          "description": "Her slaytın diğer Lolly araçlarını seçilen bir düzende, kendi başlığı, arka planı ve sunum notlarıyla düzenlediği bir sunum oluştur - ardından PowerPoint, PDF, GIF veya MP4 olarak dışa aktar."
+        },
+        "uk": {
+          "name": "Слайди",
+          "description": "Створіть колоду, де кожен слайд розташовує інші інструменти Lolly в обраному макеті, з власним заголовком, фоном і нотатками доповідача - потім експортуйте у PowerPoint, PDF, GIF або MP4."
+        },
+        "ur": {
+          "name": "سلائیڈز",
+          "description": "ایک ایسا ڈیک بنائیں جہاں ہر سلائیڈ دوسرے Lolly ٹولز کو منتخب کردہ لے آؤٹ میں ترتیب دے، اپنے عنوان، بیک گراؤنڈ اور اسپیکر نوٹس کے ساتھ - پھر PowerPoint، PDF، GIF یا MP4 میں ایکسپورٹ کریں۔"
+        },
+        "vi": {
+          "name": "Trang chiếu",
+          "description": "Tạo bộ slide trong đó mỗi slide sắp xếp các công cụ Lolly khác theo bố cục đã chọn, với tiêu đề, nền và ghi chú thuyết trình riêng - rồi xuất sang PowerPoint, PDF, GIF hoặc MP4."
+        },
+        "zh-hant": {
+          "name": "投影片",
+          "description": "建立一份投影片集,每張投影片都以選定版面配置排列其他 Lolly 工具,各自擁有標題、背景與演講者備忘稿 - 再匯出為 PowerPoint、PDF、GIF 或 MP4。"
+        },
+        "zh": {
+          "name": "幻灯片",
+          "description": "构建一个演示文稿,每张幻灯片都以选定布局排列其他 Lolly 工具,并拥有各自的标题、背景和演讲者备注 - 然后导出为 PowerPoint、PDF、GIF 或 MP4。"
+        }
+      }
     },
     {
       "id": "deck-studio",
@@ -3272,7 +3590,113 @@
           }
         }
       ],
-      "paged": true
+      "paged": true,
+      "i18n": {
+        "ar": {
+          "name": "استوديو العروض",
+          "description": "أنشئ عرض PowerPoint أصليا وقابلا للتعديل - نص حقيقي ونقاط وجداول وسمة علامة تجارية - من منشئ شرائح بسيط، أو Markdown ملصق، أو مواصفات JSON. تأتي المخططات والرسوم البيانية من أدوات Lolly الأخرى لديك. يصدر إلى .pptx (قابل للتعديل)، بالإضافة إلى PDF وPNG."
+        },
+        "bg": {
+          "name": "Студио за презентации",
+          "description": "Създай нативна, редактируема презентация за PowerPoint - истински текст, точки, таблици и брандирана тема - от прост конструктор на слайдове, поставен Markdown или JSON спецификация. Графиките и диаграмите идват от другите ти инструменти на Lolly. Експортира .pptx (редактируем), плюс PDF и PNG."
+        },
+        "bn": {
+          "name": "ডেক স্টুডিও",
+          "description": "একটি সাধারণ স্লাইড বিল্ডার, পেস্ট করা Markdown, বা একটি JSON স্পেক থেকে নেটিভ, এডিটেবল PowerPoint ডেক তৈরি করুন - আসল টেক্সট, বুলেট, টেবিল ও ব্র্যান্ড থিমসহ। চার্ট ও ডায়াগ্রাম আসে আপনার অন্যান্য Lolly টুল থেকে। .pptx (এডিটেবল), সাথে PDF ও PNG এক্সপোর্ট করে।"
+        },
+        "cs": {
+          "name": "Studio prezentací",
+          "description": "Vytvoř nativní, editovatelnou prezentaci PowerPoint - skutečný text, odrážky, tabulky a motiv značky - pomocí jednoduchého tvůrce snímků, vloženého Markdownu nebo specifikace JSON. Grafy a diagramy pocházejí z dalších nástrojů Lolly. Export do .pptx (editovatelné), plus PDF a PNG."
+        },
+        "de": {
+          "name": "Deck Studio",
+          "description": "Erstellen Sie eine native, bearbeitbare PowerPoint-Präsentation - echter Text, Aufzählungen, Tabellen und Markendesign - mit einem einfachen Folien-Builder, eingefügtem Markdown oder einer JSON-Spezifikation. Diagramme und Grafiken stammen aus Ihren anderen Lolly-Tools. Exportiert .pptx (bearbeitbar), sowie PDF und PNG."
+        },
+        "es": {
+          "name": "Estudio de presentaciones",
+          "description": "Crea una presentación PowerPoint nativa y editable - texto real, viñetas, tablas y tema de marca - desde un creador de diapositivas sencillo, Markdown pegado o una especificación JSON. Los gráficos y diagramas vienen de tus otras herramientas de Lolly. Exporta a .pptx (editable), además de PDF y PNG."
+        },
+        "fr": {
+          "name": "Deck Studio",
+          "description": "Crée un diaporama PowerPoint natif et modifiable - texte réel, puces, tableaux et thème de marque - à partir d'un simple générateur de diapositives, de Markdown collé ou d'une spec JSON. Les graphiques et diagrammes proviennent de tes autres outils Lolly. Exporte en .pptx (modifiable), plus PDF et PNG."
+        },
+        "hi": {
+          "name": "डेक स्टूडियो",
+          "description": "एक नेटिव, एडिटेबल PowerPoint डेक बनाएं - असली टेक्स्ट, बुलेट्स, टेबल्स और ब्रांड थीम - एक सिंपल स्लाइड बिल्डर, पेस्ट किए गए Markdown, या JSON स्पेक से। चार्ट और डायग्राम आपके अन्य Lolly टूल्स से आते हैं। .pptx (एडिटेबल), साथ ही PDF और PNG एक्सपोर्ट करता है।"
+        },
+        "id": {
+          "name": "Studio Presentasi",
+          "description": "Buat deck PowerPoint native yang bisa diedit - teks asli, bullet, tabel, dan tema brand - dari pembuat slide sederhana, Markdown yang ditempel, atau spesifikasi JSON. Chart dan diagram berasal dari tool Lolly lainnya. Mengekspor .pptx (bisa diedit), plus PDF dan PNG."
+        },
+        "it": {
+          "name": "Studio deck",
+          "description": "Crea un deck PowerPoint nativo e modificabile - testo reale, elenchi puntati, tabelle e tema del brand - da un semplice generatore di slide, Markdown incollato o una specifica JSON. I grafici e i diagrammi provengono dai tuoi altri strumenti Lolly. Esporta .pptx (modificabile), oltre a PDF e PNG."
+        },
+        "ja": {
+          "name": "デッキスタジオ",
+          "description": "ネイティブで編集可能なPowerPointデッキを作成します - 実際のテキスト、箇条書き、表、ブランドテーマ - を、シンプルなスライドビルダー、貼り付けたMarkdown、またはJSON仕様から生成できます。チャートや図表は他のLollyツールから取得します。.pptx（編集可能）に加え、PDFとPNGでもエクスポートできます。"
+        },
+        "ko": {
+          "name": "덱 스튜디오",
+          "description": "네이티브 편집 가능한 PowerPoint 덱을 만드세요 - 실제 텍스트, 글머리 기호, 표, 브랜드 테마까지 - 간단한 슬라이드 빌더, 붙여넣은 Markdown, 또는 JSON 스펙으로요. 차트와 다이어그램은 다른 Lolly 도구에서 가져와요. .pptx(편집 가능)로 내보내고, PDF와 PNG도 함께 내보내요."
+        },
+        "ms": {
+          "name": "Studio Dek",
+          "description": "Bina dek PowerPoint asli yang boleh disunting - teks sebenar, bulet, jadual dan tema jenama - daripada pembina slaid mudah, Markdown yang ditampal, atau spesifikasi JSON. Carta dan gambar rajah datang daripada alat Lolly anda yang lain. Mengeksport .pptx (boleh disunting), serta PDF dan PNG."
+        },
+        "nl": {
+          "name": "Deck Studio",
+          "description": "Bouw een native, bewerkbare PowerPoint-deck - echte tekst, opsommingstekens, tabellen en merkthema - vanuit een eenvoudige diabouwer, geplakte Markdown of een JSON-spec. Grafieken en diagrammen komen van je andere Lolly-tools. Exporteert .pptx (bewerkbaar), plus PDF en PNG."
+        },
+        "no": {
+          "name": "Presentasjonsstudio",
+          "description": "Bygg en fullverdig, redigerbar PowerPoint-presentasjon - ekte tekst, punktlister, tabeller og merkevaretema - fra en enkel lysbildebygger, limt inn Markdown, eller en JSON-spesifikasjon. Diagrammer og figurer kommer fra dine andre Lolly-verktøy. Eksporterer .pptx (redigerbar), pluss PDF og PNG."
+        },
+        "pl": {
+          "name": "Studio prezentacji",
+          "description": "Twórz natywną, edytowalną prezentację PowerPoint - prawdziwy tekst, punktory, tabele i motyw marki - za pomocą prostego kreatora slajdów, wklejonego Markdown lub specyfikacji JSON. Wykresy i diagramy pochodzą z innych narzędzi Lolly. Eksportuje .pptx (edytowalny), a także PDF i PNG."
+        },
+        "pt": {
+          "name": "Estúdio de Deck",
+          "description": "Crie um deck nativo e editável do PowerPoint - com texto real, marcadores, tabelas e tema da marca - a partir de um criador de slides simples, Markdown colado ou uma especificação JSON. Gráficos e diagramas vêm das suas outras ferramentas da Lolly. Exporta em .pptx (editável), além de PDF e PNG."
+        },
+        "ro": {
+          "name": "Studio prezentări",
+          "description": "Creează o prezentare PowerPoint nativă, editabilă - text real, buline, tabele și tema brandului - dintr-un generator simplu de slide-uri, Markdown lipit sau o specificație JSON. Graficele și diagramele provin din celelalte instrumente Lolly. Exportă .pptx (editabil), plus PDF și PNG."
+        },
+        "sv": {
+          "name": "Bildspelsstudio",
+          "description": "Bygg ett nativt, redigerbart PowerPoint-bildspel - riktig text, punktlistor, tabeller och varumärkestema - från en enkel bildbyggare, inklistrad Markdown eller en JSON-specifikation. Diagram kommer från dina andra Lolly-verktyg. Exporterar .pptx (redigerbar), samt PDF och PNG."
+        },
+        "tl": {
+          "name": "Deck Studio",
+          "description": "Gumawa ng native, nae-edit na PowerPoint deck - tunay na text, bullets, tables, at brand theme - mula sa simpleng slide builder, na-paste na Markdown, o JSON spec. Ang mga chart at diagram ay galing sa iba mong Lolly tools. Nag-e-export ng .pptx (nae-edit), kasama ang PDF at PNG."
+        },
+        "tr": {
+          "name": "Sunum Stüdyosu",
+          "description": "Basit bir slayt oluşturucudan, yapıştırılan Markdown'dan veya bir JSON spesifikasyonundan gerçek metin, madde işaretleri, tablolar ve marka temasıyla yerel, düzenlenebilir bir PowerPoint sunumu oluştur. Grafikler ve diyagramlar diğer Lolly araçlarından gelir. .pptx (düzenlenebilir), ayrıca PDF ve PNG olarak dışa aktarır."
+        },
+        "uk": {
+          "name": "Студія презентацій",
+          "description": "Створіть нативну, редаговану колоду PowerPoint - справжній текст, списки, таблиці й тему бренду - за допомогою простого конструктора слайдів, вставленого Markdown або специфікації JSON. Діаграми та графіки беруться з ваших інших інструментів Lolly. Експортує .pptx (редаговані), а також PDF і PNG."
+        },
+        "ur": {
+          "name": "ڈیک اسٹوڈیو",
+          "description": "ایک نیٹو، قابل ترمیم PowerPoint ڈیک بنائیں - اصل متن، بلٹس، جداول اور برانڈ تھیم - ایک سادہ سلائیڈ بلڈر، پیسٹ کیے گئے Markdown، یا JSON اسپیک سے۔ چارٹس اور ڈایاگرامز آپ کے دوسرے Lolly ٹولز سے آتے ہیں۔ .pptx (قابل ترمیم) کے ساتھ ساتھ PDF اور PNG بھی ایکسپورٹ کرتا ہے۔"
+        },
+        "vi": {
+          "name": "Deck Studio",
+          "description": "Tạo bộ slide PowerPoint gốc, có thể chỉnh sửa - văn bản thật, gạch đầu dòng, bảng và theme thương hiệu - từ trình tạo slide đơn giản, Markdown dán vào, hoặc JSON spec. Biểu đồ và sơ đồ lấy từ các công cụ Lolly khác. Xuất .pptx (có thể chỉnh sửa), cùng PDF và PNG."
+        },
+        "zh-hant": {
+          "name": "簡報工作室",
+          "description": "從簡易投影片建立工具、貼上的 Markdown 或 JSON 規格,建立原生、可編輯的 PowerPoint 投影片集 - 真實文字、項目符號、表格與品牌主題。圖表與圖示來自您其他的 Lolly 工具。匯出為 .pptx(可編輯),另加 PDF 與 PNG。"
+        },
+        "zh": {
+          "name": "演示文稿工作室",
+          "description": "从简单的幻灯片构建器、粘贴的 Markdown 或 JSON 规范,构建原生可编辑的 PowerPoint 演示文稿 - 真正的文本、项目符号、表格和品牌主题。图表和示意图来自你的其他 Lolly 工具。导出 .pptx(可编辑),以及 PDF 和 PNG。"
+        }
+      }
     },
     {
       "id": "deck-builder",
@@ -3292,7 +3716,113 @@
       "height": 1920,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"16\" height=\"11\" rx=\"1.5\" /><path d=\"M7 19h6\" /><path d=\"M10 15v4\" /><path d=\"M21 7v9a2 2 0 0 1-2 2\" /></svg>",
-      "preview": "/catalog/previews/deck-builder.svg"
+      "preview": "/catalog/previews/deck-builder.svg",
+      "i18n": {
+        "ar": {
+          "name": "منشئ العروض",
+          "description": "أنشئ عرضا تقديميا بمحرر مباشر على اللوحة - عدل النص والألوان والصور مباشرة على كل شريحة."
+        },
+        "bg": {
+          "name": "Конструктор на презентации",
+          "description": "Създай презентация с редактор на живо върху платното - редактирай текст, цветове и изображения директно на всеки слайд."
+        },
+        "bn": {
+          "name": "ডেক বিল্ডার",
+          "description": "একটি লাইভ অন-ক্যানভাস এডিটরসহ স্লাইড ডেক তৈরি করুন - প্রতিটি স্লাইডে সরাসরি টেক্সট, রং ও ছবি এডিট করুন।"
+        },
+        "cs": {
+          "name": "Tvůrce prezentací",
+          "description": "Vytvoř prezentaci pomocí živého editoru přímo na plátně - uprav text, barvy a obrázky přímo na každém snímku."
+        },
+        "de": {
+          "name": "Deck Builder",
+          "description": "Erstellen Sie eine Präsentation mit einem Live-Editor auf dem Canvas - bearbeiten Sie Text, Farben und Bilder direkt auf jeder Folie."
+        },
+        "es": {
+          "name": "Creador de presentaciones",
+          "description": "Crea una presentación con un editor en vivo sobre el lienzo - edita texto, colores e imágenes directamente en cada diapositiva."
+        },
+        "fr": {
+          "name": "Deck Builder",
+          "description": "Crée un diaporama avec un éditeur en direct sur le canevas - modifie le texte, les couleurs et les images directement sur chaque diapositive."
+        },
+        "hi": {
+          "name": "डेक बिल्डर",
+          "description": "एक लाइव ऑन-कैनवस एडिटर के साथ स्लाइड डेक बनाएं - हर स्लाइड पर सीधे टेक्स्ट, रंग और इमेज एडिट करें।"
+        },
+        "id": {
+          "name": "Pembuat Presentasi",
+          "description": "Buat slide deck dengan editor on-canvas langsung - edit teks, warna, dan gambar langsung di setiap slide."
+        },
+        "it": {
+          "name": "Creatore di deck",
+          "description": "Crea un deck di slide con un editor live sul canvas - modifica testo, colori e immagini direttamente su ogni slide."
+        },
+        "ja": {
+          "name": "デッキビルダー",
+          "description": "ライブのオンキャンバスエディタでスライドデッキを作成します - 各スライド上で直接テキスト、色、画像を編集できます。"
+        },
+        "ko": {
+          "name": "덱 빌더",
+          "description": "실시간 캔버스 편집기로 슬라이드 덱을 만드세요 - 각 슬라이드에서 텍스트, 색상, 이미지를 직접 편집해요."
+        },
+        "ms": {
+          "name": "Pembina Dek",
+          "description": "Bina dek slaid dengan penyunting langsung di atas kanvas - sunting teks, warna dan imej terus pada setiap slaid."
+        },
+        "nl": {
+          "name": "Deck Builder",
+          "description": "Bouw een deck met een live editor op het canvas - bewerk tekst, kleuren en afbeeldingen direct op elke dia."
+        },
+        "no": {
+          "name": "Presentasjonsbygger",
+          "description": "Bygg en presentasjon med direkte redigering på lerretet - rediger tekst, farger og bilder direkte på hvert lysbilde."
+        },
+        "pl": {
+          "name": "Kreator prezentacji",
+          "description": "Twórz prezentację za pomocą edytora live na płótnie - edytuj tekst, kolory i obrazy bezpośrednio na każdym slajdzie."
+        },
+        "pt": {
+          "name": "Criador de Deck",
+          "description": "Crie um deck de slides com um editor ao vivo na tela - edite texto, cores e imagens diretamente em cada slide."
+        },
+        "ro": {
+          "name": "Constructor prezentări",
+          "description": "Creează o prezentare cu un editor live pe canvas - editează text, culori și imagini direct pe fiecare slide."
+        },
+        "sv": {
+          "name": "Bildspelsbyggare",
+          "description": "Bygg ett bildspel med en direkt redigerare på canvasen - redigera text, färger och bilder direkt på varje bild."
+        },
+        "tl": {
+          "name": "Deck Builder",
+          "description": "Gumawa ng slide deck gamit ang live na on-canvas editor - i-edit ang text, colours, at images nang direkta sa bawat slide."
+        },
+        "tr": {
+          "name": "Sunum Oluşturucu",
+          "description": "Canlı, tuval üzerinde düzenleyiciyle bir slayt sunumu oluştur - metni, renkleri ve görselleri doğrudan her slaytta düzenle."
+        },
+        "uk": {
+          "name": "Конструктор презентацій",
+          "description": "Створіть колоду слайдів із живим редактором на полотні - редагуйте текст, кольори та зображення прямо на кожному слайді."
+        },
+        "ur": {
+          "name": "ڈیک بلڈر",
+          "description": "ایک لائیو آن کینوس ایڈیٹر کے ساتھ سلائیڈ ڈیک بنائیں - ہر سلائیڈ پر براہ راست متن، رنگ اور تصاویر میں ترمیم کریں۔"
+        },
+        "vi": {
+          "name": "Deck Builder",
+          "description": "Tạo bộ slide với trình chỉnh sửa trực tiếp trên canvas - chỉnh văn bản, màu sắc và hình ảnh ngay trên từng slide."
+        },
+        "zh-hant": {
+          "name": "簡報建立工具",
+          "description": "使用即時畫布編輯器建立投影片集 - 直接在每張投影片上編輯文字、色彩與圖片。"
+        },
+        "zh": {
+          "name": "演示文稿构建器",
+          "description": "使用实时画布编辑器构建幻灯片演示文稿 - 直接在每张幻灯片上编辑文本、颜色和图片。"
+        }
+      }
     },
     {
       "id": "rebrand-deck",
@@ -3309,7 +3839,113 @@
       "height": 620,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 5.5A1.5 1.5 0 0 1 4.5 4h15A1.5 1.5 0 0 1 21 5.5v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 13.5Z\" /><path d=\"M12 15v2.5\" /><path d=\"m8.5 21 3.5-3.5L15.5 21\" /><path d=\"M12 6.4s-2.4 2.5-2.4 4a2.4 2.4 0 0 0 4.8 0c0-1.5-2.4-4-2.4-4Z\" /></svg>",
-      "preview": "/catalog/previews/rebrand-deck.svg"
+      "preview": "/catalog/previews/rebrand-deck.svg",
+      "i18n": {
+        "ar": {
+          "name": "إعادة العلامة التجارية لعرض تقديمي",
+          "description": "ارفع عرض PowerPoint وطبق ألوانه وخطوطه على علامتك التجارية - يعاد بناؤه على جهازك، دون رفع أي شيء."
+        },
+        "bg": {
+          "name": "Пребрандиране на презентация",
+          "description": "Качи PowerPoint файл и приведи цветовете и шрифтовете му към твоя бранд - пресъздадено на твоето устройство, нищо не се качва."
+        },
+        "bn": {
+          "name": "একটি ডেক রিব্র্যান্ড করুন",
+          "description": "একটি PowerPoint ডেক আপলোড করুন এবং এর রং ও ফন্ট আপনার ব্র্যান্ডে স্ন্যাপ করুন - আপনার ডিভাইসেই পুনর্নির্মিত, কিছুই আপলোড হয় না।"
+        },
+        "cs": {
+          "name": "Rebrandovat prezentaci",
+          "description": "Nahraj prezentaci PowerPoint a přizpůsob její barvy a písma své značce - znovu sestavena v tvém zařízení, nic se neodesílá."
+        },
+        "de": {
+          "name": "Ein Deck rebranden",
+          "description": "Laden Sie eine PowerPoint-Präsentation hoch und passen Sie deren Farben und Schriften an Ihre Marke an - neu erstellt auf Ihrem Gerät, nichts wird hochgeladen."
+        },
+        "es": {
+          "name": "Cambiar marca de una presentación",
+          "description": "Sube un deck de PowerPoint y ajusta sus colores y fuentes a tu marca - reconstruido en tu dispositivo, no se sube nada."
+        },
+        "fr": {
+          "name": "Rebrander un deck",
+          "description": "Importe un deck PowerPoint et aligne ses couleurs et polices sur ta marque - reconstruit sur ton appareil, rien n'est envoyé."
+        },
+        "hi": {
+          "name": "डेक रीब्रांड करें",
+          "description": "कोई PowerPoint डेक अपलोड करें और उसके रंग और फ़ॉन्ट अपने ब्रांड में बदलें - आपकी डिवाइस पर फिर से बनाया गया, कुछ भी अपलोड नहीं होता।"
+        },
+        "id": {
+          "name": "Ubah Merek Dek",
+          "description": "Unggah deck PowerPoint dan sesuaikan warna serta fontnya ke brand Anda - dibangun ulang di perangkat Anda, tidak ada yang diunggah."
+        },
+        "it": {
+          "name": "Rebrand di una presentazione",
+          "description": "Carica una presentazione PowerPoint e adatta colori e caratteri al tuo brand - ricostruita sul dispositivo, senza caricare nulla."
+        },
+        "ja": {
+          "name": "デッキをリブランド",
+          "description": "PowerPointのデッキをアップロードすると、色とフォントをブランドに合わせます - デバイス上で再構築されるため、何もアップロードされません。"
+        },
+        "ko": {
+          "name": "덱 리브랜딩",
+          "description": "PowerPoint 덱을 업로드하면 색상과 폰트를 브랜드에 맞게 바꿔요 - 기기에서 다시 만들어지며, 아무것도 업로드되지 않아요."
+        },
+        "ms": {
+          "name": "Jenamakan Semula Dek",
+          "description": "Muat naik dek PowerPoint dan sesuaikan warna serta fon dengan jenama anda - dibina semula pada peranti anda, tiada apa dimuat naik."
+        },
+        "nl": {
+          "name": "Herbrand een deck",
+          "description": "Upload een PowerPoint-deck en zet de kleuren en lettertypen om naar je merk - opnieuw opgebouwd op je apparaat, niets geüpload."
+        },
+        "no": {
+          "name": "Ombrand en presentasjon",
+          "description": "Last opp en PowerPoint-presentasjon og tilpass fargene og skriftene til merkevaren din - bygget på nytt på enheten din, ingenting lastes opp."
+        },
+        "pl": {
+          "name": "Zmień markę prezentacji",
+          "description": "Prześlij prezentację PowerPoint i dopasuj jej kolory oraz czcionki do swojej marki - przebudowane na twoim urządzeniu, nic nie jest wysyłane."
+        },
+        "pt": {
+          "name": "Rebrand de um Deck",
+          "description": "Carregue um deck do PowerPoint e ajuste suas cores e fontes à sua marca - reconstruído no seu dispositivo, nada é enviado."
+        },
+        "ro": {
+          "name": "Rebranduiește o prezentare",
+          "description": "Încarcă o prezentare PowerPoint și aliniază culorile și fonturile la brandul tău - reconstruită pe dispozitivul tău, nimic nu este încărcat."
+        },
+        "sv": {
+          "name": "Ombranda en presentation",
+          "description": "Ladda upp en PowerPoint-presentation och matcha dess färger och typsnitt mot ditt varumärke - återskapas på din enhet, inget laddas upp."
+        },
+        "tl": {
+          "name": "I-rebrand ang Deck",
+          "description": "Mag-upload ng PowerPoint deck at i-snap ang mga kulay at font nito sa iyong brand - muling itinatayo sa iyong device, walang ina-upload."
+        },
+        "tr": {
+          "name": "Sunumu Yeniden Markala",
+          "description": "Bir PowerPoint sunumu yükle, renklerini ve fontlarını markana uyarlasın - cihazında yeniden oluşturulur, hiçbir şey yüklenmez."
+        },
+        "uk": {
+          "name": "Ребрендинг презентації",
+          "description": "Завантажте презентацію PowerPoint і приведіть її кольори та шрифти до вашого бренду - усе перебудовується на вашому пристрої, нічого не надсилається на сервер."
+        },
+        "ur": {
+          "name": "ایک ڈیک کو ری برانڈ کریں",
+          "description": "PowerPoint ڈیک اپ لوڈ کریں اور اس کے رنگ اور فونٹس کو اپنے برانڈ سے ملائیں - آپ کے ڈیوائس پر دوبارہ تیار کیا جاتا ہے، کچھ بھی اپ لوڈ نہیں ہوتا۔"
+        },
+        "vi": {
+          "name": "Đổi thương hiệu cho Deck",
+          "description": "Tải lên một bộ PowerPoint và khớp màu sắc, phông chữ của nó với thương hiệu của bạn - dựng lại ngay trên thiết bị, không có gì được tải lên."
+        },
+        "zh-hant": {
+          "name": "重塑簡報品牌",
+          "description": "上傳 PowerPoint 簡報,將其色彩與字體套用為你的品牌樣式 - 在你的裝置上重建,不會上傳任何內容。"
+        },
+        "zh": {
+          "name": "为演示文稿更换品牌",
+          "description": "上传PowerPoint演示文稿，将其颜色和字体匹配到你的品牌 - 在你的设备上重建，不会上传任何内容。"
+        }
+      }
     },
     {
       "id": "convert-image",
@@ -3328,7 +3964,113 @@
       "height": 620,
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\"/><circle cx=\"8\" cy=\"8\" r=\"1.6\"/><path d=\"m3 14 4-4 5 5\"/><path d=\"M21 11v6a4 4 0 0 1-4 4h-6\"/><path d=\"m14 18 3 3 3-3\"/></svg>",
-      "preview": "/catalog/previews/convert-image.svg"
+      "preview": "/catalog/previews/convert-image.svg",
+      "i18n": {
+        "ar": {
+          "name": "تحويل الصورة",
+          "description": "حول HEIC أو TIFF أو أي صورة إلى WebP أو JPEG أو PNG - على جهازك."
+        },
+        "bg": {
+          "name": "Конвертирай изображение",
+          "description": "Превърни HEIC, TIFF или всяка снимка в WebP, JPEG или PNG - на твоето устройство."
+        },
+        "bn": {
+          "name": "ছবি কনভার্ট করুন",
+          "description": "HEIC, TIFF বা যেকোনো ছবিকে WebP, JPEG বা PNG-তে রূপান্তর করুন - আপনার ডিভাইসেই।"
+        },
+        "cs": {
+          "name": "Převést obrázek",
+          "description": "Změň HEIC, TIFF nebo jakoukoli fotku na WebP, JPEG nebo PNG - přímo v zařízení."
+        },
+        "de": {
+          "name": "Bild konvertieren",
+          "description": "Wandeln Sie HEIC, TIFF oder jedes Foto in WebP, JPEG oder PNG um - auf Ihrem Gerät."
+        },
+        "es": {
+          "name": "Convertir imagen",
+          "description": "Convierte HEIC, TIFF o cualquier foto en WebP, JPEG o PNG - en tu dispositivo."
+        },
+        "fr": {
+          "name": "Convertir l'image",
+          "description": "Transforme un HEIC, TIFF ou n'importe quelle photo en WebP, JPEG ou PNG - sur ton appareil."
+        },
+        "hi": {
+          "name": "इमेज कन्वर्ट करें",
+          "description": "HEIC, TIFF या किसी भी फ़ोटो को WebP, JPEG या PNG में बदलें - आपकी डिवाइस पर।"
+        },
+        "id": {
+          "name": "Konversi Gambar",
+          "description": "Ubah HEIC, TIFF, atau foto apa pun menjadi WebP, JPEG, atau PNG - di perangkat Anda."
+        },
+        "it": {
+          "name": "Converti immagine",
+          "description": "Trasforma HEIC, TIFF o qualsiasi foto in WebP, JPEG o PNG - sul tuo dispositivo."
+        },
+        "ja": {
+          "name": "画像を変換",
+          "description": "HEIC、TIFF、その他の写真をWebP、JPEG、PNGに変換します - お使いの端末上で処理されます。"
+        },
+        "ko": {
+          "name": "이미지 변환",
+          "description": "HEIC, TIFF, 어떤 사진이든 WebP, JPEG, PNG로 바꿔요 - 내 기기에서."
+        },
+        "ms": {
+          "name": "Tukar Imej",
+          "description": "Tukar HEIC, TIFF atau sebarang foto kepada WebP, JPEG atau PNG - di peranti anda."
+        },
+        "nl": {
+          "name": "Afbeelding converteren",
+          "description": "Zet HEIC, TIFF of elke foto om naar WebP, JPEG of PNG - op je apparaat."
+        },
+        "no": {
+          "name": "Konverter bilde",
+          "description": "Gjør HEIC, TIFF eller et hvilket som helst bilde om til WebP, JPEG eller PNG - på din enhet."
+        },
+        "pl": {
+          "name": "Konwertuj obraz",
+          "description": "Zamień HEIC, TIFF lub dowolne zdjęcie na WebP, JPEG lub PNG - na swoim urządzeniu."
+        },
+        "pt": {
+          "name": "Converter imagem",
+          "description": "Transforme HEIC, TIFF ou qualquer foto em WebP, JPEG ou PNG - no seu dispositivo."
+        },
+        "ro": {
+          "name": "Convertește imagine",
+          "description": "Transformă HEIC, TIFF sau orice fotografie în WebP, JPEG sau PNG - pe dispozitivul tău."
+        },
+        "sv": {
+          "name": "Konvertera bild",
+          "description": "Gör om HEIC, TIFF eller valfritt foto till WebP, JPEG eller PNG - på din enhet."
+        },
+        "tl": {
+          "name": "I-convert ang Larawan",
+          "description": "Gawing WebP, JPEG o PNG ang HEIC, TIFF o anumang larawan - sa iyong device."
+        },
+        "tr": {
+          "name": "Görseli Dönüştür",
+          "description": "HEIC, TIFF veya herhangi bir fotoğrafı cihazında WebP, JPEG veya PNG'ye dönüştür."
+        },
+        "uk": {
+          "name": "Конвертувати зображення",
+          "description": "Перетворюйте HEIC, TIFF або будь-яке фото на WebP, JPEG чи PNG - на вашому пристрої."
+        },
+        "ur": {
+          "name": "تصویر تبدیل کریں",
+          "description": "HEIC، TIFF یا کسی بھی تصویر کو WebP، JPEG یا PNG میں تبدیل کریں - آپ کے ڈیوائس پر۔"
+        },
+        "vi": {
+          "name": "Chuyển đổi ảnh",
+          "description": "Chuyển HEIC, TIFF hoặc bất kỳ ảnh nào sang WebP, JPEG hoặc PNG - ngay trên thiết bị của bạn."
+        },
+        "zh-hant": {
+          "name": "轉換圖片",
+          "description": "將 HEIC、TIFF 或任何相片轉換為 WebP、JPEG 或 PNG - 在你的裝置上完成。"
+        },
+        "zh": {
+          "name": "转换图像",
+          "description": "将HEIC、TIFF或任何照片转换为WebP、JPEG或PNG - 在你的设备上完成。"
+        }
+      }
     },
     {
       "id": "wordmark",
@@ -3401,7 +4143,113 @@
           },
           "theme": "dark"
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "شعار نصي",
+          "description": "اكتب كلمة واحصل على شعار نصي متجهي (مسارات خالصة) بخط علامتك التجارية - لا يحتاج المستلمون إلى تثبيت الخط أبدا."
+        },
+        "bg": {
+          "name": "Текстово лого",
+          "description": "Въведи дума, получи чисто векторно текстово лого в брандовия ти шрифт - получателите никога няма да имат нужда от инсталиран шрифт."
+        },
+        "bn": {
+          "name": "ওয়ার্ডমার্ক",
+          "description": "একটি শব্দ লিখুন, আপনার ব্র্যান্ড ফন্টে একটি খাঁটি-পাথ ভেক্টর ওয়ার্ডমার্ক পান - প্রাপকদের ফন্ট ইনস্টল করার দরকার হয় না।"
+        },
+        "cs": {
+          "name": "Slovní značka",
+          "description": "Napiš slovo a získej vektorovou slovní značku z čistých cest v písmu své značky - příjemci nikdy nepotřebují mít písmo nainstalované."
+        },
+        "de": {
+          "name": "Wortmarke",
+          "description": "Geben Sie ein Wort ein und erhalten Sie ein reines Pfad-Vektor-Wortzeichen in Ihrer Markenschrift - Empfänger müssen die Schrift nie installiert haben."
+        },
+        "es": {
+          "name": "Logotipo",
+          "description": "Escribe una palabra y obtén un logotipo vectorial de rutas puras en tu fuente de marca - los destinatarios nunca necesitan tener la fuente instalada."
+        },
+        "fr": {
+          "name": "Logotype",
+          "description": "Tape un mot, obtiens un logotype vectoriel en pur tracé dans ta police de marque - les destinataires n'ont jamais besoin de la police installée."
+        },
+        "hi": {
+          "name": "वर्डमार्क",
+          "description": "एक शब्द टाइप करें, अपने ब्रांड फ़ॉन्ट में एक प्योर-पाथ वेक्टर वर्डमार्क पाएं - प्राप्तकर्ताओं को फ़ॉन्ट इंस्टॉल करने की कभी ज़रूरत नहीं।"
+        },
+        "id": {
+          "name": "Wordmark",
+          "description": "Ketik sebuah kata, dapatkan wordmark vektor pure-path dalam font brand Anda - penerima tidak pernah perlu menginstal font."
+        },
+        "it": {
+          "name": "Wordmark",
+          "description": "Digita una parola, ottieni un wordmark vettoriale a percorsi puri nel font del tuo brand - i destinatari non hanno mai bisogno del font installato."
+        },
+        "ja": {
+          "name": "ワードマーク",
+          "description": "単語を入力すると、ブランドフォントによるパスのみのベクターワードマークが得られます - 受け取った相手はフォントのインストールが不要です。"
+        },
+        "ko": {
+          "name": "워드마크",
+          "description": "단어를 입력하면 브랜드 폰트로 된 순수 패스 벡터 워드마크를 만들어요 - 받는 사람은 폰트를 설치할 필요가 없어요."
+        },
+        "ms": {
+          "name": "Wordmark",
+          "description": "Taip satu perkataan, dapatkan wordmark vektor laluan-tulen dalam fon jenama anda - penerima tidak perlu memasang fon itu."
+        },
+        "nl": {
+          "name": "Wordmark",
+          "description": "Typ een woord, krijg een pure-path vector-wordmark in je merklettertype - ontvangers hoeven het lettertype nooit te installeren."
+        },
+        "no": {
+          "name": "Wordmark",
+          "description": "Skriv et ord, få en vektor-wordmark med rene baner i merkefonten din - mottakere trenger aldri å ha skriften installert."
+        },
+        "pl": {
+          "name": "Znak słowny",
+          "description": "Wpisz słowo, otrzymaj czysto wektorowy logotyp w czcionce twojej marki - odbiorcy nigdy nie muszą mieć zainstalowanej czcionki."
+        },
+        "pt": {
+          "name": "Wordmark",
+          "description": "Digite uma palavra e obtenha um wordmark vetorial em path puro na fonte da sua marca - quem recebe nunca precisa ter a fonte instalada."
+        },
+        "ro": {
+          "name": "Wordmark",
+          "description": "Scrie un cuvânt, obții un wordmark vectorial pure-path în fontul brandului tău - destinatarii nu au nevoie de fontul instalat."
+        },
+        "sv": {
+          "name": "Ordmärke",
+          "description": "Skriv ett ord, få ett rent vektorbaserat ordmärke i din varumärkesfont - mottagare behöver aldrig ha fonten installerad."
+        },
+        "tl": {
+          "name": "Wordmark",
+          "description": "I-type ang isang salita, makakuha ng purong-path vector wordmark sa iyong brand font - hindi kailangan ng mga tatanggap na naka-install ang font."
+        },
+        "tr": {
+          "name": "Wordmark",
+          "description": "Bir kelime yaz, marka fontunda saf yol vektör bir yazı logosu elde et - alıcıların fontu yüklü olması hiç gerekmez."
+        },
+        "uk": {
+          "name": "Вордмарк",
+          "description": "Введіть слово - отримайте векторний текстовий логотип у вигляді чистих контурів вашим брендовим шрифтом - отримувачам ніколи не знадобиться встановлювати шрифт."
+        },
+        "ur": {
+          "name": "ورڈ مارک",
+          "description": "ایک لفظ ٹائپ کریں، اپنے برانڈ فونٹ میں خالص پاتھ ویکٹر ورڈ مارک حاصل کریں - وصول کنندگان کو کبھی فونٹ انسٹال کرنے کی ضرورت نہیں۔"
+        },
+        "vi": {
+          "name": "Chữ hiệu",
+          "description": "Gõ một từ, nhận một wordmark vector dạng path thuần trong phông chữ thương hiệu của bạn - người nhận không bao giờ cần cài phông chữ."
+        },
+        "zh-hant": {
+          "name": "字標",
+          "description": "輸入一個字,即可取得以品牌字體製作的純路徑向量字標 - 收件者不需安裝字體。"
+        },
+        "zh": {
+          "name": "文字标志",
+          "description": "输入一个词，即可获得用你的品牌字体制作的纯路径矢量文字标志 - 接收者无需安装该字体。"
+        }
+      }
     },
     {
       "id": "audiogram",
@@ -3447,7 +4295,113 @@
             "style": "ring"
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "مخطط صوتي",
+          "description": "حول مقطعا صوتيا أو أغنية إلى فيديو بموجة صوتية بعلامتك التجارية - أشرطة متحركة أو موجة أو حلقة، جاهز لمنصات التواصل الاجتماعي."
+        },
+        "bg": {
+          "name": "Аудиограма",
+          "description": "Превърни гласов клип или песен в брандирано видео с вълнова форма - анимирани лентички, вълна или пръстен, готово за социалните мрежи."
+        },
+        "bn": {
+          "name": "অডিওগ্রাম",
+          "description": "একটি ভয়েস ক্লিপ বা গান থেকে একটি ব্র্যান্ডেড ওয়েভফর্ম ভিডিও তৈরি করুন - অ্যানিমেটেড বার, ওয়েভ বা রিং, সোশ্যালের জন্য প্রস্তুত।"
+        },
+        "cs": {
+          "name": "Audiogram",
+          "description": "Změň hlasový klip nebo píseň na značkové video se zvukovou vlnou - animované sloupce, vlna nebo prstenec, připravené pro sociální sítě."
+        },
+        "de": {
+          "name": "Audiogramm",
+          "description": "Verwandeln Sie einen Sprachclip oder Song in ein gebrandetes Wellenform-Video - animierte Balken, Welle oder Ring, bereit für Social Media."
+        },
+        "es": {
+          "name": "Audiograma",
+          "description": "Convierte un clip de voz o una canción en un vídeo de forma de onda con tu marca - barras animadas, onda o anillo, listo para redes sociales."
+        },
+        "fr": {
+          "name": "Audiogramme",
+          "description": "Transforme un clip vocal ou une chanson en vidéo de forme d'onde à ta marque - barres animées, vague ou anneau, prête pour les réseaux sociaux."
+        },
+        "hi": {
+          "name": "ऑडियोग्राम",
+          "description": "किसी वॉइस क्लिप या गाने को ब्रांडेड वेवफ़ॉर्म वीडियो में बदलें - एनिमेटेड बार्स, वेव या रिंग, सोशल के लिए तैयार।"
+        },
+        "id": {
+          "name": "Audiogram",
+          "description": "Ubah klip suara atau lagu menjadi video waveform sesuai brand - bar animasi, gelombang, atau cincin, siap untuk media sosial."
+        },
+        "it": {
+          "name": "Audiogramma",
+          "description": "Trasforma un clip vocale o una canzone in un video waveform brandizzato - barre animate, onda o anello, pronto per i social."
+        },
+        "ja": {
+          "name": "オーディオグラム",
+          "description": "音声クリップや曲をブランド化した波形動画に変換します - アニメーションのバー、波形、リングで、SNS投稿にすぐ使えます。"
+        },
+        "ko": {
+          "name": "오디오그램",
+          "description": "음성 클립이나 노래를 브랜드 파형 영상으로 만들어요 - 애니메이션 막대, 웨이브 또는 링, 소셜용으로 바로 사용 가능."
+        },
+        "ms": {
+          "name": "Audiogram",
+          "description": "Tukar klip suara atau lagu menjadi video bentuk gelombang berjenama - bar animasi, gelombang atau bulatan, sedia untuk media sosial."
+        },
+        "nl": {
+          "name": "Audiogram",
+          "description": "Zet een voice clip of nummer om in een merkeigen golfvorm-video - geanimeerde balken, golf of ring, klaar voor social."
+        },
+        "no": {
+          "name": "Audiogram",
+          "description": "Gjør et stemmeklipp eller en sang om til en merkevaretilpasset bølgeformvideo - animerte stolper, bølge eller ring, klar for sosiale medier."
+        },
+        "pl": {
+          "name": "Audiogram",
+          "description": "Zamień nagranie głosowe lub utwór w oznaczone marką wideo z falą dźwiękową - animowane paski, fala lub pierścień, gotowe na social media."
+        },
+        "pt": {
+          "name": "Audiograma",
+          "description": "Transforme um clipe de voz ou música em um vídeo de forma de onda com a sua marca - barras animadas, onda ou anel, pronto para redes sociais."
+        },
+        "ro": {
+          "name": "Audiogramă",
+          "description": "Transformă un clip vocal sau o melodie într-un video cu formă de undă personalizat cu brandul - bare animate, undă sau inel, gata pentru social media."
+        },
+        "sv": {
+          "name": "Audiogram",
+          "description": "Gör om ett röstklipp eller en låt till en varumärkesanpassad vågformsvideo - animerade staplar, våg eller ring, redo för sociala medier."
+        },
+        "tl": {
+          "name": "Audiogram",
+          "description": "I-convert ang voice clip o kanta sa branded na waveform video - animated bars, wave o ring, handa na para sa social."
+        },
+        "tr": {
+          "name": "Audiogram",
+          "description": "Bir ses kaydını veya şarkıyı markalı bir dalga formu videosuna dönüştür - animasyonlu çubuklar, dalga veya halka, sosyal medyaya hazır."
+        },
+        "uk": {
+          "name": "Аудіограма",
+          "description": "Перетворіть голосовий запис або пісню на брендоване відео з хвилею - анімовані смуги, хвиля або кільце, готові для соцмереж."
+        },
+        "ur": {
+          "name": "آڈیوگرام",
+          "description": "آواز کی کلپ یا گانے کو ایک برانڈڈ ویو فارم ویڈیو میں تبدیل کریں - اینیمیٹڈ بارز، ویو یا رنگ، سوشل کے لیے تیار۔"
+        },
+        "vi": {
+          "name": "Audiogram",
+          "description": "Biến một đoạn giọng nói hoặc bài hát thành video dạng sóng theo thương hiệu - thanh động, sóng hoặc vòng tròn, sẵn sàng cho mạng xã hội."
+        },
+        "zh-hant": {
+          "name": "音訊圖",
+          "description": "把語音片段或歌曲轉成品牌波形影片 - 動態長條、波浪或環形,適合用於社群。"
+        },
+        "zh": {
+          "name": "音频图",
+          "description": "将语音片段或歌曲转换为品牌化的波形视频 - 动态条形、波浪或圆环，适合社交媒体。"
+        }
+      }
     },
     {
       "id": "embed-track-image",
@@ -3466,7 +4420,113 @@
       "height": 1080,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2.5\" y=\"4\" width=\"14\" height=\"11.5\" rx=\"2\"/><circle cx=\"6.8\" cy=\"8.3\" r=\"1.25\"/><path d=\"M2.5 12.8l3.4-2.9 2.6 2.1 3.2-3.1 4.3 4.2\"/><path d=\"M17.4 12.3l4.1 1.55v3.05c0 2.25-1.75 3.7-4.1 4.5-2.35-.8-4.1-2.25-4.1-4.5v-3.05z\"/><path d=\"M15.5 17.9l1.35 1.35 2.4-2.5\"/></svg>",
-      "preview": "/catalog/previews/embed-track-image.svg"
+      "preview": "/catalog/previews/embed-track-image.svg",
+      "i18n": {
+        "ar": {
+          "name": "تضمين وتتبع الصورة",
+          "description": "اطبع اسم المؤلف وحقوق النشر والترخيص على أي صورة - بالإضافة إلى Lolly Imprint غير مرئي و Content Credentials - قبل مشاركتها."
+        },
+        "bg": {
+          "name": "Вграждане и проследяване на изображение",
+          "description": "Впечатай автор, авторски права и лиценз във всяко изображение - плюс невидим Lolly Imprint и Content Credentials - преди да го споделиш."
+        },
+        "bn": {
+          "name": "এমবেড & ট্র্যাক ইমেজ",
+          "description": "শেয়ার করার আগে যেকোনো ছবিতে আপনার লেখক, কপিরাইট ও লাইসেন্স স্ট্যাম্প করুন - সাথে একটি অদৃশ্য Lolly Imprint এবং Content Credentials।"
+        },
+        "cs": {
+          "name": "Vložit & sledovat obrázek",
+          "description": "Vlož autora, copyright a licenci do libovolného obrázku - plus neviditelný Lolly Imprint a Content Credentials - než ho sdílíš."
+        },
+        "de": {
+          "name": "Bild einbetten & verfolgen",
+          "description": "Stempelt Ihren Autor, Ihr Copyright und Ihre Lizenz in jedes Bild ein - plus einen unsichtbaren Lolly Imprint und Content Credentials - bevor Sie es teilen."
+        },
+        "es": {
+          "name": "Incrustar y rastrear imagen",
+          "description": "Estampa tu autor, derechos de autor y licencia en cualquier imagen - además de un Lolly Imprint invisible y Content Credentials - antes de compartirla."
+        },
+        "fr": {
+          "name": "Intégrer et suivre une image",
+          "description": "Intègre ton auteur, ton copyright et ta licence dans n'importe quelle image - plus un Lolly Imprint invisible et des Content Credentials - avant de la partager."
+        },
+        "hi": {
+          "name": "इमेज एम्बेड & ट्रैक करें",
+          "description": "शेयर करने से पहले किसी भी इमेज में अपना लेखक, कॉपीराइट और लाइसेंस स्टैंप करें - साथ ही एक अदृश्य Lolly Imprint और Content Credentials भी।"
+        },
+        "id": {
+          "name": "Sematkan & Lacak Gambar",
+          "description": "Bubuhkan nama pembuat, hak cipta, dan lisensi Anda ke gambar apa pun - plus Lolly Imprint tak terlihat dan Content Credentials - sebelum Anda membagikannya."
+        },
+        "it": {
+          "name": "Incorpora & traccia immagine",
+          "description": "Imprimi il tuo autore, copyright e licenza in qualsiasi immagine - più un Lolly Imprint invisibile e i Content Credentials - prima di condividerla."
+        },
+        "ja": {
+          "name": "画像を埋め込んで追跡",
+          "description": "作者名・著作権・ライセンスを画像に刻印します - さらに目に見えないLolly ImprintとContent Credentialsも - 共有前に。"
+        },
+        "ko": {
+          "name": "이미지 삽입 & 추적",
+          "description": "공유하기 전에 이미지에 작성자, 저작권, 라이선스를 새겨요 - 보이지 않는 Lolly Imprint와 Content Credentials도 함께 넣어요."
+        },
+        "ms": {
+          "name": "Benam & Jejak Imej",
+          "description": "Cop pengarang, hak cipta dan lesen anda ke atas mana-mana imej - ditambah Lolly Imprint dan Content Credentials yang tidak kelihatan - sebelum anda kongsikannya."
+        },
+        "nl": {
+          "name": "Afbeelding insluiten & volgen",
+          "description": "Stempel je auteur, copyright en licentie in elke afbeelding - plus een onzichtbare Lolly Imprint en Content Credentials - voordat je hem deelt."
+        },
+        "no": {
+          "name": "Bygg inn og spor bilde",
+          "description": "Stemple forfatter, opphavsrett og lisens inn i et hvilket som helst bilde - pluss et usynlig Lolly Imprint og Content Credentials - før du deler det."
+        },
+        "pl": {
+          "name": "Osadź & śledź obraz",
+          "description": "Umieść swojego autora, prawa autorskie i licencję w dowolnym obrazie - wraz z niewidocznym Lolly Imprint i Content Credentials - zanim się nim podzielisz."
+        },
+        "pt": {
+          "name": "Incorporar e Rastrear Imagem",
+          "description": "Grave seu autor, direitos autorais e licença em qualquer imagem - além de um Lolly Imprint invisível e Content Credentials - antes de compartilhar."
+        },
+        "ro": {
+          "name": "Încorporează & Urmărește Imagine",
+          "description": "Imprimă autorul, drepturile de autor și licența în orice imagine - plus un Lolly Imprint invizibil și Content Credentials - înainte să o distribui."
+        },
+        "sv": {
+          "name": "Bädda in & spåra bild",
+          "description": "Stämpla in upphovsperson, upphovsrätt och licens i valfri bild - plus en osynlig Lolly Imprint och Content Credentials - innan du delar den."
+        },
+        "tl": {
+          "name": "Embed & Track Image",
+          "description": "I-stamp ang iyong may-akda, copyright, at lisensya sa anumang larawan - kasama ang invisible na Lolly Imprint at Content Credentials - bago mo ito ibahagi."
+        },
+        "tr": {
+          "name": "Görsel Göm & İzle",
+          "description": "Paylaşmadan önce yazarını, telif hakkını ve lisansını - ayrıca görünmez bir Lolly Imprint ve Content Credentials'ı - herhangi bir görsele damgala."
+        },
+        "uk": {
+          "name": "Вбудувати та відстежувати зображення",
+          "description": "Впишіть автора, авторське право та ліцензію в будь-яке зображення - а також невидимий Lolly Imprint і Content Credentials - перш ніж поділитися ним."
+        },
+        "ur": {
+          "name": "ایمبیڈ & ٹریک تصویر",
+          "description": "شیئر کرنے سے پہلے کسی بھی تصویر میں اپنا مصنف، کاپی رائٹ اور لائسنس شامل کریں - ساتھ ہی ایک پوشیدہ Lolly Imprint اور Content Credentials بھی۔"
+        },
+        "vi": {
+          "name": "Nhúng & Theo dõi Ảnh",
+          "description": "Đóng dấu tác giả, bản quyền và giấy phép của bạn vào bất kỳ hình ảnh nào - cùng với Lolly Imprint vô hình và Content Credentials - trước khi bạn chia sẻ."
+        },
+        "zh-hant": {
+          "name": "嵌入並追蹤圖片",
+          "description": "把作者、版權和授權標記進任何圖片 - 並加上隱形的 Lolly Imprint 與 Content Credentials - 然後再分享。"
+        },
+        "zh": {
+          "name": "嵌入并追踪图像",
+          "description": "在分享之前，将你的作者信息、版权和许可证盖印到任意图像中 - 同时加入不可见的 Lolly Imprint 和 Content Credentials。"
+        }
+      }
     }
   ]
 }

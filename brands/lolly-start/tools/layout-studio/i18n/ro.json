@@ -90,5 +90,15 @@
   "inputs.boxes.fields.fit.options.contain": "Conținut (încadrează în interior)",
   "inputs.boxes.fields.fit.options.cover": "Acoperire (decupează pentru umplere)",
   "inputs.boxes.fields.fit.options.fill": "Întinde",
-  "inputs.boxes.fields.blend.label": "Mod de îmbinare"
+  "inputs.boxes.fields.blend.label": "Mod de îmbinare",
+  "inputs.boxes.fields.kind.options.text": "Text",
+  "inputs.boxes.fields.x.label": "X",
+  "inputs.boxes.fields.y.label": "Y",
+  "inputs.boxes.fields.blend.options.normal": "Normal",
+  "inputs.boxes.fields.text.label": "Text",
+  "inputs.boxes.fields.valign.label": "Verticală",
+  "inputs.boxes.fields.font.label": "Font",
+  "inputs.boxes.fields.font.options.mono": "Mono",
+  "inputs.boxes.fields.tracking.label": "Kerning",
+  "inputs.boxes.fields.shadow.options.text": "Text"
 }
