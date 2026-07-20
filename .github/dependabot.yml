@@ -1,0 +1,74 @@
+# Dependabot — automated dependency-update PRs. Part of security-audit readiness
+# (end-July 2026): version updates land as reviewable PRs, and — once "Dependabot
+# security updates" is enabled in repo Settings → Code security — vulnerable deps
+# get an immediate fix PR to back up the CI `audit` gate (npm audit + SBOM drift).
+#
+# Scope: the PARENT repo only. Each submodule (lolly-tools/community, docs, every
+# shells/*, services/*) carries its own dependabot.yml in its own repo; the Tauri
+# Rust crates live inside the shells/* submodules, not here.
+version: 2
+updates:
+  # ── npm workspaces ───────────────────────────────────────────────────────
+  # The root package-lock spans engine, shells/{web,cli,tui}, packages/*, and
+  # services/*. Grouped weekly to keep PR noise down; security PRs are ungrouped
+  # and immediate regardless of this schedule.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      prefix-development: "deps-dev"
+    groups:
+      # One PR/week for the low-risk minor + patch bumps across the graph.
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # onnxruntime-node drives the durable-content-credentials ONNX engine and
+      # transitively constrains adm-zip (pinned to ^0.6.0 via package.json
+      # `overrides`). Allow minor/patch security bumps, but hold the major for a
+      # manual, tested upgrade — an unattended major here breaks provenance
+      # stamping (see plans/security-audit... / the adm-zip override rationale).
+      - dependency-name: "onnxruntime-node"
+        update-types: ["version-update:semver-major"]
+
+  # ── GitHub Actions: the CI workflows (.github/workflows/*.yml) ─────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # ── GitHub Actions: the in-tree composite action (action/action.yml) ──────
+  # It pins actions/checkout + actions/setup-node; keep them current too.
+  - package-ecosystem: "github-actions"
+    directory: "/action"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"
+    commit-message:
+      prefix: "ci"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
