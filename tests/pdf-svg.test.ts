@@ -125,6 +125,53 @@ test('contiguous same-group nodes wrap in <g data-group>', () => {
   assert.ok(svg.indexOf('#444444') > close, 'group closes before the next ungrouped node');
 });
 
+// ── gradients (PDF ShadingType 2/3) ────────────────────────────────────────────
+const grad = (over: Partial<NonNullable<PdfNode['_gradient']>> = {}): NonNullable<PdfNode['_gradient']> => ({
+  type: 2, coords: [0, 0, 100, 0],
+  stops: [{ offset: 0, color: '#00ff00' }, { offset: 1, color: '#0000ff' }],
+  extend: [true, true], matrix: [1, 0, 0, -1, 0, 300], ...over,
+});
+
+test('a box _gradient emits a <linearGradient> def and a url(#…) fill', () => {
+  const n: PdfNode = { kind: 'box', shape: 'rect', x: 40, y: 40, w: 120, h: 60, rot: 0, fill: '', _gradient: grad() };
+  const svg = pdfNodesToSvg([n], OPTS);
+  assert.ok(svg.includes('<defs>'), 'has a defs block');
+  assert.ok(svg.includes('<linearGradient id="pgrad0" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="100" y2="0" gradientTransform="matrix(1 0 0 -1 0 300)">'), svg);
+  assert.ok(svg.includes('<stop offset="0" stop-color="#00ff00"/>'));
+  assert.ok(svg.includes('<stop offset="1" stop-color="#0000ff"/>'));
+  assert.ok(svg.includes('fill="url(#pgrad0)"'), 'rect paints with the gradient');
+});
+
+test('a radial _gradient emits a <radialGradient> with focal circle', () => {
+  const n: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 200, h: 200, rot: 0, fill: '',
+    _gradient: grad({ type: 3, coords: [50, 50, 0, 60, 60, 80] }) };
+  const svg = pdfNodesToSvg([n], OPTS);
+  assert.ok(svg.includes('<radialGradient id="pgrad0" gradientUnits="userSpaceOnUse" cx="60" cy="60" r="80" fx="50" fy="50"'), svg);
+  assert.ok(svg.includes('fill="url(#pgrad0)"'));
+});
+
+test('identical gradients on two nodes share one def', () => {
+  const mk = (): PdfNode => ({ kind: 'box', shape: 'rect', x: 0, y: 0, w: 100, h: 100, rot: 0, fill: '', _gradient: grad() });
+  const svg = pdfNodesToSvg([mk(), mk()], OPTS);
+  assert.equal(svg.match(/<linearGradient/g)?.length, 1, 'one def only');
+  assert.equal(svg.match(/url\(#pgrad0\)/g)?.length, 2, 'both nodes reference it');
+});
+
+test('a degenerate gradient (one stop) falls back to the flat fill', () => {
+  const n: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 100, h: 100, rot: 0, fill: '#abcdef',
+    _gradient: grad({ stops: [{ offset: 0, color: '#123456' }] }) };
+  const svg = pdfNodesToSvg([n], OPTS);
+  assert.ok(!svg.includes('<linearGradient'), 'no gradient def');
+  assert.ok(svg.includes('fill="#abcdef"'), 'keeps the node fill');
+});
+
+test('a vector path _gradient overrides fill:none and still emits', () => {
+  const n: PdfNode = { kind: 'image', x: 0, y: 0, w: 100, h: 80, rot: 0, fit: 'fill',
+    _vectorPath: 'M0 0L100 0L50 80Z', _vectorFill: 'none', _gradient: grad() };
+  const svg = pdfNodesToSvg([n], OPTS);
+  assert.ok(svg.includes('<path d="M0 0L100 0L50 80Z" fill="url(#pgrad0)"'), svg);
+});
+
 // ── composition with the real interpreter ──────────────────────────────────────
 test('interpretPdfPage output round-trips: rect + path + text land in one page SVG', () => {
   const nodes = interpretPdfPage({

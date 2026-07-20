@@ -119,7 +119,7 @@
             "label": "Box",
             "seed": {
               "kind": "box",
-              "bg": "#4f84ba",
+              "bg": "",
               "shape": "rounded",
               "text": ""
             }
@@ -144,7 +144,7 @@
             "label": "Image",
             "seed": {
               "kind": "image",
-              "bg": "#e1e5ea",
+              "bg": "",
               "shape": "rounded",
               "fit": "contain",
               "text": ""
@@ -274,7 +274,7 @@
           "id": "bg",
           "type": "color",
           "label": "Fill",
-          "default": "{color.semantic.secondary}"
+          "default": ""
         },
         {
           "id": "opacity",

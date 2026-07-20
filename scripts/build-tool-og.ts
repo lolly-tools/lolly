@@ -52,6 +52,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createToolCardRenderer } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
+import { stampBitmap } from './lib/stamp-media.ts';
 
 // Catalog index entries are dynamic JSON; only the fields this script reads are typed.
 interface ToolEntry {
@@ -91,6 +92,9 @@ const STUB_DIR = resolve(PUBLIC, 't');         // → /t/<id>.html        (exact
 // browser (Playwright/Chromium) isn't installed on the Vercel build. Locally, where the
 // browser is available, build:web refreshes these; commit the changes like previews.
 const OG_DIR   = resolve(ROOT, 'catalog/og');  // → /catalog/og/<id>.png (committed)
+// --preserve (or LOLLY_PRESERVE=1, which loldev sets so the flag survives the npm chain):
+// keep an already-committed card and skip re-rendering it. Default overwrites every card.
+const PRESERVE = process.argv.includes('--preserve') || process.env.LOLLY_PRESERVE === '1';
 const FALLBACK_IMG = `${SITE_URL}/og.png`;
 const FALLBACK_DESC = 'Generate on-brand assets from simple inputs. Works offline.';
 
@@ -209,13 +213,17 @@ async function main(): Promise<void> {
       sized = false;
       overrides++;
     } else {
-      // Refresh the committed card when resvg is available (local build:web / dev:web).
-      if (renderer) {
+      // Refresh the committed card when the browser is available (local build:web / dev:web).
+      // With --preserve, keep an existing committed card and skip the re-render.
+      if (renderer && !(PRESERVE && existsSync(resolve(OG_DIR, `${t.id}.png`)))) {
         try {
           const preview = previewDataUri(t.preview);
           if (preview) withPreview++;
           const png = await renderer.render({ name: t.name, description: t.description as string, iconSvg: t.icon as string, previewDataUri: preview ?? undefined });
-          writeFileSync(resolve(OG_DIR, `${t.id}.png`), png);
+          // Walk the talk: stamp our own share card with the Lolly Imprint + a "made with
+          // Lolly" C2PA credential before committing it (see scripts/lib/stamp-media.ts).
+          const stamped = await stampBitmap(png, 'png', { id: t.id, name: t.name });
+          writeFileSync(resolve(OG_DIR, `${t.id}.png`), stamped);
           cards++;
         } catch (e) {
           console.log(`tool-og: ${t.id} card failed (${(e as Error).message})`);

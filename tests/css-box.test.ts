@@ -9,8 +9,9 @@ import assert from 'node:assert/strict';
 
 import {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
+  parseCssMatrix, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg,
 } from '../engine/src/css-box.ts';
-import type { CornerInputs, CornerRadii } from '../engine/src/css-box.ts';
+import type { CornerInputs, CornerRadii, Mat2D } from '../engine/src/css-box.ts';
 
 const close = (a: number, b: number, eps = 1e-3): boolean => Math.abs(a - b) <= eps;
 const corners = (v: string): CornerInputs => ({ topLeft: v, topRight: v, bottomRight: v, bottomLeft: v });
@@ -138,4 +139,59 @@ test('parseBoxShadow: inset shadows are skipped (not vector-expressible)', () =>
   assert.deepEqual(parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px inset'), []);
   const mixed = parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px, rgba(0,0,0,0.3) 0px 1px 2px inset');
   assert.equal(mixed.length, 1);
+});
+
+// ── 2-D transform matrix (rotate/skew/matrix support for the vector walkers) ──
+const mclose = (m: Mat2D, e: Partial<Mat2D>): void => {
+  for (const k of Object.keys(e) as (keyof Mat2D)[]) assert.ok(close(m[k], e[k]!), `${k}: ${m[k]} != ${e[k]}`);
+};
+
+test('parseCssMatrix: none / junk → null', () => {
+  assert.equal(parseCssMatrix('none'), null);
+  assert.equal(parseCssMatrix(''), null);
+  assert.equal(parseCssMatrix(undefined), null);
+  assert.equal(parseCssMatrix('matrix(1,2,3)'), null);   // too few
+});
+
+test('parseCssMatrix: 2-D matrix() round-trips', () => {
+  mclose(parseCssMatrix('matrix(0.866, 0.5, -0.5, 0.866, 12, 34)')!, { a: 0.866, b: 0.5, c: -0.5, d: 0.866, e: 12, f: 34 });
+});
+
+test('parseCssMatrix: matrix3d flattens to its 2-D affine', () => {
+  // a rotate+translate expressed as matrix3d (column-major, z identity)
+  mclose(parseCssMatrix('matrix3d(0.7071,0.7071,0,0, -0.7071,0.7071,0,0, 0,0,1,0, 20,40,0,1)')!,
+    { a: 0.7071, b: 0.7071, c: -0.7071, d: 0.7071, e: 20, f: 40 });
+});
+
+test('parseCssMatrix: matrix3d with real perspective/z → null (falls back to raster)', () => {
+  assert.equal(parseCssMatrix('matrix3d(1,0,0,0.001, 0,1,0,0, 0,0,1,0, 0,0,0,1)'), null); // m14 perspective
+  assert.equal(parseCssMatrix('matrix3d(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,50,1)'), null);    // m43 z-translate
+});
+
+test('multiplyMat: applies C then P; identity is neutral', () => {
+  const scale2: Mat2D = { a: 2, b: 0, c: 0, d: 2, e: 0, f: 0 };
+  const tx: Mat2D = { a: 1, b: 0, c: 0, d: 1, e: 10, f: 5 };
+  // scale2 ∘ tx: translate first (10,5) then scale ×2 → point (0,0)→(20,10)
+  const m = multiplyMat(scale2, tx);
+  mclose(m, { a: 2, b: 0, c: 0, d: 2, e: 20, f: 10 });
+});
+
+test('matAboutPivot: a 90° rotation about a pivot fixes that pivot', () => {
+  const rot90: Mat2D = { a: 0, b: 1, c: -1, d: 0, e: 0, f: 0 };
+  const m = matAboutPivot(rot90, 100, 50);
+  // the pivot maps to itself
+  assert.ok(close(m.a * 100 + m.c * 50 + m.e, 100));
+  assert.ok(close(m.b * 100 + m.d * 50 + m.f, 50));
+});
+
+test('isAxisAlignedMat: pure positive-scale/translate true; rotation/skew/flip false', () => {
+  assert.equal(isAxisAlignedMat({ a: 2, b: 0, c: 0, d: 3, e: 9, f: 9 }), true);
+  assert.equal(isAxisAlignedMat({ a: 0.9, b: 0.4, c: -0.4, d: 0.9, e: 0, f: 0 }), false);
+  assert.equal(isAxisAlignedMat({ a: 1, b: 0, c: 0.5, d: 1, e: 0, f: 0 }), false); // skewX
+  assert.equal(isAxisAlignedMat({ a: -1, b: 0, c: 0, d: 1, e: 0, f: 0 }), false);  // scaleX(-1) flip
+  assert.equal(isAxisAlignedMat({ a: 1, b: 0, c: 0, d: -1, e: 0, f: 0 }), false);  // scaleY(-1) flip
+});
+
+test('matToSvg: compact, negative-zero normalised', () => {
+  assert.equal(matToSvg({ a: 1, b: 0, c: -0, d: 1, e: 0, f: 0 }), 'matrix(1,0,0,1,0,0)');
 });

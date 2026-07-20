@@ -815,3 +815,157 @@ export function readLollyDurable(decoded: TrustmarkDecodeResult): LollyDurable |
   if (magic !== LOLLY_MAGIC_VALUE || scheme !== LOLLY_SCHEME_VALUE) return null;
   return { reservedId: bitsToInt(bits.slice(LOLLY_MAGIC_BITS + LOLLY_SCHEME_BITS)) };
 }
+
+// ─── Durable neural-mark PIXEL MATH (platform-agnostic, dependency-injected) ──
+// The pure arithmetic half of the TrustMark durable EMBED — normalisation,
+// residual + per-channel spatial-mean removal, bilinear residual upscale, and
+// merge/clip. It touches NO onnxruntime, canvas, sharp, DOM, or Node API: the
+// two platform-specific operations (downscale cover→256 and run the encoder
+// model) are INJECTED as callbacks, so the identical math runs in the browser
+// (onnxruntime-web + canvas) and at build time in Node (onnxruntime-node +
+// sharp). Byte-faithful port of the VERIFIED web path
+// (shells/web/src/lib/trustmark-embed.ts:117-224); keep the two in lockstep.
+//
+// FOLLOW-UP: the web module still carries its own copy of packNchwSigned /
+// sampleBilinear / the residual+merge loop (it is the proven reference and must
+// not be re-verified here). Converge it onto this engine function in a later
+// pass once a browser deep-scan re-confirms parity.
+
+/** The square resolution the TrustMark Q encoder/decoder operate at. */
+export const TRUSTMARK_MODEL_RESOLUTION = 256;
+/** Reference watermark strength for the Q variant (P would be ×1.25). */
+export const TRUSTMARK_Q_WM_STRENGTH = 1.0;
+/** Minimum side (px) below which the mark can't survive — skip. */
+export const TRUSTMARK_MIN_SIDE = 256;
+
+/** RGBA → NCHW [1,3,S,S] float32 in [-1,1] (px/127.5 − 1), alpha dropped.
+ *  Mirrors trustmark-embed.ts:125-135 byte-for-byte. */
+export function packNchwSigned(rgba: ArrayLike<number>, s: number): Float32Array {
+  const total = s * s, page = total, twopage = 2 * total;
+  const t = new Float32Array(total * 3);
+  for (let i = 0; i < total; i++) {
+    const idx = i * 4;
+    t[i] = (rgba[idx] as number) / 127.5 - 1;
+    t[i + page] = (rgba[idx + 1] as number) / 127.5 - 1;
+    t[i + twopage] = (rgba[idx + 2] as number) / 127.5 - 1;
+  }
+  return t;
+}
+
+/** Bilinear sample of one s×s channel plane at (fx,fy), align_corners=false.
+ *  Mirrors trustmark-embed.ts:138-146 byte-for-byte. */
+export function sampleBilinear(plane: Float32Array, s: number, fx: number, fy: number): number {
+  const x = Math.min(Math.max(fx, 0), s - 1), y = Math.min(Math.max(fy, 0), s - 1);
+  const x0 = Math.floor(x), y0 = Math.floor(y);
+  const x1 = Math.min(x0 + 1, s - 1), y1 = Math.min(y0 + 1, s - 1);
+  const dx = x - x0, dy = y - y0;
+  const p00 = plane[y0 * s + x0]!, p10 = plane[y0 * s + x1]!;
+  const p01 = plane[y1 * s + x0]!, p11 = plane[y1 * s + x1]!;
+  return p00 * (1 - dx) * (1 - dy) + p10 * dx * (1 - dy) + p01 * (1 - dx) * dy + p11 * dx * dy;
+}
+
+/** Downscale the full-res cover to a 256×256 straight-RGBA plane (length
+ *  256*256*4). Platform-provided: canvas 'high' in the browser, sharp/resizer.onnx
+ *  in Node. Anisotropic squash (no crop) to match the reference embed. */
+export type CoverResizer = (
+  rgba: ArrayLike<number>, width: number, height: number, size: number,
+) => Promise<ArrayLike<number>> | ArrayLike<number>;
+
+/** Run the TrustMark encoder: given the cover as NCHW [1,3,256,256] float32 in
+ *  [-1,1] and the 100 secret bits (0/1), return the stego NCHW [1,3,256,256]
+ *  float32 (~[-1,1]) — or null on failure. Platform-provided (ORT web/node). */
+export type DurableEncoderRun = (
+  coverNchw: Float32Array, secretBits: readonly number[],
+) => Promise<Float32Array | null> | (Float32Array | null);
+
+export interface DurableEmbedHooks {
+  /** Downscale cover → 256×256 straight RGBA. */
+  resizeCover: CoverResizer;
+  /** Run the neural encoder over the packed cover + secret. */
+  runEncoder: DurableEncoderRun;
+}
+
+export interface DurableEmbedMathOptions {
+  /** Reserved id field for buildLollyDurablePayload (0 until CAI id lands). */
+  reservedId?: number;
+  /** Watermark strength (default TRUSTMARK_Q_WM_STRENGTH = 1.0 for the Q variant). */
+  strength?: number;
+}
+
+/**
+ * Embeds Lolly's durable mark into full-resolution straight-RGBA and returns a
+ * marked copy (RGB overwritten, alpha + any trailing bytes preserved), or null
+ * (leave pixels untouched) when the image is too small, the encoder yields no
+ * stego, or the payload is malformed. NEVER throws for those cases — but an
+ * exception thrown by an injected hook propagates (callers wrap best-effort).
+ *
+ * This is the byte-faithful, dependency-free port of the VERIFIED web embed
+ * (trustmark-embed.ts:153-224): resize→256, pack [-1,1], run encoder, residual =
+ * stego−cover, remove per-channel spatial mean, bilinear-upscale the residual to
+ * full res, merge = clip(residual*strength + cover_orig_[-1,1], -1, 1).
+ */
+export async function embedDurableIntoRgba(
+  rgba: ArrayLike<number>, width: number, height: number,
+  hooks: DurableEmbedHooks, opts: DurableEmbedMathOptions = {},
+): Promise<Uint8ClampedArray | null> {
+  if (width < TRUSTMARK_MIN_SIDE || height < TRUSTMARK_MIN_SIDE) return null;
+
+  const S = TRUSTMARK_MODEL_RESOLUTION, plane = S * S;
+  const strength = opts.strength ?? TRUSTMARK_Q_WM_STRENGTH;
+
+  // 1) Resize cover → 256×256 straight RGBA (platform kernel).
+  const cover256 = await hooks.resizeCover(rgba, width, height, S);
+  if (!cover256 || cover256.length !== plane * 4) return null;
+
+  // 2) The 100-bit Lolly secret, and the NCHW [-1,1] cover.
+  const bits = buildLollyDurablePayload(opts.reservedId ?? 0);
+  if (bits.length !== TRUSTMARK_PAYLOAD_BITS) return null;
+  const coverNchw = packNchwSigned(cover256, S);
+
+  // 3) encoder(cover, secret) → stego [1,3,256,256] in [-1,1].
+  const stegoData = await hooks.runEncoder(coverNchw, bits);
+  if (!stegoData || stegoData.length !== 3 * plane) return null;
+
+  // 4) residual = clamp(stego,-1,1) − cover256 per channel, then remove the
+  //    per-channel spatial mean (reference: residual -= residual.mean(2,3)).
+  const residual: Float32Array[] = [];
+  for (let c = 0; c < 3; c++) {
+    const r = new Float32Array(plane);
+    let sum = 0;
+    for (let i = 0; i < plane; i++) {
+      const st = Math.min(Math.max(stegoData[c * plane + i]!, -1), 1);
+      const d = st - coverNchw[c * plane + i]!;
+      r[i] = d; sum += d;
+    }
+    const mean = sum / plane;
+    for (let i = 0; i < plane; i++) r[i] = r[i]! - mean;
+    residual.push(r);
+  }
+
+  // 5) Upscale each residual channel to full res (bilinear) and merge:
+  //    out = clip(residual*strength + cover_orig_[-1,1], -1, 1) → [0,255].
+  const out = new Uint8ClampedArray(rgba.length);
+  out.set(rgba as ArrayLike<number>); // preserve alpha (and everything), then overwrite RGB
+  return mergeResidual(out, rgba, residual, width, height, S, strength);
+}
+
+function mergeResidual(
+  out: Uint8ClampedArray, rgba: ArrayLike<number>, residual: Float32Array[],
+  width: number, height: number, S: number, strength: number,
+): Uint8ClampedArray {
+  const sx = S / width, sy = S / height;
+  for (let y = 0; y < height; y++) {
+    const fy = (y + 0.5) * sy - 0.5;
+    for (let x = 0; x < width; x++) {
+      const fx = (x + 0.5) * sx - 0.5;
+      const o = (y * width + x) * 4;
+      for (let c = 0; c < 3; c++) {
+        const res = sampleBilinear(residual[c]!, S, fx, fy);
+        const base = (rgba[o + c] as number) / 127.5 - 1;
+        const merged = Math.min(Math.max(res * strength + base, -1), 1);
+        out[o + c] = Math.round((merged + 1) * 127.5);
+      }
+    }
+  }
+  return out;
+}

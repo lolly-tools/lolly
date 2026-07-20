@@ -14,7 +14,11 @@
 #                                      Vercel uniformly (prod; --preview = preview URLs)
 #   loldev status | st                 what's dirty / ahead, per repo
 #   loldev build                       build:catalog + validate:catalog
-#   loldev previews                    regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes
+#   loldev previews [--preserve]       regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes.
+#                                      Overwrites every preview (now stamped: Imprint + C2PA); --preserve keeps existing, fills gaps only.
+#   loldev og [--preserve]             rebuild the per-tool + per-view OG share cards (public/t/*, public/view/*) — Playwright, opt-in.
+#                                      Overwrites every card (now stamped: Imprint + C2PA); --preserve keeps existing. (/info-page OG
+#                                      rebuilds with the docs site — see build:info / a full `build:web`.)
 #   loldev shots [--accept|--only=…]   capture + compare the docs screenshots (url-shot recipe links in docs/*.md → docs/shots/); also runs inside every gtg
 #   loldev verify [--clone]            full post-split build/run verification
 #   loldev profile [name] [--copy]     show or switch the content profile (suse / lolly-start):
@@ -280,7 +284,8 @@ case "$cmd" in
   status|st)    bash "$SUB/status.sh" ;;
   build)        do_build ;;
   validate)     npm run validate:catalog ;;
-  previews)     npm run previews ;;
+  previews)     case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run previews ;;
+  og)           case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run og ;;
   shots)        npm run docs:shots -- "$@" ;;
   verify)       bash "$SUB/verify.sh" "$@" ;;
   profile|brand) node scripts/use-profile.ts "$@" ;;

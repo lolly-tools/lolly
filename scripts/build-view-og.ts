@@ -37,6 +37,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createViewCardRenderer } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
+import { stampBitmap } from './lib/stamp-media.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE_URL = 'https://lolly.tools';
@@ -51,6 +52,8 @@ const STUB_DIR = resolve(PUBLIC, 'view');            // → /view/<slug>.html   
 // tool cards + catalog/previews — so a git deploy ships them even though the render browser
 // isn't installed on the Vercel build. Locally, build:web refreshes these; commit them.
 const OG_DIR   = resolve(ROOT, 'catalog/og/views');  // → /catalog/og/views/<slug>.png (committed)
+// --preserve (or LOLLY_PRESERVE=1): keep an already-committed card, skip its re-render.
+const PRESERVE = process.argv.includes('--preserve') || process.env.LOLLY_PRESERVE === '1';
 
 const esc = (s: unknown): string => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -185,10 +188,14 @@ async function main(): Promise<void> {
   let cards = 0, stubs = 0;
   for (const v of VIEWS) {
     // Refresh the committed card when the browser is available (local build:web / dev:web).
-    if (renderer) {
+    // With --preserve, keep an existing committed card and skip the re-render.
+    if (renderer && !(PRESERVE && existsSync(resolve(OG_DIR, `${v.slug}.png`)))) {
       try {
         const png = await renderer.render({ title: v.title, description: v.description, iconSvg: v.icon });
-        writeFileSync(resolve(OG_DIR, `${v.slug}.png`), png);
+        // Stamp our own share card with the Lolly Imprint + "made with Lolly" C2PA
+        // before committing (see scripts/lib/stamp-media.ts).
+        const stamped = await stampBitmap(png, 'png', { id: v.slug, name: v.title });
+        writeFileSync(resolve(OG_DIR, `${v.slug}.png`), stamped);
         cards++;
       } catch (e) {
         console.log(`view-og: ${v.slug} card failed (${(e as Error).message})`);

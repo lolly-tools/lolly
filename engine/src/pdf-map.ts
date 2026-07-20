@@ -78,10 +78,50 @@ export interface PdfNode {
    *  renders them as giant plates. Serializers intersect these (pdf-svg emits
    *  nested <clipPath> wraps); the layout-import path may ignore them. */
   _clips?: ClipPath[];
+  /** An axial/radial gradient fill (PDF ShadingType 2/3), resolved into box
+   *  space. When present, pdf-svg emits a `<linearGradient>`/`<radialGradient>`
+   *  and paints the node with it instead of the flat `fill`/`_vectorFill`. Set
+   *  by a shading-pattern (`scn`) fill or the `sh` operator; the geometry stays
+   *  in the shading's own coordinate space with `matrix` mapping it to box
+   *  space (so any affine — incl. skew on a radial — is exact). */
+  _gradient?: PdfGradient;
 }
 
 /** One clipping path in box space (`d` as an SVG path string). */
 export interface ClipPath { d: string; evenOdd: boolean }
+
+/** A colour stop along a gradient's parameter axis (offset 0..1, resolved to hex). */
+export interface PdfGradientStop { offset: number; color: string }
+
+/**
+ * A normalized axial (type 2) or radial (type 3) shading — the shell resolves the
+ * PDF /Function into a pre-sampled colour ramp (`stops`), so this pure module never
+ * needs the PDF function machinery. Coords are in the shading's OWN space (before
+ * the CTM / pattern matrix is applied):
+ *   • type 2 (axial):  [x0, y0, x1, y1]        — the gradient axis endpoints
+ *   • type 3 (radial): [x0, y0, r0, x1, y1, r1] — start circle → end circle
+ */
+export interface PdfShading {
+  type: 2 | 3;
+  coords: number[];
+  stops: PdfGradientStop[];
+  /** [extendStart, extendEnd] — paint beyond the axis with the end colours. */
+  extend: [boolean, boolean];
+}
+
+/** A PDF Pattern resource. Only PatternType 2 (a shading pattern) is modelled;
+ *  its /Matrix maps pattern space to the parent content stream's default space. */
+export interface PdfPattern {
+  shading?: PdfShading;
+  /** Pattern /Matrix [a b c d e f] (default identity). */
+  matrix?: number[];
+}
+
+/** A shading resolved into box space for emission — the shading's coords plus a
+ *  box-space transform matrix (shading space → box space). */
+export interface PdfGradient extends PdfShading {
+  matrix: [number, number, number, number, number, number];
+}
 
 /** Byte codes → text. Provided per font by the shell (from ToUnicode / Encoding). */
 export type FontDecoder = (codes: number[]) => string;
@@ -127,6 +167,10 @@ export interface PdfResources {
   extgstates?: Record<string, { ca?: number; CA?: number }>;
   /** Marked-content property name (e.g. "MC0") → optional-content group label. */
   ocgs?: Record<string, string>;
+  /** Shading name → normalized axial/radial shading (for the `sh` operator). */
+  shadings?: Record<string, PdfShading>;
+  /** Pattern name → pattern (PatternType 2 shading patterns, for `scn` fills). */
+  patterns?: Record<string, PdfPattern>;
 }
 
 export interface PdfXObject {
@@ -370,8 +414,19 @@ interface GState {
   /** Active clip stack. COPY-ON-WRITE — cloneState shares the array, so append
    *  via `s.clips = [...s.clips, c]`, never mutate in place. */
   clips: ClipPath[];
+  /** A pending gradient fill (a shading-pattern selected via `scn`), already
+   *  resolved to box space. Cleared whenever a solid fill colour is set. */
+  fillGradient: FillGradient | null;
 }
 function cloneState(s: GState): GState { return { ...s }; }
+
+/** A gradient selected as the current fill — the shading plus its box-space matrix. */
+interface FillGradient extends PdfShading { mat: Mat; }
+/** Snapshot a live fill gradient onto a node (matrix as a plain array). */
+function nodeGradient(g: FillGradient): PdfGradient {
+  const m = g.mat;
+  return { type: g.type, coords: g.coords, stops: g.stops, extend: g.extend, matrix: [m.a, m.b, m.c, m.d, m.e, m.f] };
+}
 
 /** A path segment already baked into box space. */
 interface Seg { op: 'm' | 'l' | 'c'; pts: number[]; }
@@ -395,7 +450,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     const toks = tokenize(content || '');
     let s: GState = {
       ctm: baseCtm, fill: baseFill, stroke: '', fillAlpha: 1, strokeAlpha: 1, lineWidth: 1,
-      font: '', fontSize: 0, leading: 0, clips: baseClips,
+      font: '', fontSize: 0, leading: 0, clips: baseClips, fillGradient: null,
     };
     const stack: GState[] = [];
 
@@ -545,24 +600,28 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       if (!segs.length || count >= MAX) { segs = []; return; }
       const fillCol = (mode === 'stroke') ? '' : s.fill;
       const strokeCol = (mode === 'fill') ? '' : s.stroke;
+      const grad = (mode === 'stroke') ? null : s.fillGradient;
+      const gradExtra = grad ? { _gradient: nodeGradient(grad) } : {};
       const alpha = clamp(Math.round((mode === 'stroke' ? s.strokeAlpha : s.fillAlpha) * 100), 0, 100);
 
       const clip = s.clips.length ? { _clips: s.clips } : {};
       // The rect/ellipse fast paths only apply to a SINGLE subpath: a multi-
       // subpath fill (e.g. a shadow ring = outer + inner circle under even-odd)
-      // must stay a real path or the inner subpath's hole is lost.
+      // must stay a real path or the inner subpath's hole is lost. A gradient
+      // fill (empty `fill`, `_gradient` set) still takes them — a hero gradient
+      // is almost always a plain rect.
       const subpaths = segs.reduce((c2, sg) => c2 + (sg.op === 'm' ? 1 : 0), 0);
-      if (fillCol && mode !== 'stroke' && subpaths === 1) {
+      if ((fillCol || grad) && mode !== 'stroke' && subpaths === 1) {
         const rect = asRectangle(segs);
         if (rect) {
           nodes.push({ kind: 'box', x: rect.x, y: rect.y, w: rect.w, h: rect.h, rot: rect.rot,
-            fill: safeColor(fillCol, ''), opacity: alpha, shape: 'rect', _groupPath: gpath(), ...clip });
+            fill: fillCol ? safeColor(fillCol, '') : '', opacity: alpha, shape: 'rect', _groupPath: gpath(), ...clip, ...gradExtra });
           count++; segs = []; return;
         }
         const ell = asEllipse(segs);
         if (ell) {
           nodes.push({ kind: 'box', x: ell.x, y: ell.y, w: ell.w, h: ell.h, rot: 0,
-            fill: safeColor(fillCol, ''), opacity: alpha, shape: 'ellipse', _groupPath: gpath(), ...clip });
+            fill: fillCol ? safeColor(fillCol, '') : '', opacity: alpha, shape: 'ellipse', _groupPath: gpath(), ...clip, ...gradExtra });
           count++; segs = []; return;
         }
       }
@@ -587,6 +646,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           _groupPath: gpath(),
           ...clip,
           ...(evenOdd ? { _vectorFillRule: 'evenodd' as const } : {}),
+          ...gradExtra,
         });
         count++;
       }
@@ -610,21 +670,54 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           if (g) { if (typeof g.ca === 'number') s.fillAlpha = g.ca; if (typeof g.CA === 'number') s.strokeAlpha = g.CA; }
           break;
         }
-        case 'rg': s.fill = rgbHex(args[0]!, args[1]!, args[2]!); break;
+        case 'rg': s.fill = rgbHex(args[0]!, args[1]!, args[2]!); s.fillGradient = null; break;
         case 'RG': s.stroke = rgbHex(args[0]!, args[1]!, args[2]!); break;
-        case 'g': s.fill = rgbHex(args[0]!, args[0]!, args[0]!); break;
+        case 'g': s.fill = rgbHex(args[0]!, args[0]!, args[0]!); s.fillGradient = null; break;
         case 'G': s.stroke = rgbHex(args[0]!, args[0]!, args[0]!); break;
-        case 'k': s.fill = cmykHex(args); break;
+        case 'k': s.fill = cmykHex(args); s.fillGradient = null; break;
         case 'K': s.stroke = cmykHex(args); break;
-        // sc/scn: numeric operands → a real colour; a pattern NAME with no usable
-        // tint → a colour we can't reproduce (a tiling/shading pattern, e.g. the
-        // checkerboard pasteboard). CLEAR the paint in that case rather than let it
-        // inherit the previous fill — a stale colour (often black) would flood the
-        // pattern-filled shape. An uncoloured pattern (PaintType 2) carries its tint
-        // in the numeric operands, which scColor already resolves.
-        case 'sc': case 'scn': { const col = scColor(args); if (col) s.fill = col; else if (nameArg) s.fill = ''; break; }
+        // sc/scn: numeric operands → a real colour; a pattern NAME → a shading
+        // pattern (PatternType 2) becomes a gradient fill, else a pattern we can't
+        // reproduce (a tiling/shading pattern, e.g. the checkerboard pasteboard) —
+        // CLEAR the paint in that case rather than let it inherit the previous fill,
+        // since a stale colour (often black) would flood the pattern-filled shape.
+        // An uncoloured pattern (PaintType 2) carries its tint in the numeric
+        // operands, which scColor already resolves.
+        case 'sc': case 'scn': {
+          const pat = nameArg && res.patterns ? res.patterns[nameArg] : undefined;
+          if (pat?.shading && (pat.shading.type === 2 || pat.shading.type === 3)) {
+            const pm = matMul(baseCtm, fromArr(pat.matrix && pat.matrix.length >= 6 ? pat.matrix : [1, 0, 0, 1, 0, 0]));
+            s.fillGradient = { ...pat.shading, mat: pm };
+            s.fill = '';
+          } else {
+            const col = scColor(args);
+            if (col) { s.fill = col; s.fillGradient = null; }
+            else if (nameArg) { s.fill = ''; s.fillGradient = null; }
+          }
+          break;
+        }
         case 'SC': case 'SCN': { const col = scColor(args); if (col) s.stroke = col; else if (nameArg) s.stroke = ''; break; }
         case 'cs': case 'CS': break;
+
+        // `sh` paints a shading across the current clip. We only emit it when a clip
+        // is in force (the normal case — Chromium clips a gradient to its element
+        // box): a page-sized gradient rect cropped by the clip. Unclipped `sh` is
+        // rare and can't be bounded here (extend:false paints only the axis extent,
+        // not the page), so it's skipped rather than risk flooding the page.
+        case 'sh': {
+          const sd = res.shadings && res.shadings[nameArg];
+          if (sd && (sd.type === 2 || sd.type === 3) && s.clips.length && count < MAX) {
+            nodes.push({
+              kind: 'box', x: 0, y: 0, w: page.width || 0, h: page.height || 0, rot: 0, shape: 'rect',
+              fill: '', opacity: clamp(Math.round(s.fillAlpha * 100), 0, 100),
+              _gradient: nodeGradient({ ...sd, mat: s.ctm }),
+              _groupPath: gpath(),
+              _clips: s.clips,
+            });
+            count++;
+          }
+          break;
+        }
 
         case 'm': cxU = startXU = args[0]!; cyU = startYU = args[1]!; push(args[0]!, args[1]!, 'm'); break;
         case 'l': cxU = args[0]!; cyU = args[1]!; push(args[0]!, args[1]!, 'l'); break;

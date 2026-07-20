@@ -40,8 +40,9 @@
     "check:bundle": "node scripts/check-bundle-budget.ts",
     "check:mcp": "node scripts/check-mcp-live.ts",
     "docs:shots": "node scripts/build-docs-shots.ts",
-  "previews": "node scripts/build-previews.ts && node scripts/optimize-preview-webp.ts && node scripts/build-preview-bundle.ts",
+    "previews": "node scripts/build-previews.ts && node scripts/optimize-preview-webp.ts && node scripts/build-preview-bundle.ts",
     "previews:animated": "node scripts/build-animated-previews.ts",
+    "og": "node scripts/build-tool-og.ts && node scripts/build-view-og.ts",
     "voice": "node scripts/build-voice-clips.ts",
     "cards:svg": "node scripts/build-svg-card.ts",
     "cards:html": "node scripts/build-html-card.ts",
@@ -82,8 +83,12 @@
     "@biomejs/biome": "^2.5.2",
     "@types/node": "^26.1.0",
     "esbuild": "^0.28.1",
+    "onnxruntime-node": "^1.27.0",
     "playwright": "^1.49.0",
     "sharp": "^0.35.3",
     "svgo": "^4.0.1"
+  },
+  "overrides": {
+    "adm-zip": "^0.6.0"
   }
 }

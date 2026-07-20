@@ -22,6 +22,7 @@ import { readdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
+import { stampBitmap } from './lib/stamp-media.ts';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PREVIEWS_DIR = join(ROOT, 'catalog/previews');
@@ -45,14 +46,19 @@ async function run(): Promise<void> {
     const pngPath = join(PREVIEWS_DIR, name);
     const webpPath = pngPath.replace(/\.png$/i, '.webp');
     const srcBytes = statSync(pngPath).size;
-    const out = await sharp(pngPath)
+    // Resize to a lossless intermediate, then hand it to the shared stamper: it imprints
+    // the pixels (robust strength, since the WebP is lossy) and embeds a "made with Lolly"
+    // C2PA credential, re-encoding to WebP q80 in one pass (no double compression).
+    const resized = await sharp(pngPath)
       .resize({ width: MAX_DIM, height: MAX_DIM, fit: 'inside', withoutEnlargement: true })
-      .webp({ quality: 80, effort: 5, smartSubsample: true })
+      .png()
       .toBuffer();
+    const id = name.replace(/\.png$/i, '');
+    const out = await stampBitmap(new Uint8Array(resized), 'webp', { id, name: id }, { webpQuality: 80 });
     // Write the .webp and drop the .png (a tool carries exactly one raster form). Even if
     // WebP weren't smaller for some pathological input it's still the format we standardise
     // on, so always switch — these are lossy thumbnails, not deliverables.
-    writeFileSync(webpPath, out);
+    writeFileSync(webpPath, Buffer.from(out));
     unlinkSync(pngPath);
     converted++;
     before += srcBytes;
