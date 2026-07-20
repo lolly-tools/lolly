@@ -12,9 +12,10 @@
 #   api-bundles     — regenerate the committed api/ function bundles and fail
 #                     on drift (they are generated esbuild output, like
 #                     catalog/tools/index.json).
-#   audit           — npm audit; blocks on HIGH/CRITICAL advisories (moderate/low
-#                     surfaced, non-blocking). Ongoing dep-vuln watch for the
-#                     security audit; false alarms pinned via package.json overrides.
+#   audit           — npm audit (blocks on HIGH/CRITICAL; moderate/low surfaced,
+#                     non-blocking) + SBOM freshness (regenerate sbom.cdx.json, fail
+#                     on drift). Ongoing supply-chain watch for the security audit;
+#                     false alarms pinned via package.json overrides.
 # All gates (test / typecheck / validate / smoke / build+budget / api-bundles / audit)
 # exit non-zero on failure and BLOCK. The bundle-budget step is a hard gate again as of the boot
 # diet (2026-07-08): boot JS is ~66 KB gz vs the 115 KB budget, after the engine
@@ -265,3 +266,11 @@ jobs:
       - name: Full advisory report (non-blocking, for the log)
         if: always()
         run: npm audit || true
+
+      # The committed CycloneDX SBOM (sbom.cdx.json) is generated from package-lock.json
+      # (scripts/build-sbom.ts, deterministic). Regenerate + fail on drift so it can't go
+      # stale vs the installed graph — same discipline as the api-bundles drift gate.
+      - name: SBOM up to date (regenerate; fail on drift)
+        run: |
+          npm run build:sbom
+          git diff --exit-code -- sbom.cdx.json
