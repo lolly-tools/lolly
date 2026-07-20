@@ -73,6 +73,7 @@ import {
 // seed-url.ts uses, so a look's pre-render URL seeds the identical inputs the live
 // carousel would render from (shells/web/src/lib/seed-url.ts).
 import { buildInputModel, serializeUrlState } from '../engine/src/index.ts';
+import { stampVector } from './lib/stamp-media.ts';
 import type { InputValue } from '../engine/src/inputs.ts';
 
 /** Parsed CLI options. */
@@ -374,7 +375,11 @@ async function captureTool(context: BrowserContext, baseUrl: string, tool: Tool)
 async function writePreview(toolId: string, ext: string, bytes: Buffer): Promise<string> {
   const file = join(PREVIEWS_DIR, `${toolId}.${ext}`);
   await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, bytes);
+  // SVG previews carry a "made with Lolly" C2PA credential (embedded AFTER the svgo pass
+  // in optimizeSvgThumb, so it isn't stripped). PNG previews stay bare here — they're
+  // intermediates that optimize-preview-webp turns into stamped .webp.
+  const finalBytes = ext === 'svg' ? Buffer.from(await stampVector(bytes, { id: toolId, name: toolId })) : bytes;
+  await writeFile(file, finalBytes);
   await clearSiblings(`${toolId}`, ext);
   return file;
 }
@@ -489,7 +494,10 @@ async function captureLookAt(context: BrowserContext, baseUrl: string, tool: Too
 async function writeLookPreview(toolId: string, i: number, ext: string, bytes: Buffer): Promise<string> {
   const file = join(PREVIEWS_DIR, `${toolId}.look${i}.${ext}`);
   await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, bytes);
+  // Same as writePreview: SVG looks get a C2PA credential; PNG looks stay bare (the WebP
+  // step stamps their raster form).
+  const finalBytes = ext === 'svg' ? Buffer.from(await stampVector(bytes, { id: `${toolId}.look${i}`, name: toolId })) : bytes;
+  await writeFile(file, finalBytes);
   await clearSiblings(`${toolId}.look${i}`, ext);
   return file;
 }
@@ -746,11 +754,14 @@ async function loadPlaywright(): Promise<typeof import('playwright')> {
 }
 
 function parseOpts(argv: string[]): Opts {
-  const o: Opts = { url: null, only: [], noBuild: false, headed: false, skipExisting: false };
+  // --preserve (and the LOLLY_PRESERVE env, which loldev sets so the flag survives the
+  // npm `&&` chain) are aliases for --skip-existing: keep the committed previews, only
+  // fill in missing ones. Default (no flag) re-renders + overwrites every preview.
+  const o: Opts = { url: null, only: [], noBuild: false, headed: false, skipExisting: process.env.LOLLY_PRESERVE === '1' };
   for (const a of argv) {
     if (a === '--no-build') o.noBuild = true;
     else if (a === '--headed') o.headed = true;
-    else if (a === '--skip-existing') o.skipExisting = true;
+    else if (a === '--skip-existing' || a === '--preserve') o.skipExisting = true;
     else if (a.startsWith('--url=')) o.url = a.slice(6).replace(/\/$/, '');
     else if (a.startsWith('--only=')) o.only = a.slice(7).split(',').map((s) => s.trim()).filter(Boolean);
   }

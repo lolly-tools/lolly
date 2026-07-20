@@ -110,25 +110,60 @@ function flattenGroup(
   }
 }
 
-// Which top-level sets are active (and in what order) for the chosen theme.
+// The theme entries to COMPOSE for `theme`. Tokens-Studio themes can be grouped into
+// independent AXES via a `group` field (e.g. "mode", "brand", "density"); a single theme
+// entry only enables its OWN axis's sets, so composing just one leaves cross-axis aliases
+// ({alias} into a set another axis enables) dangling. Selection precedence:
+//   1. an explicit `theme` wins for its own group; the DEFAULT (first) theme fills each
+//      OTHER group, so the named theme's cross-axis aliases still resolve;
+//   2. else `$metadata.activeThemes` (Tokens-Studio's "active theme per axis"), if present;
+//   3. else one theme per group (the first of each).
+// A single-theme or single-axis (one `group`) doc composes exactly one theme — identical to
+// the old `named ?? themes[0]` behaviour, so nothing regresses.
+function chosenThemes(themes: UnknownRecord[], meta: UnknownRecord, theme: string | undefined): UnknownRecord[] {
+  if (themes.length <= 1) return themes;
+  const groupOf = (t: UnknownRecord): string => (typeof t.group === 'string' ? t.group : '');
+  const byGroup = new Map<string, UnknownRecord[]>();
+  for (const t of themes) { const g = groupOf(t); const list = byGroup.get(g); if (list) list.push(t); else byGroup.set(g, [t]); }
+  if (byGroup.size <= 1) return theme ? [themes.find(t => t.name === theme || t.id === theme) ?? themes[0]!] : [themes[0]!];
+
+  const requested = theme ? themes.find(t => t.name === theme || t.id === theme) : undefined;
+  if (requested) {
+    const rg = groupOf(requested);
+    const out = [requested];
+    for (const [g, list] of byGroup) if (g !== rg && list[0]) out.push(list[0]);
+    return out;
+  }
+  const activeNames = Array.isArray(meta.activeThemes)
+    ? meta.activeThemes.filter((x): x is string => typeof x === 'string') : [];
+  if (activeNames.length) {
+    const active = themes.filter(t => activeNames.includes(String(t.name)) || activeNames.includes(String(t.id)));
+    if (active.length) return active;
+  }
+  const out: UnknownRecord[] = [];
+  for (const [, list] of byGroup) if (list[0]) out.push(list[0]);
+  return out.length ? out : [themes[0]!];
+}
+
+// Which top-level sets are active (and in what order). Unions the selectedTokenSets across
+// every COMPOSED theme (see chosenThemes) so a multi-axis doc resolves fully; a 'source' set
+// counts (it backs alias resolution), 'disabled' does not. Order comes from the global
+// $metadata.tokenSetOrder (later overrides earlier).
 function activeSets(doc: UnknownRecord, theme: string | undefined): string[] {
   const setKeys = Object.keys(doc).filter(k => !k.startsWith('$'));
-  const meta = doc.$metadata;
-  const order = isRecord(meta) && Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
-  const themes = Array.isArray(doc.$themes) ? doc.$themes : null;
+  const meta = isRecord(doc.$metadata) ? doc.$metadata : {};
+  const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
+  const themes = Array.isArray(doc.$themes) ? doc.$themes.filter(isRecord) : null;
   if (!themes || !themes.length) return setKeys; // caller handles the no-themes case
-  const named = theme
-    ? themes.find((t): t is UnknownRecord => isRecord(t) && (t.name === theme || t.id === theme))
-    : undefined;
-  const chosen = named ?? themes[0];
-  const sel = isRecord(chosen) && isRecord(chosen.selectedTokenSets) ? chosen.selectedTokenSets : {};
-  let active = setKeys.filter(s => {
-    const v = sel[s];
-    return Boolean(v) && v !== 'disabled';
-  });
-  if (!active.length) active = setKeys; // theme names no sets → fall back to all
-  if (order) active = order.filter((s): s is string => typeof s === 'string' && active.includes(s));
-  return active;
+  const active = new Set<string>();
+  for (const t of chosenThemes(themes, meta, theme)) {
+    const sel = isRecord(t.selectedTokenSets) ? t.selectedTokenSets : {};
+    for (const s of setKeys) { const v = sel[s]; if (v && v !== 'disabled') active.add(s); }
+  }
+  let out = setKeys.filter(s => active.has(s));
+  if (!out.length) out = setKeys; // themes name no sets → fall back to all
+  if (order) out = order.filter((s): s is string => typeof s === 'string' && out.includes(s));
+  return out;
 }
 
 function buildMergedMap(doc: UnknownRecord, theme: string | undefined): Map<string, MutableEntry> {

@@ -244,3 +244,55 @@ test('an empty / invalid document yields an empty set, not a throw', () => {
   assert.equal(createTokenSet(undefined).colors().length, 0);
   assert.equal(createTokenSet('garbage').size, 0);
 });
+
+// ── multi-axis Tokens-Studio theme composition ────────────────────────────────
+// A doc with two independent axes (group "mode" + group "brand"): a token in a brand-axis
+// set aliases one in a mode-axis set. Composing a single theme entry (the old behaviour)
+// would leave that cross-axis alias dangling; composing one theme per axis resolves it.
+const MULTIAXIS = {
+  $metadata: { tokenSetOrder: ['core', 'mode-light', 'mode-dark', 'brand-a', 'brand-b'] },
+  $themes: [
+    { name: 'Light', group: 'mode', selectedTokenSets: { core: 'source', 'mode-light': 'enabled' } },
+    { name: 'Dark',  group: 'mode', selectedTokenSets: { core: 'source', 'mode-dark': 'enabled' } },
+    { name: 'BrandA', group: 'brand', selectedTokenSets: { 'brand-a': 'enabled' } },
+    { name: 'BrandB', group: 'brand', selectedTokenSets: { 'brand-b': 'enabled' } },
+  ],
+  core: { base: { $type: 'color', $value: '#111111' } },
+  'mode-light': { surface: { $type: 'color', $value: '#ffffff' } },
+  'mode-dark':  { surface: { $type: 'color', $value: '#000000' } },
+  // brand-axis token aliases a mode-axis token (cross-axis) + a core (source) token
+  'brand-a': { accent: { $type: 'color', $value: '{surface}' }, ink: { $type: 'color', $value: '{base}' } },
+  'brand-b': { accent: { $type: 'color', $value: '{surface}' } },
+};
+
+test('multi-axis: cross-axis alias resolves by composing one theme per group', () => {
+  const ts = createTokenSet(MULTIAXIS);   // no theme → Light (first mode) + BrandA (first brand)
+  assert.equal(ts.get('accent')!.value, '#ffffff', 'brand-a.accent → mode-light.surface (cross-axis)');
+  assert.equal(ts.get('ink')!.value, '#111111', 'brand-a.ink → core.base (source set)');
+});
+
+test('multi-axis: an explicit theme wins its axis, defaults fill the others', () => {
+  const dark = createTokenSet(MULTIAXIS, { theme: 'Dark' });   // Dark (mode) + BrandA (default brand)
+  assert.equal(dark.get('accent')!.value, '#000000', 'accent now → mode-dark.surface');
+});
+
+test('multi-axis: $metadata.activeThemes selects the per-axis combination', () => {
+  const doc = { ...MULTIAXIS, $metadata: { ...MULTIAXIS.$metadata, activeThemes: ['Dark', 'BrandB'] } };
+  const ts = createTokenSet(doc);
+  assert.equal(ts.get('accent')!.value, '#000000', 'Dark surface');
+  assert.ok(ts.has('accent'));  // brand-b set active
+});
+
+test('single-axis doc is unchanged: no theme → first theme, named theme honoured', () => {
+  const doc = {
+    $metadata: { tokenSetOrder: ['light', 'dark'] },
+    $themes: [
+      { name: 'Light', selectedTokenSets: { light: 'enabled' } },
+      { name: 'Dark',  selectedTokenSets: { dark: 'enabled' } },
+    ],
+    light: { bg: { $type: 'color', $value: '#ffffff' } },
+    dark:  { bg: { $type: 'color', $value: '#000000' } },
+  };
+  assert.equal(createTokenSet(doc).get('bg')!.value, '#ffffff', 'no theme → first (Light)');
+  assert.equal(createTokenSet(doc, { theme: 'Dark' }).get('bg')!.value, '#000000', 'named → Dark');
+});

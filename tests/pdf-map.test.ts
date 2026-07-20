@@ -269,6 +269,57 @@ test('interpretPdfPage uses a ToUnicode-built decoder for subset text', () => {
   assert.equal(nodes[0].text, 'S');
 });
 
+// ── gradients: shading patterns + the `sh` operator ───────────────────────────
+const AXIAL = {
+  type: 2 as const,
+  coords: [0, 0, 100, 0],
+  stops: [{ offset: 0, color: '#00ff00' }, { offset: 1, color: '#0000ff' }],
+  extend: [true, true] as [boolean, boolean],
+};
+
+test('shading-pattern fill → box carries a box-space _gradient', () => {
+  const nodes = page('/P1 scn 40 200 120 60 re f', { patterns: { P1: { shading: AXIAL, matrix: [1, 0, 0, 1, 0, 0] } } });
+  assert.equal(nodes.length, 1);
+  const g = nodes[0]._gradient;
+  assert.ok(g, 'expected _gradient');
+  assert.equal(g.type, 2);
+  assert.deepEqual(g.coords, [0, 0, 100, 0]);
+  assert.deepEqual(g.stops, AXIAL.stops);
+  // pattern matrix (identity) ∘ page flip → [1,0,0,-1,0,300] on a 300-tall page.
+  assert.deepEqual(g.matrix, [1, 0, 0, -1, 0, 300]);
+  assert.equal(nodes[0].fill, '');       // flat fill cleared — the gradient wins
+});
+
+test('a shading pattern on a non-rectangular path → a path node with _gradient', () => {
+  const nodes = page('/P1 scn 10 10 m 100 10 l 55 90 l h f', { patterns: { P1: { shading: AXIAL } } });
+  assert.equal(nodes.length, 1);
+  assert.ok(nodes[0]._vectorPath, 'expected a vector path node');
+  assert.equal(nodes[0]._vectorFill, 'none');
+  assert.ok(nodes[0]._gradient, 'expected _gradient on the path node');
+});
+
+test('a solid fill colour after a gradient clears the pending gradient', () => {
+  const nodes = page('/P1 scn 40 200 120 60 re f 1 0 0 rg 10 10 50 50 re f', { patterns: { P1: { shading: AXIAL } } });
+  assert.equal(nodes.length, 2);
+  assert.ok(nodes[0]._gradient);
+  assert.equal(nodes[1]._gradient, undefined);
+  assert.equal(nodes[1].fill, '#ff0000');
+});
+
+test('the `sh` operator paints a clipped gradient rect', () => {
+  const nodes = page('q 40 200 120 60 re W n /S1 sh Q', { shadings: { S1: AXIAL } });
+  assert.equal(nodes.length, 1);
+  assert.equal(nodes[0].shape, 'rect');
+  assert.ok(nodes[0]._gradient, 'expected _gradient');
+  assert.ok(nodes[0]._clips?.length, 'sh gradient must carry the active clip');
+  assert.equal(nodes[0].w, 400);          // full page, cropped by the clip on export
+  assert.equal(nodes[0].h, 300);
+});
+
+test('an unclipped `sh` is skipped rather than flooding the page', () => {
+  assert.deepEqual(page('/S1 sh', { shadings: { S1: AXIAL } }), []);
+});
+
 // ── robustness: malformed / empty input never throws ──────────────────────────
 test('empty and garbage content produce no nodes without throwing', () => {
   assert.deepEqual(page(''), []);

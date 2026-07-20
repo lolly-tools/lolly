@@ -15,6 +15,82 @@
 /** One resolved corner: [horizontal, vertical] radius in px. */
 export type CornerPair = [number, number];
 
+/** A 2-D affine matrix (CSS/SVG convention `[a c e / b d f]`: a point (x,y) maps
+ *  to (a·x + c·y + e, b·x + d·y + f)). */
+export interface Mat2D { a: number; b: number; c: number; d: number; e: number; f: number; }
+
+const IDENTITY_2D: Mat2D = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 };
+
+/**
+ * Parse a computed CSS `transform` matrix into a 2-D affine, DOM-free. Handles the
+ * two forms getComputedStyle ever returns — `matrix(a,b,c,d,e,f)` and
+ * `matrix3d(...)` (16 column-major values) — flattening the 3-D form to its 2-D
+ * affine part. Returns **null** for `none`, an unparseable value, or a 3-D matrix
+ * that carries real perspective / z-depth (those can't be expressed as a 2-D affine,
+ * so the caller must fall back to a raster/AABB path rather than silently distort).
+ */
+export function parseCssMatrix(transform: string | null | undefined): Mat2D | null {
+  if (!transform || transform === 'none') return null;
+  const m2 = /matrix\(([^)]+)\)/.exec(transform);
+  if (m2) {
+    const p = m2[1]!.split(',').map((s) => parseFloat(s));
+    if (p.length < 6 || p.some((v) => !Number.isFinite(v))) return null;
+    return { a: p[0]!, b: p[1]!, c: p[2]!, d: p[3]!, e: p[4]!, f: p[5]! };
+  }
+  const m3 = /matrix3d\(([^)]+)\)/.exec(transform);
+  if (m3) {
+    const p = m3[1]!.split(',').map((s) => parseFloat(s));
+    if (p.length < 16 || p.some((v) => !Number.isFinite(v))) return null;
+    // Column-major m11..m44. The 2-D affine is m11,m12,m21,m22,m41,m42. Reject
+    // anything with a z/perspective component (m13/m14/m23/m24/m31..m34/m43, or a
+    // non-identity m33/m44) — it isn't a plane-preserving 2-D transform.
+    const z = [p[2]!, p[3]!, p[6]!, p[7]!, p[8]!, p[9]!, p[11]!, p[14]!];
+    if (z.some((v) => Math.abs(v) > 1e-6) || Math.abs(p[10]! - 1) > 1e-6 || Math.abs(p[15]! - 1) > 1e-6) return null;
+    return { a: p[0]!, b: p[1]!, c: p[4]!, d: p[5]!, e: p[12]!, f: p[13]! };
+  }
+  return null;
+}
+
+/** Compose two 2-D affines: `multiplyMat(P, C)` applies C first, then P
+ *  (transform(P∘C, pt) === transform(P, transform(C, pt))). */
+export function multiplyMat(P: Mat2D, C: Mat2D): Mat2D {
+  return {
+    a: P.a * C.a + P.c * C.b,
+    b: P.b * C.a + P.d * C.b,
+    c: P.a * C.c + P.c * C.d,
+    d: P.b * C.c + P.d * C.d,
+    e: P.a * C.e + P.c * C.f + P.e,
+    f: P.b * C.e + P.d * C.f + P.f,
+  };
+}
+
+/** Re-anchor a matrix about a pivot: `T(px,py)·M·T(-px,-py)` — the transform `m`
+ *  applied around (px,py) instead of the origin (CSS `transform-origin`). */
+export function matAboutPivot(m: Mat2D, px: number, py: number): Mat2D {
+  return {
+    a: m.a, b: m.b, c: m.c, d: m.d,
+    e: m.e + px - (m.a * px + m.c * py),
+    f: m.f + py - (m.b * px + m.d * py),
+  };
+}
+
+/** True when the AABB-based walkers fully capture this matrix on their own — i.e. a
+ *  pure POSITIVE-scale + translate (no rotation, no skew, no flip). A negative scale
+ *  (`scaleX(-1)` mirror) has zero off-diagonals but is NOT AABB-capturable (the box is
+ *  unchanged, the mirror is lost), so it returns false and takes the vector matrix
+ *  branch. When true the vector branch skips it and stays byte-identical. */
+export function isAxisAlignedMat(m: Mat2D): boolean {
+  return Math.abs(m.b) < 1e-6 && Math.abs(m.c) < 1e-6 && m.a > 0 && m.d > 0;
+}
+
+/** Serialize to an SVG `matrix(a,b,c,d,e,f)` transform string (compact rounding). */
+export function matToSvg(m: Mat2D): string {
+  const n = (v: number): number => { const r = Math.round(v * 1e5) / 1e5; return Object.is(r, -0) ? 0 : r; };
+  return `matrix(${n(m.a)},${n(m.b)},${n(m.c)},${n(m.d)},${n(m.e)},${n(m.f)})`;
+}
+
+export { IDENTITY_2D };
+
 /** The four border-radius corner longhands as raw computed-CSS strings. */
 export interface CornerInputs {
   topLeft: string;

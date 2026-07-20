@@ -15,8 +15,9 @@ import type { Profile } from '@lolly-tools/core/host-v1';
 export type ExportC2paOpts = NonNullable<Parameters<typeof embedC2pa>[2]>;
 
 export interface BuildExportC2paOpts {
-  /** Which shell/service produced the bytes — lands in the environment assertion. */
-  surface: 'cli' | 'tui' | 'mcp' | 'docs';
+  /** Which shell/service produced the bytes — lands in the environment assertion.
+   *  'build' covers the generated-media pipeline (OG cards, previews, thumbnails). */
+  surface: 'cli' | 'tui' | 'mcp' | 'docs' | 'build';
   manifest: { id: string; name?: string };
   /** The runtime's input model (`runtime.getModel()`) — digested via summarizeInputs. */
   model: Parameters<typeof summarizeInputs>[0];

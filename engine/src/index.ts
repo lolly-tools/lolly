@@ -52,7 +52,9 @@ export { unfilterPng } from './png-unfilter.ts';
 export { analyzeLsb } from './steganalysis.ts';
 export type { LsbAnalysis } from './steganalysis.ts';
 export { decodeTrustmarkPayload, encodeTrustmarkPayload, TRUSTMARK_PAYLOAD_BITS, buildLollyDurablePayload, readLollyDurable, LOLLY_DURABLE_SCHEMA_VERSION } from './trustmark.ts';
+export { embedDurableIntoRgba, packNchwSigned, sampleBilinear, TRUSTMARK_MODEL_RESOLUTION, TRUSTMARK_Q_WM_STRENGTH, TRUSTMARK_MIN_SIDE } from './trustmark.ts';
 export type { TrustmarkDecodeResult, TrustmarkSchemaName, LollyDurable } from './trustmark.ts';
+export type { DurableEmbedHooks, DurableEmbedMathOptions, CoverResizer, DurableEncoderRun } from './trustmark.ts';
 export { contentSealConsensus, CONTENTSEAL_MESSAGE_BITS, CONTENTSEAL_DEFAULT_TAU } from './contentseal.ts';
 export type { ContentSealConsensus } from './contentseal.ts';
 export {
@@ -78,7 +80,9 @@ export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx
 export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
+  parseCssMatrix, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg, IDENTITY_2D,
 } from './css-box.ts';
+export type { Mat2D } from './css-box.ts';
 export {
   parseClipShape, parseRadialGradient, parseDropShadowFilter,
   splitCssArgs, parseGradientAngle, parseGradientStop,
@@ -129,7 +133,7 @@ export {
 } from './design-map.ts';
 export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
-export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder } from './pdf-map.ts';
+export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop } from './pdf-map.ts';
 export { pdfNodesToSvg, windowPdfSvg } from './pdf-svg.ts';
 export type { PdfSvgOptions, SvgWindow } from './pdf-svg.ts';
 export {

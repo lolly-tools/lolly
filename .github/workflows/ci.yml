@@ -12,7 +12,10 @@
 #   api-bundles     — regenerate the committed api/ function bundles and fail
 #                     on drift (they are generated esbuild output, like
 #                     catalog/tools/index.json).
-# All gates (test / typecheck / validate / smoke / build+budget / api-bundles)
+#   audit           — npm audit; blocks on HIGH/CRITICAL advisories (moderate/low
+#                     surfaced, non-blocking). Ongoing dep-vuln watch for the
+#                     security audit; false alarms pinned via package.json overrides.
+# All gates (test / typecheck / validate / smoke / build+budget / api-bundles / audit)
 # exit non-zero on failure and BLOCK. The bundle-budget step is a hard gate again as of the boot
 # diet (2026-07-08): boot JS is ~66 KB gz vs the 115 KB budget, after the engine
 # barrel was pulled off the boot path (it had dragged c2pa-trust/design-map/
@@ -235,3 +238,30 @@ jobs:
           grep -q '<svg' "$OUT_DIR/qr-code.svg"
           [ "$FILES" = "qr-code.svg" ]
           echo "rendered: $FILES → $OUT_DIR"
+
+  # Dependency vulnerabilities — fail on any HIGH or CRITICAL advisory so a new
+  # vulnerable dep can't land silently (readiness for the security audit). Moderate/
+  # low are surfaced but don't block. A false alarm can be pinned via package.json
+  # `overrides` (as adm-zip is, forced to ^0.6.0 past onnxruntime-node's ^0.5.16).
+  audit:
+    name: npm audit (high+critical)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install (workspaces)
+        run: npm ci
+
+      - name: Audit — block on high/critical
+        run: npm audit --audit-level=high
+
+      - name: Full advisory report (non-blocking, for the log)
+        if: always()
+        run: npm audit || true
