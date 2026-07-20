@@ -281,3 +281,75 @@ export async function renderViaWebShell(
     await ctx.close();
   }
 }
+
+/**
+ * PROTOTYPE — opt-in alternative to renderViaWebShell for motion formats
+ * (gif/apng/webm/mp4) ONLY. renderViaWebShell lets the web shell's own capture
+ * loop run inside headless Chromium exactly as it does in a real browser tab —
+ * frame-by-frame via dom-to-image (clone → serialize → rasterize). That means
+ * every export-fidelity edge case dom-to-image has (documented against known
+ * bugs elsewhere in the export path) applies here too, and it's real-time —
+ * a 5s clip takes at least 5s of capture.
+ *
+ * This drives the SAME tool page and the SAME client-side pipeline (deterministic
+ * clock, scrubAnimations, WebCodecs encode, C2PA/watermark stamping — none of
+ * that is duplicated here), but replaces dom-to-image's per-frame capture with a
+ * REAL Playwright screenshot of the live #tool-canvas element: genuine Chromium
+ * paint, no clone/serialize/reinterpret step. The bridge is `page.exposeFunction`
+ * — the web shell's frame() (shells/web/src/bridge/export.ts) detects
+ * window.__lollyCaptureScreenshot and calls it instead of dom-to-image when present.
+ *
+ * deviceScaleFactor: 1 is required — the client scales the live node's CSS size
+ * to the export's target pixel dimensions itself (mirroring dom-to-image's own
+ * scale-transform trick) and expects a 1:1 CSS-px → screenshot-px mapping.
+ *
+ * Not wired into the default CLI/MCP render path. Opt in via
+ * LOLLY_VIDEO_CAPTURE=screenshot (see shells/cli/src/raster.ts) while this proves
+ * itself out; renderViaWebShell remains the default for every caller.
+ */
+export async function renderVideoViaScreenshot(
+  toolId: string, query: string, format: string, dims: RenderDims = {},
+): Promise<{ bytes: Uint8Array; mime: string }> {
+  const base = await webShellBase();
+  const url = exportUrl(base, toolId, query, format, dims);
+  const browser = await getBrowser();
+  // Generous viewport so #tool-canvas renders near its native size rather than the
+  // web shell's own "fit to view" zooming it down to fit a small window — the client
+  // upscales whatever comes back, but starting from a full-resolution screenshot
+  // keeps it sharp instead of upscaling an already-shrunk raster.
+  const vw = Math.min(4000, Math.max(1400, (dims.width ?? 1000) + 500));
+  const vh = Math.min(4000, Math.max(1000, (dims.height ?? 1000) + 300));
+  const ctx = await browser.newContext({
+    serviceWorkers: 'block', acceptDownloads: true, deviceScaleFactor: 1,
+    viewport: { width: vw, height: vh },
+  });
+  try {
+    const page = await ctx.newPage();
+    // Exposed before navigation — the binding survives the goto() below and every
+    // frame() call for the life of this page.
+    await page.exposeFunction('__lollyCaptureScreenshot', async (): Promise<string | null> => {
+      const handle = await page.$('#tool-canvas');
+      if (!handle) return null;
+      const buf = await handle.screenshot({ type: 'png' });
+      return buf.toString('base64');
+    });
+    const downloadP = page.waitForEvent('download', { timeout: timeoutFor(format) });
+    await page.goto(url, { waitUntil: 'commit', timeout: 30_000 });
+    let download: Awaited<typeof downloadP>;
+    try {
+      download = await downloadP;
+    } catch {
+      throw new BrowserError(
+        `The web shell produced no "${format}" file for "${toolId}" in time — the tool may have ` +
+        `failed to render or doesn't support that format. Try a different format or check the inputs.`,
+      );
+    }
+    const path = await download.path();
+    if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
+    const bytes = new Uint8Array(await readFile(path));
+    await download.delete().catch(() => {});
+    return { bytes, mime: MIME['.' + format.toLowerCase()] ?? 'application/octet-stream' };
+  } finally {
+    await ctx.close();
+  }
+}
