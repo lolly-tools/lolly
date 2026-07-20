@@ -57,6 +57,12 @@
  *                  TrustMark-aware tool can recover it. Off by default (heavy
  *                  neural encode + a fetched model); `durable=1`/`on` turns it on.
  *                  See plans/durable-content-credentials.md.
+ *   - `hdr`      — OPT-IN HDR raster export for HDR-capable rasters (`png`/`jpg`).
+ *                  `hdr=1`/`on`/`pq` encodes the output in Rec.2100 PQ (BT.2020 +
+ *                  SMPTE ST 2084) with the brand's primary colours boosted toward
+ *                  peak luminance, so white text and brand colours glow on HDR
+ *                  displays while dark areas stay dark (see engine/src/hdr.ts). Off
+ *                  by default; SDR otherwise.
  *   - `lang`     — UI/content language as a canonical short code (the full set
  *                  is engine/src/lang.ts's LANGS). Informal
  *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
@@ -112,6 +118,24 @@ export interface C2paSetting {
   days: number | null;
 }
 
+/** HDR export tuning (the `hdr` param's optional compact form). `reach`, `lift`,
+ *  `richness` are 0–100 author dials; `peakNits` is the white/peak ceiling. See
+ *  hdr.ts for how a shell maps reach→knee, lift→boostFloor, richness→richness. */
+export interface HdrSettings {
+  /** White/peak luminance ceiling, nits (how bright the brightest get). */
+  peakNits: number;
+  /** 0–100: how far DOWN the lightness range the glow reaches (higher = more colours glow). */
+  reach: number;
+  /** 0–100: how much dark colours are lifted (0 = darks stay dark for contrast). */
+  lift: number;
+  /** 0–100: colour-richness/saturation focus of the boost. */
+  richness: number;
+}
+
+/** Default HDR dials — match the engine's hdrBoostToPQ defaults (knee 0.32–0.55,
+ *  boostFloor 0, richness 0.4, peak 1000). `hdr=1` selects these. */
+export const HDR_DEFAULTS: HdrSettings = { peakNits: 1000, reach: 45, lift: 0, richness: 40 };
+
 /** Parsed URL state: input values plus the reserved export/render controls. */
 export interface UrlState {
   values: Record<string, InputValue>;
@@ -140,6 +164,10 @@ export interface UrlState {
    *  so unlike `imprint` there is no null/absent distinction: true only for an
    *  explicit `durable=1`/`on`. See the header + plans/durable-content-credentials.md. */
   durable: boolean;
+  /** OPT-IN HDR raster export (the `hdr` param). An HdrSettings object ⇒ Rec.2100
+   *  PQ encoding with brand-colour luminance boost (raster only), carrying the
+   *  author's tuning dials; null ⇒ absent/off ⇒ SDR. `hdr=1` ⇒ HDR_DEFAULTS. */
+  hdr: HdrSettings | null;
   /** UI/content language (the `lang` param), alias-normalized. null ⇒ absent or
    *  unrecognized — caller falls back to profile/localStorage/browser default. */
   lang: Lang | null;
@@ -178,6 +206,9 @@ export interface SerializeUrlOpts {
   /** Durable Content Credential (the `durable` param). Opt-in, off by default —
    *  serialised as `durable=1` only when true; omitted otherwise. */
   durable?: boolean;
+  /** HDR raster export (the `hdr` param). Truthy serialised as `hdr=1`; omitted
+   *  otherwise — opt-in, off by default. */
+  hdr?: string | null;
   /** UI/content language to stamp on a share link (see `lang` in the header
    *  comment). Omitted for English — the implicit default. */
   lang?: string | null;
@@ -186,7 +217,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -229,6 +260,34 @@ function parseDurable(raw: string | null): boolean {
   if (raw == null) return false;
   const v = String(raw).trim().toLowerCase();
   return !(v === 'off' || v === '0' || v === 'false' || v === 'no');
+}
+
+// Parse the opt-in `hdr` param (HDR raster export). Off unless affirmative.
+// `hdr=1`/`on`/`pq`/empty ⇒ HDR_DEFAULTS; `hdr=0`/`off`/absent ⇒ null (SDR).
+// Tuned form: `hdr=<peakNits>-<reach>-<lift>-<richness>` (e.g. `1600-60-0-50`),
+// each an integer; missing/invalid fields fall back to the default dial.
+function parseHdr(raw: string | null): HdrSettings | null {
+  if (raw == null) return null;
+  const v = String(raw).trim().toLowerCase();
+  if (v === 'off' || v === '0' || v === 'false' || v === 'no') return null;
+  if (v === '' || v === '1' || v === 'on' || v === 'pq' || v === 'true') return { ...HDR_DEFAULTS };
+  const p = v.split('-').map(Number);
+  const dial = (n: number | undefined, lo: number, hi: number, def: number): number =>
+    n != null && Number.isFinite(n) ? Math.min(hi, Math.max(lo, Math.round(n))) : def;
+  return {
+    peakNits: dial(p[0], 100, 10000, HDR_DEFAULTS.peakNits),
+    reach:    dial(p[1], 0, 100, HDR_DEFAULTS.reach),
+    lift:     dial(p[2], 0, 100, HDR_DEFAULTS.lift),
+    richness: dial(p[3], 0, 100, HDR_DEFAULTS.richness),
+  };
+}
+
+/** Serialise HDR dials to the compact `hdr` value: `1` when all-default (a clean
+ *  link), else `<peakNits>-<reach>-<lift>-<richness>`. */
+export function serializeHdr(s: HdrSettings): string {
+  const d = HDR_DEFAULTS;
+  if (s.peakNits === d.peakNits && s.reach === d.reach && s.lift === d.lift && s.richness === d.richness) return '1';
+  return `${s.peakNits}-${s.reach}-${s.lift}-${s.richness}`;
 }
 
 /**
@@ -300,6 +359,8 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     imprint:  parseImprint(params.get('imprint')),
     // Opt-in durable Content Credential for raster exports (see header).
     durable:  parseDurable(params.get('durable')),
+    // Opt-in HDR raster export (see header). null ⇒ SDR.
+    hdr:      parseHdr(params.get('hdr')),
     // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
     lang:     normalizeLang(params.get('lang')),
   };
@@ -348,6 +409,7 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   if (opts.imprint === false) params.set('imprint', '0');
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
+  if (opts.hdr) params.set('hdr', '1');
   if (opts.lang && opts.lang !== 'en') params.set('lang', opts.lang);
   return params.toString();
 }

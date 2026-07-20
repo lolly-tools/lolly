@@ -118,11 +118,12 @@ test('canCarryWatermark: the boolean is exactly floor(w/8)·floor(h/8) ≥ MIN_I
   }
 });
 
-test('canCarryWatermark: the floor sits at the documented ~195px crossover', () => {
-  // The docstring/comment claims a ~195² px crossover (≈ 594 blocks) under the v2
-  // 22-coefficient band (up from v1's ~240²/≈871 at 15 coefficients — more
-  // coefficients per block lowers the σ-crossover). Pin it so a future band/
-  // threshold retune that moves the crossover updates the copy too.
+test('canCarryWatermark: the embed floor stays at the ~195px crossover (decoupled from detection)', () => {
+  // The embed-size floor is derived from MIN_IMPRINT_THRESHOLD (0.035), NOT the
+  // detection floor — DETECT_THRESHOLD was raised 0.035→0.06 to reject the HDR
+  // false positive, but that must not change which images we imprint. So the
+  // ~594-block / ~195² crossover holds regardless. Pin it so a future band/embed
+  // retune (not a detection retune) updates the copy.
   assert.ok(MIN_IMPRINT_BLOCKS >= 550 && MIN_IMPRINT_BLOCKS <= 650, `MIN_IMPRINT_BLOCKS ${MIN_IMPRINT_BLOCKS} should be ~594 (a ~195² image)`);
   assert.equal(canCarryWatermark(240, 240), true, '240² (900 blocks) clears the floor');
   assert.equal(canCarryWatermark(200, 200), true, '200² (625 blocks) clears the floor');

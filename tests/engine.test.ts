@@ -9,7 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { validateManifest } from '../engine/src/validate.ts';
-import { parseUrlState, serializeUrlState, RESERVED } from '../engine/src/url-mode.ts';
+import { parseUrlState, serializeUrlState, serializeHdr, RESERVED } from '../engine/src/url-mode.ts';
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.ts';
 import { hydrate, annotateTemplate } from '../engine/src/template.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -147,7 +147,7 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'lang', 'nostage', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'lang', 'nostage', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
 });
@@ -225,6 +225,43 @@ test('url-mode: imprint param — default-on parse/serialize round-trip', () => 
 
   // imprint is reserved — never mistaken for a tool input.
   assert.equal('imprint' in parseUrlState('imprint=0', tool).values, false);
+});
+
+test('url-mode: hdr param — opt-in parse/serialize round-trip', () => {
+  const tool = { inputs: [], render: {} };
+  // Off by default (absent ⇒ null ⇒ SDR).
+  assert.equal(parseUrlState('', tool).hdr, null);
+  assert.equal(parseUrlState('hdr=0', tool).hdr, null);
+  assert.equal(parseUrlState('hdr=off', tool).hdr, null);
+  // Affirmative forms enable Rec.2100 PQ (default dials). See the tuning test for the compact form.
+  const DEF = { peakNits: 1000, reach: 45, lift: 0, richness: 40 };
+  assert.deepEqual(parseUrlState('hdr=1', tool).hdr, DEF);
+  assert.deepEqual(parseUrlState('hdr=on', tool).hdr, DEF);
+  assert.deepEqual(parseUrlState('hdr=pq', tool).hdr, DEF);
+  assert.deepEqual(parseUrlState('hdr=', tool).hdr, DEF);
+  // Serialize: opt-in, so only truthy writes the param (default link stays clean).
+  assert.equal(serializeUrlState([], { hdr: '1' }), 'hdr=1');
+  assert.equal(serializeUrlState([], {}), '');
+  assert.deepEqual(parseUrlState(serializeUrlState([], { hdr: '1' }), tool).hdr, DEF);
+  // hdr is reserved — never mistaken for a tool input.
+  assert.equal('hdr' in parseUrlState('hdr=1', tool).values, false);
+});
+
+test('url-mode: hdr tuning dials — parse, clamp, serialize round-trip', () => {
+  const tool = { inputs: [], render: {} };
+  // `hdr=1` → default dials.
+  assert.deepEqual(parseUrlState('hdr=1', tool).hdr, { peakNits: 1000, reach: 45, lift: 0, richness: 40 });
+  // Tuned compact form `peak-reach-lift-richness`.
+  assert.deepEqual(parseUrlState('hdr=1600-60-10-50', tool).hdr, { peakNits: 1600, reach: 60, lift: 10, richness: 50 });
+  // Missing trailing fields fall back to their default dials.
+  assert.deepEqual(parseUrlState('hdr=1600', tool).hdr, { peakNits: 1600, reach: 45, lift: 0, richness: 40 });
+  // Out-of-range dials clamp to their bounds.
+  assert.deepEqual(parseUrlState('hdr=99999-200-0-0', tool).hdr, { peakNits: 10000, reach: 100, lift: 0, richness: 0 });
+  // serializeHdr: all-default → clean `1`; any off-default → the compact form.
+  assert.equal(serializeHdr({ peakNits: 1000, reach: 45, lift: 0, richness: 40 }), '1');
+  assert.equal(serializeHdr({ peakNits: 1600, reach: 60, lift: 0, richness: 40 }), '1600-60-0-40');
+  const round = { peakNits: 1200, reach: 30, lift: 20, richness: 65 };
+  assert.deepEqual(parseUrlState('hdr=' + serializeHdr(round), tool).hdr, round);
 });
 
 test('url-mode: lang param — alias normalization + serialize round-trip', () => {
