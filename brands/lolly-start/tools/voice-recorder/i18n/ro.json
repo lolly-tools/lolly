@@ -15,5 +15,6 @@
   "inputs.theme.label": "Stil card",
   "inputs.theme.options.dark": "Întunecat",
   "inputs.theme.options.light": "Luminos",
-  "inputs.accent.help": "Lasă necompletat pentru a urma culoarea principală a brandului tău."
+  "inputs.accent.help": "Lasă necompletat pentru a urma culoarea principală a brandului tău.",
+  "inputs.accent.label": "Accent"
 }

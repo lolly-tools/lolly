@@ -39,7 +39,7 @@ export type { BatchRow, BatchTemplateTool } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
 export { extractFileMetadata, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
 export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
-export { stripMetadata, isStrippableFormat } from './strip-metadata.ts';
+export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
 export {
   embedWatermark, detectWatermark, canCarryWatermark, WATERMARK_VERSION, DEFAULT_STRENGTH,

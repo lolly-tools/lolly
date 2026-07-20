@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { stripMetadata, isStrippableFormat } from '../engine/src/strip-metadata.ts';
+import { stripMetadata, isStrippableFormat, hasResidualMetadata } from '../engine/src/strip-metadata.ts';
 
 const bytesOf = (...parts: (number[] | Uint8Array | string)[]): Uint8Array => {
   const arrs = parts.map((p) => (typeof p === 'string' ? new TextEncoder().encode(p) : new Uint8Array(p)));
@@ -84,4 +84,45 @@ test('stripMetadata: malformed input for a format is returned unchanged, not thr
   const junk = new Uint8Array([1, 2, 3]);
   assert.deepEqual(stripMetadata(junk, 'jpeg'), junk);
   assert.deepEqual(stripMetadata(junk, 'png'), junk);
+});
+
+// ─── verify-after-strip: the fail-loud privacy guard (crypto-audit finding #3) ──
+// stripMetadata must never fall open to an un-stripped original that a caller
+// would present as "clean". hasResidualMetadata is the post-condition; these
+// tests prove it flags a dirty file and clears a genuinely stripped one, and
+// that stripMetadata's own output always passes its verify.
+
+test('hasResidualMetadata(jpeg): flags an EXIF file, clears the stripped copy', () => {
+  const app0 = bytesOf([0xff, 0xe0, 0x00, 0x10], 'JFIF\0', [0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]);
+  const app1 = bytesOf([0xff, 0xe1, 0x00, 0x10], 'Exif\0\0', [0, 0, 0, 0, 0, 0, 0, 0]);
+  const sos = bytesOf([0xff, 0xda], [0x00, 0x3f, 0x00], [0xff, 0xd9]);
+  const jpeg = bytesOf([0xff, 0xd8], app0, app1, sos);
+  assert.match(hasResidualMetadata(jpeg, 'jpeg') ?? '', /APP1/);
+  assert.equal(hasResidualMetadata(stripMetadata(jpeg, 'jpeg'), 'jpeg'), null);
+});
+
+test('hasResidualMetadata(png): flags a tEXt chunk, clears the stripped copy', () => {
+  const chunk = (type: string, data: number[]): Uint8Array => {
+    const len = data.length;
+    const lenBytes = [(len >>> 24) & 0xff, (len >>> 16) & 0xff, (len >>> 8) & 0xff, len & 0xff];
+    return bytesOf(lenBytes, type, data, [0, 0, 0, 0]);
+  };
+  const sig = [137, 80, 78, 71, 13, 10, 26, 10];
+  const png = bytesOf(sig, chunk('IHDR', new Array(13).fill(0)), chunk('tEXt', [...Buffer.from('Author\0Ada')]), chunk('IEND', []));
+  assert.match(hasResidualMetadata(png, 'png') ?? '', /tEXt/);
+  assert.equal(hasResidualMetadata(stripMetadata(png, 'png'), 'png'), null);
+});
+
+test('hasResidualMetadata(svg): flags editor cruft, clears the stripped copy', () => {
+  const svg = [
+    '<?xml version="1.0"?>',
+    '<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://x" sodipodi:docname="art.svg">',
+    '<!-- Generator: Secret Tool 1.0 -->',
+    '<metadata><rdf:RDF>author info</rdf:RDF></metadata>',
+    '<rect width="10" height="10" inkscape:label="mine"/>',
+    '</svg>',
+  ].join('');
+  const raw = new TextEncoder().encode(svg);
+  assert.ok(hasResidualMetadata(raw, 'svg'), 'dirty svg should report residual metadata');
+  assert.equal(hasResidualMetadata(stripMetadata(raw, 'svg'), 'svg'), null);
 });

@@ -10,8 +10,12 @@
 // counterpart, which documents the same duplication). PDF is deliberately NOT
 // handled here — it needs a real PDF library (host.pdf.strip in the shells).
 //
-// Best-effort throughout: a format this module can't confidently parse is
-// returned untouched rather than risk corrupting it.
+// A format this module can't confidently parse is returned untouched rather
+// than risk corrupting it — but "untouched" is only ever returned when there is
+// nothing to remove. This is a PRIVACY control, so it must never fail open: if
+// the surgery throws, or leaves any removable metadata behind, stripMetadata()
+// throws instead of silently handing back an un-stripped original that a caller
+// would present as a "clean" copy (verify-after-strip; see hasResidualMetadata).
 
 import { concatBytes } from './bytes.ts';
 
@@ -261,16 +265,70 @@ function stripSvg(bytes: Uint8Array): Uint8Array {
 }
 
 /**
+ * Verify-after-strip post-condition: does `bytes` (a supposedly-cleaned output)
+ * still carry any of the metadata that stripMetadata is contracted to remove for
+ * `format`? Returns a short human-readable reason, or null when the copy is
+ * verifiably clean. Deliberately narrow — it only checks the segments/chunks/
+ * nodes stripMetadata itself drops, so it never false-flags things outside this
+ * module's remit (e.g. a trailing appended payload past a JPEG's EOI, which is
+ * the read-side's concern, not something stripMetadata claims to remove).
+ */
+export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): string | null {
+  if (format === 'jpeg') {
+    for (const s of scanJpeg(bytes) ?? []) {
+      if (s.sos) break; // reached the scan/entropy data — no metadata beyond here
+      if (s.marker === 0xfe) return 'a JPEG comment (COM) segment';
+      if (s.marker >= 0xe1 && s.marker <= 0xef) return `a JPEG APP${s.marker - 0xe0} metadata segment`;
+    }
+    return null;
+  }
+  if (format === 'png') {
+    let p = 8;
+    while (p + 8 <= bytes.length) {
+      const len = ((bytes[p]! << 24) | (bytes[p + 1]! << 16) | (bytes[p + 2]! << 8) | bytes[p + 3]!) >>> 0;
+      const type = String.fromCharCode(bytes[p + 4]!, bytes[p + 5]!, bytes[p + 6]!, bytes[p + 7]!);
+      const end = p + 12 + len;
+      if (end > bytes.length) break; // mirror stripPng: a truncated chunk is dropped, not kept
+      if (PNG_STRIP.has(type)) return `a PNG ${type} chunk`;
+      p = end;
+      if (type === 'IEND') break;
+    }
+    return null;
+  }
+  // SVG: re-tokenize the output and flag anything cleanSvgTokens is meant to drop.
+  const text = new TextDecoder('utf-8').decode(bytes);
+  for (const tk of tokenize(text)) {
+    if (tk.t === 'comment') return 'an XML comment';
+    if (tk.t === 'doctype') return 'a DOCTYPE declaration';
+    if (tk.t === 'pi' && !tk.isXmlDecl) return 'a processing instruction';
+    if (tk.t === 'open' || tk.t === 'self') {
+      if (shouldDropElement(tk.name!)) return `an editor-private <${tk.name}> element`;
+      for (const a of tk.attrs!) if (shouldDropAttr(a.name)) return `an editor-private ${a.name} attribute`;
+    }
+  }
+  return null;
+}
+
+/**
  * Produce a lossless clean copy of `bytes` for a supported raster/vector format
  * — the image content (pixels or paint commands) is preserved byte-for-byte;
  * only metadata (EXIF/XMP/ICC/IPTC/comments/editor cruft) is removed. PDF is
  * not handled here — clean it via the shell's `host.pdf.strip()`.
+ *
+ * Fails LOUD, never open: this is a privacy control, so rather than swallow an
+ * internal error and hand back the un-stripped original (which a caller would
+ * then offer as a "clean" download), any exception propagates and any residual
+ * metadata in the output throws. A file with genuinely nothing to remove (or one
+ * this module can't confidently parse) verifies clean and is returned untouched.
  */
 export function stripMetadata(bytes: Uint8Array, format: StripFormat): Uint8Array {
-  try {
-    if (format === 'jpeg') return stripJpeg(bytes);
-    if (format === 'png') return stripPng(bytes);
-    if (format === 'svg') return stripSvg(bytes);
-  } catch { /* best-effort: fall through to returning the original bytes */ }
-  return bytes;
+  let out: Uint8Array;
+  if (format === 'jpeg') out = stripJpeg(bytes);
+  else if (format === 'png') out = stripPng(bytes);
+  else if (format === 'svg') out = stripSvg(bytes);
+  else return bytes; // unknown format — nothing this module can strip
+
+  const residual = hasResidualMetadata(out, format);
+  if (residual) throw new Error(`stripMetadata(${format}): clean copy still contains ${residual}`);
+  return out;
 }
