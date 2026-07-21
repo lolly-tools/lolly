@@ -135,7 +135,8 @@ function radiusFor(shape, radius) {
   switch (shape) {
     case 'rounded': return Math.max(0, num(radius, 0)) + 'px';
     case 'pill': return '9999px';
-    case 'ellipse': return '50%';
+    // A circle is an ellipse the editor keeps square (w === h); both round to 50%.
+    case 'ellipse': case 'circle': return '50%';
     default: return '0';
   }
 }
@@ -272,7 +273,7 @@ function clipCss(b, byId) {
   var mw = Math.max(1, num(m.w, 1)), mh = Math.max(1, num(m.h, 1));
   var mcx = num(m.x, 0) + mw / 2, mcy = num(m.y, 0) + mh / 2, mrot = num(m.rot, 0);
   var world = [];
-  if (String(m.shape) === 'ellipse') {
+  if (String(m.shape) === 'ellipse' || String(m.shape) === 'circle') {
     for (var i = 0; i < 48; i++) {
       var t = i / 48 * 2 * Math.PI, w = rot2(Math.cos(t) * mw / 2, Math.sin(t) * mh / 2, mrot);
       world.push([mcx + w[0], mcy + w[1]]);
@@ -337,7 +338,11 @@ function textCss(b) {
     'text-align:' + align + ';' +
     'color:' + safeColor(b.fg, '#0e1217') + ';' +
     'font-family:' + fontFamily(b.font) + ';' +
-    'font-size:' + size + 'px;' +
+    // The authored size, multiplied by --fit (default 1, so this is inert unless the
+    // box opted into shrink-to-fit). The fit pass in template.html measures the laid-out
+    // text and writes ONE unitless --fit onto the box; a ratio is right at any canvas
+    // scale (the stage previews small, the export scales the same DOM up). See boxFit.
+    'font-size:calc(' + size + 'px * var(--fit, 1));' +
     'font-weight:' + weight + ';' +
     'line-height:' + clamp(num(b.lineHeight, 1.12), 0.5, 4) + ';' +
     'padding:' + pad + 'px;' +
@@ -356,11 +361,16 @@ function compute(model) {
   var textStyle = boxes.map(function (b, i) { return textCss(b || {}) + shadows[i].text; });
   var textHtml = boxes.map(function (b) { return richText((b && b.text) || ''); });
   var mediaHtml = boxes.map(function (b) { return mediaHtmlFor(b || {}); });
+  // Which boxes opted into shrink-to-fit ("1" marks a fit root for the template's fit
+  // pass; "" is ignored). Off by default so grow-to-fit (the editor's box-grows-to-text
+  // behaviour) stays the norm; a box turns this on to instead shrink the text to a fixed box.
+  var boxFit = boxes.map(function (b) { return boolVal(b && b.fitText, false) ? '1' : ''; });
   return {
     boxStyle: boxStyle,
     textStyle: textStyle,
     textHtml: textHtml,
     mediaHtml: mediaHtml,
+    boxFit: boxFit,
     bgStyle: [transparent ? 'transparent' : safeColor(inp.background, '#ffffff')],
   };
 }
