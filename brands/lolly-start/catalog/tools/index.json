@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-20T17:47:15.266Z",
+  "generatedAt": "2026-07-21T13:34:30.829Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1966,13 +1966,15 @@
     {
       "id": "layout-studio",
       "name": "Layout Studio",
-      "version": "1.4.2",
+      "version": "1.6.0",
       "status": "community",
       "category": "designer",
       "formats": [
         "png",
         "svg",
         "pdf",
+        "pdf-cmyk",
+        "cmyk-tiff",
         "jpg",
         "webp"
       ],

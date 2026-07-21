@@ -109,6 +109,21 @@ test('resizeRect keepAspect on a corner holds the start aspect ratio', () => {
   near(r.w / r.h, 2, 1e-6);
 });
 
+// A CIRCLE box (Layout Studio) resizes with keepAspect forced on, starting square, so
+// every handle — corner AND edge — must keep w === h. An edge handle drives the other
+// axis from the dragged one; without that a side-drag would flatten the circle.
+test('resizeRect keepAspect keeps a square square on a corner drag (circle invariant)', () => {
+  const r = resizeRect({ x: 0, y: 0, w: 300, h: 300, rot: 0 }, 'se', 120, 40, { minSize: 8, keepAspect: true });
+  near(r.w, r.h, 1e-6);
+});
+
+test('resizeRect keepAspect keeps a square square on an EDGE drag (circle invariant)', () => {
+  const east = resizeRect({ x: 0, y: 0, w: 300, h: 300, rot: 0 }, 'e', 90, 0, { minSize: 8, keepAspect: true });
+  near(east.w, east.h, 1e-6);
+  const south = resizeRect({ x: 0, y: 0, w: 300, h: 300, rot: 0 }, 's', 0, -70, { minSize: 8, keepAspect: true });
+  near(south.w, south.h, 1e-6);
+});
+
 test('moveBoxes shifts only the selected indices', () => {
   const boxes = [box({ id: 'a' }), box({ id: 'b', x: 10 })];
   const next: any = moveBoxes(boxes, [1], 5, -3, CFG);

@@ -772,6 +772,10 @@ export interface Profile {
   lastname?: string;
   email?: string;
   phone?: string;
+  /** Job title / role line — a `bindToProfile` target for signature, badge and
+   *  card tools (which today take it as a per-tool input). Optional like every
+   *  field here; a deployment with a directory/IdP may populate it centrally. */
+  title?: string;
   /** "Use my details" opt-in — gates embedding author/contact into export
    *  provenance (see engine/src/metadata.ts). */
   useDetails?: boolean;

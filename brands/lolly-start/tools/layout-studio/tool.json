@@ -1,7 +1,7 @@
 {
   "id": "layout-studio",
   "name": "Layout Studio",
-  "version": "1.4.2",
+  "version": "1.6.0",
   "engineVersion": "^1.12.0",
   "status": "community",
   "category": "designer",
@@ -35,6 +35,8 @@
       "png",
       "svg",
       "pdf",
+      "pdf-cmyk",
+      "cmyk-tiff",
       "jpg",
       "webp"
     ],
@@ -94,6 +96,7 @@
         "ligaturesField": "ligatures",
         "alternatesField": "alternates",
         "padField": "pad",
+        "fitTextField": "fitText",
         "fitField": "fit",
         "blendField": "blend",
         "groupField": "group",
@@ -122,6 +125,18 @@
               "bg": "",
               "shape": "rounded",
               "text": ""
+            }
+          },
+          {
+            "id": "circle",
+            "label": "Circle",
+            "seed": {
+              "kind": "box",
+              "bg": "",
+              "shape": "circle",
+              "text": "",
+              "w": 480,
+              "h": 480
             }
           },
           {
@@ -257,6 +272,10 @@
             {
               "value": "ellipse",
               "label": "Ellipse"
+            },
+            {
+              "value": "circle",
+              "label": "Circle"
             }
           ]
         },
@@ -664,6 +683,13 @@
               "label": "Bottom right"
             }
           ]
+        },
+        {
+          "id": "fitText",
+          "type": "boolean",
+          "label": "Shrink text to fit",
+          "default": false,
+          "help": "Automatically shrink the text so it fits inside the box (shrink-only — never larger than the set size). Off by default, so the box grows to the text instead."
         }
       ],
       "default": [
