@@ -1,0 +1,21 @@
+# Keep Docker build contexts lean and reproducible. The build stages run their
+# OWN `npm ci` and `npm run build:web`, so never ship host build artifacts.
+.git
+node_modules
+**/node_modules
+shells/web/dist
+dist
+scratch
+plans
+tests
+.vercel
+**/.vercel
+.DS_Store
+**/.DS_Store
+*.log
+npm-debug.log*
+.env
+.env.*
+**/.env
+**/.env.*
+services/ca/.env

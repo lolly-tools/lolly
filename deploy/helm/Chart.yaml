@@ -1,0 +1,30 @@
+apiVersion: v2
+name: lolly
+description: >-
+  Self-host Lolly — the constraint-first, template-driven asset generation PWA.
+  The `web` component (on by default) serves the offline-capable web app your
+  employees open at a URL: 2 stateless HA replicas behind nginx, nothing to
+  configure. Two opt-in HTTP services ride alongside: `mcp` (the hosted MCP
+  server for AI agents) and `ca` (the C2PA credential authority). One values
+  file, secure defaults, no external prerequisites beyond a cluster.
+type: application
+
+# Chart version — bump on any change to templates/values (SemVer for the chart).
+version: 0.1.0
+
+# The Lolly release these images are built against. Used as the default image
+# tag when a component's image.tag is left empty. Keep in sync with the repo's
+# package.json "version".
+appVersion: "0.1.0"
+
+home: https://lolly.tools
+sources:
+  - https://github.com/lolly-tools/lolly
+keywords:
+  - lolly
+  - pwa
+  - asset-generation
+  - mcp
+  - c2pa
+maintainers:
+  - name: Lolly

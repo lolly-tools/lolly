@@ -1,0 +1,15 @@
+# Patterns to ignore when packaging the chart (helm package / helm install .).
+.DS_Store
+.git/
+.gitignore
+*.tmproj
+*.bak
+*.orig
+*.swp
+*~
+.idea/
+.vscode/
+# Never bundle real config or secrets into the chart archive.
+*.env
+.env
+values-*.yaml

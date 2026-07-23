@@ -1,0 +1,45 @@
+{{- /*
+Optional NetworkPolicy per enabled component. Restricts ingress to that
+component's HTTP port; egress is left open by default so the MCP/CA services can
+reach IdPs and providers. Enable cluster-wide with networkPolicy.enabled=true.
+*/ -}}
+{{- if .Values.networkPolicy.enabled -}}
+{{- range $name := (list "web" "mcp" "ca") }}
+{{- $c := index $.Values $name }}
+{{- if $c.enabled }}
+{{- $labels := dict "root" $ "name" $name }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "lolly.componentFullname" $labels }}
+  labels:
+    {{- include "lolly.componentLabels" $labels | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "lolly.componentSelectorLabels" $labels | nindent 6 }}
+  policyTypes:
+    - Ingress
+    {{- if not $.Values.networkPolicy.allowAllEgress }}
+    - Egress
+    {{- end }}
+  ingress:
+    - from:
+        {{- if $.Values.networkPolicy.ingressNamespaceSelector }}
+        - namespaceSelector:
+            matchLabels:
+              {{- toYaml $.Values.networkPolicy.ingressNamespaceSelector | nindent 14 }}
+        {{- else }}
+        - podSelector: {}
+        {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ $c.service.targetPort }}
+  {{- if $.Values.networkPolicy.allowAllEgress }}
+  egress:
+    - {}
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
