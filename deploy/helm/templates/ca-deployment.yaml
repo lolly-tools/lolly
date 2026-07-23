@@ -1,0 +1,163 @@
+{{- if .Values.ca.enabled -}}
+{{- $c := .Values.ca -}}
+{{- $labels := dict "root" . "name" "ca" -}}
+{{- $secretName := include "lolly.ca.secretName" . -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lolly.componentFullname" $labels }}
+  labels:
+    {{- include "lolly.componentLabels" $labels | nindent 4 }}
+spec:
+  replicas: {{ $c.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "lolly.componentSelectorLabels" $labels | nindent 6 }}
+  template:
+    metadata:
+      {{- with $c.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "lolly.componentSelectorLabels" $labels | nindent 8 }}
+        {{- with $c.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "lolly.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- if $c.affinity }}
+      affinity:
+        {{- toYaml $c.affinity | nindent 8 }}
+      {{- else if eq $c.podAntiAffinity "hard" }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  {{- include "lolly.componentSelectorLabels" $labels | nindent 18 }}
+              topologyKey: kubernetes.io/hostname
+      {{- else if eq $c.podAntiAffinity "soft" }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    {{- include "lolly.componentSelectorLabels" $labels | nindent 20 }}
+                topologyKey: kubernetes.io/hostname
+      {{- end }}
+      {{- with $c.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $c.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $c.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: ca
+          image: {{ include "lolly.componentImage" (dict "image" $c.image "root" .) }}
+          imagePullPolicy: {{ $c.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ $c.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: {{ $c.service.targetPort | quote }}
+            # ── Non-secret CA config ──────────────────────────────────────────
+            {{- with $c.config.allowedOrigins }}
+            - name: CA_ALLOWED_ORIGINS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $c.config.githubClientId }}
+            - name: GITHUB_CLIENT_ID
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $c.config.googleClientId }}
+            - name: GOOGLE_CLIENT_ID
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $c.config.suseIssuer }}
+            - name: SUSE_ISSUER
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $c.config.suseClientId }}
+            - name: SUSE_CLIENT_ID
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $c.config.certDays }}
+            - name: CA_CERT_DAYS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with $c.config.certMaxDays }}
+            - name: CA_CERT_MAX_DAYS
+              value: {{ . | quote }}
+            {{- end }}
+            # ── Secret-backed env (chart-managed or existingSecret) ───────────
+            - name: CA_SERVICE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: CA_SERVICE_SECRET
+            - name: CA_ROOT_KEY_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: CA_ROOT_KEY_PEM
+            - name: CA_ROOT_CERT_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: CA_ROOT_CERT_PEM
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: GITHUB_CLIENT_SECRET
+                  optional: true
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: GOOGLE_CLIENT_SECRET
+                  optional: true
+            - name: SUSE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: SUSE_CLIENT_SECRET
+                  optional: true
+            {{- with $c.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          livenessProbe:
+            {{- toYaml $c.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml $c.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml $c.resources | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

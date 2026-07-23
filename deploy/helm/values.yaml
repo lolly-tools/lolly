@@ -1,0 +1,348 @@
+# ============================================================================
+# lolly — Helm values
+# ============================================================================
+# THIS IS THE ONE FILE YOU EDIT. Lolly's north star is "absolutely easy to
+# deploy": a Kubernetes cluster + a web image + this file is all it takes to
+# give your employees a URL to the offline-capable web app.
+#
+# Minimum viable install (just the web PWA, port-forward to try it):
+#
+#   helm install lolly deploy/helm \
+#     --set web.image.repository=<registry>/lolly-web
+#
+# Production install (web PWA on your own hostname, TLS via cert-manager):
+#
+#   helm install lolly deploy/helm \
+#     --set web.image.repository=<registry>/lolly-web \
+#     --set web.ingress.enabled=true \
+#     --set web.ingress.hosts[0].host=lolly.example.com \
+#     --set web.ingress.tls[0].secretName=lolly-web-tls \
+#     --set web.ingress.tls[0].hosts[0]=lolly.example.com
+#
+# The two backend services (mcp, ca) are OPT-IN and disabled by default — turn
+# them on only if you need the hosted MCP server or the C2PA credential
+# authority (see their sections far below).
+# ============================================================================
+
+# Applied to every component's resource names.
+nameOverride: ""
+fullnameOverride: ""
+
+# docker-registry pull secrets, if your images live in a private registry.
+# e.g.  [{ name: my-regcred }]
+imagePullSecrets: []
+
+# ── Shared ServiceAccount ───────────────────────────────────────────────────
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  # These are plain static/HTTP services with no Kubernetes API needs.
+  automountServiceAccountToken: false
+
+# ════════════════════════════════════════════════════════════════════════════
+# web — THE PRIMARY PRODUCT (enabled by default)
+# ════════════════════════════════════════════════════════════════════════════
+# The Lolly PWA: a fully static, offline-capable SPA served by nginx. It holds
+# NO server-side state (everything runs client-side; data lives in the browser's
+# IndexedDB), so replicas are freely interchangeable and it scales trivially.
+#
+# The brand/catalog is BAKED INTO THE IMAGE at build time (theme, tools/, and
+# catalog/ are resolved by `npm run build:web` — see deploy/docker/web.Dockerfile
+# --build-arg LOLLY_PROFILE). The running container reads nothing at serve time,
+# so there is NOTHING to mount here — no pack, no config, no secret.
+web:
+  enabled: true
+
+  # 2 replicas for HA. Stateless static content — raise freely for more traffic.
+  replicaCount: 2
+
+  image:
+    # REQUIRED: build and push the web image, then set this repository.
+    #   docker build -f deploy/docker/web.Dockerfile \
+    #     --build-arg LOLLY_PROFILE=suse \
+    #     -t <registry>/lolly-web:0.1.0 .
+    #   docker push <registry>/lolly-web:0.1.0
+    repository: ghcr.io/lolly-tools/lolly-web
+    # Empty ⇒ use the chart's appVersion. Pin an immutable tag/digest in prod.
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+    # Container port nginx-unprivileged listens on (see nginx.conf). Non-root
+    # nginx cannot bind <1024, so this is 8080, not 80.
+    targetPort: 8080
+
+  # TLS-ready ingress. Point config.instance is not needed — the PWA is origin-
+  # agnostic; just give it a hostname.
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+      # cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: lolly.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+      # - secretName: lolly-web-tls
+      #   hosts:
+      #     - lolly.example.com
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 32Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+
+  # nginx `/healthz` returns 200 (see nginx.conf). Cheap and unauthenticated.
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: http
+    initialDelaySeconds: 3
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  # Soft anti-affinity spreads replicas across nodes without blocking a small
+  # cluster. "hard" requires distinct nodes; "" / any other value disables it.
+  podAntiAffinity: soft
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  podAnnotations: {}
+  podLabels: {}
+  # Non-secret env for the nginx container, if ever needed. Usually empty.
+  extraEnv: []
+
+# ════════════════════════════════════════════════════════════════════════════
+# mcp — hosted MCP server (OPT-IN, disabled by default)
+# ════════════════════════════════════════════════════════════════════════════
+# Exposes the on-brand tool catalog + render path to AI agents over the Model
+# Context Protocol (Streamable-HTTP). Stateless. Listens on PORT (8790), serving
+# JSON-RPC at POST /mcp, the .well-known OAuth routes, and a public GET render
+# path. Enable this only if you want remote agents (e.g. claude.ai) to reach
+# your catalog. Like the web image, its tools/catalog are baked at build time.
+mcp:
+  enabled: false
+
+  replicaCount: 2
+
+  image:
+    #   docker build -f deploy/docker/mcp.Dockerfile -t <registry>/lolly-mcp:0.1.0 .
+    repository: ghcr.io/lolly-tools/lolly-mcp
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+    # Container PORT the MCP http server listens on (default 8790).
+    targetPort: 8790
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: mcp.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+  # The MCP server has no unauthenticated GET health route, so probes use a TCP
+  # socket check — the port is open once the http server is listening.
+  livenessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 15
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readinessProbe:
+    tcpSocket:
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  # Point at your web deployment's origin to enable Tier-B (browser) render
+  # formats. Leave empty to run without a browser (svg/data + resvg-png still
+  # work). e.g. "https://lolly.example.com"
+  webBase: ""
+
+  podAntiAffinity: soft
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  podAnnotations: {}
+  podLabels: {}
+  # Extra non-secret env. For OAuth/provider secrets, mount your own secret via
+  # envFrom here or extend this chart — the MCP OAuth config is deployment-
+  # specific and intentionally not templated.
+  extraEnv: []
+  # e.g. [{ secretRef: { name: lolly-mcp-oauth } }]
+  extraEnvFrom: []
+
+# ════════════════════════════════════════════════════════════════════════════
+# ca — C2PA credential authority (OPT-IN, disabled by default)
+# ════════════════════════════════════════════════════════════════════════════
+# OIDC-verified short-lived X.509 leaf issuance for on-device C2PA signing.
+# Stateless (the only state is the root key/cert you supply). Listens on PORT
+# (8787), serving under /api/ca (GET /api/ca/health, /root.pem, OAuth routes,
+# POST /enroll). Enable only if your users need signed/credentialed assets.
+#
+# REQUIRES a root CA key + cert and a service secret. Generate the root once:
+#   node services/ca/scripts/gen-root.mjs
+# then supply the PEMs + secret via `ca.secrets` (chart-managed) OR
+# `ca.existingSecret` (recommended for production — see below).
+ca:
+  enabled: false
+
+  replicaCount: 2
+
+  image:
+    #   docker build -f deploy/docker/ca.Dockerfile -t <registry>/lolly-ca:0.1.0 .
+    repository: ghcr.io/lolly-tools/lolly-ca
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 80
+    # Container PORT the CA server listens on (default 8787).
+    targetPort: 8787
+
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    hosts:
+      - host: ca.example.com
+        paths:
+          - path: /api/ca
+            pathType: Prefix
+    tls: []
+
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  # GET /api/ca/health answers even before the root is configured.
+  livenessProbe:
+    httpGet:
+      path: /api/ca/health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 15
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /api/ca/health
+      port: http
+    initialDelaySeconds: 3
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+  # ── CA secrets ─────────────────────────────────────────────────────────────
+  # Mode A (chart-managed): fill these in and the chart creates a Secret.
+  # Mode B (recommended for prod): set `ca.existingSecret` to a secret you
+  # manage, and leave `ca.secrets` empty. Keys expected in the existing secret:
+  #   CA_SERVICE_SECRET, CA_ROOT_KEY_PEM, CA_ROOT_CERT_PEM  (required)
+  #   CA_ALLOWED_ORIGINS                                    (recommended)
+  #   GITHUB_CLIENT_SECRET, GOOGLE_CLIENT_SECRET, SUSE_CLIENT_SECRET (as used)
+  existingSecret: ""
+  secrets:
+    # openssl rand -hex 32 — HMAC key for OAuth state + enrollment tokens.
+    serviceSecret: ""
+    # PKCS#8 PEM of the root private key (from gen-root.mjs). Keep it safe.
+    rootKeyPem: ""
+    # PEM of the root certificate (public).
+    rootCertPem: ""
+    # Optional confidential OIDC client secrets, when you register providers.
+    githubClientSecret: ""
+    googleClientSecret: ""
+    suseClientSecret: ""
+
+  # Non-secret CA config (the public half of the OIDC provider registrations and
+  # issuance policy). Rendered into env directly. See services/ca/.env.example.
+  config:
+    # Comma list of origins allowed to receive enrollment tokens (your web host).
+    allowedOrigins: "https://lolly.example.com"
+    # Public OIDC client ids + issuers (set the ones you registered).
+    githubClientId: ""
+    googleClientId: ""
+    suseIssuer: ""
+    suseClientId: ""
+    # Issuance policy (optional). Days.
+    certDays: ""
+    certMaxDays: ""
+
+  podAntiAffinity: soft
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  podAnnotations: {}
+  podLabels: {}
+  extraEnv: []
+
+# ════════════════════════════════════════════════════════════════════════════
+# Shared pod runtime security (applied to every component)
+# ════════════════════════════════════════════════════════════════════════════
+# Secure defaults: run as a non-root user, drop all capabilities, no privilege
+# escalation, read-only root filesystem. The web image (nginx-unprivileged) runs
+# as uid 101; the node services run as uid 1000. fsGroup is unset so each image's
+# own default applies — override per install if your policy requires a fixed gid.
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+# ── NetworkPolicy ───────────────────────────────────────────────────────────
+# Off by default. When enabled, restricts ingress to each enabled component's
+# port; egress is left open (the MCP/CA services call out to IdPs and providers).
+networkPolicy:
+  enabled: false
+  # Allow ingress from pods in these namespaces (by label). Empty ⇒ allow from
+  # any pod in the same namespace (scope this to your ingress controller in prod).
+  ingressNamespaceSelector: {}
+  allowAllEgress: true
