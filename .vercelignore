@@ -17,6 +17,12 @@ plans
 # is shells/web/dist), so shipping the local ~170 MB copy is pure waste.
 shells/web/dist
 
+# onnxruntime-web WASM runtime (~93 MB) — an EXACT copy of *.wasm/*.mjs from the
+# installed onnxruntime-web dep's dist/. `build:web` runs `build:ort`
+# (scripts/copy-ort.ts) to regenerate it from the dependency Vercel installs
+# anyway, so uploading the local copy every ship is pure waste. Byte-identical.
+shells/web/public/ort
+
 # Profile views — derived from the packs (community/, brands/**), which DO ship.
 # postinstall (use-profile --auto) rebuilds them on Vercel as real copies, so
 # vercel.json's includeFiles globs and the web build's dist copy see real files.
