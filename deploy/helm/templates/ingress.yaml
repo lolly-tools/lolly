@@ -1,0 +1,47 @@
+{{- /*
+One Ingress per component whose <component>.enabled AND <component>.ingress.enabled
+are both true. Kept in a single file so the routing for the whole release is
+visible at a glance.
+*/ -}}
+{{- range $name := (list "web" "mcp" "ca") }}
+{{- $c := index $.Values $name }}
+{{- if and $c.enabled $c.ingress.enabled }}
+{{- $labels := dict "root" $ "name" $name }}
+{{- $fullName := include "lolly.componentFullname" $labels }}
+{{- $svcPort := $c.service.port }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    {{- include "lolly.componentLabels" $labels | nindent 4 }}
+  {{- with $c.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- with $c.ingress.className }}
+  ingressClassName: {{ . }}
+  {{- end }}
+  {{- with $c.ingress.tls }}
+  tls:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  rules:
+    {{- range $c.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $svcPort }}
+          {{- end }}
+    {{- end }}
+{{- end }}
+{{- end }}
