@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-21T13:34:30.829Z",
+  "generatedAt": "2026-07-23T16:33:44.316Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3965,7 +3965,7 @@
       "width": 760,
       "height": 620,
       "exportable": false,
-      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"14\" height=\"14\" rx=\"2\"/><circle cx=\"8\" cy=\"8\" r=\"1.6\"/><path d=\"m3 14 4-4 5 5\"/><path d=\"M21 11v6a4 4 0 0 1-4 4h-6\"/><path d=\"m14 18 3 3 3-3\"/></svg>",
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M10.3 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21\"/><path d=\"M17 13.7V22\"/><path d=\"m14 19 3 3 3-3\"/></svg>",
       "preview": "/catalog/previews/convert-image.svg",
       "i18n": {
         "ar": {
