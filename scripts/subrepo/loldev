@@ -20,6 +20,8 @@
 #                                      Overwrites every card (now stamped: Imprint + C2PA); --preserve keeps existing. (/info-page OG
 #                                      rebuilds with the docs site — see build:info / a full `build:web`.)
 #   loldev shots [--accept|--only=…]   capture + compare the docs screenshots (url-shot recipe links in docs/*.md → docs/shots/); also runs inside every gtg
+#   loldev shots --rebuild             full refresh: rebuild the shell, re-shoot EVERY recipe, write every baseline (even
+#                                      unchanged) and prune retired files. What you want after an engine/renderer change.
 #   loldev verify [--clone]            full post-split build/run verification
 #   loldev profile [name] [--copy]     show or switch the content profile (suse / lolly-start):
 #                                      rebuilds the tools/ + catalog/ views from the packs

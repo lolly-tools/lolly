@@ -138,3 +138,32 @@ test('parseGradientStop: peels position off a spaced rgb() colour', () => {
   assert.equal(s.colorStr, 'rgb(48, 186, 120)');
   assert.equal(s.offset, '25%');
 });
+
+// ── Zero-area clips are UNDERSTOOD, not unparseable ──────────────────────────
+// `clip-path: inset(50%)` is the standard visually-hidden / skip-link idiom, and
+// `parseClipShape` used to answer it with `null`. Callers read `null` as "a shape
+// I can't vectorise" and fall back to rasterising the element's whole subtree —
+// so the single most common clip-path value in the app rasterised everything
+// under it, and on an ancestor that turned a whole page snapshot into one big
+// screenshot. `{kind:'empty'}` lets a caller do the correct thing: paint nothing.
+test('parseClipShape: a zero-area clip reports empty, not null', () => {
+  for (const cp of ['inset(50%)', 'inset(50% 50% 50% 50%)', 'inset(60% 10%)', 'circle(0)', 'circle(0%)', 'ellipse(0 0)']) {
+    const s = parseClipShape(cp, 200, 100);
+    assert.ok(s, `${cp} should parse, not return null`);
+    assert.equal(s!.kind, 'empty', `${cp} → ${JSON.stringify(s)}`);
+  }
+});
+
+test('parseClipShape: a shape it genuinely cannot read still reports null', () => {
+  for (const cp of ['url(#mask)', 'path("M0 0 L10 10")', 'circle(banana)', 'inset(banana)']) {
+    assert.equal(parseClipShape(cp, 200, 100), null, cp);
+  }
+});
+
+test('parseClipShape: a clip WITH area is unaffected', () => {
+  const ins = parseClipShape('inset(10% 20%)', 200, 100);
+  assert.deepEqual(ins, { kind: 'inset', x: 40, y: 10, w: 120, h: 80, r: 0 });
+  assert.equal(parseClipShape('circle(40%)', 200, 100)!.kind, 'circle');
+  assert.equal(parseClipShape('ellipse(30% 40%)', 200, 100)!.kind, 'ellipse');
+  assert.equal(parseClipShape('polygon(0 0, 10px 0, 10px 10px)', 200, 100)!.kind, 'polygon');
+});

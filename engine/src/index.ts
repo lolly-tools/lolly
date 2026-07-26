@@ -136,9 +136,11 @@ export {
 } from './design-map.ts';
 export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
-export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop } from './pdf-map.ts';
-export { pdfNodesToSvg, windowPdfSvg } from './pdf-svg.ts';
-export type { PdfSvgOptions, SvgWindow } from './pdf-svg.ts';
+export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop, PdfSoftMask, PdfSoftMaskDef } from './pdf-map.ts';
+export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pdf-smask.ts';
+export type { MaskRegion } from './pdf-smask.ts';
+export { pdfNodesToSvg, windowPdfSvg, cullPdfNodes, pdfNodeExtent, pdfNodeElementKind, CULL_PAD_PT } from './pdf-svg.ts';
+export type { PdfSvgOptions, SvgWindow, CullWindow, CullResult, PdfExtent, PdfElementKind } from './pdf-svg.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
