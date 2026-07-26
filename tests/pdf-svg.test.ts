@@ -315,3 +315,27 @@ test('a degenerate mask region is ignored rather than hiding the node', () => {
   assert.ok(svg.includes('<rect x="0" y="0" width="100" height="50" fill="#abcdef"/>'), svg);
   assert.ok(!svg.includes('<mask'), svg);
 });
+
+// ── An image that rounds away is not emitted ─────────────────────────────────
+// The node-level guard is `n.w > 0`, which a 0.004-unit box passes — and then the
+// emitter's 2-decimal rounding writes width="0". The element cannot draw, but it
+// still carries its base64 raster payload, so it is pure weight: nine of them were
+// riding in one fixture. Test what will be WRITTEN, not what was computed.
+test('an image whose rounded size is zero is skipped entirely', () => {
+  const px = 'data:image/png;base64,iVBORw0KGgo=';
+  const svg = pdfNodesToSvg(
+    [{ kind: 'image', x: 10, y: 10, w: 0.004, h: 43, rot: 0, fit: 'fill', _imageXObject: 'k' } as never],
+    { width: 100, height: 100, images: { k: px } } as never,
+  );
+  assert.ok(!svg.includes('<image'), `a zero-width image was emitted: ${svg.slice(0, 200)}`);
+  assert.ok(!svg.includes(px), 'the raster payload rode along with it');
+});
+
+test('an image with real extent is still emitted', () => {
+  const px = 'data:image/png;base64,iVBORw0KGgo=';
+  const svg = pdfNodesToSvg(
+    [{ kind: 'image', x: 10, y: 10, w: 20, h: 43, rot: 0, fit: 'fill', _imageXObject: 'k' } as never],
+    { width: 100, height: 100, images: { k: px } } as never,
+  );
+  assert.ok(svg.includes('<image'), 'a normal image must still emit');
+});

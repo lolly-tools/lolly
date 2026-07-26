@@ -8,7 +8,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
+  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands,
   parseCssMatrix, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg,
 } from '../engine/src/css-box.ts';
 import type { CornerInputs, CornerRadii, Mat2D } from '../engine/src/css-box.ts';
@@ -135,10 +135,50 @@ test('parseBoxShadow: blur/spread optional; negative spread kept; blur clamped �
   assert.equal(sp[0]!.spread, -2);
 });
 
-test('parseBoxShadow: inset shadows are skipped (not vector-expressible)', () => {
-  assert.deepEqual(parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px inset'), []);
+test('parseBoxShadow: inset shadows are FLAGGED, not skipped', () => {
+  // They used to be dropped here on the grounds that they were not vector-
+  // expressible. They are — the region between the border box and an offset,
+  // shrunken copy of it — so the parser reports them and the caller decides.
+  const one = parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px inset');
+  assert.equal(one.length, 1);
+  assert.equal(one[0]!.inset, true);
+  assert.equal(one[0]!.color, 'rgba(0,0,0,0.5)', 'the "inset" keyword must not be mistaken for a named colour');
+  assert.deepEqual([one[0]!.x, one[0]!.y, one[0]!.blur], [0, 2, 4]);
   const mixed = parseBoxShadow('rgba(0,0,0,0.5) 0px 2px 4px, rgba(0,0,0,0.3) 0px 1px 2px inset');
-  assert.equal(mixed.length, 1);
+  assert.deepEqual(mixed.map((m) => m.inset), [false, true], 'both survive, each flagged');
+});
+
+test('parseTextShadow: computed form, colour first', () => {
+  const s = parseTextShadow('rgba(0, 0, 0, 0.6) 0px 2px 4px');
+  assert.equal(s.length, 1);
+  assert.deepEqual([s[0]!.x, s[0]!.y, s[0]!.blur], [0, 2, 4]);
+  assert.equal(s[0]!.color, 'rgba(0, 0, 0, 0.6)');
+});
+
+test('parseTextShadow: authored form, offsets first', () => {
+  // A value read off a stylesheet rather than a computed style puts the colour last.
+  const s = parseTextShadow('2px 2px 0 #d33');
+  assert.equal(s.length, 1);
+  assert.deepEqual([s[0]!.x, s[0]!.y, s[0]!.blur], [2, 2, 0]);
+  assert.equal(s[0]!.color, '#d33');
+});
+
+test('parseTextShadow: multiple, commas inside rgba() are not separators', () => {
+  const s = parseTextShadow('rgba(0, 0, 0, 0.6) 0px 2px 4px, rgb(255, 0, 0) 1px 1px');
+  assert.equal(s.length, 2);
+  assert.deepEqual([s[1]!.x, s[1]!.y, s[1]!.blur], [1, 1, 0], 'blur defaults to 0');
+});
+
+test('parseTextShadow: none / empty / junk', () => {
+  assert.deepEqual(parseTextShadow('none'), []);
+  assert.deepEqual(parseTextShadow(''), []);
+  assert.deepEqual(parseTextShadow(null), []);
+  assert.deepEqual(parseTextShadow('rgb(0,0,0)'), [], 'a colour with no offsets is not a shadow');
+});
+
+test('parseTextShadow: a negative blur is clamped, negative offsets are kept', () => {
+  const s = parseTextShadow('rgb(0,0,0) -3px -4px -5px');
+  assert.deepEqual([s[0]!.x, s[0]!.y, s[0]!.blur], [-3, -4, 0]);
 });
 
 // ── 2-D transform matrix (rotate/skew/matrix support for the vector walkers) ──
@@ -194,4 +234,79 @@ test('isAxisAlignedMat: pure positive-scale/translate true; rotation/skew/flip f
 
 test('matToSvg: compact, negative-zero normalised', () => {
   assert.equal(matToSvg({ a: 1, b: 0, c: -0, d: 1, e: 0, f: 0 }), 'matrix(1,0,0,1,0,0)');
+});
+
+// ── gaussianShadowBands ──────────────────────────────────────────────────────
+// A blur-less renderer (PDF, EMF, EPS) can still draw a Gaussian: the coverage at
+// signed distance t outside an edge is exactly Φ(-t/σ), so painting the shape at a
+// series of outsets with the right alpha INCREMENTS composites to that curve. These
+// tests check the composite, not the individual alphas — the increments are only
+// meaningful once stacked.
+
+/** Composite the bands the way a renderer does: outermost first, normal blending. */
+function coverageAt(bands: { outset: number; alpha: number }[], t: number): number {
+  let acc = 0;
+  for (const b of bands) if (t <= b.outset) acc = acc + b.alpha * (1 - acc);
+  return acc;
+}
+/** Φ(-t/σ) * alpha — what the blur actually produces. */
+function trueCoverage(t: number, sigma: number, alpha: number): number {
+  const erf = (x: number) => {
+    const s = x < 0 ? -1 : 1, ax = Math.abs(x);
+    const u = 1 / (1 + 0.3275911 * ax);
+    const y = 1 - (((((1.061405429 * u - 1.453152027) * u + 1.421413741) * u - 0.284496736) * u + 0.254829592) * u) * Math.exp(-ax * ax);
+    return s * y;
+  };
+  return alpha * 0.5 * (1 - erf(t / (sigma * Math.SQRT2)));
+}
+
+test('gaussianShadowBands: composites to the Gaussian coverage curve', () => {
+  for (const [blur, alpha] of [[16, 0.35], [24, 0.5], [40, 0.9]] as const) {
+    const sigma = blur / 2;
+    const bands = gaussianShadowBands(blur, alpha);
+    assert.ok(bands.length >= 8, `blur ${blur} produced only ${bands.length} bands`);
+    let worst = 0;
+    for (let t = -3 * sigma; t <= 3 * sigma; t += sigma / 20) {
+      worst = Math.max(worst, Math.abs(coverageAt(bands, t) - trueCoverage(t, sigma, alpha)));
+    }
+    // Under 2 steps of an 8-bit channel — below what a shadow can even express.
+    assert.ok(worst * 255 < 8, `blur ${blur}: worst alpha error ${(worst * 255).toFixed(1)}/255`);
+  }
+});
+
+test('gaussianShadowBands: outermost first, monotonically inward', () => {
+  const bands = gaussianShadowBands(20, 0.5);
+  for (let i = 1; i < bands.length; i++) {
+    assert.ok(bands[i]!.outset < bands[i - 1]!.outset, 'bands must march inward');
+  }
+  assert.ok(bands[0]!.outset > 0, 'the first band sits outside the shape edge');
+  assert.ok(bands[bands.length - 1]!.outset < 0, 'the last band sits inside it, where coverage is full');
+});
+
+test('gaussianShadowBands: every alpha is a usable fraction', () => {
+  for (const [blur, alpha] of [[2, 1], [8, 0.2], [60, 0.75]] as const) {
+    for (const b of gaussianShadowBands(blur, alpha)) {
+      assert.ok(Number.isFinite(b.outset) && Number.isFinite(b.alpha), 'no NaN may reach a coordinate');
+      assert.ok(b.alpha > 0 && b.alpha <= 1, `alpha out of range: ${b.alpha}`);
+    }
+  }
+});
+
+test('gaussianShadowBands: reaches the shadow\'s own alpha at the centre, never past it', () => {
+  const bands = gaussianShadowBands(16, 0.4);
+  const inside = coverageAt(bands, -3 * 8);
+  assert.ok(inside <= 0.4 + 1e-6, `overshoot: ${inside} > 0.4`);
+  assert.ok(inside > 0.39, `undershoot: ${inside} — the shadow would be too light in the middle`);
+});
+
+test('gaussianShadowBands: no blur, or no alpha, means no bands', () => {
+  assert.deepEqual(gaussianShadowBands(0, 0.5), []);
+  assert.deepEqual(gaussianShadowBands(-4, 0.5), []);
+  assert.deepEqual(gaussianShadowBands(10, 0), []);
+});
+
+test('gaussianShadowBands: band count is bounded for a pathological blur', () => {
+  // Each band is a separate filled shape in the output, so this is a file-size and
+  // render-time bound, not just tidiness.
+  assert.ok(gaussianShadowBands(4000, 1).length <= 160);
 });

@@ -526,3 +526,85 @@ test('/SMask /None clears the mask; an ExtGState with no /SMask key leaves it al
   assert.equal(nodes[1].opacity, 100);
   assert.equal(nodes[1]._softMask, undefined);
 });
+
+// ── Path closure is EXPLICIT, never assumed ──────────────────────────────────
+// serializePath used to append 'Z' to every path it emitted. On a FILL that is
+// invisible (SVG closes subpaths implicitly when filling), but on a STROKE it
+// draws an edge the source never had: an open 3-point chevron `M7 8 L3 12 L7 16`
+// — the arrowhead in every outline icon — came out as a filled-looking triangle.
+// Reported from a screenshot of the export panel's ↔ / ↕ dimension icons.
+//
+// PDF says which paths close: `h`, `re`, and the close-then-paint operators
+// `s`/`b`/`b*` (§8.5.2.1, §8.5.3.1). `S`/`B`/`B*` leave the path open.
+const dOf = (nodes: any[]): string => nodes.map((n) => n._vectorPath || '').join(' ');
+
+test('an open stroked path stays open (S does not close)', () => {
+  const d = dOf(page('1 0 0 RG 2 w 7 8 m 3 12 l 7 16 l S'));
+  assert.ok(d.includes('M'), `no path emitted: ${d}`);
+  assert.ok(!d.includes('Z'), `S must not close the subpath — got ${d}`);
+});
+
+test('s closes the path it strokes', () => {
+  const d = dOf(page('1 0 0 RG 2 w 7 8 m 3 12 l 7 16 l s'));
+  assert.ok(d.includes('Z'), `s is close-and-stroke — got ${d}`);
+});
+
+test('an explicit h closes, and only the subpath it ends', () => {
+  const one = dOf(page('1 0 0 RG 2 w 10 10 m 40 10 l 40 40 l h S'));
+  assert.equal((one.match(/Z/g) ?? []).length, 1, `one closed subpath expected — got ${one}`);
+  // first subpath closed, second left open
+  const two = dOf(page('1 0 0 RG 2 w 10 10 m 40 10 l 40 40 l h 60 60 m 90 60 l 90 90 l S'));
+  assert.equal((two.match(/Z/g) ?? []).length, 1, `only the h-terminated subpath closes — got ${two}`);
+  assert.ok(two.indexOf('Z') < two.lastIndexOf('M'), `the Z must land on the FIRST subpath — got ${two}`);
+});
+
+test('b and b* close as well as painting both', () => {
+  for (const op of ['b', 'b*']) {
+    const d = dOf(page(`1 0 0 RG 0 0 1 rg 2 w 7 8 m 3 12 l 7 16 l ${op}`));
+    assert.ok(d.includes('Z'), `${op} is a close-then-paint operator — got ${d}`);
+  }
+});
+
+test('a rectangle is a closed subpath, and still takes the rect fast path', () => {
+  // `re` is closed by definition. It should also still be recognised as a box
+  // node rather than demoted to a vector path by the close marker.
+  const nodes = page('0 0 1 rg 10 10 100 50 re f');
+  assert.equal(nodes.length, 1);
+  assert.equal(nodes[0].shape, 'rect', `re must still be detected as a rect: ${JSON.stringify(nodes[0])}`);
+});
+
+test('a filled open path is unaffected (fill closes implicitly)', () => {
+  const nodes = page('0 0 1 rg 7 8 m 3 12 l 7 16 l f');
+  assert.equal(nodes.length, 1, 'the fill still paints');
+});
+
+// ── Line cap and join (§8.4.3.3-4) ───────────────────────────────────────────
+// PDF defaults are butt + miter, which match SVG's defaults — so this stayed
+// invisible until a producer set them. Chromium never does: its print output has
+// zero `J`/`j`/`w` operators and leans entirely on the defaults. Illustrator and
+// Acrobat DO, and a round-capped stroke rendered with butt caps reads thinner and
+// ends square, while a mitered corner on artwork drawn with round joins grows a spike.
+test('line cap and join are carried onto the stroke', () => {
+  const round = page('1 0 0 RG 2 w 1 J 1 j 10 10 m 40 10 l 40 40 l S');
+  assert.equal(round[0]?._vectorStroke?.cap, 'round');
+  assert.equal(round[0]?._vectorStroke?.join, 'round');
+  const sq = page('1 0 0 RG 2 w 2 J 2 j 10 10 m 40 10 l 40 40 l S');
+  assert.equal(sq[0]?._vectorStroke?.cap, 'square');
+  assert.equal(sq[0]?._vectorStroke?.join, 'bevel');
+});
+
+test('the PDF defaults (butt/miter) are left off the node, matching SVG', () => {
+  // Emitting stroke-linecap="butt" on every stroke would be noise — it is already
+  // SVG's default. Absent means default, in both formats.
+  const dflt = page('1 0 0 RG 2 w 10 10 m 40 10 l 40 40 l S');
+  assert.equal(dflt[0]?._vectorStroke?.cap, undefined);
+  assert.equal(dflt[0]?._vectorStroke?.join, undefined);
+  const explicit = page('1 0 0 RG 2 w 0 J 0 j 10 10 m 40 10 l 40 40 l S');
+  assert.equal(explicit[0]?._vectorStroke?.cap, undefined);
+});
+
+test('cap and join survive q/Q like the rest of the graphics state', () => {
+  const n = page('1 0 0 RG 2 w 1 J q 2 J 5 5 m 20 5 l S Q 10 10 m 40 10 l S');
+  assert.equal(n[0]?._vectorStroke?.cap, 'square', 'inside q');
+  assert.equal(n[1]?._vectorStroke?.cap, 'round', 'restored after Q');
+});

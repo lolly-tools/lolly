@@ -8,8 +8,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  parseClipShape, parseRadialGradient, parseDropShadowFilter,
-  splitCssArgs, parseGradientStop,
+  parseClipShape, parseRadialGradient, parseConicGradient, parseDropShadowFilter,
+  splitCssArgs, parseGradientStop, parseGradientAngle,
 } from '../engine/src/css-paint.ts';
 
 const close = (a: number, b: number, eps = 1e-3): boolean => Math.abs(a - b) <= eps;
@@ -166,4 +166,96 @@ test('parseClipShape: a clip WITH area is unaffected', () => {
   assert.equal(parseClipShape('circle(40%)', 200, 100)!.kind, 'circle');
   assert.equal(parseClipShape('ellipse(30% 40%)', 200, 100)!.kind, 'ellipse');
   assert.equal(parseClipShape('polygon(0 0, 10px 0, 10px 10px)', 200, 100)!.kind, 'polygon');
+});
+
+// ── conic-gradient ───────────────────────────────────────────────────────────
+// SVG has no conic primitive, so the walkers draw this as a fan of wedges. Before
+// it existed, a conic background rasterised the whole element — on the qr fixture,
+// one page background became a 1168x900 PNG. The geometry that matters is the
+// CENTRE and the START ANGLE: CSS measures clockwise from 12 o'clock, and every
+// consumer has to undo that against SVG's 3-o'clock zero.
+
+test('conic-gradient: a bare stop list centres in the box and starts at 0', () => {
+  const g = parseConicGradient('conic-gradient(rgb(255, 0, 0) 0%, rgb(0, 0, 255) 100%)', 200, 100);
+  assert.ok(g);
+  assert.equal(g.cx, 100); assert.equal(g.cy, 50);
+  assert.equal(g.fromRad, 0);
+  assert.equal(g.stops.length, 2);
+});
+
+test('conic-gradient: "from <angle>" is read in every angle unit', () => {
+  const at = (v: string) => parseConicGradient(`conic-gradient(from ${v}, rgb(255, 0, 0) 0%, rgb(0, 0, 255) 100%)`, 100, 100)?.fromRad ?? NaN;
+  assert.equal(Math.round((at('90deg') * 180) / Math.PI), 90);
+  assert.equal(Math.round((at('0.25turn') * 180) / Math.PI), 90);
+  assert.equal(Math.round((at('1.5708rad') * 180) / Math.PI), 90);
+  assert.equal(Math.round((at('100grad') * 180) / Math.PI), 90);
+});
+
+test('conic-gradient: "at <position>" moves the centre, in px, % and keywords', () => {
+  const at = (v: string) => parseConicGradient(`conic-gradient(at ${v}, rgb(255, 0, 0) 0%, rgb(0, 0, 255) 100%)`, 200, 100);
+  assert.deepEqual([at('25% 75%')!.cx, at('25% 75%')!.cy], [50, 75]);
+  assert.deepEqual([at('10px 20px')!.cx, at('10px 20px')!.cy], [10, 20]);
+  assert.deepEqual([at('left top')!.cx, at('left top')!.cy], [0, 0]);
+  assert.deepEqual([at('right bottom')!.cx, at('right bottom')!.cy], [200, 100]);
+  assert.deepEqual([at('center')!.cx, at('center')!.cy], [100, 50]);
+});
+
+test('conic-gradient: "from" and "at" together', () => {
+  const g = parseConicGradient('conic-gradient(from 45deg at 10% 20%, rgb(255, 0, 0) 0%, rgb(0, 0, 255) 100%)', 100, 100);
+  assert.ok(g);
+  assert.equal(Math.round((g.fromRad * 180) / Math.PI), 45);
+  assert.deepEqual([g.cx, g.cy], [10, 20]);
+});
+
+test('conic-gradient: repeating-conic-gradient is accepted, and flagged', () => {
+  // The transparency checkerboard behind every tool canvas in this app is one of
+  // these. Refusing it meant rasterising the whole stage; the flag tells the caller
+  // to WRAP its sampling, because the stop list is one period rather than the sweep.
+  const g = parseConicGradient('repeating-conic-gradient(rgb(255, 0, 0) 0%, rgb(0, 0, 255) 25%)', 100, 100);
+  assert.ok(g);
+  assert.equal(g.repeating, true);
+  assert.equal(g.stops.length, 2);
+  assert.equal(parseConicGradient('conic-gradient(rgb(255, 0, 0) 0%, rgb(0, 0, 255) 100%)', 100, 100)!.repeating, false);
+});
+
+test('conic-gradient: the real checkerboard value parses', () => {
+  // Verbatim from getComputedStyle on .tool-stage. Its hard stops are written as a
+  // DECREASING offset ("0%" after "25%"), which CSS clamps rather than reorders.
+  const g = parseConicGradient(
+    'repeating-conic-gradient(rgba(255, 255, 255, 0.024) 0%, rgba(255, 255, 255, 0.024) 25%, rgba(0, 0, 0, 0.024) 0%, rgba(0, 0, 0, 0.024) 50%)',
+    100, 100);
+  assert.ok(g, 'the checkerboard must parse — it is the whole reason this exists');
+  assert.equal(g.repeating, true);
+  assert.equal(g.stops.length, 4);
+  assert.equal(g.stops[0]!.opacity, 0.024);
+});
+
+test('conic-gradient: too few usable stops is refused', () => {
+  assert.equal(parseConicGradient('conic-gradient(rgb(1, 1, 1))', 100, 100), null);
+  // Named colours are not resolvable DOM-free, so a list of them yields no stops.
+  assert.equal(parseConicGradient('conic-gradient(rebeccapurple 0%, papayawhip 100%)', 100, 100), null);
+});
+
+test('conic-gradient: a non-conic value is not claimed', () => {
+  assert.equal(parseConicGradient('linear-gradient(rgb(1, 1, 1), rgb(2, 2, 2))', 100, 100), null);
+  assert.equal(parseConicGradient('none', 100, 100), null);
+  assert.equal(parseConicGradient('', 100, 100), null);
+});
+
+test('conic-gradient: a garbage angle falls back to 0 rather than NaN', () => {
+  const g = parseConicGradient('conic-gradient(from abc, rgb(1,1,1) 0%, rgb(2,2,2) 100%)', 100, 100);
+  assert.ok(g);
+  assert.ok(Number.isFinite(g.fromRad));
+});
+
+test('parseGradientAngle: grad is not misread as rad', () => {
+  // Pre-existing defect found while adding the conic parser: the suffix tests ran
+  // rad before grad, and 'grad'.endsWith('rad') is true — so a 90-degree gradient
+  // written as 100grad came out as 100 radians.
+  const deg = (r: number) => Math.round((r * 180) / Math.PI);
+  assert.equal(deg(parseGradientAngle('100grad')), 90);
+  assert.equal(deg(parseGradientAngle('200grad')), 180);
+  assert.equal(deg(parseGradientAngle('1.5708rad')), 90);
+  assert.equal(deg(parseGradientAngle('90deg')), 90);
+  assert.equal(deg(parseGradientAngle('0.25turn')), 90);
 });

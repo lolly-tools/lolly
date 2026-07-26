@@ -162,8 +162,10 @@ export function parseGradientAngle(token: string): number {
   if (t === 'to top left')     return Math.PI * 1.75;
   if (t.endsWith('deg'))  return parseFloat(t) * Math.PI / 180;
   if (t.endsWith('turn')) return parseFloat(t) * 2 * Math.PI;
-  if (t.endsWith('rad'))  return parseFloat(t);
+  // `grad` MUST be tested before `rad` — 'grad'.endsWith('rad') is true, so the
+  // other order reads 100grad (90°) as 100 radians.
   if (t.endsWith('grad')) return parseFloat(t) * Math.PI / 200;
+  if (t.endsWith('rad'))  return parseFloat(t);
   return Math.PI;
 }
 
@@ -302,6 +304,82 @@ export function parseRadialGradient(value: string, w: number, h: number): Radial
 // ── drop-shadow filter ───────────────────────────────────────────────────────
 
 /** One parsed drop-shadow() from a CSS `filter` value (px offsets/blur + raw colour). */
+// ── conic-gradient geometry ──────────────────────────────────────────────────
+
+/** A conic gradient resolved to box-local geometry (CSS px) + its parsed stops.
+ *  `fromRad` is the starting angle measured clockwise from 12 o'clock, matching CSS
+ *  (and NOT SVG's 3-o'clock zero — the two are 90° apart, which is the single easiest
+ *  thing to get wrong here). */
+export interface ConicGradient { cx: number; cy: number; fromRad: number; stops: GradientStop[]; repeating: boolean }
+
+/**
+ * Parse `conic-gradient(from Xdeg at P, stops…)` into box-local geometry.
+ *
+ * SVG has no conic primitive, so the caller draws this as a fan of wedges. That is
+ * still a far better answer than the alternative the walker used before — rasterising
+ * the whole element, which on the qr fixture meant a 1168×900 PNG standing in for a
+ * page background.
+ *
+ * Percentages in the position resolve against the box, as they do for radial.
+ *
+ * `repeating-conic-gradient` is included, flagged: its stop list describes one period
+ * that tiles around the circle rather than the whole sweep, so the caller wraps its
+ * sampling. It is not an exotic case — the transparency checkerboard behind every
+ * tool canvas in this app is a repeating conic, and refusing it meant rasterising the
+ * whole stage.
+ */
+export function parseConicGradient(value: string, w: number, h: number): ConicGradient | null {
+  const m = /(?:^|\s)(repeating-)?conic-gradient\(([\s\S]*)\)\s*$/i.exec((value || '').trim());
+  if (!m) return null;
+  const repeating = Boolean(m[1]);
+  const args = splitCssArgs(m[2]!);
+  if (!args.length) return null;
+
+  let fromRad = 0;
+  let cx = w / 2, cy = h / 2;
+  let firstStop = 0;
+
+  // The optional prelude is "[from <angle>] [at <position>]" — a single argument, and
+  // absent entirely in the common case.
+  const head = args[0]!.trim().toLowerCase();
+  if (/^(from\s|at\s)/.test(head)) {
+    firstStop = 1;
+    const fm = /from\s+([^\s]+)/.exec(head);
+    if (fm) {
+      const t = fm[1]!;
+      // `grad` before `rad`: 'grad'.endsWith('rad') is true, so testing rad first
+      // reads 100grad as 100 radians — a 5730° error.
+      fromRad = t.endsWith('turn') ? Number.parseFloat(t) * 2 * Math.PI
+        : t.endsWith('grad') ? (Number.parseFloat(t) * Math.PI) / 200
+        : t.endsWith('rad') ? Number.parseFloat(t)
+        : (Number.parseFloat(t) * Math.PI) / 180;
+      if (!Number.isFinite(fromRad)) fromRad = 0;
+    }
+    const am = /\bat\s+(.+)$/.exec(head);
+    if (am) {
+      const axis = (tok: string, ref: number): number | null => {
+        if (tok === 'center') return ref / 2;
+        if (tok === 'left' || tok === 'top') return 0;
+        if (tok === 'right' || tok === 'bottom') return ref;
+        if (tok.endsWith('%')) return (Number.parseFloat(tok) / 100) * ref;
+        const n = Number.parseFloat(tok);
+        return Number.isFinite(n) ? n : null;
+      };
+      const toks = am[1]!.trim().split(/\s+/);
+      const px = axis(toks[0] ?? 'center', w);
+      const py = toks.length > 1 ? axis(toks[1]!, h) : h / 2;
+      if (px !== null) cx = px;
+      if (py !== null) cy = py;
+    }
+  }
+
+  const raw = args.slice(firstStop);
+  if (raw.length < 2) return null;
+  const stops = raw.map((r, i) => parseGradientStop(r.trim(), i, raw.length)).filter((st) => st.colorStr);
+  if (stops.length < 2) return null;
+  return { cx, cy, fromRad, stops, repeating };
+}
+
 export interface DropShadow { dx: number; dy: number; blur: number; color: string }
 
 // Split a CSS `filter` value into its top-level function tokens ("blur(2px) invert(1)"

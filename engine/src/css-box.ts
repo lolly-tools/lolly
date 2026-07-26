@@ -115,6 +115,20 @@ export interface BoxShadow {
   spread: number;
   /** Raw CSS color token (rgb/rgba in computed values) for the shell to resolve. */
   color: string;
+  /** `inset` — drawn INSIDE the border box, as the region between the box and an
+   *  offset/shrunken copy of it, rather than behind it. Callers that only draw outer
+   *  shadows must filter on this; it used to be dropped at parse time, which meant
+   *  an inset shadow silently vanished from every vector export. */
+  inset: boolean;
+}
+
+/** One shadow parsed from a computed `text-shadow`. Same shape as a box shadow
+ *  without spread or inset — CSS gives text-shadow neither. */
+export interface TextShadow {
+  x: number;
+  y: number;
+  blur: number;
+  color: string;
 }
 
 // Parse a CSS length to px. `refPx` resolves percentages. CSS math functions
@@ -213,29 +227,167 @@ function splitTopLevel(str: string): string[] {
   return out;
 }
 
-// Parse a computed CSS `box-shadow` into a list of OUTER shadows (inset shadows
-// are skipped — they can't be expressed as a single vector primitive). The color
-// is returned as the raw CSS token (always rgb/rgba in a computed value) for the
-// shell to resolve; lengths are px. Order matches CSS paint order (first listed is
-// topmost). Returns [] for 'none' / empty.
+// Parse a computed CSS `box-shadow` into a list of shadows, outer and inset alike,
+// each flagged. The color is returned as the raw CSS token (always rgb/rgba in a
+// computed value) for the shell to resolve; lengths are px. Order matches CSS paint
+// order (first listed is topmost). Returns [] for 'none' / empty.
 //   getComputedStyle form per shadow: "<color> <offX> <offY> [blur] [spread] [inset]"
+// Inset shadows used to be dropped here on the grounds that they were not vector-
+// expressible. They are: the region between the border box and an offset, shrunken
+// copy of it, blurred and clipped to the box.
 export function parseBoxShadow(value: string | null | undefined): BoxShadow[] {
   if (!value || value === 'none') return [];
   const shadows: BoxShadow[] = [];
   for (const raw of splitTopLevel(value)) {
     const part = raw.trim();
-    if (!part || /\binset\b/.test(part)) continue;
-    const colorMatch = part.match(/rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+/);
+    if (!part) continue;
+    const inset = /\binset\b/.test(part);
+    // Strip the keyword before looking for a colour, or the bare-word branch of the
+    // colour pattern matches "inset" itself and the real colour is lost.
+    const body = part.replace(/\binset\b/g, ' ');
+    const colorMatch = body.match(/rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+/);
     const color = colorMatch ? colorMatch[0] : 'rgb(0,0,0)';
-    const rest = colorMatch ? part.replace(colorMatch[0], ' ') : part;
+    const rest = colorMatch ? body.replace(colorMatch[0], ' ') : body;
     const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || [])
       .map((s) => parseFloat(s)).filter(Number.isFinite);
     if (nums.length < 2) continue;
     const [x, y, blur = 0, spread = 0] = nums;
     if (x === undefined || y === undefined) continue;
-    shadows.push({ x, y, blur: Math.max(0, blur), spread, color });
+    shadows.push({ x, y, blur: Math.max(0, blur), spread, color, inset });
   }
   return shadows;
+}
+
+/**
+ * Parse a computed CSS `text-shadow`.
+ *
+ * Same grammar as box-shadow minus spread and inset. Chromium's computed form puts
+ * the colour first ("rgb(0, 0, 0) 0px 2px 4px"), but the authored order is
+ * offset-first, so both are accepted — a value read off a stylesheet rather than a
+ * computed style is otherwise silently dropped.
+ *
+ * Order matches CSS paint order: first listed is topmost.
+ */
+export function parseTextShadow(value: string | null | undefined): TextShadow[] {
+  if (!value || value === 'none') return [];
+  const out: TextShadow[] = [];
+  for (const raw of splitTopLevel(value)) {
+    const part = raw.trim();
+    if (!part) continue;
+    const colorMatch = part.match(/rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}/);
+    const color = colorMatch ? colorMatch[0] : 'rgb(0,0,0)';
+    const rest = colorMatch ? part.replace(colorMatch[0], ' ') : part;
+    const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || [])
+      .map((v) => parseFloat(v)).filter(Number.isFinite);
+    if (nums.length < 2) continue;
+    const [x, y, blur = 0] = nums;
+    if (x === undefined || y === undefined) continue;
+    out.push({ x, y, blur: Math.max(0, blur), color });
+  }
+  return out;
+}
+
+/** One concentric band of a vector-approximated Gaussian shadow. */
+export interface ShadowBand {
+  /** How far the band's shape sits OUTSIDE the casting shape's edge, in px.
+   *  Negative means inside. Add it to the box on every side, and add it to each
+   *  corner radius — which is also why a square corner comes out correctly rounded:
+   *  a blur rounds corners, and outsetting a 0 radius by `outset` gives exactly that. */
+  outset: number;
+  /** Alpha to paint THIS band with, assuming the bands are painted outermost-first
+   *  and composited normally over each other. Not the coverage — the increment that
+   *  makes the accumulated coverage land on the Gaussian. */
+  alpha: number;
+}
+
+/** Φ(x): the standard normal CDF, via Abramowitz & Stegun 7.1.26 (|error| < 1.5e-7).
+ *  Good to well under a 1/255 colour step, which is all a shadow can express. */
+function normalCdf(x: number): number {
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989422804014327 * Math.exp(-x * x / 2);
+  const p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return x >= 0 ? 1 - p : p;
+}
+
+/**
+ * A Gaussian blur as concentric bands, for renderers with no blur operator.
+ *
+ * PDF (and EMF/EPS) cannot blur, so a soft shadow there has always been baked to a
+ * bitmap. It does not have to be: blurring a shape is, along any edge, a
+ * one-dimensional convolution, and the resulting coverage at signed distance `t`
+ * outside the edge is exactly `Φ(-t/σ)`. So painting the shape at a series of outsets,
+ * each at the alpha increment that makes the ACCUMULATED coverage match that curve,
+ * reproduces the blur in pure vector — editable, resolution-independent, and with no
+ * embedded bitmap.
+ *
+ * Where it is approximate: corners. The 1-D profile is exact along a straight edge and
+ * near-exact wherever the corner radius is large next to σ; a tight corner blurs
+ * slightly differently than an outset one. In exchange the output stays vector, which
+ * is the trade this codebase makes everywhere else.
+ *
+ * `blur` is the CSS blur radius (σ = blur/2, the box-shadow/text-shadow convention —
+ * NOT drop-shadow's, where the value is σ itself). `alpha` is the shadow colour's own
+ * alpha. Returns outermost-first; paint in order.
+ */
+export function gaussianShadowBands(blur: number, alpha: number, bands?: number): ShadowBand[] {
+  const sigma = blur / 2;
+  if (!(sigma > 0) || !(alpha > 0)) return [];
+  // Band count, measured rather than reasoned: 4σ (bands ~1.5px wide) is the optimum,
+  // and MORE bands are worse, not better. Every band is a separate antialiased fill,
+  // so each seam conflates a little extra coverage; doubling the count to 12σ tripled
+  // the error against the browser (0.13% → 0.31% mean). Sizing by alpha step is the
+  // other tempting mistake — a 2px blur needs a 24/255 step to cover its range in 8
+  // bands, which sounds terrible and is invisible, because those bands are a third of
+  // a pixel wide and the rasteriser smooths them itself.
+  const n = Math.max(8, Math.min(bands ?? 160, Math.round(4 * sigma)));
+  const reach = 3 * sigma;                 // beyond this the Gaussian is < 0.15%
+  const step = (2 * reach) / n;
+  const out: ShadowBand[] = [];
+  let acc = 0;                             // accumulated alpha so far
+  for (let i = 0; i < n; i++) {
+    const outer = reach - i * step;
+    const target = alpha * (1 - normalCdf((outer - step / 2) / sigma));
+    if (target <= acc) continue;
+    // Normal compositing: acc' = acc + a(1-acc)  ⇒  a = (target - acc) / (1 - acc).
+    const a = (target - acc) / (1 - acc);
+    if (a > 0.0005) { out.push({ outset: outer, alpha: Math.min(1, a) }); acc = target; }
+  }
+  return out;
+}
+
+/** One annulus of a vector-approximated Gaussian shadow. Unlike ShadowBand these do
+ *  NOT overlap, and `alpha` is the absolute coverage rather than an increment. */
+export interface ShadowRing {
+  /** Outer edge, as an outset from the casting shape (px). */
+  outer: number;
+  /** Inner edge, or null for the innermost ring, which is solid to the centre. */
+  inner: number | null;
+  alpha: number;
+}
+
+/**
+ * The same Gaussian, as non-overlapping rings at absolute alpha.
+ *
+ * Needed because not every consumer composites. EMF and EPS have no alpha at all, so
+ * `svg-ir` flattens each shape against the page background INDEPENDENTLY — under
+ * which overlapping increments (gaussianShadowBands) come out far too light, since
+ * the accumulation never happens. Rings each cover their annulus exactly once, so
+ * flattening them one at a time is correct, and they composite correctly too.
+ *
+ * The trade the other way: adjacent rings share an edge, so a renderer that
+ * antialiases can leave a hairline seam between them, which is why the compositing
+ * formats use the overlapping form instead.
+ */
+export function gaussianShadowRings(blur: number, alpha: number, bands?: number): ShadowRing[] {
+  const inc = gaussianShadowBands(blur, alpha, bands);
+  if (!inc.length) return [];
+  const out: ShadowRing[] = [];
+  let acc = 0;
+  for (let i = 0; i < inc.length; i++) {
+    acc = acc + inc[i]!.alpha * (1 - acc);
+    out.push({ outer: inc[i]!.outset, inner: i + 1 < inc.length ? inc[i + 1]!.outset : null, alpha: acc });
+  }
+  return out;
 }
 
 const n3 = (v: number): number => {
