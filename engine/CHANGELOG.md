@@ -649,3 +649,77 @@ off (JPEG); the shared ICC layout was factored into buildIcc() and the sRGB
 builder now rides it (byte-identical output). Pure/DOM-free; shells apply the
 transform to canvas pixels and embed the profile / PNG cICP chunk at export.
 No v1 method changed.
+
+1.62.0 — additive: crop culling for the page-SVG path. pdf-svg.ts gains
+cullPdfNodes(nodes, win) — drops the interpreted nodes that provably cannot
+paint inside a crop rectangle — plus pdfNodeExtent(n) (the axis-aligned
+page-space box containing every pixel a node can paint, or null when it can't
+be bounded) and pdfNodeElementKind(n), the serializer's element dispatch
+extracted so the two can never drift. Purpose: a cropped capture (the docs
+screenshot pipeline, capture.vector(), any windowed page export) spends nearly
+all of its bytes and seconds on a handful of enormous nodes — a re-sourced
+canvas raster, a ShadingType-1 tile — so culling BEFORE the shell decodes
+rasters, rasterises tiles and shapes text is where the win is; windowPdfSvg
+stays an exact, unchanged viewBox rewrite at the end. Conservative and
+fail-open by construction: a padded window (CULL_PAD_PT = 2pt), stroke-miter
+and text-metric outsets, clip-bbox intersection (the only thing that bounds an
+`sh` shading or a print-engine shadow plate, both of which cover the whole
+page), and any node whose extent can't be established is KEPT and counted.
+A degenerate window is a no-op. Also fixes a pre-existing wart the culler would
+have made expensive: <defs> gradient/pattern entries are now emitted only for
+ids that actually reached the output, so a node that yields no element no
+longer ships its base64 tile. No v1 method changed.
+  Four things pdfNodeExtent deliberately does NOT guess, each one a silent cull
+  it would otherwise cause:
+  • a `<text>` run's horizontal extent is reported as UNBOUNDED. pdf-map's `w` is
+    a char-count estimate off the FIRST line only, and the final advance belongs
+    to whichever font the renderer resolves — so a wrapped paragraph or any
+    full-width script paints past it. The vertical band (fontSize-derived) still
+    culls, and the docs path outlines text anyway, which is exact.
+  • OUTLINED text is bounded by scanning its glyph path data per line — exact, no
+    metrics at all.
+  • a vector node is bounded by the `d` the serializer will actually WRITE (the
+    sanitiser deletes rather than escapes, so `L1'0000` fuses into a different
+    coordinate), unioned with the declared box, and fails open if the path
+    vocabulary isn't scannable.
+  • path/clip `d` scanning is gated by a WHITELIST of `M L C Q Z`: a blacklist of
+    absolute command letters let the RELATIVE forms through, and a relative path
+    read as absolute yields a bbox that need not contain the real path.
+  Clip and soft-mask regions are widened by 1pt before intersecting, because a
+  rasteriser paints up to a device pixel past a clip edge: a real page had a card
+  backdrop whose left edge exactly equalled its clip's right edge, and the exact
+  zero-width intersection dropped the antialiased column Chromium had drawn there
+  (an empty extent overlaps no window, so CULL_PAD_PT cannot cover this case).
+  Consumed by shells/web/src/views/pdf-import.ts (PdfPageSvgOpts.cull, applied
+  before raster inlining / tile rasterisation / text outlining, reported back as
+  PdfPageSvg.culled; elementCount stays PRE-cull so a bad crop can't be
+  misdiagnosed as a blank print).
+
+1.63.0 — additive: real /Luminosity soft-mask support, so a CSS box-shadow
+finally RENDERS in a vector page capture instead of being dropped. New
+pdf-smask.ts (pure: maskRegion / relativeLuminance / constantMask /
+isShadowPlate / isAchromatic). PdfResources.extgstates.smask widens from a
+boolean to a four-state field whose richest form is the new PdfSoftMaskDef — an
+ExtGState /SMask pre-decoded by the SHELL into a content stream + resources,
+i.e. the same shape as a form XObject (PDF 32000-1 §11.6.5.2). The interpreter
+re-runs that group through ITSELF, so a raster mask, a gradient mask and a
+vector mask are one code path with no classifier, and the mask's own images
+arrive as ordinary imageKeys the shell resolves through the existing `images`
+record — no bytes cross the boundary. Nodes carry the result as the new shared
+PdfNode._softMask, and pdf-svg emits a deduped <mask maskUnits="userSpaceOnUse"
+style="color-interpolation:sRGB"> whose children go through the serializer's own
+renderNode (so gradients, clips, rasters and even-odd rules work inside a mask
+for free); /S /Alpha becomes mask-type="alpha". Four-rung ladder, monotone —
+nothing renders worse than before at any rung: a real <mask>; a group that is
+one flat rect over its bbox folds to a constant alpha with no <mask> at all; a
+group that paints nothing is exactly a black mask, so the paint is dropped; and
+a group that is refused (over budget, >64 nodes, mask-in-mask, /TR, /BC ≠ 0,
+degenerate /BBox, or an undecodable group) falls back to the pre-existing
+translucent+achromatic shadow-plate heuristic, now the last resort rather than
+the answer. Fuzz-guarded for untrusted input: 96 distinct (mask, CTM)
+evaluations per page, 64 nodes per group, an in-flight set that breaks a
+self-referential group, a hard one-level nesting cap, and no throw path — every
+refusal is an onWarn plus the previous behaviour. Also recovers CSS gradients
+that carry alpha (Chromium encodes them as a one-cell tiling pattern whose body
+installs the alpha ramp as a mask), which the tiling collapse used to discard
+whole. No v1 method changed.

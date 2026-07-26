@@ -172,6 +172,69 @@ test('a vector path _gradient overrides fill:none and still emits', () => {
   assert.ok(svg.includes('<path d="M0 0L100 0L50 80Z" fill="url(#pgrad0)"'), svg);
 });
 
+// ── function-based (ShadingType 1) shadings → a raster <pattern> ──────────────
+const TILE = 'data:image/png;base64,iVBORw0KGgo=';
+const tileGrad = (over: Partial<NonNullable<PdfNode['_gradient']>> = {}): NonNullable<PdfNode['_gradient']> => ({
+  type: 1, coords: [], stops: [], extend: [false, false],
+  domain: [0, 2, 0, 4], tileKey: 'shd0', matrix: [1, 0, 0, -1, 0, 300], ...over,
+});
+
+test('a type-1 _gradient with a registered tile emits a <pattern> with an <image>', () => {
+  const n: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 100, h: 100, rot: 0, fill: '#abcdef', _gradient: tileGrad() };
+  const svg = pdfNodesToSvg([n], { ...OPTS, images: { shd0: TILE } });
+  assert.ok(svg.includes('<pattern id="pgrad0" patternUnits="userSpaceOnUse" x="0" y="0" width="2" height="4"'), svg);
+  assert.ok(svg.includes(`<image x="0" y="0" width="2" height="4" preserveAspectRatio="none" href="${TILE}"/>`), svg);
+  assert.ok(svg.includes('fill="url(#pgrad0)"'), 'the node paints with the tile');
+});
+
+test('the domain offset is folded into patternTransform, not into x/y', () => {
+  // x=y=0 on the <pattern> is the one reading every renderer agrees on; the tile's
+  // domain origin rides on the transform instead.
+  const n: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 100, h: 100, rot: 0, fill: '#abcdef',
+    _gradient: tileGrad({ domain: [10, 12, 20, 24], matrix: [2, 0, 0, -2, 5, 300] }) };
+  const svg = pdfNodesToSvg([n], { ...OPTS, images: { shd0: TILE } });
+  // matrix ∘ translate(10, 20) → e = 2·10 + 5 = 25, f = -2·20 + 300 = 260
+  assert.ok(svg.includes('patternTransform="matrix(2 0 0 -2 25 260)"'), svg);
+  assert.ok(svg.includes('width="2" height="4"'), svg);
+});
+
+test('a type-1 _gradient with no registered tile falls back to the flat fill', () => {
+  const n: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 100, h: 100, rot: 0, fill: '#abcdef', _gradient: tileGrad() };
+  const svg = pdfNodesToSvg([n], OPTS);
+  assert.ok(!svg.includes('<pattern'), 'no def emitted');
+  assert.ok(svg.includes('fill="#abcdef"'), 'the node still paints a colour, not nothing');
+});
+
+test('a type-1 tile href pointing off-origin is refused like any other image', () => {
+  const n: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 100, h: 100, rot: 0, fill: '#abcdef', _gradient: tileGrad() };
+  const svg = pdfNodesToSvg([n], { ...OPTS, images: { shd0: 'https://evil.example/x.png' } });
+  assert.ok(!svg.includes('<pattern') && !svg.includes('evil.example'), svg);
+  assert.ok(svg.includes('fill="#abcdef"'));
+});
+
+test('two nodes sharing one tile shading emit a single <pattern>', () => {
+  const mk = (x: number): PdfNode => ({ kind: 'box', shape: 'rect', x, y: 0, w: 50, h: 50, rot: 0, fill: '#abcdef', _gradient: tileGrad() });
+  const svg = pdfNodesToSvg([mk(0), mk(60)], { ...OPTS, images: { shd0: TILE } });
+  assert.equal(svg.match(/<pattern/g)?.length, 1);
+  assert.equal(svg.match(/url\(#pgrad0\)/g)?.length, 2);
+});
+
+test('two DIFFERENT tile shadings do not collide in the dedupe key', () => {
+  const a: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 50, h: 50, rot: 0, fill: '#111111', _gradient: tileGrad() };
+  const b: PdfNode = { kind: 'box', shape: 'rect', x: 60, y: 0, w: 50, h: 50, rot: 0, fill: '#222222', _gradient: tileGrad({ tileKey: 'shd1' }) };
+  const svg = pdfNodesToSvg([a, b], { ...OPTS, images: { shd0: TILE, shd1: TILE } });
+  assert.equal(svg.match(/<pattern/g)?.length, 2, svg);
+});
+
+test('a degenerate type-1 domain emits nothing and keeps the flat fill', () => {
+  for (const domain of [[0, 0, 0, 4], [0, 2, 4, 0], [0, NaN, 0, 4]] as Array<[number, number, number, number]>) {
+    const n: PdfNode = { kind: 'box', shape: 'rect', x: 0, y: 0, w: 100, h: 100, rot: 0, fill: '#abcdef', _gradient: tileGrad({ domain }) };
+    const svg = pdfNodesToSvg([n], { ...OPTS, images: { shd0: TILE } });
+    assert.ok(!svg.includes('<pattern'), JSON.stringify(domain));
+    assert.ok(svg.includes('fill="#abcdef"'));
+  }
+});
+
 // ── composition with the real interpreter ──────────────────────────────────────
 test('interpretPdfPage output round-trips: rect + path + text land in one page SVG', () => {
   const nodes = interpretPdfPage({
@@ -207,4 +270,48 @@ test('windowPdfSvg defaults the out size to the window and floors degenerate rec
 test('windowPdfSvg leaves a foreign SVG root unchanged', () => {
   const foreign = '<svg width="10" height="10"><rect/></svg>';
   assert.equal(windowPdfSvg(foreign, { x: 0, y: 0, width: 5, height: 5 }), foreign);
+});
+
+// ── soft masks: the mask <defs> are reference-driven and never leak ────────────
+
+test('a node with no soft mask serializes byte-identically to before the feature', () => {
+  // Guards the renderNode extraction: pulling the per-node dispatch out of the emit
+  // loop (so a <mask>'s children can reuse it) must not change ordinary output.
+  const svg = pdfNodesToSvg([
+    { kind: 'box', x: 0, y: 0, w: 100, h: 50, rot: 0, fill: '#abcdef', shape: 'rect' } as PdfNode,
+  ], OPTS);
+  assert.equal(
+    svg,
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">'
+    + '<rect x="0" y="0" width="100" height="50" fill="#abcdef"/></svg>',
+  );
+  assert.ok(!svg.includes('<defs>'), 'no empty defs');
+});
+
+test('a soft mask whose children all render to nothing suppresses the masked node', () => {
+  // An unknowable mask is a BLACK mask. Emitting the paint unmasked is how a print
+  // engine's box-shadow ink becomes an opaque grey plate the size of the control —
+  // strictly the worse of the two errors, so nothing is emitted at all.
+  const mask = {
+    key: 'k1', x: 0, y: 0, w: 100, h: 50, subtype: 'Luminosity' as const,
+    // an image XObject with no entry in `images` → renders to ''
+    nodes: [{ kind: 'image', x: 0, y: 0, w: 100, h: 50, rot: 0, _imageXObject: 'missing' } as PdfNode],
+  };
+  const svg = pdfNodesToSvg([
+    { kind: 'box', x: 0, y: 0, w: 100, h: 50, rot: 0, fill: '#000000', opacity: 20, shape: 'rect', _softMask: mask } as PdfNode,
+  ], OPTS);
+  assert.ok(!svg.includes('<rect'), svg);
+  assert.ok(!svg.includes('<mask'), svg);
+});
+
+test('a degenerate mask region is ignored rather than hiding the node', () => {
+  const mask = {
+    key: 'k2', x: 0, y: 0, w: 0, h: 0, subtype: 'Luminosity' as const,
+    nodes: [{ kind: 'box', x: 0, y: 0, w: 10, h: 10, rot: 0, fill: '#ffffff', shape: 'rect' } as PdfNode],
+  };
+  const svg = pdfNodesToSvg([
+    { kind: 'box', x: 0, y: 0, w: 100, h: 50, rot: 0, fill: '#abcdef', shape: 'rect', _softMask: mask } as PdfNode,
+  ], OPTS);
+  assert.ok(svg.includes('<rect x="0" y="0" width="100" height="50" fill="#abcdef"/>'), svg);
+  assert.ok(!svg.includes('<mask'), svg);
 });

@@ -51,6 +51,9 @@
  *
  * Options:
  *   --accept       promote changed captures to the new baseline
+ *   --rebuild      full refresh: rebuild the shell, re-shoot EVERY recipe, write
+ *                  every baseline (even unchanged ones) and prune retired files.
+ *                  Implies --accept. Use after a renderer/engine change.
  *   --only=a,b     limit to these filenames
  *   --url=...      capture against a running server (skips profile pin + build + serve)
  *   --no-build     reuse shells/web/dist (still pins the profile for the view check)
@@ -61,7 +64,7 @@
 
 import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
-import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import { join, resolve, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -96,6 +99,12 @@ const VIEWPORT_DEFAULTS = { width: 1440, height: 900, dpi: 192 };
 
 interface Opts {
   accept: boolean;
+  /** Force a full refresh: rebuild the shell, re-capture EVERY recipe, and write
+   *  every baseline even when the bytes are unchanged, then prune baselines no
+   *  recipe claims any more. Implies --accept. This is the "the renderer changed,
+   *  redo the lot" button — after an engine fix, `unchanged` verdicts are not
+   *  something to preserve, they are something to overwrite. */
+  rebuild: boolean;
   list: boolean;
   noBuild: boolean;
   url: string | null;
@@ -107,9 +116,10 @@ interface Opts {
 }
 
 function parseOpts(argv: string[]): Opts {
-  const o: Opts = { accept: false, list: false, noBuild: false, url: null, only: [], locales: [] };
+  const o: Opts = { accept: false, rebuild: false, list: false, noBuild: false, url: null, only: [], locales: [] };
   for (const a of argv) {
     if (a === '--accept') o.accept = true;
+    else if (a === '--rebuild') { o.rebuild = true; o.accept = true; }
     else if (a === '--list') o.list = true;
     else if (a === '--no-build') o.noBuild = true;
     else if (a.startsWith('--url=')) o.url = a.slice(6);
@@ -212,7 +222,7 @@ async function main(): Promise<void> {
     restoreProfile?.();
   }
 
-  warnOrphans(allShots); // the FULL recipe set — an --only run must not cry orphan
+  warnOrphans(allShots, opts.rebuild && !opts.only.length); // FULL set — an --only run must not cry (or prune) orphan
   summarize(results);
 }
 
@@ -254,7 +264,11 @@ function knownLocales(): string[] {
 }
 
 /** Baselines on disk that no recipe declares any more — stale, safe to delete. */
-function warnOrphans(shots: ShotDef[]): void {
+/** Baselines on disk that no recipe claims. Warned about on a normal run; DELETED
+ *  under --rebuild, because a full refresh that leaves the retired files behind
+ *  would ship them forever (a recipe that changes format, e.g. png -> svg, orphans
+ *  its old file and every localised sibling). */
+function warnOrphans(shots: ShotDef[], prune = false): void {
   if (!existsSync(SHOTS_DIR)) return;
   const locales = knownLocales();
   const expected = new Set<string>();
@@ -263,7 +277,13 @@ function warnOrphans(shots: ShotDef[]): void {
     if (s.localize) for (const loc of locales) expected.add(`${s.slug}.${loc}.${s.format}`);
   }
   const orphans = readdirSync(SHOTS_DIR).filter((f) => /\.(svg|png|jpg)$/.test(f) && !expected.has(f));
-  if (orphans.length) console.warn(`⚠  orphan baselines (no recipe declares them — delete from ${rel(SHOTS_DIR)}): ${orphans.join(', ')}`);
+  if (!orphans.length) return;
+  if (prune) {
+    for (const f of orphans) rmSync(join(SHOTS_DIR, f), { force: true });
+    console.log(`  ✂ pruned ${orphans.length} orphan baseline(s): ${orphans.join(', ')}`);
+  } else {
+    console.warn(`⚠  orphan baselines (no recipe declares them — delete from ${rel(SHOTS_DIR)}): ${orphans.join(', ')}`);
+  }
 }
 
 // ── Capture, imprint, classify, credential ────────────────────────────────────
@@ -401,7 +421,7 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
     { ...DEFAULT_THRESHOLDS, pixelDiffFrac: shot.pixelDiffFrac ?? DEFAULT_THRESHOLDS.pixelDiffFrac },
   );
 
-  const promote = verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
+  const promote = opts.rebuild || verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
   // Content Credentials only on a real (re)write: the C2PA signature carries a
   // timestamp, so stamping every run would churn bytes for unchanged pixels.
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
@@ -423,7 +443,37 @@ function resolveScroll(depth: number, pageH: number, viewportH: number): number 
   return Math.min(Math.max(0, px), max);
 }
 
-interface VectorHookResult { svg: string; width: number; height: number; elementCount: number; warnings: string[] }
+interface VectorHookResult {
+  svg: string; width: number; height: number; elementCount: number; warnings: string[];
+  culled?: { total: number; dropped: number; unbounded: number };
+}
+
+/** A crop inset fraction, clamped exactly as captureUrl / expectedDims clamp it. */
+const clampInset = (n: number | undefined): number => Math.min(0.9, Math.max(0, n ?? 0));
+
+/**
+ * The region a vector shot actually keeps, in CSS pixels of the FULL printed page
+ * (scroll offset folded into y). ONE rect, used for two things: the cull hint the
+ * app-side interpreter gets (so it never decodes the rasters and tiles outside it),
+ * and — scaled by the measured pt/px ratio — the windowPdfSvg viewBox. Deriving
+ * both from one helper is what stops the optimisation and the authoritative crop
+ * from ever describing different rectangles.
+ */
+function vectorCropCssPx(
+  shot: ShotDef,
+  dims: { width: number; height: number },
+  pageH: number,
+  scrollDepth: number,
+): { x: number; y: number; width: number; height: number } {
+  const cl = clampInset(shot.cropLeft), cr = clampInset(shot.cropRight);
+  const ct = clampInset(shot.cropTop), cb = clampInset(shot.cropBottom);
+  return {
+    x: cl * dims.width,
+    y: resolveScroll(scrollDepth, pageH, dims.height) + ct * dims.height,
+    width: Math.max(1, Math.round(dims.width * (1 - cl - cr))),
+    height: Math.max(1, Math.round(dims.height * (1 - ct - cb))),
+  };
+}
 
 /**
  * True-vector capture, mirroring the desktop bridge's capture.vector(): print the
@@ -466,29 +516,40 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
       printBackground: true, pageRanges: '1', margin: { top: 0, right: 0, bottom: 0, left: 0 },
     });
 
+    // The crop, in CSS px of the printed page — the cull hint AND (scaled) the
+    // window, from one helper so they can't drift.
+    const crop = vectorCropCssPx(shot, dims, pageH, params.scrollDepth);
+    const cropped = crop.width < dims.width || crop.height < dims.height || crop.x > 0 || crop.y > 0;
+
     const res = await page.evaluate(
-      (b64: string) => (window as unknown as { __lollyVectorShot?: (b: string) => Promise<VectorHookResult> }).__lollyVectorShot?.(b64),
-      Buffer.from(pdf).toString('base64'),
+      ([b64, cropCssPx]: [string, typeof crop | null]) =>
+        (window as unknown as { __lollyVectorShot?: (b: string, o?: unknown) => Promise<VectorHookResult> })
+          .__lollyVectorShot?.(b64, cropCssPx ? { cropCssPx } : undefined),
+      [Buffer.from(pdf).toString('base64'), cropped ? crop : null] as [string, typeof crop | null],
     );
     if (!res) throw new Error('the served shell has no __lollyVectorShot hook — rebuild the dist (main.ts exposes it on loopback)');
+    // elementCount is what the INTERPRETER found, pre-cull — the "was the print
+    // blank?" signal. Culling is reported separately so a bad crop can't be
+    // misdiagnosed as a blank print.
     if (!res.elementCount) throw new Error('vector capture produced no drawable content');
     for (const w of res.warnings) console.warn(`  ⚠ ${shot.slug}: ${w}`);
+    if (res.culled) {
+      if (res.culled.dropped === res.culled.total) {
+        throw new Error(`crop window selected no content (culled ${res.culled.total}/${res.culled.total} nodes) — check crop*/cropSelector`);
+      }
+      console.log(`    ✂ ${shot.slug}: culled ${res.culled.dropped}/${res.culled.total} nodes`
+        + `${res.culled.unbounded ? ` (${res.culled.unbounded} unbounded, kept)` : ''}`);
+    }
 
     // Window to the requested region — svg-point space (ratio = svg pts ÷ CSS px).
-    const clamp = (n: number | undefined): number => Math.min(0.9, Math.max(0, n ?? 0));
-    const cl = clamp(shot.cropLeft), cr = clamp(shot.cropRight);
-    const ct = clamp(shot.cropTop), cb = clamp(shot.cropBottom);
     const ratio = res.width / dims.width;
-    const scrollY = resolveScroll(params.scrollDepth, pageH, dims.height);
-    const clipW = Math.max(1, Math.round(dims.width * (1 - cl - cr)));
-    const clipH = Math.max(1, Math.round(dims.height * (1 - ct - cb)));
     const svg = windowPdfSvg(res.svg, {
-      x: (cl * dims.width) * ratio,
-      y: (scrollY + ct * dims.height) * ratio,
-      width: clipW * ratio,
-      height: clipH * ratio,
-      outWidth: clipW,
-      outHeight: clipH,
+      x: crop.x * ratio,
+      y: crop.y * ratio,
+      width: crop.width * ratio,
+      height: crop.height * ratio,
+      outWidth: crop.width,
+      outHeight: crop.height,
     });
     return new TextEncoder().encode(svg);
   } finally {
@@ -505,10 +566,9 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   }
 
   const { dims } = paramsFor(shot);
-  const clamp = (n: number | undefined): number => Math.min(0.9, Math.max(0, n ?? 0));
   const expected = {
-    width: Math.max(1, Math.round(dims.width * (1 - clamp(shot.cropLeft) - clamp(shot.cropRight)))),
-    height: Math.max(1, Math.round(dims.height * (1 - clamp(shot.cropTop) - clamp(shot.cropBottom)))),
+    width: Math.max(1, Math.round(dims.width * (1 - clampInset(shot.cropLeft) - clampInset(shot.cropRight)))),
+    height: Math.max(1, Math.round(dims.height * (1 - clampInset(shot.cropTop) - clampInset(shot.cropBottom)))),
   };
   const newText = new TextDecoder().decode(bytes);
   const baselinePath = join(SHOTS_DIR, shotFileName(shot));
@@ -521,7 +581,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   }
 
   const verdict = classifyVectorShot({ newText, newBytes: bytes.byteLength, expected, oldText, oldBytes });
-  const promote = verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
+  const promote = opts.rebuild || verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
   return { slug: shot.slug, format: shot.format, lang: shot.lang, verdict, wrote: promote, bytes: bytes.byteLength };
 }

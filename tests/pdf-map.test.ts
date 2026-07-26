@@ -21,6 +21,16 @@ import { finalizeBoxes } from '../engine/src/design-map.ts';
 const near = (a: number, b: number, eps = 0.6): boolean => Math.abs(a - b) <= eps;
 const page = (content: string, extra: Partial<PdfPageInput> = {}): any[] =>
   interpretPdfPage({ content, width: 400, height: 300, ...extra });
+/** Same, but capturing the interpreter's (code, detail) warnings. */
+const pageW = (content: string, extra: Partial<PdfPageInput> = {}): { nodes: any[]; warns: string[] } => {
+  const warns: string[] = [];
+  const nodes = interpretPdfPage({
+    content, width: 400, height: 300,
+    onWarn: (code, detail) => warns.push(detail ? `${code}|${detail}` : code),
+    ...extra,
+  });
+  return { nodes: nodes as any[], warns };
+};
 
 // ── rectangle → editable box, y-flipped ───────────────────────────────────────
 test('filled rectangle → box with flipped coords', () => {
@@ -317,7 +327,170 @@ test('the `sh` operator paints a clipped gradient rect', () => {
 });
 
 test('an unclipped `sh` is skipped rather than flooding the page', () => {
-  assert.deepEqual(page('/S1 sh', { shadings: { S1: AXIAL } }), []);
+  const { nodes, warns } = pageW('/S1 sh', { shadings: { S1: AXIAL } });
+  assert.deepEqual(nodes, []);
+  assert.deepEqual(warns, ['shading.sh.unclipped|S1']);
+});
+
+// ── patterns: the fidelity ladder (flat → gradient → tiling collapse → drop) ───
+//
+// Chromium prints an out-of-sRGB CSS colour as a PatternType 1 whose whole body is
+// `/Pn scn <bbox> re f*` over a function-based shading. Every rung below exists
+// because dropping one of them turned 76 filled elements into a white ghost page.
+
+test('a pattern the shell resolved to a flat colour paints that colour', () => {
+  const nodes = page('/P1 scn 40 200 120 60 re f', { patterns: { P1: { flat: '#ff8800' } } });
+  assert.equal(nodes.length, 1);
+  assert.equal(nodes[0].fill, '#ff8800');
+  assert.equal(nodes[0]._gradient, undefined, 'no gradient def for a plain colour');
+});
+
+test('a function-based (type 1) shading pattern carries its tile key and composed matrix', () => {
+  const TYPE1 = {
+    type: 1 as const, coords: [], stops: [], extend: [false, false] as [boolean, boolean],
+    domain: [0, 1, 0, 1] as [number, number, number, number],
+    shadingMatrix: [2, 0, 0, 2, 10, 20],
+    tileKey: 'shd0', flat: '#123456',
+  };
+  const nodes = page('/P1 scn 40 200 120 60 re f', { patterns: { P1: { shading: TYPE1, matrix: [1, 0, 0, 1, 0, 0], flat: '#123456' } } });
+  const g = nodes[0]._gradient;
+  assert.ok(g, 'expected _gradient');
+  assert.equal(g.type, 1);
+  assert.equal(g.tileKey, 'shd0');
+  assert.deepEqual(g.domain, [0, 1, 0, 1]);
+  // page flip ∘ pattern /Matrix (identity) ∘ shading /Matrix [2 0 0 2 10 20]
+  assert.deepEqual(g.matrix, [2, 0, 0, -2, 10, 280]);
+  assert.equal(g.shadingMatrix, undefined, 'the shading /Matrix is composed in, not re-emitted');
+  assert.equal(nodes[0].fill, '#123456', 'the flat back-stop is always populated');
+});
+
+test('a gradient pattern still populates the node fill as the serializer’s back-stop', () => {
+  const nodes = page('/P1 scn 40 200 120 60 re f', { patterns: { P1: { shading: AXIAL, flat: '#00ff00' } } });
+  assert.ok(nodes[0]._gradient, 'gradient wins');
+  assert.equal(nodes[0].fill, '#00ff00');
+});
+
+const tiling = (content: string, extra: Record<string, unknown> = {}) => ({
+  content, resources: {}, bbox: [0, 0, 100, 100] as [number, number, number, number],
+  xStep: 100, yStep: 100, paintType: 1 as const, ...extra,
+});
+
+test('a tiling pattern that only re-fills its bbox collapses to the inner paint', () => {
+  // The EXACT shape Chromium emits: `/P5 scn 0 0 100 100 re f*` and nothing else.
+  const { nodes, warns } = pageW('/P1 scn 40 200 120 60 re f', {
+    patterns: {
+      P1: {
+        matrix: [1, 0, 0, 1, 0, 0],
+        tiling: tiling('/P5 scn 0 0 100 100 re f*', { resources: { patterns: { P5: { flat: '#ff8800' } } } }),
+      },
+    },
+  });
+  assert.equal(nodes.length, 1, 'the tile body does not leak nodes onto the page');
+  assert.equal(nodes[0].fill, '#ff8800');
+  assert.deepEqual(warns, ['pattern.tiling.collapsed|P1']);
+});
+
+test('a tiling pattern wrapping a gradient collapses to that gradient', () => {
+  const nodes = page('/P1 scn 40 200 120 60 re f', {
+    patterns: {
+      P1: { tiling: tiling('/P5 scn 0 0 100 100 re f', { resources: { patterns: { P5: { shading: AXIAL, flat: '#00ff00' } } } }) },
+    },
+  });
+  assert.ok(nodes[0]._gradient, 'the inner gradient is adopted');
+  assert.equal(nodes[0]._gradient.type, 2);
+  assert.deepEqual(nodes[0]._gradient.matrix, [1, 0, 0, -1, 0, 300], 'already box space — the collapse ran under the composed CTM');
+  assert.equal(nodes[0].fill, '#00ff00');
+});
+
+test('a real repeating tile becomes its area-weighted mean colour, and says so', () => {
+  const { nodes, warns } = pageW('/P1 scn 40 200 120 60 re f', {
+    patterns: { P1: { tiling: tiling('1 0 0 rg 0 0 50 100 re f 0 0 1 rg 50 0 50 100 re f') } },
+  });
+  assert.equal(nodes.length, 1);
+  assert.equal(nodes[0].fill, '#800080', 'half red, half blue');
+  assert.deepEqual(warns, ['pattern.tiling.averaged|P1']);
+});
+
+test('an uncoloured (PaintType 2) tile takes its tint from the scn operands', () => {
+  const nodes = page('0.2 0.4 0.6 /P1 scn 40 200 120 60 re f', {
+    patterns: { P1: { tiling: tiling('0 0 100 100 re f', { paintType: 2 }) } },
+  });
+  assert.equal(nodes[0].fill, '#336699');
+});
+
+test('a tile that paints nothing keeps the anti-stale-black safety valve', () => {
+  // The ORIGINAL fix: never let a pattern-filled shape inherit the previous fill.
+  const { nodes, warns } = pageW('1 0 0 rg 0 0 10 10 re f /P1 scn 40 200 120 60 re f', {
+    patterns: { P1: { tiling: tiling('') } },
+  });
+  assert.deepEqual(warns, ['pattern.unsupported|P1']);
+  // The pattern-filled rect must NOT inherit the previous red. It survives as an
+  // unpainted node (fill '' / _vectorFill 'none'), which the serializer skips.
+  const painted = nodes.filter((n) => n.fill || (n._vectorFill && n._vectorFill !== 'none'));
+  assert.equal(painted.length, 1, JSON.stringify(nodes.map((n) => [n.fill, n._vectorFill])));
+  assert.equal(painted[0].fill, '#ff0000');
+});
+
+test('an unknown pattern name still clears the paint and reports exactly once', () => {
+  const { nodes, warns } = pageW('1 0 0 rg 0 0 10 10 re f /PX scn 40 200 120 60 re f');
+  assert.deepEqual(warns, ['pattern.unsupported|PX']);
+  const painted = nodes.filter((n) => n.fill || (n._vectorFill && n._vectorFill !== 'none'));
+  assert.equal(painted.length, 1, 'the unknown-pattern shape carries no colour');
+  assert.equal(painted[0].fill, '#ff0000');
+});
+
+test('a self-referential tiling pattern terminates instead of recursing forever', () => {
+  const { nodes, warns } = pageW('/P1 scn 40 200 120 60 re f', {
+    patterns: { P1: { flat: '#404040', tiling: tiling('/P1 scn 0 0 100 100 re f') } },
+  });
+  assert.equal(nodes.length, 1);
+  assert.ok(warns.length >= 1 && warns.every((w) => w.startsWith('pattern.')), JSON.stringify(warns));
+});
+
+test('one pattern named on many shapes collapses once and paints all of them', () => {
+  const body = Array.from({ length: 8 }, (_, i) => `/P1 scn ${i * 20} 200 15 60 re f`).join(' ');
+  const { nodes, warns } = pageW(body, {
+    patterns: { P1: { tiling: tiling('/P5 scn 0 0 100 100 re f', { resources: { patterns: { P5: { flat: '#ff8800' } } } }) } },
+  });
+  assert.equal(nodes.length, 8);
+  assert.ok(nodes.every((n) => n.fill === '#ff8800'), JSON.stringify(nodes.map((n) => n.fill)));
+  assert.equal(warns.length, 8, 'reported per use, memoised per pattern');
+});
+
+test('a tile body containing a form XObject does not leak nodes onto the page', () => {
+  // The collapse pre-pass runs into its OWN sink; a nested run that fell back to
+  // the page sink would paint the tile's contents at pattern-space coordinates.
+  const form = { kind: 'form' as const, content: '0 1 0 rg 0 0 20 20 re f 0 0 1 rg 30 0 20 20 re f' };
+  const { nodes } = pageW('/P1 scn 40 200 120 60 re f', {
+    patterns: { P1: { tiling: tiling('/Fm0 Do', { resources: { xobjects: { Fm0: form } } }) } },
+  });
+  assert.equal(nodes.length, 1, `expected only the painted rect, got ${JSON.stringify(nodes.map((n) => [n.x, n.y, n.fill]))}`);
+  assert.equal(nodes[0].fill, '#008080', 'the tile averaged to its two children');
+});
+
+test('a stroke pattern falls back to the pattern’s flat colour', () => {
+  const nodes = page('/P1 SCN 2 w 10 10 m 100 10 l S', { patterns: { P1: { flat: '#ff8800' } } });
+  assert.equal(nodes[0]._vectorStroke?.color, '#ff8800');
+});
+
+// ── `sh` with a function-based shading ────────────────────────────────────────
+test('`sh` composes the shading’s own /Matrix and keeps its flat back-stop', () => {
+  const S1 = {
+    type: 1 as const, coords: [], stops: [], extend: [false, false] as [boolean, boolean],
+    domain: [0, 1, 0, 1] as [number, number, number, number],
+    shadingMatrix: [2, 0, 0, 2, 10, 20], tileKey: 'shd0', flat: '#abcdef',
+  };
+  const nodes = page('q 40 200 120 60 re W n /S1 sh Q', { shadings: { S1 } });
+  assert.equal(nodes.length, 1);
+  assert.equal(nodes[0].fill, '#abcdef');
+  assert.equal(nodes[0]._gradient.tileKey, 'shd0');
+  assert.deepEqual(nodes[0]._gradient.matrix, [2, 0, 0, -2, 10, 280]);
+});
+
+test('`sh` naming a shading we could not decode is reported, not silently dropped', () => {
+  const { nodes, warns } = pageW('q 40 200 120 60 re W n /SX sh Q');
+  assert.deepEqual(nodes, []);
+  assert.deepEqual(warns, ['shading.unsupported|SX']);
 });
 
 // ── robustness: malformed / empty input never throws ──────────────────────────
@@ -326,4 +499,30 @@ test('empty and garbage content produce no nodes without throwing', () => {
   assert.deepEqual(page('   \n  '), []);
   assert.doesNotThrow(() => page('q q q 1 2 cm ( unterminated'));
   assert.doesNotThrow(() => page('BT /F1 10 Tf'));   // BT with no ET
+});
+
+// ── ExtGState: alpha unchanged, and the four-state /SMask field ────────────────
+
+test('ExtGState ca/CA still set fill/stroke alpha with the widened smask field', () => {
+  const nodes = page('0 0 1 rg 1 0 0 RG /GA gs 10 10 50 50 re B', {
+    extgstates: { GA: { ca: 0.5, CA: 0.25 } },
+  });
+  assert.equal(nodes.length, 1);
+  assert.equal(nodes[0].opacity, 50);   // `B` fills, so the FILL alpha wins
+});
+
+test('/SMask /None clears the mask; an ExtGState with no /SMask key leaves it alone', () => {
+  // §8.4.5: an ExtGState changes only the parameters it lists. Getting this wrong is
+  // what made the first soft-mask attempt a silent no-op.
+  const sm = { id: 'sm0', subtype: 'Luminosity' as const, content: '0.5 g 0 0 100 100 re f', resources: {}, bbox: [0, 0, 100, 100] };
+  // GN = /SMask /None (false); GX lists only /ca, so the mask must survive it.
+  const { nodes } = pageW('0 0 0 rg /G7 gs /GX gs 10 10 50 50 re f  0 0 0 rg /GN gs 80 10 50 50 re f', {
+    extgstates: { G7: { smask: sm }, GX: { ca: 1 }, GN: { smask: false } },
+  });
+  assert.equal(nodes.length, 2);
+  // First fill: still masked (folded to a constant — 0.5 grey → 50%).
+  assert.equal(nodes[0].opacity, 50);
+  // Second fill: /SMask /None cleared it, so full strength and no mask.
+  assert.equal(nodes[1].opacity, 100);
+  assert.equal(nodes[1]._softMask, undefined);
 });

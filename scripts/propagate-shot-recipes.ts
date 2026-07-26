@@ -81,8 +81,16 @@ for (const f of readdirSync(DOCS).sort()) {
 
     // Insert bottom-up so earlier heading indices don't shift under later splices.
     for (const ord of [...byOrd.keys()].sort((a, b) => b - a)) {
+      const at = heads[ord]! + 1;
       const ins = byOrd.get(ord)!.flatMap((tok) => ['', tok]);
-      lines.splice(heads[ord]! + 1, 0, ...ins);
+      // …and a blank line AFTER the last token when the heading was immediately
+      // followed by content. Without it the image and that first line become one
+      // markdown paragraph: the token renders inline with the text instead of as
+      // its own block. Only bites when a section opens on a non-blank line (a
+      // code span, a list item), which is why it went unnoticed — it was wrong in
+      // every locale's overview.md.
+      if ((lines[at] ?? '').trim() !== '') ins.push('');
+      lines.splice(at, 0, ...ins);
       inserted += byOrd.get(ord)!.length;
     }
     writeFileSync(p, lines.join('\n'), 'utf-8');

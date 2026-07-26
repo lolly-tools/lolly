@@ -15,7 +15,18 @@ export type ClipShape =
   | { kind: 'circle';  cx: number; cy: number; r: number }
   | { kind: 'ellipse'; cx: number; cy: number; rx: number; ry: number }
   | { kind: 'inset';   x: number; y: number; w: number; h: number; r: number }
-  | { kind: 'polygon'; points: [number, number][] };
+  | { kind: 'polygon'; points: [number, number][] }
+  /** A well-formed clip that encloses NO area — `inset(50%)`, `circle(0)`. The
+   *  element and its subtree paint nothing at all.
+   *
+   *  This is deliberately NOT `null`. `null` means "a shape I could not parse",
+   *  which callers answer by rasterising the subtree as a fallback. Zero area is
+   *  the opposite situation: it is fully understood, and the correct render is
+   *  emptiness. Conflating the two made every `clip-path: inset(50%)` — the
+   *  standard visually-hidden / skip-link idiom, i.e. content meant to be
+   *  invisible — rasterise its whole subtree, which on an ancestor turned an
+   *  entire page snapshot into a screenshot. */
+  | { kind: 'empty' };
 
 // A clip length token → px. `%` resolves against `ref`; anything non-finite → null.
 function clipLen(tok: string | undefined, ref: number): number | null {
@@ -80,7 +91,8 @@ export function parseClipShape(cp: string, w: number, h: number): ClipShape | nu
     const [radS, posS] = splitShapeAt(m[1]!);
     const pos = clipPos(posS, w, h);
     const r = clipRadius(radS.trim() || undefined, w, h, pos.cx, pos.cy, 'circle');
-    return (r != null && r > 0) ? { kind: 'circle', cx: pos.cx, cy: pos.cy, r } : null;
+    if (r == null) return null;                            // unparseable radius
+    return r > 0 ? { kind: 'circle', cx: pos.cx, cy: pos.cy, r } : { kind: 'empty' };
   }
   m = /^ellipse\(\s*(.*?)\s*\)$/i.exec(s);
   if (m) {
@@ -89,8 +101,10 @@ export function parseClipShape(cp: string, w: number, h: number): ClipShape | nu
     const rs = radS.trim() ? radS.trim().split(/\s+/) : [];
     const rx = clipRadius(rs[0], w, h, pos.cx, pos.cy, 'x');
     const ry = clipRadius(rs[1] ?? rs[0], w, h, pos.cx, pos.cy, 'y');
-    return (rx != null && ry != null && rx > 0 && ry > 0)
-      ? { kind: 'ellipse', cx: pos.cx, cy: pos.cy, rx, ry } : null;
+    if (rx == null || ry == null) return null;             // unparseable radius
+    return (rx > 0 && ry > 0)
+      ? { kind: 'ellipse', cx: pos.cx, cy: pos.cy, rx, ry }
+      : { kind: 'empty' };
   }
   m = /^inset\(\s*(.*?)\s*\)$/i.exec(s);
   if (m) {
@@ -107,7 +121,7 @@ export function parseClipShape(cp: string, w: number, h: number): ClipShape | nu
     const top = clipLen(tt, h), right = clipLen(rt, w), bot = clipLen(bt, h), left = clipLen(lt, w);
     if (top == null || right == null || bot == null || left == null) return null;
     const rw = w - left - right, rh = h - top - bot;
-    if (rw <= 0.5 || rh <= 0.5) return null;
+    if (rw <= 0.5 || rh <= 0.5) return { kind: 'empty' };   // parsed fine; encloses nothing
     const rr = roundS ? clipLen(roundS.trim().split(/\s+/)[0], Math.min(w, h)) : null;
     return { kind: 'inset', x: left, y: top, w: rw, h: rh, r: (rr && rr > 0) ? rr : 0 };
   }
