@@ -82,15 +82,15 @@ export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
 export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
 export {
-  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow,
+  parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands, gaussianShadowRings,
   parseCssMatrix, multiplyMat, matAboutPivot, isAxisAlignedMat, matToSvg, IDENTITY_2D,
 } from './css-box.ts';
 export type { Mat2D } from './css-box.ts';
 export {
-  parseClipShape, parseRadialGradient, parseDropShadowFilter,
+  parseClipShape, parseRadialGradient, parseConicGradient, parseDropShadowFilter,
   splitCssArgs, parseGradientAngle, parseGradientStop,
 } from './css-paint.ts';
-export type { ClipShape, GradientStop, RadialGradient, DropShadow } from './css-paint.ts';
+export type { ClipShape, GradientStop, RadialGradient, ConicGradient, DropShadow } from './css-paint.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';

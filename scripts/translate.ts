@@ -44,6 +44,26 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import Anthropic from '@anthropic-ai/sdk';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+// The Anthropic SDK reads ANTHROPIC_API_KEY from the environment. This is the only
+// script in the repo that needs a secret, and exporting it from a shell profile
+// would hand it to every process on the machine — so also accept it from the
+// repo's gitignored `.env.local` (which already exists for VERCEL_OIDC_TOKEN).
+//
+// Precedence is the right way round and verified, not assumed: an already-set
+// environment variable WINS over the file, so `ANTHROPIC_API_KEY=… npm run
+// translate` still overrides whatever is on disk. A missing file throws ENOENT
+// rather than returning quietly, hence the guard — running with no .env.local is
+// the normal case for anyone who exports the key themselves.
+// `.env.local` is what the Vercel CLI created and what it REWRITES on `vercel env
+// pull`, which would silently drop a key added by hand — so `.env` is read too and
+// is the safer home for this one. `.env.local` is loaded first and therefore wins,
+// matching the usual dotenv precedence (loadEnvFile never overwrites an already-set
+// variable, so first-loaded is highest-priority here). Both are gitignored.
+for (const f of ['.env.local', '.env']) {
+  try { process.loadEnvFile(join(REPO_ROOT, f)); } catch { /* absent — fine */ }
+}
+
 const I18N_DIR = join(REPO_ROOT, 'scripts', 'i18n');
 const CACHE_PATH = join(I18N_DIR, 'cache.json');
 const GLOSSARY_PATH = join(I18N_DIR, 'glossary.json');

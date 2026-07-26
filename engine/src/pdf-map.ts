@@ -62,7 +62,7 @@ export interface PdfNode {
    *  fills: an inner subpath is a hole only under this rule; nonzero would fill
    *  it solid. */
   _vectorFillRule?: 'evenodd';
-  _vectorStroke?: { color: string; width: number } | null;
+  _vectorStroke?: { color: string; width: number; cap?: 'butt' | 'round' | 'square'; join?: 'miter' | 'round' | 'bevel' } | null;
   _vectorViewBox?: { x: number; y: number; w: number; h: number };
   /** A text node's glyphs outlined to SVG path `d` strings, one per line (baseline
    *  at y=0, pen at x=0 — HarfBuzz's frame). Set by a shell that can shape text
@@ -571,6 +571,14 @@ interface GState {
    *  there is nothing to evaluate — the last-resort rung. */
   softMaskOpaque: boolean;
   lineWidth: number;
+  /** PDF `J` line cap (0 butt, 1 round, 2 square) and `j` line join (0 miter,
+   *  1 round, 2 bevel) — §8.4.3.3-4. Unread until now, so every stroke fell back to
+   *  SVG's defaults, butt + miter. Chromium prints an icon's
+   *  `stroke-linecap:round; stroke-linejoin:round` as `1 J 1 j`, so outline icons
+   *  came out with clipped ends and spiked corners: thin, pale, and for the
+   *  chain-link glyph, structurally wrong. */
+  lineCap: number;
+  lineJoin: number;
   font: string;
   fontSize: number;
   leading: number;
@@ -580,6 +588,12 @@ interface GState {
   /** A pending gradient fill (a shading-pattern selected via `scn`), already
    *  resolved to box space. Cleared whenever a solid fill colour is set. */
   fillGradient: FillGradient | null;
+  /** Raster tile nodes selected by `scn`, waiting for the path that will clip them.
+   *  A pattern paints only where the PATH is; emitting the tile at its own bbox
+   *  paints the whole cell. Chromium's pasteboard checkerboard is a page-sized
+   *  cell, so that covered the entire page — sidebar included — instead of the
+   *  canvas rect that selected it. */
+  fillTileNodes: PdfNode[] | null;
   /**
    * A soft mask ADOPTED from a collapsed tiling pattern, to be applied to whatever
    * this fill next paints. Chromium encodes "a CSS gradient that carries alpha" as a
@@ -627,7 +641,7 @@ function cloneState(s: GState): GState { return { ...s }; }
  */
 type InheritedGState = Pick<GState,
   'fill' | 'stroke' | 'fillAlpha' | 'strokeAlpha' | 'softMask' | 'softMaskOpaque'
-  | 'lineWidth' | 'fillGradient' | 'fillMask' | 'fillScale' | 'strokePatternUnsupported'>;
+  | 'lineWidth' | 'lineCap' | 'lineJoin' | 'fillGradient' | 'fillMask' | 'fillScale' | 'strokePatternUnsupported' | 'fillTileNodes'>;
 
 /** A gradient selected as the current fill — the shading plus its box-space matrix
  *  (which ALREADY has the shading's own /Matrix composed in, see `scn`/`sh`). */
@@ -668,7 +682,10 @@ function adoptGradient(g: PdfGradient): FillGradient {
 interface Sink { nodes: PdfNode[]; count: number; max: number; }
 
 /** A path segment already baked into box space. */
-interface Seg { op: 'm' | 'l' | 'c'; pts: number[]; }
+/** `h` is an explicit CLOSE marker, not geometry: PDF's `h` (and `re`, `s`, `b`,
+ *  `b*`) close the current subpath, and SVG needs a real `Z` to join the ends
+ *  rather than cap them. Everything else carries points. */
+interface Seg { op: 'm' | 'l' | 'c' | 'h'; pts: number[]; }
 
 /**
  * The outcome of evaluating one ExtGState /SMask group — the fidelity ladder, as a
@@ -793,7 +810,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       : {
         ctm: baseCtm, fill: baseFill, stroke: '', fillAlpha: 1, strokeAlpha: 1,
         softMask: null, softMaskOpaque: false, lineWidth: 1,
-        font: '', fontSize: 0, leading: 0, clips: baseClips, fillGradient: null, fillMask: null, fillScale: 1,
+        font: '', fontSize: 0, leading: 0, clips: baseClips, fillGradient: null, fillMask: null, fillTileNodes: null, fillScale: 1, lineCap: 0, lineJoin: 0,
         strokePatternUnsupported: '',
       };
     const stack: GState[] = [];
@@ -1046,6 +1063,20 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       const alpha = clamp(Math.round(
         (lead === mpFill ? s.fillAlpha * s.fillScale : s.strokeAlpha) * 100 * lead.scale), 0, 100);
 
+      // A deferred raster tile paints HERE, clipped to the path that selected it.
+      if (s.fillTileNodes && mode !== 'stroke') {
+        const baked = serializePath(segs);
+        const pathClip: ClipPath[] = baked.d ? [{ d: baked.d, evenOdd }] : [];
+        for (const n of s.fillTileNodes) {
+          if (sink.count >= sink.max) break;
+          sink.nodes.push(pathClip.length ? { ...n, _clips: [...(n._clips ?? []), ...pathClip] } : { ...n });
+          sink.count++;
+        }
+        s.fillTileNodes = null;
+        segs = [];
+        return;
+      }
+
       const clip = s.clips.length ? { _clips: s.clips } : {};
       // The rect/ellipse fast paths only apply to a SINGLE subpath: a multi-
       // subpath fill (e.g. a shadow ring = outer + inner circle under even-odd)
@@ -1083,7 +1114,12 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           kind: 'image', x: baked.x, y: baked.y, w: bw, h: bh, rot: 0, fit: 'fill', opacity: alpha,
           _vectorPath: baked.d,
           _vectorFill: fillCol ? safeColor(fillCol, 'none') : 'none',
-          _vectorStroke: strokeCol ? { color: safeColor(strokeCol, '#000000'), width: Math.max(0.3, s.lineWidth * scaleMag(s.ctm)) } : null,
+          _vectorStroke: strokeCol ? {
+            color: safeColor(strokeCol, '#000000'),
+            width: Math.max(0.3, s.lineWidth * scaleMag(s.ctm)),
+            ...(s.lineCap === 1 ? { cap: 'round' as const } : s.lineCap === 2 ? { cap: 'square' as const } : {}),
+            ...(s.lineJoin === 1 ? { join: 'round' as const } : s.lineJoin === 2 ? { join: 'bevel' as const } : {}),
+          } : null,
           _vectorViewBox: { x: baked.x, y: baked.y, w: baked.w, h: baked.h },
           _groupPath: gpath(),
           ...clip,
@@ -1135,7 +1171,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       let out = collapseCache.get(key);
       if (!out) {
         if (depth >= 12 || collapseBudget <= 0 || inFlight.has(key)) {
-          s.fill = safeColor(pat.flat, ''); s.fillGradient = null; s.fillMask = null; s.fillScale = 1;
+          s.fill = safeColor(pat.flat, ''); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null;
           onWarn('pattern.tiling.averaged', name);
           return;
         }
@@ -1152,7 +1188,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // before mask groups could be read. When the mask WAS evaluated the nodes
         // carry it and the collapse proceeds normally.
         if (softMaskUnresolved > unresolvedBefore) {
-          s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1;
+          s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null;
           collapseCache.set(key, []);
           onWarn('pattern.smasked.skipped', name);
           return;
@@ -1161,7 +1197,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         collapseCache.set(key, out);
       }
       if (!out.length) {
-        s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; onWarn('pattern.unsupported', name);
+        s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; onWarn('pattern.unsupported', name);
         return;
       }
 
@@ -1212,24 +1248,26 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           // it); only the folded-constant scale composes in either way.
           const mp = maskPaint('raw');
           if (!mp) {
-            s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1;
+            s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null;
             onWarn('pattern.tiling.raster.skipped', name);
             return;
           }
-          for (const n of out) {
+          // Prepare the nodes but DEFER them: paintPath clips them to the path that
+          // selected this pattern, exactly as it does a gradient fill.
+          s.fillTileNodes = out.map((n) => {
             // Clone: these nodes are shared with collapseCache, and the outer
             // clip/mask have to be composed in without mutating the cached copy.
             const c: PdfNode = s.clips.length ? { ...n, _clips: [...(n._clips ?? []), ...s.clips] } : { ...n };
             if (!c._softMask && mp.extra._softMask) c._softMask = mp.extra._softMask;
             if (mp.scale < 1) c.opacity = clamp(Math.round((typeof c.opacity === 'number' ? c.opacity : 100) * mp.scale), 0, 100);
-            sink.nodes.push(c);
-            sink.count++;
-          }
+            return c;
+          });
+          // NB: no `fillTileNodes = null` here — that is the one we just set.
           s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1;
           onWarn('pattern.tiling.raster.emitted', name);
           return;
         }
-        s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1;
+        s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null;
         onWarn('pattern.tiling.raster.skipped', name);
         return;
       }
@@ -1284,8 +1322,8 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         return;
       }
       if (pat.tiling) { collapseTiling(pat, pat.tiling, name, patMat, tint); return; }
-      if (pat.flat) { s.fill = safeColor(pat.flat, ''); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; return; }
-      s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; onWarn('pattern.unsupported', name);
+      if (pat.flat) { s.fill = safeColor(pat.flat, ''); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; return; }
+      s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; onWarn('pattern.unsupported', name);
     };
 
     for (const tk of toks) {
@@ -1300,6 +1338,8 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         case 'Q': if (stack.length) s = stack.pop()!; if (gstack.length) gstack.pop(); break;
         case 'cm': if (args.length >= 6) s.ctm = matMul(s.ctm, fromArr(args)); break;
         case 'w': s.lineWidth = args[0] ?? s.lineWidth; break;
+        case 'J': s.lineCap = args[0] ?? s.lineCap; break;      // §8.4.3.3
+        case 'j': s.lineJoin = args[0] ?? s.lineJoin; break;    // §8.4.3.4
         case 'gs': {
           const g = res.extgstates && res.extgstates[nameArg];
           if (g) {
@@ -1317,11 +1357,11 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           }
           break;
         }
-        case 'rg': s.fill = rgbHex(args[0]!, args[1]!, args[2]!); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; break;
+        case 'rg': s.fill = rgbHex(args[0]!, args[1]!, args[2]!); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; break;
         case 'RG': s.stroke = rgbHex(args[0]!, args[1]!, args[2]!); s.strokePatternUnsupported = ''; break;
-        case 'g': s.fill = rgbHex(args[0]!, args[0]!, args[0]!); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; break;
+        case 'g': s.fill = rgbHex(args[0]!, args[0]!, args[0]!); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; break;
         case 'G': s.stroke = rgbHex(args[0]!, args[0]!, args[0]!); s.strokePatternUnsupported = ''; break;
-        case 'k': s.fill = cmykHex(args); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; break;
+        case 'k': s.fill = cmykHex(args); s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; break;
         case 'K': s.stroke = cmykHex(args); s.strokePatternUnsupported = ''; break;
         // sc/scn: numeric operands → a real colour; a pattern NAME → `applyPattern`
         // (see its comment for the fidelity ladder). A name we have NO pattern
@@ -1336,8 +1376,8 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
             applyPattern(pat, nameArg, scColor(args));
           } else {
             const col = scColor(args);
-            if (col) { s.fill = col; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; }
-            else if (nameArg) { s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; onWarn('pattern.unsupported', nameArg); }
+            if (col) { s.fill = col; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; }
+            else if (nameArg) { s.fill = ''; s.fillGradient = null; s.fillMask = null; s.fillScale = 1; s.fillTileNodes = null; onWarn('pattern.unsupported', nameArg); }
           }
           break;
         }
@@ -1399,10 +1439,11 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         case 're': {
           const x = args[0]!, y = args[1]!, w = args[2]!, h = args[3]!;
           push(x, y, 'm'); push(x + w, y, 'l'); push(x + w, y + h, 'l'); push(x, y + h, 'l'); push(x, y, 'l');
+          segs.push({ op: 'h', pts: [] });          // `re` is a CLOSED subpath (§8.5.2.1)
           cxU = startXU = x; cyU = startYU = y;
           break;
         }
-        case 'h': if (segs.length) { push(startXU, startYU, 'l'); cxU = startXU; cyU = startYU; } break;
+        case 'h': if (segs.length) { push(startXU, startYU, 'l'); segs.push({ op: 'h', pts: [] }); cxU = startXU; cyU = startYU; } break;
 
         // A pending W/W* applies at the path's terminating operator. Applying it
         // just BEFORE the paint deviates from the spec by one op (the painted
@@ -1410,9 +1451,14 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // keeps the common `re W n` clip-only sequence exact.
         case 'f': case 'F': applyPendingClip(); paintPath('fill'); break;
         case 'f*': applyPendingClip(); paintPath('fill', true); break;
-        case 'S': case 's': applyPendingClip(); paintPath('stroke'); break;
-        case 'B': case 'b': applyPendingClip(); paintPath('both'); break;
-        case 'B*': case 'b*': applyPendingClip(); paintPath('both', true); break;
+        // `s`/`b`/`b*` are the CLOSE-then-paint forms of `S`/`B`/`B*` (§8.5.3.1);
+        // they must close, or a stroked shape is left with a gap where it started.
+        case 'S': applyPendingClip(); paintPath('stroke'); break;
+        case 's': if (segs.length) { push(startXU, startYU, 'l'); segs.push({ op: 'h', pts: [] }); } applyPendingClip(); paintPath('stroke'); break;
+        case 'B': applyPendingClip(); paintPath('both'); break;
+        case 'b': if (segs.length) { push(startXU, startYU, 'l'); segs.push({ op: 'h', pts: [] }); } applyPendingClip(); paintPath('both'); break;
+        case 'B*': applyPendingClip(); paintPath('both', true); break;
+        case 'b*': if (segs.length) { push(startXU, startYU, 'l'); segs.push({ op: 'h', pts: [] }); } applyPendingClip(); paintPath('both', true); break;
         case 'n': applyPendingClip(); segs = []; break;
         case 'W': pendingClip = 'nonzero'; break;
         case 'W*': pendingClip = 'evenodd'; break;
@@ -1641,6 +1687,7 @@ type Pt = [number, number];
 function polyCorners(segs: Seg[]): Pt[] | null {
   const pts: Pt[] = [];
   for (const sg of segs) {
+    if (sg.op === 'h') continue;                  // close marker, not a corner
     if (sg.op === 'c') return null;
     if (sg.op === 'm' && pts.length) return null; // multiple subpaths
     pts.push([sg.pts[0]!, sg.pts[1]!]);
@@ -1706,12 +1753,18 @@ function serializePath(segs: Seg[]): { d: string; x: number; y: number; w: numbe
   const track = (x: number, y: number): void => { if (x < minX) minX = x; if (y < minY) minY = y; if (x > maxX) maxX = x; if (y > maxY) maxY = y; };
   const r = (v: number): number => Math.round(v * 100) / 100;
   for (const sg of segs) {
-    if (sg.op === 'm') { track(sg.pts[0]!, sg.pts[1]!); d += `M${r(sg.pts[0]!)} ${r(sg.pts[1]!)}`; }
+    if (sg.op === 'h') { d += 'Z'; }
+    else if (sg.op === 'm') { track(sg.pts[0]!, sg.pts[1]!); d += `M${r(sg.pts[0]!)} ${r(sg.pts[1]!)}`; }
     else if (sg.op === 'l') { track(sg.pts[0]!, sg.pts[1]!); d += `L${r(sg.pts[0]!)} ${r(sg.pts[1]!)}`; }
     else { track(sg.pts[0]!, sg.pts[1]!); track(sg.pts[2]!, sg.pts[3]!); track(sg.pts[4]!, sg.pts[5]!); d += `C${r(sg.pts[0]!)} ${r(sg.pts[1]!)} ${r(sg.pts[2]!)} ${r(sg.pts[3]!)} ${r(sg.pts[4]!)} ${r(sg.pts[5]!)}`; }
   }
   if (!isFinite(minX)) return { d: '', x: 0, y: 0, w: 0, h: 0 };
-  return { d: d + 'Z', x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  // NO unconditional 'Z'. It used to be appended to every path, which is invisible
+  // on a FILL (SVG closes subpaths implicitly when filling) but draws a false edge
+  // on a STROKE: an open 3-point chevron `M7 8 L3 12 L7 16` became a triangle. That
+  // is every open stroked icon in the app — arrowheads especially, which is how it
+  // was spotted. Closure now comes only from an explicit `h` marker.
+  return { d, x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
 
 function ocgLabel(op: string, name: string, res: PdfResources): string {

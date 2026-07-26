@@ -104,6 +104,8 @@ function pathEl(n: PdfNode, fillOverride?: string): string {
   const st = n._vectorStroke;
   const stroke = (st && st.color)
     ? ` stroke="${safeAttrColor(st.color, '#000000')}" stroke-width="${r(Math.max(0.3, +st.width || 1))}"`
+      + (st.cap === 'round' || st.cap === 'square' ? ` stroke-linecap="${st.cap}"` : '')
+      + (st.join === 'round' || st.join === 'bevel' ? ` stroke-linejoin="${st.join}"` : '')
     : '';
   if (fill === 'none' && !stroke) return '';
   const rule = n._vectorFillRule === 'evenodd'
@@ -115,6 +117,11 @@ function pathEl(n: PdfNode, fillOverride?: string): string {
 function imageEl(n: PdfNode, images: Record<string, string>): string {
   const href = n._imageXObject ? images[n._imageXObject] : undefined;
   if (!href || !/^data:image\//i.test(href)) return ''; // self-contained or nothing
+  // An image whose ROUNDED extent is zero cannot draw, so emitting it is pure weight —
+  // and the weight is not small: the href is a base64 raster. The node-level guard is
+  // `n.w > 0`, which a 0.004-unit box passes before `r()` rounds the attribute to "0".
+  // Test what will actually be written, not what was computed.
+  if (r(n.w) <= 0 || r(n.h) <= 0) return '';
   return `<image x="${r(n.x)}" y="${r(n.y)}" width="${r(n.w)}" height="${r(n.h)}" preserveAspectRatio="none" href="${escapeXml(href)}"${opacityAttr(n)}${rotateAttr(n)}/>`;
 }
 
