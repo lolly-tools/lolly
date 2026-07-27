@@ -194,7 +194,10 @@ function boxCss(b) {
   var h = Math.max(1, Math.round(num(b.h, 1)));
   var rot = num(b.rot, 0);
   var op = clamp(num(b.opacity, 100), 0, 100) / 100;
-  var fill = safeColor(b.bg, 'transparent');
+  // A path box's `bg` is the PATH's fill (see pathHtmlFor), so the div behind it
+  // stays transparent — otherwise every pen shape would sit on an opaque rectangle
+  // of its own fill colour.
+  var fill = String(b.kind) === 'path' ? 'transparent' : safeColor(b.bg, 'transparent');
   var blend = BLENDS[String(b.blend)] ? String(b.blend) : '';
   var css =
     'left:' + x + 'px;top:' + y + 'px;width:' + w + 'px;height:' + h + 'px;' +
@@ -202,6 +205,12 @@ function boxCss(b) {
     (op !== 1 ? 'opacity:' + op + ';' : '') +
     (blend ? 'mix-blend-mode:' + blend + ';' : '') +
     'background:' + fill + ';' +
+    // .lolly-box clips its children, which is right for an image or text but wrong for a
+    // path box: the frame is the curve's tight bbox, so a stroke legitimately paints half
+    // its width outside it (see pathHtmlFor's stroke pad) and the div would cut it off
+    // again. Inline rather than in styles.css so the CLI and the export walkers, which read
+    // this string, agree with the browser.
+    (String(b.kind) === 'path' ? 'overflow:visible;' : '') +
     'border-radius:' + radiusFor(b.shape, b.radius) + ';' +
     'justify-content:' + (H_JUSTIFY[b.align] || 'center') + ';' +
     'align-items:' + (V_ALIGN[b.valign] || 'center') + ';';
@@ -249,6 +258,194 @@ function mediaHtmlFor(b) {
       '" data-video-key="' + vkey + '" muted loop autoplay playsinline style="' + style + '"></video>';
   }
   return '<img class="lolly-box-img" src="' + esc(url) + '" style="' + style + '" alt="" draggable="false">';
+}
+
+// ── vector path boxes ────────────────────────────────────────────────────────
+//
+// A `kind:'path'` box is a pen shape. Its geometry is NOT in this file: the box
+// carries an AUTHORED path (nodes + handles + spline kind) in its `path` field,
+// and the engine's geometry kernel — reached through host.geom, because tools may
+// not import from the engine — decodes it and lowers it to cubics. That is what
+// makes a pen shape render headlessly: a URL render, a CLI render and an export
+// all run manifest -> inputs -> hooks -> template with no editor anywhere, so if
+// the lowering lived in the overlay a shared link would arrive blank.
+//
+// Node coordinates are fractions of the BOX FRAME (see plans/pen-tool-and-vector-
+// ops.md), so drag/resize/rotate act on a path box through x/y/w/h/rot exactly as
+// they do on every other kind, without rewriting a node. They are mapped into
+// box-local PIXELS here, before the lowering, for two reasons: the spline then
+// solves in the same frame it is drawn in (so what the pen tool previews is what
+// exports), and the emitted <svg> can carry a 1:1 viewBox. The alternative — a
+// viewBox of "0 0 1 1" with preserveAspectRatio="none" — would scale the stroke
+// non-uniformly with the box and leans on export-walker behaviour we don't rely on.
+
+var FILL_RULES = { nonzero: 1, evenodd: 1 };
+// Stroke decoration whitelists. Every one of these reaches an ATTRIBUTE VALUE in markup
+// emitted through {{{ }}}, so a value is only ever a key of one of these maps — never the
+// user's string with escaping applied on top, which would still let `stroke-dasharray`
+// carry arbitrary numbers (and `NaN`) into the renderer.
+var LINE_CAPS = { butt: 1, round: 1, square: 1 };
+var LINE_JOINS = { miter: 1, round: 1, bevel: 1 };
+var DASH_STYLES = { dashed: 1, dotted: 1 };
+// Emitted explicitly with a miter join rather than left to each renderer's default (SVG
+// says 4, PDF says 10), so the stroke pad below can bound the spike from a known number.
+var MITER_LIMIT = 4;
+
+// host.geom is OPTIONAL and additive (HostV1 v1.64), so feature-detect it the way
+// the shipped tools feature-detect host.color — never assume, never throw.
+function geomApi() {
+  return typeof host !== 'undefined' && host && host.geom ? host.geom : null;
+}
+
+// Report through host.log, never by throwing: onInit/onInput errors are caught and
+// DISCARDED by the runtime, so a throw here would make a path box vanish with
+// nothing anywhere to say why.
+function pathWarn(msg) {
+  try {
+    if (typeof host !== 'undefined' && host && host.log) host.log('warn', 'layout-studio: ' + msg);
+  } catch (e) { /* a host without log is still a host */ }
+}
+
+// The honest degrade: a dashed outline of the box frame. A path we cannot draw is
+// still a box the user placed, and an invisible element is the one answer that
+// can't be acted on — this one says "there is a shape here and it did not draw",
+// keeps the element selectable in the editor, and carries no geometry it made up.
+// currentColor + fixed numbers, so nothing from the box can reach the markup.
+function pathPlaceholder(w, h, why) {
+  pathWarn(why);
+  var d = 'M.75 .75H' + (w - 0.75) + 'V' + (h - 0.75) + 'H.75Z';
+  return '<svg class="lolly-box-path lolly-box-path-undrawn" width="' + w + '" height="' + h +
+    '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" aria-hidden="true">' +
+    '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.5"' +
+    ' stroke-dasharray="6 4" opacity="0.45"></path></svg>';
+}
+
+// Stroke style -> an SVG dash array, in the same user units as stroke-width. The style is
+// a KEYWORD (solid/dashed/dotted), not an authored array, and the pattern is derived from
+// the stroke width, for three reasons: a keyword is whitelist-checkable so nothing the user
+// types reaches the attribute; the dashes keep their proportions when the width or the box
+// changes; and the compact blocks URL form cannot carry a comma or a tilde at all
+// (encodeBlocksCompact refuses the whole compact string), so an authored "8, 4" would push
+// every layout-studio link onto the lossless JSON fallback.
+//
+// Solid returns '' — no attribute at all, which is what keeps an existing shape's markup
+// byte-identical to what it was before this field existed.
+function dashArrayFor(style, w, cap) {
+  if (!DASH_STYLES[style] || !(w > 0)) return '';
+  if (style === 'dotted') {
+    // A round or square cap already paints a full w across the line, so the dot is a
+    // ZERO-length dash and the gap is the whole period. A flat (butt) cap paints nothing
+    // at zero length, so it needs a real w-long dash — which is a square dot, correctly.
+    return cap === 'butt' ? f2(w) + ' ' + f2(w) : '0 ' + f2(w * 2);
+  }
+  return f2(w * 3) + ' ' + f2(w * 2);
+}
+
+// A path box's inline <svg>, or '' for every other kind. Pure/string-only like
+// mediaHtmlFor, so the CLI emits identical markup.
+function pathHtmlFor(b) {
+  if (String(b.kind) !== 'path') return '';
+  var w = Math.max(1, Math.round(num(b.w, 1)));
+  var h = Math.max(1, Math.round(num(b.h, 1)));
+  var raw = b.path == null ? '' : String(b.path);
+  // Nothing authored yet (a freshly added box, or a cleared field). Not an error:
+  // there is no shape, so there is nothing to draw and nothing to warn about.
+  if (!raw) return '';
+
+  var geom = geomApi();
+  if (!geom || !geom.decodeAuthored || !geom.fromNodes) {
+    return pathPlaceholder(w, h, 'host.geom is unavailable, so a path box cannot be drawn (needs engine >= 1.64)');
+  }
+  var dec = geom.decodeAuthored(raw);
+  if (!dec || !dec.ok) {
+    return pathPlaceholder(w, h, 'path box: ' + ((dec && dec.message) || 'unreadable path field'));
+  }
+  // A value carries a LIST of contours, always — one for a pen-drawn shape, several
+  // when a boolean punched a hole or split the shape into loops. Every contour is
+  // lowered on its own and the subpaths are concatenated into ONE `d`, which is what
+  // makes the hole a hole: fill-rule is a property of a path, so two <path>s can
+  // never subtract, and one <path> with two subpaths does it for free.
+  var srcs = dec.value;
+  var ds = [];
+  for (var pi = 0; pi < srcs.length; pi++) {
+    var src = srcs[pi];
+    var nodes = [];
+    for (var i = 0; i < src.nodes.length; i++) {
+      var n = src.nodes[i];
+      var out = { x: n.x * w, y: n.y * h };
+      if (n.hInX != null) out.hInX = n.hInX * w;
+      if (n.hInY != null) out.hInY = n.hInY * h;
+      if (n.hOutX != null) out.hOutX = n.hOutX * w;
+      if (n.hOutY != null) out.hOutY = n.hOutY * h;
+      if (n.continuity) out.continuity = n.continuity;
+      nodes.push(out);
+    }
+    var res = geom.fromNodes({
+      kind: src.kind, nodes: nodes, closed: src.closed === true,
+      tension: src.tension, decimals: 3,
+    });
+    if (!res || !res.ok) {
+      return pathPlaceholder(w, h, 'path box: ' + ((res && res.code) || 'error') + ' — ' + ((res && res.message) || 'could not lower the path'));
+    }
+    // ok with no geometry is an ANSWER, not a failure (fewer than two nodes lowers to
+    // no curves), so an empty contour is skipped rather than treated as a refusal.
+    if (res.d) ds.push(res.d);
+  }
+  // Nothing to draw at all: emit nothing rather than a placeholder crying wolf.
+  if (!ds.length) return '';
+  var d = ds.join(' ');
+
+  // `bg` is the path's FILL for a path box (boxCss keeps the div transparent so the
+  // shape is the only thing painted). Empty fill means an unfilled outline, which is
+  // what a stroked pen path wants, so it maps to 'none' rather than to a colour.
+  var fill = b.bg == null || String(b.bg).trim() === '' ? 'none' : safeColor(b.bg, 'none');
+  var stroke = b.stroke == null || String(b.stroke).trim() === '' ? '' : safeColor(b.stroke, '');
+  var sw = clamp(num(b.strokeW, 0), 0, 400);
+  var rule = FILL_RULES[String(b.fillRule)] ? String(b.fillRule) : 'nonzero';
+  // Stroke decoration. Every one defaults to what this hook used to hard-code, so an
+  // existing shape's markup is unchanged: round cap, round join, no dash array.
+  var cap = LINE_CAPS[String(b.strokeCap)] ? String(b.strokeCap) : 'round';
+  var join = LINE_JOINS[String(b.strokeJoin)] ? String(b.strokeJoin) : 'round';
+  var dash = dashArrayFor(String(b.strokeDash == null ? '' : b.strokeDash), sw, cap);
+
+  // The STROKE PAD. The frame is the curve's tight bounding box (the pen tool refits it to
+  // exactly that), so a stroke straddles the frame edge and half of it falls outside — and
+  // an outer <svg> clips to its viewport, so without a pad every stroked pen shape loses
+  // half its outline all the way round. `overflow: visible` is NOT the fix: this markup is
+  // read by three renderers (the browser, the SVG export walker, the PDF walker) and a
+  // nested <svg> clips by default in SVG output too, so the geometry is made explicit
+  // instead — the element is grown by `pad` on every side and offset by −pad, and the
+  // viewBox is shifted to match, which leaves path coordinates mapping to 0..w / 0..h
+  // exactly as before. A round cap and a round join both reach exactly half the stroke
+  // width, so sw / 2 is sufficient for the defaults; the two decorations that reach FURTHER
+  // size the pad up for themselves, because a pad that is merely usually right is a clipped
+  // outline the user cannot explain:
+  //   - a SQUARE cap's corner sits at sw/2 along the tangent AND sw/2 across it, i.e.
+  //     sw/2·√2 from the endpoint;
+  //   - a MITER join's spike is bounded by stroke-miterlimit · sw/2, and the limit is
+  //     emitted explicitly below (4, SVG's default) precisely so this bound is a fact
+  //     rather than a per-renderer default — PDF's own default is 10.
+  //
+  // The inline geometry also has to override styles.css's `inset: 0; width/height: 100%`,
+  // which would otherwise pull the element back to the frame — hence `inset:auto` first.
+  var reach = Math.max(cap === 'square' ? Math.SQRT2 / 2 : 0.5, join === 'miter' ? MITER_LIMIT / 2 : 0.5);
+  var pad = stroke && sw > 0 ? sw * reach : 0;
+  var vw = f2(w + pad * 2), vh = f2(h + pad * 2), o = f2(-pad);
+  // Everything interpolated is esc()'d even though each value is already reduced to a
+  // validated colour, a whitelisted keyword or a number: the extra is emitted through
+  // {{{ }}}, which bypasses Handlebars' escaping, so the escape has to happen here.
+  return '<svg class="lolly-box-path" width="' + esc(vw) + '" height="' + esc(vh) +
+    '" viewBox="' + esc(o) + ' ' + esc(o) + ' ' + esc(vw) + ' ' + esc(vh) + '" preserveAspectRatio="none"' +
+    (pad ? ' style="inset:auto;left:' + esc(o) + 'px;top:' + esc(o) + 'px;width:' + esc(vw) + 'px;height:' + esc(vh) + 'px"' : '') +
+    '>' +
+    '<path d="' + esc(d) + '" fill="' + esc(fill) + '" fill-rule="' + esc(rule) + '"' +
+    (stroke && sw > 0
+      ? ' stroke="' + esc(stroke) + '" stroke-width="' + esc(f2(sw)) +
+        '" stroke-linejoin="' + esc(join) + '" stroke-linecap="' + esc(cap) + '"' +
+        (join === 'miter' ? ' stroke-miterlimit="' + esc(MITER_LIMIT) + '"' : '') +
+        (dash ? ' stroke-dasharray="' + esc(dash) + '"' : '')
+      : '') +
+    '></path></svg>';
 }
 
 function rot2(px, py, deg) {
@@ -350,6 +547,103 @@ function textCss(b) {
   );
 }
 
+// ── time model (phase 1: inert data only — no panel mounts this yet) ───────────
+//
+// Enter/exit transition keywords, mirroring record's tool.json transition options
+// exactly. A hostile enum value (e.g. from a hand-edited URL) must never reach an
+// HTML attribute unescaped, so timeAttrsFor only ever emits a value that's a member
+// of this whitelist or a clamped number — never raw user text.
+var TRANSITIONS = {
+  fade: 1, pop: 1, grow: 1, rise: 1, drop: 1, 'slide-left': 1, 'slide-right': 1,
+  'slide-up': 1, 'slide-down': 1, 'zoom-in': 1, 'zoom-out': 1, tilt: 1, swoop: 1,
+  spin: 1, drift: 1, none: 1,
+};
+
+// Is `v` a value that parses to a finite number at all (as opposed to num()'s
+// "finite, or fall back to a default")? Distinguishes "authored 0" from "empty" —
+// start:"" means scenery (never timed), start:0 means "enters at the top".
+function isFiniteNum(v) {
+  if (v == null || v === '') return false;
+  var x = typeof v === 'number' ? v : parseFloat(v);
+  return isFinite(x);
+}
+
+// Ceiling (seconds) for every authored time value. An hour is far past anything a
+// layout document should hold, and clamping EVERY time field to it — start included
+// — keeps the emitted attribute a plain integer: 1e308 * 1000 is Infinity, and
+// anything from 1e21 up stringifies exponentially ("1e+24"), both of which a
+// parseInt on the phase-2 side would read as NaN / 1.
+var MAX_TIME_S = 3600;
+
+// Is `v` one of the whitelisted transition keywords? An own-property test, not the
+// bare `TRANSITIONS[v]` truthiness check — every object literal inherits truthy
+// `constructor` / `__proto__` / `toString` / `valueOf` from Object.prototype, so a
+// hand-authored URL could otherwise smuggle any of those through as a "transition".
+// The typeof guard also stops an object-valued field (?boxes= accepts raw JSON) from
+// throwing on property-key coercion and aborting the whole compute().
+function isTransition(v) {
+  return typeof v === 'string' && v !== 'none'
+    && Object.prototype.hasOwnProperty.call(TRANSITIONS, v);
+}
+
+// A box's start offset in seconds, clamped into range. One definition so the
+// attribute and the derived sequence length can never disagree.
+function startSeconds(b) {
+  return clamp(num(b.start, 0), 0, MAX_TIME_S);
+}
+
+// A box's time attributes, or '' for scenery (a box with no lane/start authored).
+// Pure; every value lands in an HTML attribute via {{{ }}}, so every emitted value
+// is either a clamped NUMBER or a whitelisted enum token — never raw user text.
+// Each attribute string starts with a leading space so concatenation into a tag is
+// safe with no manual separator bookkeeping.
+function timeAttrsFor(b) {
+  if (b.lane !== 'seq' && !isFiniteNum(b.start)) return ''; // scenery
+  var parts = [];
+  parts.push(' data-t-start="' + Math.round(startSeconds(b) * 1000) + '"');
+  if (isFiniteNum(b.dur)) {
+    parts.push(' data-t-dur="' + Math.round(clamp(num(b.dur, 0), 0.1, MAX_TIME_S) * 1000) + '"');
+  }
+  if (num(b.clipIn, 0) > 0) {
+    parts.push(' data-clip-in="' + Math.round(clamp(num(b.clipIn, 0), 0, MAX_TIME_S) * 1000) + '"');
+  }
+  // f2 so an accumulated slider value (0.30000000000000004) doesn't leak float noise
+  // into the attribute; re-test against 1 AFTER rounding so a no-op speed stays absent.
+  var speed = f2(clamp(num(b.speed, 1), 0.25, 4));
+  if (speed !== 1) {
+    parts.push(' data-t-speed="' + speed + '"');
+  }
+  if (isTransition(b.enter)) {
+    parts.push(' data-t-enter="' + b.enter + '" data-t-enter-ms="' + Math.round(clamp(num(b.enterMs, 400), 100, 3000)) + '"');
+  }
+  if (isTransition(b.exit)) {
+    parts.push(' data-t-exit="' + b.exit + '" data-t-exit-ms="' + Math.round(clamp(num(b.exitMs, 400), 100, 3000)) + '"');
+  }
+  if (boolVal(b.mute, false)) parts.push(' data-t-mute="1"');
+  if (b.lane === 'seq') parts.push(' data-t-lane="seq"');
+  return parts.join('');
+}
+
+var DEFAULT_SEQ_S = 5; // no box has an authored duration, but something is timed
+
+// The sequence's total derived length in ms — single source of truth, reused
+// verbatim by the phase-2 timeline panel. `dur` is TIMELINE seconds (the author's
+// own trim, already reflecting any speed change), so it is never multiplied by
+// speed here. Open-ended boxes (no dur authored) extend to fill this length.
+function seqDurationMs(boxes) {
+  var timedBoxes = boxes.filter(function (b) { return b && (b.lane === 'seq' || isFiniteNum(b.start)); });
+  var withDur = timedBoxes.filter(function (b) { return isFiniteNum(b.dur); });
+  if (withDur.length) {
+    var max = 0;
+    withDur.forEach(function (b) {
+      var end = (startSeconds(b) + clamp(num(b.dur, 0), 0.1, MAX_TIME_S)) * 1000;
+      if (end > max) max = end;
+    });
+    return Math.round(max);
+  }
+  return timedBoxes.length ? DEFAULT_SEQ_S * 1000 : 0;
+}
+
 function compute(model) {
   var inp = inputsFrom(model);
   var boxes = Array.isArray(inp.boxes) ? inp.boxes : [];
@@ -361,16 +655,25 @@ function compute(model) {
   var textStyle = boxes.map(function (b, i) { return textCss(b || {}) + shadows[i].text; });
   var textHtml = boxes.map(function (b) { return richText((b && b.text) || ''); });
   var mediaHtml = boxes.map(function (b) { return mediaHtmlFor(b || {}); });
+  var pathHtml = boxes.map(function (b) { return pathHtmlFor(b || {}); });
   // Which boxes opted into shrink-to-fit ("1" marks a fit root for the template's fit
   // pass; "" is ignored). Off by default so grow-to-fit (the editor's box-grows-to-text
   // behaviour) stays the norm; a box turns this on to instead shrink the text to a fixed box.
   var boxFit = boxes.map(function (b) { return boolVal(b && b.fitText, false) ? '1' : ''; });
+  // Time model (phase 1 — inert data; nothing reads these attributes yet, the
+  // phase-2 panel does). timeAttrs is index-aligned with boxStyle/boxFit/etc.
+  var timeAttrs = boxes.map(function (b) { return timeAttrsFor(b || {}); });
+  var seqMs = seqDurationMs(boxes);
+  var seqAttrs = [seqMs > 0 ? ' data-sequence data-seq-ms="' + seqMs + '"' : ''];
   return {
     boxStyle: boxStyle,
     textStyle: textStyle,
     textHtml: textHtml,
     mediaHtml: mediaHtml,
+    pathHtml: pathHtml,
     boxFit: boxFit,
+    timeAttrs: timeAttrs,
+    seqAttrs: seqAttrs,
     bgStyle: [transparent ? 'transparent' : safeColor(inp.background, '#ffffff')],
   };
 }

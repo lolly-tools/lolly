@@ -91,6 +91,78 @@ export {
   splitCssArgs, parseGradientAngle, parseGradientStop,
 } from './css-paint.ts';
 export type { ClipShape, GradientStop, RadialGradient, ConicGradient, DropShadow } from './css-paint.ts';
+
+// Vector geometry kernel (engine/src/geom/) — exact cubic Bezier operations, the
+// substrate for boolean ops, path offsetting and stroke outlining. Nothing here
+// flattens, samples or rasterises; see geom/bezier.ts for why that matters.
+export {
+  type Cubic, type Pt as GeomPt, type Box as GeomBox,
+  lineToCubic, evalCubic, tangentAt, splitCubic, subCubic, extremaCubic,
+  boundsCubic, hullBounds, boxesOverlap, flatnessCubic, lengthCubic,
+  flattenCubic, isLineCubic, signedAreaCubic, nearestOnCubic,
+} from './geom/bezier.ts';
+export {
+  type Intersection, EPS as GEOM_EPS,
+  intersectSegments, intersectLineCubic, intersectCubics, cubicRoots01,
+} from './geom/intersect.ts';
+// The path model the operators work on, plus lossless conversion to and from the
+// `SubPath[]` that svg-path.ts parses — so a boolean's result re-enters any existing sink
+// (the PDF, EMF, EPS and DXF emitters) with no new code path.
+export {
+  type Contour, type GeomPath, JOIN_EPS,
+  contourStart, contourEnd, closeContour, contourArea, reverseContour, orientContour,
+  pathBounds, compactPath, pathFromSubPaths, subPathsFromPath, toSvgPathData, contourPoint,
+} from './geom/path.ts';
+// Boolean operations. `GeomLimitError` is part of the contract, not an escape hatch:
+// difference/intersection/xor THROW it rather than degrade past the bounded-work ceiling,
+// because a valid-looking answer a caller cannot distinguish from the real one is worse
+// than being told. (Union has an exact way out and takes it; `selfUnion` never throws,
+// since offsetting and stroking depend on that.)
+export {
+  type BooleanOp, type FillRule, type BooleanOptions, GeomLimitError,
+  booleanPath, unionPath, intersectPath, differencePath, xorPath, selfUnion,
+  windingNumber, pointInPath,
+} from './geom/boolean.ts';
+// Offsetting and stroke outlining. Both resolve their own self-intersections through
+// `selfUnion`, which is why Stage 2 had to land before either could be correct.
+export {
+  type JoinStyle, type OffsetOptions,
+  offsetCubic, offsetContour, offsetPath, offsetSweep, distanceToPath, fitCubic,
+} from './geom/offset.ts';
+export { type CapStyle, type StrokeOptions, strokeToPath } from './geom/stroke.ts';
+// Curve fitting, by area and moment matching (Levien). `ParamCurveFit` is the reason this
+// is separate from offsetting: an exact offset can be SAMPLED for position and derivative
+// analytically but has no Bezier form, and fitting the real curve rather than an
+// approximation of it is what removes an error term. `simplifyCubics` must never be
+// applied to boolean output by default — see its own warning.
+export {
+  type ParamCurveFit, type FitOptions,
+  quadratureMoments, cubicAsSource, fitError, fitCubicMoment, fitToCubics, simplifyCubics,
+} from './geom/fit.ts';
+// The authored-spline seam: geometry runs on cubics, but what the USER edits stays in
+// its own form (pen-tool nodes with continuity, Catmull-Rom, B-spline, one day Spiro).
+// Lowering is one-directional and deliberate — see geom/spline.ts.
+export {
+  type Continuity, type Node as SplineNode, type SplineKind, type AuthoredPath,
+  type HyperbezierSolution,
+  toCubics, enforceContinuity, solveHyperbezier, hyperbezierCubics,
+} from './geom/spline.ts';
+// The wire form of an authored path — one delimiter-safe field value, so a pen shape
+// can live in a `blocks` sub-field and a share link. Shell code (the pen-tool overlay)
+// imports these; tool code reaches the SAME implementation through
+// host.geom.encodeAuthored / decodeAuthored, so there is only ever one codec.
+// A value carries one path or several (`*`-separated: a boolean result with a hole is
+// several contours), and one path encodes byte-identically at either arity.
+export {
+  type AuthoredDecodeFail,
+  encodeAuthoredPath, encodeAuthoredPaths,
+  decodeAuthoredPath, decodeAuthoredPaths, decodeAuthoredPathsResult,
+} from './geom/authored-url.ts';
+// The tool-facing face of all of the above (`host.geom`, v1.64): SVG path data in, SVG
+// path data out, bounded parsing for untrusted `d` strings, and failures RETURNED as
+// codes rather than thrown — because a throw out of a hook is logged and discarded,
+// which would make a pen tool go quiet instead of telling the user anything.
+export { makeGeomApi } from './geom-api.ts';
 export { emitEmf } from './emf.ts';
 export { emitEps } from './eps.ts';
 export { emitDxf } from './dxf.ts';

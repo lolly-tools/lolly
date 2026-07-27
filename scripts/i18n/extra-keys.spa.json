@@ -158,5 +158,22 @@
   "Standalone",
   "Minimal UI",
   "Fullscreen",
-  "Browser tab"
+  "Browser tab",
+
+  "Fade",
+  "Pop",
+  "Grow",
+  "Rise",
+  "Drop",
+  "Slide from right",
+  "Slide from left",
+  "Slide from below",
+  "Slide from above",
+  "Zoom in",
+  "Zoom out",
+  "Tilt",
+  "Swoop",
+  "Spin",
+  "Drift",
+  "Cut (no animation)"
 ]

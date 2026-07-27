@@ -84,6 +84,9 @@ const NPM_COMPONENTS: NpmComponent[] = [
   { pkg: 'gifenc', where: 'web' },
   { pkg: 'idb', where: 'web' },
   { pkg: 'harfbuzzjs', where: 'web' },
+  // Demux + WebCodecs decode for timeline/sequence video export. Lazy-imported, so it
+  // only reaches a user who exports a timed composition — but it IS distributed.
+  { pkg: 'mediabunny', where: 'web', elect: 'MPL-2.0' },
 
   // Transitive deps that jspdf pulls in and that land in the web bundle.
   { pkg: 'html2canvas', where: 'web', transitiveVia: 'jspdf' },

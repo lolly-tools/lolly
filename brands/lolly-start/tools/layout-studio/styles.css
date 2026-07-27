@@ -36,6 +36,20 @@
 .lolly-box-lottie { pointer-events: none; }
 .lolly-box-lottie > svg { display: block; width: 100%; height: 100%; }
 
+/* A vector path box's inline <svg>: fills the box frame exactly (its viewBox is the
+   box's own px size, so the mapping is 1:1 and the stroke keeps a uniform width).
+   Non-interactive like the Lottie player, so it never steals the editor's
+   drag/select pointer events. */
+.lolly-box-path {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+
 .lolly-box-text {
   position: relative;
   width: 100%;

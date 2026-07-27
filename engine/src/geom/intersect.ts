@@ -327,10 +327,63 @@ function dedupe(list: Intersection[], tol: number): Intersection[] {
 }
 
 /**
+ * Where along a straight cubic's OWN parameterisation does a given chord fraction fall?
+ *
+ * The exact line paths above take a curve's endpoints and report a fraction along the
+ * chord. For a cubic built by `lineToCubic` that fraction IS the parameter, because the
+ * controls are evenly spaced — and that equivalence is so convenient it is easy to
+ * assume generally. It does not hold. `M0,0 C0,0 0,0 100,0` — handles resting on the
+ * start point, which is what a pen tool with un-dragged handles and plenty of imported
+ * SVG produce — is perfectly straight and grossly non-uniform: its midpoint is at
+ * x=12.5, not 50. Handing the chord fraction back as `t` therefore reports a point that
+ * is on the LINE but nowhere near the curve at that parameter, and since every consumer
+ * splits with `subCubic(c, t)`, the split lands in the wrong place and the resulting
+ * geometry does not close.
+ *
+ * So convert. The along-chord displacement is itself a cubic in `t` (Bernstein
+ * coefficients are just the controls projected onto the chord), so this is the same
+ * closed-form root solve as everything else here — exact, not a search.
+ */
+function chordFractionToParam(c: Cubic, u: number): number {
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  const l2 = dx * dx + dy * dy;
+  if (l2 < 1e-24) return u;                       // degenerate chord: nothing to convert
+  const g = [
+    0,
+    ((c[2] - c[0]) * dx + (c[3] - c[1]) * dy) / l2,
+    ((c[4] - c[0]) * dx + (c[5] - c[1]) * dy) / l2,
+    1,
+  ];
+  // Uniformly spaced controls are the overwhelmingly common case; skip the solve.
+  if (Math.abs(g[1]! - 1 / 3) < 1e-12 && Math.abs(g[2]! - 2 / 3) < 1e-12) return u;
+  const A = -g[0]! + 3 * g[1]! - 3 * g[2]! + g[3]!;
+  const B = 3 * g[0]! - 6 * g[1]! + 3 * g[2]!;
+  const C = -3 * g[0]! + 3 * g[1]!;
+  const D = g[0]! - u;
+  const roots = cubicRoots01(A, B, C, D);
+  if (!roots.length) return u;
+  // A non-monotone straight cubic (controls that double back) genuinely passes the same
+  // point more than once; the caller asked about one crossing, so take the root whose
+  // displacement is closest to what was asked for.
+  let best = roots[0]!, bestErr = Infinity;
+  for (const t of roots) {
+    const mt = 1 - t;
+    const val = mt * mt * mt * g[0]! + 3 * mt * mt * t * g[1]! + 3 * mt * t * t * g[2]! + t * t * t * g[3]!;
+    const err = Math.abs(val - u);
+    if (err < bestErr) { bestErr = err; best = t; }
+  }
+  return best;
+}
+
+/**
  * Every intersection of two cubics.
  *
  * Dispatches on geometry, not on how the caller labelled the curve: a cubic whose
- * controls are collinear IS a line and takes the exact algebraic path.
+ * controls are collinear IS a line and takes the exact algebraic path. What that path
+ * returns is a fraction along the chord, which is NOT the curve's parameter unless the
+ * controls happen to be evenly spaced — so it is converted back before it leaves here.
+ * See `chordFractionToParam`; getting this wrong reports points tens of units off the
+ * curve they claim to lie on.
  *
  * Overlapping (coincident) curves are reported as their two overlap endpoints rather
  * than as an infinity of points — enough for a boolean to split at, and honest about
@@ -342,13 +395,21 @@ export function intersectCubics(c1: Cubic, c2: Cubic, tol = EPS): Intersection[]
   const l1 = isLineCubic(c1, tol), l2 = isLineCubic(c2, tol);
   if (l1 && l2) {
     const hit = intersectSegments(c1[0], c1[1], c1[6], c1[7], c2[0], c2[1], c2[6], c2[7]);
-    return hit ? [hit] : [];
+    if (!hit) return [];
+    return [{
+      ...hit,
+      t1: chordFractionToParam(c1, hit.t1),
+      t2: chordFractionToParam(c2, hit.t2),
+    }];
   }
-  if (l1) return dedupe(intersectLineCubic(c1[0], c1[1], c1[6], c1[7], c2, tol), tol);
+  if (l1) {
+    return dedupe(intersectLineCubic(c1[0], c1[1], c1[6], c1[7], c2, tol)
+      .map((i) => ({ ...i, t1: chordFractionToParam(c1, i.t1) })), tol);
+  }
   if (l2) {
     // Same call with the roles reversed, then swap the parameters back.
     return dedupe(intersectLineCubic(c2[0], c2[1], c2[6], c2[7], c1, tol)
-      .map((i) => ({ t1: i.t2, t2: i.t1, x: i.x, y: i.y })), tol);
+      .map((i) => ({ t1: i.t2, t2: chordFractionToParam(c2, i.t1), x: i.x, y: i.y })), tol);
   }
 
   const out: Intersection[] = [];
