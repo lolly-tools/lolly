@@ -40,6 +40,8 @@
 import { hexToOklch, oklchToHex, parseOklch, parseHex, contrastRatio } from './brand-derive.ts';
 import type { Oklch } from './brand-derive.ts';
 import { generateSchemeAccents } from './brand-schemes.ts';
+import { parseColor, colorToHexString, interpolateColor } from './css-color.ts';
+import { gradientSpecToCss } from './gradient-spec.ts';
 import type { ColorAPI } from './bridge/host-v1.ts';
 
 // ─── Input parsing / OKLab plumbing ───────────────────────────────────────────
@@ -387,5 +389,16 @@ export function makeColorApi(): ColorAPI {
     // v1.60: the brand editor's harmony generator (brand-schemes.ts), attached
     // verbatim so tool-facing scheme accents can never drift from the editor's.
     schemes: (seedHex, kind = 'complement') => generateSchemeAccents(seedHex, kind),
+    // v1.68: CSS-correct interpolation + the gradient spec. Both are thin
+    // adapters over css-color.ts / gradient-spec.ts — the same code the export
+    // walkers and the web shell's gradient editor use, so a tool's gradient and
+    // an exported one can never be interpolated differently.
+    mix: (a, b, t, opts = {}) => {
+      const ca = parseColor(a);
+      const cb = parseColor(b);
+      if (!ca || !cb) return null;
+      return colorToHexString(interpolateColor(ca, cb, t, opts));
+    },
+    gradientCss: spec => gradientSpecToCss(spec),
   };
 }

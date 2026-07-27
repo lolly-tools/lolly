@@ -506,6 +506,163 @@ describe('sequence export (browser tier)', { skip: gate ?? false, concurrency: 1
     assert.deepEqual(r.codes, [0, 10, 29], 'the frozen still covered the decoded frames');
   });
 
+  // ── 10. the contact sheet (phase 2.5, cuts=N) ─────────────────────────────
+
+  // The headless tier (shells/web/src/bridge/sequence-cuts.test.ts) pins the sampling
+  // maths, the clamp, the naming and the loop against injected renderers. What only a
+  // browser can answer is whether the members are real pictures of the right MOMENTS —
+  // so this case reads actual pixels out of the archive, and a real page count out of
+  // the pdf.
+  test('cuts=N is N real stills at the midpoints — zipped for png, paged for pdf', async () => {
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      // Three gapless full-bleed clips; the midpoints of 3 cuts (500/1500/2500ms)
+      // land one inside each, so cut i must be exactly colour i.
+      const spec = {
+        w: 160, h: 120, seqMs: 3000, bg: '#0b1220', boxes: [
+          { x: 0, y: 0, w: 160, h: 120, bg: '#ff0000', start: 0, dur: 1000, lane: 'seq' as const },
+          { x: 0, y: 0, w: 160, h: 120, bg: '#00ff00', start: 1000, dur: 1000, lane: 'seq' as const },
+          { x: 0, y: 0, w: 160, h: 120, bg: '#0000ff', start: 2000, dur: 1000, lane: 'seq' as const },
+        ],
+      };
+      const probes = [{ x: 80, y: 60 }];
+      return {
+        png: await S.cutsAt(spec, 3, 'png', probes),
+        pdf: await S.cutsAt(spec, 4, 'pdf', probes),
+        one: await S.cutsAt(spec, 1, 'png', probes),
+      };
+    });
+
+    // png: one archive of three members, correctly named and ordered.
+    assert.equal(r.png.type, 'application/zip', `cuts=3 png should be a zip, got ${r.png.type}`);
+    assert.deepEqual(r.png.names, ['sheet-01.png', 'sheet-02.png', 'sheet-03.png']);
+    const chan = (i: number) => (r.png.at as number[][][]).map((m) => (m[0] as number[])[i] as number);
+    assert.ok(chan(0)[0]! > 200 && chan(1)[0]! < 60 && chan(2)[0]! < 60, `cut 1 should be the red clip (${JSON.stringify(r.png.at)})`);
+    assert.ok(chan(1)[1]! > 200, `cut 2 should be the green clip (${JSON.stringify(r.png.at)})`);
+    assert.ok(chan(2)[2]! > 200, `cut 3 should be the blue clip (${JSON.stringify(r.png.at)})`);
+    assert.deepEqual(r.png.progress, [[1, 3], [2, 3], [3, 3]], 'progress is reported per cut');
+    assert.equal(r.png.restored, true, 'the artboard was left exactly as it was found');
+
+    // pdf: ONE document, four pages — never four documents, never a zip.
+    assert.equal(r.pdf.type, 'application/pdf');
+    assert.equal(r.pdf.pages, 4);
+    assert.equal(r.pdf.restored, true);
+
+    // cuts=1 is the untouched single-still path: a png, not an archive.
+    assert.equal(r.one.type, 'image/png', 'cuts=1 must not go anywhere near the sheet path');
+  });
+
+  // ── 9. the worker offload (phase 4 Track B) ────────────────────────────────
+
+  test('the Worker path produces byte-identical output to the in-thread path', async () => {
+    // The whole determinism claim of Track B, and the only place it can be
+    // settled: same sequence, same options, one export down each path. The two
+    // share ONE compositor (runSequenceJob), so a difference here would mean the
+    // hosting — encoder instance, canvas kind, PCM handover — is not neutral.
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      const clip = await S.makeClip({ frames: 60, fps: 30, w: 320, h: 240 });
+      const bed = S.makeBed(2, 440, 0.3);
+      const spec = {
+        w: 320, h: 240, seqMs: 2000, bg: '#101820', boxes: [
+          { clip: clip.key, x: 0, y: 0, w: 320, h: 240, start: 0, dur: 2000, lane: 'seq' as const },
+          { text: 'over', x: 10, y: 10, w: 120, h: 40, bg: '#ffcc00', start: 0, dur: 2000 },
+        ],
+      };
+      const opts = { fps: 30, width: 320, audio: { url: bed.url, volume: 0.5, duck: 0.3 } };
+      const inThread = await S.exportSeq(spec, 'webm', { ...opts, worker: false });
+      const inWorker = await S.exportSeq(spec, 'webm', { ...opts, worker: true });
+      const idx = [0, 15, 30, 45, 59];
+      return {
+        inThread: { err: inThread.error, size: inThread.size, logs: inThread.logs },
+        inWorker: { err: inWorker.error, size: inWorker.size, logs: inWorker.logs },
+        shaA: inThread.key ? await S.blobSha(inThread.key) : '',
+        shaB: inWorker.key ? await S.blobSha(inWorker.key) : '',
+        hashA: inThread.key ? await S.frameHashes(inThread.key, idx, 30) : [],
+        hashB: inWorker.key ? await S.frameHashes(inWorker.key, idx, 30) : [],
+        audioA: inThread.key ? await S.hasAudioTrack(inThread.key) : false,
+        audioB: inWorker.key ? await S.hasAudioTrack(inWorker.key) : false,
+      };
+    });
+
+    assert.equal(r.inThread.err, null, `in-thread export failed: ${JSON.stringify(r.inThread.err)}`);
+    assert.equal(r.inWorker.err, null, `worker export failed: ${JSON.stringify(r.inWorker.err)}`);
+
+    // The offload must actually have happened, or the comparison proves nothing.
+    const offload = r.inWorker.logs.find((l) => l.includes('worker offload'));
+    assert.ok(offload, `the worker path was not taken: ${r.inWorker.logs.join(' | ')}`);
+    assert.match(offload, /fully worker-side/, 'a sequence with no lottie layer must run 100% worker-side');
+    assert.ok(!r.inWorker.logs.some((l) => l.includes('worker offload unavailable')),
+      `the offload fell back in-thread: ${r.inWorker.logs.join(' | ')}`);
+    assert.ok(!r.inThread.logs.some((l) => l.includes('worker offload')),
+      'the control run must NOT have used the worker');
+
+    assert.equal(r.audioA, true, 'the control run carries the mixed bed');
+    assert.equal(r.audioB, true, 'and so does the worker run, from the transferred PCM');
+    assert.deepEqual(r.hashB, r.hashA, 'every sampled frame is pixel-identical across the two paths');
+    assert.equal(r.inWorker.size, r.inThread.size, 'the containers are the same length');
+    assert.equal(r.shaB, r.shaA, 'and byte-for-byte the same file');
+    measured.push(`[worker] sha ${r.shaA.slice(0, 16)}… identical across threads, ${r.inThread.size} bytes`);
+  });
+
+  test('measured: what the offload actually buys the main thread', async () => {
+    // REPORT-ONLY, and the honest answer is "less than the brief hoped for". A
+    // rAF heartbeat runs through a long export down each path; `maxGap` is the
+    // longest the main thread went without painting. On the WebCodecs streaming
+    // path BOTH numbers sit at one vsync — the in-thread loop already awaits the
+    // encoder's backpressure on every frame, so it never monopolises anything.
+    // What the offload still buys is the case this harness cannot stage: a
+    // BACKGROUNDED tab, where main-thread timers are throttled to ~1 Hz and the
+    // in-thread loop crawls while a dedicated worker keeps running at full rate.
+    // Asserts only that both paths produced a file; the numbers are printed.
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      const clip = await S.makeClip({ frames: 600, fps: 30, w: 1280, h: 720 });
+      const spec = {
+        w: 1280, h: 720, seqMs: 20_000, bg: '#101820', boxes: [
+          { clip: clip.key, x: 0, y: 0, w: 1280, h: 720, start: 0, dur: 20_000, lane: 'seq' as const },
+        ],
+      };
+      const opts = { fps: 30, width: 1280, heartbeat: true };
+      const a = await S.exportSeq(spec, 'webm', { ...opts, worker: false });
+      const b = await S.exportSeq(spec, 'webm', { ...opts, worker: true });
+      return { a: { err: a.error, ms: a.ms, beat: a.beat }, b: { err: b.error, ms: b.ms, beat: b.beat } };
+    });
+    assert.equal(r.a.err, null, `in-thread: ${JSON.stringify(r.a.err)}`);
+    assert.equal(r.b.err, null, `worker: ${JSON.stringify(r.b.err)}`);
+    measured.push(`[worker] 20s@30fps 1280x720 — in-thread ${Math.round(r.a.ms)}ms wall, longest main-thread block ${r.a.beat.maxGap.toFixed(1)}ms over ${r.a.beat.beats} frames painted`);
+    measured.push(`[worker] 20s@30fps 1280x720 — worker    ${Math.round(r.b.ms)}ms wall, longest main-thread block ${r.b.beat.maxGap.toFixed(1)}ms over ${r.b.beat.beats} frames painted`);
+  });
+
+  test('the worker offload falls back in-thread when it cannot be used', async () => {
+    // Two fallbacks in one: the flag OFF (the shipping default), and a spawn that
+    // cannot resolve. Both must produce a correct export, not an error.
+    const r = await page().evaluate(async () => {
+      const S = (window as never as { SEQ: SeqApi }).SEQ;
+      const spec = {
+        w: 160, h: 120, seqMs: 1000, bg: '#222', boxes: [
+          { x: 0, y: 0, w: 160, h: 120, bg: '#00ff88', start: 0, dur: 1000, lane: 'seq' as const },
+        ],
+      };
+      const off = await S.exportSeq(spec, 'webm', { fps: 15, width: 160, worker: false });
+      // Point the client at a URL that cannot become a worker; the client should
+      // report a PLAIN failure and the render should complete in-thread anyway.
+      const broken = await S.exportSeq(spec, 'webm', { fps: 15, width: 160, worker: true, breakWorker: true });
+      return {
+        off: { err: off.error, size: off.size, logs: off.logs },
+        broken: { err: broken.error, size: broken.size, logs: broken.logs },
+      };
+    });
+    assert.equal(r.off.err, null, `default (flag off) export failed: ${JSON.stringify(r.off.err)}`);
+    assert.ok(r.off.size > 0);
+    assert.ok(!r.off.logs.some((l) => l.includes('worker offload')), 'off by default');
+
+    assert.equal(r.broken.err, null, `a broken worker must not fail the export: ${JSON.stringify(r.broken.err)}`);
+    assert.ok(r.broken.size > 0, 'the in-thread fallback still produced a file');
+    assert.ok(r.broken.logs.some((l) => l.includes('worker offload unavailable')),
+      `the fallback was not reported: ${r.broken.logs.join(' | ')}`);
+  });
+
 });
 
 // ── the page-side API, typed only as far as these tests use it ───────────────
@@ -522,6 +679,7 @@ interface RunLike {
   key: string | null; type: string; size: number; ms: number; logs: string[];
   error: { code: string; message: string } | null;
   counters: { videoFramesLive: number; videoFramesPeak: number; videoFramesMade: number; imageBitmapsMade: number; decodersLive: number; decodersPeak: number };
+  beat: { beats: number; maxGap: number };
   frames: number; fps: number;
 }
 interface SeqApi {
@@ -531,12 +689,14 @@ interface SeqApi {
   exportSeq(spec: StageLike, format: 'mp4' | 'webm' | 'gif' | 'apng', opts?: Record<string, unknown>): Promise<RunLike>;
   decodeCodes(key: string, frameIdx: number[], fps: number): Promise<(number | null)[]>;
   frameHashes(key: string, frameIdx: number[], fps: number): Promise<string[]>;
+  blobSha(key: string): Promise<string>;
   frameDelta(a: string, b: string, frameIdx: number, fps: number): Promise<number>;
   audioRms(key: string, windows: [number, number][]): Promise<number[]>;
   hasAudioTrack(key: string): Promise<boolean>;
   driveProvider(key: string, fps: number, durMs: number): Promise<{ asked: number; drawn: number; durationSec: number; stats: { kind: string; inFlight: number; maxInFlight: number; decoded: number; missed: number; lastSourceSec: number; randomAccess: boolean } }>;
   stalledProvider(): Promise<{ ms: number; error: { code: string; message: string } | null }>;
   stillAt(spec: StageLike, tMs: number, probes: { x: number; y: number }[], seekSec?: number): Promise<{ w: number; h: number; type: string; size: number; offCount: number; at: number[][]; code: number | null }>;
+  cutsAt(spec: StageLike, cuts: number, format: string, probes: { x: number; y: number }[]): Promise<{ type: string; size: number; names?: string[]; at?: number[][][]; pages?: number; restored: boolean; progress: number[][] }>;
   firstFramePixels(key: string, probes: { x: number; y: number }[], stageW: number): Promise<number[][]>;
   fidelity(spec: StageLike): Promise<{ w: number; h: number; mae: number; overFrac: number; error?: { code: string; message: string }; logs?: string[] }>;
   constants: { HIGH_WATER: number; MAX_LIVE_PROVIDERS: number; CODE_BITS: number };

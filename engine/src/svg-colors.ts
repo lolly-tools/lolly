@@ -24,11 +24,12 @@
  *
  * Output is deduplicated, first-seen order preserved. Hex/rgb()/hsl()/… inputs
  * come back as normalised hex; a valid named colour comes back as its (verbatim)
- * name — colorToHex passes idents through untouched and the named-colour data here
- * is a membership Set (validation only), not an RGB table.
+ * name — colorToHex passes idents through untouched, and the name is only
+ * validated (against css-color.ts's table) here, never converted.
  */
 
 import { colorToHex } from './tokens.ts';
+import { isNamedColor } from './css-color.ts';
 
 // Copied verbatim from shells/web/src/components/color-field.ts:113 (SAFE_CSS_COLOR).
 // MUST stay in sync with that file — it is the shared CSS-injection shape gate
@@ -38,7 +39,7 @@ import { colorToHex } from './tokens.ts';
 const SAFE_CSS_COLOR = /^(?:#[0-9a-f]{3,8}|(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\([^();"'{}<>\\]*\)|[a-z][a-z0-9-]*)$/i;
 
 // A bare CSS ident (i.e. not a #hex, not a fn()). Such a value is only trusted as a
-// colour if it is also in NAMED_COLORS below.
+// colour if css-color.ts's table also knows it as a real CSS named colour.
 const BARE_IDENT = /^[a-z][a-z0-9-]*$/i;
 
 // Keywords that are syntactically colour-shaped but name no paint. colorToHex does
@@ -49,37 +50,6 @@ const EXCLUDE = new Set<string>([
   'context-fill', 'context-stroke',
 ]);
 
-// The 147 CSS3 extended named colours, copied verbatim (as a membership Set — we
-// only need to know a bare ident IS a real colour name; colorToHex handles the
-// value) from the SVG_NAMED_COLORS table in
-// shells/web/src/bridge/export.ts (~lines 4772-4823). MUST stay in sync with it.
-const NAMED_COLORS = new Set<string>([
-  'aliceblue', 'antiquewhite', 'aqua', 'aquamarine', 'azure', 'beige',
-  'bisque', 'black', 'blanchedalmond', 'blue', 'blueviolet', 'brown',
-  'burlywood', 'cadetblue', 'chartreuse', 'chocolate', 'coral', 'cornflowerblue',
-  'cornsilk', 'crimson', 'cyan', 'darkblue', 'darkcyan', 'darkgoldenrod',
-  'darkgray', 'darkgreen', 'darkgrey', 'darkkhaki', 'darkmagenta', 'darkolivegreen',
-  'darkorange', 'darkorchid', 'darkred', 'darksalmon', 'darkseagreen', 'darkslateblue',
-  'darkslategray', 'darkslategrey', 'darkturquoise', 'darkviolet', 'deeppink', 'deepskyblue',
-  'dimgray', 'dimgrey', 'dodgerblue', 'firebrick', 'floralwhite', 'forestgreen',
-  'fuchsia', 'gainsboro', 'ghostwhite', 'gold', 'goldenrod', 'gray',
-  'green', 'greenyellow', 'grey', 'honeydew', 'hotpink', 'indianred',
-  'indigo', 'ivory', 'khaki', 'lavender', 'lavenderblush', 'lawngreen',
-  'lemonchiffon', 'lightblue', 'lightcoral', 'lightcyan', 'lightgoldenrodyellow', 'lightgray',
-  'lightgreen', 'lightgrey', 'lightpink', 'lightsalmon', 'lightseagreen', 'lightskyblue',
-  'lightslategray', 'lightslategrey', 'lightsteelblue', 'lightyellow', 'lime', 'limegreen',
-  'linen', 'magenta', 'maroon', 'mediumaquamarine', 'mediumblue', 'mediumorchid',
-  'mediumpurple', 'mediumseagreen', 'mediumslateblue', 'mediumspringgreen', 'mediumturquoise', 'mediumvioletred',
-  'midnightblue', 'mintcream', 'mistyrose', 'moccasin', 'navajowhite', 'navy',
-  'oldlace', 'olive', 'olivedrab', 'orange', 'orangered', 'orchid',
-  'palegoldenrod', 'palegreen', 'paleturquoise', 'palevioletred', 'papayawhip', 'peachpuff',
-  'peru', 'pink', 'plum', 'powderblue', 'purple', 'rebeccapurple',
-  'red', 'rosybrown', 'royalblue', 'saddlebrown', 'salmon', 'sandybrown',
-  'seagreen', 'seashell', 'sienna', 'silver', 'skyblue', 'slateblue',
-  'slategray', 'slategrey', 'snow', 'springgreen', 'steelblue', 'tan',
-  'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat',
-  'white', 'whitesmoke', 'yellow', 'yellowgreen',
-]);
 
 // Upper bound on regex matches scanned per call (both passes share it), so a
 // pathological input can't spin — mirrors the guard-counter convention in
@@ -107,7 +77,7 @@ export function extractSvgColors(svgText: string): string[] {
     if (lc.startsWith('url(')) return;          // paint-server reference, not a colour
     if (EXCLUDE.has(lc)) return;                // none / transparent / currentColor / …
     if (!SAFE_CSS_COLOR.test(v)) return;        // CSS-injection shape gate (original value)
-    if (BARE_IDENT.test(v) && !NAMED_COLORS.has(lc)) return; // stray word, not a real colour
+    if (BARE_IDENT.test(v) && !isNamedColor(lc)) return; // stray word, not a real colour
     const hex = colorToHex(v);
     if (hex == null || hex === 'transparent') return; // colorToHex couldn't read it
     // colorToHex already normalises hex/rgb()/hsl()/… to lowercase hex, but a

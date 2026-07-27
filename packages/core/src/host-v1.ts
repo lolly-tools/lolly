@@ -219,7 +219,48 @@ export interface ColorAPI {
    * Optional/additive (v1.60); feature-detect on older hosts.
    */
   schemes?(seedHex: string, kind?: ColorSchemeKind): ColorSchemeAccent[];
+  /**
+   * Interpolate between two colours the way CSS Color 4 does: in `opts.space`
+   * (default `oklab`), with PREMULTIPLIED alpha, travelling the hue circle per
+   * `opts.hue` (default `shorter`). Returns hex (8-digit when translucent), or
+   * null if either colour is unreadable.
+   *
+   * Premultiplication is why this exists rather than a per-channel lerp: mixing
+   * toward `transparent` unpremultiplied drags the colour toward transparent's
+   * *black*, so a red→transparent midpoint comes out dark red at 50% instead of
+   * plain red at 50%. Optional/additive (v1.68); feature-detect on older hosts.
+   */
+  mix?(a: string, b: string, t: number, opts?: ColorMixOptions): string | null;
+  /**
+   * A Lolly gradient spec string → a CSS gradient value (`linear-gradient(…)` /
+   * `radial-gradient(…)` / `conic-gradient(…)`) ready for `background-image`, or
+   * null if the spec can't be read.
+   *
+   * Spec grammar: `<kind>[.<space>[.<hue>]]_<angle>_<colour>-<pos>_…`, e.g.
+   * `lin_90_30ba78-0_efefef-100`. The stops come back interpolated in the spec's
+   * space and BAKED into plain sRGB stops — extra stops inserted only where sRGB
+   * would visibly diverge — because an SVG `<linearGradient>` and a PDF axial
+   * shading have no interpolation-space knob. So one value renders the same on
+   * screen, in SVG and in PDF, and a tool never hand-rolls colour maths to get a
+   * gradient that isn't muddy. Optional/additive (v1.68).
+   */
+  gradientCss?(spec: string): string | null;
 }
+
+/** Options for {@link ColorAPI.mix} (mirrors CSS Color 4 §12–13). */
+export interface ColorMixOptions {
+  /** Interpolation space. Default `oklab`; `srgb` models a plain CSS gradient. */
+  space?: ColorInterpolationSpace;
+  /** Hue travel for a polar space. Default `shorter`. */
+  hue?: ColorHueDirection;
+}
+
+/** The interpolation spaces `mix()` and a gradient spec accept. */
+export type ColorInterpolationSpace =
+  | 'oklab' | 'oklch' | 'lab' | 'lch' | 'srgb' | 'srgb-linear' | 'hsl';
+
+/** How to travel around the hue circle between two polar colours. */
+export type ColorHueDirection = 'shorter' | 'longer' | 'increasing' | 'decreasing';
 
 /** The harmony schemes `schemes()` accepts (mirrors engine brand-schemes.ts —
  *  the numeral is the scheme's TOTAL colour count, seed included). */

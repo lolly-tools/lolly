@@ -63,6 +63,24 @@
  *                  peak luminance, so white text and brand colours glow on HDR
  *                  displays while dark areas stay dark (see engine/src/hdr.ts). Off
  *                  by default; SDR otherwise.
+ *   - `cuts`     — CONTACT SHEET for a still export (`png`/`jpg`/`webp`/`svg`/`pdf`)
+ *                  of a TIMED composition (a stage carrying `data-sequence`).
+ *                  An integer, default `1`. `cuts=1` renders the frame at the
+ *                  playhead — the WYSIWYG contract, byte-identical to no param at
+ *                  all. `cuts=N` (N > 1) samples N stills at equal intervals across
+ *                  the sequence: raster/SVG come back as N zipped files
+ *                  (`<filename>-01.png` …), `pdf` as ONE document of N pages.
+ *                  Sampling is MIDPOINT, not endpoint: `t_i = duration * (i + 0.5) / N`.
+ *                  Endpoint sampling (`i/(N-1)`) would put frame 0 at t=0, where an
+ *                  `enter` transition is still at alpha 0 (a blank card), and the last
+ *                  frame at t=duration, where every clip has ended — so a 6-up sheet
+ *                  would waste two frames on blanks. Midpoint puts every sample inside
+ *                  a live span. Clamped to 1…64 (CUTS_MAX): a contact sheet is for
+ *                  human review, and 64 is already an 8×8 wall — past that the sheet
+ *                  is unreadable and the render/zip cost stops being worth it. Any
+ *                  junk value (non-numeric, 0, negative, NaN, Infinity, 1e9) falls
+ *                  back to 1 rather than erroring. Ignored for non-still formats and
+ *                  for stages with no sequence. See plans/fable-timeline-editing.md §4.6.
  *   - `lang`     — UI/content language as a canonical short code (the full set
  *                  is engine/src/lang.ts's LANGS). Informal
  *                  aliases (`cn`, `jp`) are accepted on parse and normalized to
@@ -168,6 +186,11 @@ export interface UrlState {
    *  PQ encoding with brand-colour luminance boost (raster only), carrying the
    *  author's tuning dials; null ⇒ absent/off ⇒ SDR. `hdr=1` ⇒ HDR_DEFAULTS. */
   hdr: HdrSettings | null;
+  /** Contact-sheet frame count for a still export of a timed composition (the
+   *  `cuts` param). Always a whole number in 1…CUTS_MAX; 1 (the default) means the
+   *  single playhead frame — the WYSIWYG contract. See the header for the midpoint
+   *  sampling rule. */
+  cuts: number;
   /** UI/content language (the `lang` param), alias-normalized. null ⇒ absent or
    *  unrecognized — caller falls back to profile/localStorage/browser default. */
   lang: Lang | null;
@@ -209,6 +232,9 @@ export interface SerializeUrlOpts {
   /** HDR raster export (the `hdr` param). Truthy serialised as `hdr=1`; omitted
    *  otherwise — opt-in, off by default. */
   hdr?: string | null;
+  /** Contact-sheet frame count (the `cuts` param). Clamped like the parser; only
+   *  a value > 1 writes the param — 1 is the default and would be link noise. */
+  cuts?: number | null;
   /** UI/content language to stamp on a share link (see `lang` in the header
    *  comment). Omitted for English — the implicit default. */
   lang?: string | null;
@@ -217,7 +243,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'cuts', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -288,6 +314,36 @@ export function serializeHdr(s: HdrSettings): string {
   const d = HDR_DEFAULTS;
   if (s.peakNits === d.peakNits && s.reach === d.reach && s.lift === d.lift && s.richness === d.richness) return '1';
   return `${s.peakNits}-${s.reach}-${s.lift}-${s.richness}`;
+}
+
+/** Ceiling for `cuts`. A contact sheet exists to be *looked at* — 64 is already an
+ *  8×8 wall of thumbnails, past which a reviewer reads nothing and the cost (64
+ *  full renders, 64 zip members or PDF pages) stops paying for itself. Also a cheap
+ *  guard: a hostile `?cuts=1e9` link can never ask a shell for a billion renders. */
+export const CUTS_MAX = 64;
+
+/** Sample time for cut `i` of `n`, in the same units as `durationMs`. MIDPOINT
+ *  sampling — `duration * (i + 0.5) / n` — never endpoint. At t=0 an `enter`
+ *  transition is still at alpha 0 (a blank card) and at t=duration every clip has
+ *  ended, so endpoint sampling would spend two of six frames on blanks; the midpoint
+ *  of each equal slice always lands inside a live span. */
+export function cutTime(durationMs: number, i: number, n: number): number {
+  if (!Number.isFinite(durationMs) || durationMs <= 0 || !(n >= 1)) return 0;
+  return durationMs * (i + 0.5) / n;
+}
+
+// Parse the `cuts` param (contact-sheet frame count for a still export). Total
+// function over user input: anything that isn't a finite number ≥ 1 — empty,
+// non-numeric, 0, negative, NaN, Infinity, '1.5' → 1 (a fractional value truncates)
+// — degrades to 1, the playhead-frame default. Above CUTS_MAX it clamps rather than
+// falling back, because "too many" is a legible intent, not junk. Never throws.
+function parseCuts(raw: string | null): number {
+  if (raw == null) return 1;
+  const n = Number(String(raw).trim());
+  if (!Number.isFinite(n)) return 1;
+  const i = Math.trunc(n);
+  if (i < 1) return 1;
+  return Math.min(i, CUTS_MAX);
 }
 
 /**
@@ -361,6 +417,9 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     durable:  parseDurable(params.get('durable')),
     // Opt-in HDR raster export (see header). null ⇒ SDR.
     hdr:      parseHdr(params.get('hdr')),
+    // Contact-sheet frame count for a still export of a timed composition (see
+    // header). Always 1…CUTS_MAX; 1 ⇒ the single playhead frame.
+    cuts:     parseCuts(params.get('cuts')),
     // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
     lang:     normalizeLang(params.get('lang')),
   };
@@ -410,6 +469,9 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');
+  // Default (1 = the playhead frame) writes nothing; anything else goes through the
+  // same clamp as the parser so a serialised link can't carry a value parse rejects.
+  if (opts.cuts != null && parseCuts(String(opts.cuts)) > 1) params.set('cuts', String(parseCuts(String(opts.cuts))));
   if (opts.lang && opts.lang !== 'en') params.set('lang', opts.lang);
   return params.toString();
 }

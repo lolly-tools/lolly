@@ -369,3 +369,44 @@ test('a NON-audio box keeps its fill, shadow and text (the suppression is narrow
   assert.match(tag, /box-shadow:/);
   assert.match(boxInner(html, 'card'), /hello/);
 });
+
+// ── audio boxes carry their source LENGTH, so a sound can be trimmed precisely ──
+// A <video> can be asked for .duration; an audio box is a marker div and cannot.
+// Without the length stamped here the panel has no media duration for a sound, so
+// trimClip has nothing to clamp against (drag past the end and you get silence),
+// "fit to media" cannot work, and promote falls back to a flat default instead of
+// the track's own length.
+
+/** Mount with a host whose assets report a duration, the way a real catalog entry
+ *  (assets.ts lifts format.durationMs) and a real upload (probed at ingest) both do.
+ *  baseHost() resolves every ref to a bare {id, url} with no meta, so an inline meta
+ *  on the input is discarded by the resolver — the HOST is the only way in. */
+async function mountWithAudioDuration(boxes: unknown[], durationMs: number | undefined): Promise<string> {
+  const host = baseHost({
+    assets: { get: async (id: string) => ({ id, url: 'asset:' + id, type: 'audio', ...(durationMs === undefined ? {} : { meta: { durationMs } }) }) },
+  } as never);
+  const rt = await createRuntime(tool, host, { boxes: boxes as never } as never);
+  assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
+  return rt.getHydrated() as string;
+}
+
+test('an audio box stamps data-audio-dur from the asset metadata', async () => {
+  const html = await mountWithAudioDuration(
+    [{ id: 'bed', kind: 'audio', start: 0, dur: 4, image: { source: 'library', id: 'lolly/loops/x' } }],
+    97130,
+  );
+  assert.match(html, /class="lolly-box-audio"[^>]*data-audio-dur="97130"/,
+    'the source length must reach the DOM — it is the only way the panel can learn it');
+});
+
+test('an audio box with an unknown length omits the attribute rather than guessing', async () => {
+  // A procedural bed has no fixed length by design; a 0/NaN/absent value must not
+  // become a bogus clamp that silently truncates a trim.
+  for (const ms of [undefined, 0, -1, Number.NaN]) {
+    const html = await mountWithAudioDuration(
+      [{ id: 'bed', kind: 'audio', start: 0, dur: 4, image: { source: 'library', id: 'zzfxm:1' } }],
+      ms,
+    );
+    assert.doesNotMatch(html, /data-audio-dur=/, `durationMs ${String(ms)} must not stamp a length`);
+  }
+});

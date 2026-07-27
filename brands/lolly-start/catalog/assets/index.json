@@ -38,7 +38,7 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/photo-treatments.json",
-          "checksum": "sha256-STtay4YTVHT5rFd0RF5DEH3bF25O7T/PeWwYMwDGFIQ=",
+          "checksum": "sha256-12aUcXhrP8rk6B/GIR7mygHqdLxDbzPC23ff6ioPjgc=",
           "size": 1252
         }
       ]
@@ -58,7 +58,7 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/icon-themes.json",
-          "checksum": "sha256-fco8lmRB9bVPWmAJ74wKwhWP88XXWydLx+lDfnM4v6E=",
+          "checksum": "sha256-3+K3PFtE9Bj0uUGVCMWKLWGo1Zd5aXmTocoXQino7FM=",
           "size": 941
         }
       ]

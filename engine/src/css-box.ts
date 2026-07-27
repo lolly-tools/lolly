@@ -12,6 +12,8 @@
 // <rect> and jsPDF roundedRect instead clamp each axis independently (→ ellipse),
 // so the geometry must be resolved here before it reaches those primitives.
 
+import { findColorToken } from './css-color.ts';
+
 /** One resolved corner: [horizontal, vertical] radius in px. */
 export type CornerPair = [number, number];
 
@@ -113,7 +115,8 @@ export interface BoxShadow {
   y: number;
   blur: number;
   spread: number;
-  /** Raw CSS color token (rgb/rgba in computed values) for the shell to resolve. */
+  /** Raw CSS colour token for the shell to resolve — any CSS Color 4 form, not
+   *  just rgb/rgba: a shadow authored in `oklch()` reaches us verbatim. */
   color: string;
   /** `inset` — drawn INSIDE the border box, as the region between the box and an
    *  offset/shrunken copy of it, rather than behind it. Callers that only draw outer
@@ -245,9 +248,9 @@ export function parseBoxShadow(value: string | null | undefined): BoxShadow[] {
     // Strip the keyword before looking for a colour, or the bare-word branch of the
     // colour pattern matches "inset" itself and the real colour is lost.
     const body = part.replace(/\binset\b/g, ' ');
-    const colorMatch = body.match(/rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+/);
-    const color = colorMatch ? colorMatch[0] : 'rgb(0,0,0)';
-    const rest = colorMatch ? body.replace(colorMatch[0], ' ') : body;
+    const colorMatch = findColorToken(body, true);
+    const color = colorMatch ?? 'rgb(0,0,0)';
+    const rest = colorMatch ? body.replace(colorMatch, ' ') : body;
     const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || [])
       .map((s) => parseFloat(s)).filter(Number.isFinite);
     if (nums.length < 2) continue;
@@ -274,9 +277,9 @@ export function parseTextShadow(value: string | null | undefined): TextShadow[] 
   for (const raw of splitTopLevel(value)) {
     const part = raw.trim();
     if (!part) continue;
-    const colorMatch = part.match(/rgba?\([^)]*\)|#[0-9a-fA-F]{3,8}/);
-    const color = colorMatch ? colorMatch[0] : 'rgb(0,0,0)';
-    const rest = colorMatch ? part.replace(colorMatch[0], ' ') : part;
+    const colorMatch = findColorToken(part);
+    const color = colorMatch ?? 'rgb(0,0,0)';
+    const rest = colorMatch ? part.replace(colorMatch, ' ') : part;
     const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || [])
       .map((v) => parseFloat(v)).filter(Number.isFinite);
     if (nums.length < 2) continue;

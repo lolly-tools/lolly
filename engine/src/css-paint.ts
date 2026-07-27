@@ -8,6 +8,8 @@
 // geometry returned here into SVG elements or jsPDF path ops. NOTHING here touches the
 // DOM (engine stays platform-agnostic, like css-box.ts / units.ts / color.ts).
 
+import { findColorToken, parseColor, colorToHexString } from './css-color.ts';
+
 // ── clip-path basic shapes ───────────────────────────────────────────────────
 
 /** A clip-path resolved to box-local geometry (CSS px, origin at the box top-left). */
@@ -206,12 +208,33 @@ export function parseGradientStop(raw: string, index: number, total: number): Gr
 
   if (!colorRaw)                  return { colorStr: null, opacity: 1, offset }; // bare position = colour hint
   if (colorRaw === 'transparent') return { colorStr: 'rgba(0,0,0,0)', opacity: 0, offset };
-  if (colorRaw.startsWith('#'))   return { colorStr: colorRaw, opacity: 1, offset };
-  if (colorRaw.startsWith('rgb')) {
-    const am = colorRaw.match(/rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)/);
-    return { colorStr: colorRaw, opacity: am ? parseFloat(am[1]!) : 1, offset };
+  // An OPAQUE 6-digit hex is already exactly what a consumer wants, and passing it
+  // through verbatim keeps the common case byte-identical.
+  if (/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(colorRaw)) {
+    return { colorStr: colorRaw, opacity: 1, offset };
   }
-  return { colorStr: null, opacity: 1, offset };
+  // EVERY other form — legacy `rgb()`/`rgba()`, a named colour, `oklch()`, `oklab()`,
+  // `lab()`, `hwb()`, `color(<space> …)`, an 8-digit hex — is flattened to an OPAQUE
+  // hex plus a separate `opacity`.
+  //
+  // Opaque is the point. `stop-color` alpha MULTIPLIES with `stop-opacity` in SVG, and
+  // the callers here set both from this one result: returning `rgba(255,0,0,0.5)`
+  // alongside `opacity: 0.5` exported that stop at ~0.25 alpha while the screen showed
+  // 0.5. The old `rgb` branch did exactly that (and, because its alpha regex only
+  // matched the legacy comma form, reported `opacity: 1` for a modern
+  // `rgb(1 2 3 / 50%)` — losing the alpha entirely for every consumer that reads it).
+  //
+  // The wider net also fixed a silent drop: these used to return `colorStr: null`,
+  // which callers read as "not a colour" and skip, so `linear-gradient(navy, white)`
+  // lost BOTH stops and emitted no gradient at all. (Carrying wide gamut through
+  // instead of flattening is Phase 4 in plans/color-spaces.md.)
+  const parsed = parseColor(colorRaw);
+  if (!parsed) return { colorStr: null, opacity: 1, offset };
+  return {
+    colorStr: colorToHexString({ ...parsed, alpha: 1 }),
+    opacity: parsed.alpha,
+    offset,
+  };
 }
 
 // ── radial-gradient geometry ─────────────────────────────────────────────────
@@ -410,9 +433,9 @@ export function parseDropShadowFilter(filterStr: string | null | undefined): Dro
     if (!/^drop-shadow\(/i.test(fn)) return null;          // a non-drop-shadow fn → can't vectorise
     const body = fn.slice(fn.indexOf('(') + 1, fn.lastIndexOf(')')).trim();
     let color = 'rgb(0,0,0)';
-    const cm = body.match(/rgba?\([^)]*\)|hsla?\([^)]*\)|#[0-9a-fA-F]{3,8}/i);
-    const rest = cm ? body.replace(cm[0], ' ') : body;
-    if (cm) color = cm[0];
+    const cm = findColorToken(body);
+    const rest = cm ? body.replace(cm, ' ') : body;
+    if (cm) color = cm;
     const nums = (rest.match(/-?\d*\.?\d+(?:px)?/g) || []).map(parseFloat).filter(Number.isFinite);
     if (nums.length < 2) return null;
     const [dx, dy, blur = 0] = nums;

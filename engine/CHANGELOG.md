@@ -786,3 +786,62 @@ which box sub-fields hold timing data), phase 1 of the Fable timeline editing wo
 that reads them; a manifest declaring none of them, or a template rendering an
 untimed box, is byte-identical to before. No v1 method changed, no runtime behaviour
 changed by this entry alone.
+
+1.66.0 — additive: reserved `cuts` param for contact-sheet still exports. `cuts` joins
+the RESERVED set in `src/url-mode.ts` (parsed into `UrlState.cuts`, serialisable via
+`SerializeUrlOpts.cuts`), turning a still export (`png`/`jpg`/`webp`/`svg`/`pdf`) of a
+timed composition into N frames sampled across the sequence — raster/SVG zipped, PDF as
+one N-page document. Sampling is MIDPOINT (`t_i = duration × (i + 0.5) / N`, the exported
+`cutTime` helper), never endpoint, so no frame lands on the blank card at t=0 or the
+all-clips-ended state at t=duration. The value is clamped to 1…`CUTS_MAX` (64) and every
+junk input (non-numeric, 0, negative, NaN, Infinity) degrades to 1 rather than throwing.
+Default `cuts=1` is the playhead frame — byte-identical to a link without the param, so
+every existing URL and every untimed tool is unaffected. Phase 2.5 of the Fable timeline
+work (`plans/fable-timeline-editing.md` §4.6). No v1 method changed.
+
+1.67.0 — additive: the `zzfxm:<seed>[:<style>]` asset-id scheme (`src/zzfxm-ref.ts`,
+exported as `ZZFXM_SCHEME`, `ZZFXM_ARCHETYPES`, `isZzfxmRef`, `parseZzfxmRef`,
+`formatZzfxmRef`). A PROCEDURAL asset: the id names a song the shell synthesises from
+the seeded composer in `src/zzfx-compose.ts` rather than a file the catalog stores, so
+it resolves to ITSELF — a ref whose `url` IS the id — and the seed reaches the audio
+mix through the one `resolveAssetRefs` path preview and export share. This is the
+engine's vocabulary for the same reason `src/tool-url.ts` is: every shell that resolves
+an asset id has to recognise the scheme, and they must not each invent the rule (the
+web and CLI bridges both consume it). The parser is strict — leading zeros and seeds
+past uint32 are refused rather than folded — so `parse(format(x))` is byte-stable and a
+shared link's bed can never be silently repointed at a different tune. `composeSong`
+now also pins `zzfxG`'s `randomness` parameter to 0 on every instrument it emits, so a
+preset authored with a short array cannot re-enable per-render detuning and break seed
+determinism. No v1 method changed; no runtime resolution behaviour changed (a shell
+that does not recognise the scheme behaves exactly as before).
+
+1.68.0 — additive: CSS-correct colour interpolation + the gradient spec. Two optional
+`host.color` methods (`mix`, `gradientCss`) plus the engine primitives behind them
+(`src/css-color.ts` `interpolateColor` / `gradientStops`, `src/gradient-spec.ts`).
+
+`interpolateColor` implements CSS Color 4 §12–13 properly: interpolation in a chosen
+space (default OKLab), the four hue directions, missing-component carry-over, and —
+the part that is easy to skip and visibly wrong when you do — PREMULTIPLIED alpha. A
+per-channel lerp toward `transparent` drags the colour toward transparent's *black*, so
+a red→transparent midpoint came out dark red at 50% instead of plain red at 50%. That
+defect was live in the SVG/EMF conic-gradient fan (`conicFanEl` in the web shell's
+export bridge), which lerped raw channels and therefore disagreed with what the browser
+painted for the same element; it now routes through this one interpolator. Note the fan
+still interpolates in **sRGB** deliberately — that is what a plain CSS gradient
+specifies, so matching the browser means staying there.
+
+`gradient-spec.ts` is the wire format for an authored gradient — one URL-safe string
+(`lin_90_30ba78-0_efefef-100`), because a gradient has to survive the same round trip
+every other input does (editor → block row → shared URL → CLI → identical render).
+`gradientCss` bakes it: the stops are interpolated in the spec's space and emitted as
+plain sRGB stops, with extra stops inserted ONLY where sRGB would visibly diverge
+(adaptive subdivision against a ΔEOK tolerance, anchored on the segment endpoints so a
+`longer` hue sweep can't oscillate under recursion). Baking rather than emitting
+`linear-gradient(in oklab, …)` is what makes it portable: an SVG `<linearGradient>` and
+a PDF axial shading have no interpolation-space knob, so a CSS-space gradient would
+render one way on screen and another in every exported vector file. One value, three
+renderers, and no new syntax for the export walkers to learn.
+
+No v1 method changed. Both new methods are optional — a tool must feature-detect
+(`host.color?.gradientCss`) since its declared `engineVersion` range may admit an older
+engine.

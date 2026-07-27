@@ -13,9 +13,11 @@ import assert from 'node:assert/strict';
 
 import {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
+  gamutMapOklch, deltaEOkSrgb,
 } from '../engine/src/brand-derive.ts';
 import type { Oklch } from '../engine/src/brand-derive.ts';
 import { createTokenSet, colorToHex } from '../engine/src/tokens.ts';
+import { convertColor } from '../engine/src/css-color.ts';
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -85,7 +87,7 @@ test('formatOklch → parseOklch round-trips', () => {
 
 // ── gamut mapping ────────────────────────────────────────────────────────────
 
-test('oklchToHex clamps out-of-gamut chroma by chroma reduction (hue + L kept)', () => {
+test('oklchToHex maps out-of-gamut chroma per CSS §14.2 (L kept, hue near, chroma reduced)', () => {
   const wild: Oklch = { l: 0.62, c: 0.35, h: 145 }; // far outside sRGB
   const hex = oklchToHex(wild);
   assert.match(hex, /^#[0-9a-f]{6}$/);
@@ -94,9 +96,69 @@ test('oklchToHex clamps out-of-gamut chroma by chroma reduction (hue + L kept)',
   assert.ok(back.c < 0.35, `chroma reduced: ${back.c}`);
   assert.ok(back.c > 0.1, `still chromatic: ${back.c}`);
   assert.ok(Math.abs(back.l - 0.62) < 0.02, `lightness held: ${back.l}`);
-  assert.ok(Math.abs(back.h - 145) < 2, `hue held: ${back.h}`);
+  // Hue is held CLOSE, not exactly: local MINDE accepts a clip whose total
+  // perceptual error is under a JND, and part of that budget can land in hue.
+  // The bound below is the drift for this colour; the guarantee the algorithm
+  // actually makes is the ΔEOK one pinned in the next test.
+  assert.ok(Math.abs(back.h - 145) < 3, `hue held: ${back.h}`);
   // In-gamut input is untouched by the mapper (pure round-trip).
   assertHexClose(oklchToHex(hexToOklch('#4f83cc')!), '#4f83cc', 1);
+});
+
+test('local MINDE lands perceptually closer to the request than plain chroma reduction', () => {
+  // This is why §14.2 replaced the plain chroma-reduction search: clipping is
+  // accepted whenever it costs less than a JND, so more of the requested chroma
+  // survives. Pinned as a property over a grid rather than a handful of hexes —
+  // the point is that MINDE is never meaningfully worse, and usually better.
+  const inG = (r: number[]): boolean => r.every(v => v >= -1e-4 && v <= 1 + 1e-4);
+  const srgbOf = (l: number, c: number, h: number): [number, number, number] =>
+    convertColor({ space: 'oklch', components: [l, c, h], alpha: 1, missing: 0 }, 'srgb')
+      .components;
+  const clip = (r: number[]): [number, number, number] =>
+    r.map(v => Math.min(1, Math.max(0, v))) as [number, number, number];
+  // The pre-Phase-2 algorithm, kept here as the comparison baseline.
+  const plainReduce = (l: number, c: number, h: number): [number, number, number] => {
+    if (inG(srgbOf(l, c, h))) return clip(srgbOf(l, c, h));
+    let lo = 0;
+    let hi = c;
+    for (let i = 0; i < 24; i++) {
+      const m = (lo + hi) / 2;
+      if (inG(srgbOf(l, m, h))) lo = m; else hi = m;
+    }
+    return clip(srgbOf(l, lo, h));
+  };
+
+  let total = 0, better = 0, worseBy = 0;
+  for (let li = 1; li <= 19; li++) {
+    for (let ci = 1; ci <= 16; ci++) {
+      for (let h = 0; h < 360; h += 15) {
+        const l = li / 20, c = ci * 0.025;
+        const ideal = srgbOf(l, c, h);
+        if (inG(ideal)) continue;                 // in gamut — both are the identity
+        total++;
+        const dm = deltaEOkSrgb(gamutMapOklch(l, c, h), ideal);
+        const dp = deltaEOkSrgb(plainReduce(l, c, h), ideal);
+        if (dp - dm > 1e-6) better++;
+        else worseBy = Math.max(worseBy, dm - dp);
+      }
+    }
+  }
+  assert.ok(total > 4000, `grid covers real out-of-gamut ground: ${total}`);
+  assert.ok(better / total > 0.9, `MINDE closer for most requests: ${better}/${total}`);
+  // Where it loses it loses by a fraction of a JND (0.02) — extreme requests
+  // (near-black at maximum chroma) that both algorithms miss by a mile anyway.
+  assert.ok(worseBy < 0.008, `never meaningfully worse: ${worseBy}`);
+});
+
+test('gamutMapOklch leaves an in-gamut colour alone and is the mapper oklchToHex uses', () => {
+  // Every sRGB colour is in gamut by construction, so the mapper must be a
+  // no-op for all of them: this is what keeps stored brand tokens stable.
+  for (const hex of ['#30ba78', '#0000ff', '#ffff00', '#4f83cc', '#000000', '#ffffff', '#7f7f7f']) {
+    const c = hexToOklch(hex)!;
+    assertHexClose(oklchToHex(c), hex, 1, hex);
+    const mapped = gamutMapOklch(c.l, c.c, c.h);
+    for (const v of mapped) assert.ok(v >= 0 && v <= 1, `${hex} stays in range`);
+  }
 });
 
 test('oklchToHex survives the sRGB corner-grazing rays (blue/yellow gamut dip)', () => {
