@@ -1757,7 +1757,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} añadida",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} ahora sirve los encabezados h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} ahora sirve el texto en cursiva",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Todos los proyectos de equipo"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Todos los proyectos de equipo",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Inicio"
   },
   "de": {
    "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "Erscheinungsbild",
@@ -3516,7 +3517,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} hinzugefügt",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} dient jetzt für h1/h2-Überschriften",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} dient jetzt für kursiven Text",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alle Teamprojekte"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alle Teamprojekte",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Start"
   },
   "fr": {
    "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "Apparence",
@@ -5275,7 +5277,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} ajoutée",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} sert désormais les titres h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} sert désormais le texte en italique",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tous les projets d'équipe"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tous les projets d'équipe",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Accueil"
   },
   "zh": {
    "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "外观",
@@ -7034,7 +7037,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "已添加{family}",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family}现用于 h1/h2 标题",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family}现用于斜体文字",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← 所有团队项目"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← 所有团队项目",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "首页"
   },
   "ja": {
    "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "外観",
@@ -8793,7 +8797,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family}を追加しました",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family}がh1/h2の見出しに使われます",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family}がイタリック体のテキストに使われます",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← すべてのチームプロジェクト"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← すべてのチームプロジェクト",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "ホーム"
   },
   "vi": {
    "3907fa7f80722a6fc58cd8c1bd30abf7638095d6774f183b6e831b7093957d1b": "Giao diện",
@@ -10552,7 +10557,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "Đã thêm {family}",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} giờ dùng cho tiêu đề h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} giờ dùng cho văn bản in nghiêng",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tất cả dự án nhóm"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tất cả dự án nhóm",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Trang chủ"
   },
   "pt": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Rasterizador 2D",
@@ -12311,7 +12317,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} adicionada",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} agora serve os títulos h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} agora serve o texto em itálico",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Todos os projetos de equipe"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Todos os projetos de equipe",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Início"
   },
   "zh-hant": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D 點陣化器",
@@ -14070,7 +14077,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "已新增 {family}",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} 現在用於 h1/h2 標題",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} 現在用於斜體文字",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← 所有團隊專案"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← 所有團隊專案",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "首頁"
   },
   "cs": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D rasterizér",
@@ -15829,7 +15837,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} přidáno",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} teď slouží pro nadpisy h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} teď slouží pro text kurzívou",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Všechny týmové projekty"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Všechny týmové projekty",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Domů"
   },
   "nl": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D-rasteriser",
@@ -17588,7 +17597,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} toegevoegd",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} verzorgt nu de h1/h2-koppen",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} verzorgt nu de cursieve tekst",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alle teamprojecten"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alle teamprojecten",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Home"
   },
   "tl": {
    "cd74053c54816e473883dede0ad3b152f38a41995409eade6b42704919bb1359": "Arkitektura",
@@ -19347,7 +19357,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "Naidagdag ang {family}",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} na ang ginagamit sa mga h1/h2 heading",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} na ang ginagamit sa italic na teksto",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Lahat ng team project"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Lahat ng team project",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Home"
   },
   "sv": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D-rastrerare",
@@ -21106,7 +21117,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} tillagt",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} används nu för h1/h2-rubriker",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} används nu för kursiv text",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alla teamprojekt"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alla teamprojekt",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Hem"
   },
   "ms": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Peraster 2D",
@@ -22865,7 +22877,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} ditambah",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} kini digunakan untuk tajuk h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} kini digunakan untuk teks condong",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Semua projek pasukan"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Semua projek pasukan",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Laman utama"
   },
   "ro": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Rasterizator 2D",
@@ -24624,7 +24637,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} adăugat",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} servește acum titlurile h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} servește acum textul cursiv",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Toate proiectele de echipă"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Toate proiectele de echipă",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Acasă"
   },
   "ar": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "مُنقّط ثنائي الأبعاد",
@@ -26382,7 +26396,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "تمت إضافة {family}",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "أصبح {family} يستخدم لعناوين h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "أصبح {family} يستخدم للنص المائل",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← جميع مشاريع الفريق"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← جميع مشاريع الفريق",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "الرئيسية"
   },
   "it": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "Rasterizzatore 2D",
@@ -28141,7 +28156,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} aggiunto",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} ora serve i titoli h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} ora serve il testo in corsivo",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tutti i progetti di team"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tutti i progetti di team",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Home"
   },
   "no": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D-rasterisering",
@@ -29900,7 +29916,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} lagt til",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} brukes nå for h1/h2-overskrifter",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} brukes nå for kursiv tekst",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alle teamprosjekter"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Alle teamprosjekter",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Hjem"
   },
   "ko": {
    "b8454e3fe8fc21d6b5a7213ac9b27e9baaa02a8ffee019284dc4c4f7709d098a": "2D 래스터라이저",
@@ -31659,7 +31676,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} 추가됨",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "이제 {family}이(가) h1/h2 제목에 사용돼요",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "이제 {family}이(가) 기울임꼴 텍스트에 사용돼요",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← 모든 팀 프로젝트"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← 모든 팀 프로젝트",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "홈"
   },
   "hi": {
    "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " और ",
@@ -33433,7 +33451,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} जोड़ा गया",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} अब h1/h2 हेडिंग के लिए इस्तेमाल हो रहा है",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} अब इटैलिक टेक्स्ट के लिए इस्तेमाल हो रहा है",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← सभी टीम प्रोजेक्ट्स"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← सभी टीम प्रोजेक्ट्स",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "होम"
   },
   "bg": {
    "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " и ",
@@ -35207,7 +35226,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} е добавен",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} вече се използва за заглавия h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} вече се използва за текст в курсив",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Всички екипни проекти"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Всички екипни проекти",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Начало"
   },
   "id": {
    "c92a7237efe670ff9662c053dac56e1242c50c4b7b11040223dc83c778d4c25d": "Penutur",
@@ -36983,7 +37003,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} ditambahkan",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} kini dipakai untuk heading h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} kini dipakai untuk teks miring",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Semua proyek tim"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Semua proyek tim",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Beranda"
   },
   "bn": {
    "c92a7237efe670ff9662c053dac56e1242c50c4b7b11040223dc83c778d4c25d": "ভাষাভাষী",
@@ -38759,7 +38780,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} যোগ হয়েছে",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} এখন h1/h2 হেডিংয়ে ব্যবহৃত হচ্ছে",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} এখন ইটালিক টেক্সটে ব্যবহৃত হচ্ছে",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← সব টিম প্রজেক্ট"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← সব টিম প্রজেক্ট",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "হোম"
   },
   "ur": {
    "c92a7237efe670ff9662c053dac56e1242c50c4b7b11040223dc83c778d4c25d": "بولنے والے",
@@ -40535,7 +40557,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} شامل کر دیا گیا",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} اب h1/h2 ہیڈنگز کے لیے استعمال ہو رہا ہے",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} اب ترچھے متن کے لیے استعمال ہو رہا ہے",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← تمام ٹیم پراجیکٹس"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← تمام ٹیم پراجیکٹس",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "ہوم"
   },
   "tr": {
    "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " ve ",
@@ -42294,7 +42317,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} eklendi",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} artık h1/h2 başlıklarında kullanılıyor",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} artık italik metinde kullanılıyor",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tüm ekip projeleri"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Tüm ekip projeleri",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Ana sayfa"
   },
   "uk": {
    "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " і ",
@@ -44053,7 +44077,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "{family} додано",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} тепер використовується для заголовків h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} тепер використовується для курсивного тексту",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Усі командні проєкти"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Усі командні проєкти",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Головна"
   },
   "pl": {
    "e3ee915a8e8c7aa02d2fced443314522b20824abd2535d5959c41dc8ab8a09e4": " i ",
@@ -45812,7 +45837,8 @@
    "515646a16aa5cc0675976a35c3868f7b391ccd77a2750bfd5123bacf0c9a2304": "Dodano {family}",
    "693179229826bdd98ea8fca0a5733ee773c6a49de35d1f81138c5a54fc15d47b": "{family} obsługuje teraz nagłówki h1/h2",
    "6ce5c975020d2bca56de0f7905bb5034be8e9452a27aff4811b1d015a0f12695": "{family} obsługuje teraz tekst kursywą",
-   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Wszystkie projekty zespołu"
+   "2c748d1b7a06eab7868201209e10888e1bfb9d413147f1814a7e97547d0001af": "← Wszystkie projekty zespołu",
+   "3a78695388b38b5cceefaf6796b0137877514593543b91af2752d5a17e3d736c": "Start"
   }
  },
  "caps": {
