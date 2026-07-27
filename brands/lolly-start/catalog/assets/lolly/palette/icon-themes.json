@@ -11,7 +11,7 @@
     {
       "id": "tint",
       "label": "Tint",
-      "c1": "#b4d8ff",
+      "c1": "#add9ff",
       "c2": "#4f84ba"
     },
     {
@@ -30,7 +30,7 @@
       "id": "amber",
       "label": "Amber",
       "c1": "#b28727",
-      "c2": "#3d2a00"
+      "c2": "#3f2900"
     },
     {
       "id": "paper",

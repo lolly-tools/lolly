@@ -9,7 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { validateManifest } from '../engine/src/validate.ts';
-import { parseUrlState, serializeUrlState, serializeHdr, RESERVED } from '../engine/src/url-mode.ts';
+import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime } from '../engine/src/url-mode.ts';
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.ts';
 import { hydrate, annotateTemplate } from '../engine/src/template.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -147,9 +147,76 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'lang', 'nostage', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'cuts', 'lang', 'nostage', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
+});
+
+test('url-mode: cuts param — contact-sheet frame count parse', () => {
+  const tool = { inputs: [], render: {} };
+  const cuts = (qs: string): number => parseUrlState(qs, tool).cuts;
+
+  // The default IS the contract: no param ⇒ 1 ⇒ the single playhead frame, so a
+  // link without `cuts` behaves exactly as it did before the param existed.
+  assert.equal(cuts(''), 1);
+  assert.equal(cuts('cuts=1'), 1);
+
+  // Ordinary values pass through untouched, right up to the ceiling.
+  assert.equal(cuts('cuts=2'), 2);
+  assert.equal(cuts('cuts=6'), 6);
+  assert.equal(cuts(`cuts=${CUTS_MAX}`), CUTS_MAX);
+  // Surrounding whitespace is a URL-encoding artefact, not an error.
+  assert.equal(cuts('cuts=%206%20'), 6);
+
+  // Hostile / nonsense input NEVER throws and never escapes the 1…CUTS_MAX band.
+  for (const raw of ['', 'abc', '0', '-1', '-99', 'NaN', 'Infinity', '-Infinity', 'null', '1e-9', '.']) {
+    assert.equal(cuts(`cuts=${encodeURIComponent(raw)}`), 1, raw);
+  }
+  // Over the ceiling clamps (a legible "lots" intent), rather than falling back.
+  assert.equal(cuts('cuts=65'), CUTS_MAX);
+  assert.equal(cuts('cuts=100000'), CUTS_MAX);
+  assert.equal(cuts('cuts=1e9'), CUTS_MAX);
+  // Fractions truncate toward zero — 1.9 is still one frame, 2.9 is two.
+  assert.equal(cuts('cuts=1.9'), 1);
+  assert.equal(cuts('cuts=2.9'), 2);
+  assert.equal(cuts('cuts=0.5'), 1);
+
+  // Reserved: never mistaken for a tool input.
+  assert.equal('cuts' in parseUrlState('cuts=6', tool).values, false);
+});
+
+test('url-mode: cuts param serialize round-trip', () => {
+  const tool = { inputs: [], render: {} };
+  // 1 is the default — writing it would be noise on every link.
+  assert.equal(serializeUrlState([], {}), '');
+  assert.equal(serializeUrlState([], { cuts: 1 }), '');
+  assert.equal(serializeUrlState([], { cuts: 6 }), 'cuts=6');
+  // A serialised link can never carry a value the parser would reject.
+  assert.equal(serializeUrlState([], { cuts: 0 }), '');
+  assert.equal(serializeUrlState([], { cuts: -3 }), '');
+  assert.equal(serializeUrlState([], { cuts: Number.NaN }), '');
+  // Infinity is junk, not "lots" — it degrades to the default on both sides.
+  assert.equal(serializeUrlState([], { cuts: Number.POSITIVE_INFINITY }), '');
+  assert.equal(serializeUrlState([], { cuts: 1000 }), `cuts=${CUTS_MAX}`);
+  assert.equal(parseUrlState(serializeUrlState([], { cuts: 6 }), tool).cuts, 6);
+});
+
+test('url-mode: cutTime samples midpoints, never endpoints', () => {
+  // 6 cuts of a 12s sequence → 1s, 3s, 5s, 7s, 9s, 11s (the docs' worked example).
+  const ts: number[] = Array.from({ length: 6 }, (_, i) => cutTime(12000, i, 6));
+  assert.deepEqual(ts, [1000, 3000, 5000, 7000, 9000, 11000]);
+  const at = (i: number): number => ts[i] as number;
+  // Never t=0 (enter transition still at alpha 0) and never t=duration (all clips ended).
+  assert.ok(at(0) > 0);
+  assert.ok(at(ts.length - 1) < 12000);
+  // Equal intervals, and symmetric about the middle.
+  assert.equal(at(1) - at(0), at(5) - at(4));
+  // The default case: one cut lands dead centre of the sequence.
+  assert.equal(cutTime(10000, 0, 1), 5000);
+  // Degenerate durations are a 0, not a NaN.
+  assert.equal(cutTime(0, 0, 4), 0);
+  assert.equal(cutTime(Number.NaN, 0, 4), 0);
+  assert.equal(cutTime(1000, 0, 0), 0);
 });
 
 test('url-mode: c2pa param — on/off + lifetime parse', () => {

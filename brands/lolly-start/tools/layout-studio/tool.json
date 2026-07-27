@@ -1,7 +1,7 @@
 {
   "id": "layout-studio",
   "name": "Layout Studio",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "engineVersion": "^1.12.0",
   "status": "community",
   "category": "designer",
@@ -81,6 +81,7 @@
         "shapeField": "shape",
         "radiusField": "radius",
         "fillField": "bg",
+        "gradField": "grad",
         "opacityField": "opacity",
         "imageField": "image",
         "imgPosField": "imgpos",
@@ -1064,6 +1065,13 @@
               "label": "Bevelled"
             }
           ]
+        },
+        {
+          "id": "grad",
+          "type": "text",
+          "label": "Gradient",
+          "default": "",
+          "description": "Gradient fill as a Lolly gradient spec — kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100 (lin/rad/con; add .srgb or .oklch.longer to the kind to change how the colours are interpolated). Painted over the flat Fill, so a translucent stop composites onto it. Empty means no gradient."
         }
       ],
       "default": [

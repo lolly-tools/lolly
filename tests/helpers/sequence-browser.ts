@@ -63,9 +63,26 @@ export function usingChannel(): boolean {
 }
 
 async function bundleHarness(): Promise<string> {
+  return await bundleFor(join(HERE, 'sequence-browser-harness.ts'));
+}
+
+/**
+ * The phase-4 composite+encode Worker, bundled as its own module.
+ *
+ * esbuild leaves `new Worker(new URL('./sequence-render.worker.ts', import.meta.url))`
+ * exactly as written, so the page resolves it against `/harness.js` and asks the
+ * server for `/sequence-render.worker.ts`. Serving a real bundle there is what
+ * makes the worker path reachable in the browser tier at all — without it the
+ * spawn 404s, the client reports a plain (non-coded) failure and the render
+ * silently falls back in-thread, which would make the comparison vacuous.
+ */
+async function bundleSequenceWorker(): Promise<string> {
+  return await bundleFor(join(HERE, '..', '..', 'shells', 'web', 'src', 'bridge', 'sequence-render.worker.ts'));
+}
+
+async function bundleFor(entry: string): Promise<string> {
   const esbuild = await import('esbuild');
-  const entry = join(HERE, 'sequence-browser-harness.ts');
-  if (!existsSync(entry)) throw new Error(`harness entry missing: ${entry}`);
+  if (!existsSync(entry)) throw new Error(`bundle entry missing: ${entry}`);
   const out = await esbuild.build({
     entryPoints: [entry],
     bundle: true,
@@ -87,6 +104,7 @@ async function bundleHarness(): Promise<string> {
  */
 export async function openHarness(): Promise<Harness> {
   const js = await bundleHarness();
+  const workerJs = await bundleSequenceWorker();
   const html = '<!doctype html><meta charset="utf-8"><title>sequence tier</title><body><script type="module" src="/harness.js"></script></body>';
 
   const openSockets = new Set<import('node:net').Socket>();
@@ -95,6 +113,11 @@ export async function openHarness(): Promise<Harness> {
     if (path === '/harness.js') {
       res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
       res.end(js);
+      return;
+    }
+    if (path === '/sequence-render.worker.ts') {
+      res.writeHead(200, { 'content-type': 'text/javascript; charset=utf-8' });
+      res.end(workerJs);
       return;
     }
     if (path === '/stall') {

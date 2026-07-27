@@ -13,7 +13,7 @@
       "label": "Brand",
       "kind": "duotone",
       "shadow": "#0f253b",
-      "highlight": "#d7eaff"
+      "highlight": "#d4ebff"
     },
     {
       "id": "jade",
@@ -27,13 +27,13 @@
       "label": "Rose",
       "kind": "duotone",
       "shadow": "#38172a",
-      "highlight": "#ffddee"
+      "highlight": "#ffdcee"
     },
     {
       "id": "amber",
       "label": "Amber",
       "kind": "duotone",
-      "shadow": "#312100",
+      "shadow": "#322100",
       "highlight": "#f8e6c4"
     },
     {

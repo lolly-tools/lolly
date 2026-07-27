@@ -187,7 +187,7 @@ var BLENDS = {
   hue: 1, saturation: 1, color: 1, luminosity: 1,
 };
 
-function boxCss(b) {
+function boxCss(b, grad) {
   var x = Math.round(num(b.x, 0));
   var y = Math.round(num(b.y, 0));
   var w = Math.max(1, Math.round(num(b.w, 1)));
@@ -205,6 +205,9 @@ function boxCss(b) {
     (op !== 1 ? 'opacity:' + op + ';' : '') +
     (blend ? 'mix-blend-mode:' + blend + ';' : '') +
     'background:' + fill + ';' +
+    // AFTER the `background` shorthand, which resets background-image. The gradient
+    // paints over the flat fill, so a spec with a translucent stop composites onto it.
+    (grad ? 'background-image:' + grad + ';' : '') +
     // .lolly-box clips its children, which is right for an image or text but wrong for a
     // path box: the frame is the curve's tight bbox, so a stroke legitimately paints half
     // its width outside it (see pathHtmlFor's stroke pad) and the div would cut it off
@@ -304,6 +307,37 @@ function pathWarn(msg) {
   try {
     if (typeof host !== 'undefined' && host && host.log) host.log('warn', 'layout-studio: ' + msg);
   } catch (e) { /* a host without log is still a host */ }
+}
+
+// A box's GRADIENT fill as CSS, or '' for none.
+//
+// The value stored on the box is a Lolly gradient spec (`lin_90_30ba78-0_efefef-100`)
+// — a terse string, because it has to survive the same round trip every other field
+// does (editor → block row → shared URL → CLI). The engine turns it into a CSS
+// gradient with its stops interpolated in OKLab and BAKED down to plain sRGB stops
+// (host.color.gradientCss, HostV1 v1.68): a two-stop brand gradient that would look
+// muddy through the middle in sRGB comes back with the intermediate stops that keep
+// it clean, and because they are ordinary sRGB stops the SVG and PDF walkers render
+// the identical thing (neither can read `linear-gradient(in oklab, …)`).
+//
+// OPTIONAL bridge method, so feature-detect exactly like geomApi above: on an older
+// engine a gradient box degrades to its flat `bg` fill rather than throwing. And
+// note what is NOT here — b.grad never reaches the style attribute itself. Only the
+// engine's output does, which is hex stops and percentages by construction.
+function gradCssFor(b) {
+  // A path box's `bg` is the PATH's fill, not the div's (see pathHtmlFor), so a
+  // gradient on it would paint a rectangle behind the curve. Shapes only for now.
+  if (!b || String(b.kind) === 'path') return '';
+  var spec = b.grad == null ? '' : String(b.grad).trim();
+  if (!spec) return '';
+  var api = typeof host !== 'undefined' && host && host.color ? host.color : null;
+  if (!api || typeof api.gradientCss !== 'function') return '';
+  try {
+    return api.gradientCss(spec) || '';
+  } catch (e) {
+    pathWarn('gradient spec could not be rendered: ' + spec);
+    return '';
+  }
 }
 
 // The honest degrade: a dashed outline of the box frame. A path we cannot draw is
@@ -651,7 +685,9 @@ function compute(model) {
   var byId = {};
   boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
   var shadows = boxes.map(function (b) { return shadowCss(b || {}); });
-  var boxStyle = boxes.map(function (b, i) { return boxCss(b || {}) + clipCss(b || {}, byId) + shadows[i].box + shadows[i].filter; });
+  var boxStyle = boxes.map(function (b, i) {
+    return boxCss(b || {}, gradCssFor(b || {})) + clipCss(b || {}, byId) + shadows[i].box + shadows[i].filter;
+  });
   var textStyle = boxes.map(function (b, i) { return textCss(b || {}) + shadows[i].text; });
   var textHtml = boxes.map(function (b) { return richText((b && b.text) || ''); });
   var mediaHtml = boxes.map(function (b) { return mediaHtmlFor(b || {}); });

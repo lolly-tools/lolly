@@ -21,7 +21,7 @@
  * exported file with a threshold, not a tolerance.
  */
 
-import { renderSequence } from '../../shells/web/src/bridge/sequence-render.ts';
+import { renderSequence, _setSequenceWorkerFactory } from '../../shells/web/src/bridge/sequence-render.ts';
 import { createVideoProvider } from '../../shells/web/src/bridge/sequence-providers.ts';
 import { parseSequenceStage, frameTimestamps, activeSpanTimestamps, toCodedError } from '../../shells/web/src/bridge/sequence-plan.ts';
 import { HIGH_WATER } from '../../shells/web/src/bridge/video-encode-core.ts';
@@ -434,6 +434,9 @@ export interface ExportRun {
   /** Raw stack of the failure, so a broken run is debuggable from the Node side. */
   stack?: string;
   counters: Counters;
+  /** rAF heartbeat during the render (opts.heartbeat): frames painted, and the
+   *  longest gap between them — the main-thread responsiveness number. */
+  beat: { beats: number; maxGap: number };
   frames: number;
   fps: number;
 }
@@ -459,8 +462,27 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   instrument();
   resetCounters();
   const target = buildStage(spec);
-  const { applyClockAtMs, freezeVideos, deviceMemory, ...renderOpts } = opts as Any;
+  const { applyClockAtMs, freezeVideos, deviceMemory, worker, breakWorker, heartbeat, ...renderOpts } = opts as Any;
   const undo: (() => void)[] = [];
+  if (worker != null) {
+    // Phase 4 Track B: the composite+encode Worker offload is opt-in behind the
+    // `lolly.workerEncode` flag, so the SAME sequence can be exported down both
+    // paths in one page and the two outputs compared.
+    const prev = localStorage.getItem('lolly.workerEncode');
+    if (worker) localStorage.setItem('lolly.workerEncode', '1');
+    else localStorage.removeItem('lolly.workerEncode');
+    undo.push(() => {
+      if (prev == null) localStorage.removeItem('lolly.workerEncode');
+      else localStorage.setItem('lolly.workerEncode', prev);
+    });
+  }
+  if (breakWorker) {
+    // The offload-unavailable fallback, forced: a factory that cannot produce a
+    // worker at all. The client must report a PLAIN (non-coded) failure and the
+    // render must complete in-thread.
+    _setSequenceWorkerFactory(() => { throw new Error('no worker here'); });
+    undo.push(() => _setSequenceWorkerFactory(null));
+  }
   if (deviceMemory != null) {
     // maxVideoFrames() reads navigator.deviceMemory, and the frame cap is what a
     // buffered (gif/apng/MediaRecorder) export is clamped to. Faking a small device
@@ -505,6 +527,24 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
   const host = { log: (l: string, m: string): void => { logs.push(`${l}: ${m}`); } };
   const stage = parseSequenceStage(target);
   const fps = format === 'gif' ? 15 : Math.max(1, Math.round(opts.fps ?? 30));
+  // MAIN-THREAD RESPONSIVENESS. A rAF heartbeat during the render: `beatMaxGap`
+  // is the longest the main thread went without painting, which is the number
+  // the worker offload exists to move. Reported, never asserted — the absolute
+  // value is machine- and headless-dependent.
+  const beat = { beats: 0, maxGap: 0 };
+  let last = performance.now();
+  let raf = 0;
+  if (heartbeat) {
+    const tick = (): void => {
+      const now = performance.now();
+      beat.maxGap = Math.max(beat.maxGap, now - last);
+      last = now;
+      beat.beats++;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    undo.push(() => cancelAnimationFrame(raf));
+  }
   const t0 = performance.now();
   try {
     const blob = await renderSequence(target, format, renderOpts, host);
@@ -513,6 +553,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
     for (const u of undo.reverse()) u();
     return {
       key, type: blob.type, size: blob.size, ms, logs, error: null,
+      beat: { ...beat },
       counters: { ...counters },
       frames: stage ? frameTimestamps(stage.totalMs, fps).length : 0, fps,
     };
@@ -520,7 +561,7 @@ async function exportSeq(spec: StageSpec, format: 'mp4' | 'webm' | 'gif' | 'apng
     for (const u of undo.reverse()) u();
     return {
       key: null, type: '', size: 0, ms: performance.now() - t0, logs,
-      error: toCodedError(err), stack: (err as Error)?.stack ?? '', counters: { ...counters },
+      error: toCodedError(err), stack: (err as Error)?.stack ?? '', beat: { ...beat }, counters: { ...counters },
       frames: stage ? frameTimestamps(stage.totalMs, fps).length : 0, fps,
     };
   }
@@ -567,6 +608,13 @@ async function decodeCodes(key: string, frameIdx: number[], fps: number, rect?: 
     input.dispose();
   }
   return out;
+}
+
+/** SHA-256 (hex) of a stored blob's whole byte stream. */
+async function blobSha(key: string): Promise<string> {
+  const bytes = await (blobs.get(key) as Blob).arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
 /** SHA-256 (hex) of N spread output frames' raw pixels — the determinism probe. */
@@ -764,6 +812,67 @@ async function stillAt(spec: StageSpec, tMs: number, probes: { x: number; y: num
   return { w: cvs.width, h: cvs.height, type: blob.type, size: blob.size, offCount, at, code };
 }
 
+// ── the contact sheet (phase 2.5, cuts=N) ────────────────────────────────────
+
+/**
+ * Export the stage as a CONTACT SHEET through the real funnel and report what came
+ * back: the archive's member names plus a pixel probe per member (png/svg), or the
+ * page count (pdf).
+ *
+ * Only a browser can answer the questions that matter here — the members are real
+ * rasters and the pdf is real jsPDF output — so the headless suite
+ * (shells/web/src/bridge/sequence-cuts.test.ts) stops at the loop and the naming,
+ * and this is where "cut 3 shows the clip that is live at its midpoint" is decided.
+ */
+async function cutsAt(spec: StageSpec, cuts: number, format: string, probes: { x: number; y: number }[]): Promise<Any> {
+  const target = buildStage(spec);
+  const art = target.querySelector('.artboard') as HTMLElement;
+  const boxes = [...art.querySelectorAll<HTMLElement>('.lolly-box')];
+  const before = art.innerHTML;
+
+  const api = createExportAPI({ log: (): void => {} } as Any);
+  const progress: number[][] = [];
+  const blob = await api.render(art, format, {
+    filename: `sheet.${format}`, cuts,
+    onProgress: (done: number, total: number) => { progress.push([done, total]); },
+  } as Any);
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  // Restored? Nothing may be left hidden, and the markup must be as it was found.
+  const leftOff = boxes.filter((b) => b.classList.contains(OFF_CLASS)).length;
+  const restored = leftOff === 0 && art.innerHTML === before;
+
+  if (format === 'pdf') {
+    const { PDFDocument } = await import('pdf-lib');
+    const doc = await PDFDocument.load(bytes);
+    return { type: blob.type, size: blob.size, pages: doc.getPageCount(), restored, progress };
+  }
+
+  const { unzipSync } = await import('fflate');
+  // A non-archive here means the dispatch never took the contact-sheet branch; say
+  // so with the evidence rather than dying inside fflate.
+  if (blob.type !== 'application/zip') {
+    return { type: blob.type, size: blob.size, names: [], at: [], restored, progress, head: [...bytes.slice(0, 8)] };
+  }
+  const files = unzipSync(bytes);
+  const names = Object.keys(files).sort();
+  const at: Any[] = [];
+  for (const name of names) {
+    const member = new Blob([files[name] as Any], { type: format === 'svg' ? 'image/svg+xml' : `image/${format}` });
+    const bmp = await createImageBitmap(member);
+    const cvs = new OffscreenCanvas(bmp.width, bmp.height);
+    const ctx = cvs.getContext('2d', { willReadFrequently: true }) as Any;
+    ctx.drawImage(bmp, 0, 0);
+    bmp.close();
+    const px = ctx.getImageData(0, 0, cvs.width, cvs.height).data;
+    const k = cvs.width / Math.max(1, art.offsetWidth);
+    at.push(probes.map(({ x, y }) => {
+      const i = (Math.round(y * k) * cvs.width + Math.round(x * k)) * 4;
+      return [px[i], px[i + 1], px[i + 2], px[i + 3]];
+    }));
+  }
+  return { type: blob.type, size: blob.size, names, at, restored, progress };
+}
+
 // ── compositor vs preview (the drift guard) ──────────────────────────────────
 
 /**
@@ -858,8 +967,8 @@ async function probe(): Promise<Any> {
 
 (globalThis as Any).SEQ = {
   probe, makeClip, truncate, makeBed, exportSeq, buildStage,
-  decodeCodes, frameHashes, frameDelta, audioRms, hasAudioTrack,
-  driveProvider, stalledProvider, stillAt, fidelity, resetCounters, firstFramePixels,
+  decodeCodes, frameHashes, blobSha, frameDelta, audioRms, hasAudioTrack,
+  driveProvider, stalledProvider, stillAt, cutsAt, fidelity, resetCounters, firstFramePixels,
   constants: { HIGH_WATER, MAX_LIVE_PROVIDERS, CODE_BITS },
 };
 (globalThis as Any).__SEQ_READY = true;

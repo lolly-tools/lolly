@@ -65,14 +65,19 @@ const lmsToOklab = (l: number, m: number, s: number): [number, number, number] =
   0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
 ];
 
-function linearSrgbToOklab(r: number, g: number, b: number): [number, number, number] {
+/** Linear sRGB → Oklab. Exported for in-engine reuse (css-color.ts routes Oklab
+ *  through linear sRGB rather than carrying a second set of matrices); not part
+ *  of the barrel surface. */
+export function linearSrgbToOklab(r: number, g: number, b: number): [number, number, number] {
   const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
   const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
   const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
   return lmsToOklab(l, m, s);
 }
 
-function oklabToLinearSrgb(L: number, a: number, b: number): [number, number, number] {
+/** Oklab → linear sRGB (may fall outside [0,1]; the caller gamut-maps). Exported
+ *  for in-engine reuse alongside {@link linearSrgbToOklab}. */
+export function oklabToLinearSrgb(L: number, a: number, b: number): [number, number, number] {
   const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
   const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
   const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
@@ -137,15 +142,21 @@ export function parseHex(s: string): [number, number, number, number] | null {
 
 // ─── CSS string parsing ───────────────────────────────────────────────────────
 
-// A number-or-percent component; `none` reads as 0 (the CSS missing-component rule).
-function parseComponent(tok: string): { n: number; pct: boolean } | null {
-  if (tok.toLowerCase() === 'none') return { n: 0, pct: false };
+/**
+ * A number-or-percent component; `none` reads as 0 (the CSS missing-component
+ * rule) with `none: true` so a caller that tracks missing components can tell
+ * the two apart. Exported for in-engine reuse (css-color.ts is the full CSS
+ * Color 4 parser and shares these tokenisers); not part of the barrel surface.
+ */
+export function parseComponentToken(tok: string): { n: number; pct: boolean; none: boolean } | null {
+  if (tok.toLowerCase() === 'none') return { n: 0, pct: false, none: true };
   const m = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(%)?$/i.exec(tok);
-  return m ? { n: parseFloat(m[1]!), pct: m[2] != null } : null;
+  return m ? { n: parseFloat(m[1]!), pct: m[2] != null, none: false } : null;
 }
+const parseComponent = parseComponentToken;
 
-// A hue component in deg/rad/grad/turn (bare number = degrees), normalised to [0,360).
-function parseHueComponent(tok: string): number | null {
+/** A hue component in deg/rad/grad/turn (bare number = degrees), normalised to [0,360). */
+export function parseHueToken(tok: string): number | null {
   if (tok.toLowerCase() === 'none') return 0;
   const m = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(deg|rad|grad|turn)?$/i.exec(tok);
   if (!m) return null;
@@ -158,10 +169,12 @@ function parseHueComponent(tok: string): number | null {
   return normHue(deg);
 }
 
-function parseAlphaComponent(tok: string): number | null {
+/** An alpha component: a 0–1 number or a percentage, clamped. */
+export function parseAlphaToken(tok: string): number | null {
   const c = parseComponent(tok);
   return c ? clamp01(c.pct ? c.n / 100 : c.n) : null;
 }
+const parseAlphaComponent = parseAlphaToken;
 
 /**
  * Parse an `oklch()` or `lch()` CSS colour string.
@@ -182,7 +195,7 @@ export function parseOklch(s: string): Oklch | null {
   if (parts.length !== 3) return null;
   const L = parseComponent(parts[0]!);
   const C = parseComponent(parts[1]!);
-  const h = parseHueComponent(parts[2]!);
+  const h = parseHueToken(parts[2]!);
   if (!L || !C || h == null) return null;
   let alpha: number | null = null;
   if (slash.length === 2) {
@@ -230,41 +243,110 @@ export function hexToOklch(hex: string): Oklch | null {
   return out;
 }
 
-// Tolerance is deliberately loose (1e-3 in LINEAR light): near the sRGB blue
-// and yellow corners the constant-hue chroma ray grazes a cube face, dipping
-// out of gamut by ~7e-4 before re-entering at the corner itself. A tight
-// epsilon makes the chroma binary search below stop at that false boundary
-// (#0000ff would emit as #0031e5); the loose one sails over the dip, and
-// byte()'s clamp01 absorbs the residue at encode time (< 1/255 per channel).
-const inSrgbGamut = (rgb: [number, number, number]): boolean =>
-  rgb.every(v => v >= -1e-3 && v <= 1 + 1e-3);
+// ─── Gamut mapping — CSS Color 4 §14.2 (chroma bisection + local MINDE) ───────
+//
+// THE mapper for the whole engine: css-color.ts's gamutMapSrgb (and so every
+// format flatten) routes its chroma search here, and oklchToHex below is a thin
+// wrapper. One search, so a brand token and an exported paint can never disagree
+// about what an out-of-gamut colour becomes.
+//
+// Reducing chroma alone (the pre-2026-07 behaviour) is over-cautious: near the
+// sRGB blue and yellow corners the constant-hue ray grazes a cube face, dipping
+// ~7e-4 out of gamut before re-entering AT the corner, so a plain search stops
+// at that false boundary and throws away ~15% of the chroma (#0000ff emitted as
+// #0031e5). That used to be worked around with a deliberately loose gamut
+// tolerance. The spec's answer is better and subsumes it: at each step, compare
+// the CLIPPED candidate against the unclipped one, and accept the clip when they
+// differ by less than a just-noticeable difference ("local MINDE"). The corner
+// dip is exactly such a case, and genuinely out-of-gamut colours keep more of
+// their punch — `oklch(0.95 0.25 120)` lands on #dbff00 rather than #e0ff6f.
+const JND = 0.02;          // one just-noticeable difference in OKLab
+
+/** The §14.2 bisection tolerance, which doubles as the in-gamut slack. Exported
+ *  so css-color.ts's wrapper tests the same boundary rather than a copy of it. */
+export const GAMUT_EPSILON = 1e-4;
+const MAP_EPSILON = GAMUT_EPSILON;
+
+const inSrgbGamut = (rgb: readonly [number, number, number]): boolean =>
+  rgb.every(v => v >= -MAP_EPSILON && v <= 1 + MAP_EPSILON);
+
+const clipSrgb = (rgb: readonly [number, number, number]): [number, number, number] =>
+  [clamp01(rgb[0]), clamp01(rgb[1]), clamp01(rgb[2])];
 
 /**
- * OKLCH → hex, gamut-mapped: when the requested chroma leaves sRGB, reduce it
- * toward the achromatic axis (hue + lightness preserved) with a fixed-count
- * binary search — deterministic, no channel clipping artefacts. Alpha < 1
- * appends an 8-digit hex.
+ * ΔEOK between two ENCODED sRGB triples — CSS Color 4's colour difference for
+ * gamut mapping. Exported for in-engine reuse (css-color.ts); the tool-facing
+ * `host.color.deltaE` is color-tools.ts's string-taking `deltaEOk`.
+ */
+export function deltaEOkSrgb(
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+): number {
+  const la = linearSrgbToOklab(srgbToLinear(a[0]), srgbToLinear(a[1]), srgbToLinear(a[2]));
+  const lb = linearSrgbToOklab(srgbToLinear(b[0]), srgbToLinear(b[1]), srgbToLinear(b[2]));
+  return Math.hypot(la[0] - lb[0], la[1] - lb[1], la[2] - lb[2]);
+}
+
+/**
+ * Map an OKLCH colour into sRGB per CSS Color 4 §14.2, returning ENCODED sRGB
+ * components 0–1. Hue and lightness are preserved; chroma is reduced by binary
+ * search with the local-MINDE clip check described above. An in-gamut request
+ * comes back untouched (beyond the encode), so this is safe to call
+ * unconditionally.
+ *
+ * Deterministic: same input, same output, no fixed iteration count needed —
+ * the bisection terminates on MAP_EPSILON.
+ */
+export function gamutMapOklch(l: number, c: number, h: number): [number, number, number] {
+  const L = clamp01(l);
+  // The lightness extremes first (spec steps 2–3): at or past white/black the
+  // whole hue-chroma plane collapses, and answering exactly rather than letting
+  // the search converge keeps `#ffffff` from emitting float fuzz.
+  if (L >= 1) return [1, 1, 1];
+  if (L <= 0) return [0, 0, 0];
+
+  const hr = (normHue(h) * Math.PI) / 180;
+  const C0 = Math.max(0, c);
+  const encodedAt = (chroma: number): [number, number, number] =>
+    oklabToLinearSrgb(L, chroma * Math.cos(hr), chroma * Math.sin(hr))
+      .map(linearToSrgb) as [number, number, number];
+
+  let current = encodedAt(C0);
+  if (inSrgbGamut(current)) return clipSrgb(current);
+
+  // The grey axis (chroma 0) is always inside sRGB for L∈(0,1), so this converges.
+  let lo = 0;
+  let hi = C0;
+  let loInGamut = true;
+  while (hi - lo > MAP_EPSILON) {
+    const chroma = (lo + hi) / 2;
+    current = encodedAt(chroma);
+    if (loInGamut && inSrgbGamut(current)) {
+      lo = chroma;
+      continue;
+    }
+    const clipped = clipSrgb(current);
+    const e = deltaEOkSrgb(clipped, current);
+    if (e < JND) {
+      if (JND - e < MAP_EPSILON) return clipped;
+      loInGamut = false;
+      lo = chroma;
+    } else {
+      hi = chroma;
+    }
+  }
+  return clipSrgb(current);
+}
+
+/**
+ * OKLCH → hex, gamut-mapped through `gamutMapOklch` (CSS Color 4 §14.2 — hue and
+ * lightness preserved, chroma reduced with a local-MINDE clip check, never a raw
+ * channel clip). Alpha < 1 appends an 8-digit hex.
  */
 export function oklchToHex(c: Oklch): string {
-  const L = clamp01(c.l);
-  const h = normHue(c.h);
-  const hr = (h * Math.PI) / 180;
-  const toLinear = (chroma: number) =>
-    oklabToLinearSrgb(L, chroma * Math.cos(hr), chroma * Math.sin(hr));
-  let rgb = toLinear(Math.max(0, c.c));
-  if (!inSrgbGamut(rgb)) {
-    // The grey axis (chroma 0) is always inside sRGB for L∈[0,1], so this converges.
-    let lo = 0;
-    let hi = Math.max(0, c.c);
-    for (let i = 0; i < 24; i++) {
-      const mid = (lo + hi) / 2;
-      if (inSrgbGamut(toLinear(mid))) lo = mid;
-      else hi = mid;
-    }
-    rgb = toLinear(lo);
-  }
+  const rgb = gamutMapOklch(c.l, c.c, c.h);
   const byte = (v: number) =>
-    Math.round(linearToSrgb(clamp01(v)) * 255).toString(16).padStart(2, '0');
+    Math.round(clamp01(v) * 255).toString(16).padStart(2, '0');
   const base = `#${byte(rgb[0])}${byte(rgb[1])}${byte(rgb[2])}`;
   return c.alpha != null && c.alpha < 1
     ? base + Math.round(clamp01(c.alpha) * 255).toString(16).padStart(2, '0')
@@ -361,7 +443,7 @@ function parseCssColor(input: string): Oklch | null {
   if ((m = /^hsla?\(([^)]+)\)$/i.exec(s))) {
     const p = m[1]!.split(/[,\s/]+/).filter(Boolean);
     if (p.length < 3) return null;
-    const h = parseHueComponent(p[0]!);
+    const h = parseHueToken(p[0]!);
     const sat = parseFloat(p[1]!) / 100;
     const li = parseFloat(p[2]!) / 100;
     if (h == null || Number.isNaN(sat) || Number.isNaN(li)) return null;

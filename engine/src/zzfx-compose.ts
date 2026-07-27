@@ -367,8 +367,22 @@ export function composeSong(spec: SongSpec): ZzfxSong {
 
   return {
     bpm: spec.bpm,
-    instruments,
+    // DETERMINISM GUARD, not tidying. `zzfxG` reads parameter index 1 as
+    // `randomness` and detunes the start frequency by `Math.random()` when it is
+    // non-zero — and its default is 0.05, so a preset authored with a SHORT array
+    // (fewer than two entries) would silently re-enable it and make every seed
+    // produce a different render each time. Every preset in the table sets it to
+    // 0 today; normalising here is what stops that from being a property of the
+    // table's current contents. Copies, so PRESETS itself is never mutated.
+    instruments: instruments.map(withoutRandomness),
     patterns,
     sequence: arrange(spec.roots.length, spec.bpm, spec.targetSec),
   };
+}
+
+/** One instrument, with `zzfxG`'s `randomness` parameter pinned off. See composeSong. */
+function withoutRandomness(inst: ZzfxInstrument): ZzfxInstrument {
+  const out = inst.slice() as ZzfxInstrument;
+  out[1] = 0;
+  return out;
 }

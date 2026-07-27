@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.65.0', () => {
+test('ENGINE_VERSION is 1.68.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -86,9 +86,12 @@ test('ENGINE_VERSION is 1.65.0', () => {
   // PQ/BT.2020), then 1.62.0 (crop culling: cullPdfNodes/pdfNodeExtent) and
   // 1.63.0 (/Luminosity soft masks) and 1.64.0 (host.geom — the geometry kernel's
   // tool-facing surface) and 1.65.0 (canvas time-field mappings — the Fable
-  // timeline time model, phase 1); the ^1.54.0 screencap floor below is
-  // unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.65.0');
+  // timeline time model, phase 1) and 1.66.0 (the reserved `cuts` URL param —
+  // contact-sheet still exports, timeline phase 2.5) and 1.67.0 (the `zzfxm:`
+  // procedural asset-id scheme — zzfxm-ref.ts) and 1.68.0 (host.color.mix +
+  // host.color.gradientCss — CSS Color 4 interpolation and the gradient spec);
+  // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
+  assert.equal(ENGINE_VERSION, '1.68.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

@@ -76,7 +76,9 @@ test('parseRadialGradient: explicit ellipse size (percent) + position — the qu
   assert.ok(close(g!.cy, 84));          // 28% of 300
   assert.ok(close(g!.rx, 210));         // 42% of 500
   assert.ok(close(g!.ry, 144));         // 48% of 300
-  assert.equal(g!.stops[0]!.colorStr, 'rgb(48, 186, 120)');
+  // Flattened to hex + a separate opacity, like every non-opaque-hex form (see the
+  // stop test below for why the legacy rgb() passthrough had to go).
+  assert.equal(g!.stops[0]!.colorStr, '#30ba78');
   assert.equal(g!.stops[1]!.opacity, 0); // transparent
   assert.equal(g!.stops[1]!.offset, '70%');
 });
@@ -135,8 +137,30 @@ test('splitCssArgs: does not split commas inside parens', () => {
 
 test('parseGradientStop: peels position off a spaced rgb() colour', () => {
   const s = parseGradientStop('rgb(48, 186, 120) 25%', 0, 2);
-  assert.equal(s.colorStr, 'rgb(48, 186, 120)');
+  // The colour comes back as an OPAQUE hex, not the rgb() verbatim: `stop-color`'s
+  // alpha multiplies with `stop-opacity` in SVG, and callers set both from this one
+  // result — so returning `rgba(…,0.5)` next to `opacity: 0.5` exported the stop at
+  // ~0.25 alpha. Every form now flattens the same way; only an opaque 6-digit hex
+  // passes through untouched.
+  assert.equal(s.colorStr, '#30ba78');
+  assert.equal(s.opacity, 1);
   assert.equal(s.offset, '25%');
+});
+
+test('parseGradientStop: alpha rides on `opacity` ONLY, never twice', () => {
+  for (const [css, hex, op] of [
+    ['rgba(255,0,0,0.5)', '#ff0000', 0.5],
+    ['#30ba7880', '#30ba78', 128 / 255],
+    ['oklab(0.628 0.225 0.126 / 0.25)', '#ff0000', 0.25],
+    // The modern slash syntax used to report opacity 1 (the old regex only matched the
+    // legacy comma form), so its alpha was invisible to every consumer.
+    ['rgb(1 2 3 / 50%)', '#010203', 0.5],
+  ] as Array<[string, string, number]>) {
+    const s = parseGradientStop(css, 0, 2);
+    assert.equal(s.colorStr, hex, css);
+    assert.ok(Math.abs(s.opacity - op) < 1e-6, `${css}: opacity ${s.opacity}`);
+    assert.ok(!/rgba|[0-9a-f]{8}/i.test(s.colorStr!), `${css}: no alpha inside the colour`);
+  }
 });
 
 // ── Zero-area clips are UNDERSTOOD, not unparseable ──────────────────────────
@@ -232,8 +256,21 @@ test('conic-gradient: the real checkerboard value parses', () => {
 
 test('conic-gradient: too few usable stops is refused', () => {
   assert.equal(parseConicGradient('conic-gradient(rgb(1, 1, 1))', 100, 100), null);
-  // Named colours are not resolvable DOM-free, so a list of them yields no stops.
-  assert.equal(parseConicGradient('conic-gradient(rebeccapurple 0%, papayawhip 100%)', 100, 100), null);
+  // A stop whose colour is genuinely unreadable still yields nothing.
+  assert.equal(parseConicGradient('conic-gradient(notacolor 0%, alsonot 100%)', 100, 100), null);
+});
+
+test('conic-gradient: named and modern-space stops resolve (they used to yield no stops)', () => {
+  // Named colours WERE unresolvable DOM-free, so `conic-gradient(rebeccapurple,
+  // papayawhip)` produced no stops and the whole gradient was refused. css-color.ts
+  // owns the named table now, so these are ordinary colours.
+  const named = parseConicGradient('conic-gradient(rebeccapurple 0%, papayawhip 100%)', 100, 100);
+  assert.ok(named, 'a named-colour conic gradient parses');
+  assert.deepEqual(named.stops.map(s => s.colorStr), ['#663399', '#ffefd5']);
+
+  const modern = parseConicGradient('conic-gradient(oklab(0.628 0.225 0.126) 0%, color(srgb 0 0 1) 100%)', 100, 100);
+  assert.ok(modern, 'a modern-space conic gradient parses');
+  assert.deepEqual(modern.stops.map(s => s.colorStr), ['#ff0000', '#0000ff']);
 });
 
 test('conic-gradient: a non-conic value is not claimed', () => {

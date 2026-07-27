@@ -29,6 +29,7 @@
 
 import type { TokenSet, TokenEntry, ColorSwatch, SpotColor } from './bridge/host-v1.ts';
 import { parseOklch, oklchToHex } from './brand-derive.ts';
+import { parseColor, colorToHexString } from './css-color.ts';
 
 // Vendor extension namespace for Lolly-specific token metadata (CMYK anchors,
 // swatch grouping hints). Reverse-domain per the DTCG `$extensions` convention.
@@ -341,28 +342,29 @@ export function colorToHex(value: unknown): string | null | undefined {
   const s = String(value).trim();
   if (s.toLowerCase() === 'transparent') return 'transparent';
   if (s.startsWith('#')) return normHex(s);
-  let m;
-  if ((m = /^rgba?\(([^)]+)\)$/i.exec(s))) {
-    const p = (m[1] ?? '').split(/[,/]/).map(x => x.trim());
-    return rgbaToHex(num(p[0]), num(p[1]), num(p[2]), p[3] != null ? alpha(p[3]) : 1);
-  }
-  if ((m = /^hsla?\(([^)]+)\)$/i.exec(s))) {
-    const p = (m[1] ?? '').split(/[,/]/).map(x => x.trim());
-    const [r, g, b] = hslToRgb(num(p[0]), pct(p[1]), pct(p[2]));
-    return rgbaToHex(r, g, b, p[3] != null ? alpha(p[3]) : 1);
-  }
   if (/^(?:ok)?lch\(/i.test(s)) {
     // oklch()/lch() — the OKLCH-native brand-token format. The conversion math
     // is brand-derive.ts's (single source of truth), never duplicated here.
+    // Deliberately NOT routed through css-color.ts: oklchToHex's chroma-reduction
+    // gamut mapping is what every stored brand token was authored against, and
+    // unifying the two mappers is a decision of its own (plans/color-spaces.md
+    // Phase 2), not a side effect of fixing the parsers.
     const ok = parseOklch(s);
     if (ok) return oklchToHex(ok);
   }
-  // A plain colour ident ("rebeccapurple") passes through untouched. Anything
-  // else must NOT flow on verbatim: token values come from untrusted imported
-  // documents and colorToHex's output lands in inline style attributes, so a
-  // string like "red;background:url(//evil)" or "expression(alert(1))" would
-  // otherwise inject live CSS declarations. Idents only; the rest is "no colour".
-  return /^[a-z][a-z0-9-]*$/i.test(s) ? s : null;
+  // A plain colour ident ("rebeccapurple") passes through untouched — callers
+  // (extractSvgColors) rely on getting the name back verbatim, and it is already
+  // a safe CSS value. Checked BEFORE the parser, which would resolve it to hex.
+  if (/^[a-z][a-z0-9-]*$/i.test(s)) return s;
+  // Every other CSS colour form goes through the engine's CSS Color 4 parser:
+  // rgb()/hsl() in either syntax, hwb(), lab(), oklab(), color(<space> …). It
+  // returns a structured value or null, never a passthrough string, so the
+  // injection guard below is inherent: token values come from untrusted imported
+  // documents and colorToHex's output lands in inline style attributes, where
+  // "red;background:url(//evil)" or "expression(alert(1))" would otherwise
+  // inject live CSS declarations. Unreadable input is "no colour".
+  const parsed = parseColor(s);
+  return parsed ? colorToHexString(parsed) : null;
 }
 
 // Strict hex only: expand #rgb/#rgba, reject anything that isn't a pure
@@ -381,21 +383,3 @@ function rgbaToHex(r: number, g: number, b: number, a = 1): string {
   return a >= 1 ? base : base + h(a * 255);
 }
 
-function num(x: string | undefined): number { return parseFloat(x ?? ''); }
-function pct(x: string | undefined): number { return (parseFloat(x ?? '') || 0) / 100; }
-function alpha(x: string): number { const n = parseFloat(x); return String(x).includes('%') ? n / 100 : n; }
-
-function hslToRgb(h: number, s: number, l: number): [number, number, number] {
-  h = ((h % 360) + 360) % 360 / 360;
-  if (s === 0) { const v = l * 255; return [v, v, v]; }
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const c = (t: number): number => {
-    t = (t + 1) % 1;
-    if (t < 1 / 6) return p + (q - p) * 6 * t;
-    if (t < 1 / 2) return q;
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-    return p;
-  };
-  return [c(h + 1 / 3) * 255, c(h) * 255, c(h - 1 / 3) * 255];
-}

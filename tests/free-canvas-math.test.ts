@@ -16,6 +16,7 @@ import {
   moveBoxes, resizeRect, alignBoxes, distributeBoxes, reorderZ,
   seedBox, normDragRect, snapAngle, clampBoxToCanvas, selectionAABB,
   snapMove, snapPoint, scaleGroup, rotateGroup,
+  gradientLine, gradientPosAt, gradientAngleAt,
 } from '../shells/web/src/views/free-canvas-math.ts';
 
 const CFG: any = {
@@ -276,4 +277,90 @@ test('selectionAABB unions rotated boxes', () => {
   const boxes = [box({ x: 0, y: 0, w: 100, h: 100 }), box({ x: 300, y: 0, w: 100, h: 100 })];
   const a: any = selectionAABB(boxes, [0, 1], CFG);
   assert.deepEqual([a.minX, a.maxX], [0, 400]);
+});
+
+// ── on-canvas gradient geometry ──────────────────────────────────────────────
+
+// Trig lands these a float-epsilon off exact integers; compare with a tolerance
+// rather than pinning the noise.
+const nearPt = (got: { x: number; y: number }, x: number, y: number, msg: string): void => {
+  assert.ok(Math.abs(got.x - x) < 1e-6 && Math.abs(got.y - y) < 1e-6,
+    `${msg}: expected ~(${x}, ${y}), got (${got.x}, ${got.y})`);
+};
+
+test('gradientLine: 0deg runs bottom→top through the centre', () => {
+  const { from, to } = gradientLine(200, 100, 0);
+  nearPt(from, 100, 100, 'starts at the BOTTOM edge');
+  nearPt(to, 100, 0, 'ends at the top');
+});
+
+test('gradientLine: 90deg runs left→right', () => {
+  const { from, to } = gradientLine(200, 100, 90);
+  nearPt(from, 0, 50, 'from');
+  nearPt(to, 200, 50, 'to');
+});
+
+test('gradientLine: 180deg is `to bottom`, the CSS default', () => {
+  const { from, to } = gradientLine(200, 100, 180);
+  nearPt(from, 100, 0, 'from');
+  nearPt(to, 100, 100, 'to');
+});
+
+test('gradientLine: a 45deg line is the CSS projection length, not the diagonal', () => {
+  // |w·sin45| + |h·cos45| for a 100×100 box = 141.42; the diagonal is the same
+  // here, so use a rectangle where they differ: 200×100 → 212.13 vs a 223.6 diagonal.
+  const { from, to } = gradientLine(200, 100, 45);
+  const len = Math.hypot(to.x - from.x, to.y - from.y);
+  assert.ok(Math.abs(len - 212.13) < 0.05, `projection length, got ${len.toFixed(2)}`);
+  assert.ok(Math.abs(len - Math.hypot(200, 100)) > 10, 'and not the diagonal');
+  // Still centred.
+  assert.ok(Math.abs((from.x + to.x) / 2 - 100) < 1e-9);
+  assert.ok(Math.abs((from.y + to.y) / 2 - 50) < 1e-9);
+});
+
+test('gradientLine: the angle wraps', () => {
+  for (const equivalent of [450, -270]) {
+    const a = gradientLine(200, 100, equivalent);
+    const b = gradientLine(200, 100, 90);
+    nearPt(a.from, b.from.x, b.from.y, `${equivalent}° from`);
+    nearPt(a.to, b.to.x, b.to.y, `${equivalent}° to`);
+  }
+});
+
+test('gradientPosAt: the ends read 0 and 100, the centre 50', () => {
+  const { from, to } = gradientLine(200, 100, 90);
+  assert.equal(gradientPosAt(200, 100, 90, from.x, from.y), 0);
+  assert.equal(gradientPosAt(200, 100, 90, to.x, to.y), 100);
+  assert.equal(gradientPosAt(200, 100, 90, 100, 50), 50);
+});
+
+test('gradientPosAt: a point off the line projects onto it rather than stalling', () => {
+  // 40px above the line at 90deg: the along-line component still reads 25%.
+  assert.equal(gradientPosAt(200, 100, 90, 50, 10), 25);
+  assert.equal(gradientPosAt(200, 100, 90, 50, 90), 25);
+});
+
+test('gradientPosAt: past the ends clamps', () => {
+  assert.equal(gradientPosAt(200, 100, 90, -500, 50), 0);
+  assert.equal(gradientPosAt(200, 100, 90, 900, 50), 100);
+});
+
+test('gradientAngleAt: inverts gradientLine, so a drag to the end reproduces the angle', () => {
+  for (const deg of [0, 45, 90, 135, 180, 225, 270, 315]) {
+    const { to } = gradientLine(200, 100, deg);
+    const back = gradientAngleAt(200, 100, to.x, to.y);
+    assert.ok(Math.abs(((back - deg + 540) % 360) - 180) < 1e-6, `${deg}° → ${back}°`);
+  }
+});
+
+test('gradientAngleAt: snapping reaches the cardinals exactly', () => {
+  assert.equal(gradientAngleAt(200, 100, 199, 1, 45), 45);
+  assert.equal(gradientAngleAt(200, 100, 201, 51, 45), 90);
+  assert.equal(gradientAngleAt(200, 100, 100, -50, 45), 0);
+  // Unsnapped it keeps the real angle.
+  assert.ok(Math.abs(gradientAngleAt(200, 100, 199, 1) - 45) > 5);
+});
+
+test('gradientAngleAt: the centre itself is not an angle', () => {
+  assert.equal(gradientAngleAt(200, 100, 100, 50), 0);
 });

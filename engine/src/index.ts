@@ -66,6 +66,21 @@ export {
   srgbIccProfile, pqBt2020IccProfile, iccProfileBytes, COLOR_PROFILES,
   rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
 } from './color.ts';
+export {
+  parseColor, parseColorToSrgb8, convertColor, gamutMapSrgb,
+  colorToSrgb, colorToSrgb8, colorToHexString, formatColor,
+  interpolateColor, deltaEOkColor, gradientStops, findColorToken,
+  NAMED_COLORS, isNamedColor,
+  MISSING_C0, MISSING_C1, MISSING_C2, MISSING_ALPHA,
+} from './css-color.ts';
+export type {
+  CssColor, ColorSpaceTag, HueDirection, MixOptions, BakeOptions, ColorStop,
+} from './css-color.ts';
+export {
+  parseGradientSpec, formatGradientSpec, gradientSpecToCss, gradientSpecStops,
+  GRADIENT_KINDS, DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS,
+} from './gradient-spec.ts';
+export type { GradientSpec, GradientKind, GradientSpecStop } from './gradient-spec.ts';
 export { hdrBoostToPQ, pqEncode, HDR_PQ_CICP } from './hdr.ts';
 export type { HdrBoostOptions } from './hdr.ts';
 export {
@@ -80,6 +95,11 @@ export type {
 export { parseMidi, midiToSong, midiToZzfxm } from './midi.ts';
 export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
+// The `zzfxm:<seed>[:<style>]` asset-id scheme — a song NAMED rather than stored.
+// Sits beside tool-url.ts's scheme for the same reason: every shell that resolves
+// an asset id has to recognise it, and they must not each invent the rule.
+export { ZZFXM_SCHEME, ZZFXM_ARCHETYPES, isZzfxmRef, parseZzfxmRef, formatZzfxmRef } from './zzfxm-ref.ts';
+export type { ZzfxmRef, ZzfxmArchetype } from './zzfxm-ref.ts';
 export type { SongSpec, Archetype, PresetName, ScaleName } from './zzfx-compose.ts';
 export {
   parseCssLength, cornerRadii, uniformRadius, insetCorners, roundedRectPath, parseBoxShadow, parseTextShadow, gaussianShadowBands, gaussianShadowRings,
