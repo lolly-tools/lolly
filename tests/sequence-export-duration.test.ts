@@ -32,6 +32,7 @@ import { dirname, join } from 'node:path';
 
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 
+import { applyDurationOverride, parseSequenceStage, frameTimestamps } from '../shells/web/src/bridge/sequence-plan.ts';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
@@ -182,25 +183,32 @@ test('a still export is left completely alone by beforeExport', async () => {
   assert.equal(r.opts.wait, undefined, 'png: no wait override — a still is not a recording');
 });
 
-// ── 4. dispatch: the sequence compositor beats live capture ────────────────────
+// ── 4. dispatch: compositor by default, live capture as a working opt-in ───────
 
 /**
- * Source-level, deliberately. renderSequenceStage / renderLive need a real browser
- * (MediaRecorder, WebCodecs, canvas, layout) — there is no headless way to prove which
- * one produced a Blob, so what is asserted is the routing decision itself: for webm and
- * mp4 the [data-sequence] check must be unconditional, and every other sniff must keep
- * `opts.live` in front of it.
+ * Source-level, deliberately. renderSequenceStage / renderLive / captureLiveClip all
+ * need a real browser (getDisplayMedia, MediaRecorder, WebCodecs, canvas, layout), so
+ * there is no headless way to prove which one produced a Blob, nor what is inside it.
+ * What IS pinned here is the routing decision and the wiring that makes the live route
+ * produce an animation at all. The applier the live route drives is unit-tested in
+ * shells/web/src/bridge/sequence-dom.test.ts; that a real "Record live" take contains
+ * motion can only be confirmed by exporting from a browser.
  */
-test('export.ts routes a sequence stage to the compositor even when opts.live is set', async () => {
+test('export.ts: the compositor is the default for a sequence, live capture the opt-in', async () => {
   const src = await readFile(join(ROOT, 'shells', 'web', 'src', 'bridge', 'export.ts'), 'utf8');
 
-  for (const fmt of ['webm', 'mp4', 'gif', 'apng']) {
-    assert.ok(src.includes(`if (isSequenceStage(node)) return await renderSequenceStage(node, '${fmt}', opts);`),
-      `${fmt}: a [data-sequence] stage routes to the compositor unconditionally`);
+  // The compositor is deterministic, faster than realtime and higher quality, so it
+  // takes every motion export of a sequence — EXCEPT when the user asked for a live
+  // take, which stays available because it is the cheap route on a low-power device.
+  for (const fmt of ['webm', 'mp4']) {
+    assert.ok(src.includes(`if (!opts.live && isSequenceStage(node)) return await renderSequenceStage(node, '${fmt}', opts);`),
+      `${fmt}: sequence → compositor unless the user opted into a live take`);
   }
-  assert.ok(!/!opts\.live && isSequenceStage/.test(src),
-    'no motion format may gate the sequence compositor behind !opts.live — live capture of a ' +
-    'sequence films a DOM nothing is animating, so it can only ever return a frozen frame');
+  // gif/apng have no live path at all — the toggle is webm/mp4 only.
+  for (const fmt of ['gif', 'apng']) {
+    assert.ok(src.includes(`if (isSequenceStage(node)) return await renderSequenceStage(node, '${fmt}', opts);`),
+      `${fmt}: always the compositor`);
+  }
 
   // Precedence for every NON-sequence stage is unchanged: live first, then the
   // record/top-tail sniffs, then the generic renderer.
@@ -211,4 +219,89 @@ test('export.ts routes a sequence stage to the compositor even when opts.live is
       `        : isTopTailStage(node) ? renderTopTail(node, opts, '${fmt}') : renderVideo(node, opts, '${fmt}'));`),
       `${fmt}: record / top-tail / url-shot / filter tools keep today's live-first precedence`);
   }
+
+  // The bug that made a live take useless: nothing advances a sequence stage while the
+  // recorder rolls, so renderLive has to drive the playhead itself — starting when the
+  // recorder starts (not while the share picker is up) and restoring in a finally.
+  const live = src.slice(src.indexOf('async function renderLive('));
+  const body = live.slice(0, live.indexOf('\n}\n'));
+  assert.match(body, /isSequenceStage\(node\)/, 'renderLive must recognise a sequence stage');
+  assert.match(body, /driveSequenceTime\(node as HTMLElement, \{ durationMs: durationS \* 1000 \}\)/,
+    'and drive the shared applier across the capture window');
+  assert.match(body, /onRecordStart: \(\) => \{ audio\?\.start\(\); playhead\?\.start\(\); \}/,
+    'the playhead starts with the recording, not with the screen-share prompt');
+  assert.match(body, /finally \{[\s\S]*playhead\?\.stop\(\)/,
+    'and is always stopped + restored, including on a cancelled share');
+});
+
+// ── 5. the user-set duration reaches the COMPOSITOR ────────────────────────────
+
+// The hook writing opts.duration is only half the fix: the compositor derives its
+// length from the artboard's data-seq-ms. These drive the real bridge modules against
+// the real tool's rendered DOM, so the hook → bridge handoff is covered end to end
+// without a browser (frame timestamps are pure arithmetic).
+
+/** Mount the tool and hand back its artboard as a live jsdom element. */
+async function artboardOf(boxes?: unknown[]): Promise<HTMLElement> {
+  const rt = await createRuntime(tool, baseHost(), (boxes === undefined ? {} : { boxes }) as never);
+  const d = new JSDOM(`<!doctype html><body><div id="stage">${rt.getHydrated() as string}</div></body>`);
+  return d.window.document.getElementById('stage') as unknown as HTMLElement;
+}
+
+test('without the flag the compositor renders exactly the timeline it was given', async () => {
+  const node = await artboardOf(longRow(4));
+  const stage = applyDurationOverride(parseSequenceStage(node)!, { duration: 30 });
+  assert.equal(stage.totalMs, 4000, 'an unflagged duration never re-lengths the stage');
+  assert.equal(frameTimestamps(stage.totalMs, 30).length, 120, '4s at 30fps');
+});
+
+test('a user-set duration re-lengths the stage the compositor renders', async () => {
+  const node = await artboardOf(longRow(4));
+  const shorter = applyDurationOverride(parseSequenceStage(node)!, { duration: 1.5, durationUserSet: true });
+  assert.equal(shorter.totalMs, 1500, 'truncated to what the user asked for');
+  assert.equal(frameTimestamps(shorter.totalMs, 30).length, 45, 'and the frame grid is truncated with it');
+
+  const longer = applyDurationOverride(parseSequenceStage(node)!, { duration: 10, durationUserSet: true });
+  assert.equal(longer.totalMs, 10000, 'a longer clip runs past the last authored clip');
+  assert.equal(frameTimestamps(longer.totalMs, 30).length, 300);
+});
+
+test('re-lengthing moves OPEN-ENDED boxes and leaves authored spans alone', async () => {
+  // A bounded clip plus a scenery box with no dur: the scenery is the one that has to
+  // follow the new end (it means "to the end of the sequence"), the clip must not.
+  const node = await artboardOf([
+    { id: 'bg', kind: 'text', text: 'bg', start: 0 },
+    { id: 'a', kind: 'text', text: 'a', lane: 'seq', start: 0, dur: 4 },
+  ]);
+  const base = parseSequenceStage(node)!;
+  const open = base.layers.find((l) => l.openEnded)!;
+  const fixed = base.layers.find((l) => !l.openEnded)!;
+  assert.equal(open.durMs, base.totalMs, 'the scenery box fills the derived sequence');
+
+  const longer = applyDurationOverride(base, { duration: 9, durationUserSet: true });
+  assert.equal(longer.layers[open.idx]!.durMs, 9000, 'and follows a user-set length');
+  assert.equal(longer.layers[fixed.idx]!.durMs, fixed.durMs, 'an authored span is untouched');
+  assert.equal(base.layers[open.idx]!.durMs, open.durMs, 'the input stage was not mutated');
+});
+
+test('a nonsense user-set duration leaves the derived length in place', async () => {
+  const node = await artboardOf(longRow(4));
+  const base = parseSequenceStage(node)!;
+  for (const bad of [0, -1, Number.NaN, undefined, 'soon']) {
+    assert.equal(applyDurationOverride(base, { duration: bad, durationUserSet: true }).totalMs, 4000,
+      `duration ${String(bad)} is not a length`);
+  }
+});
+
+test('renderSequence applies the override BEFORE the ceiling check and the frame grid', async () => {
+  // Order matters: totalMs feeds the SEQ_TOO_HEAVY guard, the frame grid, every
+  // open-ended layer and the audio bed. Overriding late would leave them disagreeing.
+  const whole = await readFile(join(ROOT, 'shells', 'web', 'src', 'bridge', 'sequence-render.ts'), 'utf8');
+  const src = whole.slice(whole.indexOf('export async function renderSequence(')); // not the module constants
+  const overrideAt = src.indexOf('applyDurationOverride(parsed, opts)');
+  const ceilingAt = src.indexOf('stage.totalMs > MAX_SEQUENCE_MS');
+  const gridAt = src.indexOf('frameTimestamps(stage.totalMs');
+  assert.ok(overrideAt > 0, 'renderSequence must apply the override');
+  assert.ok(overrideAt < ceilingAt && overrideAt < gridAt,
+    'the override lands before the ceiling check and before the frame grid is built');
 });
