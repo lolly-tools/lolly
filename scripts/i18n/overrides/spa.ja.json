@@ -187,5 +187,6 @@
   "{family} added": "{family}を追加しました",
   "{family} now serves h1/h2 headings": "{family}がh1/h2の見出しに使われます",
   "{family} now serves italic text": "{family}がイタリック体のテキストに使われます",
-  "← All team projects": "← すべてのチームプロジェクト"
+  "← All team projects": "← すべてのチームプロジェクト",
+  "Home": "ホーム"
 }

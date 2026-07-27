@@ -199,15 +199,27 @@ test('default: every seq clip carries start + duration and its lane', async () =
   }
 });
 
-test('default: an overlay is timed without a lane, and scenery is not timed at all', async () => {
+test('default: an overlay is timed without a lane', async () => {
   const html = await mount();
   const tags = [...html.matchAll(/<div class="lolly-box"[^>]*>/g)].map((m) => m[0]);
 
   const overlays = tags.filter((t) => /data-t-start=/.test(t) && !/data-t-lane=/.test(t));
   assert.ok(overlays.length >= 1, 'the default seeds at least one free-floating overlay');
+});
 
-  const scenery = tags.filter((t) => !/data-t-/.test(t));
-  assert.ok(scenery.length >= 1, 'the default seeds at least one always-visible scenery box');
+// Untimed = scenery: no data-t-* at all, so the clock never hides it and it rides under
+// (or over) every clip. This used to be asserted on the shipped default because that
+// default happened to carry a permanent wordmark; it is a property of the TOOL, not of
+// whatever demo content ships, so it mounts its own composition and the default is free
+// to change. The plan-side behaviour (scenery spans the whole sequence) is covered in
+// tests/sequence-plan.test.ts.
+test('a box with no timing at all renders as scenery — no data-t-* attributes', async () => {
+  const html = await mount([
+    { id: 'clip', kind: 'box', bg: '#111', text: 'timed', start: 0, dur: 2, lane: 'seq' },
+    { id: 'mark', kind: 'box', bg: 'transparent', text: 'always there' },
+  ]);
+  assert.ok(!/data-t-/.test(boxTag(html, 'mark')), 'an untimed box carries no timing attributes');
+  assert.match(boxTag(html, 'clip'), /data-t-start=/, 'the timed clip still does');
 });
 
 test('default: the audio box contributes the mix marker and nothing visible', async () => {
