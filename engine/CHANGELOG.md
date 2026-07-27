@@ -845,3 +845,30 @@ renderers, and no new syntax for the export walkers to learn.
 No v1 method changed. Both new methods are optional — a tool must feature-detect
 (`host.color?.gradientCss`) since its declared `engineVersion` range may admit an older
 engine.
+
+1.69.0 — additive: display-gamut classification and OKLCH slice planes. New engine
+module `src/gamut.ts` (pure, no DOM, no canvas) plus three optional `host.color`
+methods: `gamut(color)` → `'srgb' | 'p3' | 'rec2020' | 'none'`, `maxChroma(l, h,
+limit?)`, and `slice(opts)` → RGBA bytes for one 2D plane through OKLCH space.
+
+The engine already mapped out-of-gamut colours back into sRGB (`gamutMapOklch`,
+CSS Color 4 §14.2), which answers "what will this become?". This answers the two
+questions a brand designer actually asks next: *how far out is it*, and *would a
+wider display carry it?* — "outside sRGB but fine on P3" is a different decision
+from "no display can show this". The P3 and Rec.2020 tests are pre-composed 3×3
+matrices from linear sRGB (shared D65 white, so no chromatic adaptation), reusing
+brand-derive's Oklab core rather than carrying a second set of matrices.
+
+`maxChroma` is the honest, hue-dependent ceiling — at L 0.7, sRGB gives yellow-green
+~0.22 and cyan ~0.12, and P3 widens the reds/greens by >20% while barely moving the
+blues. That per-hue asymmetry is why a fixed chroma cap makes lopsided ramps, and why
+the charts are worth drawing at all.
+
+`slice` exists as a bridge primitive, rather than each surface painting its own, so the
+brand studio's gamut charts and the Colour Lab utility tool cannot drift about where
+sRGB ends. It returns 8-bit sRGB, so pixels past sRGB are painted GAMUT-MAPPED — the
+caller draws the real boundary from `maxChroma`/`sliceGamutEdge` on top, because the
+boundary line is the information and the fill out there is an approximation.
+
+No v1 method changed. All three are optional — a tool must feature-detect
+(`host.color?.slice`) since its declared `engineVersion` range may admit an older engine.

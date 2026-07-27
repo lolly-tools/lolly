@@ -40,6 +40,7 @@
 import { hexToOklch, oklchToHex, parseOklch, parseHex, contrastRatio } from './brand-derive.ts';
 import type { Oklch } from './brand-derive.ts';
 import { generateSchemeAccents } from './brand-schemes.ts';
+import { oklchGamut, maxChroma, oklchSlice } from './gamut.ts';
 import { parseColor, colorToHexString, interpolateColor } from './css-color.ts';
 import { gradientSpecToCss } from './gradient-spec.ts';
 import type { ColorAPI } from './bridge/host-v1.ts';
@@ -400,5 +401,16 @@ export function makeColorApi(): ColorAPI {
       return colorToHexString(interpolateColor(ca, cb, t, opts));
     },
     gradientCss: spec => gradientSpecToCss(spec),
+    // v1.69: display-gamut classification + the OKLCH slice planes (gamut.ts).
+    // The brand studio's gamut charts and the Colour Lab tool both paint from
+    // `slice`, so the studio and the tool can never disagree about where sRGB
+    // ends. `gamut` takes a colour STRING like the rest of this API; the other
+    // two are numeric because they run per-pixel/per-row.
+    gamut: color => {
+      const o = toOklch(color);
+      return o ? oklchGamut(o.l, o.c, o.h) : 'none';
+    },
+    maxChroma: (l, h, limit = 'srgb') => maxChroma(l, h, limit),
+    slice: opts => oklchSlice(opts),
   };
 }

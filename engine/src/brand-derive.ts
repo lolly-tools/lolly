@@ -53,7 +53,10 @@ const apply3 = (m: Mat3, x: number, y: number, z: number): [number, number, numb
 // sRGB electro-optical transfer: encoded [0,1] → linear light [0,1].
 const srgbToLinear = (c: number): number =>
   c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-const linearToSrgb = (c: number): number =>
+/** Linear light [0,1] → encoded sRGB [0,1]. Exported for in-engine reuse
+ *  (gamut.ts encodes slice pixels directly, bypassing the gamut mapper's probe);
+ *  not part of the barrel surface. */
+export const linearToSrgb = (c: number): number =>
   c <= 0.0031308 ? 12.92 * c : 1.055 * c ** (1 / 2.4) - 0.055;
 
 // ─── Oklab core (Ottosson's reference matrices) ───────────────────────────────

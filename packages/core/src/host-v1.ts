@@ -245,6 +245,69 @@ export interface ColorAPI {
    * gradient that isn't muddy. Optional/additive (v1.68).
    */
   gradientCss?(spec: string): string | null;
+  /**
+   * The narrowest display gamut that can show this colour — `'srgb'`, `'p3'`,
+   * `'rec2020'`, or `'none'` when nothing can. Accepts the same hex /
+   * `oklch()` / `lch()` forms as the rest of this API.
+   *
+   * Use it to tell a user *why* a colour changed: `oklchToHex`-style mapping
+   * silently reduces chroma, and "outside sRGB, fine on a modern display" is a
+   * very different message from "no display can show this".
+   * Optional/additive (v1.69); feature-detect on older hosts.
+   */
+  gamut?(color: string): ColorGamut;
+  /**
+   * The highest chroma that still fits `limit` (default `'srgb'`) at this
+   * lightness (0–1, not the CSS percent) and hue (degrees).
+   *
+   * This is the real, hue-dependent ceiling — yellow carries far more chroma
+   * than blue — so it beats a fixed maximum for building even ramps or
+   * clamping a picker. Optional/additive (v1.69).
+   */
+  maxChroma?(l: number, h: number, limit?: Exclude<ColorGamut, 'none'>): number;
+  /**
+   * One 2D plane through OKLCH space as RGBA pixels, ready for
+   * `new ImageData(data, width)` — the gamut charts on oklch.com, as a
+   * primitive. Transparent outside `limit`; see {@link ColorSliceOptions} for
+   * the axis convention.
+   *
+   * Pixels beyond sRGB come back gamut-mapped, because the buffer is 8-bit
+   * sRGB — draw the boundary from `maxChroma` on top rather than trusting the
+   * fill's colour out there. Optional/additive (v1.69).
+   */
+  slice?(opts: ColorSliceOptions): ColorSliceImage;
+}
+
+/** Display gamuts, narrowest first; `'none'` is outside even Rec.2020. */
+export type ColorGamut = 'srgb' | 'p3' | 'rec2020' | 'none';
+
+/**
+ * Which plane {@link ColorAPI.slice} paints. In every name the FIRST letter is
+ * the vertical axis and the SECOND is the horizontal one:
+ *
+ *   'lc' — lightness (y, 1 at the top) × chroma (x, 0 at the left), at a fixed hue
+ *   'ch' — chroma    (y, 0 at the bottom) × hue (x, 0–360°), at a fixed lightness
+ *   'lh' — lightness (y, 1 at the top) × hue (x, 0–360°), at a fixed chroma
+ */
+export type ColorSlicePlane = 'lc' | 'ch' | 'lh';
+
+export interface ColorSliceOptions {
+  plane: ColorSlicePlane;
+  /** The third channel: hue° for 'lc', lightness 0–1 for 'ch', chroma for 'lh'. */
+  fixed: number;
+  width: number;
+  height: number;
+  /** Ceiling of the chroma axis. Default 0.4. */
+  cMax?: number;
+  /** Paint nothing beyond this gamut. Default 'rec2020'. */
+  limit?: Exclude<ColorGamut, 'none'>;
+}
+
+export interface ColorSliceImage {
+  /** RGBA bytes, row-major from the TOP row. */
+  data: Uint8ClampedArray;
+  width: number;
+  height: number;
 }
 
 /** Options for {@link ColorAPI.mix} (mirrors CSS Color 4 §12–13). */
