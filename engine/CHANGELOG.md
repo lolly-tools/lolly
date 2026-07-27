@@ -723,3 +723,66 @@ refusal is an onWarn plus the previous behaviour. Also recovers CSS gradients
 that carry alpha (Chromium encodes them as a one-cell tiling pattern whose body
 installs the alpha ramp as a mask), which the tiling collapse used to discard
 whole. No v1 method changed.
+
+1.64.0 — additive: `host.geom`, the tool-facing face of the vector geometry kernel
+(engine/src/geom/). New optional GeomAPI + `makeGeomApi()` in the new geom-api.ts,
+attached verbatim by the web and CLI/TUI bridges like `color`, so the surface cannot
+drift between shells. Path booleans over a whole selection (union / intersect /
+difference / xor, folded left to right, fill rule selectable, plus `selfUnion` for the
+canonical form of one path), `offset`, `stroke` (stroke-to-fill outline with SVG's own
+cap/join/miter-limit defaults), `fromNodes` + `continuity` (authored-spline lowering
+and the handle-drag constraint a pen tool runs on every drag), `encodeAuthored` /
+`decodeAuthored` (the authored path's WIRE form — one field value, delimiter-safe by
+construction so it survives the compact `blocks` URL format whose `,`/`~` separators
+cannot be escaped; on the bridge because an editor writes it, a tool's `hooks.js` reads
+it and neither may share code any other way. A value carries one path or SEVERAL,
+`*`-separated, because an `AuthoredPath` holds exactly one `nodes` run and a great many
+shapes are not one run — a boolean subtract punches a hole. `*` is unreserved under
+`encodeURIComponent`, is neither blocks delimiter, and no other production in the grammar
+can emit it, so a one-path value contains none and encodes to exactly the bytes the
+singular form always did. `decodeAuthored` therefore answers a LIST, always, of at least
+one path: handing back a bare path for the common case is how a caller ends up rendering
+the first contour of a holed shape and dropping the hole. The node ceiling is counted
+across the whole value, so N paths cannot multiply it, and a well-formed value past it
+answers `'too-large'` rather than `'invalid-argument'`), `simplify`, measurement
+(`bounds` / `area` / `contains` / `winding` / `nearest`, the last reporting the contour,
+curve and `t` a pen tool splits at to insert a node), and the structured seam
+(`parse` / `toPathData` / `limits`). Three contract decisions worth knowing:
+  • The currency is an SVG path-data STRING both ways. Tools cannot import `Cubic` or
+    `GeomPath`, and `d` is what already lives in their templates, state and URLs; the
+    structured form (whole cubics, 8 numbers each) is offered by `parse`/`toPathData`,
+    never required.
+  • Failures are RETURNED, not thrown: every method answers `{ ok: true, … }` or
+    `{ ok: false, code, message }`. A throw out of `onInit`/`onInput` is caught, logged
+    and DISCARDED by the runtime, so a kernel `GeomLimitError` would have made a pen
+    tool silently stop responding. The codes keep every distinction the kernel makes —
+    `'limit'` (the answer exists, this engine declines to guess at it) is never
+    conflated with `'invalid-path'` (malformed input), `'too-large'` (past the parse
+    ceilings), `'invalid-argument'`, `'unsupported'` (a declared-but-unimplemented
+    spline kind), or with `ok: true, d: ''`, which is a legitimately EMPTY region and
+    an answer rather than a failure. There is no degraded fallback anywhere in the API:
+    a tool is never handed a plausible-looking wrong path.
+  • `fromNodes` takes the spline `kind` as a plain string that the ENGINE validates, so
+    a spline family added in a later engine version reaches it through an unchanged
+    bridge.
+  Untrusted `d` strings (a paste, a URL param, an imported SVG) are the normal case, so
+  parsing is bounded and validating rather than lenient: `svg-path.ts`'s tokenizer is
+  built for the engine's own well-formed output and silently ignores garbage, so
+  geom-api validates the grammar first in one linear, recursion-free forward pass —
+  512k chars, 20k commands, 16k normalised curves, 64 operands, ±1e9 coordinates, a
+  required leading moveto, a known command vocabulary, argument runs that are a whole
+  number of groups, terminated number tokens, and a finiteness sweep over the
+  normalised output — and rejects rather than guesses. Q/T raise to cubics by exact
+  degree elevation and A decomposes by the spec's endpoint parameterisation (F.6.5,
+  radii scaled per F.6.6) into one cubic per ≤90° sweep, both unchanged from the shared
+  tokenizer. No v1 method changed.
+
+1.65.0 — additive: canvas time-field mappings (timeline time model) on the blocks
+input's `canvas` schema config — `startField`, `durField`, `clipInField`, `speedField`,
+`enterField`, `exitField`, `enterMsField`, `exitMsField`, `muteField`, `laneField`.
+These are pure schema/documentation additions (optional string properties naming
+which box sub-fields hold timing data), phase 1 of the Fable timeline editing work
+(`plans/fable-timeline-phase-1.md`) — inert until a shell mounts a timeline panel
+that reads them; a manifest declaring none of them, or a template rendering an
+untimed box, is byte-identical to before. No v1 method changed, no runtime behaviour
+changed by this entry alone.

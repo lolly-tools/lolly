@@ -1,7 +1,7 @@
 {
   "id": "layout-studio",
   "name": "Layout Studio",
-  "version": "1.6.0",
+  "version": "1.9.0",
   "engineVersion": "^1.12.0",
   "status": "community",
   "category": "designer",
@@ -101,11 +101,22 @@
         "blendField": "blend",
         "groupField": "group",
         "clipField": "clip",
+        "pathField": "path",
         "shadowField": "shadow",
         "shadowColorField": "shadowColor",
         "shadowXField": "shadowX",
         "shadowYField": "shadowY",
         "shadowBlurField": "shadowBlur",
+        "startField": "start",
+        "durField": "dur",
+        "clipInField": "clipIn",
+        "speedField": "speed",
+        "enterField": "enter",
+        "exitField": "exit",
+        "enterMsField": "enterMs",
+        "exitMsField": "exitMs",
+        "muteField": "mute",
+        "laneField": "lane",
         "minSize": 8,
         "import": {
           "formats": [
@@ -186,6 +197,22 @@
               "fit": "contain",
               "text": ""
             }
+          },
+          {
+            "id": "path",
+            "label": "Path",
+            "seed": {
+              "kind": "path",
+              "shape": "rect",
+              "bg": "",
+              "stroke": "#0e1217",
+              "strokeW": 4,
+              "fillRule": "nonzero",
+              "text": "",
+              "w": 400,
+              "h": 400,
+              "path": "1!catmull-rom!1_.5!0_1!.5_.5!1_0!.5"
+            }
           }
         ]
       },
@@ -213,6 +240,11 @@
             {
               "value": "image",
               "label": "Image",
+              "repeatable": true
+            },
+            {
+              "value": "path",
+              "label": "Path",
               "repeatable": true
             }
           ]
@@ -690,6 +722,348 @@
           "label": "Shrink text to fit",
           "default": false,
           "help": "Automatically shrink the text so it fits inside the box (shrink-only — never larger than the set size). Off by default, so the box grows to the text instead."
+        },
+        {
+          "id": "path",
+          "type": "text",
+          "default": "",
+          "showFor": [],
+          "help": "A vector path box's authored path (nodes, handles and spline kind), encoded by host.geom.encodeAuthored. Written by the pen tool and read by the hook; showFor:[] keeps it out of the sidebar because it is machine-written, never typed. Coordinates are fractions of the box frame, so move/resize/rotate act on it through x/y/w/h/rot."
+        },
+        {
+          "id": "stroke",
+          "type": "color",
+          "label": "Stroke",
+          "default": "",
+          "showFor": [
+            "path"
+          ]
+        },
+        {
+          "id": "strokeW",
+          "type": "number",
+          "label": "Stroke width",
+          "default": 0,
+          "min": 0,
+          "max": 400,
+          "showFor": [
+            "path"
+          ]
+        },
+        {
+          "id": "fillRule",
+          "type": "select",
+          "label": "Fill rule",
+          "default": "nonzero",
+          "showFor": [
+            "path"
+          ],
+          "options": [
+            {
+              "value": "nonzero",
+              "label": "Non-zero"
+            },
+            {
+              "value": "evenodd",
+              "label": "Even-odd"
+            }
+          ]
+        },
+        {
+          "id": "start",
+          "showFor": [],
+          "type": "number",
+          "label": "Start (s)",
+          "default": "",
+          "help": "Seconds into the timeline this box appears — empty means it's always visible (scenery)."
+        },
+        {
+          "id": "dur",
+          "showFor": [],
+          "type": "number",
+          "label": "Duration (s)",
+          "default": "",
+          "help": "How many seconds this box stays visible for — empty means it stays to the end."
+        },
+        {
+          "id": "clipIn",
+          "showFor": [],
+          "type": "number",
+          "label": "Trim in (s)",
+          "default": 0,
+          "min": 0,
+          "help": "Seconds to trim off the start of this box's own media (video/audio/lottie) before it plays."
+        },
+        {
+          "id": "speed",
+          "showFor": [],
+          "type": "number",
+          "label": "Speed",
+          "default": 1,
+          "min": 0.25,
+          "max": 4,
+          "step": 0.05,
+          "help": "Playback speed multiplier for this box's media."
+        },
+        {
+          "id": "enter",
+          "showFor": [],
+          "type": "select",
+          "label": "Animate in",
+          "default": "none",
+          "options": [
+            {
+              "value": "fade",
+              "label": "Fade"
+            },
+            {
+              "value": "pop",
+              "label": "Pop"
+            },
+            {
+              "value": "grow",
+              "label": "Grow"
+            },
+            {
+              "value": "rise",
+              "label": "Rise"
+            },
+            {
+              "value": "drop",
+              "label": "Drop"
+            },
+            {
+              "value": "slide-left",
+              "label": "Slide from right"
+            },
+            {
+              "value": "slide-right",
+              "label": "Slide from left"
+            },
+            {
+              "value": "slide-up",
+              "label": "Slide from below"
+            },
+            {
+              "value": "slide-down",
+              "label": "Slide from above"
+            },
+            {
+              "value": "zoom-in",
+              "label": "Zoom in"
+            },
+            {
+              "value": "zoom-out",
+              "label": "Zoom out"
+            },
+            {
+              "value": "tilt",
+              "label": "Tilt"
+            },
+            {
+              "value": "swoop",
+              "label": "Swoop"
+            },
+            {
+              "value": "spin",
+              "label": "Spin"
+            },
+            {
+              "value": "drift",
+              "label": "Drift"
+            },
+            {
+              "value": "none",
+              "label": "Cut (no animation)"
+            }
+          ]
+        },
+        {
+          "id": "exit",
+          "showFor": [],
+          "type": "select",
+          "label": "Animate out",
+          "default": "none",
+          "options": [
+            {
+              "value": "fade",
+              "label": "Fade"
+            },
+            {
+              "value": "pop",
+              "label": "Pop"
+            },
+            {
+              "value": "grow",
+              "label": "Grow"
+            },
+            {
+              "value": "rise",
+              "label": "Rise"
+            },
+            {
+              "value": "drop",
+              "label": "Drop"
+            },
+            {
+              "value": "slide-left",
+              "label": "Slide from right"
+            },
+            {
+              "value": "slide-right",
+              "label": "Slide from left"
+            },
+            {
+              "value": "slide-up",
+              "label": "Slide from below"
+            },
+            {
+              "value": "slide-down",
+              "label": "Slide from above"
+            },
+            {
+              "value": "zoom-in",
+              "label": "Zoom in"
+            },
+            {
+              "value": "zoom-out",
+              "label": "Zoom out"
+            },
+            {
+              "value": "tilt",
+              "label": "Tilt"
+            },
+            {
+              "value": "swoop",
+              "label": "Swoop"
+            },
+            {
+              "value": "spin",
+              "label": "Spin"
+            },
+            {
+              "value": "drift",
+              "label": "Drift"
+            },
+            {
+              "value": "none",
+              "label": "Cut (no animation)"
+            }
+          ]
+        },
+        {
+          "id": "enterMs",
+          "showFor": [],
+          "type": "number",
+          "label": "In duration (ms)",
+          "default": 400,
+          "min": 100,
+          "max": 3000,
+          "step": 50
+        },
+        {
+          "id": "exitMs",
+          "showFor": [],
+          "type": "number",
+          "label": "Out duration (ms)",
+          "default": 400,
+          "min": 100,
+          "max": 3000,
+          "step": 50
+        },
+        {
+          "id": "mute",
+          "showFor": [],
+          "type": "boolean",
+          "label": "Mute audio",
+          "default": false
+        },
+        {
+          "id": "lane",
+          "showFor": [],
+          "type": "select",
+          "label": "Lane",
+          "default": "",
+          "options": [
+            {
+              "value": "",
+              "label": "Overlay"
+            },
+            {
+              "value": "seq",
+              "label": "Sequence"
+            }
+          ]
+        },
+        {
+          "id": "strokeDash",
+          "type": "select",
+          "label": "Stroke style",
+          "default": "",
+          "showFor": [
+            "path"
+          ],
+          "options": [
+            {
+              "value": "",
+              "label": "Solid"
+            },
+            {
+              "value": "dashed",
+              "label": "Dashed"
+            },
+            {
+              "value": "dotted",
+              "label": "Dotted"
+            }
+          ],
+          "help": "Solid, dashed or dotted. The dash pattern is derived from the stroke width, so it keeps its proportions when the width changes."
+        },
+        {
+          "id": "strokeCap",
+          "type": "select",
+          "label": "Line ends",
+          "default": "round",
+          "showFor": [
+            "path"
+          ],
+          "options": [
+            {
+              "value": "round",
+              "label": "Round"
+            },
+            {
+              "value": "butt",
+              "label": "Flat"
+            },
+            {
+              "value": "square",
+              "label": "Square"
+            }
+          ]
+        },
+        {
+          "id": "strokeJoin",
+          "type": "select",
+          "label": "Corners",
+          "default": "round",
+          "showFor": [
+            "path"
+          ],
+          "options": [
+            {
+              "value": "round",
+              "label": "Round"
+            },
+            {
+              "value": "miter",
+              "label": "Sharp"
+            },
+            {
+              "value": "bevel",
+              "label": "Bevelled"
+            }
+          ]
         }
       ],
       "default": [

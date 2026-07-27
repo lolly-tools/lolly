@@ -1,6 +1,7 @@
-<div class="artboard" style="background:{{lookup bgStyle 0}}">
+<div class="artboard" style="background:{{lookup bgStyle 0}}"{{{lookup seqAttrs 0}}}>
   {{#each boxes}}
-  <div class="lolly-box" data-canvas-input="boxes:{{@index}}" data-box-id="{{default id @index}}" data-fit="{{lookup ../boxFit @index}}" style="{{lookup ../boxStyle @index}}">
+  <div class="lolly-box" data-canvas-input="boxes:{{@index}}" data-box-id="{{default id @index}}" data-fit="{{lookup ../boxFit @index}}" style="{{lookup ../boxStyle @index}}"{{{lookup ../timeAttrs @index}}}>
+    {{{lookup ../pathHtml @index}}}
     {{{lookup ../mediaHtml @index}}}
     <div class="lolly-box-text" style="{{lookup ../textStyle @index}}">{{{lookup ../textHtml @index}}}</div>
   </div>

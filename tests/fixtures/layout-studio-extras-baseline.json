@@ -1,0 +1,65 @@
+{
+  "boxStyle": [
+    "left:0px;top:0px;width:1080px;height:1080px;background:#ffffff;border-radius:0;justify-content:center;align-items:center;",
+    "left:700px;top:-220px;width:680px;height:680px;transform:rotate(18deg);opacity:0.6;mix-blend-mode:multiply;background:#d1e7ff;border-radius:50%;justify-content:center;align-items:center;",
+    "left:40px;top:60px;width:300px;height:180px;transform:rotate(-7.2deg);background:rgb(10, 20, 30);border-radius:24px;justify-content:center;align-items:center;clip-path:polygon(1304.5px 312.54px,1282.94px 351.44px,1256.49px 387.19px,1225.59px 419.18px,1190.79px 446.87px,1152.67px 469.77px,1111.88px 487.51px,1069.13px 499.77px,1025.14px 506.34px,980.68px 507.12px,936.49px 502.08px,893.34px 491.32px,851.96px 475.02px,813.06px 453.46px,777.31px 427.01px,745.32px 396.11px,717.63px 361.31px,694.72px 323.19px,676.99px 282.4px,664.73px 239.65px,658.16px 195.66px,657.38px 151.2px,662.42px 107.01px,673.18px 63.86px,689.48px 22.48px,711.04px -16.42px,737.49px -52.17px,768.39px -84.17px,803.19px -111.85px,841.31px -134.76px,882.1px -152.49px,924.85px -164.75px,968.84px -171.32px,1013.3px -172.1px,1057.49px -167.06px,1100.64px -156.31px,1142.02px -140.01px,1180.92px -118.44px,1216.67px -91.99px,1248.66px -61.1px,1276.35px -26.29px,1299.26px 11.83px,1316.99px 52.62px,1329.25px 95.37px,1335.82px 139.35px,1336.6px 183.82px,1331.56px 228.01px,1320.8px 271.16px);box-shadow:4px 6px 12px #00000055;",
+    "left:10px;top:900px;width:400px;height:90px;background:tomato;border-radius:9999px;justify-content:flex-end;align-items:flex-end;",
+    "left:120px;top:430px;width:840px;height:280px;background:transparent;border-radius:0;justify-content:flex-start;align-items:flex-start;",
+    "left:120px;top:735px;width:840px;height:120px;background:transparent;border-radius:0;justify-content:center;align-items:center;",
+    "left:500px;top:100px;width:200px;height:200px;background:transparent;border-radius:0px;justify-content:center;align-items:center;filter:drop-shadow(0px 0px 10px #00000055);",
+    "left:500px;top:320px;width:200px;height:200px;background:transparent;border-radius:0;justify-content:center;align-items:center;",
+    "left:500px;top:540px;width:200px;height:200px;background:transparent;border-radius:50%;justify-content:center;align-items:center;",
+    "left:1px;top:2px;width:3px;height:4px;background:transparent;border-radius:0;justify-content:center;align-items:center;"
+  ],
+  "textStyle": [
+    "text-align:center;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;",
+    "text-align:center;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;",
+    "text-align:center;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;",
+    "text-align:right;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;",
+    "text-align:left;color:#0e1217;font-family:var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(92px * var(--fit, 1));font-weight:700;line-height:1.1;padding:16px;letter-spacing:2.5px;font-feature-settings:\"liga\" 0, \"clig\" 0, \"salt\" 1;text-shadow:0px 0px 10px #00000055;",
+    "text-align:center;color:#5c646d;font-family:'Custom Family', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(34px * var(--fit, 1));font-weight:900;line-height:1.3;padding:8px;",
+    "text-align:center;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;",
+    "text-align:center;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;",
+    "text-align:center;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;",
+    "text-align:center;color:#0e1217;font-family:'undefined', var(--font-brand, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif);font-size:calc(48px * var(--fit, 1));font-weight:700;line-height:1.12;padding:8px;"
+  ],
+  "textHtml": [
+    "",
+    "",
+    "",
+    "",
+    "Design once,\n<span style=\"color:#4f84ba;font-weight:600;font-family:var(--font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);text-decoration:underline\">ship <strong>everywhere</strong></span>\n•  a bullet\n1.  ordered",
+    "Your brand, on every canvas. 5 * 3 _ 2",
+    "",
+    "",
+    "",
+    "&lt;img src=x onerror=alert(1)&gt;"
+  ],
+  "mediaHtml": [
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "<img class=\"lolly-box-img\" src=\"https://ex.test/a.png\" style=\"object-fit:cover;object-position:left top;\" alt=\"\" draggable=\"false\">",
+    "<div class=\"lolly-box-img lolly-box-lottie\" data-lottie-src=\"https://ex.test/a.json\" data-lottie-loop=\"1\" data-lottie-autoplay=\"1\" data-lottie-fit=\"cover\" style=\"object-fit:cover;\"></div>",
+    "<video class=\"lolly-box-img lolly-box-video\" src=\"https://ex.test/a.mp4\" data-video-key=\"vid\" muted loop autoplay playsinline style=\"object-fit:contain;\"></video>",
+    ""
+  ],
+  "boxFit": [
+    "",
+    "",
+    "",
+    "",
+    "1",
+    "",
+    "",
+    "",
+    "",
+    ""
+  ],
+  "bgStyle": [
+    "#eef1f0"
+  ]
+}

@@ -66,15 +66,18 @@ test('a `circle` add-kind exists and seeds a square box', () => {
   assert.equal(kind.seed.w, kind.seed.h, 'the seed is square');
 });
 
-test('a `fitText` boolean field exists (default off) and is LAST in the wire order', () => {
+test('a `fitText` boolean field exists (default off) and keeps its wire SLOT', () => {
   const fields = boxSubFields();
   const fit = fields.find(f => f.id === 'fitText');
   assert.ok(fit, 'boxes has a `fitText` sub-field');
   assert.equal(fit.type, 'boolean');
   assert.equal(fit.default, false, 'off by default — grow-to-fit stays the norm');
-  // Compact block URLs encode fields positionally, so a new field MUST be appended last,
-  // never inserted mid-array (that would shift every later field's slot). Guard it.
-  assert.equal(fields[fields.length - 1].id, 'fitText', 'fitText is the final field (wire order locked)');
+  // Compact block URLs encode fields POSITIONALLY, so the invariant is the slot, not
+  // "last": a later field may be appended after this one (the path-box fields were, in
+  // engine 1.64), but nothing may be inserted before it or every link already shared
+  // decodes into shifted columns. fitText was the 35th field when it landed and must
+  // stay the 35th forever.
+  assert.equal(fields.indexOf(fit), 34, 'fitText moved slot (wire order locked)');
 });
 
 test('canvas config maps fitTextField → fitText', () => {

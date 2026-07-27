@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-26T07:10:40.308Z",
+  "generatedAt": "2026-07-27T10:33:52.623Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -1966,7 +1966,7 @@
     {
       "id": "layout-studio",
       "name": "Layout Studio",
-      "version": "1.6.0",
+      "version": "1.9.0",
       "status": "community",
       "category": "designer",
       "formats": [
@@ -4527,6 +4527,590 @@
         "zh": {
           "name": "嵌入并追踪图像",
           "description": "在分享之前，将你的作者信息、版权和许可证盖印到任意图像中 - 同时加入不可见的 Lolly Imprint 和 Content Credentials。"
+        }
+      }
+    },
+    {
+      "id": "sequence-studio",
+      "name": "Sequence Studio",
+      "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+      "version": "1.1.0",
+      "status": "community",
+      "category": "everyone",
+      "new": true,
+      "formats": [
+        "png",
+        "mp4",
+        "webm",
+        "gif",
+        "apng"
+      ],
+      "width": 1920,
+      "height": 1080,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"6\" width=\"9\" height=\"5\" rx=\"1\" /><rect x=\"13\" y=\"6\" width=\"9\" height=\"5\" rx=\"1\" /><rect x=\"2\" y=\"14\" width=\"14\" height=\"4\" rx=\"1\" /><path d=\"M18 3v18\" /></svg>",
+      "preview": "/catalog/previews/sequence-studio.svg",
+      "featured": {
+        "order": 3,
+        "blurb": "Cut clips, cards and music on a timeline"
+      },
+      "examples": [
+        {
+          "label": "Launch teaser",
+          "values": {
+            "orientation": "landscape",
+            "background": "#0b1220",
+            "boxes": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "hook",
+                "w": 1920,
+                "h": 1080,
+                "bg": "#0b1220",
+                "text": "Three days to go",
+                "fg": "#8fb3ff",
+                "fontSize": 104,
+                "weight": "600",
+                "start": 0,
+                "dur": 2,
+                "exit": "fade",
+                "exitMs": 500
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "reveal",
+                "w": 1920,
+                "h": 1080,
+                "bg": "#10243a",
+                "text": "Something new\nis coming",
+                "fg": "#e8f0ff",
+                "fontSize": 128,
+                "weight": "700",
+                "start": 2,
+                "dur": 2.4,
+                "enter": "rise",
+                "enterMs": 500,
+                "exit": "fade",
+                "exitMs": 400
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "cta",
+                "w": 1920,
+                "h": 1080,
+                "bg": "#f3f6fb",
+                "text": "**Launch day**\nFriday",
+                "fg": "#0b1220",
+                "fontSize": 120,
+                "weight": "700",
+                "start": 4.4,
+                "dur": 2.6,
+                "enter": "fade",
+                "enterMs": 500
+              },
+              {
+                "kind": "text",
+                "id": "lower",
+                "x": 120,
+                "y": 812,
+                "w": 900,
+                "h": 132,
+                "rot": 0,
+                "shape": "pill",
+                "bg": "#0b1220",
+                "text": "lolly.tools",
+                "fg": "#8fb3ff",
+                "fontSize": 52,
+                "align": "center",
+                "valign": "middle",
+                "weight": "600",
+                "font": "sans",
+                "lineHeight": 1.2,
+                "pad": 32,
+                "start": 4.6,
+                "dur": 2.4,
+                "enter": "rise",
+                "enterMs": 450,
+                "exit": "fade",
+                "exitMs": 300
+              }
+            ]
+          }
+        },
+        {
+          "label": "Three steps",
+          "values": {
+            "orientation": "portrait",
+            "background": "#fdf6ec",
+            "boxes": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "s1",
+                "w": 1080,
+                "h": 1920,
+                "bg": "#fdf6ec",
+                "text": "**1**\nWarm the pan",
+                "fg": "#3a2a17",
+                "fontSize": 116,
+                "weight": "600",
+                "start": 0,
+                "dur": 2,
+                "exit": "slide-left",
+                "exitMs": 400
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "s2",
+                "w": 1080,
+                "h": 1920,
+                "bg": "#f6e6cd",
+                "text": "**2**\nFold it twice",
+                "fg": "#3a2a17",
+                "fontSize": 116,
+                "weight": "600",
+                "start": 2,
+                "dur": 2,
+                "enter": "slide-right",
+                "enterMs": 400,
+                "exit": "slide-left",
+                "exitMs": 400
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "s3",
+                "w": 1080,
+                "h": 1920,
+                "bg": "#e8d3ad",
+                "text": "**3**\nRest, then serve",
+                "fg": "#3a2a17",
+                "fontSize": 116,
+                "weight": "600",
+                "start": 4,
+                "dur": 2.4,
+                "enter": "slide-right",
+                "enterMs": 400
+              },
+              {
+                "kind": "text",
+                "id": "kicker",
+                "x": 90,
+                "y": 150,
+                "w": 900,
+                "h": 120,
+                "rot": 0,
+                "shape": "rounded",
+                "radius": 14,
+                "bg": "#3a2a17",
+                "text": "Weeknight omelette",
+                "fg": "#fdf6ec",
+                "fontSize": 54,
+                "align": "center",
+                "valign": "middle",
+                "weight": "600",
+                "font": "sans",
+                "lineHeight": 1.2,
+                "pad": 28
+              }
+            ]
+          }
+        },
+        {
+          "label": "Quote cutaway",
+          "values": {
+            "orientation": "square",
+            "background": "#111417",
+            "boxes": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "setup",
+                "w": 1080,
+                "h": 1080,
+                "bg": "#111417",
+                "text": "We asked one question.",
+                "fg": "#9aa7b2",
+                "fontSize": 78,
+                "weight": "500",
+                "start": 0,
+                "dur": 1.8,
+                "exit": "fade",
+                "exitMs": 400
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "quote",
+                "w": 1080,
+                "h": 1080,
+                "bg": "#1b2228",
+                "text": "\"It just felt\nlike ours.\"",
+                "fg": "#f2f5f7",
+                "fontSize": 104,
+                "weight": "700",
+                "start": 1.8,
+                "dur": 3.2,
+                "enter": "zoom-in",
+                "enterMs": 600,
+                "exit": "fade",
+                "exitMs": 400
+              },
+              {
+                "kind": "text",
+                "id": "attrib",
+                "x": 90,
+                "y": 830,
+                "w": 900,
+                "h": 110,
+                "rot": 0,
+                "shape": "rect",
+                "bg": "transparent",
+                "text": "Ada, three months in",
+                "fg": "#7fd6a8",
+                "fontSize": 44,
+                "align": "center",
+                "valign": "middle",
+                "weight": "500",
+                "font": "sans",
+                "lineHeight": 1.2,
+                "pad": 8,
+                "start": 2.4,
+                "dur": 2.6,
+                "enter": "rise",
+                "enterMs": 450,
+                "exit": "fade",
+                "exitMs": 300
+              }
+            ]
+          }
+        },
+        {
+          "label": "Feature tour",
+          "values": {
+            "orientation": "landscape",
+            "background": "#0f1a17",
+            "boxes": [
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "a",
+                "w": 1920,
+                "h": 1080,
+                "bg": "#0f1a17",
+                "text": "Fast",
+                "fg": "#4ade80",
+                "fontSize": 180,
+                "weight": "700",
+                "start": 0,
+                "dur": 1.6,
+                "exit": "pop",
+                "exitMs": 350
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "b",
+                "w": 1920,
+                "h": 1080,
+                "bg": "#132a22",
+                "text": "Private",
+                "fg": "#6ee7b7",
+                "fontSize": 180,
+                "weight": "700",
+                "start": 1.6,
+                "dur": 1.6,
+                "enter": "pop",
+                "enterMs": 350,
+                "exit": "pop",
+                "exitMs": 350
+              },
+              {
+                "kind": "box",
+                "x": 0,
+                "y": 0,
+                "rot": 0,
+                "shape": "rect",
+                "align": "center",
+                "valign": "middle",
+                "font": "sans",
+                "lineHeight": 1.1,
+                "lane": "seq",
+                "id": "c",
+                "w": 1920,
+                "h": 1080,
+                "bg": "#17372c",
+                "text": "Yours",
+                "fg": "#a7f3d0",
+                "fontSize": 180,
+                "weight": "700",
+                "start": 3.2,
+                "dur": 2.2,
+                "enter": "pop",
+                "enterMs": 350
+              },
+              {
+                "kind": "text",
+                "id": "strap",
+                "x": 0,
+                "y": 690,
+                "w": 1920,
+                "h": 120,
+                "rot": 0,
+                "shape": "rect",
+                "bg": "transparent",
+                "text": "Every tool runs on your device",
+                "fg": "#d1fae5",
+                "fontSize": 56,
+                "align": "center",
+                "valign": "middle",
+                "weight": "500",
+                "font": "sans",
+                "lineHeight": 1.2,
+                "pad": 8,
+                "start": 3.4,
+                "dur": 2,
+                "enter": "fade",
+                "enterMs": 500
+              },
+              {
+                "kind": "text",
+                "id": "mark",
+                "x": 1500,
+                "y": 72,
+                "w": 340,
+                "h": 84,
+                "rot": 0,
+                "shape": "rect",
+                "bg": "transparent",
+                "text": "lolly.tools",
+                "fg": "#4ade80",
+                "fontSize": 40,
+                "align": "right",
+                "valign": "middle",
+                "weight": "600",
+                "font": "sans",
+                "lineHeight": 1.2,
+                "pad": 8
+              }
+            ]
+          }
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "bg": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "bn": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "cs": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "de": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "es": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "fr": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "hi": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "id": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "it": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "ja": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "ko": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "ms": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "nl": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "no": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "pl": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "pt": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "ro": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "sv": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "tl": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "tr": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "uk": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "ur": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "vi": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "zh-hant": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
+        },
+        "zh": {
+          "name": "Sequence Studio",
+          "description": "Arrange clips, cards, overlays and music on a timeline, then export the frame.",
+          "blurb": "Cut clips, cards and music on a timeline"
         }
       }
     }
