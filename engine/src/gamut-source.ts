@@ -192,6 +192,39 @@ export function resolveGamutSource(limit: GamutLimit): GamutSource {
  * previous gamut's fill. Key on this instead.
  */
 /**
+ * A membership test for one of the three built-in gamuts with everything hoisted
+ * out of the loop — or null for any other source.
+ *
+ * `contains` on a source is the right general shape, but it is the wrong thing to
+ * call 400,000 times: the call site is megamorphic (a source may be ICC-backed, so
+ * nothing inlines), it re-compares the gamut NAME per pixel, and it re-runs the
+ * domain guard per pixel. Measured on the slice painter that cost ~2x per pixel
+ * against the pre-abstraction arithmetic.
+ *
+ * The domain guard is deliberately NOT applied here. Every caller of this is a
+ * generator that computes l/c/h itself from a plane and a chroma ceiling, so the
+ * values are finite and in range by construction. A caller passing values from
+ * anywhere else must use `contains`.
+ */
+export function fastRgbContains(
+  src: GamutSource,
+): ((l: number, c: number, h: number) => boolean) | null {
+  const m = src === P3_SOURCE ? SRGB_TO_P3 : src === REC2020_SOURCE ? SRGB_TO_REC2020 : null;
+  if (src === SRGB_SOURCE) {
+    return (l, c, h) => {
+      const hr = (h * Math.PI) / 180;
+      return inUnitCube(oklabToLinearSrgb(l, c * Math.cos(hr), c * Math.sin(hr)));
+    };
+  }
+  if (!m) return null;
+  return (l, c, h) => {
+    const hr = (h * Math.PI) / 180;
+    const lin = oklabToLinearSrgb(l, c * Math.cos(hr), c * Math.sin(hr));
+    return inUnitCube(apply3(m, lin[0], lin[1], lin[2]));
+  };
+}
+
+/**
  * Linear sRGB → linear Display-P3.
  *
  * Exported so an ENCODER (oklchSlice writing bytes for a `display-p3` canvas) uses

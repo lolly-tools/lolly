@@ -936,3 +936,12 @@ first, and it means "this profile can answer a membership question under this in
 which needs the REVERSE transform, not merely a tag for the intent (`iccGamutIntent`), so
 the abstract profiles that carry A2B0 alone report false instead of an empty gamut behind
 a valid label.
+
+Pure additions since, no version bump (the `HostV1` contract is untouched, so there is
+no minor to name): `fastRgbContains` in `src/gamut-source.ts` — a built-in gamut's
+membership test with the name comparison and the domain guard hoisted out of the loop,
+for the per-pixel callers — and `src/gamut-tier.ts` (`gamutTier`, `gamutTierProbe`,
+`BEYOND_TIER`, `GAMUT_TIER_LADDER`), which answers "which ring OUT of the active gamut"
+so the picker's broken tracks and the Colour Lab sliders paint the unreachable stretches
+as concentric washes from one classifier instead of two. A tier is always a `contains`
+answer, never an index into an ordering: Display-P3 is not inside Rec.2020.
