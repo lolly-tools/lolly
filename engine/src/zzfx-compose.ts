@@ -386,3 +386,61 @@ function withoutRandomness(inst: ZzfxInstrument): ZzfxInstrument {
   out[1] = 0;
   return out;
 }
+
+/**
+ * The archetypes the SEED may choose from.
+ *
+ * A deliberate subset of the twelve: these are the ones that read as a bed under
+ * speech and picture. The other four (drum'n'bass, jungle, classical, spanish
+ * guitar) are reachable only by naming them as an explicit `<style>`. This list
+ * and its order are FROZEN — changing either would repoint every existing seed
+ * at a different tune, which is the one thing this whole scheme exists to
+ * prevent. This is the only copy of the list — the web shell's export bar calls
+ * `generatedSongSpec` rather than re-deriving the draw, so there is no second
+ * table that could drift out of step with it.
+ */
+const ZZFXM_SEEDED_ARCHETYPES = [
+  'melodic', 'ambient', 'lofi', 'bossaNova', 'rhythmic', 'whimsical', 'chiptune', 'cuban',
+] as const;
+
+/** Tempo window per archetype, in BPM. Frozen for the same reason as the list above. */
+const ZZFXM_BPM: Record<Archetype, readonly [number, number]> = {
+  melodic: [60, 84], ambient: [48, 60], lofi: [66, 84], bossaNova: [108, 126],
+  rhythmic: [96, 120], whimsical: [84, 108], chiptune: [132, 160], cuban: [96, 116],
+  drumAndBass: [160, 176], jungle: [158, 174], classical: [72, 96], spanishGuitar: [90, 120],
+};
+
+/** Scales the seed may choose from. Frozen (see above). */
+const ZZFXM_SCALES = ['majorPent', 'minorPent', 'suspended'] as const;
+
+/**
+ * Seed → song spec. TOTALLY determined by (seed, targetSec, style).
+ *
+ * Every draw comes from one `mulberry32(seed)` stream, consumed in a FIXED order
+ * — archetype, scale, tempo, three progression roots, pan — and a named `style`
+ * overrides only the archetype AFTER its draw has happened, so naming a style
+ * never shifts the rest of the stream. That is what lets `zzfxm:7` and
+ * `zzfxm:7:lofi` share a progression while differing in arrangement.
+ *
+ * Engine-side rather than shell-side because every shell that resolves a
+ * `zzfxm:<seed>` ref has to reach the SAME song: a second copy would drift and
+ * the browser and the CLI would render different music from one id.
+ */
+export function generatedSongSpec(seed: number, targetSec: number, style?: Archetype): SongSpec {
+  const rng = mulberry32(seed >>> 0);
+  const pick = <T>(a: readonly T[]): T => a[Math.floor(rng() * a.length)] as T;
+  // The draw happens EVEN WHEN it is about to be overridden — the stream's
+  // position is part of the contract, so naming a style must not shift the scale,
+  // the progression or the pan out from under a seed.
+  const drawn: Archetype = pick(ZZFXM_SEEDED_ARCHETYPES);
+  const archetype: Archetype = style ?? drawn;
+  const scale = pick(ZZFXM_SCALES);
+  const pool = SCALES[scale].slice(0, 6);   // low register — melodies walk upward from the roots
+  const [lo, hi] = ZZFXM_BPM[archetype];
+  return {
+    archetype, seed: seed >>> 0, scale, targetSec,
+    bpm: Math.round(lo + rng() * (hi - lo)),
+    roots: [12, pick(pool), pick(pool), pick(pool)],
+    pan: Math.round((rng() - 0.5) * 30) / 100,
+  };
+}

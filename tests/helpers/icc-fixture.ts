@@ -19,6 +19,8 @@ export const ascii = (s: string): number[] => [...s].map((c) => c.charCodeAt(0))
 /** Assemble a profile from tag elements, laying each out 4-byte aligned. */
 export function buildProfile(opts: {
   major?: number;
+  /** The version's BCD minor byte (0x40 → x.4.0). Defaults to 0. */
+  bcd?: number;
   deviceClass?: string;
   space?: string;
   pcs?: string;
@@ -26,7 +28,7 @@ export function buildProfile(opts: {
 }): Uint8Array {
   const major = opts.major ?? 2;
   const header = new Array<number>(128).fill(0);
-  header.splice(8, 4, major, 0x00, 0, 0);
+  header.splice(8, 4, major, opts.bcd ?? 0x00, 0, 0);
   header.splice(12, 4, ...ascii(opts.deviceClass ?? 'prtr'));
   header.splice(16, 4, ...ascii(opts.space ?? 'RGB '));
   header.splice(20, 4, ...ascii(opts.pcs ?? 'Lab '));
@@ -102,4 +104,48 @@ export function mab(nIn: number, nOut: number, node: number[]): number[] {
 export const oneWayProfileBytes = (): Uint8Array => buildProfile({
   deviceClass: 'prtr', space: 'CMYK',
   tags: [['A2B0', mft2(4, 3, [0x8000, 0x8080, 0x8080])]],
+});
+
+/** A v2 `desc` (textDescriptionType) tag carrying an ASCII description. */
+export const descTag = (text: string): number[] => [
+  ...ascii('desc'), 0, 0, 0, 0,
+  ...u32(text.length + 1), ...ascii(text), 0,
+  ...new Array<number>(78).fill(0),          // unicode + scriptcode fields, all empty
+];
+
+/**
+ * A `targ` (characterizationTarget) tag holding a CGATS header — the in-file
+ * testimony `iccCharacterization` reads. `charData` becomes FILE_DESCRIPTOR, the
+ * field a press profile states its characterization data set in (`FOGRA51`).
+ */
+export const targTag = (charData: string, extra = ''): number[] => {
+  const body = 'ISO28178\n'
+    + 'ORIGINATOR\t"Synthetic, tests/helpers/icc-fixture.ts"\n'
+    + `FILE_DESCRIPTOR\t"${charData}"\n`
+    + 'CREATED\t"July 2026"\n'
+    + extra;
+  return [...ascii('text'), 0, 0, 0, 0, ...ascii(body), 0];
+};
+
+/**
+ * A press profile the PDF/X embed path would accept: `prtr`, CMYK, four
+ * channels, both directions present, a `desc`, and optionally the `targ` tag that
+ * pairs it with a named press condition.
+ */
+export const pressProfileBytes = (opts: {
+  desc?: string; charData?: string | null;
+  space?: string; deviceClass?: string; major?: number; bcd?: number;
+} = {}): Uint8Array => buildProfile({
+  deviceClass: opts.deviceClass ?? 'prtr',
+  space: opts.space ?? 'CMYK',
+  major: opts.major,
+  bcd: opts.bcd,
+  tags: [
+    ['desc', descTag(opts.desc ?? 'Synthetic Coated')],
+    ['wtpt', xyzTag(0.9642, 1, 0.8249)],
+    ['A2B0', mft2((opts.space ?? 'CMYK').trim() === 'RGB' ? 3 : 4, 3, [0x8000, 0x8080, 0x8080])],
+    ['A2B1', mft2((opts.space ?? 'CMYK').trim() === 'RGB' ? 3 : 4, 3, [0x8000, 0x8080, 0x8080])],
+    ['B2A1', mft2(3, (opts.space ?? 'CMYK').trim() === 'RGB' ? 3 : 4, new Array((opts.space ?? 'CMYK').trim() === 'RGB' ? 3 : 4).fill(0x4000))],
+    ...(opts.charData ? [['targ', targTag(opts.charData)] as [string, number[]]] : []),
+  ],
 });

@@ -156,6 +156,22 @@ export function buildPdfXXmp(opts: PdfXXmpOptions = {}): string {
 export interface PdfXOutputIntentOptions {
   /** override the human-readable Info string */
   info?: string;
+  /**
+   * Embedded destination-profile bytes. The engine NEVER reads a profile store —
+   * a caller that has the bytes (the web shell's on-device profile library)
+   * supplies them, and a caller that has none (the CLI) passes nothing.
+   */
+  iccBytes?: Uint8Array | null;
+  /** The profile's REAL channel count → the stream's /N. Required with iccBytes. */
+  components?: number;
+  /**
+   * Override OutputConditionIdentifier. `'Custom'` is the standard's own spelling
+   * for "the condition is the one the embedded profile describes, and it names no
+   * registered characterization".
+   */
+  identifier?: string;
+  /** null omits RegistryName entirely — a Custom identity names no registry. */
+  registry?: string | null;
 }
 
 /** The OutputIntent descriptor a PDF/X-4 export should carry. */
@@ -163,7 +179,8 @@ export interface PdfXOutputIntentSpec {
   subtype: string;
   identifier: string;
   info: string;
-  registry: string;
+  /** null → the shell writes no RegistryName key. */
+  registry: string | null;
   iccBytes: Uint8Array | null;
   components: number;
 }
@@ -171,15 +188,20 @@ export interface PdfXOutputIntentSpec {
 /**
  * Describe the OutputIntent a PDF/X-4 export should carry; the shell maps the
  * fields onto pdf-lib objects (S ← subtype, OutputConditionIdentifier ←
- * identifier, Info ← info, RegistryName ← registry, DestOutputProfile ←
- * iccBytes stream with /N components).
+ * identifier, Info ← info, RegistryName ← registry when non-null,
+ * DestOutputProfile ← iccBytes stream with /N components).
  *
- * Conformance note: X-4 strictly wants an embedded DestOutputProfile. The
- * 'srgb' intent embeds the engine-generated profile and is fully conformant.
- * A CMYK press-condition intent (fogra39/fogra51/swop/gracol) is registry-name
- * only — no CMYK ICC bytes ship in the repo — so it is "X-4 ready", not
- * strictly conformant; the shell only CLAIMS GTS_PDFXVersion when it judges
- * that honest (its call, not this module's).
+ * Conformance note: X-4 requires an EMBEDDED DestOutputProfile (referencing an
+ * external one is the X-4p variant, which needs a DestOutputProfileRef dict we
+ * do not write). Two routes reach that here:
+ *  - 'srgb' embeds the engine-generated profile — always;
+ *  - a CMYK press condition (fogra39/fogra51/swop/gracol) has NO bytes of its
+ *    own, because no CMYK ICC ships in this repo. Bytes arrive only when the
+ *    caller passes `iccBytes` (the web shell, from a profile the user loaded on
+ *    their own device). Without them the intent is a registry NAME: still a
+ *    useful statement of the press condition to a RIP, but not X-4, so the shell
+ *    withholds the GTS_PDFXVersion claim. Which files may claim is the shell's
+ *    call (it can see the rest of the document); this module only describes.
  *
  * @param kind 'srgb' | a CMYK condition name (see color.js CMYK_CONDITIONS;
  *   unknown names fall back to the default condition)
@@ -188,23 +210,79 @@ export function pdfxOutputIntentSpec(
   kind: string = 'srgb',
   opts: PdfXOutputIntentOptions = {},
 ): PdfXOutputIntentSpec {
+  // A supplied identity is only honoured as a whole: `identifier` given means the
+  // caller derived it from the thing it is embedding (see the shell's
+  // press-profile-embed), so `registry` given as null must survive the merge.
+  const over = <T>(given: T | undefined, base: T): T => (given === undefined ? base : given);
   if (kind === 'srgb') {
     return {
       subtype: 'GTS_PDFX',
-      identifier: 'sRGB IEC61966-2.1',
+      identifier: over(opts.identifier, 'sRGB IEC61966-2.1'),
       info: opts.info ?? 'sRGB IEC61966-2.1',
-      registry: 'http://www.color.org',
-      iccBytes: srgbIccProfile(),
-      components: 3,
+      registry: over(opts.registry, 'http://www.color.org'),
+      iccBytes: over(opts.iccBytes, srgbIccProfile()),
+      components: over(opts.components, 3),
     };
   }
   const c = cmykCondition(kind);
   return {
     subtype: 'GTS_PDFX',
-    identifier: c.identifier,
+    identifier: over(opts.identifier, c.identifier),
     info: opts.info ?? c.info,
-    registry: c.registry,
-    iccBytes: null,
-    components: 4,
+    registry: over(opts.registry, c.registry),
+    iccBytes: over(opts.iccBytes, null),
+    components: over(opts.components, 4),
   };
+}
+
+/** The facts about a profile that decide whether PDF/X may embed it. */
+export interface PdfXProfileFacts {
+  /** ICC header device class: 'prtr' | 'mntr' | 'scnr' | 'abst' | 'link' | 'nmcl'. */
+  deviceClass: string;
+  /** ICC data colour space signature, e.g. 'CMYK' or 'RGB '. */
+  dataColourSpace: string;
+  nChannels: number;
+  /** 'major.minor.patch' as parseIccProfile reports it. */
+  version: string;
+}
+
+/** Channel counts PDF's /N permits on an ICCBased-style stream. */
+const N_ALLOWED = new Set([1, 3, 4]);
+
+/**
+ * May a profile with these facts be embedded as the DestOutputProfile of a
+ * PDF/X output intent in `intentSpace`?
+ *
+ * Pure rules, stated here because what X-4 requires is the engine's business:
+ *  - device class must be `prtr`. PDF/A tolerates a display profile; PDF/X does
+ *    not — an output intent describes an OUTPUT device.
+ *  - the profile's data space must be the intent's space. Embedding an RGB
+ *    profile under a CMYK intent would produce bytes that merely *render* the
+ *    condition while claiming to BE it.
+ *  - /N ∈ {1,3,4}, and consistent with the space.
+ *  - ICC version: v2 (any minor) or v4 up to 4.2 — the versions the PDF spec's
+ *    ICC-version table reaches, and the ones preflight tools accept. v1 is
+ *    rejected as obsolete, v5/iccMAX as beyond what any PDF version admits.
+ */
+export function pdfxProfileEligibility(
+  f: PdfXProfileFacts, intentSpace: 'CMYK' | 'RGB',
+): { ok: true } | { ok: false; reason: string } {
+  const cls = String(f.deviceClass ?? '').trim().toLowerCase();
+  if (cls !== 'prtr') {
+    return { ok: false, reason: `device class ${cls || '?'} is not an output profile (prtr)` };
+  }
+  const space = String(f.dataColourSpace ?? '').trim().toUpperCase();
+  if (space !== intentSpace) {
+    return { ok: false, reason: `profile is ${space || '?'}, the output intent is ${intentSpace}` };
+  }
+  const n = Number(f.nChannels);
+  if (!N_ALLOWED.has(n)) return { ok: false, reason: `${n} colour channels cannot be an /N value` };
+  if (intentSpace === 'CMYK' && n !== 4) return { ok: false, reason: `CMYK profile with ${n} channels` };
+  if (intentSpace === 'RGB' && n !== 3) return { ok: false, reason: `RGB profile with ${n} channels` };
+  const m = /^(\d+)\.(\d+)/.exec(String(f.version ?? ''));
+  if (!m) return { ok: false, reason: 'unreadable ICC version' };
+  const [major, minor] = [Number(m[1]), Number(m[2])];
+  if (major === 2) return { ok: true };
+  if (major === 4 && minor <= 2) return { ok: true };
+  return { ok: false, reason: `ICC version ${f.version} is outside PDF/X's range (2.x–4.2)` };
 }

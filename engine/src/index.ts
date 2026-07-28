@@ -92,9 +92,21 @@ export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';
 export type {
   ZzfxSong, ZzfxInstrument, ZzfxChannel, ZzfxPattern, RenderedPcm,
 } from './zzfxm.ts';
+// Audio analysis (host.audio, v1.71) — decoded PCM in, a per-frame reactivity
+// track out. The shell owns the decoder and attaches this; the maths lives here so
+// the web shell and the CLI read identical numbers off the same clip.
+export { analysePcm, fftInPlace } from './audio-analyse.ts';
+export type { AudioAnalysis, AudioAnalyseOpts, AudioFrames } from './audio-analyse.ts';
+// The dependency-free WAV reader that backs host.audio where there is no platform
+// codec (the Node shells). Byte parsing, so it lives beside tiff.ts/apng.ts.
+export { parseWav } from './wav.ts';
+export type { WavAudio } from './wav.ts';
 export { parseMidi, midiToSong, midiToZzfxm } from './midi.ts';
 export type { ParsedMidi, MidiToSongOptions } from './midi.ts';
 export { composeSong, PRESETS, SCALES, mulberry32, patternSeconds } from './zzfx-compose.ts';
+// The seed → spec draw behind `zzfxm:<seed>`. Engine-side so every shell composes
+// the SAME song from one id; the draw order is a frozen contract (see the fn).
+export { generatedSongSpec } from './zzfx-compose.ts';
 // The `zzfxm:<seed>[:<style>]` asset-id scheme — a song NAMED rather than stored.
 // Sits beside tool-url.ts's scheme for the same reason: every shell that resolves
 // an asset id has to recognise it, and they must not each invent the rule.
@@ -201,7 +213,11 @@ export type {
   PptxTableNode, PptxUnknownNode, PptxMediaImage,
 } from './pptx-read.ts';
 export {
-  buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec, PDFX_VERSION,
+  buildPdfXXmp, formatPdfDate, makeDocumentId, pdfxOutputIntentSpec,
+  pdfxProfileEligibility, PDFX_VERSION,
+} from './pdfx.ts';
+export type {
+  PdfXOutputIntentOptions, PdfXOutputIntentSpec, PdfXProfileFacts, PdfXXmpOptions,
 } from './pdfx.ts';
 export { buildC2paManifest, embedC2paInPdf, embedC2pa, attachC2paStore, exportActionSteps, C2PA_FORMATS, LOLLY_EXPORT_ASSERTION, DIGITAL_SOURCE_TYPE, CAPTURE_SOURCE_TYPE, SCREEN_SOURCE_TYPE } from './c2pa.ts';
 export type { C2paActionInput } from './c2pa.ts';
@@ -242,8 +258,8 @@ export {
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
-export { gamutSolid, projectGamutSolid, projectSolidPoint } from './gamut-solid.ts';
-export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad } from './gamut-solid.ts';
+export { gamutSolid, projectGamutSolid, projectSolidPoint, solidPointOklch, labSolidUnit } from './gamut-solid.ts';
+export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad, SolidEmbed } from './gamut-solid.ts';
 export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES_CONTRAST_FLOOR } from './color-describe.ts';
 export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';
 
@@ -255,6 +271,10 @@ export {
   GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutSourceId, resolveGamutSource, fastRgbContains,
 } from './gamut-source.ts';
 export type { BuiltinGamutName, GamutLimit, GamutSource, RenderingIntent } from './gamut-source.ts';
+// How high a chroma axis has to reach for a given gamut, derived from the gamut
+// itself (memoised) rather than fixed at one constant that clips Rec.2020 and
+// leaves a dead band on sRGB.
+export { peakChroma, chromaAxisMax, chromaTickStep } from './gamut-axis.ts';
 // Which RING out of the active gamut a colour sits in — one membership question
 // per candidate, never an index into an ordering (Display-P3 is not inside
 // Rec.2020). The picker and the Colour Lab sliders share this classifier.
@@ -262,7 +282,10 @@ export { gamutTier, gamutTierProbe, BEYOND_TIER, GAMUT_TIER_LADDER } from './gam
 // An ICC profile as a gamut: parse the bytes, then hand `iccGamutSource(p, intent)`
 // to any gamut function above. The reader is hardened (never throws, returns null
 // on malformed bytes) because profile bytes arrive from the user's own files.
-export { parseIccProfile, iccGamutSource, iccGamutIntent, ICC_GAMUT_DELTA_E } from './icc.ts';
+export {
+  parseIccProfile, iccGamutSource, iccGamutIntent, iccCharacterization,
+  iccRoundTripDeltaE, iccRoundTripDecides, ICC_GAMUT_DELTA_E,
+} from './icc.ts';
 export type { IccProfile } from './icc.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';

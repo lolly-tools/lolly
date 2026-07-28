@@ -1159,21 +1159,74 @@ export function iccGamutIntent(p: IccProfile, intent: RenderingIntent): boolean 
  * intent's table. {@link iccGamutIntent} is that test, and is what a caller should
  * gate on: an empty gamut is not distinguishable from a refusal after the fact.
  */
+/** OKLCH → PCS Lab → this profile's device values, or null when it cannot answer. */
+function iccDevice(
+  p: IccProfile, intent: RenderingIntent, l: number, c: number, h: number,
+): { dev: number[]; lab: [number, number, number] } | null {
+  if (!gamutInputSane(l, c, h)) return null;
+  const lab = convertColor(
+    { space: 'oklch', components: [l, c, h], alpha: 1, missing: 0 },
+    'lab',
+  ).components as [number, number, number];
+  const dev = p.fromLab(intent, lab);
+  return dev ? { dev, lab } : null;
+}
+
+/**
+ * How far this colour MOVES on the round trip Lab → device → Lab, in ΔE*ab.
+ *
+ * The quantity {@link ICC_GAMUT_DELTA_E} is the threshold on, surfaced as a
+ * number so a reader can see where inside (or outside) the boundary a colour
+ * sits: 0.4 is solidly reproducible, 2.8 "passes" and will still visibly shift.
+ * A tolerance stated as a rule is a hidden rule; stated as a measurement it is
+ * information.
+ *
+ * Deliberately NOT a member of {@link GamutSource}. A matrix-backed gamut has no
+ * such quantity at all, and an optional method returning null for three of the
+ * four sources in the codebase is a worse contract than a function only the ICC
+ * callers reach for.
+ *
+ * Null when the profile cannot be asked this question under `intent` — the same
+ * gate {@link iccGamutIntent} applies — or when the colour is not one (NaN, l
+ * outside [0,1]). Note that a profile answered by its device CUBE rather than by
+ * a B2A table (matrix/TRC and gray — see DIRECT_LINEAR) still returns a number
+ * here, and that number is near zero even well outside the gamut: the round trip
+ * is not what decides membership for those, so do not read a small ΔE from one
+ * as "comfortably inside".
+ */
+/**
+ * Is the round trip what DECIDES membership for this profile?
+ *
+ * False for a matrix/TRC or gray profile: those have no B2A table, so `fromLab`
+ * clips into the device cube rather than projecting onto a gamut surface, and the
+ * clip does not always show up in the round trip. {@link iccGamutSource}'s
+ * `contains` tests the unclamped cube directly for them (DIRECT_LINEAR) and never
+ * reaches the ΔE comparison — so a caller SHOWING {@link iccRoundTripDeltaE}
+ * beside a verdict has to gate on this, or it prints a rule the verdict does not
+ * follow ("outside, shift ΔE 0.1" under "in gamut is decided by ΔE 3.0").
+ */
+export function iccRoundTripDecides(p: IccProfile): boolean {
+  return !DIRECT_LINEAR.has(p);
+}
+
+export function iccRoundTripDeltaE(
+  p: IccProfile, intent: RenderingIntent, l: number, c: number, h: number,
+): number | null {
+  if (!iccGamutIntent(p, intent)) return null;
+  const d = iccDevice(p, intent, l, c, h);
+  if (!d) return null;
+  const back = p.toLab(intent, d.dev);
+  return back ? deltaE76(d.lab, back) : null;
+}
+
 export function iccGamutSource(p: IccProfile, intent: RenderingIntent): GamutSource {
   const digest = PROFILE_DIGEST.get(p) ?? fallbackId(p);
   const supported = iccGamutIntent(p, intent);
   const ink = isInkSpace(p.dataColourSpace);
   const direct = DIRECT_LINEAR.get(p);
 
-  const device = (l: number, c: number, h: number): { dev: number[]; lab: [number, number, number] } | null => {
-    if (!supported || !gamutInputSane(l, c, h)) return null;
-    const lab = convertColor(
-      { space: 'oklch', components: [l, c, h], alpha: 1, missing: 0 },
-      'lab',
-    ).components as [number, number, number];
-    const dev = p.fromLab(intent, lab);
-    return dev ? { dev, lab } : null;
-  };
+  const device = (l: number, c: number, h: number): { dev: number[]; lab: [number, number, number] } | null =>
+    (supported ? iccDevice(p, intent, l, c, h) : null);
 
   return {
     id: `icc:${digest}:${intent}`,
@@ -1207,6 +1260,66 @@ export function iccGamutSource(p: IccProfile, intent: RenderingIntent): GamutSou
       return sum;
     },
   };
+}
+
+// ─── The characterization target ('targ') ─────────────────────────────
+
+/** How much of a `targ` body is read. The CGATS header is in the first few lines;
+ *  PSOcoated_v3's whole tag is 123 kB of measurement data we have no use for. */
+const TARG_SCAN = 4096;
+
+/**
+ * The characterization data set a profile says it was built from — the
+ * `FILE_DESCRIPTOR` line of its `targ` (characterizationTarget) tag, e.g.
+ * `FOGRA51`. Null when the profile carries no `targ`, or its header does not
+ * state one.
+ *
+ * This is TESTIMONY, not measurement: it is what the profile's author wrote into
+ * the file. It is the strongest identity signal available on-device short of
+ * comparing its tables against published aim values (which needs aim data
+ * nothing here ships) — which is exactly why a caller may use it to pair a
+ * profile with a named press condition but must never read it as proof that the
+ * numbers inside are right.
+ *
+ * Bytes in rather than an {@link IccProfile}, so the reader's contract does not
+ * widen for a field only the PDF/X path wants. Never throws, for any input.
+ */
+export function iccCharacterization(bytes: Uint8Array): string | null {
+  try {
+    if (!(bytes instanceof Uint8Array) || bytes.length < 132) return null;
+    const declared = u32(bytes, 0, bytes.length);
+    if (declared < 128 || declared > bytes.length) return null;
+    const fileEnd = declared;
+    if (sig4(bytes, 36, fileEnd) !== 'acsp') return null;
+    const tagCount = u32(bytes, 128, fileEnd);
+    if (tagCount < 0 || tagCount > MAX_TAGS) return null;
+    if (132 + tagCount * 12 > fileEnd) return null;
+    for (let i = 0; i < tagCount; i++) {
+      const p = 132 + i * 12;
+      if (sig4(bytes, p, fileEnd) !== 'targ') continue;
+      const offset = u32(bytes, p + 4, fileEnd);
+      const size = u32(bytes, p + 8, fileEnd);
+      if (offset < 0 || size < 12 || offset + size > fileEnd) return null;
+      // textType: 4-byte signature, 4 reserved, then ASCII.
+      const body = offset + (sig4(bytes, offset, fileEnd) === 'text' ? 8 : 0);
+      const end = Math.min(body + Math.min(size, TARG_SCAN), fileEnd);
+      let s = '';
+      for (let q = body; q < end; q++) {
+        const ch = u8(bytes, q, end);
+        if (ch < 0) break;
+        s += ch === 0 ? ' ' : String.fromCharCode(ch);
+      }
+      // CGATS: `FILE_DESCRIPTOR "FOGRA51"`, quoted or bare, one per line.
+      const m = /^[ \t]*FILE_DESCRIPTOR[ \t]+"?([^"\r\n]*?)"?[ \t]*$/mi.exec(s);
+      const v = m?.[1]?.trim();
+      // Empty says nothing; something long enough to be prose is not a
+      // characterization name.
+      return v && v.length <= 64 ? v : null;
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 // ─── sha256 ───────────────────────────────────────────────────────────────────

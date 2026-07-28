@@ -28,12 +28,14 @@ import {
   parseIccProfile,
   iccGamutSource,
   iccGamutIntent,
+  iccCharacterization,
   ICC_GAMUT_DELTA_E,
   type IccProfile,
 } from '../engine/src/icc.ts';
 import { convertColor } from '../engine/src/css-color.ts';
 import {
   ascii, u32, u16, buildProfile, mft2, mab, identityCurv, xyzTag, oneWayProfileBytes,
+  descTag, targTag, pressProfileBytes,
 } from './helpers/icc-fixture.ts';
 
 // ─── fixtures ─────────────────────────────────────────────────────────────────
@@ -765,4 +767,100 @@ test('input arity and non-finite values are rejected', (t) => {
     assert.deepEqual(hi, p.toLab('relative', [1, 0, 0.5, 0]),
       'device values outside 0-1 must clamp to the CLUT edge, not read past it');
   });
+});
+
+// ─── the characterization target ──────────────────────────────────────────────
+//
+// `iccCharacterization` is what lets a Print PDF declare a REGISTERED press
+// condition around a profile the user loaded, instead of `Custom`. It is
+// testimony (the author's own FILE_DESCRIPTOR line), so the tests that matter are
+// the ones where it must say NOTHING — a wrong pairing would put a registered
+// name on measurements that are not that condition's.
+
+test('iccCharacterization: reads FILE_DESCRIPTOR out of a targ tag', () => {
+  assert.equal(iccCharacterization(pressProfileBytes({ charData: 'FOGRA51' })), 'FOGRA51');
+  assert.equal(iccCharacterization(pressProfileBytes({ charData: 'CGATS TR003' })), 'CGATS TR003');
+  // No targ at all — the common case, and the reason pairing has a second tier.
+  assert.equal(iccCharacterization(pressProfileBytes({})), null);
+});
+
+test('iccCharacterization: says nothing rather than something wrong', () => {
+  // A descriptor that is empty, or prose rather than a characterization name.
+  assert.equal(iccCharacterization(pressProfileBytes({ charData: ' ' })), null);
+  assert.equal(iccCharacterization(pressProfileBytes({ charData: 'x'.repeat(80) })), null);
+  // A targ full of measurement data but no header field.
+  const noField = buildProfile({
+    deviceClass: 'prtr', space: 'CMYK',
+    tags: [['targ', [...ascii('text'), 0, 0, 0, 0, ...ascii('LGOROWLENGTH 21\nBEGIN_DATA\n1 2 3\n'), 0]]],
+  });
+  assert.equal(iccCharacterization(noField), null);
+  // Not a profile at all.
+  assert.equal(iccCharacterization(Uint8Array.from([1, 2, 3])), null);
+  assert.equal(iccCharacterization(new Uint8Array(0)), null);
+  assert.equal(iccCharacterization(undefined as never), null);
+  assert.equal(iccCharacterization('not bytes' as never), null);
+});
+
+test('iccCharacterization: never throws on corrupt bytes (untrusted input)', () => {
+  const good = pressProfileBytes({ charData: 'FOGRA39' });
+  // Truncation at every 7th byte, then single-byte mutations across the header and
+  // the tag table — the bytes arrive from a user's own file, so the contract is
+  // "a value or null", never an exception.
+  for (let cut = 0; cut < good.length; cut += 7) {
+    assert.doesNotThrow(() => iccCharacterization(good.slice(0, cut)), `truncated at ${cut}`);
+  }
+  for (let i = 0; i < Math.min(good.length, 400); i++) {
+    const b = Uint8Array.from(good);
+    b[i] = (b[i]! ^ 0xff) & 0xff;
+    assert.doesNotThrow(() => iccCharacterization(b), `mutated byte ${i}`);
+  }
+  // A targ whose declared size runs past the profile must be refused, not read.
+  const bytes = Uint8Array.from(good);
+  const view = new DataView(bytes.buffer);
+  const count = view.getUint32(128);
+  for (let i = 0; i < count; i++) {
+    const p = 132 + i * 12;
+    if (String.fromCharCode(...bytes.slice(p, p + 4)) !== 'targ') continue;
+    view.setUint32(p + 8, 0xffff);                     // size beyond the file
+    assert.equal(iccCharacterization(bytes), null, 'an out-of-bounds targ reads as absent');
+  }
+});
+
+test('iccCharacterization: a desc tag is not a characterization', () => {
+  // The whole point of the field: a vendor DESCRIPTION ("SWOP2006_Coated3v2.icc")
+  // says the file's name, not which characterization data set it was built from.
+  const descOnly = buildProfile({
+    deviceClass: 'prtr', space: 'CMYK', tags: [['desc', descTag('FOGRA39 lookalike')]],
+  });
+  assert.equal(iccCharacterization(descOnly), null);
+});
+
+// Gated: no profile ships in this repo, and a real registry file is 2-8 MB. Point
+// LOLLY_ICC_TARG at e.g. PSOcoated_v3.icc (which does carry a targ) to check the
+// reader against a real one — the synthetic fixture above cannot prove a vendor's
+// actual byte layout.
+test('iccCharacterization: a real profile\'s targ (gated on LOLLY_ICC_TARG)', (t) => {
+  const path = process.env.LOLLY_ICC_TARG;
+  if (!path || !existsSync(path)) {
+    t.skip('set LOLLY_ICC_TARG=<path to a .icc carrying a targ tag>');
+    return;
+  }
+  const bytes = new Uint8Array(readFileSync(path));
+  const charData = iccCharacterization(bytes);
+  assert.ok(charData && charData.length > 0 && charData.length <= 64,
+    `expected a characterization name, got ${JSON.stringify(charData)}`);
+  assert.equal(charData, charData.trim(), 'no surrounding whitespace');
+  if (process.env.LOLLY_ICC_TARG_EXPECT) assert.equal(charData, process.env.LOLLY_ICC_TARG_EXPECT);
+});
+
+test('targTag/pressProfileBytes: the fixture really is an eligible press profile', () => {
+  // The other suites lean on this shape; if the fixture stopped being prtr/CMYK/4
+  // the PDF/X tests would pass for the wrong reason.
+  const p = parseIccProfile(pressProfileBytes({ desc: 'Fixture Coated', charData: 'FOGRA51' }));
+  assert.ok(p);
+  assert.equal(p.deviceClass, 'prtr');
+  assert.equal(p.dataColourSpace, 'CMYK');
+  assert.equal(p.nChannels, 4);
+  assert.equal(p.description, 'Fixture Coated');
+  void targTag;
 });

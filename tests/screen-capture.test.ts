@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.70.0', () => {
+test('ENGINE_VERSION is 1.74.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -94,9 +94,14 @@ test('ENGINE_VERSION is 1.70.0', () => {
   // and the OKLCH slice planes behind the brand studio's gamut charts and the
   // Colour Lab tool) and 1.70.0 (host.color.iccProfile/inProfileGamut/
   // profileMaxChroma/inkCoverage — the user's own ICC profile as a gamut, so
-  // "will this print?" has an answer);
+  // "will this print?" has an answer) and 1.71.0 (host.audio — decoded sound in,
+  // a per-frame reactivity track out) and 1.72.0 (host.viz — the MilkDrop
+  // visualizer as something a tool can drive) and 1.73.0 (the 'profile' asset
+  // type — a user-supplied ICC profile stored on the user-asset rail) and 1.74.0
+  // (pdfxProfileEligibility + iccCharacterization + supplied DestOutputProfile
+  // bytes — a user's own CMYK profile can be embedded in a PDF/X-4 output intent);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.70.0');
+  assert.equal(ENGINE_VERSION, '1.74.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
