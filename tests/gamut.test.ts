@@ -15,7 +15,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  oklchGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, GAMUTS,
+  oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, GAMUTS,
 } from '../engine/src/gamut.ts';
 import { hexToOklch, oklchToHex } from '../engine/src/brand-derive.ts';
 
@@ -39,18 +39,48 @@ test('every sRGB colour classifies as srgb', () => {
   }
 });
 
-test('the gamuts nest: anything in a narrower one is in every wider one', () => {
+test('sRGB nests inside both wider gamuts', () => {
+  // This much IS true, and worth pinning: nothing displayable on an ordinary
+  // screen is unreachable on a better one.
   for (let l = 0.05; l < 1; l += 0.05) {
-    for (let h = 0; h < 360; h += 15) {
-      for (let c = 0; c <= 0.45; c += 0.03) {
-        const g = oklchGamut(l, c, h);
-        if (g === 'none') continue;
-        for (const wider of GAMUTS.slice(GAMUTS.indexOf(g))) {
-          assert.ok(gamutWithin(g, wider), `${g} should be within ${wider}`);
+    for (let h = 0; h < 360; h += 5) {
+      for (let c = 0; c <= 0.45; c += 0.01) {
+        if (!inGamut(l, c, h, 'srgb')) continue;
+        assert.ok(inGamut(l, c, h, 'p3'), `sRGB colour L${l.toFixed(2)} C${c.toFixed(2)} H${h} escapes P3`);
+        assert.ok(inGamut(l, c, h, 'rec2020'), `sRGB colour L${l.toFixed(2)} C${c.toFixed(2)} H${h} escapes Rec.2020`);
+      }
+    }
+  }
+});
+
+test('Display-P3 does NOT nest inside Rec.2020 — the deep-red sliver', () => {
+  // The assumption this test exists to kill. P3's red primary lies just outside
+  // the Rec.2020 red–green edge, so a thin band of deep reds is displayable on a
+  // P3 screen and NOT within Rec.2020. Inferring membership from gamut ORDER
+  // (gamutWithin) misses it, and a chroma search built on that ordering returns
+  // P3's ceiling when asked for Rec.2020's.
+  const escapees: string[] = [];
+  for (let li = 1; li < 40; li++) {
+    for (let hi = 0; hi < 72; hi++) {
+      for (let ci = 1; ci < 45; ci++) {
+        const l = li / 40, h = hi * 5, c = ci / 100;
+        if (inGamut(l, c, h, 'p3') && !inGamut(l, c, h, 'rec2020')) {
+          escapees.push(`L${l.toFixed(2)} C${c.toFixed(2)} H${h}`);
         }
       }
     }
   }
+  assert.ok(escapees.length > 0, 'the sliver exists — if this fails, check the Rec.2020 matrix');
+  // It is confined to the reds; a wide spread would mean a broken matrix, not a
+  // primary poking out.
+  for (const e of escapees) assert.match(e, /H(25|30|35)$/, `unexpected escapee at ${e}`);
+
+  // And the consequence the ordering form gets wrong: at such a point, asking
+  // Rec.2020 directly gives a SMALLER ceiling than P3.
+  const narrower = maxChroma(0.5433, 29.7, 'rec2020') < maxChroma(0.5433, 29.7, 'p3');
+  assert.ok(narrower, 'Rec.2020 is the narrower gamut in the red sliver');
+  // gamutWithin still answers the ORDERING question, which is all it claims.
+  assert.equal(gamutWithin('p3', 'rec2020'), true);
 });
 
 test('a colour is in exactly one narrowest gamut, and it only widens with chroma', () => {
@@ -75,21 +105,25 @@ test('maxChroma brackets the boundary it reports', () => {
       for (let h = 0; h < 360; h += 30) {
         const max = maxChroma(l, h, limit);
         assert.ok(max > 0, `${limit} @ L${l.toFixed(1)} H${h} has some chroma`);
-        assert.ok(gamutWithin(oklchGamut(l, max, h), limit),
+        assert.ok(inGamut(l, max, h, limit),
           `${limit} @ L${l.toFixed(1)} H${h}: ${max} should be inside`);
-        assert.ok(!gamutWithin(oklchGamut(l, max + slack, h), limit),
+        assert.ok(!inGamut(l, max + slack, h, limit),
           `${limit} @ L${l.toFixed(1)} H${h}: ${max + slack} should be outside`);
       }
     }
   }
 });
 
-test('maxChroma is monotonic across the gamuts and matches oklchToHex on sRGB', () => {
+test('maxChroma widens past sRGB and matches oklchToHex on sRGB', () => {
   for (let h = 0; h < 360; h += 20) {
     const s = maxChroma(0.65, h, 'srgb');
     const p = maxChroma(0.65, h, 'p3');
     const r = maxChroma(0.65, h, 'rec2020');
-    assert.ok(s <= p && p <= r, `hue ${h}: ${s} <= ${p} <= ${r}`);
+    // Both wide gamuts beat sRGB everywhere. P3 vs Rec.2020 is NOT ordered —
+    // see the deep-red sliver test above — so that pair is deliberately not
+    // asserted here.
+    assert.ok(s <= p, `hue ${h}: sRGB ${s} <= P3 ${p}`);
+    assert.ok(s <= r, `hue ${h}: sRGB ${s} <= Rec.2020 ${r}`);
     // The sRGB ceiling is the point brand-derive's mapper stops reducing chroma:
     // just inside round-trips, just outside comes back with less.
     const inside = hexToOklch(oklchToHex({ l: 0.65, c: s - 0.005, h }))!;
@@ -168,7 +202,10 @@ test('slice pixels are transparent exactly where the plane leaves the limit', ()
       const l = 1 - (y + 0.5) / H;
       for (let x = 0; x < W; x++) {
         const c = ((x + 0.5) / W) * cMax;
-        const want = gamutWithin(oklchGamut(l, c, 30), limit);
+        // Ask the gamut DIRECTLY — the ordering form (gamutWithin ∘ oklchGamut)
+        // disagrees with the painter across the P3/Rec.2020 red sliver, and when
+        // an oracle and the code disagree the oracle is just as likely to be wrong.
+        const want = inGamut(l, c, 30, limit);
         assert.equal(s.data[(y * W + x) * 4 + 3] === 255, want,
           `${limit} @ L${l.toFixed(3)} C${c.toFixed(3)}: alpha should be ${want ? 255 : 0}`);
       }
@@ -176,7 +213,9 @@ test('slice pixels are transparent exactly where the plane leaves the limit', ()
   }
 });
 
-test('a wider limit paints a superset of a narrower one', () => {
+test('a wider limit paints a superset of sRGB', () => {
+  // sRGB genuinely nests inside Rec.2020 (unlike P3 — see the sliver test), so
+  // this superset claim is safe for this pair specifically.
   const box = { plane: 'ch' as const, fixed: 0.6, width: 90, height: 40 };
   const srgb = oklchSlice({ ...box, limit: 'srgb' });
   const wide = oklchSlice({ ...box, limit: 'rec2020' });
@@ -241,8 +280,8 @@ test('sliceGamutEdge traces the boundary the slice is transparent past', () => {
         ? [1 - p.y, p.x * cMax, fixed]
         : [fixed, (1 - p.y) * cMax, p.x * 360];
       if (c < 1e-3) continue; // the achromatic ends have no boundary to straddle
-      assert.equal(oklchGamut(l, c * 0.97, h), 'srgb', `inside at ${JSON.stringify(p)}`);
-      assert.notEqual(oklchGamut(l, c * 1.03 + 1e-3, h), 'srgb', `outside at ${JSON.stringify(p)}`);
+      assert.ok(inGamut(l, c * 0.97, h, 'srgb'), `inside at ${JSON.stringify(p)}`);
+      assert.ok(!inGamut(l, c * 1.03 + 1e-3, h, 'srgb'), `outside at ${JSON.stringify(p)}`);
     }
   }
   // 'lh' has no single-valued boundary curve — chroma is constant across it.

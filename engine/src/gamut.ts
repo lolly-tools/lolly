@@ -71,23 +71,54 @@ const inUnitCube = (rgb: readonly [number, number, number]): boolean =>
   && rgb[2] >= -EPS && rgb[2] <= 1 + EPS;
 
 /**
- * The narrowest gamut that contains this OKLCH colour, or `'none'`.
+ * Whether this OKLCH colour fits `limit` — tested DIRECTLY against that gamut.
  *
- * `l` is 0–1 (brand-derive's convention, not the CSS percent) and `h` is in
- * degrees. Lightness outside [0,1] is out of every gamut — it isn't a colour a
- * display can be asked for — rather than silently clamped.
+ * ## The gamuts do not nest, and this is why the function exists
+ *
+ * It is natural to assume sRGB ⊂ Display-P3 ⊂ Rec.2020 and answer "does Rec.2020
+ * hold it?" by classifying once and comparing sizes. The first two do nest. The
+ * last pair does NOT: Display-P3's red primary lies marginally OUTSIDE the
+ * Rec.2020 triangle (P3 red is xy 0.680,0.320; the Rec.2020 red–green edge runs
+ * from 0.708,0.292 to 0.170,0.797, and P3's red falls on the far side of it). So
+ * a thin sliver of deep reds near hue 30 is displayable on a P3 screen and NOT
+ * within Rec.2020.
+ *
+ * Inferring membership from order therefore over-reports Rec.2020 near red — and
+ * worse, it makes a chroma search stop at P3's ceiling and call it Rec.2020's.
+ * Ask each gamut its own question instead.
+ *
+ * `l` is 0–1 (brand-derive's convention, not the CSS percent), `h` in degrees.
  */
-export function oklchGamut(l: number, c: number, h: number): GamutName {
-  if (!(l >= 0) || l > 1 || !(c >= 0) || !Number.isFinite(h)) return 'none';
+export function inGamut(l: number, c: number, h: number, limit: Exclude<GamutName, 'none'>): boolean {
+  if (!(l >= 0) || l > 1 || !(c >= 0) || !Number.isFinite(h)) return false;
   const hr = (h * Math.PI) / 180;
   const lin = oklabToLinearSrgb(l, c * Math.cos(hr), c * Math.sin(hr));
-  if (inUnitCube(lin)) return 'srgb';
-  if (inUnitCube(apply3(SRGB_TO_P3, lin[0], lin[1], lin[2]))) return 'p3';
-  if (inUnitCube(apply3(SRGB_TO_REC2020, lin[0], lin[1], lin[2]))) return 'rec2020';
+  if (limit === 'srgb') return inUnitCube(lin);
+  const m = limit === 'p3' ? SRGB_TO_P3 : SRGB_TO_REC2020;
+  return inUnitCube(apply3(m, lin[0], lin[1], lin[2]));
+}
+
+/**
+ * The narrowest gamut that contains this OKLCH colour, or `'none'` when none of
+ * them do. A summary for labels and badges; use {@link inGamut} to ask about one
+ * specific gamut, since the answer is not recoverable from this one (see the
+ * non-nesting note there).
+ *
+ * Lightness outside [0,1] is out of every gamut — it isn't a colour a display can
+ * be asked for — rather than silently clamped.
+ */
+export function oklchGamut(l: number, c: number, h: number): GamutName {
+  for (const g of GAMUTS) if (inGamut(l, c, h, g)) return g;
   return 'none';
 }
 
-/** True when `gamut` is inside (or equal to) `limit` — 'none' is inside nothing. */
+/**
+ * True when `gamut` is no WIDER than `limit`, by area order.
+ *
+ * This is an ordering question, not a membership one, and the two part company
+ * for P3 vs Rec.2020 (see {@link inGamut}). Use it to sort or to gate UI by
+ * "how demanding is this?"; never to decide whether a colour fits a display.
+ */
 export function gamutWithin(gamut: GamutName, limit: Exclude<GamutName, 'none'>): boolean {
   if (gamut === 'none') return false;
   return GAMUTS.indexOf(gamut) <= GAMUTS.indexOf(limit);
@@ -106,10 +137,13 @@ export function gamutWithin(gamut: GamutName, limit: Exclude<GamutName, 'none'>)
 export function maxChroma(l: number, h: number, limit: Exclude<GamutName, 'none'> = 'srgb'): number {
   if (!(l > 0) || l >= 1 || !Number.isFinite(h)) return 0;
   let lo = 0;
-  let hi = 0.5; // past the Rec.2020 ceiling at every hue, so the first probe is outside
+  let hi = 0.5; // past every gamut's ceiling at every hue, so the first probe is outside
   while (hi - lo > GAMUT_EPSILON) {
     const mid = (lo + hi) / 2;
-    if (gamutWithin(oklchGamut(l, mid, h), limit)) lo = mid;
+    // Directly, not via oklchGamut + ordering: the gamuts do not nest (see
+    // inGamut), and the ordering form silently returns P3's ceiling for Rec.2020
+    // across a sliver of deep reds.
+    if (inGamut(l, mid, h, limit)) lo = mid;
     else hi = mid;
   }
   return lo;
@@ -232,7 +266,7 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
         default:   l = v; c = opts.fixed; h = u * 360; break;
       }
       const o = (y * width + x) * 4;
-      if (!gamutWithin(oklchGamut(l, c, h), limit)) continue; // leave it transparent
+      if (!inGamut(l, c, h, limit)) continue; // leave it transparent
       // Desaturate anything past sRGB down to the ceiling before encoding, so
       // the encode below is the whole cost — no per-pixel gamut-map bisection.
       const cUse = Math.min(c, sampleCeiling(ceiling, l, h));
@@ -326,7 +360,7 @@ export function sliceGamutRegion(
   // bisection per end per column rather than per sample.
   const c = Math.max(0, fixed);
   const SCAN = 64;
-  const holds = (l: number, h: number): boolean => gamutWithin(oklchGamut(l, c, h), limit);
+  const holds = (l: number, h: number): boolean => inGamut(l, c, h, limit);
   const window = (h: number): { lo: number; hi: number } | null => {
     let first = -1, last = -1;
     for (let i = 0; i <= SCAN; i++) {

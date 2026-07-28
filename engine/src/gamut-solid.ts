@@ -28,12 +28,16 @@
  * Pure and deterministic: no Date, no Math.random, no IO.
  */
 
-import { maxChroma, oklchGamut, gamutWithin } from './gamut.ts';
+import { maxChroma, inGamut } from './gamut.ts';
 import type { GamutName } from './gamut.ts';
 import { oklchToHex } from './brand-derive.ts';
 
-/** A point in the OKLab-ish solid space: a and b are the chroma plane, l is up. */
-export interface SolidPoint { a: number; b: number; l: number }
+/**
+ * A point in the model's own space: `x` and `z` are the two horizontal axes,
+ * `y` is vertical. What each axis MEANS depends on the embedding — see
+ * {@link SolidEmbed}.
+ */
+export interface SolidPoint { x: number; z: number; y: number }
 
 /** One quad of the surface, with the colour of its own patch of the gamut. */
 export interface SolidQuad {
@@ -46,8 +50,23 @@ export interface SolidQuad {
   up: number;
 }
 
+/**
+ * How the (lightness, hue, max-chroma) grid is laid out in 3D.
+ *
+ * `'cylinder'` wraps hue around a vertical lightness axis, chroma outward — the
+ * gamut as a lumpy solid you can turn.
+ *
+ * `'landscape'` lays hue out FLAT along one horizontal axis, lightness along the
+ * other, and stands chroma up as height. It reads much better for the question
+ * people actually bring: the peaks and troughs per hue are directly comparable
+ * (yellow towers, blue barely rises), where on the cylinder the same information
+ * is wrapped around the back. It is the same numbers; only the embedding differs.
+ */
+export type SolidEmbed = 'cylinder' | 'landscape';
+
 export interface GamutSolid {
   limit: Exclude<GamutName, 'none'>;
+  embed: SolidEmbed;
   hueSteps: number;
   lightSteps: number;
   quads: SolidQuad[];
@@ -72,6 +91,7 @@ export function gamutSolid(
   limit: Exclude<GamutName, 'none'> = 'srgb',
   hueSteps = 48,
   lightSteps = 28,
+  embed: SolidEmbed = 'cylinder',
 ): GamutSolid {
   const H = Math.max(6, Math.floor(hueSteps));
   const L = Math.max(3, Math.floor(lightSteps));
@@ -86,48 +106,69 @@ export function gamutSolid(
     radius.push(row);
   }
 
+  let maxR = 0;
+  for (const row of radius) for (const r of row) maxR = Math.max(maxR, r);
+  const scaleR = maxR || 1;
+
+  /**
+   * Grid node → model point. Both embeddings put two axes horizontal and one
+   * vertical, so the projector below serves either without knowing which.
+   *
+   *   cylinder:  x/z = the chroma plane (hue as angle), y = lightness
+   *   landscape: x = hue, z = lightness, y = chroma
+   *
+   * The landscape's hue axis deliberately runs the FULL 0–360 without wrapping:
+   * a wrapped landscape would hide the red seam behind itself, and the seam is
+   * where the interesting asymmetry lives.
+   */
   const at = (i: number, j: number): SolidPoint => {
     const l = i / (L - 1);
-    const ang = ((j % H) / H) * TAU;
-    const r = radius[i]![(j % H + H) % H]!;
-    return { a: r * Math.cos(ang), b: r * Math.sin(ang), l };
+    const jj = (j % H + H) % H;
+    const r = radius[i]![jj]!;
+    if (embed === 'landscape') {
+      // j runs 0…H inclusive here (the caller wraps), so the far edge lands at 1.
+      return { x: (j / H) * 2 - 1, z: l * 2 - 1, y: r / scaleR };
+    }
+    const ang = (jj / H) * TAU;
+    return { x: r * Math.cos(ang), z: r * Math.sin(ang), y: l };
   };
 
   const quads: SolidQuad[] = [];
-  let maxRadius = 0;
-  for (const row of radius) for (const r of row) maxRadius = Math.max(maxRadius, r);
+  const maxRadius = maxR;
 
   for (let i = 0; i < L - 1; i++) {
     for (let j = 0; j < H; j++) {
-      // Wrap the hue seam by taking j+1 modulo H, so the solid is closed all the
-      // way round rather than split open at 0°.
+      // Hue wraps modulo H at the seam. On the cylinder that closes the solid all
+      // the way round; on the landscape the far column lands at x = +1 carrying
+      // hue 0's radius, which is correct — 360° IS 0°.
       const p0 = at(i, j), p1 = at(i, j + 1), p2 = at(i + 1, j + 1), p3 = at(i + 1, j);
-      const cl = (p0.l + p1.l + p2.l + p3.l) / 4;
-      const ca = (p0.a + p1.a + p2.a + p3.a) / 4;
-      const cb = (p0.b + p1.b + p2.b + p3.b) / 4;
-      const c = Math.hypot(ca, cb);
-      const h = c < 1e-9 ? 0 : (Math.atan2(cb, ca) * 180) / Math.PI;
+      // The patch's own colour comes from the GRID, not from its 3D position —
+      // the landscape embedding throws hue's angular meaning away, so reading it
+      // back off x/z would be wrong there.
+      const li = (i + 0.5) / (L - 1);
+      const hj = ((j + 0.5) / H) * 360;
+      const cl = Math.min(1, li);
+      const c = (radius[i]![j % H]! + radius[i + 1]![j % H]!) / 2;
+      const h = hj;
       // Pull the sample very slightly inside the surface: dead on the boundary,
       // rounding can push the centre out of gamut and the mapper desaturates the
       // patch, banding the whole silhouette one step duller than it should be.
       const hex = oklchToHex({ l: cl, c: c * 0.995, h });
 
-      // The normal, from the two edge vectors — its `l` component says how much
-      // the patch faces up, which is all the shading needs.
-      const e1 = { a: p1.a - p0.a, b: p1.b - p0.b, l: p1.l - p0.l };
-      const e2 = { a: p3.a - p0.a, b: p3.b - p0.b, l: p3.l - p0.l };
-      const nl = e1.a * e2.b - e1.b * e2.a;
-      const nMag = Math.hypot(
-        e1.b * e2.l - e1.l * e2.b,
-        e1.l * e2.a - e1.a * e2.l,
-        nl,
-      ) || 1;
+      // The normal, from the two edge vectors — its vertical component says how
+      // much the patch faces up, which is all the shading needs.
+      const e1 = { x: p1.x - p0.x, z: p1.z - p0.z, y: p1.y - p0.y };
+      const e2 = { x: p3.x - p0.x, z: p3.z - p0.z, y: p3.y - p0.y };
+      const nx = e1.z * e2.y - e1.y * e2.z;
+      const ny = e1.x * e2.z - e1.z * e2.x;
+      const nz = e1.y * e2.x - e1.x * e2.y;
+      const nMag = Math.hypot(nx, ny, nz) || 1;
 
-      quads.push({ pts: [p0, p1, p2, p3], hex, up: nl / nMag });
+      quads.push({ pts: [p0, p1, p2, p3], hex, up: ny / nMag });
     }
   }
 
-  return { limit, hueSteps: H, lightSteps: L, quads, maxRadius };
+  return { limit, embed, hueSteps: H, lightSteps: L, quads, maxRadius };
 }
 
 // ─── Projection ───────────────────────────────────────────────────────────────
@@ -160,18 +201,20 @@ function makeProjector(solid: GamutSolid, view: SolidView): (p: SolidPoint) => P
   const scale = view.scale && view.scale > 0 ? view.scale : 1;
   const cy = Math.cos(yaw), sy = Math.sin(yaw);
   const cp = Math.cos(pitch), sp = Math.sin(pitch);
-  // Normalise the model: the chroma plane by its widest reach, lightness over
-  // its full 0–1 range, centred on 0 so pitch tilts about the solid's middle.
-  const rad = solid.maxRadius || 1;
+  // The cylinder's x/z are raw chroma, so they need normalising by the widest
+  // reach and its y (lightness 0–1) centring on 0. The landscape already arrives
+  // in −1…1 with height 0…1, so it only needs the same centring on the vertical.
+  const rad = solid.embed === 'landscape' ? 1 : (solid.maxRadius || 1);
 
   const raw = (p: SolidPoint): Projected => {
-    const a = p.a / rad, b = p.b / rad, l = (p.l - 0.5) * 2;
-    const x = a * cy - b * sy;    // spin about the lightness axis
-    const zh = a * sy + b * cy;   // depth contribution from the chroma plane
+    // Vertical centred on 0 either way, so pitch tilts about the middle.
+    const px = p.x / rad, pz = p.z / rad, py = (p.y - 0.5) * 2;
+    const x = px * cy - pz * sy;   // spin the two horizontals about the vertical
+    const zh = px * sy + pz * cy;  // …giving the depth contribution
     return {
       x,
-      y: l * cp - zh * sp,        // tilt lightness toward the viewer
-      z: l * sp + zh * cp,
+      y: py * cp - zh * sp,        // tilt the vertical toward the viewer
+      z: py * sp + zh * cp,
     };
   };
 
@@ -238,7 +281,9 @@ export function projectGamutSolid(solid: GamutSolid, view: SolidView): Projected
     // eye: you get a plausible-looking solid seen from the inside. The test
     // 'the surface we see is the near one' pins it against a known view
     // (yaw 0 / pitch 0 must show hue ~90, the +b axis pointing at the viewer).
-    if (area <= 0) continue;
+    // A landscape is an OPEN surface — from below, every quad is back-facing, and
+    // culling would render nothing at all. Only the closed cylinder can cull.
+    if (solid.embed !== 'landscape' && area <= 0) continue;
 
     const depth = cam.reduce((s, p) => s + p.z, 0) / cam.length;
     // A soft top-light: patches facing up read brighter. Kept mild (0.82–1) so
@@ -270,14 +315,18 @@ export function projectSolidPoint(
   o: { l: number; c: number; h: number },
   view: SolidView,
 ): { x: number; y: number; depth: number; inside: boolean } {
+  // Place the marker with the SAME embedding the mesh used, or the two land in
+  // different spaces and the dot drifts off the surface.
   const hr = (o.h * Math.PI) / 180;
-  const p = makeProjector(solid, view)({
-    a: o.c * Math.cos(hr), b: o.c * Math.sin(hr), l: o.l,
-  });
+  const scaleR = solid.maxRadius || 1;
+  const model: SolidPoint = solid.embed === 'landscape'
+    ? { x: (((o.h % 360) + 360) % 360) / 360 * 2 - 1, z: o.l * 2 - 1, y: o.c / scaleR }
+    : { x: o.c * Math.cos(hr), z: o.c * Math.sin(hr), y: o.l };
+  const p = makeProjector(solid, view)(model);
   return {
     x: p.x,
     y: p.y,
     depth: p.z,
-    inside: gamutWithin(oklchGamut(o.l, o.c, o.h), solid.limit),
+    inside: inGamut(o.l, o.c, o.h, solid.limit),
   };
 }
