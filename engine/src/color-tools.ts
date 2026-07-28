@@ -40,10 +40,12 @@
 import { hexToOklch, oklchToHex, parseOklch, parseHex, contrastRatio } from './brand-derive.ts';
 import type { Oklch } from './brand-derive.ts';
 import { generateSchemeAccents } from './brand-schemes.ts';
-import { oklchGamut, maxChroma, oklchSlice, sliceGamutRegion } from './gamut.ts';
+import { oklchGamut, inGamut, maxChroma, oklchSlice, sliceGamutRegion } from './gamut.ts';
 import { parseColor, colorToHexString, interpolateColor } from './css-color.ts';
 import { gradientSpecToCss } from './gradient-spec.ts';
-import type { ColorAPI } from './bridge/host-v1.ts';
+import { parseIccProfile, iccGamutSource, iccGamutIntent } from './icc.ts';
+import type { GamutSource } from './gamut-source.ts';
+import type { ColorAPI, ColorProfileGamut, ColorRenderingIntent } from './bridge/host-v1.ts';
 
 // ─── Input parsing / OKLab plumbing ───────────────────────────────────────────
 
@@ -371,6 +373,55 @@ export function distinctColors(n: number, opts: DistinctColorsOptions = {}): str
   return chosen.slice(0, count).map(c => c.hex);
 }
 
+// ─── ICC profiles as tool-facing gamut handles (v1.70) ────────────────────────
+
+/**
+ * The gamut source behind a handle a tool holds.
+ *
+ * The handle a tool gets is inert data — the profile's tables never cross the
+ * bridge. Keeping the source here in a WeakMap rather than on the handle means
+ * an object a tool assembled itself simply isn't in the map, so a forged or
+ * stale handle produces the no-answer result instead of an answer computed
+ * against whatever source happened to be current. Weak so a profile the tool
+ * drops is collectable.
+ */
+const PROFILE_SOURCES = new WeakMap<ColorProfileGamut, GamutSource>();
+
+/** Whitelist as an array, not an object: `INTENTS['constructor']` would be truthy. */
+const INTENTS: readonly ColorRenderingIntent[] = ['perceptual', 'relative', 'saturation', 'absolute'];
+
+/** The source for a handle, or null when the handle is not one we issued. */
+const sourceFor = (p: ColorProfileGamut): GamutSource | null =>
+  (p != null && typeof p === 'object' ? PROFILE_SOURCES.get(p) ?? null : null);
+
+/**
+ * Bytes → a handle, or null. `relative` by default: it is the intent a proof is
+ * normally judged under, and the one every printer profile carries.
+ */
+function readIccProfile(bytes: Uint8Array, intent: ColorRenderingIntent = 'relative'): ColorProfileGamut | null {
+  const want = INTENTS.includes(intent) ? intent : 'relative';
+  const profile = parseIccProfile(bytes);
+  if (!profile) return null;
+  const source = iccGamutSource(profile, want);
+  const handle: ColorProfileGamut = {
+    id: source.id,
+    label: source.label,
+    deviceClass: profile.deviceClass,
+    colourSpace: profile.dataColourSpace.trim(),
+    channels: profile.nChannels,
+    intent: want,
+    version: profile.version,
+    // The gamut gate, not `hasIntent`: a profile carrying only device → Lab (the
+    // stock abstract profiles) has a transform for the intent and still cannot
+    // answer a membership question, and `usable: true` there would promise an
+    // answer the three queries below can only give as "nothing at all is
+    // printable". See iccGamutIntent.
+    usable: iccGamutIntent(profile, want),
+  };
+  PROFILE_SOURCES.set(handle, source);
+  return handle;
+}
+
 // ─── host.color factory ───────────────────────────────────────────────────────
 
 /**
@@ -419,5 +470,24 @@ export function makeColorApi(): ColorAPI {
     // conversion every colour tool needs, and the one it had to reimplement.
     oklch: color => toOklch(color),
     fromOklch: o => oklchToHex(o),
+    // v1.70: the user's own ICC profile as a gamut (icc.ts + gamut-source.ts).
+    // The three queries go through gamut.ts exactly as the display gamuts do —
+    // a profile-backed source answers `contains` where a 3×3 matrix would — so
+    // "does this print?" and "does this display?" cannot drift apart in method.
+    // No-answer values (null / false / 0) for a handle we did not issue or a
+    // profile with no table for its intent; never a guess.
+    iccProfile: (bytes, intent) => readIccProfile(bytes, intent),
+    inProfileGamut: (profile, l, c, h) => {
+      const src = sourceFor(profile);
+      return src ? inGamut(l, c, h, src) : false;
+    },
+    profileMaxChroma: (profile, l, h) => {
+      const src = sourceFor(profile);
+      return src ? maxChroma(l, h, src) : 0;
+    },
+    inkCoverage: (profile, l, c, h) => {
+      const src = sourceFor(profile);
+      return src?.inkCoverage?.(l, c, h) ?? null;
+    },
   };
 }

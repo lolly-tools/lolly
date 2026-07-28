@@ -29,7 +29,7 @@
  */
 
 import { maxChroma, inGamut } from './gamut.ts';
-import type { GamutName } from './gamut.ts';
+import type { GamutLimit } from './gamut-source.ts';
 import { oklchToHex } from './brand-derive.ts';
 
 /**
@@ -65,7 +65,10 @@ export interface SolidQuad {
 export type SolidEmbed = 'cylinder' | 'landscape';
 
 export interface GamutSolid {
-  limit: Exclude<GamutName, 'none'>;
+  /** The gamut this surface is of — a name, or the source it was built from.
+   *  Cache solids by `gamutSourceId(limit)`, never by interpolating this into a
+   *  string: a source stringifies to '[object Object]' and collides. */
+  limit: GamutLimit;
   embed: SolidEmbed;
   hueSteps: number;
   lightSteps: number;
@@ -88,7 +91,7 @@ const TAU = Math.PI * 2;
  * closes itself without needing separate caps.
  */
 export function gamutSolid(
-  limit: Exclude<GamutName, 'none'> = 'srgb',
+  limit: GamutLimit = 'srgb',
   hueSteps = 48,
   lightSteps = 28,
   embed: SolidEmbed = 'cylinder',

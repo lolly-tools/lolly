@@ -872,3 +872,60 @@ boundary line is the information and the fill out there is an approximation.
 
 No v1 method changed. All three are optional — a tool must feature-detect
 (`host.color?.slice`) since its declared `engineVersion` range may admit an older engine.
+
+1.70.0 — additive: ICC profiles as gamuts. A new hardened reader (`src/icc.ts`) plus
+`src/gamut-source.ts`, which factors the membership question out of `src/gamut.ts`, and
+four optional `host.color` methods: `iccProfile(bytes, intent?)`, `inProfileGamut`,
+`profileMaxChroma` and `inkCoverage`.
+
+**This reverses the engine's earlier "no ICC transforms" position, deliberately.** Until
+now `src/color.ts` only ever WROTE profiles — it generates sRGB and Rec.2100-PQ bytes for
+an export to carry — and `rgbToCmyk` is a naïve GCR-free separation with the press
+condition declared in an OutputIntent rather than applied (see `src/pdfx.ts`: a CMYK
+intent is registry-name only, "X-4 ready" not conformant). The reasoning was that
+applying a profile means shipping a colour engine, and the engine is meant to stay
+dependency-free and small. That reasoning held for *export*, where declaring the space
+the pixels were made in is the honest thing to do and converting into someone else's
+press is not our call. It does not hold for the question a brand designer asks before
+sending a palette to a printer: **will this colour print?** Nothing in the engine could
+answer it. `gamut()` reports the three DISPLAY gamuts, and a press is none of them — a
+swatch can sit comfortably inside sRGB and still be unreachable in CMYK, and the naïve
+separation will cheerfully hand back four numbers that say nothing about whether the ink
+exists. Answering it needs a real profile evaluated, so the reader is in.
+
+What made it affordable is that it is a *reader*, not a colour engine: `mft1`/`mft2`/
+`mAB `/`mBA ` all reduce to one ordered stage pipeline (curves / matrix / CLUT) with a
+single evaluator, plus matrix/TRC and `kTRC` for the profiles that have no LUT at all.
+No dependency, no shipped profile bytes — the profile is the user's own file, the one
+their print shop sent them.
+
+`gamut-source.ts` is the seam that keeps this from being a second colour system.
+`gamut.ts` only ever asked one thing of a gamut ("is this OKLCH colour reproducible?")
+and built the chroma ceiling, the slice fills, the boundary curves and the 3D solid on
+top of that single predicate. So a gamut is now a predicate plus an identity
+(`GamutSource`), the three display gamuts are sources over the SAME pre-composed
+matrices they always used, and `iccGamutSource(profile, intent)` is a fourth kind that
+drops into every one of those functions unchanged — `inGamut`, `maxChroma`, `oklchSlice`,
+`sliceGamutEdge`, `sliceGamutRegion`, `gamutSolid`. Cross-checked end to end: the chroma
+ceiling measured through macOS's own sRGB/P3/Rec.2020 profiles lands within 0.02 of the
+matrix path at the same lightness, and the CMYK numbers match littleCMS on the same file
+to the digit.
+
+Two honest limits, both documented at their constant. Membership is a round-trip test
+against `ICC_GAMUT_DELTA_E` (3.0 ΔE*ab), which is soft-proofing rather than colorimetry:
+near the gamut surface it may call a colour either way, and a fully saturated process
+primary reads as outside. And a profile-backed `contains` is ~14× the cost of a matrix
+one, so a 320×200 `oklchSlice` against a press profile is ~85ms — render it on a profile
+change, not under a drag.
+
+`inkCoverage` is the one question a matrix cannot answer and a printer must. Its unit is
+channels (1.0 = one ink at full, so process CMYK reaches 4.0 — the trade's 400% TAC),
+deliberately not normalised to 0–1: a pressroom limit is written as 300% or 340% of that
+total, and dividing by the channel count would discard the only figure a printer would
+recognise. RGB sources return null rather than a made-up zero.
+
+No v1 method changed. All four are optional — a tool must feature-detect
+(`host.color?.iccProfile`) since its declared `engineVersion` range may admit an older
+engine. The handle a tool receives is inert data; the profile's tables never cross the
+bridge, and a handle the host did not issue gets the no-answer result (null / false / 0)
+rather than an answer computed against some other profile.
