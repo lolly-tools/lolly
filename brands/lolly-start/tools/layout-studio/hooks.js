@@ -567,7 +567,7 @@ function textCss(b) {
   var pad = Math.round(clamp(num(b.pad, 8), 0, 400));
   return (
     'text-align:' + align + ';' +
-    'color:' + safeColor(b.fg, '#0e1217') + ';' +
+    'color:' + safeColor(b.fg, '#11141f') + ';' +
     'font-family:' + fontFamily(b.font) + ';' +
     // The authored size, multiplied by --fit (default 1, so this is inert unless the
     // box opted into shrink-to-fit). The fit pass in template.html measures the laid-out

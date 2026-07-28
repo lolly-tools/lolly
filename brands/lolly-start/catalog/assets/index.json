@@ -18,8 +18,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/tokens/brand.json",
-          "checksum": "sha256-3T+wvy0FllN/Ets+hXFQJkqoBwHcD3ZBiSgaLFH01jQ=",
-          "size": 10443
+          "checksum": "sha256-4ygNmtPa7LiLukkkLgvmzjlFv8kqJomMlqoJCgrQNs0=",
+          "size": 14135
         }
       ]
     },
@@ -38,8 +38,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/photo-treatments.json",
-          "checksum": "sha256-12aUcXhrP8rk6B/GIR7mygHqdLxDbzPC23ff6ioPjgc=",
-          "size": 1252
+          "checksum": "sha256-Qg85yvLVPVu/SLk/Ge1WRkn53XiekhpN6ujvSlLiLLE=",
+          "size": 1256
         }
       ]
     },
@@ -58,8 +58,8 @@
         {
           "format": "json",
           "url": "/catalog/assets/lolly/palette/icon-themes.json",
-          "checksum": "sha256-3+K3PFtE9Bj0uUGVCMWKLWGo1Zd5aXmTocoXQino7FM=",
-          "size": 941
+          "checksum": "sha256-SwzcXzppLNjpD3ePXdq5dd1Mh2ZR2ALa4Js5fr0OQb8=",
+          "size": 945
         }
       ]
     },

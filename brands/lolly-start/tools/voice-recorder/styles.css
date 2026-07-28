@@ -11,20 +11,20 @@
   flex-direction: column;
   gap: 40px;
   font-family: var(--font-brand, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif);
-  background: #0e1217;
-  color: #f3f5f8;
+  background: #11141f;
+  color: #fafbfe;
   /* The healthy-level colour: the accent input wins (only set when the user picks
      one), then the brand's semantic --brand-primary (set on the canvas root when
      tokens resolve), then a neutral hex. */
-  --vr-ok: var(--vr-accent, var(--brand-primary, #4f84ba));
-  --vr-low: #f5b544;
-  --vr-hot: #ef5b5b;
+  --vr-ok: var(--vr-accent, var(--brand-primary, #5283d5));
+  --vr-low: #db9640;
+  --vr-hot: #ec8786;
   --vr-track: rgba(255, 255, 255, 0.10);
-  --vr-muted: rgba(243, 245, 248, 0.55);
+  --vr-muted: rgba(250, 251, 254, 0.55);
 }
 .vr[data-theme="light"] {
-  background: #f3f5f8;
-  color: #0e1217;
+  background: #fafbfe;
+  color: #11141f;
   --vr-track: rgba(0, 0, 0, 0.09);
   --vr-muted: rgba(14, 18, 23, 0.55);
 }

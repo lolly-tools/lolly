@@ -159,7 +159,7 @@
               "bg": "",
               "shape": "rect",
               "text": "Text",
-              "fg": "#0e1217",
+              "fg": "#11141f",
               "fontSize": 64,
               "valign": "top",
               "font": "sans",
@@ -206,7 +206,7 @@
               "kind": "path",
               "shape": "rect",
               "bg": "",
-              "stroke": "#0e1217",
+              "stroke": "#11141f",
               "strokeW": 4,
               "fillRule": "nonzero",
               "text": "",
@@ -1075,10 +1075,10 @@
         }
       ],
       "default": [
-        { "id": "paper", "kind": "box", "x": 0, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#ffffff" },
-        { "id": "accent", "kind": "box", "x": 700, "y": -220, "w": 680, "h": 680, "rot": 18, "shape": "ellipse", "bg": "#d1e7ff" },
-        { "id": "head", "kind": "text", "x": 120, "y": 430, "w": 840, "h": 280, "rot": 0, "shape": "rect", "text": "Design once,\n{#4f84ba|ship everywhere}", "fg": "#0e1217", "fontSize": 92, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.1 },
-        { "id": "sub", "kind": "text", "x": 120, "y": 735, "w": 840, "h": 120, "rot": 0, "shape": "rect", "text": "Your brand, on every canvas.", "fg": "#5c646d", "fontSize": 34, "align": "left", "valign": "top", "weight": "400", "font": "sans", "lineHeight": 1.3 }
+        { "id": "paper", "kind": "box", "x": 0, "y": 0, "w": 1080, "h": 1080, "rot": 0, "shape": "rect", "bg": "#fafbfe" },
+        { "id": "accent", "kind": "box", "x": 700, "y": -220, "w": 680, "h": 680, "rot": 18, "shape": "ellipse", "bg": "#d4e5ff" },
+        { "id": "head", "kind": "text", "x": 120, "y": 430, "w": 840, "h": 280, "rot": 0, "shape": "rect", "text": "Design once,\n{#5283d5|ship everywhere}", "fg": "#11141f", "fontSize": 92, "align": "left", "valign": "top", "weight": "700", "font": "sans", "lineHeight": 1.1 },
+        { "id": "sub", "kind": "text", "x": 120, "y": 735, "w": 840, "h": 120, "rot": 0, "shape": "rect", "text": "Your brand, on every canvas.", "fg": "#666978", "fontSize": 34, "align": "left", "valign": "top", "weight": "400", "font": "sans", "lineHeight": 1.3 }
       ]
     }
   ]

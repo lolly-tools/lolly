@@ -634,10 +634,14 @@ const slideLayoutRels =
   `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="${PKG_REL_NS}">` +
   `<Relationship Id="rId1" Type="${REL}/slideMaster" Target="../slideMasters/slideMaster1.xml"/></Relationships>`;
 
-// Default scheme = the blank brand's spectrum (brands/lolly-start tokens: blue/green/
-// amber at oklch(65% .12 h), hlink = primary ramp step 4). A caller-supplied PptxTheme
-// (values the shell resolved from the active brand's tokens) overrides any field; the
-// engine itself never reads a brand pack. hexNorm strips '#' and normalises to 6 upper.
+// Default scheme = the blank brand's spectrum AS IT STOOD AT 1.56 (blue/green/amber at
+// oklch(65% .12 h), hlink = primary ramp step 4). FROZEN: this is the fallback baked into
+// every deck exported without a caller theme, so it is an interop default, not a live
+// brand colour — pptx.test.ts pins theme1 byte-for-byte. It deliberately did NOT follow
+// lolly-start's move to the Harmony palette. A caller-supplied PptxTheme (values the shell
+// resolved from the active brand's tokens) overrides any field, which is how a Harmony-era
+// deck actually gets its colours; the engine itself never reads a brand pack. hexNorm
+// strips '#' and normalises to 6 upper.
 const THEME_DEFAULT_COLORS: Required<NonNullable<PptxTheme['colors']>> = {
   dk1: '000000', lt1: 'FFFFFF', dk2: '44546A', lt2: 'E7E6E6',
   accent1: '5194D5', accent2: '4DA46B', accent3: 'B28727', accent4: 'EFEFEF',

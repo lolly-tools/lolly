@@ -242,7 +242,7 @@ export {
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
-export { GAMUTS, oklchGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge } from './gamut.ts';
+export { GAMUTS, oklchGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
 export type { GamutName, SlicePlane, SliceOptions, SliceImage } from './gamut.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';

@@ -276,6 +276,36 @@ export interface ColorAPI {
    * fill's colour out there. Optional/additive (v1.69).
    */
   slice?(opts: ColorSliceOptions): ColorSliceImage;
+  /**
+   * The in-gamut region of a slice plane, as closed rings in the plane's unit
+   * square (x right, y DOWN) — multiply by a pixel box and you have an SVG
+   * `clipPath` or a filled `<path>`.
+   *
+   * This is the vector counterpart to {@link ColorAPI.slice}: a raster surface
+   * can leave the out-of-gamut area transparent, an SVG has to describe it. An
+   * ARRAY of rings, because on the 'lh' plane the region breaks into islands
+   * (see `plane` in {@link ColorSliceOptions}). Optional/additive (v1.69).
+   */
+  gamutRegion?(
+    plane: ColorSlicePlane, fixed: number,
+    limit?: Exclude<ColorGamut, 'none'>, steps?: number, cMax?: number,
+  ): { x: number; y: number }[][];
+  /**
+   * A colour string → OKLCH (`l` 0–1, not the CSS percent; `h` in degrees), or
+   * null if it can't be read. The inverse of {@link ColorAPI.fromOklch}.
+   *
+   * Without this a tool cannot get at the perceptual axes at all — `schemes()`
+   * returns OKLCH for the accents it generates but never for the seed — so any
+   * tool wanting to reason about lightness or chroma had to carry its own
+   * matrices. Optional/additive (v1.69).
+   */
+  oklch?(color: string): { l: number; c: number; h: number; alpha?: number } | null;
+  /**
+   * OKLCH → hex, gamut-mapped into sRGB per CSS Color 4 §14.2 (hue and
+   * lightness preserved, chroma reduced — never a raw channel clip). 8-digit
+   * when `alpha` is under 1. Optional/additive (v1.69).
+   */
+  fromOklch?(o: { l: number; c: number; h: number; alpha?: number }): string;
 }
 
 /** Display gamuts, narrowest first; `'none'` is outside even Rec.2020. */
