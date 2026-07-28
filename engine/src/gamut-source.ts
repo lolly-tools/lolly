@@ -37,8 +37,16 @@ export interface GamutSource {
   readonly label: string;
   /** Is this OKLCH colour reproducible? l is 0-1 (NOT the CSS percent), h in degrees. */
   contains(l: number, c: number, h: number): boolean;
-  /** Total ink coverage 0-1 for the device values this colour maps to, or null
-   *  when the concept does not apply (RGB sources return null). */
+  /**
+   * Total ink coverage for the device values this colour maps to, or null when
+   * the concept does not apply (RGB sources return null).
+   *
+   * The unit is channels: 1.0 is one ink at full, so a four-ink profile can
+   * return up to 4.0 — the printing trade's "400% TAC", which is the number a
+   * pressroom ink limit is actually written in. Deliberately NOT normalised to
+   * 0–1: dividing by the channel count would turn a 340% limit into 0.85 and
+   * lose the only figure a printer would recognise.
+   */
   inkCoverage?(l: number, c: number, h: number): number | null;
 }
 
@@ -109,9 +117,18 @@ function rgbContains(name: BuiltinGamutName, l: number, c: number, h: number): b
   return inUnitCube(apply3(m, lin[0], lin[1], lin[2]));
 }
 
-/** Rejects the values no display can be asked for, before any source sees them. */
+/**
+ * Rejects the values no display can be asked for, before any source sees them.
+ *
+ * The domain bounds carry the same EPS slack the cube test does, and for the same
+ * reason: `l` usually arrives from a conversion rather than a literal, and
+ * Lab(100, 0, 0) → OKLCH overshoots 1 by 1.05e-9. Without the slack, media white
+ * — inside every gamut by definition, and the one colour an output profile
+ * reproduces exactly — read as out of gamut when spelled `lab(100 0 0)` and
+ * inside sRGB when spelled `#fff`.
+ */
 export const gamutInputSane = (l: number, c: number, h: number): boolean =>
-  l >= 0 && l <= 1 && c >= 0 && Number.isFinite(h);
+  l >= -EPS && l <= 1 + EPS && c >= -EPS && Number.isFinite(h);
 
 const rgbSource = (name: BuiltinGamutName, label: string): GamutSource => ({
   id: name,
@@ -133,9 +150,34 @@ export const BUILTIN_GAMUT_SOURCES: Readonly<Record<BuiltinGamutName, GamutSourc
   rec2020: REC2020_SOURCE,
 };
 
+/**
+ * The gamut that answers nothing: contains no colour and has no ink to report.
+ *
+ * Reached when a caller hands over something that is not a gamut at all — null,
+ * `{}`, or the inert `ColorProfileGamut` handle from `host.color.iccProfile`,
+ * which carries an id, a label and `usable: true` and so reads as source-like.
+ * Substituting sRGB there would answer a press question with display numbers, a
+ * plausible wrong answer; this way every query degrades to its documented
+ * no-answer value (false / 0 / an empty region) instead.
+ */
+export const NO_GAMUT_SOURCE: GamutSource = {
+  id: 'none',
+  label: 'unknown gamut',
+  contains: () => false,
+  inkCoverage: () => null,
+};
+
 /** A name or a source in, always a source out. Idempotent on sources. */
 export function resolveGamutSource(limit: GamutLimit): GamutSource {
-  if (typeof limit !== 'string') return limit;
+  if (typeof limit !== 'string') {
+    // Duck-typed rather than trusted. A limit can arrive from an untyped tool
+    // hook, and returning it verbatim made `contains` a TypeError thrown out of
+    // whatever asked — from a beforeExport hook, a visibly failed export — where
+    // the unknown-NAME branch below has always degraded quietly.
+    return typeof (limit as GamutSource | null | undefined)?.contains === 'function'
+      ? (limit as GamutSource)
+      : NO_GAMUT_SOURCE;
+  }
   // Own-property lookup on a literal object would answer 'constructor' too.
   const built = Object.hasOwn(BUILTIN_GAMUT_SOURCES, limit) ? BUILTIN_GAMUT_SOURCES[limit] : undefined;
   return built ?? SRGB_SOURCE;

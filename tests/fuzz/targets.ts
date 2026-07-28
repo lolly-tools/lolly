@@ -19,6 +19,7 @@
  *   - data-import   : parseDataRows(text)                   — CSV/JSON → blocks rows
  *   - pptx-read     : readPptx(parts, parseXml) + isPptx    — the .pptx part-map reader
  *   - pptx-patch    : rebrandPptxParts(parts, plan)         — the surgical .pptx rebrand
+ *   - icc           : parseIccProfile(bytes) + evaluate                  — the ICC profile reader
  *   - pptx-bridge   : createPptxAPI().inspect(bytes)        — the web bridge's capped unzip + inspect end-to-end
  */
 
@@ -32,6 +33,7 @@ import { stripMetadata, type StripFormat } from '../../engine/src/strip-metadata
 import { embedMp4Meta, embedWebmMeta, videoProvenanceTags } from '../../engine/src/video-meta.ts';
 import { parseDataRows } from '../../engine/src/data-import.ts';
 import { packTiff } from '../../engine/src/tiff.ts';
+import { parseIccProfile, iccGamutSource } from '../../engine/src/icc.ts';
 import { isPptx, readPptx, type PptxParts } from '../../engine/src/pptx-read.ts';
 import { rebrandPptxParts, type PartMap, type RebrandPlan } from '../../engine/src/pptx-patch.ts';
 import { createPptxAPI, looksLikePptxFile } from '../../shells/web/src/bridge/pptx.ts';
@@ -196,6 +198,77 @@ export const x509Target: FuzzTarget = {
     // The read-side X.509 certificate parser (shared DER walker); this is the
     // parser that eats every x5chain cert out of an attacker-controlled file.
     parseCertificate(bytes);
+  },
+};
+
+// ── icc: the ICC profile reader ───────────────────────────────────────────────
+//
+// Profiles arrive inside user-supplied JPEG/PNG/PDF/TIFF, so the reader takes
+// attacker bytes on the export and verify paths. Seeds are minimal but VALID
+// profiles built here (a v2 lut16Type and a v4 lutAtoBType), because the stock
+// ColorSync files are not present on every machine the fuzzer runs on.
+
+/** A minimal valid profile carrying one A2B0 element. */
+function iccProfileWith(element: number[], major = 2): Uint8Array {
+  const head = new Array<number>(128).fill(0);
+  head.splice(8, 1, major);
+  for (const [at, s] of [[12, 'prtr'], [16, 'RGB '], [20, 'Lab '], [36, 'acsp']] as const) {
+    head.splice(at, 4, ...bytesOf(s));
+  }
+  const tagOff = 128 + 4 + 12;
+  const all = [...head, ...u32be(1), ...bytesOf('A2B0'), ...u32be(tagOff), ...u32be(element.length), ...element];
+  all.splice(0, 4, ...u32be(all.length));
+  return Uint8Array.from(all);
+}
+
+/** lut16Type, 3→3, a 2-point grid with 2-entry identity curves either side. */
+function iccMft2Element(): number[] {
+  const el: number[] = [...bytesOf('mft2'), 0, 0, 0, 0, 3, 3, 2, 0];
+  for (const v of [1, 0, 0, 0, 1, 0, 0, 0, 1]) el.push(...u32be(v * 65536));
+  el.push(0, 2, 0, 2);
+  for (let d = 0; d < 3; d++) el.push(0, 0, 0xff, 0xff);
+  for (let i = 0; i < 8; i++) el.push(0xff, 0x00, 0x80, 0x00, 0x80, 0x00);
+  for (let k = 0; k < 3; k++) el.push(0, 0, 0xff, 0xff);
+  return el;
+}
+
+/** lutAtoBType, 3→3: A curves → 16-bit CLUT → B curves. */
+function iccMabElement(): number[] {
+  const curv = (): number[] => [...bytesOf('curv'), 0, 0, 0, 0, ...u32be(0)];
+  const a: number[] = [...curv(), ...curv(), ...curv()];
+  const clut: number[] = [2, 2, 2, ...new Array<number>(13).fill(0), 2, 0, 0, 0];
+  for (let i = 0; i < 8; i++) clut.push(0xff, 0xff, 0x80, 0x80, 0x80, 0x80);
+  const b: number[] = [...curv(), ...curv(), ...curv()];
+  const offA = 32;
+  const offClut = offA + a.length;
+  const offB = offClut + clut.length;
+  return [
+    ...bytesOf('mAB '), 0, 0, 0, 0, 3, 3, 0, 0,
+    ...u32be(offB), ...u32be(0), ...u32be(0), ...u32be(offClut), ...u32be(offA),
+    ...a, ...clut, ...b,
+  ];
+}
+
+export const iccTarget: FuzzTarget = {
+  name: 'icc',
+  async seeds() {
+    return [iccProfileWith(iccMft2Element()), iccProfileWith(iccMabElement(), 4)];
+  },
+  // Contract: parseIccProfile never throws — a malformed profile is null. So any
+  // throw is a finding, as are the runner's hang and allocation classes (the LUT
+  // geometry caps). Evaluation is exercised too: a profile that parses must be
+  // safe to transform with, however absurd the geometry it declared.
+  async invoke(bytes) {
+    const p = parseIccProfile(bytes);
+    if (!p) return;
+    p.hasIntent('relative');
+    for (const intent of ['perceptual', 'relative', 'saturation', 'absolute'] as const) {
+      p.toLab(intent, new Array(Math.min(p.nChannels, 15)).fill(0.4));
+      p.fromLab(intent, [50, 10, -20]);
+      const g = iccGamutSource(p, intent);
+      g.contains(0.5, 0.1, 120);
+      g.inkCoverage?.(0.5, 0.1, 120);
+    }
   },
 };
 
@@ -513,6 +586,6 @@ export const pptxBridgeTarget: FuzzTarget = {
 export const ALL_TARGETS: FuzzTarget[] = [
   c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
-  pptxReadTarget, pptxPatchTarget, pptxBridgeTarget,
+  pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

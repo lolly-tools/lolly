@@ -13,8 +13,13 @@
  * The maths reuses brand-derive's Oklab core: Oklab → linear sRGB → XYZ(D65) →
  * linear P3 / Rec.2020. Chaining through XYZ costs one extra 3×3 per test and
  * keeps a single set of Oklab matrices in the codebase; the composed matrices
- * are pre-multiplied here so the hot path (per-pixel slice painting) is still
- * two matrix applies, not three.
+ * are pre-multiplied in gamut-source.ts so the hot path (per-pixel slice
+ * painting) is still two matrix applies, not three.
+ *
+ * Every function here takes its gamut as a {@link GamutLimit} — one of the three
+ * names, or any {@link GamutSource} (an ICC print profile, say). The three names
+ * resolve to sources over the original matrices, so the display path is
+ * unchanged arithmetic.
  *
  * Pure and deterministic: no Date, no Math.random, no IO.
  */
@@ -228,8 +233,13 @@ function sampleCeiling(grid: Float64Array, l: number, h: number): number {
  * composite this against a `display-p3` canvas of their own.
  *
  * Cost is one gamut classification plus one gamut map per pixel, so a 320×200
- * slice is ~64k of each — single-digit milliseconds, no worker needed. Repaint
- * on rAF while a slider drags.
+ * slice is ~64k of each — single-digit milliseconds against one of the three RGB
+ * names, no worker needed. Repaint on rAF while a slider drags.
+ *
+ * A profile-backed `limit` is a different budget: an ICC `contains` runs two CLUT
+ * interpolations rather than a 3×3, measured at ~1.4µs against ~0.1µs, so the
+ * same 320×200 slice takes ~85ms. Still fine to render once on a profile change;
+ * do NOT put it under a drag without a worker or a coarser preview.
  */
 export function oklchSlice(opts: SliceOptions): SliceImage {
   const width = Math.max(1, Math.floor(opts.width));
@@ -284,21 +294,22 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
 export function sliceGamutEdge(
   plane: SlicePlane,
   fixed: number,
-  limit: Exclude<GamutName, 'none'> = 'srgb',
+  limit: GamutLimit = 'srgb',
   steps = 96,
   cMax = SLICE_C_MAX,
 ): { x: number; y: number }[] {
   const n = Math.max(2, Math.floor(steps));
+  const src = resolveGamutSource(limit);
   const pts: { x: number; y: number }[] = [];
   if (plane === 'lc') {
     for (let i = 0; i <= n; i++) {
       const l = 1 - i / n;                       // top (L 1) downward
-      pts.push({ x: Math.min(1, maxChroma(l, fixed, limit) / cMax), y: i / n });
+      pts.push({ x: Math.min(1, maxChroma(l, fixed, src) / cMax), y: i / n });
     }
   } else if (plane === 'ch') {
     for (let i = 0; i <= n; i++) {
       const h = (i / n) * 360;
-      const c = Math.min(1, maxChroma(fixed, h, limit) / cMax);
+      const c = Math.min(1, maxChroma(fixed, h, src) / cMax);
       pts.push({ x: i / n, y: 1 - c });          // chroma grows upward
     }
   }
@@ -326,20 +337,21 @@ export function sliceGamutEdge(
 export function sliceGamutRegion(
   plane: SlicePlane,
   fixed: number,
-  limit: Exclude<GamutName, 'none'> = 'srgb',
+  limit: GamutLimit = 'srgb',
   steps = 96,
   cMax = SLICE_C_MAX,
 ): { x: number; y: number }[][] {
   const n = Math.max(2, Math.floor(steps));
+  const src = resolveGamutSource(limit);
 
   if (plane === 'lc') {
     // Down the grey axis (c = 0), then back up along the chroma ceiling.
-    const edge = sliceGamutEdge('lc', fixed, limit, n, cMax);
+    const edge = sliceGamutEdge('lc', fixed, src, n, cMax);
     return [[{ x: 0, y: 0 }, { x: 0, y: 1 }, ...edge.slice().reverse()]];
   }
   if (plane === 'ch') {
     // Along the achromatic bottom, then back along the ceiling.
-    const edge = sliceGamutEdge('ch', fixed, limit, n, cMax);
+    const edge = sliceGamutEdge('ch', fixed, src, n, cMax);
     return [[{ x: 0, y: 1 }, { x: 1, y: 1 }, ...edge.slice().reverse()]];
   }
 
@@ -348,18 +360,18 @@ export function sliceGamutRegion(
   // bisection per end per column rather than per sample.
   const c = Math.max(0, fixed);
   const SCAN = 64;
-  const holds = (l: number, h: number): boolean => inGamut(l, c, h, limit);
+  const fits = (l: number, h: number): boolean => holds(src, l, c, h);
   const window = (h: number): { lo: number; hi: number } | null => {
     let first = -1, last = -1;
     for (let i = 0; i <= SCAN; i++) {
-      if (holds(i / SCAN, h)) { if (first < 0) first = i; last = i; }
+      if (fits(i / SCAN, h)) { if (first < 0) first = i; last = i; }
     }
     if (first < 0) return null;
     const refine = (inside: number, outside: number): number => {
       let a = inside, b = outside;
       for (let k = 0; k < 20; k++) {
         const mid = (a + b) / 2;
-        if (holds(mid, h)) a = mid; else b = mid;
+        if (fits(mid, h)) a = mid; else b = mid;
       }
       return a;
     };

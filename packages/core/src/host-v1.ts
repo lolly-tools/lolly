@@ -306,6 +306,90 @@ export interface ColorAPI {
    * when `alpha` is under 1. Optional/additive (v1.69).
    */
   fromOklch?(o: { l: number; c: number; h: number; alpha?: number }): string;
+  /**
+   * Read an ICC profile's bytes into a handle the three methods below take, or
+   * null when the bytes are not a profile that can be evaluated.
+   *
+   * Until this existed, "will it print?" had no answer here: `gamut()` reports
+   * the three DISPLAY gamuts, and a press is neither of them — a colour can sit
+   * comfortably inside sRGB and still be unreachable in CMYK, which is exactly
+   * the case a brand palette needs flagged before it goes to a printer. The
+   * profile is the user's own file (the one their print shop sent), so nothing
+   * about a press condition has to be guessed or hard-coded.
+   *
+   * `intent` defaults to `'relative'`, the intent a proof is normally judged
+   * under. A profile with no table for the intent asked for yields a handle with
+   * `usable: false` rather than one silently answering from a different intent's
+   * table — a wrong colour that looks right is worse than no answer.
+   *
+   * Malformed bytes return null and never throw, however hostile.
+   * Optional/additive (v1.70); feature-detect on older hosts.
+   */
+  iccProfile?(bytes: Uint8Array, intent?: ColorRenderingIntent): ColorProfileGamut | null;
+  /**
+   * Is this OKLCH colour reproducible on the device `profile` describes?
+   * `l` is 0–1 (not the CSS percent), `h` in degrees.
+   *
+   * A soft-proofing answer, not a colorimetric one: it is decided by whether the
+   * profile can round-trip the colour, so within a few ΔE of the gamut surface it
+   * may be called either way, and a fully saturated process primary reads as
+   * outside. Treat it as "flag this for review", not as a verdict.
+   * False for a handle whose `usable` is false. Optional/additive (v1.70).
+   */
+  inProfileGamut?(profile: ColorProfileGamut, l: number, c: number, h: number): boolean;
+  /**
+   * The highest chroma this profile can reproduce at a given lightness and hue —
+   * {@link ColorAPI.maxChroma}'s counterpart for a press rather than a display,
+   * so a ramp can be built to what will actually print. 0 for an unusable
+   * handle. Optional/additive (v1.70).
+   */
+  profileMaxChroma?(profile: ColorProfileGamut, l: number, h: number): number;
+  /**
+   * Total ink coverage for the colour, or null when the profile's space has no
+   * ink (an RGB or a display profile).
+   *
+   * The unit is channels — 1.0 is one ink at full, so four-colour process can
+   * reach 4.0, the trade's "400% TAC". Not normalised to 0–1, because a
+   * pressroom's limit is written as a percentage of that total (300%, 340%) and
+   * dividing by the channel count would throw away the only figure a printer
+   * would recognise. Optional/additive (v1.70).
+   */
+  inkCoverage?(profile: ColorProfileGamut, l: number, c: number, h: number): number | null;
+}
+
+/**
+ * The four ICC rendering intents. Which one a profile is asked under changes the
+ * answer, so it is fixed when the handle is made rather than passed per query.
+ */
+export type ColorRenderingIntent = 'perceptual' | 'relative' | 'saturation' | 'absolute';
+
+/**
+ * A parsed ICC profile, as a handle plus what is worth showing a user about it.
+ *
+ * Opaque by design: the tables themselves stay in the host, and a tool passes
+ * this object back to `inProfileGamut` / `profileMaxChroma` / `inkCoverage`.
+ * An object a tool built itself is not a handle and gets the no-answer result
+ * (false / 0 / null), never a plausible wrong one.
+ */
+export interface ColorProfileGamut {
+  /** Stable identity, derived from the profile's own bytes + intent. Safe as a
+   *  cache key; a tool caching by anything else keys on nothing. */
+  readonly id: string;
+  /** Human label, e.g. 'Coated FOGRA39 (relative)'. */
+  readonly label: string;
+  /** ICC device class: 'prtr' (printer), 'mntr' (display), 'scnr', … */
+  readonly deviceClass: string;
+  /** ICC data colour space: 'CMYK', 'RGB', 'GRAY', … */
+  readonly colourSpace: string;
+  /** Device channel count — 4 for process CMYK. */
+  readonly channels: number;
+  /** The intent this handle answers under. */
+  readonly intent: ColorRenderingIntent;
+  /** ICC spec version the profile declares, e.g. '2.2.0' or '4.3.0'. */
+  readonly version: string;
+  /** False when the profile carries no table for `intent`; every query then
+   *  returns its no-answer value. Check this before drawing a chart of nothing. */
+  readonly usable: boolean;
 }
 
 /** Display gamuts, narrowest first; `'none'` is outside even Rec.2020. */
