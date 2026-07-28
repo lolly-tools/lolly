@@ -882,7 +882,8 @@ four optional `host.color` methods: `iccProfile(bytes, intent?)`, `inProfileGamu
 now `src/color.ts` only ever WROTE profiles — it generates sRGB and Rec.2100-PQ bytes for
 an export to carry — and `rgbToCmyk` is a naïve GCR-free separation with the press
 condition declared in an OutputIntent rather than applied (see `src/pdfx.ts`: a CMYK
-intent is registry-name only, "X-4 ready" not conformant). The reasoning was that
+intent is registry-name only, "X-4 ready" not conformant — no longer the whole story
+as of 1.74, which lets a caller supply profile bytes). The reasoning was that
 applying a profile means shipping a colour engine, and the engine is meant to stay
 dependency-free and small. That reasoning held for *export*, where declaring the space
 the pixels were made in is the honest thing to do and converting into someone else's
@@ -945,3 +946,149 @@ for the per-pixel callers — and `src/gamut-tier.ts` (`gamutTier`, `gamutTierPr
 so the picker's broken tracks and the Colour Lab sliders paint the unreachable stretches
 as concentric washes from one classifier instead of two. A tier is always a `contains`
 answer, never an index into an ordering: Display-P3 is not inside Rec.2020.
+
+1.71.0 — additive: `host.audio`, audio analysis. Decoded sound in, a per-frame
+reactivity track out — RMS, a bass/mid/treble split at butterchurn's own crossover
+frequencies, a log-spaced magnitude spectrum, spectral centroid, onset flux, a
+tempo, beat times, and optionally raw time-domain windows.
+
+It exists because the only audio a tool could previously reason about was LIVE:
+`recorder.meter` reports the microphone one sample at a time. Anything drawing a
+finished clip — an audiogram, a music video, a spectrum — has to know frame 200's
+bass while it is still drawing frame 1, so it needs the whole clip analysed up
+front. Lacking that, the audiogram tool decoded audio itself off `window.
+OfflineAudioContext`, reduced the entire track to a handful of static peak buckets,
+and faked reactivity with a Gaussian bump travelling under a playhead. That is why
+it never ran headlessly and why nothing about it was testable.
+
+DOM-free contract like `images`: a URL, an AssetRef or raw encoded bytes in, plain
+typed arrays out. The shell owns the DECODER (the web shell's `decodeAudioData`, the
+CLI's WAV reader plus `renderZzfxm`); the MATHS is the engine's `analysePcm`, which
+shells attach rather than reimplement — so the browser and the CLI read the same
+numbers off the same clip. `fftInPlace` (iterative radix-2, 30 lines, no dependency)
+is exported alongside it and pinned against an analytically-known spectrum.
+
+Three decisions in the result shape, each load-bearing:
+
+  • **Struct-of-arrays.** A minute at 60fps is 3,600 frames. As objects that is
+    3,600 allocations for a draw loop to chase; as `AudioFrames` it is a few flat
+    Float32Arrays, with `magnitude` and the `wave*` arrays as `count` consecutive
+    rows.
+  • **`bass`/`mid`/`treb` share ONE normalisation scale.** Normalised independently
+    a bass-only clip divides its own near-silent treble by itself and reports treble
+    pinned at 1.0 — a full-height treble bar for an 80Hz sine. The split is a
+    balance, so the loudest band reads 1 and the others read their share of it.
+    `peak` alone stays absolute, so a tool can still see that a source clipped.
+  • **`bpm` is `null` when there is no rhythm to find**, and that is the common
+    answer for speech, ambience and pads. The estimator autocorrelates the onset
+    flux over 60–180 BPM and refuses below a share of the track's own variance,
+    because a visual built on a wrong beat grid looks far worse than one built on
+    none. Beats are then anchored on the strongest onset and stepped outward —
+    walking fixed windows from frame 0 instead drops any window that happens to
+    fall between two hits, which prints double-length gaps into a metronome-steady
+    click train.
+
+Raw `wave`/`waveL`/`waveR` windows are opt-in (`opts.samples`) because they dwarf
+everything else — 2,048 bytes × 3 channels × every frame — and only a sample-domain
+visualiser needs them. 2048 is butterchurn's `fftSize`, and the bytes are already in
+its 0..255-centred-on-128 form, so a MilkDrop preset can be driven frame-exactly off
+a decoded file through `render({ audioLevels })` instead of a live AnalyserNode. That
+is what makes a reactive WebGL visual DETERMINISTICALLY exportable rather than
+something you can only screen-record in real time.
+
+Optional/additive and not capability-gated: a tool feature-detects `host.audio` and
+falls back to a static waveform. No v1 method changed.
+
+1.72.0 — additive: `host.viz` — the MilkDrop visualizer as something a TOOL can use,
+not just the app's own audio dock.
+
+Two questions a tool genuinely cannot answer for itself, and nothing else:
+`isAvailable()` (WebGL2, synchronous, so a hook can branch on it before deciding what
+to analyse) and `presets()` (id, name, AUTHOR, calm). Deliberately not a mounting API:
+a tool is data, it has no element to hand over and no business holding a GL context.
+It renders a `[data-lolly-viz]` placeholder carrying its parameters and the shell
+enhances it after paint, the same contract `[data-lottie-src]` and `video[data-video-key]`
+already use — which is also what lets the canvas, its context and its loaded preset
+survive the innerHTML rebuild every keystroke causes. Remounting per paint would burn
+a WebGL2 context each time, and browsers drop the oldest past ~16: the tool would go
+black a dozen edits in with nothing logged.
+
+`author` is in the contract because the artist presets are the point. Twenty years of
+MilkDrop craft ships alongside our own eval-free ones, and a tool showing one is
+expected to say whose it is — on the exported card, not in the UI around it.
+Attribution is only emitted for a preset the shell CONFIRMS it has, since a pack that
+isn't staged falls back to a brand-native preset and a credit line naming an artist
+whose work is not on screen is worse than none.
+
+The reason this lands as a contract rather than a shell feature is 1.71's opt-in
+`samples`: MilkDrop's renderer takes injected time-domain bytes (`render({ audioLevels })`)
+and only reads its own AnalyserNode when given none. So the visual becomes a function
+of (preset, palette, frame index) instead of of what the speakers are doing, and a
+video export matches the audio track rather than the render machine's frame rate.
+Three traps paid for in black canvases: the injected window must be EXACTLY
+butterchurn's `fftSize` of 1024 (`numSamps * 2`, not the 2048 the 1.71 note claims) —
+longer throws RangeError inside the renderer, shorter silently leaves the previous
+frame's tail behind; the frame `elapsedTime` must be a constant 1/fps, because the
+preset clock advances by 1/fps and damps its estimate toward what it is told, so real
+deltas make the same frame index render differently on a busy machine; and the WebGL2
+context has to be acquired with `preserveDrawingBuffer` BEFORE the visualizer is
+constructed, since a second `getContext` returns the first context and ignores the new
+attributes — without it `toDataURL` (how dom-to-image snapshots a canvas) reads a
+buffer the compositor already cleared and every exported frame is blank.
+
+MilkDrop is a feedback simulation, so a frame rendered cold is a near-empty field —
+the black frame people report as a broken visualizer. Every export therefore pins its
+sequence at t=0: the preset is re-loaded, the feedback buffers and the renderer's own
+clock are cleared, and ~1.6s of real audio is replayed before the frame is read; after
+that it is one render per exported frame. butterchurn is also genuinely random in its
+hot path (`rand()`, mesh jitter, `rand_preset`), so a driven frame runs with Math.random
+seeded from the frame index, restored immediately after. Measured on an M4 in Chromium:
+our own presets reproduce to within a mean absolute difference of ~1/255 per channel
+across separate mounts of the same clip; the artist presets, whose equation state
+butterchurn keeps on the preset object itself, get much closer than the naive path but
+are not bit-exact. Audio-locked, not wall-clock-locked, is the guarantee.
+
+Progressive enhancement, not a capability: no `host.viz`, no WebGL2 or no DOM at all
+and the tool draws its ordinary canvas style — the audiogram falls back to `bars` and
+still renders headlessly. No v1 method changed.
+
+1.73.0 — additive: `'profile'` joins the `AssetRef['type']` union (and both copies
+of `asset.schema.json`) — an ICC colour profile the USER supplied, stored as an
+ordinary user asset at `user/profiles/<digest>` where `<digest>` is the same
+16-hex SHA-256 prefix `icc.ts` puts in a `GamutSource.id`. That content-addressed
+id is the point: re-adding the same file overwrites rather than duplicating, and a
+shared `?limit=icc:<digest>:<intent>` link finds a locally stored profile by
+construction. No new bridge method — the profile rides the user-asset rail that
+already carries fonts and tokens, so the storage meter, data export, backup
+restore and clear-all all cover it with no wiring.
+
+A profile has no visual form: it is a gamut to compare against, not something to
+place. Surfaces that tile images filter it out exactly as they already filter
+`font` and `tokens`. No v1 method changed.
+
+Also additive in this minor: `ExportOpts.audio.start`, the music bed's in-point in
+seconds. A tool whose visuals begin partway through a clip (the audiogram's "Start
+at") could already analyse from there, but the exported video's sound still started
+at 0:00 — picture and audio disagreed. A looping bed now repeats the [start, end)
+region rather than the whole track: `loopStart` defaults to 0, so a wrap would
+otherwise replay the head the visuals deliberately skipped. Out of range degrades to
+0 with a logged warning rather than exporting silence. Absent, it is 0 and nothing
+about an existing export changes.
+
+1.74.0 — additive: a PDF/X-4 output intent can carry an embedded
+DestOutputProfile for a CMYK press condition. `pdfxOutputIntentSpec` gained
+`iccBytes` / `components` / `identifier` / `registry` options — the engine never
+reads a profile store, so a caller that HAS the bytes (the web shell, from a
+profile the user loaded on their own device) supplies them, and a caller that has
+none (the CLI) passes nothing and gets exactly the previous registry-name intent.
+`registry: null` omits RegistryName, which is what the standard's `Custom`
+identifier requires: a profile that proves no registered characterization is
+declared under its own name rather than borrowing one.
+
+Two new pure rules, here rather than in a shell because what X-4 requires is the
+engine's business: `pdfxProfileEligibility(facts, 'CMYK' | 'RGB')` (device class
+`prtr`, the intent's own colour space, /N ∈ {1,3,4}, ICC 2.x–4.2) and
+`iccCharacterization(bytes)` — the `FILE_DESCRIPTOR` line of an ICC's `targ` tag,
+i.e. the characterization data set the profile SAYS it was built from. That is
+testimony, not measurement; it pairs a profile with a condition, it does not prove
+the numbers. No v1 bridge method changed.

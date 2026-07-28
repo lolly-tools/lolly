@@ -12,7 +12,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { gamutSolid, projectGamutSolid, projectSolidPoint } from '../engine/src/gamut-solid.ts';
+import { gamutSolid, projectGamutSolid, projectSolidPoint, solidPointOklch, labSolidUnit } from '../engine/src/gamut-solid.ts';
 import { hexToOklch } from '../engine/src/brand-derive.ts';
 import { maxChroma } from '../engine/src/gamut.ts';
 
@@ -214,4 +214,109 @@ test('the landscape embedding lays hue flat and stands chroma up', () => {
   const m = projectSolidPoint(land, { l: 0.62, c: 0.19, h: 260 }, { yaw: 20, pitch: 35 });
   assert.ok(m.x > 0 && m.x < 1 && m.y > 0 && m.y < 1, JSON.stringify(m));
   assert.equal(m.inside, true);
+});
+
+test('the lab embedding stands lightness up over the a/b floor, in true proportion', () => {
+  const lab = gamutSolid('srgb', 48, 28, 'lab');
+  assert.equal(lab.embed, 'lab');
+  // A closed hull, exactly like the cylinder — same grid, different axes — so it
+  // needs no seam caps and every quad is part of the surface.
+  assert.equal(lab.quads.length, solid.quads.length, 'same surface grid, no caps');
+
+  // Every vertex still sits on the gamut boundary: the embedding moves the
+  // numbers, it does not change them.
+  for (const q of lab.quads) {
+    for (const p of q.pts) {
+      const { l, c, h } = solidPointOklch(lab, p);
+      assert.ok(Math.abs(c - maxChroma(l, h, 'srgb')) < 1e-9,
+        `L${l.toFixed(3)} H${h.toFixed(1)}: surface C ${c} vs ceiling ${maxChroma(l, h, 'srgb')}`);
+      assert.ok(p.x >= -1.001 && p.x <= 1.001 && p.z >= -1.001 && p.z <= 1.001, `a/b floor ${p.x},${p.z}`);
+      assert.ok(p.y >= -0.001 && p.y <= 1.001, `lightness height ${p.y}`);
+    }
+  }
+
+  // The near surface is still the one we see (a flipped cull is invisible to the
+  // eye — see the cylinder's version of this check above).
+  for (const [yaw, expected] of [[0, 90], [90, 0], [180, 270]] as [number, number][]) {
+    const quads = projectGamutSolid(lab, { yaw, pitch: 0 });
+    assert.ok(quads.length > 0 && quads.length < lab.quads.length, `yaw ${yaw} culls a back face`);
+    const hue = hexToOklch(centreQuad(quads).hex)!.h;
+    assert.ok(hueGap(hue, expected) < 35, `yaw ${yaw}: centre shows hue ${hue.toFixed(1)}, expected ~${expected}`);
+  }
+});
+
+test('the lab plot keeps proportions the cylinder normalises away', () => {
+  // The claim this embedding makes is isotropy: ONE scale for lightness and for
+  // a/b. So the projected silhouette's aspect must equal the model's, and a
+  // wider gamut must come out visibly wider rather than refilling the frame.
+  const screenAspect = (s: ReturnType<typeof gamutSolid>): number => {
+    const pts = projectGamutSolid(s, { yaw: 0, pitch: 0, scale: 1 }).flatMap(q => q.points);
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+    return (Math.max(...ys) - Math.min(...ys)) / (Math.max(...xs) - Math.min(...xs));
+  };
+  // The projector doubles the vertical on the way out, which is exactly what the
+  // embedding's half-height pre-scale accounts for.
+  const modelAspect = (s: ReturnType<typeof gamutSolid>): number => {
+    const pts = s.quads.flatMap(q => q.pts);
+    const xs = pts.map(p => p.x), ys = pts.map(p => p.y);
+    return ((Math.max(...ys) - Math.min(...ys)) * 2) / (Math.max(...xs) - Math.min(...xs));
+  };
+
+  for (const g of ['srgb', 'p3', 'rec2020'] as const) {
+    const s = gamutSolid(g, 96, 40, 'lab');
+    assert.ok(Math.abs(screenAspect(s) - modelAspect(s)) < 1e-6,
+      `${g}: the projection rescaled the axes apart (${screenAspect(s)} vs ${modelAspect(s)})`);
+  }
+
+  const srgb = screenAspect(gamutSolid('srgb', 96, 40, 'lab'));
+  const wide = screenAspect(gamutSolid('rec2020', 96, 40, 'lab'));
+  assert.ok(wide < srgb * 0.8, `Rec.2020 must read wider than sRGB, got ${wide} vs ${srgb}`);
+  // …where the cylinder gives every gamut the same silhouette width, which is
+  // precisely the comparison a press profile is loaded to make.
+  const cyl = (g: 'srgb' | 'rec2020') => screenAspect(gamutSolid(g, 96, 40, 'cylinder'));
+  assert.ok(Math.abs(cyl('srgb') - cyl('rec2020')) < 0.2, 'the cylinder normalises width away');
+});
+
+test('the lab marker lands in register with the lab mesh', () => {
+  const lab = gamutSolid('srgb', 48, 28, 'lab');
+  const view = { yaw: 35, pitch: 25, scale: 0.9 };
+  const m = projectSolidPoint(lab, { l: 0.62, c: 0.19, h: 260 }, view);
+  assert.equal(m.inside, true);
+  assert.ok(m.x > 0 && m.x < 1 && m.y > 0 && m.y < 1, JSON.stringify(m));
+  assert.equal(projectSolidPoint(lab, { l: 0.62, c: 0.42, h: 260 }, view).inside, false);
+
+  // In register: a colour read off a surface vertex must project back onto that
+  // vertex's own projected position, or the dot floats off the solid.
+  const vtx = lab.quads.flatMap(q => q.pts).find(p => p.y > 0.45 && p.y < 0.55 && Math.hypot(p.x, p.z) > 0.1)!;
+  const o = solidPointOklch(lab, vtx);
+  const at = projectSolidPoint(lab, o, view);
+  const mesh = projectGamutSolid({ ...lab, quads: [{ pts: [vtx, vtx, vtx, vtx], hex: '#000000', up: 1 }] }, view);
+  assert.equal(mesh.length, 0, 'a zero-area quad is culled, not drawn');
+  assert.deepEqual(projectSolidPoint(lab, o, view), at, 'projection is deterministic');
+
+  // The achromatic axis is the axis: zero chroma sits dead centre horizontally at
+  // any yaw, which is the centring the vertical pre-scale has to preserve.
+  for (const yaw of [0, 40, 137]) {
+    const grey = projectSolidPoint(lab, { l: 0.5, c: 0, h: 0 }, { yaw, pitch: 0, scale: 1 });
+    assert.ok(Math.abs(grey.x - 0.5) < 1e-9 && Math.abs(grey.y - 0.5) < 1e-9, `yaw ${yaw}: ${JSON.stringify(grey)}`);
+  }
+});
+
+test('solidPointOklch inverts every embedding', () => {
+  const o = { l: 0.58, c: 0.13, h: 217 };
+  for (const embed of ['cylinder', 'landscape', 'lab'] as const) {
+    const s = gamutSolid('srgb', 48, 28, embed);
+    const unit = embed === 'landscape' ? (s.maxRadius || 1) : 1;
+    const hr = (o.h * Math.PI) / 180;
+    // Rebuild the model point the way the placement does, then read it back.
+    const p = embed === 'landscape'
+      ? { x: (o.h / 360) * 2 - 1, z: o.l * 2 - 1, y: o.c / unit }
+      : embed === 'lab'
+        ? { x: (o.c * Math.cos(hr)) / labSolidUnit(s.maxRadius), z: (o.c * Math.sin(hr)) / labSolidUnit(s.maxRadius), y: 0.5 + (o.l - 0.5) / (2 * labSolidUnit(s.maxRadius)) }
+        : { x: o.c * Math.cos(hr), z: o.c * Math.sin(hr), y: o.l };
+    const back = solidPointOklch(s, p);
+    assert.ok(Math.abs(back.l - o.l) < 1e-9, `${embed} lightness ${back.l}`);
+    assert.ok(Math.abs(back.c - o.c) < 1e-9, `${embed} chroma ${back.c}`);
+    assert.ok(hueGap(back.h, o.h) < 1e-6, `${embed} hue ${back.h}`);
+  }
 });

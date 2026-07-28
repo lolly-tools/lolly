@@ -350,7 +350,10 @@ export interface CmykCondition {
 /**
  * Standard registered press conditions a CMYK PDF can declare in its
  * OutputIntent. Identifiers are the ICC characterization-data registry reference
- * names, so the intent is valid without embedding a (large) destination profile.
+ * names, so the intent NAMES the condition without carrying a (large) destination
+ * profile — a true and useful statement to a RIP, but not PDF/X-4, which requires
+ * the profile embedded (see pdfx.ts: bytes are supplied by a caller that has them,
+ * and the shell only claims GTS_PDFXVersion where they were).
  * Keys are the values accepted by the `colorProfile` export option for pdf-cmyk.
  */
 export const CMYK_CONDITIONS = {

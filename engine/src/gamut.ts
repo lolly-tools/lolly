@@ -26,7 +26,8 @@
 
 import { oklabToLinearSrgb, linearToSrgb, GAMUT_EPSILON } from './brand-derive.ts';
 import {
-  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutInputSane, resolveGamutSource, linearSrgbToLinearP3, fastRgbContains,
+  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutInputSane, resolveGamutSource, linearSrgbToLinearP3,
+  fastRgbContains, gamutSourceId,
 } from './gamut-source.ts';
 import type { BuiltinGamutName, GamutLimit, GamutSource } from './gamut-source.ts';
 
@@ -199,47 +200,81 @@ const ENCODE_GAMUT: Record<EncodeSpace, BuiltinGamutName> = {
 export type EncodeSpace = 'srgb' | 'display-p3';
 
 /**
- * A coarse (lightness × hue) grid of the sRGB chroma ceiling, bilinearly
- * sampled — how the painter desaturates an out-of-sRGB pixel back to something
- * showable without running a bisection 64,000 times.
+ * A coarse (lightness × hue) grid of a gamut's chroma ceiling, bilinearly
+ * sampled — how the painter avoids running a bisection 64,000 times.
  *
- * Sampling is legitimate here and only here: the grid decides the FILL colour
- * of pixels that are already outside sRGB and therefore already an
- * approximation on an 8-bit surface. Every line the user actually reads — the
- * gamut boundaries from `sliceGamutEdge` — comes from exact `maxChroma` calls.
- * The ceiling is smooth in both axes away from L→1, so a 2.5° / 0.016-lightness
- * grid lands well inside a JND.
+ * It serves two jobs, and they are worth telling apart:
  *
- * It stays sRGB-only however wide `limit` is, and is therefore still safe as one
- * module-level table: it is the DESTINATION of the desaturation (what an 8-bit
- * sRGB buffer can encode), never the limit being tested. Caching a grid per
- * source would key a table on something callers can construct at will — an
- * unbounded cache for no gain, since no wider source changes what this buffer
- * can hold.
+ *  - **Desaturation target.** The grid for the ENCODE space decides the fill
+ *    colour of pixels already outside it and therefore already an approximation
+ *    on that surface. Sampling is obviously legitimate there.
+ *  - **Membership**, for a source with no fast matrix path — an ICC profile. A
+ *    profile's `contains` costs ~1.4 µs against a matrix's ~0.1, so a 320×200
+ *    slice would be ~85 ms per chart, per repaint, under a drag. Testing
+ *    `c <= sampleCeiling(grid, l, h)` instead brings the per-pixel cost back to
+ *    the RGB path's, and pays the ~9.4k bisections once per (profile × intent).
+ *
+ * **The assumption membership adds**, stated because it is now load-bearing: a
+ * gamut is treated as an INTERVAL [0, cmax] in chroma at fixed (L, h) —
+ * star-shaped in chroma. The engine already assumes this, because `maxChroma`
+ * bisects; the grid only extends it from the boundary to the fill. The
+ * consequence is that a genuine hole inside a press gamut is drawn filled. Do
+ * not add a hole search: it multiplies the cost of every pixel to chase
+ * something no real output profile exhibits at this scale.
+ *
+ * Every line the user actually READS — the contours from `sliceGamutRegion` —
+ * still comes from exact `maxChroma` calls. The ceiling is smooth in both axes
+ * away from L→1, so a 2.5° / 0.016-lightness grid lands well inside a JND.
+ *
+ * Keyed by `gamutSourceId`, so a profile gets its own table and two profiles
+ * cannot collide (a source stringifies to '[object Object]'). The cache is
+ * unbounded in principle; in practice its keys are the three built-in names plus
+ * one per profile-intent the user has mounted, which is a handful.
  */
 const GRID_L = 65;  // lightness samples, 0…1 inclusive
 const GRID_H = 145; // hue samples, 0…360 inclusive (2.5° apart, wrapping at both ends)
 
-// Built once on first use and reused: the sRGB gamut is a constant, so this is a
-// lookup table, not state. Keeping it module-level takes the ~2,400 bisections
-// out of every repaint — the difference between a hue drag at 9ms and at 12ms.
-// One grid PER ENCODE GAMUT. A slice encoded for Display-P3 has to desaturate to
-// P3's ceiling, not sRGB's — clamping to sRGB would throw away exactly the colour
-// a wide-gamut canvas exists to show. Each gamut's grid is a constant, so this is
-// a lookup table keyed by name, not state.
-const CEILINGS = new Map<BuiltinGamutName, Float64Array>();
+// Built once on first use and reused: a gamut is a constant, so this is a lookup
+// table, not state. Keeping it module-level takes the ~9,400 bisections out of
+// every repaint.
+const CEILINGS = new Map<string, Float64Array>();
 
-function ceilingGrid(space: BuiltinGamutName): Float64Array {
-  const cached = CEILINGS.get(space);
+function ceilingGrid(limit: GamutLimit): Float64Array {
+  const id = gamutSourceId(limit);
+  const cached = CEILINGS.get(id);
   if (cached) return cached;
+  const src = resolveGamutSource(limit);
   const g = new Float64Array(GRID_L * GRID_H);
   for (let i = 0; i < GRID_L; i++) {
     const l = i / (GRID_L - 1);
-    for (let j = 0; j < GRID_H; j++) g[i * GRID_H + j] = maxChroma(l, (j / (GRID_H - 1)) * 360, space);
+    for (let j = 0; j < GRID_H; j++) g[i * GRID_H + j] = maxChroma(l, (j / (GRID_H - 1)) * 360, src);
   }
-  CEILINGS.set(space, g);
+  CEILINGS.set(id, g);
   return g;
 }
+
+/**
+ * The highest chroma on this gamut's ceiling grid, and where it sits.
+ *
+ * The coarse stage of `chromaAxisMax`'s peak search (gamut-axis.ts), shared with
+ * the painter rather than swept a second time: the grid is already built for any
+ * gamut being charted, so an axis ceiling costs only the local refinement around
+ * the winner. Grid-resolution, so a caller wanting the true peak must refine.
+ */
+export function gamutCeilingPeak(limit: GamutLimit): { c: number; l: number; h: number } {
+  const g = ceilingGrid(limit);
+  let best = 0, bi = 0, bj = 0;
+  for (let i = 0; i < GRID_L; i++) {
+    for (let j = 0; j < GRID_H; j++) {
+      const c = g[i * GRID_H + j] as number;
+      if (c > best) { best = c; bi = i; bj = j; }
+    }
+  }
+  return { c: best, l: bi / (GRID_L - 1), h: (bj / (GRID_H - 1)) * 360 };
+}
+
+/** Grid spacing, so a refinement step knows how wide one cell is. */
+export const GAMUT_GRID_STEP = { l: 1 / (GRID_L - 1), h: 360 / (GRID_H - 1) } as const;
 
 function sampleCeiling(grid: Float64Array, l: number, h: number): number {
   const fi = Math.min(GRID_L - 1, Math.max(0, l * (GRID_L - 1)));
@@ -271,10 +306,12 @@ function sampleCeiling(grid: Float64Array, l: number, h: number): number {
  * slice is ~64k of each — single-digit milliseconds against one of the three RGB
  * names, no worker needed. Repaint on rAF while a slider drags.
  *
- * A profile-backed `limit` is a different budget: an ICC `contains` runs two CLUT
- * interpolations rather than a 3×3, measured at ~1.4µs against ~0.1µs, so the
- * same 320×200 slice takes ~85ms. Still fine to render once on a profile change;
- * do NOT put it under a drag without a worker or a coarser preview.
+ * A profile-backed `limit` costs the SAME per pixel, because membership comes
+ * from that source's `ceilingGrid` rather than from `contains` (which runs two
+ * CLUT interpolations, ~1.4µs against a matrix's ~0.1µs — 400,000 of those is
+ * what made a profile chart unpaintable under a drag). The grid is built once
+ * per profile × intent, ~9.4k bisections, and memoised; read `ceilingGrid` for
+ * the assumption that trade makes.
  */
 export function oklchSlice(opts: SliceOptions): SliceImage {
   const width = Math.max(1, Math.floor(opts.width));
@@ -282,10 +319,17 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
   const cMax = opts.cMax != null && opts.cMax > 0 ? opts.cMax : SLICE_C_MAX;
   const src = resolveGamutSource(opts.limit ?? 'rec2020');
   const data = new Uint8ClampedArray(width * height * 4);
-  // The hoisted test for a built-in gamut, else the source's own. This is a
-  // per-PIXEL call, so the difference is the whole cost of the paint.
+  // The hoisted test for a built-in gamut; for anything else — an ICC profile —
+  // its own ceiling grid, because `contains` costs ~14x a matrix apply and this
+  // is a per-PIXEL call, so the difference IS the cost of the paint. See
+  // `ceilingGrid` for the star-shaped-in-chroma assumption that buys.
   const fast = fastRgbContains(src);
-  const inside = fast ?? ((l: number, c: number, h: number) => holds(src, l, c, h));
+  let inside: (l: number, c: number, h: number) => boolean;
+  if (fast) inside = fast;
+  else {
+    const own = ceilingGrid(src);
+    inside = (l, c, h) => c <= sampleCeiling(own, l, h);
+  }
   const encode: EncodeSpace = opts.encode ?? 'srgb';
   const ceiling = ceilingGrid(ENCODE_GAMUT[encode]);
 

@@ -61,8 +61,41 @@ export interface SolidQuad {
  * people actually bring: the peaks and troughs per hue are directly comparable
  * (yellow towers, blue barely rises), where on the cylinder the same information
  * is wrapped around the back. It is the same numbers; only the embedding differs.
+ *
+ * `'lab'` is the ColorSync / iccview picture: the opponent axes a and b on the
+ * floor, lightness standing up, and — the part that matters — ONE scale for all
+ * three, so the proportions are true. The cylinder normalises chroma by the
+ * gamut's own widest reach, which makes every gamut fill the frame identically
+ * and quietly destroys the comparison a press profile is loaded to make. In
+ * `'lab'` a squat gamut looks squat. Same grid, same numbers, third embedding.
  */
-export type SolidEmbed = 'cylinder' | 'landscape';
+export type SolidEmbed = 'cylinder' | 'landscape' | 'lab';
+
+/**
+ * The model-space size of one unit of OKLab distance in the `'lab'` embedding.
+ *
+ * Lightness spans 1 and chroma spans at most `2·maxRadius` (~0.64 for sRGB), so
+ * lightness is normally the longer axis and sets the unit; a source that reaches
+ * further than L does widens it instead, keeping the model inside its ±1 box.
+ * Isotropy is the whole point — divide both axes by the SAME number or the plot
+ * is a cylinder with extra steps.
+ */
+export function labSolidUnit(maxRadius: number): number {
+  return Math.max(0.5, maxRadius || 0);
+}
+
+/** One (lightness, chroma, hue-angle) sample placed in the `'lab'` embedding. */
+function labPoint(l: number, c: number, ang: number, unit: number): SolidPoint {
+  return {
+    x: (c * Math.cos(ang)) / unit,
+    z: (c * Math.sin(ang)) / unit,
+    // Centred on 0.5 like every other embedding's vertical, and HALVED because
+    // the projector doubles the vertical on the way out (`(y − 0.5) · 2`). After
+    // that round trip one lightness unit and one chroma unit are the same length
+    // on screen, which is the whole claim this embedding makes.
+    y: 0.5 + (l - 0.5) / (2 * unit),
+  };
+}
 
 export interface GamutSolid {
   /** The gamut this surface is of — a name, or the source it was built from.
@@ -119,11 +152,17 @@ export function gamutSolid(
    *
    *   cylinder:  x/z = the chroma plane (hue as angle), y = lightness
    *   landscape: x = hue, z = lightness, y = chroma
+   *   lab:       x/z = a and b, y = lightness — all three on one scale
    *
    * The landscape's hue axis deliberately runs the FULL 0–360 without wrapping:
    * a wrapped landscape would hide the red seam behind itself, and the seam is
    * where the interesting asymmetry lives.
+   *
+   * The lab embedding pre-divides by `unit` here rather than leaving it to the
+   * projector, so the model itself is isotropic and anything reading a point
+   * back (the marker, a shell hit-test) needs one inverse, not two.
    */
+  const unit = labSolidUnit(maxR);
   const at = (i: number, j: number): SolidPoint => {
     const l = i / (L - 1);
     const jj = (j % H + H) % H;
@@ -133,6 +172,7 @@ export function gamutSolid(
       return { x: (j / H) * 2 - 1, z: l * 2 - 1, y: r / scaleR };
     }
     const ang = (jj / H) * TAU;
+    if (embed === 'lab') return labPoint(l, r, ang, unit);
     return { x: r * Math.cos(ang), z: r * Math.sin(ang), y: l };
   };
 
@@ -267,9 +307,12 @@ function makeProjector(solid: GamutSolid, view: SolidView): (p: SolidPoint) => P
   const cy = Math.cos(yaw), sy = Math.sin(yaw);
   const cp = Math.cos(pitch), sp = Math.sin(pitch);
   // The cylinder's x/z are raw chroma, so they need normalising by the widest
-  // reach and its y (lightness 0–1) centring on 0. The landscape already arrives
-  // in −1…1 with height 0…1, so it only needs the same centring on the vertical.
-  const rad = solid.embed === 'landscape' ? 1 : (solid.maxRadius || 1);
+  // reach and its y (lightness 0–1) centring on 0. The landscape and the lab plot
+  // already arrive pre-scaled in −1…1, so they only need the same centring on the
+  // vertical — and the lab plot's pre-scale is deliberately the SAME divisor on
+  // all three axes, which is what stops this from re-normalising its proportions
+  // away again.
+  const rad = solid.embed === 'cylinder' ? (solid.maxRadius || 1) : 1;
 
   const raw = (p: SolidPoint): Projected => {
     // Vertical centred on 0 either way, so pitch tilts about the middle.
@@ -347,7 +390,8 @@ export function projectGamutSolid(solid: GamutSolid, view: SolidView): Projected
     // 'the surface we see is the near one' pins it against a known view
     // (yaw 0 / pitch 0 must show hue ~90, the +b axis pointing at the viewer).
     // A landscape is an OPEN surface — from below, every quad is back-facing, and
-    // culling would render nothing at all. Only the closed cylinder can cull.
+    // culling would render nothing at all. Only the closed embeddings (cylinder
+    // and lab, which is the same closed hull on different axes) can cull.
     if (solid.embed !== 'landscape' && area <= 0) continue;
 
     const depth = cam.reduce((s, p) => s + p.z, 0) / cam.length;
@@ -386,7 +430,9 @@ export function projectSolidPoint(
   const scaleR = solid.maxRadius || 1;
   const model: SolidPoint = solid.embed === 'landscape'
     ? { x: (((o.h % 360) + 360) % 360) / 360 * 2 - 1, z: o.l * 2 - 1, y: o.c / scaleR }
-    : { x: o.c * Math.cos(hr), z: o.c * Math.sin(hr), y: o.l };
+    : solid.embed === 'lab'
+      ? labPoint(o.l, o.c, hr, labSolidUnit(solid.maxRadius))
+      : { x: o.c * Math.cos(hr), z: o.c * Math.sin(hr), y: o.l };
   const p = makeProjector(solid, view)(model);
   return {
     x: p.x,
@@ -394,4 +440,30 @@ export function projectSolidPoint(
     depth: p.z,
     inside: inGamut(o.l, o.c, o.h, solid.limit),
   };
+}
+
+/**
+ * A model point back to the colour it stands for — the exact inverse of the
+ * placement each embedding uses.
+ *
+ * Worth having as one function rather than three inline inversions: the marker,
+ * a shell hit-test and the tests all need it, and an embedding's scale factor
+ * living in two places is how the marker drifts off the surface.
+ */
+export function solidPointOklch(
+  solid: GamutSolid,
+  p: SolidPoint,
+): { l: number; c: number; h: number } {
+  if (solid.embed === 'landscape') {
+    return {
+      l: (p.z + 1) / 2,
+      c: p.y * (solid.maxRadius || 1),
+      h: ((p.x + 1) / 2) * 360,
+    };
+  }
+  const unit = solid.embed === 'lab' ? labSolidUnit(solid.maxRadius) : 1;
+  const c = Math.hypot(p.x, p.z) * unit;
+  const l = solid.embed === 'lab' ? 0.5 + (p.y - 0.5) * 2 * unit : p.y;
+  const h = c < 1e-12 ? 0 : (((Math.atan2(p.z, p.x) * 180) / Math.PI) + 360) % 360;
+  return { l, c, h };
 }

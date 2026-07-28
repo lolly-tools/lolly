@@ -11,6 +11,7 @@
  * colours.
  */
 
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
@@ -120,4 +121,29 @@ test('the ladder is a question order, and the three display gamuts are on it', (
   // Its LENGTH bounds how many rings can exist; its ORDER is which candidate is
   // asked first. Nothing may read a tier off it as a position.
   assert.ok(GAMUT_TIER_LADDER.every(g => typeof g.contains === 'function'));
+});
+
+test('the module comment\'s worked examples reproduce', () => {
+  // They did not. The P3 red corner was quoted rounded to 4 decimals, which pushes it
+  // OFF the P3 hull it sits on (`inGamut(…, 'p3')` false, tier BEYOND), and the hue
+  // sweep was illustrated with a `3` — an answer no sRGB limit can return, since its
+  // ladder has two candidates. A reader who pasted either into a debug session would
+  // conclude the classifier is broken. So the doc is now read back from the source and
+  // checked, which also keeps it honest if the hulls are ever revised.
+  const src = readFileSync(new URL('../engine/src/gamut-tier.ts', import.meta.url), 'utf8');
+  const corner = /L (-?[\d.]+), C (-?[\d.]+),\s*\*?\s*h (-?[\d.]+)/.exec(src.replace(/\n \*/g, ''));
+  assert.ok(corner, 'the quoted P3 red corner moved — find it before deleting this test');
+  const lch = [Number(corner[1]), Number(corner[2]), Number(corner[3])] as [number, number, number];
+  assert.equal(inGamut(...lch, 'p3'), true, `the quoted corner is not in P3: ${lch.join(' ')}`);
+  assert.equal(gamutTier(...lch, 'srgb'), 1, 'the doc calls it tier 1');
+  assert.equal(gamutTier(...lch, 'rec2020'), 2, 'the doc calls it tier 2 under Rec.2020');
+
+  const quoted = /`([012.]{20,})`/.exec(src);
+  assert.ok(quoted, 'the quoted hue sweep moved');
+  const probe = gamutTierProbe('srgb');
+  const measured = Array.from({ length: quoted[1]!.length }, (_, i) => {
+    const t = probe(0.6, 0.25, (i / (quoted[1]!.length - 1)) * 360);
+    return t === BEYOND_TIER ? '.' : String(t);
+  }).join('');
+  assert.equal(quoted[1], measured, 'the illustrated sweep must be the one the code produces');
 });

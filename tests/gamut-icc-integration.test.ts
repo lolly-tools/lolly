@@ -23,7 +23,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 
-import { parseIccProfile, iccGamutSource, ICC_GAMUT_DELTA_E } from '../engine/src/icc.ts';
+import {
+  parseIccProfile, iccGamutSource, iccRoundTripDeltaE, iccRoundTripDecides, ICC_GAMUT_DELTA_E,
+} from '../engine/src/icc.ts';
 import type { IccProfile } from '../engine/src/icc.ts';
 import {
   inGamut, maxChroma, oklchSlice, sliceGamutEdge, sliceGamutRegion,
@@ -32,6 +34,7 @@ import { gamutSolid, projectSolidPoint } from '../engine/src/gamut-solid.ts';
 import { gamutSourceId } from '../engine/src/gamut-source.ts';
 import { makeColorApi } from '../engine/src/color-tools.ts';
 import { oneWayProfileBytes } from './helpers/icc-fixture.ts';
+import { srgbIccProfile } from '../engine/src/color.ts';
 
 const SYS = '/System/Library/ColorSync/Profiles/';
 const CMYK_PATH = `${SYS}Generic CMYK Profile.icc`;
@@ -271,4 +274,114 @@ test('an unknown intent string falls back to relative rather than indexing a pro
 
 test('ICC_GAMUT_DELTA_E is the documented dial, not an accident', () => {
   assert.equal(ICC_GAMUT_DELTA_E, 3.0, 'the membership threshold is a documented constant; changing it changes every chart');
+});
+
+// ─── the ceiling grid stands in for `contains` ────────────────────────────────
+
+/**
+ * The slice painter no longer calls a profile's `contains` per pixel — it tests
+ * `c <= sampleCeiling(grid, l, h)` against that source's own ceiling grid, which
+ * is what took a profile chart from ~85 ms to the RGB path's cost. The trade is
+ * an assumption (a gamut is an interval in chroma at fixed L and h) plus grid
+ * interpolation error, so this pins the substitution against the real thing on a
+ * real CMYK profile: every pixel the painter draws must be one `contains` would
+ * have accepted, to within one grid cell of the boundary.
+ */
+test('grid-based slice membership agrees with the profile’s own contains', (t) => {
+  withProfile(CMYK_PATH, t, (p) => {
+    const src = iccGamutSource(p, 'relative');
+    const W = 96, H = 60, cMax = 0.4;
+    for (const [plane, fixed] of [['lc', 120], ['ch', 0.6]] as const) {
+      const img = oklchSlice({ plane, fixed, width: W, height: H, cMax, limit: src });
+      // One grid cell, in the units of whichever axis carries chroma here.
+      const cellC = cMax * (plane === 'lc' ? 1 / W : 1 / H);
+      let checked = 0, disagreed = 0;
+      for (let y = 0; y < H; y++) {
+        for (let x = 0; x < W; x++) {
+          const u = (x + 0.5) / W, v = 1 - (y + 0.5) / H;
+          const l = plane === 'lc' ? v : fixed;
+          const c = plane === 'lc' ? u * cMax : v * cMax;
+          const h = plane === 'lc' ? fixed : u * 360;
+          const painted = img.data[(y * W + x) * 4 + 3] !== 0;
+          if (painted === src.contains(l, c, h)) { checked++; continue; }
+          // A disagreement is only allowed within one cell of the boundary: the
+          // exact ceiling has to be near this pixel's chroma.
+          const edge = maxChroma(l, h, src);
+          assert.ok(
+            Math.abs(c - edge) <= cellC * 2.5,
+            `${plane} pixel (${x},${y}) l=${l.toFixed(3)} c=${c.toFixed(4)} h=${h.toFixed(1)}: `
+            + `painted=${painted}, contains=${!painted}, exact ceiling ${edge.toFixed(4)}`,
+          );
+          disagreed++;
+        }
+      }
+      assert.ok(checked > W * H * 0.9, `${plane}: ${disagreed} of ${W * H} pixels differed — too many`);
+    }
+  });
+});
+
+// ─── the round-trip ΔE as a readable quantity ─────────────────────────────────
+
+test('iccRoundTripDeltaE is the number the membership threshold is applied to', (t) => {
+  withProfile(CMYK_PATH, t, (p) => {
+    const src = iccGamutSource(p, 'relative');
+    // Spread across the space rather than at chosen points: whatever the profile
+    // says, `contains` must be exactly "the shift is within tolerance".
+    for (const l of [0.25, 0.5, 0.75]) {
+      for (const c of [0.02, 0.1, 0.2, 0.3]) {
+        for (const h of [20, 100, 200, 300]) {
+          const de = iccRoundTripDeltaE(p, 'relative', l, c, h);
+          assert.equal(typeof de, 'number', `no ΔE at ${l}/${c}/${h}`);
+          assert.equal(
+            src.contains(l, c, h), de! <= ICC_GAMUT_DELTA_E,
+            `contains disagrees with ΔE ${de!.toFixed(2)} at l=${l} c=${c} h=${h}`,
+          );
+        }
+      }
+    }
+    // Not a colour, and an intent the profile cannot answer: null, never a number.
+    assert.equal(iccRoundTripDeltaE(p, 'relative', Number.NaN, 0.1, 100), null);
+    assert.equal(iccRoundTripDeltaE(p, 'relative', 1.5, 0.1, 100), null);
+  });
+});
+
+test('iccRoundTripDeltaE declines an intent the profile has no table for', () => {
+  const p = parseIccProfile(oneWayProfileBytes());
+  assert.ok(p, 'the one-way fixture parses');
+  for (const intent of ['perceptual', 'relative', 'saturation', 'absolute'] as const) {
+    assert.equal(iccRoundTripDeltaE(p!, intent, 0.5, 0.1, 120), null);
+  }
+});
+
+
+test('iccRoundTripDecides tells apart the profiles the ΔE actually decides', (t) => {
+  // A matrix/TRC profile has no B2A table, so `fromLab` clips into the device cube
+  // and the round trip is near zero well OUTSIDE the gamut — `contains` tests the
+  // cube instead. Anything showing the ΔE beside a verdict has to gate on this, or
+  // it prints "outside, ΔE 0.0" under "in gamut is decided by ΔE 3.0".
+  const matrix = parseIccProfile(srgbIccProfile());
+  assert.ok(matrix, 'the engine\'s own sRGB profile parses');
+  assert.equal(iccRoundTripDecides(matrix!), false);
+
+  // …and a LUT profile is the case the sentence is true of.
+  withProfile(CMYK_PATH, t, (p) => {
+    assert.equal(iccRoundTripDecides(p), true);
+  });
+});
+
+test('a matrix profile refuses colours whose round trip is well inside the tolerance', () => {
+  // The evidence the readout gating exists for: outside by the cube test, tiny by
+  // ΔE. If this ever stops finding one, the two tests above have gone stale.
+  const p = parseIccProfile(srgbIccProfile())!;
+  const src = iccGamutSource(p, 'relative');
+  let found = 0;
+  for (let l = 0.05; l < 1; l += 0.1) {
+    for (let c = 0.05; c < 0.4; c += 0.05) {
+      for (let h = 0; h < 360; h += 30) {
+        const de = iccRoundTripDeltaE(p, 'relative', l, c, h);
+        if (!src.contains(l, c, h) && de != null && de <= ICC_GAMUT_DELTA_E) found++;
+      }
+    }
+  }
+  assert.ok(found > 0, 'no colour is refused by the cube while passing the ΔE — gating would be moot');
 });

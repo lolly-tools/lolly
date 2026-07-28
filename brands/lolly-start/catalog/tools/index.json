@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-28T08:56:42.605Z",
+  "generatedAt": "2026-07-28T19:59:29.168Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -4256,8 +4256,8 @@
     {
       "id": "audiogram",
       "name": "Audiogram",
-      "description": "Turn a voice clip or song into a branded waveform video — animated bars, wave or ring, ready for social.",
-      "version": "1.0.2",
+      "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social.",
+      "version": "2.2.2",
       "status": "community",
       "category": "everyone",
       "formats": [
@@ -4265,6 +4265,7 @@
         "webm",
         "mp4",
         "gif",
+        "webp-anim",
         "html"
       ],
       "width": 1080,
@@ -4295,6 +4296,34 @@
             "title": "New episode out now",
             "subtitle": "Listen anywhere",
             "style": "ring"
+          }
+        },
+        {
+          "label": "Music — spectrum",
+          "values": {
+            "title": "Tide Pool",
+            "subtitle": "Out now everywhere",
+            "style": "spectrum",
+            "layout": "overlay"
+          }
+        },
+        {
+          "label": "Ridgeline",
+          "values": {
+            "title": "Signal",
+            "subtitle": "A year of listening",
+            "style": "ridge",
+            "layout": "center"
+          }
+        },
+        {
+          "label": "MilkDrop revival",
+          "values": {
+            "title": "Turn it up",
+            "subtitle": "MilkDrop, twenty years on",
+            "style": "milkdrop",
+            "layout": "overlay",
+            "preset": "stock:geiss-thumb-drum"
           }
         }
       ],

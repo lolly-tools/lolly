@@ -165,3 +165,72 @@ test('visibleInputKey: hides export-group rows and showIf rows that fail their c
   ];
   assert.equal(visibleInputKey(model), 'title');
 });
+
+// ─── Block TEXT fields defer too ──────────────────────────────────────────────
+// A block text field's caret DOES survive the rebuild (renderInputs restores it by
+// data-field-id), so the rebuild was never *destructive* here — it was wasteful, and
+// visibly so: replacing every row drops and re-establishes focus within the frame,
+// restarting the focus-spotlight opacity transition on every other row and section,
+// so the whole sidebar pulses once per keypress. syncInputs patches the one thing
+// the rebuild refreshed (the collapsed-pill preview) in place instead.
+
+// A panel whose focusable control is built from markup, with `focus` applied.
+function focusedPanel(html: string, focusSelector: string | null = '[data-field-id]'): HTMLElement {
+  const dom = new JSDOM(`<!DOCTYPE html><div id="panel">${html}</div>`);
+  if (dom.window.CSS) globalThis.CSS = dom.window.CSS;
+  const el = dom.window.document.getElementById('panel') as HTMLElement;
+  if (focusSelector) el.querySelector<HTMLElement>(focusSelector)!.focus();
+  return el;
+}
+
+const blocksPair = (before: unknown, after: unknown): [SyncableInput[], SyncableInput[]] => (
+  [[inp('links', 'blocks', before as SyncableInput['value'])],
+   [inp('links', 'blocks', after as SyncableInput['value'])]]
+);
+
+test('a focused block text field defers the rebuild (no per-keypress panel churn)', () => {
+  // A block text field renders with NO type attribute — the shape this must match.
+  const el = focusedPanel('<input class="block-field" data-field-id="links:0:title" value="Calend">');
+  const [prev, model] = blocksPair([{ title: 'Calend' }], [{ title: 'Calenda' }]);
+  assert.equal(canSkipInputsRebuild(el, model, prev), true);
+});
+
+test('a focused block textarea defers the rebuild', () => {
+  const el = focusedPanel('<textarea class="block-field" data-field-id="links:0:note">hi</textarea>');
+  const [prev, model] = blocksPair([{ note: 'hi' }], [{ note: 'hib' }]);
+  assert.equal(canSkipInputsRebuild(el, model, prev), true);
+});
+
+test('a blurred block text field does NOT defer (structural rebuild as before)', () => {
+  const el = focusedPanel('<input class="block-field" data-field-id="links:0:title" value="Calend">', null);
+  const [prev, model] = blocksPair([{ title: 'Calend' }], [{ title: 'Calenda' }]);
+  assert.equal(canSkipInputsRebuild(el, model, prev), false);
+});
+
+test('a focused block range/checkbox/colour field does NOT defer', () => {
+  // These commit discretely rather than by typing, so they keep the full rebuild —
+  // which is what repaints a swatch, a slider readout or a showFor-gated sibling.
+  for (const html of [
+    '<input type="range" class="block-field" data-field-id="links:0:weight" value="2">',
+    '<input type="checkbox" class="block-field" data-field-id="links:0:bold">',
+    '<input type="color" class="block-field" data-field-id="links:0:tint" value="#30ba78">',
+  ]) {
+    const el = focusedPanel(html);
+    const [prev, model] = blocksPair([{ a: 1 }], [{ a: 2 }]);
+    assert.equal(canSkipInputsRebuild(el, model, prev), false, html);
+  }
+});
+
+test('a focused text field OUTSIDE the panel does not defer another panel rebuild', () => {
+  // el.contains guards the deferral: focus in some other surface (a dialog, the
+  // export pane) must never freeze this panel's repaint.
+  const dom = new JSDOM(
+    '<!DOCTYPE html><div id="panel"><input class="block-field" data-field-id="links:0:title" value="a"></div>'
+    + '<input id="elsewhere" data-field-id="other:0:x" value="z">'
+  );
+  if (dom.window.CSS) globalThis.CSS = dom.window.CSS;
+  dom.window.document.getElementById('elsewhere')!.focus();
+  const el = dom.window.document.getElementById('panel') as HTMLElement;
+  const [prev, model] = blocksPair([{ title: 'a' }], [{ title: 'ab' }]);
+  assert.equal(canSkipInputsRebuild(el, model, prev), false);
+});

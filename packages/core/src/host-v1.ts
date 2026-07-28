@@ -145,6 +145,42 @@ export interface HostV1 {
   recorder?: RecorderAPI;
 
   /**
+   * Audio analysis — decoded sound in, a per-frame reactivity track out (bass /
+   * mid / treble, a log-spaced spectrum, onset strength, tempo, beat times, and
+   * optionally raw time-domain windows).
+   *
+   * Where `recorder.meter` reports the LIVE level of a microphone one sample at a
+   * time, this analyses a whole finished clip ahead of drawing it — which is what
+   * an audiogram, a music video or a spectrum needs, because it has to know frame
+   * 200's bass while it is still drawing frame 1. Nothing here streams.
+   *
+   * DOM-free CONTRACT, exactly like `images`: a URL or an AssetRef in, plain typed
+   * arrays out. The SHELL owns the decoder (the web shell has `decodeAudioData`,
+   * the CLI a WAV reader plus the engine's ZzFXM renderer); the analysis MATHS is
+   * the engine's `analysePcm`, so a shell attaches it rather than reimplementing
+   * it and the browser and the CLI read the same numbers off the same clip.
+   *
+   * Optional/additive (v1.71) and NOT gated by a `capabilities` flag — a tool
+   * feature-detects `host.audio` and falls back to a static waveform where it is
+   * absent. Runs locally; the audio is never uploaded.
+   */
+  audio?: AudioAPI;
+
+  /**
+   * MilkDrop visualisation — availability and attribution, and deliberately
+   * nothing else. A tool is data: it has no element to hand over and no business
+   * holding a GL context, so it renders a `[data-lolly-viz]` placeholder carrying
+   * its parameters and the shell owns the canvas behind it (the same contract
+   * `[data-lottie-src]` already uses — which is what lets the context and its
+   * loaded preset survive the innerHTML rebuild every keystroke causes).
+   *
+   * Optional/additive (v1.72) and NOT gated by a `capabilities` flag — a shell
+   * without this, or without WebGL2, means the tool draws its ordinary canvas
+   * style, never that it refuses to render.
+   */
+  viz?: VizAPI;
+
+  /**
    * Perceptual colour tools — extrapolate from brand primitives without
    * shipping colour science in every tool: ΔEOK distance, APCA + WCAG
    * contrast, OKLab ramps, data class-breaks, and distinct categorical
@@ -877,6 +913,164 @@ export interface ImageResult {
   width: number;
   /** Output pixel height. */
   height: number;
+}
+
+// ─── Audio analysis (optional, v1.71) ─────────────────────────────────────────
+
+export interface AudioAPI {
+  /**
+   * Whether this shell can decode and analyse audio at all. Sync + cheap — a tool
+   * uses it to decide whether to offer reactive styles or stay on a static
+   * waveform. True does not promise any PARTICULAR file decodes: a container the
+   * platform lacks a codec for still rejects at `analyse`.
+   */
+  isAvailable(): boolean;
+
+  /**
+   * Decode `src` and analyse it. Rejects when the bytes can't be fetched or the
+   * platform has no codec for them — a tool should catch and fall back rather than
+   * assume, since codec support genuinely differs (Safari and Chromium disagree
+   * about Ogg; nothing but Chromium reads much of what a phone records).
+   *
+   * Costs one FFT per output frame, so it is linear in `fps × window` and
+   * independent of `bands`. The shell decides where that runs (the web shell moves
+   * it to a Worker); either way it is a single await, not a stream.
+   */
+  analyse(src: AudioSource, opts?: AudioAnalyseOpts): Promise<AudioAnalysis>;
+}
+
+/**
+ * What can be analysed: a fetchable URL (including a `blob:` or `data:` one), a
+ * catalog/user AssetRef, or raw encoded bytes — the last so a `file` input's
+ * in-memory upload can be analysed without being written anywhere first.
+ */
+export type AudioSource = string | AssetRef | ArrayBuffer | Uint8Array;
+
+export interface AudioAnalyseOpts {
+  /** Frames per second of the analysis track. Default 30. Match the export fps. */
+  fps?: number;
+  /** Magnitude bins per frame, log-spaced across the audible range. Default 64. */
+  bands?: number;
+  /** Static waveform buckets (the classic peak-per-column overview). Default 128. */
+  buckets?: number;
+  /** In-point in seconds. Default 0. Clamped into the source rather than erroring. */
+  start?: number;
+  /** Window length in seconds from `start`. Default: to the end of the source. */
+  window?: number;
+  /**
+   * Also emit raw time-domain windows of this many samples per frame (rounded UP to
+   * a power of two, capped at 4096). Off by default because it is by far the largest
+   * thing here — 1,024 samples × 3 channels × every frame — and only a caller that
+   * feeds a sample-domain visualiser needs it. `1024` is what butterchurn wants: its
+   * AudioProcessor is `numSamps = 512`, `fftSize = numSamps * 2`, and `updateAudio`
+   * does a bare `.set()`, so a longer window throws RangeError inside the renderer
+   * and stands the visualizer down over a black canvas with nothing logged near the
+   * cause.
+   */
+  samples?: number;
+}
+
+/**
+ * Per-frame reactivity, indexed by frame number.
+ *
+ * Struct-of-arrays, not an array of per-frame objects: a minute at 60fps is 3,600
+ * frames, and a draw loop wants a few flat Float32Arrays it can index, not 3,600
+ * allocations to chase. `magnitude` and the `wave*` arrays are `count` consecutive
+ * rows of `bands` / `samples` entries — row i starts at `i * bands`.
+ *
+ * Everything is normalised 0..1 across the analysed window EXCEPT `peak`, which
+ * stays absolute so a tool can still see that the source clipped. Normalising is
+ * what lets a quiet voice memo and a mastered single both fill the frame;
+ * `bass`/`mid`/`treb` share one scale between them, so they read as a balance
+ * rather than each independently reaching 1.
+ */
+export interface AudioFrames {
+  /** Number of frames. */
+  count: number;
+  /** Magnitude bins per frame (`magnitude` row length). */
+  bands: number;
+  /** Time-domain window length per frame, or 0 when `opts.samples` was not asked for. */
+  samples: number;
+  /** Frame time in seconds, relative to the analysed window's start. */
+  t: Float32Array;
+  /** Window RMS (loudness), 0..1 normalised. The value a VU-style bar tracks. */
+  rms: Float32Array;
+  /** Window peak amplitude, 0..1 ABSOLUTE (not normalised — 1 means it clipped). */
+  peak: Float32Array;
+  /** Energy below 320Hz, 0..1. Shares a scale with `mid`/`treb`. */
+  bass: Float32Array;
+  /** Energy 320Hz–2.8kHz, 0..1. */
+  mid: Float32Array;
+  /** Energy above 2.8kHz, 0..1. */
+  treb: Float32Array;
+  /** Spectral centroid ("brightness") as a 0..1 position across the audible range. */
+  centroid: Float32Array;
+  /** Positive spectral flux, 0..1 — onset strength. Peaks land on note attacks. */
+  flux: Float32Array;
+  /** `count` × `bands` log-spaced magnitudes, 0..1. */
+  magnitude: Float32Array;
+  /** `count` × `samples` mono time-domain bytes, 128 = silence. Empty unless asked for. */
+  wave: Uint8Array;
+  /** Left channel of the above; equals `wave` for a mono source. */
+  waveL: Uint8Array;
+  /** Right channel of the above; equals `wave` for a mono source. */
+  waveR: Uint8Array;
+}
+
+export interface AudioAnalysis {
+  /** Duration of the WHOLE source in seconds — not of the analysed window. */
+  duration: number;
+  /** Source sample rate in Hz. */
+  sampleRate: number;
+  /** Source channel count. */
+  channels: number;
+  /** The in-point actually analysed, in seconds (`opts.start` clamped). */
+  start: number;
+  /** The window length actually analysed, in seconds (`opts.window` clamped). */
+  window: number;
+  /** Frames per second of `frames` (`opts.fps` clamped to 1..120). */
+  fps: number;
+  /** `buckets` peak amplitudes over the window, 0..1 normalised — the overview waveform. */
+  peaks: Float32Array;
+  /** Per-frame reactivity. */
+  frames: AudioFrames;
+  /**
+   * Estimated tempo, or **null** when the window holds too little rhythm to call
+   * one. Null is a real answer and the common one for speech, ambience and pads —
+   * a visual built on a wrong beat grid looks far worse than one built on none, so
+   * this refuses rather than guesses. Never treat null as 120.
+   */
+  bpm: number | null;
+  /** Beat times in seconds relative to `start`. Empty when `bpm` is null. */
+  beats: Float32Array;
+}
+
+// ─── MilkDrop visualisation (optional, v1.72) ─────────────────────────────────
+
+export interface VizAPI {
+  /** Synchronous, so a hook can branch on it before deciding what to analyse. */
+  isAvailable(): boolean;
+  /** Ours first, then the artist pack (empty when it isn't staged in this build). */
+  presets(): Promise<VizPresetInfo[]>;
+}
+
+/**
+ * A preset the visualiser can run, with the attribution a credit line needs.
+ * Artist presets are prefixed `stock:`.
+ */
+export interface VizPresetInfo {
+  id: string;
+  name: string;
+  /**
+   * Who authored it. Twenty years of MilkDrop craft ships alongside our own
+   * presets, and a tool showing one is expected to say whose it is — so credit
+   * only a preset the shell CONFIRMS it has: naming an artist whose work is not
+   * on screen (a pack that isn't staged falls back to a brand-native preset) is
+   * worse than crediting nobody.
+   */
+  author: string;
+  /** Safe to offer under prefers-reduced-motion. */
+  calm: boolean;
 }
 
 // ─── Device capture / recorder (optional) ───────────────────────────────────────
@@ -1646,8 +1840,15 @@ export interface ExportOpts {
    * the top-&-tail compositor lowers the music to `volume·duck` over the body clip
    * when the footage carries its own audio, then restores it for the outro, so an
    * uploaded talking clip stays intelligible under the bed.
+   *
+   * `start` (seconds, default 0) is the bed's in-point: playback begins that far
+   * into the source instead of at 0:00, so a tool whose visuals start partway
+   * through a clip (the audiogram's "Start at") exports picture and sound in
+   * sync. A looping bed repeats the [start, end) region, not the whole track. It
+   * is clamped into the decoded source — a start past the end degrades to 0 with
+   * a log warning rather than exporting silence.
    */
-  audio?: { id?: string; url: string; fadeIn?: number; fadeOut?: number; volume?: number; duck?: number };
+  audio?: { id?: string; url: string; fadeIn?: number; fadeOut?: number; volume?: number; duck?: number; start?: number };
 
   /**
    * Content Credentials to preserve from placed source assets (added v1.26). The
@@ -1975,7 +2176,11 @@ export interface ComposeSpec {
 export interface AssetRef {
   source: 'library' | 'user' | 'remote';
   id: string;
-  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font';
+  // 'profile' is an ICC colour profile the USER supplied (a press or display
+  // profile, `user/profiles/<digest>`). It has no visual form — it is a gamut to
+  // compare against, not something to place — so image surfaces filter it out
+  // the same way they filter 'font' and 'tokens'.
+  type: 'vector' | 'raster' | 'video' | 'audio' | 'lottie' | 'palette' | 'tokens' | 'font' | 'profile';
   format: string;
   url: string;
   width?: number;

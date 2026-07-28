@@ -16,6 +16,7 @@ import {
   formatPdfDate,
   makeDocumentId,
   pdfxOutputIntentSpec,
+  pdfxProfileEligibility,
 } from '../engine/src/pdfx.ts';
 
 const OPTS = {
@@ -141,7 +142,12 @@ test('pdfx: output intent spec — srgb embeds the ICC profile', () => {
   assert.equal(spec.components, 3);
 });
 
-test('pdfx: output intent spec — CMYK conditions are registry-name only', () => {
+test('pdfx: output intent spec — a CMYK condition alone carries no profile bytes', () => {
+  // No CMYK ICC ships in this repo, so with no options the intent is the press
+  // condition's registered NAME. That is a true statement of the condition and it
+  // is what the CLI and every shared `profile=fogra39` link still produce — but it
+  // is not PDF/X-4, which requires the profile embedded, so the shell withholds the
+  // conformance claim (see bridge/export-pdfx.ts).
   const spec = pdfxOutputIntentSpec('fogra39');
   assert.equal(spec.subtype, 'GTS_PDFX');
   assert.equal(spec.identifier, 'FOGRA39');
@@ -153,6 +159,82 @@ test('pdfx: output intent spec — CMYK conditions are registry-name only', () =
   assert.equal(pdfxOutputIntentSpec('not-a-condition').identifier, 'FOGRA39');
   // Callers may override the human-readable Info string.
   assert.equal(pdfxOutputIntentSpec('swop', { info: 'Press X' }).info, 'Press X');
+});
+
+test('pdfx: the no-options result is unchanged by the embed options existing', () => {
+  // A pin, not a tautology: the embed path merges caller-supplied fields over this
+  // result, and a merge that leaked a default would silently change every existing
+  // export. `{}` and "no argument" must both be exactly the old descriptor.
+  for (const kind of ['fogra39', 'fogra51', 'swop', 'gracol']) {
+    const bare = pdfxOutputIntentSpec(kind);
+    const empty = pdfxOutputIntentSpec(kind, {});
+    assert.deepEqual(empty, bare, kind);
+    assert.equal(bare.iccBytes, null, kind);
+    assert.equal(bare.components, 4, kind);
+    assert.equal(bare.registry, 'http://www.color.org', kind);
+  }
+  const srgb = pdfxOutputIntentSpec('srgb');
+  assert.equal(srgb.identifier, 'sRGB IEC61966-2.1');
+  assert.ok(srgb.iccBytes instanceof Uint8Array && srgb.iccBytes.length > 0);
+  assert.equal(srgb.components, 3);
+});
+
+test('pdfx: supplied profile bytes and identity pass through verbatim', () => {
+  const bytes = Uint8Array.from([1, 2, 3, 4]);
+  const paired = pdfxOutputIntentSpec('fogra51', {
+    iccBytes: bytes, components: 4, identifier: 'FOGRA51', registry: 'http://www.color.org',
+    info: 'PSO Coated v3',
+  });
+  assert.equal(paired.iccBytes, bytes, 'the caller\'s bytes, not a copy or a default');
+  assert.equal(paired.components, 4);
+  assert.equal(paired.identifier, 'FOGRA51');
+  assert.equal(paired.registry, 'http://www.color.org');
+
+  // The unpaired case: `Custom` names no registry, so RegistryName must be
+  // OMITTED — `registry: null` has to survive the merge rather than being read as
+  // "not supplied" and replaced by the condition's default.
+  const custom = pdfxOutputIntentSpec('fogra39', {
+    iccBytes: bytes, components: 4, identifier: 'Custom', registry: null, info: 'Some Press v2',
+  });
+  assert.equal(custom.identifier, 'Custom');
+  assert.equal(custom.registry, null);
+  assert.equal(custom.info, 'Some Press v2');
+
+  // A 1-channel (grayscale) press profile states its own /N.
+  assert.equal(pdfxOutputIntentSpec('fogra39', { iccBytes: bytes, components: 1 }).components, 1);
+});
+
+test('pdfx: profile eligibility — only a real output profile in the intent’s space', () => {
+  const ok = { deviceClass: 'prtr', dataColourSpace: 'CMYK', nChannels: 4, version: '2.1.0' };
+  assert.deepEqual(pdfxProfileEligibility(ok, 'CMYK'), { ok: true });
+  // Trailing-space signatures ('RGB ') and case are the file's business, not ours.
+  assert.deepEqual(pdfxProfileEligibility(
+    { deviceClass: 'prtr', dataColourSpace: 'RGB ', nChannels: 3, version: '2.4.0' }, 'RGB',
+  ), { ok: true });
+
+  const refused: Array<[Record<string, unknown>, 'CMYK' | 'RGB', string]> = [
+    // A display profile is not an output device — PDF/A allows mntr, PDF/X does not.
+    [{ ...ok, deviceClass: 'mntr' }, 'CMYK', 'device class'],
+    [{ ...ok, deviceClass: 'abst' }, 'CMYK', 'device class'],
+    // The srgbHex trap: RGB bytes under a CMYK intent would merely RENDER a press
+    // condition while the file claims to BE it.
+    [{ ...ok, dataColourSpace: 'RGB ', nChannels: 3 }, 'CMYK', 'output intent is CMYK'],
+    [{ ...ok, dataColourSpace: '6CLR', nChannels: 6 }, 'CMYK', 'the output intent is CMYK'],
+    [{ ...ok, nChannels: 3 }, 'CMYK', 'CMYK profile with 3 channels'],
+    [{ ...ok, version: '1.1.0' }, 'CMYK', 'outside'],       // obsolete: preflight rejects v1
+    [{ ...ok, version: '4.3.0' }, 'CMYK', 'outside'],       // past what any PDF version admits
+    [{ ...ok, version: '5.0.0' }, 'CMYK', 'outside'],       // iccMAX
+    [{ ...ok, version: 'nonsense' }, 'CMYK', 'unreadable'],
+  ];
+  for (const [facts, space, needle] of refused) {
+    const r = pdfxProfileEligibility(facts as never, space);
+    assert.equal(r.ok, false, JSON.stringify(facts));
+    assert.ok(!r.ok && r.reason.includes(needle), `${JSON.stringify(facts)} → ${!r.ok && r.reason}`);
+  }
+  // v4 up to 4.2 is inside every reading of the PDF spec's ICC-version table.
+  for (const version of ['2.0.0', '2.4.0', '4.0.0', '4.2.0']) {
+    assert.equal(pdfxProfileEligibility({ ...ok, version }, 'CMYK').ok, true, version);
+  }
 });
 
 test('pdfx: the engine public surface re-exports the pdfx API', async () => {
