@@ -165,6 +165,79 @@ export function apcaContrast(textColor: string, bgColor: string): number {
   return sapc > -loClip ? 0 : (sapc + loWoBoffset) * 100;
 }
 
+/**
+ * A note for any UI that shows an Lc, so every surface says it the same way.
+ *
+ * `apcaContrast` reads hex and `oklch()` and returns **NaN** for anything else —
+ * including `color(display-p3 …)`. That is not a gap to paper over: APCA is fitted
+ * to sRGB and has no published extension to a wider gamut, so a wide-gamut colour
+ * has to be scored on its sRGB rendering. Pass `describeColor(...).srgbHex`, which
+ * also keeps the Lc describing the same colour the WCAG ratio describes.
+ */
+export const APCA_SRGB_ONLY =
+  'APCA is defined for sRGB, so a wide-gamut colour is scored on its sRGB rendering.';
+
+/**
+ * What an Lc is good for.
+ *
+ * APCA's own published guidance, stated as what the pair CAN carry rather than as
+ * pass/fail — its whole model is that contrast and text size trade off against each
+ * other, so "fail" is not meaningful until you know the size. That is also why this
+ * is a band and not a boolean: `wcagLevel` can say AA/AAA because WCAG 2 fixes the
+ * sizes; APCA cannot, and inventing a pass here would misrepresent it.
+ */
+export type ApcaUse =
+  | 'body-preferred'   // |Lc| 90+ — fluent body text, any normal size or weight
+  | 'body-minimum'     // |Lc| 75+ — body text, minimum
+  | 'large-text'       // |Lc| 60+ — 24px, or 16px bold
+  | 'headline'         // |Lc| 45+ — 36px, or 24px bold
+  | 'non-text'         // |Lc| 30+ — icons, borders, disabled states
+  | 'invisible';       // under 30 — not usable for anything meaningful
+
+/** The floor of each band, high to low. */
+export const APCA_BANDS: ReadonlyArray<{ min: number; use: ApcaUse; label: string }> = [
+  { min: 90, use: 'body-preferred', label: 'Body text, comfortably' },
+  { min: 75, use: 'body-minimum', label: 'Body text, minimum' },
+  { min: 60, use: 'large-text', label: 'Large text — 24px, or 16px bold' },
+  { min: 45, use: 'headline', label: 'Headlines — 36px, or 24px bold' },
+  { min: 30, use: 'non-text', label: 'Icons and borders only' },
+  { min: 0, use: 'invisible', label: 'Not usable' },
+];
+
+/** The band a (signed or unsigned) Lc falls in. The sign never shifts the band. */
+export function apcaUse(lc: number): ApcaUse {
+  const a = Math.abs(lc);
+  if (!Number.isFinite(a)) return 'invisible';
+  return (APCA_BANDS.find(b => a >= b.min) ?? APCA_BANDS[APCA_BANDS.length - 1]!).use;
+}
+
+export interface ApcaVerdict {
+  /** Signed Lc: positive for dark-on-light, negative for light-on-dark. */
+  lc: number;
+  /** Magnitude, which is what the bands are keyed on. */
+  abs: number;
+  /** True when the text is LIGHTER than its background. Kept because this is the
+   *  one thing WCAG 2's ratio cannot tell you — it scores both polarities alike. */
+  reversed: boolean;
+  use: ApcaUse;
+  /** A short phrase for the band, ready to show. */
+  label: string;
+}
+
+/** `apcaContrast` plus its band, or null when either colour is unreadable. */
+export function apcaVerdict(text: string, bg: string): ApcaVerdict | null {
+  const lc = apcaContrast(text, bg);
+  if (!Number.isFinite(lc)) return null;
+  const use = apcaUse(lc);
+  return {
+    lc,
+    abs: Math.abs(lc),
+    reversed: lc < 0,
+    use,
+    label: (APCA_BANDS.find(b => b.use === use) ?? APCA_BANDS[APCA_BANDS.length - 1]!).label,
+  };
+}
+
 // ─── Perceptual ramps — bezier through OKLab + lightness correction ───────────
 
 // Degree-(k−1) Bernstein blend through k control points, one component at a

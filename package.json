@@ -51,6 +51,7 @@
     "sign:credentials": "node scripts/sign-credentialed-assets.ts",
     "sign:credentials:ca": "node --env-file=services/ca/.env scripts/sign-credentialed-assets.ts --ca",
     "sign:credentials:catalog": "node --env-file=services/ca/.env scripts/sign-credentialed-assets.ts --ca --catalog",
+    "sign:signature-logos": "node --env-file=services/ca/.env scripts/sign-inline-logos.ts",
     "optimize:previews": "node scripts/optimize-previews.ts",
     "optimize:assets": "node scripts/optimize-assets.ts",
     "optimize:thumbnails": "node scripts/build-thumbnails.ts",

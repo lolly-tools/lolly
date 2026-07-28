@@ -386,3 +386,31 @@ test('a P3-encoded slice carries colour sRGB encoding has to throw away', async 
       `P3 reaches past sRGB's ceiling ${maxChroma(l, 145, 'srgb').toFixed(3)}`);
   }
 });
+
+test('the hoisted membership test agrees EXACTLY with the source it stands in for', async () => {
+  // oklchSlice takes a fast path for the three built-in gamuts, skipping the
+  // per-pixel method dispatch, the name comparison and the domain guard. A fast
+  // path that disagrees with the general one is worse than no fast path at all —
+  // it would make the charts and the verdict cards describe different gamuts.
+  const { fastRgbContains, BUILTIN_GAMUT_SOURCES } = await import('../engine/src/gamut-source.ts');
+  for (const name of GAMUTS) {
+    const src = BUILTIN_GAMUT_SOURCES[name];
+    const fast = fastRgbContains(src);
+    assert.ok(fast, `${name} has a fast path`);
+    let checked = 0;
+    for (let li = 0; li <= 40; li++) {
+      for (let hi = 0; hi < 72; hi++) {
+        for (let ci = 0; ci <= 20; ci++) {
+          const l = li / 40, h = hi * 5, c = ci / 50;
+          assert.equal(fast(l, c, h), src.contains(l, c, h),
+            `${name} disagrees at L${l.toFixed(3)} C${c.toFixed(2)} H${h}`);
+          checked++;
+        }
+      }
+    }
+    assert.ok(checked > 50000, `${name}: swept ${checked} points`);
+  }
+  // Anything that is not a built-in has NO fast path, so it cannot be answered by
+  // the wrong arithmetic — a custom source must go through its own `contains`.
+  assert.equal(fastRgbContains({ id: 'x', label: 'x', contains: () => true }), null);
+});

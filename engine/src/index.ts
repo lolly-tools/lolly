@@ -246,14 +246,19 @@ export { gamutSolid, projectGamutSolid, projectSolidPoint } from './gamut-solid.
 export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad } from './gamut-solid.ts';
 export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES_CONTRAST_FLOOR } from './color-describe.ts';
 export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';
+
 export type { EncodeSpace } from './gamut.ts';
 export { GAMUTS, oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
 export type { GamutName, SlicePlane, SliceOptions, SliceImage } from './gamut.ts';
 export {
   BUILTIN_GAMUT_SOURCES, P3_SOURCE, REC2020_SOURCE, SRGB_SOURCE, NO_GAMUT_SOURCE,
-  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutSourceId, resolveGamutSource,
+  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutSourceId, resolveGamutSource, fastRgbContains,
 } from './gamut-source.ts';
 export type { BuiltinGamutName, GamutLimit, GamutSource, RenderingIntent } from './gamut-source.ts';
+// Which RING out of the active gamut a colour sits in — one membership question
+// per candidate, never an index into an ordering (Display-P3 is not inside
+// Rec.2020). The picker and the Colour Lab sliders share this classifier.
+export { gamutTier, gamutTierProbe, BEYOND_TIER, GAMUT_TIER_LADDER } from './gamut-tier.ts';
 // An ICC profile as a gamut: parse the bytes, then hand `iccGamutSource(p, intent)`
 // to any gamut function above. The reader is hardened (never throws, returns null
 // on malformed bytes) because profile bytes arrive from the user's own files.
@@ -261,8 +266,14 @@ export { parseIccProfile, iccGamutSource, iccGamutIntent, ICC_GAMUT_DELTA_E } fr
 export type { IccProfile } from './icc.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';
-export { deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors, makeColorApi } from './color-tools.ts';
-export type { RampOptions, DistinctColorsOptions } from './color-tools.ts';
+export {
+  deltaEOk, apcaContrast, rampOklab, classBreaks, distinctColors, makeColorApi,
+  // APCA's band interpretation, alongside WCAG 2's AA/AAA — carried together
+  // because conformance is still measured against the ratio while APCA is the one
+  // that models polarity.
+  apcaUse, apcaVerdict, APCA_BANDS, APCA_SRGB_ONLY,
+} from './color-tools.ts';
+export type { RampOptions, DistinctColorsOptions, ApcaUse, ApcaVerdict } from './color-tools.ts';
 export { nearestBrandColor, mapPaletteToBrand, mapFontsToBrand, suggestRebrandTheme } from './brand-map.ts';
 export type { BrandSwatch, RoleHint, NearestBrandColorOptions, NearestBrandColor, BrandFonts } from './brand-map.ts';
 export {

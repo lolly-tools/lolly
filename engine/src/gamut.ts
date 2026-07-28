@@ -26,7 +26,7 @@
 
 import { oklabToLinearSrgb, linearToSrgb, GAMUT_EPSILON } from './brand-derive.ts';
 import {
-  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutInputSane, resolveGamutSource, linearSrgbToLinearP3,
+  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutInputSane, resolveGamutSource, linearSrgbToLinearP3, fastRgbContains,
 } from './gamut-source.ts';
 import type { BuiltinGamutName, GamutLimit, GamutSource } from './gamut-source.ts';
 
@@ -282,6 +282,10 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
   const cMax = opts.cMax != null && opts.cMax > 0 ? opts.cMax : SLICE_C_MAX;
   const src = resolveGamutSource(opts.limit ?? 'rec2020');
   const data = new Uint8ClampedArray(width * height * 4);
+  // The hoisted test for a built-in gamut, else the source's own. This is a
+  // per-PIXEL call, so the difference is the whole cost of the paint.
+  const fast = fastRgbContains(src);
+  const inside = fast ?? ((l: number, c: number, h: number) => holds(src, l, c, h));
   const encode: EncodeSpace = opts.encode ?? 'srgb';
   const ceiling = ceilingGrid(ENCODE_GAMUT[encode]);
 
@@ -300,7 +304,7 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
         default:   l = v; c = opts.fixed; h = u * 360; break;
       }
       const o = (y * width + x) * 4;
-      if (!holds(src, l, c, h)) continue; // leave it transparent
+      if (!inside(l, c, h)) continue; // leave it transparent
       // Desaturate past the ENCODE space's ceiling before encoding, so the encode
       // below is the whole cost — no per-pixel gamut-map bisection.
       const cUse = Math.min(c, sampleCeiling(ceiling, l, h));
