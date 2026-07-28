@@ -318,9 +318,10 @@ export interface ColorAPI {
    * about a press condition has to be guessed or hard-coded.
    *
    * `intent` defaults to `'relative'`, the intent a proof is normally judged
-   * under. A profile with no table for the intent asked for yields a handle with
-   * `usable: false` rather than one silently answering from a different intent's
-   * table — a wrong colour that looks right is worse than no answer.
+   * under. A profile that cannot be asked about gamut under that intent yields a
+   * handle with `usable: false` rather than one silently answering from a
+   * different intent's table — a wrong colour that looks right is worse than no
+   * answer.
    *
    * Malformed bytes return null and never throw, however hostile.
    * Optional/additive (v1.70); feature-detect on older hosts.
@@ -387,8 +388,10 @@ export interface ColorProfileGamut {
   readonly intent: ColorRenderingIntent;
   /** ICC spec version the profile declares, e.g. '2.2.0' or '4.3.0'. */
   readonly version: string;
-  /** False when the profile carries no table for `intent`; every query then
-   *  returns its no-answer value. Check this before drawing a chart of nothing. */
+  /** False when this profile cannot answer a gamut question under `intent` — no
+   *  table for it, no reverse transform to test membership with, or an abstract
+   *  transform with no device gamut at all. Every query then returns its
+   *  no-answer value. Check this before drawing a chart of nothing. */
   readonly usable: boolean;
 }
 

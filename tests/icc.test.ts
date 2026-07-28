@@ -27,9 +27,14 @@ import { createHash } from 'node:crypto';
 import {
   parseIccProfile,
   iccGamutSource,
+  iccGamutIntent,
   ICC_GAMUT_DELTA_E,
   type IccProfile,
 } from '../engine/src/icc.ts';
+import { convertColor } from '../engine/src/css-color.ts';
+import {
+  ascii, u32, u16, buildProfile, mft2, mab, identityCurv, xyzTag, oneWayProfileBytes,
+} from './helpers/icc-fixture.ts';
 
 // ─── fixtures ─────────────────────────────────────────────────────────────────
 
@@ -66,82 +71,41 @@ function withProfile(path: string, t: { skip(msg: string): void }, body: (p: Icc
 const deltaE = (a: readonly number[], b: readonly number[]): number =>
   Math.hypot(a[0]! - b[0]!, a[1]! - b[1]!, a[2]! - b[2]!);
 
-// ─── synthetic profile builder ────────────────────────────────────────────────
+// ─── synthetic profiles ───────────────────────────────────────────────────────
+//
+// The byte builders live in tests/helpers/icc-fixture.ts, shared with
+// tests/gamut-icc-integration.test.ts. What is local here is the profile SHAPES
+// this suite reasons about.
 
-const u32 = (n: number): number[] => [(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff];
-const u16 = (n: number): number[] => [(n >>> 8) & 0xff, n & 0xff];
-const ascii = (s: string): number[] => [...s].map((c) => c.charCodeAt(0));
+/** D65, the white a v2 display profile stores UNADAPTED in `wtpt`. */
+const D65: readonly [number, number, number] = [0.950455, 1.0, 1.08905];
 
-/** Assemble a profile from tag elements, laying each out 4-byte aligned. */
-function buildProfile(opts: {
-  major?: number;
-  deviceClass?: string;
-  space?: string;
-  pcs?: string;
-  tags: [string, number[]][];
-}): Uint8Array {
-  const major = opts.major ?? 2;
-  const header = new Array<number>(128).fill(0);
-  header.splice(8, 4, major, 0x00, 0, 0);
-  header.splice(12, 4, ...ascii(opts.deviceClass ?? 'prtr'));
-  header.splice(16, 4, ...ascii(opts.space ?? 'RGB '));
-  header.splice(20, 4, ...ascii(opts.pcs ?? 'Lab '));
-  header.splice(36, 4, ...ascii('acsp'));
+/**
+ * sRGB's colorants, which sum to the BOOK D50 (0.9642, 1.0, 0.8251) — the shape
+ * of every stock v2 display profile: already D50-adapted primaries beside an
+ * unadapted white point.
+ */
+const SRGB_COLORANTS: [string, [number, number, number]][] = [
+  ['rXYZ', [0.4360, 0.2225, 0.0139]],
+  ['gXYZ', [0.3851, 0.7169, 0.0971]],
+  ['bXYZ', [0.1431, 0.0606, 0.7141]],
+];
 
-  const table: number[] = [...u32(opts.tags.length)];
-  let off = 128 + 4 + opts.tags.length * 12;
-  off = (off + 3) & ~3;
-  const body: number[] = [];
-  for (const [sig, data] of opts.tags) {
-    const at = off + body.length;
-    table.push(...ascii(sig), ...u32(at), ...u32(data.length));
-    body.push(...data);
-    while (body.length % 4) body.push(0);
-  }
-  const pad = new Array<number>(off - (128 + 4 + opts.tags.length * 12)).fill(0);
-  const all = [...header, ...table, ...pad, ...body];
-  all.splice(0, 4, ...u32(all.length));
-  return Uint8Array.from(all);
-}
-
-/** A 16-bit lut16Type (`mft2`) element: identity 2-entry curves either side of a flat CLUT. */
-function mft2(nIn: number, nOut: number, node: number[]): number[] {
-  const g = 2;
-  const el: number[] = [...ascii('mft2'), 0, 0, 0, 0, nIn, nOut, g, 0];
-  for (const v of [1, 0, 0, 0, 1, 0, 0, 0, 1]) el.push(...u32(v * 65536));
-  el.push(...u16(2), ...u16(2));
-  for (let d = 0; d < nIn; d++) el.push(...u16(0), ...u16(65535));
-  const nodes = g ** nIn;
-  for (let i = 0; i < nodes; i++) for (const v of node) el.push(...u16(v));
-  for (let k = 0; k < nOut; k++) el.push(...u16(0), ...u16(65535));
-  return el;
-}
-
-/** An identity `curv` (count 0), 12 bytes. */
-const identityCurv = (): number[] => [...ascii('curv'), 0, 0, 0, 0, ...u32(0)];
-
-/** A v4 lutAtoBType (`mAB `) element: A curves → 16-bit CLUT → B curves. */
-function mab(nIn: number, nOut: number, node: number[]): number[] {
-  const head = 32;
-  const aCurves: number[] = [];
-  for (let d = 0; d < nIn; d++) aCurves.push(...identityCurv());
-  const grid = 2;
-  const clut: number[] = new Array<number>(16).fill(0);
-  for (let d = 0; d < nIn; d++) clut[d] = grid;
-  clut.push(2, 0, 0, 0); // 2-byte precision
-  const nodes = grid ** nIn;
-  for (let i = 0; i < nodes; i++) for (const v of node) clut.push(...u16(v));
-  const bCurves: number[] = [];
-  for (let k = 0; k < nOut; k++) bCurves.push(...identityCurv());
-
-  const offA = head;
-  const offClut = offA + aCurves.length;
-  const offB = offClut + clut.length;
-  return [
-    ...ascii('mAB '), 0, 0, 0, 0, nIn, nOut, 0, 0,
-    ...u32(offB), ...u32(0), ...u32(0), ...u32(offClut), ...u32(offA),
-    ...aCurves, ...clut, ...bCurves,
+/** A matrix/TRC RGB profile with identity tone curves and a chosen media white. */
+function matrixTrcProfile(opts: { major?: number; deviceClass?: string; white?: readonly [number, number, number] }): IccProfile {
+  const tags: [string, number[]][] = [
+    ...SRGB_COLORANTS.map(([sig, xyz]) => [sig, xyzTag(...xyz)] as [string, number[]]),
+    ['rTRC', identityCurv()], ['gTRC', identityCurv()], ['bTRC', identityCurv()],
   ];
+  if (opts.white) tags.push(['wtpt', xyzTag(...opts.white)]);
+  const p = parseIccProfile(buildProfile({
+    major: opts.major ?? 2,
+    deviceClass: opts.deviceClass ?? 'mntr',
+    space: 'RGB ', pcs: 'XYZ ',
+    tags,
+  }));
+  assert.ok(p, 'the synthetic matrix/TRC profile must parse');
+  return p;
 }
 
 // ─── header + tag table, against the real files ───────────────────────────────
@@ -347,6 +311,87 @@ test('absolute intent differs from relative by the media white rescale', (t) => 
   });
 });
 
+test('the absolute intent must not rescale a v2 DISPLAY profile by its unadapted wtpt', () => {
+  // A v2 display profile's colorants are already D50-adapted while its wtpt is
+  // the unadapted D65 — the two describe different things, so trusting the tag
+  // turns media white into Lab (100, −2.4, −19.4): a 19.5 ΔE blue cast on every
+  // neutral the absolute intent produces. littleCMS applies the same rule
+  // (version < 4 and class 'mntr' → media white IS D50).
+  const v2Display = matrixTrcProfile({ major: 2, deviceClass: 'mntr', white: D65 });
+  const rel = v2Display.toLab('relative', [1, 1, 1])!;
+  const abs = v2Display.toLab('absolute', [1, 1, 1])!;
+  assert.ok(deltaE(rel, [100, 0, 0]) < 0.1,
+    `precondition: this profile's relative white is Lab 100,0,0, got ${JSON.stringify(rel)}`);
+  assert.ok(deltaE(rel, abs) < 1e-9,
+    `for a v2 display profile the media white IS the PCS illuminant, so absolute must equal relative exactly, got ${JSON.stringify(abs)} vs ${JSON.stringify(rel)}`);
+  assert.ok(Math.abs(abs[2]) < 0.1,
+    `absolute white must not carry the unadapted-D65 blue cast (b* −19.4), got b* ${abs[2]}`);
+  // The inverse must agree, or a gamut query under 'absolute' disagrees with one
+  // under 'relative' for the same colour.
+  const dev = v2Display.fromLab('absolute', [100, 0, 0])!;
+  assert.deepEqual(dev, v2Display.fromLab('relative', [100, 0, 0])!,
+    'the absolute inverse must be the relative one when the rescale is identity');
+
+  // The rule is version AND class: the two profiles that legitimately carry a
+  // measured media white must still be scaled by it, or the fix has broken the
+  // absolute intent instead of correcting it.
+  const v2Printer = matrixTrcProfile({ major: 2, deviceClass: 'prtr', white: D65 });
+  assert.ok(deltaE(v2Printer.toLab('relative', [1, 1, 1])!, v2Printer.toLab('absolute', [1, 1, 1])!) > 10,
+    'a v2 PRINTER profile\'s wtpt is a real measured media white and absolute must still rescale by it');
+  const v4Display = matrixTrcProfile({ major: 4, deviceClass: 'mntr', white: D65 });
+  assert.ok(deltaE(v4Display.toLab('relative', [1, 1, 1])!, v4Display.toLab('absolute', [1, 1, 1])!) > 10,
+    'a v4 display profile carries its adaptation in chad and its wtpt is trusted verbatim');
+});
+
+test('stock v2 display profiles produce a neutral absolute white, matching littleCMS', (t) => {
+  // The real files the rule exists for. lcms (transicc -t3) returns
+  // (99.9988, 0.0188, −0.0173) for sRGB Profile.icc — its absolute output is its
+  // relative output, byte for byte.
+  let ran = 0;
+  for (const file of ['sRGB Profile.icc', 'AdobeRGB1998.icc', 'Generic RGB Profile.icc', 'Generic Gray Profile.icc']) {
+    withProfile(SYS + file, { skip: () => {} }, (p) => {
+      ran++;
+      const dev = new Array(p.nChannels).fill(1);
+      const abs = p.toLab('absolute', dev)!;
+      assert.ok(deltaE(abs, p.toLab('relative', dev)!) < 1e-9,
+        `${file}: a v2 display profile's absolute white must equal its relative white, got ${JSON.stringify(abs)}`);
+      assert.ok(Math.abs(abs[2]) < 0.5,
+        `${file}: absolute white must not be tinted by the unadapted wtpt (b* −19.4), got b* ${abs[2]}`);
+    });
+  }
+  withProfile(P3_PATH, t, (p) => {
+    // The v4 control from the same tree: its wtpt really is D50, so absolute and
+    // relative differ only by the tag's fixed-point rounding.
+    const abs = p.toLab('absolute', [1, 1, 1])!;
+    assert.ok(deltaE(abs, p.toLab('relative', [1, 1, 1])!) < 0.1,
+      `Display P3 is v4 and its wtpt is D50, so the rescale is near-identity, got ${JSON.stringify(abs)}`);
+  });
+  if (ran === 0) t.skip(`no stock v2 display profile on this machine: ${SYS}`);
+});
+
+test('PCS_D50 makes the GRAY axis exact; a matrix profile\'s neutral residual is its own colorants', () => {
+  // The gray path multiplies PCS_D50 in and divides it out, so taking D50 from
+  // css-color's own Lab white cancels to nothing there.
+  const gray = parseIccProfile(buildProfile({
+    deviceClass: 'mntr', space: 'GRAY', pcs: 'XYZ ',
+    tags: [['kTRC', identityCurv()], ['wtpt', xyzTag(...D65)]],
+  }))!;
+  const gw = gray.toLab('relative', [1])!;
+  assert.ok(Math.abs(gw[1]) < 1e-3 && Math.abs(gw[2]) < 1e-3,
+    `the gray neutral axis must be exactly neutral, got ${JSON.stringify(gw)}`);
+
+  // The matrix/TRC path never reads that constant — it feeds the profile's own
+  // rXYZ+gXYZ+bXYZ sum straight to xyzToLab — so its white carries the residual
+  // of ITS colorant tags (here the book D50, ~0.02 ΔE off css-color's). Which is
+  // where to look when a matrix profile's greys tint, and NOT at PCS_D50.
+  const matrix = matrixTrcProfile({ white: D65 });
+  const mw = matrix.toLab('relative', [1, 1, 1])!;
+  assert.ok(Math.hypot(mw[1], mw[2]) > 1e-3,
+    `a matrix profile whose colorants sum to the book D50 keeps a small neutral residual, got ${JSON.stringify(mw)}`);
+  assert.ok(Math.hypot(mw[1], mw[2]) < 0.1,
+    `and that residual is a hundredth of a ΔE, not a visible tint, got ${JSON.stringify(mw)}`);
+});
+
 // ─── the Lab-encoding decision ────────────────────────────────────────────────
 
 test('the Lab encoding is chosen by ELEMENT TYPE: 0xff00 is L*100 in mft2 and L*99.61 in mAB', () => {
@@ -433,6 +478,74 @@ test('the id digest really is the profile SHA-256, at three different lengths', 
   }
 });
 
+test('the digest is SHA-256 at every padding boundary, including length 55 mod 64', () => {
+  // FIPS 180-4 wants the SMALLEST padded length that holds the message, the 0x80
+  // byte and the 8-byte length. At len % 64 === 55 that length is exactly len + 9,
+  // so an implementation that rounds up unconditionally compresses one extra
+  // all-zero block and stops producing SHA-256. The ICC spec requires a profile
+  // size that is a multiple of 4, so this needs a hand-edited header — which the
+  // reader accepts by design (any declared size inside the buffer).
+  const base = buildProfile({ tags: [['A2B0', mft2(3, 3, [0x8000, 0x8080, 0x8080])]] });
+  for (let declared = base.length; declared < base.length + 200; declared++) {
+    const bytes = new Uint8Array(declared);
+    bytes.set(base.subarray(0, Math.min(base.length, declared)));
+    new DataView(bytes.buffer).setUint32(0, declared); // the header's own size field
+    const p = parseIccProfile(bytes);
+    assert.ok(p, `a profile declaring ${declared} bytes must still parse`);
+    assert.equal(
+      iccGamutSource(p, 'perceptual').id.split(':')[1],
+      createHash('sha256').update(bytes).digest('hex').slice(0, 16),
+      `the id digest must be the real SHA-256 prefix at every length, and ${declared} is ${declared % 64} mod 64`,
+    );
+  }
+});
+
+test('a gamut needs the REVERSE transform, not just an intent tag', () => {
+  // A2B0 only: device → Lab works, Lab → device does not. `hasIntent` is right to
+  // say the intent's transform exists; a membership question still cannot be
+  // answered, and a source built anyway reports an empty gamut behind a valid
+  // label — indistinguishable from "this device reproduces nothing".
+  const oneWay = parseIccProfile(oneWayProfileBytes())!;
+  assert.ok(oneWay.hasIntent('perceptual'), 'precondition: the A2B0 tag is present, so the transform exists');
+  assert.ok(oneWay.toLab('perceptual', [0.2, 0.2, 0.2, 0.2]), 'precondition: the forward direction works');
+  assert.equal(oneWay.fromLab('perceptual', [50, 0, 0]), null, 'precondition: there is no B2A0 to invert through');
+  assert.equal(iccGamutIntent(oneWay, 'perceptual'), false,
+    'an intent with no reverse transform cannot answer a gamut question, whatever hasIntent says');
+
+  // And an abstract profile is refused whatever it carries: an effect transform
+  // has no device gamut to be inside or outside of.
+  const abstract = parseIccProfile(buildProfile({
+    deviceClass: 'abst', space: 'Lab ', pcs: 'Lab ',
+    tags: [['A2B0', mft2(3, 3, [0x8000, 0x8080, 0x8080])], ['B2A0', mft2(3, 3, [0x8000, 0x8080, 0x8080])]],
+  }))!;
+  assert.ok(abstract.hasIntent('perceptual'), 'precondition: both tables are present');
+  assert.equal(iccGamutIntent(abstract, 'perceptual'), false,
+    'an abst profile has no device gamut, so no intent of it answers a gamut question');
+
+  // A profile that CAN answer must still say so, or this gate has closed the door
+  // on every real press and display.
+  const both = parseIccProfile(buildProfile({
+    deviceClass: 'prtr', space: 'CMYK',
+    tags: [['A2B0', mft2(4, 3, [0x8000, 0x8080, 0x8080])], ['B2A0', mft2(3, 4, [0x4000, 0x4000, 0x4000, 0])]],
+  }))!;
+  assert.equal(iccGamutIntent(both, 'perceptual'), true,
+    'a profile with both directions answers gamut questions under that intent');
+});
+
+test('the six stock abstract profiles advertise no gamut', (t) => {
+  // The real files behind the rule: `abst`, A2B0 present, no B2A0.
+  let ran = 0;
+  for (const file of ['Sepia Tone.icc', 'Black & White.icc', 'Blue Tone.icc', 'Gray Tone.icc']) {
+    withProfile(LIB + file, { skip: () => {} }, (p) => {
+      ran++;
+      assert.ok(p.hasIntent('perceptual'), `${file}: precondition: A2B0 is present`);
+      assert.equal(iccGamutIntent(p, 'perceptual'), false,
+        `${file}: an abstract profile with no B2A0 must not advertise a gamut it answers "nothing" for`);
+    });
+  }
+  if (ran === 0) t.skip(`no stock abstract profile on this machine: ${LIB}`);
+});
+
 test('iccGamutSource: a CMYK press holds a muted colour and refuses a neon one', (t) => {
   withProfile(CMYK_PATH, t, (p) => {
     const g = iccGamutSource(p, 'relative');
@@ -441,6 +554,38 @@ test('iccGamutSource: a CMYK press holds a muted colour and refuses a neon one',
     assert.equal(g.contains(0.5, 0, 0), true, 'mid grey is on the neutral axis, which every press has');
     assert.equal(g.contains(-1, 0.1, 30), false, 'an impossible lightness is refused before the profile sees it');
     assert.equal(g.contains(0.5, 0.1, Number.NaN), false, 'a non-finite hue is refused');
+  });
+});
+
+test('the delta-E rule refuses colours the profile itself prints, well away from the corners', (t) => {
+  withProfile(CMYK_PATH, t, (p) => {
+    const g = iccGamutSource(p, 'relative');
+    /** The OKLCH the profile's own A2B says this ink mix produces. */
+    const asked = (dev: number[]): [number, number, number] => {
+      const lab = p.toLab('relative', dev)!;
+      return convertColor({ space: 'lab', components: lab, alpha: 1, missing: 0 }, 'oklch')
+        .components as [number, number, number];
+    };
+    // A single-ink yellow ramp: every step is IN gamut by definition — the profile
+    // produced it from its own forward table — and the round-trip rule refuses
+    // everything from a flat 20% tint upward. This is what ICC_GAMUT_DELTA_E's doc
+    // comment has to describe: the cost is not "the corners", it is the whole
+    // high-L yellow lobe plus the heavy-ink shadows.
+    assert.equal(g.contains(...asked([0, 0, 0.1, 0])), true,
+      'a 10% yellow tint round-trips inside the threshold (2.0 dE) and is reported in gamut');
+    for (const y of [0.2, 0.4, 0.6, 1]) {
+      assert.equal(g.contains(...asked([0, 0, y, 0])), false,
+        `a ${y * 100}% yellow tint is a colour this profile PRINTS, and the delta-E round-trip rule still refuses it — the documented cost of ICC_GAMUT_DELTA_E must say so`);
+    }
+    // Body colours, where the same rule is accurate — the reason charts built on
+    // it read correctly below L* 85.
+    for (const dev of [[0.2, 0.2, 0.2, 0], [0.4, 0.3, 0.2, 0.1], [0.1, 0.5, 0.3, 0]]) {
+      assert.equal(g.contains(...asked(dev)), true,
+        `an interior ink mix must be reported in gamut: ${JSON.stringify(dev)}`);
+    }
+    // And paper white, the one colour an output profile reproduces exactly.
+    assert.equal(g.contains(...asked([0, 0, 0, 0])), true,
+      'media white is inside every gamut by definition, including via the Lab conversion');
   });
 });
 

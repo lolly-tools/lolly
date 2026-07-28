@@ -26,10 +26,11 @@ import { inGamut, maxChroma, oklchSlice, sliceGamutEdge, GAMUTS } from '../engin
 import { gamutSolid } from '../engine/src/gamut-solid.ts';
 import {
   BUILTIN_GAMUT_SOURCES, GAMUT_PROBE_MAX, SRGB_SOURCE, P3_SOURCE, REC2020_SOURCE,
-  gamutSourceId, resolveGamutSource,
+  NO_GAMUT_SOURCE, gamutInputSane, gamutSourceId, resolveGamutSource,
 } from '../engine/src/gamut-source.ts';
 import type { GamutSource } from '../engine/src/gamut-source.ts';
 import { oklabToLinearSrgb, GAMUT_EPSILON } from '../engine/src/brand-derive.ts';
+import { convertColor } from '../engine/src/css-color.ts';
 
 // ─── The oracle: the pre-refactor implementation, copied verbatim ─────────────
 
@@ -289,4 +290,70 @@ test('a source has a stable id that string interpolation would have collided', (
     'a prototype key is not mistaken for a built-in gamut',
   );
   assert.equal(SRGB_SOURCE.inkCoverage?.(0.5, 0.1, 30), null, 'additive light reports no ink coverage');
+});
+
+// ─── (5) a limit that is not a gamut at all ───────────────────────────────────
+
+test('something that is not a source resolves to the no-answer gamut instead of throwing', () => {
+  // An unknown NAME has always degraded quietly; an unknown OBJECT was returned
+  // verbatim and became `src.contains is not a function` inside whatever asked —
+  // from a tool's beforeExport hook, a visibly failed export. The shape to catch is
+  // the inert profile handle from host.color.iccProfile, which carries an id, a
+  // label and usable:true and so reads source-like.
+  const handleShaped = {
+    id: 'icc:0000000000000000:relative', label: 'Coated (relative)', deviceClass: 'prtr',
+    colourSpace: 'CMYK', channels: 4, intent: 'relative', version: '2.2.0', usable: true,
+  };
+  for (const [what, limit] of [
+    ['the inert profile handle', handleShaped],
+    ['an empty object', {}],
+    ['null', null],
+    ['a number', 42],
+    ['a source whose contains is not callable', { id: 'x', label: 'x', contains: 'yes' }],
+  ] as [string, unknown][]) {
+    assert.equal(resolveGamutSource(limit as never), NO_GAMUT_SOURCE,
+      `${what} is not a gamut source and must resolve to the no-answer gamut`);
+    assert.doesNotThrow(() => {
+      assert.equal(inGamut(0.5, 0.1, 30, limit as never), false, `${what}: membership must be refused, not thrown`);
+      assert.equal(maxChroma(0.55, 30, limit as never), 0, `${what}: no ceiling, not a TypeError`);
+      assert.equal(sliceGamutEdge('ch', 0.55, limit as never).every(p => p.y === 1), true,
+        `${what}: the boundary must collapse to zero chroma`);
+    }, `${what}: a malformed limit must never throw out of a gamut query`);
+  }
+  // A MISSING limit is a different case from a malformed one: the functions that
+  // declare a default still apply it.
+  assert.equal(resolveGamutSource(undefined as never), NO_GAMUT_SOURCE, 'nothing at all is not a gamut either');
+  assert.equal(maxChroma(0.55, 30), maxChroma(0.55, 30, 'srgb'), 'but an omitted limit is still the sRGB default');
+  // sRGB is deliberately NOT the fallback for a malformed limit: answering a press
+  // question with display numbers is the plausible wrong answer, worse than none.
+  assert.notEqual(resolveGamutSource({} as never), SRGB_SOURCE,
+    'a malformed limit must not be silently answered as sRGB');
+  assert.equal(NO_GAMUT_SOURCE.inkCoverage?.(0.5, 0.1, 30), null, 'and it invents no ink figure');
+  // A well-formed custom source is still the identity — the guard must not have
+  // closed the door on the generalisation it protects.
+  assert.equal(resolveGamutSource(wedge), wedge, 'a real source still passes through untouched');
+});
+
+// ─── (6) the domain guard's epsilon ───────────────────────────────────────────
+
+test('media white survives the domain guard when l arrives from a conversion', () => {
+  // Lab(100, 0, 0) → OKLCH gives l = 1.0000000010492212. Media white is inside
+  // every gamut by definition, so the guard's ceiling has to carry the same float
+  // slack the cube test does, or the same colour is classified two ways depending
+  // on how it was spelled.
+  const l = convertColor({ space: 'lab', components: [100, 0, 0], alpha: 1, missing: 0 }, 'oklch')
+    .components as [number, number, number];
+  assert.ok(l[0] > 1, `precondition: the Lab→OKLCH conversion overshoots 1, got ${l[0]}`);
+  assert.equal(gamutInputSane(l[0], l[1], l[2]), true,
+    'a media white that overshoots l = 1 by a float ulp is still a colour a gamut can be asked about');
+  assert.equal(inGamut(l[0], l[1], l[2], 'srgb'), true,
+    'lab(100 0 0) is white, and white is inside sRGB however it was spelled');
+  assert.equal(inGamut(1, 0, 0, 'srgb'), true, 'as is the same colour written directly in OKLCH');
+
+  // The slack is a float tolerance, not a licence: a lightness that is really out
+  // of range must still be refused.
+  assert.equal(gamutInputSane(1.001, 0, 0), false, 'a lightness past 1 by more than float noise is not a colour');
+  assert.equal(gamutInputSane(-0.001, 0, 0), false, 'nor is a negative lightness');
+  assert.equal(gamutInputSane(0.5, -0.001, 0), false, 'nor is negative chroma');
+  assert.equal(gamutInputSane(0.5, 0.1, Number.NaN), false, 'nor is a non-finite hue');
 });
