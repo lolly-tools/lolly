@@ -26,7 +26,7 @@
 
 import { oklabToLinearSrgb, linearToSrgb, GAMUT_EPSILON } from './brand-derive.ts';
 import {
-  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutInputSane, resolveGamutSource,
+  GAMUT_PROBE_MAX, GAMUT_PROBE_START, gamutInputSane, resolveGamutSource, linearSrgbToLinearP3,
 } from './gamut-source.ts';
 import type { BuiltinGamutName, GamutLimit, GamutSource } from './gamut-source.ts';
 
@@ -154,6 +154,15 @@ export interface SliceOptions {
   height: number;
   /** Ceiling of the chroma axis (or the chroma the whole 'lh' plane sits at). Default 0.4. */
   cMax?: number;
+  /**
+   * Space to encode the bytes in. Default 'srgb'.
+   *
+   * Pass 'display-p3' together with a `getContext('2d', { colorSpace: 'display-p3' })`
+   * canvas and a matching ImageData, and the P3 band is painted as REAL colour
+   * rather than gamut-mapped. Mismatching the two silently shifts every pixel, so
+   * the caller must set both or neither.
+   */
+  encode?: EncodeSpace;
   /** Paint nothing beyond this gamut — a name or any {@link GamutSource}.
    *  Default 'rec2020', the widest gamut we classify by name. */
   limit?: GamutLimit;
@@ -167,6 +176,27 @@ export interface SliceImage {
 }
 
 const SLICE_C_MAX = 0.4; // the practical sRGB/P3 ceiling the colour picker's C slider uses
+
+/** An encode space → the gamut name whose ceiling it should clamp to. The two
+ *  vocabularies differ because one comes from the canvas API and the other from
+ *  this module's own gamut set. */
+const ENCODE_GAMUT: Record<EncodeSpace, BuiltinGamutName> = {
+  srgb: 'srgb',
+  'display-p3': 'p3',
+};
+
+/**
+ * Which space the returned bytes are ENCODED in.
+ *
+ * Only these two, because they are the only values a canvas 2D context accepts
+ * for `colorSpace` — offering rec2020 here would be a promise no browser can
+ * keep. Both use the sRGB transfer curve, so only the primaries differ.
+ *
+ * This is the difference between showing someone their own display's colour and
+ * showing them an sRGB approximation of it. On a wide-gamut screen — which most
+ * people who open a colour tool are using — 'display-p3' is the honest choice.
+ */
+export type EncodeSpace = 'srgb' | 'display-p3';
 
 /**
  * A coarse (lightness × hue) grid of the sRGB chroma ceiling, bilinearly
@@ -193,16 +223,21 @@ const GRID_H = 145; // hue samples, 0…360 inclusive (2.5° apart, wrapping at 
 // Built once on first use and reused: the sRGB gamut is a constant, so this is a
 // lookup table, not state. Keeping it module-level takes the ~2,400 bisections
 // out of every repaint — the difference between a hue drag at 9ms and at 12ms.
-let CEILING: Float64Array | null = null;
+// One grid PER ENCODE GAMUT. A slice encoded for Display-P3 has to desaturate to
+// P3's ceiling, not sRGB's — clamping to sRGB would throw away exactly the colour
+// a wide-gamut canvas exists to show. Each gamut's grid is a constant, so this is
+// a lookup table keyed by name, not state.
+const CEILINGS = new Map<BuiltinGamutName, Float64Array>();
 
-function srgbCeilingGrid(): Float64Array {
-  if (CEILING) return CEILING;
+function ceilingGrid(space: BuiltinGamutName): Float64Array {
+  const cached = CEILINGS.get(space);
+  if (cached) return cached;
   const g = new Float64Array(GRID_L * GRID_H);
   for (let i = 0; i < GRID_L; i++) {
     const l = i / (GRID_L - 1);
-    for (let j = 0; j < GRID_H; j++) g[i * GRID_H + j] = maxChroma(l, (j / (GRID_H - 1)) * 360, 'srgb');
+    for (let j = 0; j < GRID_H; j++) g[i * GRID_H + j] = maxChroma(l, (j / (GRID_H - 1)) * 360, space);
   }
-  CEILING = g;
+  CEILINGS.set(space, g);
   return g;
 }
 
@@ -247,7 +282,8 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
   const cMax = opts.cMax != null && opts.cMax > 0 ? opts.cMax : SLICE_C_MAX;
   const src = resolveGamutSource(opts.limit ?? 'rec2020');
   const data = new Uint8ClampedArray(width * height * 4);
-  const ceiling = srgbCeilingGrid();
+  const encode: EncodeSpace = opts.encode ?? 'srgb';
+  const ceiling = ceilingGrid(ENCODE_GAMUT[encode]);
 
   // Sample at pixel CENTRES, so the leftmost column is not exactly 0 and the
   // plane doesn't shift by half a pixel when the width changes.
@@ -265,11 +301,14 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
       }
       const o = (y * width + x) * 4;
       if (!holds(src, l, c, h)) continue; // leave it transparent
-      // Desaturate anything past sRGB down to the ceiling before encoding, so
-      // the encode below is the whole cost — no per-pixel gamut-map bisection.
+      // Desaturate past the ENCODE space's ceiling before encoding, so the encode
+      // below is the whole cost — no per-pixel gamut-map bisection.
       const cUse = Math.min(c, sampleCeiling(ceiling, l, h));
       const hr = (h * Math.PI) / 180;
-      const lin = oklabToLinearSrgb(l, cUse * Math.cos(hr), cUse * Math.sin(hr));
+      let lin = oklabToLinearSrgb(l, cUse * Math.cos(hr), cUse * Math.sin(hr));
+      // Into the encode space's primaries while still linear; the transfer curve
+      // below is shared (Display-P3 uses sRGB's).
+      if (encode === 'display-p3') lin = linearSrgbToLinearP3(lin[0], lin[1], lin[2]);
       data[o] = linearToSrgb(Math.min(1, Math.max(0, lin[0]))) * 255;
       data[o + 1] = linearToSrgb(Math.min(1, Math.max(0, lin[1]))) * 255;
       data[o + 2] = linearToSrgb(Math.min(1, Math.max(0, lin[2]))) * 255;

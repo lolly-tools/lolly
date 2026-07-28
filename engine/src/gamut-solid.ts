@@ -171,7 +171,69 @@ export function gamutSolid(
     }
   }
 
+  // A landscape is an open sheet, so its hue-seam edges are raw cuts — you can see
+  // that it has no thickness, and it reads as a ribbon rather than a body. Cap them.
+  if (embed === 'landscape') {
+    for (const [j, x] of [[0, -1], [H, 1]] as [number, number][]) {
+      quads.push(...capQuads(radius, L, H, j, x, scaleR));
+    }
+  }
+
   return { limit, embed, hueSteps: H, lightSteps: L, quads, maxRadius };
+}
+
+/** Vertical subdivisions per cap cell. The cap spans chroma 0 → the surface, and
+ *  one flat quad over that whole span would be a single colour where the eye
+ *  expects the same ramp the 2D L×C chart shows. */
+const CAP_STEPS = 10;
+
+/**
+ * The wall closing one hue edge of a landscape, from the surface down to zero
+ * chroma — filled with that hue's own lightness × chroma blend.
+ *
+ * Both edges sit at the seam (hue 0 and hue 360 are the same hue), so both caps
+ * carry the same profile and the object is symmetric about it. The face is
+ * literally the 'lc' slice chart at that hue stood on its edge, which is why it
+ * looks right next to the flat charts: it IS the same surface.
+ */
+function capQuads(
+  radius: number[][],
+  L: number,
+  H: number,
+  j: number,
+  x: number,
+  scaleR: number,
+): SolidQuad[] {
+  const out: SolidQuad[] = [];
+  const jj = (j % H + H) % H;
+  const hue = (jj / H) * 360;
+
+  for (let i = 0; i < L - 1; i++) {
+    const l0 = i / (L - 1);
+    const l1 = (i + 1) / (L - 1);
+    const r0 = radius[i]![jj]!;
+    const r1 = radius[i + 1]![jj]!;
+    for (let k = 0; k < CAP_STEPS; k++) {
+      const t0 = k / CAP_STEPS;
+      const t1 = (k + 1) / CAP_STEPS;
+      // Each rung spans a chroma band at both lightness edges, so the wall follows
+      // the surface's own silhouette instead of being a rectangle behind it.
+      const pts: [SolidPoint, SolidPoint, SolidPoint, SolidPoint] = [
+        { x, z: l0 * 2 - 1, y: (r0 * t0) / scaleR },
+        { x, z: l0 * 2 - 1, y: (r0 * t1) / scaleR },
+        { x, z: l1 * 2 - 1, y: (r1 * t1) / scaleR },
+        { x, z: l1 * 2 - 1, y: (r1 * t0) / scaleR },
+      ];
+      const cl = (l0 + l1) / 2;
+      const c = ((r0 + r1) / 2) * ((t0 + t1) / 2);
+      // 0.995 for the same reason the surface does it: dead on the boundary,
+      // rounding can push a sample out of gamut and the mapper desaturates it.
+      const hex = oklchToHex({ l: cl, c: c * 0.995, h: hue });
+      // A vertical face: `up` is 0, so the shading treats it as a side wall.
+      out.push({ pts, hex, up: 0 });
+    }
+  }
+  return out;
 }
 
 // ─── Projection ───────────────────────────────────────────────────────────────
