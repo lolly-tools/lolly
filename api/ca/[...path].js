@@ -232,10 +232,7 @@ function errorPage(message) {
 <p>Close this window and try again from Lolly.</p>`);
 }
 
-// engine/src/x509.ts
-var te3 = new TextEncoder();
-var subtle3 = globalThis.crypto.subtle;
-var asBufferSource = (b) => b;
+// engine/src/bytes.ts
 function concatBytes(parts) {
   let n = 0;
   for (const p of parts) n += p.length;
@@ -247,7 +244,70 @@ function concatBytes(parts) {
   }
   return out;
 }
+var asBufferSource = (b) => b;
+function base64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function bytesToBin(bytes) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 32768) {
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 32768));
+  }
+  return s;
+}
+
+// engine/src/der-read.ts
+function derTlv(b, i) {
+  if (i + 2 > b.length) throw new Error("der: truncated");
+  const tag = b[i];
+  let len = b[i + 1];
+  let j = i + 2;
+  if (len & 128) {
+    const k = len & 127;
+    if (j + k > b.length) throw new Error("der: length overruns buffer");
+    len = 0;
+    for (let x = 0; x < k; x++) len = len * 256 + b[j++];
+  }
+  if (j + len > b.length) throw new Error("der: length overruns buffer");
+  return { tag, start: i, contentStart: j, end: j + len };
+}
+function derChildren(b, tlv) {
+  const kids = [];
+  let i = tlv.contentStart;
+  while (i < tlv.end) {
+    const c = derTlv(b, i);
+    kids.push(c);
+    i = c.end;
+  }
+  return kids;
+}
 function derLen(n) {
+  if (n < 128) return Uint8Array.of(n);
+  if (n < 256) return Uint8Array.of(129, n);
+  if (n < 65536) return Uint8Array.of(130, n >>> 8, n & 255);
+  return Uint8Array.of(131, n >>> 16, n >>> 8 & 255, n & 255);
+}
+function derWrap(tag, body) {
+  return concatBytes([Uint8Array.of(tag), derLen(body.length), body]);
+}
+function ecdsaRawToDer(raw) {
+  const half = raw.length / 2;
+  const int = (bytes) => {
+    let i = 0;
+    while (i < bytes.length - 1 && bytes[i] === 0) i++;
+    const v = bytes.subarray(i);
+    return v[0] & 128 ? derWrap(2, concatBytes([Uint8Array.of(0), v])) : derWrap(2, v);
+  };
+  return derWrap(48, concatBytes([int(raw.subarray(0, half)), int(raw.subarray(half))]));
+}
+
+// engine/src/x509.ts
+var te3 = new TextEncoder();
+var subtle3 = globalThis.crypto.subtle;
+function derLen2(n) {
   if (n < 128) return Uint8Array.of(n);
   if (n < 256) return Uint8Array.of(129, n);
   if (n < 65536) return Uint8Array.of(130, n >>> 8, n & 255);
@@ -255,7 +315,7 @@ function derLen(n) {
 }
 function der(tag, ...content) {
   const body = concatBytes(content);
-  return concatBytes([Uint8Array.of(tag), derLen(body.length), body]);
+  return concatBytes([Uint8Array.of(tag), derLen2(body.length), body]);
 }
 var derSeq = (...c) => der(48, ...c);
 var derSet = (...c) => der(49, ...c);
@@ -283,46 +343,19 @@ function derTime(date) {
   if (y >= 1950 && y < 2050) return der(23, te3.encode(p(y % 100) + rest));
   return der(24, te3.encode(p(y, 4) + rest));
 }
-function ecdsaRawToDer(raw) {
-  const half = raw.length / 2;
-  return derSeq(derUint(raw.subarray(0, half)), derUint(raw.subarray(half)));
-}
 function asDate(v, fallback) {
   const d = v == null ? new Date(fallback) : v instanceof Date ? v : new Date(v);
   if (Number.isNaN(d.getTime())) throw new Error("c2pa: invalid date " + v);
   return d;
 }
-function readTlv(b, i) {
-  if (i + 2 > b.length) throw new Error("x509: truncated DER");
-  const tag = b[i];
-  let len = b[i + 1];
-  let j = i + 2;
-  if (len & 128) {
-    const k = len & 127;
-    len = 0;
-    for (let x = 0; x < k; x++) len = len * 256 + b[j++];
-  }
-  if (j + len > b.length) throw new Error("x509: DER length overruns buffer");
-  return { tag, start: i, contentStart: j, end: j + len };
-}
-function readChildren(b, tlv) {
-  const kids = [];
-  let i = tlv.contentStart;
-  while (i < tlv.end) {
-    const c = readTlv(b, i);
-    kids.push(c);
-    i = c.end;
-  }
-  return kids;
-}
 async function keyIdOf(spkiDer) {
-  const [, bits] = readChildren(spkiDer, readTlv(spkiDer, 0));
+  const [, bits] = derChildren(spkiDer, derTlv(spkiDer, 0));
   if (!bits || bits.tag !== 3) throw new Error("x509: SPKI has no subjectPublicKey BIT STRING");
   return new Uint8Array(await subtle3.digest("SHA-1", asBufferSource(spkiDer.subarray(bits.contentStart + 1, bits.end))));
 }
 function certNameAndKey(certDer) {
-  const [tbs] = readChildren(certDer, readTlv(certDer, 0));
-  const kids = readChildren(certDer, tbs);
+  const [tbs] = derChildren(certDer, derTlv(certDer, 0));
+  const kids = derChildren(certDer, tbs);
   const shift = kids[0].tag === 160 ? 1 : 0;
   return {
     subjectBytes: certDer.slice(kids[shift + 4].start, kids[shift + 4].end),
@@ -332,17 +365,10 @@ function certNameAndKey(certDer) {
 function pemToDer(pem) {
   const b64 = String(pem).replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
   if (!b64) throw new Error("x509: no PEM body found");
-  const bin = atob(b64);
-  const out = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
-  return out;
+  return base64ToBytes(b64);
 }
 function derToPem(der2, label) {
-  let bin = "";
-  for (let i = 0; i < der2.length; i += 32768) {
-    bin += String.fromCharCode.apply(null, der2.subarray(i, i + 32768));
-  }
-  const body = btoa(bin).replace(/(.{64})/g, "$1\n").trimEnd();
+  const body = btoa(bytesToBin(der2)).replace(/(.{64})/g, "$1\n").trimEnd();
   return `-----BEGIN ${label}-----
 ${body}
 -----END ${label}-----
