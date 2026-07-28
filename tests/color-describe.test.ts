@@ -52,6 +52,20 @@ test('every input notation parses, and an sRGB colour round-trips exactly', () =
   }
 });
 
+test('white is white however it is spelled — the gamut cannot depend on the notation', () => {
+  // `lab(100 0 0)` converts to OKLCH l = 1.0000000010492212, an ulp past the
+  // domain guard's ceiling, where the same colour written '#fff' lands at
+  // 0.9999999934. Without a float tolerance on that ceiling, one spelling was in
+  // sRGB and the other in no gamut at all.
+  for (const spelling of ['white', '#fff', '#ffffff', 'rgb(255 255 255)', 'lab(100 0 0)', 'lch(100 0 0)',
+    'oklch(100% 0 0)']) {
+    const d = describeColor(spelling);
+    assert.ok(d, `${spelling} parses`);
+    assert.equal(d.gamut, 'srgb', `${spelling} is white, and white is inside sRGB — not 'none'`);
+    assert.equal(d.inSrgb, true, `${spelling} must be reported as displayable`);
+  }
+});
+
 test('a colour outside every gamut is reported as such, not clamped into one', () => {
   const d = describeColor('oklch(50% 0.45 200)');
   assert.ok(d);

@@ -912,9 +912,12 @@ matrix path at the same lightness, and the CMYK numbers match littleCMS on the s
 to the digit.
 
 Two honest limits, both documented at their constant. Membership is a round-trip test
-against `ICC_GAMUT_DELTA_E` (3.0 ΔE*ab), which is soft-proofing rather than colorimetry:
-near the gamut surface it may call a colour either way, and a fully saturated process
-primary reads as outside. And a profile-backed `contains` is ~14× the cost of a matrix
+against `ICC_GAMUT_DELTA_E` (3.0 ΔE*ab), which is soft-proofing rather than colorimetry,
+and it is conservative by more than a rounding: measured against Apple's Generic CMYK
+Profile's own forward table it accepts ~65% of the device values the profile can produce,
+refusing a flat 20% yellow tint and most of the yellow lobe above L* 90 as well as the
+heavy-ink shadows (the full measurement is at `ICC_GAMUT_DELTA_E`). Read what it draws as
+a conservative proof, never as a gamut boundary. And a profile-backed `contains` is ~14× the cost of a matrix
 one, so a 320×200 `oklchSlice` against a press profile is ~85ms — render it on a profile
 change, not under a drag.
 
@@ -928,4 +931,8 @@ No v1 method changed. All four are optional — a tool must feature-detect
 (`host.color?.iccProfile`) since its declared `engineVersion` range may admit an older
 engine. The handle a tool receives is inert data; the profile's tables never cross the
 bridge, and a handle the host did not issue gets the no-answer result (null / false / 0)
-rather than an answer computed against some other profile.
+rather than an answer computed against some other profile. `usable` is the gate to check
+first, and it means "this profile can answer a membership question under this intent" —
+which needs the REVERSE transform, not merely a tag for the intent (`iccGamutIntent`), so
+the abstract profiles that carry A2B0 alone report false instead of an empty gamut behind
+a valid label.

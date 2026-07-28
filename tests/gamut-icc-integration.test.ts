@@ -31,6 +31,7 @@ import {
 import { gamutSolid, projectSolidPoint } from '../engine/src/gamut-solid.ts';
 import { gamutSourceId } from '../engine/src/gamut-source.ts';
 import { makeColorApi } from '../engine/src/color-tools.ts';
+import { oneWayProfileBytes } from './helpers/icc-fixture.ts';
 
 const SYS = '/System/Library/ColorSync/Profiles/';
 const CMYK_PATH = `${SYS}Generic CMYK Profile.icc`;
@@ -181,6 +182,37 @@ test('host.color.iccProfile → the three profile queries', (t) => {
   });
 });
 
+test('a profile with no reverse transform reports usable:false rather than an empty gamut', () => {
+  // A2B0 only: device → Lab exists, so `hasIntent` says yes, but membership goes
+  // through fromLab and there is nothing to invert. Reporting `usable: true` here
+  // promises an answer the queries can only give as "nothing at all is printable"
+  // — a caller told to gate on `usable` then draws a chart of nothing and cannot
+  // tell it apart from a press that reproduces nothing.
+  const api = makeColorApi();
+  const handle = api.iccProfile!(oneWayProfileBytes(), 'perceptual');
+  assert.ok(handle, 'the fixture must still parse as a profile');
+  assert.equal(handle.usable, false,
+    'a profile that cannot answer a membership question must advertise usable:false, not an empty gamut behind a valid label');
+  assert.equal(api.inProfileGamut!(handle, 0.5, 0, 0), false, 'and every query gives its no-answer value');
+  assert.equal(api.profileMaxChroma!(handle, 0.5, 120), 0, 'including the ceiling');
+});
+
+test('the stock abstract profiles do not advertise a gamut to a tool', (t) => {
+  // The real files of that shape. An `abst` profile has no device gamut at all.
+  const path = '/Library/ColorSync/Profiles/Sepia Tone.icc';
+  if (!existsSync(path)) {
+    t.skip(`stock abstract profile not on this machine: ${path}`);
+    return;
+  }
+  const bytes = new Uint8Array(readFileSync(path));
+  const p = parseIccProfile(bytes)!;
+  assert.ok(p.hasIntent('perceptual'), 'precondition: Sepia Tone carries A2B0 and no B2A0');
+  const handle = makeColorApi().iccProfile!(bytes, 'perceptual');
+  assert.ok(handle, 'the profile parses');
+  assert.equal(handle.usable, false,
+    'an abstract profile must not advertise itself as a gamut a tool can query');
+});
+
 test('a handle the host did not issue gets the no-answer result, never an answer', () => {
   const api = makeColorApi();
   // Shaped exactly like a real handle, including a plausible id — the point is
@@ -193,6 +225,29 @@ test('a handle the host did not issue gets the no-answer result, never an answer
   assert.equal(api.inProfileGamut!(forged, 0.5, 0.05, 30), false, 'a forged handle must not report membership');
   assert.equal(api.profileMaxChroma!(forged, 0.5, 30), 0, 'a forged handle must give no ceiling');
   assert.equal(api.inkCoverage!(forged, 0.5, 0.05, 30), null, 'a forged handle must give no ink figure');
+});
+
+test('the inert profile handle passed where a SOURCE belongs answers nothing, and never throws', (t) => {
+  withProfile(CMYK_PATH, t, () => {
+    const api = makeColorApi();
+    const handle = api.iccProfile!(new Uint8Array(readFileSync(CMYK_PATH)))!;
+    // The natural mistake: the handle carries an id, a label and usable:true, so it
+    // reads source-like, but the tables stay in the host and it has no `contains`.
+    // The three limit-taking queries must degrade to their no-answer values rather
+    // than throw out of the hook that asked — from beforeExport, a failed export.
+    assert.equal(api.maxChroma!(0.55, 30, handle as never), 0,
+      'a limit that is not a gamut source must give no ceiling, not a TypeError');
+    const img = api.slice!({ plane: 'ch', fixed: 0.55, width: 8, height: 8, limit: handle as never });
+    assert.ok(img.data.every((v) => v === 0),
+      'every pixel of a slice against a non-source must stay transparent — nothing is in gamut');
+    const region = api.gamutRegion!('ch', 0.55, handle as never);
+    assert.ok(region.every((ring) => ring.every((pt) => pt.y === 1)),
+      'and its boundary must collapse onto the zero-chroma edge rather than draw sRGB under a press label');
+    // The handle-keyed queries are the ones that DO work with a handle, and must
+    // keep working — the guard above must not have made every handle inert.
+    assert.equal(api.inProfileGamut!(handle, 0.55, 0.06, 30), true,
+      'the handle still answers through the query built for it');
+  });
 });
 
 test('host.color.iccProfile returns null for bytes that are not a profile', () => {
