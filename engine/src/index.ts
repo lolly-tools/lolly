@@ -242,6 +242,10 @@ export {
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
+export { gamutSolid, projectGamutSolid, projectSolidPoint } from './gamut-solid.ts';
+export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad } from './gamut-solid.ts';
+export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES_CONTRAST_FLOOR } from './color-describe.ts';
+export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';
 export { GAMUTS, oklchGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
 export type { GamutName, SlicePlane, SliceOptions, SliceImage } from './gamut.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
