@@ -12,38 +12,38 @@
       "id": "brand",
       "label": "Brand",
       "kind": "duotone",
-      "shadow": "#0f253b",
-      "highlight": "#d4ebff"
+      "shadow": "#0c2346",
+      "highlight": "#d2eaff"
     },
     {
       "id": "jade",
       "label": "Jade",
       "kind": "duotone",
-      "shadow": "#062c15",
-      "highlight": "#d1f2d9"
+      "shadow": "#002e17",
+      "highlight": "#c9f4dc"
     },
     {
-      "id": "rose",
-      "label": "Rose",
+      "id": "violet",
+      "label": "Violet",
       "kind": "duotone",
-      "shadow": "#38172a",
-      "highlight": "#ffdcee"
+      "shadow": "#2a1b40",
+      "highlight": "#ede0ff"
     },
     {
-      "id": "amber",
-      "label": "Amber",
+      "id": "green",
+      "label": "Green",
       "kind": "duotone",
-      "shadow": "#322100",
-      "highlight": "#f8e6c4"
+      "shadow": "#1e2900",
+      "highlight": "#e1efc7"
     },
     {
       "id": "deep",
       "label": "Deep",
       "kind": "duotone",
       "shadow": "#000000",
-      "mid": "#0f253b",
-      "highlight": "#4f84ba",
-      "previewBg": "#0f253b"
+      "mid": "#0c2346",
+      "highlight": "#6ca6ff",
+      "previewBg": "#0c2346"
     }
   ]
 }

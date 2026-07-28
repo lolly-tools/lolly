@@ -51,9 +51,19 @@ const SRGB_TO_REC2020: Mat3 = [
   0.0163916, 0.0880132, 0.8955953,
 ];
 
-// The same slack brand-derive's gamut mapper treats as "inside" (its bisection
-// tolerance), so a colour this module calls sRGB is one oklchToHex leaves alone.
-const EPS = GAMUT_EPSILON;
+// Slack on the cube test, in LINEAR light. Deliberately far tighter than
+// brand-derive's `GAMUT_EPSILON` (1e-4), which is a bisection tolerance rather
+// than a shape query: an absolute epsilon in linear light is negligible at the
+// top of the range but enormous near black, where every channel is a few
+// thousandths. At 1e-4 the near-black boundary visibly bulges — maxChroma at
+// hue 30 spiked to 0.070 around L 0.012 before falling back to 0.034, a hook in
+// the chart that is an artefact of the slack, not a property of sRGB.
+//
+// 1e-6 is two orders of magnitude clear of reality: the worst out-of-cube
+// excursion for an actual 8-bit sRGB colour round-tripped through hexToOklch is
+// 2e-7 (at #ffffff), so nothing displayable is misclassified.
+// GAMUT_EPSILON keeps its own job below, as maxChroma's bisection tolerance.
+const EPS = 1e-6;
 
 const inUnitCube = (rgb: readonly [number, number, number]): boolean =>
   rgb[0] >= -EPS && rgb[0] <= 1 + EPS
@@ -147,11 +157,11 @@ const SLICE_C_MAX = 0.4; // the practical sRGB/P3 ceiling the colour picker's C 
  * of pixels that are already outside sRGB and therefore already an
  * approximation on an 8-bit surface. Every line the user actually reads — the
  * gamut boundaries from `sliceGamutEdge` — comes from exact `maxChroma` calls.
- * The ceiling is smooth in both axes away from L→1, so a 5° / 0.03-lightness
+ * The ceiling is smooth in both axes away from L→1, so a 2.5° / 0.016-lightness
  * grid lands well inside a JND.
  */
-const GRID_L = 33;  // lightness samples, 0…1 inclusive
-const GRID_H = 73;  // hue samples, 0…360 inclusive (5° apart, wrapping at both ends)
+const GRID_L = 65;  // lightness samples, 0…1 inclusive
+const GRID_H = 145; // hue samples, 0…360 inclusive (2.5° apart, wrapping at both ends)
 
 // Built once on first use and reused: the sRGB gamut is a constant, so this is a
 // lookup table, not state. Keeping it module-level takes the ~2,400 bisections
@@ -175,8 +185,9 @@ function sampleCeiling(grid: Float64Array, l: number, h: number): number {
   const i0 = Math.floor(fi), j0 = Math.floor(fj);
   const i1 = Math.min(GRID_L - 1, i0 + 1), j1 = Math.min(GRID_H - 1, j0 + 1);
   const ti = fi - i0, tj = fj - j0;
-  const a = grid[i0 * GRID_H + j0], b = grid[i0 * GRID_H + j1];
-  const c = grid[i1 * GRID_H + j0], d = grid[i1 * GRID_H + j1];
+  const at = (i: number, j: number): number => grid[i * GRID_H + j] as number;
+  const a = at(i0, j0), b = at(i0, j1);
+  const c = at(i1, j0), d = at(i1, j1);
   return (a + (b - a) * tj) * (1 - ti) + (c + (d - c) * tj) * ti;
 }
 
@@ -270,4 +281,88 @@ export function sliceGamutEdge(
     }
   }
   return pts;
+}
+
+/**
+ * The in-gamut REGION of a plane, as closed rings in the plane's unit square
+ * (x right, y down) — what an SVG `clipPath` or a filled `<path>` needs, where
+ * {@link sliceGamutEdge} gives only the open curve to stroke. A vector export
+ * (the Colour Lab tool's poster) has to FILL the displayable area; a raster
+ * surface can just leave the rest of the buffer transparent.
+ *
+ * Returns an ARRAY of rings, because the region is not always connected. On the
+ * 'lh' plane the chroma is fixed across the whole plane, so at, say, C 0.15 the
+ * displayable area breaks into islands — one per stretch of hue that can hold
+ * that much chroma at some lightness, with real gaps between them where no
+ * lightness can. One ring would have to bridge those gaps, claiming colours
+ * that do not exist.
+ *
+ * 'lc' and 'ch' always come back as exactly one ring: their boundary is a
+ * single-valued function of one axis, so the region is simply the area between
+ * that curve and the achromatic edge.
+ */
+export function sliceGamutRegion(
+  plane: SlicePlane,
+  fixed: number,
+  limit: Exclude<GamutName, 'none'> = 'srgb',
+  steps = 96,
+  cMax = SLICE_C_MAX,
+): { x: number; y: number }[][] {
+  const n = Math.max(2, Math.floor(steps));
+
+  if (plane === 'lc') {
+    // Down the grey axis (c = 0), then back up along the chroma ceiling.
+    const edge = sliceGamutEdge('lc', fixed, limit, n, cMax);
+    return [[{ x: 0, y: 0 }, { x: 0, y: 1 }, ...edge.slice().reverse()]];
+  }
+  if (plane === 'ch') {
+    // Along the achromatic bottom, then back along the ceiling.
+    const edge = sliceGamutEdge('ch', fixed, limit, n, cMax);
+    return [[{ x: 0, y: 1 }, { x: 1, y: 1 }, ...edge.slice().reverse()]];
+  }
+
+  // 'lh': at each hue, the lightness window that can hold this chroma. Scan
+  // coarsely for the window, then bisect each end into the gap beside it — one
+  // bisection per end per column rather than per sample.
+  const c = Math.max(0, fixed);
+  const SCAN = 64;
+  const holds = (l: number, h: number): boolean => gamutWithin(oklchGamut(l, c, h), limit);
+  const window = (h: number): { lo: number; hi: number } | null => {
+    let first = -1, last = -1;
+    for (let i = 0; i <= SCAN; i++) {
+      if (holds(i / SCAN, h)) { if (first < 0) first = i; last = i; }
+    }
+    if (first < 0) return null;
+    const refine = (inside: number, outside: number): number => {
+      let a = inside, b = outside;
+      for (let k = 0; k < 20; k++) {
+        const mid = (a + b) / 2;
+        if (holds(mid, h)) a = mid; else b = mid;
+      }
+      return a;
+    };
+    return {
+      lo: first === 0 ? 0 : refine(first / SCAN, (first - 1) / SCAN),
+      hi: last === SCAN ? 1 : refine(last / SCAN, (last + 1) / SCAN),
+    };
+  };
+
+  const rings: { x: number; y: number }[][] = [];
+  let run: { x: number; lo: number; hi: number }[] = [];
+  const flush = (): void => {
+    if (run.length >= 2) {
+      rings.push([
+        ...run.map(p => ({ x: p.x, y: 1 - p.hi })),                    // out along the top
+        ...run.slice().reverse().map(p => ({ x: p.x, y: 1 - p.lo })),  // back along the bottom
+      ]);
+    }
+    run = [];
+  };
+  for (let i = 0; i <= n; i++) {
+    const x = i / n;
+    const w = window(x * 360);
+    if (w) run.push({ x, ...w }); else flush();
+  }
+  flush();
+  return rings;
 }

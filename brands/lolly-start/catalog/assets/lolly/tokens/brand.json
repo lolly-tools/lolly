@@ -1,5 +1,5 @@
 {
-  "$description": "Lolly starter brand tokens \u2014 the neutral, OKLCH-native DTCG document shipped with the blank lolly-start profile. It doubles as the reference example of the brand token contract (plans/brand-token-contract.md): three ramps + a spectrum in a shared 'base' set, and per-theme semantic slots that alias into them. Every $value is a CSS oklch() string (L%, chroma, hue) so lightness steps are perceptually even; anything needing hex goes through the engine's colorToHex. Anchor: primary = oklch(60% 0.10 250), scheme mono. Replace wholesale via the #/start wizard or 'npm run ingest:brand'.",
+  "$description": "Lolly starter brand tokens — the OKLCH-native DTCG document shipped with the blank lolly-start profile. It doubles as the reference example of the brand token contract (plans/brand-token-contract.md): three ramps + a spectrum in a shared 'base' set, and per-theme semantic slots that alias into them. Every $value is a CSS oklch() string (L%, chroma, hue); anything needing hex goes through the engine's colorToHex.\n\nColours come from Evil Martians' Harmony palette (https://github.com/evilmartians/harmony, MIT) — no tooling, just the values. Harmony is an 11-step ladder (50..950) where chroma follows a fixed bell peaking at 500 and per-hue lightness is tuned so APCA contrast is equal across hues at a given step and MIRRORED about the 500 pivot (50<->950, 100<->900, 200<->800, 300<->700, 400<->600). The contract wants 9 steps, so we take the mirrored subset that drops the 200/800 pair: the lolly ramp is then mirror-symmetric in its own right (1<->9, 2<->8, 3<->7, 4<->6) with step 5 sitting exactly on the Harmony 500 pivot. Practical payoff: any step and its mirror are interchangeable between the light and dark themes, and the primary/secondary/neutral ramps are contrast-matched step for step.\n\nAnchor: primary = Harmony Indigo (hue 260), neutrals = Harmony Slate (hue 275, so grays lean toward the primary), supporting accent = Harmony Teal (hue 160). Scheme duo. Replace wholesale via the #/start wizard or 'npm run ingest:brand'.",
   "$metadata": {
     "tokenSetOrder": [
       "base",
@@ -27,150 +27,193 @@
     "color": {
       "$type": "color",
       "ramp": {
-        "$description": "Nine-step ramps, 1 = darkest to 9 = lightest, on the shared L scale [18, 28, 38, 50, 62, 74, 84, 92, 97]% with chroma following a bell over lightness (fullest mid-ramp, tapering at both ends). Step 5 of the primary ramp is pulled to the anchor's own L (60%) so the exact brand color sits in its ramp.",
         "primary": {
-          "$description": "The brand ramp \u2014 hue 250 (a calm slate blue) at up to 0.10 chroma. Step 5 is the anchor color itself.",
+          "$description": "The brand ramp — Harmony's Indigo (hue 260) at its native chroma bell. Step 5 is the Harmony 500 pivot itself (#6ca6ff); steps 4 and 6 are the mirrored pair either side of it, which is why the light and dark themes can use them interchangeably.",
           "1": {
-            "$value": "oklch(18% 0.05 250)",
-            "$description": "Deep brand ink \u2014 dark-theme on-primary, near-black fills"
+            "$value": "oklch(19.14% 0.040625 260)",
+            "$description": "Deep brand ink — on-primary in both themes, near-black brand fills"
           },
           "2": {
-            "$value": "oklch(28% 0.068 250)",
+            "$value": "oklch(30.08% 0.065625 260)",
             "$description": "Dark emphasis fills and hover states on light surfaces"
           },
           "3": {
-            "$value": "oklch(38% 0.085 250)",
-            "$description": "Strong accent for small text and icons on light surfaces"
+            "$value": "oklch(52.34% 0.115625 260)",
+            "$description": "Strong accent for small text on light surfaces — 5.3:1 on surface (Harmony 700, APCA 77)"
           },
           "4": {
-            "$value": "oklch(50% 0.098 250)",
-            "$description": "Mid-dark accent \u2014 buttons that need light text"
+            "$value": "oklch(61.33% 0.135937 260)",
+            "$description": "THE light-theme primary — 3.7:1 on surface, carries step 1 as its text at 4.9:1 (Harmony 600, APCA 65)"
           },
           "5": {
-            "$value": "oklch(60% 0.10 250)",
-            "$description": "THE brand color (the anchor) \u2014 light-theme primary"
+            "$value": "oklch(72.66% 0.151562 260)",
+            "$description": "The Harmony 500 pivot — the ramp's most saturated step, for large brand shapes"
           },
           "6": {
-            "$value": "oklch(74% 0.088 250)",
-            "$description": "Lifted accent \u2014 dark-theme primary (8.2:1 on the dark surface)"
+            "$value": "oklch(78.91% 0.114063 260)",
+            "$description": "THE dark-theme primary — 9.4:1 on the dark surface (Harmony 400, step 4's mirror)"
           },
           "7": {
-            "$value": "oklch(84% 0.068 250)",
+            "$value": "oklch(85.35% 0.078125 260)",
             "$description": "Soft accent fills, selected states"
           },
           "8": {
-            "$value": "oklch(92% 0.045 250)",
-            "$description": "Pale tint \u2014 washes and large decorative shapes"
+            "$value": "oklch(96.48% 0.0171875 260)",
+            "$description": "Pale tint — washes and large decorative shapes"
           },
           "9": {
-            "$value": "oklch(97% 0.025 250)",
-            "$description": "Faintest tint \u2014 brand-tinted backgrounds"
+            "$value": "oklch(98.83% 0.0046875 260)",
+            "$description": "Faintest tint — brand-tinted backgrounds"
           }
         },
         "neutral": {
-          "$description": "Quiet grays that carry the primary hue (250) at \u2264 0.02 chroma, so 'gray' UI still feels like the brand. Surfaces, text, hairlines all come from here.",
+          "$description": "Quiet grays from Harmony's Slate (hue 275, chroma held flat at 0.024), so 'gray' UI still leans toward the indigo primary instead of going dead neutral. Surfaces, text and hairlines all come from here.",
           "1": {
-            "$value": "oklch(18% 0.012 250)",
-            "$description": "Ink \u2014 light-theme text, dark-theme surface"
+            "$value": "oklch(19.34% 0.024 275)",
+            "$description": "Ink — light-theme text, dark-theme surface"
           },
           "2": {
-            "$value": "oklch(28% 0.014 250)",
-            "$description": "Raised dark surface, strong secondary text on light"
+            "$value": "oklch(30.27% 0.024 275)",
+            "$description": "Raised dark surface and dark-theme hairlines (1.4:1 on the dark surface)"
           },
           "3": {
-            "$value": "oklch(38% 0.016 250)",
-            "$description": "Dark-theme hairlines and edges (1.9:1 on the dark surface)"
+            "$value": "oklch(52.34% 0.024 275)",
+            "$description": "Light-theme muted text — 5.3:1 on the light surface (Harmony 700, APCA 77)"
           },
           "4": {
-            "$value": "oklch(50% 0.018 250)",
-            "$description": "Light-theme muted text (5.5:1 on the light surface)"
+            "$value": "oklch(61.33% 0.024 275)",
+            "$description": "Mid-dark gray — secondary icons and rules on light surfaces"
           },
           "5": {
-            "$value": "oklch(62% 0.018 250)",
-            "$description": "True mid-gray \u2014 disabled states, placeholder text"
+            "$value": "oklch(72.66% 0.024 275)",
+            "$description": "The Harmony 500 pivot — disabled states, placeholder text"
           },
           "6": {
-            "$value": "oklch(74% 0.016 250)",
-            "$description": "Dark-theme muted text (8.2:1 on the dark surface)"
+            "$value": "oklch(78.91% 0.024 275)",
+            "$description": "Lifted gray — secondary icons on dark surfaces"
           },
           "7": {
-            "$value": "oklch(84% 0.012 250)",
-            "$description": "Light-theme hairlines and edges (1.5:1 on the light surface)"
+            "$value": "oklch(85.35% 0.024 275)",
+            "$description": "Dark-theme muted text and light-theme hairlines (11.7:1 on the dark surface, 1.5:1 on the light one)"
           },
           "8": {
-            "$value": "oklch(92% 0.008 250)",
-            "$description": "Subtle fills \u2014 cards, wells, input backgrounds"
+            "$value": "oklch(96.48% 0.01775 275)",
+            "$description": "Subtle fills — cards, wells, input backgrounds"
           },
           "9": {
-            "$value": "oklch(97% 0.005 250)",
-            "$description": "Paper \u2014 the light-theme surface"
+            "$value": "oklch(98.83% 0.0046875 275)",
+            "$description": "Paper — the light-theme surface"
           }
         },
         "secondary": {
-          "$description": "The supporting accent. Scheme is mono, so this is a low-chroma sibling of the primary (same hue 250, chroma \u00d7 0.35) \u2014 a distinct ramp, not a re-alias, so tools that reach for 'secondary' get a genuinely quieter color.",
+          "$description": "The supporting accent — Harmony's Teal (hue 160), 100° off the primary so it reads as a genuinely different colour rather than a tint of it. Harmony's per-hue lightness tuning means it lands at the same APCA contrast as the primary step for step, so the two can be swapped without re-checking legibility.",
           "1": {
-            "$value": "oklch(18% 0.018 250)",
+            "$value": "oklch(18.36% 0.040625 160)",
             "$description": "Darkest supporting tone"
           },
           "2": {
-            "$value": "oklch(28% 0.024 250)",
+            "$value": "oklch(29.1% 0.065625 160)",
             "$description": "Dark supporting fills"
           },
           "3": {
-            "$value": "oklch(38% 0.03 250)",
-            "$description": "Strong supporting accent on light surfaces"
+            "$value": "oklch(50.78% 0.115625 160)",
+            "$description": "Strong supporting accent on light surfaces — 5.3:1 on surface"
           },
           "4": {
-            "$value": "oklch(50% 0.034 250)",
-            "$description": "Mid-dark supporting accent"
+            "$value": "oklch(59.38% 0.135937 160)",
+            "$description": "THE light-theme secondary — 3.7:1 on surface"
           },
           "5": {
-            "$value": "oklch(62% 0.035 250)",
-            "$description": "The supporting accent \u2014 light-theme secondary"
+            "$value": "oklch(70.51% 0.151562 160)",
+            "$description": "The Harmony 500 pivot — the ramp's most saturated step"
           },
           "6": {
-            "$value": "oklch(74% 0.031 250)",
-            "$description": "Lifted supporting accent \u2014 dark-theme secondary"
+            "$value": "oklch(77.54% 0.114063 160)",
+            "$description": "THE dark-theme secondary — 9.5:1 on the dark surface"
           },
           "7": {
-            "$value": "oklch(84% 0.024 250)",
+            "$value": "oklch(84.38% 0.078125 160)",
             "$description": "Soft supporting fills"
           },
           "8": {
-            "$value": "oklch(92% 0.016 250)",
+            "$value": "oklch(96.29% 0.0171875 160)",
             "$description": "Pale supporting tint"
           },
           "9": {
-            "$value": "oklch(97% 0.009 250)",
+            "$value": "oklch(98.83% 0.0046875 160)",
             "$description": "Faintest supporting tint"
           }
         }
       },
       "spectrum": {
-        "$description": "Six fixed chart/illustration hues at matched lightness (65%) and moderate chroma (0.12), each nudged 8\u00b0 toward the primary hue (250) so the set reads as tinted by the brand. Blue sits on the primary hue itself.",
+        "$description": "The full Harmony chromatic wheel — all seventeen families at step 600, the level Harmony tunes to APCA 65 on white, so every hue here is equally readable against the light surface and equally weighted against its neighbours. Hues are Harmony's own, not nudged toward the primary: the set is meant to be discriminable first, on-brand second.\n\nOrder is deliberate and is NOT the hue wheel. Chart tools (chart-creator, d3) walk color.spectrum.* in document order to assign series colours, so a wheel ordering would hand a two-series chart red and orange. These are ordered by greedy maximum hue separation, seeded with the original six so existing charts keep their palette: the first eight stay at least 30 degrees apart, degrading gracefully after that. Append new entries at the end rather than re-sorting.",
         "blue": {
-          "$value": "oklch(65% 0.12 250)",
-          "$description": "Blue \u2014 on the primary hue"
+          "$value": "oklch(60.55% 0.135937 240)",
+          "$description": "Harmony Blue 600 (hue 240) — 3.7:1 on the light surface"
         },
         "teal": {
-          "$value": "oklch(65% 0.12 198)",
-          "$description": "Teal (190 nudged +8 toward the primary)"
+          "$value": "oklch(59.38% 0.135937 160)",
+          "$description": "Harmony Teal 600 (hue 160) — 3.7:1 on the light surface"
         },
         "violet": {
-          "$value": "oklch(65% 0.12 292)",
-          "$description": "Violet (300 nudged \u22128 toward the primary)"
+          "$value": "oklch(61.91% 0.135937 280)",
+          "$description": "Harmony Violet 600 (hue 280) — 3.7:1 on the light surface"
         },
         "amber": {
-          "$value": "oklch(65% 0.12 83)",
-          "$description": "Amber (75 nudged +8 toward the primary)"
+          "$value": "oklch(61.91% 0.135937 66.67)",
+          "$description": "Harmony Amber 600 (hue 66.67) — 3.6:1 on the light surface"
         },
         "rose": {
-          "$value": "oklch(65% 0.12 347)",
-          "$description": "Rose (355 nudged \u22128 toward the primary)"
+          "$value": "oklch(62.7% 0.135937 0)",
+          "$description": "Harmony Rose 600 (hue 0) — 3.7:1 on the light surface"
         },
         "green": {
-          "$value": "oklch(65% 0.12 153)",
-          "$description": "Green (145 nudged +8 toward the primary)"
+          "$value": "oklch(60.35% 0.135937 123.33)",
+          "$description": "Harmony Green 600 (hue 123.33) — 3.6:1 on the light surface"
+        },
+        "fuchsia": {
+          "$value": "oklch(62.7% 0.135937 320)",
+          "$description": "Harmony Fuchsia 600 (hue 320) — 3.7:1 on the light surface"
+        },
+        "sky": {
+          "$value": "oklch(59.57% 0.135937 210)",
+          "$description": "Harmony Sky 600 (hue 210) — 3.5:1 on the light surface"
+        },
+        "orange": {
+          "$value": "oklch(62.3% 0.135937 43.33)",
+          "$description": "Harmony Orange 600 (hue 43.33) — 3.7:1 on the light surface"
+        },
+        "yellow": {
+          "$value": "oklch(61.13% 0.135937 90)",
+          "$description": "Harmony Yellow 600 (hue 90) — 3.7:1 on the light surface"
+        },
+        "red": {
+          "$value": "oklch(62.7% 0.135937 20)",
+          "$description": "Harmony Red 600 (hue 20) — 3.7:1 on the light surface"
+        },
+        "cyan": {
+          "$value": "oklch(59.18% 0.135937 180)",
+          "$description": "Harmony Cyan 600 (hue 180) — 3.5:1 on the light surface"
+        },
+        "indigo": {
+          "$value": "oklch(61.33% 0.135937 260)",
+          "$description": "Harmony Indigo 600 (hue 260) — 3.7:1 on the light surface"
+        },
+        "purple": {
+          "$value": "oklch(62.5% 0.135937 300)",
+          "$description": "Harmony Purple 600 (hue 300) — 3.6:1 on the light surface"
+        },
+        "pink": {
+          "$value": "oklch(62.89% 0.135937 340)",
+          "$description": "Harmony Pink 600 (hue 340) — 3.6:1 on the light surface"
+        },
+        "emerald": {
+          "$value": "oklch(59.77% 0.135937 140)",
+          "$description": "Harmony Emerald 600 (hue 140) — 3.7:1 on the light surface"
+        },
+        "lime": {
+          "$value": "oklch(60.74% 0.135937 106.67)",
+          "$description": "Harmony Lime 600 (hue 106.67) — 3.6:1 on the light surface"
         }
       }
     }
@@ -179,34 +222,34 @@
     "color": {
       "$type": "color",
       "semantic": {
-        "$description": "The seven semantic slots for the light look (the default theme \u2014 light is first in $themes). Every slot aliases a ramp step. Primary is deliberately the NEUTRAL ink (near-black), not the primary hue ramp: the starter brand stays unbranded-black until the user installs their own tokens (#/start or ingest:brand). WCAG 2.1 ratios were computed against the resolved sRGB values and honor the contract floors: text >= 7.0, muted >= 3.0, on-primary >= 4.5, edge >= 1.3.",
+        "$description": "The seven semantic slots for the light look (the default theme — light is first in $themes). Every slot aliases a ramp step. WCAG 2.1 ratios were computed against the resolved sRGB values and honor the contract floors: text >= 7.0, muted >= 3.0, on-primary >= 4.5, edge >= 1.3.",
         "primary": {
-          "$value": "{color.ramp.neutral.1}",
-          "$description": "The brand color \u2014 the anchor itself"
+          "$value": "{color.ramp.primary.4}",
+          "$description": "The brand colour — Harmony Indigo 600, 3.7:1 on surface"
         },
         "on-primary": {
-          "$value": "{color.ramp.neutral.9}",
-          "$description": "Text/icons on primary \u2014 deep brand ink, 4.8:1 on primary (white only reaches 3.9:1 here, so the ramp end wins)"
+          "$value": "{color.ramp.primary.1}",
+          "$description": "Text/icons on primary — the deep brand ink, 4.9:1 on primary (paper only reaches 3.7:1 here, so the dark ramp end wins)"
         },
         "secondary": {
-          "$value": "{color.ramp.secondary.5}",
-          "$description": "Supporting accent for fills and badges"
+          "$value": "{color.ramp.secondary.4}",
+          "$description": "Supporting accent for fills and badges — 3.7:1 on surface"
         },
         "surface": {
           "$value": "{color.ramp.neutral.9}",
-          "$description": "Canvas/page background \u2014 paper"
+          "$description": "Canvas/page background — paper"
         },
         "text": {
           "$value": "{color.ramp.neutral.1}",
-          "$description": "Main foreground \u2014 17.2:1 on surface"
+          "$description": "Main foreground — 17.8:1 on surface"
         },
         "muted": {
-          "$value": "{color.ramp.neutral.4}",
-          "$description": "Secondary foreground \u2014 5.5:1 on surface"
+          "$value": "{color.ramp.neutral.3}",
+          "$description": "Secondary foreground — 5.3:1 on surface"
         },
         "edge": {
           "$value": "{color.ramp.neutral.7}",
-          "$description": "Hairlines and borders \u2014 1.5:1 on surface"
+          "$description": "Hairlines and borders — 1.5:1 on surface"
         }
       }
     }
@@ -215,34 +258,34 @@
     "color": {
       "$type": "color",
       "semantic": {
-        "$description": "The seven semantic slots for the dark look \u2014 the light theme reversed across the neutral ramp. Primary mirrors light's neutral-ink choice as near-white paper, so the unbranded accent stays neutral on the dark surface. Same contract floors, same computed-ratio discipline.",
+        "$description": "The seven semantic slots for the dark look — the light theme reflected through Harmony's mirror pairs rather than hand-retuned. Same contract floors, same computed-ratio discipline.",
         "primary": {
-          "$value": "{color.ramp.neutral.9}",
-          "$description": "The brand color lifted for dark surfaces \u2014 8.2:1 on surface"
+          "$value": "{color.ramp.primary.6}",
+          "$description": "The brand colour lifted for dark surfaces — step 4's Harmony mirror, 9.4:1 on surface"
         },
         "on-primary": {
-          "$value": "{color.ramp.neutral.1}",
-          "$description": "Text/icons on primary \u2014 deep brand ink, 8.2:1 on the lifted primary"
+          "$value": "{color.ramp.primary.1}",
+          "$description": "Text/icons on primary — the same deep brand ink as the light theme, 9.4:1 on the lifted primary"
         },
         "secondary": {
           "$value": "{color.ramp.secondary.6}",
-          "$description": "Supporting accent lifted to match"
+          "$description": "Supporting accent lifted to match — 9.5:1 on surface"
         },
         "surface": {
           "$value": "{color.ramp.neutral.1}",
-          "$description": "Canvas/page background \u2014 ink"
+          "$description": "Canvas/page background — ink"
         },
         "text": {
           "$value": "{color.ramp.neutral.9}",
-          "$description": "Main foreground \u2014 17.2:1 on surface"
+          "$description": "Main foreground — 17.8:1 on surface"
         },
         "muted": {
-          "$value": "{color.ramp.neutral.6}",
-          "$description": "Secondary foreground \u2014 8.2:1 on surface"
+          "$value": "{color.ramp.neutral.7}",
+          "$description": "Secondary foreground — step 3's mirror, 11.7:1 on surface"
         },
         "edge": {
-          "$value": "{color.ramp.neutral.3}",
-          "$description": "Hairlines and borders \u2014 1.9:1 on surface"
+          "$value": "{color.ramp.neutral.2}",
+          "$description": "Hairlines and borders — 1.4:1 on surface, matching the light theme's 1.5:1 hairline in perceived faintness"
         }
       }
     }

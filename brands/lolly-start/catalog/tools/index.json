@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-27T19:59:53.439Z",
+  "generatedAt": "2026-07-28T00:49:08.663Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -5113,6 +5113,51 @@
           "blurb": "Cut clips, cards and music on a timeline"
         }
       }
+    },
+    {
+      "id": "color-lab",
+      "name": "Colour Lab",
+      "description": "Inspect one colour in OKLCH — a gamut chart showing exactly where sRGB, Display-P3 and Rec.2020 end at this hue, plus every notation, the nearest displayable colour, and readability against your brand surfaces.",
+      "version": "1.0.0",
+      "status": "community",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "svg",
+        "png",
+        "jpg",
+        "webp",
+        "pdf",
+        "csv"
+      ],
+      "width": 1600,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 21V3\" /><path d=\"M3 21h18\" /><path d=\"M3 6c7.5 0 13 4.2 15 9\" /><path d=\"M3 11c5 0 9 2.6 10.5 6\" /><circle cx=\"9.5\" cy=\"13.5\" r=\"1.6\" fill=\"currentColor\" stroke=\"none\" /></svg>",
+      "preview": "/catalog/previews/color-lab.svg",
+      "examples": [
+        {
+          "label": "Brand primary, L × C",
+          "values": {
+            "plane": "lc",
+            "limit": "p3"
+          }
+        },
+        {
+          "label": "Which hues hold up",
+          "values": {
+            "plane": "ch",
+            "limit": "p3"
+          }
+        },
+        {
+          "label": "A ramp's whole hue band",
+          "values": {
+            "plane": "lh",
+            "limit": "rec2020"
+          }
+        }
+      ]
     }
   ]
 }

@@ -5,39 +5,39 @@
     {
       "id": "brand",
       "label": "Brand",
-      "c1": "#4f84ba",
-      "c2": "#0b1219"
+      "c1": "#6ca6ff",
+      "c2": "#00180c"
     },
     {
       "id": "tint",
       "label": "Tint",
-      "c1": "#add9ff",
-      "c2": "#4f84ba"
+      "c1": "#b2d6ff",
+      "c2": "#6ca6ff"
     },
     {
       "id": "jade",
       "label": "Jade",
-      "c1": "#4da46b",
-      "c2": "#06381b"
+      "c1": "#23bc7f",
+      "c2": "#09482e"
     },
     {
-      "id": "rose",
-      "label": "Rose",
-      "c1": "#c36f9d",
-      "c2": "#461d34"
+      "id": "violet",
+      "label": "Violet",
+      "c1": "#9572cd",
+      "c2": "#2e1d46"
     },
     {
-      "id": "amber",
-      "label": "Amber",
-      "c1": "#b28727",
-      "c2": "#3f2900"
+      "id": "green",
+      "label": "Green",
+      "c1": "#728e1f",
+      "c2": "#1c2800"
     },
     {
       "id": "paper",
       "label": "Paper",
       "c1": "#ffffff",
       "c2": "#f0f0f0",
-      "previewBg": "#0b1219"
+      "previewBg": "#00180c"
     }
   ]
 }

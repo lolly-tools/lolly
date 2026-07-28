@@ -40,7 +40,7 @@
 import { hexToOklch, oklchToHex, parseOklch, parseHex, contrastRatio } from './brand-derive.ts';
 import type { Oklch } from './brand-derive.ts';
 import { generateSchemeAccents } from './brand-schemes.ts';
-import { oklchGamut, maxChroma, oklchSlice } from './gamut.ts';
+import { oklchGamut, maxChroma, oklchSlice, sliceGamutRegion } from './gamut.ts';
 import { parseColor, colorToHexString, interpolateColor } from './css-color.ts';
 import { gradientSpecToCss } from './gradient-spec.ts';
 import type { ColorAPI } from './bridge/host-v1.ts';
@@ -412,5 +412,12 @@ export function makeColorApi(): ColorAPI {
     },
     maxChroma: (l, h, limit = 'srgb') => maxChroma(l, h, limit),
     slice: opts => oklchSlice(opts),
+    gamutRegion: (plane, fixed, limit = 'srgb', steps = 96, cMax = 0.4) =>
+      sliceGamutRegion(plane, fixed, limit, steps, cMax),
+    // The perceptual axes themselves. Until 1.69 a tool could ask for ramps and
+    // harmonies but could not read a colour's own lightness or chroma — the one
+    // conversion every colour tool needs, and the one it had to reimplement.
+    oklch: color => toOklch(color),
+    fromOklch: o => oklchToHex(o),
   };
 }
