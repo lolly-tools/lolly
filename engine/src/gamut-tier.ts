@@ -23,10 +23,14 @@
  *
  * Consequences worth knowing, all of them falling out of that rule:
  *
- * - limit `srgb` → candidates [p3, rec2020]. The P3 red corner (~L 0.6486
- *   C 0.2995 h 28.96) is **tier 1**; a Rec.2020-only colour is tier 2. A sampled
- *   hue axis at l 0.6 / c 0.3 yields interleaved tiers (e.g. `232312`) that no
- *   index arithmetic can produce.
+ * - limit `srgb` → candidates [p3, rec2020], so the answers are 0, 1, 2 or beyond;
+ *   tier 3 needs a limit off the ladder (see the ICC case below). The P3 red corner
+ *   is **tier 1** — quoted at full precision because it sits ON the hull and
+ *   rounding pushes it off: L 0.6485740719414326, C 0.29948528899928223,
+ *   h 28.958137085704436 (at 4 decimals `inGamut(…, 'p3')` is already false, and the
+ *   tier reads BEYOND). A Rec.2020-only colour is tier 2. Measured tiers around a
+ *   24-sample hue circle at l 0.6 / c 0.25, `.` for beyond:
+ *   `111.......22...2...00001` — interleaving no index arithmetic can produce.
  * - limit `p3` → sRGB never appears as a tier: it is a true subset, so those
  *   colours answer tier 0 first. Rec.2020-only is tier 2.
  * - limit `rec2020` → the P3-only region is **tier 2**, a wash, not "beyond".
