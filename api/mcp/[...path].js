@@ -349,6 +349,15 @@ var init_tool_schema = __esm({
               type: "string",
               description: "If set, pre-fills from the user profile field of this name (e.g. 'firstname', 'headshot'). User can override."
             },
+            bindToMeta: {
+              type: "string",
+              enum: ["author", "contact", "description", "copyright", "license"],
+              description: "If set, this input's value is embedded into the export's provenance metadata (EXIF/XMP/PNG text + the C2PA manifest) under this field, overriding the profile-derived default. 'copyright' and 'license' are user-asserted IP fields with no profile source (see the embed-track-image tool)."
+            },
+            matchExportFormat: {
+              type: "boolean",
+              description: "For an asset/file input: the default export format follows this input's uploaded format (a dropped JPEG defaults the export to jpg) until the user picks a format. The uploaded format must be one the tool's render.formats offers, else the first format is used."
+            },
             group: {
               type: "string",
               description: "Optional grouping tag. The reserved value 'export' moves an input out of the sidebar into the export panel; the engine injects its own export-group toggles (transparentBg, convertPaths). Any other value is a free-form label for related controls."
@@ -680,6 +689,7 @@ var init_tool_schema = __esm({
                       padField: { type: "string", description: "Number sub-field: inner padding in px between the box edge and its text." },
                       groupField: { type: "string", description: "Text sub-field: id of the group this box belongs to (empty = ungrouped). Boxes sharing a group id move / scale / rotate together; purely an editor concept (no render effect)." },
                       clipField: { type: "string", description: "Text sub-field: id of another box whose shape clips this one (a clip-path mask). Faithful in raster + SVG export; flattened in PDF/EMF." },
+                      pathField: { type: "string", description: "Text sub-field holding a VECTOR path box's authored path \u2014 the pen tool's own form (nodes + handles + spline kind), encoded as one delimiter-safe value by host.geom.encodeAuthored. Node coordinates are NORMALISED to the box frame (fractions of w/h, values outside 0..1 legal), so the ordinary move / resize / rotate gestures act on a path box through x/y/w/h/rot without rewriting a single node. Machine-written and machine-read only: the field carries showFor:[] so it never renders as a sidebar control. The tool's hook lowers it via host.geom.fromNodes and emits an inline <svg><path>, which vector-exports with no extra export code." },
                       trackingField: { type: "string", description: "Number sub-field: letter-spacing in px." },
                       ligaturesField: { type: "string", description: "Boolean sub-field: enable common ligatures." },
                       alternatesField: { type: "string", description: "Boolean/select sub-field: stylistic alternates." },
@@ -688,6 +698,16 @@ var init_tool_schema = __esm({
                       shadowXField: { type: "string", description: "Number sub-field: drop-shadow x offset in px." },
                       shadowYField: { type: "string", description: "Number sub-field: drop-shadow y offset in px." },
                       shadowBlurField: { type: "string", description: "Number sub-field: drop-shadow blur radius in px." },
+                      startField: { type: "string", description: "Number sub-field: when this box appears, in SECONDS from the start of the sequence. Empty = the box is 'scenery' (always visible). Timing is inert unless a shell mounts a timeline panel; static exports ignore it." },
+                      durField: { type: "string", description: "Number sub-field: how long the box stays visible, in SECONDS. Empty = runs to the end of the sequence." },
+                      clipInField: { type: "string", description: "Number sub-field: trim in-point WITHIN the box's own media (video/lottie/audio), in SECONDS from the media's start. Ignored for non-media boxes." },
+                      speedField: { type: "string", description: "Number sub-field: media playback rate multiplier (1 = normal). Affects how much source media a given timeline duration consumes." },
+                      enterField: { type: "string", description: "Select sub-field: named animate-in preset played at the box's start (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored." },
+                      exitField: { type: "string", description: "Select sub-field: named animate-out preset played at the box's end (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored." },
+                      enterMsField: { type: "string", description: "Number sub-field: duration of the enter preset, in MILLISECONDS." },
+                      exitMsField: { type: "string", description: "Number sub-field: duration of the exit preset, in MILLISECONDS." },
+                      muteField: { type: "string", description: "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
+                      laneField: { type: "string", description: "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
                       minSize: { type: "number", description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                       addKinds: {
                         type: "array",
@@ -813,7 +833,7 @@ var init_asset_schema = __esm({
         description: { type: "string" },
         type: {
           type: "string",
-          enum: ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font"]
+          enum: ["vector", "raster", "video", "audio", "lottie", "palette", "tokens", "font", "profile"]
         },
         version: {
           type: "string",
@@ -853,7 +873,8 @@ var init_asset_schema = __esm({
               },
               size: { type: "integer", description: "Bytes. Used for sync progress estimation." },
               width: { type: "integer" },
-              height: { type: "integer" }
+              height: { type: "integer" },
+              durationMs: { type: "integer", minimum: 0, description: "Playback length in milliseconds, for video, audio and lottie assets." }
             }
           }
         },
@@ -947,10 +968,10 @@ var init_asset_ref_schema = __esm({
 // engine/src/validate.ts
 import Ajv from "ajv/dist/2020.js";
 function validateManifest(manifest) {
-  const ok2 = validateTool(manifest);
+  const ok3 = validateTool(manifest);
   return {
-    valid: ok2,
-    errors: ok2 ? [] : (validateTool.errors ?? []).map(formatError)
+    valid: ok3,
+    errors: ok3 ? [] : (validateTool.errors ?? []).map(formatError)
   };
 }
 function formatError(err) {
@@ -1217,8 +1238,8 @@ var init_x509 = __esm({
 });
 
 // engine/src/catalog-integrity.ts
-function base64UrlToBytes(str) {
-  return base64ToBytes(str.replace(/-/g, "+").replace(/_/g, "/"));
+function base64UrlToBytes(str2) {
+  return base64ToBytes(str2.replace(/-/g, "+").replace(/_/g, "/"));
 }
 function canonicalJson(value) {
   if (value === null || typeof value !== "object") {
@@ -1256,8 +1277,8 @@ async function verifyEnvelopeSignature(envelope, publicKey) {
   if (sig.length !== 64) return { ok: false, reason: "signature is not a raw P-256 r||s pair" };
   const { signature: _sig, ...unsigned } = envelope;
   const bytes = te2.encode(canonicalJson(unsigned));
-  const ok2 = await subtle2.verify(ECDSA_SHA256, publicKey, asBufferSource(sig), asBufferSource(bytes));
-  return ok2 ? { ok: true } : { ok: false, reason: "signature does not verify against the pinned key" };
+  const ok3 = await subtle2.verify(ECDSA_SHA256, publicKey, asBufferSource(sig), asBufferSource(bytes));
+  return ok3 ? { ok: true } : { ok: false, reason: "signature does not verify against the pinned key" };
 }
 async function verifyToolFile(envelope, toolId, filename, bytes) {
   const key = `${toolId}/${filename}`;
@@ -1288,7 +1309,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.60.0";
+    ENGINE_VERSION = "1.74.0";
   }
 });
 
@@ -1630,21 +1651,21 @@ function parseHex(s) {
   const n2 = (i) => parseInt(h.slice(i, i + 2), 16);
   return [n2(0), n2(2), n2(4), h.length === 8 ? n2(6) / 255 : 1];
 }
-function parseComponent(tok) {
-  if (tok.toLowerCase() === "none") return { n: 0, pct: false };
+function parseComponentToken(tok) {
+  if (tok.toLowerCase() === "none") return { n: 0, pct: false, none: true };
   const m = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(%)?$/i.exec(tok);
-  return m ? { n: parseFloat(m[1]), pct: m[2] != null } : null;
+  return m ? { n: parseFloat(m[1]), pct: m[2] != null, none: false } : null;
 }
-function parseHueComponent(tok) {
+function parseHueToken(tok) {
   if (tok.toLowerCase() === "none") return 0;
   const m = /^([+-]?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?)(deg|rad|grad|turn)?$/i.exec(tok);
   if (!m) return null;
   const n2 = parseFloat(m[1]);
-  const unit = (m[2] ?? "deg").toLowerCase();
-  const deg = unit === "rad" ? n2 * 180 / Math.PI : unit === "grad" ? n2 * 0.9 : unit === "turn" ? n2 * 360 : n2;
+  const unit2 = (m[2] ?? "deg").toLowerCase();
+  const deg = unit2 === "rad" ? n2 * 180 / Math.PI : unit2 === "grad" ? n2 * 0.9 : unit2 === "turn" ? n2 * 360 : n2;
   return normHue(deg);
 }
-function parseAlphaComponent(tok) {
+function parseAlphaToken(tok) {
   const c = parseComponent(tok);
   return c ? clamp01(c.pct ? c.n / 100 : c.n) : null;
 }
@@ -1658,12 +1679,12 @@ function parseOklch(s) {
   if (parts.length !== 3) return null;
   const L = parseComponent(parts[0]);
   const C = parseComponent(parts[1]);
-  const h = parseHueComponent(parts[2]);
+  const h = parseHueToken(parts[2]);
   if (!L || !C || h == null) return null;
-  let alpha2 = null;
+  let alpha = null;
   if (slash.length === 2) {
-    alpha2 = parseAlphaComponent(slash[1].trim());
-    if (alpha2 == null) return null;
+    alpha = parseAlphaComponent(slash[1].trim());
+    if (alpha == null) return null;
   }
   const out = isOklch ? {
     l: clamp01(L.pct ? L.n / 100 : L.n),
@@ -1676,7 +1697,7 @@ function parseOklch(s) {
     const hr = h * Math.PI / 180;
     return labToOklch(labL, chroma * Math.cos(hr), chroma * Math.sin(hr));
   })();
-  if (alpha2 != null && alpha2 < 1) out.alpha = alpha2;
+  if (alpha != null && alpha < 1) out.alpha = alpha;
   return out;
 }
 function hexToOklch(hex) {
@@ -1689,23 +1710,45 @@ function hexToOklch(hex) {
   if (a < 1) out.alpha = a;
   return out;
 }
-function oklchToHex(c) {
-  const L = clamp01(c.l);
-  const h = normHue(c.h);
-  const hr = h * Math.PI / 180;
-  const toLinear = (chroma) => oklabToLinearSrgb(L, chroma * Math.cos(hr), chroma * Math.sin(hr));
-  let rgb = toLinear(Math.max(0, c.c));
-  if (!inSrgbGamut(rgb)) {
-    let lo = 0;
-    let hi = Math.max(0, c.c);
-    for (let i = 0; i < 24; i++) {
-      const mid2 = (lo + hi) / 2;
-      if (inSrgbGamut(toLinear(mid2))) lo = mid2;
-      else hi = mid2;
+function deltaEOkSrgb(a, b) {
+  const la = linearSrgbToOklab(srgbToLinear(a[0]), srgbToLinear(a[1]), srgbToLinear(a[2]));
+  const lb = linearSrgbToOklab(srgbToLinear(b[0]), srgbToLinear(b[1]), srgbToLinear(b[2]));
+  return Math.hypot(la[0] - lb[0], la[1] - lb[1], la[2] - lb[2]);
+}
+function gamutMapOklch(l, c, h) {
+  const L = clamp01(l);
+  if (L >= 1) return [1, 1, 1];
+  if (L <= 0) return [0, 0, 0];
+  const hr = normHue(h) * Math.PI / 180;
+  const C0 = Math.max(0, c);
+  const encodedAt = (chroma) => oklabToLinearSrgb(L, chroma * Math.cos(hr), chroma * Math.sin(hr)).map(linearToSrgb);
+  let current = encodedAt(C0);
+  if (inSrgbGamut(current)) return clipSrgb(current);
+  let lo = 0;
+  let hi = C0;
+  let loInGamut = true;
+  while (hi - lo > MAP_EPSILON) {
+    const chroma = (lo + hi) / 2;
+    current = encodedAt(chroma);
+    if (loInGamut && inSrgbGamut(current)) {
+      lo = chroma;
+      continue;
     }
-    rgb = toLinear(lo);
+    const clipped = clipSrgb(current);
+    const e = deltaEOkSrgb(clipped, current);
+    if (e < JND) {
+      if (JND - e < MAP_EPSILON) return clipped;
+      loInGamut = false;
+      lo = chroma;
+    } else {
+      hi = chroma;
+    }
   }
-  const byte = (v) => Math.round(linearToSrgb(clamp01(v)) * 255).toString(16).padStart(2, "0");
+  return clipSrgb(current);
+}
+function oklchToHex(c) {
+  const rgb = gamutMapOklch(c.l, c.c, c.h);
+  const byte = (v) => Math.round(clamp01(v) * 255).toString(16).padStart(2, "0");
   const base = `#${byte(rgb[0])}${byte(rgb[1])}${byte(rgb[2])}`;
   return c.alpha != null && c.alpha < 1 ? base + Math.round(clamp01(c.alpha) * 255).toString(16).padStart(2, "0") : base;
 }
@@ -1724,7 +1767,7 @@ function contrastRatio(aHex, bHex) {
   if (la == null || lb == null) return NaN;
   return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
 }
-var clamp01, normHue, apply3, srgbToLinear, linearToSrgb, lmsToOklab, D50_WHITE, D50_TO_D65, XYZ_TO_LMS, inSrgbGamut;
+var clamp01, normHue, apply3, srgbToLinear, linearToSrgb, lmsToOklab, D50_WHITE, D50_TO_D65, XYZ_TO_LMS, parseComponent, parseAlphaComponent, JND, GAMUT_EPSILON, MAP_EPSILON, inSrgbGamut, clipSrgb;
 var init_brand_derive = __esm({
   "engine/src/brand-derive.ts"() {
     "use strict";
@@ -1765,7 +1808,759 @@ var init_brand_derive = __esm({
       0.2643662691,
       0.633851707
     ];
-    inSrgbGamut = (rgb) => rgb.every((v) => v >= -1e-3 && v <= 1 + 1e-3);
+    parseComponent = parseComponentToken;
+    parseAlphaComponent = parseAlphaToken;
+    JND = 0.02;
+    GAMUT_EPSILON = 1e-4;
+    MAP_EPSILON = GAMUT_EPSILON;
+    inSrgbGamut = (rgb) => rgb.every((v) => v >= -MAP_EPSILON && v <= 1 + MAP_EPSILON);
+    clipSrgb = (rgb) => [clamp01(rgb[0]), clamp01(rgb[1]), clamp01(rgb[2])];
+  }
+});
+
+// engine/src/css-color.ts
+function isNamedColor(name) {
+  return Object.hasOwn(NAMED_COLORS, String(name).toLowerCase());
+}
+function labToXyz50(L, a, b) {
+  const fy = (L + 16) / 116;
+  const fx = fy + a / 500;
+  const fz = fy - b / 200;
+  const xr = fx ** 3 > LAB_E ? fx ** 3 : (116 * fx - 16) / LAB_K;
+  const yr = L > LAB_K * LAB_E ? fy ** 3 : L / LAB_K;
+  const zr = fz ** 3 > LAB_E ? fz ** 3 : (116 * fz - 16) / LAB_K;
+  return [xr * D50_WHITE2[0], yr * D50_WHITE2[1], zr * D50_WHITE2[2]];
+}
+function xyz50ToLab(X, Y, Z) {
+  const f = (t) => t > LAB_E ? Math.cbrt(t) : (LAB_K * t + 16) / 116;
+  const fx = f(X / D50_WHITE2[0]);
+  const fy = f(Y / D50_WHITE2[1]);
+  const fz = f(Z / D50_WHITE2[2]);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+function hslToSrgb(h, s, l) {
+  const hn = normHue2(h) / 360;
+  const sn = Math.max(0, Math.min(1, s / 100));
+  const ln = Math.max(0, Math.min(1, l / 100));
+  if (sn === 0) return [ln, ln, ln];
+  const q = ln < 0.5 ? ln * (1 + sn) : ln + sn - ln * sn;
+  const p = 2 * ln - q;
+  const ch = (t) => {
+    const u = (t + 1) % 1;
+    if (u < 1 / 6) return p + (q - p) * 6 * u;
+    if (u < 1 / 2) return q;
+    if (u < 2 / 3) return p + (q - p) * (2 / 3 - u) * 6;
+    return p;
+  };
+  return [ch(hn + 1 / 3), ch(hn), ch(hn - 1 / 3)];
+}
+function srgbToHsl(r, g2, b) {
+  const max = Math.max(r, g2, b);
+  const min = Math.min(r, g2, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  if (d < 1e-9) return [0, 0, l * 100];
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h;
+  if (max === r) h = (g2 - b) / d % 6;
+  else if (max === g2) h = (b - r) / d + 2;
+  else h = (r - g2) / d + 4;
+  return [normHue2(h * 60), s * 100, l * 100];
+}
+function hwbToSrgb(h, w, blk) {
+  const wn = Math.max(0, Math.min(1, w / 100));
+  const bn = Math.max(0, Math.min(1, blk / 100));
+  if (wn + bn >= 1) {
+    const grey = wn / (wn + bn);
+    return [grey, grey, grey];
+  }
+  const rgb = hslToSrgb(h, 100, 50);
+  const scale = 1 - wn - bn;
+  return [rgb[0] * scale + wn, rgb[1] * scale + wn, rgb[2] * scale + wn];
+}
+function srgbToHwb(r, g2, b) {
+  const [h] = srgbToHsl(r, g2, b);
+  return [h, Math.min(r, g2, b) * 100, (1 - Math.max(r, g2, b)) * 100];
+}
+function toXyzD65(c) {
+  const [c0, c1, c2] = c.components;
+  switch (c.space) {
+    case "xyz-d65":
+      return [c0, c1, c2];
+    case "xyz-d50":
+      return apply32(XYZ50_TO_XYZ65, [c0, c1, c2]);
+    case "srgb-linear":
+      return apply32(LIN_SRGB_TO_XYZ65, [c0, c1, c2]);
+    case "srgb":
+      return apply32(LIN_SRGB_TO_XYZ65, [srgbToLinear2(c0), srgbToLinear2(c1), srgbToLinear2(c2)]);
+    case "display-p3":
+      return apply32(LIN_P3_TO_XYZ65, [srgbToLinear2(c0), srgbToLinear2(c1), srgbToLinear2(c2)]);
+    case "a98-rgb":
+      return apply32(LIN_A98_TO_XYZ65, [a98ToLinear(c0), a98ToLinear(c1), a98ToLinear(c2)]);
+    case "rec2020":
+      return apply32(
+        LIN_2020_TO_XYZ65,
+        [rec2020ToLinear(c0), rec2020ToLinear(c1), rec2020ToLinear(c2)]
+      );
+    case "prophoto-rgb":
+      return apply32(XYZ50_TO_XYZ65, apply32(
+        LIN_PROPHOTO_TO_XYZ50,
+        [prophotoToLinear(c0), prophotoToLinear(c1), prophotoToLinear(c2)]
+      ));
+    case "hsl":
+      return apply32(LIN_SRGB_TO_XYZ65, hslToSrgb(c0, c1, c2).map(srgbToLinear2));
+    case "hwb":
+      return apply32(LIN_SRGB_TO_XYZ65, hwbToSrgb(c0, c1, c2).map(srgbToLinear2));
+    case "lab":
+      return apply32(XYZ50_TO_XYZ65, labToXyz50(c0, c1, c2));
+    case "lch":
+      return apply32(XYZ50_TO_XYZ65, labToXyz50(...polarToRect(c0, c1, c2)));
+    case "oklab":
+      return apply32(LIN_SRGB_TO_XYZ65, oklabToLinearSrgb(c0, c1, c2));
+    case "oklch":
+      return apply32(LIN_SRGB_TO_XYZ65, oklabToLinearSrgb(...polarToRect(c0, c1, c2)));
+  }
+}
+function fromXyzD65(xyz, space) {
+  switch (space) {
+    case "xyz-d65":
+      return xyz;
+    case "xyz-d50":
+      return apply32(XYZ65_TO_XYZ50, xyz);
+    case "srgb-linear":
+      return apply32(XYZ65_TO_LIN_SRGB, xyz);
+    case "srgb":
+      return apply32(XYZ65_TO_LIN_SRGB, xyz).map(linearToSrgb2);
+    case "display-p3":
+      return apply32(XYZ65_TO_LIN_P3, xyz).map(linearToSrgb2);
+    case "a98-rgb":
+      return apply32(XYZ65_TO_LIN_A98, xyz).map(linearToA98);
+    case "rec2020":
+      return apply32(XYZ65_TO_LIN_2020, xyz).map(linearToRec2020);
+    case "prophoto-rgb":
+      return apply32(XYZ50_TO_LIN_PROPHOTO, apply32(XYZ65_TO_XYZ50, xyz)).map(linearToProphoto);
+    case "hsl":
+      return srgbToHsl(...fromXyzD65(xyz, "srgb"));
+    case "hwb":
+      return srgbToHwb(...fromXyzD65(xyz, "srgb"));
+    case "lab":
+      return xyz50ToLab(...apply32(XYZ65_TO_XYZ50, xyz));
+    case "lch":
+      return rectToPolar(...xyz50ToLab(...apply32(XYZ65_TO_XYZ50, xyz)), ACHROMATIC_C.lch);
+    case "oklab":
+      return linearSrgbToOklab(...apply32(XYZ65_TO_LIN_SRGB, xyz));
+    case "oklch":
+      return rectToPolar(...linearSrgbToOklab(...apply32(XYZ65_TO_LIN_SRGB, xyz)), ACHROMATIC_C.oklch);
+  }
+}
+function convertColor(c, to) {
+  if (c.space === to) return c;
+  const components = fromXyzD65(toXyzD65(c), to);
+  return { space: to, components, alpha: c.alpha, missing: powerlessMissing(to, components) };
+}
+function powerlessMissing(space, c) {
+  if (space === "oklch" || space === "lch") {
+    return c[1] < (ACHROMATIC_C[space] ?? 1e-4) ? MISSING_C2 : 0;
+  }
+  if (space === "hsl") return c[1] < HSL_ACHROMATIC_S ? MISSING_C0 : 0;
+  if (space === "hwb") return c[1] + c[2] >= 100 - HSL_ACHROMATIC_S ? MISSING_C0 : 0;
+  return 0;
+}
+function fixupHues(ha, hb, dir) {
+  let a = normHue2(ha);
+  let b = normHue2(hb);
+  const d = b - a;
+  switch (dir) {
+    case "longer":
+      if (d > 0 && d < 180) b -= 360;
+      else if (d > -180 && d <= 0) b += 360;
+      break;
+    case "increasing":
+      if (b < a) b += 360;
+      break;
+    case "decreasing":
+      if (a < b) a += 360;
+      break;
+    default:
+      if (d > 180) b -= 360;
+      else if (d < -180) b += 360;
+  }
+  return [a, b];
+}
+function carryMissing(c, other) {
+  if (c.missing === 0) return c;
+  const comps = [...c.components];
+  for (let i = 0; i < 3; i++) {
+    if ((c.missing & 1 << i) !== 0) comps[i] = other.components[i];
+  }
+  const alpha = (c.missing & MISSING_ALPHA) !== 0 ? other.alpha : c.alpha;
+  return { space: c.space, components: comps, alpha, missing: 0 };
+}
+function interpolateColor(a, b, t, opts = {}) {
+  const space = opts.space ?? "oklab";
+  const a0 = convertColor(a, space);
+  const b0 = convertColor(b, space);
+  const A = carryMissing(a0, b0);
+  const B = carryMissing(b0, a0);
+  const hi = HUE_INDEX[space];
+  const ca = [...A.components];
+  const cb = [...B.components];
+  if (hi != null) {
+    const [ha, hb] = fixupHues(ca[hi], cb[hi], opts.hue ?? "shorter");
+    ca[hi] = ha;
+    cb[hi] = hb;
+  }
+  const k = clamp012(t);
+  const lerp = (x, y) => x + (y - x) * k;
+  const alpha = lerp(A.alpha, B.alpha);
+  const out = [0, 0, 0];
+  for (let i = 0; i < 3; i++) {
+    if (i === hi) {
+      out[i] = normHue2(lerp(ca[i], cb[i]));
+    } else if (alpha > 0) {
+      out[i] = lerp(ca[i] * A.alpha, cb[i] * B.alpha) / alpha;
+    } else {
+      out[i] = lerp(ca[i], cb[i]);
+    }
+  }
+  return { space, components: out, alpha, missing: 0 };
+}
+function deltaEOkColor(a, b) {
+  const la = convertColor(a, "oklab").components;
+  const lb = convertColor(b, "oklab").components;
+  return Math.hypot(la[0] - lb[0], la[1] - lb[1], la[2] - lb[2]);
+}
+function gradientStops(stops, opts = {}) {
+  if (stops.length === 0) return [];
+  const tolerance = Number.isFinite(opts.tolerance) ? Math.max(0, opts.tolerance) : 0.01;
+  const maxDepth = Number.isFinite(opts.maxDepth) ? Math.max(0, Math.floor(opts.maxDepth)) : 6;
+  const mix = { space: opts.space ?? "oklab", hue: opts.hue };
+  const out = [stops[0]];
+  for (let i = 1; i < stops.length; i++) {
+    const a = stops[i - 1];
+    const b = stops[i];
+    refineSegment(a, b, a.color, b.color, 0, 1, mix, tolerance, maxDepth, out);
+    out.push(b);
+  }
+  return out;
+}
+function refineSegment(a, b, ca, cb, t0, t1, mix, tol, depth, out) {
+  if (depth <= 0 || b.pos <= a.pos) return;
+  let worst = 0;
+  for (const p of PROBES) {
+    const curve2 = interpolateColor(a.color, b.color, t0 + (t1 - t0) * p, mix);
+    const flat = interpolateColor(ca, cb, p, { space: "srgb" });
+    worst = Math.max(worst, deltaEOkColor(curve2, flat));
+    if (worst > tol) break;
+  }
+  if (worst <= tol) return;
+  const tm = (t0 + t1) / 2;
+  const curve = interpolateColor(a.color, b.color, tm, mix);
+  const mid2 = { color: curve, pos: a.pos + (b.pos - a.pos) * tm };
+  refineSegment(a, b, ca, curve, t0, tm, mix, tol, depth - 1, out);
+  out.push(mid2);
+  refineSegment(a, b, curve, cb, tm, t1, mix, tol, depth - 1, out);
+}
+function gamutMapSrgb(rgb) {
+  if (inSrgb(rgb)) return [rgb[0], rgb[1], rgb[2]];
+  const [L, C, h] = rectToPolar(
+    ...linearSrgbToOklab(srgbToLinear2(rgb[0]), srgbToLinear2(rgb[1]), srgbToLinear2(rgb[2]))
+  );
+  return gamutMapOklch(L, C, h);
+}
+function colorToSrgb(c) {
+  return gamutMapSrgb(convertColor(c, "srgb").components);
+}
+function colorToSrgb8(c) {
+  const [r, g2, b] = colorToSrgb(c);
+  const byte = (v) => Math.round(clamp012(v) * 255);
+  return [byte(r), byte(g2), byte(b), clamp012(c.alpha)];
+}
+function colorToHexString(c) {
+  const [r, g2, b, a] = colorToSrgb8(c);
+  const h = (n2) => n2.toString(16).padStart(2, "0");
+  const base = `#${h(r)}${h(g2)}${h(b)}`;
+  return a >= 1 ? base : base + h(Math.round(a * 255));
+}
+function splitArgs(inner) {
+  const slash = inner.split("/");
+  if (slash.length > 2) return null;
+  const head = slash[0].trim();
+  const alpha = slash.length === 2 ? slash[1].trim() : null;
+  if (head.length === 0) return null;
+  if (head.includes(",")) {
+    if (alpha != null) return null;
+    const parts = head.split(",").map((s) => s.trim());
+    return parts.some((p) => p.length === 0 || /\s/.test(p)) ? null : { parts, alpha: null };
+  }
+  return { parts: head.split(/\s+/), alpha };
+}
+function comp(tok, pctRef) {
+  const c = parseComponentToken(tok);
+  if (!c) return null;
+  return { v: c.pct ? c.n / 100 * pctRef : c.n, none: c.none };
+}
+function alphaOf(tok) {
+  if (tok == null) return { v: 1, none: false };
+  if (tok.toLowerCase() === "none") return { v: 0, none: true };
+  const a = parseAlphaToken(tok);
+  return a == null ? null : { v: a, none: false };
+}
+function build(space, c, a) {
+  if (a == null || c.length !== 3 || c.some((x) => x == null)) return null;
+  const [c0, c1, c2] = c;
+  return {
+    space,
+    components: [c0.v, c1.v, c2.v],
+    alpha: a.v,
+    missing: (c0.none ? MISSING_C0 : 0) | (c1.none ? MISSING_C1 : 0) | (c2.none ? MISSING_C2 : 0) | (a.none ? MISSING_ALPHA : 0)
+  };
+}
+function parseColor(input) {
+  if (input == null) return null;
+  const s = String(input).trim();
+  if (s.length === 0) return null;
+  const lower = s.toLowerCase();
+  if (lower === "transparent") {
+    return { space: "srgb", components: [0, 0, 0], alpha: 0, missing: 0 };
+  }
+  if (s.startsWith("#")) {
+    const rgba = parseHex(s);
+    return rgba ? { space: "srgb", components: [rgba[0] / 255, rgba[1] / 255, rgba[2] / 255], alpha: rgba[3], missing: 0 } : null;
+  }
+  const fn = /^([a-z][a-z0-9-]*)\(([^()]*)\)$/i.exec(s);
+  if (!fn) {
+    const named = Object.hasOwn(NAMED_COLORS, lower) ? NAMED_COLORS[lower] : null;
+    return named == null ? null : {
+      space: "srgb",
+      components: [(named >> 16 & 255) / 255, (named >> 8 & 255) / 255, (named & 255) / 255],
+      alpha: 1,
+      missing: 0
+    };
+  }
+  const name = fn[1].toLowerCase();
+  const args = splitArgs(fn[2]);
+  if (!args) return null;
+  const { parts } = args;
+  if (name === "color") {
+    const spaceTok = parts[0].toLowerCase();
+    const space = Object.hasOwn(COLOR_FN_SPACES, spaceTok) ? COLOR_FN_SPACES[spaceTok] : null;
+    if (!space || parts.length !== 4) return null;
+    const ch = (t) => comp(t, 1);
+    return build(space, [ch(parts[1]), ch(parts[2]), ch(parts[3])], alphaOf(args.alpha));
+  }
+  let alphaTok = args.alpha;
+  if (parts.length === 4 && alphaTok == null && (name === "rgb" || name === "rgba" || name === "hsl" || name === "hsla")) {
+    alphaTok = parts.pop();
+  }
+  if (parts.length !== 3) return null;
+  const a = alphaOf(alphaTok);
+  switch (name) {
+    case "rgb":
+    case "rgba": {
+      const ch = (t) => {
+        const c = parseComponentToken(t);
+        return c ? { v: (c.pct ? c.n / 100 * 255 : c.n) / 255, none: c.none } : null;
+      };
+      return build("srgb", [ch(parts[0]), ch(parts[1]), ch(parts[2])], a);
+    }
+    case "hsl":
+    case "hsla": {
+      const h = hueComp(parts[0]);
+      return build("hsl", [h, comp(parts[1], 100), comp(parts[2], 100)], a);
+    }
+    case "hwb":
+      return build("hwb", [hueComp(parts[0]), comp(parts[1], 100), comp(parts[2], 100)], a);
+    case "lab":
+      return build("lab", [comp(parts[0], 100), comp(parts[1], 125), comp(parts[2], 125)], a);
+    case "lch":
+      return build("lch", [comp(parts[0], 100), comp(parts[1], 150), hueComp(parts[2])], a);
+    case "oklab":
+      return build("oklab", [comp(parts[0], 1), comp(parts[1], 0.4), comp(parts[2], 0.4)], a);
+    case "oklch":
+      return build("oklch", [comp(parts[0], 1), comp(parts[1], 0.4), hueComp(parts[2])], a);
+    default:
+      return null;
+  }
+}
+function hueComp(tok) {
+  if (tok.toLowerCase() === "none") return { v: 0, none: true };
+  const h = parseHueToken(tok);
+  return h == null ? null : { v: h, none: false };
+}
+function parseColorToSrgb8(input) {
+  const c = parseColor(input);
+  if (!c || c.alpha <= 0) return null;
+  return colorToSrgb8(c);
+}
+var MISSING_C0, MISSING_C1, MISSING_C2, MISSING_ALPHA, clamp012, normHue2, apply32, NAMED_COLORS, srgbToLinear2, linearToSrgb2, A98_GAMMA, a98ToLinear, linearToA98, prophotoToLinear, linearToProphoto, R2020_A, R2020_B, rec2020ToLinear, linearToRec2020, LIN_SRGB_TO_XYZ65, XYZ65_TO_LIN_SRGB, LIN_P3_TO_XYZ65, XYZ65_TO_LIN_P3, LIN_A98_TO_XYZ65, XYZ65_TO_LIN_A98, LIN_2020_TO_XYZ65, XYZ65_TO_LIN_2020, LIN_PROPHOTO_TO_XYZ50, XYZ50_TO_LIN_PROPHOTO, XYZ65_TO_XYZ50, XYZ50_TO_XYZ65, D50_WHITE2, LAB_K, LAB_E, polarToRect, ACHROMATIC_C, HSL_ACHROMATIC_S, rectToPolar, HUE_INDEX, PROBES, inSrgb, COLOR_FN_SPACES, COLOR_FN, COLOR_TOKEN, COLOR_TOKEN_OR_IDENT;
+var init_css_color = __esm({
+  "engine/src/css-color.ts"() {
+    "use strict";
+    init_brand_derive();
+    MISSING_C0 = 1 << 0;
+    MISSING_C1 = 1 << 1;
+    MISSING_C2 = 1 << 2;
+    MISSING_ALPHA = 1 << 3;
+    clamp012 = (n2) => Math.min(1, Math.max(0, n2));
+    normHue2 = (h) => (h % 360 + 360) % 360;
+    apply32 = (m, v) => [
+      m[0] * v[0] + m[1] * v[1] + m[2] * v[2],
+      m[3] * v[0] + m[4] * v[1] + m[5] * v[2],
+      m[6] * v[0] + m[7] * v[1] + m[8] * v[2]
+    ];
+    NAMED_COLORS = {
+      aliceblue: 15792383,
+      antiquewhite: 16444375,
+      aqua: 65535,
+      aquamarine: 8388564,
+      azure: 15794175,
+      beige: 16119260,
+      bisque: 16770244,
+      black: 0,
+      blanchedalmond: 16772045,
+      blue: 255,
+      blueviolet: 9055202,
+      brown: 10824234,
+      burlywood: 14596231,
+      cadetblue: 6266528,
+      chartreuse: 8388352,
+      chocolate: 13789470,
+      coral: 16744272,
+      cornflowerblue: 6591981,
+      cornsilk: 16775388,
+      crimson: 14423100,
+      cyan: 65535,
+      darkblue: 139,
+      darkcyan: 35723,
+      darkgoldenrod: 12092939,
+      darkgray: 11119017,
+      darkgreen: 25600,
+      darkgrey: 11119017,
+      darkkhaki: 12433259,
+      darkmagenta: 9109643,
+      darkolivegreen: 5597999,
+      darkorange: 16747520,
+      darkorchid: 10040012,
+      darkred: 9109504,
+      darksalmon: 15308410,
+      darkseagreen: 9419919,
+      darkslateblue: 4734347,
+      darkslategray: 3100495,
+      darkslategrey: 3100495,
+      darkturquoise: 52945,
+      darkviolet: 9699539,
+      deeppink: 16716947,
+      deepskyblue: 49151,
+      dimgray: 6908265,
+      dimgrey: 6908265,
+      dodgerblue: 2003199,
+      firebrick: 11674146,
+      floralwhite: 16775920,
+      forestgreen: 2263842,
+      fuchsia: 16711935,
+      gainsboro: 14474460,
+      ghostwhite: 16316671,
+      gold: 16766720,
+      goldenrod: 14329120,
+      gray: 8421504,
+      green: 32768,
+      greenyellow: 11403055,
+      grey: 8421504,
+      honeydew: 15794160,
+      hotpink: 16738740,
+      indianred: 13458524,
+      indigo: 4915330,
+      ivory: 16777200,
+      khaki: 15787660,
+      lavender: 15132410,
+      lavenderblush: 16773365,
+      lawngreen: 8190976,
+      lemonchiffon: 16775885,
+      lightblue: 11393254,
+      lightcoral: 15761536,
+      lightcyan: 14745599,
+      lightgoldenrodyellow: 16448210,
+      lightgray: 13882323,
+      lightgreen: 9498256,
+      lightgrey: 13882323,
+      lightpink: 16758465,
+      lightsalmon: 16752762,
+      lightseagreen: 2142890,
+      lightskyblue: 8900346,
+      lightslategray: 7833753,
+      lightslategrey: 7833753,
+      lightsteelblue: 11584734,
+      lightyellow: 16777184,
+      lime: 65280,
+      limegreen: 3329330,
+      linen: 16445670,
+      magenta: 16711935,
+      maroon: 8388608,
+      mediumaquamarine: 6737322,
+      mediumblue: 205,
+      mediumorchid: 12211667,
+      mediumpurple: 9662683,
+      mediumseagreen: 3978097,
+      mediumslateblue: 8087790,
+      mediumspringgreen: 64154,
+      mediumturquoise: 4772300,
+      mediumvioletred: 13047173,
+      midnightblue: 1644912,
+      mintcream: 16121850,
+      mistyrose: 16770273,
+      moccasin: 16770229,
+      navajowhite: 16768685,
+      navy: 128,
+      oldlace: 16643558,
+      olive: 8421376,
+      olivedrab: 7048739,
+      orange: 16753920,
+      orangered: 16729344,
+      orchid: 14315734,
+      palegoldenrod: 15657130,
+      palegreen: 10025880,
+      paleturquoise: 11529966,
+      palevioletred: 14381203,
+      papayawhip: 16773077,
+      peachpuff: 16767673,
+      peru: 13468991,
+      pink: 16761035,
+      plum: 14524637,
+      powderblue: 11591910,
+      purple: 8388736,
+      rebeccapurple: 6697881,
+      red: 16711680,
+      rosybrown: 12357519,
+      royalblue: 4286945,
+      saddlebrown: 9127187,
+      salmon: 16416882,
+      sandybrown: 16032864,
+      seagreen: 3050327,
+      seashell: 16774638,
+      sienna: 10506797,
+      silver: 12632256,
+      skyblue: 8900331,
+      slateblue: 6970061,
+      slategray: 7372944,
+      slategrey: 7372944,
+      snow: 16775930,
+      springgreen: 65407,
+      steelblue: 4620980,
+      tan: 13808780,
+      teal: 32896,
+      thistle: 14204888,
+      tomato: 16737095,
+      turquoise: 4251856,
+      violet: 15631086,
+      wheat: 16113331,
+      white: 16777215,
+      whitesmoke: 16119285,
+      yellow: 16776960,
+      yellowgreen: 10145074
+    };
+    srgbToLinear2 = (c) => {
+      const s = Math.sign(c) || 1;
+      const a = Math.abs(c);
+      return a <= 0.04045 ? c / 12.92 : s * ((a + 0.055) / 1.055) ** 2.4;
+    };
+    linearToSrgb2 = (c) => {
+      const s = Math.sign(c) || 1;
+      const a = Math.abs(c);
+      return a <= 31308e-7 ? c * 12.92 : s * (1.055 * a ** (1 / 2.4) - 0.055);
+    };
+    A98_GAMMA = 563 / 256;
+    a98ToLinear = (c) => (Math.sign(c) || 1) * Math.abs(c) ** A98_GAMMA;
+    linearToA98 = (c) => (Math.sign(c) || 1) * Math.abs(c) ** (1 / A98_GAMMA);
+    prophotoToLinear = (c) => {
+      const s = Math.sign(c) || 1;
+      const a = Math.abs(c);
+      return a <= 16 / 512 ? c / 16 : s * a ** 1.8;
+    };
+    linearToProphoto = (c) => {
+      const s = Math.sign(c) || 1;
+      const a = Math.abs(c);
+      return a >= 1 / 512 ? s * a ** (1 / 1.8) : c * 16;
+    };
+    R2020_A = 1.09929682680944;
+    R2020_B = 0.018053968510807;
+    rec2020ToLinear = (c) => {
+      const s = Math.sign(c) || 1;
+      const a = Math.abs(c);
+      return a < R2020_B * 4.5 ? c / 4.5 : s * ((a + R2020_A - 1) / R2020_A) ** (1 / 0.45);
+    };
+    linearToRec2020 = (c) => {
+      const s = Math.sign(c) || 1;
+      const a = Math.abs(c);
+      return a > R2020_B ? s * (R2020_A * a ** 0.45 - (R2020_A - 1)) : 4.5 * c;
+    };
+    LIN_SRGB_TO_XYZ65 = [
+      0.41239079926595934,
+      0.357584339383878,
+      0.1804807884018343,
+      0.21263900587151027,
+      0.715168678767756,
+      0.07219231536073371,
+      0.01933081871559182,
+      0.11919477979462598,
+      0.9505321522496607
+    ];
+    XYZ65_TO_LIN_SRGB = [
+      3.2409699419045226,
+      -1.537383177570094,
+      -0.4986107602930034,
+      -0.9692436362808796,
+      1.8759675015077202,
+      0.04155505740717559,
+      0.05563007969699366,
+      -0.20397695888897652,
+      1.0569715142428786
+    ];
+    LIN_P3_TO_XYZ65 = [
+      0.4865709486482162,
+      0.26566769316909306,
+      0.1982172852343625,
+      0.2289745640697488,
+      0.6917385218365064,
+      0.079286914093745,
+      0,
+      0.04511338185890264,
+      1.043944368900976
+    ];
+    XYZ65_TO_LIN_P3 = [
+      2.493496911941425,
+      -0.9313836179191239,
+      -0.40271078445071684,
+      -0.8294889695615747,
+      1.7626640603183463,
+      0.023624685841943577,
+      0.03584583024378447,
+      -0.07617238926804182,
+      0.9568845240076872
+    ];
+    LIN_A98_TO_XYZ65 = [
+      0.5766690429101305,
+      0.1855582379065463,
+      0.1882286462349947,
+      0.29734497525053605,
+      0.6273635662554661,
+      0.07529145207977232,
+      0.02703136138641234,
+      0.07068885253582723,
+      0.9913375368376388
+    ];
+    XYZ65_TO_LIN_A98 = [
+      2.0415879038107465,
+      -0.5650069742788596,
+      -0.34473135077832956,
+      -0.9692436362808795,
+      1.8759675015077202,
+      0.04155505740717557,
+      0.013444280632031142,
+      -0.11836239223101838,
+      1.0151749943912054
+    ];
+    LIN_2020_TO_XYZ65 = [
+      0.6369580483012914,
+      0.14461690358620832,
+      0.1688809751641721,
+      0.2627002120112671,
+      0.6779980715188708,
+      0.05930171646986196,
+      0,
+      0.028072693049087428,
+      1.060985057710791
+    ];
+    XYZ65_TO_LIN_2020 = [
+      1.716651187971268,
+      -0.355670783776392,
+      -0.25336628137366,
+      -0.666684351832489,
+      1.616481236634939,
+      0.0157685458139111,
+      0.017639857445311,
+      -0.042770613257809,
+      0.942103121235474
+    ];
+    LIN_PROPHOTO_TO_XYZ50 = [
+      0.7977604896723027,
+      0.13518583717574031,
+      0.0313493495815248,
+      0.2880711282292934,
+      0.7118432178101014,
+      8565396060525902e-20,
+      0,
+      0,
+      0.8251046025104601
+    ];
+    XYZ50_TO_LIN_PROPHOTO = [
+      1.3457989731028281,
+      -0.25558010007997534,
+      -0.05110628506753401,
+      -0.5446224939028347,
+      1.5082327413132781,
+      0.02053603239147973,
+      0,
+      0,
+      1.2119675456389454
+    ];
+    XYZ65_TO_XYZ50 = [
+      1.0479298208405488,
+      0.022946793341019088,
+      -0.05019222954313557,
+      0.029627815688159344,
+      0.990434484573249,
+      -0.01707382502938514,
+      -0.009243058152591178,
+      0.015055144896577895,
+      0.7518742899580008
+    ];
+    XYZ50_TO_XYZ65 = [
+      0.9554734527042182,
+      -0.023098536874261423,
+      0.0632593086610217,
+      -0.028369706963208136,
+      1.0099954580058226,
+      0.021041398966943008,
+      0.012314001688319899,
+      -0.020507696433477912,
+      1.3303659366080753
+    ];
+    D50_WHITE2 = [0.3457 / 0.3585, 1, (1 - 0.3457 - 0.3585) / 0.3585];
+    LAB_K = 24389 / 27;
+    LAB_E = 216 / 24389;
+    polarToRect = (L, C, hDeg) => {
+      const hr = hDeg * Math.PI / 180;
+      return [L, C * Math.cos(hr), C * Math.sin(hr)];
+    };
+    ACHROMATIC_C = { oklch: 1e-4, lch: 0.02 };
+    HSL_ACHROMATIC_S = 1e-4;
+    rectToPolar = (L, a, b, eps = 1e-7) => {
+      const C = Math.hypot(a, b);
+      return [L, C, C < eps ? 0 : normHue2(Math.atan2(b, a) * 180 / Math.PI)];
+    };
+    HUE_INDEX = {
+      hsl: 0,
+      hwb: 0,
+      lch: 2,
+      oklch: 2
+    };
+    PROBES = [0.25, 0.5, 0.75];
+    inSrgb = (rgb) => rgb.every((v) => v >= -GAMUT_EPSILON && v <= 1 + GAMUT_EPSILON);
+    COLOR_FN_SPACES = {
+      srgb: "srgb",
+      "srgb-linear": "srgb-linear",
+      "display-p3": "display-p3",
+      "a98-rgb": "a98-rgb",
+      "prophoto-rgb": "prophoto-rgb",
+      rec2020: "rec2020",
+      xyz: "xyz-d65",
+      "xyz-d50": "xyz-d50",
+      "xyz-d65": "xyz-d65"
+    };
+    COLOR_FN = "rgba?|hsla?|hwb|lab|lch|oklab|oklch|color";
+    COLOR_TOKEN = new RegExp(`(?:${COLOR_FN})\\([^)]*\\)|#[0-9a-fA-F]{3,8}`, "i");
+    COLOR_TOKEN_OR_IDENT = new RegExp(`(?:${COLOR_FN})\\([^)]*\\)|#[0-9a-fA-F]{3,8}|[a-zA-Z]+`, "i");
   }
 });
 
@@ -1799,22 +2594,51 @@ function flattenGroup(node, inheritedType, prefix, out) {
     }
   }
 }
+function chosenThemes(themes, meta, theme) {
+  if (themes.length <= 1) return themes;
+  const groupOf = (t) => typeof t.group === "string" ? t.group : "";
+  const byGroup = /* @__PURE__ */ new Map();
+  for (const t of themes) {
+    const g2 = groupOf(t);
+    const list = byGroup.get(g2);
+    if (list) list.push(t);
+    else byGroup.set(g2, [t]);
+  }
+  if (byGroup.size <= 1) return theme ? [themes.find((t) => t.name === theme || t.id === theme) ?? themes[0]] : [themes[0]];
+  const requested = theme ? themes.find((t) => t.name === theme || t.id === theme) : void 0;
+  if (requested) {
+    const rg = groupOf(requested);
+    const out2 = [requested];
+    for (const [g2, list] of byGroup) if (g2 !== rg && list[0]) out2.push(list[0]);
+    return out2;
+  }
+  const activeNames = Array.isArray(meta.activeThemes) ? meta.activeThemes.filter((x) => typeof x === "string") : [];
+  if (activeNames.length) {
+    const active = themes.filter((t) => activeNames.includes(String(t.name)) || activeNames.includes(String(t.id)));
+    if (active.length) return active;
+  }
+  const out = [];
+  for (const [, list] of byGroup) if (list[0]) out.push(list[0]);
+  return out.length ? out : [themes[0]];
+}
 function activeSets(doc, theme) {
   const setKeys = Object.keys(doc).filter((k) => !k.startsWith("$"));
-  const meta = doc.$metadata;
-  const order = isRecord(meta) && Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
-  const themes = Array.isArray(doc.$themes) ? doc.$themes : null;
+  const meta = isRecord(doc.$metadata) ? doc.$metadata : {};
+  const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
+  const themes = Array.isArray(doc.$themes) ? doc.$themes.filter(isRecord) : null;
   if (!themes || !themes.length) return setKeys;
-  const named = theme ? themes.find((t) => isRecord(t) && (t.name === theme || t.id === theme)) : void 0;
-  const chosen = named ?? themes[0];
-  const sel = isRecord(chosen) && isRecord(chosen.selectedTokenSets) ? chosen.selectedTokenSets : {};
-  let active = setKeys.filter((s) => {
-    const v = sel[s];
-    return Boolean(v) && v !== "disabled";
-  });
-  if (!active.length) active = setKeys;
-  if (order) active = order.filter((s) => typeof s === "string" && active.includes(s));
-  return active;
+  const active = /* @__PURE__ */ new Set();
+  for (const t of chosenThemes(themes, meta, theme)) {
+    const sel = isRecord(t.selectedTokenSets) ? t.selectedTokenSets : {};
+    for (const s of setKeys) {
+      const v = sel[s];
+      if (v && v !== "disabled") active.add(s);
+    }
+  }
+  let out = setKeys.filter((s) => active.has(s));
+  if (!out.length) out = setKeys;
+  if (order) out = order.filter((s) => typeof s === "string" && out.includes(s));
+  return out;
 }
 function buildMergedMap(doc, theme) {
   const out = /* @__PURE__ */ new Map();
@@ -1846,8 +2670,8 @@ function resolveAliases(map) {
         if (tv !== void 0) {
           e.value = tv;
           if (e.type == null) {
-            const te6 = map.get(target);
-            if (te6) e.type = te6.type;
+            const te8 = map.get(target);
+            if (te8) e.type = te8.type;
           }
         }
       }
@@ -1952,21 +2776,13 @@ function colorToHex(value) {
   const s = String(value).trim();
   if (s.toLowerCase() === "transparent") return "transparent";
   if (s.startsWith("#")) return normHex(s);
-  let m;
-  if (m = /^rgba?\(([^)]+)\)$/i.exec(s)) {
-    const p = (m[1] ?? "").split(/[,/]/).map((x) => x.trim());
-    return rgbaToHex(num(p[0]), num(p[1]), num(p[2]), p[3] != null ? alpha(p[3]) : 1);
-  }
-  if (m = /^hsla?\(([^)]+)\)$/i.exec(s)) {
-    const p = (m[1] ?? "").split(/[,/]/).map((x) => x.trim());
-    const [r, g2, b] = hslToRgb(num(p[0]), pct(p[1]), pct(p[2]));
-    return rgbaToHex(r, g2, b, p[3] != null ? alpha(p[3]) : 1);
-  }
   if (/^(?:ok)?lch\(/i.test(s)) {
-    const ok2 = parseOklch(s);
-    if (ok2) return oklchToHex(ok2);
+    const ok3 = parseOklch(s);
+    if (ok3) return oklchToHex(ok3);
   }
-  return /^[a-z][a-z0-9-]*$/i.test(s) ? s : null;
+  if (/^[a-z][a-z0-9-]*$/i.test(s)) return s;
+  const parsed = parseColor(s);
+  return parsed ? colorToHexString(parsed) : null;
 }
 function normHex(s) {
   let h = s.trim().toLowerCase();
@@ -1980,38 +2796,12 @@ function rgbaToHex(r, g2, b, a = 1) {
   const base = `#${h(r)}${h(g2)}${h(b)}`;
   return a >= 1 ? base : base + h(a * 255);
 }
-function num(x) {
-  return parseFloat(x ?? "");
-}
-function pct(x) {
-  return (parseFloat(x ?? "") || 0) / 100;
-}
-function alpha(x) {
-  const n2 = parseFloat(x);
-  return String(x).includes("%") ? n2 / 100 : n2;
-}
-function hslToRgb(h, s, l) {
-  h = (h % 360 + 360) % 360 / 360;
-  if (s === 0) {
-    const v = l * 255;
-    return [v, v, v];
-  }
-  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-  const p = 2 * l - q;
-  const c = (t) => {
-    t = (t + 1) % 1;
-    if (t < 1 / 6) return p + (q - p) * 6 * t;
-    if (t < 1 / 2) return q;
-    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-    return p;
-  };
-  return [c(h + 1 / 3) * 255, c(h) * 255, c(h - 1 / 3) * 255];
-}
 var TOKEN_EXT, ALIAS_RE, isRecord, strOrNull, isNumberArray, isSpotColor;
 var init_tokens = __esm({
   "engine/src/tokens.ts"() {
     "use strict";
     init_brand_derive();
+    init_css_color();
     TOKEN_EXT = "com.suse.lolly";
     ALIAS_RE = /^\{([^{}]+)\}$/;
     isRecord = (v) => typeof v === "object" && v !== null && !Array.isArray(v);
@@ -2381,7 +3171,7 @@ var init_template = __esm({
 });
 
 // engine/src/metadata.ts
-async function buildExportMeta(host, manifest, profile) {
+async function buildExportMeta(host, manifest, profile, inputs) {
   let p = {};
   if (profile == null) {
     try {
@@ -2398,7 +3188,7 @@ async function buildExportMeta(host, manifest, profile) {
   const contact = optedIn ? [clean2(p.email), clean2(p.phone)].filter(Boolean).join(" \xB7 ") : "";
   const tool = clean2(manifest?.name) || clean2(manifest?.id);
   const description = ["Made with https://lolly.tools", tool && `: ${tool}`, author && `by ${author}`].filter(Boolean).join(" ");
-  return {
+  const meta = {
     software: "Lolly",
     source: "https://lolly.tools",
     tool,
@@ -2408,6 +3198,15 @@ async function buildExportMeta(host, manifest, profile) {
     // '' if none
     description
   };
+  if (inputs) {
+    for (const i of inputs) {
+      const field = i.bindToMeta;
+      if (!field) continue;
+      const v = clean2(i.value == null ? "" : String(i.value));
+      if (v) meta[field] = v;
+    }
+  }
+  return meta;
 }
 var init_metadata = __esm({
   "engine/src/metadata.ts"() {
@@ -2782,257 +3581,7 @@ var init_video_meta = __esm({
   }
 });
 
-// engine/src/c2pa.ts
-function cborHead(major, n2) {
-  const m = major << 5;
-  if (n2 < 24) return Uint8Array.of(m | n2);
-  if (n2 < 256) return Uint8Array.of(m | 24, n2);
-  if (n2 < 65536) return Uint8Array.of(m | 25, n2 >>> 8, n2 & 255);
-  if (n2 < 4294967296) return Uint8Array.of(m | 26, n2 >>> 24, n2 >>> 16 & 255, n2 >>> 8 & 255, n2 & 255);
-  const out = new Uint8Array(9);
-  out[0] = m | 27;
-  new DataView(out.buffer).setBigUint64(1, BigInt(n2));
-  return out;
-}
-function cborEncodeInto(value, out) {
-  if (value === null) {
-    out.push(Uint8Array.of(246));
-    return;
-  }
-  if (value === true) {
-    out.push(Uint8Array.of(245));
-    return;
-  }
-  if (value === false) {
-    out.push(Uint8Array.of(244));
-    return;
-  }
-  if (typeof value === "number") {
-    if (!Number.isSafeInteger(value)) throw new Error("cbor: only safe integers are supported, got " + value);
-    out.push(value >= 0 ? cborHead(0, value) : cborHead(1, -1 - value));
-    return;
-  }
-  if (typeof value === "string") {
-    const b = te3.encode(value);
-    out.push(cborHead(3, b.length), b);
-    return;
-  }
-  if (value instanceof Uint8Array) {
-    out.push(cborHead(2, value.length), value);
-    return;
-  }
-  if (Array.isArray(value)) {
-    out.push(cborHead(4, value.length));
-    for (const v of value) cborEncodeInto(v, out);
-    return;
-  }
-  if (value instanceof CborTag) {
-    out.push(cborHead(6, value.tag));
-    cborEncodeInto(value.value, out);
-    return;
-  }
-  if (value instanceof Map) {
-    out.push(cborHead(5, value.size));
-    for (const [k, v] of value) {
-      cborEncodeInto(k, out);
-      cborEncodeInto(v, out);
-    }
-    return;
-  }
-  if (typeof value === "object") {
-    const keys = Object.keys(value);
-    out.push(cborHead(5, keys.length));
-    for (const k of keys) {
-      cborEncodeInto(k, out);
-      cborEncodeInto(value[k], out);
-    }
-    return;
-  }
-  throw new Error("cbor: unsupported value type " + typeof value);
-}
-function encodeCbor(value) {
-  const out = [];
-  cborEncodeInto(value, out);
-  return concatBytes(out);
-}
-function isoBox(type, ...payloads) {
-  const body = concatBytes(payloads);
-  const out = new Uint8Array(8 + body.length);
-  new DataView(out.buffer).setUint32(0, out.length);
-  out[4] = type.charCodeAt(0);
-  out[5] = type.charCodeAt(1);
-  out[6] = type.charCodeAt(2);
-  out[7] = type.charCodeAt(3);
-  out.set(body, 8);
-  return out;
-}
-function jumbfSuperbox(uuid, label, ...children) {
-  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te3.encode(label), Uint8Array.of(0));
-  return isoBox("jumb", jumd, ...children);
-}
-async function coseSign1Detached(signer, payload) {
-  const protectedBytes = encodeCbor(/* @__PURE__ */ new Map([
-    [COSE_HEADER_ALG, -7],
-    [COSE_HEADER_X5CHAIN, signer.chain ?? [signer.certDer]]
-  ]));
-  const sigStructure = encodeCbor(["Signature1", protectedBytes, new Uint8Array(0), payload]);
-  const raw = signer.sign ? new Uint8Array(await signer.sign(sigStructure)) : new Uint8Array(await subtle3.sign({ name: "ECDSA", hash: "SHA-256" }, signer.privateKey, asBufferSource(sigStructure)));
-  if (raw.length !== 64) throw new Error(`c2pa: signer returned a ${raw.length}-byte signature; ES256 needs raw 64-byte r||s`);
-  return encodeCbor(new CborTag(18, [protectedBytes, /* @__PURE__ */ new Map(), null, raw]));
-}
-function urnUuid() {
-  const b = globalThis.crypto.getRandomValues(new Uint8Array(16));
-  b[6] = b[6] & 15 | 64;
-  b[8] = b[8] & 63 | 128;
-  const h = bytesToHex(b);
-  return `urn:uuid:${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
-}
-async function buildC2paManifest({
-  title,
-  claimGenerator,
-  generatorInfo,
-  environment,
-  author,
-  authorship = "created",
-  actions: actionSteps,
-  ingredients,
-  assetHash,
-  format = "application/pdf",
-  dates = {},
-  signer,
-  manifestLabel,
-  instanceId,
-  claimVersion = 2
-} = {}) {
-  const bmff = !!assetHash?.bmff;
-  if (!assetHash || !(assetHash.hash instanceof Uint8Array) || !bmff && !Array.isArray(assetHash.exclusions)) {
-    throw new Error("c2pa: assetHash requires { exclusions: [{start, length}], hash: Uint8Array } (or { bmff: true, hash })");
-  }
-  const v2 = claimVersion !== 1;
-  const signedAt = asDate(dates.signedAt, Date.now());
-  const sig = signer || await generateSigner(dates);
-  const generatorName = String(claimGenerator || "Lolly");
-  const genInfoMap = generatorInfo && typeof generatorInfo === "object" && Object.keys(generatorInfo).length ? { name: generatorName, ...generatorInfo } : { name: generatorName };
-  const softwareAgent = v2 ? genInfoMap : generatorName;
-  const delivered = authorship === "delivered";
-  const baseSteps = actionSteps && actionSteps.length ? actionSteps : [delivered ? { action: "c2pa.published" } : { action: "c2pa.created", digitalSourceType: DIGITAL_SOURCE_TYPE }];
-  const ingList = ingredients ?? [];
-  const ingredientBoxes = [];
-  const ingredientRefs = [];
-  const ingredientParamRefs = [];
-  for (let i = 0; i < ingList.length; i++) {
-    const ing = ingList[i];
-    const activeBox = ing.manifestBoxes[ing.manifestBoxes.length - 1];
-    const label = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : "c2pa.ingredient.v3";
-    const ingAssertion = {
-      "dc:title": ing.title || "Ingredient",
-      ...ing.format && INGREDIENT_MIME[ing.format] ? { "dc:format": INGREDIENT_MIME[ing.format] } : {},
-      relationship: ing.relationship || "parentOf",
-      // activeManifest hashed URI covers the referenced manifest superbox payload
-      // (jumd + content, minus the 8-byte header) — Lolly's hashed-URI convention.
-      activeManifest: { url: `self#jumbf=/c2pa/${ing.activeLabel}`, alg: "sha256", hash: await sha256(activeBox.subarray(8)) },
-      validationResults: {
-        activeManifest: {
-          success: [{ code: "claimSignature.validated", url: `self#jumbf=/c2pa/${ing.activeLabel}/c2pa.signature` }],
-          informational: [],
-          failure: []
-        }
-      }
-    };
-    const box2 = jumbfSuperbox(UUID_CBOR_CONTENT, label, isoBox("cbor", encodeCbor(ingAssertion)));
-    const hash = await sha256(box2.subarray(8));
-    ingredientBoxes.push(box2);
-    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, hash });
-    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, alg: "sha256", hash });
-  }
-  const openedSteps = ingList.map((ing, i) => ({
-    action: "c2pa.opened",
-    ...ing.digitalSourceType ? { digitalSourceType: ing.digitalSourceType } : {},
-    ...ing.title ? { description: `Opened ${ing.title}` } : {},
-    parameters: { ingredients: [ingredientParamRefs[i]] }
-  }));
-  const stepList = [...openedSteps, ...baseSteps];
-  const actions = {
-    actions: stepList.map((s) => ({
-      action: s.action,
-      ...s.digitalSourceType ? { digitalSourceType: s.digitalSourceType } : {},
-      ...s.description ? { description: s.description } : {},
-      ...s.parameters ? { parameters: s.parameters } : {},
-      softwareAgent,
-      when: isoSeconds(signedAt)
-    }))
-  };
-  const hashLabel = bmff ? BMFF_HASH_LABEL : "c2pa.hash.data";
-  const hashData = bmff ? {
-    exclusions: bmffHashExclusions(),
-    name: assetHash.name || "jumbf manifest",
-    alg: assetHash.alg || "sha256",
-    hash: assetHash.hash,
-    pad: assetHash.pad || new Uint8Array(0)
-  } : {
-    exclusions: assetHash.exclusions.map((e) => ({ start: e.start, length: e.length })),
-    name: assetHash.name || "jumbf manifest",
-    alg: assetHash.alg || "sha256",
-    hash: assetHash.hash,
-    pad: assetHash.pad || new Uint8Array(0)
-  };
-  const actionsLabel = v2 ? "c2pa.actions.v2" : "c2pa.actions";
-  const actionsBox = jumbfSuperbox(UUID_CBOR_CONTENT, actionsLabel, isoBox("cbor", encodeCbor(actions)));
-  const hashBox = jumbfSuperbox(UUID_CBOR_CONTENT, hashLabel, isoBox("cbor", encodeCbor(hashData)));
-  const storeBoxes = [actionsBox, hashBox];
-  let exportBox = null;
-  if (environment && typeof environment === "object" && Object.keys(environment).length) {
-    exportBox = jumbfSuperbox(UUID_CBOR_CONTENT, LOLLY_EXPORT_ASSERTION, isoBox("cbor", encodeCbor(environment)));
-    storeBoxes.push(exportBox);
-  }
-  let authorBox = null;
-  if (!v2 && author?.name) {
-    const person = { "@type": "Person", name: String(author.name) };
-    if (author.email) person.email = String(author.email);
-    const work = { "@context": "http://schema.org/", "@type": "CreativeWork", author: [person] };
-    authorBox = jumbfSuperbox(UUID_JSON_CONTENT, CREATIVE_WORK_ASSERTION, isoBox("json", te3.encode(JSON.stringify(work))));
-    storeBoxes.push(authorBox);
-  }
-  let metadataBox = null;
-  if (v2 && author?.name) {
-    const meta = { "@context": DC_CONTEXT, "dc:creator": [String(author.name)] };
-    metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox("json", te3.encode(JSON.stringify(meta))));
-    storeBoxes.push(metadataBox);
-  }
-  for (const box2 of ingredientBoxes) storeBoxes.push(box2);
-  const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, "c2pa.assertions", ...storeBoxes);
-  const assertionRefs = [
-    { url: `self#jumbf=c2pa.assertions/${actionsLabel}`, hash: await sha256(actionsBox.subarray(8)) },
-    { url: `self#jumbf=c2pa.assertions/${hashLabel}`, hash: await sha256(hashBox.subarray(8)) },
-    ...exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : [],
-    ...authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : [],
-    ...metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : [],
-    ...ingredientRefs
-  ];
-  const claim = v2 ? {
-    ...title ? { "dc:title": String(title) } : {},
-    instanceID: instanceId || urnUuid(),
-    claim_generator_info: genInfoMap,
-    created_assertions: assertionRefs,
-    signature: "self#jumbf=c2pa.signature",
-    alg: "sha256"
-  } : {
-    "dc:title": String(title || "Untitled"),
-    "dc:format": format,
-    instanceID: instanceId || urnUuid(),
-    claim_generator: generatorName,
-    ...generatorInfo ? { claim_generator_info: [generatorInfo] } : {},
-    signature: "self#jumbf=c2pa.signature",
-    assertions: assertionRefs,
-    alg: "sha256"
-  };
-  const claimBytes = encodeCbor(claim);
-  const claimBox = jumbfSuperbox(UUID_CLAIM, v2 ? "c2pa.claim.v2" : "c2pa.claim", isoBox("cbor", claimBytes));
-  const signatureBox = jumbfSuperbox(UUID_SIGNATURE, "c2pa.signature", isoBox("cbor", await coseSign1Detached(sig, claimBytes)));
-  const manifest = jumbfSuperbox(UUID_MANIFEST, manifestLabel || urnUuid(), assertionStore, claimBox, signatureBox);
-  const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
-  return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", ...ingredientManifestBoxes, manifest);
-}
+// engine/src/c2pa-containers.ts
 function binToBytes(s) {
   const out = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) out[i] = s.charCodeAt(i) & 255;
@@ -3230,7 +3779,7 @@ function catalogWithAttachment(src, fsRef) {
   for (const e of edits.sort((a, b) => b.at - a.at)) out = out.slice(0, e.at) + e.text + out.slice(e.at);
   return out;
 }
-async function embedC2paInPdf(pdfBytes, { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer } = {}) {
+async function embedC2paInPdf(pdfBytes, { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer } = {}) {
   if (!(pdfBytes instanceof Uint8Array)) throw new Error("C2PA embed: pdfBytes must be a Uint8Array");
   const bin = bytesToBin(pdfBytes);
   const info = parsePdf(bin);
@@ -3278,13 +3827,14 @@ ${xrefOff}
   };
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
-  const build = (hash, exclusions2, padBytes) => buildC2paManifest({
+  const build2 = (hash, exclusions2, padBytes) => buildC2paManifest({
     title,
     claimGenerator,
     generatorInfo,
     environment,
     author,
     authorship,
+    rights,
     actions,
     ingredients,
     dates,
@@ -3292,12 +3842,12 @@ ${xrefOff}
     assetHash: { exclusions: exclusions2, hash, pad: padBytes },
     ...internals
   });
-  let manifestLen = (await build(dummyHash, [{ start: pdfBytes.length + 512, length: 4096 }], pad)).length;
+  let manifestLen = (await build2(dummyHash, [{ start: pdfBytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
   for (let round2 = 0; round2 < 8 && !placeholder; round2++) {
     const l = layoutFor(manifestLen);
-    const m = await build(dummyHash, [{ start: l.manifestOffset, length: manifestLen }], pad);
+    const m = await build2(dummyHash, [{ start: l.manifestOffset, length: manifestLen }], pad);
     if (m.length === manifestLen) {
       layout = l;
       placeholder = m;
@@ -3310,11 +3860,11 @@ ${xrefOff}
     out.subarray(0, layout.manifestOffset),
     out.subarray(layout.manifestOffset + manifestLen)
   ]));
-  let manifest = await build(digest, exclusions, pad);
+  let manifest = await build2(digest, exclusions, pad);
   if (manifest.length !== manifestLen) {
     const padLen = pad.length + (manifestLen - manifest.length);
     if (padLen < 0 || padLen >= 24) throw new Error("C2PA embed: manifest length drifted beyond pad range");
-    manifest = await build(digest, exclusions, new Uint8Array(padLen));
+    manifest = await build2(digest, exclusions, new Uint8Array(padLen));
     if (manifest.length !== manifestLen) throw new Error("C2PA embed: manifest length is not deterministic");
   }
   out.set(manifest, layout.manifestOffset);
@@ -3508,22 +4058,22 @@ function placeTiff(tiff, manifest) {
   const be = tiff[0] === 77 && tiff[1] === 77;
   if (!le && !be) throw new Error("C2PA embed: not a TIFF");
   const dv = new DataView(tiff.buffer, tiff.byteOffset);
-  const u16 = (o) => dv.getUint16(o, le);
-  const u32 = (o) => dv.getUint32(o, le);
-  if (u16(2) !== 42) throw new Error("C2PA embed: BigTIFF is not supported");
+  const u162 = (o) => dv.getUint16(o, le);
+  const u322 = (o) => dv.getUint32(o, le);
+  if (u162(2) !== 42) throw new Error("C2PA embed: BigTIFF is not supported");
   const seen = /* @__PURE__ */ new Set();
-  let ifd = u32(4);
+  let ifd = u322(4);
   if (!ifd) throw new Error("C2PA embed: TIFF has no IFD");
   let lastIfd = ifd;
   let nextPtrAt = 4;
   while (ifd && !seen.has(ifd)) {
     seen.add(ifd);
-    const count = u16(ifd);
+    const count = u162(ifd);
     const next = ifd + 2 + count * 12;
     if (next + 4 > tiff.length) throw new Error("C2PA embed: malformed TIFF IFD");
     lastIfd = ifd;
     nextPtrAt = next;
-    ifd = u32(next);
+    ifd = u322(next);
   }
   if (ifd) throw new Error("C2PA embed: cyclic TIFF IFD chain");
   void lastIfd;
@@ -3758,7 +4308,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   const container = CONTAINERS[fmt2];
   if (!container) throw new Error(`C2PA embed: no embedding for format '${format}'`);
   const isBmff = container.hash === "bmff";
-  const { title, claimGenerator, generatorInfo, environment, author, authorship, actions, ingredients, dates = {}, signer } = opts;
+  const { title, claimGenerator, generatorInfo, environment, author, authorship, rights, actions, ingredients, dates = {}, signer } = opts;
   const sig = signer ?? await generateSigner(dates);
   const internals = {
     signer: { ...sig, sign: sig.sign && sig.sign.bind(sig), chain: sig.chain ?? [sig.certDer] },
@@ -3767,13 +4317,14 @@ async function embedC2pa(bytes, format, opts = {}) {
   };
   const pad = new Uint8Array(8);
   const dummyHash = new Uint8Array(32);
-  const build = (hash, exclusions, padBytes) => buildC2paManifest({
+  const build2 = (hash, exclusions, padBytes) => buildC2paManifest({
     title,
     claimGenerator,
     generatorInfo,
     environment,
     author,
     authorship,
+    rights,
     actions,
     ingredients,
     dates,
@@ -3781,12 +4332,12 @@ async function embedC2pa(bytes, format, opts = {}) {
     assetHash: isBmff ? { bmff: true, hash, pad: padBytes } : { exclusions, hash, pad: padBytes },
     ...internals
   });
-  let manifestLen = (await build(dummyHash, [{ start: bytes.length + 512, length: 4096 }], pad)).length;
+  let manifestLen = (await build2(dummyHash, [{ start: bytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
   for (let round2 = 0; round2 < 8 && !layout; round2++) {
     const probe = container.place(bytes, new Uint8Array(manifestLen));
-    const m = await build(dummyHash, probe.exclusions, pad);
+    const m = await build2(dummyHash, probe.exclusions, pad);
     if (m.length === manifestLen) {
       layout = probe;
       placeholder = m;
@@ -3806,11 +4357,11 @@ async function embedC2pa(bytes, format, opts = {}) {
   };
   const staged = container.place(bytes, placeholder);
   const digest = await digestOf(staged.out);
-  let manifest = await build(digest, layout.exclusions, pad);
+  let manifest = await build2(digest, layout.exclusions, pad);
   if (manifest.length !== manifestLen) {
     const padLen = pad.length + (manifestLen - manifest.length);
     if (padLen < 0 || padLen >= 24) throw new Error("C2PA embed: manifest length drifted beyond pad range");
-    manifest = await build(digest, layout.exclusions, new Uint8Array(padLen));
+    manifest = await build2(digest, layout.exclusions, new Uint8Array(padLen));
     if (manifest.length !== manifestLen) throw new Error("C2PA embed: manifest length is not deterministic");
   }
   const final = container.place(bytes, manifest);
@@ -3820,54 +4371,15 @@ async function embedC2pa(bytes, format, opts = {}) {
   }
   return final.out;
 }
-var te3, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, C2PA_BMFF_UUID, BMFF_HASH_LABEL, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, CONTAINERS, C2PA_FORMATS;
-var init_c2pa = __esm({
-  "engine/src/c2pa.ts"() {
+var te3, PDF_WS, PDF_DELIM, xrefEntryLine, asciiBytes, CRC_TABLE, PNG_SIG, JPEG_CHUNK, C2PA_XMLNS, C2PA_BMFF_UUID, bmffHashExclusions, isC2paUuidBox, bmffExcluded, u64be, ID_ATTACHMENTS, ID_ATTACHEDFILE, ID_FILENAME, ID_FILEMIMETYPE, ID_FILEUID, ID_FILEDATA, ATTACHMENTS_NUM, C2PA_ATTACHMENT_MIME, c2paAttachment, CONTAINERS, C2PA_FORMATS;
+var init_c2pa_containers = __esm({
+  "engine/src/c2pa-containers.ts"() {
     "use strict";
     init_video_meta();
     init_x509();
     init_bytes();
+    init_c2pa();
     te3 = new TextEncoder();
-    subtle3 = globalThis.crypto.subtle;
-    CborTag = class {
-      tag;
-      value;
-      constructor(tag, value) {
-        this.tag = tag;
-        this.value = value;
-      }
-    };
-    JUMBF_UUID_SUFFIX = [0, 17, 0, 16, 128, 0, 0, 170, 0, 56, 155, 113];
-    boxUuid = (fourcc2) => Uint8Array.of(fourcc2.charCodeAt(0), fourcc2.charCodeAt(1), fourcc2.charCodeAt(2), fourcc2.charCodeAt(3), ...JUMBF_UUID_SUFFIX);
-    UUID_C2PA_STORE = boxUuid("c2pa");
-    UUID_MANIFEST = boxUuid("c2ma");
-    UUID_ASSERTION_STORE = boxUuid("c2as");
-    UUID_CLAIM = boxUuid("c2cl");
-    UUID_SIGNATURE = boxUuid("c2cs");
-    UUID_CBOR_CONTENT = boxUuid("cbor");
-    UUID_JSON_CONTENT = boxUuid("json");
-    COSE_HEADER_ALG = 1;
-    COSE_HEADER_X5CHAIN = 33;
-    isoSeconds = (d) => d.toISOString().slice(0, 19) + "Z";
-    DIGITAL_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation";
-    INGREDIENT_MIME = {
-      png: "image/png",
-      apng: "image/apng",
-      jpg: "image/jpeg",
-      jpeg: "image/jpeg",
-      gif: "image/gif",
-      svg: "image/svg+xml",
-      tiff: "image/tiff",
-      webp: "image/webp",
-      pdf: "application/pdf",
-      mp4: "video/mp4",
-      webm: "video/webm",
-      mkv: "video/x-matroska"
-    };
-    LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
-    CREATIVE_WORK_ASSERTION = "stds.schema-org.CreativeWork";
-    METADATA_ASSERTION = "cawg.metadata";
-    DC_CONTEXT = { dc: "http://purl.org/dc/elements/1.1/" };
     PDF_WS = " 	\r\n\f\0";
     PDF_DELIM = " 	\r\n\f\0()<>[]{}/%";
     xrefEntryLine = (offset, gen) => `${String(offset).padStart(10, "0")} ${String(gen).padStart(5, "0")} n\r
@@ -3903,7 +4415,6 @@ var init_c2pa = __esm({
       196,
       129
     );
-    BMFF_HASH_LABEL = "c2pa.hash.bmff.v2";
     bmffHashExclusions = () => [
       { xpath: "/uuid", data: [{ offset: 8, value: C2PA_BMFF_UUID }] },
       { xpath: "/ftyp" },
@@ -3951,6 +4462,313 @@ var init_c2pa = __esm({
       webm: { place: placeWebm, mime: "video/webm" }
     };
     C2PA_FORMATS = Object.freeze(["pdf", "pdf-cmyk", ...Object.keys(CONTAINERS)]);
+  }
+});
+
+// engine/src/c2pa.ts
+function cborHead(major, n2) {
+  const m = major << 5;
+  if (n2 < 24) return Uint8Array.of(m | n2);
+  if (n2 < 256) return Uint8Array.of(m | 24, n2);
+  if (n2 < 65536) return Uint8Array.of(m | 25, n2 >>> 8, n2 & 255);
+  if (n2 < 4294967296) return Uint8Array.of(m | 26, n2 >>> 24, n2 >>> 16 & 255, n2 >>> 8 & 255, n2 & 255);
+  const out = new Uint8Array(9);
+  out[0] = m | 27;
+  new DataView(out.buffer).setBigUint64(1, BigInt(n2));
+  return out;
+}
+function cborEncodeInto(value, out) {
+  if (value === null) {
+    out.push(Uint8Array.of(246));
+    return;
+  }
+  if (value === true) {
+    out.push(Uint8Array.of(245));
+    return;
+  }
+  if (value === false) {
+    out.push(Uint8Array.of(244));
+    return;
+  }
+  if (typeof value === "number") {
+    if (!Number.isSafeInteger(value)) throw new Error("cbor: only safe integers are supported, got " + value);
+    out.push(value >= 0 ? cborHead(0, value) : cborHead(1, -1 - value));
+    return;
+  }
+  if (typeof value === "string") {
+    const b = te4.encode(value);
+    out.push(cborHead(3, b.length), b);
+    return;
+  }
+  if (value instanceof Uint8Array) {
+    out.push(cborHead(2, value.length), value);
+    return;
+  }
+  if (Array.isArray(value)) {
+    out.push(cborHead(4, value.length));
+    for (const v of value) cborEncodeInto(v, out);
+    return;
+  }
+  if (value instanceof CborTag) {
+    out.push(cborHead(6, value.tag));
+    cborEncodeInto(value.value, out);
+    return;
+  }
+  if (value instanceof Map) {
+    out.push(cborHead(5, value.size));
+    for (const [k, v] of value) {
+      cborEncodeInto(k, out);
+      cborEncodeInto(v, out);
+    }
+    return;
+  }
+  if (typeof value === "object") {
+    const keys = Object.keys(value);
+    out.push(cborHead(5, keys.length));
+    for (const k of keys) {
+      cborEncodeInto(k, out);
+      cborEncodeInto(value[k], out);
+    }
+    return;
+  }
+  throw new Error("cbor: unsupported value type " + typeof value);
+}
+function encodeCbor(value) {
+  const out = [];
+  cborEncodeInto(value, out);
+  return concatBytes(out);
+}
+function isoBox(type, ...payloads) {
+  const body = concatBytes(payloads);
+  const out = new Uint8Array(8 + body.length);
+  new DataView(out.buffer).setUint32(0, out.length);
+  out[4] = type.charCodeAt(0);
+  out[5] = type.charCodeAt(1);
+  out[6] = type.charCodeAt(2);
+  out[7] = type.charCodeAt(3);
+  out.set(body, 8);
+  return out;
+}
+function jumbfSuperbox(uuid, label, ...children) {
+  const jumd = isoBox("jumd", uuid, Uint8Array.of(3), te4.encode(label), Uint8Array.of(0));
+  return isoBox("jumb", jumd, ...children);
+}
+async function coseSign1Detached(signer, payload) {
+  const protectedBytes = encodeCbor(/* @__PURE__ */ new Map([
+    [COSE_HEADER_ALG, -7],
+    [COSE_HEADER_X5CHAIN, signer.chain ?? [signer.certDer]]
+  ]));
+  const sigStructure = encodeCbor(["Signature1", protectedBytes, new Uint8Array(0), payload]);
+  const raw = signer.sign ? new Uint8Array(await signer.sign(sigStructure)) : new Uint8Array(await subtle3.sign({ name: "ECDSA", hash: "SHA-256" }, signer.privateKey, asBufferSource(sigStructure)));
+  if (raw.length !== 64) throw new Error(`c2pa: signer returned a ${raw.length}-byte signature; ES256 needs raw 64-byte r||s`);
+  return encodeCbor(new CborTag(18, [protectedBytes, /* @__PURE__ */ new Map(), null, raw]));
+}
+function urnUuid() {
+  const b = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  b[6] = b[6] & 15 | 64;
+  b[8] = b[8] & 63 | 128;
+  const h = bytesToHex(b);
+  return `urn:uuid:${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+async function buildC2paManifest({
+  title,
+  claimGenerator,
+  generatorInfo,
+  environment,
+  author,
+  authorship = "created",
+  rights,
+  actions: actionSteps,
+  ingredients,
+  assetHash,
+  format = "application/pdf",
+  dates = {},
+  signer,
+  manifestLabel,
+  instanceId,
+  claimVersion = 2
+} = {}) {
+  const bmff = !!assetHash?.bmff;
+  if (!assetHash || !(assetHash.hash instanceof Uint8Array) || !bmff && !Array.isArray(assetHash.exclusions)) {
+    throw new Error("c2pa: assetHash requires { exclusions: [{start, length}], hash: Uint8Array } (or { bmff: true, hash })");
+  }
+  const v2 = claimVersion !== 1;
+  const signedAt = asDate(dates.signedAt, Date.now());
+  const sig = signer || await generateSigner(dates);
+  const generatorName = String(claimGenerator || "Lolly");
+  const genInfoMap = generatorInfo && typeof generatorInfo === "object" && Object.keys(generatorInfo).length ? { name: generatorName, ...generatorInfo } : { name: generatorName };
+  const softwareAgent = v2 ? genInfoMap : generatorName;
+  const delivered = authorship === "delivered";
+  const baseSteps = actionSteps && actionSteps.length ? actionSteps : [delivered ? { action: "c2pa.published" } : { action: "c2pa.created", digitalSourceType: DIGITAL_SOURCE_TYPE }];
+  const ingList = ingredients ?? [];
+  const ingredientBoxes = [];
+  const ingredientRefs = [];
+  const ingredientParamRefs = [];
+  for (let i = 0; i < ingList.length; i++) {
+    const ing = ingList[i];
+    const activeBox = ing.manifestBoxes[ing.manifestBoxes.length - 1];
+    const label = ingList.length > 1 ? `c2pa.ingredient.v3__${i + 1}` : "c2pa.ingredient.v3";
+    const ingAssertion = {
+      "dc:title": ing.title || "Ingredient",
+      ...ing.format && INGREDIENT_MIME[ing.format] ? { "dc:format": INGREDIENT_MIME[ing.format] } : {},
+      relationship: ing.relationship || "parentOf",
+      // activeManifest hashed URI covers the referenced manifest superbox payload
+      // (jumd + content, minus the 8-byte header) — Lolly's hashed-URI convention.
+      activeManifest: { url: `self#jumbf=/c2pa/${ing.activeLabel}`, alg: "sha256", hash: await sha256(activeBox.subarray(8)) },
+      validationResults: {
+        activeManifest: {
+          success: [{ code: "claimSignature.validated", url: `self#jumbf=/c2pa/${ing.activeLabel}/c2pa.signature` }],
+          informational: [],
+          failure: []
+        }
+      }
+    };
+    const box2 = jumbfSuperbox(UUID_CBOR_CONTENT, label, isoBox("cbor", encodeCbor(ingAssertion)));
+    const hash = await sha256(box2.subarray(8));
+    ingredientBoxes.push(box2);
+    ingredientRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, hash });
+    ingredientParamRefs.push({ url: `self#jumbf=c2pa.assertions/${label}`, alg: "sha256", hash });
+  }
+  const openedSteps = ingList.map((ing, i) => ({
+    action: "c2pa.opened",
+    ...ing.digitalSourceType ? { digitalSourceType: ing.digitalSourceType } : {},
+    ...ing.title ? { description: `Opened ${ing.title}` } : {},
+    parameters: { ingredients: [ingredientParamRefs[i]] }
+  }));
+  const stepList = [...openedSteps, ...baseSteps];
+  const actions = {
+    actions: stepList.map((s) => ({
+      action: s.action,
+      ...s.digitalSourceType ? { digitalSourceType: s.digitalSourceType } : {},
+      ...s.description ? { description: s.description } : {},
+      ...s.parameters ? { parameters: s.parameters } : {},
+      softwareAgent,
+      when: isoSeconds(signedAt)
+    }))
+  };
+  const hashLabel = bmff ? BMFF_HASH_LABEL2 : "c2pa.hash.data";
+  const hashData = bmff ? {
+    exclusions: bmffHashExclusions(),
+    name: assetHash.name || "jumbf manifest",
+    alg: assetHash.alg || "sha256",
+    hash: assetHash.hash,
+    pad: assetHash.pad || new Uint8Array(0)
+  } : {
+    exclusions: assetHash.exclusions.map((e) => ({ start: e.start, length: e.length })),
+    name: assetHash.name || "jumbf manifest",
+    alg: assetHash.alg || "sha256",
+    hash: assetHash.hash,
+    pad: assetHash.pad || new Uint8Array(0)
+  };
+  const actionsLabel = v2 ? "c2pa.actions.v2" : "c2pa.actions";
+  const actionsBox = jumbfSuperbox(UUID_CBOR_CONTENT, actionsLabel, isoBox("cbor", encodeCbor(actions)));
+  const hashBox = jumbfSuperbox(UUID_CBOR_CONTENT, hashLabel, isoBox("cbor", encodeCbor(hashData)));
+  const storeBoxes = [actionsBox, hashBox];
+  let exportBox = null;
+  if (environment && typeof environment === "object" && Object.keys(environment).length) {
+    exportBox = jumbfSuperbox(UUID_CBOR_CONTENT, LOLLY_EXPORT_ASSERTION, isoBox("cbor", encodeCbor(environment)));
+    storeBoxes.push(exportBox);
+  }
+  let authorBox = null;
+  if (!v2 && author?.name) {
+    const person = { "@type": "Person", name: String(author.name) };
+    if (author.email) person.email = String(author.email);
+    const work = { "@context": "http://schema.org/", "@type": "CreativeWork", author: [person] };
+    authorBox = jumbfSuperbox(UUID_JSON_CONTENT, CREATIVE_WORK_ASSERTION, isoBox("json", te4.encode(JSON.stringify(work))));
+    storeBoxes.push(authorBox);
+  }
+  let metadataBox = null;
+  if (v2 && (author?.name || rights)) {
+    const metaLd = { "@context": DC_CONTEXT };
+    if (author?.name) metaLd["dc:creator"] = [String(author.name)];
+    if (rights) metaLd["dc:rights"] = String(rights);
+    metadataBox = jumbfSuperbox(UUID_JSON_CONTENT, METADATA_ASSERTION, isoBox("json", te4.encode(JSON.stringify(metaLd))));
+    storeBoxes.push(metadataBox);
+  }
+  for (const box2 of ingredientBoxes) storeBoxes.push(box2);
+  const assertionStore = jumbfSuperbox(UUID_ASSERTION_STORE, "c2pa.assertions", ...storeBoxes);
+  const assertionRefs = [
+    { url: `self#jumbf=c2pa.assertions/${actionsLabel}`, hash: await sha256(actionsBox.subarray(8)) },
+    { url: `self#jumbf=c2pa.assertions/${hashLabel}`, hash: await sha256(hashBox.subarray(8)) },
+    ...exportBox ? [{ url: `self#jumbf=c2pa.assertions/${LOLLY_EXPORT_ASSERTION}`, hash: await sha256(exportBox.subarray(8)) }] : [],
+    ...authorBox ? [{ url: `self#jumbf=c2pa.assertions/${CREATIVE_WORK_ASSERTION}`, hash: await sha256(authorBox.subarray(8)) }] : [],
+    ...metadataBox ? [{ url: `self#jumbf=c2pa.assertions/${METADATA_ASSERTION}`, hash: await sha256(metadataBox.subarray(8)) }] : [],
+    ...ingredientRefs
+  ];
+  const claim = v2 ? {
+    ...title ? { "dc:title": String(title) } : {},
+    instanceID: instanceId || urnUuid(),
+    claim_generator_info: genInfoMap,
+    created_assertions: assertionRefs,
+    signature: "self#jumbf=c2pa.signature",
+    alg: "sha256"
+  } : {
+    "dc:title": String(title || "Untitled"),
+    "dc:format": format,
+    instanceID: instanceId || urnUuid(),
+    claim_generator: generatorName,
+    ...generatorInfo ? { claim_generator_info: [generatorInfo] } : {},
+    signature: "self#jumbf=c2pa.signature",
+    assertions: assertionRefs,
+    alg: "sha256"
+  };
+  const claimBytes = encodeCbor(claim);
+  const claimBox = jumbfSuperbox(UUID_CLAIM, v2 ? "c2pa.claim.v2" : "c2pa.claim", isoBox("cbor", claimBytes));
+  const signatureBox = jumbfSuperbox(UUID_SIGNATURE, "c2pa.signature", isoBox("cbor", await coseSign1Detached(sig, claimBytes)));
+  const manifest = jumbfSuperbox(UUID_MANIFEST, manifestLabel || urnUuid(), assertionStore, claimBox, signatureBox);
+  const ingredientManifestBoxes = ingList.flatMap((ing) => ing.manifestBoxes);
+  return jumbfSuperbox(UUID_C2PA_STORE, "c2pa", ...ingredientManifestBoxes, manifest);
+}
+var te4, subtle3, CborTag, JUMBF_UUID_SUFFIX, boxUuid, UUID_C2PA_STORE, UUID_MANIFEST, UUID_ASSERTION_STORE, UUID_CLAIM, UUID_SIGNATURE, UUID_CBOR_CONTENT, UUID_JSON_CONTENT, COSE_HEADER_ALG, COSE_HEADER_X5CHAIN, isoSeconds, DIGITAL_SOURCE_TYPE, INGREDIENT_MIME, LOLLY_EXPORT_ASSERTION, BMFF_HASH_LABEL2, CREATIVE_WORK_ASSERTION, METADATA_ASSERTION, DC_CONTEXT;
+var init_c2pa = __esm({
+  "engine/src/c2pa.ts"() {
+    "use strict";
+    init_x509();
+    init_bytes();
+    init_c2pa_containers();
+    init_c2pa_containers();
+    te4 = new TextEncoder();
+    subtle3 = globalThis.crypto.subtle;
+    CborTag = class {
+      tag;
+      value;
+      constructor(tag, value) {
+        this.tag = tag;
+        this.value = value;
+      }
+    };
+    JUMBF_UUID_SUFFIX = [0, 17, 0, 16, 128, 0, 0, 170, 0, 56, 155, 113];
+    boxUuid = (fourcc2) => Uint8Array.of(fourcc2.charCodeAt(0), fourcc2.charCodeAt(1), fourcc2.charCodeAt(2), fourcc2.charCodeAt(3), ...JUMBF_UUID_SUFFIX);
+    UUID_C2PA_STORE = boxUuid("c2pa");
+    UUID_MANIFEST = boxUuid("c2ma");
+    UUID_ASSERTION_STORE = boxUuid("c2as");
+    UUID_CLAIM = boxUuid("c2cl");
+    UUID_SIGNATURE = boxUuid("c2cs");
+    UUID_CBOR_CONTENT = boxUuid("cbor");
+    UUID_JSON_CONTENT = boxUuid("json");
+    COSE_HEADER_ALG = 1;
+    COSE_HEADER_X5CHAIN = 33;
+    isoSeconds = (d) => d.toISOString().slice(0, 19) + "Z";
+    DIGITAL_SOURCE_TYPE = "http://cv.iptc.org/newscodes/digitalsourcetype/digitalCreation";
+    INGREDIENT_MIME = {
+      png: "image/png",
+      apng: "image/apng",
+      jpg: "image/jpeg",
+      jpeg: "image/jpeg",
+      gif: "image/gif",
+      svg: "image/svg+xml",
+      tiff: "image/tiff",
+      webp: "image/webp",
+      pdf: "application/pdf",
+      mp4: "video/mp4",
+      webm: "video/webm",
+      mkv: "video/x-matroska"
+    };
+    LOLLY_EXPORT_ASSERTION = "tools.lolly.export";
+    BMFF_HASH_LABEL2 = "c2pa.hash.bmff.v2";
+    CREATIVE_WORK_ASSERTION = "stds.schema-org.CreativeWork";
+    METADATA_ASSERTION = "cawg.metadata";
+    DC_CONTEXT = { dc: "http://purl.org/dc/elements/1.1/" };
   }
 });
 
@@ -5467,7 +6285,7 @@ var init_c2pa_verdict = __esm({
   }
 });
 
-// engine/src/c2pa-verify.ts
+// engine/src/c2pa-extract.ts
 function decodeItem(b, i, depth = 0) {
   if (i >= b.length) throw new Error("cbor: truncated");
   if (depth > MAX_CBOR_DEPTH) throw new Error("cbor: nesting too deep");
@@ -5511,7 +6329,7 @@ function decodeItem(b, i, depth = 0) {
           const [v, j] = decodeItem(b, i, depth + 1);
           i = j;
           if (v === CBOR_BREAK) break;
-          parts.push(major === 2 ? v : te4.encode(v));
+          parts.push(major === 2 ? v : te5.encode(v));
         }
         const whole = concatBytes(parts);
         return [major === 2 ? whole : td.decode(whole), i];
@@ -5912,6 +6730,162 @@ function extractC2paFromWebm(webm) {
   if (found.length > 1) throw new Error("Matroska file has more than one C2PA attachment");
   return found.length ? { manifest: found[0] } : null;
 }
+function collectActionChain(store) {
+  const chain2 = [];
+  let root;
+  try {
+    const top = walkBoxes2(store, 0, store.length);
+    if (!top.length) return chain2;
+    root = parseSuperbox(store, top[0]);
+  } catch {
+    return chain2;
+  }
+  if (root.label !== "c2pa") return chain2;
+  for (const manifestBox of root.children) {
+    let manifest;
+    try {
+      manifest = parseSuperbox(store, manifestBox);
+    } catch {
+      continue;
+    }
+    let generator;
+    for (const child of manifest.children) {
+      let sub;
+      try {
+        sub = parseSuperbox(store, child);
+      } catch {
+        continue;
+      }
+      if (sub.label !== "c2pa.claim" && sub.label !== "c2pa.claim.v2") continue;
+      try {
+        const claim = decodeCbor(contentOf(store, sub));
+        if (claim instanceof Map) {
+          const gi = claim.get("claim_generator_info");
+          generator = gi instanceof Map ? gi.get("name") : Array.isArray(gi) && gi[0] instanceof Map ? gi[0].get("name") : claim.get("claim_generator");
+        }
+      } catch {
+      }
+      break;
+    }
+    for (const child of manifest.children) {
+      let sub;
+      try {
+        sub = parseSuperbox(store, child);
+      } catch {
+        continue;
+      }
+      if (sub.label !== "c2pa.assertions") continue;
+      for (const a of sub.children) {
+        let ab;
+        try {
+          ab = parseSuperbox(store, a);
+        } catch {
+          continue;
+        }
+        if (ab.label !== "c2pa.actions" && ab.label !== "c2pa.actions.v2") continue;
+        try {
+          const decoded = decodeCbor(contentOf(store, ab)).get("actions");
+          if (!Array.isArray(decoded)) continue;
+          for (const act of decoded) {
+            const sa = act.get?.("softwareAgent");
+            chain2.push({
+              action: act.get?.("action"),
+              when: act.get?.("when"),
+              softwareAgent: sa instanceof Map ? sa.get("name") : sa,
+              digitalSourceType: act.get?.("digitalSourceType"),
+              description: act.get?.("description"),
+              generator
+            });
+          }
+        } catch {
+        }
+      }
+    }
+  }
+  const seen = /* @__PURE__ */ new Set();
+  return chain2.filter((s) => {
+    const key = JSON.stringify([s.action, s.when, s.softwareAgent, s.digitalSourceType, s.description]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function prepareC2paIngredientFromStore(store, format) {
+  if (!(store instanceof Uint8Array)) return null;
+  let root;
+  try {
+    const top = walkBoxes2(store, 0, store.length);
+    if (!top.length) return null;
+    root = parseSuperbox(store, top[0]);
+  } catch {
+    return null;
+  }
+  if (root.label !== "c2pa" || !root.children.length) return null;
+  const manifestBoxes = root.children.map((b) => store.slice(b.start, b.end));
+  let activeLabel = "";
+  let title;
+  try {
+    const parts = parseC2paStore(store);
+    activeLabel = parts.manifestLabel;
+    const claim = decodeCbor(parts.claimBytes);
+    if (claim instanceof Map) {
+      const t = claim.get("dc:title");
+      if (typeof t === "string") title = t;
+    }
+  } catch {
+    return null;
+  }
+  if (!activeLabel) return null;
+  let digitalSourceType;
+  for (const s of collectActionChain(store)) {
+    const kind = aiKind(s.digitalSourceType);
+    if (kind && (!digitalSourceType || kind === "generated")) {
+      digitalSourceType = s.digitalSourceType;
+      if (kind === "generated") break;
+    }
+  }
+  return { manifestBoxes, activeLabel, title, format, digitalSourceType };
+}
+var td, te5, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, EXTRACTORS, AI_SOURCE_TYPES, aiKind;
+var init_c2pa_extract = __esm({
+  "engine/src/c2pa-extract.ts"() {
+    "use strict";
+    init_c2pa();
+    init_video_meta();
+    init_bytes();
+    td = new TextDecoder();
+    te5 = new TextEncoder();
+    CBOR_BREAK = /* @__PURE__ */ Symbol("cbor break");
+    MAX_CBOR_DEPTH = 64;
+    contentOf = (bytes, sub) => bytes.slice(sub.children[0].payloadStart, sub.children[0].end);
+    ascii = (b, o, n2) => String.fromCharCode(...b.subarray(o, o + n2));
+    u32At = (b, o) => (b[o] << 24 | b[o + 1] << 16 | b[o + 2] << 8 | b[o + 3]) >>> 0;
+    isC2paBmffBox = (bytes, b) => b.type === "uuid" && b.size >= b.hdr + 16 && C2PA_BMFF_UUID.every((v, i) => bytes[b.off + b.hdr + i] === v);
+    MKV_ATTACHMENTS = 423732329;
+    MKV_ATTACHEDFILE = 24999;
+    MKV_FILEMIMETYPE = 18016;
+    MKV_FILEDATA = 18012;
+    EXTRACTORS = {
+      pdf: extractC2paFromPdf,
+      png: extractC2paFromPng,
+      jpeg: extractC2paFromJpeg,
+      gif: extractC2paFromGif,
+      svg: extractC2paFromSvg,
+      tiff: extractC2paFromTiff,
+      webp: extractC2paFromWebp,
+      mp4: extractC2paFromMp4,
+      webm: extractC2paFromWebm,
+      mkv: extractC2paFromWebm
+    };
+    AI_SOURCE_TYPES = {
+      trainedAlgorithmicMedia: "generated",
+      compositeWithTrainedAlgorithmicMedia: "composite"
+    };
+    aiKind = (sourceType) => AI_SOURCE_TYPES[(typeof sourceType === "string" ? sourceType : "").split("/").pop() ?? ""];
+  }
+});
+
+// engine/src/c2pa-verify.ts
 function decodeOid(b, tlv) {
   const bytes = b.slice(tlv.contentStart, tlv.end);
   const parts = [Math.floor(bytes[0] / 40), bytes[0] % 40];
@@ -5926,7 +6900,7 @@ function decodeOid(b, tlv) {
   return parts.join(".");
 }
 function decodeTime(b, tlv) {
-  const s = td.decode(b.slice(tlv.contentStart, tlv.end));
+  const s = td2.decode(b.slice(tlv.contentStart, tlv.end));
   const four = tlv.tag === 24;
   const yy = four ? +s.slice(0, 4) : +s.slice(0, 2) < 50 ? 2e3 + +s.slice(0, 2) : 1900 + +s.slice(0, 2);
   const o = four ? 2 : 0;
@@ -5939,7 +6913,7 @@ function decodeName(cert, nameTlv) {
       const [oidTlv, valTlv] = derChildren(cert, atv);
       if (!oidTlv || !valTlv || oidTlv.tag !== 6) continue;
       const oid = decodeOid(cert, oidTlv);
-      const val = td.decode(cert.slice(valTlv.contentStart, valTlv.end));
+      const val = td2.decode(cert.slice(valTlv.contentStart, valTlv.end));
       if (oid === "2.5.4.3" && out.commonName == null) out.commonName = val;
       if (oid === "2.5.4.10" && out.organization == null) out.organization = val;
     }
@@ -5963,7 +6937,7 @@ function decodeExtensions(cert, kids, shift) {
         const names = derTlv(cert, value.contentStart);
         if (names.tag !== 48 || names.end > value.end) continue;
         for (const gn of derChildren(cert, names)) {
-          if (gn.tag === 129) out.sanEmails.push(td.decode(cert.slice(gn.contentStart, gn.end)));
+          if (gn.tag === 129) out.sanEmails.push(td2.decode(cert.slice(gn.contentStart, gn.end)));
         }
       } else if (oid === "2.5.29.19") {
         const bc = derTlv(cert, value.contentStart);
@@ -6150,126 +7124,10 @@ async function verifyCoseSignature(alg, spki, sigRaw, sigStructure) {
   const key = await subtle4.importKey("spki", asBufferSource(spki), { name: "Ed25519" }, false, ["verify"]);
   return subtle4.verify({ name: "Ed25519" }, key, asBufferSource(sigRaw), asBufferSource(sigStructure));
 }
-function collectActionChain(store) {
-  const chain2 = [];
-  let root;
-  try {
-    const top = walkBoxes2(store, 0, store.length);
-    if (!top.length) return chain2;
-    root = parseSuperbox(store, top[0]);
-  } catch {
-    return chain2;
-  }
-  if (root.label !== "c2pa") return chain2;
-  for (const manifestBox of root.children) {
-    let manifest;
-    try {
-      manifest = parseSuperbox(store, manifestBox);
-    } catch {
-      continue;
-    }
-    let generator;
-    for (const child of manifest.children) {
-      let sub;
-      try {
-        sub = parseSuperbox(store, child);
-      } catch {
-        continue;
-      }
-      if (sub.label !== "c2pa.claim" && sub.label !== "c2pa.claim.v2") continue;
-      try {
-        const claim = decodeCbor(contentOf(store, sub));
-        if (claim instanceof Map) {
-          const gi = claim.get("claim_generator_info");
-          generator = gi instanceof Map ? gi.get("name") : Array.isArray(gi) && gi[0] instanceof Map ? gi[0].get("name") : claim.get("claim_generator");
-        }
-      } catch {
-      }
-      break;
-    }
-    for (const child of manifest.children) {
-      let sub;
-      try {
-        sub = parseSuperbox(store, child);
-      } catch {
-        continue;
-      }
-      if (sub.label !== "c2pa.assertions") continue;
-      for (const a of sub.children) {
-        let ab;
-        try {
-          ab = parseSuperbox(store, a);
-        } catch {
-          continue;
-        }
-        if (ab.label !== "c2pa.actions" && ab.label !== "c2pa.actions.v2") continue;
-        try {
-          const decoded = decodeCbor(contentOf(store, ab)).get("actions");
-          if (!Array.isArray(decoded)) continue;
-          for (const act of decoded) {
-            const sa = act.get?.("softwareAgent");
-            chain2.push({
-              action: act.get?.("action"),
-              when: act.get?.("when"),
-              softwareAgent: sa instanceof Map ? sa.get("name") : sa,
-              digitalSourceType: act.get?.("digitalSourceType"),
-              description: act.get?.("description"),
-              generator
-            });
-          }
-        } catch {
-        }
-      }
-    }
-  }
-  const seen = /* @__PURE__ */ new Set();
-  return chain2.filter((s) => {
-    const key = JSON.stringify([s.action, s.when, s.softwareAgent, s.digitalSourceType, s.description]);
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-function prepareC2paIngredientFromStore(store, format) {
-  if (!(store instanceof Uint8Array)) return null;
-  let root;
-  try {
-    const top = walkBoxes2(store, 0, store.length);
-    if (!top.length) return null;
-    root = parseSuperbox(store, top[0]);
-  } catch {
-    return null;
-  }
-  if (root.label !== "c2pa" || !root.children.length) return null;
-  const manifestBoxes = root.children.map((b) => store.slice(b.start, b.end));
-  let activeLabel = "";
-  let title;
-  try {
-    const parts = parseC2paStore(store);
-    activeLabel = parts.manifestLabel;
-    const claim = decodeCbor(parts.claimBytes);
-    if (claim instanceof Map) {
-      const t = claim.get("dc:title");
-      if (typeof t === "string") title = t;
-    }
-  } catch {
-    return null;
-  }
-  if (!activeLabel) return null;
-  let digitalSourceType;
-  for (const s of collectActionChain(store)) {
-    const kind = aiKind(s.digitalSourceType);
-    if (kind && (!digitalSourceType || kind === "generated")) {
-      digitalSourceType = s.digitalSourceType;
-      if (kind === "generated") break;
-    }
-  }
-  return { manifestBoxes, activeLabel, title, format, digitalSourceType };
-}
 async function verifyC2pa(bytes, { trustAnchors } = {}) {
   if (!(bytes instanceof Uint8Array)) throw new Error("verifyC2pa: bytes must be a Uint8Array");
   const checks = [];
-  const fail2 = (code, explanation) => {
+  const fail3 = (code, explanation) => {
     checks.push({ code, ok: false, explanation });
   };
   const pass = (code, explanation) => {
@@ -6291,7 +7149,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
     if (/not a PDF/.test(msg)) return report;
     report.found = true;
     report.state = "invalid";
-    fail2(C2PA_CHECK.credentialUnreadable, msg);
+    fail3(C2PA_CHECK.credentialUnreadable, msg);
     return report;
   }
   if (!extracted) {
@@ -6309,7 +7167,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   } catch (err) {
     report.state = "invalid";
     report.reason = `credential is malformed: ${err.message}`;
-    fail2(C2PA_CHECK.credentialUnreadable, err.message);
+    fail3(C2PA_CHECK.credentialUnreadable, err.message);
     return report;
   }
   const actionsAssertion = parts.assertions.find((a) => a.label === "c2pa.actions" || a.label === "c2pa.actions.v2");
@@ -6378,7 +7236,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   const metaAssertion = parts.assertions.find((a) => a.label === "cawg.metadata" || a.label === "c2pa.metadata");
   if (metaAssertion) {
     try {
-      const creator = JSON.parse(td.decode(metaAssertion.content))?.["dc:creator"];
+      const creator = JSON.parse(td2.decode(metaAssertion.content))?.["dc:creator"];
       const name = Array.isArray(creator) ? creator[0] : creator;
       if (name) report.author = { name: String(name) };
     } catch {
@@ -6387,7 +7245,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   const creativeWork = parts.assertions.find((a) => a.label === "stds.schema-org.CreativeWork");
   if (!report.author && creativeWork) {
     try {
-      const person = JSON.parse(td.decode(creativeWork.content))?.author?.[0];
+      const person = JSON.parse(td2.decode(creativeWork.content))?.author?.[0];
       if (person?.name) report.author = { name: String(person.name), ...person.email ? { email: String(person.email) } : {} };
     } catch {
     }
@@ -6400,19 +7258,19 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
     const url = ref instanceof Map ? ref.get("url") : null;
     const hash = ref instanceof Map ? ref.get("hash") : null;
     if (typeof url !== "string" || !(hash instanceof Uint8Array)) {
-      fail2(C2PA_CHECK.assertionHashedUriMismatch, "malformed assertion reference in the claim");
+      fail3(C2PA_CHECK.assertionHashedUriMismatch, "malformed assertion reference in the claim");
       continue;
     }
     const label = url.startsWith(HASHED_URI_PREFIX) ? url.slice(HASHED_URI_PREFIX.length) : null;
     const assertion = label && parts.assertions.find((a) => a.label === label);
     if (!assertion) {
-      fail2(C2PA_CHECK.assertionMissing, `claim references ${url} but the store has no such assertion`);
+      fail3(C2PA_CHECK.assertionMissing, `claim references ${url} but the store has no such assertion`);
       continue;
     }
     if (bytesToHex(await sha256(assertion.payload)) === bytesToHex(hash)) {
       pass(C2PA_CHECK.assertionHashedUriMatch, `hashed uri matched: ${url}`);
     } else {
-      fail2(C2PA_CHECK.assertionHashedUriMismatch, `hash does not match assertion data: ${url}`);
+      fail3(C2PA_CHECK.assertionHashedUriMismatch, `hash does not match assertion data: ${url}`);
     }
   }
   let signerAlg = null;
@@ -6442,31 +7300,31 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
       alg: signerAlg
     };
     if (!alg) {
-      fail2(C2PA_CHECK.claimSignatureMismatch, `unsupported signing algorithm (${signerAlg}) \u2014 cannot verify on-device`);
+      fail3(C2PA_CHECK.claimSignatureMismatch, `unsupported signing algorithm (${signerAlg}) \u2014 cannot verify on-device`);
     } else {
       const sigStructure = encodeCbor(["Signature1", protBytes, new Uint8Array(0), parts.claimBytes]);
       try {
         claimSigValid = await verifyCoseSignature(alg, cert.spki, sigRaw, sigStructure);
       } catch {
-        fail2(C2PA_CHECK.claimSignatureMismatch, `${alg.name} signatures cannot be verified on this device`);
+        fail3(C2PA_CHECK.claimSignatureMismatch, `${alg.name} signatures cannot be verified on this device`);
         claimSigValid = null;
       }
       if (claimSigValid === true) pass(C2PA_CHECK.claimSignatureValidated, "claim signature valid");
-      else if (claimSigValid === false) fail2(C2PA_CHECK.claimSignatureMismatch, "claim signature is not valid");
+      else if (claimSigValid === false) fail3(C2PA_CHECK.claimSignatureMismatch, "claim signature is not valid");
     }
     const now2 = Date.now();
     leafInsideValidity = now2 >= cert.notBefore.getTime() && now2 <= cert.notAfter.getTime();
     if (leafInsideValidity) {
       pass(C2PA_CHECK.claimSignatureInsideValidity, "signing certificate within its validity window");
     } else {
-      fail2(C2PA_CHECK.signingCredentialExpired, "signing certificate expired (or not yet valid)");
+      fail3(C2PA_CHECK.signingCredentialExpired, "signing certificate expired (or not yet valid)");
     }
     leafSanEmail = cert.sanEmails[0] ?? null;
     if (Array.isArray(trustAnchors) && trustAnchors.length) {
       anchorMatch = await chainsToAnchor(cert, chainDers, trustAnchors);
     }
   } catch (err) {
-    fail2(C2PA_CHECK.claimSignatureMismatch, `claim signature could not be verified: ${err.message}`);
+    fail3(C2PA_CHECK.claimSignatureMismatch, `claim signature could not be verified: ${err.message}`);
   }
   const hashData = parts.assertions.find((a) => a.label === "c2pa.hash.data");
   const bmffHash = parts.assertions.find((a) => /^c2pa\.hash\.bmff(\.v\d+)?$/.test(a.label));
@@ -6511,13 +7369,13 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
       if (bytesToHex(await sha256(concatBytes(spans))) === bytesToHex(hd.get("hash"))) {
         pass(C2PA_CHECK.assertionBmffHashMatch, "BMFF hash valid");
       } else {
-        fail2(C2PA_CHECK.assertionBmffHashMismatch, "the file bytes do not match the credential \u2014 the file changed after signing");
+        fail3(C2PA_CHECK.assertionBmffHashMismatch, "the file bytes do not match the credential \u2014 the file changed after signing");
       }
     } catch (err) {
-      fail2(C2PA_CHECK.assertionBmffHashMismatch, `hard binding could not be checked: ${err.message}`);
+      fail3(C2PA_CHECK.assertionBmffHashMismatch, `hard binding could not be checked: ${err.message}`);
     }
   } else if (!hashData) {
-    fail2(C2PA_CHECK.assertionDataHashMismatch, "no hard binding (c2pa.hash.data or c2pa.hash.bmff) in the manifest");
+    fail3(C2PA_CHECK.assertionDataHashMismatch, "no hard binding (c2pa.hash.data or c2pa.hash.bmff) in the manifest");
   } else {
     try {
       const hd = decodeCbor(hashData.content);
@@ -6536,10 +7394,10 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
       if (bytesToHex(await sha256(concatBytes(spans))) === bytesToHex(hd.get("hash"))) {
         pass(C2PA_CHECK.assertionDataHashMatch, "data hash valid");
       } else {
-        fail2(C2PA_CHECK.assertionDataHashMismatch, "the file bytes do not match the credential \u2014 the file changed after signing");
+        fail3(C2PA_CHECK.assertionDataHashMismatch, "the file bytes do not match the credential \u2014 the file changed after signing");
       }
     } catch (err) {
-      fail2(C2PA_CHECK.assertionDataHashMismatch, `hard binding could not be checked: ${err.message}`);
+      fail3(C2PA_CHECK.assertionDataHashMismatch, `hard binding could not be checked: ${err.message}`);
     }
   }
   if (anchorMatch && claimSigValid === true) {
@@ -6556,7 +7414,7 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
     const who = report.signer.identity.email || report.signer.commonName;
     pass(C2PA_CHECK.signingCredentialTrusted, report.trusted ? `signing certificate chains to a pinned CA root \u2014 verified identity: ${who}` : `signing certificate chains to a pinned CA root \u2014 verified identity: ${who} (certificate has since expired; signing time cannot be proven \u2014 no timestamp authority yet)`);
   } else {
-    fail2(C2PA_CHECK.signingCredentialUntrusted, "signing certificate untrusted \u2014 an ephemeral on-device key, not a CA-issued identity");
+    fail3(C2PA_CHECK.signingCredentialUntrusted, "signing certificate untrusted \u2014 an ephemeral on-device key, not a CA-issued identity");
   }
   report.state = checks.every((c) => c.ok || c.code === C2PA_CHECK.signingCredentialUntrusted) ? "valid" : "invalid";
   const acts = report.claim.actions || [];
@@ -6572,40 +7430,18 @@ async function verifyC2pa(bytes, { trustAnchors } = {}) {
   report.delivered = report.state === "valid" && !created && acts.some((a) => a.action === "c2pa.published");
   return report;
 }
-var td, te4, subtle4, CBOR_BREAK, MAX_CBOR_DEPTH, contentOf, ascii, u32At, isC2paBmffBox, MKV_ATTACHMENTS, MKV_ATTACHEDFILE, MKV_FILEMIMETYPE, MKV_FILEDATA, EXTRACTORS, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX, AI_SOURCE_TYPES, aiKind;
+var td2, te6, subtle4, SIG_ALGS, SIG_OID_RSA_PSS, SIG_OID_ED25519, HASH_OIDS, MAX_CHAIN_INTERMEDIATES, COSE_ALGS, OID_RSASSA_PSS, ALGID_RSA_ENCRYPTION, HASHED_URI_PREFIX;
 var init_c2pa_verify = __esm({
   "engine/src/c2pa-verify.ts"() {
     "use strict";
     init_c2pa();
     init_c2pa_verdict();
-    init_video_meta();
     init_bytes();
     init_der_read();
-    td = new TextDecoder();
-    te4 = new TextEncoder();
+    init_c2pa_extract();
+    td2 = new TextDecoder();
+    te6 = new TextEncoder();
     subtle4 = globalThis.crypto.subtle;
-    CBOR_BREAK = /* @__PURE__ */ Symbol("cbor break");
-    MAX_CBOR_DEPTH = 64;
-    contentOf = (bytes, sub) => bytes.slice(sub.children[0].payloadStart, sub.children[0].end);
-    ascii = (b, o, n2) => String.fromCharCode(...b.subarray(o, o + n2));
-    u32At = (b, o) => (b[o] << 24 | b[o + 1] << 16 | b[o + 2] << 8 | b[o + 3]) >>> 0;
-    isC2paBmffBox = (bytes, b) => b.type === "uuid" && b.size >= b.hdr + 16 && C2PA_BMFF_UUID.every((v, i) => bytes[b.off + b.hdr + i] === v);
-    MKV_ATTACHMENTS = 423732329;
-    MKV_ATTACHEDFILE = 24999;
-    MKV_FILEMIMETYPE = 18016;
-    MKV_FILEDATA = 18012;
-    EXTRACTORS = {
-      pdf: extractC2paFromPdf,
-      png: extractC2paFromPng,
-      jpeg: extractC2paFromJpeg,
-      gif: extractC2paFromGif,
-      svg: extractC2paFromSvg,
-      tiff: extractC2paFromTiff,
-      webp: extractC2paFromWebp,
-      mp4: extractC2paFromMp4,
-      webm: extractC2paFromWebm,
-      mkv: extractC2paFromWebm
-    };
     SIG_ALGS = {
       "2a8648ce3d040302": { scheme: "ecdsa", hash: "SHA-256" },
       // ecdsa-with-SHA256
@@ -6641,11 +7477,6 @@ var init_c2pa_verify = __esm({
     OID_RSASSA_PSS = Uint8Array.of(6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 10);
     ALGID_RSA_ENCRYPTION = Uint8Array.of(48, 13, 6, 9, 42, 134, 72, 134, 247, 13, 1, 1, 1, 5, 0);
     HASHED_URI_PREFIX = "self#jumbf=c2pa.assertions/";
-    AI_SOURCE_TYPES = {
-      trainedAlgorithmicMedia: "generated",
-      compositeWithTrainedAlgorithmicMedia: "composite"
-    };
-    aiKind = (sourceType) => AI_SOURCE_TYPES[(typeof sourceType === "string" ? sourceType : "").split("/").pop() ?? ""];
   }
 });
 
@@ -6756,11 +7587,11 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
   function getHydrated() {
     return hydrate(tool.template, templateContext());
   }
-  function getHydratedString(str) {
-    return str ? hydrate(str, templateContext()) : "";
+  function getHydratedString(str2) {
+    return str2 ? hydrate(str2, templateContext()) : "";
   }
-  function getHydratedText(str) {
-    return str ? hydrate(str, templateContext(), { raw: true }) : "";
+  function getHydratedText(str2) {
+    return str2 ? hydrate(str2, templateContext(), { raw: true }) : "";
   }
   return {
     getModel: () => model,
@@ -6974,7 +7805,7 @@ async function createRuntime(tool, host, initialState = {}, opts = {}) {
       const isOnDevice = tool.manifest.privacy === "on-device";
       let meta = opts2.meta;
       if (meta === void 0 && opts2.embedMeta !== false && !isOnDevice) {
-        meta = await buildExportMeta(host, tool.manifest, profile);
+        meta = await buildExportMeta(host, tool.manifest, profile, model);
       }
       const dataExtra = buildDataPayload(tool, format, model, getHydratedText);
       let ingredients;
@@ -7264,8 +8095,8 @@ function parseDimension(input, defaultUnit = "px") {
   if (!m || m[1] === void 0) return null;
   const value = parseFloat(m[1]);
   if (!(value > 0)) return null;
-  const unit = (m[2] || defaultUnit).toLowerCase();
-  return isUnit(unit) ? { value, unit } : null;
+  const unit2 = (m[2] || defaultUnit).toLowerCase();
+  return isUnit(unit2) ? { value, unit: unit2 } : null;
 }
 function toPixels(dim, dpi = CSS_DPI) {
   return dim.unit === "px" ? Math.round(dim.value) : Math.round(toInches(dim) * dpi);
@@ -7389,6 +8220,33 @@ function parseImprint(raw) {
   if (v === "off" || v === "0" || v === "false" || v === "no") return false;
   return true;
 }
+function parseDurable(raw) {
+  if (raw == null) return false;
+  const v = String(raw).trim().toLowerCase();
+  return !(v === "off" || v === "0" || v === "false" || v === "no");
+}
+function parseHdr(raw) {
+  if (raw == null) return null;
+  const v = String(raw).trim().toLowerCase();
+  if (v === "off" || v === "0" || v === "false" || v === "no") return null;
+  if (v === "" || v === "1" || v === "on" || v === "pq" || v === "true") return { ...HDR_DEFAULTS };
+  const p = v.split("-").map(Number);
+  const dial = (n2, lo, hi, def) => n2 != null && Number.isFinite(n2) ? Math.min(hi, Math.max(lo, Math.round(n2))) : def;
+  return {
+    peakNits: dial(p[0], 100, 1e4, HDR_DEFAULTS.peakNits),
+    reach: dial(p[1], 0, 100, HDR_DEFAULTS.reach),
+    lift: dial(p[2], 0, 100, HDR_DEFAULTS.lift),
+    richness: dial(p[3], 0, 100, HDR_DEFAULTS.richness)
+  };
+}
+function parseCuts(raw) {
+  if (raw == null) return 1;
+  const n2 = Number(String(raw).trim());
+  if (!Number.isFinite(n2)) return 1;
+  const i = Math.trunc(n2);
+  if (i < 1) return 1;
+  return Math.min(i, CUTS_MAX);
+}
 function parseUrlState(searchParams, manifest) {
   const params = new URLSearchParams(searchParams);
   const values = {};
@@ -7442,6 +8300,13 @@ function parseUrlState(searchParams, manifest) {
     c2pa: parseC2pa(params.get("c2pa")),
     // Pixel-watermark opt-in for raster exports (see header).
     imprint: parseImprint(params.get("imprint")),
+    // Opt-in durable Content Credential for raster exports (see header).
+    durable: parseDurable(params.get("durable")),
+    // Opt-in HDR raster export (see header). null ⇒ SDR.
+    hdr: parseHdr(params.get("hdr")),
+    // Contact-sheet frame count for a still export of a timed composition (see
+    // header). Always 1…CUTS_MAX; 1 ⇒ the single playhead frame.
+    cuts: parseCuts(params.get("cuts")),
     // UI/content language, alias-normalized (see header). null ⇒ absent/unrecognized.
     lang: normalizeLang(params.get("lang"))
   };
@@ -7478,6 +8343,9 @@ function serializeUrlState(model, opts = {}) {
   if (opts.c2pa === false) params.set("c2pa", "off");
   else if (opts.c2pa) params.set("c2pa", [7, 30, 90, 365].includes(Number(opts.c2paDays)) ? String(opts.c2paDays) : "1");
   if (opts.imprint === false) params.set("imprint", "0");
+  if (opts.durable) params.set("durable", "1");
+  if (opts.hdr) params.set("hdr", "1");
+  if (opts.cuts != null && parseCuts(String(opts.cuts)) > 1) params.set("cuts", String(parseCuts(String(opts.cuts))));
   if (opts.lang && opts.lang !== "en") params.set("lang", opts.lang);
   return params.toString();
 }
@@ -7520,9 +8388,9 @@ function coerceToString(input, value) {
   if (input.type === "blocks") return JSON.stringify(blocksForUrl(value) ?? []);
   return String(value);
 }
-function decodeBlocksCompact(str, fields) {
-  if (!str || !fields.length) return [];
-  return str.split("~").filter(Boolean).map((item) => {
+function decodeBlocksCompact(str2, fields) {
+  if (!str2 || !fields.length) return [];
+  return str2.split("~").filter(Boolean).map((item) => {
     const parts = splitToFields(item, fields.length);
     const obj = {};
     fields.forEach((f, i) => {
@@ -7544,12 +8412,12 @@ function decodeBlocksCompact(str, fields) {
     return obj;
   });
 }
-function splitToFields(str, count) {
-  const parts = str.split(",");
+function splitToFields(str2, count) {
+  const parts = str2.split(",");
   if (parts.length <= count) return parts;
   return [...parts.slice(0, count - 1), parts.slice(count - 1).join(",")];
 }
-var RESERVED;
+var HDR_DEFAULTS, RESERVED, CUTS_MAX;
 var init_url_mode = __esm({
   "engine/src/url-mode.ts"() {
     "use strict";
@@ -7558,13 +8426,15 @@ var init_url_mode = __esm({
     init_tool_url();
     init_bake();
     init_lang();
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "lang", "full", "options", "nostage", "z", "zx"]);
+    HDR_DEFAULTS = { peakNits: 1e3, reach: 45, lift: 0, richness: 40 };
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "hdr", "cuts", "lang", "full", "options", "nostage", "z", "zx"]);
+    CUTS_MAX = 64;
   }
 });
 
 // engine/src/url-pack.ts
-function base64UrlToBytes2(str) {
-  const b64 = str.replace(/-/g, "+").replace(/_/g, "/");
+function base64UrlToBytes2(str2) {
+  const b64 = str2.replace(/-/g, "+").replace(/_/g, "/");
   const bin = atob(b64);
   const out = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
@@ -7655,8 +8525,8 @@ function sniff(b) {
   if (/<svg[\s>]/i.test(head) || /^\s*<\?xml/i.test(head) && /<svg[\s>]/i.test(new TextDecoder().decode(b.subarray(0, Math.min(b.length, 4096))))) return "SVG";
   return "";
 }
-function matchAscii(b, off, str) {
-  for (let i = 0; i < str.length; i++) if (b[off + i] !== str.charCodeAt(i)) return false;
+function matchAscii(b, off, str2) {
+  for (let i = 0; i < str2.length; i++) if (b[off + i] !== str2.charCodeAt(i)) return false;
   return true;
 }
 function clip(s) {
@@ -8185,12 +9055,133 @@ var init_color = __esm({
   }
 });
 
+// engine/src/gradient-spec.ts
+function readColor(raw) {
+  const s = raw.trim();
+  if (!s) return null;
+  if (isNamedColor(s) || s.toLowerCase() === "transparent") return s.toLowerCase();
+  const withHash = /^(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(s) ? `#${s}` : s;
+  return parseColor(withHash) ? withHash.toLowerCase() : null;
+}
+function parseGradientSpec(input) {
+  if (input == null) return null;
+  const s = String(input).trim();
+  if (!s) return null;
+  const parts = s.split("_").filter((p) => p.length > 0);
+  if (parts.length < 2) return null;
+  const head = parts[0].toLowerCase().split(".");
+  const kind = Object.hasOwn(KIND_TOKENS, head[0] ?? "") ? KIND_TOKENS[head[0]] : null;
+  if (!kind) return null;
+  let space = DEFAULT_GRADIENT_SPACE;
+  let hue;
+  for (const tok of head.slice(1)) {
+    if (Object.hasOwn(SPACE_TOKENS, tok)) space = SPACE_TOKENS[tok];
+    else if (Object.hasOwn(HUE_TOKENS, tok)) hue = HUE_TOKENS[tok];
+    else return null;
+  }
+  let rest = parts.slice(1);
+  let angle = kind === "linear" ? 180 : 0;
+  if (rest.length && /^[+-]?\d+(?:\.\d+)?$/.test(rest[0])) {
+    angle = normAngle(parseFloat(rest[0]));
+    rest = rest.slice(1);
+  }
+  const stops = [];
+  for (const tok of rest) {
+    if (stops.length >= MAX_GRADIENT_STOPS) break;
+    const at = Math.max(tok.lastIndexOf("-"), tok.lastIndexOf("@"));
+    const hasPos = at > 0 && /^\d+(?:\.\d+)?$/.test(tok.slice(at + 1));
+    const color = readColor(hasPos ? tok.slice(0, at) : tok);
+    if (!color) continue;
+    stops.push({ color, pos: hasPos ? clampPos(parseFloat(tok.slice(at + 1))) : Number.NaN });
+  }
+  if (stops.length < 2) return null;
+  spreadPositions(stops);
+  return { kind, angle, stops, space, ...hue ? { hue } : {} };
+}
+function spreadPositions(stops) {
+  const last = stops.length - 1;
+  if (Number.isNaN(stops[0].pos)) stops[0].pos = 0;
+  if (Number.isNaN(stops[last].pos)) stops[last].pos = 100;
+  let i = 0;
+  while (i <= last) {
+    if (!Number.isNaN(stops[i].pos)) {
+      i++;
+      continue;
+    }
+    let j = i;
+    while (j <= last && Number.isNaN(stops[j].pos)) j++;
+    const from = stops[i - 1].pos;
+    const to = stops[j].pos;
+    for (let k = i; k < j; k++) stops[k].pos = from + (to - from) * (k - i + 1) / (j - i + 1);
+    i = j;
+  }
+  for (let k = 1; k <= last; k++) stops[k].pos = Math.max(stops[k].pos, stops[k - 1].pos);
+}
+function gradientSpecStops(g2) {
+  const authored = [];
+  for (const s of g2.stops) {
+    const c = parseColor(s.color);
+    if (c) authored.push({ color: c, pos: clampPos(s.pos) });
+  }
+  if (authored.length < 2) return authored;
+  return gradientStops(authored, { space: g2.space, hue: g2.hue });
+}
+function gradientSpecToCss(input) {
+  const g2 = typeof input === "string" || input == null ? parseGradientSpec(input) : input;
+  if (!g2) return null;
+  const baked = gradientSpecStops(g2);
+  if (baked.length < 2) return null;
+  const stops = baked.map((s) => `${colorToHexString(s.color)} ${Math.round(s.pos * 100) / 100}%`).join(", ");
+  switch (g2.kind) {
+    case "radial":
+      return `radial-gradient(ellipse farthest-corner at 50% 50%, ${stops})`;
+    case "conic":
+      return `conic-gradient(from ${Math.round(normAngle(g2.angle) * 100) / 100}deg at 50% 50%, ${stops})`;
+    default:
+      return `linear-gradient(${Math.round(normAngle(g2.angle) * 100) / 100}deg, ${stops})`;
+  }
+}
+var DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS, KIND_TOKENS, SPACE_TOKENS, HUE_TOKENS, normAngle, clampPos;
+var init_gradient_spec = __esm({
+  "engine/src/gradient-spec.ts"() {
+    "use strict";
+    init_css_color();
+    DEFAULT_GRADIENT_SPACE = "oklab";
+    MAX_GRADIENT_STOPS = 12;
+    KIND_TOKENS = {
+      lin: "linear",
+      linear: "linear",
+      rad: "radial",
+      radial: "radial",
+      con: "conic",
+      conic: "conic"
+    };
+    SPACE_TOKENS = {
+      oklab: "oklab",
+      oklch: "oklch",
+      lab: "lab",
+      lch: "lch",
+      srgb: "srgb",
+      "srgb-linear": "srgb-linear",
+      hsl: "hsl"
+    };
+    HUE_TOKENS = {
+      shorter: "shorter",
+      longer: "longer",
+      increasing: "increasing",
+      decreasing: "decreasing"
+    };
+    normAngle = (n2) => (n2 % 360 + 360) % 360;
+    clampPos = (n2) => Math.min(100, Math.max(0, n2));
+  }
+});
+
 // engine/src/svg-path.ts
-function parseSvgPathArgs(str) {
-  const m = str.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+function parseSvgPathArgs(str2) {
+  const m = str2.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
   return m ? m.map(Number) : [];
 }
-function parseArcArgs(str) {
+function parseArcArgs(str2) {
   const numRe = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
   const flagRe = /[01]/y;
   const sepRe = /[\s,]*/y;
@@ -8198,18 +9189,18 @@ function parseArcArgs(str) {
   let i = 0;
   const skipSep = () => {
     sepRe.lastIndex = i;
-    sepRe.exec(str);
+    sepRe.exec(str2);
     i = sepRe.lastIndex;
   };
   const grab = (re) => {
     skipSep();
     re.lastIndex = i;
-    const mm = re.exec(str);
+    const mm = re.exec(str2);
     if (!mm) return null;
     i = re.lastIndex;
     return mm[0];
   };
-  while (i < str.length) {
+  while (i < str2.length) {
     const rx = grab(numRe);
     if (rx === null) break;
     const ry = grab(numRe);
@@ -8417,7 +9408,7 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
   for (let i = 0; i < n2; i++) {
     const t1 = theta1 + i * dt;
     const t2 = theta1 + (i + 1) * dt;
-    const alpha2 = 4 / 3 * Math.tan(dt / 4);
+    const alpha = 4 / 3 * Math.tan(dt / 4);
     const cos1 = Math.cos(t1), sin1 = Math.sin(t1);
     const cos2 = Math.cos(t2), sin2 = Math.sin(t2);
     const ep1x = cosP * (rx * cos1) - sinP * (ry * sin1) + cx;
@@ -8429,10 +9420,10 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
     const dp2x = cosP * (-rx * sin2) - sinP * (ry * cos2);
     const dp2y = sinP * (-rx * sin2) + cosP * (ry * cos2);
     results.push([
-      ep1x + alpha2 * dp1x,
-      ep1y + alpha2 * dp1y,
-      ep2x - alpha2 * dp2x,
-      ep2y - alpha2 * dp2y,
+      ep1x + alpha * dp1x,
+      ep1y + alpha * dp1y,
+      ep2x - alpha * dp2x,
+      ep2y - alpha * dp2y,
       ep2x,
       ep2y
     ]);
@@ -8442,6 +9433,5117 @@ function svgArcToBeziers(x1, y1, rx, ry, phi, fa, fs, x2, y2) {
 var init_svg_path = __esm({
   "engine/src/svg-path.ts"() {
     "use strict";
+  }
+});
+
+// engine/src/zzfxm.ts
+function zzfxG(volume = 1, randomness = 0.05, frequency = 220, attack = 0, sustain = 0, release = 0.1, shape = 0, shapeCurve = 1, slide = 0, deltaSlide = 0, pitchJump = 0, pitchJumpTime = 0, repeatTime = 0, noise = 0, modulation = 0, bitCrush = 0, delay = 0, sustainVolume = 1, decay = 0, tremolo = 0, filter = 0) {
+  const sampleRate = zzfxR;
+  const PI2 = Math.PI * 2;
+  const abs = Math.abs;
+  const sign = (v) => v < 0 ? -1 : 1;
+  let startSlide = slide *= 500 * PI2 / sampleRate / sampleRate;
+  let startFrequency = frequency *= (1 + randomness * 2 * Math.random() - randomness) * PI2 / sampleRate;
+  let modOffset = 0;
+  let repeat = 0;
+  let crush = 0;
+  let jump = 1;
+  let length = 0;
+  const b = [];
+  let t = 0;
+  let i = 0;
+  let s = 0;
+  let f = 0;
+  const quality = 2;
+  const w = PI2 * abs(filter) * 2 / sampleRate;
+  const cos = Math.cos(w);
+  const alpha = Math.sin(w) / 2 / quality;
+  const a0 = 1 + alpha;
+  const a1 = -2 * cos / a0;
+  const a2 = (1 - alpha) / a0;
+  const b0 = (1 + sign(filter) * cos) / 2 / a0;
+  const b1 = -(sign(filter) + cos) / a0;
+  const b2 = b0;
+  let x2 = 0, x1 = 0, y2 = 0, y1 = 0;
+  const minAttack = 9;
+  attack = attack * sampleRate || minAttack;
+  decay *= sampleRate;
+  sustain *= sampleRate;
+  release *= sampleRate;
+  delay *= sampleRate;
+  deltaSlide *= 500 * PI2 / sampleRate ** 3;
+  modulation *= PI2 / sampleRate;
+  pitchJump *= PI2 / sampleRate;
+  pitchJumpTime *= sampleRate;
+  repeatTime = repeatTime * sampleRate | 0;
+  volume *= zzfxV;
+  for (length = attack + decay + sustain + release + delay | 0; i < length; b[i++] = s * volume) {
+    if (!(++crush % (bitCrush * 100 | 0))) {
+      s = shape ? shape > 1 ? shape > 2 ? shape > 3 ? shape > 4 ? t / PI2 % 1 < shapeCurve / 2 ? 1 : -1 : Math.sin(t ** 3) : Math.max(Math.min(Math.tan(t), 1), -1) : 1 - (2 * t / PI2 % 2 + 2) % 2 : 1 - 4 * abs(Math.round(t / PI2) - t / PI2) : Math.sin(t);
+      s = (repeatTime ? 1 - tremolo + tremolo * Math.sin(PI2 * i / repeatTime) : 1) * (shape > 4 ? s : sign(s) * abs(s) ** shapeCurve) * // shape curve
+      (i < attack ? i / attack : i < attack + decay ? 1 - (i - attack) / decay * (1 - sustainVolume) : i < attack + decay + sustain ? sustainVolume : i < length - delay ? (length - i - delay) / release * sustainVolume : 0);
+      s = delay ? s / 2 + (delay > i ? 0 : (i < length - delay ? 1 : (length - i) / delay) * // release delay
+      (b[i - delay | 0] ?? 0) / 2 / volume) : s;
+      if (filter)
+        s = y1 = b2 * x2 + b1 * (x2 = x1) + b0 * (x1 = s) - a2 * y2 - a1 * (y2 = y1);
+    }
+    f = (frequency += slide += deltaSlide) * // frequency
+    Math.cos(modulation * modOffset++);
+    t += f + f * noise * Math.sin(i ** 5);
+    if (jump && ++jump > pitchJumpTime) {
+      frequency += pitchJump;
+      startFrequency += pitchJump;
+      jump = 0;
+    }
+    if (repeatTime && !(++repeat % repeatTime)) {
+      frequency = startFrequency;
+      slide = startSlide;
+      jump ||= 1;
+    }
+  }
+  return b;
+}
+function zzfxM(instruments, patterns, sequence, BPM = 125) {
+  let instrumentParameters = [];
+  let i = 0;
+  let j = 0;
+  let k = 0;
+  let note = 0;
+  let sample = 0;
+  let patternChannel = [];
+  let notFirstBeat = 0;
+  let stop = 0;
+  let instrument = 0;
+  let attenuation = 0;
+  let outSampleOffset = 0;
+  let isSequenceEnd = 0;
+  let sampleOffset = 0;
+  let nextSampleOffset = 0;
+  let sampleBuffer = [];
+  const leftChannelBuffer = [];
+  const rightChannelBuffer = [];
+  let channelIndex = 0;
+  let panning = 0;
+  let hasMore = 1;
+  const sampleCache = {};
+  const beatLength = zzfxR / BPM * 60 >> 2;
+  const genG = zzfxG;
+  for (; hasMore; channelIndex++) {
+    sampleBuffer = [hasMore = notFirstBeat = outSampleOffset = 0];
+    sequence.forEach((patternIndex, sequenceIndex) => {
+      const pattern = patterns[patternIndex];
+      patternChannel = pattern[channelIndex] || [0, 0, 0];
+      hasMore |= pattern[channelIndex] ? 1 : 0;
+      nextSampleOffset = outSampleOffset + (pattern[0].length - 2 - (notFirstBeat ? 0 : 1)) * beatLength;
+      isSequenceEnd = sequenceIndex === sequence.length - 1 ? 1 : 0;
+      for (i = 2, k = outSampleOffset; i < patternChannel.length + isSequenceEnd; notFirstBeat = ++i) {
+        note = patternChannel[i] ?? 0;
+        stop = i === patternChannel.length + isSequenceEnd - 1 && isSequenceEnd || (instrument !== (patternChannel[0] || 0) ? 1 : 0) | note | 0;
+        for (
+          j = 0;
+          j < beatLength && notFirstBeat;
+          // fade off attenuation at end of beat if stopping note, prevents clicking
+          j++ > beatLength - 99 && stop ? attenuation += (attenuation < 1 ? 1 : 0) / 99 : 0
+        ) {
+          sample = (1 - attenuation) * (sampleBuffer[sampleOffset++] ?? 0) / 2 || 0;
+          leftChannelBuffer[k] = (leftChannelBuffer[k] || 0) - sample * panning + sample;
+          rightChannelBuffer[k] = (rightChannelBuffer[k++] || 0) + sample * panning + sample;
+        }
+        if (note) {
+          attenuation = note % 1;
+          panning = patternChannel[1] || 0;
+          if (note |= 0) {
+            instrument = patternChannel[sampleOffset = 0] || 0;
+            const cacheKey = instrument + "," + note;
+            sampleBuffer = sampleCache[cacheKey] || // add sample to cache
+            (sampleCache[cacheKey] = (instrumentParameters = [...instruments[instrument]], instrumentParameters[2] = instrumentParameters[2] * 2 ** ((note - 12) / 12), // allow negative values to stop notes
+            note > 0 ? genG(...instrumentParameters) : []));
+          }
+        }
+      }
+      outSampleOffset = nextSampleOffset;
+    });
+  }
+  return [leftChannelBuffer, rightChannelBuffer];
+}
+function renderZzfxm(song) {
+  const [left, right] = zzfxM(song.instruments, song.patterns, song.sequence, song.bpm ?? 125);
+  return {
+    left: Float32Array.from(left),
+    right: Float32Array.from(right),
+    sampleRate: zzfxR
+  };
+}
+var zzfxR, zzfxV;
+var init_zzfxm = __esm({
+  "engine/src/zzfxm.ts"() {
+    "use strict";
+    zzfxR = 44100;
+    zzfxV = 0.3;
+  }
+});
+
+// engine/src/audio-analyse.ts
+function analysePcm(channels, sampleRate, opts = {}) {
+  if (!channels.length || !channels[0].length) throw new Error("analysePcm: no samples");
+  if (!(sampleRate > 0)) throw new Error("analysePcm: sampleRate must be positive");
+  const total = channels[0].length;
+  const duration = total / sampleRate;
+  const fps = clampInt(opts.fps ?? 30, 1, 120);
+  const bands = clampInt(opts.bands ?? 64, 4, 512);
+  const buckets = clampInt(opts.buckets ?? 128, 4, 4096);
+  const waveLen = opts.samples ? Math.min(4096, nextPow2(clampInt(opts.samples, 16, 4096))) : 0;
+  const start = clamp(opts.start ?? 0, 0, duration);
+  const window2 = clamp(opts.window ?? duration - start, 0, duration - start);
+  const s0 = Math.floor(start * sampleRate);
+  const s1 = Math.min(total, Math.max(s0 + 1, Math.floor((start + window2) * sampleRate)));
+  const span = s1 - s0;
+  const mono = downmix(channels, s0, s1);
+  const left = channels[0];
+  const right = channels[1] ?? channels[0];
+  const count = Math.max(1, Math.round(span / sampleRate * fps));
+  const frames = {
+    count,
+    bands,
+    samples: waveLen,
+    t: new Float32Array(count),
+    rms: new Float32Array(count),
+    peak: new Float32Array(count),
+    bass: new Float32Array(count),
+    mid: new Float32Array(count),
+    treb: new Float32Array(count),
+    centroid: new Float32Array(count),
+    flux: new Float32Array(count),
+    magnitude: new Float32Array(count * bands),
+    wave: waveLen ? new Uint8Array(count * waveLen) : new Uint8Array(0),
+    waveL: waveLen ? new Uint8Array(count * waveLen) : new Uint8Array(0),
+    waveR: waveLen ? new Uint8Array(count * waveLen) : new Uint8Array(0)
+  };
+  const half = FFT_SIZE / 2;
+  const re = new Float64Array(FFT_SIZE);
+  const im = new Float64Array(FFT_SIZE);
+  const mag = new Float64Array(half);
+  const prevMag = new Float64Array(half);
+  const hann = hannWindow(FFT_SIZE);
+  const binHz = sampleRate / FFT_SIZE;
+  const bassEnd = Math.min(half, Math.max(1, Math.round(BASS_HZ / binHz)));
+  const midEnd = Math.min(half, Math.max(bassEnd + 1, Math.round(MID_HZ / binHz)));
+  const edges = logBandEdges(bands, half);
+  for (let f = 0; f < count; f++) {
+    const centre = s0 + Math.round((f + 0.5) / count * span);
+    frames.t[f] = (centre - s0) / sampleRate;
+    let sum = 0;
+    let pk = 0;
+    for (let i = 0; i < FFT_SIZE; i++) {
+      const idx = centre - half + i;
+      const v = idx >= 0 && idx < total ? mono[idx - s0] ?? sampleAt(channels, idx) : 0;
+      const a = v < 0 ? -v : v;
+      if (a > pk) pk = a;
+      sum += v * v;
+      re[i] = v * hann[i];
+      im[i] = 0;
+    }
+    frames.rms[f] = Math.sqrt(sum / FFT_SIZE);
+    frames.peak[f] = Math.min(1, pk);
+    fftInPlace(re, im);
+    let bassSum = 0;
+    let midSum = 0;
+    let trebSum = 0;
+    let magSum = 0;
+    let centroidSum = 0;
+    let flux = 0;
+    for (let k = 0; k < half; k++) {
+      const m = Math.hypot(re[k], im[k]);
+      mag[k] = m;
+      magSum += m;
+      centroidSum += m * k;
+      if (f > 0) {
+        const d = m - prevMag[k];
+        if (d > 0) flux += d;
+      }
+      if (k < bassEnd) bassSum += m;
+      else if (k < midEnd) midSum += m;
+      else trebSum += m;
+    }
+    frames.bass[f] = bassSum / bassEnd;
+    frames.mid[f] = midSum / Math.max(1, midEnd - bassEnd);
+    frames.treb[f] = trebSum / Math.max(1, half - midEnd);
+    frames.flux[f] = flux;
+    frames.centroid[f] = magSum > 0 ? centroidSum / magSum / half : 0;
+    const row = f * bands;
+    for (let b = 0; b < bands; b++) {
+      const lo = edges[b];
+      const hi = Math.max(lo + 1, edges[b + 1]);
+      let m = 0;
+      for (let k = lo; k < hi; k++) if (mag[k] > m) m = mag[k];
+      frames.magnitude[row + b] = m;
+    }
+    prevMag.set(mag);
+    if (waveLen) {
+      const wRow = f * waveLen;
+      const wStart = centre - (waveLen >> 1);
+      for (let i = 0; i < waveLen; i++) {
+        const idx = wStart + i;
+        const inRange = idx >= 0 && idx < total;
+        frames.wave[wRow + i] = toByte(inRange ? mono[idx - s0] ?? sampleAt(channels, idx) : 0);
+        frames.waveL[wRow + i] = toByte(inRange ? left[idx] : 0);
+        frames.waveR[wRow + i] = toByte(inRange ? right[idx] : 0);
+      }
+    }
+  }
+  normalise(frames.rms);
+  normaliseDb([frames.bass, frames.mid, frames.treb]);
+  normalise(frames.flux);
+  normaliseDb([frames.magnitude]);
+  const peaks = overviewPeaks(mono, buckets);
+  const { bpm, beats } = detectBeats(frames.flux, fps);
+  return {
+    duration,
+    sampleRate,
+    channels: channels.length,
+    start: s0 / sampleRate,
+    window: span / sampleRate,
+    fps,
+    peaks,
+    frames,
+    bpm,
+    beats
+  };
+}
+function detectBeats(flux, fps) {
+  const n2 = flux.length;
+  const minLag = Math.max(2, Math.floor(60 / MAX_BPM * fps));
+  const maxLag = Math.floor(60 / MIN_BPM * fps);
+  if (n2 < maxLag * 2 || maxLag <= minLag) return { bpm: null, beats: new Float32Array(0) };
+  let mean = 0;
+  for (let i = 0; i < n2; i++) mean += flux[i];
+  mean /= n2;
+  const x = new Float64Array(n2);
+  for (let i = 0; i < n2; i++) x[i] = flux[i] - mean;
+  let energy = 0;
+  for (let i = 0; i < n2; i++) energy += x[i] * x[i];
+  if (energy <= 0) return { bpm: null, beats: new Float32Array(0) };
+  const score = (lag) => {
+    let acc = 0;
+    for (let i = lag; i < n2; i++) acc += x[i] * x[i - lag];
+    return acc / (n2 - lag);
+  };
+  let bestLag = 0;
+  let bestScore = 0;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    const s = score(lag);
+    if (s > bestScore) {
+      bestScore = s;
+      bestLag = lag;
+    }
+  }
+  const variance = energy / n2;
+  if (!bestLag || bestScore < variance * 0.12) return { bpm: null, beats: new Float32Array(0) };
+  for (const div of [2, 3]) {
+    const lag = Math.round(bestLag / div);
+    if (lag < minLag) continue;
+    if (score(lag) >= bestScore * OCTAVE_TOLERANCE) {
+      bestLag = lag;
+      bestScore = score(lag);
+      break;
+    }
+  }
+  let anchor = 0;
+  for (let i = 1; i < n2; i++) if (flux[i] > flux[anchor]) anchor = i;
+  const snap = Math.max(1, Math.round(bestLag / 4));
+  const beats = [];
+  const first = anchor - Math.floor(anchor / bestLag) * bestLag;
+  for (let grid = first; grid < n2; grid += bestLag) {
+    let at = grid;
+    let best = flux[grid];
+    for (let i = Math.max(0, grid - snap); i < Math.min(n2, grid + snap + 1); i++) {
+      if (flux[i] > best) {
+        best = flux[i];
+        at = i;
+      }
+    }
+    beats.push(at / fps);
+  }
+  return { bpm: 60 * fps / bestLag, beats: new Float32Array(beats) };
+}
+function overviewPeaks(mono, buckets) {
+  const out = new Float32Array(buckets);
+  const per = mono.length / buckets;
+  let max = 0;
+  for (let b = 0; b < buckets; b++) {
+    const lo = Math.floor(b * per);
+    const hi = Math.min(mono.length, Math.max(lo + 1, Math.floor((b + 1) * per)));
+    let pk = 0;
+    const step = Math.max(1, Math.floor((hi - lo) / 512));
+    for (let i = lo; i < hi; i += step) {
+      const a = mono[i] < 0 ? -mono[i] : mono[i];
+      if (a > pk) pk = a;
+    }
+    out[b] = pk;
+    if (pk > max) max = pk;
+  }
+  if (max > SILENCE) for (let b = 0; b < buckets; b++) out[b] = out[b] / max;
+  return out;
+}
+function downmix(channels, from, to) {
+  const out = new Float32Array(Math.max(0, to - from));
+  const n2 = channels.length;
+  for (const ch of channels) {
+    for (let i = from; i < to; i++) out[i - from] = out[i - from] + (ch[i] ?? 0) / n2;
+  }
+  return out;
+}
+function sampleAt(channels, idx) {
+  let v = 0;
+  for (const ch of channels) v += ch[idx] ?? 0;
+  return v / channels.length;
+}
+function toByte(v) {
+  const b = Math.round(v * 128 + 128);
+  return b < 0 ? 0 : b > 255 ? 255 : b;
+}
+function normalise(a) {
+  normaliseTogether([a]);
+}
+function normaliseDb(tracks) {
+  let max = 0;
+  for (const a of tracks) for (let i = 0; i < a.length; i++) if (a[i] > max) max = a[i];
+  if (max <= SILENCE) {
+    for (const a of tracks) a.fill(0);
+    return;
+  }
+  for (const a of tracks) {
+    for (let i = 0; i < a.length; i++) {
+      const v = a[i];
+      if (v <= 0) {
+        a[i] = 0;
+        continue;
+      }
+      const db = 20 * Math.log10(v / max);
+      a[i] = db <= -DB_RANGE ? 0 : 1 + db / DB_RANGE;
+    }
+  }
+}
+function normaliseTogether(tracks) {
+  let max = 0;
+  for (const a of tracks) for (let i = 0; i < a.length; i++) if (a[i] > max) max = a[i];
+  if (max <= SILENCE) {
+    for (const a of tracks) a.fill(0);
+    return;
+  }
+  for (const a of tracks) for (let i = 0; i < a.length; i++) a[i] = a[i] / max;
+}
+function logBandEdges(bands, half) {
+  const out = new Int32Array(bands + 1);
+  const lo = Math.log(1);
+  const hi = Math.log(half);
+  for (let b = 0; b <= bands; b++) {
+    out[b] = Math.min(half, Math.max(1, Math.round(Math.exp(lo + (hi - lo) * b / bands))));
+  }
+  for (let b = 1; b <= bands; b++) {
+    if (out[b] <= out[b - 1]) out[b] = Math.min(half, out[b - 1] + 1);
+  }
+  return out;
+}
+function hannWindow(n2) {
+  const w = new Float64Array(n2);
+  for (let i = 0; i < n2; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / n2);
+  return w;
+}
+function fftInPlace(re, im) {
+  const n2 = re.length;
+  if (n2 < 2 || (n2 & n2 - 1) !== 0) throw new Error("fftInPlace: length must be a power of two");
+  for (let i = 1, j = 0; i < n2; i++) {
+    let bit = n2 >> 1;
+    for (; j & bit; bit >>= 1) j ^= bit;
+    j ^= bit;
+    if (i < j) {
+      const tr = re[i];
+      re[i] = re[j];
+      re[j] = tr;
+      const ti = im[i];
+      im[i] = im[j];
+      im[j] = ti;
+    }
+  }
+  for (let len2 = 2; len2 <= n2; len2 <<= 1) {
+    const ang = -2 * Math.PI / len2;
+    const wr = Math.cos(ang);
+    const wi = Math.sin(ang);
+    for (let i = 0; i < n2; i += len2) {
+      let cr = 1;
+      let ci = 0;
+      for (let k = 0; k < len2 >> 1; k++) {
+        const ar = re[i + k];
+        const ai = im[i + k];
+        const br = re[i + k + (len2 >> 1)];
+        const bi = im[i + k + (len2 >> 1)];
+        const tr = br * cr - bi * ci;
+        const ti = br * ci + bi * cr;
+        re[i + k] = ar + tr;
+        im[i + k] = ai + ti;
+        re[i + k + (len2 >> 1)] = ar - tr;
+        im[i + k + (len2 >> 1)] = ai - ti;
+        const ncr = cr * wr - ci * wi;
+        ci = cr * wi + ci * wr;
+        cr = ncr;
+      }
+    }
+  }
+}
+function clamp(v, lo, hi) {
+  return v < lo ? lo : v > hi ? hi : v;
+}
+function clampInt(v, lo, hi) {
+  return Math.round(clamp(Number.isFinite(v) ? v : lo, lo, hi));
+}
+function nextPow2(v) {
+  let n2 = 1;
+  while (n2 < v) n2 <<= 1;
+  return n2;
+}
+var BASS_HZ, MID_HZ, FFT_SIZE, MIN_BPM, MAX_BPM, OCTAVE_TOLERANCE, SILENCE, DB_RANGE;
+var init_audio_analyse = __esm({
+  "engine/src/audio-analyse.ts"() {
+    "use strict";
+    BASS_HZ = 320;
+    MID_HZ = 2800;
+    FFT_SIZE = 2048;
+    MIN_BPM = 60;
+    MAX_BPM = 180;
+    OCTAVE_TOLERANCE = 0.8;
+    SILENCE = 1e-5;
+    DB_RANGE = 60;
+  }
+});
+
+// engine/src/wav.ts
+function parseWav(bytes) {
+  const u82 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const view = new DataView(u82.buffer, u82.byteOffset, u82.byteLength);
+  const len2 = u82.byteLength;
+  if (len2 < 44) throw new Error("wav: too short to be a RIFF/WAVE file");
+  if (str(u82, 0, 4) !== "RIFF" || str(u82, 8, 4) !== "WAVE") throw new Error("wav: not a RIFF/WAVE file");
+  let formatTag = 0;
+  let channelCount = 0;
+  let sampleRate = 0;
+  let bitsPerSample = 0;
+  let dataStart = -1;
+  let dataLen = 0;
+  let at = 12;
+  while (at + 8 <= len2) {
+    const id = str(u82, at, 4);
+    const size = view.getUint32(at + 4, true);
+    const body = at + 8;
+    const avail = Math.max(0, Math.min(size, len2 - body));
+    if (id === "fmt ") {
+      if (avail < 16) throw new Error("wav: truncated fmt chunk");
+      formatTag = view.getUint16(body, true);
+      channelCount = view.getUint16(body + 2, true);
+      sampleRate = view.getUint32(body + 4, true);
+      bitsPerSample = view.getUint16(body + 14, true);
+      if (formatTag === FMT_EXTENSIBLE) {
+        if (avail < 26) throw new Error("wav: truncated extensible fmt chunk");
+        formatTag = view.getUint16(body + 24, true);
+      }
+    } else if (id === "data") {
+      dataStart = body;
+      dataLen = avail;
+    }
+    at = body + size + (size & 1);
+    if (at <= body) break;
+  }
+  if (dataStart < 0) throw new Error("wav: no data chunk");
+  if (!channelCount || channelCount > MAX_CHANNELS) throw new Error(`wav: unsupported channel count ${channelCount}`);
+  if (!(sampleRate > 0)) throw new Error("wav: invalid sample rate");
+  if (formatTag === FMT_MULAW || formatTag === FMT_ALAW) throw new Error("wav: companded (A-law/\xB5-law) audio is not supported");
+  if (formatTag !== FMT_PCM && formatTag !== FMT_FLOAT) {
+    throw new Error(`wav: unsupported format tag 0x${formatTag.toString(16)} (only PCM and IEEE float)`);
+  }
+  const bytesPerSample = bitsPerSample >> 3;
+  if (!bytesPerSample || bitsPerSample % 8 !== 0) throw new Error(`wav: unsupported bit depth ${bitsPerSample}`);
+  if (formatTag === FMT_FLOAT && bitsPerSample !== 32 && bitsPerSample !== 64) {
+    throw new Error(`wav: unsupported float bit depth ${bitsPerSample}`);
+  }
+  if (formatTag === FMT_PCM && ![8, 16, 24, 32].includes(bitsPerSample)) {
+    throw new Error(`wav: unsupported PCM bit depth ${bitsPerSample}`);
+  }
+  const frameBytes = bytesPerSample * channelCount;
+  const frames = Math.floor(dataLen / frameBytes);
+  if (frames <= 0) throw new Error("wav: data chunk holds no complete frames");
+  const channels = [];
+  for (let c = 0; c < channelCount; c++) channels.push(new Float32Array(frames));
+  const read = sampleReader(view, formatTag, bitsPerSample);
+  for (let f = 0; f < frames; f++) {
+    const base = dataStart + f * frameBytes;
+    for (let c = 0; c < channelCount; c++) channels[c][f] = read(base + c * bytesPerSample);
+  }
+  return { channels, sampleRate };
+}
+function sampleReader(view, tag, bits) {
+  if (tag === FMT_FLOAT) {
+    return bits === 64 ? (at) => view.getFloat64(at, true) : (at) => view.getFloat32(at, true);
+  }
+  switch (bits) {
+    // 8-bit PCM is the odd one out: UNSIGNED, with 128 as silence.
+    case 8:
+      return (at) => (view.getUint8(at) - 128) / 128;
+    case 16:
+      return (at) => view.getInt16(at, true) / 32768;
+    case 24:
+      return (at) => {
+        const v = view.getUint8(at) | view.getUint8(at + 1) << 8 | view.getUint8(at + 2) << 16;
+        return (v & 8388608 ? v - 16777216 : v) / 8388608;
+      };
+    default:
+      return (at) => view.getInt32(at, true) / 2147483648;
+  }
+}
+function str(u82, at, n2) {
+  let s = "";
+  for (let i = 0; i < n2; i++) s += String.fromCharCode(u82[at + i] ?? 0);
+  return s;
+}
+var FMT_PCM, FMT_FLOAT, FMT_ALAW, FMT_MULAW, FMT_EXTENSIBLE, MAX_CHANNELS;
+var init_wav = __esm({
+  "engine/src/wav.ts"() {
+    "use strict";
+    FMT_PCM = 1;
+    FMT_FLOAT = 3;
+    FMT_ALAW = 6;
+    FMT_MULAW = 7;
+    FMT_EXTENSIBLE = 65534;
+    MAX_CHANNELS = 32;
+  }
+});
+
+// engine/src/zzfx-compose.ts
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a += 1831565813;
+    let t = a;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function patternSeconds(bpm) {
+  const beatLen = zzfxR / bpm * 60 >> 2;
+  return STEPS * beatLen / zzfxR;
+}
+function channel(inst, pan, notes) {
+  return [inst, pan, ...notes];
+}
+function hits(steps, note = 12) {
+  const a = new Array(STEPS).fill(R);
+  for (const s of steps) if (s >= 0 && s < STEPS) a[s] = note;
+  return a;
+}
+function placed(entries) {
+  const a = new Array(STEPS).fill(R);
+  for (const [s, n2] of entries) if (s >= 0 && s < STEPS) a[s] = n2;
+  return a;
+}
+function walk(rng, scale, root, restProb) {
+  let idx = scale.indexOf(root);
+  if (idx < 0) idx = Math.floor(scale.length / 2);
+  const mel = [];
+  for (let s = 0; s < STEPS; s++) {
+    if (s > 0 && rng() < restProb) {
+      mel.push(R);
+      continue;
+    }
+    const step = [-2, -1, -1, 0, 1, 1, 2][Math.floor(rng() * 7)];
+    idx = Math.max(0, Math.min(scale.length - 1, idx + step));
+    mel.push(scale[idx]);
+  }
+  mel[0] = root;
+  return mel;
+}
+function arrange(numPatterns, bpm, targetSec) {
+  const count = Math.max(numPatterns * 2, Math.round(targetSec / patternSeconds(bpm)));
+  const seq = [];
+  for (let i = 0; i < count; i++) seq.push(i % numPatterns);
+  return seq;
+}
+function everyN(n2) {
+  const a = [];
+  for (let s = 0; s < STEPS; s += n2) a.push(s);
+  return a;
+}
+function breakbeat(rng, ghostProb = 0) {
+  const kickSteps = [0, 6, 10];
+  const snareSteps = [4, 12];
+  for (const s of [2, 7, 9, 14]) if (rng() < ghostProb) snareSteps.push(s);
+  return { kick: hits(kickSteps), snare: hits(snareSteps) };
+}
+function clave() {
+  return hits([0, 3, 6, 10, 12]);
+}
+function arpeggio(root, intervals, stepEvery = 2) {
+  const a = new Array(STEPS).fill(R);
+  for (let s = 0; s < STEPS; s += stepEvery) a[s] = root + intervals[s / stepEvery % intervals.length];
+  return a;
+}
+function composeSong(spec) {
+  const rng = mulberry32(spec.seed);
+  const scale = SCALES[spec.scale];
+  const pan = spec.pan ?? 0;
+  let instruments;
+  const patterns = [];
+  if (spec.archetype === "ambient") {
+    instruments = [PRESETS.warmPad, PRESETS.sweep, PRESETS[spec.lead ?? "glass"], PRESETS.sub];
+    const restProb = spec.restProb ?? 0.55;
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, 0, placed([[0, root], [8, root + 7]])),
+        // warm pad
+        channel(1, 0, placed([[0, root]])),
+        // soothing swell, rings the bar
+        channel(2, pan, walk(rng, scale, root, restProb)),
+        // sparse melody
+        channel(3, 0, placed([[0, root]]))
+        // sub
+      ]);
+    }
+  } else if (spec.archetype === "rhythmic") {
+    instruments = [PRESETS.kick, PRESETS.snare, PRESETS.hat, PRESETS[spec.bass ?? "bass"], PRESETS[spec.lead ?? "pluck"]];
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, 0, hits([0, 4, 8, 12])),
+        // kick — four on the floor
+        channel(1, 0, hits([4, 12])),
+        // snare — backbeat
+        channel(2, 0, hits([0, 2, 4, 6, 8, 10, 12, 14])),
+        // hats — eighths
+        channel(3, 0, placed([[0, root], [3, root], [8, root], [11, root]])),
+        // bass groove
+        channel(4, pan, placed([[0, root], [8, root + 7]]))
+        // chord stab
+      ]);
+    }
+  } else if (spec.archetype === "melodic") {
+    instruments = [PRESETS.pad, PRESETS[spec.lead ?? "bell"], PRESETS.bass, PRESETS.hat];
+    const restProb = spec.restProb ?? 0.3;
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, 0, placed([[0, root], [8, root + 7]])),
+        // pad
+        channel(1, pan, walk(rng, scale, root, restProb)),
+        // lead melody
+        channel(2, 0, placed([[0, root], [8, root]])),
+        // bass
+        channel(3, 0, hits([2, 6, 10, 14]))
+        // light offbeat hats
+      ]);
+    }
+  } else if (spec.archetype === "drumAndBass") {
+    instruments = [PRESETS.breakKick, PRESETS.breakSnare, PRESETS.hat, PRESETS[spec.bass ?? "reese"], PRESETS[spec.lead ?? "pad"]];
+    const restProb = spec.restProb ?? 0.15;
+    for (const root of spec.roots) {
+      const brk = breakbeat(rng, 0.2);
+      patterns.push([
+        channel(0, 0, brk.kick),
+        // breakbeat kick — syncopated, not four-on-the-floor
+        channel(1, 0, brk.snare),
+        // breakbeat snare + occasional ghost hits
+        channel(2, 0, hits(everyN(1))),
+        // fast 16th-note hats
+        channel(3, 0, walk(rng, scale, root, restProb)),
+        // moving sub/reese bass line
+        channel(4, pan, placed([[0, root]]))
+        // sparse dark stab/pad
+      ]);
+    }
+  } else if (spec.archetype === "jungle") {
+    instruments = [PRESETS.breakKick, PRESETS.breakSnare, PRESETS.hat, PRESETS[spec.bass ?? "sub"], PRESETS[spec.lead ?? "glockenspiel"]];
+    const restProb = spec.restProb ?? 0.5;
+    for (const root of spec.roots) {
+      const brk = breakbeat(rng, 0.45);
+      patterns.push([
+        channel(0, 0, brk.kick),
+        channel(1, 0, brk.snare),
+        channel(2, 0, hits(everyN(1))),
+        // fast hats
+        channel(3, 0, placed([[0, root], [10, root]])),
+        // sub bass, half-time anchor
+        channel(4, pan, walk(rng, scale, root, restProb))
+        // echo-y sparse ragga stab/bell lead
+      ]);
+    }
+  } else if (spec.archetype === "classical") {
+    instruments = [PRESETS[spec.lead ?? "harpsichord"], PRESETS.strings, PRESETS.piano];
+    const restProb = spec.restProb ?? 0.2;
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, 0, placed([[0, root], [2, root + 4], [4, root + 7], [6, root + 4], [8, root], [10, root + 4], [12, root + 7], [14, root + 4]])),
+        // arpeggiated harpsichord
+        channel(1, 0, placed([[0, root], [8, root + 7]])),
+        // strings pad, sustained
+        channel(2, pan, walk(rng, scale, root, restProb))
+        // answering phrase — call-and-response
+      ]);
+    }
+  } else if (spec.archetype === "spanishGuitar") {
+    instruments = [PRESETS[spec.lead ?? "nylonGuitar"], PRESETS.clap, PRESETS.sub];
+    const restProb = spec.restProb ?? 0.35;
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, pan, walk(rng, scale, root, restProb)),
+        // passionate arpeggiated lead
+        channel(0, 0, placed([[0, root], [8, root + 7]])),
+        // occasional chord stab (root + fifth)
+        channel(1, 0, hits([6, 14])),
+        // light hand-clap accent, off-beat
+        channel(2, 0, placed([[0, root]]))
+        // grounding low root
+      ]);
+    }
+  } else if (spec.archetype === "cuban") {
+    instruments = [PRESETS.claves, PRESETS.conga, PRESETS.bongo, PRESETS[spec.lead ?? "piano"], PRESETS[spec.bass ?? "bass"]];
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, 0, clave()),
+        // son-clave (3-2)
+        channel(1, 0, hits([2, 6, 9, 13])),
+        // conga tumbao
+        channel(2, 0, hits([0, 4, 8, 11])),
+        // bongo accents
+        channel(3, pan, placed([[2, root], [6, root + 4], [9, root + 7], [13, root + 4]])),
+        // piano-montuno stabs
+        channel(4, 0, placed([[0, root], [8, root]]))
+        // walking bass anchor
+      ]);
+    }
+  } else if (spec.archetype === "bossaNova") {
+    instruments = [PRESETS[spec.lead ?? "nylonGuitar"], PRESETS.brushSnare, PRESETS.shaker, PRESETS.bass];
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, pan, placed([[0, root], [3, root + 4], [6, root + 7], [10, root + 4], [12, root], [14, root + 7]])),
+        // bossa comping pattern
+        channel(1, 0, hits([4, 12])),
+        // soft brushed snare/rim, off-beats
+        channel(2, 0, hits(everyN(2))),
+        // light shaker, eighths
+        channel(3, 0, placed([[0, root], [8, root + 7]]))
+        // relaxed bass
+      ]);
+    }
+  } else if (spec.archetype === "whimsical") {
+    instruments = [PRESETS[spec.lead ?? "glockenspiel"], PRESETS.pluck, PRESETS.hat];
+    for (const root of spec.roots) {
+      const restProb = (spec.restProb ?? 0.3) + rng() * 0.25;
+      patterns.push([
+        channel(0, pan, walk(rng, scale, root, restProb)),
+        // playful skipping melody
+        channel(1, 0, placed([[0, root], [7, root + 3], [11, root]])),
+        // light plucky bass
+        channel(2, 0, hits([3, 9]))
+        // sparse curious tick
+      ]);
+    }
+  } else if (spec.archetype === "chiptune") {
+    instruments = [PRESETS[spec.lead ?? "square"], PRESETS.pulse, PRESETS.breakKick, PRESETS.hat];
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, pan, arpeggio(root, [0, 4, 7, 12], 1)),
+        // fast NES-style broken-chord arpeggio
+        channel(1, 0, placed([[0, root], [8, root + 7]])),
+        // pulse-wave harmony stabs
+        channel(2, 0, hits([0, 4, 8, 12])),
+        // blippy 8-bit kick
+        channel(3, 0, hits(everyN(2)))
+        // simple hats
+      ]);
+    }
+  } else {
+    instruments = [PRESETS.breakKick, PRESETS.brushSnare, PRESETS.shaker, PRESETS[spec.lead ?? "epiano"], PRESETS[spec.bass ?? "bass"]];
+    for (const root of spec.roots) {
+      patterns.push([
+        channel(0, 0, hits([0, 10])),
+        // laid-back kick
+        channel(1, 0, hits([3, 7, 11, 15])),
+        // swung/shuffled snare — off the straight grid
+        channel(2, 0, hits(everyN(2))),
+        // soft shaker, eighths
+        channel(3, pan, placed([[0, root], [8, root + 7]])),
+        // warm filtered e-piano pad
+        channel(4, 0, placed([[0, root], [10, root]]))
+        // mellow jazzy bass
+      ]);
+    }
+  }
+  return {
+    bpm: spec.bpm,
+    // DETERMINISM GUARD, not tidying. `zzfxG` reads parameter index 1 as
+    // `randomness` and detunes the start frequency by `Math.random()` when it is
+    // non-zero — and its default is 0.05, so a preset authored with a SHORT array
+    // (fewer than two entries) would silently re-enable it and make every seed
+    // produce a different render each time. Every preset in the table sets it to
+    // 0 today; normalising here is what stops that from being a property of the
+    // table's current contents. Copies, so PRESETS itself is never mutated.
+    instruments: instruments.map(withoutRandomness),
+    patterns,
+    sequence: arrange(spec.roots.length, spec.bpm, spec.targetSec)
+  };
+}
+function withoutRandomness(inst) {
+  const out = inst.slice();
+  out[1] = 0;
+  return out;
+}
+function generatedSongSpec(seed, targetSec, style) {
+  const rng = mulberry32(seed >>> 0);
+  const pick = (a) => a[Math.floor(rng() * a.length)];
+  const drawn = pick(ZZFXM_SEEDED_ARCHETYPES);
+  const archetype = style ?? drawn;
+  const scale = pick(ZZFXM_SCALES);
+  const pool = SCALES[scale].slice(0, 6);
+  const [lo, hi] = ZZFXM_BPM[archetype];
+  return {
+    archetype,
+    seed: seed >>> 0,
+    scale,
+    targetSec,
+    bpm: Math.round(lo + rng() * (hi - lo)),
+    roots: [12, pick(pool), pick(pool), pick(pool)],
+    pan: Math.round((rng() - 0.5) * 30) / 100
+  };
+}
+var C4, C2, PRESETS, SCALES, STEPS, R, ZZFXM_SEEDED_ARCHETYPES, ZZFXM_BPM, ZZFXM_SCALES;
+var init_zzfx_compose = __esm({
+  "engine/src/zzfx-compose.ts"() {
+    "use strict";
+    init_zzfxm();
+    C4 = 261.63;
+    C2 = 65.41;
+    PRESETS = {
+      // ── tonal (C4 / C2 based) ─────────────────────────────────────────────
+      pad: [0.5, 0, C4, 0.25, 0, 2.2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.6],
+      warmPad: [0.42, 0, C4, 0.3, 0.25, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.55],
+      sweep: [0.3, 0, C4, 1.2, 0.4, 2.8, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5],
+      // slow soothing swell
+      bell: [0.5, 0, C4, 0.01, 0.05, 0.7, 1, 1],
+      glass: [0.42, 0, C4, 5e-3, 0.03, 0.9, 0, 1],
+      piano: [0.4, 0, C4, 2e-3, 0.06, 0.55, 3, 1],
+      // tan-wave, quick attack, natural-ish decay
+      pluck: [0.45, 0, C4, 5e-3, 0.05, 0.5, 2, 1],
+      bass: [0.6, 0, C2, 0.03, 0.15, 0.9, 0],
+      sub: [0.68, 0, C2, 0.05, 0.2, 1.1, 0],
+      // ── drums (struck at note 12; adapted from ZzFXM's table, softened) ────
+      kick: [0.9, 0, 84, 0, 0, 0.1, 0, 0.7, 0, 0, 0, 0.5, 0, 6.7, 1, 0.05],
+      snare: [0.7, 0, 655, 0, 0, 0.09, 3, 1.65, 0, 0, 0, 0, 0.02, 3.8, -0.1, 0, 0.2],
+      hat: [0.5, 0, 4e3, 0, 0, 0.03, 2, 1.25, 0, 0, 0, 0, 0.02, 6.8, -0.3, 0, 0.5],
+      openhat: [0.45, 0, 2100, 0, 0, 0.1, 3, 3, 0, 0, -400, 0, 0, 2],
+      clap: [0.55, 0, 220, 0, 0, 0.1, 3, 0, 0, 0, 320, 0, 0, 4],
+      // ── more tonal voices (C4 / C2 based) — drumAndBass/jungle/classical/
+      // spanishGuitar/cuban/bossaNova/whimsical/chiptune/lofi ─────────────────
+      nylonGuitar: [0.46, 0, C4, 6e-3, 0.07, 0.55, 1, 1.2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.55],
+      // warm plucked nylon/classical guitar
+      harpsichord: [0.38, 0, C4, 2e-3, 0.02, 0.35, 2, 1.6, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0.35],
+      // bright quick-decay pluck, slight metallic crush
+      strings: [0.4, 0, C4, 0.4, 0.3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0.02, 0, 0, 0.6],
+      // slow-attack orchestral pad, gentle shimmer
+      reese: [0.6, 0, C2, 0.02, 0.15, 0.9, 2, 1, -4, 0.15, 0, 0, 0, 0, 0, 0, 0, 0.55],
+      // deep moving sub — slide+deltaSlide give the wobble
+      square: [0.35, 0, C4, 3e-3, 0.05, 0.12, 5, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5],
+      // chiptune square wave (shape 5, 50% duty)
+      pulse: [0.32, 0, C4, 3e-3, 0.04, 0.1, 5, 0.4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.5],
+      // chiptune pulse wave (narrower duty — brighter/buzzier)
+      glockenspiel: [0.42, 0, C4, 2e-3, 0.02, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15, 0.3],
+      // music-box bell: pluck, taper, long ring (uses `decay`)
+      epiano: [0.38, 0, C4, 0.015, 0.12, 0.8, 3, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.4],
+      // warm lo-fi electric-piano-ish keys
+      // ── more drums (struck at note 12; softened in the same spirit as above) ─
+      conga: [0.55, 0, 300, 1e-3, 0.02, 0.15, 1, 1.5, 0, 0, -200, 0.02, 0, 0, 0, 0, 0, 0.4],
+      bongo: [0.5, 0, 450, 1e-3, 0.015, 0.1, 1, 1.5, 0, 0, -250, 0.015, 0, 0, 0, 0, 0, 0.4],
+      claves: [0.5, 0, 2500, 0, 8e-3, 0.05, 1, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3],
+      shaker: [0.35, 0, 6e3, 0, 0, 0.04, 2, 1.2, 0, 0, 0, 0, 0.015, 5, -0.2, 0, 0.3],
+      ride: [0.4, 0, 5e3, 0, 0, 0.5, 2, 1.5, 0, 0, 0, 0, 0.03, 4, -0.15, 0, 0.4],
+      breakKick: [0.85, 0, 100, 0, 0, 0.07, 0, 0.8, 0, 0, 0, 0.35, 0, 5, 1.2, 0.08],
+      // punchier/tighter than `kick` — breakbeat
+      breakSnare: [0.65, 0, 700, 0, 0, 0.065, 3, 1.8, 0, 0, 0, 0, 0.015, 4.5, -0.15, 0, 0.15],
+      // snappier/tighter than `snare` — breakbeat
+      brushSnare: [0.4, 0, 500, 0, 0.015, 0.16, 3, 1.4, 0, 0, 0, 0, 0.03, 2.5, -0.05, 0, 0.1]
+      // soft brushed snare/rim (bossa/lo-fi)
+    };
+    SCALES = {
+      majorPent: [12, 14, 16, 19, 21, 24, 26, 28],
+      // C D E G A …
+      minorPent: [12, 15, 17, 19, 22, 24, 27, 29],
+      // C Eb F G Bb …
+      suspended: [12, 14, 17, 19, 22, 24, 26, 29],
+      // C D F G Bb … airy/open
+      // ── fuller/flavored scales for the new genre families ───────────────────
+      phrygianDominant: [12, 13, 16, 17, 19, 20, 22, 24, 25, 28],
+      // C Db E F G Ab Bb … Spanish/flamenco flavor
+      majorScale: [12, 14, 16, 17, 19, 21, 23, 24, 26, 28, 29],
+      // C D E F G A B … full diatonic major, for classical
+      harmonicMinor: [12, 14, 15, 17, 19, 20, 23, 24, 26, 27, 29]
+      // C D Eb F G Ab B … classical/spanish color
+    };
+    STEPS = 16;
+    R = 0;
+    ZZFXM_SEEDED_ARCHETYPES = [
+      "melodic",
+      "ambient",
+      "lofi",
+      "bossaNova",
+      "rhythmic",
+      "whimsical",
+      "chiptune",
+      "cuban"
+    ];
+    ZZFXM_BPM = {
+      melodic: [60, 84],
+      ambient: [48, 60],
+      lofi: [66, 84],
+      bossaNova: [108, 126],
+      rhythmic: [96, 120],
+      whimsical: [84, 108],
+      chiptune: [132, 160],
+      cuban: [96, 116],
+      drumAndBass: [160, 176],
+      jungle: [158, 174],
+      classical: [72, 96],
+      spanishGuitar: [90, 120]
+    };
+    ZZFXM_SCALES = ["majorPent", "minorPent", "suspended"];
+  }
+});
+
+// engine/src/zzfxm-ref.ts
+function isZzfxmRef(src) {
+  return typeof src === "string" && src.startsWith(ZZFXM_SCHEME);
+}
+function parseZzfxmRef(src) {
+  if (!isZzfxmRef(src)) return null;
+  const parts = src.slice(ZZFXM_SCHEME.length).split(":");
+  if (parts.length > 2) return null;
+  const seedRaw = parts[0] ?? "";
+  if (!SEED_RE.test(seedRaw)) return null;
+  const seed = Number(seedRaw);
+  if (!Number.isSafeInteger(seed) || seed > MAX_SEED) return null;
+  const rawStyle = parts.length === 2 ? parts[1] ?? "" : "";
+  if (!rawStyle) return { seed };
+  const style = ZZFXM_ARCHETYPES.find((a) => a === rawStyle);
+  return style ? { seed, style } : { seed, rawStyle };
+}
+function formatZzfxmRef(ref) {
+  const seed = ref.seed >>> 0;
+  return ref.style ? `${ZZFXM_SCHEME}${seed}:${ref.style}` : `${ZZFXM_SCHEME}${seed}`;
+}
+var ZZFXM_SCHEME, ZZFXM_ARCHETYPES, SEED_RE, MAX_SEED;
+var init_zzfxm_ref = __esm({
+  "engine/src/zzfxm-ref.ts"() {
+    "use strict";
+    ZZFXM_SCHEME = "zzfxm:";
+    ZZFXM_ARCHETYPES = [
+      "ambient",
+      "rhythmic",
+      "melodic",
+      "drumAndBass",
+      "jungle",
+      "classical",
+      "spanishGuitar",
+      "cuban",
+      "bossaNova",
+      "whimsical",
+      "chiptune",
+      "lofi"
+    ];
+    SEED_RE = /^(0|[1-9][0-9]{0,9})$/;
+    MAX_SEED = 4294967295;
+  }
+});
+
+// engine/src/css-box.ts
+function normalCdf(x) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989422804014327 * Math.exp(-x * x / 2);
+  const p = d * t * (0.31938153 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return x >= 0 ? 1 - p : p;
+}
+function gaussianShadowBands(blur, alpha, bands) {
+  const sigma = blur / 2;
+  if (!(sigma > 0) || !(alpha > 0)) return [];
+  const n2 = Math.max(8, Math.min(bands ?? 160, Math.round(4 * sigma)));
+  const reach = 3 * sigma;
+  const step = 2 * reach / n2;
+  const out = [];
+  let acc = 0;
+  for (let i = 0; i < n2; i++) {
+    const outer = reach - i * step;
+    const target = alpha * (1 - normalCdf((outer - step / 2) / sigma));
+    if (target <= acc) continue;
+    const a = (target - acc) / (1 - acc);
+    if (a > 5e-4) {
+      out.push({ outset: outer, alpha: Math.min(1, a) });
+      acc = target;
+    }
+  }
+  return out;
+}
+function gaussianShadowRings(blur, alpha, bands) {
+  const inc = gaussianShadowBands(blur, alpha, bands);
+  if (!inc.length) return [];
+  const out = [];
+  let acc = 0;
+  for (let i = 0; i < inc.length; i++) {
+    acc = acc + inc[i].alpha * (1 - acc);
+    out.push({ outer: inc[i].outset, inner: i + 1 < inc.length ? inc[i + 1].outset : null, alpha: acc });
+  }
+  return out;
+}
+var init_css_box = __esm({
+  "engine/src/css-box.ts"() {
+    "use strict";
+  }
+});
+
+// engine/src/geom/bezier.ts
+function lineToCubic(x0, y0, x1, y1) {
+  return [x0, y0, x0 + (x1 - x0) / 3, y0 + (y1 - y0) / 3, x0 + 2 * (x1 - x0) / 3, y0 + 2 * (y1 - y0) / 3, x1, y1];
+}
+function evalCubic(c, t) {
+  const mt = 1 - t;
+  const a = mt * mt * mt, b = 3 * mt * mt * t, d = 3 * mt * t * t, e = t * t * t;
+  return {
+    x: a * c[0] + b * c[2] + d * c[4] + e * c[6],
+    y: a * c[1] + b * c[3] + d * c[5] + e * c[7]
+  };
+}
+function tangentAt(c, t) {
+  const mt = 1 - t;
+  const a = 3 * mt * mt, b = 6 * mt * t, d = 3 * t * t;
+  return {
+    x: a * (c[2] - c[0]) + b * (c[4] - c[2]) + d * (c[6] - c[4]),
+    y: a * (c[3] - c[1]) + b * (c[5] - c[3]) + d * (c[7] - c[5])
+  };
+}
+function splitCubic(c, t) {
+  const [x0, y0, x1, y1, x2, y2, x3, y3] = c;
+  const ax = x0 + (x1 - x0) * t, ay = y0 + (y1 - y0) * t;
+  const bx = x1 + (x2 - x1) * t, by = y1 + (y2 - y1) * t;
+  const cx = x2 + (x3 - x2) * t, cy = y2 + (y3 - y2) * t;
+  const dx = ax + (bx - ax) * t, dy = ay + (by - ay) * t;
+  const ex = bx + (cx - bx) * t, ey = by + (cy - by) * t;
+  const fx = dx + (ex - dx) * t, fy = dy + (ey - dy) * t;
+  return [
+    [x0, y0, ax, ay, dx, dy, fx, fy],
+    [fx, fy, ex, ey, cx, cy, x3, y3]
+  ];
+}
+function subCubic(c, t0, t1) {
+  if (t0 === 0 && t1 === 1) return [...c];
+  if (t0 > t1) return subCubic(c, t1, t0);
+  const right = t0 > 0 ? splitCubic(c, t0)[1] : c;
+  if (t1 >= 1) return [...right];
+  const t = t0 > 0 ? (t1 - t0) / (1 - t0) : t1;
+  return splitCubic(right, t)[0];
+}
+function quadRoots01(a, b, c) {
+  const out = [];
+  if (Math.abs(a) < 1e-12) {
+    if (Math.abs(b) > 1e-12) {
+      const t = -c / b;
+      if (t > 0 && t < 1) out.push(t);
+    }
+    return out;
+  }
+  const disc = b * b - 4 * a * c;
+  if (disc < 0) return out;
+  const s = Math.sqrt(disc);
+  for (const t of [(-b + s) / (2 * a), (-b - s) / (2 * a)]) if (t > 0 && t < 1) out.push(t);
+  return out;
+}
+function extremaCubic(c) {
+  const ts = [];
+  for (const off of [0, 1]) {
+    const p0 = c[off], p1 = c[2 + off], p2 = c[4 + off], p3 = c[6 + off];
+    ts.push(...quadRoots01(
+      3 * (-p0 + 3 * p1 - 3 * p2 + p3),
+      6 * (p0 - 2 * p1 + p2),
+      3 * (p1 - p0)
+    ));
+  }
+  return ts.sort((a, b) => a - b);
+}
+function boundsCubic(c) {
+  let x0 = Math.min(c[0], c[6]), x1 = Math.max(c[0], c[6]);
+  let y0 = Math.min(c[1], c[7]), y1 = Math.max(c[1], c[7]);
+  for (const t of extremaCubic(c)) {
+    const p = evalCubic(c, t);
+    if (p.x < x0) x0 = p.x;
+    if (p.x > x1) x1 = p.x;
+    if (p.y < y0) y0 = p.y;
+    if (p.y > y1) y1 = p.y;
+  }
+  return { x0, y0, x1, y1 };
+}
+function hullBounds(c) {
+  return {
+    x0: Math.min(c[0], c[2], c[4], c[6]),
+    x1: Math.max(c[0], c[2], c[4], c[6]),
+    y0: Math.min(c[1], c[3], c[5], c[7]),
+    y1: Math.max(c[1], c[3], c[5], c[7])
+  };
+}
+function boxesOverlap(a, b, eps = 0) {
+  return a.x0 - eps <= b.x1 && b.x0 - eps <= a.x1 && a.y0 - eps <= b.y1 && b.y0 - eps <= a.y1;
+}
+function flatnessCubic(c) {
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < 1e-12) {
+    return Math.max(Math.hypot(c[2] - c[0], c[3] - c[1]), Math.hypot(c[4] - c[0], c[5] - c[1]));
+  }
+  const d1 = Math.abs((c[2] - c[0]) * dy - (c[3] - c[1]) * dx) / len2;
+  const d2 = Math.abs((c[4] - c[0]) * dy - (c[5] - c[1]) * dx) / len2;
+  return Math.max(d1, d2);
+}
+function isLineCubic(c, tol = 1e-9) {
+  return flatnessCubic(c) <= tol;
+}
+function polyEval(co, n2, t) {
+  let v = 0;
+  for (let i = n2; i >= 0; i--) v = v * t + co[i];
+  return v;
+}
+function polyEvalD(co, n2, t) {
+  let v = co[n2], dv = 0;
+  for (let i = n2 - 1; i >= 0; i--) {
+    dv = dv * t + v;
+    v = v * t + co[i];
+  }
+  EV_SLOPE = dv;
+  return v;
+}
+function rootInBracket(co, n2, lo, hi, flo, fhi, fTol) {
+  let a = lo, b = hi, fa = flo, fb = fhi;
+  let t = a + (b - a) * fa / (fa - fb);
+  if (!(t > a && t < b)) t = (a + b) / 2;
+  for (let i = 0; i < 80; i++) {
+    const f = polyEvalD(co, n2, t);
+    if (f === 0 || Math.abs(f) <= fTol) return t;
+    if (f < 0 === fa < 0) {
+      a = t;
+      fa = f;
+    } else {
+      b = t;
+      fb = f;
+    }
+    if (b - a <= 4e-16) break;
+    const df = EV_SLOPE;
+    let next = df !== 0 ? t - f / df : Number.NaN;
+    if (!(next > a && next < b)) next = a + (b - a) * fa / (fa - fb);
+    if (i >= 8 && (i & 1) === 0 || !(next > a && next < b)) next = (a + b) / 2;
+    if (next === t) break;
+    t = next;
+  }
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+}
+function rootsIn01(co, len2, depth, out, withCritical = false, minimaOnly = false) {
+  let scale = 0;
+  for (let i = 0; i < len2; i++) {
+    const a = Math.abs(co[i]);
+    if (a > scale) scale = a;
+  }
+  if (!(scale > 0) || !Number.isFinite(scale)) return 0;
+  let n2 = len2 - 1;
+  while (n2 > 0 && Math.abs(co[n2]) <= scale * 1e-14) n2--;
+  if (n2 < 1) return 0;
+  const fTol = scale * 8e-16;
+  if (n2 === 1) {
+    const t = -co[0] / co[1];
+    if (t >= 0 && t <= 1) {
+      out[0] = t;
+      return 1;
+    }
+    return 0;
+  }
+  if (n2 === 2) {
+    const cc = co[0], bb = co[1], aa = co[2];
+    const disc = bb * bb - 4 * aa * cc;
+    if (disc < 0) return 0;
+    const s = Math.sqrt(disc);
+    const r1 = (-bb - (bb < 0 ? -s : s)) / 2;
+    const t1 = r1 / aa;
+    const t2 = r1 !== 0 ? cc / r1 : t1;
+    const lo = Math.min(t1, t2), hi = Math.max(t1, t2);
+    let count2 = 0;
+    if (lo >= 0 && lo <= 1) out[count2++] = lo;
+    if (hi > lo && hi >= 0 && hi <= 1) out[count2++] = hi;
+    return count2;
+  }
+  const dc = CO_BUF[depth + 1];
+  for (let i = 1; i <= n2; i++) dc[i - 1] = co[i] * i;
+  const knots = KN_BUF[depth];
+  const nk = rootsIn01(dc, n2, depth + 1, knots);
+  let count = 0;
+  let pt = 0, pf = polyEval(co, n2, 0);
+  if (pf === 0) out[count++] = 0;
+  for (let i = 0; i <= nk; i++) {
+    const k = i < nk ? knots[i] : 1;
+    if (k <= pt) {
+      pt = k;
+      continue;
+    }
+    const f = polyEval(co, n2, k);
+    if (f === 0) out[count++] = k;
+    else if (pf < 0 && f > 0) out[count++] = rootInBracket(co, n2, pt, k, pf, f, fTol);
+    else if (pf > 0 && f < 0 && !minimaOnly) out[count++] = rootInBracket(co, n2, pt, k, pf, f, fTol);
+    pt = k;
+    pf = f;
+  }
+  if (withCritical) for (let i = 0; i < nk; i++) out[count++] = knots[i];
+  return count;
+}
+function nearestOnCubic(c, px, py, _samples) {
+  const ax = -c[0] + 3 * c[2] - 3 * c[4] + c[6], ay = -c[1] + 3 * c[3] - 3 * c[5] + c[7];
+  const bx = 3 * c[0] - 6 * c[2] + 3 * c[4], by = 3 * c[1] - 6 * c[3] + 3 * c[5];
+  const dx = -3 * c[0] + 3 * c[2], dy = -3 * c[1] + 3 * c[3];
+  const fx = c[0] - px, fy = c[1] - py;
+  const AA = ax * ax + ay * ay, AB = ax * bx + ay * by, AD = ax * dx + ay * dy, AF = ax * fx + ay * fy;
+  const BB = bx * bx + by * by, BD = bx * dx + by * dy, BF = bx * fx + by * fy;
+  const DD = dx * dx + dy * dy, DF = dx * fx + dy * fy;
+  const q = CO_BUF[0];
+  q[0] = DF;
+  q[1] = DD + 2 * BF;
+  q[2] = 3 * (BD + AF);
+  q[3] = 4 * AD + 2 * BB;
+  q[4] = 5 * AB;
+  q[5] = 3 * AA;
+  const cand = NEAREST_OUT;
+  const n2 = rootsIn01(q, 6, 0, cand, true, true);
+  cand[n2] = 0;
+  cand[n2 + 1] = 1;
+  let bestT = 0, bestD2 = Infinity, bestP = { x: c[0], y: c[1] };
+  for (let i = 0; i <= n2 + 1; i++) {
+    let t = cand[i];
+    if (!(t >= 0)) t = 0;
+    else if (t > 1) t = 1;
+    const p = evalCubic(c, t);
+    const d2 = (p.x - px) ** 2 + (p.y - py) ** 2;
+    if (d2 < bestD2) {
+      bestD2 = d2;
+      bestT = t;
+      bestP = p;
+    }
+  }
+  return { t: bestT, point: bestP, distance: Math.sqrt(bestD2) };
+}
+var CO_BUF, KN_BUF, NEAREST_OUT, EV_SLOPE;
+var init_bezier = __esm({
+  "engine/src/geom/bezier.ts"() {
+    "use strict";
+    CO_BUF = [];
+    KN_BUF = [];
+    for (let i = 0; i <= 6; i++) {
+      CO_BUF.push(new Float64Array(6));
+      KN_BUF.push(new Float64Array(16));
+    }
+    NEAREST_OUT = new Float64Array(16);
+    EV_SLOPE = 0;
+  }
+});
+
+// engine/src/geom/intersect.ts
+function intersectSegments(ax0, ay0, ax1, ay1, bx0, by0, bx1, by1) {
+  const rx = ax1 - ax0, ry = ay1 - ay0;
+  const sx = bx1 - bx0, sy = by1 - by0;
+  const denom = rx * sy - ry * sx;
+  if (Math.abs(denom) < 1e-14) return null;
+  const qpx = bx0 - ax0, qpy = by0 - ay0;
+  const t = (qpx * sy - qpy * sx) / denom;
+  const u = (qpx * ry - qpy * rx) / denom;
+  if (t < -T_EPS || t > 1 + T_EPS || u < -T_EPS || u > 1 + T_EPS) return null;
+  const tc = Math.min(1, Math.max(0, t)), uc = Math.min(1, Math.max(0, u));
+  return { t1: tc, t2: uc, x: ax0 + rx * tc, y: ay0 + ry * tc };
+}
+function cubicRoots01(a, b, c, d) {
+  const out = [];
+  const push = (t) => {
+    if (t >= -T_EPS && t <= 1 + T_EPS) out.push(Math.min(1, Math.max(0, t)));
+  };
+  if (Math.abs(a) < 1e-12) {
+    if (Math.abs(b) < 1e-12) {
+      if (Math.abs(c) > 1e-12) push(-d / c);
+      return dedupeRoots(out);
+    }
+    const disc2 = c * c - 4 * b * d;
+    if (disc2 < 0) return [];
+    const s = Math.sqrt(disc2);
+    push((-c + s) / (2 * b));
+    push((-c - s) / (2 * b));
+    return dedupeRoots(out);
+  }
+  const b1 = b / a, c1 = c / a, d1 = d / a;
+  const p = c1 - b1 * b1 / 3;
+  const q = 2 * b1 * b1 * b1 / 27 - b1 * c1 / 3 + d1;
+  const shift = -b1 / 3;
+  const disc = q * q / 4 + p * p * p / 27;
+  if (disc > 1e-18) {
+    const s = Math.sqrt(disc);
+    push(Math.cbrt(-q / 2 + s) + Math.cbrt(-q / 2 - s) + shift);
+  } else if (disc > -1e-18) {
+    const u = Math.cbrt(-q / 2);
+    push(2 * u + shift);
+    push(-u + shift);
+  } else {
+    const r = Math.sqrt(-(p * p * p) / 27);
+    const phi = Math.acos(Math.min(1, Math.max(-1, -q / (2 * r))));
+    const m = 2 * Math.cbrt(r);
+    for (let k = 0; k < 3; k++) push(m * Math.cos((phi + 2 * Math.PI * k) / 3) + shift);
+  }
+  const polished = out.map((t0) => {
+    let t = t0;
+    for (let i = 0; i < 2; i++) {
+      const f = ((a * t + b) * t + c) * t + d;
+      const df = (3 * a * t + 2 * b) * t + c;
+      if (Math.abs(df) < 1e-14) break;
+      const next = t - f / df;
+      if (next < -T_EPS || next > 1 + T_EPS) break;
+      t = next;
+    }
+    return Math.min(1, Math.max(0, t));
+  });
+  return dedupeRoots(polished);
+}
+function dedupeRoots(ts) {
+  const s = ts.slice().sort((x, y) => x - y);
+  const out = [];
+  for (const t of s) if (!out.length || t - out[out.length - 1] > 1e-9) out.push(t);
+  return out;
+}
+function intersectLineCubic(x0, y0, x1, y1, c, tol = EPS) {
+  const dx = x1 - x0, dy = y1 - y0;
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < 1e-12) return [];
+  const nx = -dy / len2, ny = dx / len2;
+  const dist = (px, py) => nx * (px - x0) + ny * (py - y0);
+  const d0 = dist(c[0], c[1]), d1 = dist(c[2], c[3]), d2 = dist(c[4], c[5]), d3 = dist(c[6], c[7]);
+  const A = -d0 + 3 * d1 - 3 * d2 + d3;
+  const B = 3 * d0 - 6 * d1 + 3 * d2;
+  const C = -3 * d0 + 3 * d1;
+  const D = d0;
+  const out = [];
+  for (const t of cubicRoots01(A, B, C, D)) {
+    const p = evalCubic(c, t);
+    const u = ((p.x - x0) * dx + (p.y - y0) * dy) / (len2 * len2);
+    if (u < -tol / len2 || u > 1 + tol / len2) continue;
+    out.push({ t1: Math.min(1, Math.max(0, u)), t2: t, x: p.x, y: p.y });
+  }
+  return out;
+}
+function fatLine(c) {
+  let dx = c[6] - c[0], dy = c[7] - c[1];
+  if (Math.hypot(dx, dy) < 1e-12) {
+    dx = c[4] - c[0];
+    dy = c[5] - c[1];
+    if (Math.hypot(dx, dy) < 1e-12) return null;
+  }
+  const len2 = Math.hypot(dx, dy);
+  const nx = -dy / len2, ny = dx / len2;
+  const c0 = nx * c[0] + ny * c[1];
+  const d1 = nx * c[2] + ny * c[3] - c0;
+  const d2 = nx * c[4] + ny * c[5] - c0;
+  const k = d1 * d2 > 0 ? 3 / 4 : 4 / 9;
+  const dMin = k * Math.min(0, d1, d2);
+  const dMax = k * Math.max(0, d1, d2);
+  return { nx, ny, c0, dMin, dMax };
+}
+function clipToFatLine(c, fat) {
+  const d = [
+    fat.nx * c[0] + fat.ny * c[1] - fat.c0,
+    fat.nx * c[2] + fat.ny * c[3] - fat.c0,
+    fat.nx * c[4] + fat.ny * c[5] - fat.c0,
+    fat.nx * c[6] + fat.ny * c[7] - fat.c0
+  ];
+  const pts = d.map((v, i) => ({ x: i / 3, y: v }));
+  const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+  const chain2 = (sign) => {
+    const h = [];
+    for (const p of pts) {
+      while (h.length >= 2 && sign * cross(h[h.length - 2], h[h.length - 1], p) <= 0) h.pop();
+      h.push(p);
+    }
+    return h;
+  };
+  const upper = chain2(-1), lower = chain2(1);
+  const crossings = (h, level) => {
+    const ts2 = [];
+    for (let i = 1; i < h.length; i++) {
+      const a = h[i - 1], b = h[i];
+      if ((a.y - level) * (b.y - level) <= 0 && Math.abs(b.y - a.y) > 1e-18) {
+        ts2.push(a.x + (level - a.y) * (b.x - a.x) / (b.y - a.y));
+      }
+    }
+    return ts2;
+  };
+  const inBand = (v) => v >= fat.dMin - 1e-12 && v <= fat.dMax + 1e-12;
+  const ts = [];
+  for (const h of [upper, lower]) {
+    ts.push(...crossings(h, fat.dMin), ...crossings(h, fat.dMax));
+  }
+  if (inBand(d[0])) ts.push(0);
+  if (inBand(d[3])) ts.push(1);
+  if (!ts.length) return null;
+  const lo = Math.max(0, Math.min(...ts)), hi = Math.min(1, Math.max(...ts));
+  return hi < lo ? null : [lo, hi];
+}
+function clipIntersect(c1, c2, t1lo, t1hi, t2lo, t2hi, tol, depth, out, swap = false) {
+  const emit = (t1, t2, x, y) => out.push(swap ? { t1: t2, t2: t1, x, y } : { t1, t2, x, y });
+  if (out.length > 128 || depth > 60) return;
+  if (!boxesOverlap(hullBounds(c1), hullBounds(c2), tol)) return;
+  const s1 = Math.hypot(c1[6] - c1[0], c1[7] - c1[1]) + flatnessCubic(c1);
+  const s2 = Math.hypot(c2[6] - c2[0], c2[7] - c2[1]) + flatnessCubic(c2);
+  if (s1 <= tol && s2 <= tol) {
+    const p = evalCubic(c1, 0.5);
+    emit((t1lo + t1hi) / 2, (t2lo + t2hi) / 2, p.x, p.y);
+    return;
+  }
+  const fat = fatLine(c2);
+  const clipped = fat ? clipToFatLine(c1, fat) : [0, 1];
+  if (!clipped) return;
+  const [lo, hi] = clipped;
+  const shrink = hi - lo;
+  if (shrink > 0.8) {
+    if (s1 >= s2) {
+      const [a, b] = splitCubic(c1, 0.5);
+      const mid2 = (t1lo + t1hi) / 2;
+      clipIntersect(a, c2, t1lo, mid2, t2lo, t2hi, tol, depth + 1, out, swap);
+      clipIntersect(b, c2, mid2, t1hi, t2lo, t2hi, tol, depth + 1, out, swap);
+    } else {
+      const [a, b] = splitCubic(c2, 0.5);
+      const mid2 = (t2lo + t2hi) / 2;
+      clipIntersect(c1, a, t1lo, t1hi, t2lo, mid2, tol, depth + 1, out, swap);
+      clipIntersect(c1, b, t1lo, t1hi, mid2, t2hi, tol, depth + 1, out, swap);
+    }
+    return;
+  }
+  const nc1 = subCubic(c1, lo, hi);
+  const nt1lo = t1lo + (t1hi - t1lo) * lo;
+  const nt1hi = t1lo + (t1hi - t1lo) * hi;
+  clipIntersect(c2, nc1, t2lo, t2hi, nt1lo, nt1hi, tol, depth + 1, out, !swap);
+}
+function dedupe(list, tol) {
+  const out = [];
+  for (const i of list) {
+    if (!out.some((o) => Math.hypot(o.x - i.x, o.y - i.y) <= tol * 8 && Math.abs(o.t1 - i.t1) <= 1e-6 + tol && Math.abs(o.t2 - i.t2) <= 1e-6 + tol)) out.push(i);
+  }
+  return out.sort((a, b) => a.t1 - b.t1);
+}
+function chordFractionToParam(c, u) {
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  const l2 = dx * dx + dy * dy;
+  if (l2 < 1e-24) return u;
+  const g2 = [
+    0,
+    ((c[2] - c[0]) * dx + (c[3] - c[1]) * dy) / l2,
+    ((c[4] - c[0]) * dx + (c[5] - c[1]) * dy) / l2,
+    1
+  ];
+  if (Math.abs(g2[1] - 1 / 3) < 1e-12 && Math.abs(g2[2] - 2 / 3) < 1e-12) return u;
+  const A = -g2[0] + 3 * g2[1] - 3 * g2[2] + g2[3];
+  const B = 3 * g2[0] - 6 * g2[1] + 3 * g2[2];
+  const C = -3 * g2[0] + 3 * g2[1];
+  const D = g2[0] - u;
+  const roots = cubicRoots01(A, B, C, D);
+  if (!roots.length) return u;
+  let best = roots[0], bestErr = Infinity;
+  for (const t of roots) {
+    const mt = 1 - t;
+    const val = mt * mt * mt * g2[0] + 3 * mt * mt * t * g2[1] + 3 * mt * t * t * g2[2] + t * t * t * g2[3];
+    const err = Math.abs(val - u);
+    if (err < bestErr) {
+      bestErr = err;
+      best = t;
+    }
+  }
+  return best;
+}
+function intersectCubics(c1, c2, tol = EPS) {
+  if (!boxesOverlap(boundsCubic(c1), boundsCubic(c2), tol)) return [];
+  const l1 = isLineCubic(c1, tol), l2 = isLineCubic(c2, tol);
+  if (l1 && l2) {
+    const hit = intersectSegments(c1[0], c1[1], c1[6], c1[7], c2[0], c2[1], c2[6], c2[7]);
+    if (!hit) return [];
+    return [{
+      ...hit,
+      t1: chordFractionToParam(c1, hit.t1),
+      t2: chordFractionToParam(c2, hit.t2)
+    }];
+  }
+  if (l1) {
+    return dedupe(intersectLineCubic(c1[0], c1[1], c1[6], c1[7], c2, tol).map((i) => ({ ...i, t1: chordFractionToParam(c1, i.t1) })), tol);
+  }
+  if (l2) {
+    return dedupe(intersectLineCubic(c2[0], c2[1], c2[6], c2[7], c1, tol).map((i) => ({ t1: i.t2, t2: chordFractionToParam(c2, i.t1), x: i.x, y: i.y })), tol);
+  }
+  const out = [];
+  clipIntersect(c1, c2, 0, 1, 0, 1, tol, 0, out);
+  return dedupe(out, tol);
+}
+var EPS, T_EPS;
+var init_intersect = __esm({
+  "engine/src/geom/intersect.ts"() {
+    "use strict";
+    init_bezier();
+    EPS = 1e-9;
+    T_EPS = 1e-9;
+  }
+});
+
+// engine/src/geom/path.ts
+function contourStart(c) {
+  const f = c.curves[0];
+  return f ? { x: f[0], y: f[1] } : null;
+}
+function contourEnd(c) {
+  const l = c.curves[c.curves.length - 1];
+  return l ? { x: l[6], y: l[7] } : null;
+}
+function closeContour(c) {
+  const s = contourStart(c), e = contourEnd(c);
+  if (!s || !e) return { curves: [...c.curves], closed: true };
+  const gap = Math.hypot(e.x - s.x, e.y - s.y);
+  if (gap <= JOIN_EPS) return { curves: [...c.curves], closed: true };
+  return { curves: [...c.curves, lineToCubic(e.x, e.y, s.x, s.y)], closed: true };
+}
+function contourArea(c) {
+  let a = 0;
+  for (const k of c.curves) {
+    a += (k[0] * (6 * k[3] + 3 * k[5] + k[7]) + k[2] * (-6 * k[1] + 3 * k[5] + 3 * k[7]) + k[4] * (-3 * k[1] - 3 * k[3] + 6 * k[7]) + k[6] * (-k[1] - 3 * k[3] - 6 * k[5])) / 20;
+  }
+  const s = contourStart(c), e = contourEnd(c);
+  if (s && e) a += (e.x * s.y - s.x * e.y) / 2;
+  return a;
+}
+function reverseContour(c) {
+  const curves = c.curves.map((k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]]).reverse();
+  return { curves, closed: c.closed };
+}
+function pathBounds(p) {
+  let box2 = null;
+  for (const c of p) {
+    for (const k of c.curves) {
+      const b = boundsCubic(k);
+      box2 = box2 ? {
+        x0: Math.min(box2.x0, b.x0),
+        y0: Math.min(box2.y0, b.y0),
+        x1: Math.max(box2.x1, b.x1),
+        y1: Math.max(box2.y1, b.y1)
+      } : b;
+    }
+  }
+  return box2;
+}
+function compactPath(p) {
+  return p.filter((c) => c.curves.some((k) => {
+    const b = boundsCubic(k);
+    return b.x1 - b.x0 > JOIN_EPS || b.y1 - b.y0 > JOIN_EPS;
+  }));
+}
+function pathFromSubPaths(subs) {
+  const out = [];
+  for (const sub of subs) {
+    const curves = [];
+    let cx = 0, cy = 0, started = false;
+    for (const seg of sub.segments) {
+      if (seg.op === "M") {
+        cx = seg.x;
+        cy = seg.y;
+        started = true;
+        continue;
+      }
+      if (!started) {
+        cx = 0;
+        cy = 0;
+        started = true;
+      }
+      if (seg.op === "L") {
+        curves.push(lineToCubic(cx, cy, seg.x, seg.y));
+      } else {
+        curves.push([cx, cy, seg.x1, seg.y1, seg.x2, seg.y2, seg.x, seg.y]);
+      }
+      cx = seg.x;
+      cy = seg.y;
+    }
+    if (curves.length) out.push({ curves, closed: sub.closed });
+  }
+  return out;
+}
+function num(v, dp) {
+  const s = v.toFixed(dp);
+  return s.replace(/\.?0+$/, "") || "0";
+}
+function toSvgPathData(p, dp = 4) {
+  const parts = [];
+  for (const c of p) {
+    const first = c.curves[0];
+    if (!first) continue;
+    parts.push(`M${num(first[0], dp)} ${num(first[1], dp)}`);
+    for (const k of c.curves) {
+      if (isStraight(k)) {
+        parts.push(`L${num(k[6], dp)} ${num(k[7], dp)}`);
+      } else {
+        parts.push(`C${num(k[2], dp)} ${num(k[3], dp)} ${num(k[4], dp)} ${num(k[5], dp)} ${num(k[6], dp)} ${num(k[7], dp)}`);
+      }
+    }
+    if (c.closed) parts.push("Z");
+  }
+  return parts.join("");
+}
+function isStraight(k, tol = 1e-9) {
+  const dx = k[6] - k[0], dy = k[7] - k[1];
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < tol) return false;
+  for (const [px, py, want] of [[k[2], k[3], 1 / 3], [k[4], k[5], 2 / 3]]) {
+    const p = { x: k[0] + dx * want, y: k[1] + dy * want };
+    if (Math.hypot(px - p.x, py - p.y) > tol * Math.max(1, len2)) return false;
+  }
+  return true;
+}
+var JOIN_EPS;
+var init_path = __esm({
+  "engine/src/geom/path.ts"() {
+    "use strict";
+    init_bezier();
+    JOIN_EPS = 1e-7;
+  }
+});
+
+// engine/src/geom/boolean.ts
+function newBudget() {
+  return { splits: MAX_SPLITS, pairs: MAX_PAIRS, work: MAX_WORK };
+}
+function usableTol(tol) {
+  return typeof tol === "number" && Number.isFinite(tol) && tol > 0 ? tol : EPS;
+}
+function booleanPath(a, b, op, opts = {}) {
+  const tol = usableTol(opts.tol);
+  const A = selfUnion(a, opts);
+  const B = selfUnion(b, opts);
+  if (!A.length || !B.length) return withEmptyOperand(A, B, op);
+  const boxA = pathBounds(A), boxB = pathBounds(B);
+  if (!boxA || !boxB) return withEmptyOperand(A, B, op);
+  const span = Math.max(boxA.x1 - boxA.x0, boxA.y1 - boxA.y0, boxB.x1 - boxB.x0, boxB.y1 - boxB.y0, 1);
+  const weld = Math.max(tol, JOIN_EPS) * span;
+  const near = weld * 0.01;
+  if (boxA.x1 + weld < boxB.x0 || boxB.x1 + weld < boxA.x0 || boxA.y1 + weld < boxB.y0 || boxB.y1 + weld < boxA.y0) return disjointResult(A, B, op);
+  const idxA = buildIndex(A), idxB = buildIndex(B);
+  if (idxA.curves.length > MAX_CURVES || idxB.curves.length > MAX_CURVES) {
+    return abandon(A, B, op, `${idxA.curves.length}+${idxB.curves.length} curves over the ${MAX_CURVES} ceiling`);
+  }
+  const budget = newBudget();
+  const splitsA = idxA.curves.map(() => []);
+  const splitsB = idxB.curves.map(() => []);
+  crossSplits(idxA.curves, idxB.curves, splitsA, splitsB, tol, weld, budget);
+  const edges = [
+    ...splitIntoEdges(idxA.curves, splitsA, weld),
+    ...splitIntoEdges(idxB.curves, splitsB, weld)
+  ];
+  const kept = [];
+  for (const e of edges) {
+    const m = evalCubic(e, 0.5);
+    const ref = midTangent(e);
+    const wa = sideWindings(idxA, m.x, m.y, ref.x, ref.y, near, budget);
+    const wb = sideWindings(idxB, m.x, m.y, ref.x, ref.y, near, budget);
+    const left = combine(wa.left !== 0, wb.left !== 0, op);
+    const right = combine(wa.right !== 0, wb.right !== 0, op);
+    if (left === right) continue;
+    kept.push(left ? e : reverseCubic(e));
+  }
+  if (budget.work <= 0) return abandon(A, B, op, "the work budget ran out mid-classification");
+  return compactPath(walkLoops(dedupeEdges(kept, weld), weld));
+}
+function unionPath(a, b, opts) {
+  return booleanPath(a, b, "union", opts);
+}
+function intersectPath(a, b, opts) {
+  return booleanPath(a, b, "intersection", opts);
+}
+function differencePath(a, b, opts) {
+  return booleanPath(a, b, "difference", opts);
+}
+function xorPath(a, b, opts) {
+  return booleanPath(a, b, "xor", opts);
+}
+function selfUnion(p, opts = {}) {
+  const tol = usableTol(opts.tol);
+  const rule = opts.fillRule ?? "nonzero";
+  const path = normalise2(p);
+  if (!path.length) return [];
+  const idx = buildIndex(path);
+  const box2 = idx.box;
+  if (!box2 || !idx.curves.length) return [];
+  const span = Math.max(box2.x1 - box2.x0, box2.y1 - box2.y0, 1);
+  const weld = Math.max(tol, JOIN_EPS) * span;
+  const near = weld * 0.01;
+  if (idx.curves.length > MAX_CURVES) return path;
+  const budget = newBudget();
+  const splits = idx.curves.map(() => []);
+  selfSplits(idx.curves, splits, tol, weld, budget);
+  if (path.length === 1 && !splits.some((s) => s.length) && !selfTouching(path[0], weld)) {
+    const only = path[0];
+    const probe = only.curves[0];
+    const m = evalCubic(probe, 0.5);
+    const ref = midTangent(probe);
+    const w = sideWindings(idx, m.x, m.y, ref.x, ref.y, near, budget);
+    return [filled(w.left, rule) ? only : reverseContour(only)];
+  }
+  const kept = [];
+  for (const c of splitIntoEdges(idx.curves, splits, weld)) {
+    const m = evalCubic(c, 0.5);
+    const ref = midTangent(c);
+    const w = sideWindings(idx, m.x, m.y, ref.x, ref.y, near, budget);
+    const left = filled(w.left, rule), right = filled(w.right, rule);
+    if (left === right) continue;
+    kept.push(left ? c : reverseCubic(c));
+  }
+  if (budget.work <= 0) return path;
+  return compactPath(walkLoops(dedupeEdges(kept, weld), weld));
+}
+function windingNumber(p, x, y) {
+  if (!Number.isFinite(x) || !Number.isFinite(y)) return 0;
+  const idx = buildIndex(normalise2(p));
+  const box2 = idx.box;
+  if (!box2 || !idx.curves.length) return 0;
+  const span = Math.max(box2.x1 - box2.x0, box2.y1 - box2.y0, 1);
+  const near = Math.max(EPS, JOIN_EPS) * span * 0.01;
+  const budget = newBudget();
+  let last = 0;
+  for (const d2 of RAY_DIRS) {
+    const cast2 = castRay(idx, x, y, d2[0], d2[1], null, near, budget);
+    if (cast2.ok) return cast2.far;
+    last = cast2.far;
+    if (budget.work <= 0) return last;
+  }
+  const d = RAY_DIRS[0];
+  const cast = castRay(idx, x, y, d[0], d[1], null, near, budget, true);
+  return cast.ok || budget.work > 0 ? cast.far : last;
+}
+function pointInPath(p, x, y, rule = "nonzero") {
+  return filled(windingNumber(p, x, y), rule);
+}
+function filled(w, rule) {
+  return rule === "evenodd" ? (Math.abs(w) & 1) === 1 : w !== 0;
+}
+function combine(a, b, op) {
+  switch (op) {
+    case "union":
+      return a || b;
+    case "intersection":
+      return a && b;
+    case "difference":
+      return a && !b;
+    default:
+      return a !== b;
+  }
+}
+function withEmptyOperand(a, b, op) {
+  if (!a.length && !b.length) return [];
+  if (!a.length) return op === "union" || op === "xor" ? b : [];
+  return op === "intersection" ? [] : a;
+}
+function disjointResult(a, b, op) {
+  switch (op) {
+    case "union":
+    case "xor":
+      return [...a, ...b];
+    case "intersection":
+      return [];
+    default:
+      return a;
+  }
+}
+function abandon(a, b, op, detail) {
+  if (op === "union") return [...a, ...b];
+  throw new GeomLimitError(op, detail);
+}
+function isFiniteCubic(c) {
+  for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i])) return false;
+  return true;
+}
+function extent(c) {
+  return Math.max(
+    Math.hypot(c[2] - c[0], c[3] - c[1]),
+    Math.hypot(c[4] - c[0], c[5] - c[1]),
+    Math.hypot(c[6] - c[0], c[7] - c[1])
+  );
+}
+function normalise2(p) {
+  const out = [];
+  for (const contour of p) {
+    const curves = contour.curves.filter((c) => isFiniteCubic(c) && extent(c) > 1e-12);
+    if (!curves.length) continue;
+    const closed = closeContour({ curves, closed: true });
+    if (closed.curves.length) out.push(closed);
+  }
+  return out;
+}
+function selfTouching(c, weld) {
+  const cell = Math.max(weld * 4, 1e-12);
+  const seen = /* @__PURE__ */ new Map();
+  for (const k of c.curves) {
+    const cx = Math.round(k[0] / cell), cy = Math.round(k[1] / cell);
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (const p of seen.get(`${cx + ox},${cy + oy}`) ?? []) {
+          if (Math.hypot(p.x - k[0], p.y - k[1]) <= weld) return true;
+        }
+      }
+    }
+    const key = `${cx},${cy}`;
+    const bucket = seen.get(key);
+    if (bucket) bucket.push({ x: k[0], y: k[1] });
+    else seen.set(key, [{ x: k[0], y: k[1] }]);
+  }
+  return false;
+}
+function buildIndex(p) {
+  const curves = [];
+  let box2 = null;
+  for (const contour of p) {
+    for (const c of contour.curves) {
+      const b = boundsCubic(c);
+      curves.push({ c, box: b });
+      box2 = box2 ? {
+        x0: Math.min(box2.x0, b.x0),
+        y0: Math.min(box2.y0, b.y0),
+        x1: Math.max(box2.x1, b.x1),
+        y1: Math.max(box2.y1, b.y1)
+      } : b;
+    }
+  }
+  return { curves, box: box2 };
+}
+function midTangent(c) {
+  const t = tangentAt(c, 0.5);
+  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  if (Math.hypot(dx, dy) > 1e-12) return { x: dx, y: dy };
+  return { x: 1, y: 0 };
+}
+function sweepPairs(a, b, self, budget, visit) {
+  const byStart = (list) => list.map((_, i) => i).sort((p, q) => list[p].box.x0 - list[q].box.x0);
+  const prune = (active, list, x) => {
+    let w = 0;
+    for (let r = 0; r < active.length; r++) {
+      const i = active[r];
+      if (list[i].box.x1 >= x) active[w++] = i;
+    }
+    active.length = w;
+  };
+  const yHit = (p, q) => p.y1 >= q.y0 && q.y1 >= p.y0;
+  if (self) {
+    const order = byStart(a);
+    const active = [];
+    for (const i of order) {
+      const box2 = a[i].box;
+      prune(active, a, box2.x0);
+      for (const j of active) {
+        if (budget.pairs-- <= 0) return;
+        if (yHit(box2, a[j].box)) visit(Math.min(i, j), Math.max(i, j));
+        if (budget.splits <= 0) return;
+      }
+      active.push(i);
+    }
+    return;
+  }
+  const ao = byStart(a), bo = byStart(b);
+  const activeA = [], activeB = [];
+  let ai = 0, bi = 0;
+  while (ai < ao.length || bi < bo.length) {
+    const ax = ai < ao.length ? a[ao[ai]].box.x0 : Infinity;
+    const bx = bi < bo.length ? b[bo[bi]].box.x0 : Infinity;
+    if (ax <= bx) {
+      const i = ao[ai++];
+      const box2 = a[i].box;
+      prune(activeB, b, box2.x0);
+      for (const j of activeB) {
+        if (budget.pairs-- <= 0) return;
+        if (yHit(box2, b[j].box)) visit(i, j);
+        if (budget.splits <= 0) return;
+      }
+      activeA.push(i);
+    } else {
+      const j = bo[bi++];
+      const box2 = b[j].box;
+      prune(activeA, a, box2.x0);
+      for (const i of activeA) {
+        if (budget.pairs-- <= 0) return;
+        if (yHit(a[i].box, box2)) visit(i, j);
+        if (budget.splits <= 0) return;
+      }
+      activeB.push(j);
+    }
+  }
+}
+function addSplit(splits, index, t, budget) {
+  if (!(t > 1e-9 && t < 1 - 1e-9)) return;
+  if (budget.splits-- <= 0) return;
+  splits[index].push(t);
+}
+function collinearSplits(a, b, weld, budget) {
+  const dx = a[6] - a[0], dy = a[7] - a[1];
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < weld) return null;
+  const nx = -dy / len2, ny = dx / len2;
+  for (let i = 0; i < 8; i += 2) {
+    if (Math.abs(nx * (b[i] - a[0]) + ny * (b[i + 1] - a[1])) > weld) return null;
+  }
+  const proj = (x, y) => ((x - a[0]) * dx + (y - a[1]) * dy) / (len2 * len2);
+  const u0 = proj(b[0], b[1]), u1 = proj(b[6], b[7]);
+  const lo = Math.max(0, Math.min(u0, u1)), hi = Math.min(1, Math.max(u0, u1));
+  if (hi - lo < weld / len2) return null;
+  const ta = [], tb = [];
+  for (const u of [lo, hi]) {
+    const px = a[0] + dx * u, py = a[1] + dy * u;
+    budget.work -= 64;
+    ta.push(nearestOnCubic(a, px, py).t);
+    tb.push(nearestOnCubic(b, px, py).t);
+  }
+  return { ta, tb };
+}
+function selfIntersectCubic(c) {
+  const ax = -c[0] + 3 * c[2] - 3 * c[4] + c[6];
+  const bx = 3 * c[0] - 6 * c[2] + 3 * c[4];
+  const cx = -3 * c[0] + 3 * c[2];
+  const ay = -c[1] + 3 * c[3] - 3 * c[5] + c[7];
+  const by = 3 * c[1] - 6 * c[3] + 3 * c[5];
+  const cy = -3 * c[1] + 3 * c[3];
+  const det = ax * by - ay * bx;
+  if (Math.abs(det) < 1e-12) return null;
+  const m = (bx * cy - cx * by) / det;
+  const s = (ay * cx - ax * cy) / det;
+  const q = s * s - m;
+  const disc = s * s - 4 * q;
+  if (disc <= 0) return null;
+  const r = Math.sqrt(disc);
+  const t1 = (s - r) / 2, t2 = (s + r) / 2;
+  if (!(t1 > 1e-9 && t2 < 1 - 1e-9 && t2 - t1 > 1e-9)) return null;
+  return [t1, t2];
+}
+function pairSplits(ci, cj, tol, weld, budget) {
+  budget.work -= 4;
+  if (coincidence(ci, cj, weld) !== 0) return null;
+  const run = overlapRun(ci, cj, weld, budget);
+  if (run) return run;
+  const hits2 = intersectCubics(ci, cj, tol);
+  if (!hits2.length) {
+    if (isLineCubic(ci, weld) && isLineCubic(cj, weld)) {
+      const co = collinearSplits(ci, cj, weld, budget);
+      if (co) return { a: co.ta, b: co.tb };
+    }
+    return contactSplits(ci, cj, weld, budget);
+  }
+  if (hits2.length >= 2) {
+    let a0 = 1, a1 = 0, b0 = 1, b1 = 0;
+    for (const h of hits2) {
+      a0 = Math.min(a0, h.t1);
+      a1 = Math.max(a1, h.t1);
+      b0 = Math.min(b0, h.t2);
+      b1 = Math.max(b1, h.t2);
+    }
+    if (hits2.length > 9 || continuesAsSameCurve(ci, a0, a1, cj, b0, b1, weld) !== 0) {
+      return overlapSplits(ci, cj, weld, budget);
+    }
+  }
+  return { a: hits2.map((h) => h.t1), b: hits2.map((h) => h.t2) };
+}
+function overlapRun(ci, cj, weld, budget) {
+  const ends = [];
+  const hi = hullBounds(ci), hj = hullBounds(cj);
+  for (const t of [0, 1]) {
+    const p = evalCubic(ci, t);
+    if (!inflated(hj, p.x, p.y, weld)) continue;
+    budget.work -= 32;
+    const n2 = nearestOnCubic(cj, p.x, p.y);
+    if (n2.distance <= weld) ends.push([t, n2.t]);
+  }
+  for (const t of [0, 1]) {
+    const p = evalCubic(cj, t);
+    if (!inflated(hi, p.x, p.y, weld)) continue;
+    budget.work -= 32;
+    const n2 = nearestOnCubic(ci, p.x, p.y);
+    if (n2.distance <= weld) ends.push([n2.t, t]);
+  }
+  if (ends.length < 2) return null;
+  let a0 = 1, a1 = 0, b0 = 1, b1 = 0;
+  for (const [s, t] of ends) {
+    a0 = Math.min(a0, s);
+    a1 = Math.max(a1, s);
+    b0 = Math.min(b0, t);
+    b1 = Math.max(b1, t);
+  }
+  const sa = subCubic(ci, a0, a1), sb = subCubic(cj, b0, b1);
+  if (extent(sa) <= weld || extent(sb) <= weld) return null;
+  if (coincidence(sa, sb, weld) === 0) return null;
+  return { a: [a0, a1], b: [b0, b1] };
+}
+function inflated(b, x, y, pad) {
+  return x >= b.x0 - pad && x <= b.x1 + pad && y >= b.y0 - pad && y <= b.y1 + pad;
+}
+function contactSplits(ci, cj, weld, budget) {
+  const leaves = [];
+  let nodes = MAX_CONTACT_NODES;
+  const rec = (p, s0, s1, q, t0, t1) => {
+    if (nodes-- <= 0 || leaves.length >= MAX_CONTACT_LEAVES || budget.work <= 0) return;
+    budget.work -= 1;
+    const bp = boundsCubic(p), bq = boundsCubic(q);
+    const dx = Math.max(bp.x0 - bq.x1, bq.x0 - bp.x1, 0);
+    const dy = Math.max(bp.y0 - bq.y1, bq.y0 - bp.y1, 0);
+    if (Math.hypot(dx, dy) > weld) return;
+    if (s1 - s0 <= CONTACT_SEED && t1 - t0 <= CONTACT_SEED) {
+      leaves.push([s0, s1]);
+      return;
+    }
+    if (s1 - s0 >= t1 - t0) {
+      const [lo, hi] = splitCubic(p, 0.5), m = (s0 + s1) / 2;
+      rec(lo, s0, m, q, t0, t1);
+      rec(hi, m, s1, q, t0, t1);
+    } else {
+      const [lo, hi] = splitCubic(q, 0.5), m = (t0 + t1) / 2;
+      rec(p, s0, s1, lo, t0, m);
+      rec(p, s0, s1, hi, m, t1);
+    }
+  };
+  rec(ci, 0, 1, cj, 0, 1);
+  if (!leaves.length) return null;
+  const a = [], b = [];
+  for (const [s0, s1] of leaves) {
+    const pin = pinContact(ci, cj, s0, s1, weld, budget);
+    if (!pin) continue;
+    a.push(pin[0]);
+    b.push(pin[1]);
+  }
+  return a.length ? { a, b } : null;
+}
+function pinContact(ci, cj, s0, s1, weld, budget) {
+  const gap = (s) => {
+    const p = evalCubic(ci, s);
+    const n2 = nearestOnCubic(cj, p.x, p.y);
+    return { d: n2.distance, t: n2.t };
+  };
+  const R2 = 0.6180339887498949;
+  let lo = s0, hi = s1;
+  let c = hi - R2 * (hi - lo), d = lo + R2 * (hi - lo);
+  let fc = gap(c), fd = gap(d);
+  let best = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
+  for (const s of [s0, s1]) {
+    const g2 = gap(s);
+    if (g2.d < best.d) best = { s, ...g2 };
+  }
+  for (let i = 0; i < 90 && hi - lo > 1e-12; i++) {
+    if (budget.work <= 0) break;
+    budget.work -= 32;
+    if (fc.d <= fd.d) {
+      hi = d;
+      d = c;
+      fd = fc;
+      c = hi - R2 * (hi - lo);
+      fc = gap(c);
+    } else {
+      lo = c;
+      c = d;
+      fc = fd;
+      d = lo + R2 * (hi - lo);
+      fd = gap(d);
+    }
+    const near = fc.d <= fd.d ? { s: c, ...fc } : { s: d, ...fd };
+    if (near.d < best.d) best = near;
+  }
+  return best.d <= weld ? [best.s, best.t] : null;
+}
+function overlapSplits(ci, cj, weld, budget) {
+  const a = [], b = [];
+  budget.work -= 256;
+  for (const t of [0, 1]) {
+    const p = evalCubic(ci, t);
+    const n2 = nearestOnCubic(cj, p.x, p.y);
+    if (n2.distance <= weld) b.push(n2.t);
+  }
+  for (const t of [0, 1]) {
+    const p = evalCubic(cj, t);
+    const n2 = nearestOnCubic(ci, p.x, p.y);
+    if (n2.distance <= weld) a.push(n2.t);
+  }
+  return { a, b };
+}
+function selfSplits(curves, splits, tol, weld, budget) {
+  for (let i = 0; i < curves.length; i++) {
+    const loop = selfIntersectCubic(curves[i].c);
+    if (loop) {
+      addSplit(splits, i, loop[0], budget);
+      addSplit(splits, i, loop[1], budget);
+    }
+  }
+  sweepPairs(curves, curves, true, budget, (i, j) => {
+    const found = pairSplits(curves[i].c, curves[j].c, tol, weld, budget);
+    if (!found) return;
+    for (const t of found.a) addSplit(splits, i, t, budget);
+    for (const t of found.b) addSplit(splits, j, t, budget);
+  });
+}
+function crossSplits(a, b, splitsA, splitsB, tol, weld, budget) {
+  sweepPairs(a, b, false, budget, (i, j) => {
+    const found = pairSplits(a[i].c, b[j].c, tol, weld, budget);
+    if (!found) return;
+    for (const t of found.a) addSplit(splitsA, i, t, budget);
+    for (const t of found.b) addSplit(splitsB, j, t, budget);
+  });
+}
+function splitIntoEdges(curves, splits, weld) {
+  const out = [];
+  for (let i = 0; i < curves.length; i++) {
+    const ts = splits[i];
+    const c = curves[i].c;
+    if (!ts.length) {
+      if (extent(c) > weld) out.push(c);
+      continue;
+    }
+    const cuts = [0];
+    for (const t of ts.slice().sort((p, q) => p - q)) {
+      const prev2 = cuts[cuts.length - 1];
+      if (t - prev2 <= 1e-9) continue;
+      if (extent(subCubic(c, prev2, t)) <= weld) continue;
+      cuts.push(t);
+    }
+    const prev = cuts[cuts.length - 1];
+    if (cuts.length === 1 || 1 - prev > 1e-9 && extent(subCubic(c, prev, 1)) > weld) cuts.push(1);
+    else cuts[cuts.length - 1] = 1;
+    for (let k = 1; k < cuts.length; k++) {
+      const piece = subCubic(c, cuts[k - 1], cuts[k]);
+      if (extent(piece) > weld) out.push(piece);
+    }
+  }
+  return out;
+}
+function buildRayDirs() {
+  const out = [[1, 0], [0, 1]];
+  for (let k = 1; k <= 10; k++) {
+    const a = k * 2.399963229728653;
+    out.push([Math.cos(a), Math.sin(a)]);
+  }
+  return out;
+}
+function rayDirections(rx, ry) {
+  const mag = Math.hypot(rx, ry);
+  if (mag < 1e-12) return RAY_DIRS.slice();
+  const out = RAY_DIRS.filter((d) => Math.abs(d[0] * ry - d[1] * rx) >= 0.25 * mag);
+  return out.length ? out : RAY_DIRS.slice();
+}
+function reachFrom(idx, px, py) {
+  const b = idx.box;
+  if (!b) return 1;
+  const diag = Math.hypot(b.x1 - b.x0, b.y1 - b.y0);
+  const dx = Math.max(b.x0 - px, px - b.x1, 0), dy = Math.max(b.y0 - py, py - b.y1, 0);
+  return 2 * (diag + Math.hypot(dx, dy)) + 1;
+}
+function castRay(idx, px, py, ux, uy, ref, near, budget, complete = false) {
+  const reach = reachFrom(idx, px, py);
+  const qx = px + ux * reach, qy = py + uy * reach;
+  const rx0 = Math.min(px, qx) - near, rx1 = Math.max(px, qx) + near;
+  const ry0 = Math.min(py, qy) - near, ry1 = Math.max(py, qy) + near;
+  const nx = -uy, ny = ux;
+  const hitTol = Math.max(
+    near,
+    64 * Number.EPSILON * Math.max(Math.abs(px), Math.abs(py), Math.abs(qx), Math.abs(qy), 1)
+  );
+  let far = 0, net = 0, ok3 = true;
+  for (const ic of idx.curves) {
+    if (budget.work <= 0) return { far, net, ok: false };
+    budget.work -= 1;
+    const b = ic.box;
+    if (b.x1 < rx0 || b.x0 > rx1 || b.y1 < ry0 || b.y0 > ry1) continue;
+    const c = ic.c;
+    if (Math.abs(nx * (c[0] - px) + ny * (c[1] - py)) < near && Math.abs(nx * (c[2] - px) + ny * (c[3] - py)) < near && Math.abs(nx * (c[4] - px) + ny * (c[5] - py)) < near && Math.abs(nx * (c[6] - px) + ny * (c[7] - py)) < near) {
+      ok3 = false;
+      if (!complete) return { far, net, ok: ok3 };
+      continue;
+    }
+    budget.work -= 8;
+    for (const hit of intersectLineCubic(px, py, qx, qy, c, hitTol)) {
+      const t = hit.t2;
+      const s = hit.t1 * reach;
+      const tg = tangentAt(c, t);
+      if (s <= near && ref) {
+        net += Math.sign(tg.x * ref.x + tg.y * ref.y);
+        continue;
+      }
+      const mag = Math.hypot(tg.x, tg.y);
+      const cr = ux * tg.y - uy * tg.x;
+      const sideless = mag < 1e-12 || Math.abs(cr) < 1e-6 * mag;
+      if (sideless || t < T_GUARD || t > 1 - T_GUARD || ref !== null && s <= near * 32) {
+        ok3 = false;
+        if (!complete) return { far, net, ok: ok3 };
+        if (sideless || t > 1 - T_GUARD) continue;
+      }
+      far += cr > 0 ? 1 : -1;
+    }
+  }
+  return { far, net, ok: ok3 };
+}
+function sideWindings(idx, px, py, rx, ry, near, budget) {
+  const dirs = rayDirections(rx, ry);
+  const sidesOf = (d2, cast2) => {
+    const g2 = d2[0] * ry - d2[1] * rx;
+    return g2 > 0 ? { left: cast2.far + cast2.net, right: cast2.far } : { left: cast2.far, right: cast2.far - cast2.net };
+  };
+  let last = null;
+  for (const d2 of dirs) {
+    const cast2 = castRay(idx, px, py, d2[0], d2[1], { x: rx, y: ry }, near, budget);
+    if (cast2.ok) return sidesOf(d2, cast2);
+    last = sidesOf(d2, cast2);
+    if (budget.work <= 0) return last;
+  }
+  const d = dirs[0];
+  const cast = castRay(idx, px, py, d[0], d[1], { x: rx, y: ry }, near, budget, true);
+  return cast.ok || budget.work > 0 ? sidesOf(d, cast) : last ?? { left: 0, right: 0 };
+}
+function coincidence(a, b, weld) {
+  let fwd = true, rev = true;
+  for (const t of [0, 1 / 3, 2 / 3, 1]) {
+    const p = evalCubic(a, t);
+    if (fwd) {
+      const q = evalCubic(b, t);
+      if (Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) fwd = false;
+    }
+    if (rev) {
+      const q = evalCubic(b, 1 - t);
+      if (Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) rev = false;
+    }
+    if (!fwd && !rev) return 0;
+  }
+  return fwd ? 1 : -1;
+}
+function continuesAsSameCurve(ci, a0, a1, cj, b0, b1, weld) {
+  const da = a1 - a0, db = b1 - b0;
+  if (!(da > 0) || !(db > 0)) return 0;
+  for (const dir of [1, -1]) {
+    let same = true;
+    for (const t of [0, 1 / 3, 2 / 3, 1]) {
+      const f = (t - a0) / da;
+      const u = dir === 1 ? b0 + f * db : b1 - f * db;
+      const p = evalCubic(ci, t), q = evalCubic(cj, u);
+      if (!Number.isFinite(q.x) || !Number.isFinite(q.y) || Math.abs(p.x - q.x) > weld || Math.abs(p.y - q.y) > weld) {
+        same = false;
+        break;
+      }
+    }
+    if (same) return dir;
+  }
+  return 0;
+}
+function dedupeEdges(edges, weld) {
+  const cell = Math.max(weld * 4, 1e-12);
+  const buckets = /* @__PURE__ */ new Map();
+  const mids = edges.map((e) => evalCubic(e, 0.5));
+  const spans = edges.map(extent);
+  const dead = new Uint8Array(edges.length);
+  for (let i = 0; i < edges.length; i++) {
+    const m = mids[i];
+    const key = `${Math.round(m.x / cell)},${Math.round(m.y / cell)}`;
+    const bucket = buckets.get(key);
+    if (bucket) bucket.push(i);
+    else buckets.set(key, [i]);
+  }
+  for (let i = 0; i < edges.length; i++) {
+    if (dead[i]) continue;
+    const m = mids[i];
+    const cx = Math.round(m.x / cell), cy = Math.round(m.y / cell);
+    for (let ox = -1; ox <= 1 && !dead[i]; ox++) {
+      for (let oy = -1; oy <= 1 && !dead[i]; oy++) {
+        for (const j of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
+          if (j <= i || dead[j]) continue;
+          if (spans[i] <= 2 * weld || spans[j] <= 2 * weld) continue;
+          const rel = coincidence(edges[i], edges[j], weld);
+          if (rel === 0) continue;
+          dead[j] = 1;
+          if (rel === -1) {
+            dead[i] = 1;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return edges.filter((_, i) => !dead[i]);
+}
+function walkLoops(edges, weld) {
+  if (!edges.length) return [];
+  const cell = Math.max(weld * 4, 1e-12);
+  const key = (x, y) => `${Math.round(x / cell)},${Math.round(y / cell)}`;
+  const buckets = /* @__PURE__ */ new Map();
+  edges.forEach((e, i) => {
+    const k = key(e[0], e[1]);
+    const bucket = buckets.get(k);
+    if (bucket) bucket.push(i);
+    else buckets.set(k, [i]);
+  });
+  const used = new Uint8Array(edges.length);
+  const out = [];
+  const candidatesAt = (x, y) => {
+    const cx = Math.round(x / cell), cy = Math.round(y / cell);
+    const found = [];
+    for (let ox = -1; ox <= 1; ox++) {
+      for (let oy = -1; oy <= 1; oy++) {
+        for (const i of buckets.get(`${cx + ox},${cy + oy}`) ?? []) {
+          if (used[i]) continue;
+          const e = edges[i];
+          if (Math.hypot(e[0] - x, e[1] - y) <= weld) found.push(i);
+        }
+      }
+    }
+    return found;
+  };
+  for (let seed = 0; seed < edges.length; seed++) {
+    if (used[seed]) continue;
+    const curves = [];
+    const start = edges[seed];
+    const sx = start[0], sy = start[1];
+    let cur = seed;
+    let joined = false;
+    for (let guard = 0; guard <= edges.length; guard++) {
+      used[cur] = 1;
+      const e = edges[cur];
+      curves.push(e);
+      const ex = e[6], ey = e[7];
+      if (Math.hypot(ex - sx, ey - sy) <= weld) {
+        joined = true;
+        break;
+      }
+      const options = candidatesAt(ex, ey);
+      if (!options.length) break;
+      cur = options.length === 1 ? options[0] : pickTurn(edges, e, options);
+    }
+    if (!curves.length) continue;
+    if (!joined && Math.abs(contourArea({ curves, closed: true })) <= weld * chainSpan(curves)) continue;
+    out.push({ curves, closed: true });
+  }
+  return out;
+}
+function chainSpan(curves) {
+  let s = 0;
+  for (const k of curves) s += extent(k);
+  return s;
+}
+function pickTurn(edges, incoming, options) {
+  const din = endTangent(incoming);
+  const back = Math.atan2(-din.y, -din.x);
+  let best = options[0], bestDelta = Infinity;
+  for (const i of options) {
+    const d = startTangent(edges[i]);
+    let delta = back - Math.atan2(d.y, d.x);
+    delta -= Math.floor(delta / (Math.PI * 2)) * (Math.PI * 2);
+    if (delta <= 1e-12) delta = Math.PI * 2;
+    if (delta < bestDelta) {
+      bestDelta = delta;
+      best = i;
+    }
+  }
+  return best;
+}
+function startTangent(c) {
+  const t = tangentAt(c, 0);
+  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  return { x: c[6] - c[0], y: c[7] - c[1] };
+}
+function endTangent(c) {
+  const t = tangentAt(c, 1);
+  if (Math.hypot(t.x, t.y) > 1e-12) return t;
+  return { x: c[6] - c[0], y: c[7] - c[1] };
+}
+var GeomLimitError, MAX_CURVES, MAX_SPLITS, MAX_PAIRS, MAX_WORK, MAX_CONTACT_NODES, CONTACT_SEED, MAX_CONTACT_LEAVES, T_GUARD, reverseCubic, RAY_DIRS;
+var init_boolean = __esm({
+  "engine/src/geom/boolean.ts"() {
+    "use strict";
+    init_bezier();
+    init_intersect();
+    init_path();
+    GeomLimitError = class extends Error {
+      op;
+      constructor(op, detail) {
+        super(`geom: ${op} exceeds bounded work (${detail})`);
+        this.name = "GeomLimitError";
+        this.op = op;
+      }
+    };
+    MAX_CURVES = 8e3;
+    MAX_SPLITS = 12e4;
+    MAX_PAIRS = 4e6;
+    MAX_WORK = 2e8;
+    MAX_CONTACT_NODES = 300;
+    CONTACT_SEED = 1 / 64;
+    MAX_CONTACT_LEAVES = 24;
+    T_GUARD = 1e-7;
+    reverseCubic = (k) => [k[6], k[7], k[4], k[5], k[2], k[3], k[0], k[1]];
+    RAY_DIRS = buildRayDirs();
+  }
+});
+
+// engine/src/geom/fit.ts
+function chordFrameMoments(raw, x0, y0, dx, dy) {
+  let { a: area, x, y } = raw;
+  area -= dx * (y0 + 0.5 * dy);
+  const dy3 = dy / 3;
+  x -= dx * (x0 * y0 + 0.5 * (x0 * dy + y0 * dx) + dy3 * dx);
+  y -= dx * (y0 * y0 + y0 * dy + dy3 * dy);
+  x -= x0 * area;
+  y = 0.5 * y - y0 * area;
+  const chord = Math.hypot(dx, dy);
+  return { area, moment: chord > 0 ? (dx * x + dy * y) / chord : 0 };
+}
+function quadratureMoments(sample, t0, t1) {
+  const mid2 = 0.5 * (t0 + t1), half = 0.5 * (t1 - t0);
+  let a = 0, x = 0, y = 0;
+  for (const [w, xi] of GL16) {
+    const s = sample(mid2 + xi * half);
+    const wa = w * s.dx * s.y;
+    a += wa;
+    x += s.x * wa;
+    y += s.y * wa;
+  }
+  const s0 = sample(t0), s1 = sample(t1);
+  return chordFrameMoments({ a: a * half, x: x * half, y: y * half }, s0.x, s0.y, s1.x - s0.x, s1.y - s0.y);
+}
+function rawMomentsCubic(c) {
+  const x0 = c[0], y0 = c[1];
+  const x1 = c[2] - x0, y1 = c[3] - y0;
+  const x2 = c[4] - x0, y2 = c[5] - y0;
+  const x3 = c[6] - x0, y3 = c[7] - y0;
+  const r0 = 3 * x1, r1 = 3 * y1;
+  const r2 = x2 * y3, r3 = x3 * y2, r4 = x3 * y3;
+  const r5 = 27 * y1, r6 = x1 * x2, r7 = 27 * y2, r8 = 45 * r2, r9 = 18 * x3;
+  const r10 = x1 * y1, r11 = 30 * x1, r12 = 45 * x3, r13 = x2 * y1, r14 = 45 * r3;
+  const r15 = x1 * x1, r16 = 18 * y3, r17 = x2 * x2, r18 = 45 * y3, r19 = x3 * x3;
+  const r20 = 30 * y1, r21 = y2 * y2, r22 = y3 * y3, r23 = y1 * y1;
+  const a = -r0 * y2 - r0 * y3 + r1 * x2 + r1 * x3 - 6 * r2 + 6 * r3 + 10 * r4;
+  const lift = x3 * y0;
+  const area = a * 0.05 + lift;
+  const x = r10 * r9 - r11 * r4 + r12 * r13 + r14 * x2 - r15 * r16 - r15 * r7 - r17 * r18 + r17 * r5 + r19 * r20 + 105 * r19 * y2 + 280 * r19 * y3 - 105 * r2 * x3 + r5 * r6 - r6 * r7 - r8 * x1;
+  const y = -r10 * r16 - r10 * r7 - r11 * r22 + r12 * r21 + r13 * r7 + r14 * y1 - r18 * x1 * y2 + r20 * r4 - 27 * r21 * x1 - 105 * r22 * x2 + 140 * r22 * x3 + r23 * r9 + 27 * r23 * x2 + 105 * r3 * y3 - r8 * y2;
+  return {
+    a: area,
+    x: x * (1 / 840) + x0 * area + 0.5 * x3 * lift,
+    y: y * (1 / 420) + y0 * a * 0.1 + y0 * lift
+  };
+}
+function copysign(mag, sign) {
+  const m = Math.abs(mag);
+  return sign < 0 || Object.is(sign, -0) ? -m : m;
+}
+function solveQuadratic(c0, c1, c2) {
+  const sc0 = c0 / c2, sc1 = c1 / c2;
+  if (!Number.isFinite(sc0) || !Number.isFinite(sc1)) {
+    const root = -c0 / c1;
+    if (Number.isFinite(root)) return [root];
+    return c0 === 0 && c1 === 0 ? [0] : [];
+  }
+  const arg = sc1 * sc1 - 4 * sc0;
+  let root1;
+  if (!Number.isFinite(arg)) {
+    root1 = -sc1;
+  } else if (arg < 0) {
+    return [];
+  } else if (arg === 0) {
+    return [-0.5 * sc1];
+  } else {
+    root1 = -0.5 * (sc1 + copysign(Math.sqrt(arg), sc1));
+  }
+  const root2 = sc0 / root1;
+  if (!Number.isFinite(root2)) return [root1];
+  return root2 > root1 ? [root1, root2] : [root2, root1];
+}
+function solveCubic(c0, c1, c2, c3) {
+  const recip = 1 / c3, third = 1 / 3;
+  const s2 = c2 * (third * recip), s1 = c1 * (third * recip), s0 = c0 * recip;
+  if (!(Number.isFinite(s0) && Number.isFinite(s1) && Number.isFinite(s2))) {
+    return solveQuadratic(c0, c1, c2);
+  }
+  const d0 = -s2 * s2 + s1;
+  const d1 = -s1 * s2 + s0;
+  const d2 = s2 * s0 - s1 * s1;
+  const disc = 4 * d0 * d2 - d1 * d1;
+  const de = -2 * s2 * d0 + d1;
+  if (disc < 0) {
+    const sq = Math.sqrt(-0.25 * disc), r = -0.5 * de;
+    return [Math.cbrt(r + sq) + Math.cbrt(r - sq) - s2];
+  }
+  if (disc === 0) {
+    const t1 = copysign(Math.sqrt(-d0), de);
+    return [t1 - s2, -2 * t1 - s2];
+  }
+  const th = Math.atan2(Math.sqrt(disc), -de) * third;
+  const thc = Math.cos(th), ss3 = Math.sin(th) * Math.sqrt(3);
+  const t = 2 * Math.sqrt(-d0);
+  return [t * thc - s2, t * 0.5 * (-thc + ss3) - s2, t * 0.5 * (-thc - ss3) - s2];
+}
+function depressedCubicDominant(g2, h) {
+  const q = -1 / 3 * g2, r = 0.5 * h;
+  let x;
+  if (r === 0) {
+    x = g2 > 0 ? 0 : Math.sqrt(-g2);
+  } else if (r * r < q * q * q) {
+    const t = r / Math.sqrt(q * q * q);
+    x = -2 * Math.sqrt(q) * copysign(Math.cos(Math.acos(Math.abs(t)) * (1 / 3)), t);
+  } else {
+    const a = Math.cbrt(-r - copysign(Math.sqrt(r * r - q * q * q), r));
+    x = a === 0 ? 0 : a + q / a;
+  }
+  let f = (x * x + g2) * x + h;
+  const scale = Math.max(Math.abs(x * x * x), Math.abs(g2 * x), Math.abs(h));
+  if (Math.abs(f) < 222045e-21 * scale) return x;
+  for (let i = 0; i < 8; i++) {
+    const df = 3 * x * x + g2;
+    if (df === 0) break;
+    const nx = x - f / df;
+    const nf = (nx * nx + g2) * nx + h;
+    if (nf === 0) return nx;
+    if (Math.abs(nf) >= Math.abs(f)) break;
+    x = nx;
+    f = nf;
+  }
+  return x;
+}
+function factorQuartic(a, b, c, d) {
+  const epsRel = (raw, ref) => ref === 0 ? Math.abs(raw) : Math.abs((raw - ref) / ref);
+  const epsQ = (a12, b12, a22, b22) => epsRel(a12 + a22, a) + epsRel(b12 + a12 * a22 + b22, b) + epsRel(b12 * a22 + a12 * b22, c);
+  const epsT = (a12, b12, a22, b22) => epsQ(a12, b12, a22, b22) + epsRel(b12 * b22, d);
+  const disc = 9 * a * a - 24 * b;
+  const s = disc >= 0 ? -2 * b / (3 * a + copysign(Math.sqrt(disc), a)) : -0.25 * a;
+  const ap = a + 4 * s;
+  const bp = b + 3 * s * (a + 2 * s);
+  const cp = c + s * (2 * b + s * (3 * a + 4 * s));
+  const dp = d + s * (c + s * (b + s * (a + s)));
+  const gp = ap * cp - 4 * dp - 1 / 3 * bp * bp;
+  const hp = (ap * cp + 8 * dp - 2 / 9 * bp * bp) * (1 / 3) * bp - cp * cp - ap * ap * dp;
+  if (!Number.isFinite(gp) || !Number.isFinite(hp)) return null;
+  const phi = depressedCubicDominant(gp, hp);
+  if (!Number.isFinite(phi)) return null;
+  const l1 = a * 0.5;
+  const l3 = 1 / 6 * b + 0.5 * phi;
+  const delt2 = c - a * l3;
+  const d2c1 = 2 / 3 * b - phi - l1 * l1;
+  const l2c1 = 0.5 * delt2 / d2c1;
+  const l2c2 = 2 * (d - l3 * l3) / delt2;
+  const d2c2 = 0.5 * delt2 / l2c2;
+  let d2 = 0, l2 = 0, bestEps = 0;
+  const cands = [[d2c1, l2c1], [d2c2, l2c2], [d2c1, l2c2]];
+  for (let i = 0; i < cands.length; i++) {
+    const [cd, cl] = cands[i];
+    const e = epsRel(cd + l1 * l1 + 2 * l3, b) + epsRel(2 * (cd * cl + l1 * l3), c) + epsRel(cd * cl * cl + l3 * l3, d);
+    if (i === 0 || e < bestEps) {
+      d2 = cd;
+      l2 = cl;
+      bestEps = e;
+    }
+  }
+  let a1, b1, a2, b2;
+  if (d2 < 0) {
+    const sq = Math.sqrt(-d2);
+    a1 = l1 + sq;
+    b1 = l3 + sq * l2;
+    a2 = l1 - sq;
+    b2 = l3 - sq * l2;
+    if (Math.abs(b2) < Math.abs(b1)) b2 = d / b1;
+    else if (Math.abs(b2) > Math.abs(b1)) b1 = d / b2;
+    if (Math.abs(a1) !== Math.abs(a2)) {
+      const o1 = a1, o2 = a2;
+      const alts = Math.abs(o1) < Math.abs(o2) ? [[a - o2, o2], [(c - b1 * o2) / b2, o2], [(b - b2 - b1) / o2, o2]] : [[o1, a - o1], [o1, (c - o1 * b2) / b1], [o1, (b - b2 - b1) / o1]];
+      let bestQ = 0, has = false;
+      for (const [t1, t2] of alts) {
+        if (!Number.isFinite(t1) || !Number.isFinite(t2)) continue;
+        const e = epsQ(t1, b1, t2, b2);
+        if (!has || e < bestQ) {
+          a1 = t1;
+          a2 = t2;
+          bestQ = e;
+          has = true;
+        }
+      }
+    }
+  } else if (d2 === 0) {
+    const d3 = d - l3 * l3;
+    const sq = Math.sqrt(-d3);
+    a1 = l1;
+    b1 = l3 + sq;
+    a2 = l1;
+    b2 = l3 - sq;
+    if (Math.abs(b1) > Math.abs(b2)) b2 = d / b1;
+    else if (Math.abs(b2) > Math.abs(b1)) b1 = d / b2;
+  } else {
+    return null;
+  }
+  let eps = epsT(a1, b1, a2, b2);
+  for (let i = 0; i < 8 && eps !== 0; i++) {
+    const f0 = b1 * b2 - d;
+    const f1 = b1 * a2 + a1 * b2 - c;
+    const f2 = b1 + a1 * a2 + b2 - b;
+    const f3 = a1 + a2 - a;
+    const k1 = a1 - a2;
+    const det = b1 * b1 - b1 * (a2 * k1 + 2 * b2) + b2 * (a1 * k1 + b2);
+    if (det === 0) break;
+    const inv = 1 / det;
+    const k2 = b2 - b1;
+    const k3 = b1 * a2 - a1 * b2;
+    const na1 = a1 - inv * (k1 * f0 + k2 * f1 + k3 * f2 - (b1 * k2 + a1 * k3) * f3);
+    const nb1 = b1 - inv * ((a1 * k1 + k2) * f0 - b1 * k1 * f1 - b1 * k2 * f2 - b1 * k3 * f3);
+    const na2 = a2 - inv * (-k1 * f0 - k2 * f1 - k3 * f2 + (a2 * k3 + b2 * k2) * f3);
+    const nb2 = b2 - inv * (-(a2 * k1 + k2) * f0 + b2 * k1 * f1 + b2 * k2 * f2 + b2 * k3 * f3);
+    const ne = epsT(na1, nb1, na2, nb2);
+    if (!(ne < eps)) break;
+    a1 = na1;
+    b1 = nb1;
+    a2 = na2;
+    b2 = nb2;
+    eps = ne;
+  }
+  return [[a1, b1], [a2, b2]];
+}
+function mod2pi(th) {
+  const s = th * (0.5 / Math.PI);
+  return 2 * Math.PI * (s - Math.round(s));
+}
+function endpointSample(src, t, dir, span) {
+  const s = src.sample(t);
+  let tx = s.dx, ty = s.dy;
+  const len2 = Math.hypot(tx, ty);
+  let step = span * 1e-7;
+  if (len2 > 1e-12) {
+    const probe = src.sample(clamp013(t + dir * step));
+    const pl = Math.hypot(probe.dx, probe.dy);
+    if (pl > 1e-12) {
+      const sin = Math.abs(tx * probe.dy - ty * probe.dx) / (len2 * pl);
+      const cos = (tx * probe.dx + ty * probe.dy) / (len2 * pl);
+      if (cos < 0 || sin > 0.02) {
+        tx = probe.dx;
+        ty = probe.dy;
+      }
+    }
+    return { x: s.x, y: s.y, tx, ty };
+  }
+  for (let i = 0; i < 6 && Math.hypot(tx, ty) < 1e-12; i++) {
+    const probe = src.sample(clamp013(t + dir * step));
+    tx = probe.dx;
+    ty = probe.dy;
+    if (Math.hypot(tx, ty) < 1e-12) {
+      tx = probe.x - s.x;
+      ty = probe.y - s.y;
+    }
+    step *= 8;
+  }
+  return { x: s.x, y: s.y, tx, ty };
+}
+function clamp013(t) {
+  return t < 0 ? 0 : t > 1 ? 1 : t;
+}
+function frameFor(src, t0, t1) {
+  const span = Math.abs(t1 - t0);
+  const start = endpointSample(src, t0, 1, span);
+  const end = endpointSample(src, t1, -1, span);
+  const dx = end.x - start.x, dy = end.y - start.y;
+  const chord2 = dx * dx + dy * dy;
+  if (!(chord2 > 0) || !Number.isFinite(chord2)) return null;
+  const chord = Math.sqrt(chord2);
+  const th = Math.atan2(dy, dx);
+  const th0 = mod2pi(Math.atan2(start.ty, start.tx) - th);
+  const th1 = mod2pi(th - Math.atan2(end.ty, end.tx));
+  const { area, moment } = src.momentIntegrals(t0, t1);
+  if (!Number.isFinite(area) || !Number.isFinite(moment)) return null;
+  return {
+    sx: start.x,
+    sy: start.y,
+    ex: end.x,
+    ey: end.y,
+    th,
+    th0,
+    th1,
+    chord,
+    chord2,
+    unitArea: area / chord2,
+    mx: moment / (chord2 * chord)
+  };
+}
+function candidates(f) {
+  const s0 = Math.sin(f.th0), c0 = Math.cos(f.th0);
+  const s1 = Math.sin(f.th1), c1 = Math.cos(f.th1);
+  const area = f.unitArea, mx = f.mx;
+  const a4 = -9 * c0 * (((2 * s1 * c1 * c0 + s0 * (2 * c1 * c1 - 1)) * c0 - 2 * s1 * c1) * c0 - c1 * c1 * s0);
+  const a3 = 12 * ((((c1 * (30 * area * c1 - s1) - 15 * area) * c0 + 2 * s0 - c1 * s0 * (c1 + 30 * area * s1)) * c0 + c1 * (s1 - 15 * area * c1)) * c0 - s0 * c1 * c1);
+  const a2 = 12 * ((((70 * mx + 15 * area) * s1 * s1 + c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area)) * c0 - 5 * s0 * s1 * (3 * s1 - 4 * c1 * (7 * mx + area))) * c0 - c1 * (9 * s1 - 70 * c1 * mx - 5 * c1 * area));
+  const a1 = 16 * (((12 * s0 - 5 * c0 * (42 * mx - 17 * area)) * s1 - 70 * c1 * (3 * mx - area) * s0 - 75 * c0 * c1 * area * area) * s1 - 75 * c1 * c1 * area * area * s0);
+  const a0 = 80 * s1 * (42 * s1 * mx - 25 * area * (s1 - c1 * area));
+  const roots = [];
+  const EPS3 = 1e-12;
+  if (Math.abs(a4) > EPS3) {
+    const quads = factorQuartic(a3 / a4, a2 / a4, a1 / a4, a0 / a4);
+    if (quads) {
+      for (const [qc1, qc0] of quads) {
+        const qr = solveQuadratic(qc0, qc1, 1);
+        if (qr.length === 0) roots.push(-0.5 * qc1);
+        else roots.push(...qr);
+      }
+    }
+  } else if (Math.abs(a3) > EPS3) {
+    roots.push(...solveCubic(a0, a1, a2, a3));
+  } else if (Math.abs(a2) > EPS3 || Math.abs(a1) > EPS3 || Math.abs(a0) > EPS3) {
+    roots.push(...solveQuadratic(a0, a1, a2));
+  } else {
+    return [mapCandidate(f, 1 / 3, 1 / 3)];
+  }
+  const s01 = s0 * c1 + s1 * c0;
+  const out = [];
+  for (const root of roots) {
+    if (!Number.isFinite(root)) continue;
+    let d0, d1;
+    if (root > 0) {
+      d0 = root;
+      d1 = (root * s0 - area * (10 / 3)) / (0.5 * root * s01 - s1);
+      if (!(d1 > 0)) {
+        d0 = s1 / s01;
+        d1 = 0;
+      }
+    } else {
+      d0 = 0;
+      d1 = s0 / s01;
+    }
+    if (!(d0 >= 0) || !(d1 >= 0) || !Number.isFinite(d0) || !Number.isFinite(d1)) continue;
+    out.push(mapCandidate(f, d0, d1));
+  }
+  return out;
+}
+function mapCandidate(f, d0, d1) {
+  const cs = Math.cos(f.th) * f.chord, sn = Math.sin(f.th) * f.chord;
+  const place = (ux, uy) => [f.sx + cs * ux - sn * uy, f.sy + sn * ux + cs * uy];
+  const [p1x, p1y] = place(d0 * Math.cos(f.th0), d0 * Math.sin(f.th0));
+  const [p2x, p2y] = place(1 - d1 * Math.cos(f.th1), d1 * Math.sin(f.th1));
+  return { c: [f.sx, f.sy, p1x, p1y, p2x, p2y, f.ex, f.ey], d0, d1 };
+}
+function armPenalty(d) {
+  return 1 + Math.max(0, d - D_PENALTY_ELBOW) * D_PENALTY_SLOPE;
+}
+function curveDist(src, t0, t1) {
+  const step = (t1 - t0) / (N_SAMPLE + 1);
+  const samples = [];
+  const ts = [];
+  let spicy = false;
+  let lx = 0, ly = 0, have = false;
+  for (let i = 0; i < N_SAMPLE + 2; i++) {
+    const t = t0 + i * step;
+    const s = src.sample(t);
+    if (have) {
+      const cross = s.dx * ly - s.dy * lx;
+      const dot = s.dx * lx + s.dy * ly;
+      if (Math.abs(cross) > SPICY_THRESH * Math.abs(dot)) spicy = true;
+    }
+    lx = s.dx;
+    ly = s.dy;
+    have = true;
+    if (i > 0 && i < N_SAMPLE + 1) {
+      samples.push({ x: s.x, y: s.y, tx: s.dx, ty: s.dy });
+      ts.push(t);
+    }
+  }
+  return { src, samples, ts, arc: null, spicy, t0, t1, step };
+}
+function refineLobe(f, a, b, acc2) {
+  let lo = a, hi = b;
+  let x1 = hi - INV_PHI * (hi - lo), x2 = lo + INV_PHI * (hi - lo);
+  let f1 = f(x1), f2 = f(x2);
+  let best = f1 > f2 ? f1 : f2;
+  for (let i = 0; i < REFINE_ITERS; i++) {
+    if (!(best <= acc2)) return best;
+    if (f1 > f2) {
+      hi = x2;
+      x2 = x1;
+      f2 = f1;
+      x1 = hi - INV_PHI * (hi - lo);
+      f1 = f(x1);
+      if (f1 > best) best = f1;
+    } else {
+      lo = x1;
+      x1 = x2;
+      f1 = f2;
+      x2 = lo + INV_PHI * (hi - lo);
+      f2 = f(x2);
+      if (f2 > best) best = f2;
+    }
+  }
+  return best;
+}
+function maxOverLobes(d, errs, base, acc2, f) {
+  let best = base;
+  for (let i = 0; i < errs.length; i++) {
+    const e = errs[i];
+    if (i > 0 && errs[i - 1] > e) continue;
+    if (i + 1 < errs.length && errs[i + 1] > e) continue;
+    const v = refineLobe(f, i > 0 ? d.ts[i - 1] : d.t0, i + 1 < errs.length ? d.ts[i + 1] : d.t1, acc2);
+    if (v > best) best = v;
+    if (!(best <= acc2)) return Infinity;
+  }
+  return best;
+}
+function powerBasis(c) {
+  return {
+    p1x: 3 * (c[2] - c[0]),
+    p1y: 3 * (c[3] - c[1]),
+    p2x: 3 * c[4] - 6 * c[2] + 3 * c[0],
+    p2y: 3 * c[5] - 6 * c[3] + 3 * c[1],
+    p3x: c[6] - c[0] - 3 * (c[4] - c[2]),
+    p3y: c[7] - c[1] - 3 * (c[5] - c[3])
+  };
+}
+function rayErr2(c, q, s, miss) {
+  const k0 = (c[0] - s.x) * s.tx + (c[1] - s.y) * s.ty;
+  const k1 = q.p1x * s.tx + q.p1y * s.ty;
+  const k2 = q.p2x * s.tx + q.p2y * s.ty;
+  const k3 = q.p3x * s.tx + q.p3y * s.ty;
+  let best = miss;
+  for (const t of cubicRoots01(k3, k2, k1, k0)) {
+    const p = evalCubic(c, t);
+    const e = (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+    if (e < best) best = e;
+  }
+  return best;
+}
+function evalRay(d, c, acc2) {
+  const q = powerBasis(c);
+  const miss = acc2 + 1;
+  const errs = [];
+  let maxErr2 = 0;
+  for (const s of d.samples) {
+    const e = rayErr2(c, q, s, miss);
+    errs.push(e);
+    if (e > maxErr2) maxErr2 = e;
+    if (maxErr2 > acc2) return Infinity;
+  }
+  return maxOverLobes(d, errs, maxErr2, acc2, (t) => {
+    const s = d.src.sample(t);
+    return rayErr2(c, q, { x: s.x, y: s.y, tx: s.dx, ty: s.dy }, miss);
+  });
+}
+function arcSpan(c, a, b) {
+  const mid2 = 0.5 * (a + b), half = 0.5 * (b - a);
+  let sum = 0;
+  for (const [w, xi] of GL16) {
+    const d = tangentAt(c, mid2 + xi * half);
+    sum += w * Math.hypot(d.x, d.y);
+  }
+  return sum * half;
+}
+function arcTable(c) {
+  const cum = [0];
+  let acc = 0;
+  for (let i = 0; i < ARC_SPANS; i++) {
+    acc += arcSpan(c, i / ARC_SPANS, (i + 1) / ARC_SPANS);
+    cum.push(acc);
+  }
+  return { cum, total: acc };
+}
+function srcArcSpan(src, a, b) {
+  const mid2 = 0.5 * (a + b), half = 0.5 * (b - a);
+  let sum = 0;
+  for (const [w, xi] of GL16) {
+    const s = src.sample(mid2 + xi * half);
+    sum += w * Math.hypot(s.dx, s.dy);
+  }
+  return sum * half;
+}
+function srcArcTable(d) {
+  const cum = [0];
+  let acc = 0;
+  for (let i = 0; i < ARC_SPANS; i++) {
+    acc += srcArcSpan(d.src, d.t0 + i * d.step, d.t0 + (i + 1) * d.step);
+    cum.push(acc);
+  }
+  return { cum, total: acc };
+}
+function arcInvert(c, tab, target) {
+  if (!(tab.total > 0)) return 0;
+  const s = Math.min(Math.max(target, 0), tab.total);
+  let lo = 0, hi = ARC_SPANS;
+  while (hi - lo > 1) {
+    const m = lo + hi >> 1;
+    if (tab.cum[m] <= s) lo = m;
+    else hi = m;
+  }
+  const h = 1 / ARC_SPANS, tLo = lo * h, tHi = tLo + h;
+  const spanLen = tab.cum[lo + 1] - tab.cum[lo];
+  let t = spanLen > 0 ? tLo + h * ((s - tab.cum[lo]) / spanLen) : tLo;
+  for (let i = 0; i < 3; i++) {
+    const f = tab.cum[lo] + arcSpan(c, tLo, t) - s;
+    const d = tangentAt(c, t);
+    const speed = Math.hypot(d.x, d.y);
+    if (speed < 1e-12) break;
+    const next = Math.min(tHi, Math.max(tLo, t - f / speed));
+    if (Math.abs(next - t) < 1e-13) {
+      t = next;
+      break;
+    }
+    t = next;
+  }
+  return Math.min(1, Math.max(0, t));
+}
+function evalArc(d, c, acc2) {
+  if (!d.arc) d.arc = srcArcTable(d);
+  const srcTab = d.arc;
+  const tab = arcTable(c);
+  const at = (s, frac) => {
+    const p = evalCubic(c, arcInvert(c, tab, tab.total * frac));
+    return (p.x - s.x) ** 2 + (p.y - s.y) ** 2;
+  };
+  let maxErr2 = 0;
+  for (let i = 0; i < d.samples.length; i++) {
+    const e = at(d.samples[i], srcTab.cum[i + 1] / (srcTab.total || 1));
+    if (e > maxErr2) maxErr2 = e;
+    if (maxErr2 > acc2) return Infinity;
+  }
+  return maxErr2;
+}
+function evalDist(d, c, acc2) {
+  const ray = evalRay(d, c, acc2);
+  if (!Number.isFinite(ray)) return Infinity;
+  if (!d.spicy) return ray;
+  const arc = evalArc(d, c, acc2);
+  return arc > ray ? arc : ray;
+}
+function chordCubic(sx, sy, ex, ey) {
+  return lineToCubic(sx, sy, ex, ey);
+}
+function tryFitLine(src, t0, t1, tol, sx, sy, ex, ey) {
+  const acc2 = tol * tol;
+  const SHORT_N = 7;
+  const dt = (t1 - t0) / (SHORT_N + 1);
+  const dx = ex - sx, dy = ey - sy;
+  const len2 = dx * dx + dy * dy;
+  let maxErr2 = 0;
+  for (let i = 0; i < SHORT_N; i++) {
+    const p = src.sample(t0 + (i + 1) * dt);
+    const u = len2 > 0 ? Math.min(1, Math.max(0, ((p.x - sx) * dx + (p.y - sy) * dy) / len2)) : 0;
+    const e = (sx + dx * u - p.x) ** 2 + (sy + dy * u - p.y) ** 2;
+    if (e > acc2) return null;
+    if (e > maxErr2) maxErr2 = e;
+  }
+  return { c: chordCubic(sx, sy, ex, ey), err: Math.sqrt(maxErr2) };
+}
+function fitOne(src, t0, t1, tol) {
+  const f = frameFor(src, t0, t1);
+  if (!f) return null;
+  const acc2 = tol * tol;
+  if (f.chord2 <= acc2) return tryFitLine(src, t0, t1, tol, f.sx, f.sy, f.ex, f.ey);
+  const d = curveDist(src, t0, t1);
+  let best = null;
+  let bestErr2 = Infinity;
+  for (const cand of candidates(f)) {
+    const err2 = evalDist(d, cand.c, acc2);
+    if (!Number.isFinite(err2)) continue;
+    const scale = Math.max(armPenalty(cand.d0), armPenalty(cand.d1)) ** 2;
+    const pen = err2 * scale;
+    if (pen < acc2 && pen < bestErr2) {
+      best = cand.c;
+      bestErr2 = pen;
+    }
+  }
+  return best ? { c: best, err: Math.sqrt(bestErr2) } : null;
+}
+function collectBreaks(src) {
+  if (!src.breaks) return [];
+  const raw = src.breaks();
+  if (!Array.isArray(raw)) return [];
+  const out = [];
+  for (const t of raw.slice(0, 256).sort((a, b) => a - b)) {
+    if (!Number.isFinite(t) || t <= 1e-9 || t >= 1 - 1e-9) continue;
+    if (out.length && t - out[out.length - 1] < 1e-9) continue;
+    out.push(t);
+  }
+  return out;
+}
+function fitAdaptive(src, t0, t1, tol, b) {
+  const pending = [{ a: t0, z: t1, depth: 0 }];
+  while (pending.length) {
+    const { a, z, depth } = pending.pop();
+    const span = Math.abs(z - a);
+    const start = endpointSample(src, a, 1, span);
+    const end = endpointSample(src, z, -1, span);
+    if ((end.x - start.x) ** 2 + (end.y - start.y) ** 2 <= tol * tol) {
+      const line = tryFitLine(src, a, z, tol, start.x, start.y, end.x, end.y);
+      if (line) {
+        b.out.push(line.c);
+        continue;
+      }
+    }
+    const fit = fitOne(src, a, z, tol);
+    if (fit) {
+      b.out.push(fit.c);
+      continue;
+    }
+    const mid2 = 0.5 * (a + z);
+    if (depth >= MAX_DEPTH || b.out.length + pending.length + 2 > b.max || !(mid2 > a && mid2 < z)) {
+      b.out.push(chordCubic(start.x, start.y, end.x, end.y));
+      continue;
+    }
+    pending.push({ a: mid2, z, depth: depth + 1 });
+    pending.push({ a, z: mid2, depth: depth + 1 });
+  }
+}
+function solveItp(f, a, b, eps, n0, k1, ya, yb) {
+  const n12 = Math.max(0, Math.ceil(Math.log2((b - a) / eps)) - 1);
+  let scaledEps = eps * 2 ** (n0 + n12);
+  let lo = a, hi = b, ylo = ya, yhi = yb;
+  let guard = 0;
+  while (hi - lo > 2 * eps && guard++ < 128) {
+    const half = 0.5 * (lo + hi);
+    const r = scaledEps - 0.5 * (hi - lo);
+    const xf = (yhi * lo - ylo * hi) / (yhi - ylo);
+    const sigma = half - xf;
+    const delta = k1 * (hi - lo) ** 2;
+    const xt = delta <= Math.abs(sigma) ? xf + copysign(delta, sigma) : half;
+    const x = Math.abs(xt - half) <= r ? xt : half - copysign(r, sigma);
+    const y = f(x);
+    if (y > 0) {
+      hi = x;
+      yhi = y;
+    } else if (y < 0) {
+      lo = x;
+      ylo = y;
+    } else return x;
+    scaledEps *= 0.5;
+  }
+  return 0.5 * (lo + hi);
+}
+function fitGreedy(src, t0, t1, tol, b) {
+  let t = t0;
+  let guard = 0;
+  while (t < t1 && b.out.length < b.max && guard++ < b.max) {
+    const whole = fitOne(src, t, t1, tol);
+    if (whole) {
+      b.out.push(whole.c);
+      return;
+    }
+    const start = t;
+    const f = (x2) => {
+      const r = fitOne(src, start, x2, tol);
+      return r ? r.err - tol : tol;
+    };
+    const x = solveItp(f, start, t1, 1e-6, 1, 2 / (t1 - start), -tol, tol);
+    const seg = fitOne(src, start, x, tol);
+    if (!seg || !(x > start) || !(x < t1)) {
+      fitAdaptive(src, start, t1, tol, b);
+      return;
+    }
+    b.out.push(seg.c);
+    t = x;
+  }
+}
+function fitToCubics(src, opts = {}) {
+  const tol = opts.tol && opts.tol > 0 ? opts.tol : DEFAULT_TOL;
+  const max = opts.maxSegments && opts.maxSegments > 0 ? Math.floor(opts.maxSegments) : DEFAULT_MAX_SEGMENTS;
+  const b = { out: [], max };
+  const cuts = [0, ...collectBreaks(src), 1];
+  for (let i = 0; i + 1 < cuts.length && b.out.length < max; i++) {
+    const t0 = cuts[i], t1 = cuts[i + 1];
+    if (!(t1 > t0)) continue;
+    if (opts.optimise) {
+      const greedy = { out: [], max: max - b.out.length };
+      fitGreedy(src, t0, t1, tol, greedy);
+      const plain = { out: [], max: max - b.out.length };
+      fitAdaptive(src, t0, t1, tol, plain);
+      b.out.push(...greedy.out.length && greedy.out.length <= plain.out.length ? greedy.out : plain.out);
+    } else {
+      fitAdaptive(src, t0, t1, tol, b);
+    }
+  }
+  return b.out;
+}
+function polyCubicSource(curves) {
+  const n2 = curves.length;
+  const at = (t) => {
+    const scaled = Math.min(Math.max(t, 0), 1) * n2;
+    let i = Math.floor(scaled);
+    if (i >= n2) i = n2 - 1;
+    return { i, u: scaled - i };
+  };
+  return {
+    sample(t) {
+      const { i, u } = at(t);
+      const c = curves[i];
+      const p = evalCubic(c, u), d = tangentAt(c, u);
+      return { x: p.x, y: p.y, dx: d.x * n2, dy: d.y * n2 };
+    },
+    momentIntegrals(t0, t1) {
+      const a = at(t0), z = at(t1);
+      const raw = { a: 0, x: 0, y: 0 };
+      const add = (c, u0, u1) => {
+        if (u1 <= u0) return;
+        const m = rawMomentsCubic(subCubic(c, u0, u1));
+        raw.a += m.a;
+        raw.x += m.x;
+        raw.y += m.y;
+      };
+      if (a.i === z.i) {
+        add(curves[a.i], a.u, z.u);
+      } else {
+        add(curves[a.i], a.u, 1);
+        for (let i = a.i + 1; i < z.i; i++) add(curves[i], 0, 1);
+        add(curves[z.i], 0, z.u);
+      }
+      const s = evalCubic(curves[a.i], a.u), e = evalCubic(curves[z.i], z.u);
+      return chordFrameMoments(raw, s.x, s.y, e.x - s.x, e.y - s.y);
+    },
+    breaks() {
+      const out = [];
+      for (let i = 1; i < n2; i++) {
+        const a = tangentAt(curves[i - 1], 1), b2 = tangentAt(curves[i], 0);
+        const la = Math.hypot(a.x, a.y), lb = Math.hypot(b2.x, b2.y);
+        if (la < 1e-12 || lb < 1e-12) {
+          out.push(i / n2);
+          continue;
+        }
+        const cos = (a.x * b2.x + a.y * b2.y) / (la * lb);
+        const sin = Math.abs(a.x * b2.y - a.y * b2.x) / (la * lb);
+        if (cos < 0.9998 || sin > 0.02) out.push(i / n2);
+      }
+      return out;
+    }
+  };
+}
+function simplifyCubics(curves, tol = DEFAULT_TOL) {
+  if (curves.length < 2) return curves.slice();
+  const fitted = fitToCubics(polyCubicSource(curves), { tol, maxSegments: curves.length });
+  if (!fitted.length || fitted.length >= curves.length) return curves.slice();
+  return fitted;
+}
+var D_PENALTY_ELBOW, D_PENALTY_SLOPE, N_SAMPLE, SPICY_THRESH, DEFAULT_TOL, DEFAULT_MAX_SEGMENTS, MAX_DEPTH, GL16, REFINE_ITERS, INV_PHI, ARC_SPANS;
+var init_fit = __esm({
+  "engine/src/geom/fit.ts"() {
+    "use strict";
+    init_bezier();
+    init_intersect();
+    D_PENALTY_ELBOW = 0.65;
+    D_PENALTY_SLOPE = 2;
+    N_SAMPLE = 20;
+    SPICY_THRESH = 0.2;
+    DEFAULT_TOL = 0.1;
+    DEFAULT_MAX_SEGMENTS = 512;
+    MAX_DEPTH = 20;
+    GL16 = [
+      [0.1894506104550685, -0.0950125098376374],
+      [0.1894506104550685, 0.0950125098376374],
+      [0.1826034150449236, -0.2816035507792589],
+      [0.1826034150449236, 0.2816035507792589],
+      [0.1691565193950025, -0.4580167776572274],
+      [0.1691565193950025, 0.4580167776572274],
+      [0.1495959888165767, -0.6178762444026438],
+      [0.1495959888165767, 0.6178762444026438],
+      [0.1246289712555339, -0.755404408355003],
+      [0.1246289712555339, 0.755404408355003],
+      [0.0951585116824928, -0.8656312023878318],
+      [0.0951585116824928, 0.8656312023878318],
+      [0.0622535239386479, -0.9445750230732326],
+      [0.0622535239386479, 0.9445750230732326],
+      [0.0271524594117541, -0.9894009349916499],
+      [0.0271524594117541, 0.9894009349916499]
+    ];
+    REFINE_ITERS = 12;
+    INV_PHI = 0.6180339887498949;
+    ARC_SPANS = N_SAMPLE + 1;
+  }
+});
+
+// engine/src/geom/offset.ts
+function offsetPieces(c, distance, tol) {
+  if (!isFiniteCubic2(c)) return [];
+  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) {
+    return [{ curve: [...c], dirStart: unitTangent(c, 0), dirEnd: unitTangent(c, 1) }];
+  }
+  const limit = Math.max(tol, 1e-9);
+  const out = [];
+  for (const [t0, t1] of featureSpans(c)) {
+    offsetSpan(subCubic(c, t0, t1), distance, limit, 0, out);
+  }
+  return out;
+}
+function pushRun(src, fitted, out) {
+  for (let i = 0; i < fitted.length; i++) {
+    out.push({
+      curve: fitted[i],
+      dirStart: i === 0 ? unitTangent(src, 0) : null,
+      dirEnd: i === fitted.length - 1 ? unitTangent(src, 1) : null
+    });
+  }
+}
+function offsetSpan(src, d, tol, depth, out) {
+  if (!unitTangent(src, 0) || !unitTangent(src, 1)) return;
+  const straight = isLineCubic(src) ? translateCubic(src, d) : null;
+  if (straight && offsetError(src, [straight], d, tol).error <= tol) {
+    pushRun(src, [straight], out);
+    return;
+  }
+  const fitted = fitToCubics(offsetSource(src, d), { tol, maxSegments: MAX_FIT_SEGMENTS });
+  if (!fitted.length) return;
+  if (depth >= MAX_OFFSET_DEPTH) {
+    pushRun(src, fitted, out);
+    return;
+  }
+  const worst = offsetError(src, fitted, d, tol);
+  if (worst.error <= tol) {
+    pushRun(src, fitted, out);
+    return;
+  }
+  const t = worst.t > MIN_SPAN && worst.t < 1 - MIN_SPAN ? worst.t : 0.5;
+  const [a, b] = splitCubic(src, t);
+  offsetSpan(a, d, tol, depth + 1, out);
+  offsetSpan(b, d, tol, depth + 1, out);
+}
+function offsetSource(c, d) {
+  const sample = (t) => {
+    const p = evalCubic(c, t);
+    const d1 = tangentAt(c, t);
+    const s = Math.hypot(d1.x, d1.y);
+    if (s > 1e-12) {
+      const d2 = secondDeriv(c, t);
+      const k = 1 - d * (d1.x * d2.y - d1.y * d2.x) / (s * s * s);
+      return { x: p.x - d * d1.y / s, y: p.y + d * d1.x / s, dx: k * d1.x, dy: k * d1.y };
+    }
+    const tan = unitTangent(c, t);
+    if (!tan) return { x: p.x, y: p.y, dx: 0, dy: 0 };
+    return { x: p.x - d * tan.y, y: p.y + d * tan.x, dx: 0, dy: 0 };
+  };
+  return {
+    sample,
+    // No closed form exists for an offset's area or moment — the curve is algebraic of
+    // degree 10 — so this is the case `quadratureMoments` is documented for. Gauss-Legendre
+    // over a smooth integrand, not a polyline of the shape.
+    momentIntegrals: (t0, t1) => quadratureMoments(sample, t0, t1),
+    breaks: () => offsetBreaks(c, d)
+  };
+}
+function translateCubic(c, d) {
+  const dx = c[6] - c[0], dy = c[7] - c[1];
+  const len2 = Math.hypot(dx, dy);
+  if (!(len2 > 1e-12)) return null;
+  const nx = -d * dy / len2, ny = d * dx / len2;
+  return [c[0] + nx, c[1] + ny, c[2] + nx, c[3] + ny, c[4] + nx, c[5] + ny, c[6] + nx, c[7] + ny];
+}
+function offsetBreaks(c, d) {
+  const out = featureCuts(c);
+  for (const t of offsetCuspParams(c, d)) out.push(t);
+  return out.sort((a, b) => a - b);
+}
+function offsetError(src, approx, d, tol) {
+  const worst = { error: 0, t: 0.5 };
+  let budget = ERROR_BUDGET;
+  const measure = (u) => {
+    const want = offsetPoint(src, u, d);
+    if (!want) return null;
+    if (u > 0 && u < 1) {
+      const e = nearestOnChain(approx, want);
+      if (e > worst.error) {
+        worst.error = e;
+        worst.t = u;
+      }
+    }
+    return want;
+  };
+  const refine = (u0, u1, w0, w1, depth) => {
+    if (budget <= 0 || depth >= MAX_ERROR_DEPTH) return;
+    budget--;
+    const um = (u0 + u1) / 2;
+    const wm = measure(um);
+    if (!w0 || !w1 || !wm || sagitta(w0, wm, w1) <= tol) return;
+    refine(u0, um, w0, wm, depth + 1);
+    refine(um, u1, wm, w1, depth + 1);
+  };
+  let prev = measure(0);
+  for (let i = 1; i <= ERROR_SAMPLES; i++) {
+    const u = i / ERROR_SAMPLES;
+    const here = measure(u);
+    refine(u - 1 / ERROR_SAMPLES, u, prev, here, 0);
+    prev = here;
+  }
+  return worst;
+}
+function nearestOnChain(chain2, p) {
+  let best = Infinity;
+  for (const k of chain2) {
+    const b = boundsCubic(k);
+    const dx = Math.max(b.x0 - p.x, 0, p.x - b.x1), dy = Math.max(b.y0 - p.y, 0, p.y - b.y1);
+    if (Math.hypot(dx, dy) >= best) continue;
+    const e = nearestOnCubic(k, p.x, p.y).distance;
+    if (e < best) best = e;
+  }
+  return best;
+}
+function sagitta(a, m, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len2 = Math.hypot(dx, dy);
+  if (len2 < 1e-12) return Math.hypot(m.x - a.x, m.y - a.y);
+  return Math.abs((m.x - a.x) * dy - (m.y - a.y) * dx) / len2;
+}
+function isFiniteCubic2(c) {
+  for (let i = 0; i < 8; i++) if (!Number.isFinite(c[i])) return false;
+  return true;
+}
+function offsetPoint(c, t, d) {
+  const tan = unitTangent(c, t);
+  if (!tan) return null;
+  const p = evalCubic(c, t);
+  return { x: p.x - d * tan.y, y: p.y + d * tan.x };
+}
+function unitTangent(c, t) {
+  const d = tangentAt(c, t);
+  const len2 = Math.hypot(d.x, d.y);
+  if (len2 > 1e-12) return { x: d.x / len2, y: d.y / len2 };
+  const legs = t < 0.5 ? [[c[4] - c[0], c[5] - c[1]], [c[6] - c[0], c[7] - c[1]]] : [[c[6] - c[2], c[7] - c[3]], [c[6] - c[0], c[7] - c[1]]];
+  for (const [dx, dy] of legs) {
+    const l = Math.hypot(dx, dy);
+    if (l > 1e-12) return { x: dx / l, y: dy / l };
+  }
+  return null;
+}
+function featureSpans(c) {
+  const spans = [];
+  let prev = 0;
+  for (const t of featureCuts(c)) {
+    spans.push([prev, t]);
+    prev = t;
+  }
+  spans.push([prev, 1]);
+  return spans;
+}
+function featureCuts(c) {
+  const feats = featureParams(c).filter((f) => f.t > MIN_SPAN && f.t < 1 - MIN_SPAN).sort((a, b) => a.t - b.t);
+  const cuts = [];
+  for (let i = 0; i < feats.length; ) {
+    let j = i;
+    while (j + 1 < feats.length && feats[j + 1].t - feats[i].t <= MIN_SPAN) j++;
+    const cluster = feats.slice(i, j + 1);
+    const at = (cluster.find((f) => f.exact) ?? cluster[0]).t;
+    if (!cuts.length || at - cuts[cuts.length - 1] > MIN_SPAN / 2) cuts.push(at);
+    i = j + 1;
+  }
+  return cuts;
+}
+function offsetCuspParams(c, d) {
+  if (isLineCubic(c) || !Number.isFinite(d) || d === 0) return [];
+  const px2 = 3 * (-c[0] + 3 * c[2] - 3 * c[4] + c[6]);
+  const px1 = 2 * (3 * c[0] - 6 * c[2] + 3 * c[4]);
+  const px0 = -3 * c[0] + 3 * c[2];
+  const py2 = 3 * (-c[1] + 3 * c[3] - 3 * c[5] + c[7]);
+  const py1 = 2 * (3 * c[1] - 6 * c[3] + 3 * c[5]);
+  const py0 = -3 * c[1] + 3 * c[3];
+  const a = [px0 * py1 - px1 * py0, 2 * (px0 * py2 - px2 * py0), px1 * py2 - px2 * py1];
+  const dPoly = [
+    px0 * px0 + py0 * py0,
+    2 * (px1 * px0 + py1 * py0),
+    px1 * px1 + 2 * px2 * px0 + py1 * py1 + 2 * py2 * py0,
+    2 * (px2 * px1 + py2 * py1),
+    px2 * px2 + py2 * py2
+  ];
+  const cuspPoly = polySub(polyMul(polyMul(dPoly, dPoly), dPoly), polyScale(polyMul(a, a), d * d));
+  const out = [];
+  for (const t of rootsInUnit(cuspPoly)) {
+    if (!(t > MIN_SPAN) || !(t < 1 - MIN_SPAN)) continue;
+    const speed2 = (((dPoly[4] * t + dPoly[3]) * t + dPoly[2]) * t + dPoly[1]) * t + dPoly[0];
+    if (!(speed2 > 0)) continue;
+    const num3 = (a[2] * t + a[1]) * t + a[0];
+    if (Math.abs(1 - d * num3 / (speed2 * Math.sqrt(speed2))) < 0.5) out.push(t);
+  }
+  return out;
+}
+function featureParams(c) {
+  if (isLineCubic(c)) return [];
+  const px2 = 3 * (-c[0] + 3 * c[2] - 3 * c[4] + c[6]);
+  const px1 = 2 * (3 * c[0] - 6 * c[2] + 3 * c[4]);
+  const px0 = -3 * c[0] + 3 * c[2];
+  const py2 = 3 * (-c[1] + 3 * c[3] - 3 * c[5] + c[7]);
+  const py1 = 2 * (3 * c[1] - 6 * c[3] + 3 * c[5]);
+  const py0 = -3 * c[1] + 3 * c[3];
+  const a2 = px1 * py2 - px2 * py1;
+  const a1 = 2 * (px0 * py2 - px2 * py0);
+  const a0 = px0 * py1 - px1 * py0;
+  const d4 = px2 * px2 + py2 * py2;
+  const d3 = 2 * (px2 * px1 + py2 * py1);
+  const d2 = px1 * px1 + 2 * px2 * px0 + py1 * py1 + 2 * py2 * py0;
+  const d1 = 2 * (px1 * px0 + py1 * py0);
+  const d0 = px0 * px0 + py0 * py0;
+  const ts = [];
+  for (const t of cubicRoots01(0, a2, a1, a0)) ts.push({ t, exact: true });
+  for (const t of rootsInUnit(polySub(
+    polyScale(polyMul([a1, 2 * a2], [d0, d1, d2, d3, d4]), 2),
+    polyScale(polyMul([a0, a1, a2], [d1, 2 * d2, 3 * d3, 4 * d4]), 3)
+  ))) ts.push({ t, exact: false });
+  const speedScale = 3 * Math.max(
+    Math.hypot(c[2] - c[0], c[3] - c[1]),
+    Math.hypot(c[4] - c[2], c[5] - c[3]),
+    Math.hypot(c[6] - c[4], c[7] - c[5]),
+    1e-12
+  );
+  for (const t of cubicRoots01(4 * d4, 3 * d3, 2 * d2, d1)) {
+    const speed = Math.sqrt(Math.max(0, (((d4 * t + d3) * t + d2) * t + d1) * t + d0));
+    if (speed < 1e-6 * speedScale) ts.push({ t, exact: true });
+  }
+  return ts;
+}
+function polyMul(a, b) {
+  const out = new Array(a.length + b.length - 1).fill(0);
+  for (let i = 0; i < a.length; i++) for (let j = 0; j < b.length; j++) out[i + j] += a[i] * b[j];
+  return out;
+}
+function polyScale(a, k) {
+  return a.map((v) => v * k);
+}
+function polySub(a, b) {
+  const out = [];
+  for (let i = 0; i < Math.max(a.length, b.length); i++) out.push((a[i] ?? 0) - (b[i] ?? 0));
+  return out;
+}
+function rootsInUnit(poly) {
+  let scale = 0;
+  for (const v of poly) scale = Math.max(scale, Math.abs(v));
+  if (!(scale > 0) || !Number.isFinite(scale)) return [];
+  const a = poly.map((v) => v / scale);
+  let deg = a.length - 1;
+  while (deg > 0 && Math.abs(a[deg]) < 1e-12) deg--;
+  if (deg === 0) return [];
+  const out = [];
+  isolateRoots(bernsteinFromPower(a.slice(0, deg + 1)), 0, 1, 0, out);
+  return out;
+}
+function bernsteinFromPower(a) {
+  const n2 = a.length - 1;
+  const rows = [];
+  for (let i = 0; i <= n2; i++) {
+    const row = [1];
+    for (let k = 1; k <= i; k++) row.push(row[k - 1] * (i - k + 1) / k);
+    rows.push(row);
+  }
+  const out = [];
+  for (let k = 0; k <= n2; k++) {
+    let s = 0;
+    for (let i = 0; i <= k; i++) s += rows[k][i] / rows[n2][i] * a[i];
+    out.push(s);
+  }
+  return out;
+}
+function isolateRoots(b, t0, t1, depth, out) {
+  let changes = 0, prev = 0;
+  for (const v of b) {
+    if (v === 0) continue;
+    const s = v > 0 ? 1 : -1;
+    if (prev !== 0 && s !== prev) changes++;
+    prev = s;
+  }
+  if (changes === 0) return;
+  if (depth >= 40 || changes === 1 && t1 - t0 < 1e-7) {
+    out.push((t0 + t1) / 2);
+    return;
+  }
+  const [lo, hi] = splitBernstein(b);
+  const mid2 = (t0 + t1) / 2;
+  isolateRoots(lo, t0, mid2, depth + 1, out);
+  isolateRoots(hi, mid2, t1, depth + 1, out);
+}
+function splitBernstein(b) {
+  const rows = [b.slice()];
+  for (let lvl = 1; lvl < b.length; lvl++) {
+    const prev = rows[lvl - 1];
+    const row = [];
+    for (let i = 0; i + 1 < prev.length; i++) row.push((prev[i] + prev[i + 1]) / 2);
+    rows.push(row);
+  }
+  return [rows.map((r) => r[0]), rows.map((r) => r[r.length - 1]).reverse()];
+}
+function offsetContour(c, distance, opts = {}) {
+  const src = finiteContour(c);
+  if (!src) return [];
+  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) return [src];
+  if (!src.closed) {
+    const curves2 = buildOffset(src, distance, opts);
+    return curves2.length ? [{ curves: curves2, closed: false }] : [];
+  }
+  const cc = closeContour(src);
+  const area = contourArea(cc);
+  const curves = buildOffset(cc, distance * outwardSign(area), opts);
+  if (!curves.length) return [];
+  return resolveLoops([{ curves, closed: true }], [cc], distance, area > 0);
+}
+function offsetPath(p, distance, opts = {}) {
+  const src = p.map(finiteContour).filter((c) => c !== null);
+  if (!src.length) return [];
+  if (!Number.isFinite(distance) || Math.abs(distance) < 1e-12) return src;
+  const closed = src.filter((c) => c.closed).map(closeContour);
+  const open = src.filter((c) => !c.closed);
+  const out = [];
+  if (closed.length) {
+    let ref = 0, biggest = 0;
+    for (const c of closed) {
+      const a = contourArea(c);
+      if (Math.abs(a) > biggest) {
+        biggest = Math.abs(a);
+        ref = a;
+      }
+    }
+    const signed = distance * outwardSign(ref);
+    const loops = [];
+    for (const c of closed) {
+      const curves = buildOffset(c, signed, opts);
+      if (curves.length) loops.push({ curves, closed: true });
+    }
+    if (loops.length) out.push(...resolveLoops(loops, closed, distance, ref > 0));
+  }
+  for (const c of open) {
+    const curves = buildOffset(c, distance, opts);
+    if (curves.length) out.push({ curves, closed: false });
+  }
+  return out;
+}
+function offsetSweep(c, distance, opts = {}) {
+  const src = finiteContour(c);
+  if (!src || !Number.isFinite(distance)) return null;
+  if (Math.abs(distance) < 1e-12) return src;
+  const cc = src.closed ? closeContour(src) : src;
+  const curves = buildOffset(cc, distance, opts);
+  return curves.length ? { curves, closed: cc.closed } : null;
+}
+function outwardSign(area) {
+  return area > 0 ? -1 : 1;
+}
+function resolveLoops(raw, src, distance, wantCcw) {
+  const resolved = compactPath(selfUnion(raw));
+  const probes = regionProber(resolved);
+  const kept = resolved.filter((c) => probes(c).some(
+    (p) => isOffsetMaterial(src, p.left, distance)
+  ));
+  return matchOrientation(kept, wantCcw);
+}
+function isOffsetMaterial(src, p, distance) {
+  const slack = Math.max(Math.abs(distance), 1) * 1e-9;
+  const want = Math.abs(distance);
+  const inside = () => windingNumber(src, p.x, p.y) !== 0;
+  const near = () => distanceToPath(src, p.x, p.y);
+  return distance > 0 ? inside() || near() <= want + slack : inside() && near() >= want - slack;
+}
+function distanceToPath(p, x, y) {
+  let best = Infinity;
+  for (const c of p) {
+    for (const k of c.curves) {
+      const b = boundsCubic(k);
+      const dx = Math.max(b.x0 - x, 0, x - b.x1), dy = Math.max(b.y0 - y, 0, y - b.y1);
+      if (Math.hypot(dx, dy) >= best) continue;
+      const d = nearestOnCubic(k, x, y).distance;
+      if (d < best) best = d;
+    }
+  }
+  return best;
+}
+function regionProber(region) {
+  const box2 = pathBounds(region);
+  const curves = region.flatMap((c) => c.curves).map((k) => ({ k, box: boundsCubic(k) }));
+  const reach = box2 ? Math.hypot(box2.x1 - box2.x0, box2.y1 - box2.y0) : 0;
+  const skip = reach * 1e-9;
+  const firstCrossing = (m, dx, dy) => {
+    const x1 = m.x + dx * reach, y1 = m.y + dy * reach;
+    const lo = { x: Math.min(m.x, x1), y: Math.min(m.y, y1) };
+    const hi = { x: Math.max(m.x, x1), y: Math.max(m.y, y1) };
+    let best = null;
+    for (const { k, box: b } of curves) {
+      if (b.x1 < lo.x || b.x0 > hi.x || b.y1 < lo.y || b.y0 > hi.y) continue;
+      for (const hit of intersectLineCubic(m.x, m.y, x1, y1, k)) {
+        const at = hit.t1 * reach;
+        if (at <= skip) continue;
+        if (best === null || at < best) best = at;
+      }
+    }
+    return best;
+  };
+  return (c, limit = PROBE_CURVES) => {
+    if (!(reach > 0)) return [];
+    const order = [...c.curves].map((k, i) => ({ k, i, span: Math.hypot(k[6] - k[0], k[7] - k[1]) })).sort((a, b) => b.span - a.span || a.i - b.i).slice(0, limit);
+    const out = [];
+    for (const { k } of order) {
+      const tan = unitTangent(k, 0.5);
+      if (!tan) continue;
+      const m = evalCubic(k, 0.5);
+      const nx = -tan.y, ny = tan.x;
+      const hl = firstCrossing(m, nx, ny);
+      const hr = firstCrossing(m, -nx, -ny);
+      const room = hl === null ? hr : hr === null ? Math.min(hl, reach) : Math.min(hl, hr);
+      if (room === null || !(room > 0)) continue;
+      const s = room / 2;
+      out.push({
+        left: { x: m.x + nx * s, y: m.y + ny * s },
+        right: { x: m.x - nx * s, y: m.y - ny * s }
+      });
+    }
+    return out;
+  };
+}
+function finiteContour(c) {
+  const curves = c.curves.filter(isFiniteCubic2).map((k) => [...k]);
+  return curves.length ? { curves, closed: c.closed } : null;
+}
+function buildOffset(c, d, opts) {
+  const tol = opts.tol ?? DEFAULT_TOL2;
+  const join9 = opts.join ?? "miter";
+  const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
+  const seq = [];
+  const corners = [];
+  for (const k of c.curves) {
+    const pieces = offsetPieces(k, d, tol);
+    for (let i = 0; i < pieces.length; i++) {
+      seq.push(pieces[i]);
+      corners.push(i === pieces.length - 1 ? { x: k[6], y: k[7] } : null);
+    }
+  }
+  if (!seq.length) return [];
+  const out = [];
+  for (let i = 0; i < seq.length; i++) {
+    const cur = seq[i];
+    out.push(cur.curve);
+    const last = i === seq.length - 1;
+    if (last && !c.closed) break;
+    const next = seq[last ? 0 : i + 1];
+    const a = { x: cur.curve[6], y: cur.curve[7] };
+    const b = { x: next.curve[0], y: next.curve[1] };
+    if (Math.hypot(b.x - a.x, b.y - a.y) <= JOIN_EPS) {
+      next.curve[0] = a.x;
+      next.curve[1] = a.y;
+      continue;
+    }
+    const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    const t0 = cur.dirEnd ?? endTangent2(cur.curve);
+    const t1 = next.dirStart ?? startTangent2(next.curve);
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join9, miterLimit));
+  }
+  return out;
+}
+function joinPieces(a, b, pivot, t0, t1, d, style, miterLimit) {
+  const bevel = () => [lineToCubic(a.x, a.y, b.x, b.y)];
+  const viaPivot = () => [lineToCubic(a.x, a.y, pivot.x, pivot.y), lineToCubic(pivot.x, pivot.y, b.x, b.y)];
+  if (!t0 || !t1) return bevel();
+  const cross = t0.x * t1.y - t0.y * t1.x;
+  const reversal = Math.abs(cross) < 1e-9 && t0.x * t1.x + t0.y * t1.y < 0;
+  if (!reversal) {
+    if (Math.abs(cross) < 1e-12) return bevel();
+    if (d * cross >= 0) return viaPivot();
+  }
+  if (style === "bevel") return bevel();
+  if (style === "round") return arcJoin(a, b, pivot, t0);
+  if (reversal) return bevel();
+  const s = ((b.x - a.x) * t1.y - (b.y - a.y) * t1.x) / cross;
+  if (!(s > 0) || !Number.isFinite(s)) return bevel();
+  const m = { x: a.x + t0.x * s, y: a.y + t0.y * s };
+  if (Math.hypot(m.x - pivot.x, m.y - pivot.y) > miterLimit * Math.abs(d)) return bevel();
+  return [lineToCubic(a.x, a.y, m.x, m.y), lineToCubic(m.x, m.y, b.x, b.y)];
+}
+function arcJoin(a, b, pivot, heading) {
+  const r0 = Math.hypot(a.x - pivot.x, a.y - pivot.y);
+  const r1 = Math.hypot(b.x - pivot.x, b.y - pivot.y);
+  const r = (r0 + r1) / 2;
+  if (r < 1e-12) return [lineToCubic(a.x, a.y, b.x, b.y)];
+  const from = Math.atan2(a.y - pivot.y, a.x - pivot.x);
+  let sweep = Math.atan2(b.y - pivot.y, b.x - pivot.x) - from;
+  while (sweep <= -Math.PI) sweep += 2 * Math.PI;
+  while (sweep > Math.PI) sweep -= 2 * Math.PI;
+  if (heading && Math.abs(sweep) > Math.PI - 1e-6) {
+    const turn = (a.x - pivot.x) * heading.y - (a.y - pivot.y) * heading.x;
+    if (turn !== 0) sweep = turn > 0 ? Math.abs(sweep) : -Math.abs(sweep);
+  }
+  const n2 = Math.max(1, Math.ceil(Math.abs(sweep) / (Math.PI / 2)));
+  const step = sweep / n2;
+  const k = 4 / 3 * Math.tan(step / 4);
+  const out = [];
+  for (let i = 0; i < n2; i++) {
+    const s = from + step * i, e = s + step;
+    const sx = pivot.x + r * Math.cos(s), sy = pivot.y + r * Math.sin(s);
+    const ex = pivot.x + r * Math.cos(e), ey = pivot.y + r * Math.sin(e);
+    out.push([
+      sx,
+      sy,
+      sx - k * r * Math.sin(s),
+      sy + k * r * Math.cos(s),
+      ex + k * r * Math.sin(e),
+      ey - k * r * Math.cos(e),
+      ex,
+      ey
+    ]);
+  }
+  const first = out[0], last = out[out.length - 1];
+  first[0] = a.x;
+  first[1] = a.y;
+  last[6] = b.x;
+  last[7] = b.y;
+  return out;
+}
+function endTangent2(c) {
+  return unitTangent(c, 1);
+}
+function startTangent2(c) {
+  return unitTangent(c, 0);
+}
+function matchOrientation(p, wantCcw) {
+  let area = 0, biggest = 0;
+  for (const c of p) {
+    const a = contourArea(c);
+    if (Math.abs(a) > biggest) {
+      biggest = Math.abs(a);
+      area = a;
+    }
+  }
+  if (biggest === 0 || area > 0 === wantCcw) return p;
+  return p.map(reverseContour);
+}
+function secondDeriv(c, t) {
+  const mt = 1 - t;
+  return {
+    x: 6 * mt * (c[4] - 2 * c[2] + c[0]) + 6 * t * (c[6] - 2 * c[4] + c[2]),
+    y: 6 * mt * (c[5] - 2 * c[3] + c[1]) + 6 * t * (c[7] - 2 * c[5] + c[3])
+  };
+}
+var DEFAULT_TOL2, DEFAULT_MITER_LIMIT, MAX_OFFSET_DEPTH, MAX_FIT_SEGMENTS, ERROR_SAMPLES, MAX_ERROR_DEPTH, ERROR_BUDGET, PROBE_CURVES, MIN_SPAN;
+var init_offset = __esm({
+  "engine/src/geom/offset.ts"() {
+    "use strict";
+    init_bezier();
+    init_intersect();
+    init_path();
+    init_boolean();
+    init_fit();
+    DEFAULT_TOL2 = 0.01;
+    DEFAULT_MITER_LIMIT = 4;
+    MAX_OFFSET_DEPTH = 8;
+    MAX_FIT_SEGMENTS = 32;
+    ERROR_SAMPLES = 12;
+    MAX_ERROR_DEPTH = 20;
+    ERROR_BUDGET = 512;
+    PROBE_CURVES = 6;
+    MIN_SPAN = 1e-4;
+  }
+});
+
+// engine/src/geom/stroke.ts
+function strokeToPath(p, width, opts = {}) {
+  if (!(width > 0)) return [];
+  const r = width / 2;
+  const cap = opts.cap ?? "butt";
+  const off = { join: opts.join ?? "miter", miterLimit: opts.miterLimit ?? 4, tol: opts.tol };
+  const raw = [];
+  for (const c of p) {
+    if (!c.curves.length) continue;
+    if (isPoint(c)) {
+      const dot = dotContour(c, r, cap);
+      if (dot) raw.push(dot);
+      continue;
+    }
+    if (c.closed) raw.push(...ring(c, r, off));
+    else {
+      const outline = openOutline(c, r, cap, off);
+      if (outline) raw.push(outline);
+    }
+  }
+  if (!raw.length) return [];
+  return keptContours(selfUnion(raw, { fillRule: "nonzero" }), p, r);
+}
+function keptContours(resolved, centreline, r) {
+  if (resolved.length < 2) return resolved;
+  const src = centreline.filter((c) => c.curves.length).map((c) => c.closed ? closeContour(c) : c);
+  if (!src.length) return resolved;
+  const paint = (p) => distanceToPath(src, p.x, p.y) <= r * (1 + 1e-9);
+  const probes = regionProber(resolved);
+  return resolved.filter((c) => {
+    for (const probe of probes(c)) {
+      const left = paint(probe.left), right = paint(probe.right);
+      if (left !== right) return true;
+      if (left && right) return false;
+    }
+    return true;
+  });
+}
+function ring(c, r, off) {
+  const cc = closeContour(c);
+  const out = [];
+  for (const side of [cc, reverseContour(cc)]) {
+    const sweep = offsetSweep(side, r, off);
+    if (sweep) out.push(sweep);
+  }
+  return out;
+}
+function openOutline(c, r, cap, off) {
+  const fwd = offsetSide(c, r, off);
+  const back = offsetSide(reverseContour(c), r, off);
+  if (!fwd.length || !back.length) return null;
+  const ahead = endDirection(c);
+  const behind = startDirection(c);
+  if (!ahead || !behind) return null;
+  const curves = [
+    ...fwd,
+    ...capCurves(endPoint(fwd), startPoint(back), ahead, cap),
+    ...back,
+    // Arriving back at the start, the direction of travel is against the contour.
+    ...capCurves(endPoint(back), startPoint(fwd), { x: -behind.x, y: -behind.y }, cap)
+  ];
+  return { curves, closed: true };
+}
+function offsetSide(c, distance, off) {
+  const out = [];
+  for (const part of offsetContour(c, distance, off)) out.push(...part.curves);
+  return out;
+}
+function capCurves(from, to, dir, cap) {
+  if (cap === "round") return halfCircle(from, to, dir);
+  if (cap === "square") {
+    const r = Math.hypot(to.x - from.x, to.y - from.y) / 2;
+    const ex = dir.x * r, ey = dir.y * r;
+    const a = { x: from.x + ex, y: from.y + ey };
+    const b = { x: to.x + ex, y: to.y + ey };
+    return [
+      lineToCubic(from.x, from.y, a.x, a.y),
+      lineToCubic(a.x, a.y, b.x, b.y),
+      lineToCubic(b.x, b.y, to.x, to.y)
+    ];
+  }
+  return [lineToCubic(from.x, from.y, to.x, to.y)];
+}
+function halfCircle(from, to, dir) {
+  const cx = (from.x + to.x) / 2, cy = (from.y + to.y) / 2;
+  const ux = from.x - cx, uy = from.y - cy;
+  const r = Math.hypot(ux, uy);
+  if (r < JOIN_EPS) return [lineToCubic(from.x, from.y, to.x, to.y)];
+  const ax = ux / r, ay = uy / r;
+  let mx = ay, my = -ax;
+  if (mx * dir.x + my * dir.y < 0) {
+    mx = -mx;
+    my = -my;
+  }
+  const arcs = [
+    quarterArc(cx, cy, r, ax, ay, mx, my),
+    quarterArc(cx, cy, r, mx, my, -ax, -ay)
+  ];
+  const last = arcs[arcs.length - 1];
+  last[6] = to.x;
+  last[7] = to.y;
+  return arcs;
+}
+function quarterArc(cx, cy, r, ax, ay, bx, by) {
+  const p0x = cx + r * ax, p0y = cy + r * ay;
+  const p3x = cx + r * bx, p3y = cy + r * by;
+  return [
+    p0x,
+    p0y,
+    p0x + KAPPA * r * bx,
+    p0y + KAPPA * r * by,
+    p3x + KAPPA * r * ax,
+    p3y + KAPPA * r * ay,
+    p3x,
+    p3y
+  ];
+}
+function isPoint(c) {
+  const b = pathBounds([c]);
+  return !b || b.x1 - b.x0 <= JOIN_EPS && b.y1 - b.y0 <= JOIN_EPS;
+}
+function dotContour(c, r, cap) {
+  if (cap === "butt") return null;
+  const k = c.curves[0];
+  if (!k) return null;
+  const x = k[0], y = k[1];
+  if (cap === "square") {
+    return {
+      curves: [
+        lineToCubic(x - r, y - r, x + r, y - r),
+        lineToCubic(x + r, y - r, x + r, y + r),
+        lineToCubic(x + r, y + r, x - r, y + r),
+        lineToCubic(x - r, y + r, x - r, y - r)
+      ],
+      closed: true
+    };
+  }
+  return {
+    curves: [
+      quarterArc(x, y, r, 1, 0, 0, 1),
+      quarterArc(x, y, r, 0, 1, -1, 0),
+      quarterArc(x, y, r, -1, 0, 0, -1),
+      quarterArc(x, y, r, 0, -1, 1, 0)
+    ],
+    closed: true
+  };
+}
+function unit(x, y) {
+  const l = Math.hypot(x, y);
+  return l < 1e-12 ? null : { x: x / l, y: y / l };
+}
+function endDirection(c) {
+  for (let i = c.curves.length - 1; i >= 0; i--) {
+    const k = c.curves[i];
+    const d = unit(k[6] - k[4], k[7] - k[5]) ?? unit(k[6] - k[2], k[7] - k[3]) ?? unit(k[6] - k[0], k[7] - k[1]);
+    if (d) return d;
+  }
+  return null;
+}
+function startDirection(c) {
+  for (const k of c.curves) {
+    const d = unit(k[2] - k[0], k[3] - k[1]) ?? unit(k[4] - k[0], k[5] - k[1]) ?? unit(k[6] - k[0], k[7] - k[1]);
+    if (d) return d;
+  }
+  return null;
+}
+function startPoint(curves) {
+  const k = curves[0];
+  return { x: k[0], y: k[1] };
+}
+function endPoint(curves) {
+  const k = curves[curves.length - 1];
+  return { x: k[6], y: k[7] };
+}
+var KAPPA;
+var init_stroke = __esm({
+  "engine/src/geom/stroke.ts"() {
+    "use strict";
+    init_bezier();
+    init_path();
+    init_offset();
+    init_boolean();
+    KAPPA = 0.5522847498307936;
+  }
+});
+
+// engine/src/geom/spline.ts
+function toCubics(path, warm) {
+  const n2 = path.nodes;
+  if (n2.length < 2) return [];
+  switch (path.kind) {
+    case "line":
+      return lineSegments(n2, path.closed);
+    case "cubic":
+      return cubicSegments(n2, path.closed);
+    case "catmull-rom":
+      return catmullRom(n2, path.closed, path.tension ?? 0.5);
+    case "bspline":
+      return bspline(n2, path.closed);
+    case "hyperbezier":
+      return hyperbezierCubics(n2, path.closed, solveHyperbezier(n2, path.closed, warm));
+    case "spiro":
+      throw new Error("spiro lowering is not implemented yet \u2014 see engine/src/geom/spline.ts");
+    default:
+      throw new Error(`unknown spline kind: ${String(path.kind)}`);
+  }
+}
+function pairs(items, closed) {
+  const out = [];
+  for (let i = 0; i + 1 < items.length; i++) out.push([items[i], items[i + 1]]);
+  if (closed && items.length > 2) out.push([items[items.length - 1], items[0]]);
+  return out;
+}
+function lineSegments(n2, closed) {
+  return pairs(n2, closed).map(([a, b]) => lineToCubic(a.x, a.y, b.x, b.y));
+}
+function cubicSegments(n2, closed) {
+  return pairs(n2, closed).map(([a, b]) => {
+    const c1x = a.x + (a.hOutX ?? 0), c1y = a.y + (a.hOutY ?? 0);
+    const c2x = b.x + (b.hInX ?? 0), c2y = b.y + (b.hInY ?? 0);
+    return [a.x, a.y, c1x, c1y, c2x, c2y, b.x, b.y];
+  });
+}
+function catmullRom(n2, closed, alpha) {
+  const at = (i) => {
+    if (closed) return n2[(i % n2.length + n2.length) % n2.length];
+    return n2[Math.min(n2.length - 1, Math.max(0, i))];
+  };
+  const out = [];
+  const last = closed ? n2.length : n2.length - 1;
+  for (let i = 0; i < last; i++) {
+    const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+    const d = (a, b) => Math.max(1e-9, Math.hypot(b.x - a.x, b.y - a.y) ** alpha);
+    const d1 = d(p0, p1), d2 = d(p1, p2), d3 = d(p2, p3);
+    const b1x = (d1 * d1 * p2.x - d2 * d2 * p0.x + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.x) / (3 * d1 * (d1 + d2));
+    const b1y = (d1 * d1 * p2.y - d2 * d2 * p0.y + (2 * d1 * d1 + 3 * d1 * d2 + d2 * d2) * p1.y) / (3 * d1 * (d1 + d2));
+    const b2x = (d3 * d3 * p1.x - d2 * d2 * p3.x + (2 * d3 * d3 + 3 * d3 * d2 + d2 * d2) * p2.x) / (3 * d3 * (d3 + d2));
+    const b2y = (d3 * d3 * p1.y - d2 * d2 * p3.y + (2 * d3 * d3 + 3 * d3 * d2 + d2 * d2) * p2.y) / (3 * d3 * (d3 + d2));
+    out.push([p1.x, p1.y, b1x, b1y, b2x, b2y, p2.x, p2.y]);
+  }
+  return out;
+}
+function bspline(n2, closed) {
+  const at = (i) => {
+    if (closed) return n2[(i % n2.length + n2.length) % n2.length];
+    return n2[Math.min(n2.length - 1, Math.max(0, i))];
+  };
+  const out = [];
+  const last = closed ? n2.length : n2.length - 3;
+  for (let i = 0; i < last; i++) {
+    const p0 = at(i), p1 = at(i + 1), p2 = at(i + 2), p3 = at(i + 3);
+    const s = 1 / 6;
+    out.push([
+      s * (p0.x + 4 * p1.x + p2.x),
+      s * (p0.y + 4 * p1.y + p2.y),
+      s * (4 * p1.x + 2 * p2.x),
+      s * (4 * p1.y + 2 * p2.y),
+      s * (2 * p1.x + 4 * p2.x),
+      s * (2 * p1.y + 4 * p2.y),
+      s * (p1.x + 4 * p2.x + p3.x),
+      s * (p1.y + 4 * p2.y + p3.y)
+    ]);
+  }
+  return out;
+}
+function mod2pi2(th) {
+  const f = th * (0.5 / Math.PI);
+  return 2 * Math.PI * (f - Math.round(f));
+}
+function hbArm(tha, thb) {
+  const w = 2 * thb;
+  const c = Math.cos(tha - 0.3 * Math.sin(w - 0.4 * Math.sin(w)));
+  return c * (2 - c * c) / 3;
+}
+function hbCurve(th0, th1) {
+  const a0 = hbArm(th0, th1), a1 = hbArm(th1, th0);
+  const c0 = Math.cos(th0), s0 = Math.sin(th0);
+  const c1 = Math.cos(th1), s1 = Math.sin(th1);
+  const p1x = a0 * c0, p1y = a0 * s0;
+  const p2x = 1 - a1 * c1, p2y = a1 * s1;
+  const q0x = p2x - 2 * p1x, q0y = p2y - 2 * p1y;
+  const q1x = 1 - 2 * p2x + p1x, q1y = p1y - 2 * p2y;
+  const dot0 = 3 * a0, dot1 = 3 * a1;
+  const cross0 = 6 * (q0y * c0 - q0x * s0);
+  const cross1 = 6 * (q1y * c1 + q1x * s1);
+  return {
+    a0,
+    a1,
+    ak0: Math.atan2(cross0, dot0 * Math.abs(dot0)),
+    ak1: Math.atan2(cross1, dot1 * Math.abs(dot1)),
+    k0u: Math.abs(dot0) > 1e-9 ? cross0 / (dot0 * dot0) : 0,
+    k1u: Math.abs(dot1) > 1e-9 ? cross1 / (dot1 * dot1) : 0
+  };
+}
+function hbEndTangent(th) {
+  return 0.5 * Math.sin(2 * th);
+}
+function hbEndTangentD(th) {
+  return Math.cos(2 * th);
+}
+function hbSegState(ax, ay, bx, by, thA, thB) {
+  const dx = bx - ax, dy = by - ay;
+  const len2 = Math.hypot(dx, dy);
+  const chth = len2 > HB_MIN_CHORD ? Math.atan2(dy, dx) : 0;
+  const th0 = mod2pi2(thA - chth), th1 = mod2pi2(chth - thB);
+  const base = hbCurve(th0, th1);
+  const e = 1e-6, s = 0.5 / e;
+  const p0 = hbCurve(th0 + e, th1), m0 = hbCurve(th0 - e, th1);
+  const p1 = hbCurve(th0, th1 + e), m1 = hbCurve(th0, th1 - e);
+  return {
+    th0,
+    th1,
+    chord: Math.max(len2, HB_MIN_CHORD),
+    ak0: base.ak0,
+    ak1: base.ak1,
+    k0u: base.k0u,
+    k1u: base.k1u,
+    a0: base.a0,
+    a1: base.a1,
+    d00: s * (p0.ak0 - m0.ak0),
+    d10: s * (p0.ak1 - m0.ak1),
+    d01: s * (p1.ak0 - m1.ak0),
+    d11: s * (p1.ak1 - m1.ak1)
+  };
+}
+function hbJoin(prev, next) {
+  const p = Math.sqrt(prev.chord), q = Math.sqrt(next.chord);
+  const A = prev.ak1, B = next.ak0;
+  const sA = Math.sin(A), cA = Math.cos(A), sB = Math.sin(B), cB = Math.cos(B);
+  const r = Math.atan2(sA * q, cA * p) - Math.atan2(sB * p, cB * q);
+  const denA = q * q * sA * sA + p * p * cA * cA;
+  const denB = p * p * sB * sB + q * q * cB * cB;
+  const pq = p * q;
+  return {
+    r: mod2pi2(r),
+    dA: denA > 0 ? pq / denA : 0,
+    dB: denB > 0 ? -pq / denB : 0
+  };
+}
+function hbSystem(pts, wrap, startTh, endTh, ths) {
+  const m = pts.length;
+  const nSeg = wrap ? m : m - 1;
+  const segs = [];
+  for (let i = 0; i < nSeg; i++) {
+    const p = pts[i], q = pts[(i + 1) % m];
+    segs.push(hbSegState(p.x, p.y, q.x, q.y, ths[i], ths[(i + 1) % m]));
+  }
+  const r = new Array(m).fill(0);
+  const a = new Array(m).fill(0);
+  const b = new Array(m).fill(1);
+  const c = new Array(m).fill(0);
+  const join9 = (k, prevIx, nextIx) => {
+    const prev = segs[prevIx], next = segs[nextIx];
+    const j = hbJoin(prev, next);
+    r[k] = j.r;
+    a[k] = j.dA * prev.d10;
+    b[k] = j.dA * -prev.d11 + j.dB * next.d00;
+    c[k] = j.dB * -next.d01;
+  };
+  if (wrap) {
+    for (let k = 0; k < m; k++) join9(k, (k - 1 + m) % m, k);
+    return { r, a, b, c, segs };
+  }
+  for (let k = 1; k < m - 1; k++) join9(k, k - 1, k);
+  const first = segs[0];
+  if (startTh !== null) {
+    r[0] = mod2pi2(ths[0] - startTh);
+    b[0] = 1;
+  } else {
+    r[0] = mod2pi2(first.th0 - hbEndTangent(first.th1));
+    b[0] = 1;
+    c[0] = hbEndTangentD(first.th1);
+  }
+  const last = segs[nSeg - 1];
+  if (endTh !== null) {
+    r[m - 1] = mod2pi2(ths[m - 1] - endTh);
+    b[m - 1] = 1;
+  } else {
+    r[m - 1] = mod2pi2(last.th1 - hbEndTangent(last.th0));
+    b[m - 1] = -1;
+    a[m - 1] = -hbEndTangentD(last.th0);
+  }
+  return { r, a, b, c, segs };
+}
+function hbThomas(a, b, c, d) {
+  const n2 = b.length;
+  const bb = b.slice(), dd = d.slice();
+  for (let i = 1; i < n2; i++) {
+    if (Math.abs(bb[i - 1]) < 1e-300) return null;
+    const w = a[i] / bb[i - 1];
+    bb[i] = bb[i] - w * c[i - 1];
+    dd[i] = dd[i] - w * dd[i - 1];
+  }
+  if (Math.abs(bb[n2 - 1]) < 1e-300) return null;
+  const x = new Array(n2).fill(0);
+  x[n2 - 1] = dd[n2 - 1] / bb[n2 - 1];
+  for (let i = n2 - 2; i >= 0; i--) x[i] = (dd[i] - c[i] * x[i + 1]) / bb[i];
+  for (const v of x) if (!Number.isFinite(v)) return null;
+  return x;
+}
+function hbCyclic(a, b, c, d) {
+  const n2 = b.length;
+  if (n2 < 3) return null;
+  const alpha = a[0], beta = c[n2 - 1];
+  const gamma = -b[0] || 1;
+  const bb = b.slice();
+  bb[0] = b[0] - gamma;
+  bb[n2 - 1] = b[n2 - 1] - alpha * beta / gamma;
+  const u = new Array(n2).fill(0);
+  u[0] = gamma;
+  u[n2 - 1] = beta;
+  const y = hbThomas(a, bb, c, d);
+  if (!y) return null;
+  const z = hbThomas(a, bb, c, u);
+  if (!z) return null;
+  const vy = y[0] + alpha / gamma * y[n2 - 1];
+  const vz = z[0] + alpha / gamma * z[n2 - 1];
+  const denom = 1 + vz;
+  if (!(Math.abs(denom) > 1e-300)) return null;
+  const f = vy / denom;
+  const x = new Array(n2).fill(0);
+  for (let i = 0; i < n2; i++) {
+    x[i] = y[i] - f * z[i];
+    if (!Number.isFinite(x[i])) return null;
+  }
+  return x;
+}
+function hbMaxAbs(v) {
+  let m = 0;
+  for (const x of v) {
+    const a = Math.abs(x);
+    if (!(a === a)) return Number.POSITIVE_INFINITY;
+    if (a > m) m = a;
+  }
+  return m;
+}
+function hbNorm2(v) {
+  let s = 0;
+  for (const x of v) s += x * x;
+  return Number.isFinite(s) ? Math.sqrt(s) : Number.POSITIVE_INFINITY;
+}
+function hbInitialThs(pts, wrap, startTh, endTh) {
+  const m = pts.length;
+  const ths = new Array(m).fill(0);
+  const chordTh = (i) => {
+    const p = pts[i], q = pts[(i + 1) % m];
+    return Math.atan2(q.y - p.y, q.x - p.x);
+  };
+  const at = (i) => {
+    const h = pts[(i - 1 + m) % m], p = pts[i], q = pts[(i + 1) % m];
+    const l0 = Math.hypot(p.x - h.x, p.y - h.y);
+    const l1 = Math.hypot(q.x - p.x, q.y - p.y);
+    const t0 = Math.atan2(p.y - h.y, p.x - h.x);
+    const t1 = Math.atan2(q.y - p.y, q.x - p.x);
+    if (!(l0 + l1 > 0)) return t1;
+    return mod2pi2(t0 + mod2pi2(t1 - t0) * (l0 / (l0 + l1)));
+  };
+  if (wrap) {
+    for (let i = 0; i < m; i++) ths[i] = at(i);
+  } else {
+    ths[0] = chordTh(0);
+    ths[m - 1] = chordTh(m - 2);
+    for (let i = 1; i < m - 1; i++) ths[i] = at(i);
+  }
+  if (startTh !== null) ths[0] = startTh;
+  if (endTh !== null) ths[m - 1] = endTh;
+  return ths;
+}
+function hbSolveRun(pts, wrap, startTh, endTh, warm) {
+  const m = pts.length;
+  const chordTh0 = Math.atan2(pts[1].y - pts[0].y, pts[1].x - pts[0].x);
+  if (!wrap && m === 2 && startTh === null && endTh === null) {
+    return { ths: [chordTh0, chordTh0], converged: true, residual: 0, iterations: 0 };
+  }
+  let ths;
+  if (warm && warm.length === m && warm.every((v) => Number.isFinite(v))) {
+    ths = warm.slice();
+    if (startTh !== null) ths[0] = startTh;
+    if (endTh !== null) ths[m - 1] = endTh;
+  } else {
+    ths = hbInitialThs(pts, wrap, startTh, endTh);
+  }
+  let sys = hbSystem(pts, wrap, startTh, endTh, ths);
+  let worst = hbMaxAbs(sys.r);
+  let merit = hbNorm2(sys.r);
+  let iter = 0;
+  for (; iter < HB_MAX_ITER && worst > HB_TOL; iter++) {
+    const d = sys.r.map((v) => -v);
+    const newton = wrap ? hbCyclic(sys.a, sys.b, sys.c, d) : hbThomas(sys.a, sys.b, sys.c, d);
+    const diagonal = () => sys.b.map((bk, k) => Math.abs(bk) > 1e-12 ? 0.5 * (d[k] / bk) : 0);
+    let took = false;
+    for (const step of newton ? [newton, diagonal()] : [diagonal()]) {
+      if (!step.every((v) => Number.isFinite(v))) continue;
+      for (let k = 0; k < m; k++) {
+        const v = step[k];
+        step[k] = v > HB_MAX_STEP ? HB_MAX_STEP : v < -HB_MAX_STEP ? -HB_MAX_STEP : v;
+      }
+      let f = 1;
+      for (let t = 0; t < HB_BACKTRACK; t++) {
+        const cand = ths.map((v, k) => v + f * step[k]);
+        const cs = hbSystem(pts, wrap, startTh, endTh, cand);
+        const cm = hbNorm2(cs.r);
+        if (cm < merit) {
+          ths = cand;
+          sys = cs;
+          merit = cm;
+          worst = hbMaxAbs(cs.r);
+          took = true;
+          break;
+        }
+        f *= 0.5;
+      }
+      if (took) break;
+    }
+    if (!took) break;
+  }
+  return { ths, converged: worst <= HB_TOL, residual: worst, iterations: iter };
+}
+function hbPin(node) {
+  const corner = (node.continuity ?? "smooth") === "corner";
+  const hix = node.hInX ?? 0, hiy = node.hInY ?? 0;
+  const hox = node.hOutX ?? 0, hoy = node.hOutY ?? 0;
+  let pin = Math.hypot(hix, hiy) > 1e-12 ? mod2pi2(Math.atan2(-hiy, -hix)) : null;
+  let pout = Math.hypot(hox, hoy) > 1e-12 ? mod2pi2(Math.atan2(hoy, hox)) : null;
+  if (!corner) {
+    if (pin === null) pin = pout;
+    if (pout === null) pout = pin;
+  }
+  return { in: pin, out: pout, corner };
+}
+function hbIsBreak(p) {
+  return p.corner || p.in !== null || p.out !== null;
+}
+function solveHyperbezier(nodes, closed, warm) {
+  const n2 = nodes.length;
+  const rth = new Array(n2).fill(0);
+  const lth = new Array(n2).fill(0);
+  const kBlend = new Array(n2).fill(null);
+  const empty = { rth, lth, kBlend, converged: true, residual: 0, iterations: 0, reversals: 0 };
+  if (n2 < 2) return empty;
+  const wrap = closed && n2 > 2;
+  const nSeg = wrap ? n2 : n2 - 1;
+  const pins = nodes.map(hbPin);
+  const breaks = [];
+  for (let i = 0; i < n2; i++) if (hbIsBreak(pins[i])) breaks.push(i);
+  const runs = [];
+  if (wrap && breaks.length === 0) {
+    runs.push({ idx: nodes.map((_, i) => i), wrap: true });
+  } else if (wrap) {
+    const s = breaks[0];
+    let cur = [s];
+    for (let k = 1; k <= n2; k++) {
+      const i = (s + k) % n2;
+      cur.push(i);
+      if (k < n2 && hbIsBreak(pins[i])) {
+        runs.push({ idx: cur, wrap: false });
+        cur = [i];
+      }
+    }
+    runs.push({ idx: cur, wrap: false });
+  } else {
+    let cur = [0];
+    for (let i = 1; i < n2; i++) {
+      cur.push(i);
+      if (i < n2 - 1 && hbIsBreak(pins[i])) {
+        runs.push({ idx: cur, wrap: false });
+        cur = [i];
+      }
+    }
+    runs.push({ idx: cur, wrap: false });
+  }
+  let converged = true;
+  let residual = 0;
+  let iterations = 0;
+  for (const run of runs) {
+    const idx = run.idx;
+    const m = idx.length;
+    if (m < 2) continue;
+    const pts = idx.map((i) => ({ x: nodes[i].x, y: nodes[i].y }));
+    const startTh = run.wrap ? null : pins[idx[0]].out;
+    const endTh = run.wrap ? null : pins[idx[m - 1]].in;
+    let warmRun = null;
+    if (warm && warm.rth.length === n2 && warm.lth.length === n2) {
+      warmRun = idx.map((i, j) => run.wrap || j < m - 1 ? warm.rth[i] : warm.lth[i]);
+    }
+    const res = hbSolveRun(pts, run.wrap, startTh, endTh, warmRun);
+    if (!res.converged) converged = false;
+    if (res.residual > residual) residual = res.residual;
+    iterations += res.iterations;
+    for (let j = 0; j < m; j++) {
+      const i = idx[j];
+      if (run.wrap || j < m - 1) rth[i] = res.ths[j];
+      if (run.wrap || j > 0) lth[i] = res.ths[j];
+    }
+  }
+  if (!wrap) {
+    lth[0] = pins[0].in ?? rth[0];
+    rth[n2 - 1] = pins[n2 - 1].out ?? lth[n2 - 1];
+  }
+  const segs = [];
+  let reversals = 0;
+  for (let i = 0; i < nSeg; i++) {
+    const a = nodes[i], b = nodes[(i + 1) % n2];
+    const st = hbSegState(a.x, a.y, b.x, b.y, rth[i], lth[(i + 1) % n2]);
+    if (st.a0 < 0) reversals++;
+    if (st.a1 < 0) reversals++;
+    segs.push(st);
+  }
+  for (let i = 0; i < n2; i++) {
+    const p = pins[i];
+    if (p.corner || !hbIsBreak(p)) continue;
+    const prev = wrap ? segs[(i - 1 + n2) % n2] : i > 0 ? segs[i - 1] : void 0;
+    const next = wrap ? segs[i] : i < n2 - 1 ? segs[i] : void 0;
+    if (!prev || !next) continue;
+    const rK = next.k0u / next.chord;
+    const lK = prev.k1u / prev.chord;
+    if (!Number.isFinite(rK) || !Number.isFinite(lK)) continue;
+    if (Math.sign(rK) !== Math.sign(lK)) {
+      kBlend[i] = 0;
+      continue;
+    }
+    const h = 2 / (1 / rK + 1 / lK);
+    kBlend[i] = Number.isFinite(h) ? h : 0;
+  }
+  return { rth, lth, kBlend, converged, residual, iterations, reversals };
+}
+function hbBlendArm(arm, oldK, kTarget) {
+  let k = oldK;
+  if (!Number.isFinite(k) || Math.abs(k) < 1e-6) k = 1e-6;
+  const ratio = kTarget / k;
+  if (!Number.isFinite(ratio)) return arm;
+  const raw = 1 / (2 + ratio);
+  const scale = raw > 2 / 3 ? 2 / 3 : raw < 1 / 12 ? 1 / 12 : raw;
+  return 3 * arm * scale;
+}
+function hyperbezierCubics(nodes, closed, solution) {
+  const n2 = nodes.length;
+  if (n2 < 2) return [];
+  const wrap = closed && n2 > 2;
+  const nSeg = wrap ? n2 : n2 - 1;
+  const out = [];
+  for (let i = 0; i < nSeg; i++) {
+    const a = nodes[i], b = nodes[(i + 1) % n2];
+    const dx = b.x - a.x, dy = b.y - a.y;
+    const chord = Math.hypot(dx, dy);
+    if (!(chord > HB_MIN_CHORD)) {
+      out.push([a.x, a.y, a.x, a.y, b.x, b.y, b.x, b.y]);
+      continue;
+    }
+    const chth = Math.atan2(dy, dx);
+    const th0 = mod2pi2((solution.rth[i] ?? chth) - chth);
+    const th1 = mod2pi2(chth - (solution.lth[(i + 1) % n2] ?? chth));
+    const cur = hbCurve(th0, th1);
+    let arm0 = cur.a0, arm1 = cur.a1;
+    const kb0 = solution.kBlend[i] ?? null;
+    const kb1 = solution.kBlend[(i + 1) % n2] ?? null;
+    if (kb0 !== null) arm0 = hbBlendArm(cur.a0, cur.k0u, kb0 * chord);
+    if (kb1 !== null) arm1 = hbBlendArm(cur.a1, cur.k1u, kb1 * chord);
+    const ux1 = arm0 * Math.cos(th0), uy1 = arm0 * Math.sin(th0);
+    const ux2 = 1 - arm1 * Math.cos(th1), uy2 = arm1 * Math.sin(th1);
+    out.push([
+      a.x,
+      a.y,
+      a.x + dx * ux1 - dy * uy1,
+      a.y + dy * ux1 + dx * uy1,
+      a.x + dx * ux2 - dy * uy2,
+      a.y + dy * ux2 + dx * uy2,
+      b.x,
+      b.y
+    ]);
+  }
+  return out;
+}
+function enforceContinuity(node, moved) {
+  const c = node.continuity ?? "corner";
+  if (c === "corner") return node;
+  const [mx, my] = moved === "in" ? [node.hInX ?? 0, node.hInY ?? 0] : [node.hOutX ?? 0, node.hOutY ?? 0];
+  const len2 = Math.hypot(mx, my);
+  if (len2 < 1e-12) return node;
+  const otherLen = moved === "in" ? Math.hypot(node.hOutX ?? 0, node.hOutY ?? 0) : Math.hypot(node.hInX ?? 0, node.hInY ?? 0);
+  const k = (c === "symmetric" ? len2 : otherLen) / len2;
+  const ox = -mx * k, oy = -my * k;
+  return moved === "in" ? { ...node, hOutX: ox, hOutY: oy } : { ...node, hInX: ox, hInY: oy };
+}
+var HB_MIN_CHORD, HB_TOL, HB_MAX_ITER, HB_MAX_STEP, HB_BACKTRACK;
+var init_spline = __esm({
+  "engine/src/geom/spline.ts"() {
+    "use strict";
+    init_bezier();
+    HB_MIN_CHORD = 1e-12;
+    HB_TOL = 1e-10;
+    HB_MAX_ITER = 24;
+    HB_MAX_STEP = 1;
+    HB_BACKTRACK = 6;
+  }
+});
+
+// engine/src/geom/authored-url.ts
+function numOut(v) {
+  const r = Number(v.toFixed(DECIMALS));
+  let s = Object.is(r, -0) ? "0" : String(r);
+  if (s.includes("e") || s.includes("E")) s = r.toFixed(DECIMALS);
+  if (s.startsWith("0.")) return s.slice(1);
+  if (s.startsWith("-0.")) return `-${s.slice(2)}`;
+  return s;
+}
+function handleOut(v) {
+  if (typeof v !== "number" || !Number.isFinite(v)) return "";
+  const r = Number(v.toFixed(DECIMALS));
+  return r === 0 ? "" : numOut(r);
+}
+function numIn(s) {
+  if (s === void 0 || s === "") return void 0;
+  if (!/^-?(\d+(\.\d+)?|\.\d+)$/.test(s)) return null;
+  const v = Number(s);
+  return Number.isFinite(v) ? v : null;
+}
+function encodeAuthoredPath(path) {
+  if (!path || typeof path !== "object") throw new Error("authored-url: expected an authored path");
+  const kind = String(path.kind ?? "");
+  if (!KIND_RE.test(kind)) throw new Error(`authored-url: unusable spline kind "${kind}"`);
+  const nodes = Array.isArray(path.nodes) ? path.nodes : [];
+  if (nodes.length > MAX_NODES) throw new Error(`authored-url: ${nodes.length} nodes (limit ${MAX_NODES})`);
+  const header = [VERSION, kind, path.closed ? "1" : "0"];
+  if (typeof path.tension === "number" && Number.isFinite(path.tension)) header.push(numOut(path.tension));
+  const recs = [header.join(FLD)];
+  for (const n2 of nodes) {
+    for (const v of [n2.x, n2.y]) {
+      if (typeof v !== "number" || !Number.isFinite(v)) {
+        throw new Error("authored-url: node coordinates must be finite numbers");
+      }
+    }
+    const fields = [numOut(n2.x), numOut(n2.y)];
+    const hs = [n2.hInX, n2.hInY, n2.hOutX, n2.hOutY].map(handleOut);
+    const cont = n2.continuity ? CONT_OUT[n2.continuity] : "";
+    if (hs.some((s) => s !== "") || cont) fields.push(...hs);
+    if (cont) fields.push(cont);
+    while (fields.length > 2 && fields[fields.length - 1] === "") fields.pop();
+    recs.push(fields.join(FLD));
+  }
+  return recs.join(REC);
+}
+function encodeAuthoredPaths(paths) {
+  if (!Array.isArray(paths) || !paths.length) {
+    throw new Error("authored-url: expected at least one authored path");
+  }
+  let total = 0;
+  for (const p of paths) total += Array.isArray(p?.nodes) ? p.nodes.length : 0;
+  if (total > MAX_NODES) throw new Error(`authored-url: ${total} nodes across the value (limit ${MAX_NODES})`);
+  return paths.map(encodeAuthoredPath).join(PTH);
+}
+function decodeAuthoredPathsResult(value) {
+  if (typeof value !== "string") return "malformed";
+  const s = value.trim();
+  if (!s) return "malformed";
+  if (s.length > MAX_CHARS) return "too-complex";
+  const out = [];
+  let total = 0;
+  for (const part of s.split(PTH)) {
+    const one = decodeOne(part);
+    if (typeof one === "string") return one;
+    total += one.nodes.length;
+    if (total > MAX_NODES) return "too-complex";
+    out.push(one);
+  }
+  return out;
+}
+function decodeOne(value) {
+  const s = value;
+  if (!s) return "malformed";
+  const recs = s.split(REC);
+  const header = recs[0].split(FLD);
+  if (header[0] !== VERSION) return "malformed";
+  const kind = header[1] ?? "";
+  if (!KIND_RE.test(kind)) return "malformed";
+  const closed = header[2] === "1";
+  let tension;
+  if (header.length > 3) {
+    const t = numIn(header[3]);
+    if (t === null) return "malformed";
+    tension = t;
+  }
+  if (recs.length - 1 > MAX_NODES) return "too-complex";
+  const nodes = [];
+  for (let i = 1; i < recs.length; i++) {
+    const f = recs[i].split(FLD);
+    const x = numIn(f[0]);
+    const y = numIn(f[1]);
+    if (x === null || y === null || x === void 0 || y === void 0) return "malformed";
+    const node = { x, y };
+    const keys = ["hInX", "hInY", "hOutX", "hOutY"];
+    for (let k = 0; k < keys.length; k++) {
+      const v = numIn(f[2 + k]);
+      if (v === null) return "malformed";
+      if (v !== void 0) node[keys[k]] = v;
+    }
+    const c = f[6];
+    if (c !== void 0 && c !== "") {
+      const cont = CONT_IN[c];
+      if (!cont) return "malformed";
+      node.continuity = cont;
+    }
+    if (f.length > 7) return "malformed";
+    nodes.push(node);
+  }
+  if (!nodes.length) return "malformed";
+  return { kind, nodes, closed, ...tension !== void 0 ? { tension } : {} };
+}
+var REC, FLD, PTH, VERSION, DECIMALS, MAX_CHARS, MAX_NODES, KIND_RE, CONT_OUT, CONT_IN;
+var init_authored_url = __esm({
+  "engine/src/geom/authored-url.ts"() {
+    "use strict";
+    REC = "_";
+    FLD = "!";
+    PTH = "*";
+    VERSION = "1";
+    DECIMALS = 6;
+    MAX_CHARS = 4e5;
+    MAX_NODES = 2e4;
+    KIND_RE = /^[a-z][a-z0-9-]*$/;
+    CONT_OUT = { corner: "c", smooth: "s", symmetric: "y" };
+    CONT_IN = { c: "corner", s: "smooth", y: "symmetric" };
+  }
+});
+
+// engine/src/geom-api.ts
+function fail2(code, message) {
+  return { ok: false, code, message };
+}
+function isFail(v) {
+  return typeof v === "object" && v !== null && v.ok === false;
+}
+function ok2(value) {
+  return { ok: true, value };
+}
+function pathOut(p, decimals) {
+  const dp = usableDecimals(decimals);
+  let curves = 0;
+  for (const c of p) curves += c.curves.length;
+  for (const c of p) {
+    for (const k of c.curves) {
+      for (const v of k) {
+        if (!Number.isFinite(v)) return fail2("internal", "geom: operation produced a non-finite coordinate");
+      }
+    }
+  }
+  return { ok: true, d: toSvgPathData(p, dp), contours: p.length, curves };
+}
+function usableDecimals(dp) {
+  if (typeof dp !== "number" || !Number.isFinite(dp)) return 4;
+  return Math.max(0, Math.min(12, Math.round(dp)));
+}
+function attempt(run) {
+  try {
+    return run();
+  } catch (e) {
+    if (e instanceof GeomLimitError) return fail2("limit", e.message);
+    const msg = e instanceof Error ? e.message : String(e);
+    if (/unknown spline kind/i.test(msg)) return fail2("invalid-argument", `geom: ${msg}`);
+    if (/not implemented/i.test(msg)) return fail2("unsupported", `geom: ${msg}`);
+    return fail2("internal", `geom: ${msg}`);
+  }
+}
+function validatePathData(d) {
+  if (d.length > MAX_CHARS2) {
+    return fail2("too-large", `geom: path data is ${d.length} chars (limit ${MAX_CHARS2})`);
+  }
+  let i = 0;
+  let commands = 0;
+  let curves = 0;
+  const skipSep = () => {
+    SEP_RE.lastIndex = i;
+    SEP_RE.exec(d);
+    i = SEP_RE.lastIndex;
+  };
+  const number = () => {
+    skipSep();
+    NUM_RE.lastIndex = i;
+    const m = NUM_RE.exec(d);
+    if (!m) return null;
+    const v = Number(m[0]);
+    if (!Number.isFinite(v)) return fail2("invalid-path", `geom: non-finite number "${m[0]}" at offset ${i}`);
+    if (Math.abs(v) > MAX_COORD) {
+      return fail2("invalid-path", `geom: coordinate ${m[0]} exceeds \xB1${MAX_COORD} at offset ${i}`);
+    }
+    i = NUM_RE.lastIndex;
+    return v;
+  };
+  const flag = () => {
+    skipSep();
+    FLAG_RE.lastIndex = i;
+    const m = FLAG_RE.exec(d);
+    if (!m) return null;
+    i = FLAG_RE.lastIndex;
+    return Number(m[0]);
+  };
+  skipSep();
+  if (i >= d.length) return { commands: 0 };
+  if (d[i] !== "M" && d[i] !== "m") {
+    return fail2("invalid-path", "geom: path data must begin with a moveto (M or m)");
+  }
+  while (i < d.length) {
+    const letter = d[i];
+    const C = letter.toUpperCase();
+    const arity = ARITY[C];
+    if (arity === void 0) {
+      return fail2("invalid-path", `geom: unknown path command "${letter}" at offset ${i}`);
+    }
+    i++;
+    commands++;
+    if (commands > MAX_COMMANDS) {
+      return fail2("too-large", `geom: over ${MAX_COMMANDS} path commands`);
+    }
+    if (C === "Z") {
+      skipSep();
+      continue;
+    }
+    let groups = 0;
+    for (; ; ) {
+      skipSep();
+      if (i >= d.length) break;
+      if (!NUM_START.test(d[i])) break;
+      for (let a = 0; a < arity; a++) {
+        const isFlag = C === "A" && (a === 3 || a === 4);
+        const v = isFlag ? flag() : number();
+        if (isFail(v)) return v;
+        if (v === null) {
+          return fail2("invalid-path", `geom: "${letter}" has an incomplete argument group at offset ${i}`);
+        }
+      }
+      groups++;
+      curves += CURVES_PER_GROUP[C] ?? 1;
+      if (curves > MAX_CURVES2) {
+        return fail2("too-large", `geom: over ${MAX_CURVES2} curves after normalisation`);
+      }
+    }
+    if (groups === 0) {
+      return fail2("invalid-path", `geom: "${letter}" has no arguments at offset ${i}`);
+    }
+    skipSep();
+  }
+  return { commands };
+}
+function parsePath(d) {
+  if (typeof d !== "string") return fail2("invalid-argument", "geom: path data must be a string");
+  const v = validatePathData(d);
+  if (isFail(v)) return v;
+  if (v.commands === 0) return [];
+  const path = pathFromSubPaths(parseSvgPath(d));
+  let curves = 0;
+  for (const c of path) curves += c.curves.length;
+  if (curves > MAX_CURVES2) {
+    return fail2("too-large", `geom: ${curves} curves after normalisation (limit ${MAX_CURVES2})`);
+  }
+  for (const c of path) {
+    for (const k of c.curves) {
+      for (const n2 of k) {
+        if (!Number.isFinite(n2)) return fail2("invalid-path", "geom: path data yields a non-finite coordinate");
+      }
+    }
+  }
+  return path;
+}
+function parsePaths(ds) {
+  if (!Array.isArray(ds)) return fail2("invalid-argument", "geom: expected an array of path-data strings");
+  if (ds.length === 0) return fail2("invalid-argument", "geom: no paths given");
+  if (ds.length > MAX_PATHS) {
+    return fail2("too-large", `geom: ${ds.length} operands (limit ${MAX_PATHS})`);
+  }
+  const out = [];
+  for (const d of ds) {
+    const p = parsePath(d);
+    if (isFail(p)) return p;
+    out.push(p);
+  }
+  return out;
+}
+function booleanOpts(o) {
+  const out = {};
+  if (typeof o?.tolerance === "number") out.tol = o.tolerance;
+  if (o?.fillRule) out.fillRule = o.fillRule;
+  return out;
+}
+function offsetOpts(o) {
+  const out = {};
+  if (o?.join) out.join = o.join;
+  if (typeof o?.miterLimit === "number") out.miterLimit = o.miterLimit;
+  if (typeof o?.tolerance === "number") out.tol = o.tolerance;
+  return out;
+}
+function checkEnums(o) {
+  if (o?.join && !["miter", "round", "bevel"].includes(o.join)) {
+    return fail2("invalid-argument", `geom: unknown join style "${String(o.join)}"`);
+  }
+  if (o?.cap && !["butt", "round", "square"].includes(o.cap)) {
+    return fail2("invalid-argument", `geom: unknown cap style "${String(o.cap)}"`);
+  }
+  if (o?.fillRule && o.fillRule !== "nonzero" && o.fillRule !== "evenodd") {
+    return fail2("invalid-argument", `geom: unknown fill rule "${String(o.fillRule)}"`);
+  }
+  for (const [k, v] of [["tolerance", o?.tolerance], ["miterLimit", o?.miterLimit]]) {
+    if (v !== void 0 && (typeof v !== "number" || !Number.isFinite(v) || v <= 0)) {
+      return fail2("invalid-argument", `geom: ${k} must be a finite positive number`);
+    }
+  }
+  return null;
+}
+function fold(paths, op, o) {
+  let acc = selfUnion(paths[0], o);
+  for (let i = 1; i < paths.length; i++) acc = op(acc, paths[i], o);
+  return acc;
+}
+function contoursOut(p) {
+  return p.map((c) => ({ curves: c.curves.map((k) => [...k]), closed: c.closed }));
+}
+function contoursIn(input) {
+  if (!Array.isArray(input)) return fail2("invalid-argument", "geom: expected an array of contours");
+  const out = [];
+  let total = 0;
+  for (const c of input) {
+    const curves = c?.curves;
+    if (!Array.isArray(curves)) return fail2("invalid-argument", "geom: each contour needs a `curves` array");
+    total += curves.length;
+    if (total > MAX_CURVES2) return fail2("too-large", `geom: over ${MAX_CURVES2} curves`);
+    const built = [];
+    for (const k of curves) {
+      if (!Array.isArray(k) || k.length !== 8) {
+        return fail2("invalid-argument", "geom: each curve must be 8 numbers [x0,y0,x1,y1,x2,y2,x3,y3]");
+      }
+      for (const n2 of k) {
+        if (typeof n2 !== "number" || !Number.isFinite(n2) || Math.abs(n2) > MAX_COORD) {
+          return fail2("invalid-argument", `geom: curve coordinate ${String(n2)} is not a usable number`);
+        }
+      }
+      built.push([...k]);
+    }
+    out.push({ curves: built, closed: c.closed === true });
+  }
+  return out;
+}
+function nodeIn(n2) {
+  const o = n2;
+  if (!o || typeof o !== "object") return fail2("invalid-argument", "geom: node must be an object");
+  for (const key of ["x", "y", "hInX", "hInY", "hOutX", "hOutY"]) {
+    const v = o[key];
+    if (v === void 0) {
+      if (key === "x" || key === "y") return fail2("invalid-argument", `geom: node.${key} is required`);
+      continue;
+    }
+    if (typeof v !== "number" || !Number.isFinite(v) || Math.abs(v) > MAX_COORD) {
+      return fail2("invalid-argument", `geom: node.${key} is not a usable number`);
+    }
+  }
+  if (o.continuity !== void 0 && !CONTINUITIES.includes(o.continuity)) {
+    return fail2("invalid-argument", `geom: unknown continuity "${String(o.continuity)}"`);
+  }
+  return o;
+}
+function makeGeomApi() {
+  const boolOp = (ds, op, opts) => {
+    const bad = checkEnums(opts);
+    if (bad) return bad;
+    const paths = parsePaths(ds);
+    if (isFail(paths)) return paths;
+    return attempt(() => pathOut(fold(paths, op, booleanOpts(opts)), opts?.decimals));
+  };
+  return {
+    union: (paths, opts) => boolOp(paths, (a, b, o) => unionPath(a, b, o), opts),
+    intersect: (paths, opts) => boolOp(paths, (a, b, o) => intersectPath(a, b, o), opts),
+    difference: (paths, opts) => boolOp(paths, (a, b, o) => differencePath(a, b, o), opts),
+    xor: (paths, opts) => boolOp(paths, (a, b, o) => xorPath(a, b, o), opts),
+    selfUnion: (d, opts) => {
+      const bad = checkEnums(opts);
+      if (bad) return bad;
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(selfUnion(p, booleanOpts(opts)), opts?.decimals));
+    },
+    offset: (d, distance, opts) => {
+      const bad = checkEnums(opts);
+      if (bad) return bad;
+      if (typeof distance !== "number" || !Number.isFinite(distance)) {
+        return fail2("invalid-argument", "geom: offset distance must be a finite number");
+      }
+      if (Math.abs(distance) > MAX_COORD) {
+        return fail2("invalid-argument", `geom: offset distance exceeds \xB1${MAX_COORD}`);
+      }
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(offsetPath(p, distance, offsetOpts(opts)), opts?.decimals));
+    },
+    stroke: (d, width, opts) => {
+      const bad = checkEnums(opts);
+      if (bad) return bad;
+      if (typeof width !== "number" || !Number.isFinite(width) || width <= 0) {
+        return fail2("invalid-argument", "geom: stroke width must be a finite positive number");
+      }
+      if (width > MAX_COORD) return fail2("invalid-argument", `geom: stroke width exceeds ${MAX_COORD}`);
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(strokeToPath(p, width, {
+        ...offsetOpts(opts),
+        ...opts?.cap ? { cap: opts.cap } : {}
+      }), opts?.decimals));
+    },
+    simplify: (d, opts) => {
+      const tol = opts?.tolerance;
+      if (tol !== void 0 && (typeof tol !== "number" || !Number.isFinite(tol) || tol <= 0)) {
+        return fail2("invalid-argument", "geom: tolerance must be a finite positive number");
+      }
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return attempt(() => pathOut(
+        p.map((c) => ({ curves: simplifyCubics(c.curves, tol), closed: c.closed }))
+      ));
+    },
+    fromNodes: (path) => {
+      const src = path;
+      if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
+      if (typeof src.kind !== "string" || !src.kind) {
+        return fail2("invalid-argument", "geom: authored path needs a `kind` string");
+      }
+      if (!Array.isArray(src.nodes)) return fail2("invalid-argument", "geom: authored path needs a `nodes` array");
+      if (src.nodes.length > MAX_NODES2) {
+        return fail2("too-large", `geom: ${src.nodes.length} nodes (limit ${MAX_NODES2})`);
+      }
+      if (src.tension !== void 0 && (typeof src.tension !== "number" || !Number.isFinite(src.tension))) {
+        return fail2("invalid-argument", "geom: tension must be a finite number");
+      }
+      const nodes = [];
+      for (const n2 of src.nodes) {
+        const v = nodeIn(n2);
+        if (isFail(v)) return v;
+        nodes.push(v);
+      }
+      const authored = {
+        kind: src.kind,
+        nodes,
+        closed: src.closed === true,
+        ...src.tension !== void 0 ? { tension: src.tension } : {}
+      };
+      return attempt(() => {
+        const curves = toCubics(authored);
+        return pathOut(curves.length ? [{ curves, closed: authored.closed }] : [], src.decimals);
+      });
+    },
+    encodeAuthored: (path) => {
+      const list = Array.isArray(path) ? path : [path];
+      if (!list.length) return fail2("invalid-argument", "geom: expected at least one authored path");
+      const built = [];
+      let total = 0;
+      for (const entry of list) {
+        const src = entry;
+        if (!src || typeof src !== "object") return fail2("invalid-argument", "geom: expected an authored path");
+        if (!Array.isArray(src.nodes) || !src.nodes.length) {
+          return fail2("invalid-argument", "geom: authored path needs at least one node");
+        }
+        total += src.nodes.length;
+        if (total > MAX_NODES2) return fail2("too-large", `geom: ${total} nodes (limit ${MAX_NODES2})`);
+        const nodes = [];
+        for (const n2 of src.nodes) {
+          const v = nodeIn(n2);
+          if (isFail(v)) return v;
+          nodes.push(v);
+        }
+        built.push({
+          kind: String(src.kind ?? ""),
+          nodes,
+          closed: src.closed === true,
+          ...src.tension !== void 0 ? { tension: src.tension } : {}
+        });
+      }
+      try {
+        return ok2(encodeAuthoredPaths(built));
+      } catch (e) {
+        return fail2("invalid-argument", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    decodeAuthored: (value) => {
+      if (typeof value !== "string") return fail2("invalid-argument", "geom: expected an encoded authored path");
+      const r = decodeAuthoredPathsResult(value);
+      if (r === "too-complex") return fail2("too-large", `geom: encoded path is past the ${MAX_NODES2}-node ceiling`);
+      if (r === "malformed") return fail2("invalid-argument", "geom: not a usable encoded authored path");
+      return ok2(r);
+    },
+    continuity: (node, moved) => {
+      if (moved !== "in" && moved !== "out") {
+        return fail2("invalid-argument", "geom: `moved` must be 'in' or 'out'");
+      }
+      const n2 = nodeIn(node);
+      if (isFail(n2)) return n2;
+      try {
+        return ok2(enforceContinuity(n2, moved));
+      } catch (e) {
+        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    bounds: (d) => {
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return ok2(pathBounds(p));
+    },
+    area: (d) => {
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      let a = 0;
+      for (const c of p) a += contourArea(c);
+      return Number.isFinite(a) ? ok2(a) : fail2("internal", "geom: area is not finite");
+    },
+    contains: (d, x, y, opts) => {
+      const pt = point(x, y);
+      if (isFail(pt)) return pt;
+      const rule = opts?.fillRule ?? "nonzero";
+      if (rule !== "nonzero" && rule !== "evenodd") {
+        return fail2("invalid-argument", `geom: unknown fill rule "${String(rule)}"`);
+      }
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      try {
+        return ok2(pointInPath(p, x, y, rule));
+      } catch (e) {
+        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    winding: (d, x, y) => {
+      const pt = point(x, y);
+      if (isFail(pt)) return pt;
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      try {
+        const w = windingNumber(p, x, y);
+        return Number.isFinite(w) ? ok2(w) : fail2("internal", "geom: winding number is not finite");
+      } catch (e) {
+        return fail2("internal", `geom: ${e instanceof Error ? e.message : String(e)}`);
+      }
+    },
+    /**
+     * Nearest point, by projecting onto every curve and keeping the closest — the
+     * kernel's own `nearestOnCubic` (bracket then Newton on the squared-distance
+     * derivative), so the answer is computed FROM the curve rather than sampled near
+     * it, and the `t` it reports is the parameter to split at to insert a node.
+     * `distanceToPath` would give the distance alone and the address is the half a
+     * pen tool actually needs.
+     */
+    nearest: (d, x, y) => {
+      const pt = point(x, y);
+      if (isFail(pt)) return pt;
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      let best = null;
+      for (let ci = 0; ci < p.length; ci++) {
+        const curves = p[ci].curves;
+        for (let ki = 0; ki < curves.length; ki++) {
+          const r = nearestOnCubic(curves[ki], x, y);
+          if (!Number.isFinite(r.distance)) continue;
+          if (!best || r.distance < best.distance) {
+            best = { x: r.point.x, y: r.point.y, distance: r.distance, contour: ci, curve: ki, t: r.t };
+          }
+        }
+      }
+      if (!best) return fail2("invalid-path", "geom: path has no curves to measure against");
+      return ok2(best);
+    },
+    parse: (d) => {
+      const p = parsePath(d);
+      if (isFail(p)) return p;
+      return ok2(contoursOut(p));
+    },
+    toPathData: (contours, opts) => {
+      const p = contoursIn(contours);
+      if (isFail(p)) return p;
+      return pathOut(p, opts?.decimals);
+    },
+    limits: () => ({ ...LIMITS })
+  };
+}
+function point(x, y) {
+  for (const [k, v] of [["x", x], ["y", y]]) {
+    if (typeof v !== "number" || !Number.isFinite(v) || Math.abs(v) > MAX_COORD) {
+      return fail2("invalid-argument", `geom: ${k} must be a finite coordinate`);
+    }
+  }
+  return true;
+}
+var MAX_CHARS2, MAX_COMMANDS, MAX_CURVES2, MAX_PATHS, MAX_NODES2, MAX_COORD, LIMITS, ARITY, CURVES_PER_GROUP, NUM_RE, FLAG_RE, SEP_RE, NUM_START, CONTINUITIES;
+var init_geom_api = __esm({
+  "engine/src/geom-api.ts"() {
+    "use strict";
+    init_bezier();
+    init_path();
+    init_boolean();
+    init_offset();
+    init_stroke();
+    init_spline();
+    init_authored_url();
+    init_fit();
+    init_svg_path();
+    MAX_CHARS2 = 512e3;
+    MAX_COMMANDS = 2e4;
+    MAX_CURVES2 = 16e3;
+    MAX_PATHS = 64;
+    MAX_NODES2 = 2e4;
+    MAX_COORD = 1e9;
+    LIMITS = {
+      maxChars: MAX_CHARS2,
+      maxCommands: MAX_COMMANDS,
+      maxCurves: MAX_CURVES2,
+      maxCoordinate: MAX_COORD,
+      maxPaths: MAX_PATHS,
+      maxNodes: MAX_NODES2
+    };
+    ARITY = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
+    CURVES_PER_GROUP = { M: 1, L: 1, H: 1, V: 1, C: 1, S: 1, Q: 1, T: 1, A: 4, Z: 0 };
+    NUM_RE = /[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/y;
+    FLAG_RE = /[01]/y;
+    SEP_RE = /[\s,]*/y;
+    NUM_START = /[0-9.+-]/;
+    CONTINUITIES = ["corner", "smooth", "symmetric"];
   }
 });
 
@@ -8468,8 +14570,8 @@ function bboxOf(points) {
 }
 function recMoveTo(x, y) {
   return record(EMR_MOVETOEX, 8, (dv, o) => {
-    dv.setInt32(o, clampInt(x), true);
-    dv.setInt32(o + 4, clampInt(y), true);
+    dv.setInt32(o, clampInt2(x), true);
+    dv.setInt32(o + 4, clampInt2(y), true);
   });
 }
 function recPoly(iType, pts, anchor) {
@@ -8480,8 +14582,8 @@ function recPoly(iType, pts, anchor) {
     dv.setUint32(o + 16, n2, true);
     let p = o + 20;
     for (const pt of pts) {
-      dv.setInt32(p, clampInt(pt.x), true);
-      dv.setInt32(p + 4, clampInt(pt.y), true);
+      dv.setInt32(p, clampInt2(pt.x), true);
+      dv.setInt32(p + 4, clampInt2(pt.y), true);
       p += 8;
     }
   });
@@ -8559,9 +14661,9 @@ function recStretchDibits(prim) {
   const dv = new DataView(buf);
   dv.setUint32(0, EMR_STRETCHDIBITS, true);
   dv.setUint32(4, size, true);
-  setRect(dv, 8, { left: clampInt(prim.x), top: clampInt(prim.y), right: clampInt(prim.x + prim.w), bottom: clampInt(prim.y + prim.h) });
-  dv.setInt32(24, clampInt(prim.x), true);
-  dv.setInt32(28, clampInt(prim.y), true);
+  setRect(dv, 8, { left: clampInt2(prim.x), top: clampInt2(prim.y), right: clampInt2(prim.x + prim.w), bottom: clampInt2(prim.y + prim.h) });
+  dv.setInt32(24, clampInt2(prim.x), true);
+  dv.setInt32(28, clampInt2(prim.y), true);
   dv.setInt32(32, 0, true);
   dv.setInt32(36, 0, true);
   dv.setInt32(40, pxW, true);
@@ -8572,8 +14674,8 @@ function recStretchDibits(prim) {
   dv.setUint32(60, bitsLen, true);
   dv.setUint32(64, DIB_RGB_COLORS, true);
   dv.setUint32(68, SRCCOPY, true);
-  dv.setInt32(72, clampInt(prim.w), true);
-  dv.setInt32(76, clampInt(prim.h), true);
+  dv.setInt32(72, clampInt2(prim.w), true);
+  dv.setInt32(76, clampInt2(prim.h), true);
   dv.setUint32(80, 40, true);
   dv.setInt32(84, pxW, true);
   dv.setInt32(88, -pxH, true);
@@ -8655,7 +14757,7 @@ function emitEmf(ir, opts = {}) {
   }
   return out;
 }
-var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, EMR_STRETCHDIBITS, SRCCOPY, DIB_RGB_COLORS, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, N_HANDLES, colorRef, clampInt, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof;
+var EMR_HEADER, EMR_POLYBEZIERTO, EMR_POLYLINETO, EMR_EOF, EMR_SETPOLYFILLMODE, EMR_MOVETOEX, EMR_SELECTOBJECT, EMR_CREATEBRUSHINDIRECT, EMR_DELETEOBJECT, EMR_BEGINPATH, EMR_ENDPATH, EMR_CLOSEFIGURE, EMR_FILLPATH, EMR_STROKEANDFILLPATH, EMR_STROKEPATH, EMR_EXTCREATEPEN, EMR_STRETCHDIBITS, SRCCOPY, DIB_RGB_COLORS, ALTERNATE, WINDING, NULL_BRUSH, NULL_PEN, BS_SOLID, PS_GEOMETRIC_SOLID, ENHMETA_SIGNATURE, HEADER_SIZE, H_BRUSH, H_PEN, N_HANDLES, colorRef, clampInt2, setRect, recBeginPath, recEndPath, recCloseFigure, recSetPolyFillMode, recSelectObject, recDeleteObject, recCreateBrush, recExtCreatePen, recPaint, recEof;
 var init_emf = __esm({
   "engine/src/emf.ts"() {
     "use strict";
@@ -8691,12 +14793,12 @@ var init_emf = __esm({
     H_PEN = 2;
     N_HANDLES = 3;
     colorRef = ({ r, g: g2, b }) => (r & 255 | (g2 & 255) << 8 | (b & 255) << 16) >>> 0;
-    clampInt = (v) => Math.round(v);
+    clampInt2 = (v) => Math.round(v);
     setRect = (dv, off, b) => {
-      dv.setInt32(off, clampInt(b.left), true);
-      dv.setInt32(off + 4, clampInt(b.top), true);
-      dv.setInt32(off + 8, clampInt(b.right), true);
-      dv.setInt32(off + 12, clampInt(b.bottom), true);
+      dv.setInt32(off, clampInt2(b.left), true);
+      dv.setInt32(off + 4, clampInt2(b.top), true);
+      dv.setInt32(off + 8, clampInt2(b.right), true);
+      dv.setInt32(off + 12, clampInt2(b.bottom), true);
     };
     recBeginPath = () => record(EMR_BEGINPATH, 0);
     recEndPath = () => record(EMR_ENDPATH, 0);
@@ -8717,7 +14819,7 @@ var init_emf = __esm({
       dv.setUint32(o + 12, 0, true);
       dv.setUint32(o + 16, 0, true);
       dv.setUint32(o + 20, PS_GEOMETRIC_SOLID, true);
-      dv.setUint32(o + 24, Math.max(1, clampInt(width)), true);
+      dv.setUint32(o + 24, Math.max(1, clampInt2(width)), true);
       dv.setUint32(o + 28, BS_SOLID, true);
       dv.setUint32(o + 32, colorRef(color), true);
       dv.setUint32(o + 36, 0, true);
@@ -8992,6 +15094,10 @@ var init_dxf = __esm({
 });
 
 // engine/src/pptx-patch.ts
+var pptx_patch_exports = {};
+__export(pptx_patch_exports, {
+  rebrandPptxParts: () => rebrandPptxParts
+});
 function xmlDecode(s) {
   return s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#x?[0-9A-Fa-f]+;/g, (m) => {
     const hex = /^&#x/i.test(m);
@@ -9200,6 +15306,12 @@ var init_pptx_patch = __esm({
 });
 
 // engine/src/pptx-read.ts
+var pptx_read_exports = {};
+__export(pptx_read_exports, {
+  isPptx: () => isPptx,
+  pptxMediaImages: () => pptxMediaImages,
+  readPptx: () => readPptx
+});
 function localName(nodeName, localHint) {
   const raw = localHint || nodeName || "";
   const i = raw.indexOf(":");
@@ -9266,7 +15378,7 @@ function toInt(v, def = 0) {
   if (v == null) return def;
   const n2 = Number.parseInt(v, 10);
   if (!Number.isFinite(n2)) return def;
-  return Math.max(-MAX_COORD, Math.min(MAX_COORD, n2));
+  return Math.max(-MAX_COORD2, Math.min(MAX_COORD2, n2));
 }
 function truthy(v) {
   return v === "1" || v === "true" || v === "on";
@@ -9381,7 +15493,7 @@ function resolveScheme(slot, theme) {
   const hex = theme.colors[schemeSlotToThemeKey(slot)];
   return hex ? { scheme: slot, hex } : { scheme: slot };
 }
-function readColor(container, theme) {
+function readColor2(container, theme) {
   if (!container) return void 0;
   for (const c of childElements(container)) {
     const ln = elemLocal(c);
@@ -9478,7 +15590,7 @@ function readRun(r, theme) {
     const latin = firstChildByLocal(rPr, "latin");
     const face = latin ? attrByLocal(latin, "typeface") : null;
     if (face) run.font = face;
-    const color = readColor(firstChildByLocal(rPr, "solidFill"), theme);
+    const color = readColor2(firstChildByLocal(rPr, "solidFill"), theme);
     if (color) run.color = color;
   }
   if (text.length > 0 || run.bold || run.italic || run.underline || run.sizePt || run.color || run.font) return run;
@@ -9521,9 +15633,9 @@ function readSp(sp, theme) {
   if (spPr) {
     const prstGeom = firstChildByLocal(spPr, "prstGeom");
     geom = prstGeom && attrByLocal(prstGeom, "prst") || void 0;
-    fill = readColor(firstChildByLocal(spPr, "solidFill"), theme);
+    fill = readColor2(firstChildByLocal(spPr, "solidFill"), theme);
     const ln = firstChildByLocal(spPr, "ln");
-    if (ln) line = readColor(firstChildByLocal(ln, "solidFill"), theme);
+    if (ln) line = readColor2(firstChildByLocal(ln, "solidFill"), theme);
   }
   const paras = readTxBody(firstChildByLocal(sp, "txBody"), theme);
   if (paraHasText(paras)) {
@@ -9676,6 +15788,19 @@ function isPptx(parts) {
   }
   return false;
 }
+function pptxMediaImages(parts, max = 64) {
+  const out = [];
+  if (!parts || typeof parts !== "object" || !(max > 0)) return out;
+  for (const path of Object.keys(parts).sort()) {
+    const m = /^ppt\/media\/[^/]+\.(png|jpe?g)$/i.exec(path);
+    if (!m) continue;
+    const raw = parts[path];
+    if (raw === void 0 || (typeof raw === "string" ? raw.length === 0 : raw.byteLength === 0)) continue;
+    out.push({ path, mime: /png/i.test(m[1]) ? "image/png" : "image/jpeg" });
+    if (out.length >= max) break;
+  }
+  return out;
+}
 function readPptx(parts, parseXml) {
   const deck = {
     widthEmu: DEFAULT_W_EMU,
@@ -9731,7 +15856,7 @@ function readPptx(parts, parseXml) {
   }
   return deck;
 }
-var MAX_PART_BYTES, MAX_PART_CHARS2, MAX_SLIDES, MAX_NODES_PER_SLIDE, MAX_GROUP_DEPTH, MAX_PARAS, MAX_RUNS_PER_PARA, MAX_TABLE_ROWS, MAX_TABLE_COLS, MAX_TEXT_LEN, MAX_DFS_VISITS, MAX_COORD, DEFAULT_W_EMU, DEFAULT_H_EMU, ELEMENT_NODE, THEME_SLOTS;
+var MAX_PART_BYTES, MAX_PART_CHARS2, MAX_SLIDES, MAX_NODES_PER_SLIDE, MAX_GROUP_DEPTH, MAX_PARAS, MAX_RUNS_PER_PARA, MAX_TABLE_ROWS, MAX_TABLE_COLS, MAX_TEXT_LEN, MAX_DFS_VISITS, MAX_COORD2, DEFAULT_W_EMU, DEFAULT_H_EMU, ELEMENT_NODE, THEME_SLOTS;
 var init_pptx_read = __esm({
   "engine/src/pptx-read.ts"() {
     "use strict";
@@ -9746,7 +15871,7 @@ var init_pptx_read = __esm({
     MAX_TABLE_COLS = 512;
     MAX_TEXT_LEN = 2e5;
     MAX_DFS_VISITS = 2e5;
-    MAX_COORD = 1e11;
+    MAX_COORD2 = 1e11;
     DEFAULT_W_EMU = 12192e3;
     DEFAULT_H_EMU = 6858e3;
     ELEMENT_NODE = 1;
@@ -9767,17 +15892,1116 @@ var init_pptx_read = __esm({
   }
 });
 
+// engine/src/gamut-source.ts
+function rgbContains(name, l, c, h) {
+  const hr = h * Math.PI / 180;
+  const lin = oklabToLinearSrgb(l, c * Math.cos(hr), c * Math.sin(hr));
+  if (name === "srgb") return inUnitCube(lin);
+  const m = name === "p3" ? SRGB_TO_P3 : SRGB_TO_REC2020;
+  return inUnitCube(apply33(m, lin[0], lin[1], lin[2]));
+}
+function resolveGamutSource(limit) {
+  if (typeof limit !== "string") {
+    return typeof limit?.contains === "function" ? limit : NO_GAMUT_SOURCE;
+  }
+  const built = Object.hasOwn(BUILTIN_GAMUT_SOURCES, limit) ? BUILTIN_GAMUT_SOURCES[limit] : void 0;
+  return built ?? SRGB_SOURCE;
+}
+function fastRgbContains(src) {
+  const m = src === P3_SOURCE ? SRGB_TO_P3 : src === REC2020_SOURCE ? SRGB_TO_REC2020 : null;
+  if (src === SRGB_SOURCE) {
+    return (l, c, h) => {
+      const hr = h * Math.PI / 180;
+      return inUnitCube(oklabToLinearSrgb(l, c * Math.cos(hr), c * Math.sin(hr)));
+    };
+  }
+  if (!m) return null;
+  return (l, c, h) => {
+    const hr = h * Math.PI / 180;
+    const lin = oklabToLinearSrgb(l, c * Math.cos(hr), c * Math.sin(hr));
+    return inUnitCube(apply33(m, lin[0], lin[1], lin[2]));
+  };
+}
+var apply33, SRGB_TO_P3, SRGB_TO_REC2020, EPS2, inUnitCube, gamutInputSane, rgbSource, SRGB_SOURCE, P3_SOURCE, REC2020_SOURCE, BUILTIN_GAMUT_SOURCES, NO_GAMUT_SOURCE, linearSrgbToLinearP3, gamutSourceId, GAMUT_PROBE_START, GAMUT_PROBE_MAX;
+var init_gamut_source = __esm({
+  "engine/src/gamut-source.ts"() {
+    "use strict";
+    init_brand_derive();
+    apply33 = (m, x, y, z) => [
+      m[0] * x + m[1] * y + m[2] * z,
+      m[3] * x + m[4] * y + m[5] * z,
+      m[6] * x + m[7] * y + m[8] * z
+    ];
+    SRGB_TO_P3 = [
+      0.8224621,
+      0.177538,
+      0,
+      0.0331941,
+      0.9668058,
+      0,
+      0.0170827,
+      0.0723974,
+      0.9105199
+    ];
+    SRGB_TO_REC2020 = [
+      0.627404,
+      0.329282,
+      0.0433136,
+      0.069097,
+      0.91954,
+      0.0113612,
+      0.0163916,
+      0.0880132,
+      0.8955953
+    ];
+    EPS2 = 1e-6;
+    inUnitCube = (rgb) => rgb[0] >= -EPS2 && rgb[0] <= 1 + EPS2 && rgb[1] >= -EPS2 && rgb[1] <= 1 + EPS2 && rgb[2] >= -EPS2 && rgb[2] <= 1 + EPS2;
+    gamutInputSane = (l, c, h) => l >= -EPS2 && l <= 1 + EPS2 && c >= -EPS2 && Number.isFinite(h);
+    rgbSource = (name, label) => ({
+      id: name,
+      label,
+      contains: (l, c, h) => gamutInputSane(l, c, h) && rgbContains(name, l, c, h),
+      // Additive light has no ink. Answering 0 here would read as "no ink needed",
+      // which is a different claim from "the question does not apply".
+      inkCoverage: () => null
+    });
+    SRGB_SOURCE = rgbSource("srgb", "sRGB");
+    P3_SOURCE = rgbSource("p3", "Display-P3");
+    REC2020_SOURCE = rgbSource("rec2020", "Rec.2020");
+    BUILTIN_GAMUT_SOURCES = {
+      srgb: SRGB_SOURCE,
+      p3: P3_SOURCE,
+      rec2020: REC2020_SOURCE
+    };
+    NO_GAMUT_SOURCE = {
+      id: "none",
+      label: "unknown gamut",
+      contains: () => false,
+      inkCoverage: () => null
+    };
+    linearSrgbToLinearP3 = (r, g2, b) => apply33(SRGB_TO_P3, r, g2, b);
+    gamutSourceId = (limit) => typeof limit === "string" ? limit : limit.id;
+    GAMUT_PROBE_START = 0.5;
+    GAMUT_PROBE_MAX = 4;
+  }
+});
+
+// engine/src/gamut.ts
+function inGamut(l, c, h, limit) {
+  return holds(resolveGamutSource(limit), l, c, h);
+}
+function oklchGamut(l, c, h) {
+  for (const g2 of GAMUTS) if (inGamut(l, c, h, g2)) return g2;
+  return "none";
+}
+function maxChroma(l, h, limit = "srgb") {
+  if (!(l > 0) || l >= 1 || !Number.isFinite(h)) return 0;
+  const src = resolveGamutSource(limit);
+  let lo = 0;
+  let hi = GAMUT_PROBE_START;
+  let outside = !holds(src, l, hi, h);
+  while (!outside && hi < GAMUT_PROBE_MAX) {
+    lo = hi;
+    hi *= 2;
+    outside = !holds(src, l, hi, h);
+  }
+  if (!outside) return hi;
+  while (hi - lo > GAMUT_EPSILON) {
+    const mid2 = (lo + hi) / 2;
+    if (holds(src, l, mid2, h)) lo = mid2;
+    else hi = mid2;
+  }
+  return lo;
+}
+function ceilingGrid(limit) {
+  const id = gamutSourceId(limit);
+  const cached2 = CEILINGS.get(id);
+  if (cached2) return cached2;
+  const src = resolveGamutSource(limit);
+  const g2 = new Float64Array(GRID_L * GRID_H);
+  for (let i = 0; i < GRID_L; i++) {
+    const l = i / (GRID_L - 1);
+    for (let j = 0; j < GRID_H; j++) g2[i * GRID_H + j] = maxChroma(l, j / (GRID_H - 1) * 360, src);
+  }
+  CEILINGS.set(id, g2);
+  return g2;
+}
+function sampleCeiling(grid, l, h) {
+  const fi = Math.min(GRID_L - 1, Math.max(0, l * (GRID_L - 1)));
+  const fj = Math.min(GRID_H - 1, Math.max(0, (h % 360 + 360) % 360 / 360 * (GRID_H - 1)));
+  const i0 = Math.floor(fi), j0 = Math.floor(fj);
+  const i1 = Math.min(GRID_L - 1, i0 + 1), j1 = Math.min(GRID_H - 1, j0 + 1);
+  const ti = fi - i0, tj = fj - j0;
+  const at = (i, j) => grid[i * GRID_H + j];
+  const a = at(i0, j0), b = at(i0, j1);
+  const c = at(i1, j0), d = at(i1, j1);
+  return (a + (b - a) * tj) * (1 - ti) + (c + (d - c) * tj) * ti;
+}
+function oklchSlice(opts) {
+  const width = Math.max(1, Math.floor(opts.width));
+  const height = Math.max(1, Math.floor(opts.height));
+  const cMax = opts.cMax != null && opts.cMax > 0 ? opts.cMax : SLICE_C_MAX;
+  const src = resolveGamutSource(opts.limit ?? "rec2020");
+  const data = new Uint8ClampedArray(width * height * 4);
+  const fast = fastRgbContains(src);
+  let inside;
+  if (fast) inside = fast;
+  else {
+    const own = ceilingGrid(src);
+    inside = (l, c, h) => c <= sampleCeiling(own, l, h);
+  }
+  const encode = opts.encode ?? "srgb";
+  const ceiling = ceilingGrid(ENCODE_GAMUT[encode]);
+  const across = (i, span) => (i + 0.5) / span;
+  for (let y = 0; y < height; y++) {
+    const v = 1 - across(y, height);
+    for (let x = 0; x < width; x++) {
+      const u = across(x, width);
+      let l, c, h;
+      switch (opts.plane) {
+        case "lc":
+          l = v;
+          c = u * cMax;
+          h = opts.fixed;
+          break;
+        case "ch":
+          l = opts.fixed;
+          c = v * cMax;
+          h = u * 360;
+          break;
+        default:
+          l = v;
+          c = opts.fixed;
+          h = u * 360;
+          break;
+      }
+      const o = (y * width + x) * 4;
+      if (!inside(l, c, h)) continue;
+      const cUse = Math.min(c, sampleCeiling(ceiling, l, h));
+      const hr = h * Math.PI / 180;
+      let lin = oklabToLinearSrgb(l, cUse * Math.cos(hr), cUse * Math.sin(hr));
+      if (encode === "display-p3") lin = linearSrgbToLinearP3(lin[0], lin[1], lin[2]);
+      data[o] = linearToSrgb(Math.min(1, Math.max(0, lin[0]))) * 255;
+      data[o + 1] = linearToSrgb(Math.min(1, Math.max(0, lin[1]))) * 255;
+      data[o + 2] = linearToSrgb(Math.min(1, Math.max(0, lin[2]))) * 255;
+      data[o + 3] = 255;
+    }
+  }
+  return { data, width, height };
+}
+function sliceGamutEdge(plane, fixed, limit = "srgb", steps = 96, cMax = SLICE_C_MAX) {
+  const n2 = Math.max(2, Math.floor(steps));
+  const src = resolveGamutSource(limit);
+  const pts = [];
+  if (plane === "lc") {
+    for (let i = 0; i <= n2; i++) {
+      const l = 1 - i / n2;
+      pts.push({ x: Math.min(1, maxChroma(l, fixed, src) / cMax), y: i / n2 });
+    }
+  } else if (plane === "ch") {
+    for (let i = 0; i <= n2; i++) {
+      const h = i / n2 * 360;
+      const c = Math.min(1, maxChroma(fixed, h, src) / cMax);
+      pts.push({ x: i / n2, y: 1 - c });
+    }
+  }
+  return pts;
+}
+function sliceGamutRegion(plane, fixed, limit = "srgb", steps = 96, cMax = SLICE_C_MAX) {
+  const n2 = Math.max(2, Math.floor(steps));
+  const src = resolveGamutSource(limit);
+  if (plane === "lc") {
+    const edge = sliceGamutEdge("lc", fixed, src, n2, cMax);
+    return [[{ x: 0, y: 0 }, { x: 0, y: 1 }, ...edge.slice().reverse()]];
+  }
+  if (plane === "ch") {
+    const edge = sliceGamutEdge("ch", fixed, src, n2, cMax);
+    return [[{ x: 0, y: 1 }, { x: 1, y: 1 }, ...edge.slice().reverse()]];
+  }
+  const c = Math.max(0, fixed);
+  const SCAN = 64;
+  const fits = (l, h) => holds(src, l, c, h);
+  const window2 = (h) => {
+    let first = -1, last = -1;
+    for (let i = 0; i <= SCAN; i++) {
+      if (fits(i / SCAN, h)) {
+        if (first < 0) first = i;
+        last = i;
+      }
+    }
+    if (first < 0) return null;
+    const refine = (inside, outside) => {
+      let a = inside, b = outside;
+      for (let k = 0; k < 20; k++) {
+        const mid2 = (a + b) / 2;
+        if (fits(mid2, h)) a = mid2;
+        else b = mid2;
+      }
+      return a;
+    };
+    return {
+      lo: first === 0 ? 0 : refine(first / SCAN, (first - 1) / SCAN),
+      hi: last === SCAN ? 1 : refine(last / SCAN, (last + 1) / SCAN)
+    };
+  };
+  const rings = [];
+  let run = [];
+  const flush = () => {
+    if (run.length >= 2) {
+      rings.push([
+        ...run.map((p) => ({ x: p.x, y: 1 - p.hi })),
+        // out along the top
+        ...run.slice().reverse().map((p) => ({ x: p.x, y: 1 - p.lo }))
+        // back along the bottom
+      ]);
+    }
+    run = [];
+  };
+  for (let i = 0; i <= n2; i++) {
+    const x = i / n2;
+    const w = window2(x * 360);
+    if (w) run.push({ x, ...w });
+    else flush();
+  }
+  flush();
+  return rings;
+}
+var GAMUTS, holds, SLICE_C_MAX, ENCODE_GAMUT, GRID_L, GRID_H, CEILINGS, GAMUT_GRID_STEP;
+var init_gamut = __esm({
+  "engine/src/gamut.ts"() {
+    "use strict";
+    init_brand_derive();
+    init_gamut_source();
+    GAMUTS = ["srgb", "p3", "rec2020"];
+    holds = (src, l, c, h) => gamutInputSane(l, c, h) && src.contains(l, c, h);
+    SLICE_C_MAX = 0.4;
+    ENCODE_GAMUT = {
+      srgb: "srgb",
+      "display-p3": "p3"
+    };
+    GRID_L = 65;
+    GRID_H = 145;
+    CEILINGS = /* @__PURE__ */ new Map();
+    GAMUT_GRID_STEP = { l: 1 / (GRID_L - 1), h: 360 / (GRID_H - 1) };
+  }
+});
+
+// engine/src/icc.ts
+function u32(b, p, end) {
+  if (p < 0 || p + 4 > end) return -1;
+  return b[p] * 16777216 + (b[p + 1] << 16) + (b[p + 2] << 8) + b[p + 3];
+}
+function u16(b, p, end) {
+  if (p < 0 || p + 2 > end) return -1;
+  return b[p] << 8 | b[p + 1];
+}
+function u8(b, p, end) {
+  if (p < 0 || p + 1 > end) return -1;
+  return b[p];
+}
+function s15f16(b, p, end) {
+  const v = u32(b, p, end);
+  if (v < 0) return null;
+  return (v >= 2147483648 ? v - 4294967296 : v) / 65536;
+}
+function sig4(b, p, end) {
+  if (p < 0 || p + 4 > end) return null;
+  return String.fromCharCode(b[p], b[p + 1], b[p + 2], b[p + 3]);
+}
+function evalCurve(c, x) {
+  const v = clamp014(x);
+  switch (c.kind) {
+    case "identity":
+      return v;
+    case "gamma":
+      return clamp014(pow(v, c.g));
+    case "table": {
+      const n2 = c.t.length;
+      if (n2 === 0) return v;
+      if (n2 === 1) return c.t[0];
+      const t = v * (n2 - 1);
+      const i = Math.min(Math.floor(t), n2 - 2);
+      const f = t - i;
+      return c.t[i] * (1 - f) + c.t[i + 1] * f;
+    }
+    case "para": {
+      const [g2 = 1, a = 1, bb = 0, cc = 0, d = 0, e = 0, f = 0] = c.p;
+      switch (c.fn) {
+        case 0:
+          return clamp014(pow(v, g2));
+        case 1:
+          return clamp014(v >= (a === 0 ? 0 : -bb / a) ? pow(a * v + bb, g2) : 0);
+        case 2:
+          return clamp014(v >= (a === 0 ? 0 : -bb / a) ? pow(a * v + bb, g2) + cc : cc);
+        case 3:
+          return clamp014(v >= d ? pow(a * v + bb, g2) : cc * v);
+        case 4:
+          return clamp014(v >= d ? pow(a * v + bb, g2) + e : cc * v + f);
+        default:
+          return v;
+      }
+    }
+    default:
+      return v;
+  }
+}
+function invertCurve(c, y) {
+  if (c.kind === "identity") return clamp014(y);
+  const target = clamp014(y);
+  let lo = 0;
+  let hi = 1;
+  for (let i = 0; i < MAX_CURVE_INVERT_STEPS; i++) {
+    const mid2 = (lo + hi) / 2;
+    if (evalCurve(c, mid2) < target) lo = mid2;
+    else hi = mid2;
+  }
+  return (lo + hi) / 2;
+}
+function parseCurve(b, off, end) {
+  const type = sig4(b, off, end);
+  if (type === "curv") {
+    const count = u32(b, off + 8, end);
+    if (count < 0 || count > MAX_CURVE_ENTRIES) return null;
+    const size = 12 + count * 2;
+    if (off + size > end) return null;
+    if (count === 0) return { curve: IDENTITY_CURVE, size };
+    if (count === 1) {
+      const g2 = u16(b, off + 12, end);
+      if (g2 < 0) return null;
+      return { curve: { kind: "gamma", g: g2 / 256 }, size };
+    }
+    const t = new Float32Array(count);
+    for (let i = 0; i < count; i++) {
+      const v = u16(b, off + 12 + i * 2, end);
+      if (v < 0) return null;
+      t[i] = v / 65535;
+    }
+    return { curve: { kind: "table", t }, size };
+  }
+  if (type === "para") {
+    const fn = u16(b, off + 8, end);
+    if (fn < 0 || fn > 4) return null;
+    const counts = [1, 3, 4, 5, 7];
+    const n2 = counts[fn];
+    if (n2 > MAX_PARA_PARAMS) return null;
+    const size = 12 + n2 * 4;
+    if (off + size > end) return null;
+    const p = [];
+    for (let i = 0; i < n2; i++) {
+      const v = s15f16(b, off + 12 + i * 4, end);
+      if (v === null || !Number.isFinite(v)) return null;
+      p.push(v);
+    }
+    return { curve: { kind: "para", fn, p }, size };
+  }
+  return null;
+}
+function evalClut(st, v) {
+  const nIn = st.grid.length;
+  if (v.length !== nIn) return null;
+  const strides = new Array(nIn);
+  let s = 1;
+  for (let d = nIn - 1; d >= 0; d--) {
+    strides[d] = s;
+    s *= st.grid[d];
+  }
+  const base = new Array(nIn);
+  const frac = new Array(nIn);
+  for (let d = 0; d < nIn; d++) {
+    const g2 = st.grid[d];
+    const u = clamp014(v[d]) * (g2 - 1);
+    const j = Math.min(Math.floor(u), g2 - 2);
+    base[d] = j;
+    frac[d] = u - j;
+  }
+  const out = new Array(st.nOut).fill(0);
+  const corners = 1 << nIn;
+  for (let corner = 0; corner < corners; corner++) {
+    let w = 1;
+    let node = 0;
+    for (let d = 0; d < nIn; d++) {
+      const bit = corner >> d & 1;
+      w *= bit ? frac[d] : 1 - frac[d];
+      if (w === 0) break;
+      node += (base[d] + bit) * strides[d];
+    }
+    if (w === 0) continue;
+    const o = node * st.nOut;
+    if (o + st.nOut > st.data.length) return null;
+    for (let k = 0; k < st.nOut; k++) out[k] += w * st.data[o + k];
+  }
+  return out;
+}
+function evalPipeline(p, input) {
+  if (input.length !== p.nIn) return null;
+  let v = input.map(clamp014);
+  for (const st of p.stages) {
+    if (st.kind === "curves") {
+      if (st.curves.length !== v.length) return null;
+      v = v.map((x, i) => evalCurve(st.curves[i], x));
+    } else if (st.kind === "matrix") {
+      if (v.length !== 3) return null;
+      const [x, y, z] = v;
+      const m = st.m;
+      v = [
+        m[0] * x + m[1] * y + m[2] * z + (m[9] ?? 0),
+        m[3] * x + m[4] * y + m[5] * z + (m[10] ?? 0),
+        m[6] * x + m[7] * y + m[8] * z + (m[11] ?? 0)
+      ];
+    } else {
+      const out = evalClut(st, v);
+      if (!out) return null;
+      v = out;
+    }
+  }
+  if (v.length !== p.nOut) return null;
+  for (const x of v) if (!Number.isFinite(x)) return null;
+  return v.map(clamp014);
+}
+function parseMft(b, off, end, bits, inputIsPcsXyz) {
+  const nIn = u8(b, off + 8, end);
+  const nOut = u8(b, off + 9, end);
+  const g2 = u8(b, off + 10, end);
+  if (nIn < 1 || nIn > MAX_CHANNELS2 || nOut < 1 || nOut > MAX_CHANNELS2) return null;
+  if (g2 < 2) return null;
+  const m = [];
+  for (let i = 0; i < 9; i++) {
+    const v = s15f16(b, off + 12 + i * 4, end);
+    if (v === null || !Number.isFinite(v)) return null;
+    m.push(v);
+  }
+  let n2 = 256;
+  let mOut = 256;
+  let p = off + 48;
+  if (bits === 16) {
+    n2 = u16(b, off + 48, end);
+    mOut = u16(b, off + 50, end);
+    if (n2 < 2 || n2 > MAX_TABLE_ENTRIES || mOut < 2 || mOut > MAX_TABLE_ENTRIES) return null;
+    p = off + 52;
+  }
+  let nodes = 1;
+  for (let d = 0; d < nIn; d++) {
+    nodes *= g2;
+    if (!Number.isSafeInteger(nodes) || nodes * nOut > MAX_CLUT_VALUES) return null;
+  }
+  const clutValues = nodes * nOut;
+  const unit2 = bits === 8 ? 1 : 2;
+  const maxVal = bits === 8 ? 255 : 65535;
+  const inBytes = nIn * n2 * unit2;
+  const clutBytes = clutValues * unit2;
+  const outBytes = nOut * mOut * unit2;
+  if (!Number.isSafeInteger(inBytes + clutBytes + outBytes)) return null;
+  if (p + inBytes + clutBytes + outBytes > end) return null;
+  const readAt = (q) => bits === 8 ? u8(b, q, end) : u16(b, q, end);
+  const inCurves = [];
+  for (let d = 0; d < nIn; d++) {
+    const t = new Float32Array(n2);
+    for (let i = 0; i < n2; i++) {
+      const v = readAt(p + (d * n2 + i) * unit2);
+      if (v < 0) return null;
+      t[i] = v / maxVal;
+    }
+    inCurves.push({ kind: "table", t });
+  }
+  const clutBase = p + inBytes;
+  const data = new Float32Array(clutValues);
+  for (let i = 0; i < clutValues; i++) {
+    const v = readAt(clutBase + i * unit2);
+    if (v < 0) return null;
+    data[i] = v / maxVal;
+  }
+  const outBase = clutBase + clutBytes;
+  const outCurves = [];
+  for (let k = 0; k < nOut; k++) {
+    const t = new Float32Array(mOut);
+    for (let i = 0; i < mOut; i++) {
+      const v = readAt(outBase + (k * mOut + i) * unit2);
+      if (v < 0) return null;
+      t[i] = v / maxVal;
+    }
+    outCurves.push({ kind: "table", t });
+  }
+  const grid = new Array(nIn).fill(g2);
+  const stages = [];
+  if (inputIsPcsXyz) stages.push({ kind: "matrix", m });
+  stages.push({ kind: "curves", curves: inCurves });
+  stages.push({ kind: "clut", grid, nOut, data });
+  stages.push({ kind: "curves", curves: outCurves });
+  return { nIn, nOut, stages, labEnc: bits === 16 ? "legacy16" : "full" };
+}
+function parseCurveChain(b, off, end, count) {
+  const out = [];
+  let p = off;
+  for (let i = 0; i < count; i++) {
+    const c = parseCurve(b, p, end);
+    if (!c) return null;
+    out.push(c.curve);
+    p += c.size + 3 & ~3;
+    if (p > end) return null;
+  }
+  return out;
+}
+function parseMabClut(b, off, end, nIn, nOut) {
+  if (off + 20 > end) return null;
+  const grid = [];
+  let nodes = 1;
+  for (let d = 0; d < nIn; d++) {
+    const g2 = u8(b, off + d, end);
+    if (g2 < 2) return null;
+    grid.push(g2);
+    nodes *= g2;
+    if (!Number.isSafeInteger(nodes) || nodes * nOut > MAX_CLUT_VALUES) return null;
+  }
+  const prec = u8(b, off + 16, end);
+  if (prec !== 1 && prec !== 2) return null;
+  const values = nodes * nOut;
+  const dataOff = off + 20;
+  if (dataOff + values * prec > end) return null;
+  const maxVal = prec === 1 ? 255 : 65535;
+  const data = new Float32Array(values);
+  for (let i = 0; i < values; i++) {
+    const v = prec === 1 ? u8(b, dataOff + i, end) : u16(b, dataOff + i * 2, end);
+    if (v < 0) return null;
+    data[i] = v / maxVal;
+  }
+  return { kind: "clut", grid, nOut, data };
+}
+function parseMab(b, off, end, atoB) {
+  const nIn = u8(b, off + 8, end);
+  const nOut = u8(b, off + 9, end);
+  if (nIn < 1 || nIn > MAX_CHANNELS2 || nOut < 1 || nOut > MAX_CHANNELS2) return null;
+  const offB = u32(b, off + 12, end);
+  const offMat = u32(b, off + 16, end);
+  const offM = u32(b, off + 20, end);
+  const offClut = u32(b, off + 24, end);
+  const offA = u32(b, off + 28, end);
+  if (offB < 0 || offMat < 0 || offM < 0 || offClut < 0 || offA < 0) return null;
+  const nA = atoB ? nIn : nOut;
+  const nB = atoB ? nOut : nIn;
+  const aCurves = offA ? parseCurveChain(b, off + offA, end, nA) : null;
+  const bCurves = offB ? parseCurveChain(b, off + offB, end, nB) : null;
+  const mCurves = offM ? parseCurveChain(b, off + offM, end, 3) : null;
+  if (offA && !aCurves) return null;
+  if (offB && !bCurves) return null;
+  if (offM && !mCurves) return null;
+  let matrix = null;
+  if (offMat) {
+    const m = [];
+    for (let i = 0; i < 12; i++) {
+      const v = s15f16(b, off + offMat + i * 4, end);
+      if (v === null || !Number.isFinite(v)) return null;
+      m.push(v);
+    }
+    matrix = { kind: "matrix", m };
+  }
+  let clut = null;
+  if (offClut) {
+    clut = atoB ? parseMabClut(b, off + offClut, end, nIn, nB === 3 && mCurves ? 3 : nOut) : parseMabClut(b, off + offClut, end, nIn === 3 && mCurves ? 3 : nIn, nOut);
+    if (!clut) return null;
+  }
+  const forward = atoB ? [
+    aCurves ? { kind: "curves", curves: aCurves } : null,
+    clut,
+    mCurves ? { kind: "curves", curves: mCurves } : null,
+    matrix,
+    bCurves ? { kind: "curves", curves: bCurves } : null
+  ] : [
+    bCurves ? { kind: "curves", curves: bCurves } : null,
+    matrix,
+    mCurves ? { kind: "curves", curves: mCurves } : null,
+    clut,
+    aCurves ? { kind: "curves", curves: aCurves } : null
+  ];
+  const stages = forward.filter((s) => s !== null);
+  if (stages.length === 0) return null;
+  return { nIn, nOut, stages, labEnc: "full" };
+}
+function parseTextTag(b, off, size, fileEnd) {
+  const end = Math.min(off + size, fileEnd);
+  const type = sig4(b, off, end);
+  if (type === "desc") {
+    const count = u32(b, off + 8, end);
+    if (count <= 1 || off + 12 + count > end) return "";
+    let s = "";
+    for (let i = 0; i < count - 1; i++) {
+      const ch = u8(b, off + 12 + i, end);
+      if (ch <= 0) break;
+      s += String.fromCharCode(ch);
+    }
+    return s;
+  }
+  if (type === "mluc") {
+    const n2 = u32(b, off + 8, end);
+    const recSize = u32(b, off + 12, end);
+    if (n2 < 1 || recSize < 12 || n2 > MAX_TAGS) return "";
+    let best = -1;
+    for (let i = 0; i < n2; i++) {
+      const rec = off + 16 + i * recSize;
+      if (rec + 12 > end) break;
+      const lang = u16(b, rec, end);
+      if (best < 0 || lang === 25966) best = rec;
+      if (lang === 25966) break;
+    }
+    if (best < 0) return "";
+    const len2 = u32(b, best + 4, end);
+    const strOff = u32(b, best + 8, end);
+    if (len2 < 0 || strOff < 0 || off + strOff + len2 > end) return "";
+    let s = "";
+    for (let i = 0; i + 1 < len2; i += 2) {
+      const cu = u16(b, off + strOff + i, end);
+      if (cu < 0) break;
+      if (cu === 0) break;
+      s += String.fromCharCode(cu);
+    }
+    return s;
+  }
+  if (type === "text") {
+    let s = "";
+    for (let p = off + 8; p < end; p++) {
+      const ch = u8(b, p, end);
+      if (ch <= 0) break;
+      s += String.fromCharCode(ch);
+    }
+    return s;
+  }
+  return "";
+}
+function spaceChannels(s) {
+  if (Object.hasOwn(SPACE_CHANNELS, s)) return SPACE_CHANNELS[s];
+  if (/^[0-9A-F]CLR$/.test(s)) {
+    const n2 = Number.parseInt(s[0], 16);
+    return n2 >= 2 && n2 <= MAX_CHANNELS2 ? n2 : 0;
+  }
+  return 0;
+}
+function invert3(m) {
+  const [a, b, c, d, e, f, g2, h, i] = m;
+  const det = a * (e * i - f * h) - b * (d * i - f * g2) + c * (d * h - e * g2);
+  if (!Number.isFinite(det) || Math.abs(det) < 1e-12) return null;
+  return [
+    (e * i - f * h) / det,
+    (c * h - b * i) / det,
+    (b * f - c * e) / det,
+    (f * g2 - d * i) / det,
+    (a * i - c * g2) / det,
+    (c * d - a * f) / det,
+    (d * h - e * g2) / det,
+    (b * g2 - a * h) / det,
+    (a * e - b * d) / det
+  ];
+}
+function parseIccProfile(bytes) {
+  try {
+    return parseInner(bytes);
+  } catch {
+    return null;
+  }
+}
+function parseInner(b) {
+  if (!(b instanceof Uint8Array) || b.length < 132) return null;
+  const declared = u32(b, 0, b.length);
+  if (declared < 128) return null;
+  if (declared > b.length) return null;
+  const fileEnd = declared;
+  if (sig4(b, 36, fileEnd) !== "acsp") return null;
+  const major = u8(b, 8, fileEnd);
+  const bcd = u8(b, 9, fileEnd);
+  if (major < 0 || bcd < 0) return null;
+  const version = `${major}.${bcd >> 4}.${bcd & 15}`;
+  const deviceClass = sig4(b, 12, fileEnd);
+  const dataColourSpace = sig4(b, 16, fileEnd);
+  const pcsSig = sig4(b, 20, fileEnd);
+  if (!deviceClass || !dataColourSpace || !pcsSig) return null;
+  if (pcsSig !== "Lab " && pcsSig !== "XYZ ") return null;
+  const pcs = pcsSig === "Lab " ? "Lab" : "XYZ";
+  const nChannels = spaceChannels(dataColourSpace);
+  if (nChannels === 0) return null;
+  const tagCount = u32(b, 128, fileEnd);
+  if (tagCount < 0 || tagCount > MAX_TAGS) return null;
+  if (132 + tagCount * 12 > fileEnd) return null;
+  const tags = /* @__PURE__ */ new Map();
+  for (let i = 0; i < tagCount; i++) {
+    const p = 132 + i * 12;
+    const s = sig4(b, p, fileEnd);
+    const offset = u32(b, p + 4, fileEnd);
+    const size = u32(b, p + 8, fileEnd);
+    if (!s || offset < 0 || size < 4) continue;
+    if (offset + size > fileEnd) continue;
+    if (!tags.has(s)) tags.set(s, { offset, size });
+  }
+  const descTag = tags.get("desc") ?? tags.get("dscm");
+  const description = descTag ? parseTextTag(b, descTag.offset, descTag.size, fileEnd) : "";
+  let wtpt = null;
+  const wt = tags.get("wtpt");
+  if (wt && wt.size >= 20) {
+    const end = Math.min(wt.offset + wt.size, fileEnd);
+    const x = s15f16(b, wt.offset + 8, end);
+    const y = s15f16(b, wt.offset + 12, end);
+    const z = s15f16(b, wt.offset + 16, end);
+    if (x !== null && y !== null && z !== null && y > 0) wtpt = [x, y, z];
+  }
+  const mediaWhite = major < 4 && deviceClass === "mntr" ? PCS_D50 : wtpt;
+  const elements = /* @__PURE__ */ new Map();
+  function pipeline(tagSig, atoB) {
+    const t = tags.get(tagSig);
+    if (!t) return null;
+    const key = `${t.offset}:${t.size}:${atoB ? "a" : "b"}`;
+    if (elements.has(key)) return elements.get(key) ?? null;
+    const end = Math.min(t.offset + t.size, fileEnd);
+    const type = sig4(b, t.offset, end);
+    const inputIsPcsXyz = !atoB && pcs === "XYZ";
+    let out = null;
+    if (type === "mft1") out = parseMft(b, t.offset, end, 8, inputIsPcsXyz);
+    else if (type === "mft2") out = parseMft(b, t.offset, end, 16, inputIsPcsXyz);
+    else if (type === "mAB ") out = parseMab(b, t.offset, end, true);
+    else if (type === "mBA ") out = parseMab(b, t.offset, end, false);
+    if (out) {
+      const wantIn = atoB ? nChannels : 3;
+      const wantOut = atoB ? 3 : nChannels;
+      if (out.nIn !== wantIn || out.nOut !== wantOut) out = null;
+    }
+    elements.set(key, out);
+    return out;
+  }
+  const trcOf = (s) => {
+    const t = tags.get(s);
+    if (!t) return null;
+    const c = parseCurve(b, t.offset, Math.min(t.offset + t.size, fileEnd));
+    return c ? c.curve : null;
+  };
+  const colOf = (s) => {
+    const t = tags.get(s);
+    if (!t || t.size < 20) return null;
+    const end = Math.min(t.offset + t.size, fileEnd);
+    const x = s15f16(b, t.offset + 8, end);
+    const y = s15f16(b, t.offset + 12, end);
+    const z = s15f16(b, t.offset + 16, end);
+    return x === null || y === null || z === null ? null : [x, y, z];
+  };
+  let matrixTrc = null;
+  if (dataColourSpace === "RGB " && pcs === "XYZ") {
+    const r = colOf("rXYZ");
+    const g2 = colOf("gXYZ");
+    const bl = colOf("bXYZ");
+    const rt = trcOf("rTRC");
+    const gt = trcOf("gTRC");
+    const bt = trcOf("bTRC");
+    if (r && g2 && bl && rt && gt && bt) {
+      const m = [r[0], g2[0], bl[0], r[1], g2[1], bl[1], r[2], g2[2], bl[2]];
+      const inv = invert3(m);
+      if (inv) matrixTrc = { m, inv, trc: [rt, gt, bt] };
+    }
+  }
+  let grayTrc = null;
+  if (dataColourSpace === "GRAY") grayTrc = trcOf("kTRC");
+  const decodePcs = (enc, y) => {
+    if (y.length !== 3) return null;
+    if (pcs === "Lab") {
+      const k = enc === "legacy16" ? 65535 / 65280 : 1;
+      return [y[0] * 100 * k, y[1] * 255 * k - 128, y[2] * 255 * k - 128];
+    }
+    const s = 65535 / 32768;
+    return xyzToLab(y[0] * s, y[1] * s, y[2] * s);
+  };
+  const encodePcs = (enc, lab) => {
+    if (pcs === "Lab") {
+      const k = enc === "legacy16" ? 65280 / 65535 : 1;
+      return [
+        clamp014(lab[0] / 100 * k),
+        clamp014((lab[1] + 128) / 255 * k),
+        clamp014((lab[2] + 128) / 255 * k)
+      ];
+    }
+    const xyz = labToXyz(lab[0], lab[1], lab[2]);
+    const s = 32768 / 65535;
+    return [clamp014(xyz[0] * s), clamp014(xyz[1] * s), clamp014(xyz[2] * s)];
+  };
+  const relToAbs = (lab, forward) => {
+    if (!mediaWhite) return null;
+    if (mediaWhite === PCS_D50) return [lab[0], lab[1], lab[2]];
+    const [x, y, z] = labToXyz(lab[0], lab[1], lab[2]);
+    const rx = mediaWhite[0] / PCS_D50[0];
+    const ry = mediaWhite[1] / PCS_D50[1];
+    const rz = mediaWhite[2] / PCS_D50[2];
+    if (!(rx > 0) || !(ry > 0) || !(rz > 0)) return null;
+    return forward ? xyzToLab(x * rx, y * ry, z * rz) : xyzToLab(x / rx, y / ry, z / rz);
+  };
+  const hasDirect = () => matrixTrc !== null || grayTrc !== null;
+  const directLinear = (want) => {
+    if (matrixTrc) {
+      const [x, y, z] = labToXyz(want[0], want[1], want[2]);
+      const inv = matrixTrc.inv;
+      return [
+        inv[0] * x + inv[1] * y + inv[2] * z,
+        inv[3] * x + inv[4] * y + inv[5] * z,
+        inv[6] * x + inv[7] * y + inv[8] * z
+      ];
+    }
+    if (grayTrc) return [labToXyz(want[0], want[1], want[2])[1] / PCS_D50[1]];
+    return null;
+  };
+  const profile = {
+    deviceClass,
+    dataColourSpace,
+    pcs,
+    version,
+    description,
+    nChannels,
+    /**
+     * True when this intent's transform exists. For a LUT profile that means the
+     * A2B{n} or B2A{n} tag is physically present — there is deliberately NO
+     * fallback to A2B0, because quietly answering with the perceptual table when
+     * saturation was asked for returns plausible, wrong colour. A matrix/TRC or
+     * gray profile has one colorimetric transform that every CMM uses for all
+     * three table intents, so it reports them all. `absolute` additionally needs
+     * a media white to rescale relative by, and is unsupported without one.
+     */
+    hasIntent(intent) {
+      if (intent === "absolute") return mediaWhite !== null && profile.hasIntent("relative");
+      if (!Object.hasOwn(INTENT_TAG, intent)) return false;
+      if (hasDirect()) return true;
+      const n2 = INTENT_TAG[intent];
+      return tags.has(`A2B${n2}`) || tags.has(`B2A${n2}`);
+    },
+    toLab(intent, channels) {
+      if (!channels || typeof channels.length !== "number" || channels.length !== nChannels) return null;
+      for (let i = 0; i < nChannels; i++) {
+        if (typeof channels[i] !== "number" || !Number.isFinite(channels[i])) return null;
+      }
+      if (!Object.hasOwn(INTENT_TAG, intent)) return null;
+      const dev = Array.from(channels, clamp014);
+      let lab = null;
+      const lut = pipeline(`A2B${INTENT_TAG[intent]}`, true);
+      if (lut) {
+        const y = evalPipeline(lut, dev);
+        lab = y ? decodePcs(lut.labEnc, y) : null;
+      } else if (matrixTrc) {
+        const lin = [
+          evalCurve(matrixTrc.trc[0], dev[0]),
+          evalCurve(matrixTrc.trc[1], dev[1]),
+          evalCurve(matrixTrc.trc[2], dev[2])
+        ];
+        const m = matrixTrc.m;
+        lab = xyzToLab(
+          m[0] * lin[0] + m[1] * lin[1] + m[2] * lin[2],
+          m[3] * lin[0] + m[4] * lin[1] + m[5] * lin[2],
+          m[6] * lin[0] + m[7] * lin[1] + m[8] * lin[2]
+        );
+      } else if (grayTrc) {
+        const yv = evalCurve(grayTrc, dev[0]);
+        lab = xyzToLab(PCS_D50[0] * yv, PCS_D50[1] * yv, PCS_D50[2] * yv);
+      }
+      if (!lab) return null;
+      if (intent === "absolute") return relToAbs(lab, true);
+      return lab;
+    },
+    fromLab(intent, lab) {
+      if (lab?.length !== 3) return null;
+      for (let i = 0; i < 3; i++) {
+        if (typeof lab[i] !== "number" || !Number.isFinite(lab[i])) return null;
+      }
+      if (!Object.hasOwn(INTENT_TAG, intent)) return null;
+      let want = [lab[0], lab[1], lab[2]];
+      if (intent === "absolute") {
+        const rel = relToAbs(want, false);
+        if (!rel) return null;
+        want = rel;
+      }
+      const lut = pipeline(`B2A${INTENT_TAG[intent]}`, false);
+      if (lut) {
+        const enc = encodePcs(lut.labEnc, want);
+        if (!enc) return null;
+        return evalPipeline(lut, enc);
+      }
+      const raw = directLinear(want);
+      if (raw && matrixTrc) return raw.map((v, i) => invertCurve(matrixTrc.trc[i], clamp014(v)));
+      if (raw && grayTrc) return [invertCurve(grayTrc, clamp014(raw[0]))];
+      return null;
+    }
+  };
+  PROFILE_DIGEST.set(profile, sha256Prefix(b.subarray(0, fileEnd)));
+  if (matrixTrc || grayTrc) DIRECT_LINEAR.set(profile, (intent, lab) => {
+    if (!Object.hasOwn(INTENT_TAG, intent)) return null;
+    if (pipeline(`B2A${INTENT_TAG[intent]}`, false)) return null;
+    let want = [lab[0], lab[1], lab[2]];
+    if (intent === "absolute") {
+      const rel = relToAbs(want, false);
+      if (!rel) return null;
+      want = rel;
+    }
+    return directLinear(want);
+  });
+  return profile;
+}
+function iccGamutIntent(p, intent) {
+  if (p.deviceClass === "abst" || p.deviceClass === "link") return false;
+  if (!p.hasIntent(intent)) return false;
+  return p.fromLab(intent, [50, 0, 0]) !== null;
+}
+function iccDevice(p, intent, l, c, h) {
+  if (!gamutInputSane(l, c, h)) return null;
+  const lab = convertColor(
+    { space: "oklch", components: [l, c, h], alpha: 1, missing: 0 },
+    "lab"
+  ).components;
+  const dev = p.fromLab(intent, lab);
+  return dev ? { dev, lab } : null;
+}
+function iccGamutSource(p, intent) {
+  const digest = PROFILE_DIGEST.get(p) ?? fallbackId(p);
+  const supported = iccGamutIntent(p, intent);
+  const ink = isInkSpace(p.dataColourSpace);
+  const direct = DIRECT_LINEAR.get(p);
+  const device = (l, c, h) => supported ? iccDevice(p, intent, l, c, h) : null;
+  return {
+    id: `icc:${digest}:${intent}`,
+    label: `${p.description || p.dataColourSpace.trim()} (${intent})`,
+    contains(l, c, h) {
+      const d = device(l, c, h);
+      if (!d) return false;
+      const raw = direct?.(intent, d.lab);
+      if (raw?.some((v) => v < -CUBE_EPS || v > 1 + CUBE_EPS)) return false;
+      const back = p.toLab(intent, d.dev);
+      if (!back) return false;
+      return deltaE76(d.lab, back) <= ICC_GAMUT_DELTA_E;
+    },
+    /**
+     * Total area coverage: the sum of the device channels the colour maps to, in
+     * units where 1.0 is one channel at full. A four-ink profile can therefore
+     * return up to 4.0 — the printing trade's "400% TAC" — so this is not
+     * normalised to 0–1; normalising would erase exactly the number a pressroom
+     * ink limit is expressed in. Null for additive spaces, where the question
+     * does not apply.
+     */
+    inkCoverage(l, c, h) {
+      if (!ink) return null;
+      const d = device(l, c, h);
+      if (!d) return null;
+      let sum = 0;
+      for (const v of d.dev) sum += clamp014(v);
+      return sum;
+    }
+  };
+}
+function sha256Prefix(data) {
+  const h = [1779033703, 3144134277, 1013904242, 2773480762, 1359893119, 2600822924, 528734635, 1541459225];
+  const len2 = data.length;
+  const withPad = new Uint8Array((len2 + 8 >> 6) + 1 << 6);
+  withPad.set(data);
+  withPad[len2] = 128;
+  const bitLen = len2 * 8;
+  new DataView(withPad.buffer).setUint32(withPad.length - 4, bitLen >>> 0);
+  new DataView(withPad.buffer).setUint32(withPad.length - 8, Math.floor(bitLen / 4294967296));
+  const w = new Uint32Array(64);
+  const rotr = (x, n2) => (x >>> n2 | x << 32 - n2) >>> 0;
+  for (let off = 0; off < withPad.length; off += 64) {
+    for (let i = 0; i < 16; i++) {
+      w[i] = (withPad[off + i * 4] << 24 | withPad[off + i * 4 + 1] << 16 | withPad[off + i * 4 + 2] << 8 | withPad[off + i * 4 + 3]) >>> 0;
+    }
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ w[i - 15] >>> 3;
+      const s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ w[i - 2] >>> 10;
+      w[i] = w[i - 16] + s0 + w[i - 7] + s1 >>> 0;
+    }
+    let [a, bb, c, d, e, f, g2, hh] = h;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = e & f ^ ~e & g2;
+      const t1 = hh + S1 + ch + K256[i] + w[i] >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const mj = a & bb ^ a & c ^ bb & c;
+      const t2 = S0 + mj >>> 0;
+      hh = g2;
+      g2 = f;
+      f = e;
+      e = d + t1 >>> 0;
+      d = c;
+      c = bb;
+      bb = a;
+      a = t1 + t2 >>> 0;
+    }
+    h[0] = h[0] + a >>> 0;
+    h[1] = h[1] + bb >>> 0;
+    h[2] = h[2] + c >>> 0;
+    h[3] = h[3] + d >>> 0;
+    h[4] = h[4] + e >>> 0;
+    h[5] = h[5] + f >>> 0;
+    h[6] = h[6] + g2 >>> 0;
+    h[7] = h[7] + hh >>> 0;
+  }
+  return h.slice(0, 2).map((x) => x.toString(16).padStart(8, "0")).join("");
+}
+var MAX_TAGS, MAX_CHANNELS2, MAX_TABLE_ENTRIES, MAX_CURVE_ENTRIES, MAX_CLUT_VALUES, MAX_PARA_PARAMS, MAX_CURVE_INVERT_STEPS, clamp014, IDENTITY_CURVE, pow, SPACE_CHANNELS, isInkSpace, INTENT_TAG, xyzToLab, labToXyz, PCS_D50, PROFILE_DIGEST, DIRECT_LINEAR, CUBE_EPS, deltaE76, ICC_GAMUT_DELTA_E, fallbackId, K256;
+var init_icc = __esm({
+  "engine/src/icc.ts"() {
+    "use strict";
+    init_css_color();
+    init_gamut_source();
+    MAX_TAGS = 512;
+    MAX_CHANNELS2 = 15;
+    MAX_TABLE_ENTRIES = 4096;
+    MAX_CURVE_ENTRIES = 65536;
+    MAX_CLUT_VALUES = 1 << 22;
+    MAX_PARA_PARAMS = 7;
+    MAX_CURVE_INVERT_STEPS = 40;
+    clamp014 = (n2) => n2 < 0 ? 0 : n2 > 1 ? 1 : n2;
+    IDENTITY_CURVE = { kind: "identity" };
+    pow = (x, g2) => x <= 0 ? 0 : x ** g2;
+    SPACE_CHANNELS = {
+      "XYZ ": 3,
+      "Lab ": 3,
+      "Luv ": 3,
+      "YCbr": 3,
+      "Yxy ": 3,
+      "RGB ": 3,
+      "GRAY": 1,
+      "HSV ": 3,
+      "HLS ": 3,
+      "CMYK": 4,
+      "CMY ": 3
+    };
+    isInkSpace = (s) => s === "CMYK" || s === "CMY " || /^[0-9A-F]CLR$/.test(s);
+    INTENT_TAG = {
+      perceptual: 0,
+      relative: 1,
+      saturation: 2,
+      absolute: 1
+    };
+    xyzToLab = (x, y, z) => convertColor({ space: "xyz-d50", components: [x, y, z], alpha: 1, missing: 0 }, "lab").components;
+    labToXyz = (l, a, bb) => convertColor({ space: "lab", components: [l, a, bb], alpha: 1, missing: 0 }, "xyz-d50").components;
+    PCS_D50 = labToXyz(100, 0, 0);
+    PROFILE_DIGEST = /* @__PURE__ */ new WeakMap();
+    DIRECT_LINEAR = /* @__PURE__ */ new WeakMap();
+    CUBE_EPS = 1e-6;
+    deltaE76 = (a, c) => Math.hypot(a[0] - c[0], a[1] - c[1], a[2] - c[2]);
+    ICC_GAMUT_DELTA_E = 3;
+    fallbackId = (p) => `${p.deviceClass}-${p.dataColourSpace}-${p.nChannels}-${p.description}`;
+    K256 = /* @__PURE__ */ (() => {
+      const primes = [];
+      for (let n2 = 2; primes.length < 64; n2++) {
+        let p = true;
+        for (let d = 2; d * d <= n2; d++) if (n2 % d === 0) {
+          p = false;
+          break;
+        }
+        if (p) primes.push(n2);
+      }
+      return primes.map((n2) => Math.floor(Math.cbrt(n2) % 1 * 2 ** 32) >>> 0);
+    })();
+  }
+});
+
 // engine/src/brand-schemes.ts
 function generateSchemeAccents(primaryHex, scheme) {
   const primary = hexToOklch(primaryHex) ?? FALLBACK_PRIMARY;
   const rotations = SCHEME_ROTATIONS[scheme] ?? [];
   return rotations.map((delta) => {
-    const hue = normHue2(primary.h + delta);
+    const hue = normHue3(primary.h + delta);
     const oklch = { l: primary.l, c: primary.c, h: hue };
     return { hex: oklchToHex(oklch), oklch, hue };
   });
 }
-var SCHEME_ROTATIONS, FALLBACK_PRIMARY, normHue2;
+var SCHEME_ROTATIONS, FALLBACK_PRIMARY, normHue3;
 var init_brand_schemes = __esm({
   "engine/src/brand-schemes.ts"() {
     "use strict";
@@ -9792,7 +17016,7 @@ var init_brand_schemes = __esm({
       "free-4": [90, 180, 270]
     };
     FALLBACK_PRIMARY = { l: 0.62, c: 0.11, h: 250 };
-    normHue2 = (h) => (h % 360 + 360) % 360;
+    normHue3 = (h) => (h % 360 + 360) % 360;
   }
 });
 
@@ -9807,7 +17031,7 @@ function oklchToLab(c) {
 }
 function labToOklch2(L, a, b) {
   const c = Math.hypot(a, b);
-  return { l: L, c, h: c < 1e-7 ? 0 : normHue3(Math.atan2(b, a) * 180 / Math.PI) };
+  return { l: L, c, h: c < 1e-7 ? 0 : normHue4(Math.atan2(b, a) * 180 / Math.PI) };
 }
 function toLab(input) {
   const c = toOklch(input);
@@ -9899,7 +17123,7 @@ function rampOklab(stops, n2, opts = {}) {
   for (let i = 0; i < count; i++) {
     const t = count === 1 ? 0 : i / (count - 1);
     const [L, a, b] = bezierAt(points, tFor(t));
-    out.push(oklchToHex(labToOklch2(clamp(L, 0, 1), a, b)));
+    out.push(oklchToHex(labToOklch2(clamp2(L, 0, 1), a, b)));
   }
   return out;
 }
@@ -9933,8 +17157,8 @@ function distinctColors(n2, opts = {}) {
   if (count <= 0) return [];
   const anchor = opts.anchorHex != null ? toOklch(opts.anchorHex) : null;
   const minDeltaE = Number.isFinite(opts.minDeltaE) ? Math.max(0, opts.minDeltaE) : 0.02;
-  const baseL = clamp(anchor?.l ?? 0.65, 0.35, 0.8);
-  const baseC = clamp(anchor?.c ?? 0.12, 0.08, 0.2);
+  const baseL = clamp2(anchor?.l ?? 0.65, 0.35, 0.8);
+  const baseC = clamp2(anchor?.c ?? 0.12, 0.08, 0.2);
   const baseH = anchor?.h ?? 250;
   const chosen = [];
   const add = (c) => {
@@ -9949,9 +17173,9 @@ function distinctColors(n2, opts = {}) {
     for (const dl of [0, -0.14, 0.14]) {
       for (let k = 0; k < 24; k++) {
         const c = {
-          l: clamp(baseL + dl, 0.25, 0.9),
+          l: clamp2(baseL + dl, 0.25, 0.9),
           c: baseC * dc,
-          h: normHue3(baseH + k * 15)
+          h: normHue4(baseH + k * 15)
         };
         const hex = oklchToHex(c);
         if (seen.has(hex)) continue;
@@ -9978,6 +17202,29 @@ function distinctColors(n2, opts = {}) {
   }
   return chosen.slice(0, count).map((c) => c.hex);
 }
+function readIccProfile(bytes, intent = "relative") {
+  const want = INTENTS.includes(intent) ? intent : "relative";
+  const profile = parseIccProfile(bytes);
+  if (!profile) return null;
+  const source = iccGamutSource(profile, want);
+  const handle = {
+    id: source.id,
+    label: source.label,
+    deviceClass: profile.deviceClass,
+    colourSpace: profile.dataColourSpace.trim(),
+    channels: profile.nChannels,
+    intent: want,
+    version: profile.version,
+    // The gamut gate, not `hasIntent`: a profile carrying only device → Lab (the
+    // stock abstract profiles) has a transform for the intent and still cannot
+    // answer a membership question, and `usable: true` there would promise an
+    // answer the three queries below can only give as "nothing at all is
+    // printable". See iccGamutIntent.
+    usable: iccGamutIntent(profile, want)
+  };
+  PROFILE_SOURCES.set(handle, source);
+  return handle;
+}
 function makeColorApi() {
   return {
     deltaE: deltaEOk,
@@ -9988,27 +17235,88 @@ function makeColorApi() {
     distinct: distinctColors,
     // v1.60: the brand editor's harmony generator (brand-schemes.ts), attached
     // verbatim so tool-facing scheme accents can never drift from the editor's.
-    schemes: (seedHex, kind = "complement") => generateSchemeAccents(seedHex, kind)
+    schemes: (seedHex, kind = "complement") => generateSchemeAccents(seedHex, kind),
+    // v1.68: CSS-correct interpolation + the gradient spec. Both are thin
+    // adapters over css-color.ts / gradient-spec.ts — the same code the export
+    // walkers and the web shell's gradient editor use, so a tool's gradient and
+    // an exported one can never be interpolated differently.
+    mix: (a, b, t, opts = {}) => {
+      const ca = parseColor(a);
+      const cb = parseColor(b);
+      if (!ca || !cb) return null;
+      return colorToHexString(interpolateColor(ca, cb, t, opts));
+    },
+    gradientCss: (spec) => gradientSpecToCss(spec),
+    // v1.69: display-gamut classification + the OKLCH slice planes (gamut.ts).
+    // The brand studio's gamut charts and the Colour Lab tool both paint from
+    // `slice`, so the studio and the tool can never disagree about where sRGB
+    // ends. `gamut` takes a colour STRING like the rest of this API; the other
+    // two are numeric because they run per-pixel/per-row.
+    gamut: (color) => {
+      const o = toOklch(color);
+      return o ? oklchGamut(o.l, o.c, o.h) : "none";
+    },
+    maxChroma: (l, h, limit = "srgb") => maxChroma(l, h, limit),
+    slice: (opts) => oklchSlice(opts),
+    gamutRegion: (plane, fixed, limit = "srgb", steps = 96, cMax = 0.4) => sliceGamutRegion(plane, fixed, limit, steps, cMax),
+    // The perceptual axes themselves. Until 1.69 a tool could ask for ramps and
+    // harmonies but could not read a colour's own lightness or chroma — the one
+    // conversion every colour tool needs, and the one it had to reimplement.
+    oklch: (color) => toOklch(color),
+    fromOklch: (o) => oklchToHex(o),
+    // v1.70: the user's own ICC profile as a gamut (icc.ts + gamut-source.ts).
+    // The three queries go through gamut.ts exactly as the display gamuts do —
+    // a profile-backed source answers `contains` where a 3×3 matrix would — so
+    // "does this print?" and "does this display?" cannot drift apart in method.
+    // No-answer values (null / false / 0) for a handle we did not issue or a
+    // profile with no table for its intent; never a guess.
+    iccProfile: (bytes, intent) => readIccProfile(bytes, intent),
+    inProfileGamut: (profile, l, c, h) => {
+      const src = sourceFor(profile);
+      return src ? inGamut(l, c, h, src) : false;
+    },
+    profileMaxChroma: (profile, l, h) => {
+      const src = sourceFor(profile);
+      return src ? maxChroma(l, h, src) : 0;
+    },
+    inkCoverage: (profile, l, c, h) => {
+      const src = sourceFor(profile);
+      return src?.inkCoverage?.(l, c, h) ?? null;
+    }
   };
 }
-var normHue3, clamp, SA98G;
+var normHue4, clamp2, SA98G, PROFILE_SOURCES, INTENTS, sourceFor;
 var init_color_tools = __esm({
   "engine/src/color-tools.ts"() {
     "use strict";
     init_brand_derive();
     init_brand_schemes();
-    normHue3 = (h) => (h % 360 + 360) % 360;
-    clamp = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
+    init_gamut();
+    init_css_color();
+    init_gradient_spec();
+    init_icc();
+    normHue4 = (h) => (h % 360 + 360) % 360;
+    clamp2 = (n2, lo, hi) => Math.min(hi, Math.max(lo, n2));
     SA98G = {
       exponents: { mainTRC: 2.4, normBG: 0.56, normTXT: 0.57, revTXT: 0.62, revBG: 0.65 },
       colorSpace: { sRco: 0.2126729, sGco: 0.7151522, sBco: 0.072175 },
       clamps: { blkThrs: 0.022, blkClmp: 1.414, loClip: 0.1, deltaYmin: 5e-4 },
       scalers: { scaleBoW: 1.14, loBoWoffset: 0.027, scaleWoB: 1.14, loWoBoffset: 0.027 }
     };
+    PROFILE_SOURCES = /* @__PURE__ */ new WeakMap();
+    INTENTS = ["perceptual", "relative", "saturation", "absolute"];
+    sourceFor = (p) => p != null && typeof p === "object" ? PROFILE_SOURCES.get(p) ?? null : null;
   }
 });
 
 // engine/src/brand-map.ts
+var brand_map_exports = {};
+__export(brand_map_exports, {
+  mapFontsToBrand: () => mapFontsToBrand,
+  mapPaletteToBrand: () => mapPaletteToBrand,
+  nearestBrandColor: () => nearestBrandColor,
+  suggestRebrandTheme: () => suggestRebrandTheme
+});
 function toBrandHex(input) {
   if (typeof input !== "string") return null;
   let s = input.trim().replace(/^['"]+|['"]+$/g, "").trim();
@@ -10072,6 +17380,20 @@ function nearestBrandColor(hex, swatches, opts = {}) {
   const out = { hex: best.hex, deltaE: bestD, review: bestD > threshold };
   if (best.name != null) out.name = best.name;
   if (best.role != null) out.role = best.role;
+  return out;
+}
+function mapPaletteToBrand(palette, swatches, opts = {}) {
+  const out = /* @__PURE__ */ new Map();
+  if (!Array.isArray(palette)) return out;
+  let seen = 0;
+  for (const raw of palette) {
+    if (seen >= MAX_PALETTE) break;
+    seen++;
+    if (typeof raw !== "string") continue;
+    if (out.has(raw)) continue;
+    const res = nearestBrandColor(raw, swatches, opts);
+    if (res) out.set(raw, res.hex);
+  }
   return out;
 }
 function normFamilyKey(family) {
@@ -10155,7 +17477,7 @@ function suggestRebrandTheme(swatches, fonts) {
   }
   return theme;
 }
-var MAX_SWATCHES, MAX_FONTS, NEUTRAL_CHROMA, DEFAULT_THRESHOLD, ACCENT_DEDUPE, ROLE_ALIASES, FONT_CLASS, ACCENT_SLOTS;
+var MAX_SWATCHES, MAX_PALETTE, MAX_FONTS, NEUTRAL_CHROMA, DEFAULT_THRESHOLD, ACCENT_DEDUPE, ROLE_ALIASES, FONT_CLASS, ACCENT_SLOTS;
 var init_brand_map = __esm({
   "engine/src/brand-map.ts"() {
     "use strict";
@@ -10163,6 +17485,7 @@ var init_brand_map = __esm({
     init_brand_derive();
     init_tokens();
     MAX_SWATCHES = 1024;
+    MAX_PALETTE = 8192;
     MAX_FONTS = 4096;
     NEUTRAL_CHROMA = 0.03;
     DEFAULT_THRESHOLD = 0.12;
@@ -10375,18 +17698,23 @@ var init_src = __esm({
     init_bake();
     init_file_metadata();
     init_units();
+    init_css_color();
     init_svg_path();
+    init_zzfxm();
+    init_audio_analyse();
+    init_wav();
+    init_zzfx_compose();
+    init_zzfx_compose();
+    init_zzfxm_ref();
+    init_geom_api();
     init_emf();
     init_eps();
     init_dxf();
-    init_pptx_patch();
-    init_pptx_read();
     init_c2pa();
     init_c2pa_verify();
     init_c2pa_verdict();
     init_tokens();
     init_color_tools();
-    init_brand_map();
     init_icon_theme();
     init_photo_treatment();
     init_version();
@@ -10651,8 +17979,8 @@ function buildExportC2paOpts(o) {
   const days = o.days ?? 30;
   const name = manifest.name || manifest.id;
   const inputs = summarizeInputs(model);
-  const unit = dims.unit || "px";
-  const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
+  const unit2 = dims.unit || "px";
+  const sizeLine = typeof dims.width === "number" && dims.width > 0 && typeof dims.height === "number" && dims.height > 0 ? unit2 !== "px" ? `${dims.width} \xD7 ${dims.height} ${unit2} @ ${dims.dpi || 300} DPI` : `${dims.width} \xD7 ${dims.height} px` : void 0;
   return {
     title: name,
     claimGenerator: "Lolly lolly.tools",
@@ -10673,12 +18001,12 @@ function buildExportC2paOpts(o) {
 }
 
 // services/mcp/src/render.ts
-import { readFile as readFile6 } from "node:fs/promises";
+import { readFile as readFile7 } from "node:fs/promises";
 
 // shells/cli/src/bridge.ts
 init_src();
-import { readFile as readFile4 } from "node:fs/promises";
-import { join as join5 } from "node:path";
+import { readFile as readFile5 } from "node:fs/promises";
+import { join as join6 } from "node:path";
 
 // shells/web/src/bridge/pdf.ts
 var PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
@@ -10913,13 +18241,28 @@ function createPdfAPI() {
 }
 
 // shells/web/src/bridge/pptx.ts
-init_src();
+var PPTX_ENGINE = null;
+function loadPptxEngine() {
+  PPTX_ENGINE ??= Promise.all([
+    Promise.resolve().then(() => (init_pptx_read(), pptx_read_exports)),
+    Promise.resolve().then(() => (init_pptx_patch(), pptx_patch_exports)),
+    Promise.resolve().then(() => (init_brand_map(), brand_map_exports))
+  ]).then(([read, patch, map]) => ({
+    isPptx: read.isPptx,
+    readPptx: read.readPptx,
+    rebrandPptxParts: patch.rebrandPptxParts,
+    nearestBrandColor: map.nearestBrandColor,
+    mapFontsToBrand: map.mapFontsToBrand,
+    suggestRebrandTheme: map.suggestRebrandTheme
+  }));
+  return PPTX_ENGINE;
+}
 var MAX_PPTX_BYTES = 100 * 1024 * 1024;
 var MAX_ZIP_ENTRY_BYTES = 128 * 1024 * 1024;
 var MAX_ZIP_TOTAL_BYTES = 512 * 1024 * 1024;
 async function inflatePptx(bytes) {
-  const u8 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
-  if (u8.length > MAX_PPTX_BYTES) {
+  const u82 = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  if (u82.length > MAX_PPTX_BYTES) {
     throw new Error(`This file is too large to open (over ${Math.round(MAX_PPTX_BYTES / 1024 / 1024)} MB).`);
   }
   const { unzip, unzipSync } = await import("fflate");
@@ -10937,9 +18280,9 @@ async function inflatePptx(bytes) {
     if (bomb) throw new Error(`This file expands too large to open (${bomb}).`);
     return data;
   };
-  if (typeof Worker === "undefined") return Promise.resolve().then(() => guard(unzipSync(u8, { filter })));
+  if (typeof Worker === "undefined") return Promise.resolve().then(() => guard(unzipSync(u82, { filter })));
   return new Promise((resolve3, reject) => {
-    unzip(u8, { filter }, (err, data) => {
+    unzip(u82, { filter }, (err, data) => {
       if (err) return reject(err);
       try {
         resolve3(guard(data));
@@ -10966,9 +18309,10 @@ function hashThemeSuggestion(theme) {
 }
 async function inspectPptx(bytes, opts, parseXml) {
   try {
+    const { isPptx: isPptx2, readPptx: readPptx2, nearestBrandColor: nearestBrandColor2, mapFontsToBrand: mapFontsToBrand2, suggestRebrandTheme: suggestRebrandTheme2 } = await loadPptxEngine();
     const parts = await inflatePptx(bytes);
-    if (!isPptx(parts)) return emptyInspect();
-    const deck = readPptx(parts, parseXml);
+    if (!isPptx2(parts)) return emptyInspect();
+    const deck = readPptx2(parts, parseXml);
     const colors = [];
     const seenColor = /* @__PURE__ */ new Set();
     const addColor = (c) => {
@@ -11013,16 +18357,16 @@ async function inspectPptx(bytes, opts, parseXml) {
     const swatches = opts?.swatches;
     if (Array.isArray(swatches) && swatches.length > 0) {
       for (const c of colors) {
-        const near = nearestBrandColor(c.hex, swatches);
+        const near = nearestBrandColor2(c.hex, swatches);
         if (near) {
           c.suggested = `#${near.hex.slice(1, 7).toUpperCase()}`;
           c.review = near.review;
         }
       }
-      result.themeSuggestion = hashThemeSuggestion(suggestRebrandTheme(swatches, opts?.fonts));
+      result.themeSuggestion = hashThemeSuggestion(suggestRebrandTheme2(swatches, opts?.fonts));
     }
     if (opts?.fonts) {
-      const byFamily = mapFontsToBrand(fonts.map((f) => f.family), opts.fonts);
+      const byFamily = mapFontsToBrand2(fonts.map((f) => f.family), opts.fonts);
       for (const f of fonts) {
         const to = byFamily.get(f.family);
         if (to) f.suggested = to;
@@ -11040,8 +18384,9 @@ function hexKey(v) {
   return /^[0-9a-fA-F]{6}$/.test(s) ? s.toUpperCase() : null;
 }
 async function rebrandPptx(bytes, plan) {
+  const { isPptx: isPptx2, rebrandPptxParts: rebrandPptxParts2 } = await loadPptxEngine();
   const parts = await inflatePptx(bytes);
-  if (!isPptx(parts)) throw new Error("Not a PowerPoint (.pptx) file.");
+  if (!isPptx2(parts)) throw new Error("Not a PowerPoint (.pptx) file.");
   const enginePlan = {};
   if (plan?.theme) {
     const theme = {};
@@ -11066,7 +18411,7 @@ async function rebrandPptx(bytes, plan) {
     if (fontMap.size > 0) enginePlan.fontMap = fontMap;
   }
   if (plan?.dropEmbeddedFonts === true) enginePlan.dropEmbeddedFonts = true;
-  const { parts: outParts, report } = rebrandPptxParts(parts, enginePlan);
+  const { parts: outParts, report } = rebrandPptxParts2(parts, enginePlan);
   const { zipSync } = await import("fflate");
   const enc = new TextEncoder();
   const files = {};
@@ -11123,6 +18468,7 @@ function matches(pattern, url) {
 
 // shells/web/src/bridge/svg-ir.ts
 init_src();
+init_css_box();
 
 // shells/web/src/bridge/text-svg.ts
 function suseWeightName(weight, mono = false) {
@@ -11178,7 +18524,7 @@ function letterSpacingPx(value) {
 // shells/web/src/bridge/db.ts
 import { openDB as idbOpen, deleteDB as idbDelete } from "idb";
 var DB_NAME = "lolly";
-var DB_VERSION = 7;
+var DB_VERSION = 8;
 var OPEN_TIMEOUT_MS = 8e3;
 var REQUIRED_STORES = ["profile", "state", "asset-meta", "asset-blob", "user-assets"];
 function openOnce(timeoutMs = OPEN_TIMEOUT_MS) {
@@ -11213,6 +18559,9 @@ function openOnce(timeoutMs = OPEN_TIMEOUT_MS) {
       }
       if (oldVersion < 7) {
         db.createObjectStore("contentseal-models");
+      }
+      if (oldVersion < 8) {
+        db.createObjectStore("derived-media", { keyPath: "key" });
       }
     },
     blocking() {
@@ -11284,6 +18633,39 @@ async function openHealed(timeoutMs) {
   return db;
 }
 
+// shells/web/src/bridge/fontface-discovery.ts
+function firstFontSrcUrl(src) {
+  if (!src) return null;
+  const m = String(src).match(/url\(\s*(["']?)([^)"']+)\1\s*\)/);
+  return m ? m[2].trim() : null;
+}
+function discoverFontFaces() {
+  if (typeof document === "undefined") return [];
+  const out = [];
+  for (const sheet of Array.from(document.styleSheets)) {
+    let rules;
+    try {
+      rules = sheet.cssRules;
+    } catch {
+      continue;
+    }
+    for (const rule of Array.from(rules)) {
+      if (!(rule instanceof CSSFontFaceRule)) continue;
+      const family = rule.style.getPropertyValue("font-family").replace(/^["']|["']$/g, "").trim();
+      const srcUrl = firstFontSrcUrl(rule.style.getPropertyValue("src"));
+      if (!family || !srcUrl) continue;
+      out.push({
+        family: family.toLowerCase(),
+        srcUrl,
+        weight: (rule.style.getPropertyValue("font-weight") || "400").trim(),
+        style: (rule.style.getPropertyValue("font-style") || "normal").trim(),
+        unicodeRange: (rule.style.getPropertyValue("unicode-range") || "").trim()
+      });
+    }
+  }
+  return out;
+}
+
 // shells/web/src/bridge/font-registry.ts
 var PLATFORM_FACES = {
   outfit: [{ assetId: "", staticUrl: "/fonts/Outfit[wght].ttf", weight: "100 900", style: "normal", unicodeRange: "" }]
@@ -11345,17 +18727,17 @@ function pickFaces(faces, style, text) {
   const slantOk = faces.filter((f) => f.style === "italic" === italic);
   if (!slantOk.length) return [];
   const variable = slantOk.filter((f) => weightRange(f.weight));
-  let candidates;
+  let candidates2;
   if (variable.length) {
-    candidates = variable.map((f) => {
+    candidates2 = variable.map((f) => {
       const [lo, hi] = weightRange(f.weight);
       return { face: f, variations: [`wght=${Math.min(hi, Math.max(lo, weight))}`] };
     });
   } else {
     const nearest = slantOk.reduce((a, b) => Math.abs(parseInt(b.weight) - weight) < Math.abs(parseInt(a.weight) - weight) ? b : a);
-    candidates = slantOk.filter((f) => f.weight === nearest.weight).map((face) => ({ face }));
+    candidates2 = slantOk.filter((f) => f.weight === nearest.weight).map((face) => ({ face }));
   }
-  return candidates.map((c) => ({ ...c, n: coverageCount(parseUnicodeRange(c.face.unicodeRange), text) })).filter((c) => c.n > 0).sort((a, b) => b.n - a.n).map(({ n: _n, ...c }) => c);
+  return candidates2.map((c) => ({ ...c, n: coverageCount(parseUnicodeRange(c.face.unicodeRange), text) })).filter((c) => c.n > 0).sort((a, b) => b.n - a.n).map(({ n: _n, ...c }) => c);
 }
 var registryPromise = null;
 var sfntUrls = /* @__PURE__ */ new Map();
@@ -11383,26 +18765,43 @@ async function buildRegistry() {
     }
   } catch {
   }
+  for (const f of discoverFontFaces()) {
+    if (f.family === "suse" || f.family === "suse mono") continue;
+    const existing = byFamily.get(f.family);
+    if (existing?.some((e) => e.assetId || e.staticUrl)) continue;
+    const list = existing ?? [];
+    list.push({ assetId: "", staticUrl: "", srcUrl: f.srcUrl, weight: f.weight, style: f.style, unicodeRange: f.unicodeRange });
+    byFamily.set(f.family, list);
+  }
   return byFamily;
 }
 async function faceUrl(face) {
   if (face.staticUrl) return face.staticUrl;
-  const cached2 = sfntUrls.get(face.assetId);
+  const cacheKey = face.assetId || (face.srcUrl ? `src:${face.srcUrl}` : "");
+  if (!cacheKey) throw new Error("font-registry: face has no bytes source");
+  const cached2 = sfntUrls.get(cacheKey);
   if (cached2) return cached2;
-  const pending = sfntPending.get(face.assetId);
+  const pending = sfntPending.get(cacheKey);
   if (pending) return pending;
   const job = (async () => {
-    const db = await openDB();
-    const rec = await db.get("user-assets", face.assetId);
-    if (!rec?.blob) throw new Error(`font-registry: no bytes for ${face.assetId}`);
-    const bytes = new Uint8Array(await rec.blob.arrayBuffer());
+    let bytes;
+    if (face.assetId) {
+      const db = await openDB();
+      const rec = await db.get("user-assets", face.assetId);
+      if (!rec?.blob) throw new Error(`font-registry: no bytes for ${face.assetId}`);
+      bytes = new Uint8Array(await rec.blob.arrayBuffer());
+    } else {
+      const resp = await fetch(face.srcUrl);
+      if (!resp.ok) throw new Error(`font-registry: fetch ${face.srcUrl} \u2192 ${resp.status}`);
+      bytes = new Uint8Array(await resp.arrayBuffer());
+    }
     const isWoff2 = bytes[0] === 119 && bytes[1] === 79 && bytes[2] === 70 && bytes[3] === 50;
     const sfnt = isWoff2 ? await (await import("woff2-encoder/decompress")).default(bytes) : bytes;
     const url = URL.createObjectURL(new Blob([sfnt], { type: "font/otf" }));
-    sfntUrls.set(face.assetId, url);
+    sfntUrls.set(cacheKey, url);
     return url;
-  })().finally(() => sfntPending.delete(face.assetId));
-  sfntPending.set(face.assetId, job);
+  })().finally(() => sfntPending.delete(cacheKey));
+  sfntPending.set(cacheKey, job);
   return job;
 }
 async function resolveVectorFont(style, text) {
@@ -11456,50 +18855,18 @@ var SKIP = /* @__PURE__ */ new Set([
   "filter",
   "mask"
 ]);
-var NAMED = {
-  black: [0, 0, 0],
-  white: [255, 255, 255],
-  red: [255, 0, 0],
-  green: [0, 128, 0],
-  blue: [0, 0, 255],
-  gray: [128, 128, 128],
-  grey: [128, 128, 128],
-  silver: [192, 192, 192],
-  yellow: [255, 255, 0],
-  orange: [255, 165, 0],
-  purple: [128, 0, 128],
-  navy: [0, 0, 128]
-};
-function parseColor(input) {
+function parseColor2(input) {
   if (!input) return null;
-  const c = String(input).trim().toLowerCase();
-  if (!c || c === "none" || c === "transparent") return null;
-  if (c === "currentcolor") return [0, 0, 0];
-  if (c[0] === "#") {
-    let hex = c.slice(1);
-    if (hex.length === 3) hex = hex.split("").map((h) => h + h).join("");
-    if (hex.length === 6) {
-      const n2 = parseInt(hex, 16);
-      if (!Number.isNaN(n2)) return [n2 >> 16 & 255, n2 >> 8 & 255, n2 & 255];
-    }
-    return null;
-  }
-  const m = c.match(/^rgba?\(([^)]+)\)$/);
-  if (m) {
-    const parts = m[1].split(",").map((s) => s.trim());
-    const ch = (s) => s.endsWith("%") ? Math.round(parseFloat(s) * 2.55) : parseInt(s, 10);
-    const r = ch(parts[0]), g2 = ch(parts[1]), b = ch(parts[2]);
-    if ([r, g2, b].every(Number.isFinite)) return [r, g2, b];
-    return null;
-  }
-  return NAMED[c] ?? null;
+  if (String(input).trim().toLowerCase() === "currentcolor") return [0, 0, 0];
+  const c = parseColorToSrgb8(input);
+  return c ? [c[0], c[1], c[2]] : null;
 }
-function flatten(rgb, alpha2, bg) {
-  if (alpha2 >= 0.999) return rgb;
+function flatten(rgb, alpha, bg) {
+  if (alpha >= 0.999) return rgb;
   return [
-    Math.round(rgb[0] * alpha2 + bg[0] * (1 - alpha2)),
-    Math.round(rgb[1] * alpha2 + bg[1] * (1 - alpha2)),
-    Math.round(rgb[2] * alpha2 + bg[2] * (1 - alpha2))
+    Math.round(rgb[0] * alpha + bg[0] * (1 - alpha)),
+    Math.round(rgb[1] * alpha + bg[1] * (1 - alpha)),
+    Math.round(rgb[2] * alpha + bg[2] * (1 - alpha))
   ];
 }
 var rgbObj = ([r, g2, b]) => ({ r, g: g2, b });
@@ -11534,8 +18901,8 @@ function rectPath(x, y, w, h, rx, ry) {
 }
 var circlePath = (cx, cy, r) => r <= 0 ? "" : `M${cx - r},${cy} A${r},${r} 0 1 0 ${cx + r},${cy} A${r},${r} 0 1 0 ${cx - r},${cy} Z`;
 var ellipsePath = (cx, cy, rx, ry) => rx <= 0 || ry <= 0 ? "" : `M${cx - rx},${cy} A${rx},${ry} 0 1 0 ${cx + rx},${cy} A${rx},${ry} 0 1 0 ${cx - rx},${cy} Z`;
-function pointsPath(str, close) {
-  const nums = (str || "").match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
+function pointsPath(str2, close) {
+  const nums = (str2 || "").match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
   if (!nums || nums.length < 4) return "";
   let d = `M${nums[0]},${nums[1]}`;
   for (let i = 2; i + 1 < nums.length; i += 2) d += ` L${nums[i]},${nums[i + 1]}`;
@@ -11593,10 +18960,58 @@ async function decodeImageToRgb(href, bg) {
     return null;
   }
 }
+function parseSvgDropShadow(filt) {
+  const kids = Array.from(filt.children).map((c) => c.tagName.toLowerCase().replace(/^svg:/, ""));
+  const UNEXPECTED = [
+    "fetile",
+    "feturbulence",
+    "fedisplacementmap",
+    "feimage",
+    "femorphology",
+    "feconvolvematrix",
+    "fediffuselighting",
+    "fespecularlighting",
+    "fecomponenttransfer"
+  ];
+  if (kids.some((k) => UNEXPECTED.includes(k))) return null;
+  const num3 = (el, attr, dflt) => {
+    const v = Number.parseFloat(el?.getAttribute(attr) ?? "");
+    return Number.isFinite(v) ? v : dflt;
+  };
+  const find = (name) => Array.from(filt.children).find((c) => c.tagName.toLowerCase().replace(/^svg:/, "") === name);
+  const ds = find("fedropshadow");
+  if (ds) {
+    const rgb2 = parseColor2(ds.getAttribute("flood-color") ?? "#000");
+    if (!rgb2) return null;
+    const sd2 = (ds.getAttribute("stdDeviation") ?? "2").trim().split(/[\s,]+/).map(Number.parseFloat);
+    return {
+      dx: num3(ds, "dx", 2),
+      dy: num3(ds, "dy", 2),
+      stdDeviation: Math.max(...sd2.filter(Number.isFinite), 0),
+      rgb: rgb2,
+      alpha: num3(ds, "flood-opacity", 1)
+    };
+  }
+  const blur = find("fegaussianblur");
+  if (!blur) return null;
+  const sd = (blur.getAttribute("stdDeviation") ?? "0").trim().split(/[\s,]+/).map(Number.parseFloat);
+  const stdDeviation = Math.max(...sd.filter(Number.isFinite), 0);
+  const off = find("feoffset");
+  const flood = find("feflood");
+  let rgb = flood ? parseColor2(flood.getAttribute("flood-color") ?? "#000") : null;
+  let alpha = flood ? num3(flood, "flood-opacity", 1) : 1;
+  if (!flood) {
+    if (kids.includes("fecolormatrix")) return null;
+    rgb = [0, 0, 0];
+  }
+  if (!rgb) return null;
+  if (!(stdDeviation > 0) && !off) return null;
+  return { dx: num3(off, "dx", 0), dy: num3(off, "dy", 0), stdDeviation, rgb, alpha };
+}
 async function svgDomToIr(svgEl, ctx = {}) {
   const { host, getComputedStyle } = ctx;
   const LABEL = ctx.label || "EMF";
-  const bg = ctx.background ? parseColor(ctx.background) ?? [255, 255, 255] : [255, 255, 255];
+  const bg = ctx.background ? parseColor2(ctx.background) ?? [255, 255, 255] : [255, 255, 255];
   const base = svgEl.viewBox?.baseVal;
   let vbX = 0, vbY = 0, vbW = 0, vbH = 0, hasVb = false;
   if (base && base.width > 0 && base.height > 0) {
@@ -11628,6 +19043,19 @@ async function svgDomToIr(svgEl, ctx = {}) {
   const regY = canvasH / vbH;
   const prims = [];
   const textApi = host?.text || null;
+  const filterCache = /* @__PURE__ */ new Map();
+  const resolveDropShadow = (el) => {
+    const raw = el.getAttribute("filter") || (getComputedStyle ? safeComputed(getComputedStyle, el)?.filter : "") || "";
+    const m = /url\(\s*['"]?#([^)'"\s]+)/.exec(raw);
+    if (!m) return null;
+    const id = m[1];
+    if (filterCache.has(id)) return filterCache.get(id);
+    const def = el.ownerDocument?.getElementById(id) ?? svgEl.querySelector(`#${CSS.escape(id)}`);
+    const parsed = def && def.tagName.toLowerCase().replace(/^svg:/, "") === "filter" ? parseSvgDropShadow(def) : null;
+    if (!parsed) warn(`filter #${id} is not a drop shadow \u2014 left out of this format`);
+    filterCache.set(id, parsed);
+    return parsed;
+  };
   const warn = (m) => host?.log?.("warn", `${LABEL.toLowerCase()}: ${m}`);
   async function visit(el, t, inherited) {
     if (!el.tagName) return;
@@ -11720,8 +19148,8 @@ async function svgDomToIr(svgEl, ctx = {}) {
     const strokeStr = prop(el, style, "stroke", inherited) ?? "none";
     const fillOp = elemOpacity * parseFloat(prop(el, style, "fill-opacity", inherited) ?? "1");
     const strkOp = elemOpacity * parseFloat(prop(el, style, "stroke-opacity", inherited) ?? "1");
-    let fillRgb = fillOp >= 0.01 ? parseColor(fillStr) : null;
-    let strokeRgb = strkOp >= 0.01 ? parseColor(strokeStr) : null;
+    let fillRgb = fillOp >= 0.01 ? parseColor2(fillStr) : null;
+    let strokeRgb = strkOp >= 0.01 ? parseColor2(strokeStr) : null;
     if (!fillRgb && !strokeRgb) return;
     if (fillRgb) fillRgb = flatten(fillRgb, fillOp, bg);
     if (strokeRgb) strokeRgb = flatten(strokeRgb, strkOp, bg);
@@ -11733,6 +19161,41 @@ async function svgDomToIr(svgEl, ctx = {}) {
       segments: sub.segments.map((seg) => mapSeg(seg, mapPt))
     }));
     if (!subpaths.length) return;
+    const shadow = resolveDropShadow(el);
+    if (shadow) {
+      const rings = gaussianShadowRings(shadow.stdDeviation * 2, shadow.alpha);
+      const sdx = shadow.dx * sX * regX, sdy = shadow.dy * sY * regY;
+      const shifted = subpaths.map((sub) => ({
+        closed: sub.closed,
+        segments: sub.segments.map((seg) => shiftSeg(seg, sdx, sdy))
+      }));
+      const scale = gAvg * rAvg;
+      for (const ring2 of rings) {
+        const col = flatten(shadow.rgb, ring2.alpha, bg);
+        if (ring2.inner === null) {
+          prims.push({ type: "path", subpaths: shifted, fill: rgbObj(col), stroke: null, fillRule: "nonzero" });
+          continue;
+        }
+        const width = 2 * ring2.outer * scale;
+        if (width < 0.5) continue;
+        prims.push({
+          type: "path",
+          subpaths: shifted,
+          fill: null,
+          stroke: { ...rgbObj(col), width },
+          fillRule: "nonzero"
+        });
+      }
+      if (!rings.length) {
+        prims.push({
+          type: "path",
+          subpaths: shifted,
+          fill: rgbObj(flatten(shadow.rgb, shadow.alpha, bg)),
+          stroke: null,
+          fillRule: "nonzero"
+        });
+      }
+    }
     prims.push({
       type: "path",
       subpaths,
@@ -11746,7 +19209,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     if (!raw) return;
     const fillStr = prop(el, style, "fill", null) ?? "#000000";
     const opacity = m.elemOpacity * parseFloat(prop(el, style, "fill-opacity", null) ?? prop(el, style, "opacity", null) ?? "1");
-    let rgb = opacity >= 0.01 ? parseColor(fillStr) : null;
+    let rgb = opacity >= 0.01 ? parseColor2(fillStr) : null;
     if (!rgb) return;
     rgb = flatten(rgb, opacity, bg);
     const cs = getComputedStyle ? safeComputed(getComputedStyle, el) : null;
@@ -11790,7 +19253,7 @@ async function svgDomToIr(svgEl, ctx = {}) {
     }));
     if (!subpaths.length) return;
     const strokeStr = prop(el, style, "stroke", null);
-    const strokeRgb = strokeStr ? parseColor(strokeStr) : null;
+    const strokeRgb = strokeStr ? parseColor2(strokeStr) : null;
     const strokeOpacity = m.elemOpacity * parseFloat(prop(el, style, "stroke-opacity", null) ?? prop(el, style, "opacity", null) ?? "1");
     let stroke = null;
     if (strokeRgb && strokeOpacity >= 0.01) {
@@ -11812,6 +19275,12 @@ function mapSeg(seg, mapPt) {
   }
   const p = mapPt(seg.x, seg.y);
   return { op: seg.op, x: p.x, y: p.y };
+}
+function shiftSeg(seg, dx, dy) {
+  if (seg.op === "C") {
+    return { op: "C", x1: seg.x1 + dx, y1: seg.y1 + dy, x2: seg.x2 + dx, y2: seg.y2 + dy, x: seg.x + dx, y: seg.y + dy };
+  }
+  return { op: seg.op, x: seg.x + dx, y: seg.y + dy };
 }
 function safeComputed(fn, el) {
   try {
@@ -12112,11 +19581,82 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
   };
 }
 
+// packages/node-shell/src/audio.ts
+init_src();
+import { readFile as readFile4 } from "node:fs/promises";
+import { fileURLToPath as fileURLToPath4 } from "node:url";
+import { isAbsolute, join as join4 } from "node:path";
+var NEEDS_PLATFORM_CODEC = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4)$/i;
+function isRef(src) {
+  return typeof src === "object" && src !== null && "url" in src && typeof src.url === "string";
+}
+function createNodeAudioAPI(opts) {
+  const { repoRoot: repoRoot2 } = opts;
+  async function bytesOf(src) {
+    if (src instanceof Uint8Array) return src;
+    if (src instanceof ArrayBuffer) return new Uint8Array(src);
+    const url = isRef(src) ? src.url : src;
+    if (url.startsWith("data:")) {
+      const comma = url.indexOf(",");
+      if (comma < 0) throw new Error("audio: malformed data URL");
+      const head = url.slice(0, comma);
+      const body = url.slice(comma + 1);
+      return head.includes(";base64") ? new Uint8Array(Buffer.from(body, "base64")) : new Uint8Array(Buffer.from(decodeURIComponent(body), "binary"));
+    }
+    if (/^https?:/.test(url)) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`audio: fetch failed (${res.status})`);
+      return new Uint8Array(await res.arrayBuffer());
+    }
+    if (url.startsWith("file:")) return new Uint8Array(await readFile4(fileURLToPath4(url)));
+    const path = isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join4(repoRoot2, url.replace(/^\//, ""));
+    return new Uint8Array(await readFile4(path));
+  }
+  async function songOf(src) {
+    const bytes = await bytesOf(src);
+    return JSON.parse(Buffer.from(bytes).toString("utf8"));
+  }
+  async function toPcm(src) {
+    const url = isRef(src) ? src.url : typeof src === "string" ? src : "";
+    if (isZzfxmRef(url)) {
+      const ref = parseZzfxmRef(url);
+      if (!ref) throw new Error(`audio: malformed procedural song ref (${url})`);
+      const { left, right, sampleRate: sampleRate2 } = renderZzfxm(
+        composeSong(generatedSongSpec(ref.seed, 30, ref.style))
+      );
+      if (!left.length) throw new Error("audio: zzfxm song rendered empty");
+      return { channels: [left, right], sampleRate: sampleRate2 };
+    }
+    if (isRef(src) && src.format === "zzfxm" || /\.zzfxm\.json$/i.test(url)) {
+      const { left, right, sampleRate: sampleRate2 } = renderZzfxm(await songOf(src));
+      if (!left.length) throw new Error("audio: zzfxm song rendered empty");
+      return { channels: [left, right], sampleRate: sampleRate2 };
+    }
+    if (NEEDS_PLATFORM_CODEC.test(url)) {
+      throw new Error(
+        `audio: ${url.split(".").pop()} needs a platform codec this shell does not have \u2014 analyse WAV or a ZzFXM song headlessly, or render in a browser shell`
+      );
+    }
+    const { channels, sampleRate } = parseWav(await bytesOf(src));
+    return { channels, sampleRate };
+  }
+  return {
+    // There IS a decoder here (WAV + ZzFXM), so this is true. Per the contract it
+    // never promised that a given file decodes — analyse() rejects by name for the
+    // formats Node cannot read.
+    isAvailable: () => true,
+    async analyse(src, analyseOpts = {}) {
+      const { channels, sampleRate } = await toPcm(src);
+      return analysePcm(channels, sampleRate, analyseOpts);
+    }
+  };
+}
+
 // packages/node-shell/src/browsers.ts
-import { join as join4 } from "node:path";
+import { join as join5 } from "node:path";
 import { existsSync as existsSync4 } from "node:fs";
-var INSTALL_BROWSERS_DIR = join4(repoRoot(), ".browsers");
-var SIBLING_BROWSERS_DIR = join4(repoRoot(), "services", "mcp", ".browsers");
+var INSTALL_BROWSERS_DIR = join5(repoRoot(), ".browsers");
+var SIBLING_BROWSERS_DIR = join5(repoRoot(), "services", "mcp", ".browsers");
 var BrowserError = class extends Error {
 };
 function resolveBrowsersDir() {
@@ -12129,15 +19669,15 @@ var browserPromise = null;
 async function getBrowser() {
   if (!browserPromise) {
     browserPromise = (async () => {
-      const channel = process.env.LOLLY_BROWSER_CHANNEL;
+      const channel2 = process.env.LOLLY_BROWSER_CHANNEL;
       const executablePath = process.env.LOLLY_BROWSER_PATH;
-      if (!channel && !executablePath) {
+      if (!channel2 && !executablePath) {
         process.env.PLAYWRIGHT_BROWSERS_PATH ??= resolveBrowsersDir();
       }
       const { chromium } = await import("playwright-core");
       try {
         return await chromium.launch({
-          ...channel ? { channel } : {},
+          ...channel2 ? { channel: channel2 } : {},
           ...executablePath ? { executablePath } : {},
           args: ["--no-sandbox"]
         });
@@ -12159,7 +19699,7 @@ async function getBrowser() {
 }
 
 // packages/node-shell/src/url-capture.ts
-var clamp012 = (n2) => Number.isFinite(n2) ? Math.min(0.9, Math.max(0, n2)) : 0;
+var clamp015 = (n2) => Number.isFinite(n2) ? Math.min(0.9, Math.max(0, n2)) : 0;
 function recolorCss(p) {
   switch (p.recolor) {
     case "invert":
@@ -12195,9 +19735,12 @@ async function captureUrl(params, format, dims) {
     serviceWorkers: "block"
   });
   try {
+    if (params.initScript) await ctx.addInitScript({ content: params.initScript });
     const page2 = await ctx.newPage();
     await page2.goto(params.url, { waitUntil: "load", timeout: 45e3 }).catch((e) => {
       throw new BrowserError(`Couldn't load ${params.url}: ${e.message}`);
+    });
+    await page2.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => void 0)).catch(() => {
     });
     const zoom = Number.isFinite(params.zoom) && params.zoom > 0 ? params.zoom : 1;
     const zoomCss = Math.abs(zoom - 1) > 1e-3 ? `html{zoom:${zoom}!important}` : "";
@@ -12230,8 +19773,8 @@ async function captureUrl(params, format, dims) {
       });
       return { bytes: new Uint8Array(pdf), mime: "application/pdf" };
     }
-    const l = clamp012(params.cropLeft), r = clamp012(params.cropRight);
-    const t = clamp012(params.cropTop), b = clamp012(params.cropBottom);
+    const l = clamp015(params.cropLeft), r = clamp015(params.cropRight);
+    const t = clamp015(params.cropTop), b = clamp015(params.cropBottom);
     const clipW = Math.max(1, Math.round(width * (1 - l - r)));
     const clipH = Math.max(1, Math.round(height * (1 - t - b)));
     const clip2 = { x: Math.round(width * l), y: Math.round(height * t), width: clipW, height: clipH };
@@ -12256,8 +19799,8 @@ async function captureUrl(params, format, dims) {
 var REPO_ROOT2 = repoRoot();
 async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   const w = dom.window;
-  const assetCatalogPath = join5(REPO_ROOT2, "catalog", "assets", "index.json");
-  const assetIndex = JSON.parse(await readFile4(assetCatalogPath, "utf8"));
+  const assetCatalogPath = join6(REPO_ROOT2, "catalog", "assets", "index.json");
+  const assetIndex = JSON.parse(await readFile5(assetCatalogPath, "utf8"));
   const assetById = new Map(assetIndex.assets.map((a) => [a.id, a]));
   const state = /* @__PURE__ */ new Map();
   const host = {
@@ -12283,7 +19826,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile4(join5(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile5(join6(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -12293,7 +19836,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile4(join5(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile5(join6(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -12303,7 +19846,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     tokensDocCache ??= (async () => {
       const asset = assetIndex.assets.find((a) => a.type === "tokens");
       if (!asset) return null;
-      return JSON.parse(await readFile4(join5(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+      return JSON.parse(await readFile5(join6(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
     })().catch(() => null);
     return tokensDocCache;
   }
@@ -12324,18 +19867,33 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     themes: async () => (await tokenSet()).themes()
   };
   host.color = makeColorApi();
+  host.geom = makeGeomApi();
   host.text = createNodeTextAPI({ repoRoot: REPO_ROOT2 });
+  host.audio = createNodeAudioAPI({ repoRoot: REPO_ROOT2 });
   host.net = createNetAPI({ allowlist: networkAllowlist });
   host.assets = {
     async get(id) {
+      if (isZzfxmRef(id)) {
+        const ref = parseZzfxmRef(id);
+        if (!ref) throw new Error(`Malformed procedural audio ref: ${id}`);
+        const canonical = formatZzfxmRef(ref);
+        return {
+          source: "library",
+          id: canonical,
+          type: "audio",
+          format: "zzfxm",
+          url: canonical,
+          meta: { name: "Generated music", generated: true, seed: ref.seed, ...ref.style ? { style: ref.style } : {} }
+        };
+      }
       const { baseId: themedBase, theme } = parseThemedAssetId(id);
       const { baseId: treatedBase, treatment } = parseTreatedAssetId(id);
       const baseId = theme ? themedBase : treatedBase;
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
       const fmt2 = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      const localPath = join5(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
-      let buf = await readFile4(localPath);
+      const localPath = join6(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
+      let buf = await readFile5(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt2.format === "json") {
         try {
@@ -12438,18 +19996,33 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
       throw new Error("Clipboard unavailable in CLI; use --output instead");
     }
   };
+  const NON_DRAWABLE = /* @__PURE__ */ new Set(["script", "style", "template", "link", "meta"]);
+  function rootSvgOf(node) {
+    let cur = node;
+    for (let depth = 0; cur && depth < 8; depth++) {
+      if (cur.tagName?.toLowerCase() === "svg") return cur;
+      const kids = Array.from(cur.children).filter(
+        (el) => !NON_DRAWABLE.has(el.tagName.toLowerCase())
+      );
+      if (kids.length !== 1) return null;
+      cur = kids[0] ?? null;
+    }
+    return null;
+  }
   host.export = {
     async render(node, format, opts = {}) {
       if (opts.dataText !== void 0) {
         return new Blob([opts.dataText], { type: opts.dataMime ?? "text/plain" });
       }
       if (format === "html") {
-        return new Blob([node.outerHTML], { type: "text/html" });
+        const clone = node.cloneNode(true);
+        clone.querySelectorAll("script").forEach((el) => el.remove());
+        return new Blob([clone.outerHTML], { type: "text/html" });
       }
       if (format === "svg") {
-        const svg = node.querySelector("svg") ?? node;
-        if (svg.tagName.toLowerCase() !== "svg") {
-          throw new Error("SVG export requires an <svg> in the template");
+        const svg = rootSvgOf(node);
+        if (!svg) {
+          throw new Error("SVG export requires the template's root drawable to be an <svg> (HTML-layout tools need a browser engine \u2014 use the desktop app or the web shell)");
         }
         const dw = parseDimension(opts.width);
         const dh = parseDimension(opts.height);
@@ -12467,21 +20040,21 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
         return new Blob(['<?xml version="1.0" standalone="no"?>\n' + xml], { type: "image/svg+xml" });
       }
       if (format === "emf") {
-        const svg = node.querySelector("svg") ?? (node.tagName?.toLowerCase() === "svg" ? node : null);
+        const svg = rootSvgOf(node);
         if (!svg) throw new Error("EMF export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
         const ir = await svgDomToIr(svg, { host, background: opts.background });
         const bytes = emitEmf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([bytes], { type: "image/emf" });
       }
       if (format === "eps" || format === "eps-cmyk") {
-        const svg = node.querySelector("svg") ?? (node.tagName?.toLowerCase() === "svg" ? node : null);
+        const svg = rootSvgOf(node);
         if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
         const ir = await svgDomToIr(svg, { host, background: opts.background, label: "EPS" });
         const text = emitEps(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk: format === "eps-cmyk", meta: opts.meta });
         return new Blob([text], { type: "application/postscript" });
       }
       if (format === "dxf") {
-        const svg = node.querySelector("svg") ?? (node.tagName?.toLowerCase() === "svg" ? node : null);
+        const svg = rootSvgOf(node);
         if (!svg) throw new Error("DXF export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
         const ir = await svgDomToIr(svg, { host, background: opts.background, label: "DXF" });
         const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
@@ -12527,10 +20100,10 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   };
   host.pdf = createPdfAPI();
   host.pptx = createPptxAPI({ parseXml: (xml) => new w.DOMParser().parseFromString(xml, "application/xml") });
-  const composeFetchFile = async (p) => readFile4(join5(REPO_ROOT2, "tools", p), "utf8");
+  const composeFetchFile = async (p) => readFile5(join6(REPO_ROOT2, "tools", p), "utf8");
   host.compose = {
     async render(spec) {
-      const { toolId, inputs = {}, format, width, height, unit, dpi, _stack = [] } = spec ?? {};
+      const { toolId, inputs = {}, format, width, height, unit: unit2, dpi, _stack = [] } = spec ?? {};
       if (typeof toolId !== "string" || !toolId) throw new Error("compose: missing toolId");
       assertComposeStack(_stack, toolId);
       const childTool = await loadTool(toolId, composeFetchFile);
@@ -12539,7 +20112,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
       el.innerHTML = childRuntime.getHydrated();
       await applyBrandVars(el, host);
       const fmt2 = format ?? childTool.manifest.render.formats[0];
-      const u = unit || "px";
+      const u = unit2 || "px";
       const qual = (v) => typeof v === "number" && v > 0 ? u !== "px" ? `${v}${u}` : v : void 0;
       const blob = await host.export.render(el, fmt2, { width: qual(width), height: qual(height), dpi, embedMeta: false, watermark: false });
       const buf = Buffer.from(await blob.arrayBuffer());
@@ -12574,7 +20147,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
       const format = norm2(opts.format) || norm2(parsed.format) || (supported.includes("svg") ? "svg" : supported[0]);
       const width = opts.width ?? st.width ?? void 0;
       const height = opts.height ?? st.height ?? void 0;
-      const unit = opts.unit ?? st.unit ?? void 0;
+      const unit2 = opts.unit ?? st.unit ?? void 0;
       const dpi = opts.dpi ?? st.dpi ?? void 0;
       let ref;
       try {
@@ -12584,7 +20157,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
           format,
           width,
           height,
-          unit,
+          unit: unit2,
           dpi,
           _stack: opts._stack ?? []
         });
@@ -12596,8 +20169,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
       for (const k of RESERVED) q.delete(k);
       if (width) q.set("w", String(width));
       if (height) q.set("h", String(height));
-      if (unit && unit !== "px") {
-        q.set("unit", String(unit));
+      if (unit2 && unit2 !== "px") {
+        q.set("unit", String(unit2));
         if (dpi) q.set("dpi", String(dpi));
       }
       const id = buildEmbedUrl({ toolId: parsed.toolId, format, query: q.toString() });
@@ -12723,9 +20296,9 @@ function withHost(profile, fn) {
 // services/mcp/src/webshell.ts
 import { createServer } from "node:http";
 import { spawn } from "node:child_process";
-import { readFile as readFile5, stat } from "node:fs/promises";
+import { readFile as readFile6, stat } from "node:fs/promises";
 import { existsSync as existsSync5 } from "node:fs";
-import { join as join6, resolve as resolve2, extname, normalize } from "node:path";
+import { join as join7, resolve as resolve2, extname, normalize } from "node:path";
 var MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -12756,27 +20329,27 @@ async function webShellBase() {
   return (await served).base;
 }
 async function buildAndServe() {
-  const dist = process.env.LOLLY_WEB_DIST || join6(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync5(join6(dist, "index.html"))) {
-    if (!existsSync5(join6(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist = process.env.LOLLY_WEB_DIST || join7(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync5(join7(dist, "index.html"))) {
+    if (!existsSync5(join7(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync5(join6(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
+    if (!existsSync5(join7(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
   }
   return serveDist(dist);
 }
 function buildWebShell() {
-  return new Promise((ok2, fail2) => {
+  return new Promise((ok3, fail3) => {
     const child = spawn("npm", ["--workspace", "shells/web", "run", "build"], {
       cwd: REPO_ROOT,
       stdio: "inherit",
       shell: process.platform === "win32"
     });
-    child.on("error", fail2);
-    child.on("close", (code) => code === 0 ? ok2() : fail2(new Error(`web shell build exited ${code}`)));
+    child.on("error", fail3);
+    child.on("close", (code) => code === 0 ? ok3() : fail3(new Error(`web shell build exited ${code}`)));
   });
 }
 function serveDist(dist) {
@@ -12790,9 +20363,9 @@ function serveDist(dist) {
         return;
       }
       if (urlPath === "/" || !existsSync5(filePath) || !(await stat(filePath)).isFile()) {
-        filePath = join6(root, "index.html");
+        filePath = join7(root, "index.html");
       }
-      const data = await readFile5(filePath);
+      const data = await readFile6(filePath);
       res.setHeader("Content-Type", MIME[extname(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.end(data);
@@ -12800,10 +20373,10 @@ function serveDist(dist) {
       res.writeHead(404).end();
     }
   });
-  return new Promise((ok2) => {
+  return new Promise((ok3) => {
     server.listen(0, "127.0.0.1", () => {
       const port = server.address().port;
-      ok2({
+      ok3({
         base: `http://127.0.0.1:${port}`,
         close: () => new Promise((done) => server.close(() => done()))
       });
@@ -12878,17 +20451,17 @@ function mimeForFormat(fmt2) {
 function isTextFormat(fmt2) {
   return ["svg", "html", "md", "txt", "json", "csv", "ics", "vcf", "eps", "eps-cmyk", "dxf"].includes(normFormat(fmt2));
 }
-function targetPx(width, unit, dpi) {
+function targetPx(width, unit2, dpi) {
   if (!width || width <= 0) return void 0;
-  if (!unit || unit === "px") return Math.round(width);
-  const dim = parseDimension(`${width}${unit}`);
+  if (!unit2 || unit2 === "px") return Math.round(width);
+  const dim = parseDimension(`${width}${unit2}`);
   return dim ? Math.round(toPixels(dim, dpi ?? 300)) : Math.round(width);
 }
 function exportOpts(o) {
-  const unit = o.unit || "px";
-  const qual = (v) => typeof v === "number" && v > 0 ? unit !== "px" ? `${v}${unit}` : v : void 0;
+  const unit2 = o.unit || "px";
+  const qual = (v) => typeof v === "number" && v > 0 ? unit2 !== "px" ? `${v}${unit2}` : v : void 0;
   const opts = { width: qual(o.width), height: qual(o.height) };
-  if (unit !== "px") opts.dpi = o.dpi || 300;
+  if (unit2 !== "px") opts.dpi = o.dpi || 300;
   if (o.background) opts.background = o.background;
   if (o.colorProfile) opts.colorProfile = o.colorProfile;
   if (o.password) opts.password = o.password;
@@ -12935,15 +20508,15 @@ var browserPromise2 = null;
 async function getBrowser2() {
   if (!browserPromise2) {
     browserPromise2 = (async () => {
-      const channel = process.env.LOLLY_BROWSER_CHANNEL;
+      const channel2 = process.env.LOLLY_BROWSER_CHANNEL;
       const executablePath = process.env.LOLLY_BROWSER_PATH;
-      if (!channel && !executablePath) {
+      if (!channel2 && !executablePath) {
         process.env.PLAYWRIGHT_BROWSERS_PATH ??= BROWSERS_DIR;
       }
       const { chromium } = await import("playwright-core");
       try {
         return await chromium.launch({
-          ...channel ? { channel } : {},
+          ...channel2 ? { channel: channel2 } : {},
           ...executablePath ? { executablePath } : {},
           args: ["--no-sandbox"]
         });
@@ -12969,11 +20542,11 @@ function exportUrl(base, toolId, query, fmt2, o) {
   const p = new URLSearchParams(query);
   for (const k of EXPORT_URL_RESERVED) p.delete(k);
   p.set("format", fmt2);
-  const unit = o.unit || "px";
+  const unit2 = o.unit || "px";
   if (o.width && o.width > 0) p.set("width", String(o.width));
   if (o.height && o.height > 0) p.set("height", String(o.height));
-  if (unit !== "px") {
-    p.set("unit", unit);
+  if (unit2 !== "px") {
+    p.set("unit", unit2);
     p.set("dpi", String(o.dpi || 300));
   }
   if (o.colorProfile) p.set("profile", o.colorProfile);
@@ -13014,7 +20587,7 @@ async function renderTierB(toolId, query, fmt2, o) {
     }
     const path = await download.path();
     if (!path) throw new RenderError(`Tier-B download for "${toolId}" yielded no file.`);
-    const bytes = new Uint8Array(await readFile6(path));
+    const bytes = new Uint8Array(await readFile7(path));
     await download.delete().catch(() => {
     });
     return { bytes, mime: mimeForFormat(fmt2) };
@@ -13555,8 +21128,8 @@ ${listing}`;
 
 // services/mcp/src/resources.ts
 init_src();
-import { readFile as readFile7 } from "node:fs/promises";
-import { join as join7 } from "node:path";
+import { readFile as readFile8 } from "node:fs/promises";
+import { join as join8 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -13569,10 +21142,10 @@ var RESOURCE_TEMPLATES = [
   { uriTemplate: "lolly://asset/{id}", name: "Brand asset", description: "A catalog asset (logo, palette, font) resolved to bytes.", mimeType: "application/octet-stream" }
 ];
 async function tokensResource(uri) {
-  const idx = JSON.parse(await readFile7(ASSET_INDEX, "utf8"));
+  const idx = JSON.parse(await readFile8(ASSET_INDEX, "utf8"));
   const tokenAsset = idx.assets.find((a) => a.type === "tokens");
   if (!tokenAsset) return { uri, mimeType: "application/json", text: JSON.stringify({ colors: [], note: "No tokens asset in catalog." }) };
-  const doc = JSON.parse(await readFile7(join7(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const doc = JSON.parse(await readFile8(join8(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -13582,7 +21155,7 @@ function parseDataUrl(url) {
   return { mime: m[1] || "application/octet-stream", base64: m[2] ? m[3] : Buffer.from(decodeURIComponent(m[3])).toString("base64") };
 }
 async function assetsListing(uri) {
-  const idx = JSON.parse(await readFile7(ASSET_INDEX, "utf8"));
+  const idx = JSON.parse(await readFile8(ASSET_INDEX, "utf8"));
   const assets = idx.assets.map((a) => ({
     id: a.id,
     type: a.type,
@@ -13592,11 +21165,11 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
-var PREVIEWS_DIR = join7(REPO_ROOT, "catalog", "previews");
+var PREVIEWS_DIR = join8(REPO_ROOT, "catalog", "previews");
 async function previewResource(uri, id) {
   for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
     try {
-      const text = await readFile7(join7(PREVIEWS_DIR, file), "utf8");
+      const text = await readFile8(join8(PREVIEWS_DIR, file), "utf8");
       return { uri, mimeType: "image/svg+xml", text };
     } catch {
     }
@@ -13712,18 +21285,18 @@ var RL_MAX_IPS = 1e4;
 var rlHits = /* @__PURE__ */ new Map();
 function rateLimit(ip, limit) {
   const now2 = Date.now();
-  let hits = rlHits.get(ip);
-  if (!hits) {
+  let hits2 = rlHits.get(ip);
+  if (!hits2) {
     if (rlHits.size >= RL_MAX_IPS) {
       const oldest = rlHits.keys().next().value;
       if (oldest !== void 0) rlHits.delete(oldest);
     }
-    hits = [];
-    rlHits.set(ip, hits);
+    hits2 = [];
+    rlHits.set(ip, hits2);
   }
-  while (hits.length && hits[0] <= now2 - RL_WINDOW_MS) hits.shift();
-  if (hits.length >= limit) return { ok: false, retryAfter: Math.max(1, Math.ceil((hits[0] + RL_WINDOW_MS - now2) / 1e3)) };
-  hits.push(now2);
+  while (hits2.length && hits2[0] <= now2 - RL_WINDOW_MS) hits2.shift();
+  if (hits2.length >= limit) return { ok: false, retryAfter: Math.max(1, Math.ceil((hits2[0] + RL_WINDOW_MS - now2) / 1e3)) };
+  hits2.push(now2);
   return { ok: true, retryAfter: 0 };
 }
 var NO_STORE = {
@@ -13738,15 +21311,15 @@ function dimensionError(params) {
   const rawDpi = params.get("dpi");
   const dpi = rawDpi != null ? Number(rawDpi) : 300;
   if (rawDpi != null && (!Number.isFinite(dpi) || dpi <= 0 || dpi > MAX_DPI)) return `dpi must be between 1 and ${MAX_DPI}`;
-  const unit = (params.get("unit") || "px").toLowerCase();
+  const unit2 = (params.get("unit") || "px").toLowerCase();
   for (const [name, alias] of [["width", "w"], ["height", "h"]]) {
     const raw = params.get(name) ?? params.get(alias);
     if (raw == null) continue;
     const n2 = Number(raw);
     if (!Number.isFinite(n2) || n2 <= 0) return `${name} must be a positive number`;
     let px = n2;
-    if (unit !== "px") {
-      const dim = parseDimension(`${n2}${unit}`);
+    if (unit2 !== "px") {
+      const dim = parseDimension(`${n2}${unit2}`);
       if (dim) px = toPixels(dim, dpi);
     }
     if (px > MAX_EDGE_PX) return `${name} exceeds the ${MAX_EDGE_PX}px output cap`;
@@ -13813,18 +21386,18 @@ async function renderGet(path, query, opts) {
 }
 
 // services/mcp/src/sign.ts
-var te5 = new TextEncoder();
+var te7 = new TextEncoder();
 var subtle5 = globalThis.crypto.subtle;
 var bytesToB64u = (bytes) => Buffer.from(bytes).toString("base64url");
-var b64uToBytes = (str) => new Uint8Array(Buffer.from(String(str), "base64url"));
+var b64uToBytes = (str2) => new Uint8Array(Buffer.from(String(str2), "base64url"));
 var randomB64u = (n2 = 32) => bytesToB64u(globalThis.crypto.getRandomValues(new Uint8Array(n2)));
 async function hmac(secret, text) {
   if (!secret) throw new Error("signing secret is not set");
-  const key = await subtle5.importKey("raw", te5.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await subtle5.sign("HMAC", key, te5.encode(text)));
+  const key = await subtle5.importKey("raw", te7.encode(String(secret)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await subtle5.sign("HMAC", key, te7.encode(text)));
 }
 async function sha256B64u(text) {
-  return bytesToB64u(new Uint8Array(await subtle5.digest("SHA-256", te5.encode(text))));
+  return bytesToB64u(new Uint8Array(await subtle5.digest("SHA-256", te7.encode(text))));
 }
 async function signValue(payload, secret) {
   const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
