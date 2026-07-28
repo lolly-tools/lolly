@@ -246,7 +246,7 @@ export { gamutSolid, projectGamutSolid, projectSolidPoint } from './gamut-solid.
 export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad } from './gamut-solid.ts';
 export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES_CONTRAST_FLOOR } from './color-describe.ts';
 export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';
-export { GAMUTS, oklchGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
+export { GAMUTS, oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
 export type { GamutName, SlicePlane, SliceOptions, SliceImage } from './gamut.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';

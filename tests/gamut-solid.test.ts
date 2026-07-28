@@ -16,7 +16,15 @@ import { gamutSolid, projectGamutSolid, projectSolidPoint } from '../engine/src/
 import { hexToOklch } from '../engine/src/brand-derive.ts';
 import { maxChroma } from '../engine/src/gamut.ts';
 
+// The default 'cylinder' embedding, which is what the geometry tests below are
+// written against. The view uses 'landscape'; both are covered.
 const solid = gamutSolid('srgb', 48, 28);
+
+/** A cylinder point's OKLCH: x/z are the chroma plane, y is lightness. */
+const cylOklch = (p: { x: number; z: number; y: number }) => {
+  const c = Math.hypot(p.x, p.z);
+  return { l: p.y, c, h: c < 1e-9 ? 0 : (Math.atan2(p.z, p.x) * 180) / Math.PI };
+};
 
 /** The visible quad nearest the centre of the screen. */
 function centreQuad(quads: ReturnType<typeof projectGamutSolid>) {
@@ -41,10 +49,9 @@ test('the mesh sits exactly on the gamut boundary the 2D charts use', () => {
   // gamuts.
   for (const q of solid.quads) {
     for (const p of q.pts) {
-      const c = Math.hypot(p.a, p.b);
-      const h = c < 1e-9 ? 0 : (Math.atan2(p.b, p.a) * 180) / Math.PI;
-      assert.ok(Math.abs(c - maxChroma(p.l, h, 'srgb')) < 1e-6,
-        `L${p.l.toFixed(3)} H${h.toFixed(1)}: surface C ${c} vs ceiling ${maxChroma(p.l, h, 'srgb')}`);
+      const { l, c, h } = cylOklch(p);
+      assert.ok(Math.abs(c - maxChroma(l, h, 'srgb')) < 1e-6,
+        `L${l.toFixed(3)} H${h.toFixed(1)}: surface C ${c} vs ceiling ${maxChroma(l, h, 'srgb')}`);
     }
   }
 });
@@ -52,10 +59,10 @@ test('the mesh sits exactly on the gamut boundary the 2D charts use', () => {
 test('the solid closes at black and white', () => {
   // The top and bottom rows collapse to the achromatic axis, so the surface has
   // no holes and needs no separate caps.
-  const extremes = solid.quads.flatMap(q => q.pts).filter(p => p.l <= 1e-9 || p.l >= 1 - 1e-9);
+  const extremes = solid.quads.flatMap(q => q.pts).filter(p => p.y <= 1e-9 || p.y >= 1 - 1e-9);
   assert.ok(extremes.length > 0, 'the mesh reaches both extremes');
   for (const p of extremes) {
-    assert.ok(Math.hypot(p.a, p.b) < 1e-6, `L${p.l} should have no chroma`);
+    assert.ok(Math.hypot(p.x, p.z) < 1e-6, `L${p.y} should have no chroma`);
   }
 });
 
@@ -106,18 +113,18 @@ test('projected points stay inside the unit box, and scale zooms about the centr
   assert.ok(Math.abs(spread(wide) / 2 - spread(half)) < 1e-9, 'scale is linear about the centre');
 });
 
-test('a wider gamut makes a strictly bigger solid', () => {
+test('a wider gamut makes a bigger solid', () => {
   const p3 = gamutSolid('p3', 48, 28);
   const wide = gamutSolid('rec2020', 48, 28);
   assert.ok(p3.maxRadius > solid.maxRadius, `P3 ${p3.maxRadius} > sRGB ${solid.maxRadius}`);
-  assert.ok(wide.maxRadius > p3.maxRadius, `Rec.2020 ${wide.maxRadius} > P3 ${p3.maxRadius}`);
-  // Every vertex of the narrower solid is inside the wider one at the same
-  // lightness and hue — the gamuts nest, so the solids must too.
+  assert.ok(wide.maxRadius > solid.maxRadius, `Rec.2020 ${wide.maxRadius} > sRGB ${solid.maxRadius}`);
+  // Every vertex of the sRGB solid is inside P3 at the same lightness and hue.
+  // (sRGB ⊂ P3 genuinely holds; P3 ⊂ Rec.2020 does NOT — see the deep-red sliver
+  // test in gamut.test.ts — so that pair is deliberately not asserted.)
   for (const q of solid.quads) {
     for (const p of q.pts) {
-      const c = Math.hypot(p.a, p.b);
-      const h = c < 1e-9 ? 0 : (Math.atan2(p.b, p.a) * 180) / Math.PI;
-      assert.ok(c <= maxChroma(p.l, h, 'p3') + 1e-6, 'an sRGB point escapes P3');
+      const { l, c, h } = cylOklch(p);
+      assert.ok(c <= maxChroma(l, h, 'p3') + 1e-6, 'an sRGB point escapes P3');
     }
   }
 });
@@ -136,19 +143,16 @@ test('the marker lands in register with the mesh and reports its own gamut', () 
   // In register: a point placed exactly ON a surface vertex must project to that
   // vertex's own projected position.
   const q = projectGamutSolid(solid, view)[0]!;
-  const vtx = solid.quads.flatMap(x => x.pts).find(p => p.l > 0.4 && p.l < 0.6)!;
-  const c = Math.hypot(vtx.a, vtx.b);
-  const h = (Math.atan2(vtx.b, vtx.a) * 180) / Math.PI;
-  const m = projectSolidPoint(solid, { l: vtx.l, c, h }, view);
+  const vtx = solid.quads.flatMap(x => x.pts).find(p => p.y > 0.4 && p.y < 0.6)!;
+  const { l, c, h } = cylOklch(vtx);
+  const m = projectSolidPoint(solid, { l, c, h }, view);
   assert.ok(m.inside, 'a surface vertex counts as inside');
   assert.ok(q.points.length === 4, 'quads are quads');
-  // Re-project the same vertex through the mesh path and compare.
+  // A degenerate quad is culled (zero area), so determinism is what's checkable:
+  // the same input must give the same point twice.
   const meshMatch = projectGamutSolid({ ...solid, quads: [{ pts: [vtx, vtx, vtx, vtx], hex: '#000000', up: 1 }] }, view);
-  // A degenerate quad is culled (zero area), so compare against the marker path's
-  // own determinism instead: the same input must give the same point twice.
   assert.equal(meshMatch.length, 0, 'a zero-area quad is culled, not drawn');
-  const again = projectSolidPoint(solid, { l: vtx.l, c, h }, view);
-  assert.deepEqual(again, m, 'projection is deterministic');
+  assert.deepEqual(projectSolidPoint(solid, { l, c, h }, view), m, 'projection is deterministic');
 });
 
 test('degenerate mesh sizes are clamped instead of producing nothing', () => {
@@ -158,4 +162,39 @@ test('degenerate mesh sizes are clamped instead of producing nothing', () => {
     assert.ok(s.quads.length > 0, `${hs}x${ls} still builds a surface`);
     assert.ok(projectGamutSolid(s, { yaw: 20, pitch: 15 }).length > 0);
   }
+});
+
+test('the landscape embedding lays hue flat and stands chroma up', () => {
+  const land = gamutSolid('srgb', 48, 28, 'landscape');
+  assert.equal(land.embed, 'landscape');
+  assert.equal(land.quads.length, solid.quads.length, 'same grid, different embedding');
+
+  // x is hue across −1…1, z is lightness across −1…1, y is chroma 0…1.
+  for (const q of land.quads) {
+    for (const p of q.pts) {
+      assert.ok(p.x >= -1.001 && p.x <= 1.001, `hue axis ${p.x}`);
+      assert.ok(p.z >= -1.001 && p.z <= 1.001, `lightness axis ${p.z}`);
+      assert.ok(p.y >= 0 && p.y <= 1.001, `chroma height ${p.y}`);
+    }
+  }
+  // The tallest point is the most chromatic colour in the gamut, and it should be
+  // in the yellows/greens rather than the blues — that asymmetry is the whole
+  // reason this view beats a cylinder for reading.
+  let peak = land.quads[0]!, best = -1;
+  for (const q of land.quads) {
+    const top = Math.max(...q.pts.map(p => p.y));
+    if (top > best) { best = top; peak = q; }
+  }
+  assert.ok(Math.abs(best - 1) < 0.02, `the peak reaches full height (${best})`);
+  const peakHue = ((peak.pts[0]!.x + 1) / 2) * 360;
+  assert.ok(peakHue > 240 && peakHue < 340, `sRGB's chroma peak is in the blues/magentas, got ${peakHue.toFixed(0)}°`);
+
+  // An OPEN surface: nothing may be culled, or looking from below shows nothing.
+  assert.equal(projectGamutSolid(land, { yaw: 20, pitch: 35 }).length, land.quads.length);
+  assert.equal(projectGamutSolid(land, { yaw: 20, pitch: -35 }).length, land.quads.length);
+
+  // And the marker still lands in the box, in the same space as the mesh.
+  const m = projectSolidPoint(land, { l: 0.62, c: 0.19, h: 260 }, { yaw: 20, pitch: 35 });
+  assert.ok(m.x > 0 && m.x < 1 && m.y > 0 && m.y < 1, JSON.stringify(m));
+  assert.equal(m.inside, true);
 });
