@@ -325,3 +325,64 @@ test('the sampled fill ceiling lands on the real sRGB boundary', () => {
     assert.ok(worst < 0.015, `hue ${hue}: worst ceiling error ${worst.toFixed(4)}`);
   }
 });
+
+// ─── Wide-gamut encoding ──────────────────────────────────────────────────────
+
+test('encode does not change WHICH pixels exist — only how they are written', () => {
+  // Membership is a `limit` question; encoding is a byte question. Conflating them
+  // would make a wide-gamut canvas appear to widen the gamut itself.
+  const box = { plane: 'lc' as const, fixed: 145, width: 64, height: 40, cMax: 0.4, limit: 'p3' as const };
+  const srgb = oklchSlice(box);
+  const p3 = oklchSlice({ ...box, encode: 'display-p3' });
+  for (let i = 3; i < srgb.data.length; i += 4) {
+    assert.equal(srgb.data[i], p3.data[i], `alpha differs at byte ${i}`);
+  }
+  // Default is sRGB, so existing callers get byte-identical output.
+  const dflt = oklchSlice(box);
+  assert.deepEqual([...dflt.data], [...srgb.data], 'omitting encode means srgb');
+});
+
+test('a P3-encoded slice carries colour sRGB encoding has to throw away', async () => {
+  // The whole point of the option. Past sRGB's ceiling an sRGB-encoded slice must
+  // desaturate, so its ramp flat-lines; a P3-encoded one keeps going, because those
+  // colours are genuinely reachable on the canvas it is destined for.
+  const { parseColor, convertColor } = await import('../engine/src/css-color.ts');
+  const box = { plane: 'lc' as const, fixed: 145, width: 96, height: 48, cMax: 0.4, limit: 'p3' as const };
+  const srgb = oklchSlice(box);
+  const p3 = oklchSlice({ ...box, encode: 'display-p3' });
+
+  // Walk a mid-lightness row outward and find where sRGB gives up.
+  const row = 20;
+  const at = (img: typeof srgb, x: number): [number, number, number] => {
+    const o = (row * img.width + x) * 4;
+    return [img.data[o] as number, img.data[o + 1] as number, img.data[o + 2] as number];
+  };
+  let flat = 0;
+  for (let x = 1; x < srgb.width; x++) {
+    if (srgb.data[(row * srgb.width + x) * 4 + 3] !== 255) continue;
+    const a = at(srgb, x), b = at(srgb, x - 1);
+    if (a[0] === b[0] && a[1] === b[1] && a[2] === b[2]) flat++;
+  }
+  assert.ok(flat > 5, `sRGB encoding flat-lines past its ceiling (${flat} repeated columns)`);
+
+  // And the P3 bytes DECODE to the chroma that was asked for — the real check that
+  // the primaries were applied, not just that the numbers moved.
+  const cMax = 0.4;
+  const l = 1 - (row + 0.5) / p3.height;
+  for (const x of [Math.round(p3.width * 0.72), Math.round(p3.width * 0.8)]) {
+    if (p3.data[(row * p3.width + x) * 4 + 3] !== 255) continue;
+    const [r, g, b] = at(p3, x);
+    const parsed = parseColor(`color(display-p3 ${r / 255} ${g / 255} ${b / 255})`);
+    assert.ok(parsed, 'the P3 bytes parse as a P3 colour');
+    const [L, A, B] = convertColor(parsed, 'oklab').components;
+    const gotC = Math.hypot(A, B);
+    const wantC = ((x + 0.5) / p3.width) * cMax;
+    // Within the ceiling: the request should survive. The tolerance covers 8-bit
+    // quantisation plus the sampled ceiling grid.
+    assert.ok(Math.abs(L - l) < 0.02, `lightness survives: ${L} vs ${l}`);
+    assert.ok(gotC > wantC - 0.03, `chroma survives P3 encoding: got ${gotC.toFixed(3)}, asked ${wantC.toFixed(3)}`);
+    // …and it is beyond what sRGB could have carried at this lightness and hue.
+    assert.ok(gotC > maxChroma(l, 145, 'srgb') - 0.01,
+      `P3 reaches past sRGB's ceiling ${maxChroma(l, 145, 'srgb').toFixed(3)}`);
+  }
+});

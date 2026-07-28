@@ -167,7 +167,11 @@ test('degenerate mesh sizes are clamped instead of producing nothing', () => {
 test('the landscape embedding lays hue flat and stands chroma up', () => {
   const land = gamutSolid('srgb', 48, 28, 'landscape');
   assert.equal(land.embed, 'landscape');
-  assert.equal(land.quads.length, solid.quads.length, 'same grid, different embedding');
+  // The surface is the same grid as the cylinder's; the extra quads are the seam
+  // caps, which a closed cylinder does not need.
+  const wall = land.quads.filter(q => q.up === 0);
+  assert.equal(land.quads.length - wall.length, solid.quads.length, 'same surface grid');
+  assert.ok(wall.length > 0, 'the landscape is capped at the hue seam');
 
   // x is hue across −1…1, z is lightness across −1…1, y is chroma 0…1.
   for (const q of land.quads) {
@@ -181,13 +185,26 @@ test('the landscape embedding lays hue flat and stands chroma up', () => {
   // in the yellows/greens rather than the blues — that asymmetry is the whole
   // reason this view beats a cylinder for reading.
   let peak = land.quads[0]!, best = -1;
-  for (const q of land.quads) {
+  for (const q of land.quads.filter(q => q.up !== 0)) {
     const top = Math.max(...q.pts.map(p => p.y));
     if (top > best) { best = top; peak = q; }
   }
   assert.ok(Math.abs(best - 1) < 0.02, `the peak reaches full height (${best})`);
   const peakHue = ((peak.pts[0]!.x + 1) / 2) * 360;
   assert.ok(peakHue > 240 && peakHue < 340, `sRGB's chroma peak is in the blues/magentas, got ${peakHue.toFixed(0)}°`);
+
+  // The caps stand at the two hue-seam edges and nowhere else, spanning chroma 0 up
+  // to the surface — so the sheet reads as a body rather than a ribbon.
+  for (const q of wall) {
+    const xs = q.pts.map(p => p.x);
+    assert.ok(xs.every(x => Math.abs(Math.abs(x) - 1) < 1e-9),
+      `a cap quad sits off the seam: ${JSON.stringify(xs)}`);
+    assert.ok(q.pts.every(p => p.y >= -1e-9 && p.y <= 1 + 1e-9), 'cap height stays in range');
+  }
+  // Both edges are capped, and both are hue 0 (360° IS 0°), so the body is
+  // symmetric about the seam.
+  assert.ok(wall.some(q => q.pts[0]!.x < 0), 'the hue-0 edge is capped');
+  assert.ok(wall.some(q => q.pts[0]!.x > 0), 'the hue-360 edge is capped');
 
   // An OPEN surface: nothing may be culled, or looking from below shows nothing.
   assert.equal(projectGamutSolid(land, { yaw: 20, pitch: 35 }).length, land.quads.length);

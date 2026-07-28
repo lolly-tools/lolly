@@ -191,6 +191,19 @@ export function resolveGamutSource(limit: GamutLimit): GamutSource {
  * profiles would collide into one cache entry and a chart would keep showing the
  * previous gamut's fill. Key on this instead.
  */
+/**
+ * Linear sRGB → linear Display-P3.
+ *
+ * Exported so an ENCODER (oklchSlice writing bytes for a `display-p3` canvas) uses
+ * the very same primaries as the membership test above. Duplicating the matrix
+ * would let "is this colour in P3?" and "what are its P3 bytes?" drift apart, and
+ * they must answer from one source. Both spaces share the sRGB transfer curve, so
+ * this is the whole conversion while values are still linear.
+ */
+export const linearSrgbToLinearP3 = (
+  r: number, g: number, b: number,
+): [number, number, number] => apply3(SRGB_TO_P3, r, g, b);
+
 export const gamutSourceId = (limit: GamutLimit): string =>
   typeof limit === 'string' ? limit : limit.id;
 
