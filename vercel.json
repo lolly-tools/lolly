@@ -5,7 +5,11 @@
   "functions": {
     "api/mcp/**": {
       "maxDuration": 60,
-      "includeFiles": "{tools,catalog}/**"
+      "includeFiles": "{tools,catalog}/**",
+      "regions": ["fra1"]
+    },
+    "api/ca/**": {
+      "regions": ["fra1"]
     }
   },
   "redirects": [
