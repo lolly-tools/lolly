@@ -1114,3 +1114,27 @@ is exactly where English publishing keeps its punctuation, so bullets, en/em
 dashes, ellipses and smart quotes were silently lost — from extracted text AND
 from the Layout Studio / design-import path. They now decode correctly. No v1
 bridge method changed.
+
+1.76.0 — additive: failed-redaction detection. `findHiddenText(nodes)` reports
+text that an OPAQUE shape is painted over — words present in the file that the
+page does not show. `findHiddenTextInPages(pages)` tags findings by page and
+`describeHiddenText(findings)` summarises them.
+
+The check rests entirely on PAINT ORDER, which is what separates a redaction from
+a highlight: a filled box painted BEFORE text is a background, the same box
+painted AFTER it is a cover. `interpretPdfPage` returns nodes in the order the
+content stream painted them and never sorts them; tests/pdf-redaction.test.ts
+pins that invariant deliberately, because a sort added upstream would silently
+invert every result rather than fail.
+
+Coverage is the UNION of the overlapping shapes, not the largest one and not
+their sum — a line struck out in several pieces is covered by no single bar, and
+summing would double-count wherever bars overlap. Translucent shapes (<90%
+opacity) and soft-masked shapes are refused: neither can be vouched for as
+actually concealing. Colour is deliberately NOT a criterion — a white box over
+black text hides it exactly as well as a black one, and a colour test would miss
+the quieter version of the same mistake.
+
+The finding claims only "present but not visible", never intent; the cause could
+be a botched redaction or ordinary sloppy layering, and callers should keep that
+wording. No v1 bridge method changed.
