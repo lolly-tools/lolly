@@ -296,3 +296,109 @@ test('single-axis doc is unchanged: no theme → first theme, named theme honour
   assert.equal(createTokenSet(doc).get('bg')!.value, '#ffffff', 'no theme → first (Light)');
   assert.equal(createTokenSet(doc, { theme: 'Dark' }).get('bg')!.value, '#000000', 'named → Dark');
 });
+
+// ─── Per-space faces (Phase 9: the authored sRGB face wins at export) ─────────
+
+/**
+ * The single change that makes an override real rather than decorative.
+ *
+ * `ColorSwatch.value` is what every consumer of a brand colour reads — the CMYK
+ * palette map, the picker's swatches, the raster and vector export paths. So an
+ * authored sRGB face has to be substituted HERE, and that is the whole of Phase 9
+ * for the sRGB target. If this test is deleted, an override silently becomes a
+ * note the exports ignore, which looks like it works right up to the print.
+ */
+test('an authored sRGB face wins over the automatic bake', () => {
+  const ts = createTokenSet({
+    color: {
+      // A wide-gamut brand green. Its automatic sRGB bake is whatever §14.2's map
+      // reaches; the brand has authored a different one.
+      wide: {
+        $type: 'color',
+        $value: 'oklch(70% 0.25 145)',
+        $extensions: { [TOKEN_EXT]: { faces: { srgb: { value: '#00b050' } } } },
+      },
+      // The same colour with NO override — the control, so the test proves a
+      // substitution rather than just reading a hex back.
+      plain: { $type: 'color', $value: 'oklch(70% 0.25 145)' },
+    },
+  });
+  const wide = ts.colors().find(s => s.path === 'color.wide')!;
+  const plain = ts.colors().find(s => s.path === 'color.plain')!;
+  assert.equal(wide.value, '#00b050', 'the authored bake is what a consumer gets');
+  assert.notEqual(plain.value, '#00b050', 'and it is a substitution, not the automatic answer');
+  assert.match(plain.value, /^#[0-9a-f]{6}$/i, 'the automatic bake is still a hex');
+});
+
+test('a face is re-serialised to a hex, and a broken one cannot blank a colour', () => {
+  const ts = createTokenSet({
+    color: {
+      // Authored in OKLCH — `value` is contractually a hex, so it must convert.
+      typed: {
+        $type: 'color', $value: '#123456',
+        $extensions: { [TOKEN_EXT]: { faces: { srgb: { value: 'oklch(62% 0.2 145)' } } } },
+      },
+      // A malformed override must be IGNORED, never emitted: a brand colour that
+      // renders as nothing is far worse than one that ignores a typo.
+      broken: {
+        $type: 'color', $value: '#123456',
+        $extensions: { [TOKEN_EXT]: { faces: { srgb: { value: 'not a colour' } } } },
+      },
+    },
+  });
+  const typed = ts.colors().find(s => s.path === 'color.typed')!;
+  assert.match(typed.value, /^#[0-9a-f]{6}$/i, `converted to hex: ${typed.value}`);
+  assert.notEqual(typed.value.toLowerCase(), '#123456', 'and it is the face, not the $value');
+  assert.equal(ts.colors().find(s => s.path === 'color.broken')!.value.toLowerCase(), '#123456',
+    'a malformed face falls back to the automatic bake');
+});
+
+test('faces ride alongside, and only when there are any', () => {
+  const ts = createTokenSet({
+    color: {
+      press: {
+        $type: 'color', $value: '#123456',
+        $extensions: {
+          [TOKEN_EXT]: {
+            faces: {
+              srgb: { value: '#00b050' },
+              'icc:ab12cd:relative': { value: [0, 90, 100, 0] },
+            },
+          },
+        },
+      },
+      bare: { $type: 'color', $value: '#123456' },
+    },
+  });
+  const press = ts.colors().find(s => s.path === 'color.press')!;
+  // A wider/press face is carried UNTOUCHED — baking it into `value` would discard
+  // exactly what it was authored to hold.
+  assert.deepEqual(press.faces?.['icc:ab12cd:relative'], [0, 90, 100, 0]);
+  assert.equal(press.faces?.srgb, '#00b050');
+  // Absent, not empty, on a token with no overrides: `faces: {}` on every swatch
+  // would be noise in every serialised payload.
+  assert.equal(ts.colors().find(s => s.path === 'color.bare')!.faces, undefined);
+});
+
+test('the existing cmyk/spot locks are untouched by faces', () => {
+  // They are a shipped contract that brand packs in the wild already carry, so a
+  // face must coexist with them rather than migrate them on read.
+  const ts = createTokenSet({
+    color: {
+      both: {
+        $type: 'color', $value: '#123456',
+        $extensions: {
+          [TOKEN_EXT]: {
+            cmyk: [70, 0, 65, 0],
+            spot: { name: 'PANTONE 186 C' },
+            faces: { srgb: { value: '#00b050' } },
+          },
+        },
+      },
+    },
+  });
+  const s = ts.colors()[0]!;
+  assert.deepEqual(s.cmyk, [70, 0, 65, 0]);
+  assert.equal(s.spot?.name, 'PANTONE 186 C');
+  assert.equal(s.value, '#00b050');
+});

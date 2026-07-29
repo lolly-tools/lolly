@@ -264,7 +264,15 @@ export {
   RAMP_STEPS_MIN, RAMP_STEPS_MAX, RAMP_STEPS_DEFAULT,
 } from './brand-derive.ts';
 export type { Oklch, BrandDeriveOptions } from './brand-derive.ts';
-export { gamutSolid, projectGamutSolid, projectSolidPoint, solidPointOklch, labSolidUnit } from './gamut-solid.ts';
+export { gamutSolid, projectGamutSolid, projectSolidPoint, projectSolidPoints, solidPointOklch, labSolidUnit } from './gamut-solid.ts';
+// A brand colour's faces: one canonical value plus per-space/per-profile
+// overrides. The generalisation of PrintLock — the export walkers consult it, so
+// it is engine-side rather than living in the brand editor.
+export { readFaces, writeFace, colorFaces, faceDrift, canonicalValue } from './color-faces.ts';
+export type { ColorFace, StoredFace, FaceTarget, FaceOrigin } from './color-faces.ts';
+// An image's colours as a cloud in the same space the solid is drawn in.
+export { imageColorCloud, UNIQUE_CAP } from './image-cloud.ts';
+export type { ImageCloud, ImageCloudOpts, CloudPoint, CloudSpace } from './image-cloud.ts';
 export type { GamutSolid, SolidQuad, SolidPoint, SolidView, ProjectedQuad, SolidEmbed } from './gamut-solid.ts';
 export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES_CONTRAST_FLOOR } from './color-describe.ts';
 export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';

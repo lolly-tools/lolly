@@ -237,6 +237,28 @@ export const linearSrgbToLinearP3 = (
   r: number, g: number, b: number,
 ): [number, number, number] => apply3(SRGB_TO_P3, r, g, b);
 
+// The exact inverse of SRGB_TO_P3, for the DECODE direction: bytes read off a
+// display-p3 canvas back into the linear sRGB every other module here speaks.
+// Written out rather than inverted at runtime so it can be read and checked, and
+// the round-trip is pinned by a test — an inverse that has drifted from its
+// forward matrix is invisible until a colour is a few percent wrong.
+const P3_TO_SRGB: Mat3 = [
+  1.2249401, -0.2249404, 0.0000000,
+  -0.0420569, 1.0420571, 0.0000000,
+  -0.0196376, -0.0786361, 1.0982735,
+];
+
+/**
+ * Linear Display-P3 → linear sRGB.
+ *
+ * Values outside the sRGB cube come back outside it — negative channels and
+ * values above 1 are the whole POINT here, because they are what "this colour is
+ * beyond sRGB" looks like numerically. Clamping belongs at the paint, not here.
+ */
+export const linearP3ToLinearSrgb = (
+  r: number, g: number, b: number,
+): [number, number, number] => apply3(P3_TO_SRGB, r, g, b);
+
 export const gamutSourceId = (limit: GamutLimit): string =>
   typeof limit === 'string' ? limit : limit.id;
 

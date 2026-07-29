@@ -164,6 +164,26 @@ test('bullet and numbered lines become separate list items', () => {
   assert.match(r.markdown, /^- third point$/m);
 });
 
+test('the list marker is separated from the prose, not left inside it', () => {
+  // Three renderers consume this (HTML draws its own bullet in CSS, markdown
+  // writes "- ", plain text re-adds the original). If the marker stayed inside
+  // `text`, whichever of them forgot to strip it would render "• • thing".
+  const r = extractPageText([run('• first point', 20, 100), run('2. second point', 20, 130)]);
+  assert.equal(r.blocks[0]!.text, 'first point');
+  assert.equal(r.blocks[0]!.marker, '•');
+  assert.equal(r.blocks[1]!.text, 'second point');
+  assert.equal(r.blocks[1]!.marker, '2.');
+  // Markdown normalises the marker; plain text keeps the document's own.
+  assert.match(r.markdown, /^- first point$/m);
+  assert.match(r.text, /^• first point$/m);
+  assert.match(r.text, /^2\. second point$/m);
+});
+
+test('a paragraph carries no marker at all', () => {
+  const r = extractPageText([run('Ordinary prose here', 20, 100)]);
+  assert.equal(r.blocks[0]!.marker, undefined);
+});
+
 test('a wrapped list item keeps its continuation', () => {
   const r = extractPageText([
     run('• a point that runs on', 20, 100),

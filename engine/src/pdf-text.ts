@@ -100,8 +100,17 @@ export interface TextBlock {
   kind: BlockKind;
   /** 1–6 for headings; absent otherwise. */
   level?: number;
-  /** The block's prose, lines joined and de-hyphenated. */
+  /**
+   * The block's prose, lines joined and de-hyphenated.
+   *
+   * For a list item this EXCLUDES the leading marker, which is carried in
+   * `marker` instead. Keeping the bullet inside the text made every renderer
+   * responsible for stripping it, and the moment one of them forgot (an HTML
+   * view whose CSS also draws a bullet) the item rendered "• • thing".
+   */
   text: string;
+  /** A list item's original marker ("•", "2.", "a)"), verbatim from the page. */
+  marker?: string;
   size: number;
   bold: boolean;
   /** Which column it came from, 0-based left to right. */
@@ -366,14 +375,18 @@ function blocksFromColumn(lines: TextLine[], column: number): TextBlock[] {
 
   const flush = (): void => {
     if (!buf.length) return;
-    const marker = LIST_MARKER.test(buf[0]!.text);
+    const marker = LIST_MARKER.exec(buf[0]!.text)?.[0]?.trim();
     let text = '';
     for (const l of buf) text = appendLine(text, l.text);
+    // The marker is recorded once, here, and removed from the prose — so no
+    // renderer downstream has to know what a bullet looks like.
+    if (marker) text = text.replace(LIST_MARKER, '');
     const size = median(buf.map((l) => l.size));
     if (text.trim()) {
       out.push({
         kind: marker ? 'list-item' : 'paragraph',
         text: text.trim(),
+        ...(marker ? { marker } : {}),
         size,
         bold: buf.every((l) => l.bold),
         column,
@@ -448,13 +461,15 @@ function joinBlocks(blocks: TextBlock[], render: (b: TextBlock) => string): stri
 }
 
 function blocksToText(blocks: TextBlock[]): string {
-  return joinBlocks(blocks, (b) => b.text);
+  // Plain text re-adds the document's OWN marker, so a .txt reads like the page
+  // it came from rather than like markdown with the syntax filed off.
+  return joinBlocks(blocks, (b) => (b.marker ? `${b.marker} ${b.text}` : b.text));
 }
 
 function blocksToMarkdown(blocks: TextBlock[]): string {
   return joinBlocks(blocks, (b) => {
     if (b.kind === 'heading') return `${'#'.repeat(b.level ?? 1)} ${b.text}`;
-    if (b.kind === 'list-item') return `- ${b.text.replace(LIST_MARKER, '')}`;
+    if (b.kind === 'list-item') return `- ${b.text}`;
     return escapeLeading(b.text);
   });
 }

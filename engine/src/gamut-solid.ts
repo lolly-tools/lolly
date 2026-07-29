@@ -433,21 +433,57 @@ export function projectGamutSolid(solid: GamutSolid, view: SolidView): Projected
  * the surface it is drawn against needs saying so rather than floating
  * unexplained.
  */
+/**
+ * Where one colour sits in the solid's own model space.
+ *
+ * One function rather than an inline expression per caller: the marker, the batch
+ * projector and `solidPointOklch`'s inverse all have to agree, and an embedding's
+ * scale factor living in three places is how a dot drifts off the surface.
+ */
+function modelPoint(solid: GamutSolid, o: { l: number; c: number; h: number }): SolidPoint {
+  const hr = (o.h * Math.PI) / 180;
+  const scaleR = solid.maxRadius || 1;
+  return solid.embed === 'landscape'
+    ? { x: (((o.h % 360) + 360) % 360) / 360 * 2 - 1, z: o.l * 2 - 1, y: o.c / scaleR }
+    : solid.embed === 'lab'
+      ? labPoint(o.l, o.c, hr, labSolidUnit(solid.maxRadius))
+      : { x: o.c * Math.cos(hr), z: o.c * Math.sin(hr), y: o.l };
+}
+
+/**
+ * Many colours through one camera — a point CLOUD against the solid.
+ *
+ * The batch form exists for a real reason, not tidiness: `projectSolidPoint`
+ * builds a fresh projector per call, and building one scans every quad of the
+ * mesh to measure the rotated extent. At 15k quads and a few thousand cloud
+ * points that is tens of millions of operations per frame, on the rAF that also
+ * has to draw the surface. Here the camera is built once.
+ *
+ * `inside` is deliberately NOT computed. It costs a gamut classification per
+ * point and a cloud drawn against its own source gamut is trivially all-inside;
+ * a caller that wants the out-of-gamut ones already has them from
+ * `imageColorCloud`'s coverage numbers.
+ */
+export function projectSolidPoints(
+  solid: GamutSolid,
+  points: readonly { l: number; c: number; h: number }[],
+  view: SolidView,
+): { x: number; y: number; depth: number }[] {
+  const project = makeProjector(solid, view);
+  return points.map(o => {
+    const p = project(modelPoint(solid, o));
+    return { x: p.x, y: p.y, depth: p.z };
+  });
+}
+
 export function projectSolidPoint(
   solid: GamutSolid,
   o: { l: number; c: number; h: number },
   view: SolidView,
 ): { x: number; y: number; depth: number; inside: boolean } {
-  // Place the marker with the SAME embedding the mesh used, or the two land in
-  // different spaces and the dot drifts off the surface.
-  const hr = (o.h * Math.PI) / 180;
-  const scaleR = solid.maxRadius || 1;
-  const model: SolidPoint = solid.embed === 'landscape'
-    ? { x: (((o.h % 360) + 360) % 360) / 360 * 2 - 1, z: o.l * 2 - 1, y: o.c / scaleR }
-    : solid.embed === 'lab'
-      ? labPoint(o.l, o.c, hr, labSolidUnit(solid.maxRadius))
-      : { x: o.c * Math.cos(hr), z: o.c * Math.sin(hr), y: o.l };
-  const p = makeProjector(solid, view)(model);
+  // Placed with the SAME embedding the mesh used, or the two land in different
+  // spaces and the dot drifts off the surface.
+  const p = makeProjector(solid, view)(modelPoint(solid, o));
   return {
     x: p.x,
     y: p.y,

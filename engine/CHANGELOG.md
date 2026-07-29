@@ -1138,3 +1138,46 @@ the quieter version of the same mistake.
 The finding claims only "present but not visible", never intent; the cause could
 be a botched redaction or ordinary sloppy layering, and callers should keep that
 wording. No v1 bridge method changed.
+
+## 1.77.0 — a brand colour's faces, and the sRGB one wins at export
+
+`color-faces.ts`: one canonical value per brand colour plus per-target overrides,
+keyed by target id (a CSS space name, or `icc:<digest>:<intent>`). The
+generalisation of the shipped `cmyk`/`spot` print lock to every space and press —
+`readFaces`, `writeFace`, `colorFaces`, `faceDrift`, `canonicalValue`.
+
+`ColorSwatch` gains optional `faces` (additive; v1 keeps working), and its `value`
+now returns an **authored sRGB face** in preference to the automatic bake. That is
+one line in `toSwatch` rather than a change per export path, because every
+consumer of a brand colour funnels through that field — and it is what stops an
+override being decoration. The reason the narrow face must win: CSS Color 4
+§14.2's map picks the nearest reproducible colour by ΔE, while a brand will often
+prefer a DIFFERENT sRGB green, one that reads as the same brand colour to a human
+even though it is not the closest by measurement.
+
+Only sRGB is substituted into `value`. A wider face cannot go into a hex-typed
+field without being baked itself, which would discard exactly what it was authored
+to carry, so those ride in `faces` untouched.
+
+Two things a reader should not assume. An override keyed to a profile that is not
+currently mounted is KEPT, not pruned — dropping it because a profile was
+unplugged is data loss, and the failure would be silent. And a PRESS face is not
+yet consulted by the CMYK export paths: those target a `CMYK_CONDITIONS` name
+while a face is keyed by profile identity, and those are different id spaces.
+Bridging them is where the `cmyk` lock migrates onto this model.
+
+Also `gamut.ts`'s `encodeOklch` (one colour encoded for a canvas colour space, on
+the same ceiling grid `oklchSlice` paints from, so a filled vector shape and a
+painted pixel cannot disagree), `gamut-solid.ts`'s `projectSolidPoints` (a batch
+projector — the single-point form rebuilds the camera per call, which scans every
+quad) and `SolidQuad.oklch` (the patch colour before its sRGB bake, so a
+wide-gamut canvas can paint the real thing), plus `image-cloud.ts`:
+`imageColorCloud` turns decoded RGBA into an OKLCH point cloud with gamut
+coverage, clipping and dominant-hue statistics. Its gamut classification carries a
+LINEAR-CUBE tolerance, not a chroma one: an sRGB colour round-tripped through an
+8-bit Display-P3 encoding lands ~0.3% outside the unit cube, which near the sRGB
+cusp reads as 0.048 chroma and made 5.2% of the sRGB cube misclassify as
+wide-gamut. `gamut-source.ts` gains `linearP3ToLinearSrgb`, the exact inverse of
+its forward twin (pinned by a round-trip test, including outside the cube).
+
+No v1 bridge method changed.
