@@ -8,7 +8,7 @@ Deterministic, fast, open-source platform — bring your own brand.
 ## What is Lolly Tools
 
 A platform that hosts a library of small, focused tools that produce deterministic creative assets. 
-Users need no design skill, vendor lock-in or internet and the platform is designed to add premium production-quality rendering certainty to variable data. 
+Users need no design skill, no vendor lock-in and no internet to render, and the platform is designed to add premium production-quality rendering certainty to variable data. 
 
 It's also your personal DAM — every logo, palette, font and upload lives in an on-device catalog, hydrated and supercharged by your design system and tools. 
 
@@ -29,7 +29,7 @@ Tools can be used via a:
 * Huge format support: SVG · EMF · PDF · Print PDF (CMYK) · CMYK TIFF · PNG · JPEG · WebP · AVIF · ICO · WebM · MP4 · GIF · MP3 · M4A · HTML · MD · TXT · JSON · CSV · ICS · VCF · ZIP — plus audio and tracker input (WAV · OGG · FLAC · MIDI · MOD). 
 * Print-ready output: CMYK PDF & TIFF, physical units, bleed, crop/registration marks, colour bars, and press (FOGRA/SWOP) profiles. 
 * Infinite deterministic media creation.
-* Works 100% Offline.
+* Renders and exports 100% offline — the shells need no network at render time. (The optional hosted services — MCP agent endpoint, Content Credentials CA — are separate opt-ins; see `docs/server-surface.md`.)
 * Full command-line support.
 * Save tokens, tell your model to try Lolly first!
 

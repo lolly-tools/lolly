@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:9ee3c98b-67e8-44b2-8f73-8e3807e8dc51",
+  "serialNumber": "urn:uuid:c9c2cd41-20aa-45f5-8106-c9a4cc755d73",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-07-20T15:48:51.375Z",
+    "timestamp": "2026-07-29T15:48:05.824Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -56,10 +56,10 @@
         },
         {
           "type": "library",
-          "bom-ref": "pkg:npm/%40lolly/engine@0.1.0",
+          "bom-ref": "pkg:npm/%40lolly/engine@1.61.0",
           "name": "@lolly/engine",
-          "version": "0.1.0",
-          "purl": "pkg:npm/%40lolly/engine@0.1.0",
+          "version": "1.61.0",
+          "purl": "pkg:npm/%40lolly/engine@1.61.0",
           "licenses": [
             {
               "license": {
@@ -21709,6 +21709,58 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/%40types/dom-mediacapture-transform@0.1.12",
+      "name": "@types/dom-mediacapture-transform",
+      "version": "0.1.12",
+      "purl": "pkg:npm/%40types/dom-mediacapture-transform@0.1.12",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "77bfd0b0b47017ceb80399a020cfd8adf8a0947a189fbce009c0282605b8d38afed83c2736bec405b2e7096a6638c807f32d2d7bbdcbd4057a1f56e66ae69617"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/dom-mediacapture-transform/-/dom-mediacapture-transform-0.1.12.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40types/dom-webcodecs@0.1.13",
+      "name": "@types/dom-webcodecs",
+      "version": "0.1.13",
+      "purl": "pkg:npm/%40types/dom-webcodecs@0.1.13",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "3b986488521c8e3b333c8632512caf49ccafac1a15dcd384119c7fa4c96cbb8e132b358d90b5410719f1273e368a7e67dd022895839c0581423d967487c4a4c1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@types/dom-webcodecs/-/dom-webcodecs-0.1.13.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/%40types/dom-webcodecs@0.1.18",
       "name": "@types/dom-webcodecs",
       "version": "0.1.18",
@@ -22419,6 +22471,32 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/babel-runtime@6.26.0",
+      "name": "babel-runtime",
+      "version": "6.26.0",
+      "purl": "pkg:npm/babel-runtime@6.26.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "21328dbaadb02a55b57c983db125b9d9e7a9a1881906082f3801c2d2efc262efeac50f445734e10a047af419d25cb1e3cb67fb498e73690e32b7b1fd655c58da"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.26.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/balanced-match@1.0.2",
       "name": "balanced-match",
       "version": "1.0.2",
@@ -22600,6 +22678,58 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/butterchurn-presets@2.4.7",
+      "name": "butterchurn-presets",
+      "version": "2.4.7",
+      "purl": "pkg:npm/butterchurn-presets@2.4.7",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "e0c74cf2b8a9cff55f1f504295dac829d01cff5af2245043bea972a30e88be8d5faf08f41f776ecef48c142effc088c08f16f5429c151d5a86a92f6e0052a1a6"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/butterchurn-presets/-/butterchurn-presets-2.4.7.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/butterchurn@2.6.7",
+      "name": "butterchurn",
+      "version": "2.6.7",
+      "purl": "pkg:npm/butterchurn@2.6.7",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "04989103c2f42f6fbce2ea06d9249f929d2472506e37ebd029fdb5ee92bba4c97010ed99120dccb4edbfa3e97c429afc35b7a383cb662f56470f58e686269aaa"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/butterchurn/-/butterchurn-2.6.7.tgz"
         }
       ]
     },
@@ -23479,6 +23609,32 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/core-js@2.6.12",
+      "name": "core-js",
+      "version": "2.6.12",
+      "purl": "pkg:npm/core-js@2.6.12",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "29bdb00b47efb167d0ae093c1d4e655ba53f2dcb3cfbd69a61ccb864573a0c3968e2767b9fbd1d120139aed474a06eae7ca0d49ebc1f58bd665d1e658c36adad"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/core-js/-/core-js-2.6.12.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/core-js@3.49.0",
       "name": "core-js",
       "version": "3.49.0",
@@ -23859,7 +24015,7 @@
       "properties": [
         {
           "name": "lolly:vendored",
-          "value": "tools/street-map/lib/d3.min.js"
+          "value": "tools/meeting-planner/lib/d3.min.js"
         }
       ]
     },
@@ -24488,6 +24644,32 @@
         {
           "type": "distribution",
           "url": "https://registry.npmjs.org/dunder-proto/-/dunder-proto-1.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/ecma-proposal-math-extensions@0.0.2",
+      "name": "ecma-proposal-math-extensions",
+      "version": "0.0.2",
+      "purl": "pkg:npm/ecma-proposal-math-extensions@0.0.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "f340670e9d859fb4715e512be471d96e59e2638690f7b30e02271d596a52a34be4422212484f702d1e12ab12acbb8802b5714120f3f3cbc24c85acb8356460fd"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/ecma-proposal-math-extensions/-/ecma-proposal-math-extensions-0.0.2.tgz"
         }
       ]
     },
@@ -27809,6 +27991,32 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/lodash@4.18.1",
+      "name": "lodash",
+      "version": "4.18.1",
+      "purl": "pkg:npm/lodash@4.18.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "74c22789c4cf544f1dd5ee68b5fc269a3971919a14a6254bc32793754b22fc26a3fe07f3cdb941702139b111d5fc0b23b829b15abb5ed93346498b82782abed1"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/lodash/-/lodash-4.18.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/long@5.3.2",
       "name": "long",
       "version": "5.3.2",
@@ -28126,6 +28334,32 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/mediabunny@1.51.0",
+      "name": "mediabunny",
+      "version": "1.51.0",
+      "purl": "pkg:npm/mediabunny@1.51.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "MPL-2.0"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "bb7dbbdfbe3153c1e8d2009a30823b7d42bcb743e7aa469b0a8c7593cb94c2f82f19bf68e984066441b642be034deee74cca737cbeee9209c70ef0d13b2499f9"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/mediabunny/-/mediabunny-1.51.0.tgz"
         }
       ]
     },
@@ -30482,6 +30716,32 @@
     },
     {
       "type": "library",
+      "bom-ref": "pkg:npm/regenerator-runtime@0.11.1",
+      "name": "regenerator-runtime",
+      "version": "0.11.1",
+      "purl": "pkg:npm/regenerator-runtime@0.11.1",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "320b86f79a228f47c2dd05775117f8576483606261267246aaf20881d10278e0c24fdf304960c027de124ae5696105284dc19420be8be32341ee3d431451d206"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
       "bom-ref": "pkg:npm/regenerator-runtime@0.13.11",
       "name": "regenerator-runtime",
       "version": "0.13.11",
@@ -32257,6 +32517,32 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/topojson-client@3.1.0",
+      "name": "topojson-client",
+      "version": "3.1.0",
+      "purl": "pkg:npm/topojson-client@3.1.0",
+      "licenses": [
+        {
+          "license": {
+            "id": "ISC"
+          }
+        }
+      ],
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "17a2d16f2c3565d104d8b7f0f095cf7aab0f925e2097765d8f17d0f9303d0b026e65307e3790c035bd2a42d10d922f97dc83005499d1b1cdcd4e0047df3728ac"
+        }
+      ],
+      "properties": [
+        {
+          "name": "lolly:vendored",
+          "value": "tools/meeting-planner/lib/topojson.min.js"
         }
       ]
     },
