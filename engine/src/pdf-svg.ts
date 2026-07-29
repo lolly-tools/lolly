@@ -27,6 +27,17 @@
 import type { PdfNode, PdfGradient } from './pdf-map.ts';
 
 export interface PdfSvgOptions {
+  /**
+   * Namespace for generated `<defs>` ids (gradients, clips, masks).
+   *
+   * Defaults to 'p', which is what every existing caller gets. It matters
+   * because a stored SVG asset is INLINED as a nested `<svg>` on export, and a
+   * nested `<svg>` does not scope ids: two documents that both minted `pgrad0`
+   * end up cross-referencing each other's paint servers in one output file. That
+   * is silent and produces plausible-but-wrong artwork, so any caller emitting
+   * more than one SVG destined for the same canvas must pass a distinct prefix.
+   */
+  idPrefix?: string;
   /** Page (MediaBox) size in points — becomes the viewBox and intrinsic size. */
   width: number;
   height: number;
@@ -266,6 +277,8 @@ export function pdfNodeElementKind(n: PdfNode): PdfElementKind {
  * Nodes render in array order (the interpreter's paint order, back-to-front).
  */
 export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
+  // Sanitised: an id has to survive as a bare `url(#…)` reference.
+  const idp = (opts.idPrefix ?? 'p').replace(/[^A-Za-z0-9_-]/g, '') || 'p';
   const w = Math.max(1, Math.round(opts.width || 0));
   const h = Math.max(1, Math.round(opts.height || 0));
   const images = opts.images ?? {};
@@ -285,7 +298,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     const key = `${c.evenOdd ? 'e' : 'n'}|${c.d}`;
     let id = clipDefs.get(key);
     if (!id) {
-      id = `pclip${clipDefs.size}`;
+      id = `${idp}clip${clipDefs.size}`;
       clipDefs.set(key, id);
     }
     return id;
@@ -308,7 +321,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     const key = JSON.stringify([g.type, g.coords, g.matrix, g.extend, g.stops, g.domain, g.tileKey]);
     let entry = gradDefs.get(key);
     if (!entry) {
-      const id = `pgrad${gradDefs.size}`;
+      const id = `${idp}grad${gradDefs.size}`;
       entry = { id, markup: gradientMarkup(g, id, images) };
       gradDefs.set(key, entry);
     }
@@ -382,7 +395,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     if (!el || !m || !(m.w > 0) || !(m.h > 0)) return el;
     let entry = maskDefs.get(m.key);
     if (!entry) {
-      const id = `pmask${maskDefs.size}`;
+      const id = `${idp}mask${maskDefs.size}`;
       const grefs: string[] = [];
       // A child's own `_softMask` is ignored — the interpreter caps mask nesting at
       // one level (§11.6.5.2 turns soft masks off inside a mask group), so it is
@@ -419,7 +432,7 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     // existing clip dedup and the <g data-group> runs untouched.
     const el = maskWrap(n, got.el);
     if (!el) continue;
-    if (got.gref) usedGrads.add(got.gref.slice(5, -1));   // 'url(#pgradN)' → 'pgradN'
+    if (got.gref) usedGrads.add(got.gref.slice(5, -1));   // 'url(#<p>gradN)' → '<p>gradN'
     setGroup(n.group ?? '');
     body.push(clipWrap(n, el));
   }

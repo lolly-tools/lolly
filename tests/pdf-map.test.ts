@@ -209,6 +209,64 @@ test('CMYK fill (k) converts to rgb hex', () => {
   assert.equal(nodes[0].fill, '#ff0000');
 });
 
+// ── BDC property dictionaries (marked content) ───────────────────────────────
+// The tokenizer used to report an inline `<<…>>` operand as `{t:'op'}`. That fell
+// through the operator switch to `default`, which calls reset() and wiped the
+// pending `/OC /Name` — so a BDC carrying ANY property dict silently lost its
+// layer name. These pin the fix and the MCID capture built on top of it.
+
+/** Two rects inside one BDC, so the >=2-member rule makes a real group. */
+const BDC_BODY = ' 0 0 1 rg 10 10 50 20 re f 10 40 50 20 re f EMC';
+const withOcg = (content: string): any[] =>
+  interpretPdfPage({ content, width: 400, height: 300, ocgs: { MC0: 'LayerOne' } }) as any[];
+
+test('an OCG layer name survives a BDC that also carries a property dictionary', () => {
+  // Regression: `/OC /MC0 BDC` worked, `/OC /MC0 <</MCID 0>> BDC` returned undefined.
+  const plain = withOcg('/OC /MC0 BDC' + BDC_BODY);
+  const dicted = withOcg('/OC /MC0 <</MCID 0>> BDC' + BDC_BODY);
+  assert.deepEqual(plain.map((n) => n.group), ['LayerOne', 'LayerOne']);
+  assert.deepEqual(dicted.map((n) => n.group), ['LayerOne', 'LayerOne']);
+});
+
+test('a >> inside an /ActualText string does not close the dictionary early', () => {
+  // The depth counter was not string-aware, so the literal's ">>" ended the dict
+  // and the remainder was mis-tokenized as operators. Tagged PDFs write exactly
+  // this key, so it is the common case, not a contrived one.
+  const nodes = withOcg('/OC /MC0 <</ActualText (a >> b)>> BDC' + BDC_BODY);
+  assert.deepEqual(nodes.map((n) => n.group), ['LayerOne', 'LayerOne']);
+});
+
+test('a nested dictionary and a hex string inside a property list are consumed whole', () => {
+  const nodes = withOcg('/OC /MC0 <</A <</B (x)>> /C <DEADBE>>> BDC' + BDC_BODY);
+  assert.deepEqual(nodes.map((n) => n.group), ['LayerOne', 'LayerOne']);
+});
+
+test('a text run inside /P <</MCID n>> BDC carries that mcid', () => {
+  const nodes = page('/P <</MCID 3>> BDC BT /F1 12 Tf 1 0 0 1 5 250 Tm (hi) Tj ET EMC');
+  assert.equal(nodes[0].text, 'hi');
+  assert.equal(nodes[0].mcid, 3);
+});
+
+test('untagged text carries no mcid at all', () => {
+  const nodes = page('BT /F1 12 Tf 1 0 0 1 5 250 Tm (plain) Tj ET');
+  assert.equal(nodes[0].mcid, undefined);
+});
+
+test('nested marked content latches the INNERMOST mcid, and EMC unwinds it', () => {
+  const nodes = page(
+    '/Sect <</MCID 1>> BDC BT /F1 12 Tf 1 0 0 1 5 250 Tm (outer) Tj ET '
+    + '/P <</MCID 2>> BDC BT /F1 12 Tf 1 0 0 1 5 200 Tm (inner) Tj ET EMC '
+    + 'BT /F1 12 Tf 1 0 0 1 5 150 Tm (after) Tj ET EMC');
+  assert.deepEqual(nodes.map((n: any) => [n.text, n.mcid]), [['outer', 1], ['inner', 2], ['after', 1]]);
+});
+
+test('a BMC with no dictionary leaves the mcid unset without unbalancing the stack', () => {
+  const nodes = page(
+    '/Tx BMC BT /F1 12 Tf 1 0 0 1 5 250 Tm (a) Tj ET EMC '
+    + '/P <</MCID 9>> BDC BT /F1 12 Tf 1 0 0 1 5 200 Tm (b) Tj ET EMC');
+  assert.deepEqual(nodes.map((n: any) => [n.text, n.mcid]), [['a', undefined], ['b', 9]]);
+});
+
 // ── WinAnsi (CP1252) fallback decoding ────────────────────────────────────────
 // A simple font with no /ToUnicode falls back to byte→code-point, which is
 // Latin-1. That is right everywhere EXCEPT 0x80-0x9F, where CP1252 keeps the

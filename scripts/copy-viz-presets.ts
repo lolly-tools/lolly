@@ -68,7 +68,7 @@ function main(): void {
   // put in front of anyone to pick. See build-viz-preset-list.ts for the full reasoning.
   const MIN_LUMA = 3;
   const MAX_LUMA = 235;
-  const index: Array<{ id: string; name: string; author: string; popular: boolean; tier: number; ok: boolean }> = [];
+  const index: Array<{ id: string; name: string; author: string; popular: boolean; tier: number; ok: boolean; luma?: number }> = [];
   let copied = 0;
   let missing = 0;
   for (const e of list) {
@@ -84,6 +84,12 @@ function main(): void {
       tier: e.t ?? (e.p === 1 ? 1 : 6),
       // Unaudited counts as fine: absence of a measurement is not evidence of a fault.
       ok: e.l === undefined || (e.l >= MIN_LUMA && e.l < MAX_LUMA),
+      // Carry the MEASUREMENT, not just the pass/fail derived from it. `ok` answers
+      // "is this broken", which is a different question from "does this READ" — a fifth
+      // of the passing presets sit under luma 25, bright enough not to be a fault and
+      // dark enough that opening on one looks like the visualiser failed to start.
+      // Callers choosing what to show FIRST need the number; see viz-stock's `luma`.
+      ...(e.l === undefined ? {} : { luma: e.l }),
     });
     copied++;
   }

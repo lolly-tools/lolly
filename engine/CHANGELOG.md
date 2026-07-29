@@ -1181,3 +1181,42 @@ wide-gamut. `gamut-source.ts` gains `linearP3ToLinearSrgb`, the exact inverse of
 its forward twin (pinned by a round-trip test, including outside the cube).
 
 No v1 bridge method changed.
+
+1.77.0 — additive: TAGGED reading order, plus two content-stream parser fixes it
+depended on.
+
+`extractPageText(nodes, { tagged })` takes a page's `/StructTreeRoot` elements in
+document order (`TaggedElement[]`, flattened by the shell, which owns the PDF
+object walk) and assembles blocks from the structure instead of from geometry.
+Geometry still joins runs into lines INSIDE an element — within one paragraph,
+position genuinely does say what follows what — but everything geometry cannot
+know is taken from the document: which paragraph comes next, where a block ends,
+and what is a heading. `PdfNode.mcid` carries the marked-content id, and
+`PageText.order` is now `'geometric' | 'tagged'` with `untagged` counting runs
+the tree did not claim.
+
+Structure types OUTRANK the font-size heuristic: a `/P` set in 24pt is a
+paragraph the author set large, and `/H1`…`/H6` are headings however they are
+set. A tree covering less than 60% of the page's characters is refused outright
+and geometry runs instead, because following a token structure tree would hand
+back a confident-looking fragment of the page.
+
+This is a separate assembly path, not a sort applied afterwards: `toLines` and
+`blocksFromColumn` both re-sort by baseline, so a reading rank attached upstream
+would simply be discarded, and block BOUNDARIES are geometric there too.
+
+Two REAL BUGS fixed in pdf-map.ts's tokenizer on the way, both of which changed
+existing behaviour:
+
+  • An inline `<<…>>` operand was reported as `{t:'op'}`, so it fell through the
+    operator switch to `default`, which calls reset() and wiped the pending
+    `/OC /Name`. Any BDC carrying a property dictionary therefore LOST its
+    optional-content layer name — `/OC /MC0 BDC` grouped correctly while
+    `/OC /MC0 <</MCID 0>> BDC` did not. That affected Illustrator layer grouping
+    in the design-import path, not only this feature.
+  • The dictionary scanner counted `<<`/`>>` with no string awareness, so a `>>`
+    inside a literal (`/ActualText (a >> b)`) closed the dictionary early and the
+    remainder was mis-tokenized as operators. `/ActualText` is exactly what a
+    tagged PDF writes there, so tagged files could actively corrupt parsing.
+
+No v1 bridge method changed.
