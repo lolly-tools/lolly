@@ -466,20 +466,6 @@ function leafDays(env, requested) {
   const days = ALLOWED_DAYS.includes(Number(requested)) ? Number(requested) : fallback;
   return Math.min(days, max);
 }
-async function logIssuance(env, { email, provider, certDer, notAfter }) {
-  const digest = new Uint8Array(await subtle4.digest("SHA-256", certDer));
-  const serialHint = Array.from(digest.subarray(0, 4), (b) => b.toString(16).padStart(2, "0")).join("");
-  const entry = { at: (/* @__PURE__ */ new Date()).toISOString(), email, provider, serialHint, notAfter: notAfter.toISOString() };
-  console.log(JSON.stringify(entry));
-  if (env.CA_LOG_WEBHOOK) {
-    fetch(env.CA_LOG_WEBHOOK, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(entry)
-    }).catch(() => {
-    });
-  }
-}
 async function enroll({ token, spki, pop, days } = {}, env) {
   if (!token || !spki || !pop) return { status: 400, json: { error: "token, spki and pop are required" } };
   const t = await verifyEnrollToken(String(token), env.CA_SERVICE_SECRET);
@@ -498,7 +484,6 @@ async function enroll({ token, spki, pop, days } = {}, env) {
     notBefore,
     notAfter
   });
-  await logIssuance(env, { email: t.payload.email, provider: t.payload.provider, certDer, notAfter });
   const certPem = derToPem(certDer, "CERTIFICATE");
   return {
     status: 200,
@@ -643,7 +628,7 @@ If you didn't request this, ignore this email.`
     })
   });
   if (!res.ok) {
-    console.error("resend send failed:", res.status, (await res.text().catch(() => "")).slice(0, 300));
+    console.error("verification email send failed, status", res.status);
     return { status: 502, json: { error: "sending the verification email failed" } };
   }
   return { status: 200, json: { sent: true } };
@@ -756,7 +741,7 @@ function createCaHandler(env = process.env) {
       }
       writeResult(res, await route(env, req, url, path), cors);
     } catch (err) {
-      console.error("ca handler error:", err);
+      console.error("ca handler error:", err?.message || "unknown");
       try {
         res.writeHead(500, { "content-type": "application/json; charset=utf-8" });
         res.end(JSON.stringify({ error: "internal error" }));
