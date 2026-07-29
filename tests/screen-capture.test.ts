@@ -99,9 +99,11 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // visualizer as something a tool can drive) and 1.73.0 (the 'profile' asset
   // type — a user-supplied ICC profile stored on the user-asset rail) and 1.74.0
   // (pdfxProfileEligibility + iccCharacterization + supplied DestOutputProfile
-  // bytes — a user's own CMYK profile can be embedded in a PDF/X-4 output intent);
+  // bytes — a user's own CMYK profile can be embedded in a PDF/X-4 output intent)
+  // and 1.75.0 (extractPageText/joinPageText — a PDF's positioned glyph runs
+  // reassembled into reading-ordered prose, plus the WinAnsi decoding fix);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.74.0');
+  assert.equal(ENGINE_VERSION, '1.75.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

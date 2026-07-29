@@ -881,7 +881,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       if (fi && typeof fi.decode === 'function') { try { return fi.decode(codes); } catch { /* fall through */ } }
       if (fi && fi.twoByte) return ' '.repeat(Math.max(1, Math.ceil(codes.length / 2)));
       let outS = '';
-      for (const c of codes) outS += String.fromCharCode(c);
+      for (const c of codes) outS += WIN_ANSI_HIGH[c] ?? String.fromCharCode(c);
       return outS;
     };
 
@@ -1766,6 +1766,28 @@ function serializePath(segs: Seg[]): { d: string; x: number; y: number; w: numbe
   // was spotted. Closure now comes only from an explicit `h` marker.
   return { d, x: minX, y: minY, w: maxX - minX, h: maxY - minY };
 }
+
+/**
+ * WinAnsiEncoding (CP1252) bytes 0x80–0x9F → their real characters.
+ *
+ * A simple font with no /ToUnicode falls back to treating each byte as a code
+ * point, which is Latin-1 — and Latin-1 is right for EVERY byte except this
+ * range, where CP1252 puts printable punctuation and Latin-1 puts C1 control
+ * characters. WinAnsiEncoding is the default for non-symbolic simple fonts in
+ * practice, so without this table the most ordinary punctuation in English
+ * publishing decodes to invisible controls: smart quotes (0x91–0x94), the
+ * en/em dash (0x96/0x97), the bullet (0x95) and the ellipsis (0x85).
+ *
+ * Sparse on purpose — 0x81, 0x8D, 0x8F, 0x90 and 0x9D are unassigned in CP1252,
+ * so those keep the pass-through rather than inventing a character.
+ */
+const WIN_ANSI_HIGH: Record<number, string> = {
+  0x80: '€', 0x82: '‚', 0x83: 'ƒ', 0x84: '„', 0x85: '…', 0x86: '†', 0x87: '‡',
+  0x88: 'ˆ', 0x89: '‰', 0x8a: 'Š', 0x8b: '‹', 0x8c: 'Œ', 0x8e: 'Ž',
+  0x91: '‘', 0x92: '’', 0x93: '“', 0x94: '”',
+  0x95: '•', 0x96: '–', 0x97: '—', 0x98: '˜', 0x99: '™',
+  0x9a: 'š', 0x9b: '›', 0x9c: 'œ', 0x9e: 'ž', 0x9f: 'Ÿ',
+};
 
 function ocgLabel(op: string, name: string, res: PdfResources): string {
   if (op === 'BDC' && res.ocgs && name && res.ocgs[name]) return res.ocgs[name]!;

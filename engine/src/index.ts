@@ -249,6 +249,9 @@ export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pd
 export type { MaskRegion } from './pdf-smask.ts';
 export { pdfNodesToSvg, windowPdfSvg, cullPdfNodes, pdfNodeExtent, pdfNodeElementKind, CULL_PAD_PT } from './pdf-svg.ts';
 export type { PdfSvgOptions, SvgWindow, CullWindow, CullResult, PdfExtent, PdfElementKind } from './pdf-svg.ts';
+
+export { extractPageText, joinPageText } from './pdf-text.ts';
+export type { PageText, TextBlock, TextLine, TextItem, BlockKind, PdfTextOptions } from './pdf-text.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,
@@ -264,7 +267,7 @@ export { describeColor, contrastVsExtremes, wcagLevel, NOTATION_SPACES, EXTREMES
 export type { ColorDescription, ColorNotation, ContrastVerdict, WcagLevel } from './color-describe.ts';
 
 export type { EncodeSpace } from './gamut.ts';
-export { GAMUTS, oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
+export { GAMUTS, oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, encodeOklch, sliceGamutEdge, sliceGamutRegion } from './gamut.ts';
 export type { GamutName, SlicePlane, SliceOptions, SliceImage } from './gamut.ts';
 export {
   BUILTIN_GAMUT_SOURCES, P3_SOURCE, REC2020_SOURCE, SRGB_SOURCE, NO_GAMUT_SOURCE,
