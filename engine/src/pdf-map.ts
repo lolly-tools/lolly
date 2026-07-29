@@ -55,6 +55,17 @@ export interface PdfNode {
   text?: string;
   fit?: string;
   group?: string;
+  /**
+   * The innermost open marked-content id when this run began, from a tagged
+   * PDF's `/P <</MCID n>> BDC`. Absent when the content is untagged.
+   *
+   * This is the ONLY link between painted content and the document's structure
+   * tree, and therefore the only route to a true reading order — geometry can
+   * only ever guess at it. Latched at the run's origin (with the fill, font and
+   * mask), not at ET, because a single BT…ET block can cross several marked
+   * runs and the first one is what the origin belongs to.
+   */
+  mcid?: number;
   _imageXObject?: string;
   _vectorPath?: string;
   _vectorFill?: string;
@@ -386,6 +397,17 @@ type Tok =
   | { t: 'name'; v: string }
   | { t: 'str'; v: number[] }      // string operand as raw byte codes
   | { t: 'arr'; v: Tok[] }         // for TJ
+  /**
+   * An inline `<<…>>` property dictionary operand (the BDC property list).
+   *
+   * Only `/MCID` is lifted out — that is the one key this interpreter needs, and
+   * parsing the rest would mean a second PDF object parser inside the tokenizer.
+   * It MUST be its own token type: while it was reported as `{t:'op'}` it fell
+   * through the operator switch to `default`, which calls `reset()` and wiped
+   * the pending `/OC /Name` operand, so `/OC /MC0 <</MCID 0>> BDC` silently lost
+   * its layer name (see tests/pdf-map.test.ts).
+   */
+  | { t: 'dict'; v: { mcid: number | null } }
   | { t: 'op'; v: string };
 
 const WS = new Set([0x00, 0x09, 0x0a, 0x0c, 0x0d, 0x20]);
@@ -471,13 +493,54 @@ function tokenize(src: string): Tok[] {
     return { t: 'op', v: s };
   };
 
-  const skipDict = (): void => {
-    let depth = 0;
+  /**
+   * Consume an inline `<<…>>` dictionary, returning its /MCID if it has one.
+   *
+   * STRING-AWARE, unlike the depth counter this replaced. A tagged PDF routinely
+   * writes `/ActualText (…)` into a BDC property list, and a `>>` inside that
+   * literal used to close the dictionary early and leave the remainder to be
+   * mis-tokenized as operators. Parenthesised literals (with backslash escapes
+   * and nesting) and `<…>` hex strings are therefore skipped whole.
+   */
+  const readDict = (): { mcid: number | null } => {
+    // 1, not 0: the caller has already consumed the opening `<<`.
+    let depth = 1;
+    let mcid: number | null = null;
     while (i < n) {
-      if (code(i) === 0x3c && code(i + 1) === 0x3c) { depth++; i += 2; continue; }
-      if (code(i) === 0x3e && code(i + 1) === 0x3e) { depth--; i += 2; if (depth <= 0) break; continue; }
+      const c = code(i);
+      // A literal string: balanced parens, backslash escapes.
+      if (c === 0x28) {
+        let par = 0;
+        while (i < n) {
+          const d = code(i);
+          if (d === 0x5c) { i += 2; continue; }          // escape — skip the pair
+          if (d === 0x28) par++;
+          else if (d === 0x29) { par--; if (par === 0) { i++; break; } }
+          i++;
+        }
+        continue;
+      }
+      if (c === 0x3c && code(i + 1) === 0x3c) { depth++; i += 2; continue; }
+      // A lone '<' opens a HEX string, which can legally contain '>' … it ends at
+      // the first '>', so consuming it here keeps it out of the depth count.
+      if (c === 0x3c) { while (i < n && code(i) !== 0x3e) i++; i++; continue; }
+      if (c === 0x3e && code(i + 1) === 0x3e) { depth--; i += 2; if (depth <= 0) break; continue; }
+      // /MCID <int> — the only key we lift out.
+      if (c === 0x2f) {
+        const start = i;
+        const key = readName();
+        if (key === 'MCID') {
+          while (i < n && WS.has(code(i))) i++;
+          const numStart = i;
+          while (i < n && !WS.has(code(i)) && !DELIM.has(code(i))) i++;
+          const v = parseInt(src.slice(numStart, i), 10);
+          if (isFinite(v)) mcid = v;
+        } else if (i === start) i++;   // readName made no progress — never spin
+        continue;
+      }
       i++;
     }
+    return { mcid };
   };
 
   // Real TJ arrays never nest; a hostile stream of thousands of `[` must not
@@ -492,7 +555,7 @@ function tokenize(src: string): Tok[] {
     while (i < n && depth > 0) {
       const c = code(i);
       if (c === 0x28) { readString(); continue; }
-      if (c === 0x3c && code(i + 1) === 0x3c) { skipDict(); continue; }
+      if (c === 0x3c && code(i + 1) === 0x3c) { i += 2; readDict(); continue; }
       if (c === 0x5b) depth++;
       else if (c === 0x5d) depth--;
       i++;
@@ -520,7 +583,7 @@ function tokenize(src: string): Tok[] {
     if (c === 0x2f) return { t: 'name', v: readName() };
     if (c === 0x28) return { t: 'str', v: readString() };
     if (c === 0x3c) {
-      if (code(i + 1) === 0x3c) { skipDict(); return { t: 'op', v: '<<>>' }; }
+      if (code(i + 1) === 0x3c) { i += 2; return { t: 'dict', v: readDict() }; }
       return { t: 'str', v: readHexString() };
     }
     if (c === 0x5b) return { t: 'arr', v: readArray() };
@@ -834,6 +897,16 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     // non-group marker) that any node emitted inside inherits. Properly nested per PDF spec,
     // so one LIFO stack is enough. gpath() is the full outer→inner id path for a node.
     const gstack: string[] = [];
+    /**
+     * Marked-content ids currently open, innermost last. A tagged PDF wraps each
+     * logical run in `/P <</MCID n>> BDC … EMC`, and that n is the only link
+     * between painted content and the document's structure tree — which is what
+     * states the true READING ORDER, as opposed to the order things happen to sit
+     * on the page. Parallel to `gstack` rather than merged into it because a
+     * group is about visual nesting and an MCID is about document structure; the
+     * same BDC can carry both, and they are consumed by different callers.
+     */
+    const mcstack: number[] = [];
     const gpath = (): string[] => {
       const out = parentGroups.slice();
       for (const id of gstack) if (id) out.push(id);
@@ -857,13 +930,16 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
      * unmasked with no warning at all.
      */
     let textAlpha = 1;
+    let textMcid = -1;
     let textMask: MaskPaint | null = { extra: {}, scale: 1 };
 
     let args: number[] = [];
     let nameArg = '';
     let strArg: number[] | null = null;
     let arrArg: Tok[] | null = null;
-    const reset = (): void => { args = []; nameArg = ''; strArg = null; arrArg = null; };
+    /** The pending inline `<<…>>` property dict (BDC's property list). */
+    let dictArg: { mcid: number | null } | null = null;
+    const reset = (): void => { args = []; nameArg = ''; strArg = null; arrArg = null; dictArg = null; };
 
     const push = (x: number, y: number, op: Seg['op'], extra?: number[]): void => {
       const p = apply(s.ctm, x, y);
@@ -893,6 +969,8 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         textSize = Math.max(1, (s.fontSize || 1) * scaleMag(matMul(s.ctm, { ...tm, e: 0, f: 0 })));
         textRot = rotationOf(trm);
         textFill = s.fill; textFont = s.font;
+        // Innermost open MCID, or -1 when this run is untagged.
+        textMcid = mcstack.length ? mcstack[mcstack.length - 1]! : -1;
         // 'raw', not 'fill': a text run is never a box-shadow plate (so no shadow-drop
         // rung) and never adopts a collapsed tiling pattern's mask (that belongs to a
         // path fill). It DOES take a real <mask> and a folded constant.
@@ -930,11 +1008,24 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       }
     };
 
+    /**
+     * Latch the marked-content id for the run being built, if it has none yet.
+     *
+     * Called where glyphs are actually SHOWN rather than where the origin is set:
+     * a tagged PDF commonly writes `BT … Tm /P <</MCID n>> BDC (text) Tj EMC ET`,
+     * so at origin-set time (Tm) the BDC has not been seen. First id wins, since
+     * one BT…ET block is one node and the node's text begins in that run.
+     */
+    const latchMcid = (): void => {
+      if (textMcid < 0 && mcstack.length) textMcid = mcstack[mcstack.length - 1]!;
+    };
+
     const showString = (codes: number[] | null): void => {
       if (!codes || !codes.length) return;
       const fi = res.fonts && res.fonts[s.font];
       if (fi?.type3) { drawType3(codes, fi.type3); return; }
       if (!originSet) onTextMove();
+      latchMcid();
       textBuf += decodeStr(codes, s.font);
     };
     const showTJ = (arr: Tok[] | null): void => {
@@ -950,6 +1041,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         return;
       }
       if (!originSet) onTextMove();
+      latchMcid();
       for (const el of arr) {
         if (el.t === 'str') textBuf += decodeStr(el.v, s.font);
         else if (el.t === 'num' && el.v <= -180) textBuf += ' ';
@@ -970,6 +1062,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
           fontFamily: (res.fonts && res.fonts[textFont] && res.fonts[textFont]!.family) || '',
           fontWeight: (res.fonts && res.fonts[textFont] && res.fonts[textFont]!.weight) || 400,
           text: txt,
+          ...(textMcid >= 0 ? { mcid: textMcid } : {}),
           _groupPath: gpath(),
           ...(s.clips.length ? { _clips: s.clips } : {}),
           ...textMask.extra,
@@ -977,7 +1070,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         sink.count++;
       }
       textBuf = ''; originSet = false;
-      textAlpha = 1; textMask = { extra: {}, scale: 1 };
+      textAlpha = 1; textMcid = -1; textMask = { extra: {}, scale: 1 };
     };
 
     /**
@@ -1331,6 +1424,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       if (tk.t === 'name') { nameArg = tk.v; continue; }
       if (tk.t === 'str') { strArg = tk.v; continue; }
       if (tk.t === 'arr') { arrArg = tk.v; continue; }
+      if (tk.t === 'dict') { dictArg = tk.v; continue; }
       if (tk.t !== 'op') continue;
 
       switch (tk.v) {
@@ -1514,8 +1608,16 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
 
         // Marked content pushes a frame too (an OCG layer id, or '' for a non-group marker)
         // so it nests correctly with the q…Q frames on the same stack.
-        case 'BDC': case 'BMC': gstack.push(ocgLabel(tk.v, nameArg, res)); break;
-        case 'EMC': if (gstack.length) gstack.pop(); break;
+        case 'BDC': case 'BMC':
+          gstack.push(ocgLabel(tk.v, nameArg, res));
+          // -1 marks "this level had no MCID", so EMC can pop unconditionally and
+          // the stack stays in lockstep with gstack however the two interleave.
+          mcstack.push(dictArg?.mcid ?? -1);
+          break;
+        case 'EMC':
+          if (gstack.length) gstack.pop();
+          if (mcstack.length) mcstack.pop();
+          break;
         default: break;
       }
       reset();

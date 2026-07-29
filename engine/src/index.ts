@@ -250,11 +250,14 @@ export type { MaskRegion } from './pdf-smask.ts';
 export { pdfNodesToSvg, windowPdfSvg, cullPdfNodes, pdfNodeExtent, pdfNodeElementKind, CULL_PAD_PT } from './pdf-svg.ts';
 export type { PdfSvgOptions, SvgWindow, CullWindow, CullResult, PdfExtent, PdfElementKind } from './pdf-svg.ts';
 
+export { findVectorArtwork } from './pdf-artwork.ts';
+export type { VectorArtwork, ArtworkOptions, ArtworkRect } from './pdf-artwork.ts';
+
 export { findHiddenText, findHiddenTextInPages, describeHiddenText } from './pdf-redaction.ts';
 export type { HiddenTextFinding, RedactionOptions, Rect as PdfRect } from './pdf-redaction.ts';
 
 export { extractPageText, joinPageText } from './pdf-text.ts';
-export type { PageText, TextBlock, TextLine, TextItem, BlockKind, PdfTextOptions } from './pdf-text.ts';
+export type { PageText, TextBlock, TextLine, TextItem, BlockKind, PdfTextOptions, TaggedElement } from './pdf-text.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
   isAlias, aliasPath, isTokenValue, TOKEN_EXT,

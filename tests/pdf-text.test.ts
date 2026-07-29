@@ -241,6 +241,99 @@ test('too few lines a side is not enough evidence for a column split', () => {
   assert.equal(extractPageText(nodes, { width: 595, height: 842 }).columns, 1);
 });
 
+// ─── tagged reading order ─────────────────────────────────────────────────────
+// A tagged PDF STATES its reading order. Where the structure tree and geometry
+// disagree, the document wins — geometry is only ever an inference.
+
+/** A run carrying a marked-content id, as a tagged page emits. */
+function tagged(text: string, x: number, baseline: number, mcid: number, o: RunOpts = {}): PdfNode {
+  return { ...run(text, x, baseline, o), mcid };
+}
+
+test('the structure tree overrides a reading order geometry gets wrong', () => {
+  // A pull-quote sidebar sits LEFT of the body on the same baseline, so geometry
+  // reads it first and even merges the two into one line. The document says the
+  // body comes first and the sidebar last.
+  const nodes = [
+    tagged('SIDEBAR read me last', 20, 100, 0),
+    tagged('BODY read me first', 260, 100, 1),
+    tagged('BODY and me second', 260, 130, 2),
+  ];
+
+  const geo = extractPageText(nodes);
+  assert.equal(geo.order, 'geometric');
+  assert.match(geo.text, /^SIDEBAR/, 'geometry should read the sidebar first');
+
+  const tag = extractPageText(nodes, {
+    tagged: [{ mcids: [1], type: 'P' }, { mcids: [2], type: 'P' }, { mcids: [0], type: 'Aside' }],
+  });
+  assert.equal(tag.order, 'tagged');
+  assert.deepEqual(tag.blocks.map((b) => b.text), [
+    'BODY read me first', 'BODY and me second', 'SIDEBAR read me last',
+  ]);
+});
+
+test('structure types decide headings and lists, outranking the size heuristic', () => {
+  // The H1 is set SMALLER than the body. Font size would call the body the
+  // heading; the document says otherwise and the document is right.
+  const r = extractPageText([
+    tagged('A modest heading', 20, 60, 0, { size: 9 }),
+    tagged('Body text set large for effect', 20, 100, 1, { size: 20 }),
+    tagged('a bullet', 20, 140, 2, { size: 9 }),
+  ], {
+    tagged: [{ mcids: [0], type: 'H1' }, { mcids: [1], type: 'P' }, { mcids: [2], type: 'LI' }],
+  });
+  assert.deepEqual(r.blocks.map((b) => [b.kind, b.level]), [['heading', 1], ['paragraph', undefined], ['list-item', undefined]]);
+  assert.match(r.markdown, /^# A modest heading$/m);
+  assert.match(r.markdown, /^- a bullet$/m);
+});
+
+test('one element spanning several mcids becomes ONE block', () => {
+  const r = extractPageText([
+    tagged('a sentence that runs', 20, 100, 0),
+    tagged('across two marked runs', 20, 112, 1),
+  ], { tagged: [{ mcids: [0, 1], type: 'P' }] });
+  assert.equal(r.blocks.length, 1);
+  assert.equal(r.blocks[0]!.text, 'a sentence that runs across two marked runs');
+});
+
+test('untagged runs are appended and counted, not silently dropped', () => {
+  const r = extractPageText([
+    ...Array.from({ length: 6 }, (_, i) => tagged(`tagged body line ${i}`, 20, 100 + i * 12, i)),
+    run('page 7', 300, 800),                       // a running foot, outside the flow
+  ], { tagged: Array.from({ length: 6 }, (_, i) => ({ mcids: [i], type: 'P' })) });
+
+  assert.equal(r.order, 'tagged');
+  assert.equal(r.untagged, 1);
+  assert.match(r.blocks[r.blocks.length - 1]!.text, /page 7/);
+});
+
+test('a token structure tree over mostly-untagged content is NOT trusted', () => {
+  // One tagged run against a page of untagged prose. Following it would hand back
+  // a confident-looking fragment of the page, so the tree is refused outright.
+  const r = extractPageText([
+    tagged('a lone tagged crumb', 20, 60, 0),
+    ...paragraph(20, 100, 8),
+  ], { tagged: [{ mcids: [0], type: 'P' }] });
+  assert.equal(r.order, 'geometric');
+});
+
+test('a tagged element with no matching content on this page is skipped', () => {
+  // One structure tree spans the whole document; most of its elements belong to
+  // other pages.
+  const r = extractPageText([tagged('only me', 20, 100, 5)], {
+    tagged: [{ mcids: [99], type: 'P' }, { mcids: [5], type: 'P' }, { mcids: [42], type: 'P' }],
+  });
+  assert.equal(r.order, 'tagged');
+  assert.deepEqual(r.blocks.map((b) => b.text), ['only me']);
+});
+
+test('an empty tagged array leaves the geometric path untouched', () => {
+  const nodes = [run('hello', 20, 100)];
+  assert.equal(extractPageText(nodes, { tagged: [] }).order, 'geometric');
+  assert.equal(extractPageText(nodes).order, 'geometric');
+});
+
 // ─── scans + empty pages ──────────────────────────────────────────────────────
 
 test('a page that is one big image with no text reads as scanned', () => {

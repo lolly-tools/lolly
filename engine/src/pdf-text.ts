@@ -82,6 +82,8 @@ export interface TextItem {
   size: number;
   font: string;
   bold: boolean;
+  /** Marked-content id, when the page is tagged. */
+  mcid?: number;
 }
 
 export interface TextLine {
@@ -133,8 +135,18 @@ export interface PageText {
   scanned: boolean;
   /** Runs skipped as out of flow (rotated stamps, watermarks). */
   rotated: number;
-  /** How reading order was decided. Geometric today; 'tagged' once MCIDs land. */
-  order: 'geometric';
+  /**
+   * Runs the structure tree did not claim, appended after the tagged flow.
+   * Only meaningful when `order` is 'tagged'; usually running heads and page
+   * numbers, which genuinely sit outside the reading order.
+   */
+  untagged?: number;
+  /**
+   * How the reading order was decided. 'tagged' means the document stated it
+   * (`/StructTreeRoot`) and we followed it; 'geometric' means we inferred it
+   * from positions, which is a good guess and no more than that.
+   */
+  order: 'geometric' | 'tagged';
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -200,6 +212,7 @@ function toItems(nodes: PdfNode[]): { items: TextItem[]; rotated: number } {
         size,
         font,
         bold,
+        ...(typeof n.mcid === 'number' ? { mcid: n.mcid } : {}),
       });
     }
   }
@@ -410,6 +423,66 @@ function blocksFromColumn(lines: TextLine[], column: number): TextBlock[] {
   return out;
 }
 
+/**
+ * Build blocks from the structure tree instead of from geometry.
+ *
+ * Geometry is still used INSIDE an element — to join its runs into lines and
+ * repair hyphenation — because that part is not a guess: within one paragraph,
+ * position really does say what follows what. What the structure tree replaces
+ * is everything geometry cannot know: which paragraph comes next, where one
+ * block ends and the next begins, and whether something is a heading.
+ *
+ * That distinction is why this is a separate assembly path rather than a sort
+ * applied afterwards. `toLines` and `blocksFromColumn` both re-sort by baseline,
+ * so a reading rank attached to items upstream would simply be discarded; and
+ * block BOUNDARIES are geometric there too, so even a correct reordering of
+ * blocks would keep the wrong blocks.
+ */
+function taggedBlocks(items: TextItem[], tagged: TaggedElement[]): {
+  blocks: TextBlock[]; used: Set<TextItem>;
+} {
+  const byMcid = new Map<number, TextItem[]>();
+  for (const it of items) {
+    if (typeof it.mcid !== 'number') continue;
+    const bucket = byMcid.get(it.mcid);
+    if (bucket) bucket.push(it);
+    else byMcid.set(it.mcid, [it]);
+  }
+
+  const blocks: TextBlock[] = [];
+  const used = new Set<TextItem>();
+
+  for (const el of tagged) {
+    const mine: TextItem[] = [];
+    for (const id of el.mcids) for (const it of byMcid.get(id) ?? []) mine.push(it);
+    if (!mine.length) continue;
+    for (const it of mine) used.add(it);
+
+    // Lines within the element, then one block per element — a /P IS a paragraph.
+    const lines = toLines(mine);
+    if (!lines.length) continue;
+    let text = '';
+    for (const l of lines) text = appendLine(text, l.text);
+
+    const marker = LIST_MARKER.exec(text)?.[0]?.trim();
+    const { kind, level } = kindFromType(el.type);
+    if (marker) text = text.replace(LIST_MARKER, '');
+    text = text.trim();
+    if (!text) continue;
+
+    blocks.push({
+      kind,
+      ...(level ? { level } : {}),
+      text,
+      ...(marker ? { marker } : {}),
+      size: median(lines.map((l) => l.size)),
+      bold: lines.every((l) => l.bold),
+      column: 0,
+    });
+  }
+  return { blocks, used };
+}
+
 // ── 5. headings ───────────────────────────────────────────────────────────────
 
 /**
@@ -476,10 +549,45 @@ function blocksToMarkdown(blocks: TextBlock[]): string {
 
 // ── the pass ──────────────────────────────────────────────────────────────────
 
+/**
+ * One element of a tagged PDF's structure tree, already flattened to document
+ * order by the caller (the shell owns the `/StructTreeRoot` walk, because that
+ * needs a PDF object parser this module must not have).
+ */
+export interface TaggedElement {
+  /** Marked-content ids this element owns, in document order. */
+  mcids: number[];
+  /** Structure type verbatim: 'P', 'H1'…'H6', 'LI', 'LBody', 'Figure', … */
+  type: string;
+}
+
 export interface PdfTextOptions {
   /** Page box size, used only to judge whether an image covers the page. */
   width?: number;
   height?: number;
+  /**
+   * The page's structure elements in DOCUMENT order. When supplied and the page
+   * is sufficiently tagged, this replaces the geometric reconstruction outright:
+   * the document states its own reading order, and no heuristic can beat that.
+   */
+  tagged?: TaggedElement[];
+}
+
+/** Below this fraction of tagged characters the structure tree is not trusted. */
+const MIN_TAGGED_COVERAGE = 0.6;
+
+/**
+ * Structure type → block kind. The document's own statement, so it OUTRANKS the
+ * font-size heuristic: a `/P` set in 24pt is a paragraph the author chose to set
+ * large, not a heading, and `markHeadings` must not second-guess it.
+ */
+function kindFromType(type: string): { kind: BlockKind; level?: number } {
+  const t = type.replace(/^\//, '');
+  const h = /^H([1-6])$/.exec(t);
+  if (h) return { kind: 'heading', level: Number(h[1]) };
+  if (t === 'H' || t === 'Title') return { kind: 'heading', level: 1 };
+  if (t === 'LI' || t === 'LBody' || t === 'Lbl') return { kind: 'list-item' };
+  return { kind: 'paragraph' };
 }
 
 /**
@@ -512,6 +620,36 @@ export function extractPageText(nodes: PdfNode[], opts: PdfTextOptions = {}): Pa
   let bodySize = items[0]!.size;
   let bestChars = -1;
   for (const [s, n] of sizeChars) if (n > bestChars) { bestChars = n; bodySize = s; }
+
+  // ── the tagged path ───────────────────────────────────────────────────────
+  // A structure tree states the reading order outright, so when the page really
+  // is tagged there is nothing for geometry to decide at the block level.
+  if (opts.tagged?.length) {
+    const { blocks: tb, used } = taggedBlocks(items, opts.tagged);
+    const totalChars = items.reduce((a, it) => a + it.text.length, 0);
+    const taggedChars = [...used].reduce((a, it) => a + it.text.length, 0);
+    // Coverage gate: a document with a token structure tree over mostly-untagged
+    // content would otherwise hand back a confident-looking fragment of itself.
+    // Below the floor the tree is not trusted at all and geometry runs instead.
+    if (totalChars > 0 && taggedChars / totalChars >= MIN_TAGGED_COVERAGE && tb.length) {
+      // Whatever the tree did not claim is usually an artifact (a running head, a
+      // page number) that genuinely sits outside the flow — appended, and counted
+      // so a caller can say so rather than imply the page was fully tagged.
+      const leftovers = items.filter((it) => !used.has(it));
+      const extra = leftovers.length ? blocksFromColumn(toLines(leftovers), 0) : [];
+      const blocks = [...tb, ...extra];
+      return {
+        blocks,
+        text: blocksToText(blocks),
+        markdown: blocksToMarkdown(blocks),
+        columns: 1,
+        scanned: false,
+        rotated,
+        untagged: leftovers.length,
+        order: 'tagged',
+      };
+    }
+  }
 
   // Cut columns on items, assemble lines inside each, then check the split was
   // real. If it was not, fall back to assembling every item as one column — the
