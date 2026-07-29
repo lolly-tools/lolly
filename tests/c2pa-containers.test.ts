@@ -646,3 +646,70 @@ test('pdf: a truncated stamped PDF fails closed on read, and re-stamping ignores
   const origStartxref = +/startxref\n(\d+)\n%%EOF\n$/.exec(binOf(base))![1]!;
   assert.match(binOf(restamped.subarray(cutIntoStream.length)), new RegExp(`/Prev ${origStartxref}\\b`));
 });
+
+// ── TIFF IFD pointer bounds (fuzz finding, 2026-07-29) ──────────────────────
+//
+// placeTiff walks the IFD chain using offsets read STRAIGHT OUT OF THE FILE, so
+// every one of them is attacker controlled. Two bugs were found by the
+// c2pa-containers fuzz target and fixed together; this test pins both, because
+// the fuzz gate alone cannot: its contract treats any throw as success, so a
+// regression to a raw DataView RangeError would still pass it. What matters
+// here is that the module refuses malformed input with ITS OWN named error.
+//
+// Reproducer for the first bug is kept at
+// tests/fuzz/regressions/c2pa-containers-tiff-forged-ifd-pointer.bin
+test('tiff: a forged IFD pointer is refused with a named error, not a RangeError', () => {
+  const store = Uint8Array.of(1, 2, 3);
+
+  // A first-IFD pointer far past EOF. Before the fix, u16(ifd) dereferenced
+  // this before the bounds check below it could fire.
+  const farPast = new Uint8Array(16);
+  farPast.set(bytesOf('II'), 0);
+  farPast.set(Uint8Array.of(42, 0), 2);
+  farPast.set(u32le(0xff_fff0), 4);
+  assert.throws(
+    () => attachC2paStore(farPast, 'tiff', store),
+    (e: unknown) => e instanceof Error && /malformed TIFF IFD/.test(e.message) && !(e instanceof RangeError),
+    'a pointer past EOF is the module\'s own malformed-input error',
+  );
+
+  // The same, big-endian, to prove the guard is not endianness-specific.
+  const beFarPast = new Uint8Array(16);
+  beFarPast.set(bytesOf('MM'), 0);
+  beFarPast.set(Uint8Array.of(0, 42), 2);
+  beFarPast.set(u32be(0xff_fff0), 4);
+  assert.throws(() => attachC2paStore(beFarPast, 'tiff', store), /malformed TIFF IFD/);
+
+  // The header itself must be present before any of it is read: 'II' alone
+  // satisfies the magic check but leaves offsets 2..7 out of range.
+  assert.throws(() => attachC2paStore(bytesOf('II'), 'tiff', store), /truncated TIFF header/);
+
+  // A subarray view whose forged pointer lands INSIDE the parent ArrayBuffer but
+  // past the logical end of the file. This is the second bug: the DataView was
+  // built without a byteLength, so these reads silently returned neighbouring
+  // bytes instead of throwing, and the walk proceeded on data that is not part
+  // of the file at all.
+  const parent = new Uint8Array(512).fill(0xab);
+  const view = parent.subarray(0, 16);
+  view.set(bytesOf('II'), 0);
+  view.set(Uint8Array.of(42, 0), 2);
+  view.set(u32le(100), 4); // < parent.length, but > view.length
+  assert.throws(
+    () => attachC2paStore(view, 'tiff', store),
+    /malformed TIFF IFD/,
+    'a subarray must not be able to read past its own end into the parent buffer',
+  );
+
+  // Control: a well-formed TIFF still stamps, so the guards above did not
+  // simply break the happy path. (Byte-level read-back of a real signed store
+  // is covered by the round-trip cases earlier in this file; `store` here is
+  // three arbitrary bytes, which is deliberately not a valid JUMBF store, so
+  // extractC2paStore would correctly decline to return it.)
+  const valid = packTiff(new Uint8Array(3), { width: 1, height: 1 });
+  const ok = attachC2paStore(valid, 'tiff', store);
+  assert.ok(ok.length > valid.length, 'a valid TIFF still gains the appended IFD and manifest');
+  // Not a byte-identical prefix: appending the new IFD patches the previous
+  // last IFD's next-pointer in place, which is the whole point of the chain
+  // walk above. The header must survive untouched though.
+  assert.ok(sameBytes(ok.subarray(0, 4), valid.subarray(0, 4)), 'the TIFF header is preserved');
+});
