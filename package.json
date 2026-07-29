@@ -19,6 +19,7 @@
     "services/mcp"
   ],
   "scripts": {
+    "preinstall": "node scripts/check-bootstrap.ts",
     "postinstall": "node scripts/use-profile.ts --auto",
     "profile": "node scripts/use-profile.ts",
     "profile:suse": "node scripts/use-profile.ts suse",
@@ -39,6 +40,9 @@
     "build:catalog:all": "node scripts/build-catalog-all.ts",
     "build:readme-tools": "node scripts/build-readme-tools.ts",
     "validate:catalog": "node scripts/validate-catalog.ts",
+    "build:engine-modules": "node scripts/gen-engine-modules.ts",
+    "check:engine-modules": "node scripts/gen-engine-modules.ts --check",
+    "check:engine-purity": "node scripts/check-engine-purity.ts",
     "validate:catalog:all": "node scripts/build-catalog-all.ts --check",
     "sync:shared": "node scripts/sync-shared-hooks.ts",
     "check:bundle": "node scripts/check-bundle-budget.ts",
@@ -47,6 +51,7 @@
     "previews": "node scripts/build-previews.ts && node scripts/optimize-preview-webp.ts && node scripts/build-preview-bundle.ts",
     "previews:animated": "node scripts/build-animated-previews.ts",
     "og": "node scripts/build-tool-og.ts && node scripts/build-view-og.ts",
+    "og:all": "node scripts/build-og-all.ts",
     "voice": "node scripts/build-voice-clips.ts",
     "cards:svg": "node scripts/build-svg-card.ts",
     "cards:html": "node scripts/build-html-card.ts",

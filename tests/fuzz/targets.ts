@@ -21,11 +21,24 @@
  *   - pptx-patch    : rebrandPptxParts(parts, plan)         — the surgical .pptx rebrand
  *   - icc           : parseIccProfile(bytes) + evaluate                  — the ICC profile reader
  *   - pptx-bridge   : createPptxAPI().inspect(bytes)        — the web bridge's capped unzip + inspect end-to-end
+ *   - der-read      : derTlv/derChildren walk + ecdsaDerToRaw — the shared DER/ASN.1 TLV walker
+ *   - c2pa-extract  : parseC2paStore / collectActionChain / prepareC2paIngredientFromStore / sniffFormat
+ *   - c2pa-containers: attachC2paStore(bytes, fmt, store) + embedC2paInPdf — the placement-side container walkers
+ *   - url-pack      : unpackToken(token) + expandQuery(query) — the `z` param decoder (DEFLATE bomb caps)
+ *   - wav           : parseWav(bytes)                       — the RIFF/WAVE container walker
  */
 
-import { embedC2paInPdf, embedC2pa, encodeCbor } from '../../engine/src/c2pa.ts';
+import { embedC2paInPdf, embedC2pa, attachC2paStore, encodeCbor, type Signer } from '../../engine/src/c2pa.ts';
 import { generateSigner, generateCaRoot, issueLeafCert } from '../../engine/src/x509.ts';
 import { verifyC2pa, parseCertificate, decodeCbor } from '../../engine/src/c2pa-verify.ts';
+import { derTlv, derChildren, ecdsaDerToRaw, ecdsaRawToDer, type DerTlv } from '../../engine/src/der-read.ts';
+import {
+  parseC2paStore, collectActionChain, prepareC2paIngredientFromStore,
+  extractC2paStore, sniffFormat, type SniffFormat,
+} from '../../engine/src/c2pa-extract.ts';
+import { unpackToken, expandQuery, hasPackedState, packQuery } from '../../engine/src/url-pack.ts';
+import { parseWav } from '../../engine/src/wav.ts';
+import { deflateRawSync } from 'node:zlib';
 import { sniffAnimatedRaster, sniffVideoContainer } from '../../engine/src/media-sniff.ts';
 import { interpretPdfPage, parseToUnicode } from '../../engine/src/pdf-map.ts';
 import { extractFileMetadata } from '../../engine/src/file-metadata.ts';
@@ -100,10 +113,19 @@ const tinyMp4 = (): Uint8Array => concat([
 ]);
 const ebVint = (n: number): Uint8Array => { const out = new Uint8Array(4); out[0] = 0x10 | ((n >>> 24) & 0x0f); out[1] = (n >>> 16) & 0xff; out[2] = (n >>> 8) & 0xff; out[3] = n & 0xff; return out; };
 const eb = (id: number[], payload: Uint8Array): Uint8Array => concat([Uint8Array.from(id), ebVint(payload.length), payload]);
-const tinyWebm = (): Uint8Array => concat([
-  Uint8Array.of(0x1a, 0x45, 0xdf, 0xa3, 0x84), eb([0x42, 0x86], Uint8Array.of(1)),
-  Uint8Array.of(0x18, 0x53, 0x80, 0x67), ebVint(8), eb([0x16, 0x54, 0xae, 0x6b], new Uint8Array(2)),
-]);
+// Every declared size is the REAL length of what follows. That matters: an EBML
+// header whose size byte undercounts its own content puts the Segment somewhere
+// other than where segOff computes, and both walkers (placeWebm,
+// embedWebmMeta) then bail at the front door on every iteration — the seed would
+// look fine to a sniffer and still test nothing.
+function tinyWebm(): Uint8Array {
+  const head = eb([0x42, 0x86], Uint8Array.of(1));                      // DocTypeVersion
+  const tracks = eb([0x16, 0x54, 0xae, 0x6b], new Uint8Array(2));       // Tracks
+  return concat([
+    Uint8Array.of(0x1a, 0x45, 0xdf, 0xa3), ebVint(head.length), head,   // EBML header
+    Uint8Array.of(0x18, 0x53, 0x80, 0x67), ebVint(tracks.length), tracks, // Segment
+  ]);
+}
 
 function buildTestPdf(): Uint8Array {
   let out = '%PDF-1.4\n%\xe2\xe3\xcf\xd3\n';
@@ -583,9 +605,258 @@ export const pptxBridgeTarget: FuzzTarget = {
   },
 };
 
+// ── der-read: the shared DER/ASN.1 TLV walker ─────────────────────────────────
+//
+// Under every certificate and signature path (c2pa-verify.ts, x509.ts, seal.ts),
+// and its own header says the DER it eats "comes straight out of attacker-
+// controlled files". Contract: throws PROMPTLY on truncation or a length that
+// overruns — so a controlled throw is the desired outcome and the findings are
+// the runner's hang / stack / alloc classes.
+
+// Bounds THIS harness's tree walk, not the parser: der-read is iterative (one
+// level per derChildren call), so the recursion here would be ours. A hostile
+// TLV soup can declare a huge number of 2-byte children.
+const DER_MAX_NODES = 20_000;
+
+/** Walk the whole TLV tree depth-first (explicit stack) via the real
+ *  derTlv/derChildren — the same pair every certificate path uses. */
+function walkDer(b: Uint8Array): void {
+  const stack: DerTlv[] = [derTlv(b, 0)];
+  let visited = 0;
+  while (stack.length && visited++ < DER_MAX_NODES) {
+    const t = stack.pop()!;
+    if (t.tag & 0x20) for (const c of derChildren(b, t)) stack.push(c); // constructed bit
+  }
+}
+
+export const derReadTarget: FuzzTarget = {
+  name: 'der-read',
+  async seeds() {
+    // Real v3 certificates (deep, many-branch SEQUENCEs) plus real
+    // ECDSA-Sig-Values, which is the other shape the walker is handed.
+    const out: Uint8Array[] = [];
+    const signer = await generateSigner();
+    out.push(signer.certDer);
+    out.push((await generateCaRoot()).certDer);
+    for (const half of [32, 48, 66]) {
+      const raw = new Uint8Array(half * 2).fill(0x7f);
+      raw[0] = 0x00; // exercise the sign-pad strip on the r half
+      out.push(ecdsaRawToDer(raw));
+    }
+    return out;
+  },
+  // Whole-tree walk first, conversion second. Not the other way round: a
+  // certificate is a SEQUENCE whose first child is constructed, so
+  // ecdsaDerToRaw rejects it immediately as "not an ECDSA-Sig-Value" — running
+  // it first would throw before the walker ever saw the cert seeds.
+  async invoke(bytes) {
+    walkDer(bytes);
+    for (const size of [32, 48, 66]) ecdsaDerToRaw(bytes, size);
+  },
+};
+
+// ── c2pa-extract / c2pa-containers ────────────────────────────────────────────
+//
+// One signer built once for every c2pa seed below: keygen per seeds() call would
+// dominate the run, and the placement/extraction paths under test are not
+// cryptographic (c2pa-extract.ts does no crypto at all, by design).
+let sharedSignerPromise: Promise<Signer> | null = null;
+const sharedSigner = (): Promise<Signer> => (sharedSignerPromise ??= generateSigner());
+
+/** Real JUMBF manifest stores, lifted back out of freshly credentialed files. */
+async function manifestStoreSeeds(): Promise<Uint8Array[]> {
+  const out: Uint8Array[] = [];
+  const signer = await sharedSigner();
+  for (const [bytes, fmt] of [[tinyPng(), 'png'], [tinyJpeg(), 'jpg'], [tinyMp4(), 'mp4']] as const) {
+    const stamped = await embedC2pa(bytes, fmt, { title: 'Fuzz', claimGenerator: 'LollyFuzz/1.0', signer });
+    const ex = extractC2paStore(stamped);
+    if (ex) out.push(ex.store);
+  }
+  if (!out.length) throw new Error('c2pa seed corpus is empty — embedC2pa/extractC2paStore broke');
+  return out;
+}
+// Built once: the container target needs A store to splice, and re-embedding per
+// iteration would make signing, not the container walk, the thing being measured.
+let storeSeedsPromise: Promise<Uint8Array[]> | null = null;
+const cachedStoreSeeds = (): Promise<Uint8Array[]> => (storeSeedsPromise ??= manifestStoreSeeds());
+
+export const c2paExtractTarget: FuzzTarget = {
+  name: 'c2pa-extract',
+  async seeds() {
+    return cachedStoreSeeds();
+  },
+  // Mixed contracts, deliberately exercised together on the same bytes:
+  // parseC2paStore THROWS with a specific message on a store it can't read
+  // (fine — the runner ignores controlled throws), while collectActionChain and
+  // prepareC2paIngredientFromStore must NEVER throw (a display nicety and an
+  // ingest helper), so any escape from those two is itself a finding.
+  //
+  // Ordered so the never-throw pair runs first: parseC2paStore is last because a
+  // controlled throw from it would otherwise skip them. (bmffTopBoxes, the other
+  // exported walker here, is reached on mutated MP4s through the c2pa-verify and
+  // c2pa-containers targets — swallowing its throw to also call it here would
+  // hide exactly the classes this harness exists to catch.)
+  async invoke(bytes) {
+    collectActionChain(bytes);
+    prepareC2paIngredientFromStore(bytes, 'png');
+    sniffFormat(bytes);
+    parseC2paStore(bytes);
+  },
+};
+
+// Attach format per sniffed container, so a mutated seed reaches the placer that
+// actually walks its grammar (the shell knows the format from the asset; a
+// header-mutated file that sniffs as nothing still gets fed to a placer).
+// ('pdf' is absent on purpose — it routes to embedC2paInPdf, not a placer.)
+const ATTACH_FORMAT: Record<Exclude<SniffFormat, 'pdf'>, string> = {
+  png: 'png', jpeg: 'jpg', gif: 'gif', svg: 'svg',
+  tiff: 'tiff', webp: 'webp', mp4: 'mp4', webm: 'webm', mkv: 'webm',
+};
+
+export const c2paContainersTarget: FuzzTarget = {
+  name: 'c2pa-containers',
+  async seeds() {
+    return [
+      tinyPng(), tinyJpeg(), tinyGif(2), tinySvg(), tinyWebp(), tinyMp4(), faststartMp4(), tinyWebm(),
+      packTiff(new Uint8Array(3), { width: 1, height: 1 }),
+      buildTestPdf(),
+    ];
+  },
+  // The PLACEMENT side: splicing a store into a container means walking that
+  // container's grammar (PNG chunks, JPEG segments, GIF blocks, RIFF/TIFF IFDs,
+  // BMFF boxes, EBML elements, PDF xref). Contract: throws on a container it
+  // refuses to modify — so only hang / stack / alloc are findings.
+  async invoke(bytes) {
+    const store = (await cachedStoreSeeds())[0]!;
+    const fmt = sniffFormat(bytes);
+    if (fmt === 'pdf') { await embedC2paInPdf(bytes, { title: 'Fuzz', signer: await sharedSigner() }); return; }
+    attachC2paStore(bytes, (fmt && ATTACH_FORMAT[fmt]) || 'png', store);
+  },
+};
+
+// ── url-pack: the `z` param decoder ───────────────────────────────────────────
+//
+// The one module whose ENTIRE input is a public URL param, and whose threat is a
+// DEFLATE bomb (raw DEFLATE expands ~1000×), bounded by MAX_TOKEN = 64 KB and
+// MAX_UNPACKED = 256 KB. unpackToken catches its own failures and returns null,
+// so the observable classes here are hang and stack overflow — a swallowed
+// allocation error would show up as the cap doing its job, which is the point.
+const URL_PACK_QUERIES = [
+  'background=336699&theme=dark&format=png',
+  `boxes=${new Array(40).fill('10,20,120,60,ff0000,Hello').join('~')}&format=svg&w=1200&h=630`,
+  'text=' + encodeURIComponent('a'.repeat(4000)),
+];
+
+/** A DEFLATE bomb token: valid framing, ~11 KB of base64url that inflates to
+ *  8 MB, so it trips MAX_UNPACKED (256 KB) rather than the token cap. Hand-built because packQuery refuses to mint one
+ *  (its encode cap is symmetric with the decode cap, by design). Same intent as
+ *  TOUNICODE_WIDE_SEED above: put the hostile shape in reach of the mutators. */
+function urlPackBombToken(): string {
+  const deflated = deflateRawSync(new Uint8Array(8 * 1024 * 1024), { level: 9 });
+  let bin = '';
+  for (const b of deflated) bin += String.fromCharCode(b);
+  return '1' + btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+/** base64url-encode, matching what packQuery emits (unpadded, -/_ alphabet). */
+function base64Url(bytes: Uint8Array): string {
+  let bin = '';
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+export const urlPackTarget: FuzzTarget = {
+  name: 'url-pack',
+  // Two kinds of seed, because the interesting code sits behind a strict
+  // alphabet check. Byte mutators produce mostly non-base64 text, so a mutated
+  // TOKEN is refused before decoding ~80% of the time — good coverage of the
+  // validator, almost none of the inflater. So the raw DEFLATE payload of each
+  // token (and of the bomb) is seeded too, and invoke() reads every buffer BOTH
+  // ways; a mutated payload re-wrapped in valid framing lands squarely on the
+  // inflater and the MAX_UNPACKED cap behind it.
+  async seeds() {
+    const out: Uint8Array[] = [];
+    for (const q of URL_PACK_QUERIES) {
+      const token = await packQuery(q);
+      if (!token) continue;
+      out.push(bytesOf(token));
+      out.push(Uint8Array.from(atob(token.slice(1).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
+    }
+    const bomb = urlPackBombToken();
+    out.push(bytesOf(bomb));
+    out.push(Uint8Array.from(atob(bomb.slice(1).replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0)));
+    if (!out.length) throw new Error('url-pack seed corpus is empty — packQuery returned null');
+    return out;
+  },
+  async invoke(bytes) {
+    // (1) as a `z` value straight off the URL. latin1 keeps every mutated byte a
+    // distinct char, so base64url validation sees exactly what was pasted.
+    let token = '';
+    for (let i = 0; i < bytes.length; i++) token += String.fromCharCode(bytes[i]!);
+    await unpackToken(token);
+    // The param-splicing wrapper, with a rider param so the re-emit path runs.
+    const query = `z=${encodeURIComponent(token)}&format=png`;
+    hasPackedState(query);
+    await expandQuery(query);
+    // (2) as the DEFLATE payload of a well-formed token — the mutated bytes reach
+    // the decompressor itself rather than dying at the alphabet check.
+    await unpackToken(`1${base64Url(bytes)}`);
+  },
+};
+
+// ── wav: the RIFF/WAVE container walker ───────────────────────────────────────
+
+/** A valid WAV. `extensible` wraps the tag in a WAVE_FORMAT_EXTENSIBLE GUID. */
+function wavFile(tag: number, channels: number, bits: number, frames: number, extensible = false): Uint8Array {
+  const rate = 8000;
+  const bytesPerSample = bits >> 3;
+  const blockAlign = bytesPerSample * channels;
+  const fmtBody: number[] = [];
+  const u16 = (n: number): void => { fmtBody.push(n & 0xff, (n >>> 8) & 0xff); };
+  const u32 = (n: number): void => { fmtBody.push(...u32le(n)); };
+  u16(extensible ? 0xfffe : tag);
+  u16(channels); u32(rate); u32(rate * blockAlign); u16(blockAlign); u16(bits);
+  if (extensible) {
+    u16(22); u16(bits); u32(channels === 1 ? 0x4 : 0x3);
+    u16(tag); // GUID's first two bytes carry the real format tag
+    fmtBody.push(...new Array<number>(14).fill(0));
+  }
+  const chunk = (id: string, body: Uint8Array): Uint8Array =>
+    concat([bytesOf(id), u32le(body.length), body, body.length & 1 ? Uint8Array.of(0) : new Uint8Array(0)]);
+  const data = new Uint8Array(frames * blockAlign);
+  for (let i = 0; i < data.length; i++) data[i] = (i * 37) & 0xff;
+  const body = concat([
+    bytesOf('WAVE'),
+    chunk('fmt ', Uint8Array.from(fmtBody)),
+    chunk('LIST', bytesOf('INFOISFT\x04\x00\x00\x00Loll')), // an unknown chunk to walk past
+    chunk('data', data),
+  ]);
+  return concat([bytesOf('RIFF'), u32le(body.length), body]);
+}
+
+export const wavTarget: FuzzTarget = {
+  name: 'wav',
+  async seeds() {
+    return [
+      wavFile(0x0001, 1, 8, 64),    // 8-bit unsigned mono
+      wavFile(0x0001, 2, 16, 64),   // 16-bit stereo
+      wavFile(0x0001, 2, 24, 32),   // 24-bit
+      wavFile(0x0003, 2, 32, 32),   // IEEE float
+      wavFile(0x0003, 1, 64, 32),   // 64-bit float
+      wavFile(0x0001, 2, 16, 32, true), // WAVE_FORMAT_EXTENSIBLE
+    ];
+  },
+  // Contract: throws with a specific reason on anything it cannot read (a silent
+  // mis-read would be a wall of full-scale noise), so a controlled throw is the
+  // desired outcome. The findings are the runner's classes: MAX_CHANNELS is the
+  // only declared cap, and the frame count is derived from a declared chunk size.
+  async invoke(bytes) { parseWav(bytes); },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
+  derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

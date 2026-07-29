@@ -116,6 +116,19 @@ jobs:
       - name: Typecheck (tsc -p, every project)
         run: npm run typecheck
 
+      # engine/README.md's module table is generated from the tree. Regenerating
+      # it must be a no-op; drift means a module was added, renamed or had its
+      # header comment changed without refreshing the map auditors navigate by.
+      - name: Engine module map drift (stale? rerun build:engine-modules)
+        run: npm run check:engine-modules
+
+      # The engine must stay free of DOM, storage and network access: that is
+      # what lets one tool render unchanged in the browser, Tauri and the CLI.
+      # engine/tsconfig.json has to include the DOM lib for the fetch-spec
+      # globals, so the compiler cannot enforce this. This step does.
+      - name: Engine purity (no DOM/storage/network in engine/src)
+        run: npm run check:engine-purity
+
   validate-catalog:
     name: validate catalog
     runs-on: ubuntu-latest
