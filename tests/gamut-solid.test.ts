@@ -150,7 +150,7 @@ test('the marker lands in register with the mesh and reports its own gamut', () 
   assert.ok(q.points.length === 4, 'quads are quads');
   // A degenerate quad is culled (zero area), so determinism is what's checkable:
   // the same input must give the same point twice.
-  const meshMatch = projectGamutSolid({ ...solid, quads: [{ pts: [vtx, vtx, vtx, vtx], hex: '#000000', up: 1 }] }, view);
+  const meshMatch = projectGamutSolid({ ...solid, quads: [{ pts: [vtx, vtx, vtx, vtx], hex: '#000000', oklch: { l: 0, c: 0, h: 0 }, up: 1 }] }, view);
   assert.equal(meshMatch.length, 0, 'a zero-area quad is culled, not drawn');
   assert.deepEqual(projectSolidPoint(solid, { l, c, h }, view), m, 'projection is deterministic');
 });
@@ -290,7 +290,7 @@ test('the lab marker lands in register with the lab mesh', () => {
   const vtx = lab.quads.flatMap(q => q.pts).find(p => p.y > 0.45 && p.y < 0.55 && Math.hypot(p.x, p.z) > 0.1)!;
   const o = solidPointOklch(lab, vtx);
   const at = projectSolidPoint(lab, o, view);
-  const mesh = projectGamutSolid({ ...lab, quads: [{ pts: [vtx, vtx, vtx, vtx], hex: '#000000', up: 1 }] }, view);
+  const mesh = projectGamutSolid({ ...lab, quads: [{ pts: [vtx, vtx, vtx, vtx], hex: '#000000', oklch: { l: 0, c: 0, h: 0 }, up: 1 }] }, view);
   assert.equal(mesh.length, 0, 'a zero-area quad is culled, not drawn');
   assert.deepEqual(projectSolidPoint(lab, o, view), at, 'projection is deterministic');
 
@@ -319,4 +319,42 @@ test('solidPointOklch inverts every embedding', () => {
     assert.ok(Math.abs(back.c - o.c) < 1e-9, `${embed} chroma ${back.c}`);
     assert.ok(hueGap(back.h, o.h) < 1e-6, `${embed} hue ${back.h}`);
   }
+});
+
+/**
+ * Every quad carries the colour it was AUTHORED with, not only its sRGB bake.
+ *
+ * The bake is what a caller must not paint a wide-gamut surface from — on a P3
+ * canvas it shows the chart's own subject as the fallback it is supposed to be
+ * demonstrating you do not need. The test is written on a P3 solid because that
+ * is where the two values are allowed to differ: on an sRGB solid they agree by
+ * construction, so an sRGB-only assertion would pass against `oklch` being a
+ * copy of `hexToOklch(hex)` and prove nothing.
+ */
+test('a wide-gamut solid carries chroma its sRGB hex cannot hold', () => {
+  const s = gamutSolid('p3', 64, 32);
+  let widest = 0;
+  for (const q of s.quads) {
+    assert.ok(q.oklch, 'every quad has an authored colour');
+    // The bake preserves L and H and reduces C (CSS Color 4 §14.2), so the hex can
+    // never be MORE chromatic than what it was baked from. Checked only above
+    // c 0.05: the hex is 8-bit, and down near the achromatic axis one quantisation
+    // step is a large FRACTION of the chroma — a near-grey can round to 0.017 from
+    // an authored 0.013 without anything being wrong.
+    const baked = hexToOklch(q.hex)!;
+    if (q.oklch.c >= 0.05) {
+      assert.ok(baked.c <= q.oklch.c + 0.01, `bake gained chroma: ${baked.c} > ${q.oklch.c}`);
+    }
+    widest = Math.max(widest, q.oklch.c - baked.c);
+  }
+  // Anti-vacuity: if `oklch` were just the hex read back, this gap would be ~0
+  // everywhere and the assertion above would be trivially true.
+  assert.ok(widest > 0.01, `no quad outruns its bake (widest gap ${widest})`);
+});
+
+test('projection carries the authored colour through to the painter', () => {
+  const s = gamutSolid('p3', 48, 24);
+  const quads = projectGamutSolid(s, { yaw: 30, pitch: 20 });
+  assert.ok(quads.length > 0);
+  for (const q of quads) assert.ok(typeof q.oklch?.c === 'number', 'projected quad keeps oklch');
 });

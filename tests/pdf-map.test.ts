@@ -209,6 +209,41 @@ test('CMYK fill (k) converts to rgb hex', () => {
   assert.equal(nodes[0].fill, '#ff0000');
 });
 
+// ── WinAnsi (CP1252) fallback decoding ────────────────────────────────────────
+// A simple font with no /ToUnicode falls back to byte→code-point, which is
+// Latin-1. That is right everywhere EXCEPT 0x80-0x9F, where CP1252 keeps the
+// punctuation English publishing actually uses and Latin-1 keeps C1 controls.
+test('WinAnsi high bytes decode to punctuation, not C1 control characters', () => {
+  // 0x95 bullet, 0x92 right single quote, 0x96 en dash, 0x97 em dash, 0x85 ellipsis.
+  const nodes = page('BT /F1 12 Tf 1 0 0 1 5 250 Tm (\x95 it\x92s \x96 a \x97 test\x85) Tj ET', {
+    fonts: { F1: { family: 'Helvetica', weight: 400 } },
+  });
+  assert.equal(nodes[0].text, '\u2022 it\u2019s \u2013 a \u2014 test\u2026');
+});
+
+test('bytes outside the CP1252 divergence keep their Latin-1 meaning', () => {
+  // 0xE9 is e-acute in BOTH encodings — the table must not touch it, and the
+  // unassigned CP1252 slots (0x81, 0x8D, 0x8F, 0x90, 0x9D) must pass through
+  // rather than inventing a character.
+  const nodes = page('BT /F1 12 Tf 1 0 0 1 5 250 Tm (caf\xe9) Tj ET', {
+    fonts: { F1: { family: 'Helvetica', weight: 400 } },
+  });
+  assert.equal(nodes[0].text, 'caf\u00e9');
+
+  const unassigned = page('BT /F1 12 Tf 1 0 0 1 5 250 Tm (a\x81b) Tj ET', {
+    fonts: { F1: { family: 'Helvetica', weight: 400 } },
+  });
+  assert.equal(unassigned[0].text, 'a\u0081b');
+});
+
+test('an explicit font decoder still wins over the WinAnsi fallback', () => {
+  // ToUnicode is authoritative; the table is only a fallback for fonts without one.
+  const nodes = page('BT /F1 12 Tf 1 0 0 1 5 250 Tm (\x95) Tj ET', {
+    fonts: { F1: { decode: () => 'X', family: 'Helvetica', weight: 400 } },
+  });
+  assert.equal(nodes[0].text, 'X');
+});
+
 // ── a font decoder from the shell is honoured ─────────────────────────────────
 test('font decode callback maps custom byte codes', () => {
   const decode = (codes: number[]) => codes.map((c) => String.fromCharCode(c + 1)).join('');

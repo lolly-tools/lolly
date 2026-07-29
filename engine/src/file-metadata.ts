@@ -25,6 +25,11 @@ export type MetaGroup =
   | 'authorship'
   | 'timestamps'
   | 'description'
+  /** What a container CARRIES and DOES — attachments, scripts, actions, form
+   *  values, hidden layers. Populated for PDFs by the shell's structural scan;
+   *  distinct from 'technical', which describes the encoding rather than the
+   *  payload. */
+  | 'structure'
   | 'technical';
 
 export interface MetaField {
@@ -76,7 +81,7 @@ export interface FileMetadata {
 
 // The order sections read top-to-bottom in a clinical layout.
 export const META_GROUP_ORDER: MetaGroup[] = [
-  'location', 'device', 'capture', 'software', 'authorship', 'timestamps', 'description', 'technical',
+  'location', 'device', 'capture', 'software', 'authorship', 'timestamps', 'description', 'structure', 'technical',
 ];
 
 export const META_GROUP_LABEL: Record<MetaGroup, string> = {
@@ -87,6 +92,7 @@ export const META_GROUP_LABEL: Record<MetaGroup, string> = {
   authorship: 'Authorship & rights',
   timestamps: 'Timestamps',
   description: 'Description & text',
+  structure: 'Embedded content & behaviour',
   technical: 'Technical',
 };
 

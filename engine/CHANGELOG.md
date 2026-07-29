@@ -1092,3 +1092,25 @@ engine's business: `pdfxProfileEligibility(facts, 'CMYK' | 'RGB')` (device class
 i.e. the characterization data set the profile SAYS it was built from. That is
 testimony, not measurement; it pairs a profile with a condition, it does not prove
 the numbers. No v1 bridge method changed.
+
+1.75.0 — additive: PDF text reconstruction. `extractPageText(nodes, {width,
+height})` turns the positioned glyph runs `interpretPdfPage` produces into
+reading-ordered prose (lines, columns, paragraphs, headings, list items) with a
+`markdown` and a plain `text` rendering, and `joinPageText(pages)` joins them
+into a document. No OCR and no second parse: a born-digital PDF already contains
+its glyphs and their positions, so this is reassembly, not recognition. A page
+that is a scanned image reports `scanned: true` with no text, so a caller can
+say "this needs OCR" rather than "this page is blank".
+
+Column detection is deliberately biased toward ONE column — reading a single
+column as two destroys prose, whereas reading two as one merely interleaves it —
+and a table is separated from a real multi-column layout by requiring each column
+to be wider than the gutter beside it.
+
+Also a decoding FIX in `pdf-map.ts`, which changes existing output: a simple font
+with no /ToUnicode used to fall back to byte→code-point (Latin-1), so WinAnsi
+(CP1252) bytes 0x80-0x9F decoded to invisible C1 control characters. That range
+is exactly where English publishing keeps its punctuation, so bullets, en/em
+dashes, ellipses and smart quotes were silently lost — from extracted text AND
+from the Layout Studio / design-import path. They now decode correctly. No v1
+bridge method changed.

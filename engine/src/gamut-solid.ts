@@ -45,6 +45,15 @@ export interface SolidQuad {
   pts: [SolidPoint, SolidPoint, SolidPoint, SolidPoint];
   /** The gamut-mapped sRGB hex of the quad's centre. */
   hex: string;
+  /**
+   * The centre's colour as AUTHORED, before `hex` clamped it into sRGB.
+   *
+   * `hex` is a bake and cannot describe a patch of a P3 or Rec.2020 surface — on
+   * a wide-gamut display that is exactly the colour the chart exists to show. A
+   * caller painting into a wide-gamut surface fills from this; `hex` remains the
+   * right answer for an sRGB one, and for a label.
+   */
+  oklch: { l: number; c: number; h: number };
   /** The surface normal's `l` component — used for shading, and to tell a cap
    *  (facing up or down) from the side wall. */
   up: number;
@@ -196,7 +205,8 @@ export function gamutSolid(
       // Pull the sample very slightly inside the surface: dead on the boundary,
       // rounding can push the centre out of gamut and the mapper desaturates the
       // patch, banding the whole silhouette one step duller than it should be.
-      const hex = oklchToHex({ l: cl, c: c * 0.995, h });
+      const oklch = { l: cl, c: c * 0.995, h };
+      const hex = oklchToHex(oklch);
 
       // The normal, from the two edge vectors — its vertical component says how
       // much the patch faces up, which is all the shading needs.
@@ -207,7 +217,7 @@ export function gamutSolid(
       const nz = e1.y * e2.x - e1.x * e2.y;
       const nMag = Math.hypot(nx, ny, nz) || 1;
 
-      quads.push({ pts: [p0, p1, p2, p3], hex, up: ny / nMag });
+      quads.push({ pts: [p0, p1, p2, p3], hex, oklch, up: ny / nMag });
     }
   }
 
@@ -268,9 +278,10 @@ function capQuads(
       const c = ((r0 + r1) / 2) * ((t0 + t1) / 2);
       // 0.995 for the same reason the surface does it: dead on the boundary,
       // rounding can push a sample out of gamut and the mapper desaturates it.
-      const hex = oklchToHex({ l: cl, c: c * 0.995, h: hue });
+      const oklch = { l: cl, c: c * 0.995, h: hue };
+      const hex = oklchToHex(oklch);
       // A vertical face: `up` is 0, so the shading treats it as a side wall.
-      out.push({ pts, hex, up: 0 });
+      out.push({ pts, hex, oklch, up: 0 });
     }
   }
   return out;
@@ -353,6 +364,8 @@ function makeProjector(solid: GamutSolid, view: SolidView): (p: SolidPoint) => P
 export interface ProjectedQuad {
   points: { x: number; y: number }[];
   hex: string;
+  /** The patch's colour before the sRGB bake — see {@link SolidQuad.oklch}. */
+  oklch: { l: number; c: number; h: number };
   /** Camera depth of the centroid — larger is nearer. Already sorted on. */
   depth: number;
   /** 0–1 shading factor from the surface normal, for a lit look. */
@@ -401,6 +414,7 @@ export function projectGamutSolid(solid: GamutSolid, view: SolidView): Projected
     out.push({
       points: cam.map(p => ({ x: p.x, y: p.y })),
       hex: q.hex,
+      oklch: q.oklch,
       depth,
       shade,
     });

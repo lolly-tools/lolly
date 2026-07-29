@@ -367,6 +367,35 @@ export function oklchSlice(opts: SliceOptions): SliceImage {
 }
 
 /**
+ * One OKLCH colour as components in an encode space, each 0–1.
+ *
+ * The single-colour twin of what {@link oklchSlice} does per pixel, and
+ * deliberately built on the SAME desaturation grid rather than on an independent
+ * `maxChroma` bisection: a vector shape filled with this and a slice pixel at the
+ * same coordinates have to agree, and two ceilings that are merely both correct
+ * would still disagree in the last decimal — which shows up as a visible seam
+ * where a filled surface meets a painted one.
+ *
+ * Chroma past the encode space's ceiling is reduced (L and H preserved, CSS
+ * Color 4 §14.2's shape), because a surface cannot show what it cannot show. That
+ * makes the result a PAINTING value: never read a position, a stored token or a
+ * round-trip back out of it — see the gamut-map caveat on `oklchToHex`.
+ */
+export function encodeOklch(
+  l: number, c: number, h: number, encode: EncodeSpace = 'srgb',
+): [number, number, number] {
+  const cUse = Math.min(c, sampleCeiling(ceilingGrid(ENCODE_GAMUT[encode]), l, h));
+  const hr = (h * Math.PI) / 180;
+  let lin = oklabToLinearSrgb(l, cUse * Math.cos(hr), cUse * Math.sin(hr));
+  if (encode === 'display-p3') lin = linearSrgbToLinearP3(lin[0], lin[1], lin[2]);
+  return [
+    linearToSrgb(Math.min(1, Math.max(0, lin[0]))),
+    linearToSrgb(Math.min(1, Math.max(0, lin[1]))),
+    linearToSrgb(Math.min(1, Math.max(0, lin[2]))),
+  ];
+}
+
+/**
  * The `limit` gamut's boundary across a plane, as `steps + 1` points in the
  * plane's own 0–1 unit square (x rightward, y DOWNWARD — SVG/canvas convention,
  * so a caller multiplies by its pixel box and draws a polyline).

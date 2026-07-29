@@ -15,7 +15,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, sliceGamutEdge, GAMUTS,
+  oklchGamut, inGamut, gamutWithin, maxChroma, oklchSlice, encodeOklch, sliceGamutEdge, GAMUTS,
 } from '../engine/src/gamut.ts';
 import { hexToOklch, oklchToHex } from '../engine/src/brand-derive.ts';
 
@@ -413,4 +413,63 @@ test('the hoisted membership test agrees EXACTLY with the source it stands in fo
   // Anything that is not a built-in has NO fast path, so it cannot be answered by
   // the wrong arithmetic — a custom source must go through its own `contains`.
   assert.equal(fastRgbContains({ id: 'x', label: 'x', contains: () => true }), null);
+});
+
+/**
+ * `encodeOklch` is the single-colour twin of what the slice painter does per
+ * pixel, and the reason it exists is that a caller filling a VECTOR shape (the
+ * 3D solid's quads) has to land on the same bytes as a caller painting a raster
+ * slice. Two independently-correct ceilings would still disagree in the last
+ * decimal, and the disagreement shows up as a seam where the two meet.
+ *
+ * So this compares them directly, through the slice's own output, rather than
+ * asserting each against a third reimplementation of the maths.
+ */
+test('encodeOklch lands on exactly the bytes the slice painter writes', () => {
+  for (const encode of ['srgb', 'display-p3'] as const) {
+    const width = 64, height = 32, cMax = 0.4, fixed = 145;
+    const img = oklchSlice({ plane: 'lc', fixed, width, height, cMax, limit: 'p3', encode });
+    let checked = 0;
+    for (let y = 2; y < height; y += 7) {
+      for (let x = 2; x < width; x += 9) {
+        const o = (y * width + x) * 4;
+        if (img.data[o + 3] !== 255) continue; // outside the limit — nothing painted
+        // Reconstruct the pixel's own coordinates exactly as the painter does.
+        const l = 1 - (y + 0.5) / height;
+        const c = ((x + 0.5) / width) * cMax;
+        const [r, g, b] = encodeOklch(l, c, fixed, encode);
+        assert.equal(Math.round(r * 255), img.data[o], `${encode} R at ${x},${y}`);
+        assert.equal(Math.round(g * 255), img.data[o + 1], `${encode} G at ${x},${y}`);
+        assert.equal(Math.round(b * 255), img.data[o + 2], `${encode} B at ${x},${y}`);
+        checked++;
+      }
+    }
+    assert.ok(checked > 10, `${encode}: sampled enough painted pixels (${checked})`);
+  }
+});
+
+test('encodeOklch in P3 keeps chroma sRGB encoding has to give away', async () => {
+  // Anti-vacuity for the pair above: if the two encodes were the same function the
+  // comparison test would still pass, and this would not.
+  //
+  // Read back through the CSS colour parser rather than compared channel by
+  // channel — the two spaces have different primaries, so "P3 uses less red" is
+  // not a claim that survives a hue change (at 145° it uses MORE). What survives
+  // is the perceptual one: decode each, and the P3 encoding is nearer the colour
+  // that was asked for.
+  const { parseColor, convertColor } = await import('../engine/src/css-color.ts');
+  const vivid = { l: 0.7, c: 0.25, h: 145 };
+  assert.ok(maxChroma(vivid.l, vivid.h, 'srgb') < vivid.c, 'the subject is past sRGB');
+  assert.ok(maxChroma(vivid.l, vivid.h, 'p3') >= vivid.c, 'and inside P3, or there is nothing to keep');
+
+  const s = encodeOklch(vivid.l, vivid.c, vivid.h, 'srgb');
+  const p = encodeOklch(vivid.l, vivid.c, vivid.h, 'display-p3');
+  assert.notDeepEqual(s, p, 'the two encodings differ for a colour past sRGB');
+
+  const chromaOf = (css: string): number =>
+    convertColor(parseColor(css)!, 'oklch').components[1] as number;
+  const sC = chromaOf(`color(srgb ${s.join(' ')})`);
+  const pC = chromaOf(`color(display-p3 ${p.join(' ')})`);
+  assert.ok(sC < vivid.c - 0.02, `sRGB had to desaturate (${sC} from ${vivid.c})`);
+  assert.ok(Math.abs(pC - vivid.c) < 0.01, `P3 kept the chroma (${pC} vs ${vivid.c})`);
 });
