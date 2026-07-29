@@ -23,7 +23,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { validateFontFile, detectFontFormat, parseFontMetadata } from '../shells/web/src/lib/font-utils.ts';
+import { validateFontFile, detectFontFormat, parseFontMetadata, readFontEmbedding } from '../shells/web/src/lib/font-utils.ts';
 import type { UserFontsHost, UserFontFamily } from '../shells/web/src/user-fonts.ts';
 import {
   removeUserFont,
@@ -573,3 +573,57 @@ Test Coverage:
   ✓ #7c - Variable-font weight reflects the fvar default instance
   ✓ #7d - Real TTF passes upload validation end to end
 `);
+
+// ─── OS/2 fsType — the font's own statement about reuse ───────────────────────
+// Read when a font is lifted OUT of a PDF (views/pdf-import.ts listFonts), where
+// "may I reuse this?" is the first question and the file is the only thing that
+// can answer it.
+
+test('Edge Case #8: A real sfnt yields an embedding permission and a raw fsType', () => {
+  const info = readFontEmbedding(outfitBytes());
+  // Outfit is an SIL Open Font License face, so it states no restriction.
+  assert.equal(info.permission, 'installable');
+  assert.equal(info.fsType, 0);
+  assert.equal(info.noSubsetting, false);
+  assert.equal(info.bitmapOnly, false);
+});
+
+test('Edge Case #8b: fsType bits map to the right permission, and flags ride alongside', () => {
+  // Synthesise a minimal sfnt carrying only an OS/2 table, so each bit pattern
+  // can be asserted without hunting down a font that happens to use it.
+  const withFsType = (fsType: number): ArrayBuffer => {
+    const buf = new ArrayBuffer(12 + 16 + 12);
+    const v = new DataView(buf);
+    v.setUint32(0, 0x00010000, false);   // sfnt version — a TrueType face
+    v.setUint16(4, 1, false);            // numTables
+    // One table record: tag 'OS/2', offset 28.
+    for (const [i, ch] of [...'OS/2'].entries()) v.setUint8(12 + i, ch.charCodeAt(0));
+    v.setUint32(12 + 8, 28, false);
+    v.setUint16(28 + 8, fsType, false);  // fsType lives at OS/2 + 8
+    return buf;
+  };
+
+  assert.equal(readFontEmbedding(withFsType(0x0000)).permission, 'installable');
+  assert.equal(readFontEmbedding(withFsType(0x0002)).permission, 'restricted');
+  assert.equal(readFontEmbedding(withFsType(0x0004)).permission, 'preview-print');
+  assert.equal(readFontEmbedding(withFsType(0x0008)).permission, 'editable');
+
+  // Bits 8 and 9 are separate flags, not part of the exclusive permission set.
+  const noSub = readFontEmbedding(withFsType(0x0104));
+  assert.equal(noSub.permission, 'preview-print');
+  assert.equal(noSub.noSubsetting, true);
+  assert.equal(readFontEmbedding(withFsType(0x0204)).bitmapOnly, true);
+});
+
+test('Edge Case #8c: a font with no OS/2 table states NOTHING, which is not permission', () => {
+  // Type1 and bare-CFF programs pulled out of a PDF have no OS/2 table at all.
+  // Absence of a restriction must not be reported as "installable".
+  const noOs2 = new ArrayBuffer(12);
+  new DataView(noOs2).setUint32(0, 0x00010000, false);
+  const info = readFontEmbedding(noOs2);
+  assert.equal(info.permission, 'unknown');
+  assert.equal(info.fsType, null);
+
+  // And junk bytes must not throw.
+  assert.equal(readFontEmbedding(new Uint8Array([1, 2, 3]).buffer).permission, 'unknown');
+});

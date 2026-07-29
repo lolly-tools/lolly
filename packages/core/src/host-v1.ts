@@ -1565,6 +1565,28 @@ export interface Profile {
    *  user can reclassify e.g. a headshot as a background. Immutable catalog tags are
    *  never mutated — this is the per-user overlay. */
   assetCategories?: Record<string, string>;
+  /**
+   * Per-user cover art for an audio asset: base asset id → a RECIPE, not pixels.
+   *
+   * Every audio asset already gets a generated look — a waveform shape and a brand
+   * colour derived deterministically from its id — and that is the product. This is the
+   * opt-in override for the handful of tracks a user cares enough about to style, so a
+   * favourite gets something closer to an album cover.
+   *
+   * The value is `"<shape>"` or `"<shape>:<colourIndex>"`, deliberately NOT a hex and
+   * NOT an image:
+   *   - STRUCTURE IS FROZEN. The shape is the user's choice and nothing may change it;
+   *     a rebrand must never turn their blob into a ring.
+   *   - COLOUR RE-RESOLVES. The index points into the ACTIVE brand's colour pool, so a
+   *     cover re-skins with the brand and keeps mixing with its surroundings. That is
+   *     the intended behaviour, not drift.
+   * Storing a baked hex would freeze the paint too and strand the cover on an old brand;
+   * storing an image would also cost bytes and stop it re-rendering crisply at any size.
+   *
+   * Keyed by BASE asset id, like the overlays above, and tolerant of an id that vanishes
+   * on a catalog rebuild. Absent for the overwhelming majority of assets, by design.
+   */
+  audioCovers?: Record<string, string>;
   /** Base asset ids the user has hidden from THEIR catalogue + every picker. The
    *  shared/immutable catalog file is never deleted; this is a per-user "hide from my
    *  view" overlay (the only honest "delete" for a read-only catalog asset). Tolerant
@@ -1708,6 +1730,19 @@ export interface ColorSwatch {
   description: string | null;
   cmyk: number[] | null;       // [C,M,Y,K] from $extensions, when present
   spot: SpotColor | null;      // named spot/Pantone lock from $extensions, when present
+  /**
+   * Per-target overrides the brand AUTHORED for this colour, keyed by target id
+   * (a CSS space name, or `icc:<digest>:<intent>` — see the engine's
+   * `gamutSourceId`). Empty for a token with none, which is most of them.
+   *
+   * `value` above already honours an authored **sRGB** face, so a consumer that
+   * only paints does not need to read this — it is here for a consumer that has
+   * to know WHICH faces were chosen rather than computed, or that can honour a
+   * wider target than sRGB.
+   *
+   * v1.77.
+   */
+  faces?: Record<string, string | number[]>;
 }
 
 /** A named spot ink (e.g. Pantone) locked onto a token. Independent of the

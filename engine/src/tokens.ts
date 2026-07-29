@@ -30,6 +30,7 @@
 import type { TokenSet, TokenEntry, ColorSwatch, SpotColor } from './bridge/host-v1.ts';
 import { parseOklch, oklchToHex } from './brand-derive.ts';
 import { parseColor, colorToHexString } from './css-color.ts';
+import { readFaces } from './color-faces.ts';
 
 // Vendor extension namespace for Lolly-specific token metadata (CMYK anchors,
 // swatch grouping hints). Reverse-domain per the DTCG `$extensions` convention.
@@ -291,11 +292,52 @@ function toSwatch(e: TokenEntry): ColorSwatch {
     // toSwatch is only called on e.type === 'color' (see swatches()), so colorToHex
     // returns a real hex here; '' is a contract-satisfying fallback (ColorSwatch.value
     // is a non-null string) that a malformed colour value can never actually hit.
-    value: colorToHex(e.value) ?? '',
+    //
+    // An AUTHORED sRGB face wins over the automatic bake — this is Phase 9 of
+    // plans/color-spaces.md, and it is one line here rather than a change per
+    // export path because every consumer of a brand colour funnels through this
+    // field. The reason it must win: the automatic §14.2 gamut map picks the
+    // nearest reproducible colour by ΔE, and a brand will often prefer a
+    // DIFFERENT sRGB green — one that reads as the same brand colour to a human
+    // even though it is not the closest by measurement. Left unhonoured, the
+    // override would be decoration.
+    //
+    // Only sRGB, deliberately. A wider face cannot be substituted into a field
+    // typed as a hex without being baked itself, which would throw away exactly
+    // what it was authored to carry; `faces` below carries those untouched for a
+    // consumer that can use them.
+    value: srgbFace(ext) ?? colorToHex(e.value) ?? '',
     description: e.description ?? null,
     cmyk: ext && isNumberArray(ext.cmyk) ? ext.cmyk : null,
     spot: ext && isSpotColor(ext.spot) ? ext.spot : null,
+    ...(ext ? facesOf(ext) : {}),
   };
+}
+
+/**
+ * The authored sRGB override as a hex, or null.
+ *
+ * Re-serialised through `colorToHex` rather than passed through verbatim: a face
+ * is stored in whatever notation its author typed (`oklch(...)`, a named colour,
+ * a hex), and `ColorSwatch.value` is contractually a hex string. A face that will
+ * not parse is IGNORED rather than emitted — a malformed override must not be
+ * able to make a brand colour render as nothing.
+ */
+function srgbFace(ext: Record<string, unknown> | null): string | null {
+  if (!ext) return null;
+  const face = readFaces(ext).get('srgb');
+  if (!face || typeof face.value !== 'string') return null;
+  return colorToHex(face.value) ?? null;
+}
+
+/** The `faces` field, present only when the token actually has overrides — an
+ *  empty object on every swatch would be noise in every serialised payload. */
+function facesOf(ext: Record<string, unknown>): { faces?: Record<string, string | number[]> } {
+  const stored = readFaces(ext);
+  if (!stored.size) return {};
+  const faces: Record<string, string | number[]> = {};
+  for (const [target, f] of stored) faces[target] = f.value;
+  return { faces };
 }
 
 function prettify(slug: string): string {
