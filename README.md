@@ -121,6 +121,8 @@ See `docs/authoring-tools.md` to build your first tool, and [Development](#devel
 
 ## Development
 
+> **New contributor?** Start at **[CONTRIBUTING.md](CONTRIBUTING.md)** — it routes you through the recursive clone, content profiles, the `tools/`/`catalog/` symlink-view trap, which repo owns which file, and the commands to run before a PR. Auditors and anyone touching a parser or a crypto module should read **[docs/threat-model.md](docs/threat-model.md)** and **[docs/parser-inventory.md](docs/parser-inventory.md)**.
+
 Lolly is an umbrella repo composed of **git submodules** (see [Repository layout](#repository-layout)). That changes two things: how you clone, and where each change is committed.
 
 **Clone / update**
@@ -132,17 +134,7 @@ git submodule update --init --recursive     # in an existing clone — run BEFOR
 
 Each submodule is checked out on its own `main`, tracking its repo under `github.com/lolly-tools/*`.
 
-**Where your changes go** — the umbrella pins a specific commit of each submodule, so a change is committed to *the repo that owns the file*, then the umbrella records the new pointer:
-
-| You edit… | Commits to |
-|---|---|
-| `engine/`, `schemas/`, `scripts/`, `tests/`, `api/`, root files | the umbrella (`lolly`) |
-| `docs/` | `lolly-docs` |
-| `community/` (or a community tool via the `tools/` view) | `lolly-tools` |
-| `brands/suse/` (or SUSE tools/catalog via the views) | `suse-lolly` (private) |
-| `brands/lolly-start/`, `profiles.json` | the umbrella (`lolly`) |
-| `services/mcp`, `services/ca` | `lolly-mcp-server`, `lolly-ca` |
-| any `shells/*` | `lolly-web` · `lolly-cli` · `lolly-tui` · `lolly-desktop` · `lolly-mobile` · `lolly-chrome-extension` |
+**Where your changes go** — the umbrella pins a specific commit of each submodule, so a change is committed to *the repo that owns the file*, then the umbrella records the new pointer. The full path-to-repo ownership table lives in **[CONTRIBUTING.md §4](CONTRIBUTING.md#4-where-your-changes-go)**, which is the single source of truth for it.
 
 > ⚠️ Committing from the umbrella root does **not** capture edits made *inside* a submodule — git only sees the pointer. Commit inside the submodule, or use `loldev` (below). The `tools/` and `catalog/` views are symlinks into the packs, so editing through them lands in the right pack checkout automatically. Editing a SUSE tool touches two repos (`suse-lolly` + umbrella pointer); a community tool touches three (`lolly-tools` manifest, `suse-lolly` regenerated index, umbrella pointer).
 
@@ -170,13 +162,13 @@ loldev help                              # every command
 ## Current tools
 
 <!-- tools-table:start -->
-The SUSE catalog ships **57 tools** today — 56 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
+The SUSE catalog ships **59 tools** today — 58 listed in the gallery, plus one unlisted helper (Asset Export). Generated from `catalog/tools/index.json` by `npm run build:readme-tools`:
 
 | Tool | What it makes |
 |---|---|
 | 3D | Load a 3D model into a lit scene, orbit and pose the camera, and render a still or a turntable animation. |
 | Animated Ad | Build animated ads from layered scenes for any standard size. |
-| Audiogram | Turn a voice clip or song into a branded waveform video — animated bars, wave or ring, ready for social. |
+| Audiogram | Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social. |
 | Bag Video | An animated, on-brand video for bag visuals. |
 | Booth Studio | Dress a 3D event booth with sponsor artwork. Click any panel to drop an image on it, pick a booth design, and render a still or a turntable for a sponsor pitch. |
 | Brand Lockup | Official SUSE logo lockups — chameleon, wordmark and a name. |
@@ -185,7 +177,7 @@ The SUSE catalog ships **57 tools** today — 56 listed in the gallery, plus one
 | Chart Creator | On-brand charts from your data — bar, donut, pie or stacked. |
 | Code Canvas | Turn code snippets into clean, syntax-highlighted, shareable images. |
 | Color Block | Colour blocks — text, image, logo — auto-arranged into a grid. |
-| Color Palette | Browse SUSE brand colors — click a swatch to copy it. |
+| Color Picker | A handy color picker for the SUSE brand palette — click any swatch to copy it. |
 | Compress PDF | Shrink a PDF by recompressing its images — on your device. |
 | Convert Image | Turn HEIC, TIFF or any photo into WebP, JPEG or PNG — on your device. |
 | Countdown Timer | A focused countdown with a live progress ring. Click to pause. |
@@ -197,6 +189,7 @@ The SUSE catalog ships **57 tools** today — 56 listed in the gallery, plus one
 | Doc Studio | Write a multi-page document on the canvas — rich text, headings, tables and inserted Lolly renders that flow onto pages and export as a PDF. |
 | Dynamic Layout | A do-anything layout that recomposes around whatever you add, at any size. |
 | Email Signature | An on-brand SUSE email signature, ready to paste into any client. |
+| Embed & Track Image | Stamp your author, copyright and licence into any image — plus an invisible Lolly Imprint and Content Credentials — before you share it. |
 | Event Name Badge | Conference name badges with a colour-coded role and optional QR. |
 | Filter: Duotone | A two-color duotone for any photo — shadows one color, highlights another. |
 | Filter: Halftone | Vector halftone from any photo — dots sized by brightness. |
@@ -220,6 +213,7 @@ The SUSE catalog ships **57 tools** today — 56 listed in the gallery, plus one
 | Rebrand a Deck | Upload a PowerPoint deck and snap its colours and fonts to your brand — rebuilt on your device, nothing uploaded. |
 | Record | Design your own top and tail cards, then record a clip and Lolly wraps them around it automatically. |
 | Screen Capture | Screenshot or record your whole screen, a window, or a browser tab. Drag on the canvas to crop — the export stays the exact pixels you captured. |
+| Sequence Studio | Arrange clips, cards, overlays and music on a timeline, then export the frame. |
 | Slides | Build a deck where every slide arranges other Lolly tools in a chosen layout, with its own title, background and speaker notes — then export to PowerPoint, PDF, GIF or MP4. |
 | Street Map | Clean vector street-block maps of any city. Works offline. |
 | Strip Hidden Data | Reveal and remove hidden metadata from images and PDFs — on your device. |

@@ -13,13 +13,14 @@
  * the way a user sees the tool, and can't diverge.
  *
  * Contract mirrors the old resvg call so callers degrade the same way: constructing the
- * rasteriser THROWS when Playwright (a devDependency) or the SUSE fonts are unavailable,
+ * rasteriser THROWS when Playwright (a devDependency) or every needed font is unavailable
+ * (brand catalog faces, falling back per-weight to the platform Outfit variable face),
  * so a caller wraps it in try/catch and keeps its committed bytes rather than crashing
  * the build (exactly the resvg-missing behaviour). Launches ONE browser; reuse the
  * returned `rasterize` across many cards, then `close()`.
  */
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import type { Browser, BrowserContext, Page } from 'playwright';
 
@@ -42,13 +43,17 @@ export interface SvgRasterizer {
 // The card SVGs paint text in three SUSE weights; expose them as one @font-face family
 // so `font-family="SUSE"` (with font-weight 400/500/700) shapes with the real face
 // rather than a Chromium fallback. Read from the active profile's catalog VIEW — the
-// same path resvg loaded from — so this is profile-consistent (absent under a fontless
-// profile → the readFileSync throws → the caller degrades, as before).
+// same path resvg loaded from — so this is profile-consistent. A brand catalog with no
+// fonts (lolly-start ships only a .gitkeep) falls back per-weight to the platform's
+// neutral Outfit variable face — the same last resort the web shell's font-registry
+// uses — so a fontless brand still renders cards instead of aborting the whole run.
 const FONT_WEIGHTS: ReadonlyArray<readonly [number, string]> = [
   [400, 'Regular'],
   [500, 'Medium'],
   [700, 'Bold'],
 ];
+
+const FALLBACK_FONT = 'shells/web/public/fonts/Outfit[wght].ttf';
 
 /**
  * Build a rasteriser bound to the repo's SUSE fonts, launching one headless Chromium.
@@ -67,13 +72,24 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
     );
   }
 
-  // @font-face blocks with the SUSE faces inlined as data-URIs — resolved BEFORE the
-  // browser launches so a missing weight fails fast (caller degrades to committed bytes).
+  // @font-face blocks with the brand faces inlined as data-URIs — resolved BEFORE the
+  // browser launches so a truly unreadable font fails fast (caller degrades to committed
+  // bytes). A weight the brand catalog doesn't ship resolves to the Outfit variable font
+  // pinned to that weight (Chromium sets the wght axis from the face's font-weight), so
+  // the family stays 'SUSE' and the card SVGs need no per-brand markup.
+  let fallbackB64: string | null = null;
   const fontFaceCss = FONT_WEIGHTS.map(([weight, name]) => {
-    const buf = readFileSync(resolve(repoRoot, `catalog/fonts/ttf/SUSE-${name}.ttf`));
+    const brandPath = resolve(repoRoot, `catalog/fonts/ttf/SUSE-${name}.ttf`);
+    let b64: string;
+    if (existsSync(brandPath)) {
+      b64 = readFileSync(brandPath).toString('base64');
+    } else {
+      fallbackB64 ??= readFileSync(resolve(repoRoot, FALLBACK_FONT)).toString('base64');
+      b64 = fallbackB64;
+    }
     return (
       `@font-face{font-family:'SUSE';font-style:normal;font-weight:${weight};` +
-      `src:url(data:font/ttf;base64,${buf.toString('base64')}) format('truetype');}`
+      `src:url(data:font/ttf;base64,${b64}) format('truetype');}`
     );
   }).join('');
 

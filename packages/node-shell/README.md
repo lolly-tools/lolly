@@ -10,6 +10,18 @@ that used to be forked per shell and drifted:
 | `webshell-render` | drive the built web shell in Chromium and capture its download — byte-identical to a web/desktop export (incl. the `password` PDF-lock param) |
 | `raster` | `NODE_FORMATS` (the DOM-free format split), `pxDims()`, and the resvg SVG→PNG fast path ("Tier A") |
 | `c2pa-opts` | `buildExportC2paOpts()` — the export Content-Credentials payload, including profile author under the `useDetails` opt-in |
+| `net` | `createNetAPI()` — host.net's allowlisted fetch: the prefix matcher and the 64 MB counting-stream body cap |
+| `pptx` | `createPptxAPI()` (+ `inflatePptx`, `looksLikePptxFile`, `PPTX_MIME`) — host.pptx deck inspect + surgical rebrand, with the XML parser injected |
+
+`net` and `pptx` are shared with the WEB shell as well, not just the terminal ones.
+Both are DOM-free (`net` is `fetch` + `TransformStream`; `pptx` is engine primitives +
+fflate with the XML parser passed in), and `shells/web/src/bridge/{net,pptx}.ts` are now
+thin re-exports of them, so web import sites are unchanged. They lived in `shells/web`
+until 2026-07-29, which meant `shells/cli` and `shells/tui` could not typecheck without
+that separately versioned submodule checked out. Two web bridge modules the CLI still
+reaches across for could NOT follow, because they genuinely touch the DOM:
+`bridge/pdf.ts` (canvas image recompression, feature-detected) and `bridge/svg-ir.ts`
+(canvas `<image>` decode, plus `font-registry.ts` → IndexedDB and `document.fonts`).
 
 Heavy dependencies (`playwright-core`, `@resvg/resvg-js`) are imported dynamically at
 point of use, so importing the package pulls no browser or native module at startup.

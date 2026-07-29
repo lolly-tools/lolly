@@ -4,8 +4,10 @@
 # operates on $LOLLY_ROOT (default ~/Build/lolly, override with the env var).
 #
 #   loldev gtg [-m "msg"] [--force] [--no-build]
-#       "good to go" — typecheck + build/validate the catalog for EVERY live
-#       profile (gate, see SHIP_TARGETS in config.sh), then commit + push every
+#       "good to go" — typecheck + full test suite + build/validate the catalog
+#       for EVERY live profile (gate, see SHIP_TARGETS in config.sh; the tests
+#       include the privacy-claim guards in tests/no-trackers.test.ts), then
+#       commit + push every
 #       changed submodule to its own repo AND the parent, to the correct place.
 #       No -m → empty commit message. First push after the history rewrite
 #       needs --force (once).
@@ -16,9 +18,11 @@
 #   loldev build                       build:catalog + validate:catalog
 #   loldev previews [--preserve]       regenerate look/card thumbnails (slow, Playwright) — opt-in, run when a tool's look changes.
 #                                      Overwrites every preview (now stamped: Imprint + C2PA); --preserve keeps existing, fills gaps only.
-#   loldev og [--preserve]             rebuild the per-tool + per-view OG share cards (public/t/*, public/view/*) — Playwright, opt-in.
-#                                      Overwrites every card (now stamped: Imprint + C2PA); --preserve keeps existing. (/info-page OG
-#                                      rebuilds with the docs site — see build:info / a full `build:web`.)
+#   loldev og [--preserve]             rebuild ALL the per-tool + per-view OG share cards, for EVERY mounted profile (catalog/og/*
+#                                      is committed per brand, so an active-profile-only run leaves the other brand stale — same
+#                                      drift as build:catalog:all fixes). Playwright, opt-in. Overwrites every card (stamped:
+#                                      Imprint + C2PA); --preserve keeps existing, fills gaps only. Active profile restored, its
+#                                      stubs rebuilt last. (/info-page OG rebuilds with the docs site — build:info / `build:web`.)
 #   loldev shots [--accept|--only=…]   capture + compare the docs screenshots (url-shot recipe links in docs/*.md → docs/shots/); also runs inside every gtg
 #   loldev shots --rebuild             full refresh: rebuild the shell, re-shoot EVERY recipe, write every baseline (even
 #                                      unchanged) and prune retired files. What you want after an engine/renderer change.
@@ -54,6 +58,17 @@ do_build() {
   step "type-checking every project"
   npm run --silent typecheck || { err "typecheck failed — fix it, or run 'loldev push' to bypass the build gate"; return 1; }
   ok "typecheck passed"
+
+  # The full node:test suite — including tests/no-trackers.test.ts, which is
+  # where the privacy policy's checkable claims (no analytics SDK, no DoH
+  # resolver, no CA issuance log) are actually enforced. A ship gate that skips
+  # the tests is how a green deploy once carried 4 failing recorder tests; and
+  # skipping the privacy guards specifically would let a deploy contradict the
+  # published policy. Run BEFORE the catalog loop below switches profiles, while
+  # the checkout still looks like the developer's own.
+  step "running the test suite"
+  npm run --silent test >/dev/null || { err "tests failed — fix them (npm test), or run 'loldev push' to bypass the build gate"; return 1; }
+  ok "tests passed"
 
   # build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no browser).
   # The heavy Playwright card/look render is a separate, opt-in `loldev previews`.
@@ -287,7 +302,7 @@ case "$cmd" in
   build)        do_build ;;
   validate)     npm run validate:catalog ;;
   previews)     case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run previews ;;
-  og)           case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run og ;;
+  og)           case " $* " in *" --preserve "*) export LOLLY_PRESERVE=1 ;; esac; npm run og:all ;;
   shots)        npm run docs:shots -- "$@" ;;
   verify)       bash "$SUB/verify.sh" "$@" ;;
   profile|brand) node scripts/use-profile.ts "$@" ;;

@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 /**
- * Tests for shells/web/src/bridge/pptx.ts — the host.pptx web bridge (inspect +
- * surgical rebrand over a REAL zipped fixture).
+ * Tests for the host.pptx bridge (inspect + surgical rebrand over a REAL zipped
+ * fixture). The implementation lives in packages/node-shell/src/pptx.ts, shared
+ * by the web and CLI shells; the import below deliberately goes through the web
+ * shell's re-export at shells/web/src/bridge/pptx.ts, so this suite also proves
+ * that re-export still exposes the full surface.
  *
  * The part map mirrors tests/pptx-read.test.ts: hand-written OOXML —
  * presentation.xml + rels + theme1.xml + slide1.xml carrying one literal

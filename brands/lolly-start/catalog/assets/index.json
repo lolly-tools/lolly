@@ -612,34 +612,6 @@
       "license": "CC-PDDC"
     },
     {
-      "id": "lolly/modules/ambient-starfield",
-      "name": "Ambient Starfield",
-      "description": "Ambient Starfield — a tracker module by Drozerix. Electronic - Ambient. Public Domain via The Mod Archive.",
-      "type": "audio",
-      "version": "1.0.0",
-      "tier": "on-demand",
-      "tags": [
-        "audio",
-        "music",
-        "module",
-        "tracker",
-        "xm",
-        "neurospicy",
-        "ambient",
-        "chill"
-      ],
-      "formats": [
-        {
-          "format": "xm",
-          "url": "/catalog/assets/lolly/modules/ambient-starfield.xm",
-          "checksum": "sha256-aRJYlz/uIVubMMAttgWIoNLvjC+aFMubQMOtVZAFWj4=",
-          "size": 76939,
-          "durationMs": 147200
-        }
-      ],
-      "license": "CC-PDDC"
-    },
-    {
       "id": "lolly/modules/blue-intermission",
       "name": "Blue Intermission",
       "description": "Blue Intermission — a tracker module by congusbongus. Jazz (general). CC0 via The Mod Archive.",
@@ -667,62 +639,6 @@
         }
       ],
       "license": "CC0-1.0"
-    },
-    {
-      "id": "lolly/modules/bubble-machine",
-      "name": "Bubble Machine",
-      "description": "Bubble Machine — a tracker module by Drozerix. Chiptune. Public Domain via The Mod Archive.",
-      "type": "audio",
-      "version": "1.0.0",
-      "tier": "on-demand",
-      "tags": [
-        "audio",
-        "music",
-        "module",
-        "tracker",
-        "xm",
-        "neurospicy",
-        "beat",
-        "chiptune"
-      ],
-      "formats": [
-        {
-          "format": "xm",
-          "url": "/catalog/assets/lolly/modules/bubble-machine.xm",
-          "checksum": "sha256-wJVA9f7mZ022ZRtUm2lZxqj+CYxdTYe+t71ZnJog31c=",
-          "size": 41583,
-          "durationMs": 109250
-        }
-      ],
-      "license": "CC-PDDC"
-    },
-    {
-      "id": "lolly/modules/dream-candy",
-      "name": "Dream Candy",
-      "description": "Dream Candy — a tracker module by Drozerix. Chiptune. Public Domain via The Mod Archive.",
-      "type": "audio",
-      "version": "1.0.0",
-      "tier": "on-demand",
-      "tags": [
-        "audio",
-        "music",
-        "module",
-        "tracker",
-        "xm",
-        "neurospicy",
-        "beat",
-        "chiptune"
-      ],
-      "formats": [
-        {
-          "format": "xm",
-          "url": "/catalog/assets/lolly/modules/dream-candy.xm",
-          "checksum": "sha256-Cy569xUNCLHDqDryxwliybKxaLe39+aCkREKwjhmvgQ=",
-          "size": 143750,
-          "durationMs": 231600
-        }
-      ],
-      "license": "CC-PDDC"
     },
     {
       "id": "lolly/modules/headspin",

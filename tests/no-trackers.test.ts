@@ -21,12 +21,28 @@ const ROOT = join(import.meta.dirname, '..');
 
 // Source we actually ship or run. Excludes generated bundles' inputs? No —
 // api/ is INCLUDED deliberately: it's the code that really runs on the server,
-// and a stale bundle is precisely the drift worth catching.
-const SCAN_DIRS = ['engine/src', 'shells/web/src', 'shells/cli/src', 'shells/tui/src', 'services', 'packages', 'api', 'scripts'];
+// and a stale bundle is precisely the drift worth catching. Also deliberately
+// included, because docs/verify-yourself.md tells readers this test covers
+// "the code that ships": the chrome extension (no src/ dir — code sits at the
+// top level), the Tauri bridge overrides, the web service worker (a lone file
+// outside src/), and the tool packs (hooks.js/template.html ship to clients as
+// executable tool data; community/*/lib vendored bundles are skipped via
+// SKIP_DIR, and brands/suse may be unmounted on public clones — walk() just
+// skips a missing dir). docs/ itself is NOT scanned: verify-yourself.md names
+// the banned hostnames on purpose.
+const SCAN_DIRS = [
+  'engine/src', 'shells/web/src', 'shells/cli/src', 'shells/tui/src',
+  'shells/chrome-extension', 'shells/tauri-desktop/bridge-overrides',
+  'shells/tauri-mobile/bridge-overrides', 'shells/web/public/sw.js',
+  'services', 'packages', 'api', 'scripts',
+  'community', 'brands/lolly-start/tools', 'brands/suse/tools',
+];
 const SCAN_EXT = new Set(['.ts', '.js', '.mjs', '.html']);
 const SKIP_DIR = new Set(['node_modules', 'dist', '.git', 'lib', 'vendor']);
 
 function* walk(dir: string): Generator<string> {
+  // A SCAN_DIRS entry may be a single file (the service worker) — yield it as-is.
+  try { if (statSync(dir).isFile()) { yield dir; return; } } catch { return; }
   let entries: string[];
   try { entries = readdirSync(dir); } catch { return; }
   for (const name of entries) {
