@@ -839,34 +839,6 @@
       "license": "CC-PDDC"
     },
     {
-      "id": "lolly/modules/glitch-abuse",
-      "name": "Glitch Abuse",
-      "description": "Glitch Abuse — a tracker module by usrfriendly. Electronic - Drum & Bass. CC0 via The Mod Archive.",
-      "type": "audio",
-      "version": "1.0.0",
-      "tier": "on-demand",
-      "tags": [
-        "audio",
-        "music",
-        "module",
-        "tracker",
-        "xm",
-        "neurospicy",
-        "beat",
-        "dnb"
-      ],
-      "formats": [
-        {
-          "format": "xm",
-          "url": "/catalog/assets/lolly/modules/glitch-abuse.xm",
-          "checksum": "sha256-G36KaB94MAlmIZwPcoQx/JkErYzL98H4nrQcPRaxQH8=",
-          "size": 495410,
-          "durationMs": 77256
-        }
-      ],
-      "license": "CC0-1.0"
-    },
-    {
       "id": "lolly/modules/jazznocn",
       "name": "Jazznocn",
       "description": "Jazznocn — a tracker module by JAM. Chillout. Public Domain via The Mod Archive.",

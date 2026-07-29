@@ -101,9 +101,11 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // (pdfxProfileEligibility + iccCharacterization + supplied DestOutputProfile
   // bytes — a user's own CMYK profile can be embedded in a PDF/X-4 output intent)
   // and 1.75.0 (extractPageText/joinPageText — a PDF's positioned glyph runs
-  // reassembled into reading-ordered prose, plus the WinAnsi decoding fix);
+  // reassembled into reading-ordered prose, plus the WinAnsi decoding fix) and
+  // 1.76.0 (findHiddenText — text an opaque shape is painted over, i.e. the
+  // failed-redaction check, decided on paint order);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.75.0');
+  assert.equal(ENGINE_VERSION, '1.76.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
