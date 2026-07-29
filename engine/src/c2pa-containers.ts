@@ -618,9 +618,17 @@ function placeTiff(tiff: Uint8Array, manifest: Uint8Array): PlaceResult {
   const le = tiff[0] === 0x49 && tiff[1] === 0x49;
   const be = tiff[0] === 0x4d && tiff[1] === 0x4d;
   if (!le && !be) throw new Error('C2PA embed: not a TIFF');
-  const dv = new DataView(tiff.buffer, tiff.byteOffset);
+  // byteLength is REQUIRED here: `tiff` may be a subarray view of a larger
+  // buffer, and a DataView without it would happily read past the logical end
+  // of the file into unrelated bytes of the same ArrayBuffer instead of
+  // throwing. Every offset below comes out of the file itself, so the view must
+  // stop exactly where the file does.
+  const dv = new DataView(tiff.buffer, tiff.byteOffset, tiff.byteLength);
   const u16 = (o: number) => dv.getUint16(o, le);
   const u32 = (o: number) => dv.getUint32(o, le);
+  // The 8-byte classic header (magic, 42, first-IFD pointer) must be present
+  // before any of it is read.
+  if (tiff.length < 8) throw new Error('C2PA embed: truncated TIFF header');
   if (u16(2) !== 42) throw new Error('C2PA embed: BigTIFF is not supported');
   // Find the last IFD in the chain (cycle-guarded).
   const seen = new Set<number>();
@@ -630,6 +638,12 @@ function placeTiff(tiff: Uint8Array, manifest: Uint8Array): PlaceResult {
   let nextPtrAt = 4; // file offset of the pointer that will be patched
   while (ifd && !seen.has(ifd)) {
     seen.add(ifd);
+    // Bounds-check the pointer BEFORE dereferencing it. `ifd` is attacker
+    // controlled (it is read straight out of the file, both here and via
+    // u32(next) at the foot of the loop), so without this a forged offset past
+    // EOF escapes as a raw DataView RangeError rather than this module's own
+    // malformed-input error.
+    if (ifd + 2 > tiff.length) throw new Error('C2PA embed: malformed TIFF IFD');
     const count = u16(ifd);
     const next = ifd + 2 + count * 12;
     if (next + 4 > tiff.length) throw new Error('C2PA embed: malformed TIFF IFD');
