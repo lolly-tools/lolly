@@ -29,7 +29,8 @@ export type InputType =
   | 'url'
   | 'blocks'
   | 'vector'
-  | 'file';
+  | 'file'
+  | 'table';
 
 /** One choice in a `select` input. */
 export interface SelectOption {
@@ -116,6 +117,13 @@ export interface RenderSpec {
   convertPaths?: boolean;
   /** Multi-page ("carousel") editor config; names the number-input ids driving page count/size. */
   pages?: { count: string; width: string; height: string; gap?: number; min?: number; max?: number };
+  /** Engine-driven pagination: `source` names a `table` input whose rows each
+   *  produce one page. The runtime hydrates the template once per row — with a
+   *  `page` context object ({ index, number, count, first, cells, fields }) —
+   *  and wraps each hydration in its own `[data-pdf-page]` box, so the tool
+   *  authors ONE page and never manages pagination itself. Pair with
+   *  `paged: true` for the scrolling all-pages canvas. */
+  paginate?: { source: string };
   aspectWarning?: { min?: number; max?: number; message?: string };
   preview?: Record<string, unknown>;
   video?: Record<string, unknown>;

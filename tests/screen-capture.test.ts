@@ -106,9 +106,10 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // failed-redaction check, decided on paint order) and 1.77.0 (color-faces —
   // per-space/per-profile overrides on a brand colour, with ColorSwatch.faces
   // added and ColorSwatch.value now returning an AUTHORED sRGB face in
-  // preference to the automatic bake);
+  // preference to the automatic bake) and 1.78.0 (the `table` input type +
+  // render.paginate — one page per table row, plus the table-text codec);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.77.0');
+  assert.equal(ENGINE_VERSION, '1.78.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
