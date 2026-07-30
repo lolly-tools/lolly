@@ -1355,3 +1355,18 @@ design-import parseDesignScenes; the Penpot binfile board split is a shell walk
 over per-shape JSON, so it needed no engine change).
 
 No v1 bridge method changed.
+
+## 1.84.0 — scene import plays decks in reading order
+
+Additive: `readingOrder` in design-map — order frames the way a person reads a
+storyboard (rows top-to-bottom, then left-to-right, rows clustered on centre-y
+with half-median-height tolerance). `figmaNodesToScenes` now applies it per page
+and only emits a loose-shapes scene on a frame-less page. Ground-truthed against
+a real 31-slide Penpot keynote (its PDF export): canvas child order is
+Z/creation order, which played the deck backwards and surfaced component-master
+boards and scratch content as scenes. The Penpot side of the same fixes
+(skip `componentRoot`+`mainInstance` masters, skip `hidden` subtrees, top-level
+`hideInViewer` boards excluded as scenes but nested ones still painted) lives in
+the shell walk (design-import.ts).
+
+No v1 bridge method changed.
