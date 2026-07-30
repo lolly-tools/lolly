@@ -155,6 +155,13 @@ jobs:
       - name: Docs nav completeness (no orphaned docs/*.md)
         run: npm run check:docs-nav
 
+      # shells/web/src/README.md opens with per-directory and largest-file stats
+      # that a new contributor uses to decide where to look. They were measured by
+      # hand and were already drifting; they are generated now, so this fails if
+      # the committed tables no longer match the tree.
+      - name: Web shell code-map stats drift (stale? rerun build:web-src-readme)
+        run: npm run check:web-src-readme
+
   validate-catalog:
     name: validate catalog
     runs-on: ubuntu-latest
