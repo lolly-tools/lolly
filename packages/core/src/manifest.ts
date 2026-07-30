@@ -105,6 +105,11 @@ export interface RenderSpec {
    *  selector + DPI field, so an on-screen pixel is an exported pixel. */
   units?: boolean;
   paged?: boolean;
+  /** Which edge a paged tool's slide-sorter filmstrip runs along. `'left'` (the
+   *  default) is a vertical rail beside the canvas — right for tall documents.
+   *  `'bottom'` is the deck-strip shape, for tools whose pages are wide and few
+   *  (cards, slides), where a left rail eats the width the page needs. */
+  filmstrip?: 'left' | 'bottom';
   printMarks?: boolean;
   transparentBg?: boolean;
   c2pa?: boolean;

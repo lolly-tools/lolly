@@ -166,8 +166,17 @@ async function inspectPptx(bytes: Uint8Array, opts: PptxInspectOpts | undefined,
       fonts.push({ family });
     };
 
+    // Node-kind tally — a deck of nothing but pictures has no colour or typeface
+    // a rebrand can reach, and the tool needs to say so before the download.
+    const content = { pictures: 0, texts: 0, shapes: 0, tables: 0, unknown: 0 };
+
     for (const slide of deck.slides) {
       for (const node of slide.nodes) {
+        if (node.type === 'pic') content.pictures++;
+        else if (node.type === 'text') content.texts++;
+        else if (node.type === 'shape') content.shapes++;
+        else if (node.type === 'table') content.tables++;
+        else content.unknown++;
         if (node.type === 'text') {
           addColor(node.fill);
           for (const para of node.paras) {
@@ -191,7 +200,7 @@ async function inspectPptx(bytes: Uint8Array, opts: PptxInspectOpts | undefined,
     if (deck.theme.majorFont) theme.majorFont = deck.theme.majorFont;
     if (deck.theme.minorFont) theme.minorFont = deck.theme.minorFont;
 
-    const result: PptxInspectResult = { ok: true, slideCount: deck.slides.length, theme, colors, fonts };
+    const result: PptxInspectResult = { ok: true, slideCount: deck.slides.length, theme, colors, fonts, content };
 
     // PptxBrandSwatch/PptxBrandFonts are structurally the engine's BrandSwatch/
     // BrandFonts, so brand-map takes them as-is.

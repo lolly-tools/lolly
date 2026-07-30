@@ -69,6 +69,8 @@ Handlebars.registerHelper('arrow', (text: unknown) =>
   (text == null ? '' : String(text).replace(LEADING_ARROW, (_, m: string) => (ARROW_GLYPHS[m] ?? m) + ' ')));
 
 // Limited markdown → HTML. Supports **bold**, *italic*, ~~strikethrough~~,
+// [links](url) and ![images](url) (both URL-allowlisted — see mdUrl below; an
+// image carries class="md-image" so a tool can size it without a wrapper),
 // "# "…"###### " headings (<h1>–<h6>), bullet lists (a block whose every line
 // starts "- ", "* ", or a direction marker "> "/"< "/"^ "/"v "), numbered lists
 // (every line "1. "/"2) "), paragraph breaks (blank line), and line breaks within
@@ -85,16 +87,58 @@ const MD_ESCAPE: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt
 const MD_BULLET = /^\s*([-*<>^v])\s+/;               // "- "/"* " or a direction marker
 const MD_ORDERED = /^\s*\d+[.)]\s+/;                 // "1. "/"2) "
 const MD_HEADING = /^\s*(#{1,6})\s+(\S.*)$/;         // "# "…"###### " + text
+const MD_IMAGE = /!\[([^\]]*)\]\(([^)\s]+)\)/g;      // ![alt](url)   — must run BEFORE links
+const MD_LINK = /\[([^\]]+)\]\(([^)\s]+)\)/g;        // [text](url)
+
+// A URL is usable only if it names an allowed scheme or names no scheme at all
+// (relative / scheme-relative / fragment / query). Everything else — javascript:,
+// vbscript:, file:, … — is dropped, and the caller renders the plain text instead.
+// The probe undoes the earlier &-escape and strips control/whitespace characters
+// first, so `java\tscript:` and `javascript&#58;`-style smuggling can't slip a
+// scheme past the test. Images get data:/blob: on top of the link schemes: a
+// pasted or host-resolved asset URL is one of those far more often than not.
+const MD_LINK_SCHEMES = /^(https?|mailto|tel):/i;
+const MD_IMAGE_SCHEMES = /^(https?|data|blob):/i;
+function mdUrl(raw: string, allowed: RegExp): string {
+  const s = raw.trim();
+  if (!s) return '';
+  const probe = s.replace(/&amp;/g, '&').replace(/[\u0000-\u0020]+/g, '');
+  const ok = /^(\/\/|\/|\.|#|\?)/.test(probe) || !/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(probe)
+    ? true                                  // no scheme → relative-ish, allowed
+    : allowed.test(probe);
+  return ok ? s.replace(/"/g, '&quot;') : '';
+}
 Handlebars.registerHelper('markdown', (text: unknown) => {
   if (text == null || text === '') return new Handlebars.SafeString('');
   // Fold the three HTML-escape passes (&, <, >) into a single scan — markdown runs
   // per block on every keystroke for color-block/dynamic-layout/quotes. Output is
   // identical to the sequential replaces (the engine doesn't re-scan replacements).
-  const inline = (raw: string): string => raw
-    .replace(/[&<>]/g, (c) => MD_ESCAPE[c] ?? c)
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/~~(.+?)~~/g, '<del>$1</del>')
-    .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+  // Escape FIRST, then introduce the fixed tag set by operating on already-escaped
+  // text: no piece of author text (cell, link label, alt) can ever emit a live tag.
+  // URLs are parked in placeholders across the emphasis pass so an asterisk or a
+  // "~~" inside a query string can't be rewritten into a tag mid-attribute.
+  const inline = (raw: string): string => {
+    const urls: string[] = [];
+    const park = (u: string): string => `\u0000${urls.push(u) - 1}\u0000`;
+    return raw
+      .replace(/\u0000/g, '')
+      .replace(/[&<>]/g, (c) => MD_ESCAPE[c] ?? c)
+      .replace(MD_IMAGE, (whole, alt: string, url: string) => {
+        const safe = mdUrl(url, MD_IMAGE_SCHEMES);
+        // No usable URL → keep the alt text (an empty alt leaves the markup literal,
+        // which is the only honest thing to show when there's nothing to render).
+        if (!safe) return alt || whole;
+        return `<img class="md-image" src="${park(safe)}" alt="${alt.replace(/"/g, '&quot;')}">`;
+      })
+      .replace(MD_LINK, (_, label: string, url: string) => {
+        const safe = mdUrl(url, MD_LINK_SCHEMES);
+        return safe ? `<a href="${park(safe)}">${label}</a>` : label;
+      })
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/~~(.+?)~~/g, '<del>$1</del>')
+      .replace(/\*([^*\n]+?)\*/g, '<em>$1</em>')
+      .replace(/\u0000(\d+)\u0000/g, (_, i: string) => urls[Number(i)] ?? '');
+  };
   // Render a run of consecutive non-heading lines: an unordered list (every line a
   // bullet / direction marker), an ordered list (every line "N."/"N)"), or a
   // paragraph (lines joined with <br>). The leading marker is stripped before

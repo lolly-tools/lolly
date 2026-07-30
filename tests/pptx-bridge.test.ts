@@ -197,6 +197,42 @@ test('inspect with brand swatches + fonts suggests replacements and a theme', as
   assert.equal(res.themeSuggestion!.minorFont, 'Poppins');
 });
 
+// A slide that is ONE full-bleed picture and nothing else — what "export the
+// deck to PDF, import the pages back" produces. There is no literal colour and
+// no typeface on it, so a rebrand cannot change a pixel; `content` is the
+// signal a tool uses to say so before the user spends a download.
+const SLIDE_PIC = `${XML_DECL}
+<p:sld xmlns:a="${NS_A}" xmlns:r="${NS_R}" xmlns:p="${NS_P}">
+  <p:cSld>
+    <p:spTree>
+      <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+      <p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></a:xfrm></p:grpSpPr>
+      <p:pic>
+        <p:nvPicPr><p:cNvPr id="4" name="Picture 3"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr>
+        <p:blipFill><a:blip r:embed="rId9"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>
+        <p:spPr>
+          <a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/></a:xfrm>
+          <a:prstGeom prst="rect"><a:avLst/></a:prstGeom>
+        </p:spPr>
+      </p:pic>
+    </p:spTree>
+  </p:cSld>
+</p:sld>`;
+
+test('inspect tallies the slide node kinds, so a flattened deck is detectable', async () => {
+  const live = await api.inspect(zipDeck());
+  assert.ok(live.content, 'content is reported (engine 1.79)');
+  assert.equal(live.content!.pictures, 0);
+  assert.ok(live.content!.texts + live.content!.shapes > 0, 'a normal deck has live nodes');
+
+  // The same deck with its one slide replaced by a single picture.
+  const flat = await api.inspect(zipDeck({ 'ppt/slides/slide1.xml': SLIDE_PIC }));
+  assert.deepEqual(flat.content, { pictures: 1, texts: 0, shapes: 0, tables: 0, unknown: 0 });
+  // and nothing a colour/font map could bite on beyond the theme's own faces
+  assert.deepEqual(flat.colors, []);
+  assert.deepEqual(flat.fonts.map((f) => f.family), ['Calibri Light', 'Calibri']);
+});
+
 test('inspect never throws: garbage bytes and non-deck zips resolve ok:false', async () => {
   for (const bytes of [
     new Uint8Array(0),

@@ -97,6 +97,7 @@ These drive tools in a real browser and export through the app's own render path
 
 | Script | npm alias | Purpose | Flags |
 |---|---|---|---|
+| `build-cargo-licenses.ts` | `build:cargo-licenses` | Generates `cargo-licenses.json` (crate licences for the Tauri shells, via `cargo metadata`). Needs `cargo`. | DESTRUCTIVE |
 | `build-sbom.ts` | `build:sbom` | Generates the Software Bill of Materials. | DESTRUCTIVE |
 | `build-licenses.ts` | `build:licenses` | Generates the third-party licence and NOTICE file. | DESTRUCTIVE |
 

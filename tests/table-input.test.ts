@@ -213,3 +213,28 @@ test('render.paginate with zero rows still emits one page', async () => {
   assert.equal((html.match(/data-pdf-page/g) ?? []).length, 1);
   assert.match(html, /<p class="pageno">1\/1<\/p>/);
 });
+
+// Cells carry markdown (battlecards 1.1.0): the engine's {{markdown}} helper runs
+// per cell inside the paginated hydration, so a pasted spreadsheet cell can bring
+// structure — lists, emphasis, links, images — with no hook in the tool.
+const MD_TOOL = {
+  ...(PAGINATED_TOOL as object),
+  template: '<article>{{#each page.fields}}<div class="v">{{{markdown value}}}</div>{{/each}}</article>',
+} as never;
+
+test('render.paginate: cell markdown is rendered per cell, per page', async () => {
+  const runtime = await createRuntime(MD_TOOL, baseHost());
+  await runtime.setInput('data', {
+    columns: ['Pain', 'Detail'],
+    rows: [
+      ['Assurance', 'Is it **open**?'],
+      ['Exit', '- leave anytime\n- [docs](https://lolly.tools/d)'],
+      ['Proof', '# Heading\n![seal](/seal.svg)'],
+    ],
+  });
+  const html = runtime.getHydrated();
+  assert.equal((html.match(/data-pdf-page/g) ?? []).length, 3);
+  assert.match(html, /<div class="v"><p>Is it <strong>open<\/strong>\?<\/p><\/div>/);
+  assert.match(html, /<ul><li>leave anytime<\/li><li><a href="https:\/\/lolly\.tools\/d">docs<\/a><\/li><\/ul>/);
+  assert.match(html, /<h1>Heading<\/h1><p><img class="md-image" src="\/seal\.svg" alt="seal"><\/p>/);
+});

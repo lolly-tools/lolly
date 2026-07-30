@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-30T08:39:10.041Z",
+  "generatedAt": "2026-07-30T10:50:19.375Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -3830,7 +3830,7 @@
       "id": "rebrand-deck",
       "name": "Rebrand a Deck",
       "description": "Upload a PowerPoint deck and snap its colours and fonts to your brand — rebuilt on your device, nothing uploaded.",
-      "version": "1.0.1",
+      "version": "1.1.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
@@ -5147,7 +5147,7 @@
       "id": "battlecards",
       "name": "Battlecards",
       "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "status": "community",
       "category": "everyone",
       "formats": [
