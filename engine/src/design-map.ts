@@ -108,6 +108,7 @@ interface DesignNode {
   shape?: string;
   radius?: unknown;
   fill?: unknown;
+  grad?: unknown;
   fontFamily?: unknown;
   fontWeight?: unknown;
   textAlign?: unknown;
@@ -140,6 +141,7 @@ interface Box {
   shape: string;
   radius: number;
   bg: string;
+  grad: string;
   opacity: number;
   image: unknown;
   fit: string;
@@ -402,6 +404,7 @@ export function nodeToBox(
     shape,
     radius,
     bg,
+    grad: n.grad != null ? String(n.grad) : '',
     opacity,
     image,
     fit,
@@ -568,6 +571,15 @@ interface PenpotFill {
   fillColor?: unknown;
   fillOpacity?: unknown;
   fillImage?: { id?: unknown; keepAspectRatio?: unknown } | null;
+  fillColorGradient?: PenpotGradient | null;
+}
+interface PenpotGradient {
+  type?: unknown;
+  stops?: unknown[];
+  startX?: unknown;
+  startY?: unknown;
+  endX?: unknown;
+  endY?: unknown;
 }
 interface PenpotShape {
   id?: unknown;
@@ -582,6 +594,47 @@ interface PenpotShape {
   fills?: unknown;
   content?: unknown;
   r1?: unknown;
+}
+
+// Cap mirrors gradient-spec.ts MAX_GRADIENT_STOPS (kept literal: design-map must
+// not import the render-side module — the spec string is the only coupling).
+const MAX_PENPOT_GRADIENT_STOPS = 12;
+
+/**
+ * Map a Penpot gradient fill to a Lolly gradient-spec string (gradient-spec.ts
+ * grammar: `<kind>[.<space>]_<angle>_<hex>-<pos>_…`), or '' when unusable.
+ * Interpolation is pinned to `.srgb` — Penpot ramps in sRGB, and Lolly's OKLab
+ * default would visibly shift the mid-ramp. The angle comes from the gradient
+ * vector in PIXEL space (start/end are fractions of the shape box, so aspect
+ * matters); stop positions keep their authored offsets — CSS spans the full box
+ * while Penpot endpoints can be inset, an accepted approximation for v1. Stop
+ * alpha folds `stop.opacity × fillOpacity` into an 8-digit hex.
+ * @param {object} g the fill's `fillColorGradient`.
+ * @param {number} w,h the shape box in px.
+ * @param {number} fillOpacity the owning fill's opacity 0..1.
+ * @returns {string}
+ */
+export function penpotGradientToSpec(g: unknown, w: number, h: number, fillOpacity: number): string {
+  const grad = (g && typeof g === 'object') ? (g as PenpotGradient) : null;
+  const stops = grad && Array.isArray(grad.stops) ? grad.stops : [];
+  if (!grad || stops.length < 2) return '';
+  const kind = String(grad.type || '') === 'radial' ? 'rad' : 'lin';
+  const dx = (num(grad.endX, 1) - num(grad.startX, 0)) * Math.max(1, w);
+  const dy = (num(grad.endY, 1) - num(grad.startY, 0)) * Math.max(1, h);
+  // CSS angle: 0° points up, clockwise; the vector points toward the last stop.
+  const angle = kind === 'rad' ? 0 : Math.round(((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360);
+  const parts: string[] = [];
+  const fo = clamp(fillOpacity, 0, 1);
+  for (const raw of stops.slice(0, MAX_PENPOT_GRADIENT_STOPS)) {
+    const st = (raw && typeof raw === 'object') ? raw as { color?: unknown; opacity?: unknown; offset?: unknown } : null;
+    const hex6 = safeColor(String(st?.color ?? ''), '');
+    if (!hex6) return ''; // one unreadable stop → no gradient (flat-fill degrade)
+    const a = Math.round(clamp(num(st?.opacity, 1), 0, 1) * fo * 255);
+    const hex = (hex6.replace(/^#/, '') + (a < 255 ? a.toString(16).padStart(2, '0') : '')).toLowerCase();
+    const pos = clamp(Math.round(num(st?.offset, 0) * 100), 0, 100);
+    parts.push(`${hex}-${pos}`);
+  }
+  return `${kind}.srgb_${angle}_${parts.join('_')}`;
 }
 
 /**
@@ -637,6 +690,21 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     fill: (topFill && topFill.fillColor != null) ? String(topFill.fillColor) : '',
     opacity: clamp(Math.round(shapeOp * num(topFill && topFill.fillOpacity, 1) * 100), 0, 100),
   };
+  // Gradient fill → the Lolly grad spec (topmost gradient wins). The flat `fill`
+  // degrades to the FIRST stop so an old engine — or a box kind without a grad
+  // field — paints a plausible solid instead of transparent. Stop alpha already
+  // folds the fill's own opacity, so node opacity carries the shape's alone.
+  const gradFill = [...fills].reverse().find((f) =>
+    f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
+  if (gradFill) {
+    const spec = penpotGradientToSpec(gradFill.fillColorGradient, w, h, num(gradFill.fillOpacity, 1));
+    if (spec) {
+      node.grad = spec;
+      const first = (gradFill.fillColorGradient!.stops![0] ?? null) as { color?: unknown } | null;
+      node.fill = safeColor(String(first?.color ?? ''), '') || node.fill;
+      node.opacity = clamp(Math.round(shapeOp * 100), 0, 100);
+    }
+  }
   if (type === 'circle') node.shape = 'ellipse';
   const r1 = num(sh.r1, 0);
   if (r1 > 0) { node.shape = 'rounded'; node.radius = r1; }

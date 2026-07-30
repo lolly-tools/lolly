@@ -2246,6 +2246,23 @@ export interface ComposeSpec {
   dpi?: number;
   /** Engine-managed recursion stack of tool ids already on the compose path. */
   _stack?: readonly string[];
+  /**
+   * One-shot render: skip the host's render cache entirely — no lookup, no
+   * insertion. For a bulk bake (a design import turning 30+ scenes into stored
+   * assets) each result is used once and never re-requested, so caching them
+   * only evicts the live preview entries and pins their blobs. The CALLER then
+   * owns the returned `url` and must release it once the bytes are copied (on
+   * web that means URL.revokeObjectURL) — with the cache holding no reference,
+   * nothing else will. Optional/additive (v1.5); absent → cached as before.
+   */
+  transient?: boolean;
+  /**
+   * Post-mount settle before the child is captured, in ms. The host's default
+   * waits long enough for images/lottie/video inside the child to decode; a
+   * caller that KNOWS the child has no such media may pass a much smaller value.
+   * Advisory — a host may clamp or ignore it. Optional/additive (v1.5).
+   */
+  settleMs?: number;
 }
 
 // Re-export the AssetRef shape from the schema for convenience.

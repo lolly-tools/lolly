@@ -480,6 +480,55 @@ test('penpotShapeToNode: root frame + junk → null', () => {
   assert.equal(penpotShapeToNode('nope'), null);
 });
 
+// ── penpotGradientToSpec (gradient fills → Lolly grad spec) ──────────────────
+test('penpotGradientToSpec: the keynote background — linear, aspect-aware angle, sRGB', () => {
+  // Real values from a 31-slide Penpot keynote: 895×503 board, #151035→#312470.
+  const g = {
+    type: 'linear', startX: 0.227, startY: 0.335, endX: 0.944, endY: 0.987,
+    stops: [{ color: '#151035', opacity: 1, offset: 0 }, { color: '#312470', opacity: 1, offset: 1 }],
+  };
+  assert.equal(penpotGradientToSpec(g, 895, 503, 1), 'lin.srgb_117_151035-0_312470-100');
+});
+
+test('penpotGradientToSpec: stop alpha folds stop.opacity × fillOpacity into hex8', () => {
+  const g = {
+    type: 'linear', startX: 0, startY: 0, endX: 1, endY: 0,
+    stops: [{ color: '#25CBD9', opacity: 1, offset: 0 }, { color: '#00D1B8', opacity: 0.9, offset: 1 }],
+  };
+  // 0.9 × 255 = 229.5 → e6; first stop stays 6-digit. Horizontal vector → 90°.
+  assert.equal(penpotGradientToSpec(g, 321, 71, 1), 'lin.srgb_90_25cbd9-0_00d1b8e6-100');
+  // fillOpacity folds in multiplicatively.
+  assert.equal(penpotGradientToSpec(g, 321, 71, 0.5), 'lin.srgb_90_25cbd97f-0_00d1b873-100');
+});
+
+test('penpotGradientToSpec: radial → rad_0; junk → ""', () => {
+  const stops = [{ color: '#000000', offset: 0 }, { color: '#ffffff', offset: 1 }];
+  assert.equal(penpotGradientToSpec({ type: 'radial', stops }, 100, 100, 1), 'rad.srgb_0_000000-0_ffffff-100');
+  assert.equal(penpotGradientToSpec(null, 100, 100, 1), '');
+  assert.equal(penpotGradientToSpec({ type: 'linear', stops: [stops[0]] }, 100, 100, 1), '');
+  assert.equal(penpotGradientToSpec({ type: 'linear', stops: [{ color: 'garbage(', offset: 0 }, stops[1]] }, 100, 100, 1), '');
+});
+
+test('penpotShapeToNode: gradient fill → grad spec + first-stop flat degrade', () => {
+  const shape = {
+    id: 'g1', type: 'rect',
+    selrect: { x: 0, y: 0, width: 895, height: 503 },
+    fills: [{ fillOpacity: 1, fillColorGradient: {
+      type: 'linear', startX: 0.227, startY: 0.335, endX: 0.944, endY: 0.987,
+      stops: [{ color: '#151035', opacity: 1, offset: 0 }, { color: '#312470', opacity: 1, offset: 1 }],
+    } }],
+  };
+  const n = penpotShapeToNode(shape) as any;
+  assert.equal(n.grad, 'lin.srgb_117_151035-0_312470-100');
+  assert.equal(n.fill, '#151035'); // old engines / non-grad kinds paint the first stop
+  const box = nodeToBox(n, { id: 'b0' });
+  assert.equal((box as any).grad, 'lin.srgb_117_151035-0_312470-100');
+  // A solid-fill shape emits an empty grad, byte-identical to the pre-gradient rows.
+  const solid = penpotShapeToNode({ id: 's1', type: 'rect', selrect: { x: 0, y: 0, width: 10, height: 10 }, fills: [{ fillColor: '#ff0000' }] }) as any;
+  assert.equal(solid.grad, undefined);
+  assert.equal((nodeToBox(solid, { id: 'b1' }) as any).grad, '');
+});
+
 // ── figmaNodesToNodes (.fig document tree) ───────────────────────────────────
 test('figmaNodesToNodes: accumulates parent transforms, maps fills + text weight', () => {
   const nc = [
