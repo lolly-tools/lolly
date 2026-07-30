@@ -46,12 +46,29 @@ cd "$REPO_ROOT" || { echo "loldev: cannot cd $REPO_ROOT" >&2; exit 1; }
 
 usage() { awk 'NR>1 && /^#/ {sub(/^# ?/,""); print; next} NR>1 {exit}' "${BASH_SOURCE[0]}"; }
 
+# Submodules gtg must VISIT. Dirty is not enough: a submodule that was committed
+# by hand (or by a previous half-finished gtg) but never pushed has a CLEAN status,
+# so keying on `status --porcelain` alone skipped it — and the parent was then
+# pushed anyway, publishing a pointer to a SHA that exists on nobody's remote.
+# That breaks `git submodule update --init --recursive` for every clone, every CI
+# run and every Vercel git build. Observed three times on 2026-07-30.
+# `@{u}..HEAD` is local-only (no network); a submodule with no upstream configured
+# is yielded too, so the push attempt reports the real reason rather than silence.
 changed_submodules() {
-  local p
+  local p ahead
   while read -r p; do
-    [ -n "$(git -C "$p" status --porcelain 2>/dev/null)" ] && echo "$p"
+    [ -n "$(git -C "$p" status --porcelain 2>/dev/null)" ] && { echo "$p"; continue; }
+    ahead=$(git -C "$p" rev-list --count '@{u}..HEAD' 2>/dev/null)
+    if [ -z "$ahead" ]; then
+      # No upstream (or detached) — only interesting if it actually has commits.
+      git -C "$p" rev-parse --verify -q HEAD >/dev/null 2>&1 && echo "$p"
+    elif [ "$ahead" -gt 0 ]; then
+      echo "$p"
+    fi
   done < <(subrepo_paths)
 }
+
+GATE_TEST_LOG="${TMPDIR:-/tmp}/loldev-gate-test.log"
 
 do_build() {
   phase "🔍" "Build gate"
@@ -67,7 +84,11 @@ do_build() {
   # published policy. Run BEFORE the catalog loop below switches profiles, while
   # the checkout still looks like the developer's own.
   step "running the test suite"
-  npm run --silent test >/dev/null || { err "tests failed — fix them (npm test), or run 'loldev push' to bypass the build gate"; return 1; }
+  # Keep the output. Discarding it meant a failed gate cost a full 46 s re-run of
+  # `npm test` just to read WHICH test failed. PIPESTATUS keeps the suite's exit
+  # status authoritative through the tee.
+  npm run --silent test >"$GATE_TEST_LOG" 2>&1
+  [ "${PIPESTATUS[0]:-$?}" -eq 0 ] || { err "tests failed — see $GATE_TEST_LOG (or re-run: npm test)"; return 1; }
   ok "tests passed"
 
   # build:catalog re-rolls catalog/previews/bundle.json (pure filesystem, no browser).
@@ -153,6 +174,27 @@ gtg() {
     do_build || { err "build failed — not pushing"; return 1; }
   fi
 
+  # What `git add -A` below is about to sweep up, printed BEFORE it happens.
+  # gtg stages the entire working tree, so anything a concurrent session (another
+  # agent, another terminal, an editor's autosave) has in flight gets committed and
+  # pushed under THIS run's message. That happened twice on 2026-07-30. A lock does
+  # not help — the other writer is not gtg — but seeing the list does: an unexpected
+  # path here is the cue to stop. Cheap, non-interactive, and it never blocks.
+  show_sweep_scope() {
+    local p n files
+    phase "👀" "About to commit"
+    for p in $(subrepo_paths) "."; do
+      n=$(git -C "$p" status --porcelain 2>/dev/null | grep -cv '^ m ' )
+      [ "${n:-0}" -eq 0 ] && continue
+      files=$(git -C "$p" status --porcelain 2>/dev/null | grep -v '^ m ' \
+              | awk '{print $NF}' | head -6 | tr '\n' ' ')
+      printf "     %-26s %3s file(s)  %s%s\n" \
+        "$([ "$p" = "." ] && echo "(parent)" || echo "$p")" "$n" "$files" \
+        "$([ "$n" -gt 6 ] && echo '…')"
+    done
+  }
+  show_sweep_scope
+
   # 1. each changed submodule → its own repo
   phase "📦" "Submodules"
   local any=0 p repo out
@@ -161,14 +203,17 @@ gtg() {
     any=1; repo="$ORG/$(repo_for_path "$p")"
     step "$p  →  $repo"
     git -C "$p" add -A
-    if git -C "$p" commit --allow-empty-message -m "$MSG" >/dev/null 2>&1; then
-      if out=$(git -C "$p" push 2>&1); then
-        ok "pushed $p"; PUSHED+=("$p  →  $repo")
-      else
-        err "push failed: $p"; printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"; FAILED+=("$p (push)")
-      fi
+    # Commit if there is anything to commit — but PUSH REGARDLESS. These used to be
+    # nested, so "nothing to commit" also meant "nothing pushed", which is half of
+    # the unpushed-pointer bug above (the other half was never visiting the repo).
+    git -C "$p" commit --allow-empty-message -m "$MSG" >/dev/null 2>&1
+    if [ -z "$(git -C "$p" log '@{u}..HEAD' --oneline 2>/dev/null)" ] \
+       && git -C "$p" rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
+      warn "$p — already up to date"; NOOP+=("$p")
+    elif out=$(git -C "$p" push 2>&1); then
+      ok "pushed $p"; PUSHED+=("$p  →  $repo")
     else
-      warn "$p — nothing to commit"; NOOP+=("$p")
+      err "push failed: $p"; printf '%s\n' "$out" | sed "s/^/        ${c_red}│${c_reset} /"; FAILED+=("$p (push)")
     fi
     git add "$p"   # stage the pointer bump in the parent
   done < <(changed_submodules)
