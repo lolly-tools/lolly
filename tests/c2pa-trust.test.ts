@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Trust-anchor verification contract tests — the identity path of
  * verifyC2pa(bytes, { trustAnchors }). Run with:

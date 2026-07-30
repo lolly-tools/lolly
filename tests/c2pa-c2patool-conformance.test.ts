@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Cross-validator conformance: prove Lolly's C2PA output (the honest multi-action
 // history AND the multi-manifest ingredient-preservation store) validates in the
 // reference implementation, not just Lolly's own verifier. Runs the `c2patool`

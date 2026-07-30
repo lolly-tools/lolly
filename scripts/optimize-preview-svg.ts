@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Preview-SVG optimisation helpers (build-time, thumbnail-only).
  *

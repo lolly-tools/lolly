@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Rebuild the OG share cards for EVERY mounted profile, not just the active one.
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Font upload edge case tests
  * Tests: (1) Oversized files >5MB, (2) Corrupted TTF, (3) Duplicate fonts,

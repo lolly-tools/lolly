@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * engine/src/table-text.ts — text ⇄ table parsing for the `table` input's
  * clipboard/file round-trip (TSV, Markdown pipe tables, RFC 4180 CSV).

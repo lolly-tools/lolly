@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Runs svgo over the authored catalog SVG assets (catalog/assets/**\/*.svg) in place.
  *

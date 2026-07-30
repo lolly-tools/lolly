@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Downloads Adobe's official TrustMark ONNX watermark models into
  * shells/web/public/models/trustmark/ — the same-origin location

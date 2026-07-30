@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Cross-validator conformance, the OTHER direction from c2pa-c2patool-conformance.test.ts:
 // that suite proves Lolly's WRITER validates in c2patool; this proves Lolly's READER
 // (verifyC2pa) correctly parses a manifest it never wrote — a genuinely independent CBOR/

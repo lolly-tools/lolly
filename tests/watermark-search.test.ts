@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Lolly pixel watermark — multi-scale + offset recovery search (Path A).
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * C2PA verifier contract tests — the read side of the c2pa.js writer.
  * Run with: node --test tests/c2pa-verify.test.ts

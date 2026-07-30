@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the `file` input type + the transform output path
  * (host.export.file / the exportFile hook / runtime.exportFile) and the

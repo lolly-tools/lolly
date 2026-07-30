@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Re-export shim. The ZzFX preset bank + ZzFXM composition helpers moved into
  * the ENGINE — engine/src/zzfx-compose.ts (1.60.0, barrel-exported) — so shells

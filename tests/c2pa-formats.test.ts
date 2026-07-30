@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Multi-format C2PA embed → verify round-trips.
  * Run with: node --test tests/c2pa-formats.test.ts

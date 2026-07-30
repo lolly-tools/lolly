@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for engine/src/color-tools.ts — the perceptual metrics + ramp
  * math ported per plans/chroma-eval.md. Covers APCA against the published

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Pure, DOM-free CSS box-model + border-radius geometry.
 //
 // Single source of truth for the export walkers (the SVG walker and the PDF

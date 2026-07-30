@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the runtime's export-time capture/text provenance (runtime.ts
  * export(), v1.35). These prove the SIGNAL wiring end-to-end at the host seam: a

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * C2PA manifest builder + PDF embedder contract tests.
  * Run with: node --test tests/c2pa.test.ts

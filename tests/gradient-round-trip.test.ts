@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Round-trip integrity test for gradients in brand studio.
  *

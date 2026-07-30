@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Layout Studio — text-fit + circle-shape contract tests.
  *

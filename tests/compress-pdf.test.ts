@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Compress PDF — the on-device PDF compressor utility, end-to-end.
  *

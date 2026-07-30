@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * The gamut solid (engine/src/gamut-solid.ts) — a display's colour volume as a
  * rotatable 3D surface.

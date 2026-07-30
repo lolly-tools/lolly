@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the pure preview-SVG optimisation helpers.
  * Run with: node --test tests/optimize-preview-svg.test.ts

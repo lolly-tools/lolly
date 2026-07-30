@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * DXF emitter contract tests.
  * Run with: node --test tests/dxf.test.ts

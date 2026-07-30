@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * sequence-plan — the pure planner behind deterministic sequence export
  * (Fable timeline, phase 3 §0.0's "DESIGN REQUIREMENT added by the spike").

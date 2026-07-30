@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Metadata-stripping tests — lossless clean-copy byte surgery (mirrors the
  * strip-data tool's hook logic; see engine/src/strip-metadata.ts).

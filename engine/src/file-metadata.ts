@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // ─── Embedded-metadata reader ────────────────────────────────────────────────
 //
 // Reads the metadata a file *carries* — EXIF, GPS, XMP, PNG text chunks, SVG

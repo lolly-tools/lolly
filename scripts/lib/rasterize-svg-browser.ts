@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * SVG → PNG rasteriser backed by our OWN render path (Playwright/Chromium), not resvg.
  *

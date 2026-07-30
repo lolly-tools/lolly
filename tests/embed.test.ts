@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the embed URL grammar (parseEmbedUrl) — the portable
  * surface of tool composition. The strict matcher is the security boundary, so

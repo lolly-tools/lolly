@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Display-gamut classification (engine/src/gamut.ts) — the sRGB / Display-P3 /
  * Rec.2020 boundaries the brand studio's OKLCH slice charts draw.

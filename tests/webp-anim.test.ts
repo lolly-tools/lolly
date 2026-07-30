@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Animated WebP packer byte-structure contract tests.
  * Run with: node --test tests/webp-anim.test.ts

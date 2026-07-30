@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the pure halves of scripts/ingest-audio.ts — header title
  * extraction, slugging, the checksum convention, tagging, and (most importantly)

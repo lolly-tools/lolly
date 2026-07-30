@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * EPS (Encapsulated PostScript) emitter contract tests.
  * Run with: node --test tests/eps.test.ts

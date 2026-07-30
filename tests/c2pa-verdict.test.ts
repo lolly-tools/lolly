@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * C2PA verdict-unification contract tests — engine/src/c2pa-verdict.ts, the
  * single source of truth for check codes, flags→verdict resolution, and

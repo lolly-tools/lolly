@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Engine design-tokens model — DTCG parse, alias resolution, theme/set layering,
  * colour normalisation, and the reference+cached input-value resolver.

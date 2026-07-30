@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderZzfxm, zzfxG, zzfxM, zzfxR, type ZzfxSong } from '../engine/src/zzfxm.ts';

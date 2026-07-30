@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the DOM-free CSS box / border-radius geometry that the
  * export walkers (SVG + PDF) share. The crux is the CSS §5.5 corner-overlap rule:

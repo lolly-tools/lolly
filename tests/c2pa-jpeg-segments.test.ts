@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * JPEG APP11 / JUMBF reassembly regression tests.
  * Run with: node --test tests/c2pa-jpeg-segments.test.ts

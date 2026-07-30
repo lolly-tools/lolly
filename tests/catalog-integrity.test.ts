@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Catalog signing + runtime integrity contract tests.
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * der-read.js contract tests: the shared bounds-checked DER/ASN.1 TLV walker
  * under x509.ts, seal.ts and c2pa-verify.ts, plus the ECDSA signature-shape

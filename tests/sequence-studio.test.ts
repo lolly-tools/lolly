@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Sequence Studio — tool contract tests (Fable timeline, phase 2 §5 + §7).
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Content Seal message-free consensus tests (engine/src/contentseal.ts).
  * Run with: node --test tests/contentseal.test.ts

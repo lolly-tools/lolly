@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * The chroma AXIS ceiling (engine/src/gamut-axis.ts) — how high a chroma scale
  * has to reach for the gamut it is drawn against.

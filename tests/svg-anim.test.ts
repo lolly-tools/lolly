@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Animated-SVG core contract tests.
  * Run with: node --test tests/svg-anim.test.ts

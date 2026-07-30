@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for tool-sourced ASSETS — an asset input whose value is a Lolly
  * tool URL (a share link the user pasted into the picker). The runtime must

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * media-sniff contract tests — animated-raster + video-container detection.
  * Run with: node --test tests/media-sniff.test.ts
