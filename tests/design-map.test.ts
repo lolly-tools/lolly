@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode,
-  figmaNodesToNodes, figmaNodesToScenes, colorRunsToText, decodeFigVectorPath,
+  figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
 } from '../engine/src/design-map.ts';
 
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) <= eps;
@@ -549,8 +549,9 @@ test('figmaNodesToScenes: one scene per top-level frame, shifted to frame origin
       size: { x: 10, y: 10 }, transform: I },
   ];
   const scenes = figmaNodesToScenes(nc) as any[];
-  assert.equal(scenes.length, 3); // Intro, Outro, loose page scene
-  const [a, b, loose] = scenes;
+  // The loose rectangle makes NO scene: the page has frames, so loose content is scratch.
+  assert.equal(scenes.length, 2);
+  const [a, b] = scenes;
   assert.equal(a.name, 'Intro');
   assert.deepEqual([a.width, a.height], [200, 100]);
   // Frame bg box sits at the scene origin; the child keeps its local offset.
@@ -558,9 +559,49 @@ test('figmaNodesToScenes: one scene per top-level frame, shifted to frame origin
   assert.deepEqual([Math.round(a.nodes[1].x), Math.round(a.nodes[1].y)], [10, 8]);
   assert.equal(b.name, 'Outro');
   assert.deepEqual([b.width, b.height], [300, 150]);
-  assert.equal(loose.name, 'Page 1');
-  assert.deepEqual([loose.width, loose.height], [60, 60]);
-  assert.deepEqual([Math.round(loose.nodes[0].x), Math.round(loose.nodes[0].y)], [0, 0]);
+});
+
+test('figmaNodesToScenes: loose shapes make a scene only on a frame-less page', () => {
+  const at = (x: number, y: number) => ({ m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y });
+  const nc = [
+    { guid: { sessionID: 0, localID: 1 }, type: 'CANVAS', name: 'Loose' },
+    { guid: { sessionID: 1, localID: 2 }, type: 'RECTANGLE', parentIndex: { guid: { sessionID: 0, localID: 1 } },
+      size: { x: 60, y: 60 }, transform: at(900, 900), fillPaints: [{ type: 'SOLID', color: { r: 0, g: 1, b: 0 } }] },
+  ];
+  const scenes = figmaNodesToScenes(nc) as any[];
+  assert.equal(scenes.length, 1);
+  assert.equal(scenes[0].name, 'Loose');
+  assert.deepEqual([scenes[0].width, scenes[0].height], [60, 60]);
+  assert.deepEqual([Math.round(scenes[0].nodes[0].x), Math.round(scenes[0].nodes[0].y)], [0, 0]);
+});
+
+test('figmaNodesToScenes: frames play in reading order, not Z/creation order', () => {
+  const at = (x: number, y: number) => ({ m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y });
+  const frame = (id: number, name: string, x: number, y: number) => ({
+    guid: { sessionID: 1, localID: id }, type: 'FRAME', name, parentIndex: { guid: { sessionID: 0, localID: 1 } },
+    size: { x: 400, y: 300 }, transform: at(x, y), fillPaints: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }],
+  });
+  // Declared LAST-slide-first (Z order); laid out as 2 rows of 2 with jitter.
+  const nc = [
+    { guid: { sessionID: 0, localID: 1 }, type: 'CANVAS', name: 'Deck' },
+    frame(2, 'S4', 500, 410),
+    frame(3, 'S3', 0, 400),
+    frame(4, 'S2', 500, 8),
+    frame(5, 'S1', 0, 0),
+  ];
+  const scenes = figmaNodesToScenes(nc) as any[];
+  assert.deepEqual(scenes.map((s: any) => s.name), ['S1', 'S2', 'S3', 'S4']);
+});
+
+test('readingOrder: rows cluster on centre-y tolerance, sort left-to-right', () => {
+  const items = [
+    { id: 'c', x: 0, y: 100, w: 50, h: 50 },
+    { id: 'b', x: 60, y: 3, w: 50, h: 50 },   // slight jitter, same row as a
+    { id: 'a', x: 0, y: 0, w: 50, h: 50 },
+    { id: 'd', x: 60, y: 104, w: 50, h: 50 },
+  ];
+  assert.deepEqual(readingOrder(items, (t) => t).map((t) => t.id), ['a', 'b', 'c', 'd']);
+  assert.deepEqual(readingOrder([], (t: any) => t), []);
 });
 
 test('figmaNodesToScenes: frames across multiple pages, in page order', () => {
