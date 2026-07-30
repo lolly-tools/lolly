@@ -217,6 +217,16 @@ function boxCss(b, grad) {
     'border-radius:' + radiusFor(b.shape, b.radius) + ';' +
     'justify-content:' + (H_JUSTIFY[b.align] || 'center') + ';' +
     'align-items:' + (V_ALIGN[b.valign] || 'center') + ';';
+  // Stroke on a non-path box → a CSS border. box-sizing is border-box, so this is
+  // an INSIDE stroke; the design importer pre-inflates center/outer-aligned rects
+  // so the painted edge lands where the source authored it. Path boxes stroke the
+  // SVG path itself (pathHtmlFor), never the div.
+  var sw = num(b.strokeW, 0);
+  var sc = safeColor(b.stroke, '');
+  if (String(b.kind) !== 'path' && sc && sw > 0) {
+    var dash = String(b.strokeDash) === 'dashed' ? 'dashed' : String(b.strokeDash) === 'dotted' ? 'dotted' : 'solid';
+    css += 'border:' + (Math.round(sw * 100) / 100) + 'px ' + dash + ' ' + sc + ';';
+  }
   return css;
 }
 

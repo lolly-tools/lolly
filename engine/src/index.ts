@@ -242,6 +242,7 @@ export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode, penpotGradientToSpec,
+  penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
 export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene } from './design-map.ts';
