@@ -51,6 +51,10 @@ export interface DesignMapFonts {
   monoFamily?: string;
   /** Heaviest 100-step weight the mono family ships (its variable axis ceiling). */
   monoMaxWeight?: number;
+  /** Families the shell can actually resolve (its manifest wire values + installed
+   *  user fonts). A case-insensitive match passes through verbatim (canonical casing
+   *  from this list) instead of bucketing. */
+  knownFamilies?: string[];
 }
 
 /** Seed colours for imported boxes — the target tool's addKinds seed values. */
@@ -75,7 +79,7 @@ export interface DesignMapOptions {
 
 // Neutral defaults — mirror brands/lolly-start/tools/layout-studio (the blank
 // brand's font select values and addKinds seed colours), NOT any real brand's.
-const DEFAULT_FONTS: Required<DesignMapFonts> = {
+const DEFAULT_FONTS: Required<Omit<DesignMapFonts, 'knownFamilies'>> = {
   defaultFamily: 'sans',
   monoFamily: 'mono',
   monoMaxWeight: 800,
@@ -126,6 +130,7 @@ interface DesignNode {
   shadowX?: number;
   shadowY?: number;
   shadowBlur?: number;
+  blur?: number;
   stroke?: string;
   strokeW?: number;
   strokeDash?: string;
@@ -171,6 +176,7 @@ interface Box {
   shadowX: number;
   shadowY: number;
   shadowBlur: number;
+  blur: number;
   stroke: string;
   strokeW: number;
   strokeDash: string;
@@ -276,13 +282,19 @@ export function mapWeight(weight: number | string | undefined, font?: string, fo
 
 /**
  * Remap any imported font family onto the editor's two-family vocabulary.
- * Monospace family names (mono/console/courier/menlo/…code) → the mono family;
- * everything else → the default family.
+ * A family listed in `fonts.knownFamilies` (matched case-insensitively) passes
+ * through verbatim with the list's canonical casing — the shell can resolve it,
+ * so no bucketing is needed. Otherwise: monospace family names
+ * (mono/console/courier/menlo/…code) → the mono family; everything else → the
+ * default family.
  * @param {string} family raw family string.
  * @param {DesignMapFonts} [fonts] the brand's font vocabulary (neutral default).
  * @returns {string} a font-select wire value.
  */
 export function mapFontFamily(family: unknown, fonts?: DesignMapFonts): string {
+  const fam = String(family == null ? '' : family).trim();
+  const hit = fonts?.knownFamilies?.find((k) => k.toLowerCase() === fam.toLowerCase());
+  if (hit) return hit;
   return /mono|consol|courier|menlo|code/i.test(String(family == null ? '' : family))
     ? ((fonts && fonts.monoFamily) ?? DEFAULT_FONTS.monoFamily)
     : ((fonts && fonts.defaultFamily) ?? DEFAULT_FONTS.defaultFamily);
@@ -437,6 +449,7 @@ export function nodeToBox(
     shadowX: Math.round(num(n.shadowX, 0)),
     shadowY: Math.round(num(n.shadowY, 0)),
     shadowBlur: Math.round(num(n.shadowBlur, 10)),
+    blur: clamp(round1(num(n.blur, 0)), 0, 300),
     stroke: n.stroke ? safeColor(n.stroke, '') : '',
     strokeW: Math.max(0, num(n.strokeW, 0) ?? 0),
     strokeDash: n.strokeDash === 'dashed' || n.strokeDash === 'dotted' ? n.strokeDash : '',
@@ -575,6 +588,63 @@ export function parsePenpotContent(contentJson: unknown): PenpotContentInfo {
   };
 }
 
+/** One distinct font used by a Penpot content tree, with how many styled runs use it. */
+export interface PenpotFontUsage {
+  fontId: string;
+  fontFamily: string;
+  fontVariantId: string;
+  fontWeight: number;
+  fontStyle: string;
+  runs: number;
+}
+
+/**
+ * Tally every font a Penpot text-content tree references. Walks the same tree as
+ * parsePenpotContent, visiting EVERY style-carrying node — Penpot writes the full
+ * font set on paragraphs AND leaves alike — and dedupes entries by
+ * `fontId|fontVariantId|fontStyle` while counting the nodes (`runs`), so one
+ * font never yields two entries. The engine stays brand- and provider-free: a
+ * `fontId` is returned verbatim (the shell decides what e.g. a `gfont-` prefix
+ * means). Every Penpot value is a string; `fontWeight` is parsed to a number
+ * (400 when unreadable).
+ * @param {string|object} contentJson the shape's `content` (JSON string or object).
+ * @returns {PenpotFontUsage[]} in first-seen order.
+ */
+export function collectPenpotFontUsage(contentJson: unknown): PenpotFontUsage[] {
+  let root: unknown = contentJson;
+  if (typeof contentJson === 'string') {
+    try { root = JSON.parse(contentJson); } catch { return []; }
+  }
+  if (!root || typeof root !== 'object') return [];
+  const byKey = new Map<string, PenpotFontUsage>();
+  (function walk(n: unknown): void {
+    if (n == null || typeof n !== 'object') return;
+    const fid = pget(n, 'font-id');
+    if (fid !== undefined) {
+      const fontId = String(fid);
+      const fontVariantId = String(pget(n, 'font-variant-id') ?? '');
+      const fontStyle = String(pget(n, 'font-style') ?? 'normal');
+      const key = `${fontId}|${fontVariantId}|${fontStyle}`;
+      const cur = byKey.get(key);
+      if (cur) {
+        cur.runs++;
+      } else {
+        const w = Number(pget(n, 'font-weight'));
+        byKey.set(key, {
+          fontId,
+          fontFamily: String(pget(n, 'font-family') ?? ''),
+          fontVariantId,
+          fontWeight: Number.isFinite(w) ? w : 400,
+          fontStyle,
+          runs: 1,
+        });
+      }
+    }
+    pkids(n).forEach(walk);
+  })(root);
+  return [...byKey.values()];
+}
+
 // ── Penpot binfile-v3 shape → DesignNode ─────────────────────────────────────
 // The current Penpot `.penpot` export is a ZIP of per-shape JSON (camelCase). Unlike
 // the SVG path, geometry is authoritative DATA: `selrect` is the axis-aligned,
@@ -611,6 +681,7 @@ interface PenpotShape {
   content?: unknown;
   r1?: unknown;
   shadow?: unknown;
+  blur?: unknown;
   hidden?: unknown;
   shapes?: unknown;
   maskedGroup?: unknown;
@@ -828,16 +899,36 @@ export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown
     const sr = ((sh.selrect && typeof sh.selrect === 'object') ? sh.selrect : sh) as
       { x?: unknown; y?: unknown; width?: unknown; height?: unknown };
     const x = num(sr.x, 0), y = num(sr.y, 0), w = num(sr.width, 0), h = num(sr.height, 0);
+    // Layer blur bakes as a real feGaussianBlur def (Penpot value = stdDeviation, 1:1).
+    // userSpaceOnUse with an explicit 3σ+8 region (export.ts's convention): selrect is
+    // page-space here, and the default/percentage regions would clip the big glows.
+    // Inside a maskedGroup the blurred leaf stays under the <g clip-path> — blur then
+    // clip, matching Penpot's mask semantics.
+    const bv = ((): number => {
+      const b = sh.blur;
+      if (!b || typeof b !== 'object') return 0;
+      if (get(b, 'hidden') === true) return 0;
+      if (String(get(b, 'type') || '') !== 'layer-blur') return 0;
+      const v = num(get(b, 'value'), 0);
+      return v > 0 ? v : 0;
+    })();
+    let filterAttr = '';
+    if (bv > 0) {
+      const pad = bv * 3 + 8;
+      const fid = `pb${seq++}`;
+      defs.push(`<filter id="${fid}" filterUnits="userSpaceOnUse" x="${x - pad}" y="${y - pad}" width="${w + 2 * pad}" height="${h + 2 * pad}" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="${round1(bv)}"/></filter>`);
+      filterAttr = ` filter="url(#${fid})"`;
+    }
     if (type === 'path' || type === 'bool') {
       const d = safePathD(penpotPathContentToD(sh.content));
-      return d ? `<path d="${d}"${p}/>` : null;
+      return d ? `<path d="${d}"${p}${filterAttr}/>` : null;
     }
     if (type === 'circle') {
-      return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}/>`;
+      return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
     }
     if (type === 'rect') {
       const r1 = num(sh.r1, 0);
-      return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r1 > 0 ? ` rx="${r1}"` : ''}${p}${rotAttr(sh, x + w / 2, y + h / 2)}/>`;
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r1 > 0 ? ` rx="${r1}"` : ''}${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
     }
     return null;
   };
@@ -911,6 +1002,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     if (info.fontFamily) node.fontFamily = info.fontFamily;
     if (info.lineHeight) node.lineHeight = info.lineHeight;
     applyPenpotShadow(sh, node);
+    applyPenpotBlur(sh, node);
     return node;
   }
 
@@ -925,6 +1017,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     };
     applyPenpotStroke(sh, node);
     applyPenpotShadow(sh, node);
+    applyPenpotBlur(sh, node);
     return node;
   }
 
@@ -956,6 +1049,9 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
         opacity: clamp(Math.round(shapeOp * num((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100),
       };
       applyPenpotShadow(sh, node);
+      // CSS filter blur on the image box = post-composite layer blur — the right
+      // semantics for a baked vector; never baked into the standalone path SVG.
+      applyPenpotBlur(sh, node);
       return node;
     }
   }
@@ -985,6 +1081,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   if (r1 > 0) { node.shape = 'rounded'; node.radius = r1; }
   applyPenpotStroke(sh, node);
   applyPenpotShadow(sh, node);
+  applyPenpotBlur(sh, node);
   return node;
 }
 
@@ -1040,6 +1137,19 @@ function applyPenpotShadow(sh: PenpotShape, node: DesignNode): void {
   node.shadow = node.kind === 'text' ? 'text' : (node.kind === 'image' ? 'content' : 'box');
   node.shadowColor = hex6 + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(hex6) ? a.toString(16).padStart(2, '0') : '');
   node.shadowX = x; node.shadowY = y; node.shadowBlur = blur;
+}
+
+// Penpot layer blur → box blur. Penpot renders layer-blur as feGaussianBlur with
+// stdDeviation = value (frontend filters.cljs) and CSS blur(N) is stdDeviation N,
+// so value maps to blur(<value>px) 1:1. background-blur (value/2, needs
+// BackgroundImage) has no box equivalent — ignored here; the shell warns.
+function applyPenpotBlur(sh: PenpotShape, node: DesignNode): void {
+  const b = sh.blur;
+  if (!b || typeof b !== 'object') return;
+  if (get(b, 'hidden') === true) return;
+  if (String(get(b, 'type') || '') !== 'layer-blur') return;
+  const v = num(get(b, 'value'), 0);
+  if (v > 0) node.blur = v;
 }
 
 // ── Figma .fig (Kiwi) document → DesignNodes ─────────────────────────────────

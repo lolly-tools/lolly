@@ -62,7 +62,7 @@ const boxStyle = (html: string): string =>
 
 // ── manifest shape ───────────────────────────────────────────────────────────
 
-test('a `grad` text field exists and holds the LAST wire slot', () => {
+test('a `grad` text field exists and holds wire slot 52', () => {
   const fields = boxSubFields();
   const grad = fields.find(f => f.id === 'grad');
   assert.ok(grad, 'boxes has a `grad` sub-field');
