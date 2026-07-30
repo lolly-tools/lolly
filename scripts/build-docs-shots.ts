@@ -513,14 +513,88 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
     // there is no PDF window step and no cull — what is walked IS the frame.
     if (shot.walker) {
       const sel = shot.cropSelector || 'body';
+      // Walk, then AUDIT the result in-page. The print path has elementCount,
+      // warnings and a cull report; the walker had `svg.length < 64` and nothing
+      // else, which is how a large file of invalid XML could be written, sized and
+      // committed as a baseline (plans/svg-snapshot-without-print.md §2.1c). The
+      // audit is pure string/DOM inspection of what the walker already returned —
+      // it needs no change to renderSvgFromHtml or to the shipping loopback hook.
       const out = await page.evaluate(
-        async (s: string) => (window as unknown as {
-          __lollyWalkerShot?: (sel?: string, o?: Record<string, unknown>) => Promise<{ svg: string; ms: number }>;
-        }).__lollyWalkerShot?.(s),
+        async (s: string) => {
+          const hook = (window as unknown as {
+            __lollyWalkerShot?: (sel?: string, o?: Record<string, unknown>) => Promise<{ svg: string; ms: number }>;
+          }).__lollyWalkerShot;
+          if (!hook) return null;
+          const r = await hook(s);
+          if (!r?.svg) return null;
+
+          // Parse failure is the catastrophic-and-silent case: a well-sized file
+          // that no renderer can open.
+          const doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
+          const parseErr = doc.querySelector('parsererror')?.textContent?.trim().slice(0, 200) ?? '';
+
+          const DRAWABLE = 'path,rect,circle,ellipse,line,polyline,polygon,text,image,use';
+          const hrefs = [...doc.querySelectorAll('image')]
+            .map((n) => n.getAttribute('href') || n.getAttribute('xlink:href') || '');
+
+          // Is the framed area actually painted? The print path uses
+          // printBackground:true so every baseline is opaque; the walker paints only
+          // per-element background-color, and a crop root with no background rule
+          // yields a transparent shot — which reads as an empty rounded box against
+          // /info's dark theme. Read the walked element's own computed backdrop.
+          // Ask the OUTPUT, not the element: a crop root can be transparent while
+          // its first child paints the whole frame (the qr tool's own #fafbfe rect
+          // is exactly that), so reading only the computed style cries wolf. A
+          // covering rect in the emitted SVG is the thing that actually matters.
+          const root = doc.documentElement;
+          const vb = (root.getAttribute('viewBox') || '').split(/[\s,]+/).map(Number);
+          const fw = vb.length === 4 ? (vb[2] as number) : 0;
+          const fh = vb.length === 4 ? (vb[3] as number) : 0;
+          const covers = [...doc.querySelectorAll('rect')].some((r) => {
+            // Fill can arrive as an attribute OR inside style="" — the svg-rooted
+            // passthrough clones a tool's own markup verbatim, and tools commonly
+            // write `style="fill:#fafbfe"`. Reading only the attribute missed it.
+            const f = (r.getAttribute('fill')
+              || /(?:^|;)\s*fill\s*:\s*([^;]+)/.exec(r.getAttribute('style') || '')?.[1]
+              || '').trim();
+            if (!f || f === 'none' || /^(transparent|rgba\([^)]*,\s*0(\.0+)?\))$/.test(f)) return false;
+            const x = parseFloat(r.getAttribute('x') || '0'), y = parseFloat(r.getAttribute('y') || '0');
+            const w = parseFloat(r.getAttribute('width') || '0'), h = parseFloat(r.getAttribute('height') || '0');
+            return x <= 0.5 && y <= 0.5 && fw > 0 && w >= fw - 1 && h >= fh - 1;
+          });
+          const el = document.querySelector(s);
+          const bg = el ? getComputedStyle(el).backgroundColor : '';
+          const elOpaque = /^rgba?\(/.test(bg)
+            ? (bg.split(',').length < 4 || parseFloat(bg.split(',')[3] as string) > 0.99)
+            : Boolean(bg && bg !== 'transparent');
+          const opaque = covers || elOpaque;
+
+          return {
+            svg: r.svg,
+            parseErr,
+            drawables: doc.querySelectorAll(DRAWABLE).length,
+            texts: doc.querySelectorAll('text').length,
+            externalHrefs: hrefs.filter((h) => !h.startsWith('data:') && !h.startsWith('#')),
+            opaque,
+          };
+        },
         sel,
       );
       if (!out) throw new Error('the served shell has no __lollyWalkerShot hook — rebuild the dist (main.ts exposes it on loopback)');
-      if (!out.svg || out.svg.length < 64) throw new Error(`walker capture produced no drawable content for ${sel}`);
+      if (out.parseErr) throw new Error(`walker produced invalid XML for ${sel}: ${out.parseErr}`);
+      if (!out.drawables) throw new Error(`walker capture produced no drawable content for ${sel}`);
+      if (out.externalHrefs.length) {
+        // A fetchable href renders BLANK inside `<img src="shot.svg">` (secure
+        // static mode, no network). Every src should now inline — see the <img>
+        // branch in export.ts — so reaching here means a scheme slipped through.
+        throw new Error(`walker left ${out.externalHrefs.length} non-inlined image href(s), `
+          + `first: ${out.externalHrefs[0]} — the shot would not be self-contained`);
+      }
+      // Warn, never fail: <text> is a DESIGNED fallback for a font the outliner
+      // cannot resolve, and five committed print baselines already carry 145 such
+      // nodes. A new one is worth a look, not a broken build.
+      if (out.texts) console.warn(`  ⚠ ${shot.slug}: ${out.texts} <text> node(s) — a font did not outline`);
+      if (!out.opaque) console.warn(`  ⚠ ${shot.slug}: "${sel}" has no opaque background — the shot may read as an empty box on /info's dark theme (add &css= to paint one)`);
       return new TextEncoder().encode(out.svg);
     }
 
