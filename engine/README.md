@@ -112,10 +112,10 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `contentseal.ts` | 168 | Meta Content Seal (Pixel Seal / Video Seal, IMAGE mode) — the pure, message-free consensus decision (DOM-free, no ONNX, no network). | yes | `tests/contentseal.test.ts` | – |
 | `css-box.ts` | 429 | Pure, DOM-free CSS box-model + border-radius geometry. | yes | `tests/css-box.test.ts` | – |
 | `css-color.ts` | 972 | One CSS Color 4 colour value — the engine's single source of truth for parsing, converting, gamut-mapping and serialising colour. | yes | `tests/css-color.test.ts` | – |
-| `css-paint.ts` | 446 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
+| `css-paint.ts` | 465 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `data-import.ts` | 218 | Data-file → blocks rows. | yes | `tests/data-import.test.ts` | yes |
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
-| `design-map.ts` | 888 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
+| `design-map.ts` | 990 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `dxf.ts` | 185 | DXF (AutoCAD Drawing Interchange) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/dxf.test.ts` | – |
 | `embed.ts` | 73 | Embed URL grammar — the portable surface of tool composition. | yes | `tests/embed.test.ts` | – |
 | `emf.ts` | 459 | EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/emf.test.ts` | – |
@@ -153,7 +153,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pdf-map.ts` | 1988 | PDF (and Adobe Illustrator .ai — an .ai IS a PDF) page content stream → DesignNodes. | yes | `tests/pdf-map.test.ts` | yes |
 | `pdf-redaction.ts` | 228 | Failed-redaction detection — text that is in the file but not on the page. | yes | `tests/pdf-redaction.test.ts` | – |
 | `pdf-smask.ts` | 169 | Pure helpers for PDF soft masks (ExtGState /SMask — PDF 32000-1 §11.6.5.2). | yes | `tests/pdf-smask.test.ts` | – |
-| `pdf-svg.ts` | 853 | PDF page → standalone SVG serializer (pure, DOM-free). | yes | `tests/pdf-svg.test.ts` | – |
+| `pdf-svg.ts` | 903 | PDF page → standalone SVG serializer (pure, DOM-free). | yes | `tests/pdf-svg.test.ts` | – |
 | `pdf-text.ts` | 690 | PDF text reconstruction — positioned glyph runs → reading-ordered prose. | yes | `tests/pdf-text.test.ts` | – |
 | `pdfx.ts` | 288 | PDF/X-4 metadata authority — pure strings + small descriptor objects, no PDF byte-wrangling. | yes | `tests/pdfx.test.ts` | – |
 | `photo-treatment.ts` | 176 | Colour treatments for raster photo assets — the raster analogue of the two-colour icon themes in ./icon-theme.ts. | yes | indirect | – |

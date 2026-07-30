@@ -114,9 +114,11 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // render.filmstrip edge for paged tools) and 1.81.0 (manifest `guide` — a
   // tool's own short walkthrough, translated through its i18n sidecar) and
   // 1.82.0 (paginate context `col` + `page.byColumn` — the cell addressing the
-  // web shell's on-canvas table editing binds to);
+  // web shell's on-canvas table editing binds to) and 1.83.0 (figmaNodesToScenes
+  // — per-frame design-import scenes, behind the sequence editor's
+  // canvas.import.mode:'scenes');
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.82.0');
+  assert.equal(ENGINE_VERSION, '1.83.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

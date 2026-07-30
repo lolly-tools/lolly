@@ -859,6 +859,19 @@ function figmaNode(node: FigNode, abs: Matrix, blobs: FigBlobs): DesignNode | nu
  * @param {Array<{bytes:Uint8Array}>} [blobs] the document's blob table (for vector paths).
  * @returns {object[]} DesignNodes (feed to finalizeBoxes after resolving images/vectors).
  */
+/**
+ * One frame/board of a design file, split out as a self-contained scene: its nodes
+ * shifted to the frame's own origin, sized to the frame's crop. Produced by
+ * `figmaNodesToScenes` (and the shell's per-board Penpot walk) so a sequence editor
+ * can turn every frame into a timed scene.
+ */
+export interface DesignFrameScene {
+  name: string;
+  width: number;
+  height: number;
+  nodes: DesignNode[];
+}
+
 export function figmaNodesToNodes(nodeChanges: unknown, blobs?: FigBlobs): DesignNode[] {
   const list: FigNode[] = Array.isArray(nodeChanges) ? (nodeChanges as FigNode[]) : [];
   const key = (g: FigGuid | null | undefined): string => (g ? String(g.sessionID) + ':' + String(g.localID) : '');
@@ -885,4 +898,97 @@ export function figmaNodesToNodes(nodeChanges: unknown, blobs?: FigBlobs): Desig
   const pageAbs = figMatrix(page);
   for (const c of (kids[key(page.guid)] || [])) visit(c, pageAbs);
   return out;
+}
+
+// Translate nodes so their union starts at (0,0); returns the union size. The
+// engine twin of the shell's shiftToOrigin (design-import.ts) for loose shapes
+// that belong to no frame.
+function shiftNodesToOrigin(nodes: DesignNode[]): { width: number; height: number } {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const n of nodes) {
+    const x = num(n.x, 0), y = num(n.y, 0);
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + num(n.w, 0)); maxY = Math.max(maxY, y + num(n.h, 0));
+  }
+  if (!isFinite(minX)) return { width: 1080, height: 1080 };
+  for (const n of nodes) { n.x = num(n.x, 0) - minX; n.y = num(n.y, 0) - minY; }
+  return { width: Math.max(1, Math.round(maxX - minX)), height: Math.max(1, Math.round(maxY - minY)) };
+}
+
+// Container types whose top-level instances read as "one frame = one scene".
+// SECTION is Figma's slide/grouping container; a top-level COMPONENT/INSTANCE is
+// how many deck files store their slides.
+const FIG_FRAME_TYPES = new Set(['FRAME', 'SECTION', 'COMPONENT', 'INSTANCE', 'SYMBOL']);
+
+/**
+ * Walk a decoded Figma document into per-frame scenes: every top-level frame on
+ * every real page becomes one `DesignFrameScene` (nodes shifted to the frame's
+ * origin, size = the frame's crop — content overflowing the frame stays put and
+ * is cropped at render, matching Figma). Loose top-level shapes on a page are
+ * collected into one extra scene per page. Same node production as
+ * `figmaNodesToNodes` (image fills come back with `_imageHash` markers), so the
+ * shell resolves media identically for both walks.
+ * @param {object[]} nodeChanges
+ * @param {Array<{bytes:Uint8Array}>} [blobs]
+ * @returns {DesignFrameScene[]} in page order, frames before the page's loose scene.
+ */
+export function figmaNodesToScenes(nodeChanges: unknown, blobs?: FigBlobs): DesignFrameScene[] {
+  const list: FigNode[] = Array.isArray(nodeChanges) ? (nodeChanges as FigNode[]) : [];
+  const key = (g: FigGuid | null | undefined): string => (g ? String(g.sessionID) + ':' + String(g.localID) : '');
+  const kids: Record<string, FigNode[]> = {};
+  for (const n of list) {
+    if (n && n.parentIndex && n.parentIndex.guid) {
+      const p = key(n.parentIndex.guid);
+      (kids[p] || (kids[p] = [])).push(n);
+    }
+  }
+  const canvases = list.filter((n) => n && n.type === 'CANVAS' && !n.internalOnly && n.name !== 'Internal Only Canvas');
+
+  const scenes: DesignFrameScene[] = [];
+  for (const page of canvases) {
+    const pageAbs = figMatrix(page);
+    const collect = (root: FigNode, into: DesignNode[]): void => {
+      const visit = (node: FigNode | null | undefined, pabs: Matrix): void => {
+        if (!node || node.visible === false) return;
+        const abs = matMul(pabs, figMatrix(node));
+        const dn = figmaNode(node, abs, blobs);
+        if (dn) into.push(dn);
+        const cs = kids[key(node.guid)];
+        if (cs) for (const c of cs) visit(c, abs);
+      };
+      visit(root, pageAbs);
+    };
+
+    const loose: DesignNode[] = [];
+    for (const child of (kids[key(page.guid)] || [])) {
+      if (!child || child.visible === false) continue;
+      const type = String(child.type || '');
+      if (FIG_FRAME_TYPES.has(type) && child.size) {
+        const nodes: DesignNode[] = [];
+        collect(child, nodes);
+        if (!nodes.length) continue;
+        // The scene's crop window is the container's own absolute geometry —
+        // computed directly (not read off nodes[0]) because a COMPONENT/INSTANCE
+        // container isn't a visual node and emits no box of its own.
+        const geom = boxGeomFromBBox(
+          { x: 0, y: 0, width: num(child.size.x, 0), height: num(child.size.y, 0) },
+          matMul(pageAbs, figMatrix(child)),
+        );
+        for (const n of nodes) { n.x = num(n.x, 0) - geom.x; n.y = num(n.y, 0) - geom.y; }
+        scenes.push({
+          name: String(child.name || '') || `Frame ${scenes.length + 1}`,
+          width: Math.max(1, Math.round(geom.w)) || 1080,
+          height: Math.max(1, Math.round(geom.h)) || 1080,
+          nodes,
+        });
+      } else {
+        collect(child, loose);
+      }
+    }
+    if (loose.length) {
+      const { width, height } = shiftNodesToOrigin(loose);
+      scenes.push({ name: String(page.name || '') || 'Page', width, height, nodes: loose });
+    }
+  }
+  return scenes;
 }

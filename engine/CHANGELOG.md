@@ -1336,3 +1336,22 @@ Reference tool: brands/suse/tools/email-signature 1.7.0 (copy as HTML → Gmail
 signature settings, with a phone track).
 
 No v1 bridge method changed.
+
+## 1.83.0 — design import: per-frame scenes
+
+Additive: `figmaNodesToScenes` (+ the `DesignFrameScene` type) in design-map —
+the per-frame counterpart to `figmaNodesToNodes`. Instead of merging the first
+page into one node list, every top-level frame/section on every real page comes
+back as its own `{ name, width, height, nodes }` scene, nodes shifted to the
+frame's origin and sized to the frame's crop (overflowing content stays put and
+crops at render, matching Figma). Loose top-level shapes collect into one extra
+scene per page. Node production is identical to the single-page walk, so media
+placeholders (`_imageHash`, `_vectorPath`) resolve through the same shell code.
+
+In service of the sequence editor's scene-mode import (web shell): a dropped
+Figma/Penpot/PDF file's frames become timed clips on the timeline
+(`canvas.import.mode: 'scenes'` — see free-canvas importAsScenes and
+design-import parseDesignScenes; the Penpot binfile board split is a shell walk
+over per-shape JSON, so it needed no engine change).
+
+No v1 bridge method changed.

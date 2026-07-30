@@ -17,7 +17,7 @@ import assert from 'node:assert/strict';
 import {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode,
-  figmaNodesToNodes, colorRunsToText, decodeFigVectorPath,
+  figmaNodesToNodes, figmaNodesToScenes, colorRunsToText, decodeFigVectorPath,
 } from '../engine/src/design-map.ts';
 
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) <= eps;
@@ -523,6 +523,84 @@ test('figmaNodesToNodes: ellipse/rounded shapes; skips invisible', () => {
   assert.equal(nodes[0].fill, '#ff0000');
   assert.equal(nodes[1].shape, 'rounded');
   assert.equal(nodes[1].radius, 8);
+});
+
+test('figmaNodesToScenes: one scene per top-level frame, shifted to frame origin', () => {
+  const I = { m00: 1, m01: 0, m02: 0, m10: 0, m11: 1, m12: 0 };
+  const at = (x: number, y: number) => ({ m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y });
+  const nc = [
+    { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT' },
+    { guid: { sessionID: 0, localID: 1 }, type: 'CANVAS', name: 'Page 1', parentIndex: { guid: { sessionID: 0, localID: 0 } } },
+    // Frame A at (100, 50), 200×100, with a child rect at local (10, 8).
+    { guid: { sessionID: 1, localID: 2 }, type: 'FRAME', name: 'Intro', parentIndex: { guid: { sessionID: 0, localID: 1 } },
+      size: { x: 200, y: 100 }, transform: at(100, 50),
+      fillPaints: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 }, visible: true }] },
+    { guid: { sessionID: 1, localID: 3 }, type: 'RECTANGLE', parentIndex: { guid: { sessionID: 1, localID: 2 } },
+      size: { x: 40, y: 20 }, transform: at(10, 8), fillPaints: [{ type: 'SOLID', color: { r: 1, g: 0, b: 0 } }] },
+    // Frame B at (500, 0), 300×150.
+    { guid: { sessionID: 1, localID: 4 }, type: 'FRAME', name: 'Outro', parentIndex: { guid: { sessionID: 0, localID: 1 } },
+      size: { x: 300, y: 150 }, transform: at(500, 0),
+      fillPaints: [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 } }] },
+    // A loose top-level rectangle → its own per-page scene.
+    { guid: { sessionID: 1, localID: 5 }, type: 'RECTANGLE', parentIndex: { guid: { sessionID: 0, localID: 1 } },
+      size: { x: 60, y: 60 }, transform: at(900, 900), fillPaints: [{ type: 'SOLID', color: { r: 0, g: 1, b: 0 } }] },
+    // Invisible frame is skipped entirely.
+    { guid: { sessionID: 1, localID: 6 }, type: 'FRAME', visible: false, parentIndex: { guid: { sessionID: 0, localID: 1 } },
+      size: { x: 10, y: 10 }, transform: I },
+  ];
+  const scenes = figmaNodesToScenes(nc) as any[];
+  assert.equal(scenes.length, 3); // Intro, Outro, loose page scene
+  const [a, b, loose] = scenes;
+  assert.equal(a.name, 'Intro');
+  assert.deepEqual([a.width, a.height], [200, 100]);
+  // Frame bg box sits at the scene origin; the child keeps its local offset.
+  assert.deepEqual([Math.round(a.nodes[0].x), Math.round(a.nodes[0].y)], [0, 0]);
+  assert.deepEqual([Math.round(a.nodes[1].x), Math.round(a.nodes[1].y)], [10, 8]);
+  assert.equal(b.name, 'Outro');
+  assert.deepEqual([b.width, b.height], [300, 150]);
+  assert.equal(loose.name, 'Page 1');
+  assert.deepEqual([loose.width, loose.height], [60, 60]);
+  assert.deepEqual([Math.round(loose.nodes[0].x), Math.round(loose.nodes[0].y)], [0, 0]);
+});
+
+test('figmaNodesToScenes: frames across multiple pages, in page order', () => {
+  const at = (x: number, y: number) => ({ m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y });
+  const nc = [
+    { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT' },
+    { guid: { sessionID: 0, localID: 1 }, type: 'CANVAS', name: 'One', parentIndex: { guid: { sessionID: 0, localID: 0 } } },
+    { guid: { sessionID: 0, localID: 2 }, type: 'CANVAS', name: 'Two', parentIndex: { guid: { sessionID: 0, localID: 0 } } },
+    { guid: { sessionID: 1, localID: 3 }, type: 'FRAME', name: 'S1', parentIndex: { guid: { sessionID: 0, localID: 1 } },
+      size: { x: 100, y: 100 }, transform: at(0, 0), fillPaints: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }] },
+    { guid: { sessionID: 1, localID: 4 }, type: 'FRAME', name: 'S2', parentIndex: { guid: { sessionID: 0, localID: 2 } },
+      size: { x: 100, y: 100 }, transform: at(0, 0), fillPaints: [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }] },
+  ];
+  const scenes = figmaNodesToScenes(nc) as any[];
+  assert.deepEqual(scenes.map((s: any) => s.name), ['S1', 'S2']);
+});
+
+test('figmaNodesToScenes: a COMPONENT container (no visual node of its own) still crops correctly', () => {
+  const at = (x: number, y: number) => ({ m00: 1, m01: 0, m02: x, m10: 0, m11: 1, m12: y });
+  const nc = [
+    { guid: { sessionID: 0, localID: 0 }, type: 'DOCUMENT' },
+    { guid: { sessionID: 0, localID: 1 }, type: 'CANVAS', name: 'P', parentIndex: { guid: { sessionID: 0, localID: 0 } } },
+    // COMPONENT is not a VISUAL_FIG type — it emits no box, but is a frame-like scene root.
+    { guid: { sessionID: 1, localID: 2 }, type: 'COMPONENT', name: 'Slide', parentIndex: { guid: { sessionID: 0, localID: 1 } },
+      size: { x: 400, y: 300 }, transform: at(50, 70) },
+    { guid: { sessionID: 1, localID: 3 }, type: 'RECTANGLE', parentIndex: { guid: { sessionID: 1, localID: 2 } },
+      size: { x: 100, y: 40 }, transform: at(20, 10), fillPaints: [{ type: 'SOLID', color: { r: 0, g: 0, b: 1 } }] },
+  ];
+  const scenes = figmaNodesToScenes(nc) as any[];
+  assert.equal(scenes.length, 1);
+  const [s] = scenes;
+  assert.equal(s.name, 'Slide');
+  assert.deepEqual([s.width, s.height], [400, 300]);
+  assert.equal(s.nodes.length, 1); // just the rect — the component itself draws nothing
+  assert.deepEqual([Math.round(s.nodes[0].x), Math.round(s.nodes[0].y)], [20, 10]);
+});
+
+test('figmaNodesToScenes: empty / no page → []', () => {
+  assert.deepEqual(figmaNodesToScenes([]), []);
+  assert.deepEqual(figmaNodesToScenes(null), []);
 });
 
 test('figmaNodesToNodes: empty / no page → []', () => {

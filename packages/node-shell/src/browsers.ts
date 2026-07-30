@@ -60,7 +60,10 @@ export async function getBrowser(): Promise<import('playwright-core').Browser> {
         return await chromium.launch({
           ...(channel ? { channel } : {}),
           ...(executablePath ? { executablePath } : {}),
-          args: ['--no-sandbox'],
+          // SwiftShader gives headless runs a software WebGL2 context (recent
+          // Chromium disables it without the explicit opt-in) — the docs pipeline's
+          // ?neuro=viz capture needs one to render the MilkDrop visualizer at all.
+          args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
         });
       } catch (err) {
         const msg = (err as Error).message || '';
