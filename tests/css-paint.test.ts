@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 
 import {
   parseClipShape, parseRadialGradient, parseConicGradient, parseDropShadowFilter,
-  splitCssArgs, parseGradientStop, parseGradientAngle,
+  splitCssArgs, parseGradientStop, parseGradientAngle, expandGradientStops,
 } from '../engine/src/css-paint.ts';
 
 const close = (a: number, b: number, eps = 1e-3): boolean => Math.abs(a - b) <= eps;
@@ -296,4 +296,29 @@ test('parseGradientAngle: grad is not misread as rad', () => {
   assert.equal(deg(parseGradientAngle('1.5708rad')), 90);
   assert.equal(deg(parseGradientAngle('90deg')), 90);
   assert.equal(deg(parseGradientAngle('0.25turn')), 90);
+});
+
+test('double-position stops expand — the checkerboard idiom keeps its bands', () => {
+  // `c 0% 25%, transparent 0% 50%` means c from 0-25% and clear from 25-50%
+  // (CSS double-position shorthand). Collapsing each pair to its FIRST position
+  // put both stops at 0% and dissolved the band structure entirely — the
+  // transparency checkerboard behind every tool canvas is this exact idiom.
+  const g = parseConicGradient(
+    'repeating-conic-gradient(rgba(226, 232, 240, 0.5) 0% 25%, rgba(0, 0, 0, 0) 0% 50%)', 16, 16);
+  assert.ok(g);
+  assert.equal(g.repeating, true);
+  assert.deepEqual(g.stops.map((s) => [s.colorStr, s.opacity, s.offset]), [
+    ['#e2e8f0', 0.5, '0%'], ['#e2e8f0', 0.5, '25%'],
+    ['#000000', 0, '0%'], ['#000000', 0, '50%'],
+  ]);
+});
+
+test('expandGradientStops leaves single-position stops untouched', () => {
+  const single = [{ colorStr: '#111111', opacity: 1, offset: '10%' }];
+  assert.deepEqual(expandGradientStops(single), single);
+  const dbl = [{ colorStr: '#222222', opacity: 0.4, offset: '10%', offset2: '30%' }];
+  assert.deepEqual(expandGradientStops(dbl), [
+    { colorStr: '#222222', opacity: 0.4, offset: '10%' },
+    { colorStr: '#222222', opacity: 0.4, offset: '30%' },
+  ]);
 });

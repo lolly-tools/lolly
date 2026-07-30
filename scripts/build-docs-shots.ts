@@ -670,6 +670,15 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
     // there is no PDF window step and no cull — what is walked IS the frame.
     if (shot.walker) {
       const sel = shot.cropSelector || 'body';
+      // A6: with no cropSelector the walked node is `body` — an unstyled
+      // content-height block, so the frame would be 1440 x full document height
+      // with the fixed chrome floating mid-image. Window the walk to the
+      // recipe's width x height in CSS px instead (the walker works in CSS px,
+      // so no dpi arithmetic applies), culling every drawable that lies fully
+      // outside. NOTE: assumes scrollDepth=0 for windowed body walks — fixed
+      // chrome is emitted at viewport coordinates, which only coincide with the
+      // window at scroll 0; no current recipe combines walker+nocrop+scroll.
+      const win = shot.cropSelector ? null : { w: dims.width, h: dims.height };
       // Walk, then AUDIT the result in-page. The print path has elementCount,
       // warnings and a cull report; the walker had `svg.length < 64` and nothing
       // else, which is how a large file of invalid XML could be written, sized and
@@ -677,7 +686,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
       // audit is pure string/DOM inspection of what the walker already returned —
       // it needs no change to renderSvgFromHtml or to the shipping loopback hook.
       const out = await page.evaluate(
-        async (s: string) => {
+        async ({ s, win }: { s: string; win: { w: number; h: number } | null }) => {
           const hook = (window as unknown as {
             __lollyWalkerShot?: (sel?: string, o?: Record<string, unknown>) => Promise<{ svg: string; ms: number }>;
           }).__lollyWalkerShot;
@@ -712,7 +721,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
 
           // Parse failure is the catastrophic-and-silent case: a well-sized file
           // that no renderer can open.
-          const doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
+          let doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
           const parseErr = doc.querySelector('parsererror')?.textContent?.trim().slice(0, 200) ?? '';
 
           const DRAWABLE = 'path,rect,circle,ellipse,line,polyline,polygon,text,image,use';
@@ -751,6 +760,49 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
             : Boolean(bg && bg !== 'transparent');
           const opaque = covers || elOpaque;
 
+          // A6 windowing: crop the body walk to the recipe frame. Mount the
+          // parsed SVG (hidden, natural size) so getBoundingClientRect gives
+          // every drawable's user-space box, drop the ones fully outside the
+          // window, then rewrite the root frame. Definition subtrees
+          // (defs/clipPath/pattern/mask/symbol) are never culled — a <use> or
+          // clip inside the window may reference ink whose source rect is not.
+          let winDropped = 0;
+          if (win && !parseErr) {
+            const rootEl = doc.documentElement;
+            const natW = vb.length === 4 ? (vb[2] as number) : parseFloat(rootEl.getAttribute('width') || '0');
+            const natH = vb.length === 4 ? (vb[3] as number) : parseFloat(rootEl.getAttribute('height') || '0');
+            const mountBox = document.createElement('div');
+            mountBox.style.cssText = `position:absolute;left:-100000px;top:0;visibility:hidden;width:${natW}px;height:${natH}px;overflow:hidden`;
+            const live = document.importNode(rootEl, true) as unknown as SVGSVGElement;
+            live.setAttribute('width', String(natW));
+            live.setAttribute('height', String(natH));
+            mountBox.appendChild(live);
+            document.body.appendChild(mountBox);
+            try {
+              const origin = live.getBoundingClientRect();
+              const doomed: Element[] = [];
+              for (const el of live.querySelectorAll(DRAWABLE)) {
+                if (el.closest('defs,clipPath,pattern,mask,symbol')) continue;
+                const b = el.getBoundingClientRect();
+                const x0 = b.left - origin.left, y0 = b.top - origin.top;
+                if (x0 >= win.w || y0 >= win.h || x0 + b.width <= 0 || y0 + b.height <= 0) doomed.push(el);
+              }
+              for (const el of doomed) el.remove();
+              winDropped = doomed.length;
+              live.setAttribute('viewBox', `0 0 ${win.w} ${win.h}`);
+              // Bare numbers: svgRootSize (the dims-mismatch guard) parses width="1440",
+              // and the print path emits the same form.
+              live.setAttribute('width', String(win.w));
+              live.setAttribute('height', String(win.h));
+              const xml = new XMLSerializer().serializeToString(live);
+              const redoc = new DOMParser().parseFromString(xml, 'image/svg+xml');
+              if (!redoc.querySelector('parsererror')) {
+                r.svg = xml.startsWith('<?xml') ? xml : `<?xml version="1.0" standalone="no"?>\n${xml}`;
+                doc = redoc;
+              }
+            } finally { mountBox.remove(); }
+          }
+
           return {
             svg: r.svg,
             parseErr,
@@ -758,9 +810,10 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
             texts: doc.querySelectorAll('text').length,
             externalHrefs: hrefs.filter((h) => !h.startsWith('data:') && !h.startsWith('#')),
             opaque,
+            winDropped,
           };
         },
-        sel,
+        { s: sel, win },
       );
       if (!out) throw new Error('the served shell has no __lollyWalkerShot hook — rebuild the dist (main.ts exposes it on loopback)');
       if (out.parseErr) throw new Error(`walker produced invalid XML for ${sel}: ${out.parseErr}`);
@@ -775,6 +828,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
       // Warn, never fail: <text> is a DESIGNED fallback for a font the outliner
       // cannot resolve, and five committed print baselines already carry 145 such
       // nodes. A new one is worth a look, not a broken build.
+      if (out.winDropped) console.log(`    ✂ ${shot.slug}: windowed body walk culled ${out.winDropped} off-frame node(s)`);
       if (out.texts) console.warn(`  ⚠ ${shot.slug}: ${out.texts} <text> node(s) — a font did not outline`);
       if (!out.opaque) console.warn(`  ⚠ ${shot.slug}: "${sel}" has no opaque background — the shot may read as an empty box on /info's dark theme (add &css= to paint one)`);
       return new TextEncoder().encode(out.svg);
@@ -874,7 +928,11 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   // would make the whole class permanently "failed" and drown the real failures the
   // exit-code fix is meant to surface. So the check is skipped here; what still
   // guards a blank walker capture is the length check in captureVector.
-  const expected = shot.walker ? null : {
+  const expected = shot.walker && !shot.cropSelector
+    // A6 windows a selector-less body walk to the recipe frame, so its dims are
+    // exact again (a cropSelector walker frame is the element's own box — still null).
+    ? { width: dims.width, height: dims.height }
+    : shot.walker ? null : {
     width: Math.max(1, Math.round(dims.width * (1 - clampInset(shot.cropLeft) - clampInset(shot.cropRight)))),
     height: Math.max(1, Math.round(dims.height * (1 - clampInset(shot.cropTop) - clampInset(shot.cropBottom)))),
   };

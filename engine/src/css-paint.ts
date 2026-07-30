@@ -134,7 +134,23 @@ export function parseClipShape(cp: string, w: number, h: number): ClipShape | nu
 // ── gradient argument + stop parsing (shared by linear + radial) ─────────────
 
 /** One parsed colour-stop: null colorStr = an un-parseable / bare-position hint. */
-export interface GradientStop { colorStr: string | null; opacity: number; offset: string }
+export interface GradientStop {
+  colorStr: string | null; opacity: number; offset: string;
+  /** CSS double-position syntax (`red 0% 25%`): the second position. A stop
+   *  carrying one is shorthand for TWO stops of the same colour — expand with
+   *  expandGradientStops() before consuming, or the band structure is lost
+   *  (the checkerboard idiom `c 0% 25%, transparent 0% 50%` collapses to two
+   *  stops at 0%). */
+  offset2?: string;
+}
+
+/** Expand CSS double-position stops (`color p1 p2` = `color p1, color p2`). */
+export function expandGradientStops(stops: GradientStop[]): GradientStop[] {
+  return stops.flatMap((s) => s.offset2 !== undefined
+    ? [{ colorStr: s.colorStr, opacity: s.opacity, offset: s.offset },
+       { colorStr: s.colorStr, opacity: s.opacity, offset: s.offset2 }]
+    : [s]);
+}
 
 // Split a CSS argument string on top-level commas, respecting nested parens.
 export function splitCssArgs(str: string): string[] {
@@ -203,16 +219,18 @@ export function parseGradientStop(raw: string, index: number, total: number): Gr
   }
   const colorRaw = tokens.join(' ').trim().toLowerCase();
   const pos = positions[0];
+  const norm = (p: string): string => (p.endsWith('%') ? p : parseFloat(p) + 'px');
   const offset = pos
-    ? (pos.endsWith('%') ? pos : parseFloat(pos) + 'px')
+    ? norm(pos)
     : `${((index / Math.max(total - 1, 1)) * 100).toFixed(2)}%`;
+  const off2 = positions[1] !== undefined ? { offset2: norm(positions[1]!) } : {};
 
   if (!colorRaw)                  return { colorStr: null, opacity: 1, offset }; // bare position = colour hint
-  if (colorRaw === 'transparent') return { colorStr: 'rgba(0,0,0,0)', opacity: 0, offset };
+  if (colorRaw === 'transparent') return { colorStr: 'rgba(0,0,0,0)', opacity: 0, offset, ...off2 };
   // An OPAQUE 6-digit hex is already exactly what a consumer wants, and passing it
   // through verbatim keeps the common case byte-identical.
   if (/^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/.test(colorRaw)) {
-    return { colorStr: colorRaw, opacity: 1, offset };
+    return { colorStr: colorRaw, opacity: 1, offset, ...off2 };
   }
   // EVERY other form — legacy `rgb()`/`rgba()`, a named colour, `oklch()`, `oklab()`,
   // `lab()`, `hwb()`, `color(<space> …)`, an 8-digit hex — is flattened to an OPAQUE
@@ -235,6 +253,7 @@ export function parseGradientStop(raw: string, index: number, total: number): Gr
     colorStr: colorToHexString({ ...parsed, alpha: 1 }),
     opacity: parsed.alpha,
     offset,
+    ...off2,
   };
 }
 
@@ -320,7 +339,7 @@ export function parseRadialGradient(value: string, w: number, h: number): Radial
   }
   if (rx == null || ry == null || rx <= 0 || ry <= 0) return null;
 
-  const stops = rawStops.map((raw, i) => parseGradientStop(raw.trim(), i, rawStops.length)).filter((s) => s.colorStr);
+  const stops = expandGradientStops(rawStops.map((raw, i) => parseGradientStop(raw.trim(), i, rawStops.length)).filter((s) => s.colorStr));
   if (stops.length < 2) return null;
   return { cx: pos.cx, cy: pos.cy, rx, ry, stops };
 }
@@ -399,7 +418,7 @@ export function parseConicGradient(value: string, w: number, h: number): ConicGr
 
   const raw = args.slice(firstStop);
   if (raw.length < 2) return null;
-  const stops = raw.map((r, i) => parseGradientStop(r.trim(), i, raw.length)).filter((st) => st.colorStr);
+  const stops = expandGradientStops(raw.map((r, i) => parseGradientStop(r.trim(), i, raw.length)).filter((st) => st.colorStr));
   if (stops.length < 2) return null;
   return { cx, cy, fromRad, stops, repeating };
 }
