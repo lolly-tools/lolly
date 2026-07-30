@@ -111,6 +111,9 @@
  *   - Block arrays use a compact tilde-delimited format instead of JSON:
  *       label,value,color~label2,value2,color2~...
  *     Values are encodeURIComponent'd; colors omit the `#` prefix.
+ *   - Table inputs are ALWAYS one compact param (not opt-in): the header row
+ *     then one tilde segment per data row, cells comma-separated and
+ *     encodeURIComponent'd (see encodeTableCompact). JSON accepted on parse.
  *   - Default values are omitted from the URL entirely
  *   Both old long-form and new short-form URLs are accepted on parse.
  *
@@ -126,7 +129,8 @@ import { isToolUrl } from './tool-url.ts';
 import { assetIdForUrl, blocksForUrl } from './bake.ts';
 import { normalizeLang } from './lang.ts';
 import type { Lang } from './lang.ts';
-import type { BlockFieldSpec, InputManifest, InputSpec, InputValue } from './inputs.ts';
+import { normalizeTableValue } from './inputs.ts';
+import type { BlockFieldSpec, InputManifest, InputSpec, InputValue, TableValue } from './inputs.ts';
 import type { PrintMarksFlags } from './print-marks.ts';
 import type { AssetRef } from './bridge/host-v1.ts';
 
@@ -448,6 +452,11 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
       continue;
     }
     if (input.value === '' && !input.required) continue;
+    // An empty grid (no headings, no rows) is the blank state — omit it.
+    if (input.type === 'table') {
+      const t = normalizeTableValue(input.value);
+      if (!t || (!t.columns.length && !t.rows.length)) continue;
+    }
     params.set(input.id, coerceToString(input, input.value));
   }
   if (opts.format) params.set('format', opts.format);
@@ -507,6 +516,14 @@ function coerceFromString(input: InputSpec, raw: string): InputValue {
         try { return JSON.parse(raw) as InputValue; } catch { return []; }
       }
       return decodeBlocksCompact(raw, input.fields ?? []);
+    case 'table':
+      // Accept JSON ({columns, rows}) and the compact tilde-delimited form
+      // (header row first). Either way the grid is normalized on entry.
+      if (raw.startsWith('{')) {
+        try { return normalizeTableValue(JSON.parse(raw)) ?? { columns: [], rows: [] }; }
+        catch { return { columns: [], rows: [] }; }
+      }
+      return decodeTableCompact(raw);
     // NOTE: 'vector' has no single-param form — each field is its own flat param
     // ("<inputId>.<fieldId>"), handled in parseUrlState.
     default:
@@ -530,6 +547,7 @@ function coerceToString(input: UrlSerializableInput, value: InputValue): string 
   // (blocksForUrl) — otherwise a frozen block image would inline its whole
   // data: URL into the query and blow every link-length ceiling.
   if (input.type === 'blocks') return JSON.stringify(blocksForUrl(value) ?? []);
+  if (input.type === 'table') return encodeTableCompact(normalizeTableValue(value));
   // 'vector' is serialised per-field in serializeUrlState, not here.
   return String(value);
 }
@@ -573,6 +591,46 @@ function decodeBlocksCompact(str: string, fields: BlockFieldSpec[]): InputValue[
     });
     return obj;
   });
+}
+
+/**
+ * Encode a table value into the single-param compact form:
+ *   "Col1,Col2,Col3~r1c1,r1c2,r1c3~r2c1,..."
+ * — the header row first, then one tilde-delimited segment per data row. Every
+ * cell is encodeURIComponent'd, so commas/tildes/newlines INSIDE a cell become
+ * %-escapes and never collide with the separators. Unlike the blocks compact
+ * form (which the web shell pushes into share links raw for readability), a
+ * table param must always travel through one more layer of URL encoding
+ * (URLSearchParams / encodeURIComponent) so cell escapes survive the one
+ * decode the load boundary performs — prose cells make separator characters
+ * far too common to bail to JSON instead.
+ */
+export function encodeTableCompact(t: TableValue | null): string {
+  if (!t) return '';
+  // '~' is unreserved, so encodeURIComponent leaves it RAW — escape it by hand
+  // or a tilde inside a cell splits the row segments on decode.
+  const cell = (c: string): string => encodeURIComponent(c).replace(/~/g, '%7E');
+  const row = (r: string[]): string => r.map(cell).join(',');
+  return [row(t.columns), ...t.rows.map(row)].join('~');
+}
+
+/**
+ * Decode the compact table form back into a normalized {@link TableValue}.
+ * The first tilde segment is the header row; each remaining segment is one data
+ * row, capped to the header's column count (overflow from a hand-edited raw
+ * comma folds into the last cell, mirroring decodeBlocksCompact). A malformed
+ * %-escape in a cell degrades to the raw text rather than aborting the load.
+ */
+export function decodeTableCompact(str: string): TableValue {
+  if (!str) return { columns: [], rows: [] };
+  const dec = (part: string): string => {
+    try { return decodeURIComponent(part); } catch { return part; }
+  };
+  const segments = str.split('~');
+  const columns = (segments[0] ?? '').split(',').map(dec);
+  const rows = segments.slice(1).filter(Boolean).map(seg =>
+    splitToFields(seg, columns.length).map(dec));
+  return normalizeTableValue({ columns, rows }) ?? { columns: [], rows: [] };
 }
 
 // Split into at most `count` comma-separated parts, joining any overflow back into

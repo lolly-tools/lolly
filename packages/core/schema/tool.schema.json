@@ -130,6 +130,15 @@
           "default": true,
           "description": "Set false to offer pixels only — hides the physical-unit (mm/cm/in/pt) selector and the DPI field in the download bar. Width/height stay in px, so an on-screen pixel is an exported pixel. Use for tools whose output is inherently pixel-measured (screen assets, favicons, token-cost images) where a physical print size is meaningless and would make width/height inputs disagree with the true raster resolution."
         },
+        "paginate": {
+          "type": "object",
+          "required": ["source"],
+          "additionalProperties": false,
+          "properties": {
+            "source": { "type": "string" }
+          },
+          "description": "Engine-driven pagination. `source` names a `table` input whose rows each produce one page: the runtime hydrates the template once per row (with a `page` context object: index/number/count, `first` = the row's first cell, `cells` = [{column, value}], `fields` = cells minus the first) and wraps each hydration in its own [data-pdf-page] box. The tool authors ONE page and never manages pagination itself. Pair with `paged: true` for the scrolling all-pages canvas + filmstrip."
+        },
         "paged": {
           "type": "boolean",
           "default": false,
@@ -320,7 +329,7 @@
         "help": { "type": "string" },
         "type": {
           "type": "string",
-          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file"]
+          "enum": ["text", "longtext", "number", "boolean", "color", "select", "asset", "date", "time", "datetime-local", "url", "blocks", "vector", "file", "table"]
         },
         "required": { "type": "boolean", "default": false },
         "default": { "description": "Type-appropriate default value." },

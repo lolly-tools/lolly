@@ -19,16 +19,27 @@ import type { AssetRef, InputFile } from './bridge/host-v1.ts';
 export type InputType =
   | 'text' | 'longtext' | 'number' | 'boolean' | 'color' | 'select' | 'asset'
   | 'date' | 'time' | 'datetime-local' | 'url' | 'blocks'
-  | 'vector' | 'file';
+  | 'vector' | 'file' | 'table';
 
 /** The control a shell should render for a model item (see pickControl). */
 export type InputControl =
   | 'slider' | 'textarea' | 'select' | 'asset-picker' | 'palette-picker'
   | 'color-picker' | 'checkbox' | 'time-input' | 'datetime-local-input'
-  | 'blocks' | 'vector' | 'file-picker' | 'text-input';
+  | 'blocks' | 'vector' | 'file-picker' | 'table' | 'text-input';
 
 /** A vector input's compound value: one number per declared field id. */
 export type VectorValue = Record<string, number>;
+
+/**
+ * A `table` input's value: user-defined column headings plus rows of plain-string
+ * cells. Both dimensions are user DATA (unlike `blocks`, whose fields are declared
+ * in the manifest) — that's what lets one tool render any table. Rows are kept
+ * rectangular: normalizeTableValue pads/folds every row to `columns.length`.
+ */
+export type TableValue = {
+  columns: string[];
+  rows: string[][];
+};
 
 /**
  * Any value an input can hold in the model (and the shapes URL/saved-state
@@ -259,6 +270,33 @@ export function isFileValue(v: unknown): v is InputFile {
   );
 }
 
+/**
+ * Coerce any candidate value into a well-formed {@link TableValue}, or null when
+ * it isn't table-shaped at all. Cells and headings become trimmed-of-nothing plain
+ * strings (numbers/booleans stringify; objects/arrays are rejected per-cell to '');
+ * every row is padded with '' or truncated to `columns.length`, so downstream
+ * consumers (template pagination, the URL codec, shells) can index cells by column
+ * position without guarding ragged data.
+ */
+export function normalizeTableValue(v: unknown): TableValue | null {
+  if (typeof v !== 'object' || v === null || Array.isArray(v)) return null;
+  const o = v as { columns?: unknown; rows?: unknown };
+  if (!Array.isArray(o.columns) || !Array.isArray(o.rows)) return null;
+  const cell = (c: unknown): string =>
+    typeof c === 'string' ? c
+    : (typeof c === 'number' || typeof c === 'boolean') ? String(c)
+    : '';
+  const columns = o.columns.map(cell);
+  const rows = o.rows
+    .filter((r): r is unknown[] => Array.isArray(r))
+    .map(r => {
+      const out = r.slice(0, columns.length).map(cell);
+      while (out.length < columns.length) out.push('');
+      return out;
+    });
+  return { columns, rows };
+}
+
 // Any non-null object value — the shape vector compounds (and the JSON-ish
 // initial values they merge) take. Arrays pass too, mirroring the original
 // `typeof v === 'object'` checks (a string-keyed read on one is undefined).
@@ -344,6 +382,13 @@ function resolveInitialValue(
     const v = initial[input.id];
     return isFileValue(v) ? v : null;
   }
+  // A table initial (URL/saved state) is normalized on the way in so the model
+  // never holds a ragged or non-string grid; unparseable → declared default.
+  if (input.type === 'table') {
+    const v = normalizeTableValue(initial[input.id]);
+    if (v) return v;
+    return normalizeTableValue(input.default) ?? { columns: [], rows: [] };
+  }
   if (input.id in initial) return initial[input.id] ?? null;
   const bound = input.bindToProfile ? profile[input.bindToProfile] : undefined;
   if (input.bindToProfile && bound !== undefined) {
@@ -394,6 +439,8 @@ function defaultForType(type: InputType): InputValue {
       return {};
     case 'file':
       return null;
+    case 'table':
+      return { columns: [], rows: [] };
     default:
       return null;
   }
@@ -412,6 +459,7 @@ function pickControl(input: InputSpec): InputControl {
   if (input.type === 'blocks') return 'blocks';
   if (input.type === 'vector') return 'vector';
   if (input.type === 'file') return 'file-picker';
+  if (input.type === 'table') return 'table';
   return 'text-input';
 }
 
@@ -448,6 +496,11 @@ function constrain(input: InputModelItem, value: InputValue): InputValue {
     if (value === null) return null;
     if (value && typeof value === 'object') return value;
     return input.value;
+  }
+  if (input.type === 'table') {
+    // Only a well-formed grid may enter the model; anything else keeps the
+    // current value (mirrors the file/vector garbage rejection).
+    return normalizeTableValue(value) ?? input.value;
   }
   if (input.type === 'vector') {
     if (!isObjectValue(value)) return input.value;

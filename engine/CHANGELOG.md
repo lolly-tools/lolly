@@ -1220,3 +1220,26 @@ existing behaviour:
     tagged PDF writes there, so tagged files could actively corrupt parsing.
 
 No v1 bridge method changed.
+
+## 1.78.0 — the table input, and pages that make themselves
+
+Additive: batch creation as a first-class engine concern.
+
+  • `table` input type — a user-defined grid ({ columns, rows }, all strings)
+    where the column headings AND the rows are user DATA, unlike `blocks`
+    (manifest-declared fields). `normalizeTableValue` keeps every grid
+    rectangular on the way into the model. In URL mode a table is always ONE
+    compact param (header segment + one tilde segment per row, cells
+    percent-escaped — encodeTableCompact/decodeTableCompact, JSON accepted on
+    parse). New module `table-text.ts` carries the text ⇄ table round-trip
+    (TSV / Markdown pipe / RFC 4180 CSV parse + TSV/Markdown/HTML serialise)
+    shared by the web sidebar's spreadsheet paste and the CLI's
+    `--<inputId>-data=file` import.
+  • `render.paginate: { source: '<tableInputId>' }` — engine-driven pagination:
+    the runtime hydrates the template once per row, each wrapped in its own
+    `[data-pdf-page]` box, with a per-page `page` context object
+    (index/number/count, `first`, `cells`, `fields`). Tools author ONE page and
+    never manage pagination; the existing paged canvas/PDF/pptx paths see N
+    pages. Reference tool: community/battlecards (hook-free).
+
+No v1 bridge method changed.

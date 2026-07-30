@@ -25,7 +25,7 @@
  *   being declared as user-facing inputs in the manifest.
  */
 
-import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs } from './inputs.ts';
+import { buildInputModel, updateInput, modelToValues, modelForHooks, flattenValue, summarizeInputs, normalizeTableValue } from './inputs.ts';
 import { hydrate } from './template.ts';
 import { buildExportMeta } from './metadata.ts';
 import { isTokenValue, isAlias, colorToHex } from './tokens.ts';
@@ -425,7 +425,36 @@ export async function createRuntime(
   }
 
   function getHydrated(): string {
+    const pag = tool.manifest.render?.paginate;
+    if (pag?.source) return hydratePaginated(pag.source);
     return hydrate(tool.template, templateContext());
+  }
+
+  // Engine-driven pagination (render.paginate): hydrate the template once per
+  // row of the named table input, each wrapped in its own [data-pdf-page] box,
+  // so the tool authors ONE page and the paged export/preview paths see N.
+  // Each hydration's context gains a `page` object:
+  //   index/number/count — 0-based, 1-based, total pages
+  //   first              — the row's first cell (the natural page title)
+  //   cells              — [{ column, value }] for every column
+  //   fields             — cells minus the first (the labelled body fields)
+  // Zero rows (or a non-table source) still emits one page so the canvas is
+  // never blank while the user is assembling their table.
+  function hydratePaginated(sourceId: string): string {
+    const base = templateContext();
+    const t = normalizeTableValue(model.find(i => i.id === sourceId)?.value);
+    const rows = t && t.rows.length ? t.rows : [[]];
+    const columns = t?.columns ?? [];
+    const count = rows.length;
+    return rows.map((row, index) => {
+      const cells = columns.map((column, i) => ({ column, value: row[i] ?? '' }));
+      const page = {
+        index, number: index + 1, count,
+        first: row[0] ?? '', cells, fields: cells.slice(1),
+      };
+      const body = hydrate(tool.template, { ...base, page });
+      return `<section data-pdf-page class="lolly-page" data-page-index="${index}">${body}</section>`;
+    }).join('');
   }
 
   // Hydrate an arbitrary template string against the SAME context as the main
