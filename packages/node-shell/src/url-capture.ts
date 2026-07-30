@@ -41,6 +41,20 @@ export interface CaptureParams {
    * dismiss the first-run welcome) so a gallery-route capture isn't occluded.
    */
   initScript?: string;
+  /**
+   * Optional OS-level preference pins for the browser context. Like `initScript`,
+   * pipeline-only: the end-user url-shot tool leaves them unset and inherits the
+   * host's own preferences, which is what a user capturing a page expects. The
+   * docs-shots pipeline sets them because `prefers-color-scheme` /
+   * `prefers-reduced-motion` / `forced-colors` are read by CSS before any app code
+   * runs, so a build machine in dark mode or high contrast would otherwise publish
+   * a differently-styled baseline. Values are Playwright's own.
+   */
+  contextPrefs?: {
+    colorScheme?: 'light' | 'dark' | 'no-preference';
+    reducedMotion?: 'reduce' | 'no-preference';
+    forcedColors?: 'active' | 'none';
+  };
 }
 
 export interface CaptureDims { width: number; height: number; dpi: number }
@@ -84,6 +98,7 @@ export async function captureUrl(
     viewport: { width, height },
     deviceScaleFactor: dpr,
     serviceWorkers: 'block',
+    ...(params.contextPrefs ?? {}),
   });
   try {
     // Runs before the page's own scripts (docs pipeline uses it to pre-dismiss
