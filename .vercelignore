@@ -38,6 +38,42 @@ shells/web/public/ort
 # own LOLLY_PROFILE env var (or the `suse` default); this file is local-only.
 /.lolly-profile
 
-# Local Claude Code state (tool-permission config + a scheduler lock). Gitignored
-# but rides an archive tarball otherwise; it's build-infra clutter, never served.
-/.claude
+# Local Claude Code state (tool-permission config, a scheduler lock, and — the
+# expensive part — agent WORKTREES, which are whole extra checkouts complete with
+# their own dist/). Gitignored but rides an archive tarball otherwise.
+# UNANCHORED on purpose: as `/.claude` this matched only the repo root, so
+# shells/web/.claude/worktrees/<name> (133 MB, including its own 96 MB dist/ that
+# the anchored `shells/web/dist` rule above also missed) shipped on every deploy,
+# twice per ship. A bare pattern matches at any depth, like .gitignore.
+.claude
+
+# The docs-site screenshot MIRROR. docs/build.ts (build:info, run by build:web)
+# rmSync's this directory and re-copies it from docs/shots on every build
+# (build.ts:2519-2529), so the two trees are byte-identical — 146 files,
+# 80,718,033 bytes each — and we were shipping both. docs/shots itself is tracked
+# and still ships; this copy is derived. ~45 MB off each gzipped tarball (62% of
+# it is SVG, which compresses ~71%, so it is NOT the ~105 MB a raw du suggests).
+# NOTE: deliberately NOT excluding the sibling info/og. Those cards look equally
+# generated, but generateOgImages() rasterises via Playwright Chromium, which is
+# absent on Vercel, and — unlike build-tool-og.ts / build-view-og.ts — it has no
+# process.env.VERCEL guard and its output is not committed. It fails soft and
+# build() then derives ogSlugs from what exists ON DISK, so excluding info/og
+# would silently drop the og:image from every /info page.
+shells/web/public/info/shots
+
+# The rest of the generated docs site: build:info regenerates every page, the
+# sitemap and llms.txt from docs/*.md + docs/i18n/. ~27 MB off each gzipped
+# tarball across 1,037 files. The tracked non-generated assets in info/ (icons,
+# mascots, founded-by.svg — 152 files) are NOT matched by these patterns and
+# still ship, which is why this is per-extension rather than the whole directory.
+shells/web/public/info/*.html
+shells/web/public/info/*.md
+shells/web/public/info/**/*.html
+shells/web/public/info/**/*.md
+shells/web/public/info/sitemap.xml
+shells/web/public/info/llms.txt
+
+# Translation memory for scripts/translate.ts (13 MB, ~6 MB gzipped). A developer
+# tool: no Vercel-side step invokes translate.ts, and the file stays git-tracked,
+# so CI and local `npm test` / locales.test.ts are unaffected.
+scripts/i18n/cache.json
