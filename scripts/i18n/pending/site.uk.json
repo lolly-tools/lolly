@@ -1,0 +1,97 @@
+{
+  "corpus": "site",
+  "lang": "uk",
+  "brief": "Translate the given UI strings from English into uk for a software product.\nThese are the navigation chrome of a documentation site for a design-asset platform called Lolly: top-nav links, documentation-sidebar group headings and link labels, page titles, and a handful of footer and language-picker labels. They are extremely short - one to four words, occasionally a page title of a dozen - and they must stay that way: a nav bar and a sidebar have a fixed width, and a label that doubles in length wraps or is clipped. Translate each as the label a native reader would expect to click, not as a sentence, and keep any leading or trailing symbol or arrow exactly where it is. Do not translate product, protocol or format names (Lolly, SUSE, CLI, TUI, MCP, C2PA, URL, API, PDF, SVG): several of these labels are already left in English on purpose in the shipped catalogs, and that is the right answer where the term is what the reader searches for.\nRegister: friendly-neutral contemporary Ukrainian addressing the reader as ви (lowercase — the standard modern app register); concise UI phrasing as used by well-localized apps, established Ukrainian tech vocabulary where natural, Latin script kept for untranslatable product/technical terms; Western digits.\nNever translate these terms — copy them verbatim wherever they appear: \"Lolly\", \"SUSE\", \"Geeko\", \"Content Credentials\", \"C2PA\", \"Pose Geeko\", \"Neurospicy\".\nPreserve every {placeholder} token exactly (same braces, same name, same count) — these are runtime interpolations, not prose.\nPreserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags — never a tag name, an attribute value, or the contents of a <code> element.\nPreserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.\nMatch the source length and register. Do not pad or embellish.\nReturn ONLY the JSON matching the given schema — one translation per input id, in the same order.",
+  "items": [
+    {
+      "id": 6,
+      "text": "Inclusive Design"
+    },
+    {
+      "id": 19,
+      "text": "The Brand Studio"
+    },
+    {
+      "id": 42,
+      "text": "Building for iOS"
+    },
+    {
+      "id": 47,
+      "text": "Security & Verification"
+    },
+    {
+      "id": 48,
+      "text": "Threat Model"
+    },
+    {
+      "id": 49,
+      "text": "Parser Inventory"
+    },
+    {
+      "id": 56,
+      "text": "Server Surface"
+    },
+    {
+      "id": 57,
+      "text": "Verify It Yourself"
+    },
+    {
+      "id": 58,
+      "text": "Our AI Stance"
+    },
+    {
+      "id": 67,
+      "text": "Content Credentials - Engineering"
+    },
+    {
+      "id": 68,
+      "text": "Threat Model & Trust Boundaries"
+    }
+  ],
+  "translations": [
+    {
+      "id": 6,
+      "text": "Інклюзивний дизайн"
+    },
+    {
+      "id": 19,
+      "text": "Студія бренду"
+    },
+    {
+      "id": 42,
+      "text": "Збірка для iOS"
+    },
+    {
+      "id": 47,
+      "text": "Безпека та перевірка"
+    },
+    {
+      "id": 48,
+      "text": "Модель загроз"
+    },
+    {
+      "id": 49,
+      "text": "Перелік парсерів"
+    },
+    {
+      "id": 56,
+      "text": "Поверхня сервера"
+    },
+    {
+      "id": 57,
+      "text": "Перевірте самі"
+    },
+    {
+      "id": 58,
+      "text": "Наша позиція щодо ШІ"
+    },
+    {
+      "id": 67,
+      "text": "Content Credentials - Інженерія"
+    },
+    {
+      "id": 68,
+      "text": "Модель загроз і межі довіри"
+    }
+  ]
+}

@@ -1,0 +1,1643 @@
+{
+  "corpus": "spa",
+  "lang": "tr",
+  "brief": "Translate the given UI strings from English into tr for a software product.\nThese are short UI microcopy strings — button labels, headings, aria-labels, and one-line descriptions — in a design-tool web app called Lolly. Keep them as short as the source; this is UI chrome, not prose.\nRegister: neutral-informal (sen, not siz — the contemporary Turkish app register for creative professionals); correct Turkish casing (dotted İ / dotless ı); established Turkish tech vocabulary (indir/yükle/dışa aktar where natural), Latin script kept for untranslatable product/technical terms; Western digits.\nNever translate these terms — copy them verbatim wherever they appear: \"Lolly\", \"SUSE\", \"Geeko\", \"Content Credentials\", \"C2PA\", \"Pose Geeko\", \"Neurospicy\".\nPreserve every {placeholder} token exactly (same braces, same name, same count) — these are runtime interpolations, not prose.\nPreserve any inline HTML exactly: the same tags, the same count, every attribute (href, target, rel) byte-for-byte, and every HTML entity (&amp;, &lt;). Translate only the human text around and between the tags — never a tag name, an attribute value, or the contents of a <code> element.\nPreserve punctuation choices like → and & as-is where they read naturally in the target language; do not add explanatory text.\nMatch the source length and register. Do not pad or embellish.\nUse a plain hyphen \"-\" for parenthetical dashes. Never use an em-dash or a spaced en-dash: they read as machine-written in this language. An UNSPACED en-dash inside a numeric or alphabetic range (0-1, A-Z) is correct and must be preserved as-is.\nNo Oxford comma before the final conjunction in a list. A comma before a conjunction that joins two main clauses is still correct - only the list-final one is wrong.\nReturn ONLY the JSON matching the given schema — one translation per input id, in the same order.",
+  "items": [
+    {
+      "id": 0,
+      "text": " (first {n} pages checked)"
+    },
+    {
+      "id": 2,
+      "text": " or "
+    },
+    {
+      "id": 35,
+      "text": "1 page"
+    },
+    {
+      "id": 36,
+      "text": "1 place"
+    },
+    {
+      "id": 37,
+      "text": "1 point - hold Alt for a corner"
+    },
+    {
+      "id": 44,
+      "text": "1 word"
+    },
+    {
+      "id": 68,
+      "text": "A gradient needs at least two stops."
+    },
+    {
+      "id": 71,
+      "text": "A path needs at least two points, so those were kept."
+    },
+    {
+      "id": 72,
+      "text": "A perceptually even ramp through this colour, pale to dark."
+    },
+    {
+      "id": 73,
+      "text": "A press condition or a display profile from this device becomes a comparison target beside the built-in gamuts. Nothing leaves this device."
+    },
+    {
+      "id": 79,
+      "text": "APCA first, WCAG second: APCA models polarity — light text on dark reads worse than the same pair inverted — which the WCAG ratio scores identically. Black and white are the ceiling on what the colour can carry; the third surface is yours to set."
+    },
+    {
+      "id": 82,
+      "text": "Absolute"
+    },
+    {
+      "id": 83,
+      "text": "Abstract"
+    },
+    {
+      "id": 85,
+      "text": "Accessibility"
+    },
+    {
+      "id": 89,
+      "text": "Add a clip"
+    },
+    {
+      "id": 91,
+      "text": "Add an ICC profile"
+    },
+    {
+      "id": 97,
+      "text": "Add stop"
+    },
+    {
+      "id": 100,
+      "text": "Add to catalogue"
+    },
+    {
+      "id": 102,
+      "text": "Add to the timeline"
+    },
+    {
+      "id": 112,
+      "text": "Added 1 scene."
+    },
+    {
+      "id": 114,
+      "text": "Added to the timeline"
+    },
+    {
+      "id": 119,
+      "text": "Added {n} scenes."
+    },
+    {
+      "id": 120,
+      "text": "Adding…"
+    },
+    {
+      "id": 128,
+      "text": "Align and distribute the selected points"
+    },
+    {
+      "id": 139,
+      "text": "Already on this device:"
+    },
+    {
+      "id": 141,
+      "text": "Always on"
+    },
+    {
+      "id": 146,
+      "text": "Analyser"
+    },
+    {
+      "id": 148,
+      "text": "Animate in"
+    },
+    {
+      "id": 149,
+      "text": "Animate out"
+    },
+    {
+      "id": 150,
+      "text": "Animation"
+    },
+    {
+      "id": 169,
+      "text": "Attachments"
+    },
+    {
+      "id": 177,
+      "text": "B-spline"
+    },
+    {
+      "id": 189,
+      "text": "Best pairing: {ink} at Lc {lc} — {use}. WCAG says {ratio}:1, {level} for body text."
+    },
+    {
+      "id": 190,
+      "text": "Bevelled corners"
+    },
+    {
+      "id": 191,
+      "text": "Bezier handles"
+    },
+    {
+      "id": 195,
+      "text": "Black text"
+    },
+    {
+      "id": 198,
+      "text": "Blend to"
+    },
+    {
+      "id": 199,
+      "text": "Blend to another colour"
+    },
+    {
+      "id": 227,
+      "text": "Bring across what you already have — a design-token file, a Penpot project, an SVG’s colours, or a Lolly brand file."
+    },
+    {
+      "id": 245,
+      "text": "C × H"
+    },
+    {
+      "id": 277,
+      "text": "Chart"
+    },
+    {
+      "id": 278,
+      "text": "Chart view"
+    },
+    {
+      "id": 283,
+      "text": "Check any file on-device: who made it, what it has been through, and what it hides. Metadata, attachments, scripts and tracking links."
+    },
+    {
+      "id": 294,
+      "text": "Choose a sound"
+    },
+    {
+      "id": 295,
+      "text": "Choose a tool"
+    },
+    {
+      "id": 302,
+      "text": "Choose or drop a PDF to take apart"
+    },
+    {
+      "id": 304,
+      "text": "Choose the profile for {name}"
+    },
+    {
+      "id": 309,
+      "text": "Chroma ceiling here"
+    },
+    {
+      "id": 310,
+      "text": "Chroma headroom"
+    },
+    {
+      "id": 316,
+      "text": "Clear"
+    },
+    {
+      "id": 325,
+      "text": "Clear the timing so this box is on screen for the whole sequence"
+    },
+    {
+      "id": 330,
+      "text": "Click or drag the chart to pick"
+    },
+    {
+      "id": 332,
+      "text": "Clip"
+    },
+    {
+      "id": 333,
+      "text": "Clip actions"
+    },
+    {
+      "id": 334,
+      "text": "Clip removed"
+    },
+    {
+      "id": 335,
+      "text": "Clip split"
+    },
+    {
+      "id": 337,
+      "text": "Clips"
+    },
+    {
+      "id": 339,
+      "text": "Closed path"
+    },
+    {
+      "id": 345,
+      "text": "Colour Lab"
+    },
+    {
+      "id": 351,
+      "text": "Colour inside the bright region is displayable everywhere; the drained bands need a Display-P3 or Rec.2020 screen, and the checkerboard is beyond every display. The solid line is the sRGB edge, the dashed one Display-P3. Drag a dot to recolour · click to edit · click empty space to add."
+    },
+    {
+      "id": 353,
+      "text": "Colour profiles"
+    },
+    {
+      "id": 355,
+      "text": "Colour set to {c}"
+    },
+    {
+      "id": 356,
+      "text": "Colour space"
+    },
+    {
+      "id": 361,
+      "text": "Comfort settings for the app around your work. Each one is off until you turn it on, and none of them touch your designs or your exports."
+    },
+    {
+      "id": 363,
+      "text": "Compare against {name}"
+    },
+    {
+      "id": 374,
+      "text": "Conic"
+    },
+    {
+      "id": 397,
+      "text": "Copied"
+    },
+    {
+      "id": 398,
+      "text": "Copied {v}"
+    },
+    {
+      "id": 402,
+      "text": "Copy all"
+    },
+    {
+      "id": 403,
+      "text": "Copy failed"
+    },
+    {
+      "id": 406,
+      "text": "Copy {v}"
+    },
+    {
+      "id": 407,
+      "text": "Corner point - handles move independently"
+    },
+    {
+      "id": 409,
+      "text": "Corners"
+    },
+    {
+      "id": 410,
+      "text": "Could not add"
+    },
+    {
+      "id": 416,
+      "text": "Could not start recording."
+    },
+    {
+      "id": 419,
+      "text": "Couldn't add those fonts: {error}"
+    },
+    {
+      "id": 420,
+      "text": "Couldn't add {file}"
+    },
+    {
+      "id": 421,
+      "text": "Couldn't add {file}: {error}"
+    },
+    {
+      "id": 428,
+      "text": "Couldn't read the font in {file}"
+    },
+    {
+      "id": 429,
+      "text": "Couldn't refresh your fonts: {error}"
+    },
+    {
+      "id": 435,
+      "text": "Couldn't set {family} as your primary font: {error}"
+    },
+    {
+      "id": 436,
+      "text": "Couldn't set {family} for code & data: {error}"
+    },
+    {
+      "id": 446,
+      "text": "Couldn’t fetch it — add the file yourself."
+    },
+    {
+      "id": 447,
+      "text": "Couldn’t fetch it. Look for {file} on this device."
+    },
+    {
+      "id": 478,
+      "text": "Crossfade"
+    },
+    {
+      "id": 486,
+      "text": "Cut"
+    },
+    {
+      "id": 487,
+      "text": "Cut (no animation)"
+    },
+    {
+      "id": 512,
+      "text": "Delete the selected points"
+    },
+    {
+      "id": 542,
+      "text": "Detected by {reason}"
+    },
+    {
+      "id": 544,
+      "text": "Device link"
+    },
+    {
+      "id": 551,
+      "text": "Discard and switch"
+    },
+    {
+      "id": 552,
+      "text": "Discard the handles?"
+    },
+    {
+      "id": 560,
+      "text": "Display-P3"
+    },
+    {
+      "id": 561,
+      "text": "Displayable in"
+    },
+    {
+      "id": 562,
+      "text": "Displayable range and readability"
+    },
+    {
+      "id": 572,
+      "text": "Download .md"
+    },
+    {
+      "id": 573,
+      "text": "Download .txt"
+    },
+    {
+      "id": 574,
+      "text": "Download SVG"
+    },
+    {
+      "id": 592,
+      "text": "Drag to move the tools"
+    },
+    {
+      "id": 596,
+      "text": "Drag to set the gradient direction (hold Shift to snap)"
+    },
+    {
+      "id": 597,
+      "text": "Drift"
+    },
+    {
+      "id": 598,
+      "text": "Drop"
+    },
+    {
+      "id": 600,
+      "text": "Drop a PDF here"
+    },
+    {
+      "id": 601,
+      "text": "Drop an .icc here, or"
+    },
+    {
+      "id": 613,
+      "text": "Edit points"
+    },
+    {
+      "id": 614,
+      "text": "Edit points (double-click)"
+    },
+    {
+      "id": 623,
+      "text": "Editing points - drag a point or its handle, click the curve to add a point, Esc to finish."
+    },
+    {
+      "id": 641,
+      "text": "Evenly spaced stills across the sequence. 1 exports the current playhead frame."
+    },
+    {
+      "id": 646,
+      "text": "Every frame becomes its own scene on the timeline, ready for timing tweaks, music and voiceover."
+    },
+    {
+      "id": 647,
+      "text": "Every notation"
+    },
+    {
+      "id": 648,
+      "text": "Every page in this document is a scanned image. There is no text layer to extract, and reading it would need OCR, which does not run on-device."
+    },
+    {
+      "id": 652,
+      "text": "Everything about one colour: where it sits in perceptual space, which displays can show it, how much room is left, and what it is called in every notation."
+    },
+    {
+      "id": 653,
+      "text": "Exclude - keep everything but the overlap"
+    },
+    {
+      "id": 674,
+      "text": "Exports can declare it. Load its profile to compare against it."
+    },
+    {
+      "id": 675,
+      "text": "Exports can declare it. Look for {file} on this device."
+    },
+    {
+      "id": 678,
+      "text": "Fade"
+    },
+    {
+      "id": 688,
+      "text": "Fetch from Google"
+    },
+    {
+      "id": 689,
+      "text": "Fetch this font from Google?"
+    },
+    {
+      "id": 690,
+      "text": "Fetching {file}…"
+    },
+    {
+      "id": 696,
+      "text": "Fill overlaps (non-zero)"
+    },
+    {
+      "id": 697,
+      "text": "Fill rule"
+    },
+    {
+      "id": 706,
+      "text": "Finish editing points"
+    },
+    {
+      "id": 707,
+      "text": "Finish editing points (Esc)"
+    },
+    {
+      "id": 708,
+      "text": "Finish this path"
+    },
+    {
+      "id": 709,
+      "text": "Finish this path (Enter)"
+    },
+    {
+      "id": 714,
+      "text": "Fit to view"
+    },
+    {
+      "id": 715,
+      "text": "Flat ends"
+    },
+    {
+      "id": 729,
+      "text": "Frames"
+    },
+    {
+      "id": 730,
+      "text": "Frames to export"
+    },
+    {
+      "id": 733,
+      "text": "Full device readout"
+    },
+    {
+      "id": 741,
+      "text": "Gamut"
+    },
+    {
+      "id": 747,
+      "text": "Get the profile for {name}"
+    },
+    {
+      "id": 748,
+      "text": "Get {file} — free from the ICC registry"
+    },
+    {
+      "id": 749,
+      "text": "Get {file} — free from the ICC registry, built from {data}"
+    },
+    {
+      "id": 753,
+      "text": "Google Fonts are hosted by Google, so downloading one tells Google the family name and your IP address. The file is then stored on this device and used offline — nothing further is sent. Everything else in Lolly stays on your device; this is the one step that reaches a third party, so we ask first."
+    },
+    {
+      "id": 757,
+      "text": "Gradient"
+    },
+    {
+      "id": 758,
+      "text": "Gradient fill"
+    },
+    {
+      "id": 759,
+      "text": "Gradient stop colour"
+    },
+    {
+      "id": 761,
+      "text": "Gradient — drag the stops on the canvas"
+    },
+    {
+      "id": 767,
+      "text": "Grow"
+    },
+    {
+      "id": 768,
+      "text": "Grow the shape outwards. A negative distance shrinks it inwards."
+    },
+    {
+      "id": 784,
+      "text": "Hidden text"
+    },
+    {
+      "id": 797,
+      "text": "How the solid is drawn"
+    },
+    {
+      "id": 798,
+      "text": "How to use it"
+    },
+    {
+      "id": 799,
+      "text": "Hue"
+    },
+    {
+      "id": 800,
+      "text": "Hue route"
+    },
+    {
+      "id": 802,
+      "text": "ICC v2 or v4 — a press condition, or any device profile"
+    },
+    {
+      "id": 818,
+      "text": "Immersive"
+    },
+    {
+      "id": 825,
+      "text": "Import your brand"
+    },
+    {
+      "id": 832,
+      "text": "In (ms)"
+    },
+    {
+      "id": 834,
+      "text": "In gamut is decided by a round trip within ΔE {tol} — a colour can pass and still shift visibly."
+    },
+    {
+      "id": 835,
+      "text": "In other spaces"
+    },
+    {
+      "id": 838,
+      "text": "Ink"
+    },
+    {
+      "id": 841,
+      "text": "Inspect any colour: where it sits in OKLCH, which displays can show it, how much chroma is left, and every notation."
+    },
+    {
+      "id": 842,
+      "text": "Inspect {name}"
+    },
+    {
+      "id": 851,
+      "text": "Intersect - keep only where they overlap"
+    },
+    {
+      "id": 867,
+      "text": "Keep in bounds"
+    },
+    {
+      "id": 869,
+      "text": "Keep them"
+    },
+    {
+      "id": 872,
+      "text": "L × C"
+    },
+    {
+      "id": 873,
+      "text": "L × H"
+    },
+    {
+      "id": 876,
+      "text": "Lab axes"
+    },
+    {
+      "id": 880,
+      "text": "Large"
+    },
+    {
+      "id": 884,
+      "text": "Largest single-ink difference from the automatic separation, in points"
+    },
+    {
+      "id": 890,
+      "text": "Lc"
+    },
+    {
+      "id": 893,
+      "text": "Length"
+    },
+    {
+      "id": 894,
+      "text": "Length (ms)"
+    },
+    {
+      "id": 899,
+      "text": "Light text on a dark background — APCA scores this polarity differently, WCAG cannot tell."
+    },
+    {
+      "id": 900,
+      "text": "Lightness"
+    },
+    {
+      "id": 903,
+      "text": "Line ends"
+    },
+    {
+      "id": 905,
+      "text": "Linear"
+    },
+    {
+      "id": 912,
+      "text": "Loaded — {name}"
+    },
+    {
+      "id": 930,
+      "text": "Look for {file} in {where}"
+    },
+    {
+      "id": 940,
+      "text": "Make a video from its frames"
+    },
+    {
+      "id": 941,
+      "text": "Make always on"
+    },
+    {
+      "id": 956,
+      "text": "Menu — export, save, undo, canvas size"
+    },
+    {
+      "id": 960,
+      "text": "Microphone blocked. Allow microphone access for this site, then try again."
+    },
+    {
+      "id": 961,
+      "text": "Microphone live. Counting in."
+    },
+    {
+      "id": 979,
+      "text": "Move the playhead inside a clip to split it"
+    },
+    {
+      "id": 990,
+      "text": "Mute"
+    },
+    {
+      "id": 991,
+      "text": "Mute clip"
+    },
+    {
+      "id": 1007,
+      "text": "Named colour"
+    },
+    {
+      "id": 1025,
+      "text": "Next preset"
+    },
+    {
+      "id": 1040,
+      "text": "No gradient"
+    },
+    {
+      "id": 1044,
+      "text": "No microphone found."
+    },
+    {
+      "id": 1057,
+      "text": "No text on this page."
+    },
+    {
+      "id": 1062,
+      "text": "No {i} table in this file"
+    },
+    {
+      "id": 1076,
+      "text": "Nothing to split at the playhead"
+    },
+    {
+      "id": 1081,
+      "text": "Now always on"
+    },
+    {
+      "id": 1083,
+      "text": "Number of blend stops"
+    },
+    {
+      "id": 1084,
+      "text": "Number of tone steps"
+    },
+    {
+      "id": 1089,
+      "text": "Offset"
+    },
+    {
+      "id": 1090,
+      "text": "Offset path"
+    },
+    {
+      "id": 1091,
+      "text": "Offset path…"
+    },
+    {
+      "id": 1093,
+      "text": "On press"
+    },
+    {
+      "id": 1098,
+      "text": "One of the selected shapes has a path that cannot be read."
+    },
+    {
+      "id": 1100,
+      "text": "One selected item has no outline, so it was left as it is."
+    },
+    {
+      "id": 1104,
+      "text": "Only pen paths can be simplified."
+    },
+    {
+      "id": 1105,
+      "text": "Only the first {n} pages were read. The rest of this document is too long to take apart here."
+    },
+    {
+      "id": 1106,
+      "text": "Only the glyphs this document used are embedded, so it will be missing characters anywhere else."
+    },
+    {
+      "id": 1111,
+      "text": "Open another"
+    },
+    {
+      "id": 1125,
+      "text": "Or from your brand"
+    },
+    {
+      "id": 1133,
+      "text": "Out (ms)"
+    },
+    {
+      "id": 1134,
+      "text": "Outline"
+    },
+    {
+      "id": 1135,
+      "text": "Outline stroke"
+    },
+    {
+      "id": 1136,
+      "text": "Outline stroke…"
+    },
+    {
+      "id": 1139,
+      "text": "Outside sRGB. The swatches on this page ask your browser for the real colour, so a wide-gamut display shows it and a narrower one falls back to <strong>{hex}</strong>. The charts are drawn in your display’s own space, so they reach exactly as far as it does."
+    },
+    {
+      "id": 1140,
+      "text": "Outside the gamut"
+    },
+    {
+      "id": 1141,
+      "text": "Outside this profile’s gamut."
+    },
+    {
+      "id": 1142,
+      "text": "Outside {g} — the marker sits off the surface"
+    },
+    {
+      "id": 1147,
+      "text": "Page {n}"
+    },
+    {
+      "id": 1154,
+      "text": "Paper"
+    },
+    {
+      "id": 1161,
+      "text": "Pen - click to place points, drag to curve, Alt for a corner. Hold for the spline type"
+    },
+    {
+      "id": 1162,
+      "text": "Pen on - click to place points, drag to curve them, click the first point to close. Enter finishes, Esc cancels."
+    },
+    {
+      "id": 1164,
+      "text": "Perceptual"
+    },
+    {
+      "id": 1165,
+      "text": "Perceptual distance from the automatic conversion (OKLab; about 0.02 is just noticeable)"
+    },
+    {
+      "id": 1169,
+      "text": "Pick an image"
+    },
+    {
+      "id": 1172,
+      "text": "Place this box on the timeline at the playhead"
+    },
+    {
+      "id": 1179,
+      "text": "Playhead"
+    },
+    {
+      "id": 1180,
+      "text": "Plot an image"
+    },
+    {
+      "id": 1182,
+      "text": "Pointer on - click to select, drag to move."
+    },
+    {
+      "id": 1183,
+      "text": "Pointer — select and move (V)"
+    },
+    {
+      "id": 1184,
+      "text": "Pop"
+    },
+    {
+      "id": 1185,
+      "text": "Pop out"
+    },
+    {
+      "id": 1186,
+      "text": "Pop out {p}"
+    },
+    {
+      "id": 1192,
+      "text": "Press conditions your exports can declare"
+    },
+    {
+      "id": 1201,
+      "text": "Previous preset"
+    },
+    {
+      "id": 1213,
+      "text": "Print"
+    },
+    {
+      "id": 1218,
+      "text": "Printer"
+    },
+    {
+      "id": 1230,
+      "text": "Pull the words out of any PDF, page by page, and keep them as plain text or markdown. Nothing is uploaded."
+    },
+    {
+      "id": 1231,
+      "text": "Pull the words, images, fonts and attachments out of any PDF and keep what you need. Runs entirely on this device; the file is never uploaded."
+    },
+    {
+      "id": 1232,
+      "text": "Punch holes (even-odd)"
+    },
+    {
+      "id": 1233,
+      "text": "Put back"
+    },
+    {
+      "id": 1236,
+      "text": "Radial"
+    },
+    {
+      "id": 1244,
+      "text": "Readability"
+    },
+    {
+      "id": 1245,
+      "text": "Reading {name}…"
+    },
+    {
+      "id": 1255,
+      "text": "Record a voiceover"
+    },
+    {
+      "id": 1256,
+      "text": "Record over this take"
+    },
+    {
+      "id": 1257,
+      "text": "Recording cancelled"
+    },
+    {
+      "id": 1258,
+      "text": "Recording cancelled: the tab went to the background."
+    },
+    {
+      "id": 1260,
+      "text": "Recording stops in 5 seconds."
+    },
+    {
+      "id": 1261,
+      "text": "Recording. Press the microphone button again to stop."
+    },
+    {
+      "id": 1270,
+      "text": "Relative"
+    },
+    {
+      "id": 1278,
+      "text": "Remove stop"
+    },
+    {
+      "id": 1284,
+      "text": "Remove {name}"
+    },
+    {
+      "id": 1304,
+      "text": "Rendering intent for {name}"
+    },
+    {
+      "id": 1311,
+      "text": "Replace the stroke with a filled shape of the same outline."
+    },
+    {
+      "id": 1314,
+      "text": "Reproducible"
+    },
+    {
+      "id": 1323,
+      "text": "Resize timeline"
+    },
+    {
+      "id": 1331,
+      "text": "Rise"
+    },
+    {
+      "id": 1335,
+      "text": "Round corners"
+    },
+    {
+      "id": 1336,
+      "text": "Round ends"
+    },
+    {
+      "id": 1338,
+      "text": "Round-trips {de} ΔE away — past the {tol} tolerance."
+    },
+    {
+      "id": 1349,
+      "text": "Saturation"
+    },
+    {
+      "id": 1364,
+      "text": "Saving the take…"
+    },
+    {
+      "id": 1366,
+      "text": "Scanner"
+    },
+    {
+      "id": 1390,
+      "text": "See it against"
+    },
+    {
+      "id": 1391,
+      "text": "Seek"
+    },
+    {
+      "id": 1399,
+      "text": "Select one card to edit its gradient."
+    },
+    {
+      "id": 1400,
+      "text": "Select two or more shapes to combine them."
+    },
+    {
+      "id": 1418,
+      "text": "Set a colour"
+    },
+    {
+      "id": 1419,
+      "text": "Set by the clip order. Drag the clip along the sequence row to move it."
+    },
+    {
+      "id": 1435,
+      "text": "Sharp corners"
+    },
+    {
+      "id": 1436,
+      "text": "Shift"
+    },
+    {
+      "id": 1444,
+      "text": "Shrinking by that much removes the shape completely. Nothing was changed."
+    },
+    {
+      "id": 1446,
+      "text": "Shuffle brand colour"
+    },
+    {
+      "id": 1447,
+      "text": "Shuffle preset"
+    },
+    {
+      "id": 1465,
+      "text": "Simplify"
+    },
+    {
+      "id": 1470,
+      "text": "Slice plane"
+    },
+    {
+      "id": 1471,
+      "text": "Slide from above"
+    },
+    {
+      "id": 1472,
+      "text": "Slide from below"
+    },
+    {
+      "id": 1473,
+      "text": "Slide from left"
+    },
+    {
+      "id": 1474,
+      "text": "Slide from right"
+    },
+    {
+      "id": 1478,
+      "text": "Smooth (auto)"
+    },
+    {
+      "id": 1479,
+      "text": "Smooth point - handles stay in line"
+    },
+    {
+      "id": 1480,
+      "text": "Snap to edges"
+    },
+    {
+      "id": 1497,
+      "text": "Space"
+    },
+    {
+      "id": 1501,
+      "text": "Speed"
+    },
+    {
+      "id": 1502,
+      "text": "Spin"
+    },
+    {
+      "id": 1503,
+      "text": "Spline type"
+    },
+    {
+      "id": 1504,
+      "text": "Spline type: {name}"
+    },
+    {
+      "id": 1505,
+      "text": "Split at playhead"
+    },
+    {
+      "id": 1509,
+      "text": "Square ends"
+    },
+    {
+      "id": 1525,
+      "text": "Stop recording"
+    },
+    {
+      "id": 1526,
+      "text": "Stop {n} — {pos}%"
+    },
+    {
+      "id": 1527,
+      "text": "Stops"
+    },
+    {
+      "id": 1532,
+      "text": "Straight lines"
+    },
+    {
+      "id": 1535,
+      "text": "Stroke colour"
+    },
+    {
+      "id": 1536,
+      "text": "Stroke options"
+    },
+    {
+      "id": 1537,
+      "text": "Stroke style"
+    },
+    {
+      "id": 1539,
+      "text": "Stroke — width, style, ends, corners, fill rule"
+    },
+    {
+      "id": 1541,
+      "text": "Subtract - remove the shapes above from the bottom one"
+    },
+    {
+      "id": 1546,
+      "text": "Switch visualisation"
+    },
+    {
+      "id": 1547,
+      "text": "Switched to Bezier handles - this curve kind honours the handle you drag."
+    },
+    {
+      "id": 1548,
+      "text": "Swoop"
+    },
+    {
+      "id": 1549,
+      "text": "Symmetric point - handles stay in line and equal"
+    },
+    {
+      "id": 1554,
+      "text": "Take a PDF apart"
+    },
+    {
+      "id": 1556,
+      "text": "Take replaced"
+    },
+    {
+      "id": 1560,
+      "text": "Text and image boxes have no outline to work with. Select shapes or pen paths."
+    },
+    {
+      "id": 1563,
+      "text": "Text is hidden behind shapes in this document"
+    },
+    {
+      "id": 1576,
+      "text": "That could not be worked out, so nothing was changed."
+    },
+    {
+      "id": 1578,
+      "text": "That edit could not be saved, so nothing was changed."
+    },
+    {
+      "id": 1579,
+      "text": "That file could not be opened as a PDF. If it is password-protected, remove the password first."
+    },
+    {
+      "id": 1581,
+      "text": "That file is too large to take apart here (over {n} MB)."
+    },
+    {
+      "id": 1582,
+      "text": "That file isn’t a profile this can read."
+    },
+    {
+      "id": 1585,
+      "text": "That image could not be read."
+    },
+    {
+      "id": 1590,
+      "text": "That profile could not be read — add the file again."
+    },
+    {
+      "id": 1593,
+      "text": "That shape has no editable path."
+    },
+    {
+      "id": 1594,
+      "text": "That take was empty. Nothing was recorded."
+    },
+    {
+      "id": 1595,
+      "text": "That would leave nothing to draw, so the shapes were left as they are."
+    },
+    {
+      "id": 1609,
+      "text": "The displayable colour volume in OKLCH. Drag or use the arrow keys to turn it."
+    },
+    {
+      "id": 1612,
+      "text": "The far end of the blend, in any colour space"
+    },
+    {
+      "id": 1620,
+      "text": "The font allows embedding for editing."
+    },
+    {
+      "id": 1621,
+      "text": "The font allows viewing and printing only, not reuse."
+    },
+    {
+      "id": 1622,
+      "text": "The font forbids reuse outside this document."
+    },
+    {
+      "id": 1623,
+      "text": "The font itself states no embedding restriction, which is not the same as a licence to reuse it."
+    },
+    {
+      "id": 1626,
+      "text": "The most chroma each gamut allows at this lightness and hue."
+    },
+    {
+      "id": 1633,
+      "text": "The same colour, written for each space. A row marked “clamped” names a space too narrow to hold it — CSS would round those numbers into range."
+    },
+    {
+      "id": 1634,
+      "text": "The shape the three flat charts are slicing. Turn it once and their curves stop looking arbitrary."
+    },
+    {
+      "id": 1635,
+      "text": "The shapes above cover the bottom one completely, so nothing is left. Nothing was changed."
+    },
+    {
+      "id": 1638,
+      "text": "The space it travels through decides what the middle looks like. Click a stop to copy it."
+    },
+    {
+      "id": 1639,
+      "text": "The take could not be saved."
+    },
+    {
+      "id": 1641,
+      "text": "The two disagree here — WCAG prefers {other}."
+    },
+    {
+      "id": 1642,
+      "text": "The visualiser needs WebGL2, which this browser isn’t providing."
+    },
+    {
+      "id": 1643,
+      "text": "The whole gamut"
+    },
+    {
+      "id": 1647,
+      "text": "These are raw font-program bytes, not a file a system can install."
+    },
+    {
+      "id": 1648,
+      "text": "These files ride inside the PDF. Opening one runs whatever it is, so treat an attachment from a document you did not make the way you would treat any other unexpected file."
+    },
+    {
+      "id": 1649,
+      "text": "These shapes are too intricate to combine exactly. Simplify them first, or combine fewer at a time."
+    },
+    {
+      "id": 1660,
+      "text": "This build cannot read text out of that file."
+    },
+    {
+      "id": 1665,
+      "text": "This colour"
+    },
+    {
+      "id": 1677,
+      "text": "This format carries no embedding statement, so nothing is stated either way."
+    },
+    {
+      "id": 1682,
+      "text": "This link compares against a profile that isn’t on this device."
+    },
+    {
+      "id": 1684,
+      "text": "This page is a scanned image. It holds a picture of text, not text, so there is nothing to extract without OCR."
+    },
+    {
+      "id": 1694,
+      "text": "This profile has no gamut to compare against."
+    },
+    {
+      "id": 1700,
+      "text": "This screen"
+    },
+    {
+      "id": 1701,
+      "text": "This space cannot hold the colour — CSS would clamp these numbers."
+    },
+    {
+      "id": 1702,
+      "text": "This spline works out its own handle lengths, so the ones you set will be dropped. Switching back cannot bring them back."
+    },
+    {
+      "id": 1708,
+      "text": "Those shapes do not overlap, so there is nothing to keep. Nothing was changed."
+    },
+    {
+      "id": 1709,
+      "text": "Those shapes overlap exactly, so nothing is left. Nothing was changed."
+    },
+    {
+      "id": 1710,
+      "text": "Through the points"
+    },
+    {
+      "id": 1711,
+      "text": "Tilt"
+    },
+    {
+      "id": 1713,
+      "text": "Timeline"
+    },
+    {
+      "id": 1714,
+      "text": "Timeline — arrange clips over time"
+    },
+    {
+      "id": 1720,
+      "text": "Tone steps re-seed the report; blend stops copy to the clipboard."
+    },
+    {
+      "id": 1721,
+      "text": "Tones"
+    },
+    {
+      "id": 1722,
+      "text": "Tones and blends"
+    },
+    {
+      "id": 1734,
+      "text": "Transition between clips"
+    },
+    {
+      "id": 1739,
+      "text": "Trim in"
+    },
+    {
+      "id": 1744,
+      "text": "Type a time to place this on the timeline"
+    },
+    {
+      "id": 1757,
+      "text": "Union - merge into one shape"
+    },
+    {
+      "id": 1763,
+      "text": "Unmute"
+    },
+    {
+      "id": 1764,
+      "text": "Unmute clip"
+    },
+    {
+      "id": 1775,
+      "text": "Use as cover"
+    },
+    {
+      "id": 1781,
+      "text": "Use oklch({v})"
+    },
+    {
+      "id": 1795,
+      "text": "Value"
+    },
+    {
+      "id": 1796,
+      "text": "Value for {t}"
+    },
+    {
+      "id": 1805,
+      "text": "Verify & Inspect"
+    },
+    {
+      "id": 1820,
+      "text": "Visualiser"
+    },
+    {
+      "id": 1821,
+      "text": "Voiceover added to the timeline"
+    },
+    {
+      "id": 1822,
+      "text": "Volume"
+    },
+    {
+      "id": 1839,
+      "text": "What the charts above are being judged on. Read live from this session; nothing is stored or sent anywhere."
+    },
+    {
+      "id": 1841,
+      "text": "Wheel"
+    },
+    {
+      "id": 1843,
+      "text": "Where it sits"
+    },
+    {
+      "id": 1846,
+      "text": "White text"
+    },
+    {
+      "id": 1875,
+      "text": "Your surface"
+    },
+    {
+      "id": 1891,
+      "text": "absolute keeps the paper white"
+    },
+    {
+      "id": 1897,
+      "text": "at"
+    },
+    {
+      "id": 1902,
+      "text": "below AA"
+    },
+    {
+      "id": 1903,
+      "text": "best"
+    },
+    {
+      "id": 1904,
+      "text": "beyond sRGB’s ceiling of {max} at this lightness and hue — reach a wider gamut to keep it"
+    },
+    {
+      "id": 1907,
+      "text": "browse"
+    },
+    {
+      "id": 1909,
+      "text": "clamped"
+    },
+    {
+      "id": 1917,
+      "text": "derived"
+    },
+    {
+      "id": 1939,
+      "text": "light on dark"
+    },
+    {
+      "id": 1946,
+      "text": "mostly {h}°"
+    },
+    {
+      "id": 1950,
+      "text": "no profile — read as {s}"
+    },
+    {
+      "id": 1953,
+      "text": "not installable"
+    },
+    {
+      "id": 1955,
+      "text": "of chroma still available within sRGB at this lightness and hue (ceiling {max})"
+    },
+    {
+      "id": 1962,
+      "text": "or drop one on the chart — see its colours in here"
+    },
+    {
+      "id": 1964,
+      "text": "outside"
+    },
+    {
+      "id": 1965,
+      "text": "page {n}"
+    },
+    {
+      "id": 1967,
+      "text": "pdf · ai · nothing leaves your device"
+    },
+    {
+      "id": 1975,
+      "text": "profile not on this device"
+    },
+    {
+      "id": 1977,
+      "text": "read as {n} columns"
+    },
+    {
+      "id": 1978,
+      "text": "read as {s}"
+    },
+    {
+      "id": 1981,
+      "text": "reuse forbidden"
+    },
+    {
+      "id": 1983,
+      "text": "sRGB"
+    },
+    {
+      "id": 1992,
+      "text": "subset"
+    },
+    {
+      "id": 2012,
+      "text": "white lines: {g}"
+    },
+    {
+      "id": 2020,
+      "text": "{c} — {g}"
+    },
+    {
+      "id": 2021,
+      "text": "{deg}° · drag to turn"
+    },
+    {
+      "id": 2032,
+      "text": "{k} of {n} points"
+    },
+    {
+      "id": 2063,
+      "text": "{n} ch"
+    },
+    {
+      "id": 2076,
+      "text": "{n} ink"
+    },
+    {
+      "id": 2082,
+      "text": "{n} more images use a compression this browser cannot decode (JPEG 2000, CCITT fax or JBIG2), so they cannot be shown or saved here."
+    },
+    {
+      "id": 2085,
+      "text": "{n} pages"
+    },
+    {
+      "id": 2086,
+      "text": "{n} places"
+    },
+    {
+      "id": 2087,
+      "text": "{n} points"
+    },
+    {
+      "id": 2088,
+      "text": "{n} points - hold Alt for a corner"
+    },
+    {
+      "id": 2090,
+      "text": "{n} rotated runs left out"
+    },
+    {
+      "id": 2093,
+      "text": "{n} scanned"
+    },
+    {
+      "id": 2096,
+      "text": "{n} selected items have no outline, so they were left as they are."
+    },
+    {
+      "id": 2099,
+      "text": "{n} set"
+    },
+    {
+      "id": 2100,
+      "text": "{n} shapes · page {p}"
+    },
+    {
+      "id": 2102,
+      "text": "{n} words"
+    },
+    {
+      "id": 2113,
+      "text": "{p} already clipped"
+    },
+    {
+      "id": 2114,
+      "text": "{p} beyond sRGB, in {g}"
+    },
+    {
+      "id": 2115,
+      "text": "{p} chart"
+    },
+    {
+      "id": 2126,
+      "text": "{words} in {runs} are covered by opaque shapes on {pages}. They are still in the file, and any PDF reader can pull them back out, including this one below. If these were meant to be redacted, drawing boxes over them did not remove them."
+    },
+    {
+      "id": 2127,
+      "text": "{words} words in {runs} places on {pages} pages are covered by opaque shapes — still in the file, not visible on the page{scope}. For example: {sample}"
+    }
+  ]
+}
