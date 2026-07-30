@@ -70,6 +70,7 @@
     "optimize:preview-png": "node scripts/optimize-preview-png.ts",
     "optimize:preview-webp": "node scripts/optimize-preview-webp.ts",
     "build:cargo-licenses": "node scripts/build-cargo-licenses.ts",
+    "check:cargo-licenses": "node scripts/check-cargo-licenses.ts",
     "build:sbom": "node scripts/build-sbom.ts",
     "build:licenses": "node scripts/build-licenses.ts",
     "cli": "node shells/cli/bin/lolly.ts",
