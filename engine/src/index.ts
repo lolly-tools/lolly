@@ -122,7 +122,7 @@ export {
 export type { Mat2D } from './css-box.ts';
 export {
   parseClipShape, parseRadialGradient, parseConicGradient, parseDropShadowFilter,
-  splitCssArgs, parseGradientAngle, parseGradientStop,
+  splitCssArgs, parseGradientAngle, parseGradientStop, expandGradientStops,
 } from './css-paint.ts';
 export type { ClipShape, GradientStop, RadialGradient, ConicGradient, DropShadow } from './css-paint.ts';
 
@@ -242,9 +242,9 @@ export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode,
-  figmaNodesToNodes, colorRunsToText, decodeFigVectorPath,
+  figmaNodesToNodes, figmaNodesToScenes, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
-export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions } from './design-map.ts';
+export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop, PdfSoftMask, PdfSoftMaskDef } from './pdf-map.ts';
 export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pdf-smask.ts';
