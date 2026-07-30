@@ -163,7 +163,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pptx-read.ts` | 901 | pptx-read.ts — PARSE an unzipped .pptx part map into a read-model. | yes | `tests/pptx-read.test.ts` | yes |
 | `pptx.ts` | 756 | PPTX (PowerPoint / OOXML) builder — pure, DOM-free, platform-agnostic. | yes | `tests/pptx.test.ts` | – |
 | `print-marks.ts` | 285 | Print-marks & bleed geometry — platform-agnostic, no DOM. | yes | `tests/print-marks.test.ts` | – |
-| `runtime.ts` | 1127 | Runtime — orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
+| `runtime.ts` | 1123 | Runtime — orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `seal.ts` | 728 | SEAL (hackerfactor.com) signature verifier — pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | – |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction — just enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
 | `session-record.ts` | 99 | Saved-session record envelope — the version stamps a shell's state bridge writes for one saved tool session, and the migrate-or-warn branch it runs on load. | yes | `tests/session-record.test.ts` | – |
