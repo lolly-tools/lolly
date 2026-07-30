@@ -115,7 +115,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `css-paint.ts` | 465 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `data-import.ts` | 218 | Data-file → blocks rows. | yes | `tests/data-import.test.ts` | yes |
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
-| `design-map.ts` | 990 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
+| `design-map.ts` | 1036 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `dxf.ts` | 185 | DXF (AutoCAD Drawing Interchange) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/dxf.test.ts` | – |
 | `embed.ts` | 73 | Embed URL grammar — the portable surface of tool composition. | yes | `tests/embed.test.ts` | – |
 | `emf.ts` | 459 | EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/emf.test.ts` | – |
