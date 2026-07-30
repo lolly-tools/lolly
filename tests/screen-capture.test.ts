@@ -111,9 +111,10 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // 1.79.0 (PptxInspectResult.content — the slide node-kind tally that lets a
   // rebrand tool warn that a flattened, picture-only deck cannot change) and
   // 1.80.0 (markdown links + images in the {{markdown}} helper, and the
-  // render.filmstrip edge for paged tools);
+  // render.filmstrip edge for paged tools) and 1.81.0 (manifest `guide` — a
+  // tool's own short walkthrough, translated through its i18n sidecar);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.80.0');
+  assert.equal(ENGINE_VERSION, '1.81.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

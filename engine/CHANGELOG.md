@@ -1288,3 +1288,33 @@ Existing `{{markdown}}` callers are unaffected unless their copy already contain
 `[…](…)`, which now renders as the link it reads as.
 
 No v1 bridge method changed.
+
+## 1.81.0 — a tool can carry its own walkthrough
+
+Additive: manifest `guide` — a short, translatable "you have a render, now what?"
+walkthrough, declared as tool data like everything else about a tool.
+
+  • Shape: `{ title?, tracks: [{ id, label, steps: [string], note? }] }`. One
+    track per route the user might take (on a computer vs on a phone); a single
+    track is a plain step list, several render as tabs. Steps are plain text with
+    `**bold**` as the only markup, for naming the control a step points at.
+  • For the last mile a canvas cannot teach: an email signature is finished the
+    moment it is pasted into Gmail's settings, and nothing on the canvas says so.
+    A handful of steps, not documentation — link to the docs from a step when the
+    long version is what's wanted.
+  • Translatable through the tool's existing `i18n/<lang>.json` sidecar:
+    `guide.title`, `guide.tracks.<id>.label` / `.note` / `.steps.<index>`, applied
+    by `applyManifestI18n` alongside every other user-facing manifest string. A
+    step index past the end of the track is ignored (a translator cannot add
+    steps the manifest does not have) and `scripts/validate-catalog.ts` reports
+    it as an authoring error rather than letting it silently vanish.
+  • Purely declarative — the engine only carries and translates it. Rendering is
+    the shell's: the web shell shows a help button beside the tool title and
+    opens the dialog once per device on a first visit
+    (`shells/web/src/components/tool-guide.ts`). A shell that ignores `guide`
+    behaves exactly as before, and a tool without one is untouched.
+
+Reference tool: brands/suse/tools/email-signature 1.7.0 (copy as HTML → Gmail
+signature settings, with a phone track).
+
+No v1 bridge method changed.

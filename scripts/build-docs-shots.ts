@@ -196,6 +196,8 @@ async function main(): Promise<void> {
       console.log(`Capturing against ${baseUrl} (profile pin skipped — the server owns its brand)`);
     }
 
+    await preflightNeutralState(baseUrl, shots);
+
     mkdirSync(SHOTS_DIR, { recursive: true });
     const sharp = (await import('sharp')).default;
 
@@ -325,12 +327,99 @@ function expectedDims(shot: ShotDef, dims: { width: number; height: number; dpi:
 // Seed localStorage before the app boots so docs captures are deterministic
 // regardless of the active profile: pre-dismiss the first-run welcome + tips
 // strip (unbranded/start builds show them on `#/`, which would occlude a
-// gallery-route deep-link like `?tool=` or `?history`). Keys mirror
-// shells/web/src/components/welcome-dialog.ts (WELCOME_/TIPS_DISMISSED_KEY) —
-// stable localStorage contracts, same tier as the theme flag.
+// gallery-route deep-link like `?tool=` or `?history`) and the privacy notice
+// (it floats above the gallery footer, over the very tiles a gallery shot is
+// framing). Keys mirror shells/web/src/components/welcome-dialog.ts
+// (WELCOME_/TIPS_DISMISSED_KEY) and views/privacy-notice.ts (ACK_KEY) — stable
+// localStorage contracts, same tier as the theme flag.
+//
+// Then the NEUTRAL-STATE pin (lib/capture-neutral.ts): a published screenshot
+// must show the app's plain chrome. A fresh browser context covers most of that
+// for free, but a default is not the same as absent — `jelly-effects` defaults
+// ON for an unlocked brand, which is precisely the `lolly-start` profile these
+// captures pin, so the soft-body controls were in every baseline by default. The
+// app cannot honour a seeded flag mirror (hydrateFeatureFlags rewrites it from
+// the profile at boot), so it reads this one key after hydration instead and
+// forces the effect flags off + the a11y attributes clear. Set for EVERY shot
+// centrally: "shots are taken with effects off" is a rule about the pipeline, not
+// something 134 recipes should each have to remember.
+const CAPTURE_NEUTRAL_KEY = 'lolly-capture-neutral';
 const CAPTURE_INIT =
   "try{localStorage.setItem('lolly-welcome-dismissed','1');" +
-  "localStorage.setItem('lolly-tips-dismissed','1')}catch(_){}";
+  "localStorage.setItem('lolly-tips-dismissed','1');" +
+  "localStorage.setItem('lolly-privacy-ack','1');" +
+  `localStorage.setItem('${CAPTURE_NEUTRAL_KEY}','1')}catch(_){}`;
+
+// The other half of neutral state isn't storage and can't be seeded: the OS-level
+// preference media queries. `prefers-color-scheme` picks the theme before any app
+// code runs, and `prefers-reduced-motion` / `forced-colors` are read by the same
+// CSS blocks the a11y prefs extend (styles/parts/base.css, styles/tokens.css), so
+// a build machine set to dark mode or high contrast would silently publish a
+// different-looking baseline. Pinned on the context, so both capture paths (raster
+// and vector) inherit one answer.
+const CAPTURE_CONTEXT = {
+  colorScheme: 'light',
+  reducedMotion: 'no-preference',
+  forcedColors: 'none',
+} as const;
+
+/**
+ * In-page assertion that the pinned neutral state actually TOOK. Evaluated once
+ * per run against the gallery and the first tool route among the shots; returns a
+ * list of violations, and any violation fails the run.
+ *
+ * The pin verifies its own mechanism (a unit test covers the flag mirror and the
+ * a11y attributes), but not the OUTCOME: if the jelly gate ever stops reading the
+ * mirror, or a new first-run overlay ships, the pin becomes a silent no-op and the
+ * next `--rebuild` quietly publishes non-neutral chrome across every baseline.
+ * This asks the rendered page instead — are there jelly elements, is an overlay
+ * up, is an a11y attribute stamped — which is the thing the rule is actually about.
+ */
+const NEUTRAL_PROBE = `(() => {
+  const bad = [];
+  const d = document.documentElement.dataset;
+  if (d.a11yMotion || d.a11yContrast || d.a11yText) bad.push('a11y preference active: ' + [d.a11yMotion, d.a11yContrast, d.a11yText].filter(Boolean).join(' '));
+  const jelly = document.querySelector('jelly-button,jelly-switch,jelly-input,jelly-checkbox,jelly-segmented');
+  if (jelly) bad.push('jelly elements in the DOM (<' + jelly.tagName.toLowerCase() + '>)');
+  if (document.documentElement.hasAttribute('data-jelly-nav')) bad.push('data-jelly-nav stamped on <html>');
+  if (document.querySelector('.privacy-notice')) bad.push('privacy notice showing');
+  if (document.querySelector('.welcome-dialog')) bad.push('welcome dialog open');
+  if (document.querySelector('.brand-tips')) bad.push('tips strip showing');
+  if (document.querySelector('.tool-guide-steps')) bad.push('tool guide auto-opened');
+  return bad;
+})()`;
+
+/**
+ * Load a couple of representative routes and fail the run if the chrome isn't
+ * neutral. Two page loads per RUN, not per shot. The tool route is checked
+ * separately because the guide modal and the sidebar's jelly controls only exist
+ * there — a gallery-only check would miss both.
+ */
+async function preflightNeutralState(baseUrl: string, shots: ShotDef[]): Promise<void> {
+  const routes = ['/#/'];
+  const toolRoute = shots.find((s) => s.route.includes('/tool/'))?.route;
+  if (toolRoute) routes.push(toolRoute);
+
+  const browser = await getBrowser();
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: 'block', ...CAPTURE_CONTEXT });
+  try {
+    await ctx.addInitScript({ content: CAPTURE_INIT });
+    const page = await ctx.newPage();
+    for (const route of routes) {
+      await page.goto(baseUrl + route, { waitUntil: 'load', timeout: 45_000 });
+      await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
+      await page.waitForTimeout(1_500);
+      const bad = (await page.evaluate(NEUTRAL_PROBE)) as string[];
+      if (bad.length) {
+        throw new Error(`capture state is not neutral on ${route}: ${bad.join('; ')}`
+          + ' — the shell may predate lib/capture-neutral.ts (rebuild the dist), or the pin no longer reaches it.');
+      }
+    }
+    console.log(`Capture state verified neutral (${routes.join(', ')})`);
+  } finally {
+    await ctx.close();
+  }
+}
 
 async function captureOne(sharp: Sharp, baseUrl: string, shot: ShotDef): Promise<ShotResult> {
   // cropSelector → measure the element and stamp exact crop insets onto the shot,
@@ -357,7 +446,10 @@ async function captureOne(sharp: Sharp, baseUrl: string, shot: ShotDef): Promise
 async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Partial<ShotDef>> {
   const { params, dims } = paramsFor(shot);
   const browser = await getBrowser();
-  const ctx = await browser.newContext({ viewport: { width: dims.width, height: dims.height }, deviceScaleFactor: 1, serviceWorkers: 'block' });
+  const ctx = await browser.newContext({
+    viewport: { width: dims.width, height: dims.height }, deviceScaleFactor: 1,
+    serviceWorkers: 'block', ...CAPTURE_CONTEXT,
+  });
   try {
     await ctx.addInitScript({ content: CAPTURE_INIT });
     const page = await ctx.newPage();
@@ -395,7 +487,10 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   const { params, dims } = paramsFor(shot);
   let bytes: Uint8Array;
   try {
-    ({ bytes } = await captureUrl({ ...params, url: baseUrl + shot.route, initScript: CAPTURE_INIT }, shot.format, dims));
+    ({ bytes } = await captureUrl(
+      { ...params, url: baseUrl + shot.route, initScript: CAPTURE_INIT, contextPrefs: CAPTURE_CONTEXT },
+      shot.format, dims,
+    ));
     // The Lolly Imprint goes in BEFORE the compare: embedWatermark is a fixed,
     // deterministic pattern, so identical captures stay pixel-identical run to run
     // and the baseline's pixels already carry the mark.
@@ -490,6 +585,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
   const ctx = await browser.newContext({
     viewport: { width: dims.width, height: dims.height },
     serviceWorkers: 'block',
+    ...CAPTURE_CONTEXT,
   });
   try {
     await ctx.addInitScript({ content: CAPTURE_INIT });
@@ -637,13 +733,27 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
     const crop = vectorCropCssPx(shot, dims, pageH, params.scrollDepth);
     const cropped = crop.width < dims.width || crop.height < dims.height || crop.x > 0 || crop.y > 0;
 
+    // The hook is registered inside main.ts's async boot(), AFTER `await
+    // createBridge()` — it closes over the host's text shaper, which is the whole
+    // reason outlining works. So it appears some way past `load`, and a shot whose
+    // page settles quickly can reach here first. Wait for it rather than reading
+    // its absence as a stale dist: that diagnosis sent the last build chasing a
+    // rebuild for what is a race. A real timeout still says the dist is the
+    // suspect, because then it genuinely never arrived.
+    await page.waitForFunction(
+      () => Boolean((window as unknown as { __lollyVectorShot?: unknown }).__lollyVectorShot),
+      { timeout: 20_000 },
+    ).catch(() => {
+      throw new Error('the served shell never exposed __lollyVectorShot (waited 20s) — rebuild the dist (main.ts exposes it on loopback, and only on loopback)');
+    });
+
     const res = await page.evaluate(
       ([b64, cropCssPx]: [string, typeof crop | null]) =>
         (window as unknown as { __lollyVectorShot?: (b: string, o?: unknown) => Promise<VectorHookResult> })
           .__lollyVectorShot?.(b64, cropCssPx ? { cropCssPx } : undefined),
       [Buffer.from(pdf).toString('base64'), cropped ? crop : null] as [string, typeof crop | null],
     );
-    if (!res) throw new Error('the served shell has no __lollyVectorShot hook — rebuild the dist (main.ts exposes it on loopback)');
+    if (!res) throw new Error('__lollyVectorShot resolved to nothing — the conversion returned no result');
     // elementCount is what the INTERPRETER found, pre-cull — the "was the print
     // blank?" signal. Culling is reported separately so a bad crop can't be
     // misdiagnosed as a blank print.
