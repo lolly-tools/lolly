@@ -239,3 +239,49 @@ test('render.paginate: cell markdown is rendered per cell, per page', async () =
   assert.match(html, /<ul><li>leave anytime<\/li><li><a href="https:\/\/lolly\.tools\/d">docs<\/a><\/li><\/ul>/);
   assert.match(html, /<h1>Heading<\/h1><p><img class="md-image" src="\/seal\.svg" alt="seal"><\/p>/);
 });
+
+// Cell addressing + by-name lookup (engine 1.82.0): `col` is the ORIGINAL column
+// index (stable even when the template skips columns), and page.byColumn lets a
+// template pull a named column's cell with the built-in lookup helper.
+const ADDR_TOOL = {
+  ...(PAGINATED_TOOL as object),
+  template: [
+    '<article data-cell="{{page.index}}:0">',
+    '{{#each page.fields}}<div data-cell="{{../page.index}}:{{col}}">{{value}}</div>{{/each}}',
+    '<span class="icon">{{lookup page.byColumn "icon"}}</span>',
+    '</article>',
+  ].join(''),
+} as never;
+
+test('render.paginate: fields carry their original column index as col', async () => {
+  const runtime = await createRuntime(ADDR_TOOL, baseHost());
+  await runtime.setInput('data', {
+    columns: ['Name', 'Icon', 'Detail'],
+    rows: [['Alpha', 'star', 'first'], ['Beta', 'moon', 'second']],
+  });
+  const html = runtime.getHydrated();
+  assert.match(html, /<article data-cell="0:0">/);
+  assert.match(html, /<div data-cell="0:1">star<\/div><div data-cell="0:2">first<\/div>/);
+  assert.match(html, /<div data-cell="1:1">moon<\/div><div data-cell="1:2">second<\/div>/);
+});
+
+test('render.paginate: page.byColumn matches column names case-insensitively', async () => {
+  const runtime = await createRuntime(ADDR_TOOL, baseHost());
+  await runtime.setInput('data', {
+    columns: ['Name', ' ICON ', 'Detail'],
+    rows: [['Alpha', 'star', 'first']],
+  });
+  const html = runtime.getHydrated();
+  assert.match(html, /<span class="icon">star<\/span>/);
+});
+
+test('render.paginate: page.byColumn is proto-safe and absent columns read empty', async () => {
+  const runtime = await createRuntime(ADDR_TOOL, baseHost());
+  await runtime.setInput('data', {
+    columns: ['Name', 'constructor'],
+    rows: [['Alpha', 'not-a-function']],
+  });
+  const html = runtime.getHydrated();
+  // No "icon" column → the lookup renders empty, never an inherited object.
+  assert.match(html, /<span class="icon"><\/span>/);
+});

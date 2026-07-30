@@ -339,3 +339,82 @@ test('an image with real extent is still emitted', () => {
   );
   assert.ok(svg.includes('<image'), 'a normal image must still emit');
 });
+
+// ── dedupePaths — hoist repeated path DATA, never collapse the draws ───────────
+//
+// A print engine draws a dashed border as FOUR paints, each carrying the whole
+// dash ring and each clipped to one mitred border-side wedge. The ring can run
+// 50 KB, so one bordered control costs 200 KB — 37% of a docs brand-studio
+// capture. The copies look identical and are NOT redundant: drop three and three
+// sides of the border disappear. So the hoist collapses the DATA only, and every
+// reference keeps its own clip wrapper.
+
+/** Four identical rings, each under a different border-side clip. */
+function ringNodes(d = 'M0 0h100v50h-100z'): PdfNode[] {
+  return ['top', 'bottom', 'right', 'left'].map((side, i) => ({
+    kind: 'image', x: 0, y: 0, w: 100, h: 50, rot: 0,
+    _vectorPath: d, _vectorFill: '#cbd5e2',
+    _clips: [{ d: `M${i} ${i}h10v10h-10z` }],
+  } as PdfNode));
+}
+
+test('dedupePaths: off by default — every copy stays inline', () => {
+  const svg = pdfNodesToSvg(ringNodes(), OPTS);
+  assert.equal(svg.split('<path d="M0 0h100v50h-100z"').length - 1, 4);
+  assert.ok(!svg.includes('<use'), 'no <use> without the opt-in');
+});
+
+test('dedupePaths: hoists the shared data but keeps all four clipped draws', () => {
+  const svg = pdfNodesToSvg(ringNodes(), { ...OPTS, dedupePaths: true });
+
+  // The ink is stored once...
+  assert.equal(svg.split('d="M0 0h100v50h-100z"').length - 1, 1, 'path data must appear once');
+  // ...and drawn four times.
+  assert.equal(svg.split('<use href="#puse0"/>').length - 1, 4, 'all four draws must survive');
+  // Each <use> is still inside its OWN clip — that is what keeps the four
+  // border sides distinct. Four distinct clipPaths, four wrapped uses.
+  for (let i = 0; i < 4; i++) {
+    assert.match(svg, new RegExp(`<g clip-path="url\\(#pclip${i}\\)"><use href="#puse0"/></g>`), `copy ${i}`);
+  }
+  assert.ok(svg.includes(`<defs>`) && svg.indexOf('<path id="puse0"') > svg.indexOf('<defs>'), 'the def lives in <defs>');
+});
+
+test('dedupePaths: a path used once is never hoisted', () => {
+  // A <use> for a single occurrence is pure loss — 24 bytes and an indirection.
+  const one: PdfNode = { kind: 'image', x: 0, y: 0, w: 10, h: 10, rot: 0, _vectorPath: 'M0 0h9v9z', _vectorFill: '#000' };
+  const svg = pdfNodesToSvg([one], { ...OPTS, dedupePaths: true });
+  assert.ok(svg.includes('<path d="M0 0h9v9z"'), svg);
+  assert.ok(!svg.includes('<use'), 'single-use paths stay inline');
+});
+
+test('dedupePaths: different ink never collapses', () => {
+  // Same geometry, different fill — two separate defs-free paths.
+  const a: PdfNode = { kind: 'image', x: 0, y: 0, w: 10, h: 10, rot: 0, _vectorPath: 'M0 0h9v9z', _vectorFill: '#111' };
+  const b: PdfNode = { ...a, _vectorFill: '#222' } as PdfNode;
+  const svg = pdfNodesToSvg([a, b], { ...OPTS, dedupePaths: true });
+  assert.ok(!svg.includes('<use'), 'a different fill is different ink');
+  assert.ok(svg.includes('fill="#111"') && svg.includes('fill="#222"'), svg);
+});
+
+test('dedupePaths: ids carry the caller idPrefix', () => {
+  // A stored SVG is inlined as a nested <svg> on export and ids are NOT scoped —
+  // same discipline as pclip/pgrad/pmask, or two documents cross-reference.
+  const svg = pdfNodesToSvg(ringNodes(), { ...OPTS, dedupePaths: true, idPrefix: 'v7' });
+  assert.ok(svg.includes('<path id="v7use0"'), svg);
+  assert.ok(svg.includes('<use href="#v7use0"/>'), svg);
+  assert.ok(!svg.includes('puse0'), 'must not mint an unprefixed id');
+});
+
+test('dedupePaths: translucent ink is never hoisted', () => {
+  // Two identical semi-transparent paths at one place composite DARKER than one,
+  // so a repeat is meaningful ink, not redundancy. (The guard matches
+  // `fill-opacity=` too, which is the form the serializer actually emits.)
+  const a: PdfNode = {
+    kind: 'image', x: 0, y: 0, w: 10, h: 10, rot: 0,
+    _vectorPath: 'M0 0h9v9z', _vectorFill: '#000', _vectorFillOpacity: 0.3,
+  } as PdfNode;
+  const svg = pdfNodesToSvg([a, { ...a } as PdfNode], { ...OPTS, dedupePaths: true });
+  if (svg.includes('opacity=')) {
+    assert.ok(!svg.includes('<use'), 'translucent duplicates must both stay inline');
+  }
+});

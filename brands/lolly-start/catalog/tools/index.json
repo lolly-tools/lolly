@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-30T10:50:19.375Z",
+  "generatedAt": "2026-07-30T15:51:34.216Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -2318,108 +2318,108 @@
       ],
       "i18n": {
         "ar": {
-          "name": "مختبر الألوان",
-          "description": "أنشئ لوحة ألوان من لون بذرة واحد - لمسات التناسق، وتدرجات OKLab الإدراكية، وشارات قابلية القراءة WCAG/APCA، مع رموز DTCG وتصدير CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "bg": {
-          "name": "Лаборатория за палитри",
-          "description": "Изгради палитра от един начален цвят - хармонични акценти, перцептивни OKLab преливки и значки за четимост WCAG/APCA, с DTCG токени и CSV експорт."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "bn": {
-          "name": "প্যালেট ল্যাব",
-          "description": "একটি বীজ রং থেকে প্যালেট বানান - হারমনি অ্যাকসেন্ট, পারসেপচুয়াল OKLab র‍্যাম্প এবং WCAG/APCA রিডেবিলিটি ব্যাজ, সাথে DTCG টোকেন ও CSV এক্সপোর্ট।"
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "cs": {
-          "name": "Laboratoř palet",
-          "description": "Vytvoř paletu z jedné výchozí barvy - harmonické akcenty, percepční OKLab přechody a odznaky čitelnosti WCAG/APCA, s tokeny DTCG a exportem CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "de": {
-          "name": "Paletten-Labor",
-          "description": "Erstellen Sie eine Palette aus einer Startfarbe - Harmonie-Akzente, perzeptuelle OKLab-Verläufe und WCAG/APCA-Lesbarkeits-Badges, mit DTCG-Tokens und CSV-Export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "es": {
-          "name": "Laboratorio de paletas",
-          "description": "Genera una paleta a partir de un color semilla - acentos armónicos, rampas perceptuales OKLab y distintivos de legibilidad WCAG/APCA, con tokens DTCG y exportación CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "fr": {
-          "name": "Labo Palette",
-          "description": "Fais pousser une palette à partir d'une couleur germe - accents harmoniques, rampes OKLab perceptuelles et badges de lisibilité WCAG/APCA, avec tokens DTCG et export CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "hi": {
-          "name": "पैलेट लैब",
-          "description": "एक बीज रंग से पैलेट विकसित करें - हार्मनी एक्सेंट, परसेप्चुअल OKLab रैंप और WCAG/APCA पठनीयता बैज, DTCG टोकन और CSV एक्सपोर्ट के साथ।"
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "id": {
-          "name": "Lab Palet",
-          "description": "Kembangkan palet dari satu warna benih - aksen harmoni, gradasi OKLab persepsual, dan lencana keterbacaan WCAG/APCA, dengan token DTCG dan ekspor CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "it": {
-          "name": "Laboratorio Palette",
-          "description": "Genera una palette da un colore di partenza - accenti armonici, rampe percettive OKLab e badge di leggibilità WCAG/APCA, con token DTCG ed export CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ja": {
-          "name": "パレットラボ",
-          "description": "1つのシード色からパレットを育てます - ハーモニーアクセント、知覚的なOKLabランプ、WCAG/APCA可読性バッジ、DTCGトークンとCSVエクスポートに対応。"
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ko": {
-          "name": "팔레트 랩",
-          "description": "하나의 시드 컬러에서 팔레트를 키워보세요 - 조화 강조색, 지각적 OKLab 램프, WCAG/APCA 가독성 배지를 DTCG 토큰과 CSV 내보내기로 함께 제공해요."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ms": {
-          "name": "Makmal Palet",
-          "description": "Tumbuhkan palet daripada satu warna benih - aksen harmoni, gradasi OKLab persepsi dan lencana kebolehbacaan WCAG/APCA, dengan token DTCG dan eksport CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "nl": {
-          "name": "Paletlab",
-          "description": "Laat een palet groeien uit één basiskleur - harmonieaccenten, perceptuele OKLab-verlopen en WCAG/APCA-leesbaarheidsbadges, met DTCG-tokens en CSV-export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "no": {
-          "name": "Palettlab",
-          "description": "Dyrk en palett fra én frøfarge - harmoniaksenter, perseptuelle OKLab-fargeoverganger og WCAG/APCA-lesbarhetsmerker, med DTCG-tokens og CSV-eksport."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "pl": {
-          "name": "Laboratorium palet",
-          "description": "Zbuduj paletę z jednego koloru bazowego - akcenty harmoniczne, percepcyjne rampy OKLab i odznaki czytelności WCAG/APCA, z tokenami DTCG i eksportem CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "pt": {
-          "name": "Laboratório de Paletas",
-          "description": "Gere uma paleta a partir de uma cor-semente - acentos de harmonia, rampas perceptuais OKLab e selos de legibilidade WCAG/APCA, com tokens DTCG e exportação CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ro": {
-          "name": "Laborator de palete",
-          "description": "Creează o paletă dintr-o culoare de bază - accente de armonie, gradații OKLab perceptuale și insigne de lizibilitate WCAG/APCA, cu tokenuri DTCG și export CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "sv": {
-          "name": "Palettlabb",
-          "description": "Odla en palett från en fröfärg - harmoniaccenter, perceptuella OKLab-ramper och WCAG/APCA-läsbarhetsmärken, med DTCG-tokens och CSV-export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "tl": {
-          "name": "Palette Lab",
-          "description": "Magpalago ng palette mula sa isang seed na kulay - mga harmony accent, perceptual OKLab ramp, at WCAG/APCA readability badge, kasama ang DTCG tokens at CSV export."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "tr": {
-          "name": "Palet Laboratuvarı",
-          "description": "Tek bir tohum renkten palet büyüt - uyum vurguları, algısal OKLab geçişleri ve WCAG/APCA okunabilirlik rozetleri, DTCG token'ları ve CSV dışa aktarımıyla."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "uk": {
-          "name": "Лабораторія палітри",
-          "description": "Виростіть палітру з одного вихідного кольору - акценти гармонії, перцептивні OKLab градієнти та значки читабельності WCAG/APCA, з токенами DTCG та експортом у CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "ur": {
-          "name": "پیلیٹ لیب",
-          "description": "ایک بیج رنگ سے پیلیٹ اگائیں - ہارمونی ایکسنٹس، ادراکی OKLab ریمپس اور WCAG/APCA پڑھنے کی اہلیت کے بیجز، DTCG ٹوکنز اور CSV ایکسپورٹ کے ساتھ۔"
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "vi": {
-          "name": "Lab Bảng Màu",
-          "description": "Phát triển bảng màu từ một màu gốc - điểm nhấn hài hòa, dải màu OKLab theo cảm nhận và nhãn độ dễ đọc WCAG/APCA, cùng token DTCG và xuất CSV."
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "zh-hant": {
-          "name": "調色盤實驗室",
-          "description": "從一個種子顏色長出色票 - 和諧強調色、感知式 OKLab 漸層，以及 WCAG/APCA 可讀性徽章，並支援 DTCG tokens 與 CSV 匯出。"
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         },
         "zh": {
-          "name": "调色实验室",
-          "description": "从一个种子颜色生成调色板 - 和谐强调色、感知性 OKLab 渐变和 WCAG/APCA 可读性徽章，配备 DTCG 令牌和 CSV 导出。"
+          "name": "Color Picker",
+          "description": "A handy color picker for the SUSE brand palette — click any swatch to copy it."
         }
       }
     },
@@ -4330,107 +4330,107 @@
       "i18n": {
         "ar": {
           "name": "مخطط صوتي",
-          "description": "حول مقطعا صوتيا أو أغنية إلى فيديو بموجة صوتية بعلامتك التجارية - أشرطة متحركة أو موجة أو حلقة، جاهز لمنصات التواصل الاجتماعي."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "bg": {
           "name": "Аудиограма",
-          "description": "Превърни гласов клип или песен в брандирано видео с вълнова форма - анимирани лентички, вълна или пръстен, готово за социалните мрежи."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "bn": {
           "name": "অডিওগ্রাম",
-          "description": "একটি ভয়েস ক্লিপ বা গান থেকে একটি ব্র্যান্ডেড ওয়েভফর্ম ভিডিও তৈরি করুন - অ্যানিমেটেড বার, ওয়েভ বা রিং, সোশ্যালের জন্য প্রস্তুত।"
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "cs": {
           "name": "Audiogram",
-          "description": "Změň hlasový klip nebo píseň na značkové video se zvukovou vlnou - animované sloupce, vlna nebo prstenec, připravené pro sociální sítě."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "de": {
           "name": "Audiogramm",
-          "description": "Verwandeln Sie einen Sprachclip oder Song in ein gebrandetes Wellenform-Video - animierte Balken, Welle oder Ring, bereit für Social Media."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "es": {
           "name": "Audiograma",
-          "description": "Convierte un clip de voz o una canción en un vídeo de forma de onda con tu marca - barras animadas, onda o anillo, listo para redes sociales."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "fr": {
           "name": "Audiogramme",
-          "description": "Transforme un clip vocal ou une chanson en vidéo de forme d'onde à ta marque - barres animées, vague ou anneau, prête pour les réseaux sociaux."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "hi": {
           "name": "ऑडियोग्राम",
-          "description": "किसी वॉइस क्लिप या गाने को ब्रांडेड वेवफ़ॉर्म वीडियो में बदलें - एनिमेटेड बार्स, वेव या रिंग, सोशल के लिए तैयार।"
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "id": {
           "name": "Audiogram",
-          "description": "Ubah klip suara atau lagu menjadi video waveform sesuai brand - bar animasi, gelombang, atau cincin, siap untuk media sosial."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "it": {
           "name": "Audiogramma",
-          "description": "Trasforma un clip vocale o una canzone in un video waveform brandizzato - barre animate, onda o anello, pronto per i social."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "ja": {
           "name": "オーディオグラム",
-          "description": "音声クリップや曲をブランド化した波形動画に変換します - アニメーションのバー、波形、リングで、SNS投稿にすぐ使えます。"
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "ko": {
           "name": "오디오그램",
-          "description": "음성 클립이나 노래를 브랜드 파형 영상으로 만들어요 - 애니메이션 막대, 웨이브 또는 링, 소셜용으로 바로 사용 가능."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "ms": {
           "name": "Audiogram",
-          "description": "Tukar klip suara atau lagu menjadi video bentuk gelombang berjenama - bar animasi, gelombang atau bulatan, sedia untuk media sosial."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "nl": {
           "name": "Audiogram",
-          "description": "Zet een voice clip of nummer om in een merkeigen golfvorm-video - geanimeerde balken, golf of ring, klaar voor social."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "no": {
           "name": "Audiogram",
-          "description": "Gjør et stemmeklipp eller en sang om til en merkevaretilpasset bølgeformvideo - animerte stolper, bølge eller ring, klar for sosiale medier."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "pl": {
           "name": "Audiogram",
-          "description": "Zamień nagranie głosowe lub utwór w oznaczone marką wideo z falą dźwiękową - animowane paski, fala lub pierścień, gotowe na social media."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "pt": {
           "name": "Audiograma",
-          "description": "Transforme um clipe de voz ou música em um vídeo de forma de onda com a sua marca - barras animadas, onda ou anel, pronto para redes sociais."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "ro": {
           "name": "Audiogramă",
-          "description": "Transformă un clip vocal sau o melodie într-un video cu formă de undă personalizat cu brandul - bare animate, undă sau inel, gata pentru social media."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "sv": {
           "name": "Audiogram",
-          "description": "Gör om ett röstklipp eller en låt till en varumärkesanpassad vågformsvideo - animerade staplar, våg eller ring, redo för sociala medier."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "tl": {
           "name": "Audiogram",
-          "description": "I-convert ang voice clip o kanta sa branded na waveform video - animated bars, wave o ring, handa na para sa social."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "tr": {
           "name": "Audiogram",
-          "description": "Bir ses kaydını veya şarkıyı markalı bir dalga formu videosuna dönüştür - animasyonlu çubuklar, dalga veya halka, sosyal medyaya hazır."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "uk": {
           "name": "Аудіограма",
-          "description": "Перетворіть голосовий запис або пісню на брендоване відео з хвилею - анімовані смуги, хвиля або кільце, готові для соцмереж."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "ur": {
           "name": "آڈیوگرام",
-          "description": "آواز کی کلپ یا گانے کو ایک برانڈڈ ویو فارم ویڈیو میں تبدیل کریں - اینیمیٹڈ بارز، ویو یا رنگ، سوشل کے لیے تیار۔"
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "vi": {
           "name": "Audiogram",
-          "description": "Biến một đoạn giọng nói hoặc bài hát thành video dạng sóng theo thương hiệu - thanh động, sóng hoặc vòng tròn, sẵn sàng cho mạng xã hội."
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "zh-hant": {
           "name": "音訊圖",
-          "description": "把語音片段或歌曲轉成品牌波形影片 - 動態長條、波浪或環形,適合用於社群。"
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         },
         "zh": {
           "name": "音频图",
-          "description": "将语音片段或歌曲转换为品牌化的波形视频 - 动态条形、波浪或圆环，适合社交媒体。"
+          "description": "Turn a voice clip or song into a branded video that actually moves with the sound — bars, spectrum, ring, ridgeline or scope, ready for social."
         }
       }
     },
@@ -5147,7 +5147,7 @@
       "id": "battlecards",
       "name": "Battlecards",
       "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat.",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "status": "community",
       "category": "everyone",
       "formats": [
@@ -5160,7 +5160,113 @@
       "height": 900,
       "exportable": true,
       "preview": "/catalog/previews/battlecards.svg",
-      "paged": true
+      "paged": true,
+      "i18n": {
+        "ar": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "bg": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "bn": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "cs": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "de": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "es": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "fr": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "hi": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "id": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "it": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "ja": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "ko": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "ms": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "nl": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "no": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "pl": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "pt": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "ro": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "sv": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "tl": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "tr": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "uk": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "ur": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "vi": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "zh-hant": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        },
+        "zh": {
+          "name": "Battlecards",
+          "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
+        }
+      }
     }
   ]
 }

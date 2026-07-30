@@ -45,6 +45,24 @@ export interface PdfSvgOptions {
   images?: Record<string, string>;
   /** Optional opaque background colour (e.g. '#ffffff'); default transparent. */
   background?: string;
+  /**
+   * Hoist byte-identical `<path>` elements into `<defs>` and reference them with
+   * `<use>`. OFF by default, and deliberately opt-in — see the warning below.
+   *
+   * Why it exists: a print engine draws a dashed border as FOUR separate paints,
+   * each carrying the WHOLE dash ring and each clipped to one mitred border-side
+   * wedge. The ring can run 50 KB, so one bordered control costs 200 KB — 37% of
+   * a docs brand-studio capture, 50% of a logo-grid one. The copies are NOT
+   * redundant (each has a different innermost clip), so collapsing the DRAWS
+   * would delete three sides of every dashed border. This collapses only the
+   * DATA: every `<use>` keeps its own clip/group wrappers, so rendering is
+   * identical by construction.
+   *
+   * WARNING — do not enable for SVG destined for a re-export path. `svg-ir.ts`
+   * (EMF/EPS/DXF) skips `<use>` outright, so a hoisted path would silently
+   * vanish there. Enable it only for terminal output such as a docs screenshot.
+   */
+  dedupePaths?: boolean;
 }
 
 // Round for compact, stable output (the interpreter already works in ~0.01pt).
@@ -425,6 +443,28 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     return `<g mask="url(#${entry.id})">${el}</g>`;
   };
 
+  // Identical `<path>` markup → one <defs> entry + <use> references (opt-in; see
+  // PdfSvgOptions.dedupePaths). Keyed on the WHOLE serialised element, which
+  // already encodes d + every paint attribute, so nothing that differs in ink can
+  // ever collapse. Clip and group wrappers stay outside the key and outside the
+  // <use>, which is what makes this safe for the four-wedge border case.
+  interface PathDef { id: string; markup: string; uses: number; slot: number }
+  const pathDefs = new Map<string, PathDef>();
+  const useRef = (el: string): string => {
+    // Translucent ink is the one exception: two identical semi-transparent paths
+    // at the same place composite DARKER than one, so a repeat is meaningful.
+    if (!opts.dedupePaths || !el.startsWith('<path ') || el.includes('opacity=')) return el;
+    let d = pathDefs.get(el);
+    if (!d) {
+      d = { id: `${idp}use${pathDefs.size}`, markup: el, uses: 0, slot: body.length };
+      pathDefs.set(el, d);
+      d.uses++;
+      return el;   // first occurrence stays inline; patched to a <use> below if reused
+    }
+    d.uses++;
+    return `<use href="#${d.id}"/>`;
+  };
+
   for (const n of nodes ?? []) {
     if (!n || !(n.w > 0) || !(n.h > 0)) continue;
     const got = renderNode(n);
@@ -434,15 +474,25 @@ export function pdfNodesToSvg(nodes: PdfNode[], opts: PdfSvgOptions): string {
     if (!el) continue;
     if (got.gref) usedGrads.add(got.gref.slice(5, -1));   // 'url(#<p>gradN)' → '<p>gradN'
     setGroup(n.group ?? '');
-    body.push(clipWrap(n, el));
+    body.push(clipWrap(n, useRef(el)));
   }
   setGroup('');
+
+  // Promote only the paths that were actually reused: a single-use <use> is pure
+  // loss. The first occurrence was emitted inline, so rewrite that one body entry
+  // to reference the def instead.
+  const pathDefsXml = [...pathDefs.values()].filter((d) => d.uses > 1).map((d) => {
+    const inline = body[d.slot];
+    if (inline !== undefined) body[d.slot] = inline.replace(d.markup, `<use href="#${d.id}"/>`);
+    return d.markup.replace('<path ', `<path id="${d.id}" `);
+  }).join('');
 
   const gradDefsXml = [...gradDefs.values()].filter((e) => usedGrads.has(e.id)).map((e) => e.markup).join('');
   const maskDefsXml = [...maskDefs.values()].map((e) => e.markup).join('');
   const clipDefsXml = [...clipDefs.entries()].map(([key, id]) =>
     `<clipPath id="${id}"><path d="${escapeXml(key.slice(2))}"${key.startsWith('e|') ? ' clip-rule="evenodd"' : ''}/></clipPath>`).join('');
-  const defs = (gradDefsXml || maskDefsXml || clipDefsXml) ? `<defs>${gradDefsXml}${maskDefsXml}${clipDefsXml}</defs>` : '';
+  const defs = (gradDefsXml || maskDefsXml || clipDefsXml || pathDefsXml)
+    ? `<defs>${gradDefsXml}${maskDefsXml}${clipDefsXml}${pathDefsXml}</defs>` : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${defs}${body.join('')}</svg>`;
 }
 

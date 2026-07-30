@@ -436,8 +436,15 @@ export async function createRuntime(
   // Each hydration's context gains a `page` object:
   //   index/number/count — 0-based, 1-based, total pages
   //   first              — the row's first cell (the natural page title)
-  //   cells              — [{ column, value }] for every column
+  //   cells              — [{ column, value, col }] for every column (col is the
+  //                        original column index, so a template can address the
+  //                        cell — e.g. a data-cell="row:col" edit marker — even
+  //                        when it renders only a subset of the columns)
   //   fields             — cells minus the first (the labelled body fields)
+  //   byColumn           — trimmed lower-cased column name → the row's cell, for
+  //                        by-name lookup ({{lookup page.byColumn "icon"}}); the
+  //                        first matching column wins. Null-prototype, so a column
+  //                        the user names "constructor" can't shadow a real key.
   // Zero rows (or a non-table source) still emits one page so the canvas is
   // never blank while the user is assembling their table.
   function hydratePaginated(sourceId: string): string {
@@ -447,10 +454,15 @@ export async function createRuntime(
     const columns = t?.columns ?? [];
     const count = rows.length;
     return rows.map((row, index) => {
-      const cells = columns.map((column, i) => ({ column, value: row[i] ?? '' }));
+      const cells = columns.map((column, i) => ({ column, value: row[i] ?? '', col: i }));
+      const byColumn: Record<string, string> = Object.create(null);
+      columns.forEach((column, i) => {
+        const k = column.trim().toLowerCase();
+        if (k && !(k in byColumn)) byColumn[k] = row[i] ?? '';
+      });
       const page = {
         index, number: index + 1, count,
-        first: row[0] ?? '', cells, fields: cells.slice(1),
+        first: row[0] ?? '', cells, fields: cells.slice(1), byColumn,
       };
       const body = hydrate(tool.template, { ...base, page });
       return `<section data-pdf-page class="lolly-page" data-page-index="${index}">${body}</section>`;
