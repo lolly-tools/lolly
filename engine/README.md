@@ -110,9 +110,9 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `color.ts` | 378 | Colour profiles for exports — platform-agnostic, no DOM, no network. | yes | `tests/color.test.ts` | – |
 | `compose.ts` | 177 | Compose — resolve a tool's manifest `composes` entries into embeddable assets. | no | `tests/compose.test.ts` | – |
 | `contentseal.ts` | 168 | Meta Content Seal (Pixel Seal / Video Seal, IMAGE mode) — the pure, message-free consensus decision (DOM-free, no ONNX, no network). | yes | `tests/contentseal.test.ts` | – |
-| `css-box.ts` | 428 | Pure, DOM-free CSS box-model + border-radius geometry. | yes | `tests/css-box.test.ts` | – |
+| `css-box.ts` | 429 | Pure, DOM-free CSS box-model + border-radius geometry. | yes | `tests/css-box.test.ts` | – |
 | `css-color.ts` | 972 | One CSS Color 4 colour value — the engine's single source of truth for parsing, converting, gamut-mapping and serialising colour. | yes | `tests/css-color.test.ts` | – |
-| `css-paint.ts` | 445 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
+| `css-paint.ts` | 446 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `data-import.ts` | 218 | Data-file → blocks rows. | yes | `tests/data-import.test.ts` | yes |
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
 | `design-map.ts` | 888 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
@@ -120,7 +120,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `embed.ts` | 73 | Embed URL grammar — the portable surface of tool composition. | yes | `tests/embed.test.ts` | – |
 | `emf.ts` | 459 | EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/emf.test.ts` | – |
 | `eps.ts` | 150 | EPS (Encapsulated PostScript) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/eps.test.ts` | – |
-| `file-metadata.ts` | 705 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
+| `file-metadata.ts` | 706 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
 | `fs-token.ts` | 40 | Reversible, filesystem-safe token codec — pure string logic, no storage, DOM, or platform coupling (it just maps a string to a safe token and back). | yes | `tests/fs-token.test.ts` | – |
 | `gamut-axis.ts` | 122 | How high a CHROMA AXIS has to reach for a given gamut — the one number every chroma scale in the UI is drawn against. | yes | `tests/gamut-axis.test.ts` | – |
 | `gamut-solid.ts` | 519 | The gamut SOLID — a display's whole reachable colour volume as a rotatable 3D surface in OKLCH. | yes | `tests/gamut-solid.test.ts` | – |
@@ -144,7 +144,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `image-cloud.ts` | 272 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
 | `inputs.ts` | 603 | Builds a runtime input model from a tool manifest. | yes | indirect | – |
 | `lang.ts` | 171 | Supported UI/content languages, shared by the `lang` reserved URL param (url-mode.ts), `Profile.lang`, tool-manifest i18n sidecars, and every shell's language picker. | yes | indirect | – |
-| `loader.ts` | 424 | Tool loader. | yes | indirect | – |
+| `loader.ts` | 447 | Tool loader. | yes | indirect | – |
 | `media-sniff.ts` | 167 | Pure, DOM-free media classification from header bytes. | yes | `tests/media-sniff.test.ts` | yes |
 | `metadata.ts` | 85 | Export provenance — the generic authorship record embedded into every exported media file (platform-agnostic; no format/DOM knowledge here). | yes | `tests/metadata.test.ts` | – |
 | `midi.ts` | 169 | Standard MIDI File → ZzFXM. | yes | `tests/midi.test.ts` | – |
@@ -163,7 +163,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pptx-read.ts` | 901 | pptx-read.ts — PARSE an unzipped .pptx part map into a read-model. | yes | `tests/pptx-read.test.ts` | yes |
 | `pptx.ts` | 756 | PPTX (PowerPoint / OOXML) builder — pure, DOM-free, platform-agnostic. | yes | `tests/pptx.test.ts` | – |
 | `print-marks.ts` | 285 | Print-marks & bleed geometry — platform-agnostic, no DOM. | yes | `tests/print-marks.test.ts` | – |
-| `runtime.ts` | 1152 | Runtime — orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
+| `runtime.ts` | 1164 | Runtime — orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `seal.ts` | 728 | SEAL (hackerfactor.com) signature verifier — pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | – |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction — just enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
 | `session-record.ts` | 99 | Saved-session record envelope — the version stamps a shell's state bridge writes for one saved tool session, and the migrate-or-warn branch it runs on load. | yes | `tests/session-record.test.ts` | – |
@@ -173,7 +173,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `svg-custgeom.ts` | 338 | Flat-SVG → NATIVE PowerPoint custom geometry — pure, DOM-free, platform-agnostic. | yes | `tests/svg-custgeom.test.ts` | – |
 | `svg-path.ts` | 307 | SVG path `d` tokenizer — pure, DOM-free, platform-agnostic. | yes | `tests/svg-path.test.ts` | – |
 | `table-text.ts` | 113 | Text ⇄ table parsing/serialising for the `table` input (the clipboard and file round-trip) — the batch-editing story is "edit in the spreadsheet you already have", so paste-in and copy-out must be lossless against the… | yes | `tests/table-text.test.ts` | – |
-| `template.ts` | 371 | Template hydration. | yes | indirect | – |
+| `template.ts` | 415 | Template hydration. | yes | indirect | – |
 | `tiff.ts` | 153 | Baseline TIFF encoder (uncompressed, single strip, little-endian). | yes | `tests/tiff.test.ts` | – |
 | `tokens.ts` | 427 | Design tokens — a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
 | `tool-url.ts` | 133 | Lolly tool-URL recognition — the END-USER surface of tool composition. | yes | `tests/tool-url.test.ts` | – |

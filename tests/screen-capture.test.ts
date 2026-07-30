@@ -112,9 +112,11 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // rebrand tool warn that a flattened, picture-only deck cannot change) and
   // 1.80.0 (markdown links + images in the {{markdown}} helper, and the
   // render.filmstrip edge for paged tools) and 1.81.0 (manifest `guide` — a
-  // tool's own short walkthrough, translated through its i18n sidecar);
+  // tool's own short walkthrough, translated through its i18n sidecar) and
+  // 1.82.0 (paginate context `col` + `page.byColumn` — the cell addressing the
+  // web shell's on-canvas table editing binds to);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.81.0');
+  assert.equal(ENGINE_VERSION, '1.82.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

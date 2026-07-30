@@ -1289,6 +1289,24 @@ Existing `{{markdown}}` callers are unaffected unless their copy already contain
 
 No v1 bridge method changed.
 
+## 1.82.0 — paginate context: cell addresses and by-name column lookup
+
+Additive: two extensions to the `render.paginate` page context, both in service
+of on-canvas table editing (a shell affordance — the engine only supplies the
+addressing a template needs to opt in).
+
+  • `page.cells` / `page.fields` entries gain `col` — the cell's ORIGINAL column
+    index. A template that renders only some columns (or reorders them) can still
+    address each cell against the source table, e.g. a `data-cell="{{page.index}}:
+    {{col}}"` marker the web shell's canvas cell editor binds to.
+  • `page.byColumn` — trimmed, lower-cased column name → the row's cell value,
+    for by-name lookup with the built-in `lookup` helper:
+    `{{lookup page.byColumn "icon"}}`. First matching column wins. The map is
+    null-prototype so a user column named "constructor"/"__proto__" can't shadow
+    an inherited key (see the enum-whitelist rule in the security notes).
+
+No bridge method changes; templates that ignore the new fields render unchanged.
+
 ## 1.81.0 — a tool can carry its own walkthrough
 
 Additive: manifest `guide` — a short, translatable "you have a render, now what?"

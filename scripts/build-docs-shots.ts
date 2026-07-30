@@ -957,7 +957,15 @@ function summarize(results: ShotResult[]): void {
   if (legacyHeavy.length) {
     console.log(`⚠  over the weight budget, not rewritten this run (reframe: crop to the area of focus): ${legacyHeavy.map((r) => r.slug).join(', ')}`);
   }
-  if (overBudget.length) {
+  if (overBudget.length && opts.rebuild) {
+    // A full refresh is the CORRECTIVE run — it is how a renderer/engine/capture-state
+    // change reaches every baseline. Failing it for weight would block the very run
+    // that fixes things, and refusing the write would keep the older, heavier, staler
+    // pixels instead. So --rebuild takes the new bytes and says loudly what is still
+    // over; the budget bites on the ordinary path below, where a shot is being added
+    // or updated one at a time.
+    console.log(`⚠  ${overBudget.length} baseline(s) written while still over budget: ${overBudget.map((r) => r.slug).join(', ')}`);
+  } else if (overBudget.length) {
     console.log(`✗  refusing to publish ${overBudget.length} over-budget baseline(s): ${overBudget.map((r) => r.slug).join(', ')}`);
     console.log(`   Budget: ${MAX_SHOT_PX}px wide, ${Math.round(DEFAULT_THRESHOLDS.maxBytes / 1024)} KB raster / `
       + `${Math.round(DEFAULT_THRESHOLDS.vectorMaxBytes / 1024)} KB vector. A docs shot is displayed in an 848px column —`);
