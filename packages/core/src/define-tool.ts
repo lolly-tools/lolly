@@ -62,7 +62,6 @@ export interface ToolHooks {
   onInput?(ctx: HookContext & { id: string; value: unknown }): HookResult | Promise<HookResult>;
   onFrame?(ctx: HookContext & { frame: MediaFrame }): void;
   onLevel?(ctx: HookContext & { level: AudioLevel }): void;
-  beforeRender?(ctx: HookContext): HookResult | Promise<HookResult>;
   beforeExport?(ctx: ExportHookContext): void | Promise<void>;
   afterExport?(ctx: ExportHookContext): void | Promise<void>;
   exportFile?(ctx: HookContext & { opts: Record<string, unknown> }): ExportFileResult | Promise<ExportFileResult>;
