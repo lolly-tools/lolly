@@ -244,6 +244,27 @@ export interface VectorShotComparison {
   oldBytes?: number;
 }
 
+/**
+ * Recipes whose `tolerance=` cannot do anything, returned as slugs.
+ *
+ * `tolerance` sets ShotThresholds.pixelDiffFrac, and only classifyShot (raster)
+ * reads it — a vector shot is compared as a DOCUMENT, by exact string equality
+ * after stripping C2PA, so there is no fuzzy channel for it to widen. An author
+ * who writes it on a `format=svg` recipe gets silence, not an effect.
+ *
+ * This is not hypothetical: the walker migration moved several shots to
+ * `format=svg&walker=1` and carried their `tolerance=0.03` across unchanged —
+ * a tolerance they had *because* they frame wall-clock content (animated gallery
+ * previews, a running timeline). Those now compare exactly and will report
+ * `changed` on any run where the animation lands differently, with no way to say
+ * so in the recipe. The remedy is a `css=` that freezes or hides the moving part;
+ * this exists so the pipeline says that out loud instead of quietly ignoring the
+ * parameter.
+ */
+export function ineffectiveTolerance(shots: ShotDef[]): string[] {
+  return shots.filter((s) => s.format === 'svg' && s.pixelDiffFrac !== undefined).map((s) => s.slug);
+}
+
 /** Classify one true-vector capture against its committed baseline (if any). */
 export function classifyVectorShot(c: VectorShotComparison, t: ShotThresholds = DEFAULT_THRESHOLDS): ShotVerdict {
   const flags: ShotFlag[] = [];
