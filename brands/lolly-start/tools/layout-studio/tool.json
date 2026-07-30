@@ -1078,6 +1078,15 @@
           "label": "Gradient",
           "default": "",
           "description": "Gradient fill as a Lolly gradient spec — kind_angle_colour-pos_colour-pos, e.g. lin_90_30ba78-0_efefef-100 (lin/rad/con; add .srgb or .oklch.longer to the kind to change how the colours are interpolated). Painted over the flat Fill, so a translucent stop composites onto it. Empty means no gradient."
+        },
+        {
+          "id": "blur",
+          "type": "number",
+          "label": "Blur",
+          "default": 0,
+          "min": 0,
+          "max": 300,
+          "help": "Gaussian blur of the whole box (layer blur), px. 0 = off. Raster-faithful; carried as a real SVG filter in vector export."
         }
       ],
       "default": [

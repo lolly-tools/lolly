@@ -241,11 +241,11 @@ export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.t
 export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
-  safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode, penpotGradientToSpec,
+  safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,
   penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
-export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene } from './design-map.ts';
+export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene, PenpotFontUsage } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop, PdfSoftMask, PdfSoftMaskDef } from './pdf-map.ts';
 export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pdf-smask.ts';

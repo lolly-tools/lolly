@@ -16,7 +16,7 @@ import assert from 'node:assert/strict';
 
 import {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
-  safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode,
+  safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath, penpotGradientToSpec,
   penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg,
 } from '../engine/src/design-map.ts';
@@ -141,6 +141,32 @@ test('mapFontFamily: honours a shell-supplied vocabulary', () => {
   const custom = { defaultFamily: 'Inter', monoFamily: 'JetBrains Mono' };
   assert.equal(mapFontFamily('Menlo', custom), 'JetBrains Mono');
   assert.equal(mapFontFamily('Georgia', custom), 'Inter');
+});
+
+test('mapFontFamily: a knownFamilies hit passes through with canonical casing', () => {
+  const fonts = { knownFamilies: ['Work Sans'] };
+  assert.equal(mapFontFamily('Work Sans', fonts), 'Work Sans');
+  assert.equal(mapFontFamily('work sans', fonts), 'Work Sans');   // case-insensitive match
+  assert.equal(mapFontFamily('WORK SANS', fonts), 'Work Sans');   // canonical casing wins
+  assert.equal(mapFontFamily('  Work Sans  ', fonts), 'Work Sans'); // trimmed before matching
+});
+
+test('mapFontFamily: a knownFamilies hit beats the mono regex', () => {
+  const fonts = { knownFamilies: ['Spline Sans Mono'] };
+  assert.equal(mapFontFamily('Spline Sans Mono', fonts), 'Spline Sans Mono');
+  assert.equal(mapFontFamily('spline sans mono', fonts), 'Spline Sans Mono');
+  // a mono name NOT in the list still buckets normally
+  assert.equal(mapFontFamily('Menlo', fonts), 'mono');
+});
+
+test('mapFontFamily: no knownFamilies hit falls to the existing buckets (both vocabularies)', () => {
+  const neutral = { knownFamilies: ['Work Sans'] };
+  assert.equal(mapFontFamily('sourcesanspro', neutral), 'sans');
+  assert.equal(mapFontFamily('Roboto Mono', neutral), 'mono');
+  const suse = { ...SUSE_FONTS, knownFamilies: ['Work Sans'] };
+  assert.equal(mapFontFamily('work sans', suse), 'Work Sans');
+  assert.equal(mapFontFamily('Georgia', suse), 'SUSE');
+  assert.equal(mapFontFamily('Menlo', suse), 'SUSE Mono');
 });
 
 // ── mapAlign ─────────────────────────────────────────────────────────────────
@@ -403,6 +429,77 @@ test('parsePenpotContent: camelCase keys (binfile-v3) incl. fontFamily', () => {
   assert.equal(r.fg, '#000000');           // from fills[0].fillColor (camelCase)
   assert.equal(r.textAlign, 'center');
   assert.equal(r.lineHeight, 1.2);
+});
+
+// ── collectPenpotFontUsage ───────────────────────────────────────────────────
+// Penpot writes the full font set on paragraphs AND leaves alike — the walker
+// visits every style-carrying node but dedupes by fontId|fontVariantId|fontStyle.
+
+const fontLeaf = (text: string, over: Record<string, unknown> = {}) => ({
+  text, fontId: 'gfont-work-sans', fontFamily: 'Work Sans', fontVariantId: '700',
+  fontWeight: '700', fontStyle: 'normal', fontSize: '18',
+  fills: [{ fillColor: '#111111', fillOpacity: 1 }], ...over,
+});
+const fontTree = (paragraphs: unknown[]) => ({
+  type: 'root', children: [{ type: 'paragraph-set', children: paragraphs }],
+});
+
+test('collectPenpotFontUsage: paragraph + leaf carrying the same font dedupe to one entry', () => {
+  const tree = fontTree([{
+    type: 'paragraph', fontId: 'gfont-work-sans', fontFamily: 'Work Sans',
+    fontVariantId: '700', fontWeight: '700', fontStyle: 'normal',
+    children: [fontLeaf('Hello')],
+  }]);
+  const usage = collectPenpotFontUsage(tree);
+  assert.equal(usage.length, 1, 'one entry per distinct font');
+  assert.equal(usage[0]!.fontId, 'gfont-work-sans');
+  assert.equal(usage[0]!.fontFamily, 'Work Sans');
+  assert.equal(usage[0]!.fontVariantId, '700');
+  assert.equal(usage[0]!.fontStyle, 'normal');
+  assert.equal(usage[0]!.runs, 2, 'both style-carrying nodes counted');
+});
+
+test('collectPenpotFontUsage: string weights parse to numbers', () => {
+  const tree = fontTree([{
+    type: 'paragraph',
+    children: [fontLeaf('a'), fontLeaf('b', { fontVariantId: 'regular', fontWeight: '400' })],
+  }]);
+  const usage = collectPenpotFontUsage(tree);
+  assert.equal(usage.length, 2, 'distinct variants stay distinct');
+  for (const u of usage) assert.equal(typeof u.fontWeight, 'number');
+  assert.deepEqual(usage.map((u) => u.fontWeight).sort((a, b) => a - b), [400, 700]);
+  assert.equal(usage.find((u) => u.fontVariantId === 'regular')!.runs, 1);
+});
+
+test('collectPenpotFontUsage: fractional fontSize strings and gradient fills don\'t break the tally', () => {
+  const tree = fontTree([{
+    type: 'paragraph',
+    children: [fontLeaf('grad', {
+      fontSize: '17.5',
+      fills: [{ fillColorGradient: { type: 'linear', stops: [{ color: '#ff0000', offset: 0 }, { color: '#0000ff', offset: 1 }] } }],
+    })],
+  }]);
+  const usage = collectPenpotFontUsage(tree);
+  assert.equal(usage.length, 1, 'a gradient-filled run still tallies');
+  assert.equal(usage[0]!.fontWeight, 700);
+  assert.equal(usage[0]!.runs, 1);
+});
+
+test('collectPenpotFontUsage: typographyRefId null is ignored, JSON-string input parses', () => {
+  const tree = fontTree([{
+    type: 'paragraph',
+    children: [fontLeaf('x', { typographyRefId: null, typographyRefFile: null })],
+  }]);
+  const usage = collectPenpotFontUsage(JSON.stringify(tree));
+  assert.equal(usage.length, 1);
+  assert.equal(usage[0]!.runs, 1);
+});
+
+test('collectPenpotFontUsage: bad input returns an empty list', () => {
+  assert.deepEqual(collectPenpotFontUsage('not json'), []);
+  assert.deepEqual(collectPenpotFontUsage(null), []);
+  assert.deepEqual(collectPenpotFontUsage(42), []);
+  assert.deepEqual(collectPenpotFontUsage({ type: 'root', children: [] }), []);
 });
 
 // ── penpotShapeToNode (binfile-v3 shape JSON) ────────────────────────────────

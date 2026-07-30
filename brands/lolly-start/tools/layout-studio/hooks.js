@@ -539,15 +539,23 @@ function clipCss(b, byId) {
 var SHADOW_TARGETS = { box: 1, text: 1, content: 1 };
 function shadowCss(b) {
   var tgt = String(b.shadow || 'none');
-  if (!SHADOW_TARGETS[tgt]) return { box: '', text: '', filter: '' };
+  if (!SHADOW_TARGETS[tgt]) return { box: '', text: '', filterFn: '' };
   var col = safeColor(b.shadowColor, '#00000055');
   var x = Math.round(clamp(num(b.shadowX, 0), -300, 300));
   var y = Math.round(clamp(num(b.shadowY, 0), -300, 300));
   var bl = Math.round(clamp(num(b.shadowBlur, 10), 0, 300));
   var off = x + 'px ' + y + 'px ' + bl + 'px ';
-  if (tgt === 'text') return { box: '', text: 'text-shadow:' + off + col + ';', filter: '' };
-  if (tgt === 'box') return { box: 'box-shadow:' + off + col + ';', text: '', filter: '' };
-  return { box: '', text: '', filter: 'filter:drop-shadow(' + off + col + ');' };
+  if (tgt === 'text') return { box: '', text: 'text-shadow:' + off + col + ';', filterFn: '' };
+  if (tgt === 'box') return { box: 'box-shadow:' + off + col + ';', text: '', filterFn: '' };
+  return { box: '', text: '', filterFn: 'drop-shadow(' + off + col + ')' };
+}
+
+// Layer blur — gaussian blur of the whole box as a CSS filter function (no
+// property/terminator; compute() merges it with a content drop-shadow into one
+// filter declaration, blur first so the shadow follows the blurred silhouette).
+function blurCss(b) {
+  var v = clamp(num(b.blur, 0), 0, 300);
+  return v > 0 ? 'blur(' + (Math.round(v * 10) / 10) + 'px)' : '';
 }
 
 // Uniform letter-spacing ("kerning" in the UI) in px, and OpenType feature toggles:
@@ -696,7 +704,12 @@ function compute(model) {
   boxes.forEach(function (b) { if (b && b.id != null && b.id !== '') byId[String(b.id)] = b; });
   var shadows = boxes.map(function (b) { return shadowCss(b || {}); });
   var boxStyle = boxes.map(function (b, i) {
-    return boxCss(b || {}, gradCssFor(b || {})) + clipCss(b || {}, byId) + shadows[i].box + shadows[i].filter;
+    var fx = [];
+    var bl = blurCss(b || {});
+    if (bl) fx.push(bl);
+    if (shadows[i].filterFn) fx.push(shadows[i].filterFn);
+    return boxCss(b || {}, gradCssFor(b || {})) + clipCss(b || {}, byId) + shadows[i].box +
+      (fx.length ? 'filter:' + fx.join(' ') + ';' : '');
   });
   var textStyle = boxes.map(function (b, i) { return textCss(b || {}) + shadows[i].text; });
   var textHtml = boxes.map(function (b) { return richText((b && b.text) || ''); });
