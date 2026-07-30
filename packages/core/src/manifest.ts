@@ -146,7 +146,6 @@ export interface ToolHookFlags {
   onInput?: boolean;
   onFrame?: boolean;
   onLevel?: boolean;
-  beforeRender?: boolean;
   beforeExport?: boolean;
   afterExport?: boolean;
   exportFile?: boolean;

@@ -179,3 +179,42 @@ test('time-box: onFrame is NOT time-boxed — a slow frame still applies its pat
     rt.stopLive();
   } finally { setBudgets(); }
 });
+
+// ─── the hook set is closed ──────────────────────────────────────────────────
+
+test('every budgeted hook has a real invocation site, and the schema matches', async () => {
+  // `beforeRender` was accepted by tool.schema.json, typed in the SDK, plumbed
+  // through loadHooks and given a 5000 ms budget — and never called. A tool
+  // author could declare it, ship it, and watch it silently do nothing
+  // (maintainability-2026-07-29.md item 5). It was removed on 2026-07-30; this
+  // pins the three surfaces together so a hook cannot go half-implemented again.
+  const { readFileSync } = await import('node:fs');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const root = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+  const schema = JSON.parse(
+    readFileSync(join(root, 'schemas/tool.schema.json'), 'utf8'),
+  ) as { properties: { hooks: { properties: Record<string, unknown>; additionalProperties: boolean } } };
+  const declarable = Object.keys(schema.properties.hooks.properties).sort();
+
+  assert.equal(schema.properties.hooks.additionalProperties, false,
+    'the hooks block must stay closed, or an unknown hook name is accepted and silently ignored');
+
+  assert.deepEqual(declarable,
+    ['afterExport', 'beforeExport', 'exportFile', 'onFrame', 'onInit', 'onInput', 'onLevel'],
+    'the declarable hook set changed — add the invocation site and a test with it, or drop it');
+
+  // Every budget key must be a declarable hook. (The converse does NOT hold:
+  // onFrame/onLevel are deliberately unbudgeted and throttled by drop-overlap.)
+  const runtimeSrc = readFileSync(join(root, 'engine/src/runtime.ts'), 'utf8');
+  for (const name of Object.keys(DEFAULT_BUDGETS)) {
+    assert.ok(declarable.includes(name),
+      `HOOK_BUDGET_MS budgets '${name}', which no manifest can declare`);
+    // A budget plus a null-coalescing load is not an implementation. Require an
+    // actual call — runHook('<name>', …) — which is what beforeRender never had.
+    assert.match(runtimeSrc, new RegExp(`runHook\\(\\s*'${name}'`),
+      `HOOK_BUDGET_MS budgets '${name}' but runtime.ts never calls runHook('${name}', …) — ` +
+      'a budgeted hook with no invocation site is the beforeRender trap');
+  }
+});

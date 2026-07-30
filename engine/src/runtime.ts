@@ -108,15 +108,15 @@ export interface StartRecordingResult {
  * are deliberately absent: they run once per frame/sample and are throttled by
  * dropping overlapping samples instead (see startLive/driveLevels).
  * `exportFile` gets a larger budget because it's a real-work path (e.g. PDF
- * re-encode of a large file). `beforeRender` is declared in the hook contract
- * but currently has no invocation site. Exported mutable so tests (and shells
- * with unusual needs, e.g. a long page-capture beforeExport) can adjust it;
- * the defaults are the documented contract.
+ * re-encode of a large file). Every key here has a real invocation site — a
+ * budget for a hook that never fires is how `beforeRender` looked implemented
+ * for as long as it existed (removed 2026-07-30). Exported mutable so tests (and
+ * shells with unusual needs, e.g. a long page-capture beforeExport) can adjust
+ * it; the defaults are the documented contract.
  */
 export const HOOK_BUDGET_MS = {
   onInit: 5000,
   onInput: 2000,
-  beforeRender: 5000,
   beforeExport: 5000,
   afterExport: 5000,
   exportFile: 10000,
@@ -132,7 +132,6 @@ type OnInitHook = (ctx: HookContext) => unknown;
 type OnInputHook = (ctx: HookContext & { id: string; value: InputValue }) => unknown;
 type OnFrameHook = (ctx: HookContext & { frame: MediaFrame }) => unknown;
 type OnLevelHook = (ctx: HookContext & { level: AudioLevel }) => unknown;
-type BeforeRenderHook = (ctx: HookContext) => unknown;
 type ExportLifecycleHook =
   (ctx: { node: unknown; format: string; opts: RuntimeExportOpts; host: HostV1 }) => unknown;
 type ExportFileHook = (ctx: HookContext & { opts: Record<string, unknown> }) => unknown;
@@ -146,7 +145,6 @@ interface Hooks {
   onInput: OnInputHook | null;
   onFrame: OnFrameHook | null;
   onLevel: OnLevelHook | null;
-  beforeRender: BeforeRenderHook | null;
   beforeExport: ExportLifecycleHook | null;
   afterExport: ExportLifecycleHook | null;
   exportFile: ExportFileHook | null;
@@ -1046,7 +1044,6 @@ function getHookFactory(tool: LoadedTool): HookFactory {
       `onInput: typeof onInput !== 'undefined' ? onInput : null,` +
       `onFrame: typeof onFrame !== 'undefined' ? onFrame : null,` +
       `onLevel: typeof onLevel !== 'undefined' ? onLevel : null,` +
-      `beforeRender: typeof beforeRender !== 'undefined' ? beforeRender : null,` +
       `beforeExport: typeof beforeExport !== 'undefined' ? beforeExport : null,` +
       `afterExport:  typeof afterExport  !== 'undefined' ? afterExport  : null,` +
       `exportFile:   typeof exportFile   !== 'undefined' ? exportFile   : null` +
@@ -1072,7 +1069,6 @@ async function loadHooks(tool: LoadedTool, host: HostV1): Promise<Hooks> {
     onInput:      hookFn<OnInputHook>(mod.onInput),
     onFrame:      hookFn<OnFrameHook>(mod.onFrame),
     onLevel:      hookFn<OnLevelHook>(mod.onLevel),
-    beforeRender: hookFn<BeforeRenderHook>(mod.beforeRender),
     beforeExport: hookFn<ExportLifecycleHook>(mod.beforeExport),
     afterExport:  hookFn<ExportLifecycleHook>(mod.afterExport),
     exportFile:   hookFn<ExportFileHook>(mod.exportFile),
