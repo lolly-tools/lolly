@@ -1,7 +1,10 @@
 # Quality gate — runs on every push to main and every PR.
 # Independent gates run in parallel (plans/qa-audit-2026-06-28.md #1):
 #   test            — full repo suite (engine contract tests + core/web/mcp)
-#   typecheck       — tsc -p across every project
+#   typecheck       — tsc -p across every project, INCLUDING both Tauri shells'
+#                     bridge-overrides (this job installs those two shells,
+#                     which are not npm workspaces, so the gate is real here —
+#                     the --strict step fails if the install is ever dropped)
 #   validate        — catalog manifests/index drift + asset checksums
 #   smoke           — render every catalog tool at manifest defaults (headless,
 #                     browser-free); a hooks.js regression that renders blank
@@ -113,8 +116,24 @@ jobs:
       - name: Install (workspaces)
         run: npm ci
 
+      # bridge-overrides/ is the whole application-specific surface of both Tauri
+      # shells, and those shells are deliberately NOT npm workspaces, so `npm ci`
+      # above does not create their node_modules and the @tauri-apps types their
+      # overrides import would not resolve. Install them here — production deps
+      # only, since the types are all the typecheck needs and --omit=dev skips the
+      # Tauri CLI and Vite. Without this, typecheck:tauri SKIPS (by design, so a
+      # plain clone is not punished) and the --strict step below fails loudly
+      # rather than letting the gate quietly become a no-op.
+      - name: Install (Tauri shells — types only, not npm workspaces)
+        run: |
+          npm --prefix shells/tauri-desktop ci --omit=dev
+          npm --prefix shells/tauri-mobile ci --omit=dev
+
       - name: Typecheck (tsc -p, every project)
         run: npm run typecheck
+
+      - name: Typecheck must not have skipped the Tauri shells
+        run: npm run typecheck:tauri -- --strict
 
       # engine/README.md's module table is generated from the tree. Regenerating
       # it must be a no-op; drift means a module was added, renamed or had its
@@ -128,6 +147,13 @@ jobs:
       # globals, so the compiler cannot enforce this. This step does.
       - name: Engine purity (no DOM/storage/network in engine/src)
         run: npm run check:engine-purity
+
+      # docs/build.ts's `pages` array is hand-maintained and the /info nav derives
+      # from it, so a .md could be written and committed while staying unreachable
+      # from the site — docs/ios-build.md was exactly that. Every docs/*.md must now
+      # be a registered page or a declared exception (see NOT_PAGES in the script).
+      - name: Docs nav completeness (no orphaned docs/*.md)
+        run: npm run check:docs-nav
 
   validate-catalog:
     name: validate catalog

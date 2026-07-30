@@ -2,12 +2,16 @@
  * Filesystem-backed state implementation shared by BOTH Tauri shells.
  *
  * It replaces the web shell's IndexedDB state bridge (shells/web/src/bridge/state.ts)
- * at build time: each Tauri shell's `bridge-overrides/state.js` is substituted for
+ * at build time: each Tauri shell's `bridge-overrides/state.ts` is substituted for
  * that module by the resolveId plugin in its vite.config.js, and those two override
  * files are now thin platform seams that call `createFsStateAPI` here. The API
  * surface must stay in sync with the web bridge — tools, the engine, the gallery,
  * the profile page and catalog sync never see which implementation is running, so a
- * missing method (e.g. sizes) crashes boot.
+ * missing method (e.g. sizes) crashes boot. That sync used to be comment-only; the
+ * return type below is now the web bridge's own `WebStateAPI`, imported type-only,
+ * so a method added there and forgotten here fails `npm run typecheck` instead of
+ * crashing at boot on a device. Type-only, so nothing from the web shell is pulled
+ * into this module at runtime.
  *
  * Storage: <app data dir>/saved-state/<slot>.json
  *
@@ -22,7 +26,7 @@
  * The directory is named `bridge-overrides/` like the per-shell ones so that tooling
  * keyed on the `shells/<shell>/bridge-overrides` wildcard keeps covering this file:
  * the tracker and DNS-resolver greps in docs/verify-yourself.md, and the Biome
- * exclusion for hand-written override `.js`. Anything that lists the two shells'
+ * exclusion for the hand-written override modules. Anything that lists the two shells'
  * override dirs LITERALLY still needs this one added by hand — tests/no-trackers.test.ts
  * is the one that does.
  *
@@ -44,6 +48,41 @@
  */
 
 import { stripAssetModifiers, sessionVersionStamp, migrateSessionRecord, encodeFsToken } from '@lolly/engine';
+import type { SavedStateData, WebStateAPI } from '../../web/src/bridge/state.ts';
+
+/**
+ * The slice of a filesystem this module needs, paths relative to the app data dir.
+ * Each Tauri shell binds it to `@tauri-apps/plugin-fs` against its own base dir —
+ * see the header for why the dependency is inverted.
+ */
+export interface StateFs {
+  exists(path: string): Promise<boolean>;
+  mkdirRecursive(path: string): Promise<void>;
+  readTextFile(path: string): Promise<string>;
+  writeTextFile(path: string, text: string): Promise<void>;
+  /** Entry NAMES, not entry objects — all this module reads. */
+  readDirNames(path: string): Promise<string[]>;
+  remove(path: string): Promise<void>;
+}
+
+/** One saved session as written to disk. Mirrors the web bridge's StateRecord;
+ *  version fields are optional because records predating versioning lack them. */
+interface FsStateRecord {
+  slot: string;
+  toolId: string | undefined;
+  toolVersion: string | undefined;
+  label: string | undefined;
+  data: SavedStateData;
+  thumb: string | null;
+  updatedAt: string;
+  formatVersion?: number;
+  engineVersion?: string;
+}
+
+/** A record as parsed back off disk: JSON.parse output, so every field is
+ *  untrusted. Read defensively — a hand-edited or truncated file must not throw
+ *  past the try/catch that wraps each read. */
+type ParsedRecord = Partial<FsStateRecord>;
 
 const STATE_DIR = 'saved-state';
 // Written once the legacy-filename migration has completed cleanly (below), so it
@@ -64,16 +103,16 @@ const MIGRATION_MARKER = `${STATE_DIR}/slotname-v1.marker`;
 // `slot.replace(/[^\w.-]/g, '_')`, which collapsed all of those onto one file
 // and silently destroyed data (P0-4), and desktop and mobile can no longer
 // diverge on it: they share this module, which shares the one engine codec.
-function slotFilename(slot) {
+function slotFilename(slot: string): string {
   return `${encodeFsToken(slot)}.json`;
 }
 
-function slotPath(slot) {
+function slotPath(slot: string): string {
   return `${STATE_DIR}/${slotFilename(slot)}`;
 }
 
 // Where migrateSessionRecord reports a record written by a newer app build.
-function stateLog(level, message, meta) {
+function stateLog(level: 'warn' | 'info', message: string, meta?: Record<string, unknown>): void {
   (level === 'warn' ? console.warn : console.info)(`[lolly:state] ${message}`, meta ?? '');
 }
 
@@ -81,8 +120,8 @@ function stateLog(level, message, meta) {
  * Build the state API over an `fs` adapter. One instance per shell; the migration
  * memo below is per instance, matching the old module-level `migrationPromise`.
  */
-export function createFsStateAPI(fs) {
-  async function ensureDir() {
+export function createFsStateAPI(fs: StateFs): WebStateAPI {
+  async function ensureDir(): Promise<void> {
     const ok = await fs.exists(STATE_DIR);
     if (!ok) {
       await fs.mkdirRecursive(STATE_DIR);
@@ -97,13 +136,13 @@ export function createFsStateAPI(fs) {
   // (Sessions already lost to a pre-fix collision can't be recovered — only one
   // file survived on disk — but the survivor keeps its true name.) Idempotent and
   // memoised: a clean pass drops a marker so later launches skip the walk.
-  let migrationPromise = null;
-  function ensureMigrated() {
+  let migrationPromise: Promise<void> | null = null;
+  function ensureMigrated(): Promise<void> {
     if (!migrationPromise) migrationPromise = migrateLegacyFilenames();
     return migrationPromise;
   }
 
-  async function migrateLegacyFilenames() {
+  async function migrateLegacyFilenames(): Promise<void> {
     await ensureDir();
     // Defence in depth: a marker read must never fail boot. Every state call awaits
     // this, so a rejection here takes the whole shell down. The walk below is
@@ -113,7 +152,7 @@ export function createFsStateAPI(fs) {
       if (await fs.exists(MIGRATION_MARKER)) return;
     } catch { /* fall through and re-walk */ }
 
-    let names;
+    let names: string[];
     try {
       names = await fs.readDirNames(STATE_DIR);
     } catch {
@@ -125,7 +164,7 @@ export function createFsStateAPI(fs) {
       if (!name?.endsWith('.json')) continue;
       try {
         const text = await fs.readTextFile(`${STATE_DIR}/${name}`);
-        const raw = JSON.parse(text);
+        const raw = JSON.parse(text) as ParsedRecord;
         const slot = raw?.slot;
         if (typeof slot !== 'string' || !slot) continue;
         const canonical = slotFilename(slot);
@@ -138,7 +177,7 @@ export function createFsStateAPI(fs) {
         // same-slot duplicate.
         if (await fs.exists(`${STATE_DIR}/${canonical}`)) {
           const targetText = await fs.readTextFile(`${STATE_DIR}/${canonical}`);
-          const target = JSON.parse(targetText);
+          const target = JSON.parse(targetText) as ParsedRecord;
           if ((raw.updatedAt ?? '') > (target?.updatedAt ?? '')) {
             await fs.writeTextFile(`${STATE_DIR}/${canonical}`, text);
           }
@@ -163,20 +202,20 @@ export function createFsStateAPI(fs) {
   // Read every saved record once. Returns { raw, bytes } per file (bytes = the
   // on-disk JSON size, matching the web shell's Blob-size estimate). Reused by
   // list / sizes / _getAssetRefs so we walk the directory a single way.
-  async function readAllRecords() {
+  async function readAllRecords(): Promise<{ raw: ParsedRecord; bytes: number }[]> {
     await ensureMigrated();
-    let names;
+    let names: string[];
     try {
       names = await fs.readDirNames(STATE_DIR);
     } catch {
       return [];
     }
-    const out = [];
+    const out: { raw: ParsedRecord; bytes: number }[] = [];
     for (const name of names) {
       if (!name?.endsWith('.json')) continue;
       try {
         const text = await fs.readTextFile(`${STATE_DIR}/${name}`);
-        out.push({ raw: JSON.parse(text), bytes: new Blob([text]).size });
+        out.push({ raw: JSON.parse(text) as ParsedRecord, bytes: new Blob([text]).size });
       } catch { /* skip corrupt entries */ }
     }
     return out;
@@ -185,7 +224,7 @@ export function createFsStateAPI(fs) {
   return {
     async save(slot, data, thumb = null) {
       await ensureMigrated();
-      const record = {
+      const record: FsStateRecord = {
         slot,
         toolId: data.__toolId,
         toolVersion: data.__toolVersion,
@@ -204,11 +243,11 @@ export function createFsStateAPI(fs) {
       const ok = await fs.exists(path);
       if (!ok) return null;
       try {
-        const raw = JSON.parse(await fs.readTextFile(path));
+        const raw = JSON.parse(await fs.readTextFile(path)) as ParsedRecord;
         // Read version stamps through the shared migrate-or-warn branch rather
         // than reaching for `raw.data` directly (records predating versioning
         // migrate as v0; a newer-app record is read as-is but reported).
-        return migrateSessionRecord(raw, stateLog);
+        return migrateSessionRecord(raw, stateLog) as SavedStateData | null;
       } catch {
         return null;
       }
@@ -218,13 +257,17 @@ export function createFsStateAPI(fs) {
       const records = await readAllRecords();
       return records
         .map(({ raw }) => ({
-          slot: raw.slot,
-          toolId: raw.toolId,
-          toolVersion: raw.toolVersion,
+          // A record that reached disk always carries these; the parsed type is
+          // Partial because JSON.parse output is untrusted, so default rather
+          // than assert. An empty slot is unreachable in practice and would only
+          // ever surface as an unnamed row, never a crash.
+          slot: raw.slot ?? '',
+          toolId: raw.toolId ?? '',
+          toolVersion: raw.toolVersion ?? '',
           label: raw.label,
           filename: raw.data?.__export_filename || null,
           thumb: raw.thumb ?? null,
-          updatedAt: raw.updatedAt,
+          updatedAt: raw.updatedAt ?? '',
         }))
         .sort((a, b) => (b.updatedAt ?? '').localeCompare(a.updatedAt ?? ''));
     },
@@ -237,7 +280,7 @@ export function createFsStateAPI(fs) {
     },
 
     async sizes() {
-      const result = {};
+      const result: Record<string, number> = {};
       for (const { raw, bytes } of await readAllRecords()) {
         if (raw.slot) result[raw.slot] = bytes;
       }
@@ -247,26 +290,36 @@ export function createFsStateAPI(fs) {
     // Blob keys (id:format:version) referenced across all saved sessions, so
     // catalog sync won't evict on-demand blobs a session still needs.
     async _getAssetRefs() {
-      const refs = new Set();
+      const refs = new Set<string>();
       for (const { raw } of await readAllRecords()) collectAssetRefs(raw.data, refs);
       return refs;
     },
   };
 }
 
-function collectAssetRefs(value, refs) {
+/** One node of a saved-state tree that might be a library asset ref. Every field
+ *  is optional because this walks arbitrary parsed JSON. */
+interface MaybeAssetRef {
+  source?: unknown;
+  id?: unknown;
+  format?: unknown;
+  version?: unknown;
+}
+
+function collectAssetRefs(value: unknown, refs: Set<string>): void {
   if (!value || typeof value !== 'object') return;
   if (Array.isArray(value)) {
     for (const item of value) collectAssetRefs(item, refs);
     return;
   }
-  if (value.source === 'library' && value.id && value.format && value.version != null) {
+  const node = value as MaybeAssetRef;
+  if (node.source === 'library' && node.id && node.format && node.version != null) {
     // A modified ref (`<baseId>?theme=<t>` icon OR `<baseId>?treatment=<x>` photo)
     // is derived from the BASE blob — the key the cache holds and pruning must
     // protect. Match the web bridge exactly: strip BOTH modifiers, not just theme,
     // or a saved session's treated photo gets a key that never matches and is evicted.
-    const baseId = stripAssetModifiers(String(value.id));
-    refs.add(`${baseId}:${value.format}:${value.version}`);
+    const baseId = stripAssetModifiers(String(node.id));
+    refs.add(`${baseId}:${String(node.format)}:${String(node.version)}`);
     return;
   }
   for (const v of Object.values(value)) collectAssetRefs(v, refs);
