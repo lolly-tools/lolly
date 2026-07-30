@@ -33,7 +33,12 @@ const ROOT = join(import.meta.dirname, '..');
 const SCAN_DIRS = [
   'engine/src', 'shells/web/src', 'shells/cli/src', 'shells/tui/src',
   'shells/chrome-extension', 'shells/tauri-desktop/bridge-overrides',
-  'shells/tauri-mobile/bridge-overrides', 'shells/web/public/sw.js',
+  // tauri-shared holds the state logic BOTH Tauri shells ship (state-fs.ts). It
+  // is listed explicitly because this array is literal, not a `shells/*` glob —
+  // the exact hand-add its own header warns about, and which was missed when it
+  // was extracted (found 2026-07-30).
+  'shells/tauri-mobile/bridge-overrides', 'shells/tauri-shared/bridge-overrides',
+  'shells/web/public/sw.js',
   'services', 'packages', 'api', 'scripts',
   'community', 'brands/lolly-start/tools', 'brands/suse/tools',
 ];
