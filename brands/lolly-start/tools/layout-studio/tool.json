@@ -737,7 +737,9 @@
           "label": "Stroke",
           "default": "",
           "showFor": [
-            "path"
+            "path",
+            "box",
+            "image"
           ]
         },
         {
@@ -748,7 +750,9 @@
           "min": 0,
           "max": 400,
           "showFor": [
-            "path"
+            "path",
+            "box",
+            "image"
           ]
         },
         {
@@ -1002,7 +1006,9 @@
           "label": "Stroke style",
           "default": "",
           "showFor": [
-            "path"
+            "path",
+            "box",
+            "image"
           ],
           "options": [
             {

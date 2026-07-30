@@ -121,12 +121,21 @@ interface DesignNode {
   blend?: string;
   group?: unknown;
   pad?: unknown;
+  shadow?: string;
+  shadowColor?: string;
+  shadowX?: number;
+  shadowY?: number;
+  shadowBlur?: number;
+  stroke?: string;
+  strokeW?: number;
+  strokeDash?: string;
   _fillImageId?: string;
   _imageHash?: string | null;
   _vectorPath?: string;
   _vectorFill?: string;
-  _vectorStroke?: { color: string; width: number } | null;
-  _vectorSize?: { w: number; h: number };
+  _vectorGradient?: unknown;
+  _vectorStroke?: { color: string; width: number; opacity?: number } | null;
+  _vectorSize?: { w: number; h: number; x?: number; y?: number };
 }
 
 /** A full Layout Studio box row (every field present and defaulted). */
@@ -162,6 +171,9 @@ interface Box {
   shadowX: number;
   shadowY: number;
   shadowBlur: number;
+  stroke: string;
+  strokeW: number;
+  strokeDash: string;
 }
 
 // ── small numeric helpers (mirrors of tools/layout-studio/hooks.js) ──────────
@@ -420,11 +432,14 @@ export function nodeToBox(
     group: n.group != null && n.group !== '' ? String(n.group) : '',
     clip: '',
     pad: Math.max(0, Math.round(num(n.pad, 8))),
-    shadow: 'none',
-    shadowColor: '#00000055',
-    shadowX: 0,
-    shadowY: 0,
-    shadowBlur: 10,
+    shadow: n.shadow || 'none',
+    shadowColor: n.shadowColor ? safeColor(n.shadowColor, '#00000055') : '#00000055',
+    shadowX: Math.round(num(n.shadowX, 0)),
+    shadowY: Math.round(num(n.shadowY, 0)),
+    shadowBlur: Math.round(num(n.shadowBlur, 10)),
+    stroke: n.stroke ? safeColor(n.stroke, '') : '',
+    strokeW: Math.max(0, num(n.strokeW, 0) ?? 0),
+    strokeDash: n.strokeDash === 'dashed' || n.strokeDash === 'dotted' ? n.strokeDash : '',
   };
 }
 
@@ -592,8 +607,13 @@ interface PenpotShape {
   rotation?: unknown;
   opacity?: unknown;
   fills?: unknown;
+  strokes?: unknown;
   content?: unknown;
   r1?: unknown;
+  shadow?: unknown;
+  hidden?: unknown;
+  shapes?: unknown;
+  maskedGroup?: unknown;
 }
 
 // Cap mirrors gradient-spec.ts MAX_GRADIENT_STOPS (kept literal: design-map must
@@ -638,6 +658,228 @@ export function penpotGradientToSpec(g: unknown, w: number, h: number, fillOpaci
 }
 
 /**
+ * Normalize a Penpot shape's `content` into SVG path data. binfile-v3 writes paths
+ * as a ready `d` string (absolute M/L/C/Z, page-space coords); older/other exporters
+ * store a segment-object array `[{command:'move-to',params:{x,y}},…]` — both forms
+ * come out as one `d`. Anything else (text content trees, svg-raw wrappers) is ''.
+ * @param {*} content
+ * @returns {string}
+ */
+export function penpotPathContentToD(content: unknown): string {
+  if (typeof content === 'string') {
+    const d = content.trim();
+    return /^[Mm]/.test(d) ? d : '';
+  }
+  if (Array.isArray(content)) {
+    const parts: string[] = [];
+    for (const seg of content) {
+      const cmd = String(pget(seg, 'command') ?? '').replace(/^:/, '');
+      const p = pget(seg, 'params');
+      const n = (k: string): number => num(pget(p, k), 0);
+      if (cmd === 'move-to') parts.push(`M${n('x')},${n('y')}`);
+      else if (cmd === 'line-to') parts.push(`L${n('x')},${n('y')}`);
+      else if (cmd === 'curve-to') parts.push(`C${n('c1x')},${n('c1y')},${n('c2x')},${n('c2y')},${n('x')},${n('y')}`);
+      else if (cmd === 'close-path') parts.push('Z');
+      else return ''; // unknown segment command → the whole path is unusable
+    }
+    return parts.length && parts[0]!.startsWith('M') ? parts.join('') : '';
+  }
+  return '';
+}
+
+// Path data safe to embed in a double-quoted SVG attribute: must look like path data
+// (starts M/m) and keeps only path-grammar characters — no quotes/brackets can survive.
+function safePathD(v: unknown): string {
+  const s = String(v == null ? '' : v).trim();
+  return /^[Mm]/.test(s) ? s.replace(/[^-+0-9eE.,\sA-Za-z]/g, '') : '';
+}
+
+// Topmost usable stroke (last entry wins, like fills). strokeAlignment is NOT modelled:
+// SVG only has centre strokes, so inner/outer are approximated as centre downstream.
+function topPenpotStroke(sh: PenpotShape): { color: string; width: number; opacity?: number } | null {
+  const list = Array.isArray(sh.strokes) ? sh.strokes : [];
+  for (let i = list.length - 1; i >= 0; i--) {
+    const st = list[i];
+    if (!st || typeof st !== 'object') continue;
+    const width = num(get(st, 'strokeWidth'), 0);
+    const color = safeColor(get(st, 'strokeColor'), '');
+    if (width > 0 && color) return { color, width, opacity: clamp(num(get(st, 'strokeOpacity'), 1), 0, 1) };
+  }
+  return null;
+}
+
+/**
+ * Render a Penpot `fillColorGradient` as a native SVG gradient def (NOT the Lolly
+ * grad-spec route — SVG keeps the exact endpoints and has no stop cap). Coordinates
+ * are objectBoundingBox fractions, exactly Penpot's start/end encoding; a radial
+ * approximates its radius as the start→end distance. Stop alpha folds
+ * `stop.opacity × fillOpacity` into stop-opacity. Returns '' when unusable.
+ * @param {object} g the fill's `fillColorGradient`.
+ * @param {string} id the def's element id (caller-unique within one SVG).
+ * @param {number} fillOpacity the owning fill's opacity 0..1.
+ * @returns {string}
+ */
+export function penpotGradientSvgDef(g: unknown, id: string, fillOpacity: number): string {
+  const grad = (g && typeof g === 'object') ? (g as PenpotGradient) : null;
+  const stops = grad && Array.isArray(grad.stops) ? grad.stops : [];
+  if (!grad || stops.length < 2) return '';
+  const fo = clamp(num(fillOpacity, 1), 0, 1);
+  const stopEls: string[] = [];
+  for (const raw of stops) {
+    const st = (raw && typeof raw === 'object') ? raw as { color?: unknown; opacity?: unknown; offset?: unknown } : null;
+    const c = safeColor(String(st?.color ?? ''), '');
+    if (!c) return '';
+    const so = Math.round(clamp(num(st?.opacity, 1), 0, 1) * fo * 1000) / 1000;
+    const off = clamp(num(st?.offset, 0), 0, 1);
+    stopEls.push(`<stop offset="${off}" stop-color="${c}"${so < 1 ? ` stop-opacity="${so}"` : ''}/>`);
+  }
+  const sx = num(grad.startX, 0), sy = num(grad.startY, 0);
+  const ex = num(grad.endX, 1), ey = num(grad.endY, 1);
+  if (String(grad.type || '') === 'radial') {
+    const r = Math.max(0.001, Math.hypot(ex - sx, ey - sy));
+    return `<radialGradient id="${id}" gradientUnits="objectBoundingBox" cx="${sx}" cy="${sy}" r="${r}">${stopEls.join('')}</radialGradient>`;
+  }
+  return `<linearGradient id="${id}" gradientUnits="objectBoundingBox" x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}">${stopEls.join('')}</linearGradient>`;
+}
+
+// A shape whose FIRST visible drop-shadow exists can't flatten losslessly (the baked
+// SVG has no filter), so it falls back to the per-shape import where applyPenpotShadow
+// still works.
+function hasVisibleShadow(sh: PenpotShape): boolean {
+  const list = Array.isArray(sh.shadow) ? sh.shadow : [];
+  return list.some((e) => e && typeof e === 'object' && get(e, 'hidden') !== true);
+}
+
+// Bound on shapes serialized into one flattened group SVG (the deck's biggest
+// component grid is ~1850 paths; this is headroom, not a target).
+const MAX_VECTOR_GROUP_SHAPES = 4000;
+
+/**
+ * Serialize a Penpot `group` subtree into ONE standalone SVG string — the flattening
+ * that turns a 500-path illustration into a single image box. viewBox = the group's
+ * selrect in PAGE space (path `content` coords are absolute page coords, so no
+ * re-basing is needed). Succeeds only when EVERY visible descendant is pure vector:
+ * `path`/`bool` with usable content, or `circle`/`rect` with solid/gradient fills;
+ * text, image fills, shadows, or unknown types return '' so mixed groups fall
+ * through to the per-shape import. Child z-order follows each container's `shapes`
+ * array (paint order, back-to-front). A `maskedGroup` wraps its non-mask children in
+ * a <clipPath> built from the FIRST child (Penpot's mask slot) — the mask silhouette
+ * itself never paints. The ROOT group's own opacity/rotation are NOT baked: the
+ * caller carries them on the image box (nested group opacity IS baked, as <g opacity>).
+ * @param {object} group the group shape.
+ * @param {(id: string) => object|undefined} lookup shape-id → parsed shape json.
+ * @returns {string} the SVG markup, or '' when the subtree isn't fully bakeable.
+ */
+export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown): string {
+  if (!group || typeof group !== 'object') return '';
+  const g = group as PenpotShape;
+  if (String(g.type || '') !== 'group') return '';
+  const selRaw = (g.selrect && typeof g.selrect === 'object') ? g.selrect : g;
+  const sel = selRaw as { x?: unknown; y?: unknown; width?: unknown; height?: unknown };
+  const vx = num(sel.x, num(g.x, 0)), vy = num(sel.y, num(g.y, 0));
+  const vw = num(sel.width, num(g.width, 0)), vh = num(sel.height, num(g.height, 0));
+  if (!(vw > 0) || !(vh > 0)) return '';
+
+  let seq = 0;
+  let count = 0;
+  const defs: string[] = [];
+
+  // Paint attributes for one leaf (or null = unbakeable). Gradient fills become defs;
+  // fill-opacity stays on the element so strokes keep their own alpha.
+  const paint = (sh: PenpotShape): string | null => {
+    const fills: PenpotFill[] = Array.isArray(sh.fills) ? (sh.fills as PenpotFill[]) : [];
+    if (fills.some((f) => f && f.fillImage && f.fillImage.id != null)) return null;
+    const gradFill = [...fills].reverse().find((f) =>
+      f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
+    const topFill: PenpotFill | null = fills.length ? (fills[fills.length - 1] ?? null) : null;
+    let fill = 'none', fillOp = '';
+    if (gradFill) {
+      const id = `pg${seq++}`;
+      const def = penpotGradientSvgDef(gradFill.fillColorGradient, id, num(gradFill.fillOpacity, 1));
+      if (!def) return null;
+      defs.push(def);
+      fill = `url(#${id})`;
+    } else if (topFill && topFill.fillColor != null) {
+      const c = safeColor(topFill.fillColor, '');
+      if (!c) return null;
+      fill = c;
+      const fo = clamp(num(topFill.fillOpacity, 1), 0, 1);
+      if (fo < 1) fillOp = ` fill-opacity="${fo}"`;
+    }
+    const st = topPenpotStroke(sh);
+    const stroke = st
+      ? ` stroke="${st.color}" stroke-width="${st.width}"` + (st.opacity != null && st.opacity < 1 ? ` stroke-opacity="${st.opacity}"` : '')
+      : '';
+    const op = clamp(num(sh.opacity, 1), 0, 1);
+    return ` fill="${fill}"${fillOp}${stroke}${op < 1 ? ` opacity="${op}"` : ''}`;
+  };
+
+  // selrect is pre-rotation, so circle/rect leaves re-apply their rotation about the
+  // centre. Path content is already page-space-final, so paths never get a transform.
+  const rotAttr = (sh: PenpotShape, cx: number, cy: number): string => {
+    const r = num(sh.rotation, 0);
+    return r ? ` transform="rotate(${round1(r)} ${cx} ${cy})"` : '';
+  };
+
+  const leaf = (sh: PenpotShape, type: string): string | null => {
+    if (hasVisibleShadow(sh)) return null;
+    const p = paint(sh);
+    if (p == null) return null;
+    const sr = ((sh.selrect && typeof sh.selrect === 'object') ? sh.selrect : sh) as
+      { x?: unknown; y?: unknown; width?: unknown; height?: unknown };
+    const x = num(sr.x, 0), y = num(sr.y, 0), w = num(sr.width, 0), h = num(sr.height, 0);
+    if (type === 'path' || type === 'bool') {
+      const d = safePathD(penpotPathContentToD(sh.content));
+      return d ? `<path d="${d}"${p}/>` : null;
+    }
+    if (type === 'circle') {
+      return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}/>`;
+    }
+    if (type === 'rect') {
+      const r1 = num(sh.r1, 0);
+      return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r1 > 0 ? ` rx="${r1}"` : ''}${p}${rotAttr(sh, x + w / 2, y + h / 2)}/>`;
+    }
+    return null;
+  };
+
+  const serializeGroup = (sh: PenpotShape, isRoot: boolean): string | null => {
+    const ids = Array.isArray(sh.shapes) ? sh.shapes : [];
+    const masked = sh.maskedGroup === true;
+    const parts: string[] = [];
+    let clip = '';
+    for (let i = 0; i < ids.length; i++) {
+      const child = lookup(String(ids[i]));
+      if (!child || typeof child !== 'object') return null; // dangling ref → bail
+      const cs = child as PenpotShape;
+      if (cs.hidden === true) continue;
+      if (++count > MAX_VECTOR_GROUP_SHAPES) return null;
+      const ctype = String(cs.type || '');
+      // The mask slot must be a plain shape: <clipPath> ignores <g> children.
+      if (masked && i === 0 && ctype === 'group') return null;
+      const frag = ctype === 'group' ? serializeGroup(cs, false) : leaf(cs, ctype);
+      if (frag == null) return null;
+      if (masked && i === 0) { clip = frag; continue; }
+      parts.push(frag);
+    }
+    if (!parts.length) return isRoot ? null : '';
+    const op = clamp(num(sh.opacity, 1), 0, 1);
+    const opAttr = (!isRoot && op < 1) ? ` opacity="${op}"` : '';
+    if (masked && clip) {
+      const cid = `pc${seq++}`;
+      defs.push(`<clipPath id="${cid}">${clip}</clipPath>`);
+      return `<g clip-path="url(#${cid})"${opAttr}>${parts.join('')}</g>`;
+    }
+    return opAttr ? `<g${opAttr}>${parts.join('')}</g>` : parts.join('');
+  };
+
+  const body = serializeGroup(g, true);
+  if (!body) return '';
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vx} ${vy} ${vw} ${vh}" ` +
+    `width="${Math.max(1, Math.round(vw))}" height="${Math.max(1, Math.round(vh))}">` +
+    (defs.length ? `<defs>${defs.join('')}</defs>` : '') + body + `</svg>`;
+}
+
+/**
  * Map one Penpot binfile-v3 shape object to a DesignNode (or null to skip).
  * @param {object} shape a parsed `<shape-id>.json`.
  * @returns {object|null}
@@ -668,23 +910,58 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     if (info.fontWeight) node.fontWeight = info.fontWeight;
     if (info.fontFamily) node.fontFamily = info.fontFamily;
     if (info.lineHeight) node.lineHeight = info.lineHeight;
+    applyPenpotShadow(sh, node);
     return node;
   }
 
   // Image fill → image node (the shell loads the bytes via _fillImageId).
   const imgFill = fills.find((f) => f && f.fillImage && f.fillImage.id != null);
   if (imgFill) {
-    return {
+    const node: DesignNode = {
       kind: 'image', x, y, w, h, rot,
       _fillImageId: String(imgFill.fillImage!.id),
       opacity: clamp(Math.round(shapeOp * num(imgFill.fillOpacity, 1) * 100), 0, 100),
       fit: imgFill.fillImage!.keepAspectRatio === false ? 'fill' : 'cover',
     };
+    applyPenpotStroke(sh, node);
+    applyPenpotShadow(sh, node);
+    return node;
   }
 
-  // Solid-fill shapes (rect / frame / circle / path / bool …) → box. `path`/`bool`
-  // lose their exact outline (approximated as their selrect box) — acceptable for v1.
   const topFill: PenpotFill | null = fills.length ? (fills[fills.length - 1] ?? null) : null; // last fill = topmost
+  const gradFill = [...fills].reverse().find((f) =>
+    f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
+
+  // Vector outline — `path`/`bool` carry ready SVG path data in `content`. The shell
+  // bakes it into a standalone SVG asset (storeFigVector plumbing, same as a Figma
+  // VECTOR); `_vectorSize` carries the PAGE-SPACE origin because Penpot path coords
+  // are absolute page coords — the Figma delta, whose vectors are shape-local.
+  if (type === 'path' || type === 'bool') {
+    const d = penpotPathContentToD(sh.content);
+    if (d) {
+      const gradFirst = gradFill ? ((gradFill.fillColorGradient!.stops![0] ?? null) as { color?: unknown } | null) : null;
+      const node: DesignNode = {
+        // Explicit fill:'' — the baked SVG is transparent outside its outline, so the
+        // image box must not seed a backing colour behind it (nodeToBox seedBg).
+        kind: 'image', x, y, w, h, rot, fit: 'fill', fill: '',
+        _vectorPath: d,
+        // Gradient degrades to its first stop when the bake can't emit the def;
+        // fill-less paths (stroke-only lines/arrows) stay unfilled, not black.
+        _vectorFill: gradFirst ? (safeColor(String(gradFirst.color ?? ''), '') || 'none')
+          : (topFill && topFill.fillColor != null) ? String(topFill.fillColor) : 'none',
+        _vectorGradient: gradFill ? gradFill.fillColorGradient : null,
+        _vectorStroke: topPenpotStroke(sh),
+        _vectorSize: { w, h, x, y },
+        // fillOpacity folds into node opacity (uniform over the one fill this branch bakes).
+        opacity: clamp(Math.round(shapeOp * num((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100),
+      };
+      applyPenpotShadow(sh, node);
+      return node;
+    }
+  }
+
+  // Solid-fill shapes (rect / frame / circle …) → box. A `path`/`bool` with no usable
+  // `content` still degrades to its selrect box here.
   const node: DesignNode = {
     kind: 'box', x, y, w, h, rot,
     fill: (topFill && topFill.fillColor != null) ? String(topFill.fillColor) : '',
@@ -694,8 +971,6 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   // degrades to the FIRST stop so an old engine — or a box kind without a grad
   // field — paints a plausible solid instead of transparent. Stop alpha already
   // folds the fill's own opacity, so node opacity carries the shape's alone.
-  const gradFill = [...fills].reverse().find((f) =>
-    f && f.fillColorGradient && Array.isArray(f.fillColorGradient.stops) && f.fillColorGradient.stops.length >= 2) || null;
   if (gradFill) {
     const spec = penpotGradientToSpec(gradFill.fillColorGradient, w, h, num(gradFill.fillOpacity, 1));
     if (spec) {
@@ -708,7 +983,63 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   if (type === 'circle') node.shape = 'ellipse';
   const r1 = num(sh.r1, 0);
   if (r1 > 0) { node.shape = 'rounded'; node.radius = r1; }
+  applyPenpotStroke(sh, node);
+  applyPenpotShadow(sh, node);
   return node;
+}
+
+// Topmost stroke → the box stroke fields (rendered as a CSS border by the editor
+// tools). Path/bool shapes never reach here — their stroke rides the baked SVG
+// (_vectorStroke). A CSS border on box-sizing:border-box is an INSIDE stroke, so
+// center/outer alignments pre-inflate the rect to land the painted edge where the
+// source authored it (Penpot defaults to center when the field is absent).
+function applyPenpotStroke(sh: PenpotShape, node: DesignNode): void {
+  const list = Array.isArray(sh.strokes) ? sh.strokes : [];
+  const st = list.length ? list[list.length - 1] : null; // last = topmost
+  if (!st || typeof st !== 'object') return;
+  const sw = num(get(st, 'strokeWidth'), 0);
+  const col6 = safeColor(String(get(st, 'strokeColor') ?? ''), '');
+  if (!(sw > 0) || !col6) return;
+  const a = Math.round(clamp(num(get(st, 'strokeOpacity'), 1), 0, 1) * 255);
+  const full = hexLong(col6);
+  node.stroke = full + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(full) ? a.toString(16).padStart(2, '0') : '');
+  node.strokeW = Math.round(sw * 100) / 100;
+  const style = String(get(st, 'strokeStyle') || 'solid');
+  node.strokeDash = style === 'dashed' ? 'dashed' : (style === 'dotted' ? 'dotted' : '');
+  const alignment = String(get(st, 'strokeAlignment') || 'center');
+  const inflate = alignment === 'outer' ? sw : (alignment === 'inner' ? 0 : sw / 2);
+  if (inflate > 0) {
+    node.x = num(node.x, 0) - inflate; node.y = num(node.y, 0) - inflate;
+    node.w = num(node.w, 0) + 2 * inflate; node.h = num(node.h, 0) + 2 * inflate;
+    if (node.shape === 'rounded') node.radius = num(node.radius, 0) + inflate;
+  }
+}
+
+// Expand #rgb/#rgba shorthand to full length so an alpha suffix can append without
+// producing a malformed 5/7-digit hex; non-hex colours pass through unchanged.
+function hexLong(c: string): string {
+  const m = /^#([0-9a-fA-F]{3,4})$/.exec(c);
+  if (!m) return c;
+  return '#' + m[1]!.split('').map((ch) => ch + ch).join('');
+}
+
+// First visible drop-shadow → the box shadow fields. The target select follows the
+// node kind (text-shadow for text, alpha-silhouette drop-shadow for images, else the
+// box outline). Colour opacity folds into an 8-digit hex; `spread` has no box-model
+// counterpart and is dropped; inner-shadow and a degenerate 0/0/0 entry stay 'none'.
+function applyPenpotShadow(sh: PenpotShape, node: DesignNode): void {
+  const list = Array.isArray(sh.shadow) ? sh.shadow : [];
+  const s = list.find((e) => e && typeof e === 'object'
+    && String(get(e, 'style') || 'drop-shadow') === 'drop-shadow' && get(e, 'hidden') !== true) as
+    { color?: { color?: unknown; opacity?: unknown } | null; offsetX?: unknown; offsetY?: unknown; blur?: unknown } | undefined;
+  if (!s) return;
+  const x = Math.round(num(s.offsetX, 0)), y = Math.round(num(s.offsetY, 0)), blur = Math.round(num(s.blur, 0));
+  if (!x && !y && !blur) return;
+  const hex6 = hexLong(safeColor(String(s.color?.color ?? ''), '#000000'));
+  const a = Math.round(clamp(num(s.color?.opacity, 1), 0, 1) * 255);
+  node.shadow = node.kind === 'text' ? 'text' : (node.kind === 'image' ? 'content' : 'box');
+  node.shadowColor = hex6 + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(hex6) ? a.toString(16).padStart(2, '0') : '');
+  node.shadowX = x; node.shadowY = y; node.shadowBlur = blur;
 }
 
 // ── Figma .fig (Kiwi) document → DesignNodes ─────────────────────────────────

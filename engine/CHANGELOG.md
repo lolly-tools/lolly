@@ -1369,4 +1369,22 @@ boards and scratch content as scenes. The Penpot side of the same fixes
 `hideInViewer` boards excluded as scenes but nested ones still painted) lives in
 the shell walk (design-import.ts).
 
-No v1 bridge method changed.
+Also additive on the bridge: two optional `ComposeSpec` fields for that bulk bake
+path — `transient` (skip the host's render cache in both directions; the CALLER
+then owns the returned url and must release it) and `settleMs` (advisory
+post-mount settle override, only safe when the child mounts no image/lottie/video).
+Both absent → byte-identical behaviour, so no v1 method changed.
+
+Also additive in design-map, the same keynote's biggest fidelity gap (2,290
+`path` shapes imported as their selrect rectangles): `penpotShapeToNode` now
+routes `path`/`bool` content through the Figma `_vectorPath` markers —
+`_vectorSize` carries the PAGE-SPACE origin (Penpot path coords are absolute
+page coords, unlike Figma's shape-local vectors), plus `_vectorGradient` (the
+raw `fillColorGradient`, baked as a native SVG def, never the grad-spec route)
+and a stroke marker with opacity. New pure exports: `penpotPathContentToD`
+(d-string passthrough + segment-object conversion), `penpotGradientSvgDef`, and
+`penpotGroupToSvg` — flatten an all-vector group subtree (paths/bools,
+solid/gradient circles/rects, nested groups, `maskedGroup` via `<clipPath>`)
+into ONE standalone SVG string in `shapes` z-order, so a 500-path illustration
+imports as one image box instead of hundreds of colour blobs. Mixed subtrees
+(text, image fills, shadows) refuse and fall through to the per-shape import.

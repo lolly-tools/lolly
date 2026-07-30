@@ -17,7 +17,8 @@ import assert from 'node:assert/strict';
 import {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode,
-  figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
+  figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath, penpotGradientToSpec,
+  penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg,
 } from '../engine/src/design-map.ts';
 
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) <= eps;
@@ -498,7 +499,7 @@ test('penpotGradientToSpec: stop alpha folds stop.opacity × fillOpacity into he
   // 0.9 × 255 = 229.5 → e6; first stop stays 6-digit. Horizontal vector → 90°.
   assert.equal(penpotGradientToSpec(g, 321, 71, 1), 'lin.srgb_90_25cbd9-0_00d1b8e6-100');
   // fillOpacity folds in multiplicatively.
-  assert.equal(penpotGradientToSpec(g, 321, 71, 0.5), 'lin.srgb_90_25cbd97f-0_00d1b873-100');
+  assert.equal(penpotGradientToSpec(g, 321, 71, 0.5), 'lin.srgb_90_25cbd980-0_00d1b873-100');
 });
 
 test('penpotGradientToSpec: radial → rad_0; junk → ""', () => {
@@ -527,6 +528,56 @@ test('penpotShapeToNode: gradient fill → grad spec + first-stop flat degrade',
   const solid = penpotShapeToNode({ id: 's1', type: 'rect', selrect: { x: 0, y: 0, width: 10, height: 10 }, fills: [{ fillColor: '#ff0000' }] }) as any;
   assert.equal(solid.grad, undefined);
   assert.equal((nodeToBox(solid, { id: 'b1' }) as any).grad, '');
+});
+
+// ── Penpot shadows ───────────────────────────────────────────────────────────
+test('penpotShapeToNode: drop shadow maps to kind-appropriate shadow fields', () => {
+  const shadow = [{ color: { opacity: 0.2, color: '#000000' }, spread: 0, offsetY: 4, style: 'drop-shadow', blur: 4, hidden: false, offsetX: 4 }];
+  const rect = penpotShapeToNode({ id: 'r', type: 'rect', selrect: { x: 0, y: 0, width: 10, height: 10 }, fills: [{ fillColor: '#fff' }], shadow }) as any;
+  assert.equal(rect.shadow, 'box');
+  assert.equal(rect.shadowColor, '#00000033'); // 0.2 × 255 = 51 = 0x33
+  assert.deepEqual([rect.shadowX, rect.shadowY, rect.shadowBlur], [4, 4, 4]);
+  const box = nodeToBox(rect, { id: 'b0' }) as any;
+  assert.equal(box.shadow, 'box');
+  assert.equal(box.shadowColor, '#00000033');
+  const text = penpotShapeToNode({ id: 't', type: 'text', selrect: { x: 0, y: 0, width: 10, height: 10 },
+    content: { children: [{ children: [{ children: [{ text: 'x' }] }] }] }, shadow }) as any;
+  assert.equal(text.shadow, 'text');
+  // Hidden and degenerate entries stay 'none'.
+  const hid = penpotShapeToNode({ id: 'h', type: 'rect', selrect: { x: 0, y: 0, width: 10, height: 10 },
+    shadow: [{ ...shadow[0], hidden: true }] }) as any;
+  assert.equal(hid.shadow, undefined);
+  const zero = penpotShapeToNode({ id: 'z', type: 'rect', selrect: { x: 0, y: 0, width: 10, height: 10 },
+    shadow: [{ style: 'drop-shadow', offsetX: 0, offsetY: 0, blur: 0 }] }) as any;
+  assert.equal(zero.shadow, undefined);
+});
+
+// ── Penpot strokes (non-path shapes → CSS-border fields) ─────────────────────
+test('penpotShapeToNode: stroke maps colour/width/dash; center alignment inflates', () => {
+  const base = { id: 'r', type: 'rect', selrect: { x: 10, y: 10, width: 100, height: 50 }, fills: [{ fillColor: '#ffffff' }] };
+  const n = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#f23ae5', strokeWidth: 4, strokeAlignment: 'center', strokeStyle: 'solid' }] }) as any;
+  assert.equal(n.stroke, '#f23ae5');
+  assert.equal(n.strokeW, 4);
+  assert.equal(n.strokeDash, '');
+  // center → inflate by sw/2 per side so the inside border lands on the authored edge
+  assert.deepEqual([n.x, n.y, n.w, n.h], [8, 8, 104, 54]);
+  const inner = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#000', strokeWidth: 2, strokeAlignment: 'inner' }] }) as any;
+  assert.deepEqual([inner.x, inner.y, inner.w, inner.h], [10, 10, 100, 50]); // no inflation
+  const dotted = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#000', strokeWidth: 1, strokeAlignment: 'inner', strokeStyle: 'dotted', strokeOpacity: 0.5 }] }) as any;
+  assert.equal(dotted.strokeDash, 'dotted');
+  assert.equal(dotted.stroke, '#00000080'); // #rgb shorthand expands before the alpha suffix
+});
+
+test('penpotShapeToNode: stroke opacity folds to hex8; rows default inert', () => {
+  const base = { id: 'r', type: 'rect', selrect: { x: 0, y: 0, width: 10, height: 10 }, fills: [{ fillColor: '#fff' }] };
+  const half = penpotShapeToNode({ ...base, strokes: [{ strokeColor: '#14ceca', strokeWidth: 1, strokeAlignment: 'inner', strokeOpacity: 0.5 }] }) as any;
+  assert.equal(half.stroke, '#14ceca80');
+  const box = nodeToBox(half, { id: 'b0' }) as any;
+  assert.equal(box.stroke, '#14ceca80');
+  assert.equal(box.strokeW, 1);
+  // A strokeless shape emits the inert defaults, byte-identical to older rows.
+  const plain = nodeToBox(penpotShapeToNode(base)!, { id: 'b1' }) as any;
+  assert.deepEqual([plain.stroke, plain.strokeW, plain.strokeDash], ['', 0, '']);
 });
 
 // ── figmaNodesToNodes (.fig document tree) ───────────────────────────────────
@@ -779,4 +830,173 @@ test('parsePenpotContent: per-leaf colour → coloured run relative to first-lea
   const r = parsePenpotContent(tree);
   assert.equal(r.fg, '#ffffff');                 // first leaf = base
   assert.equal(r.text, 'white {#000000|black}'); // second leaf differs → wrapped
+});
+
+// ── Penpot path shapes + vector-group flattening ─────────────────────────────
+test('penpotPathContentToD: binfile-v3 d string passes through; junk is refused', () => {
+  // real command sample from the keynote: an icon dot (absolute M/C/Z, page-space coords)
+  const d = 'M10.83203125,933.625C10.83203125,930.49267578125,8.40673828125,927.953125,5.41552734375,927.953125Z';
+  assert.equal(penpotPathContentToD(d), d);
+  assert.equal(penpotPathContentToD('  M0,0L1,1  '), 'M0,0L1,1');
+  assert.equal(penpotPathContentToD('translate(1,2)'), ''); // not path data
+  assert.equal(penpotPathContentToD(''), '');
+  assert.equal(penpotPathContentToD(null), '');
+  assert.equal(penpotPathContentToD({ some: 'tree' }), '');
+});
+
+test('penpotPathContentToD: segment-object array form converts (incl. keyword commands)', () => {
+  const segs = [
+    { command: 'move-to', params: { x: 1, y: 2 } },
+    { command: 'curve-to', params: { c1x: 3, c1y: 4, c2x: 5, c2y: 6, x: 7, y: 8 } },
+    { command: 'line-to', params: { x: 9, y: 10 } },
+    { command: ':close-path' },
+  ];
+  assert.equal(penpotPathContentToD(segs), 'M1,2C3,4,5,6,7,8L9,10Z');
+  // one unknown command poisons the whole path (partial art is worse than the selrect box)
+  assert.equal(penpotPathContentToD([{ command: 'move-to', params: { x: 0, y: 0 } }, { command: 'arc-to' }]), '');
+  assert.equal(penpotPathContentToD([{ command: 'line-to', params: { x: 1, y: 1 } }]), ''); // must start with M
+});
+
+test('penpotShapeToNode: path with content → image node carrying page-space _vector markers', () => {
+  const n = penpotShapeToNode({
+    id: 'p1', type: 'path',
+    selrect: { x: -447.62, y: 3775, width: 4, height: 51 },
+    content: 'M-447.62,3775.0L-447.62,3826.0',
+    fills: [{ fillColor: '#eeeeee', fillOpacity: 1 }],
+  }) as any;
+  assert.equal(n.kind, 'image');
+  assert.equal(n.fit, 'fill');
+  assert.equal(n.fill, ''); // no seed backing behind the transparent baked SVG
+  assert.equal(n._vectorPath, 'M-447.62,3775.0L-447.62,3826.0');
+  assert.equal(n._vectorFill, '#eeeeee');
+  assert.equal(n._vectorGradient, null);
+  assert.equal(n._vectorStroke, null);
+  // page-space origin rides _vectorSize — the Penpot/Figma delta (Figma vectors are local)
+  assert.deepEqual(n._vectorSize, { w: 4, h: 51, x: -447.62, y: 3775 });
+});
+
+test('penpotShapeToNode: stroke-only path (fills=[]) → fill none + stroke marker, not invisible', () => {
+  const n = penpotShapeToNode({
+    id: 'p2', type: 'path',
+    selrect: { x: 0, y: 0, width: 10, height: 51 },
+    content: 'M0,0L0,51',
+    fills: [],
+    strokes: [{ strokeStyle: 'solid', strokeColor: '#f23ae5', strokeOpacity: 1, strokeAlignment: 'inner', strokeWidth: 4 }],
+  }) as any;
+  assert.equal(n.kind, 'image');
+  assert.equal(n._vectorFill, 'none');
+  assert.deepEqual(n._vectorStroke, { color: '#f23ae5', width: 4, opacity: 1 });
+});
+
+test('penpotShapeToNode: gradient path → raw _vectorGradient + first-stop fallback fill', () => {
+  const grad = {
+    type: 'linear', startX: 0.5, startY: 0, endX: 0.5, endY: 1,
+    stops: [{ color: '#151035', offset: 0, opacity: 1 }, { color: '#312470', offset: 1, opacity: 0 }],
+  };
+  const n = penpotShapeToNode({
+    id: 'p3', type: 'path', selrect: { x: 0, y: 0, width: 100, height: 100 },
+    content: 'M0,0L100,100Z', fills: [{ fillColorGradient: grad }],
+  }) as any;
+  assert.equal(n.kind, 'image');
+  assert.equal(n._vectorGradient, grad);
+  assert.equal(n._vectorFill, '#151035'); // degrade target if the def can't be emitted
+});
+
+test('penpotShapeToNode: bool routes through the vector branch; empty-content path stays a selrect box', () => {
+  const b = penpotShapeToNode({
+    id: 'b1', type: 'bool', selrect: { x: 0, y: 0, width: 10, height: 10 },
+    content: 'M0,0L10,10Z', fills: [{ fillColor: '#112233' }],
+  }) as any;
+  assert.equal(b.kind, 'image');
+  assert.equal(b._vectorPath, 'M0,0L10,10Z');
+  const p = penpotShapeToNode({
+    id: 'p4', type: 'path', selrect: { x: 0, y: 0, width: 10, height: 10 },
+    content: '', fills: [{ fillColor: '#112233' }],
+  }) as any;
+  assert.equal(p.kind, 'box');
+  assert.equal(p.fill, '#112233');
+});
+
+test('penpotGradientSvgDef: linear def keeps exact endpoints; alpha folds stop×fill opacity', () => {
+  const def = penpotGradientSvgDef({
+    type: 'linear', startX: 0.906, startY: 0.544, endX: -0.234, endY: 0.534,
+    stops: [{ color: '#151035', offset: 0, opacity: 1 }, { color: '#312470', offset: 1, opacity: 0.5 }],
+  }, 'g1', 0.5);
+  assert.ok(def.startsWith('<linearGradient id="g1" gradientUnits="objectBoundingBox" x1="0.906" y1="0.544" x2="-0.234" y2="0.534">'));
+  assert.ok(def.includes('<stop offset="0" stop-color="#151035" stop-opacity="0.5"/>'));
+  assert.ok(def.includes('<stop offset="1" stop-color="#312470" stop-opacity="0.25"/>'));
+  // radial approximates r as the start→end distance
+  const rad = penpotGradientSvgDef({
+    type: 'radial', startX: 0.5, startY: 0.5, endX: 0.5, endY: 1,
+    stops: [{ color: '#ffffff', offset: 0 }, { color: '#000000', offset: 1 }],
+  }, 'g2', 1);
+  assert.ok(rad.startsWith('<radialGradient id="g2" gradientUnits="objectBoundingBox" cx="0.5" cy="0.5" r="0.5">'));
+  // unusable: missing stops / bad colour
+  assert.equal(penpotGradientSvgDef({ stops: [{ color: '#fff', offset: 0 }] }, 'g', 1), '');
+  assert.equal(penpotGradientSvgDef({ stops: [{ color: 'url(#x)', offset: 0 }, { color: '#fff', offset: 1 }] }, 'g', 1), '');
+});
+
+test('penpotGroupToSvg: all-vector group → one SVG, selrect viewBox, z-order preserved', () => {
+  const shapes: Record<string, any> = {
+    g: { id: 'g', type: 'group', selrect: { x: 100, y: 200, width: 50, height: 40 }, opacity: 0.2, shapes: ['r', 'p1', 'p2'] },
+    r: { id: 'r', type: 'rect', selrect: { x: 100, y: 200, width: 50, height: 40 }, fills: [{ fillColor: '#ffffff' }] },
+    p1: { id: 'p1', type: 'path', selrect: { x: 110, y: 210, width: 10, height: 10 }, content: 'M110,210L120,220Z', fills: [{ fillColor: '#f23ae5' }] },
+    p2: { id: 'p2', type: 'path', selrect: { x: 130, y: 210, width: 10, height: 10 }, content: 'M130,210L140,220Z', fills: [] ,
+      strokes: [{ strokeColor: '#14ceca', strokeWidth: 2, strokeOpacity: 0.5 }] },
+  };
+  const svg = penpotGroupToSvg(shapes.g, (id) => shapes[id]);
+  assert.ok(svg.startsWith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="100 200 50 40"'));
+  // z-order: rect first (back), then the two paths
+  const order = [svg.indexOf('<rect'), svg.indexOf('M110,210'), svg.indexOf('M130,210')];
+  assert.ok(order[0]! > -1 && order[0]! < order[1]! && order[1]! < order[2]!);
+  // stroke-only path: fill none + stroke attrs with opacity
+  assert.ok(svg.includes('fill="none" stroke="#14ceca" stroke-width="2" stroke-opacity="0.5"'));
+  // ROOT group opacity is NOT baked — the caller carries it on the image box
+  assert.ok(!svg.includes('opacity="0.2"'));
+});
+
+test('penpotGroupToSvg: nested group opacity bakes; text/image/shadow children refuse the flatten', () => {
+  const base: Record<string, any> = {
+    g: { id: 'g', type: 'group', selrect: { x: 0, y: 0, width: 10, height: 10 }, shapes: ['sub'] },
+    sub: { id: 'sub', type: 'group', selrect: { x: 0, y: 0, width: 10, height: 10 }, opacity: 0.5, shapes: ['p'] },
+    p: { id: 'p', type: 'path', selrect: { x: 0, y: 0, width: 10, height: 10 }, content: 'M0,0L10,10Z', fills: [{ fillColor: '#000000' }] },
+  };
+  assert.ok(penpotGroupToSvg(base.g, (id) => base[id]).includes('<g opacity="0.5">'));
+  // a text leaf anywhere in the subtree → '' (falls through to per-shape import)
+  const withText: Record<string, any> = { ...base, sub: { ...base.sub, shapes: ['p', 't'] }, t: { id: 't', type: 'text', content: {} } };
+  assert.equal(penpotGroupToSvg(withText.g, (id) => withText[id]), '');
+  // an image fill → ''
+  const withImg: Record<string, any> = { ...base, p: { ...base.p, fills: [{ fillImage: { id: 'm1' } }] } };
+  assert.equal(penpotGroupToSvg(withImg.g, (id) => withImg[id]), '');
+  // a visible drop-shadow → '' (the baked SVG has no filter; per-shape keeps the shadow)
+  const withShadow: Record<string, any> = { ...base, p: { ...base.p, shadow: [{ style: 'drop-shadow', color: { color: '#000000', opacity: 0.2 }, offsetX: 4, offsetY: 4, blur: 4 }] } };
+  assert.equal(penpotGroupToSvg(withShadow.g, (id) => withShadow[id]), '');
+  // a hidden child is skipped, not fatal
+  const withHidden: Record<string, any> = { ...base, sub: { ...base.sub, shapes: ['p', 'hid'] }, hid: { id: 'hid', type: 'text', hidden: true } };
+  assert.ok(penpotGroupToSvg(withHidden.g, (id) => withHidden[id]).includes('<path'));
+});
+
+test('penpotGroupToSvg: maskedGroup → clipPath from the first child; mask silhouette never paints', () => {
+  const shapes: Record<string, any> = {
+    g: { id: 'g', type: 'group', maskedGroup: true, selrect: { x: 0, y: 0, width: 100, height: 100 }, shapes: ['mask', 'art'] },
+    mask: { id: 'mask', type: 'path', selrect: { x: 0, y: 0, width: 100, height: 100 }, content: 'M0,0L100,0L100,100Z', fills: [{ fillColor: '#b1b2b5' }] },
+    art: { id: 'art', type: 'circle', selrect: { x: 10, y: 10, width: 80, height: 80 }, fills: [{ fillColor: '#14ceca' }] },
+  };
+  const svg = penpotGroupToSvg(shapes.g, (id) => shapes[id]);
+  assert.ok(/<clipPath id="pc\d+"><path d="M0,0L100,0L100,100Z"/.test(svg));
+  assert.ok(/<g clip-path="url\(#pc\d+\)">/.test(svg));
+  // the grey mask silhouette paints ONLY inside the clipPath def, never as body art
+  assert.equal(svg.split('M0,0L100,0L100,100Z').length, 2);
+  assert.ok(svg.includes('<ellipse cx="50" cy="50" rx="40" ry="40" fill="#14ceca"/>'));
+  // a group in the mask slot can't clip (clipPath ignores <g>) → refuse the flatten
+  const badMask = { ...shapes, g: { ...shapes.g, shapes: ['sub', 'art'] }, sub: { id: 'sub', type: 'group', selrect: { x: 0, y: 0, width: 9, height: 9 }, shapes: [] } };
+  assert.equal(penpotGroupToSvg(badMask.g, (id) => (badMask as any)[id]), '');
+});
+
+test('penpotGroupToSvg: non-groups, empty and degenerate groups refuse', () => {
+  assert.equal(penpotGroupToSvg(null, () => undefined), '');
+  assert.equal(penpotGroupToSvg({ type: 'path', content: 'M0,0Z' }, () => undefined), '');
+  assert.equal(penpotGroupToSvg({ type: 'group', selrect: { x: 0, y: 0, width: 0, height: 0 }, shapes: [] }, () => undefined), '');
+  // a dangling child ref bails rather than emitting partial art
+  assert.equal(penpotGroupToSvg({ type: 'group', selrect: { x: 0, y: 0, width: 9, height: 9 }, shapes: ['ghost'] }, () => undefined), '');
 });
