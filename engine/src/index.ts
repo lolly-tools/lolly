@@ -241,7 +241,7 @@ export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.t
 export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
-  safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode,
+  safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, penpotShapeToNode, penpotGradientToSpec,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
 export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene } from './design-map.ts';
