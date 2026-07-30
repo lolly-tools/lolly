@@ -50,7 +50,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createToolCardRenderer } from '../docs/og-image.ts';
+import { createToolCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
 
@@ -186,7 +186,9 @@ async function main(): Promise<void> {
   } else {
     try {
       rasterizer = await createSvgRasterizer(ROOT);
-      renderer = createToolCardRenderer(rasterizer.rasterize);
+      // Chrome (field/accent/ink + the brand's reverse logo) comes from the ACTIVE
+      // profile's catalog, so each profile's cards are painted in its own brand.
+      renderer = createToolCardRenderer(rasterizer.rasterize, loadBrandChrome(ROOT));
     } catch (e) {
       console.log(`tool-og: card generation skipped (${(e as Error).message}); stubs fall back to committed cards / og.png`);
     }

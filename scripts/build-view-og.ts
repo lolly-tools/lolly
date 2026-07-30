@@ -35,7 +35,7 @@
 import { writeFileSync, mkdirSync, rmSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createViewCardRenderer } from '../docs/og-image.ts';
+import { createViewCardRenderer, loadBrandChrome } from '../docs/og-image.ts';
 import { createSvgRasterizer, type SvgRasterizer } from './lib/rasterize-svg-browser.ts';
 import { stampBitmap } from './lib/stamp-media.ts';
 
@@ -58,53 +58,123 @@ const PRESERVE = process.argv.includes('--preserve') || process.env.LOLLY_PRESER
 const esc = (s: unknown): string => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// The five top-level views. `slug` is the clean share path (/d, /v, …) AND the stub
-// filename; `hash` is the SPA route a human is bounced to (the canonical in-app form —
-// #/verify, not the /v shortlink). Icons are lucide-style 24×24 stroke marks, matching
-// the ones the views themselves use in-app (gallery.ts / view-toggle.ts).
+// Every shareable top-level view. `slug` is the clean share path (/d, /v, /tools, …) AND
+// the stub filename; `hash` is the SPA route a human is bounced to (the canonical in-app
+// form — #/verify, not the /v shortlink); `aliases` are extra clean paths that serve the
+// same stub (so /u previews like /utilities). Icons are lucide-style 24×24 stroke marks,
+// matching the ones the views themselves use in-app (icons.ts / view-toggle.ts).
+//
+// Two routes deliberately get NO card: #/multi is meaningless without its ?s= selection,
+// and #/components is a developer surface nobody shares. Both still resolve in-app; they
+// just preview as the generic og.png.
+//
+// EVERY slug and alias needs a rewrite in vercel.json (clean path → /view/<slug>.html),
+// or the path falls through to the SPA shell and previews as the generic og.png. Adding a
+// row here without that rule is the one way to half-ship a view card.
 interface View {
   slug: string;
   title: string;
   description: string;
   hash: string;
   icon: string;
+  aliases?: string[];
 }
 
+// One <svg> wrapper for every mark, so a row carries only its path data.
+const mark = (paths: string): string =>
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"'
+  + ` stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+// Descriptions are kept to ~2 lines of the card's type column (about 85 characters);
+// longer copy is ellipsised by the renderer's wrap, which reads as a truncation bug in
+// a social preview rather than as a caption.
 const VIEWS: View[] = [
   {
-    slug: 'd',
-    title: 'Dashboard',
-    description: 'This device, the brand system and everything Lolly can do — one read-only instrument panel.',
-    hash: '#/d',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>',
+    slug: 'tools',
+    title: 'Tools',
+    description: 'Every Lolly tool in one gallery. Pick one, fill it in, export what you need.',
+    hash: '#/',
+    // wrench — the in-app Tools tab (components/view-toggle.ts)
+    icon: mark('<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>'),
   },
   {
-    slug: 'v',
-    title: 'Verify',
-    description: 'Check any file’s Content Credentials on-device — provenance you can trust, in your browser.',
-    hash: '#/verify',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>',
-  },
-  {
-    slug: 'c',
-    title: 'Catalogue',
-    description: 'Every brand asset — logos, icons, palettes and your own uploads — in one searchable library.',
-    hash: '#/c',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>',
+    slug: 'utilities',
+    title: 'Utilities',
+    description: 'Strip hidden data, compress a PDF, convert an image. All on your own device.',
+    hash: '#/u',
+    aliases: ['u'],
+    // hammer — the in-app Utilities tab
+    icon: mark('<path d="m15 12-8.373 8.373a1 1 0 1 1-3-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172V7l-2.26-2.26a6 6 0 0 0-4.202-1.756L9 2.96l.92.82A6.18 6.18 0 0 1 12 8.4V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5"/>'),
   },
   {
     slug: 'p',
     title: 'Projects',
-    description: 'Your saved sessions and exports, organised into folders. Private to you, and works offline.',
+    description: 'Your saved sessions and exports, in folders. Private to you, and offline.',
     hash: '#/p',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>',
+    icon: mark('<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>'),
+  },
+  {
+    slug: 'c',
+    title: 'Catalogue',
+    description: 'Every brand asset and every upload of yours, in one searchable library.',
+    // No /catalog alias: the catalog's own static assets are served under /catalog/*,
+    // and a rewrite next door to that path is not worth the ambiguity. /c is canonical.
+    hash: '#/c',
+    icon: mark('<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>'),
+  },
+  {
+    slug: 'd',
+    title: 'Dashboard',
+    description: 'This device, the brand system and everything Lolly can do, in one panel.',
+    hash: '#/d',
+    icon: mark('<path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/>'),
+  },
+  {
+    slug: 'v',
+    title: 'Verify',
+    description: 'Check any file for Content Credentials, on device, in your own browser.',
+    hash: '#/verify',
+    aliases: ['verify', 'valid'],
+    icon: mark('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>'),
+  },
+  {
+    slug: 'start',
+    title: 'Brand setup',
+    description: 'Import your tokens, fonts and logos, then every tool follows them.',
+    hash: '#/start',
+    // palette — the brand editor's own mark (lib/icons.ts)
+    icon: mark('<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>'),
+  },
+  {
+    slug: 'lab',
+    title: 'Colour Lab',
+    description: 'Inspect any colour in OKLCH, check contrast, see what survives print.',
+    hash: '#/lab',
+    // flask — lib/icons.ts
+    icon: mark('<path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/>'),
+  },
+  {
+    slug: 'pro',
+    title: 'Batch mode',
+    description: 'Hundreds of assets from one spreadsheet, a row at a time.',
+    hash: '#/pro',
+    // checklist — lib/icons.ts
+    icon: mark('<path d="M9 6h11M9 12h11M9 18h11"/><path d="m3 6 1.3 1.3L6.5 5"/><path d="m3 12 1.3 1.3 2.2-2.3"/><path d="m3 18 1.3 1.3 2.2-2.3"/>'),
+  },
+  {
+    slug: 'pdf',
+    title: 'Take a PDF apart',
+    description: 'Pull the text, images and vectors out of any PDF, on your device.',
+    hash: '#/pdf',
+    // document — lib/icons.ts
+    icon: mark('<path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>'),
   },
   {
     slug: 'profile',
     title: 'Profile',
-    description: 'Your details, identity and preferences — the constraints that keep every asset on-brand.',
+    description: 'Your details and preferences, the constraints that keep assets on brand.',
     hash: '#/profile',
-    icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+    icon: mark('<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),
   },
 ];
 
@@ -171,7 +241,8 @@ async function main(): Promise<void> {
   } else {
     try {
       rasterizer = await createSvgRasterizer(ROOT);
-      renderer = createViewCardRenderer(rasterizer.rasterize);
+      // Same active-profile chrome as the tool cards (see docs/og-image.ts).
+      renderer = createViewCardRenderer(rasterizer.rasterize, loadBrandChrome(ROOT));
     } catch (e) {
       console.log(`view-og: card generation skipped (${(e as Error).message}); stubs point at committed cards`);
     }
