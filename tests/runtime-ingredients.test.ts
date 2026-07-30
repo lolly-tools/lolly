@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the runtime's export-time ingredient sweep (runtime.ts
  * export()): a placed asset input whose resolved ref carries a preserved

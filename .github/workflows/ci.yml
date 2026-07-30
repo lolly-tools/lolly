@@ -86,21 +86,64 @@ jobs:
           "$HOME/.cache/c2patool/c2patool" --version
 
       - name: Full test suite
-        # tee so the skip-visibility step below can read the summary; pipefail
+        # tee so the skip-gate step below can read the summary; pipefail
         # keeps the suite's exit code authoritative through the pipe.
         run: |
           set -o pipefail
           npm test 2>&1 | tee test-output.log
 
-      - name: Skipped-test visibility (informational, never gates)
+      # Skipped tests GATE (ratchet). On this runner the skip set is a KNOWN,
+      # environment-determined quantity — qpdf and c2patool are installed above,
+      # so the C2PA/PDF conformance tests all RUN here (zero conformance skips,
+      # including the dynamic "this c2patool build cannot read PDFs" case). A
+      # skip count above the baseline therefore means something that used to run
+      # is silently skipping again — e.g. a conformance-binary install step broke
+      # — and that must FAIL, not scroll past in the log.
+      #
+      # EXPECTED_SKIPS is a RATCHET BASELINE, not a hand-derived invariant: the
+      # per-test conditions (fixture presence, loops, dynamic t.skip) make the
+      # exact number impractical to derive statically, so it is pinned to the
+      # count observed on main (run 30541115113, 2026-07-30). What legitimately
+      # skips on this runner, by reason (sums to 200):
+      #   81  no browser — Playwright Chromium not installed (80 bridge/export
+      #       tests) + 1 CLI headless-browser test
+      #   33  SUSE brand pack not mounted — brands/suse is `update = none` in CI
+      #       (31 pack tests + 2 brand-token tests)
+      #   39  macOS ColorSync stock profiles absent on ubuntu (icc.test.ts)
+      #   18  real ICC profile fixtures not committed (icc-real-profiles.test.ts,
+      #       licensing: see that file's header)
+      #   26  SUSE fonts not in the lolly-start fallback profile (font goldens)
+      #    2  perf/timing tests gated behind BENCH=1
+      #    1  penpot-start example materials (dev-machine only)
+      #    1  LOLLY_ICC_TARG fixture not set
+      # If a PR legitimately adds environment-gated tests, raise the baseline in
+      # that same PR; when skips are removed (e.g. browsers installed in CI, or
+      # fixtures committed), LOWER it so the ratchet keeps its teeth. Local runs
+      # are unaffected — this gate only runs in CI, where the toolchain is known.
+      - name: Skipped tests must not exceed the CI baseline
         if: always()
+        env:
+          EXPECTED_SKIPS: 200
         run: |
           # node:test prints a run summary — "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip
           # ANSI colour codes first, then surface the counts in the job log.
           sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
-            | grep -E '^(#|ℹ) (tests|pass|fail|skipped|todo) [0-9]+' \
-            || echo 'no node:test summary found in test-output.log'
+            | grep -E '^(#|ℹ) (tests|pass|fail|skipped|todo) [0-9]+' || true
+          skipped=$(sed $'s/\x1b\[[0-9;]*m//g' test-output.log \
+            | grep -E '^(#|ℹ) skipped [0-9]+' | tail -1 | grep -oE '[0-9]+' | tail -1 || true)
+          if [ -z "$skipped" ]; then
+            echo "::error::no node:test skip summary found in test-output.log — cannot verify the skip baseline"
+            exit 1
+          fi
+          echo "skipped: $skipped (baseline: $EXPECTED_SKIPS)"
+          if [ "$skipped" -gt "$EXPECTED_SKIPS" ]; then
+            echo "::error::$skipped tests skipped, exceeding the expected CI baseline of $EXPECTED_SKIPS. Something that used to run is skipping again (check the qpdf/c2patool install steps and any new '# SKIP' reasons in the log). If new environment-gated tests were added on purpose, raise EXPECTED_SKIPS in ci.yml in this same PR."
+            exit 1
+          fi
+          if [ "$skipped" -lt "$EXPECTED_SKIPS" ]; then
+            echo "note: $skipped < $EXPECTED_SKIPS — skips were removed; lower EXPECTED_SKIPS in ci.yml to ratchet the baseline down."
+          fi
 
   typecheck:
     name: typecheck

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for BAKED assets — a composed render frozen into a static
  * `data:` ref (engine/src/bake.ts) — plus the engine-owned compose recursion

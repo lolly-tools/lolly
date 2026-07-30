@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Flat-SVG → native PPTX custom-geometry contract tests.
  * Run with: node --test tests/svg-custgeom.test.ts

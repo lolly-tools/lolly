@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pure-logic tests for the web shell's free-canvas (WYSIWYG "editor" layout)
  * geometry helpers (shells/web/src/views/free-canvas-math.ts). These guard the

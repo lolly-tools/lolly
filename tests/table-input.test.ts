@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * The `table` input type — value normalization, the single-param compact URL
  * codec, and engine-driven pagination (render.paginate).

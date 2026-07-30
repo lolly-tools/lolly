@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Export provenance assembly tests.
  * Run with: node --test tests/metadata.test.ts

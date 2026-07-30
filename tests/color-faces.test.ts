@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * A brand colour's faces (engine/src/color-faces.ts) — the generalisation of
  * PrintLock to every colour space and press profile.

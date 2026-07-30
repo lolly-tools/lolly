@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * TrustMark BCH data-layer tests (engine/src/trustmark.ts).
  * Run with: node --test tests/trustmark.test.ts

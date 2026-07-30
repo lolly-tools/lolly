@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * c2pa-extract.ts contract tests: the READ side of the C2PA path: the byte
  * grammar that turns an arbitrary file back into a manifest store, and the

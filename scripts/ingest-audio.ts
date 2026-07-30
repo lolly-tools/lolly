@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Tracker-module (and other audio) catalog ingest — DRY RUN BY DEFAULT.
  *

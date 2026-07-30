@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit-conversion contract tests for output dimensions.
  * Run with: node --test tests/units.test.ts

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Software Bill of Materials (SBOM) generator.
  *
@@ -27,9 +28,11 @@
  *     is unchanged. So `git diff` on sbom.cdx.json is empty unless dependencies
  *     actually moved — which makes a committed-but-stale SBOM a visible CI signal
  *     (run this, commit nothing → drift), the same guard build:catalog relies on.
- *   - dev-only packages are tagged `cdx:npm:package:development=true` (matching the
- *     cyclonedx-npm convention) rather than dropped, so the SBOM is complete and a
- *     consumer can filter to "what actually runs on a user's device" themselves.
+ *   - dev-only packages carry the CycloneDX-standard `scope: "excluded"` (runtime
+ *     ones `scope: "required"`) AND the `cdx:npm:package:development=true` property
+ *     (the cyclonedx-npm convention) rather than being dropped, so the SBOM is
+ *     complete and any SCA tool — standard or convention-aware — can filter to
+ *     "what actually runs on a user's device" itself.
  *   - Beyond the root lockfile, optional passes fold in components that npm's graph
  *     can't see: vendored `.min.js` bundles (hashed from disk), the OFL fonts, the
  *     Tauri shells' sibling lockfiles, and Cargo.lock crates (pkg:cargo). Cargo.lock
@@ -138,6 +141,10 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
     name,
     version: entry.version,
     purl,
+    // CycloneDX-standard scope: `excluded` is the sanctioned value for build/dev-
+    // only components; runtime deps are `required`. Standard SCA tooling filters
+    // on this field.
+    scope: entry.dev ? 'excluded' : 'required',
   };
   // npm only copies a `license` into the lockfile when the package declares the
   // modern string form; packages still using the legacy `licenses: [{type}]`
@@ -151,6 +158,8 @@ for (const [path, entry] of Object.entries(lock.packages ?? {}) as [string, any]
     component.externalReferences = [{ type: 'distribution', url: entry.resolved }];
   }
   if (entry.dev) {
+    // Kept alongside the standard `scope` field for back-compat with consumers
+    // that already filter on the cyclonedx-npm convention property.
     component.properties = [{ name: 'cdx:npm:package:development', value: 'true' }];
   }
   byPurl.set(purl, component);
@@ -186,6 +195,7 @@ for (const lib of VENDORED_LIBS) {
     name: lib.name,
     version: lib.version,
     purl,
+    scope: 'required', // vendored bundles ship in the product
   };
   const licenses = licensesFromString(lib.license);
   if (licenses) component.licenses = licenses;
@@ -206,6 +216,7 @@ if (existsSync(join(ROOT, 'catalog/fonts'))) {
       'bom-ref': purl,
       name: 'SUSE / SUSE Mono fonts',
       purl,
+      scope: 'required', // shipped brand assets
       licenses: licensesFromString('OFL-1.1'),
       properties: [{ name: 'lolly:vendored', value: 'catalog/fonts' }],
     });
@@ -392,6 +403,9 @@ function addNpmShellDeps(shellDir: string): void {
       name,
       version,
       purl,
+      // Standard CycloneDX scope; the convention property below is kept for
+      // consumers that filter on it (back-compat).
+      scope: dev.has(name) ? 'excluded' : 'required',
     };
     const licenses = licensesFromString(locked?.license);
     if (licenses) component.licenses = licenses;
@@ -434,6 +448,9 @@ function addCargoCrates(rel: string): void {
           name,
           version,
           purl,
+          // Linked into the shipped binary unless a license note below says
+          // build-only (which flips this to `excluded`).
+          scope: 'required',
           licenses: licensesFromString(cargoLicenses[`${name}@${version}`]) ??
             [{ license: { name: 'unknown' } }],
         };

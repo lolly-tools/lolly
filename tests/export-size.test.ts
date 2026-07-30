@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for exportSizeDriver (shells/web/src/views/export-size.ts) — the
  * manifest→export-dimensions mapping that lets a "size" select set the printed

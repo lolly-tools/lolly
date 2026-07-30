@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Tests for engine/src/zzfx-compose.ts — the ZzFXM composer moved into the
  * engine from scripts/lib/zzfx-music.ts (1.60.0). Covers: a composed song is

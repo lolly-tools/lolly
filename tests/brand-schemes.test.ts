@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for engine/src/brand-schemes.ts — the pure scheme-accent
  * generator behind the brand generator's harmony picker. Covers the accent

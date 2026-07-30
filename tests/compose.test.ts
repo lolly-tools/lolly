@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for tool composition / "nested exports" — the engine side.
  *

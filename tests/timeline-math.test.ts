@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * timeline-math — the pure time math behind the timeline panel (Fable timeline, phase 2).
  *

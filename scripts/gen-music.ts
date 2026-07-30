@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Procedural music generator — emits a varied set of CC0 ZzFXM tracks into the
  * lolly-start catalog for Neurospicy Mode + video music beds. Variety by design:

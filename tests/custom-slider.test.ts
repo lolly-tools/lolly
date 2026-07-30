@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * The shell's slider (shells/web/src/components/custom-slider.ts) — the markup
  * contract, and the part that carries real risk: the two-way binding between an

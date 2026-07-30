@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Print-marks geometry contract tests.
  * Run with: node --test tests/print-marks.test.ts

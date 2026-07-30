@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Pure-logic tests for the web shell's tree-blocks + reference-picker helpers
  * (shells/web/src/views/block-tree.ts). These guard the drag-to-reparent algebra

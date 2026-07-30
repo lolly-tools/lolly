@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Profile switcher — builds the repo-root `tools/` and `catalog/` VIEWS.
  *

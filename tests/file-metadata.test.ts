@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Embedded-metadata reader tests (the /verify view's "reveal" side).
  * Run with: node --test tests/file-metadata.test.ts

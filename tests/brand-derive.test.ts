@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for engine/src/brand-derive.ts — the OKLCH colour math
  * (parse/format/hex round-trips, gamut mapping, WCAG contrast) and the

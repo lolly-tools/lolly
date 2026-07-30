@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Per-view Open Graph (social share) generator — the app's own sections.
  *

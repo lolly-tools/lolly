@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for exportActionSteps (engine/src/c2pa.ts) — the honest C2PA action
  * history the shells assemble from what an export actually did. These pin down the

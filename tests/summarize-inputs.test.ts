@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for summarizeInputs (engine/src/inputs.ts) — the compact scalar-input
  * digest embedded in export provenance (the C2PA tools.lolly.export assertion).

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * CA service contract tests — pure logic, no sockets, no live OIDC.
  * Run with: node --test tests/ca-service.test.ts

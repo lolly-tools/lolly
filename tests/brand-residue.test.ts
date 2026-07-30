@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Brand-residue guard for the lolly-start starter pack.
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the runtime's per-hook time-boxes (HOOK_BUDGET_MS).
  *

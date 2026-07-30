@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Lolly pixel watermark — real-encoder robustness (Phase 1 calibration, now a
  * regression). Runs marked/unmarked content through REAL JPEG/crop/resize via

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 // Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops
 // + radial-gradient geometry, and drop-shadow filters.
 //

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Gamut SOURCES (engine/src/gamut-source.ts) — the generalisation that lets a
  * gamut come from an ICC profile instead of one of three hard-coded RGB

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Runs svgo over every generated preview SVG (catalog/previews/*.svg) in place.
  *

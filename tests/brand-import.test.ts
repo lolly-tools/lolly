@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit + cross-container equivalence tests for engine/src/brand-import.ts —
  * the container-extraction layer that reassembles a Penpot/Tokens-Studio

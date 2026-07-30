@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * rampOklab (engine/src/color-tools.ts) — perceptual colour-ramp contract tests.
  *

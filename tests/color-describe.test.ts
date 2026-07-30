@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * describeColor / contrastVsExtremes (engine/src/color-describe.ts) — the join
  * between CSS Color 4 parsing and display-gamut classification.

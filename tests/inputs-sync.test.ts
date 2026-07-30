@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Unit tests for the sidebar input-sync skip decision (shells/web/src/views/
  * inputs-sync.js). This is the logic that lets a keystroke avoid rebuilding the
@@ -232,5 +233,39 @@ test('a focused text field OUTSIDE the panel does not defer another panel rebuil
   dom.window.document.getElementById('elsewhere')!.focus();
   const el = dom.window.document.getElementById('panel') as HTMLElement;
   const [prev, model] = blocksPair([{ title: 'a' }], [{ title: 'ab' }]);
+  assert.equal(canSkipInputsRebuild(el, model, prev), false);
+});
+
+test('a popped-out table cell defers the rebuild even though it left the panel', () => {
+  // A table input can be lifted into a floating panel (lib/float-panel), which
+  // mounts it OUTSIDE #tool-inputs. Its cells still hold the authoritative value,
+  // so the deferral has to follow the grid rather than the sidebar box — without
+  // this, every keystroke rebuilds the sidebar, which tears the panel down and
+  // re-pops it, and typing dies after one character.
+  const dom = new JSDOM(
+    '<!DOCTYPE html><div id="panel"></div>'
+    + '<div class="floatp"><div class="table-input" data-table-id="data">'
+    + '<textarea class="table-cell" data-field-id="data:t:0:1">Is it open</textarea>'
+    + '</div></div>'
+  );
+  if (dom.window.CSS) globalThis.CSS = dom.window.CSS;
+  dom.window.document.querySelector<HTMLElement>('.table-cell')!.focus();
+  const el = dom.window.document.getElementById('panel') as HTMLElement;
+  const [prev, model] = blocksPair([{ x: 'Is it open' }], [{ x: 'Is it open?' }]);
+  assert.equal(canSkipInputsRebuild(el, model, prev), true);
+});
+
+test('a floating field that is NOT a table cell still takes the rebuild', () => {
+  // The exemption is scoped to the popped-out grid, not to floating panels at
+  // large: anything else out there is a different surface and must not be able
+  // to freeze this panel's repaint.
+  const dom = new JSDOM(
+    '<!DOCTYPE html><div id="panel"></div>'
+    + '<div class="floatp"><input data-field-id="other:0:x" value="z"></div>'
+  );
+  if (dom.window.CSS) globalThis.CSS = dom.window.CSS;
+  dom.window.document.querySelector<HTMLElement>('.floatp input')!.focus();
+  const el = dom.window.document.getElementById('panel') as HTMLElement;
+  const [prev, model] = blocksPair([{ a: 1 }], [{ a: 2 }]);
   assert.equal(canSkipInputsRebuild(el, model, prev), false);
 });

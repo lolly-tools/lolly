@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * An image's colours as a point cloud (engine/src/image-cloud.ts).
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the DOM-free CSS "paint" parsers the export walkers (SVG + PDF)
  * share: clip-path basic shapes, radial-gradient geometry, and drop-shadow filters.

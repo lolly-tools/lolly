@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Regenerate (and optionally validate) EVERY profile's catalog, not just the active one.
  *

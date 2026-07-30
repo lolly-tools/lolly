@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * c2pa-containers.ts contract tests: the per-format byte-splicing PLACEMENT
  * side of the C2PA writer (png/jpeg/gif/svg/tiff/webp/mp4/webm placers, the

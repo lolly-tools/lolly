@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Contract tests for the END-USER tool-URL surface (parseToolUrl / buildEmbedUrl /
  * isToolUrl) — what the asset picker accepts when a user pastes a Lolly link.

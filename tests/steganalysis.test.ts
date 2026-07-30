@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Chi-square LSB steganalysis tests (engine/src/steganalysis.ts).
  * Run with: node --test tests/steganalysis.test.ts

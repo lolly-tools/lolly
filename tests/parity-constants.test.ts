@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Parity guard for the audio-coaching thresholds that are hand-mirrored between the
  * tool hook and the shell core.

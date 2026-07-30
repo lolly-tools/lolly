@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Filesystem-backed state implementation shared by BOTH Tauri shells.
  *

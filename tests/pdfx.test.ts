@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * PDF/X-4 metadata authority contract tests.
  * Run with: node --test tests/pdfx.test.ts

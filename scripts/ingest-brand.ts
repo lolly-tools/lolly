@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Brand pack hydrator — turns a design-tokens export into a `brands/<name>`
  * pack, ready to register as a profile (see profiles.json / use-profile.ts).

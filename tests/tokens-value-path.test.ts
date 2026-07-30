@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Token-backed colour values through the engine value path: URL serialize/parse
  * and template hydration. Confirms a token reference survives a shared link and

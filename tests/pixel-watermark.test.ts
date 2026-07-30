@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Lolly pixel watermark — synthetic round-trip tests (no image codec; pure RGBA
  * buffers). Robustness against real JPEG/resize/crop lives in the separate

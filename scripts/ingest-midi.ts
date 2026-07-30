@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * MIDI → ZzFXM ingest. Converts a Standard MIDI File into a tiny ZzFXM song and
  * registers it as a `type:'audio'`, `format:'zzfxm'` catalog asset (lolly-start),

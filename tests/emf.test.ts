@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * EMF emitter byte-structure contract tests.
  * Run with: node --test tests/emf.test.ts

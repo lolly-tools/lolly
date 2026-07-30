@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * Colour-profile contract tests: the generated sRGB ICC profile is structurally
  * valid, RGB→CMYK matches the documented formula, and the press-condition

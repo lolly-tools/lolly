@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MPL-2.0
 /**
  * x509.js contract tests: PEM codec, CA root generation, leaf issuance
  * (the c2pa-rs-compatible profile) and the external-signer embed path.
