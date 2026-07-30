@@ -75,7 +75,8 @@ import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
 import { embedC2pa, windowPdfSvg, type summarizeInputs } from '../engine/src/index.ts';
 import { embedWatermark, LOSSLESS_STRENGTH, DEFAULT_STRENGTH } from '../engine/src/pixel-watermark.ts';
 import {
-  DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, classifyShot, classifyVectorShot, parseShotRecipes,
+  DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, classifyShot, classifyVectorShot,
+  ineffectiveTolerance, parseShotRecipes,
   type RawImage, type ShotDef, type ShotVerdict,
 } from './lib/shot-compare.ts';
 
@@ -170,6 +171,12 @@ async function main(): Promise<void> {
     const missing = opts.only.filter((s) => !shots.some((x) => x.slug === s));
     if (missing.length) throw new Error(`--only names unknown recipes: ${missing.join(', ')}`);
     shots = shots.filter((s) => opts.only.includes(s.slug));
+  }
+
+  const moot = ineffectiveTolerance(shots);
+  if (moot.length) {
+    console.warn(`\u26a0  tolerance= has no effect on a vector shot (they compare exactly, not by pixels): ${moot.join(', ')}`);
+    console.warn('   Freeze or hide the moving part with css= instead, or capture it as png.');
   }
 
   if (opts.list) {
@@ -416,6 +423,12 @@ const NEUTRAL_PROBE = `(() => {
   if (document.querySelector('.welcome-dialog')) bad.push('welcome dialog open');
   if (document.querySelector('.brand-tips')) bad.push('tips strip showing');
   if (document.querySelector('.tool-guide-steps')) bad.push('tool guide auto-opened');
+  // Asked of the RENDERED page, not of a flag: flagEnabledSync consults an
+  // in-memory override before the pinned mirror (lib/neuro-demo.ts uses it so a
+  // demo link can enable the mode for one page load), so no flag-layer pin can
+  // promise the dock is absent. Its presence in the DOM is what would actually
+  // land in a baseline.
+  if (document.getElementById('neuro-dock')) bad.push('Neurospicy dock mounted');
   return bad;
 })()`;
 

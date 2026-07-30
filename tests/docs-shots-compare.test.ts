@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, channelStddev, isBlank, pixelDiffFraction, classifyShot,
+  DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, ineffectiveTolerance, channelStddev, isBlank, pixelDiffFraction, classifyShot,
   parseShotRecipes, stripSvgC2pa, svgRootSize, classifyVectorShot,
   type RawImage,
 } from '../scripts/lib/shot-compare.ts';
@@ -303,4 +303,17 @@ test('the budget is derived from the /info column, not fitted to the corpus', ()
   assert.equal(DEFAULT_THRESHOLDS.maxWidth, MAX_SHOT_PX);
   assert.ok(DEFAULT_THRESHOLDS.maxBytes > DEFAULT_THRESHOLDS.minBytes);
   assert.ok(DEFAULT_THRESHOLDS.vectorMaxBytes > DEFAULT_THRESHOLDS.vectorMinBytes);
+});
+
+test('ineffectiveTolerance names vector recipes whose tolerance cannot apply', () => {
+  // tolerance= sets pixelDiffFrac, which only classifyShot reads; a vector shot is
+  // compared as a document by exact string equality, so the parameter is silently
+  // inert. The walker migration carried tolerance=0.03 onto format=svg recipes that
+  // frame animated content, which is exactly how this goes unnoticed.
+  const shots = [
+    { slug: 'raster-with-tol', format: 'png', pixelDiffFrac: 0.03 },
+    { slug: 'vector-with-tol', format: 'svg', pixelDiffFrac: 0.03 },
+    { slug: 'vector-plain', format: 'svg' },
+  ] as unknown as Parameters<typeof ineffectiveTolerance>[0];
+  assert.deepEqual(ineffectiveTolerance(shots), ['vector-with-tol']);
 });
