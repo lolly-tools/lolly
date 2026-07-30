@@ -725,9 +725,10 @@ function readJson(rel: string): any {
 function unresolvedSidecarKey(manifest: any, key: string): string | null {
   if (key === 'name' || key === 'description' || key === 'a11yLabel') return null;
   if (key === 'featured.blurb') return manifest.featured ? null : 'references featured.blurb but the manifest has no featured block';
+  if (key.startsWith('guide.')) return unresolvedGuideKey(manifest, key.slice('guide.'.length));
 
   const m = /^inputs\.([^.]+)\.(.+)$/.exec(key);
-  if (!m) return 'does not match any known overlay path (name, description, a11yLabel, featured.blurb, inputs.<id>.…)';
+  if (!m) return 'does not match any known overlay path (name, description, a11yLabel, featured.blurb, guide.…, inputs.<id>.…)';
   const [, inputId, rest] = m as unknown as [string, string, string];
   const input = (manifest.inputs ?? []).find((i: any) => i.id === inputId);
   if (!input) return `references unknown input "${inputId}"`;
@@ -753,6 +754,28 @@ function unresolvedSidecarKey(manifest: any, key: string): string | null {
     }
   }
   return 'does not match any known overlay path';
+}
+
+// Mirrors applyGuideI18n in engine/src/loader.ts — a step index past the end of
+// the track resolves to nothing at runtime, so it's an authoring error here.
+function unresolvedGuideKey(manifest: any, rest: string): string | null {
+  const guide = manifest.guide;
+  if (!guide) return 'references guide.* but the manifest has no guide block';
+  if (rest === 'title') return null;
+
+  const m = /^tracks\.([^.]+)\.(.+)$/.exec(rest);
+  if (!m) return 'does not match any known guide path (guide.title, guide.tracks.<id>.label/.note/.steps.<index>)';
+  const [, trackId, field] = m as unknown as [string, string, string];
+  const track = (guide.tracks ?? []).find((t: any) => t.id === trackId);
+  if (!track) return `references unknown guide track "${trackId}"`;
+  if (field === 'label' || field === 'note') return null;
+
+  const stepMatch = /^steps\.(\d+)$/.exec(field);
+  if (!stepMatch) return `does not match any known guide path on track "${trackId}" (label, note, steps.<index>)`;
+  const idx = Number(stepMatch[1]);
+  return (track.steps ?? [])[idx] === undefined
+    ? `references step ${idx} but track "${trackId}" has ${(track.steps ?? []).length} step(s)`
+    : null;
 }
 
 function readJsonOptional(rel: string): any {

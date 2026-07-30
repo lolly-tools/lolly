@@ -306,6 +306,48 @@
         }
       }
     },
+    "guide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tracks"],
+      "description": "A short 'how do I actually use the thing I just made' walkthrough, shown as a dialog behind a help button beside the tool's title (web shell) and opened once automatically on a device's first visit to the tool. For the last mile a render can't teach on its own — where the export goes and what to do with it there. Keep it to a handful of steps: it is a nudge, not documentation (link to docs from a step for the long version). Translatable via the tool's i18n sidecar under `guide.*`.",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Dialog heading. Defaults to a generic 'How to use it' in the shell when omitted."
+        },
+        "tracks": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "description": "One track per route the user might take (e.g. desktop vs phone). A single track renders as a plain step list; two or more render as tabs.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "label", "steps"],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]+$",
+                "description": "Stable key for this track — the i18n sidecar path (`guide.tracks.<id>.…`) is built from it, so treat it like an input id."
+              },
+              "label": { "type": "string", "description": "Tab label. Keep it to one or two words." },
+              "steps": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 8,
+                "description": "Ordered steps, rendered as a numbered list. Plain text — `**bold**` is the only markup, for naming the control being pointed at.",
+                "items": { "type": "string" }
+              },
+              "note": {
+                "type": "string",
+                "description": "Optional closing caveat under the steps (e.g. what this route cannot do)."
+              }
+            }
+          }
+        }
+      }
+    },
     "hooks": {
       "type": "object",
       "additionalProperties": false,

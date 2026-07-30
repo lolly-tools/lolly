@@ -134,7 +134,9 @@ export interface LoadToolOpts {
  *  "inputs.<id>.suffix", "inputs.<id>.options.<value>" (select option label),
  *  "inputs.<id>.addMenu.label", "inputs.<id>.fields.<fieldId>.label" /
  *  ".help" / ".placeholder" (blocks/vector sub-fields), and
- *  "inputs.<id>.fields.<fieldId>.options.<value>" (block sub-field option label).
+ *  "inputs.<id>.fields.<fieldId>.options.<value>" (block sub-field option label),
+ *  plus the walkthrough: "guide.title", "guide.tracks.<id>.label" / ".note" /
+ *  ".steps.<index>".
  *  `featured.blurb` is intentionally NOT applied here — `featured` isn't part
  *  of the typed ToolManifest (it's catalog-index-only data); the same sidecar
  *  file's `featured.blurb` key is read separately by build-catalog-index.ts. */
@@ -150,6 +152,7 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
     if (key === 'name') { manifest.name = value; continue; }
     if (key === 'description') { manifest.description = value; continue; }
     if (key === 'a11yLabel') { manifest.a11yLabel = value; continue; }
+    if (key.startsWith('guide.')) { applyGuideI18n(manifest, key.slice('guide.'.length), value); continue; }
 
     const m = /^inputs\.([^.]+)\.(.+)$/.exec(key);
     if (!m) continue;
@@ -189,6 +192,26 @@ export function applyManifestI18n(manifest: ToolManifest, overlay: ToolI18nOverl
       }
     }
   }
+}
+
+/** The `guide.*` half of {@link applyManifestI18n}: "title",
+ *  "tracks.<id>.label", "tracks.<id>.note", "tracks.<id>.steps.<index>".
+ *  A step index past the end of the track is ignored — a translator can't add
+ *  steps the manifest doesn't have. */
+function applyGuideI18n(manifest: ToolManifest, rest: string, value: string): void {
+  const guide = manifest.guide;
+  if (!guide) return;
+  if (rest === 'title') { guide.title = value; return; }
+
+  const m = /^tracks\.([^.]+)\.(.+)$/.exec(rest);
+  if (!m) return;
+  const [, trackId, field] = m as unknown as [string, string, string];
+  const track = guide.tracks?.find(t => t.id === trackId);
+  if (!track) return;
+  if (field === 'label' || field === 'note') { track[field] = value; return; }
+
+  const stepMatch = /^steps\.(\d+)$/.exec(field);
+  if (stepMatch && track.steps?.[Number(stepMatch[1])] !== undefined) track.steps[Number(stepMatch[1])] = value;
 }
 
 const integrityTextEncoder = new TextEncoder();
