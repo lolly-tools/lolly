@@ -525,7 +525,32 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
             __lollyWalkerShot?: (sel?: string, o?: Record<string, unknown>) => Promise<{ svg: string; ms: number }>;
           }).__lollyWalkerShot;
           if (!hook) return null;
+          // Paint the page's own backdrop onto the crop root before walking, when
+          // the root does not already have one. The print path gets this free via
+          // printBackground:true; the walker paints only per-element
+          // background-color, so cropping to a panel that inherits its backdrop
+          // (#tool-inputs, .be-* and 33 others measured) yields a TRANSPARENT shot
+          // — invisible against /info's dark theme. Using body's resolved colour
+          // reproduces what the reader actually sees behind that element, rather
+          // than inventing white.
+          const target = document.querySelector(s) as HTMLElement | null;
+          let painted = '';
+          if (target) {
+            const own = getComputedStyle(target).backgroundColor;
+            const isClear = !own || own === 'transparent'
+              || (/^rgba\(/.test(own) && parseFloat(own.split(',')[3] as string) < 0.99);
+            if (isClear) {
+              const pageBg = getComputedStyle(document.body).backgroundColor
+                || getComputedStyle(document.documentElement).backgroundColor;
+              if (pageBg && pageBg !== 'transparent') {
+                painted = target.style.backgroundColor;
+                target.style.backgroundColor = pageBg;
+              }
+            }
+          }
           const r = await hook(s);
+          if (target && painted !== '') target.style.backgroundColor = painted;
+          else if (target) target.style.removeProperty('background-color');
           if (!r?.svg) return null;
 
           // Parse failure is the catastrophic-and-silent case: a well-sized file
