@@ -915,6 +915,38 @@ function shiftNodesToOrigin(nodes: DesignNode[]): { width: number; height: numbe
   return { width: Math.max(1, Math.round(maxX - minX)), height: Math.max(1, Math.round(maxY - minY)) };
 }
 
+/**
+ * Order frames the way a person reads a storyboard: rows top-to-bottom, then
+ * left-to-right within a row. Design canvases store children in Z/creation
+ * order (Penpot's root `shapes`, Figma's canvas children), so a deck imported
+ * in that order plays backwards or shuffled — spatial order is what the frames'
+ * layout actually says. Rows are clustered by vertical overlap of frame
+ * centres (tolerance = half the median frame height), so slight hand-placed
+ * jitter doesn't split a row. Pure + stable for equal positions.
+ * @param {T[]} items
+ * @param {(t: T) => {x:number,y:number,w:number,h:number}} rect
+ * @returns {T[]} a new sorted array.
+ */
+export function readingOrder<T>(items: T[], rect: (t: T) => { x: number; y: number; w: number; h: number }): T[] {
+  if (items.length < 2) return [...items];
+  const heights = items.map((t) => rect(t).h).sort((a, b) => a - b);
+  const tol = Math.max(1, (heights[Math.floor(heights.length / 2)] ?? 0) / 2);
+  const byY = [...items].sort((a, b) => (rect(a).y + rect(a).h / 2) - (rect(b).y + rect(b).h / 2));
+  const rows: T[][] = [];
+  let rowYc = -Infinity;
+  for (const t of byY) {
+    const yc = rect(t).y + rect(t).h / 2;
+    if (!rows.length || yc - rowYc > tol) { rows.push([t]); rowYc = yc; }
+    else {
+      const row = rows[rows.length - 1]!;
+      row.push(t);
+      // Running row centre so a gently descending row doesn't drift past tol.
+      rowYc = row.reduce((s, r) => s + rect(r).y + rect(r).h / 2, 0) / row.length;
+    }
+  }
+  return rows.flatMap((row) => row.sort((a, b) => rect(a).x - rect(b).x));
+}
+
 // Container types whose top-level instances read as "one frame = one scene".
 // SECTION is Figma's slide/grouping container; a top-level COMPONENT/INSTANCE is
 // how many deck files store their slides.
@@ -960,6 +992,7 @@ export function figmaNodesToScenes(nodeChanges: unknown, blobs?: FigBlobs): Desi
     };
 
     const loose: DesignNode[] = [];
+    const framed: Array<{ scene: DesignFrameScene; at: { x: number; y: number; w: number; h: number } }> = [];
     for (const child of (kids[key(page.guid)] || [])) {
       if (!child || child.visible === false) continue;
       const type = String(child.type || '');
@@ -975,17 +1008,26 @@ export function figmaNodesToScenes(nodeChanges: unknown, blobs?: FigBlobs): Desi
           matMul(pageAbs, figMatrix(child)),
         );
         for (const n of nodes) { n.x = num(n.x, 0) - geom.x; n.y = num(n.y, 0) - geom.y; }
-        scenes.push({
-          name: String(child.name || '') || `Frame ${scenes.length + 1}`,
-          width: Math.max(1, Math.round(geom.w)) || 1080,
-          height: Math.max(1, Math.round(geom.h)) || 1080,
-          nodes,
+        framed.push({
+          at: { x: geom.x, y: geom.y, w: geom.w, h: geom.h },
+          scene: {
+            name: String(child.name || '') || `Frame ${framed.length + 1}`,
+            width: Math.max(1, Math.round(geom.w)) || 1080,
+            height: Math.max(1, Math.round(geom.h)) || 1080,
+            nodes,
+          },
         });
       } else {
         collect(child, loose);
       }
     }
-    if (loose.length) {
+    // Frames play in READING order (rows top-to-bottom, then left-to-right) —
+    // canvas child order is Z/creation order, which plays a deck backwards.
+    scenes.push(...readingOrder(framed, (f) => f.at).map((f) => f.scene));
+    // Loose shapes only make a scene when the page has NO frames (the whole page
+    // is the artwork). Next to frames they're scratch content around the boards,
+    // and a union-bounds scene of scratch is noise.
+    if (loose.length && !framed.length) {
       const { width, height } = shiftNodesToOrigin(loose);
       scenes.push({ name: String(page.name || '') || 'Page', width, height, nodes: loose });
     }
