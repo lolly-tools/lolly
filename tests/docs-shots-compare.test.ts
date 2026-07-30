@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEFAULT_THRESHOLDS, channelStddev, isBlank, pixelDiffFraction, classifyShot,
+  DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, channelStddev, isBlank, pixelDiffFraction, classifyShot,
   parseShotRecipes, stripSvgC2pa, svgRootSize, classifyVectorShot,
   type RawImage,
 } from '../scripts/lib/shot-compare.ts';
@@ -212,4 +212,95 @@ test('parseShotRecipes: format defaults to svg; ordinary images are ignored', ()
   assert.deepEqual(problems, []);
   assert.equal(recipes.length, 1);
   assert.equal(recipes[0]!.format, 'svg');
+});
+
+// ── Weight budget: the ceilings, and the density clamp that keeps them ────────
+//
+// Every threshold in this pipeline used to be a FLOOR (tiny/blank), which is how
+// docs/shots grew to 70 MB of baselines up to 2880px wide while a reader never
+// sees more than an 848px column. These tests pin the ceiling side.
+
+test('clampDpr: a tight crop keeps its full density', () => {
+  // 600 CSS px of visible content at 2x = 1200px — comfortably inside the budget,
+  // so the recipe's requested density survives untouched. This is the case the
+  // house rule produces (crop to the area of focus), and it must not be penalised.
+  assert.equal(clampDpr(192, 600), 2);
+  assert.equal(clampDpr(288, 400), 3);
+});
+
+test('clampDpr: a full-window frame gives density back instead of exceeding the ceiling', () => {
+  // The historic default pairing: 1440 CSS px at 192dpi = 2880px, ~2.9x the pixels
+  // of the display ceiling. The clamp reduces the ratio so width lands at the cap.
+  const dpr = clampDpr(192, 1440);
+  assert.ok(dpr < 2, 'a 1440-wide frame must not keep 2x');
+  assert.ok(Math.round(1440 * dpr) <= MAX_SHOT_PX);
+});
+
+test('clampDpr: never below CSS resolution, and 96dpi is left alone', () => {
+  // Downsampling under 1x would render soft at ANY display size — worse than heavy.
+  assert.equal(clampDpr(192, 4_000), 1);
+  assert.equal(clampDpr(96, 600), 1, '96dpi means 1x, not "scale me up"');
+  assert.equal(clampDpr(48, 600), 1, 'a sub-96 dpi is not a downscale request');
+});
+
+test('clampDpr: a nonsense clip width falls back to the request rather than dividing by zero', () => {
+  assert.equal(clampDpr(192, 0), 2);
+  assert.equal(clampDpr(192, -10), 2);
+});
+
+test('classifyShot: over-scale fires on width, heavy on bytes', () => {
+  const wide = checker(MAX_SHOT_PX + 200, 100);
+  const v = classifyShot({
+    newBytes: 50_000, newImg: wide,
+    expected: { width: wide.width, height: wide.height },
+  });
+  assert.deepEqual(v.flags, ['over-scale']);
+
+  const heavy = classifyShot({
+    newBytes: DEFAULT_THRESHOLDS.maxBytes + 1, newImg: checker(800, 600),
+    expected: { width: 800, height: 600 },
+  });
+  assert.deepEqual(heavy.flags, ['heavy']);
+});
+
+test('classifyShot: the ceilings are judged on a NEW shot too', () => {
+  // Checked before the no-baseline early return: the cheapest moment to stop an
+  // over-weight baseline is the run that would create it.
+  const v = classifyShot({
+    newBytes: DEFAULT_THRESHOLDS.maxBytes + 1,
+    newImg: checker(MAX_SHOT_PX + 10, 50),
+    expected: { width: MAX_SHOT_PX + 10, height: 50 },
+  });
+  assert.equal(v.kind, 'new');
+  assert.deepEqual(v.flags.sort(), ['heavy', 'over-scale']);
+});
+
+test('classifyShot: a shot inside the budget carries no weight flag', () => {
+  const img = checker(1_600, 1_000);
+  const v = classifyShot({
+    newBytes: 400_000, newImg: img, expected: { width: 1_600, height: 1_000 },
+    oldBytes: 400_000, oldImg: img,
+  });
+  assert.deepEqual(v.flags, []);
+  assert.equal(v.kind, 'unchanged');
+});
+
+test('classifyVectorShot: heavy fires on bytes; there is no pixel width to judge', () => {
+  const svg = '<svg width="800" height="600"><rect/></svg>';
+  const v = classifyVectorShot({
+    newText: svg, newBytes: DEFAULT_THRESHOLDS.vectorMaxBytes + 1,
+    expected: { width: 800, height: 600 },
+  });
+  assert.deepEqual(v.flags, ['heavy']);
+  assert.ok(!v.flags.includes('over-scale'), 'over-scale is a raster concept');
+});
+
+test('the budget is derived from the /info column, not fitted to the corpus', () => {
+  // 848 CSS px content column at DPR 2 = 1696 device px; the cap is that plus
+  // rounding slack. If this number ever moves, docs/build.ts's .docs-wrap /
+  // .docs-content geometry is what has to justify it.
+  assert.equal(MAX_SHOT_PX, 1_800);
+  assert.equal(DEFAULT_THRESHOLDS.maxWidth, MAX_SHOT_PX);
+  assert.ok(DEFAULT_THRESHOLDS.maxBytes > DEFAULT_THRESHOLDS.minBytes);
+  assert.ok(DEFAULT_THRESHOLDS.vectorMaxBytes > DEFAULT_THRESHOLDS.vectorMinBytes);
 });

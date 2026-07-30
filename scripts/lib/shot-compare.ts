@@ -40,7 +40,29 @@ export interface ShotThresholds {
   /** Byte floor for a TRUE-VECTOR svg shot (far lower than a raster's — a legit
    *  vector page can be small, but near-nothing still means a failed print). */
   vectorMinBytes: number;
+  /** Device-pixel width ceiling for a raster shot — see MAX_SHOT_PX. */
+  maxWidth: number;
+  /** Encoded-byte ceiling for a raster shot. */
+  maxBytes: number;
+  /** Encoded-byte ceiling for a vector shot (no pixel width to judge). */
+  vectorMaxBytes: number;
 }
+
+/**
+ * The widest a docs screenshot can ever be SEEN, in device pixels.
+ *
+ * `docs/build.ts` renders /info in a 1180px `.docs-wrap` — a 220px nav rail plus
+ * `.docs-content{padding:6rem 3.5rem}` — so a shot's box is 1180−220−112 = 848 CSS
+ * px, and that is a hard cap: `max-width` means a 5K monitor shows the same 848px
+ * as a laptop. At DPR 2 that is 1696 device px; the FAQ accordion's box is
+ * narrower still (~801 CSS px). Rounded up for clip/rounding slack.
+ *
+ * Every pixel past this is bytes no reader can resolve. Historically most recipes
+ * paired `width=1440` with `dpi=192` and shipped 2880 px — 2.9x the pixels of the
+ * ceiling, i.e. about two thirds of the file unviewable. `clampDpr` below is what
+ * stops that happening again, without hand-tuning 134 recipes.
+ */
+export const MAX_SHOT_PX = 1_800;
 
 export const DEFAULT_THRESHOLDS: ShotThresholds = {
   minBytes: 8_192,
@@ -50,7 +72,38 @@ export const DEFAULT_THRESHOLDS: ShotThresholds = {
   pixelDiffFrac: 0.005,
   dimSlack: 2,
   vectorMinBytes: 2_048,
+  maxWidth: MAX_SHOT_PX,
+  // Deliberately loose to begin with: these are the first ceilings this pipeline
+  // has ever had, and a number tight enough to be satisfying today would either
+  // block legitimate shots or collect waivers. `maxWidth` is the derived rule and
+  // does the real work; this is the backstop for the OTHER failure mode, where the
+  // pixels are in budget but the content is incompressible — the mesh-gradient and
+  // street-map canvases run ~1.5 B/px against a UI shot's ~0.36, and are the
+  // heaviest files left once width is capped. A dense full-window UI shot at the
+  // width ceiling measures ~0.45 B/px (1800x1125 ≈ 910 KB), so 1 MB clears those
+  // and still flags continuous-tone art. Ratchet down as shots are reframed.
+  maxBytes: 1_000_000,
+  vectorMaxBytes: 1_048_576,
 };
+
+/**
+ * The device-pixel ratio a capture should actually use: the recipe's own request,
+ * reduced so the output cannot exceed `maxPx` across.
+ *
+ * `clipCssWidth` is the visible width AFTER cropping, which is the only width that
+ * ends up in the file — so a recipe that crops to the area of focus (the house
+ * rule) keeps its full 2x crispness, while a full-window shot quietly drops toward
+ * 1x instead of shipping pixels past the display ceiling. Recipes therefore state
+ * the density they want and this decides what is worth encoding.
+ *
+ * Returns a plain ratio (1 = 96dpi). Never below 1: a shot must not be downsampled
+ * below CSS resolution, because then it would render soft at any size.
+ */
+export function clampDpr(requestedDpi: number, clipCssWidth: number, maxPx = MAX_SHOT_PX): number {
+  const requested = requestedDpi > 96 ? requestedDpi / 96 : 1;
+  if (!(clipCssWidth > 0)) return requested;
+  return Math.max(1, Math.min(requested, maxPx / clipCssWidth));
+}
 
 /** Highest per-channel standard deviation across R, G, B (alpha ignored). */
 export function channelStddev(img: RawImage): number {
@@ -100,7 +153,7 @@ export function pixelDiffFraction(a: RawImage, b: RawImage, tol: number): number
   return diff / n;
 }
 
-export type ShotFlag = 'tiny' | 'blank' | 'dims-mismatch' | 'size-jump';
+export type ShotFlag = 'tiny' | 'blank' | 'dims-mismatch' | 'size-jump' | 'over-scale' | 'heavy';
 
 export interface ShotVerdict {
   kind: 'new' | 'unchanged' | 'changed';
@@ -131,6 +184,10 @@ export function classifyShot(c: ShotComparison, t: ShotThresholds = DEFAULT_THRE
   ) {
     flags.push('dims-mismatch');
   }
+  // Ceilings, checked BEFORE the no-baseline return so a brand-new shot is judged
+  // too — an over-weight baseline is easiest to stop on the run that creates it.
+  if (c.newImg.width > t.maxWidth) flags.push('over-scale');
+  if (c.newBytes > t.maxBytes) flags.push('heavy');
 
   if (!c.oldImg || c.oldBytes === undefined) {
     return { kind: 'new', flags, pixelDiff: null, sizeDelta: null };
@@ -191,6 +248,7 @@ export interface VectorShotComparison {
 export function classifyVectorShot(c: VectorShotComparison, t: ShotThresholds = DEFAULT_THRESHOLDS): ShotVerdict {
   const flags: ShotFlag[] = [];
   if (c.newBytes < t.vectorMinBytes) flags.push('tiny');
+  if (c.newBytes > t.vectorMaxBytes) flags.push('heavy');
   if (c.expected) {
     const size = svgRootSize(c.newText);
     if (!size ||

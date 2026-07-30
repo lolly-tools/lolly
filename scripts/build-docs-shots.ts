@@ -75,7 +75,7 @@ import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
 import { embedC2pa, windowPdfSvg, type summarizeInputs } from '../engine/src/index.ts';
 import { embedWatermark, LOSSLESS_STRENGTH, DEFAULT_STRENGTH } from '../engine/src/pixel-watermark.ts';
 import {
-  DEFAULT_THRESHOLDS, classifyShot, classifyVectorShot, parseShotRecipes,
+  DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, classifyShot, classifyVectorShot, parseShotRecipes,
   type RawImage, type ShotDef, type ShotVerdict,
 } from './lib/shot-compare.ts';
 
@@ -150,6 +150,8 @@ interface ShotResult {
   error?: string;
   wrote: boolean;
   bytes: number;
+  /** Device-pixel width of the capture — reported when a weight flag fires. */
+  width?: number;
 }
 
 const opts = parseOpts(process.argv.slice(2));
@@ -307,12 +309,40 @@ function paramsFor(shot: ShotDef): { params: Omit<CaptureParams, 'url'>; dims: {
       hue: 0,
       zoom: shot.zoom ?? 1,
     },
-    dims: {
+    dims: clampDims({
       width: shot.width ?? VIEWPORT_DEFAULTS.width,
       height: shot.height ?? VIEWPORT_DEFAULTS.height,
       dpi: shot.dpi ?? VIEWPORT_DEFAULTS.dpi,
-    },
+    }, shot),
   };
+}
+
+/**
+ * Cap the effective density so no baseline is wider than a reader can ever see
+ * (MAX_SHOT_PX — the /info column is 848 CSS px, so 1700-odd device px at DPR 2).
+ *
+ * Applied HERE because `paramsFor` is the one source of `dims` for the capture, for
+ * `expectedDims`, and for the C2PA provenance stamp, so a single clamp keeps all
+ * three consistent. It reads the POST-crop width: `captureOne` resolves a
+ * `cropSelector` into explicit insets before any capture path runs, so a recipe
+ * that crops to the area of focus keeps its full 2x, and only a wide frame gives
+ * density back. Vector shots are unaffected (dpi is raster-only), and
+ * `resolveSelectorCrop` forces DPR 1 itself, so the clamp is inert there.
+ */
+function clampDims(
+  dims: { width: number; height: number; dpi: number },
+  shot: ShotDef,
+): { width: number; height: number; dpi: number } {
+  // Local inset clamp (same rule as clampInset below, inlined so this doesn't
+  // depend on a const declared later in a module whose main() starts eagerly).
+  const inset = (n: number | undefined): number => Math.min(0.9, Math.max(0, n ?? 0));
+  const clipW = dims.width * (1 - inset(shot.cropLeft) - inset(shot.cropRight));
+  const dpr = clampDpr(dims.dpi, clipW);
+  // FLOOR, not round: the capture recomputes dpr from this dpi, so rounding up
+  // hands back the fraction the clamp just took away (a 901.5px clip clamped to
+  // 1.9967 rounded to 192dpi = dpr 2 again = 1803px, three pixels over the cap and
+  // flagged 'over-scale' by the very budget this is meant to satisfy).
+  return { ...dims, dpi: Math.floor(96 * dpr) };
 }
 
 /** The post-crop, post-DPR pixel size captureUrl will emit (its exact math). */
@@ -520,7 +550,10 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   // Content Credentials only on a real (re)write: the C2PA signature carries a
   // timestamp, so stamping every run would churn bytes for unchanged pixels.
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
-  return { slug: shot.slug, format: shot.format, lang: shot.lang, verdict, wrote: promote, bytes: bytes.byteLength };
+  return {
+    slug: shot.slug, format: shot.format, lang: shot.lang, verdict,
+    wrote: promote, bytes: bytes.byteLength, width: newImg.width,
+  };
 }
 
 /** RGBA pixels of a raster shot. */
@@ -740,20 +773,29 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
     // its absence as a stale dist: that diagnosis sent the last build chasing a
     // rebuild for what is a race. A real timeout still says the dist is the
     // suspect, because then it genuinely never arrived.
-    await page.waitForFunction(
-      () => Boolean((window as unknown as { __lollyVectorShot?: unknown }).__lollyVectorShot),
-      { timeout: 20_000 },
-    ).catch(() => {
-      throw new Error('the served shell never exposed __lollyVectorShot (waited 20s) — rebuild the dist (main.ts exposes it on loopback, and only on loopback)');
-    });
-
-    const res = await page.evaluate(
-      ([b64, cropCssPx]: [string, typeof crop | null]) =>
-        (window as unknown as { __lollyVectorShot?: (b: string, o?: unknown) => Promise<VectorHookResult> })
-          .__lollyVectorShot?.(b64, cropCssPx ? { cropCssPx } : undefined),
-      [Buffer.from(pdf).toString('base64'), cropped ? crop : null] as [string, typeof crop | null],
-    );
-    if (!res) throw new Error('__lollyVectorShot resolved to nothing — the conversion returned no result');
+    const convert = async (): Promise<VectorHookResult | undefined> => {
+      await page.waitForFunction(
+        () => Boolean((window as unknown as { __lollyVectorShot?: unknown }).__lollyVectorShot),
+        { timeout: 20_000 },
+      ).catch(() => {
+        throw new Error('the served shell never exposed __lollyVectorShot (waited 20s) — rebuild the dist (main.ts exposes it on loopback, and only on loopback)');
+      });
+      return page.evaluate(
+        ([b64, cropCssPx]: [string, typeof crop | null]) =>
+          (window as unknown as { __lollyVectorShot?: (b: string, o?: unknown) => Promise<VectorHookResult> })
+            .__lollyVectorShot?.(b64, cropCssPx ? { cropCssPx } : undefined),
+        [Buffer.from(pdf).toString('base64'), cropped ? crop : null] as [string, typeof crop | null],
+      );
+    };
+    // The optional call yields undefined only when the hook is gone at that instant
+    // — the page navigated (a hash route settling late) between the wait above and
+    // the call, which resets `window`. Seen once in a 134-shot run and never when
+    // that shot is captured alone, i.e. under contention, not deterministically.
+    // Re-wait and convert again: the print is already in hand and the conversion is
+    // a pure function of it, so a second attempt costs one page round-trip and
+    // cannot change the pixels.
+    const res = (await convert()) ?? (await convert());
+    if (!res) throw new Error('__lollyVectorShot resolved to nothing twice — the conversion returned no result');
     // elementCount is what the INTERPRETER found, pre-cull — the "was the print
     // blank?" signal. Culling is reported separately so a bad crop can't be
     // misdiagnosed as a blank print.
@@ -883,6 +925,11 @@ function reportLine(r: ShotResult): void {
   const kb = `${Math.round(r.bytes / 1024)} KB`;
   const flags = v.flags.length ? `  ⚠ ${v.flags.join(', ')}` : '';
   const px = v.pixelDiff === null ? '' : `${(v.pixelDiff * 100).toFixed(2)}% px`;
+  // A weight flag has to say what it measured to be actionable.
+  if (v.flags.includes('over-scale') || v.flags.includes('heavy')) {
+    console.log(`    ⚖ ${r.slug}: ${r.width ? `${r.width}px wide, ` : ''}${kb} — budget is ${MAX_SHOT_PX}px / `
+      + `${Math.round((r.format === 'svg' ? DEFAULT_THRESHOLDS.vectorMaxBytes : DEFAULT_THRESHOLDS.maxBytes) / 1024)} KB`);
+  }
   const sz = v.sizeDelta === null ? '' : `${v.sizeDelta >= 0 ? '+' : ''}${Math.round(v.sizeDelta * 100)}% bytes`;
   if (v.kind === 'new') console.log(`  ✚ ${name} new — ${kb}${flags}`);
   else if (v.kind === 'unchanged') console.log(`  ✓ ${name} unchanged (${px})${flags}`);
@@ -893,12 +940,29 @@ function summarize(results: ShotResult[]): void {
   const failed = results.filter((r) => r.error || r.verdict?.flags.includes('dims-mismatch'));
   const pending = results.filter((r) => !r.error && r.verdict?.kind === 'changed' && !r.wrote);
   const suspicious = results.filter((r) => r.verdict?.flags.some((f) => f === 'tiny' || f === 'blank' || f === 'size-jump'));
+  // The weight budget, enforced at the only actionable moment: a baseline actually
+  // being (re)written. An `unchanged` verdict means the bytes on disk are a legacy
+  // baseline's — worth reporting, not worth failing on, or the whole reframing
+  // backlog would block every run before it could be worked through. But nothing
+  // over budget may be COMMITTED from here on, and --accept must not be the loophole.
+  const overBudget = results.filter((r) => r.wrote && r.verdict?.flags.some((f) => f === 'over-scale' || f === 'heavy'));
+  const legacyHeavy = results.filter((r) => !r.wrote && r.verdict?.flags.some((f) => f === 'over-scale' || f === 'heavy'));
 
   console.log('');
   console.log(`${results.length} shot(s): ${results.filter((r) => r.verdict?.kind === 'unchanged').length} unchanged, ` +
     `${results.filter((r) => r.wrote).length} written, ${pending.length} pending review, ${failed.length} failed.`);
   if (suspicious.length) {
     console.log(`⚠  possible failed renders (tiny/blank/size-jump): ${suspicious.map((r) => r.slug).join(', ')}`);
+  }
+  if (legacyHeavy.length) {
+    console.log(`⚠  over the weight budget, not rewritten this run (reframe: crop to the area of focus): ${legacyHeavy.map((r) => r.slug).join(', ')}`);
+  }
+  if (overBudget.length) {
+    console.log(`✗  refusing to publish ${overBudget.length} over-budget baseline(s): ${overBudget.map((r) => r.slug).join(', ')}`);
+    console.log(`   Budget: ${MAX_SHOT_PX}px wide, ${Math.round(DEFAULT_THRESHOLDS.maxBytes / 1024)} KB raster / `
+      + `${Math.round(DEFAULT_THRESHOLDS.vectorMaxBytes / 1024)} KB vector. A docs shot is displayed in an 848px column —`);
+    console.log('   crop to the area of focus (cropSelector= or crop*=) rather than shooting the whole window.');
+    process.exit(1);
   }
   if (pending.length) {
     console.log(`▲  changed vs the committed baselines — review, then promote with:  npm run docs:shots -- --accept`);
