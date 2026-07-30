@@ -144,6 +144,12 @@
           "default": false,
           "description": "Marks a multi-page document tool — one whose output lays out several `[data-pdf-page]` boxes (e.g. multi-page-pdf). The gallery renders each page as its own horizontally-scrollable preview slide (via renderToolPages) instead of input-variant example looks."
         },
+        "filmstrip": {
+          "type": "string",
+          "enum": ["left", "bottom"],
+          "default": "left",
+          "description": "Which edge the paged tool's slide-sorter filmstrip runs along. `left` (the default) is a vertical rail beside the canvas — right for tall documents. `bottom` is the deck-strip shape, for tools whose pages are wide and few (cards, slides), where a left rail would eat the width the page needs. Only read when `paged: true`."
+        },
         "pages": {
           "type": "object",
           "additionalProperties": false,

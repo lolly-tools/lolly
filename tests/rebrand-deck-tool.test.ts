@@ -233,3 +233,89 @@ test('exportFile without host.pptx fails with the friendly message', async () =>
   await rt.setInput('source', deckFile() as any);
   await assert.rejects(() => rt.exportFile(), /PowerPoint rebranding isn't available in this app\./);
 });
+
+// ─── "this won't change anything" ─────────────────────────────────────────────
+// The tool's job is to say NO before the user spends a download. Two shapes of
+// nothing-to-do: a PDF (the export already flattened the deck), and a .pptx
+// whose slides are only pictures (the same deck, re-wrapped). Both come back
+// pixel-identical, so both are called out in the card rather than discovered
+// after the fact.
+
+// "%PDF-1.7" — the hook sniffs magic bytes, not the filename.
+const PDF_BYTES = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]);
+
+const pdfFile = () => ({
+  __file: true, name: 'Quarterly Update.pdf', mime: 'application/pdf',
+  size: PDF_BYTES.length, bytes: PDF_BYTES, url: null,
+});
+
+// A deck of nothing but full-bleed pictures — what "export to PDF, import back"
+// produces. No literal colour, no typeface beyond the theme's own two.
+const FLAT_INSPECT = {
+  ok: true,
+  slideCount: 8,
+  theme: { colors: { dk1: '#1A1A1A', lt1: '#FFFFFF' }, majorFont: 'Calibri Light', minorFont: 'Calibri' },
+  colors: [],
+  fonts: [{ family: 'Calibri Light' }, { family: 'Calibri' }],
+  themeSuggestion: { dk1: '#0C322C', lt1: '#FFFFFF' },
+  content: { pictures: 8, texts: 0, shapes: 0, tables: 0, unknown: 0 },
+};
+
+function makeHostWith(result: any) {
+  const { host, calls } = makeHost();
+  host.pptx.inspect = async (...args: any[]) => { calls.inspect.push(args); return result; };
+  return { host, calls };
+}
+
+test('a PDF is refused with a reason, not a generic "not a deck"', async () => {
+  const { host, calls } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('source', pdfFile() as any);
+
+  const html = rt.getHydrated() as string;
+  assert.match(html, /A PDF can't be rebranded\./);
+  assert.match(html, /would not change a single pixel/);
+  // The generic branch must NOT also fire, and the file never reaches inspect.
+  assert.doesNotMatch(html, /Could not read this file as a PowerPoint deck/);
+  assert.equal(calls.inspect.length, 0, 'a PDF is rejected on magic bytes, unparsed');
+});
+
+test('a picture-only deck says up front that nothing will change', async () => {
+  const { host } = makeHostWith(FLAT_INSPECT);
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('source', deckFile() as any);
+
+  const html = rt.getHydrated() as string;
+  assert.match(html, /This deck won't change\./);
+  assert.match(html, /Every slide in this deck is a flat picture/);
+  // The download stays available (the theme part IS rewritten) but stops being
+  // the confident call to action, and the mapping-rows note would be a lie.
+  assert.match(html, /Download anyway/);
+  assert.match(html, /class="rbd-download is-noop"/);
+  assert.doesNotMatch(html, /prefilled as mapping rows/);
+});
+
+test('a normal deck carries no flattened warning', async () => {
+  const { host } = makeHost();
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('source', deckFile() as any);
+
+  const html = rt.getHydrated() as string;
+  assert.doesNotMatch(html, /won't change/);
+  assert.match(html, /Download rebranded deck/);
+  assert.match(html, /prefilled as mapping rows/);
+});
+
+test('an older shell with no content tally still warns when nothing is mappable', async () => {
+  // engine < 1.79: inspect omits `content`. The fallback signal is "no literal
+  // colour AND no typeface beyond the theme's own", and it hedges accordingly —
+  // a fully theme-linked deck looks the same from here and rebrands fine.
+  const { content: _drop, ...noTally } = FLAT_INSPECT;
+  const { host } = makeHostWith(noTally);
+  const rt = await createRuntime(tool, host, {});
+  await rt.setInput('source', deckFile() as any);
+
+  const html = rt.getHydrated() as string;
+  assert.match(html, /No hardcoded colour or typeface was found on these slides\./);
+  assert.match(html, /the brand theme below\s+still does the whole job/);
+});

@@ -1243,3 +1243,48 @@ Additive: batch creation as a first-class engine concern.
     pages. Reference tool: community/battlecards (hook-free).
 
 No v1 bridge method changed.
+
+## 1.79.0 — inspect tells you when a deck is flattened
+
+Additive: `PptxInspectResult.content` — a node-kind tally across the slides
+(`pictures` / `texts` / `shapes` / `tables` / `unknown`).
+
+  • The signal a rebrand tool needs to distinguish a rebrandable deck from a
+    flattened one. Slides that are nothing but pictures — a PDF or a set of
+    exported images dropped onto blank slides — carry no literal colour and no
+    typeface the patcher can reach; the theme swap still rewrites the theme
+    part, but nothing on the slides references it, so the output is visibly
+    identical to the input. `community/rebrand-deck` now says so up front
+    instead of handing back a byte-shuffled copy.
+  • Optional on the contract, so an older shell that omits it is still valid and
+    a tool must feature-detect it.
+
+No v1 bridge method changed.
+
+## 1.80.0 — markdown cells: links, images, and a bottom filmstrip
+
+Additive: the `{{markdown}}` template helper gains **links and images** —
+`[label](url)` → `<a href>`, `![alt](url)` → `<img class="md-image">` — on top of
+the bold/italic/strikethrough, `#`…`######` headings and bullet/numbered lists it
+already rendered.
+
+  • Both URLs are allowlisted. Links take http/https/mailto/tel, images add
+    data:/blob: (a pasted or host-resolved asset URL is usually one of those);
+    anything else — `javascript:`, `vbscript:`, `file:` — is dropped and the
+    label/alt renders as plain text. The probe undoes the `&`-escape and strips
+    control characters first, so `java\tscript:` can't smuggle a scheme past it.
+  • The escape-first order is unchanged and is the whole security model: author
+    text is HTML-escaped before any tag is introduced, so no cell, label or alt
+    can emit a live element. URLs are parked in placeholders across the emphasis
+    pass, so an asterisk or `~~` in a query string can't be rewritten into a tag
+    mid-attribute; quotes in a URL or alt are entity-encoded.
+  • Manifest `render.filmstrip: "left" | "bottom"` (default `"left"`) — which
+    edge a `paged` tool's slide-sorter rail runs along. `"bottom"` is the
+    deck-strip shape, for tools whose pages are wide and few (cards, slides),
+    where a left rail eats the width the page needs.
+
+Reference tool: community/battlecards 1.1.0 (markdown cells + bottom filmstrip).
+Existing `{{markdown}}` callers are unaffected unless their copy already contains
+`[…](…)`, which now renders as the link it reads as.
+
+No v1 bridge method changed.

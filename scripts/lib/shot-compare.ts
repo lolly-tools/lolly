@@ -174,8 +174,15 @@ export function svgRootSize(svg: string): { width: number; height: number } | nu
 export interface VectorShotComparison {
   newText: string;
   newBytes: number;
-  /** Declared output size in CSS px (windowPdfSvg's outWidth/outHeight). */
-  expected: { width: number; height: number };
+  /**
+   * Declared output size in CSS px (windowPdfSvg's outWidth/outHeight), or null
+   * when the frame is not derivable from the recipe. The print path windows a
+   * full-page render, so its size IS viewport-minus-crop and a mismatch means the
+   * window went wrong. A `walker=1` capture instead walks the cropSelector element
+   * at its native size, so there is nothing to compare against — see the note at
+   * the call site in build-docs-shots.ts.
+   */
+  expected: { width: number; height: number } | null;
   oldText?: string;
   oldBytes?: number;
 }
@@ -184,12 +191,14 @@ export interface VectorShotComparison {
 export function classifyVectorShot(c: VectorShotComparison, t: ShotThresholds = DEFAULT_THRESHOLDS): ShotVerdict {
   const flags: ShotFlag[] = [];
   if (c.newBytes < t.vectorMinBytes) flags.push('tiny');
-  const size = svgRootSize(c.newText);
-  if (!size ||
-    Math.abs(size.width - c.expected.width) > t.dimSlack ||
-    Math.abs(size.height - c.expected.height) > t.dimSlack
-  ) {
-    flags.push('dims-mismatch');
+  if (c.expected) {
+    const size = svgRootSize(c.newText);
+    if (!size ||
+      Math.abs(size.width - c.expected.width) > t.dimSlack ||
+      Math.abs(size.height - c.expected.height) > t.dimSlack
+    ) {
+      flags.push('dims-mismatch');
+    }
   }
 
   if (c.oldText === undefined || c.oldBytes === undefined) {
@@ -244,6 +253,22 @@ export interface ShotDef {
    * raise it just enough to absorb the flutter, never to paper over real change.
    */
   pixelDiffFrac?: number;
+  /**
+   * Capture this SVG shot with the web shell's OWN html->SVG walker
+   * (`__lollyWalkerShot`, main.ts) instead of Chromium's printToPDF.
+   *
+   * WHY IT IS A CHOICE AND NOT THE DEFAULT. print is a black box: it flattens
+   * anything it has no PDF primitive for, and PDF has no conic/angular shading
+   * type at all, so a `repeating-conic-gradient` — the transparency checkerboard
+   * on every tool stage — comes back as a full-canvas PNG (measured: 49 KB inside
+   * a 518 KB shot, and 3.08 MB across the committed baselines). The walker emits
+   * a real <pattern> instead, and plans/svg-snapshot-without-print.md measures it
+   * 4-30x faster and 2-4x smaller with raster coverage on the tool fixtures cut
+   * 86% -> 5%. What print still does better is anything the walker has not
+   * implemented, so this stays opt-in per recipe until the corpus is migrated.
+   * Ignored for raster formats — there is nothing to keep vector.
+   */
+  walker?: boolean;
   /**
    * Recipe opted into per-locale capture (`localize=1`): the pipeline also renders
    * it once per `--lang` locale with `?lang=<loc>` injected into the app route,
@@ -312,6 +337,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
       css: q.get('css') ?? undefined,
       pixelDiffFrac: tolerance,
       localize: q.get('localize') === '1' || q.get('localize') === 'true',
+      walker: q.get('walker') === '1' || q.get('walker') === 'true',
     });
   }
   return { recipes, problems };

@@ -507,6 +507,23 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
     }
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
 
+    // M5: the walker path. Ask the shell to serialise the live DOM itself rather
+    // than round-tripping through Chromium's PDF printer. The crop is applied by
+    // scoping the walk to cropSelector's element (the walker takes a selector), so
+    // there is no PDF window step and no cull — what is walked IS the frame.
+    if (shot.walker) {
+      const sel = shot.cropSelector || 'body';
+      const out = await page.evaluate(
+        async (s: string) => (window as unknown as {
+          __lollyWalkerShot?: (sel?: string, o?: Record<string, unknown>) => Promise<{ svg: string; ms: number }>;
+        }).__lollyWalkerShot?.(s),
+        sel,
+      );
+      if (!out) throw new Error('the served shell has no __lollyWalkerShot hook — rebuild the dist (main.ts exposes it on loopback)');
+      if (!out.svg || out.svg.length < 64) throw new Error(`walker capture produced no drawable content for ${sel}`);
+      return new TextEncoder().encode(out.svg);
+    }
+
     // Print the FULL page height as one tall page — scroll/crop trim below, in
     // vector space, exactly like the desktop's capture_page_pdf + windowPdfSvg.
     const pageH = await page.evaluate(() =>
@@ -566,7 +583,19 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   }
 
   const { dims } = paramsFor(shot);
-  const expected = {
+  // Expected output dims. The print path renders the whole page and WINDOWS it, so
+  // the frame is derivable from the viewport minus the crop insets — and a mismatch
+  // there means the window went wrong, which is worth failing on.
+  //
+  // The walker path has no window step: it walks `cropSelector`'s element directly,
+  // so the frame IS that element's own box at its NATIVE size, not the viewport
+  // scaled down to fit the stage. For auth-url-render that is the qr tool's native
+  // 600x600 rather than the 486x486 the print crop produced. Applying the print
+  // arithmetic to it reports dims-mismatch on every walker shot forever, which
+  // would make the whole class permanently "failed" and drown the real failures the
+  // exit-code fix is meant to surface. So the check is skipped here; what still
+  // guards a blank walker capture is the length check in captureVector.
+  const expected = shot.walker ? null : {
     width: Math.max(1, Math.round(dims.width * (1 - clampInset(shot.cropLeft) - clampInset(shot.cropRight)))),
     height: Math.max(1, Math.round(dims.height * (1 - clampInset(shot.cropTop) - clampInset(shot.cropBottom)))),
   };

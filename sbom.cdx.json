@@ -1,10 +1,10 @@
 {
   "bomFormat": "CycloneDX",
   "specVersion": "1.5",
-  "serialNumber": "urn:uuid:c9c2cd41-20aa-45f5-8106-c9a4cc755d73",
+  "serialNumber": "urn:uuid:6a0416b5-d7ae-4c06-8c2e-2d624fac9b56",
   "version": 1,
   "metadata": {
-    "timestamp": "2026-07-29T15:48:05.824Z",
+    "timestamp": "2026-07-30T11:43:33.474Z",
     "tools": [
       {
         "vendor": "lolly",
@@ -150,9 +150,7 @@
       "purl": "pkg:cargo/adler2@2.0.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "0BSD OR MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -176,9 +174,7 @@
       "purl": "pkg:cargo/aho-corasick@1.1.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -203,7 +199,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "BSD-3-Clause"
           }
         }
       ],
@@ -229,7 +225,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "BSD-3-Clause"
           }
         }
       ],
@@ -255,7 +251,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "BSD-3-Clause"
           }
         }
       ],
@@ -280,9 +276,7 @@
       "purl": "pkg:cargo/android_system_properties@0.1.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -306,9 +300,7 @@
       "purl": "pkg:cargo/anyhow@1.0.102",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -332,9 +324,7 @@
       "purl": "pkg:cargo/anyhow@1.0.103",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -359,7 +349,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -385,7 +375,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -410,9 +400,7 @@
       "purl": "pkg:cargo/atomic-waker@1.1.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -437,7 +425,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "GPL-3.0-only"
           }
         }
       ],
@@ -451,8 +439,13 @@
         {
           "name": "lolly:source",
           "value": "shells/tauri-desktop/src-tauri/Cargo.lock"
+        },
+        {
+          "name": "lolly:license-note",
+          "value": "build-time code generator (headless_chrome build.rs); not linked into the shipped binary"
         }
-      ]
+      ],
+      "scope": "excluded"
     },
     {
       "type": "library",
@@ -462,9 +455,7 @@
       "purl": "pkg:cargo/autocfg@1.5.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -488,9 +479,7 @@
       "purl": "pkg:cargo/base64@0.21.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -514,9 +503,7 @@
       "purl": "pkg:cargo/base64@0.22.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -540,9 +527,7 @@
       "purl": "pkg:cargo/bit-set@0.8.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -566,9 +551,7 @@
       "purl": "pkg:cargo/bit-vec@0.8.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -592,9 +575,7 @@
       "purl": "pkg:cargo/bitflags@1.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -618,9 +599,7 @@
       "purl": "pkg:cargo/bitflags@2.13.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -644,9 +623,7 @@
       "purl": "pkg:cargo/block-buffer@0.10.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -671,7 +648,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -696,9 +673,7 @@
       "purl": "pkg:cargo/brotli-decompressor@5.0.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause OR MIT"
         }
       ],
       "hashes": [
@@ -722,9 +697,7 @@
       "purl": "pkg:cargo/brotli-decompressor@5.0.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause OR MIT"
         }
       ],
       "hashes": [
@@ -748,9 +721,7 @@
       "purl": "pkg:cargo/brotli@8.0.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause AND MIT"
         }
       ],
       "hashes": [
@@ -774,9 +745,7 @@
       "purl": "pkg:cargo/brotli@8.0.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause AND MIT"
         }
       ],
       "hashes": [
@@ -800,9 +769,7 @@
       "purl": "pkg:cargo/bs58@0.5.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -826,9 +793,7 @@
       "purl": "pkg:cargo/bumpalo@3.20.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -852,9 +817,7 @@
       "purl": "pkg:cargo/bytemuck@1.25.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -878,9 +841,7 @@
       "purl": "pkg:cargo/byteorder@1.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -905,7 +866,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -931,7 +892,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -957,7 +918,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -983,7 +944,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1008,9 +969,7 @@
       "purl": "pkg:cargo/camino@1.2.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1034,9 +993,7 @@
       "purl": "pkg:cargo/camino@1.2.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1061,7 +1018,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1086,9 +1043,7 @@
       "purl": "pkg:cargo/cargo_toml@0.22.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1112,9 +1067,7 @@
       "purl": "pkg:cargo/cargo-platform@0.1.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1138,9 +1091,7 @@
       "purl": "pkg:cargo/cc@1.2.63",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1164,9 +1115,7 @@
       "purl": "pkg:cargo/cc@1.2.66",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1190,9 +1139,7 @@
       "purl": "pkg:cargo/cesu8@1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1217,7 +1164,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1243,7 +1190,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1268,9 +1215,7 @@
       "purl": "pkg:cargo/cfg-expr@0.15.8",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1294,9 +1239,7 @@
       "purl": "pkg:cargo/cfg-if@1.0.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1320,9 +1263,7 @@
       "purl": "pkg:cargo/chacha20@0.10.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1346,9 +1287,7 @@
       "purl": "pkg:cargo/chacha20@0.10.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1372,9 +1311,7 @@
       "purl": "pkg:cargo/chrono@0.4.45",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1399,7 +1336,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1425,7 +1362,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1450,9 +1387,7 @@
       "purl": "pkg:cargo/cookie_store@0.22.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1476,9 +1411,7 @@
       "purl": "pkg:cargo/cookie@0.18.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1502,9 +1435,7 @@
       "purl": "pkg:cargo/core-foundation-sys@0.8.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1528,9 +1459,7 @@
       "purl": "pkg:cargo/core-foundation@0.10.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1554,9 +1483,7 @@
       "purl": "pkg:cargo/core-foundation@0.9.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1580,9 +1507,7 @@
       "purl": "pkg:cargo/core-graphics-types@0.2.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1606,9 +1531,7 @@
       "purl": "pkg:cargo/core-graphics@0.25.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1632,9 +1555,7 @@
       "purl": "pkg:cargo/cpufeatures@0.2.17",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1658,9 +1579,7 @@
       "purl": "pkg:cargo/cpufeatures@0.3.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1684,9 +1603,7 @@
       "purl": "pkg:cargo/crc32fast@1.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1710,9 +1627,7 @@
       "purl": "pkg:cargo/crossbeam-channel@0.5.15",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1736,9 +1651,7 @@
       "purl": "pkg:cargo/crossbeam-channel@0.5.16",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1762,9 +1675,7 @@
       "purl": "pkg:cargo/crossbeam-utils@0.8.21",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1788,9 +1699,7 @@
       "purl": "pkg:cargo/crossbeam-utils@0.8.22",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1814,9 +1723,7 @@
       "purl": "pkg:cargo/crypto-common@0.1.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -1841,7 +1748,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -1867,7 +1774,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -1892,9 +1799,7 @@
       "purl": "pkg:cargo/ctor-proc-macro@0.0.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1918,9 +1823,7 @@
       "purl": "pkg:cargo/ctor@0.8.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -1945,7 +1848,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1971,7 +1874,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -1997,7 +1900,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2023,7 +1926,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2049,7 +1952,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2075,7 +1978,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2101,7 +2004,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2126,9 +2029,7 @@
       "purl": "pkg:cargo/data-url@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2152,9 +2053,7 @@
       "purl": "pkg:cargo/dbus@0.9.11",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -2178,9 +2077,7 @@
       "purl": "pkg:cargo/dbus@0.9.12",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -2204,9 +2101,7 @@
       "purl": "pkg:cargo/deranged@0.5.8",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2230,9 +2125,7 @@
       "purl": "pkg:cargo/derive_builder_core@0.20.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2256,9 +2149,7 @@
       "purl": "pkg:cargo/derive_builder_macro@0.20.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2282,9 +2173,7 @@
       "purl": "pkg:cargo/derive_builder@0.20.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2309,7 +2198,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2335,7 +2224,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2360,9 +2249,7 @@
       "purl": "pkg:cargo/digest@0.10.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2386,9 +2273,7 @@
       "purl": "pkg:cargo/dirs-sys@0.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2412,9 +2297,7 @@
       "purl": "pkg:cargo/dirs@6.0.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2438,9 +2321,7 @@
       "purl": "pkg:cargo/dispatch2@0.3.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -2464,9 +2345,7 @@
       "purl": "pkg:cargo/displaydoc@0.2.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2491,7 +2370,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2517,7 +2396,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2542,9 +2421,7 @@
       "purl": "pkg:cargo/document-features@0.2.12",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2569,7 +2446,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2594,9 +2471,7 @@
       "purl": "pkg:cargo/dpi@0.1.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 AND MIT"
         }
       ],
       "hashes": [
@@ -2621,7 +2496,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -2646,9 +2521,7 @@
       "purl": "pkg:cargo/dtoa@1.0.11",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2672,9 +2545,7 @@
       "purl": "pkg:cargo/dtor-proc-macro@0.0.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -2698,9 +2569,7 @@
       "purl": "pkg:cargo/dtor@0.3.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -2724,9 +2593,7 @@
       "purl": "pkg:cargo/dunce@1.0.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "CC0-1.0 OR MIT-0 OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2750,9 +2617,7 @@
       "purl": "pkg:cargo/dyn-clone@1.0.20",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2776,9 +2641,7 @@
       "purl": "pkg:cargo/embed_plist@1.2.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2803,7 +2666,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2829,7 +2692,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -2854,9 +2717,7 @@
       "purl": "pkg:cargo/encoding_rs@0.8.35",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "(Apache-2.0 OR MIT) AND BSD-3-Clause"
         }
       ],
       "hashes": [
@@ -2880,9 +2741,7 @@
       "purl": "pkg:cargo/equivalent@1.0.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -2906,9 +2765,7 @@
       "purl": "pkg:cargo/erased-serde@0.4.10",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2932,9 +2789,7 @@
       "purl": "pkg:cargo/errno@0.3.14",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -2958,9 +2813,7 @@
       "purl": "pkg:cargo/fastrand@2.4.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -2984,9 +2837,7 @@
       "purl": "pkg:cargo/fdeflate@0.3.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3010,9 +2861,7 @@
       "purl": "pkg:cargo/field-offset@0.3.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3036,9 +2885,7 @@
       "purl": "pkg:cargo/find-msvc-tools@0.1.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3062,9 +2909,7 @@
       "purl": "pkg:cargo/flate2@1.1.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3088,9 +2933,7 @@
       "purl": "pkg:cargo/fnv@1.0.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -3115,7 +2958,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Zlib"
           }
         }
       ],
@@ -3141,7 +2984,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Zlib"
           }
         }
       ],
@@ -3166,9 +3009,7 @@
       "purl": "pkg:cargo/foreign-types-macros@0.2.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3192,9 +3033,7 @@
       "purl": "pkg:cargo/foreign-types-shared@0.3.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3218,9 +3057,7 @@
       "purl": "pkg:cargo/foreign-types@0.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3244,9 +3081,7 @@
       "purl": "pkg:cargo/form_urlencoded@1.2.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3270,9 +3105,7 @@
       "purl": "pkg:cargo/futures-channel@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3296,9 +3129,7 @@
       "purl": "pkg:cargo/futures-core@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3322,9 +3153,7 @@
       "purl": "pkg:cargo/futures-executor@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3348,9 +3177,7 @@
       "purl": "pkg:cargo/futures-io@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3374,9 +3201,7 @@
       "purl": "pkg:cargo/futures-macro@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3400,9 +3225,7 @@
       "purl": "pkg:cargo/futures-sink@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3426,9 +3249,7 @@
       "purl": "pkg:cargo/futures-task@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3452,9 +3273,7 @@
       "purl": "pkg:cargo/futures-util@0.3.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3479,7 +3298,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3505,7 +3324,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3531,7 +3350,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3557,7 +3376,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3583,7 +3402,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3609,7 +3428,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3635,7 +3454,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3661,7 +3480,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3686,9 +3505,7 @@
       "purl": "pkg:cargo/getrandom@0.2.17",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3712,9 +3529,7 @@
       "purl": "pkg:cargo/getrandom@0.3.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3738,9 +3553,7 @@
       "purl": "pkg:cargo/getrandom@0.4.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3764,9 +3577,7 @@
       "purl": "pkg:cargo/getrandom@0.4.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3791,7 +3602,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3817,7 +3628,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3843,7 +3654,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3869,7 +3680,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3895,7 +3706,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3920,9 +3731,7 @@
       "purl": "pkg:cargo/glob@0.3.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -3947,7 +3756,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3973,7 +3782,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -3999,7 +3808,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4025,7 +3834,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4051,7 +3860,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4077,7 +3886,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4102,9 +3911,7 @@
       "purl": "pkg:cargo/hashbrown@0.12.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4128,9 +3935,7 @@
       "purl": "pkg:cargo/hashbrown@0.15.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4154,9 +3959,7 @@
       "purl": "pkg:cargo/hashbrown@0.17.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4181,7 +3984,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4206,9 +4009,7 @@
       "purl": "pkg:cargo/heck@0.4.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4232,9 +4033,7 @@
       "purl": "pkg:cargo/heck@0.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4258,9 +4057,7 @@
       "purl": "pkg:cargo/hex@0.4.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4284,9 +4081,7 @@
       "purl": "pkg:cargo/html5ever@0.38.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4311,7 +4106,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4337,7 +4132,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4362,9 +4157,7 @@
       "purl": "pkg:cargo/http@1.4.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4388,9 +4181,7 @@
       "purl": "pkg:cargo/httparse@1.10.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4414,9 +4205,7 @@
       "purl": "pkg:cargo/hyper-rustls@0.27.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR ISC OR MIT"
         }
       ],
       "hashes": [
@@ -4441,7 +4230,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4467,7 +4256,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4492,9 +4281,7 @@
       "purl": "pkg:cargo/iana-time-zone-haiku@0.1.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4518,9 +4305,7 @@
       "purl": "pkg:cargo/iana-time-zone@0.1.65",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4545,7 +4330,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4571,7 +4356,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -4597,7 +4382,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -4623,7 +4408,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -4649,7 +4434,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -4675,7 +4460,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -4701,7 +4486,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -4727,7 +4512,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -4752,9 +4537,7 @@
       "purl": "pkg:cargo/id-arena@2.3.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4778,9 +4561,7 @@
       "purl": "pkg:cargo/ident_case@1.0.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4804,9 +4585,7 @@
       "purl": "pkg:cargo/idna_adapter@1.2.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -4830,9 +4609,7 @@
       "purl": "pkg:cargo/idna@1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4856,9 +4633,7 @@
       "purl": "pkg:cargo/indexmap@1.9.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -4882,9 +4657,7 @@
       "purl": "pkg:cargo/indexmap@2.14.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -4909,7 +4682,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4934,9 +4707,7 @@
       "purl": "pkg:cargo/ipnet@2.12.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -4961,7 +4732,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -4987,7 +4758,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -5012,9 +4783,7 @@
       "purl": "pkg:cargo/itoa@1.0.18",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5039,7 +4808,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -5065,7 +4834,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -5090,9 +4859,7 @@
       "purl": "pkg:cargo/jni-sys-macros@0.4.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5116,9 +4883,7 @@
       "purl": "pkg:cargo/jni-sys@0.3.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5142,9 +4907,7 @@
       "purl": "pkg:cargo/jni-sys@0.4.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5168,9 +4931,7 @@
       "purl": "pkg:cargo/jni@0.21.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5194,9 +4955,7 @@
       "purl": "pkg:cargo/js-sys@0.3.100",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5220,9 +4979,7 @@
       "purl": "pkg:cargo/js-sys@0.3.103",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5246,9 +5003,7 @@
       "purl": "pkg:cargo/json-patch@3.0.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5272,9 +5027,7 @@
       "purl": "pkg:cargo/jsonptr@0.6.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5298,9 +5051,7 @@
       "purl": "pkg:cargo/keyboard-types@0.7.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5324,9 +5075,7 @@
       "purl": "pkg:cargo/leb128fmt@0.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5350,9 +5099,7 @@
       "purl": "pkg:cargo/libappindicator-sys@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5376,9 +5123,7 @@
       "purl": "pkg:cargo/libappindicator@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5402,9 +5147,7 @@
       "purl": "pkg:cargo/libc@0.2.186",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5428,9 +5171,7 @@
       "purl": "pkg:cargo/libdbus-sys@0.2.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5455,7 +5196,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "ISC"
           }
         }
       ],
@@ -5481,7 +5222,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -5507,7 +5248,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -5532,9 +5273,7 @@
       "purl": "pkg:cargo/linux-raw-sys@0.12.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5559,7 +5298,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -5584,9 +5323,7 @@
       "purl": "pkg:cargo/litrs@1.0.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5610,9 +5347,7 @@
       "purl": "pkg:cargo/lock_api@0.4.14",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5636,9 +5371,7 @@
       "purl": "pkg:cargo/log@0.4.32",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5662,9 +5395,7 @@
       "purl": "pkg:cargo/log@0.4.33",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5689,7 +5420,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -5709,7 +5440,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -5728,9 +5459,7 @@
       "purl": "pkg:cargo/lru-slab@0.1.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR Zlib"
         }
       ],
       "hashes": [
@@ -5754,9 +5483,7 @@
       "purl": "pkg:cargo/markup5ever@0.38.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5780,9 +5507,7 @@
       "purl": "pkg:cargo/memchr@2.8.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -5806,9 +5531,7 @@
       "purl": "pkg:cargo/memchr@2.8.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -5833,7 +5556,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -5858,9 +5581,7 @@
       "purl": "pkg:cargo/mime@0.3.17",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5884,9 +5605,7 @@
       "purl": "pkg:cargo/miniz_oxide@0.8.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Zlib OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -5911,7 +5630,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -5936,9 +5655,7 @@
       "purl": "pkg:cargo/muda@0.19.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5962,9 +5679,7 @@
       "purl": "pkg:cargo/muda@0.19.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -5988,9 +5703,7 @@
       "purl": "pkg:cargo/ndk-sys@0.6.0+11769913",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6014,9 +5727,7 @@
       "purl": "pkg:cargo/ndk@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6041,7 +5752,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6066,9 +5777,7 @@
       "purl": "pkg:cargo/num_enum_derive@0.7.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause OR MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6092,9 +5801,7 @@
       "purl": "pkg:cargo/num_enum@0.7.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-3-Clause OR MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6118,9 +5825,7 @@
       "purl": "pkg:cargo/num-conv@0.2.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6144,9 +5849,7 @@
       "purl": "pkg:cargo/num-traits@0.2.19",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6170,9 +5873,7 @@
       "purl": "pkg:cargo/objc2-app-kit@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6196,9 +5897,7 @@
       "purl": "pkg:cargo/objc2-cloud-kit@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6222,9 +5921,7 @@
       "purl": "pkg:cargo/objc2-core-data@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6248,9 +5945,7 @@
       "purl": "pkg:cargo/objc2-core-foundation@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6274,9 +5969,7 @@
       "purl": "pkg:cargo/objc2-core-graphics@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6300,9 +5993,7 @@
       "purl": "pkg:cargo/objc2-core-image@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6326,9 +6017,7 @@
       "purl": "pkg:cargo/objc2-core-location@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6352,9 +6041,7 @@
       "purl": "pkg:cargo/objc2-core-text@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6379,7 +6066,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6404,9 +6091,7 @@
       "purl": "pkg:cargo/objc2-exception-helper@0.1.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6431,7 +6116,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6456,9 +6141,7 @@
       "purl": "pkg:cargo/objc2-io-surface@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6482,9 +6165,7 @@
       "purl": "pkg:cargo/objc2-quartz-core@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6508,9 +6189,7 @@
       "purl": "pkg:cargo/objc2-ui-kit@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6534,9 +6213,7 @@
       "purl": "pkg:cargo/objc2-user-notifications@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6560,9 +6237,7 @@
       "purl": "pkg:cargo/objc2-web-kit@0.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -6587,7 +6262,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6612,9 +6287,7 @@
       "purl": "pkg:cargo/once_cell@1.21.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6639,7 +6312,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6665,7 +6338,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -6691,7 +6364,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6717,7 +6390,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6743,7 +6416,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6768,9 +6441,7 @@
       "purl": "pkg:cargo/parking_lot_core@0.9.12",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6794,9 +6465,7 @@
       "purl": "pkg:cargo/parking_lot@0.12.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6820,9 +6489,7 @@
       "purl": "pkg:cargo/pathdiff@0.2.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6846,9 +6513,7 @@
       "purl": "pkg:cargo/percent-encoding@2.3.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -6873,7 +6538,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6899,7 +6564,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6925,7 +6590,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6951,7 +6616,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -6977,7 +6642,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7002,9 +6667,7 @@
       "purl": "pkg:cargo/pin-project-lite@0.2.17",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -7028,9 +6691,7 @@
       "purl": "pkg:cargo/pkg-config@0.3.33",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7055,7 +6716,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7081,7 +6742,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7106,9 +6767,7 @@
       "purl": "pkg:cargo/png@0.17.16",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7132,9 +6791,7 @@
       "purl": "pkg:cargo/png@0.18.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7159,7 +6816,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -7184,9 +6841,7 @@
       "purl": "pkg:cargo/powerfmt@0.2.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7210,9 +6865,7 @@
       "purl": "pkg:cargo/ppv-lite86@0.2.21",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7237,7 +6890,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7262,9 +6915,7 @@
       "purl": "pkg:cargo/prettyplease@0.2.37",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7288,9 +6939,7 @@
       "purl": "pkg:cargo/proc-macro-crate@1.3.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7314,9 +6963,7 @@
       "purl": "pkg:cargo/proc-macro-crate@2.0.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7340,9 +6987,7 @@
       "purl": "pkg:cargo/proc-macro-crate@3.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7366,9 +7011,7 @@
       "purl": "pkg:cargo/proc-macro-error-attr@1.0.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7392,9 +7035,7 @@
       "purl": "pkg:cargo/proc-macro-error@1.0.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7418,9 +7059,7 @@
       "purl": "pkg:cargo/proc-macro2@1.0.106",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7444,9 +7083,7 @@
       "purl": "pkg:cargo/psl-types@2.0.11",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7470,9 +7107,7 @@
       "purl": "pkg:cargo/publicsuffix@2.3.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7497,7 +7132,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7523,7 +7158,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -7548,9 +7183,7 @@
       "purl": "pkg:cargo/quinn-proto@0.11.14",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7574,9 +7207,7 @@
       "purl": "pkg:cargo/quinn-proto@0.11.16",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7600,9 +7231,7 @@
       "purl": "pkg:cargo/quinn-udp@0.5.14",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7626,9 +7255,7 @@
       "purl": "pkg:cargo/quinn-udp@0.5.15",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7652,9 +7279,7 @@
       "purl": "pkg:cargo/quinn@0.11.11",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7678,9 +7303,7 @@
       "purl": "pkg:cargo/quinn@0.11.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7704,9 +7327,7 @@
       "purl": "pkg:cargo/quote@1.0.45",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7730,9 +7351,7 @@
       "purl": "pkg:cargo/quote@1.0.46",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7756,9 +7375,7 @@
       "purl": "pkg:cargo/r-efi@5.3.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR LGPL-2.1-or-later"
         }
       ],
       "hashes": [
@@ -7782,9 +7399,7 @@
       "purl": "pkg:cargo/r-efi@6.0.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR LGPL-2.1-or-later"
         }
       ],
       "hashes": [
@@ -7808,9 +7423,7 @@
       "purl": "pkg:cargo/rand_chacha@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7834,9 +7447,7 @@
       "purl": "pkg:cargo/rand_core@0.10.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7860,9 +7471,7 @@
       "purl": "pkg:cargo/rand_core@0.9.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7886,9 +7495,7 @@
       "purl": "pkg:cargo/rand_pcg@0.10.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7912,9 +7519,7 @@
       "purl": "pkg:cargo/rand@0.10.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7938,9 +7543,7 @@
       "purl": "pkg:cargo/rand@0.10.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7964,9 +7567,7 @@
       "purl": "pkg:cargo/rand@0.9.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -7990,9 +7591,7 @@
       "purl": "pkg:cargo/raw-window-handle@0.6.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR Zlib"
         }
       ],
       "hashes": [
@@ -8017,7 +7616,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -8043,7 +7642,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -8068,9 +7667,7 @@
       "purl": "pkg:cargo/ref-cast-impl@1.0.25",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8094,9 +7691,7 @@
       "purl": "pkg:cargo/ref-cast@1.0.25",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8120,9 +7715,7 @@
       "purl": "pkg:cargo/regex-automata@0.4.14",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8146,9 +7739,7 @@
       "purl": "pkg:cargo/regex-syntax@0.8.11",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8172,9 +7763,7 @@
       "purl": "pkg:cargo/regex@1.12.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8198,9 +7787,7 @@
       "purl": "pkg:cargo/reqwest@0.12.28",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8224,9 +7811,7 @@
       "purl": "pkg:cargo/reqwest@0.13.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8250,9 +7835,7 @@
       "purl": "pkg:cargo/ring@0.17.14",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 AND ISC"
         }
       ],
       "hashes": [
@@ -8276,9 +7859,7 @@
       "purl": "pkg:cargo/rustc_version@0.4.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8302,9 +7883,7 @@
       "purl": "pkg:cargo/rustc-hash@2.1.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8328,9 +7907,7 @@
       "purl": "pkg:cargo/rustc-hash@2.1.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8354,9 +7931,7 @@
       "purl": "pkg:cargo/rustix@1.1.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -8380,9 +7955,7 @@
       "purl": "pkg:cargo/rustls-pki-types@1.14.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8406,9 +7979,7 @@
       "purl": "pkg:cargo/rustls-pki-types@1.15.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8433,7 +8004,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "ISC"
           }
         }
       ],
@@ -8458,9 +8029,7 @@
       "purl": "pkg:cargo/rustls@0.23.40",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR ISC OR MIT"
         }
       ],
       "hashes": [
@@ -8484,9 +8053,7 @@
       "purl": "pkg:cargo/rustls@0.23.41",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR ISC OR MIT"
         }
       ],
       "hashes": [
@@ -8510,9 +8077,7 @@
       "purl": "pkg:cargo/rustversion@1.0.22",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8536,9 +8101,7 @@
       "purl": "pkg:cargo/ryu@1.0.23",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR BSL-1.0"
         }
       ],
       "hashes": [
@@ -8562,9 +8125,7 @@
       "purl": "pkg:cargo/same-file@1.0.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -8589,7 +8150,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -8615,7 +8176,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -8641,7 +8202,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -8667,7 +8228,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -8692,9 +8253,7 @@
       "purl": "pkg:cargo/scopeguard@1.2.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8719,7 +8278,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MPL-2.0"
           }
         }
       ],
@@ -8744,9 +8303,7 @@
       "purl": "pkg:cargo/semver@1.0.28",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8770,9 +8327,7 @@
       "purl": "pkg:cargo/serde_core@1.0.228",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8796,9 +8351,7 @@
       "purl": "pkg:cargo/serde_derive_internals@0.29.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8822,9 +8375,7 @@
       "purl": "pkg:cargo/serde_derive@1.0.228",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8848,9 +8399,7 @@
       "purl": "pkg:cargo/serde_json@1.0.150",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8874,9 +8423,7 @@
       "purl": "pkg:cargo/serde_repr@0.1.20",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8900,9 +8447,7 @@
       "purl": "pkg:cargo/serde_spanned@0.6.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8926,9 +8471,7 @@
       "purl": "pkg:cargo/serde_spanned@1.1.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8952,9 +8495,7 @@
       "purl": "pkg:cargo/serde_urlencoded@0.7.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -8978,9 +8519,7 @@
       "purl": "pkg:cargo/serde_with_macros@3.21.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9004,9 +8543,7 @@
       "purl": "pkg:cargo/serde_with@3.21.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9030,9 +8567,7 @@
       "purl": "pkg:cargo/serde-untagged@0.1.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9056,9 +8591,7 @@
       "purl": "pkg:cargo/serde@1.0.228",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9082,9 +8615,7 @@
       "purl": "pkg:cargo/serialize-to-javascript-impl@0.1.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9108,9 +8639,7 @@
       "purl": "pkg:cargo/serialize-to-javascript@0.1.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9134,9 +8663,7 @@
       "purl": "pkg:cargo/servo_arc@0.4.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9160,9 +8687,7 @@
       "purl": "pkg:cargo/sha1@0.10.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9186,9 +8711,7 @@
       "purl": "pkg:cargo/sha2@0.10.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9213,7 +8736,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9238,9 +8761,7 @@
       "purl": "pkg:cargo/shlex@2.0.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9265,7 +8786,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9290,9 +8811,7 @@
       "purl": "pkg:cargo/signal-hook-registry@1.4.8",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9316,9 +8835,7 @@
       "purl": "pkg:cargo/signal-hook@0.3.18",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -9343,7 +8860,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9368,9 +8885,7 @@
       "purl": "pkg:cargo/siphasher@1.0.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9395,7 +8910,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9420,9 +8935,7 @@
       "purl": "pkg:cargo/smallvec@1.15.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9446,9 +8959,7 @@
       "purl": "pkg:cargo/smallvec@1.15.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9472,9 +8983,7 @@
       "purl": "pkg:cargo/socket2@0.6.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9498,9 +9007,7 @@
       "purl": "pkg:cargo/socks@0.3.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9524,9 +9031,7 @@
       "purl": "pkg:cargo/softbuffer@0.4.8",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9551,7 +9056,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9577,7 +9082,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9602,9 +9107,7 @@
       "purl": "pkg:cargo/stable_deref_trait@1.2.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9628,9 +9131,7 @@
       "purl": "pkg:cargo/string_cache_codegen@0.6.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9654,9 +9155,7 @@
       "purl": "pkg:cargo/string_cache@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9681,7 +9180,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9707,7 +9206,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "BSD-3-Clause"
           }
         }
       ],
@@ -9732,9 +9231,7 @@
       "purl": "pkg:cargo/swift-rs@1.0.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9758,9 +9255,7 @@
       "purl": "pkg:cargo/syn@1.0.109",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9784,9 +9279,7 @@
       "purl": "pkg:cargo/syn@2.0.117",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9810,9 +9303,7 @@
       "purl": "pkg:cargo/syn@2.0.118",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9837,7 +9328,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Apache-2.0"
           }
         }
       ],
@@ -9863,7 +9354,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -9888,9 +9379,7 @@
       "purl": "pkg:cargo/system-configuration-sys@0.6.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9914,9 +9403,7 @@
       "purl": "pkg:cargo/system-configuration@0.7.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9940,9 +9427,7 @@
       "purl": "pkg:cargo/system-deps@6.2.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9966,9 +9451,7 @@
       "purl": "pkg:cargo/tao-macros@0.1.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -9993,7 +9476,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Apache-2.0"
           }
         }
       ],
@@ -10018,9 +9501,7 @@
       "purl": "pkg:cargo/target-lexicon@0.12.16",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception"
         }
       ],
       "hashes": [
@@ -10044,9 +9525,7 @@
       "purl": "pkg:cargo/tauri-build@2.6.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10070,9 +9549,7 @@
       "purl": "pkg:cargo/tauri-build@2.6.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10096,9 +9573,7 @@
       "purl": "pkg:cargo/tauri-codegen@2.6.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10122,9 +9597,7 @@
       "purl": "pkg:cargo/tauri-codegen@2.6.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10148,9 +9621,7 @@
       "purl": "pkg:cargo/tauri-macros@2.6.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10174,9 +9645,7 @@
       "purl": "pkg:cargo/tauri-macros@2.6.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10200,9 +9669,7 @@
       "purl": "pkg:cargo/tauri-plugin-fs@2.5.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10226,9 +9693,7 @@
       "purl": "pkg:cargo/tauri-plugin-http@2.5.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10252,9 +9717,7 @@
       "purl": "pkg:cargo/tauri-plugin-shell@2.3.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10278,9 +9741,7 @@
       "purl": "pkg:cargo/tauri-plugin@2.6.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10304,9 +9765,7 @@
       "purl": "pkg:cargo/tauri-plugin@2.6.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10330,9 +9789,7 @@
       "purl": "pkg:cargo/tauri-runtime-wry@2.11.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10356,9 +9813,7 @@
       "purl": "pkg:cargo/tauri-runtime-wry@2.11.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10382,9 +9837,7 @@
       "purl": "pkg:cargo/tauri-runtime@2.11.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10408,9 +9861,7 @@
       "purl": "pkg:cargo/tauri-runtime@2.11.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10434,9 +9885,7 @@
       "purl": "pkg:cargo/tauri-utils@2.9.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10460,9 +9909,7 @@
       "purl": "pkg:cargo/tauri-utils@2.9.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10487,7 +9934,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -10512,9 +9959,7 @@
       "purl": "pkg:cargo/tauri@2.11.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10538,9 +9983,7 @@
       "purl": "pkg:cargo/tauri@2.11.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10564,9 +10007,7 @@
       "purl": "pkg:cargo/tempfile@3.27.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10590,9 +10031,7 @@
       "purl": "pkg:cargo/tendril@0.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10616,9 +10055,7 @@
       "purl": "pkg:cargo/tendril@0.5.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10642,9 +10079,7 @@
       "purl": "pkg:cargo/thiserror-impl@1.0.69",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10668,9 +10103,7 @@
       "purl": "pkg:cargo/thiserror-impl@2.0.18",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10694,9 +10127,7 @@
       "purl": "pkg:cargo/thiserror@1.0.69",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10720,9 +10151,7 @@
       "purl": "pkg:cargo/thiserror@2.0.18",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10746,9 +10175,7 @@
       "purl": "pkg:cargo/time-core@0.1.8",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10772,9 +10199,7 @@
       "purl": "pkg:cargo/time-core@0.1.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10798,9 +10223,7 @@
       "purl": "pkg:cargo/time-macros@0.2.27",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10824,9 +10247,7 @@
       "purl": "pkg:cargo/time-macros@0.2.31",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10850,9 +10271,7 @@
       "purl": "pkg:cargo/time@0.3.47",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10876,9 +10295,7 @@
       "purl": "pkg:cargo/time@0.3.53",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -10903,7 +10320,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -10928,9 +10345,7 @@
       "purl": "pkg:cargo/tinyvec_macros@0.1.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0 OR Zlib"
         }
       ],
       "hashes": [
@@ -10954,9 +10369,7 @@
       "purl": "pkg:cargo/tinyvec@1.11.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Zlib OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -10981,7 +10394,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11006,9 +10419,7 @@
       "purl": "pkg:cargo/tokio-rustls@0.26.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11033,7 +10444,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11059,7 +10470,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11084,9 +10495,7 @@
       "purl": "pkg:cargo/toml_datetime@0.6.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11110,9 +10519,7 @@
       "purl": "pkg:cargo/toml_datetime@0.7.5+spec-1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11136,9 +10543,7 @@
       "purl": "pkg:cargo/toml_datetime@1.1.1+spec-1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11162,9 +10567,7 @@
       "purl": "pkg:cargo/toml_edit@0.19.15",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11188,9 +10591,7 @@
       "purl": "pkg:cargo/toml_edit@0.20.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11214,9 +10615,7 @@
       "purl": "pkg:cargo/toml_edit@0.25.12+spec-1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11240,9 +10639,7 @@
       "purl": "pkg:cargo/toml_parser@1.1.2+spec-1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11266,9 +10663,7 @@
       "purl": "pkg:cargo/toml_writer@1.1.1+spec-1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11292,9 +10687,7 @@
       "purl": "pkg:cargo/toml@0.8.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11318,9 +10711,7 @@
       "purl": "pkg:cargo/toml@0.9.12+spec-1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11344,9 +10735,7 @@
       "purl": "pkg:cargo/toml@1.1.2+spec-1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11371,7 +10760,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11397,7 +10786,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11423,7 +10812,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11449,7 +10838,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11475,7 +10864,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11501,7 +10890,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11526,9 +10915,7 @@
       "purl": "pkg:cargo/tray-icon@0.23.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11552,9 +10939,7 @@
       "purl": "pkg:cargo/tray-icon@0.24.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11579,7 +10964,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -11604,9 +10989,7 @@
       "purl": "pkg:cargo/tungstenite@0.29.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11630,9 +11013,7 @@
       "purl": "pkg:cargo/typeid@1.0.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11656,9 +11037,7 @@
       "purl": "pkg:cargo/typenum@1.20.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11682,9 +11061,7 @@
       "purl": "pkg:cargo/unic-char-property@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11708,9 +11085,7 @@
       "purl": "pkg:cargo/unic-char-range@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11734,9 +11109,7 @@
       "purl": "pkg:cargo/unic-common@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11760,9 +11133,7 @@
       "purl": "pkg:cargo/unic-ucd-ident@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11786,9 +11157,7 @@
       "purl": "pkg:cargo/unic-ucd-version@0.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11812,9 +11181,7 @@
       "purl": "pkg:cargo/unicode-ident@1.0.24",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "(MIT OR Apache-2.0) AND Unicode-3.0"
         }
       ],
       "hashes": [
@@ -11838,9 +11205,7 @@
       "purl": "pkg:cargo/unicode-segmentation@1.13.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11864,9 +11229,7 @@
       "purl": "pkg:cargo/unicode-xid@0.2.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11891,7 +11254,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "ISC"
           }
         }
       ],
@@ -11916,9 +11279,7 @@
       "purl": "pkg:cargo/ureq-proto@0.6.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11942,9 +11303,7 @@
       "purl": "pkg:cargo/ureq@3.3.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11968,9 +11327,7 @@
       "purl": "pkg:cargo/url@2.5.8",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -11995,7 +11352,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -12020,9 +11377,7 @@
       "purl": "pkg:cargo/utf-8@0.7.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12046,9 +11401,7 @@
       "purl": "pkg:cargo/utf8_iter@1.0.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12072,9 +11425,7 @@
       "purl": "pkg:cargo/utf8-zero@0.8.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12098,9 +11449,7 @@
       "purl": "pkg:cargo/uuid@1.23.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12124,9 +11473,7 @@
       "purl": "pkg:cargo/uuid@1.23.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12150,9 +11497,7 @@
       "purl": "pkg:cargo/version_check@0.9.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12177,7 +11522,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -12203,7 +11548,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -12229,7 +11574,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -12254,9 +11599,7 @@
       "purl": "pkg:cargo/walkdir@2.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -12281,7 +11624,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -12306,9 +11649,7 @@
       "purl": "pkg:cargo/wasi@0.11.1+wasi-snapshot-preview1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12332,9 +11673,7 @@
       "purl": "pkg:cargo/wasip2@1.0.3+wasi-0.2.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12358,9 +11697,7 @@
       "purl": "pkg:cargo/wasip2@1.0.4+wasi-0.2.12",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12384,9 +11721,7 @@
       "purl": "pkg:cargo/wasip3@0.4.0+wasi-0.3.0-rc-2026-01-06",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12410,9 +11745,7 @@
       "purl": "pkg:cargo/wasm-bindgen-futures@0.4.73",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12436,9 +11769,7 @@
       "purl": "pkg:cargo/wasm-bindgen-futures@0.4.76",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12462,9 +11793,7 @@
       "purl": "pkg:cargo/wasm-bindgen-macro-support@0.2.123",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12488,9 +11817,7 @@
       "purl": "pkg:cargo/wasm-bindgen-macro-support@0.2.126",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12514,9 +11841,7 @@
       "purl": "pkg:cargo/wasm-bindgen-macro@0.2.123",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12540,9 +11865,7 @@
       "purl": "pkg:cargo/wasm-bindgen-macro@0.2.126",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12566,9 +11889,7 @@
       "purl": "pkg:cargo/wasm-bindgen-shared@0.2.123",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12592,9 +11913,7 @@
       "purl": "pkg:cargo/wasm-bindgen-shared@0.2.126",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12618,9 +11937,7 @@
       "purl": "pkg:cargo/wasm-bindgen@0.2.123",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12644,9 +11961,7 @@
       "purl": "pkg:cargo/wasm-bindgen@0.2.126",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12670,9 +11985,7 @@
       "purl": "pkg:cargo/wasm-encoder@0.244.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12696,9 +12009,7 @@
       "purl": "pkg:cargo/wasm-metadata@0.244.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12722,9 +12033,7 @@
       "purl": "pkg:cargo/wasm-streams@0.5.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12748,9 +12057,7 @@
       "purl": "pkg:cargo/wasmparser@0.244.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -12774,9 +12081,7 @@
       "purl": "pkg:cargo/web_atoms@0.2.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12800,9 +12105,7 @@
       "purl": "pkg:cargo/web_atoms@0.2.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12826,9 +12129,7 @@
       "purl": "pkg:cargo/web-sys@0.3.100",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12852,9 +12153,7 @@
       "purl": "pkg:cargo/web-sys@0.3.103",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12878,9 +12177,7 @@
       "purl": "pkg:cargo/web-time@1.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -12905,7 +12202,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -12931,7 +12228,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -12957,7 +12254,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "CDLA-Permissive-2.0"
           }
         }
       ],
@@ -12983,7 +12280,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "CDLA-Permissive-2.0"
           }
         }
       ],
@@ -13009,7 +12306,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -13035,7 +12332,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -13061,7 +12358,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -13087,7 +12384,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -13112,9 +12409,7 @@
       "purl": "pkg:cargo/winapi-i686-pc-windows-gnu@0.4.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13138,9 +12433,7 @@
       "purl": "pkg:cargo/winapi-util@0.1.11",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Unlicense OR MIT"
         }
       ],
       "hashes": [
@@ -13164,9 +12457,7 @@
       "purl": "pkg:cargo/winapi-x86_64-pc-windows-gnu@0.4.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13190,9 +12481,7 @@
       "purl": "pkg:cargo/winapi@0.3.9",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13216,9 +12505,7 @@
       "purl": "pkg:cargo/window-vibrancy@0.6.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -13242,9 +12529,7 @@
       "purl": "pkg:cargo/windows_aarch64_gnullvm@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13268,9 +12553,7 @@
       "purl": "pkg:cargo/windows_aarch64_gnullvm@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13294,9 +12577,7 @@
       "purl": "pkg:cargo/windows_aarch64_gnullvm@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13320,9 +12601,7 @@
       "purl": "pkg:cargo/windows_aarch64_msvc@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13346,9 +12625,7 @@
       "purl": "pkg:cargo/windows_aarch64_msvc@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13372,9 +12649,7 @@
       "purl": "pkg:cargo/windows_aarch64_msvc@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13398,9 +12673,7 @@
       "purl": "pkg:cargo/windows_i686_gnu@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13424,9 +12697,7 @@
       "purl": "pkg:cargo/windows_i686_gnu@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13450,9 +12721,7 @@
       "purl": "pkg:cargo/windows_i686_gnu@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13476,9 +12745,7 @@
       "purl": "pkg:cargo/windows_i686_gnullvm@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13502,9 +12769,7 @@
       "purl": "pkg:cargo/windows_i686_gnullvm@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13528,9 +12793,7 @@
       "purl": "pkg:cargo/windows_i686_msvc@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13554,9 +12817,7 @@
       "purl": "pkg:cargo/windows_i686_msvc@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13580,9 +12841,7 @@
       "purl": "pkg:cargo/windows_i686_msvc@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13606,9 +12865,7 @@
       "purl": "pkg:cargo/windows_x86_64_gnu@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13632,9 +12889,7 @@
       "purl": "pkg:cargo/windows_x86_64_gnu@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13658,9 +12913,7 @@
       "purl": "pkg:cargo/windows_x86_64_gnu@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13684,9 +12937,7 @@
       "purl": "pkg:cargo/windows_x86_64_gnullvm@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13710,9 +12961,7 @@
       "purl": "pkg:cargo/windows_x86_64_gnullvm@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13736,9 +12985,7 @@
       "purl": "pkg:cargo/windows_x86_64_gnullvm@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13762,9 +13009,7 @@
       "purl": "pkg:cargo/windows_x86_64_msvc@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13788,9 +13033,7 @@
       "purl": "pkg:cargo/windows_x86_64_msvc@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13814,9 +13057,7 @@
       "purl": "pkg:cargo/windows_x86_64_msvc@0.53.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13840,9 +13081,7 @@
       "purl": "pkg:cargo/windows-collections@0.2.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13866,9 +13105,7 @@
       "purl": "pkg:cargo/windows-core@0.61.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13892,9 +13129,7 @@
       "purl": "pkg:cargo/windows-core@0.62.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13918,9 +13153,7 @@
       "purl": "pkg:cargo/windows-future@0.2.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13944,9 +13177,7 @@
       "purl": "pkg:cargo/windows-implement@0.60.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13970,9 +13201,7 @@
       "purl": "pkg:cargo/windows-interface@0.59.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -13996,9 +13225,7 @@
       "purl": "pkg:cargo/windows-link@0.1.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14022,9 +13249,7 @@
       "purl": "pkg:cargo/windows-link@0.2.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14048,9 +13273,7 @@
       "purl": "pkg:cargo/windows-numerics@0.2.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14074,9 +13297,7 @@
       "purl": "pkg:cargo/windows-registry@0.6.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14100,9 +13321,7 @@
       "purl": "pkg:cargo/windows-result@0.3.4",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14126,9 +13345,7 @@
       "purl": "pkg:cargo/windows-result@0.4.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14152,9 +13369,7 @@
       "purl": "pkg:cargo/windows-strings@0.4.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14178,9 +13393,7 @@
       "purl": "pkg:cargo/windows-strings@0.5.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14204,9 +13417,7 @@
       "purl": "pkg:cargo/windows-sys@0.45.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14230,9 +13441,7 @@
       "purl": "pkg:cargo/windows-sys@0.52.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14256,9 +13465,7 @@
       "purl": "pkg:cargo/windows-sys@0.59.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14282,9 +13489,7 @@
       "purl": "pkg:cargo/windows-sys@0.60.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14308,9 +13513,7 @@
       "purl": "pkg:cargo/windows-sys@0.61.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14334,9 +13537,7 @@
       "purl": "pkg:cargo/windows-targets@0.42.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14360,9 +13561,7 @@
       "purl": "pkg:cargo/windows-targets@0.52.6",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14386,9 +13585,7 @@
       "purl": "pkg:cargo/windows-targets@0.53.5",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14412,9 +13609,7 @@
       "purl": "pkg:cargo/windows-threading@0.1.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14438,9 +13633,7 @@
       "purl": "pkg:cargo/windows-version@0.1.7",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14464,9 +13657,7 @@
       "purl": "pkg:cargo/windows@0.61.3",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "MIT OR Apache-2.0"
         }
       ],
       "hashes": [
@@ -14491,7 +13682,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14517,7 +13708,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14543,7 +13734,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14569,7 +13760,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14595,7 +13786,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14620,9 +13811,7 @@
       "purl": "pkg:cargo/wit-bindgen-core@0.51.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14646,9 +13835,7 @@
       "purl": "pkg:cargo/wit-bindgen-rust-macro@0.51.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14672,9 +13859,7 @@
       "purl": "pkg:cargo/wit-bindgen-rust@0.51.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14698,9 +13883,7 @@
       "purl": "pkg:cargo/wit-bindgen@0.51.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14724,9 +13907,7 @@
       "purl": "pkg:cargo/wit-bindgen@0.57.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14750,9 +13931,7 @@
       "purl": "pkg:cargo/wit-component@0.244.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14776,9 +13955,7 @@
       "purl": "pkg:cargo/wit-parser@0.244.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14803,7 +13980,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -14828,9 +14005,7 @@
       "purl": "pkg:cargo/wry@0.55.1",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14855,7 +14030,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14881,7 +14056,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -14907,7 +14082,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -14933,7 +14108,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -14958,9 +14133,7 @@
       "purl": "pkg:cargo/zerocopy-derive@0.8.52",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-2-Clause OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -14984,9 +14157,7 @@
       "purl": "pkg:cargo/zerocopy@0.8.52",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "BSD-2-Clause OR Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -15011,7 +14182,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -15037,7 +14208,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -15062,9 +14233,7 @@
       "purl": "pkg:cargo/zeroize@1.8.2",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -15088,9 +14257,7 @@
       "purl": "pkg:cargo/zeroize@1.9.0",
       "licenses": [
         {
-          "license": {
-            "name": "unknown"
-          }
+          "expression": "Apache-2.0 OR MIT"
         }
       ],
       "hashes": [
@@ -15115,7 +14282,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -15141,7 +14308,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -15167,7 +14334,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "Unicode-3.0"
           }
         }
       ],
@@ -15193,7 +14360,7 @@
       "licenses": [
         {
           "license": {
-            "name": "unknown"
+            "id": "MIT"
           }
         }
       ],
@@ -24015,7 +23182,7 @@
       "properties": [
         {
           "name": "lolly:vendored",
-          "value": "tools/meeting-planner/lib/d3.min.js"
+          "value": "tools/street-map/lib/d3.min.js"
         }
       ]
     },
@@ -30695,6 +29862,14 @@
       "name": "rechoir",
       "version": "0.6.2",
       "purl": "pkg:npm/rechoir@0.6.2",
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT",
+            "url": "https://github.com/tkellen/node-rechoir/blob/master/LICENSE"
+          }
+        }
+      ],
       "hashes": [
         {
           "alg": "SHA-512",
@@ -32517,32 +31692,6 @@
         {
           "name": "cdx:npm:package:development",
           "value": "true"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/topojson-client@3.1.0",
-      "name": "topojson-client",
-      "version": "3.1.0",
-      "purl": "pkg:npm/topojson-client@3.1.0",
-      "licenses": [
-        {
-          "license": {
-            "id": "ISC"
-          }
-        }
-      ],
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "17a2d16f2c3565d104d8b7f0f095cf7aab0f925e2097765d8f17d0f9303d0b026e65307e3790c035bd2a42d10d922f97dc83005499d1b1cdcd4e0047df3728ac"
-        }
-      ],
-      "properties": [
-        {
-          "name": "lolly:vendored",
-          "value": "tools/meeting-planner/lib/topojson.min.js"
         }
       ]
     },

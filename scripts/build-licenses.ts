@@ -54,6 +54,11 @@ interface NpmComponent {
   where: string;
   elect?: string;
   transitiveVia?: string;
+  // Extra per-component notice line (e.g. the LGPL dynamic-loading note).
+  note?: string;
+  // Canonical license text for packages that publish no LICENSE file to npm
+  // (the license is declared in package.json only). Used verbatim.
+  fallbackText?: string;
 }
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -61,6 +66,66 @@ const NODE_MODULES = join(ROOT, 'node_modules');
 
 const MD_OUT = join(ROOT, 'THIRD-PARTY-NOTICES.md');
 const TXT_OUT = join(ROOT, 'shells', 'web', 'public', 'THIRD-PARTY-LICENSES.txt');
+
+// ─── LGPL-3.0 dynamic-loading note ───────────────────────────────────────────
+// Two web components are LGPL-3.0. Both are loaded exclusively via dynamic
+// `import()` as self-contained modules — never statically linked into Lolly's
+// own code — so a user can swap in a modified copy of the library. The note is
+// attached to each entry so the obligation story travels with the notice.
+function lgplDynamicNote(pkg: string, what: string): string {
+  return (
+    `LGPL-3.0 component (${what}). Loaded only via dynamic import() as a ` +
+    `self-contained JS/WASM module; it is not statically linked into Lolly's own ` +
+    `code and can be replaced with a modified copy of the library. Complete ` +
+    `corresponding source is available from the npm registry ` +
+    `(https://www.npmjs.com/package/${pkg}) and the upstream repository. A formal ` +
+    `LGPL relink/substitution analysis is tracked as an open compliance task.`
+  );
+}
+
+// ─── Canonical texts for npm packages that publish NO LICENSE file ───────────
+// Both declare MIT in package.json but ship no license text in the npm tarball,
+// so readLicenseText() has nothing to copy. The canonical MIT body plus the
+// upstream copyright line is recorded here instead.
+const MIT_BODY = `Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.`;
+
+// onnxruntime-web's npm tarball carries no LICENSE file; the project (ONNX
+// Runtime, https://github.com/microsoft/onnxruntime) is MIT, © Microsoft.
+const ONNXRUNTIME_WEB_TEXT = `MIT License
+
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+${MIT_BODY}
+
+(The onnxruntime-web npm package publishes no LICENSE file; this is the MIT
+license of the ONNX Runtime project, https://github.com/microsoft/onnxruntime.)`;
+
+// kiwi-schema's npm tarball carries no LICENSE file; the upstream project
+// (https://github.com/evanw/kiwi) is MIT, © 2016 Evan Wallace.
+const KIWI_SCHEMA_TEXT = `The MIT License (MIT)
+
+Copyright (c) 2016 Evan Wallace
+
+${MIT_BODY}
+
+(The kiwi-schema npm package publishes no LICENSE file; this is the MIT
+license of the upstream project, https://github.com/evanw/kiwi.)`;
 
 // ─── npm components that are DISTRIBUTED to users ────────────────────────────
 // `where: 'web'`  → bundled into the web PWA (engine runtime deps + web deps +
@@ -88,13 +153,44 @@ const NPM_COMPONENTS: NpmComponent[] = [
   // only reaches a user who exports a timed composition — but it IS distributed.
   { pkg: 'mediabunny', where: 'web', elect: 'MPL-2.0' },
 
+  // Rich-text editing (Tiptap + its bundled ProseMirror). All MIT, one project.
+  { pkg: '@tiptap/core', where: 'web' },
+  { pkg: '@tiptap/pm', where: 'web' },
+  { pkg: '@tiptap/starter-kit', where: 'web' },
+  { pkg: '@tiptap/extension-image', where: 'web' },
+  { pkg: '@tiptap/extension-placeholder', where: 'web' },
+  { pkg: '@tiptap/extension-table', where: 'web' },
+  { pkg: '@tiptap/extension-table-cell', where: 'web' },
+  { pkg: '@tiptap/extension-table-header', where: 'web' },
+  { pkg: '@tiptap/extension-table-row', where: 'web' },
+  { pkg: '@tiptap/extension-text-align', where: 'web' },
+  { pkg: '@tiptap/extension-text-style', where: 'web' },
+
+  // Media / export pipeline (all lazy-imported, but distributed all the same).
+  { pkg: 'butterchurn', where: 'web' },
+  { pkg: 'butterchurn-presets', where: 'web' },
+  { pkg: 'lottie-web', where: 'web' },
+  { pkg: 'onnxruntime-web', where: 'web', fallbackText: ONNXRUNTIME_WEB_TEXT },
+  { pkg: 'mp4-muxer', where: 'web' },
+  { pkg: 'webm-muxer', where: 'web' },
+  { pkg: 'woff2-encoder', where: 'web' },
+  { pkg: 'fzstd', where: 'web' },
+  { pkg: 'kiwi-schema', where: 'web', fallbackText: KIWI_SCHEMA_TEXT },
+
+  // LGPL-3.0 components — dynamically imported, self-contained modules. Each
+  // carries the LGPL dynamic-loading note (see LGPL_DYNAMIC_NOTE).
+  { pkg: 'heic-to', where: 'web', note: lgplDynamicNote('heic-to', 'the libheif HEIC/HEIF decoder compiled to WebAssembly') },
+  { pkg: '@breezystack/lamejs', where: 'web', note: lgplDynamicNote('@breezystack/lamejs', 'the LAME MP3 encoder ported to JavaScript') },
+
   // Transitive deps that jspdf pulls in and that land in the web bundle.
   { pkg: 'html2canvas', where: 'web', transitiveVia: 'jspdf' },
   { pkg: 'core-js', where: 'web', transitiveVia: 'jspdf' },
 
-  // shells/cli direct dependency that is NOT shared with the web build.
-  // (pdf-lib is also a CLI dep but is documented once, above.)
+  // shells/cli direct dependencies that are NOT shared with the web build.
+  // (pdf-lib and fflate are also CLI deps but are documented once, above.)
   { pkg: 'jsdom', where: 'cli' },
+  { pkg: '@resvg/resvg-js', where: 'cli' },
+  { pkg: 'playwright-core', where: 'cli' },
 ];
 
 // dompurify is dual-licensed "MPL-2.0 OR Apache-2.0"; Lolly elects MPL-2.0 to
@@ -350,7 +446,7 @@ const HARFBUZZ_WASM_ENTRY: Entry = {
 };
 
 // ─── Read npm component metadata + license text from node_modules ────────────
-function loadNpmComponent({ pkg, where, elect, transitiveVia }: NpmComponent): Entry {
+function loadNpmComponent({ pkg, where, elect, transitiveVia, note, fallbackText }: NpmComponent): Entry {
   const dir = join(NODE_MODULES, pkg);
   // Installed package.json — dynamic JSON, minimally typed for the fields we read.
   const meta = JSON.parse(readFileSync(join(dir, 'package.json'), 'utf8')) as {
@@ -368,7 +464,7 @@ function loadNpmComponent({ pkg, where, elect, transitiveVia }: NpmComponent): E
     text = DOMPURIFY_ELECTION_TEXT;
     copyright = '(c) Cure53 and other contributors';
   } else {
-    text = readLicenseText(dir);
+    text = fallbackText ?? readLicenseText(dir);
     copyright = extractCopyright(text) || authorString(meta.author);
   }
 
@@ -379,7 +475,9 @@ function loadNpmComponent({ pkg, where, elect, transitiveVia }: NpmComponent): E
     copyright,
     text,
     where,
-    note: transitiveVia ? `Transitive dependency bundled via ${transitiveVia}.` : null,
+    note: [transitiveVia && `Transitive dependency bundled via ${transitiveVia}.`, note]
+      .filter(Boolean)
+      .join(' ') || null,
   };
 }
 
@@ -474,8 +572,8 @@ for (const c of webNpm) {
   if (c.name === 'harfbuzzjs') bundledEntries.push(HARFBUZZ_WASM_ENTRY);
 }
 
-// Sanity check: every distributed direct dependency declared in the three
-// workspace manifests should be accounted for (warn on drift, don't fail).
+// Coverage gate: every distributed direct dependency declared in the three
+// workspace manifests must be accounted for — a missing one exits 1 so CI blocks.
 verifyManifestCoverage();
 
 // Blocks are joined with a blank line between them; empty sections drop out.
@@ -536,9 +634,10 @@ console.log(
 );
 console.log(`✓ Wrote shells/web/public/THIRD-PARTY-LICENSES.txt (web build scope)`);
 
-// ─── Drift guard ─────────────────────────────────────────────────────────────
+// ─── Drift gate ──────────────────────────────────────────────────────────────
 // Read the declared direct dependencies of the three distributed workspaces and
-// warn if any is missing from NPM_COMPONENTS (a new shipped dep we'd under-attribute).
+// FAIL (exit 1) if any is missing from NPM_COMPONENTS — a new shipped dep must
+// not land without its notice. CI runs this via `npm run build:licenses`.
 function verifyManifestCoverage(): void {
   const declared = new Set<string>();
   for (const rel of ['engine/package.json', 'shells/web/package.json', 'shells/cli/package.json']) {
@@ -546,16 +645,18 @@ function verifyManifestCoverage(): void {
       dependencies?: Record<string, string>;
     };
     for (const dep of Object.keys(pkg.dependencies ?? {})) {
-      if (dep.startsWith('@lolly/')) continue; // internal workspace link
+      // Internal workspace links (this repo's own MPL-2.0 code), not 3rd party.
+      if (dep.startsWith('@lolly/') || dep.startsWith('@lolly-tools/')) continue;
       declared.add(dep);
     }
   }
   const covered = new Set(NPM_COMPONENTS.map((c) => c.pkg));
   const missing = [...declared].filter((d) => !covered.has(d));
   if (missing.length) {
-    console.warn(
-      `⚠ ${missing.length} distributed dependency not in NPM_COMPONENTS: ${missing.join(', ')}\n` +
+    console.error(
+      `✗ ${missing.length} distributed dependency not in NPM_COMPONENTS: ${missing.join(', ')}\n` +
       `  Add it to scripts/build-licenses.ts so its notice is retained.`,
     );
+    process.exit(1);
   }
 }

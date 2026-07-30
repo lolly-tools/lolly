@@ -107,9 +107,13 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // per-space/per-profile overrides on a brand colour, with ColorSwatch.faces
   // added and ColorSwatch.value now returning an AUTHORED sRGB face in
   // preference to the automatic bake) and 1.78.0 (the `table` input type +
-  // render.paginate — one page per table row, plus the table-text codec);
+  // render.paginate — one page per table row, plus the table-text codec) and
+  // 1.79.0 (PptxInspectResult.content — the slide node-kind tally that lets a
+  // rebrand tool warn that a flattened, picture-only deck cannot change) and
+  // 1.80.0 (markdown links + images in the {{markdown}} helper, and the
+  // render.filmstrip edge for paged tools);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.78.0');
+  assert.equal(ENGINE_VERSION, '1.80.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

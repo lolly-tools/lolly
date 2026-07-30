@@ -690,6 +690,48 @@ test('template: markdown renders # headings and splits body beneath them', () =>
     '<h1>Head</h1><ul><li>a</li><li>b</li></ul>');
 });
 
+test('template: markdown renders links and images, allowlisting the URL scheme', () => {
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[SUSE](https://suse.com)' }),
+    '<p><a href="https://suse.com">SUSE</a></p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '![a cat](https://x.test/c.png)' }),
+    '<p><img class="md-image" src="https://x.test/c.png" alt="a cat"></p>');
+  // Image syntax wins over link syntax (the "!" is not left dangling).
+  assert.equal(hydrate('{{{markdown t}}}', { t: '![](/logo.svg)' }),
+    '<p><img class="md-image" src="/logo.svg" alt=""></p>');
+  // data:/blob: are image-only; a link to one degrades to its plain label.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '![px](data:image/png;base64,AAA)' }),
+    '<p><img class="md-image" src="data:image/png;base64,AAA" alt="px"></p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[px](data:text/html,hi)' }), '<p>px</p>');
+  // Emphasis composes inside a link label; the URL is parked across that pass, so
+  // an asterisk or "~~" in a query string can't be rewritten mid-attribute.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[**go** now](/a?q=*x*&b=~~y~~)' }),
+    '<p><a href="/a?q=*x*&amp;b=~~y~~"><strong>go</strong> now</a></p>');
+  // Links and images work inside list items and headings.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '- [one](/1)\n- [two](/2)' }),
+    '<ul><li><a href="/1">one</a></li><li><a href="/2">two</a></li></ul>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '## [Docs](/docs)' }),
+    '<h2><a href="/docs">Docs</a></h2>');
+});
+
+test('template: markdown drops unsafe link/image URLs and can never emit a live tag', () => {
+  // javascript: and friends render as plain text — no href, no element.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[click](javascript:evil)' }), '<p>click</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[x](vbscript:foo)' }), '<p>x</p>');
+  // Control characters can't smuggle a scheme past the probe.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[x](java\tscript:evil)' }), '<p>[x](java\tscript:evil)</p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '![x](javascript:evil)' }), '<p>x</p>');
+  // An unsafe image with no alt keeps the literal markup rather than vanishing.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '![](javascript:evil)' }),
+    '<p>![](javascript:evil)</p>');
+  // Label, alt and URL are all escaped first, so no author text becomes markup.
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[<b>hi</b>](/a)' }),
+    '<p><a href="/a">&lt;b&gt;hi&lt;/b&gt;</a></p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '![" onerror="x](/a.png)' }),
+    '<p><img class="md-image" src="/a.png" alt="&quot; onerror=&quot;x"></p>');
+  assert.equal(hydrate('{{{markdown t}}}', { t: '[a](/x"onmouseover="y)' }),
+    '<p><a href="/x&quot;onmouseover=&quot;y">a</a></p>');
+});
+
 test('template: data-format helpers (icsStamp, rfcText, csvCell) with raw hydration', () => {
   const raw = (src: string, values: any) => hydrate(src, values, { raw: true });
   // icsStamp: datetime-local / date → iCalendar basic form

@@ -1456,6 +1456,31 @@ export interface PptxInspectColor {
   review?: boolean;
 }
 
+/**
+ * What the slides are actually MADE of — the node kinds the reader found,
+ * summed across every slide. Added in engine 1.79, so a tool must treat it as
+ * optional: an older shell omits it entirely.
+ *
+ * The point of the counters is to tell a rebrandable deck from a flattened one.
+ * A deck whose slides are nothing but `pictures` (a PDF or a set of exported
+ * images dropped onto blank slides) carries no colour or typeface a rebrand can
+ * reach: the theme swap still rewrites the theme part, but nothing on the slides
+ * references it, so the visible result is identical to the input. A tool should
+ * say so BEFORE the user spends a download on it.
+ */
+export interface PptxInspectContent {
+  /** Picture nodes (embedded bitmaps/EMF/SVG) across all slides. */
+  pictures: number;
+  /** Text-bearing nodes. */
+  texts: number;
+  /** Shape nodes (a fill/line the rebrand can remap). */
+  shapes: number;
+  /** Table nodes. */
+  tables: number;
+  /** Nodes the reader could not classify (charts, SmartArt, OLE, …). */
+  unknown: number;
+}
+
 /** One distinct explicit typeface found in the deck. */
 export interface PptxInspectFont {
   family: string;
@@ -1478,6 +1503,10 @@ export interface PptxInspectResult {
   colors: PptxInspectColor[];
   /** Distinct explicit typefaces incl. the theme major/minor, capped at 64. */
   fonts: PptxInspectFont[];
+  /** Node-kind tally across the slides — how to spot a flattened, picture-only
+   *  deck that a rebrand cannot visibly change. Added in 1.79; optional, so a
+   *  tool must feature-detect it (an older shell omits it). */
+  content?: PptxInspectContent;
   /** A ready-made theme plan from the brand swatches (present when opts.swatches
    *  is non-empty). Colour slots are `#RRGGBB` — pass it to rebrand() as-is. */
   themeSuggestion?: PptxRebrandTheme;
@@ -1553,6 +1582,18 @@ export interface Profile {
   custom?: Record<string, string>;
   /** Local UI feature flags, keyed by flag id (default ON when unset). */
   featureFlags?: Record<string, boolean>;
+  /** Accessibility preferences — all opt-in, default off (unset = the regular
+   *  experience, byte-for-byte). Shells apply them to their own chrome only;
+   *  a tool's rendered output is never affected (motion/type inside the render
+   *  canvas is the user's creative output, not app chrome). */
+  a11y?: {
+    /** Tame chrome animations/transitions even when the OS doesn't ask for it. */
+    reduceMotion?: boolean;
+    /** Stronger foreground/border contrast for the app chrome. */
+    highContrast?: boolean;
+    /** Larger app-chrome type (never scales the tool canvas or exports). */
+    largeText?: boolean;
+  };
   /** Tool ids the user has starred — the gallery's "Favourites" collection. Rides
    *  the profile so it persists across reloads and travels in the portable backup. */
   favourites?: string[];

@@ -17,7 +17,9 @@
 #                     catalog/tools/index.json).
 #   audit           — npm audit (blocks on HIGH/CRITICAL; moderate/low surfaced,
 #                     non-blocking) + SBOM freshness (regenerate sbom.cdx.json, fail
-#                     on drift). Ongoing supply-chain watch for the security audit;
+#                     on drift) + third-party notices (build:licenses exits 1 on a
+#                     coverage gap; drift in the generated files fails the diff).
+#                     Ongoing supply-chain watch for the security audit;
 #                     false alarms pinned via package.json overrides.
 # All gates (test / typecheck / validate / smoke / build+budget / api-bundles / audit)
 # exit non-zero on failure and BLOCK. The bundle-budget step is a hard gate again as of the boot
@@ -320,3 +322,15 @@ jobs:
         run: |
           npm run build:sbom
           git diff --exit-code -- sbom.cdx.json
+
+      # Third-party notices are generated the same way (scripts/build-licenses.ts).
+      # The generator itself EXITS 1 when a distributed direct dependency is missing
+      # from its component list, so an attribution gap blocks here — and drift in
+      # the committed outputs blocks on the diff, like the SBOM above.
+      # (THIRD-PARTY-LICENSES.txt lives in the shells/web submodule, so its drift
+      # check has to run inside that repo — a superproject pathspec can't see it.)
+      - name: Third-party notices complete + up to date (fail on gap or drift)
+        run: |
+          npm run build:licenses
+          git diff --exit-code -- THIRD-PARTY-NOTICES.md
+          git -C shells/web diff --exit-code -- public/THIRD-PARTY-LICENSES.txt
