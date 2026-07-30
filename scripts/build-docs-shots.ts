@@ -486,13 +486,27 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
     if (params.css) await page.addStyleTag({ content: params.css }).catch(() => {});
-    if (params.scrollDepth > 0) {
-      await page.evaluate((d: number) => {
-        const max = Math.max(0, document.body.scrollHeight - window.innerHeight);
-        window.scrollTo(0, d > 1 ? d : d * max);
-      }, params.scrollDepth).catch(() => {});
-    }
+    // waitMs FIRST, scroll after: an SPA route lays out well after `load`, so a
+    // scroll issued immediately clamps against a 0-height document and the frame
+    // silently stays at the top (found via the inclusive-design mobile shots).
+    // The short settle lets scroll-triggered lazy rendering (content-visibility,
+    // reveal observers) paint before measurement/capture.
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
+    if (params.scrollDepth > 0) {
+      // Retry until the scroll actually TOOK: late layout (locale re-render,
+      // reveal observers, content-visibility) can grow the document after the
+      // scroll and snap it back, so assert scrollY against the recomputed target.
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const settled = await page.evaluate((d: number) => {
+          const max = Math.max(0, document.body.scrollHeight - window.innerHeight);
+          const target = Math.min(max, d > 1 ? d : d * max);
+          window.scrollTo(0, target);
+          return Math.abs(window.scrollY - target) < 4 && (d <= 1 || max >= d || max === 0);
+        }, params.scrollDepth).catch(() => true);
+        await page.waitForTimeout(300);
+        if (settled && attempt >= 2) break;
+      }
+    }
 
     const PAD = 24;
     const box = await page.evaluate(({ sel, pad }: { sel: string; pad: number }) => {
@@ -628,13 +642,27 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
     const zoomCss = Math.abs((shot.zoom ?? 1) - 1) > 1e-3 ? `html{zoom:${shot.zoom}!important}` : '';
     const styles = [zoomCss, params.css].filter(Boolean).join('\n');
     if (styles) await page.addStyleTag({ content: styles }).catch(() => {});
-    if (params.scrollDepth > 0) {
-      await page.evaluate((d: number) => {
-        const max = Math.max(0, document.body.scrollHeight - window.innerHeight);
-        window.scrollTo(0, d > 1 ? d : d * max);
-      }, params.scrollDepth).catch(() => {});
-    }
+    // waitMs FIRST, scroll after: an SPA route lays out well after `load`, so a
+    // scroll issued immediately clamps against a 0-height document and the frame
+    // silently stays at the top (found via the inclusive-design mobile shots).
+    // The short settle lets scroll-triggered lazy rendering (content-visibility,
+    // reveal observers) paint before measurement/capture.
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
+    if (params.scrollDepth > 0) {
+      // Retry until the scroll actually TOOK: late layout (locale re-render,
+      // reveal observers, content-visibility) can grow the document after the
+      // scroll and snap it back, so assert scrollY against the recomputed target.
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const settled = await page.evaluate((d: number) => {
+          const max = Math.max(0, document.body.scrollHeight - window.innerHeight);
+          const target = Math.min(max, d > 1 ? d : d * max);
+          window.scrollTo(0, target);
+          return Math.abs(window.scrollY - target) < 4 && (d <= 1 || max >= d || max === 0);
+        }, params.scrollDepth).catch(() => true);
+        await page.waitForTimeout(300);
+        if (settled && attempt >= 2) break;
+      }
+    }
 
     // M5: the walker path. Ask the shell to serialise the live DOM itself rather
     // than round-tripping through Chromium's PDF printer. The crop is applied by

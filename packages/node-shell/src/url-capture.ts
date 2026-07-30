@@ -142,6 +142,22 @@ export async function captureUrl(
       }, params.scrollDepth).catch(() => {});
     }
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
+    // Re-assert the scroll after the wait: an SPA lays out well after `load`, so
+    // the early scroll can clamp against a still-empty document and silently stay
+    // at the top. The early scroll stays (it triggers lazy loading that waitMs
+    // then absorbs); this settles the final position against the grown document.
+    if (params.scrollDepth > 0) {
+      for (let attempt = 0; attempt < 10; attempt++) {
+        const settled = await page.evaluate((d: number) => {
+          const max = Math.max(0, document.body.scrollHeight - window.innerHeight);
+          const target = Math.min(max, d > 1 ? d : d * max);
+          window.scrollTo(0, target);
+          return Math.abs(window.scrollY - target) < 4;
+        }, params.scrollDepth).catch(() => true);
+        await page.waitForTimeout(300);
+        if (settled && attempt >= 1) break;
+      }
+    }
 
     // ── Vector PDF: a real print of the page, not an embedded screenshot ──
     if (fmt === 'pdf') {
