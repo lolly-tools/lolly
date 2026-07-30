@@ -164,6 +164,31 @@ export interface ToolHookFlags {
   exportFile?: boolean;
 }
 
+/** One route through a tool's {@link ToolGuide} — e.g. "on a computer" vs "on a phone". */
+export interface ToolGuideTrack {
+  /** Stable key; the i18n sidecar path (`guide.tracks.<id>.…`) is built from it. */
+  id: string;
+  /** Tab label, one or two words. */
+  label: string;
+  /** Ordered steps. Plain text; `**bold**` is the only markup. */
+  steps: string[];
+  /** Optional closing caveat under the steps. */
+  note?: string;
+}
+
+/**
+ * A short walkthrough for the last mile a render can't teach on its own — where
+ * the export goes and what to do with it there. The web shell shows it as a
+ * dialog behind a help button beside the tool title, opened once automatically
+ * on a device's first visit to the tool. A handful of steps, not documentation.
+ */
+export interface ToolGuide {
+  /** Dialog heading; the shell falls back to a generic one when omitted. */
+  title?: string;
+  /** One or more routes. A single track renders as a plain list; several as tabs. */
+  tracks: ToolGuideTrack[];
+}
+
 /**
  * A parsed tool manifest. Author it with {@link defineTool} for type-checking, then
  * validate with {@link validateTool} before shipping (Lolly's catalog CI does the
@@ -198,5 +223,7 @@ export interface ToolManifest {
    *  exact URL. Absent ⇒ every `host.net` fetch rejects. */
   network?: { allowlist: string[] };
   composes?: ComposeEntry[];
+  /** Optional "now what?" walkthrough shown by the shell (see {@link ToolGuide}). */
+  guide?: ToolGuide;
   hooks?: ToolHookFlags;
 }
