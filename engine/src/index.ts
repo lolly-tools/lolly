@@ -326,7 +326,7 @@ export type { IccProfile } from './icc.ts';
 // scanline, tetrahedral device-link lattices for pure-LUT profiles, and the
 // ICC v4 clause-8 rendering-intent fallback. Sits beside the reader it drives;
 // like the reader it never throws — null on malformed/unusable input.
-export { ICC_DEVICE_SPACE, iccResolvedIntent, applyIccToFrame, convertViaIcc } from './icc-pixels.ts';
+export { ICC_DEVICE_SPACE, iccFrameRefusal, iccResolvedIntent, applyIccToFrame, convertViaIcc } from './icc-pixels.ts';
 export type { IccDirection } from './icc-pixels.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';

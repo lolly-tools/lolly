@@ -26,11 +26,11 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { penpotShapeToNode, penpotGroupToSvg, finalizeBoxes, collectPenpotFontUsage, collectPenpotExportMarks } from '../engine/src/design-map.ts';
-import { scanPenpotUsage } from '../engine/src/brand-import.ts';
+import { penpotShapeToNode, penpotGroupToSvg, finalizeBoxes, collectPenpotFontUsage, collectPenpotExportMarks, penpotBackgroundBlurPx } from '../engine/src/design-map.ts';
+import { scanPenpotUsage, scanPenpotAppliedTokens, extractPenpotProject } from '../engine/src/brand-import.ts';
 import { createTokenSet } from '../engine/src/tokens.ts';
 import { contrastRatio } from '../engine/src/brand-derive.ts';
-import { proposeBrandRoles, buildBrandDocFromUsage } from '../shells/web/src/lib/brand-propose.ts';
+import { proposeBrandRoles, buildBrandDocFromUsage, proposeRolesFromTokens } from '../shells/web/src/lib/brand-propose.ts';
 import { listStudioTokens } from '../shells/web/src/lib/token-studio.ts';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -619,4 +619,90 @@ test('keynote: the 2 flipY image-fill "square" rects mark _fillFlip \'y\' with t
     && Array.isArray(s.fills) && s.fills.some((f: any) => f?.fillImage?.id != null));
   assert.ok(plainImg, 'an unflipped image fill exists');
   assert.equal((penpotShapeToNode(plainImg!) as any)._fillFlip, undefined);
+});
+
+// ── token-first ingest: this deck declares NOTHING, so the fallback IS the path ─
+// The graceful-fallback contract, pinned against a real file. Penpot omits
+// files/<id>/tokens.json entirely for an empty token library and writes no
+// appliedTokens on shapes, so a token-first import of this deck must land on
+// exactly the usage-derived proposal the tests above assert, byte for byte.
+
+test('keynote: the deck declares no in-file tokens and no applied token references', { skip: SKIP }, async () => {
+  const { entries } = await loadDeck();
+
+  const { doc, warnings } = extractPenpotProject(entries);
+  assert.equal(doc, null, 'no files/<id>/tokens.json in the archive');
+  assert.ok(warnings.some(w => w.includes('no tokens.json found')));
+  assert.equal(Object.keys(entries).filter(p => /tokens\.json$/.test(p)).length, 0);
+
+  assert.deepEqual(scanPenpotAppliedTokens(entries), [], 'not one shape carries appliedTokens');
+});
+
+test('keynote: with nothing declared the token-first path defers to the usage proposal', { skip: SKIP }, async () => {
+  const { entries } = await loadDeck();
+  const usage = scanPenpotUsage(entries);
+
+  // Whatever a token-first read is handed here, it has no colour tokens to
+  // rank, so it must decline rather than invent roles.
+  assert.equal(proposeRolesFromTokens(extractPenpotProject(entries).doc, scanPenpotAppliedTokens(entries), usage), null);
+
+  // And the fallback the shell then runs is unchanged.
+  const roles = proposeBrandRoles(usage)!;
+  assert.equal(roles.surface, '#151035');
+  assert.equal(roles.primary, '#F23AE5');
+});
+
+// ── dash/gap strokes (Penpot 2.17, PR #9765) ─────────────────────────────────
+// The deck predates the feature: 231 solid strokes, 2 dotted, 1 "none", 0 dashed,
+// and not one strokeDash/strokeGap key. Only the "none" case is therefore
+// assertable against a real file today; the rest waits on a kitchen-sink fixture.
+
+test('keynote: the one strokeStyle "none" in the deck is a legacy SHAPE-level key, not a strokes[] entry', { skip: SKIP }, async () => {
+  const { all } = await loadDeck();
+  // Not one strokes[] entry in this deck says "none" — the single hit the fixture
+  // scan reported is the flat pre-strokes[] field still written at shape level.
+  const entryNone = all.filter((s) => Array.isArray(s.strokes)
+    && s.strokes.some((st: any) => String(st?.strokeStyle ?? '') === 'none'));
+  assert.deepEqual(entryNone, [], 'no strokes[] entry carries style "none" in this export');
+
+  const flatNone = all.filter((s) => String(s.strokeStyle ?? '') === 'none');
+  assert.equal(flatNone.length, 1, 'exactly one shape carries the flat legacy key');
+  const sh = flatNone[0]!;
+  assert.deepEqual(sh.strokes, [], 'and its strokes[] is empty, so there is nothing to paint');
+
+  // Which is what the importer already produces: an inert stroke row, and the new
+  // dash/gap columns default to the no-op. The entry-level "none" skip is exercised
+  // synthetically in tests/design-map.test.ts until a fixture ships one.
+  const box = finalizeBoxes([penpotShapeToNode(sh) as any])[0] as any;
+  assert.deepEqual([box.stroke, box.strokeW, box.strokeDash], ['', 0, '']);
+  assert.deepEqual([box.strokeDashLen, box.strokeGapLen], [0, 0]);
+});
+
+test('keynote: zero strokeDash/strokeGap keys anywhere (the negative pin)', { skip: SKIP }, async () => {
+  const { all } = await loadDeck();
+  const withKeys = all.filter((s) => Array.isArray(s.strokes)
+    && s.strokes.some((st: any) => st && (st.strokeDash !== undefined || st.strokeGap !== undefined)));
+  assert.deepEqual(withKeys, [], 'this export predates PR #9765');
+  const dashed = all.filter((s) => Array.isArray(s.strokes)
+    && s.strokes.some((st: any) => String(st?.strokeStyle ?? '') === 'dashed'));
+  assert.equal(dashed.length, 0, 'and it authors no dashed strokes at all');
+});
+
+// ── background blur (Penpot 2.17 PR #10034) ──────────────────────────────────
+
+test('keynote: zero backgroundBlur keys anywhere (the negative pin)', { skip: SKIP }, async () => {
+  // This deck was written by penpot/2.17.1-RC4, which HAS the attribute, but the
+  // designer never used it: every one of the 23 blur entries is a layer blur, and the
+  // dedicated key never appears. The pin is what makes the positive cases in
+  // layout-studio-bgblur.test.ts honestly synthetic rather than accidentally
+  // contradicted by the one real file we hold — and it will fail loudly the day a
+  // background-blur fixture lands, which is exactly when the mapping wants revisiting.
+  const { all } = await loadDeck();
+  assert.deepEqual(all.filter((s) => (s as any).backgroundBlur !== undefined), [],
+    'no shape in the deck carries a backgroundBlur attribute');
+  assert.deepEqual(all.filter((s) => String((s as any).blur?.type ?? '') === 'background-blur'), [],
+    'and none carries the legacy in-blur spelling either');
+  // So nothing in the deck maps to bgBlur, and the whole import is unchanged by v1.
+  const withBg = all.map((s) => penpotBackgroundBlurPx(s)).filter((v) => v > 0);
+  assert.equal(withBg.length, 0, 'penpotBackgroundBlurPx reads 0 for every shape in the file');
 });

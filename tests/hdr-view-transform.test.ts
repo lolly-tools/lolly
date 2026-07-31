@@ -129,6 +129,65 @@ test('hdrViewTransform: >1.0 input passes through un-clipped (the point of the f
   const out = hdrViewTransform(px1(3, 3, 3), { targets: [], includeWhite: false });
   for (let c = 0; c < 3; c++) assert.ok(Math.abs(out.data[c]! - 3) < 1e-5, `channel ${c} stays ~3.0, got ${out.data[c]}`);
 });
+test('hdrViewTransform: monotonic on a neutral ramp through and past 1.0 (DEFAULT opts, boost ON)', () => {
+  // Regression: the brand-match mask used to run OKLab on the RAW linear value,
+  // so a neutral's distance to the white target moved as it brightened and the
+  // transform was NON-monotonic — linear 1.2 came out at 5.9075 while 1.6 came
+  // out at 3.0769 (brighter in, darker out). The mask is now computed on a
+  // tone-normalised copy, so the verdict is scale-invariant.
+  const N = 251;
+  const f = createDeepFrame(N, 1, 'srgb-linear');
+  const level = (i: number) => 0.5 + (i / (N - 1)) * 2.5; // 0.5 .. 3.0
+  for (let i = 0; i < N; i++) {
+    const v = level(i);
+    f.data[i * 4] = v; f.data[i * 4 + 1] = v; f.data[i * 4 + 2] = v; f.data[i * 4 + 3] = 1;
+  }
+  const out = hdrViewTransform(f, { targets: [] }); // includeWhite default true
+  for (let i = 1; i < N; i++) {
+    const prev = out.data[(i - 1) * 4]!;
+    const cur = out.data[i * 4]!;
+    assert.ok(cur > prev, `brighter in must be brighter out: in ${level(i - 1)}->${prev}, in ${level(i)}->${cur}`);
+  }
+  // And above SDR white the verdict is settled: constant gain, so the output is
+  // a straight line through the headroom.
+  const g = (v: number) => hdrViewTransform(px1(v, v, v), { targets: [] }).data[0]! / v;
+  assert.ok(Math.abs(g(1.2) - g(2.5)) < 1e-5, `gain is scale-invariant above 1.0: ${g(1.2)} vs ${g(2.5)}`);
+});
+
+test('hdrViewTransform: out-of-gamut negatives SURVIVE the richness re-saturation (nothing clips)', () => {
+  // P3 red expressed in sRGB-linear: red > 1, green/blue NEGATIVE. The richness
+  // step used to Math.max(0, ...) each channel, destroying the excursion in the
+  // one function whose contract says nothing here clips. Only pqEncodeFrame may
+  // clamp. Boost must be ON for richness to run at all, so red is the target.
+  const out = hdrViewTransform(px1(1.22494, -0.042057, -0.019638), {
+    targets: ['#ff0000'], includeWhite: false,
+  });
+  assert.ok(out.data[0]! > 1, `red rides above SDR white, got ${out.data[0]}`);
+  assert.ok(out.data[1]! < 0, `green stays negative through the boost, got ${out.data[1]}`);
+  assert.ok(out.data[2]! < 0, `blue stays negative through the boost, got ${out.data[2]}`);
+  // The encode boundary is where clipping is allowed to happen.
+  const pq = pqEncodeFrame(out, 203);
+  assert.equal(pq.data[1], 0, 'negative green clamps to 0 at the PQ encode boundary, not before');
+});
+
+test('hdr: non-finite samples are sanitised to 0 at the encode boundary (icc-pixels san idiom)', () => {
+  assert.equal(pqEncode(Number.NaN), 0, 'NaN nits -> 0 code, not NaN');
+  assert.equal(pqEncode(Number.POSITIVE_INFINITY), 0);
+  assert.equal(pqEncode(Number.NEGATIVE_INFINITY), 0);
+  const u16 = pqToU16({
+    width: 2, height: 1, encoding: 'pq',
+    data: new Float32Array([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 1, 0.5, 0, 0, 1]),
+  });
+  assert.equal(u16[0], 0, 'NaN signal -> 0');
+  assert.equal(u16[1], 0, '+Infinity signal -> 0 (damage, not peak white)');
+  assert.equal(u16[2], 0, '-Infinity signal -> 0');
+  assert.equal(u16[4], 32768, 'finite neighbours unaffected');
+  // A NaN pixel walked end-to-end: the linear stage is free to carry it (it is
+  // scene-referred float), the encode boundary is where it is disarmed.
+  const enc = pqEncodeFrame(hdrViewTransform(px1(Number.NaN, Number.NaN, Number.NaN), { targets: [] }), 203);
+  for (let c = 0; c < 3; c++) assert.equal(enc.data[c], 0, `channel ${c} sanitised`);
+  assert.equal(pqToU16(enc)[0], 0);
+});
 
 test('hdrViewTransform: matches legacy semantics — jungle boosted, pine calmed, red untouched', () => {
   const jungle = fromU8Srgb(new Uint8ClampedArray([48, 186, 120, 255]), 1, 1);
@@ -228,7 +287,9 @@ test('float path agrees with legacy hdrBoostToPQ within 8-bit quantisation error
   // Not byte-identity (the float path is a different, higher-precision route);
   // but on the same 8-bit input the two must describe the same image: each
   // legacy PQ byte b and float PQ signal s satisfy |s*255 - b| <= 1.
-  const opts: HdrBoostOptions = { targets: ['#30ba78'], includeWhite: true };
+  // `richness: 0` because the re-saturation step is the ONE deliberate
+  // divergence between the paths — see the next test.
+  const opts: HdrBoostOptions = { targets: ['#30ba78'], includeWhite: true, richness: 0 };
   const bytes = paletteImage();
   const frame = fromU8Srgb(bytes, 8, 8);
   const pq = pqEncodeFrame(hdrViewTransform(frame, opts), opts.sdrWhiteNits ?? 203);
@@ -240,4 +301,27 @@ test('float path agrees with legacy hdrBoostToPQ within 8-bit quantisation error
       assert.ok(diff <= 1.0, `pixel ${i / 4} ch ${c}: float ${pq.data[i + c]! * 255} vs legacy ${legacy[i + c]} (diff ${diff})`);
     }
   }
+});
+
+test('richness is the ONE deliberate divergence: legacy clamps the excursion, the float path keeps it', () => {
+  // The legacy loop quantises to unsigned bytes, so its re-saturation clamps
+  // each channel at 0; hdrViewTransform must not, or the "nothing here clips"
+  // contract is a lie. On a hard-boosted saturated green the difference is
+  // visible: the float path's red goes negative in sRGB-linear and comes out
+  // of the Rec.2020 matrix genuinely lower than the clamped legacy byte.
+  const opts: HdrBoostOptions = { targets: ['#30ba78'], includeWhite: true, richness: 0.4 };
+  const jungle = fromU8Srgb(new Uint8ClampedArray([48, 186, 120, 255]), 1, 1);
+  const lin = hdrViewTransform(jungle, opts);
+  const pq = pqEncodeFrame(lin, 203);
+  const legacy = new Uint8ClampedArray([48, 186, 120, 255]);
+  hdrBoostToPQ(legacy, opts);
+  const floatRed = pq.data[0]! * 255;
+  assert.ok(legacy[0]! - floatRed > 5, `legacy red ${legacy[0]} is clamp-inflated vs float ${floatRed}`);
+  // Same pixel with the re-saturation off: the paths agree again, which pins
+  // the divergence to the clamp and nothing else.
+  const flat: HdrBoostOptions = { ...opts, richness: 0 };
+  const pq0 = pqEncodeFrame(hdrViewTransform(fromU8Srgb(new Uint8ClampedArray([48, 186, 120, 255]), 1, 1), flat), 203);
+  const legacy0 = new Uint8ClampedArray([48, 186, 120, 255]);
+  hdrBoostToPQ(legacy0, flat);
+  assert.ok(Math.abs(pq0.data[0]! * 255 - legacy0[0]!) <= 1, 'agree without richness');
 });

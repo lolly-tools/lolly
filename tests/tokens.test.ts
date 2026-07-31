@@ -11,7 +11,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createTokenSet, resolveColorValue, colorToHex,
-  isAlias, aliasPath, isTokenValue, TOKEN_EXT,
+  isAlias, aliasPath, isTokenValue, typographyFamilies, TOKEN_EXT,
 } from '../engine/src/tokens.ts';
 
 const BRAND = {
@@ -402,4 +402,60 @@ test('the existing cmyk/spot locks are untouched by faces', () => {
   assert.deepEqual(s.cmyk, [70, 0, 65, 0]);
   assert.equal(s.spot?.name, 'PANTONE 186 C');
   assert.equal(s.value, '#00b050');
+});
+
+// ── Single-axis activeThemes + typography families ──────────────────────────
+// Penpot writes $metadata.activeThemes as the designer's own ON state. Before
+// this, a single-group multi-theme doc always resolved themes[0] and quietly
+// ignored it.
+
+const TWO_THEMES = {
+  Light: { color: { bg: { $value: '#ffffff', $type: 'color' } } },
+  Dark: { color: { bg: { $value: '#000000', $type: 'color' } } },
+  $themes: [
+    { id: 't1', name: 'Light', selectedTokenSets: { Light: 'enabled' } },
+    { id: 't2', name: 'Dark', selectedTokenSets: { Dark: 'enabled' } },
+  ],
+  $metadata: { tokenSetOrder: ['Light', 'Dark'] },
+};
+
+test('single-axis: $metadata.activeThemes picks the theme instead of the first', () => {
+  const doc = { ...TWO_THEMES, $metadata: { ...TWO_THEMES.$metadata, activeThemes: ['Dark'] } };
+  assert.equal(createTokenSet(doc).resolve('color.bg'), '#000000');
+});
+
+test('single-axis: an explicit theme still beats activeThemes', () => {
+  const doc = { ...TWO_THEMES, $metadata: { ...TWO_THEMES.$metadata, activeThemes: ['Dark'] } };
+  assert.equal(createTokenSet(doc, { theme: 'Light' }).resolve('color.bg'), '#ffffff');
+});
+
+test('single-axis: an empty or unmatched activeThemes keeps the first theme', () => {
+  assert.equal(createTokenSet(TWO_THEMES).resolve('color.bg'), '#ffffff');
+  for (const activeThemes of [[], ['Nope'], 'Dark', [42]]) {
+    const doc = { ...TWO_THEMES, $metadata: { ...TWO_THEMES.$metadata, activeThemes } };
+    assert.equal(createTokenSet(doc).resolve('color.bg'), '#ffffff', `activeThemes ${JSON.stringify(activeThemes)}`);
+  }
+});
+
+test('single-axis: activeThemes may name a grouped theme as "group/name"', () => {
+  const doc = {
+    ...TWO_THEMES,
+    $themes: TWO_THEMES.$themes.map(t => ({ ...t, group: 'Mode' })),
+    $metadata: { ...TWO_THEMES.$metadata, activeThemes: ['Mode/Dark'] },
+  };
+  assert.equal(createTokenSet(doc).resolve('color.bg'), '#000000');
+});
+
+test('typographyFamilies: plural, singular, array, stack and string forms', () => {
+  // Penpot's encoder writes the plural keys and stores split families as arrays.
+  assert.deepEqual(typographyFamilies({ fontFamilies: ['Work Sans', 'Arial'], fontSizes: '16px' }), ['Work Sans', 'Arial']);
+  assert.deepEqual(typographyFamilies({ fontFamily: 'Work Sans' }), ['Work Sans']);
+  assert.deepEqual(typographyFamilies({ fontFamilies: "'Work Sans', sans-serif" }), ['Work Sans', 'sans-serif']);
+  assert.deepEqual(typographyFamilies('Spline Sans Mono'), ['Spline Sans Mono']);
+  assert.deepEqual(typographyFamilies(['Work Sans', 'Work Sans']), ['Work Sans'], 'deduped');
+  // Aliases and unreadable values name nothing rather than guessing.
+  assert.deepEqual(typographyFamilies('{type.body}'), []);
+  assert.deepEqual(typographyFamilies({ fontSizes: '16px' }), []);
+  assert.deepEqual(typographyFamilies(null), []);
+  assert.deepEqual(typographyFamilies(42), []);
 });

@@ -982,7 +982,9 @@ test('penpotShapeToNode: stroke-only path (fills=[]) → fill none + stroke mark
   }) as any;
   assert.equal(n.kind, 'image');
   assert.equal(n._vectorFill, 'none');
-  assert.deepEqual(n._vectorStroke, { color: '#f23ae5', width: 4, opacity: 1 });
+  // `style` joins the marker so the vector bake can carry Penpot's dash pattern
+  // (design-import's storeFigVector reads it); 'solid' emits no extra attributes.
+  assert.deepEqual(n._vectorStroke, { color: '#f23ae5', width: 4, opacity: 1, style: 'solid' });
 });
 
 test('penpotShapeToNode: gradient path → raw _vectorGradient + first-stop fallback fill', () => {
@@ -1324,7 +1326,7 @@ test('penpotShapeToNode + penpotGroupToSvg: unequal corner radii route via the r
   assert.equal(n._vectorFill, '#ff0000');
   assert.deepEqual(n._vectorSize, { w: 100, h: 80, x: 10, y: 20 });
   // Stroke rides the bake — NO CSS-border inflation of the rect.
-  assert.deepEqual(n._vectorStroke, { color: '#151035', width: 2, opacity: 1 });
+  assert.deepEqual(n._vectorStroke, { color: '#151035', width: 2, opacity: 1, style: 'solid' });
   assert.deepEqual([n.x, n.y, n.w, n.h], [10, 20, 100, 80]);
   assert.equal(n.radius, undefined);
   // Flip permutes the corners: flipX swaps left↔right, flipY swaps top↔bottom.
