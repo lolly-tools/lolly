@@ -691,7 +691,17 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
       // outside. NOTE: assumes scrollDepth=0 for windowed body walks — fixed
       // chrome is emitted at viewport coordinates, which only coincide with the
       // window at scroll 0; no current recipe combines walker+nocrop+scroll.
-      const win = shot.cropSelector ? null : { w: dims.width, h: dims.height };
+      //
+      // A cropSelector walk is windowed too, but only where the element OVERFLOWS the
+      // recipe frame — the clamp below no-ops when it already fits, which is every
+      // selector recipe committed today. Without it the walker read `cropSelector` as
+      // "walk this subtree entire" while the print path had always meant "frame this",
+      // so a tall element silently published at its own full height: the swatches group
+      // went out at 1400x2256 where print gave 1440x852, blowing the weight budget with
+      // 51 chips nobody can read in an 848px column. width/height drive layout via the
+      // viewport either way (the context above) — what changes here is only whether
+      // they also bound the OUTPUT frame.
+      const win = { w: dims.width, h: dims.height };
       // Walk, then AUDIT the result in-page. The print path has elementCount,
       // warnings and a cull report; the walker had `svg.length < 64` and nothing
       // else, which is how a large file of invalid XML could be written, sized and
@@ -784,29 +794,40 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
             const rootEl = doc.documentElement;
             const natW = vb.length === 4 ? (vb[2] as number) : parseFloat(rootEl.getAttribute('width') || '0');
             const natH = vb.length === 4 ? (vb[3] as number) : parseFloat(rootEl.getAttribute('height') || '0');
+            // Window to the SMALLER of the two on each axis: the recipe frame bounds an
+            // overflowing element, while an element smaller than the frame keeps its own
+            // box rather than being padded out to the viewport. Only the CULL is
+            // conditional — the frame rewrite below always runs, because it also
+            // normalises the root to bare numbers, which is the form svgRootSize (the
+            // dims-mismatch guard) can parse. Skipping it for a shot that exactly fits
+            // left the walker's native `width="1440px"` in place and failed that guard.
+            const winW = Math.min(win.w, natW), winH = Math.min(win.h, natH);
+            const overflows = winW < natW - 0.5 || winH < natH - 0.5;
             const mountBox = document.createElement('div');
             mountBox.style.cssText = `position:absolute;left:-100000px;top:0;visibility:hidden;width:${natW}px;height:${natH}px;overflow:hidden`;
             const live = document.importNode(rootEl, true) as unknown as SVGSVGElement;
             live.setAttribute('width', String(natW));
             live.setAttribute('height', String(natH));
             mountBox.appendChild(live);
-            document.body.appendChild(mountBox);
+            if (overflows) document.body.appendChild(mountBox);
             try {
-              const origin = live.getBoundingClientRect();
-              const doomed: Element[] = [];
-              for (const el of live.querySelectorAll(DRAWABLE)) {
-                if (el.closest('defs,clipPath,pattern,mask,symbol')) continue;
-                const b = el.getBoundingClientRect();
-                const x0 = b.left - origin.left, y0 = b.top - origin.top;
-                if (x0 >= win.w || y0 >= win.h || x0 + b.width <= 0 || y0 + b.height <= 0) doomed.push(el);
+              if (overflows) {
+                const origin = live.getBoundingClientRect();
+                const doomed: Element[] = [];
+                for (const el of live.querySelectorAll(DRAWABLE)) {
+                  if (el.closest('defs,clipPath,pattern,mask,symbol')) continue;
+                  const b = el.getBoundingClientRect();
+                  const x0 = b.left - origin.left, y0 = b.top - origin.top;
+                  if (x0 >= winW || y0 >= winH || x0 + b.width <= 0 || y0 + b.height <= 0) doomed.push(el);
+                }
+                for (const el of doomed) el.remove();
+                winDropped = doomed.length;
               }
-              for (const el of doomed) el.remove();
-              winDropped = doomed.length;
-              live.setAttribute('viewBox', `0 0 ${win.w} ${win.h}`);
+              live.setAttribute('viewBox', `0 0 ${winW} ${winH}`);
               // Bare numbers: svgRootSize (the dims-mismatch guard) parses width="1440",
               // and the print path emits the same form.
-              live.setAttribute('width', String(win.w));
-              live.setAttribute('height', String(win.h));
+              live.setAttribute('width', String(winW));
+              live.setAttribute('height', String(winH));
               const xml = new XMLSerializer().serializeToString(live);
               const redoc = new DOMParser().parseFromString(xml, 'image/svg+xml');
               if (!redoc.querySelector('parsererror')) {
@@ -841,7 +862,7 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
       // Warn, never fail: <text> is a DESIGNED fallback for a font the outliner
       // cannot resolve, and five committed print baselines already carry 145 such
       // nodes. A new one is worth a look, not a broken build.
-      if (out.winDropped) console.log(`    ✂ ${shot.slug}: windowed body walk culled ${out.winDropped} off-frame node(s)`);
+      if (out.winDropped) console.log(`    ✂ ${shot.slug}: windowed ${shot.cropSelector ? `${shot.cropSelector} walk` : 'body walk'} culled ${out.winDropped} off-frame node(s)`);
       if (out.texts) console.warn(`  ⚠ ${shot.slug}: ${out.texts} <text> node(s) — a font did not outline`);
       if (!out.opaque) console.warn(`  ⚠ ${shot.slug}: "${sel}" has no opaque background — the shot may read as an empty box on /info's dark theme (add &css= to paint one)`);
       return new TextEncoder().encode(out.svg);

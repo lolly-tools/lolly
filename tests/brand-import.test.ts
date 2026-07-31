@@ -19,6 +19,7 @@ import {
   assembleTokenSetFiles,
   extractPenpotProject,
   summarizeTokensDoc,
+  scanPenpotAppliedTokens,
 } from '../engine/src/brand-import.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -293,4 +294,96 @@ test('cross-container equivalence: all available real sources agree', { skip: SK
     assert.equal(other.s.tokenCount, firstSummary.s.tokenCount, `${other.label} tokenCount should match ${firstSummary.label}'s`);
     assert.equal(other.s.colorCount, firstSummary.s.colorCount, `${other.label} colorCount should match ${firstSummary.label}'s`);
   }
+});
+
+// ── scanPenpotAppliedTokens ─────────────────────────────────────────────────
+// Synthetic archives shaped like a binfile-v3 export. The keynote fixture
+// carries no appliedTokens at all, so every positive assertion here is written
+// against the serialized shape Penpot's encoder produces (camelCase keys, a
+// flat attribute → token-name map on the shape); the kebab/":key" spellings are
+// accepted for the same tolerance reason scanPenpotUsage's pv() accepts them.
+
+const pageEntry = (shape: unknown) => jsonBytes(shape);
+
+function appliedArchive(shapes: Record<string, unknown>): Record<string, Uint8Array> {
+  const entries: Record<string, Uint8Array> = {
+    'manifest.json': jsonBytes({ type: 'penpot/export-files', files: [{ id: 'f1' }] }),
+  };
+  for (const [id, shape] of Object.entries(shapes)) entries[`files/f1/pages/p1/${id}.json`] = pageEntry(shape);
+  return entries;
+}
+
+test('scanPenpotAppliedTokens: fills, text fills, strokes, type and geometry tally per token', () => {
+  const rows = scanPenpotAppliedTokens(appliedArchive({
+    a: { type: 'rect', appliedTokens: { fill: 'brand.primary', r1: 'radius.md' } },
+    b: { type: 'rect', appliedTokens: { fill: 'brand.primary', strokeColor: 'brand.accent' } },
+    c: { type: 'text', appliedTokens: { fill: 'brand.ink', typography: 'type.body' } },
+    d: { type: 'rect', appliedTokens: { shadow: 'brand.accent', rowGap: 'space.sm' } },
+  }));
+  const by = new Map(rows.map(r => [r.name, r]));
+  assert.deepEqual(by.get('brand.primary'), { name: 'brand.primary', fills: 2, strokes: 0, text: 0, type: 0, geometry: 0, total: 2 });
+  assert.deepEqual(by.get('brand.accent'), { name: 'brand.accent', fills: 0, strokes: 2, text: 0, type: 0, geometry: 0, total: 2 });
+  // A fill on a TEXT shape is the text signal, never the surface signal.
+  assert.deepEqual(by.get('brand.ink'), { name: 'brand.ink', fills: 0, strokes: 0, text: 1, type: 0, geometry: 0, total: 1 });
+  assert.deepEqual(by.get('type.body'), { name: 'type.body', fills: 0, strokes: 0, text: 0, type: 1, geometry: 0, total: 1 });
+  assert.deepEqual(by.get('radius.md'), { name: 'radius.md', fills: 0, strokes: 0, text: 0, type: 0, geometry: 1, total: 1 });
+  assert.deepEqual(by.get('space.sm'), { name: 'space.sm', fills: 0, strokes: 0, text: 0, type: 0, geometry: 1, total: 1 });
+});
+
+test('scanPenpotAppliedTokens: rows sort by total desc, then name asc', () => {
+  const rows = scanPenpotAppliedTokens(appliedArchive({
+    a: { type: 'rect', appliedTokens: { fill: 'zeta' } },
+    b: { type: 'rect', appliedTokens: { fill: 'alpha' } },
+    c: { type: 'rect', appliedTokens: { fill: 'heavy' } },
+    d: { type: 'rect', appliedTokens: { fill: 'heavy' } },
+  }));
+  assert.deepEqual(rows.map(r => r.name), ['heavy', 'alpha', 'zeta']);
+});
+
+test('scanPenpotAppliedTokens: camelCase, kebab and ":key" attribute spellings all count', () => {
+  const rows = scanPenpotAppliedTokens(appliedArchive({
+    a: { type: 'rect', appliedTokens: { strokeColor: 'brand.line' } },
+    b: { type: 'rect', 'applied-tokens': { 'stroke-color': 'brand.line' } },
+    c: { type: 'rect', ':applied-tokens': { ':stroke-color': 'brand.line' } },
+  }));
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0]!.strokes, 3);
+});
+
+test('scanPenpotAppliedTokens: hidden shapes are counted, like the paint census', () => {
+  const rows = scanPenpotAppliedTokens(appliedArchive({
+    a: { type: 'rect', hidden: true, appliedTokens: { fill: 'brand.primary' } },
+  }));
+  assert.equal(rows[0]!.fills, 1);
+});
+
+test('scanPenpotAppliedTokens: malformed, absent and unmodelled entries are skipped, never fatal', () => {
+  const entries = appliedArchive({
+    a: { type: 'rect' },                                              // no appliedTokens
+    b: { type: 'rect', appliedTokens: 'not-a-map' },
+    c: { type: 'rect', appliedTokens: { fill: 42, strokeColor: '' } }, // non-string / empty names
+    d: { type: 'rect', appliedTokens: { somethingNew: 'future.token' } }, // attribute we don't model
+  });
+  entries['files/f1/pages/p1/e.json'] = enc.encode('{ not json');
+  assert.deepEqual(scanPenpotAppliedTokens(entries), []);
+  assert.deepEqual(scanPenpotAppliedTokens({}), []);
+});
+
+test('scanPenpotAppliedTokens: dotted and "__proto__" token names land as plain rows', () => {
+  // Token names come straight out of the file, so the accumulator is a Map —
+  // an object literal would swallow "__proto__" through the prototype setter.
+  const rows = scanPenpotAppliedTokens(appliedArchive({
+    a: { type: 'rect', appliedTokens: { fill: 'a.deep.dotted.path' } },
+    b: { type: 'rect', appliedTokens: { fill: '__proto__' } },
+    c: { type: 'rect', appliedTokens: { fill: 'constructor' } },
+  }));
+  assert.deepEqual(rows.map(r => r.name).sort(), ['__proto__', 'a.deep.dotted.path', 'constructor']);
+  for (const r of rows) assert.equal(r.fills, 1);
+});
+
+test('scanPenpotAppliedTokens: a manifest-less archive still finds page shapes', () => {
+  const rows = scanPenpotAppliedTokens({
+    'files/f1/pages/p1/a.json': jsonBytes({ type: 'rect', appliedTokens: { fill: 'brand.primary' } }),
+  });
+  assert.equal(rows.length, 1);
 });

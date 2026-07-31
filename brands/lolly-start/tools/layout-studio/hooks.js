@@ -227,6 +227,20 @@ function boxCss(b, grad) {
     var dash = String(b.strokeDash) === 'dashed' ? 'dashed' : String(b.strokeDash) === 'dotted' ? 'dotted' : 'solid';
     css += 'border:' + (Math.round(sw * 100) / 100) + 'px ' + dash + ' ' + sc + ';';
   }
+  // Backdrop blur ("frosted glass") — blurs whatever is painted BEHIND the box, as
+  // opposed to `blur`, which blurs the box's own paint. Boxes only: a path box's
+  // frame is the curve's bbox, so a rectangular frost behind an arbitrary outline
+  // would be wrong. Same clamp + 1-decimal rounding discipline as blurCss, and the
+  // -webkit- prefix rides alongside for Safari.
+  //
+  // Fidelity: the live canvas and SVG export carry it; the raster (PNG/JPG/WebP),
+  // PDF and video paths cannot see a backdrop through their serialiser and export
+  // the box frostless. The export panel warns when the chosen format drops it.
+  var bgb = clamp(num(b.bgBlur, 0), 0, 300);
+  if (String(b.kind) !== 'path' && bgb > 0) {
+    var bgbPx = (Math.round(bgb * 10) / 10) + 'px';
+    css += 'backdrop-filter:blur(' + bgbPx + ');-webkit-backdrop-filter:blur(' + bgbPx + ');';
+  }
   return css;
 }
 
@@ -374,8 +388,20 @@ function pathPlaceholder(w, h, why) {
 //
 // Solid returns '' — no attribute at all, which is what keeps an existing shape's markup
 // byte-identical to what it was before this field existed.
-function dashArrayFor(style, w, cap) {
+// `dashLen`/`gapLen` are the AUTHORED lengths (Penpot 2.17 exports them as strokeDash /
+// strokeGap, absolute px). They are numbers, so they still cannot carry a comma or a
+// tilde, and they only ever reach the attribute through f2(). 0 means "not authored" and
+// keeps the width-proportional synthesis, so every shape made before these fields
+// existed emits exactly the markup it emitted then. One of the two authored on its own
+// is used for both, which is what Penpot's own per-input default does.
+function dashArrayFor(style, w, cap, dashLen, gapLen) {
   if (!DASH_STYLES[style] || !(w > 0)) return '';
+  if (style === 'dashed') {
+    var dl = clamp(num(dashLen, 0), 0, 400), gl = clamp(num(gapLen, 0), 0, 400);
+    if (!(dl > 0)) dl = gl;
+    if (!(gl > 0)) gl = dl;
+    if (dl > 0 && gl > 0) return f2(dl) + ' ' + f2(gl);
+  }
   if (style === 'dotted') {
     // A round or square cap already paints a full w across the line, so the dot is a
     // ZERO-length dash and the gap is the whole period. A flat (butt) cap paints nothing
@@ -450,7 +476,8 @@ function pathHtmlFor(b) {
   // existing shape's markup is unchanged: round cap, round join, no dash array.
   var cap = LINE_CAPS[String(b.strokeCap)] ? String(b.strokeCap) : 'round';
   var join = LINE_JOINS[String(b.strokeJoin)] ? String(b.strokeJoin) : 'round';
-  var dash = dashArrayFor(String(b.strokeDash == null ? '' : b.strokeDash), sw, cap);
+  var dash = dashArrayFor(String(b.strokeDash == null ? '' : b.strokeDash), sw, cap,
+    num(b.strokeDashLen, 0), num(b.strokeGapLen, 0));
 
   // The STROKE PAD. The frame is the curve's tight bounding box (the pen tool refits it to
   // exactly that), so a stroke straddles the frame edge and half of it falls outside — and

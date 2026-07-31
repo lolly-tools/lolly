@@ -133,16 +133,22 @@ interface DesignNode {
   shadowY?: number;
   shadowBlur?: number;
   blur?: number;
+  bgBlur?: number;
   stroke?: string;
   strokeW?: number;
   strokeDash?: string;
+  /** Authored dash length in px (Penpot `strokeDash`). 0 = unset, use the
+   *  width-proportional synthesis the editor has always used. */
+  strokeDashLen?: number;
+  /** Authored gap length in px (Penpot `strokeGap`). 0 = unset. */
+  strokeGapLen?: number;
   _fillImageId?: string;
   _fillFlip?: string;
   _imageHash?: string | null;
   _vectorPath?: string;
   _vectorFill?: string;
   _vectorGradient?: unknown;
-  _vectorStroke?: { color: string; width: number; opacity?: number } | null;
+  _vectorStroke?: PenpotStrokeInfo | null;
   _vectorSize?: { w: number; h: number; x?: number; y?: number };
 }
 
@@ -183,6 +189,9 @@ interface Box {
   stroke: string;
   strokeW: number;
   strokeDash: string;
+  strokeDashLen: number;
+  strokeGapLen: number;
+  bgBlur: number;
 }
 
 // ── small numeric helpers (mirrors of tools/layout-studio/hooks.js) ──────────
@@ -194,6 +203,7 @@ function num(v: unknown, d: number | undefined): number | undefined {
 }
 function clamp(v: number, a: number, b: number): number { return v < a ? a : (v > b ? b : v); }
 function round1(v: number): number { return Math.round(v * 10) / 10; }
+function round2(v: number): number { return Math.round(v * 100) / 100; }
 
 /** Safe property read: `o[k]` only when `o` is a non-null object, else undefined. */
 function get(o: unknown, k: string): unknown {
@@ -456,6 +466,16 @@ export function nodeToBox(
     stroke: n.stroke ? safeColor(n.stroke, '') : '',
     strokeW: Math.max(0, num(n.strokeW, 0) ?? 0),
     strokeDash: n.strokeDash === 'dashed' || n.strokeDash === 'dotted' ? n.strokeDash : '',
+    // Authored dash/gap lengths (Penpot 2.17 PR #9765). Numbers, never strings, so
+    // the compact blocks URL form is untouched — it cannot carry a comma or a tilde.
+    // 0 keeps the editor's width-proportional synthesis, so an unauthored row is
+    // byte-identical to what it produced before these fields existed.
+    strokeDashLen: Math.max(0, round2(num(n.strokeDashLen, 0))),
+    strokeGapLen: Math.max(0, round2(num(n.strokeGapLen, 0))),
+    // Backdrop blur (frosted glass) — CSS backdrop-filter, same 0..300 clamp and
+    // 1-decimal rounding as `blur`. 0 is off, so a row without the field renders
+    // byte-identically to one from before the field existed.
+    bgBlur: clamp(round1(num(n.bgBlur, 0)), 0, 300),
   };
 }
 
@@ -691,6 +711,7 @@ interface PenpotShape {
   r4?: unknown;
   shadow?: unknown;
   blur?: unknown;
+  backgroundBlur?: unknown;
   hidden?: unknown;
   shapes?: unknown;
   maskedGroup?: unknown;
@@ -869,18 +890,93 @@ function safePathD(v: unknown): string {
   return /^[Mm]/.test(s) ? s.replace(/[^-+0-9eE.,\sA-Za-z]/g, '') : '';
 }
 
+/** One Penpot stroke reduced to what our render paths can carry. */
+export interface PenpotStrokeInfo {
+  color: string;
+  width: number;
+  opacity?: number;
+  /** 'solid' | 'dashed' | 'dotted' | 'mixed' — never 'none' (those are skipped). */
+  style?: string;
+  /** Authored dash length in px, when the source set one (Penpot `strokeDash`). */
+  dash?: number;
+  /** Authored gap length in px (Penpot `strokeGap`). */
+  gap?: number;
+  capStart?: string;
+  capEnd?: string;
+}
+
+// Stroke keys arrive camelCase in binfile-v3, kebab or ":kebab" from other exporters,
+// so every optional key is read through pget's three spellings.
+function strokeStyleOf(st: unknown): string {
+  const s = String(pget(st, 'stroke-style') ?? 'solid').replace(/^:/, '').trim().toLowerCase();
+  return s || 'solid';
+}
+// A finite number >= 0 (Penpot's `decode_optional`: 0 IS a legal authored value), else
+// undefined. Absence is NOT zero — it means "use the renderer's width-derived default".
+function strokeLen(st: unknown, key: string): number | undefined {
+  const v = pget(st, key);
+  if (v == null) return undefined;
+  const n = typeof v === 'number' ? v : parseFloat(String(v));
+  return isFinite(n) && n >= 0 ? n : undefined;
+}
+
 // Topmost usable stroke (last entry wins, like fills). strokeAlignment is NOT modelled:
 // SVG only has centre strokes, so inner/outer are approximated as centre downstream.
-function topPenpotStroke(sh: PenpotShape): { color: string; width: number; opacity?: number } | null {
+// `strokeStyle: "none"` entries are SKIPPED, matching Penpot's renderer
+// (`(when-not (= style :none) ...)`); the search continues under them, so a "none"
+// laid over a real stroke reveals the one below instead of painting solid.
+function topPenpotStroke(sh: PenpotShape): PenpotStrokeInfo | null {
   const list = Array.isArray(sh.strokes) ? sh.strokes : [];
   for (let i = list.length - 1; i >= 0; i--) {
     const st = list[i];
     if (!st || typeof st !== 'object') continue;
+    const style = strokeStyleOf(st);
+    if (style === 'none') continue;
     const width = num(get(st, 'strokeWidth'), 0);
     const color = safeColor(get(st, 'strokeColor'), '');
-    if (width > 0 && color) return { color, width, opacity: clamp(num(get(st, 'strokeOpacity'), 1), 0, 1) };
+    if (width > 0 && color) {
+      const out: PenpotStrokeInfo = {
+        color, width,
+        opacity: clamp(num(get(st, 'strokeOpacity'), 1), 0, 1),
+        style,
+      };
+      const d = strokeLen(st, 'stroke-dash'); if (d !== undefined) out.dash = d;
+      const g = strokeLen(st, 'stroke-gap'); if (g !== undefined) out.gap = g;
+      const cs = pget(st, 'stroke-cap-start'); if (cs != null) out.capStart = String(cs).replace(/^:/, '');
+      const ce = pget(st, 'stroke-cap-end'); if (ce != null) out.capEnd = String(ce).replace(/^:/, '');
+      return out;
+    }
   }
   return null;
+}
+
+// Penpot's `calculate-dasharray` (frontend/src/app/main/ui/shapes/attrs.cljs), w = width:
+//   mixed  → "w+5,w+5,w+1,w+5"
+//   dotted → "0,w+5"          (zero-length dash; needs a round/square cap to paint)
+//   dashed → "dash,gap", each falling back to w+10 when the source authored neither
+// The authored numbers are absolute px, NOT proportional to the width.
+export function penpotDashArray(style: string, w: number, dash?: number, gap?: number): string {
+  const s = String(style || 'solid');
+  if (s === 'dashed') {
+    const d = (dash != null && dash > 0) ? dash : w + 10;
+    const g = (gap != null && gap > 0) ? gap : w + 10;
+    return `${round2(d)},${round2(g)}`;
+  }
+  if (s === 'dotted') return `0,${round2(w + 5)}`;
+  if (s === 'mixed') return `${round2(w + 5)},${round2(w + 5)},${round2(w + 1)},${round2(w + 5)}`;
+  return '';
+}
+
+// A Set, not an object literal: the value is source-controlled and `OBJ['constructor']`
+// is truthy on any plain object.
+const SVG_LINECAPS = new Set(['butt', 'round', 'square']);
+// SVG stroke-linecap for a baked Penpot stroke. Dotted is a ZERO-length dash, which the
+// default butt cap paints as nothing at all, so dotted defaults to `round` (what Penpot's
+// own exports carry) rather than leaving the renderer's default to erase the stroke.
+function penpotLineCap(st: PenpotStrokeInfo): string {
+  const raw = String(st.capStart ?? st.capEnd ?? '');
+  if (SVG_LINECAPS.has(raw)) return raw;
+  return st.style === 'dotted' ? 'round' : '';
 }
 
 /**
@@ -985,8 +1081,17 @@ export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown
       if (fo < 1) fillOp = ` fill-opacity="${fo}"`;
     }
     const st = topPenpotStroke(sh);
+    // Style rides into the SVG verbatim: unlike the CSS-border path, real SVG can carry
+    // Penpot's exact dash pattern, so dashed/dotted/mixed no longer bake solid. A
+    // `strokeStyle:"none"` entry never reaches here (topPenpotStroke skips it), so it
+    // emits no stroke attributes at all.
+    const dashAttr = st ? penpotDashArray(String(st.style || 'solid'), st.width, st.dash, st.gap) : '';
+    const capAttr = st ? penpotLineCap(st) : '';
     const stroke = st
-      ? ` stroke="${st.color}" stroke-width="${st.width}"` + (st.opacity != null && st.opacity < 1 ? ` stroke-opacity="${st.opacity}"` : '')
+      ? ` stroke="${st.color}" stroke-width="${st.width}"`
+        + (st.opacity != null && st.opacity < 1 ? ` stroke-opacity="${st.opacity}"` : '')
+        + (dashAttr ? ` stroke-dasharray="${dashAttr}"` : '')
+        + (capAttr ? ` stroke-linecap="${capAttr}"` : '')
       : '';
     const op = clamp(num(sh.opacity, 1), 0, 1);
     return ` fill="${fill}"${fillOp}${stroke}${op < 1 ? ` opacity="${op}"` : ''}`;
@@ -1001,6 +1106,11 @@ export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown
 
   const leaf = (sh: PenpotShape, type: string): string | null => {
     if (hasVisibleShadow(sh)) return null;
+    // Background blur reads what is painted BEHIND the group, which a standalone
+    // flattened SVG has no primitive for (and no access to). Bail like a shadow does,
+    // so the subtree falls to the per-shape import where bgBlur still reaches a box
+    // instead of being flattened silently away.
+    if (penpotBackgroundBlurPx(sh) > 0) return null;
     const p = paint(sh);
     if (p == null) return null;
     const sr = ((sh.selrect && typeof sh.selrect === 'object') ? sh.selrect : sh) as
@@ -1135,6 +1245,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     applyPenpotStroke(sh, node);
     applyPenpotShadow(sh, node);
     applyPenpotBlur(sh, node);
+    applyPenpotBackgroundBlur(sh, node);
     return node;
   }
 
@@ -1233,6 +1344,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   applyPenpotStroke(sh, node);
   applyPenpotShadow(sh, node);
   applyPenpotBlur(sh, node);
+  applyPenpotBackgroundBlur(sh, node);
   return node;
 }
 
@@ -1243,17 +1355,40 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
 // source authored it (Penpot defaults to center when the field is absent).
 function applyPenpotStroke(sh: PenpotShape, node: DesignNode): void {
   const list = Array.isArray(sh.strokes) ? sh.strokes : [];
-  const st = list.length ? list[list.length - 1] : null; // last = topmost
-  if (!st || typeof st !== 'object') return;
+  // Topmost usable entry, searching downwards past `strokeStyle: "none"` rows — Penpot
+  // paints nothing for those (`(when-not (= style :none) ...)`), where we used to paint
+  // them as a solid border because a width and a colour were still present.
+  let st: unknown = null;
+  let style = 'solid';
+  for (let i = list.length - 1; i >= 0; i--) {
+    const cand = list[i];
+    if (!cand || typeof cand !== 'object') continue;
+    const s = strokeStyleOf(cand);
+    if (s === 'none') continue;
+    if (!(num(get(cand, 'strokeWidth'), 0) > 0)) continue;
+    if (!safeColor(String(get(cand, 'strokeColor') ?? ''), '')) continue;
+    st = cand; style = s; break;
+  }
+  if (!st) return;
   const sw = num(get(st, 'strokeWidth'), 0);
   const col6 = safeColor(String(get(st, 'strokeColor') ?? ''), '');
-  if (!(sw > 0) || !col6) return;
   const a = Math.round(clamp(num(get(st, 'strokeOpacity'), 1), 0, 1) * 255);
   const full = hexLong(col6);
   node.stroke = full + (a < 255 && /^#[0-9a-fA-F]{6}$/.test(full) ? a.toString(16).padStart(2, '0') : '');
   node.strokeW = Math.round(sw * 100) / 100;
-  const style = String(get(st, 'strokeStyle') || 'solid');
-  node.strokeDash = style === 'dashed' ? 'dashed' : (style === 'dotted' ? 'dotted' : '');
+  // `mixed` has no CSS border keyword of its own; dashed is the nearest thing, and it
+  // used to fall through to solid silently.
+  node.strokeDash = (style === 'dashed' || style === 'mixed') ? 'dashed' : (style === 'dotted' ? 'dotted' : '');
+  if (style === 'dashed') {
+    // Penpot's own fallback when the user never touched the inputs is width + 10 for
+    // BOTH, so the importer fills both rather than letting a half-authored pair reach
+    // the hook. An authored 0 clamps to unset for v1 (Penpot's dash=0 render is a
+    // fixture question, and SVG treats an all-zero dasharray as no dashing at all).
+    const d = strokeLen(st, 'stroke-dash');
+    const g = strokeLen(st, 'stroke-gap');
+    node.strokeDashLen = round2((d != null && d > 0) ? d : sw + 10);
+    node.strokeGapLen = round2((g != null && g > 0) ? g : sw + 10);
+  }
   const alignment = String(get(st, 'strokeAlignment') || 'center');
   const inflate = alignment === 'outer' ? sw : (alignment === 'inner' ? 0 : sw / 2);
   if (inflate > 0) {
@@ -1292,8 +1427,9 @@ function applyPenpotShadow(sh: PenpotShape, node: DesignNode): void {
 
 // Penpot layer blur → box blur. Penpot renders layer-blur as feGaussianBlur with
 // stdDeviation = value (frontend filters.cljs) and CSS blur(N) is stdDeviation N,
-// so value maps to blur(<value>px) 1:1. background-blur (value/2, needs
-// BackgroundImage) has no box equivalent — ignored here; the shell warns.
+// so value maps to blur(<value>px) 1:1. Background blur is a SEPARATE attribute
+// (`backgroundBlur`) since Penpot 2.17 — see penpotBackgroundBlurPx below; it never
+// reaches node.blur, not even in its legacy `blur: {type:'background-blur'}` form.
 function applyPenpotBlur(sh: PenpotShape, node: DesignNode): void {
   const b = sh.blur;
   if (!b || typeof b !== 'object') return;
@@ -1301,6 +1437,59 @@ function applyPenpotBlur(sh: PenpotShape, node: DesignNode): void {
   if (String(get(b, 'type') || '') !== 'layer-blur') return;
   const v = num(get(b, 'value'), 0);
   if (v > 0) node.blur = v;
+}
+
+// The one radius conversion for background blur, so the importer, the group-flatten
+// bail and the shell's warn all agree.
+//
+// Penpot 2.17 (PR #10034) moved background blur onto its own shape attribute:
+//   backgroundBlur: { id, type: 'background-blur', value, hidden }
+// a SIBLING of `blur` — a shape may legally carry both. Pre-2.17 files instead carry
+// `blur: { type: 'background-blur' }`, and no Penpot migration rewrites them, so that
+// legacy form is accepted here and treated as background blur, never as layer blur.
+//
+// Radius: Penpot's shipping renderer is Skia, which converts the authored radius with
+// SkBlurMask::ConvertRadiusToSigma — sigma = 0.57735 * value + 0.5 — while CSS
+// `backdrop-filter: blur(R)` is a Gaussian of sigma R/2. Equating the two gives
+// R = 2 * (0.57735 * value + 0.5) = 1.1547 * value + 1. This is an APPROXIMATION: it
+// matches the sigma, not Penpot's clipping/tiling behaviour, and the constant is
+// pinned by a test so a future fixture comparison can move it deliberately. (Penpot's
+// own SVG `value/2` filter is dead code — their shape->filters never emits it.)
+const BG_BLUR_SIGMA_A = 1.1547;
+const BG_BLUR_SIGMA_B = 1;
+
+/**
+ * Visible background-blur radius of a Penpot shape, already converted to the CSS
+ * `backdrop-filter: blur(Npx)` radius our box field carries. 0 when the shape has
+ * none, has it hidden, or authored it at 0.
+ * @param {object} sh a parsed Penpot shape.
+ * @returns {number} px radius for `bgBlur`, or 0.
+ */
+export function penpotBackgroundBlurPx(sh: unknown): number {
+  // Own attribute first; fall back to the legacy in-`blur` form.
+  const own = get(sh, 'backgroundBlur');
+  const legacy = get(sh, 'blur');
+  const entry = (own && typeof own === 'object') ? own
+    : ((legacy && typeof legacy === 'object'
+      && String(get(legacy, 'type') || '') === 'background-blur') ? legacy : null);
+  if (!entry) return 0;
+  if (get(entry, 'hidden') === true) return 0;
+  // The own attribute's type is checked too: a hand-edited/unknown type is not
+  // silently rendered as a backdrop blur.
+  if (entry === own && String(get(entry, 'type') || 'background-blur') !== 'background-blur') return 0;
+  const v = num(get(entry, 'value'), 0);
+  if (!(v > 0)) return 0;
+  return clamp(round1(v * BG_BLUR_SIGMA_A + BG_BLUR_SIGMA_B), 0, 300);
+}
+
+// Background blur → the box `bgBlur` field (CSS backdrop-filter). v1 carries it only
+// on nodes whose painted region IS the box rect — a plain box and an image-fill box.
+// Text shapes (Penpot masks the blur to the glyphs) and baked vector art (the frost
+// would become a rectangle behind an arbitrary outline) drop it; the shell warns once
+// per import batch so the loss is never silent.
+function applyPenpotBackgroundBlur(sh: PenpotShape, node: DesignNode): void {
+  const px = penpotBackgroundBlurPx(sh);
+  if (px > 0) node.bgBlur = px;
 }
 
 // ── Penpot export marks ──────────────────────────────────────────────────────

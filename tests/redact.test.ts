@@ -780,21 +780,22 @@ test('redact: a permanently failing analyze reports a terminal state once and ne
   assert.equal(calls, 1, 'the failing analyze is not retried on every input');
 });
 
-test('redact: pages the shell could not render are named in a note, not silently absent', async () => {
+test('redact: pages the shell could not render are named in an advisory toast, not silently absent', async () => {
   const hooks = loadHooks();
   const host = pdfHost({
     pdf: { pages: async () => ({ ...TWO_PAGES, failed: [3] }) },
   });
   const res = await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
   assert.equal(res.hasPdfPages, true);
-  assert.match(res.pagesFailedNote, /Page 3 could not be rendered/);
-  assert.match(res.pagesFailedNote, /export refuses to ship a page that fails to render/);
+  assert.match(res.toastKey, /^pages-failed@doc\.pdf:/, 'the toast key carries file identity');
+  assert.match(res.toastText, /Page 3 could not be rendered/);
+  assert.match(res.toastText, /export refuses to ship a page that fails to render/);
 
   const multi = await hooks.onInit({
     model: modelFor(fileRef('doc2.pdf', 'application/pdf', PDF_SRC)),
     host: pdfHost({ pdf: { pages: async () => ({ ...TWO_PAGES, failed: [3, 5] }) } }),
   });
-  assert.match(multi.pagesFailedNote, /Pages 3 and 5 could not be rendered/);
+  assert.match(multi.toastText, /Pages 3 and 5 could not be rendered/);
 });
 
 test('redact: an incomplete (zero-area) bars row survives the canvas round-trip JSON', async () => {
@@ -870,8 +871,8 @@ test('redact (e2e): PDF pages render as frames in point space with the no-bars b
   assert.match(html, /class="rd-frame rd-pageframe" data-page="1" data-ptw="612" data-pth="792"/);
   assert.match(html, /class="rd-frame rd-pageframe" data-page="2"/);
   assert.match(html, /Page 2<\/span>/);
-  // The stage element carries no pending flag (the IIFE source still names it).
-  assert.match(html, /class="rd-stage" data-bars="\[\]">/);
+  // The stage element carries the empty bars array plus the rail's preset map.
+  assert.match(html, /class="rd-stage" data-bars="\[\]" data-presets="/);
   // No bars yet: the download button is really disabled, with guidance as label.
   assert.match(html, /<button type="button" class="rd-download" data-export-file disabled>Draw a bar over what should go first<\/button>/);
 });
@@ -888,4 +889,83 @@ test('redact (e2e): exportFile through the runtime returns verified SVG bytes', 
   const out = new TextDecoder().decode(bytes);
   assert.doesNotMatch(out, /<metadata|<script|hushtoken/);
   assert.match(out, /fill="#000000"/);
+});
+
+// ─── advisory toasts: dedupe per file, one at a time ─────────────────────────
+
+test('redact: bar advisories fire one per edit, each key once per file, and a new file resets the slate', async () => {
+  const hooks = loadHooks();
+  const png = buildDirtyPng();
+  const bars = [{ page: 1, x: 5, y: 5, w: 40, h: 20 }]; // 20px tall: not thin
+  const model = modelFor(fileRef('shot.png', 'image/png', png), { bars });
+
+  const first = await hooks.onInput({ id: 'bars', value: bars, model, host: BARE_HOST });
+  assert.match(first.toastKey, /^first-bar@shot\.png:/, 'the DOM dedupe key carries file identity');
+  assert.equal(first.toastText, 'Covered content is destroyed when the file is rebuilt, not hidden.');
+
+  const second = await hooks.onInput({ id: 'bars', value: bars, model, host: BARE_HOST });
+  assert.match(second.toastKey, /^image-mark@/, 'first-bar is spent, the image caveat takes the next edit');
+  assert.match(second.toastText, /Whole-image watermarks survive partial cover/);
+
+  const third = await hooks.onInput({ id: 'bars', value: bars, model, host: BARE_HOST });
+  assert.equal(third.toastKey, '', 'no thin bar and every key seen: silence, never a repeat');
+  assert.equal(third.toastText, '');
+
+  // A different file starts a clean advisory slate.
+  const other = modelFor(fileRef('other.png', 'image/png', png), { bars });
+  const fresh = await hooks.onInput({ id: 'bars', value: bars, model: other, host: BARE_HOST });
+  assert.match(fresh.toastKey, /^first-bar@other\.png:/);
+});
+
+test('redact: bar advisories only fire on a bars edit, never on an option toggle', async () => {
+  const hooks = loadHooks();
+  const bars = [{ page: 1, x: 5, y: 5, w: 40, h: 20 }];
+  const model = modelFor(fileRef('shot.png', 'image/png', buildDirtyPng()), { bars });
+  const res = await hooks.onInput({ id: 'quantise', value: false, model, host: BARE_HOST });
+  assert.equal(res.toastKey, '', 'a quantise toggle with bars present stays quiet');
+});
+
+test('redact: the thin-bar advisory respects the per-space threshold (11px images, 8pt PDF)', async () => {
+  const hooks = loadHooks();
+  const png = buildDirtyPng();
+
+  // Image space: 10px is under the 11px line.
+  const thin = [{ page: 1, x: 5, y: 5, w: 40, h: 10 }];
+  const model = modelFor(fileRef('thin.png', 'image/png', png), { bars: thin });
+  await hooks.onInput({ id: 'bars', value: thin, model, host: BARE_HOST }); // first-bar
+  await hooks.onInput({ id: 'bars', value: thin, model, host: BARE_HOST }); // image-mark
+  const third = await hooks.onInput({ id: 'bars', value: thin, model, host: BARE_HOST });
+  assert.match(third.toastKey, /^thin-bar@thin\.png:/);
+  assert.equal(third.toastText, 'A very thin bar can hint at what it hides.');
+
+  // PDF space: 10pt clears the 8pt line, so after first-bar there is nothing.
+  const pdfBars = [{ page: 1, x: 10, y: 10, w: 40, h: 10 }];
+  const pdfModel = modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: pdfBars });
+  const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
+  const p1 = await hooks.onInput({ id: 'bars', value: pdfBars, model: pdfModel, host });
+  assert.match(p1.toastKey, /^first-bar@doc\.pdf:/);
+  const p2 = await hooks.onInput({ id: 'bars', value: pdfBars, model: pdfModel, host });
+  assert.equal(p2.toastKey, '', 'a 10pt bar in PDF points is not thin and PDFs never get the image caveat');
+});
+
+// ─── preset bar heights: the fractions live in hooks.js, once ────────────────
+
+test('redact: preset height fractions ship to the canvas as JSON from one source of truth', async () => {
+  const hooks = loadHooks();
+  const res = await hooks.onInit({
+    model: modelFor(fileRef('shot.png', 'image/png', buildDirtyPng())),
+    host: BARE_HOST,
+  });
+  const fr = JSON.parse(res.presetsJson);
+  assert.deepEqual(Object.keys(fr).sort(), ['block', 'heading', 'line'], 'exactly the rail presets, free stays absent (0 = follow the drag)');
+  assert.ok(fr.line > 0 && fr.line < fr.heading && fr.heading < fr.block && fr.block < 1,
+    'line < heading < block, all sane fractions of the frame');
+  // The template multiplies these against the frame's own space with a 6-unit
+  // floor; on an A4 page (792pt) the line preset lands in text-line territory.
+  const linePt = Math.max(6, Math.round(792 * fr.line));
+  assert.ok(linePt >= 8 && linePt <= 24, `A4 line preset is text-line sized, got ${linePt}pt`);
+  // The empty-state patch carries the same fractions so the stage script can
+  // parse them on the very first paint after a drop.
+  const blank = await hooks.onInit({ model: modelFor(null), host: BARE_HOST });
+  assert.equal(blank.presetsJson, res.presetsJson);
 });

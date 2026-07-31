@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.74.0', () => {
+test('ENGINE_VERSION is 1.86.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -119,9 +119,12 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // canvas.import.mode:'scenes') and 1.84.0 (readingOrder — scene import plays
   // decks in reading order, not Z order) and 1.85.0 (host.pdf.redact —
   // rasterise-and-rebuild PDF redaction — and host.c2pa.sign — a fresh
-  // no-ingredients manifest for redacted derivatives);
+  // no-ingredients manifest for redacted derivatives) and 1.86.0 (src/pixels.ts —
+  // the DeepFrame float-RGBA buffer in linear light with its PixelSpace travelling
+  // alongside, plus the u8/u16/binary16 converters and convertSpace; engine-only,
+  // no HostV1 method added);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.85.0');
+  assert.equal(ENGINE_VERSION, '1.86.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

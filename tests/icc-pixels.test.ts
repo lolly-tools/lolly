@@ -32,7 +32,7 @@ import {
   convertViaIcc,
   iccResolvedIntent,
 } from '../engine/src/icc-pixels.ts';
-import { ascii, buildProfile, descTag, identityCurv, mft2, pressProfileBytes, u16, u32, xyzTag } from './helpers/icc-fixture.ts';
+import { ascii, buildProfile, descTag, identityCurv, mft2, pressProfileBytes, u16, u32 } from './helpers/icc-fixture.ts';
 
 // ─── fixtures ─────────────────────────────────────────────────────────────────
 

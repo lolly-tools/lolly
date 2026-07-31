@@ -120,14 +120,37 @@ function flattenGroup(
 //      OTHER group, so the named theme's cross-axis aliases still resolve;
 //   2. else `$metadata.activeThemes` (Tokens-Studio's "active theme per axis"), if present;
 //   3. else one theme per group (the first of each).
-// A single-theme or single-axis (one `group`) doc composes exactly one theme — identical to
-// the old `named ?? themes[0]` behaviour, so nothing regresses.
+// A single-theme or single-axis (one `group`) doc composes exactly one theme — the first,
+// unless `activeThemes` names one of them, which is the designer's own ON state and the
+// reason Penpot writes the field at all.
 function chosenThemes(themes: UnknownRecord[], meta: UnknownRecord, theme: string | undefined): UnknownRecord[] {
   if (themes.length <= 1) return themes;
   const groupOf = (t: UnknownRecord): string => (typeof t.group === 'string' ? t.group : '');
   const byGroup = new Map<string, UnknownRecord[]>();
   for (const t of themes) { const g = groupOf(t); const list = byGroup.get(g); if (list) list.push(t); else byGroup.set(g, [t]); }
-  if (byGroup.size <= 1) return theme ? [themes.find(t => t.name === theme || t.id === theme) ?? themes[0]!] : [themes[0]!];
+  const activeNames = Array.isArray(meta.activeThemes)
+    ? meta.activeThemes.filter((x): x is string => typeof x === 'string') : [];
+  // A grouped theme can be named in activeThemes as "group/name" as well as bare.
+  const isActive = (t: UnknownRecord): boolean => {
+    const g = groupOf(t);
+    for (const key of ['name', 'id'] as const) {
+      const v = t[key];
+      if (typeof v !== 'string') continue;
+      if (activeNames.includes(v)) return true;
+      if (g && activeNames.includes(`${g}/${v}`)) return true;
+    }
+    return false;
+  };
+  if (byGroup.size <= 1) {
+    if (theme) return [themes.find(t => t.name === theme || t.id === theme) ?? themes[0]!];
+    // No explicit theme: honour the doc's own active theme before falling back
+    // to "the first one wins". Only bites docs that carry activeThemes.
+    if (activeNames.length) {
+      const active = themes.find(isActive);
+      if (active) return [active];
+    }
+    return [themes[0]!];
+  }
 
   const requested = theme ? themes.find(t => t.name === theme || t.id === theme) : undefined;
   if (requested) {
@@ -136,10 +159,8 @@ function chosenThemes(themes: UnknownRecord[], meta: UnknownRecord, theme: strin
     for (const [g, list] of byGroup) if (g !== rg && list[0]) out.push(list[0]);
     return out;
   }
-  const activeNames = Array.isArray(meta.activeThemes)
-    ? meta.activeThemes.filter((x): x is string => typeof x === 'string') : [];
   if (activeNames.length) {
-    const active = themes.filter(t => activeNames.includes(String(t.name)) || activeNames.includes(String(t.id)));
+    const active = themes.filter(isActive);
     if (active.length) return active;
   }
   const out: UnknownRecord[] = [];
@@ -362,6 +383,41 @@ export function resolveColorValue(
     return r !== undefined ? colorToHex(r) : undefined;
   }
   return stored; // plain colour string (or non-string) — leave exactly as-is
+}
+
+// ─── Typography composites ───────────────────────────────────────────────────
+
+/**
+ * The font families named by a typography-ish token value.
+ *
+ * Penpot exports a `$type: "typography"` composite whose `$value` uses PLURAL
+ * keys (`fontFamilies`, `fontSizes`, `fontWeights`, …); Tokens Studio and
+ * hand-authored docs use the singular ones, and a family itself can be a
+ * string, a comma-joined stack, or an array (Penpot stores split families).
+ * A bare string `$value` is a whole-token alias or a family name outright.
+ *
+ * Families only, deliberately: sizes, weights and line heights carry units and
+ * scales this function has no business guessing at. Returns `[]` for anything
+ * unreadable, deduped, in the order the value declares them, aliases dropped.
+ */
+export function typographyFamilies(value: unknown): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const take = (v: unknown): void => {
+    if (Array.isArray(v)) { for (const item of v) take(item); return; }
+    if (typeof v !== 'string' || isAlias(v)) return;
+    // A stack ("Work Sans, sans-serif") names its families in order.
+    for (const part of v.split(',')) {
+      const fam = part.trim().replace(/^['"]+|['"]+$/g, '').trim();
+      if (!fam || seen.has(fam)) continue;
+      seen.add(fam);
+      out.push(fam);
+    }
+  };
+  if (typeof value === 'string' || Array.isArray(value)) { take(value); return out; }
+  if (!isRecord(value)) return out;
+  take(value.fontFamilies ?? value.fontFamily);
+  return out;
 }
 
 // ─── Colour normalisation ─────────────────────────────────────────────────────

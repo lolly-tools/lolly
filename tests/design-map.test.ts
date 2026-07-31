@@ -1351,3 +1351,132 @@ test('penpotShapeToNode + penpotGroupToSvg: unequal corner radii route via the r
   assert.ok(svg.includes(`<path d="${penpotRoundedRectD(10, 20, 100, 80, [4, 8, 12, 16])}" fill="#ff0000"/>`));
   assert.ok(svg.includes('<rect x="10" y="20" width="100" height="80" rx="6" fill="#ff0000"/>'));
 });
+
+// ── Penpot dash/gap strokes (2.17, PR #9765) ─────────────────────────────────
+// Two optional numbers on each `strokes[]` entry, meaningful only when the style is
+// `dashed`, absolute px and NOT proportional to the width. Absence is not zero: the
+// renderer falls back to width + 10 for each. `strokeStyle: "none"` paints nothing.
+
+test('penpotShapeToNode: strokeStyle "none" paints nothing and reveals the stroke under it', () => {
+  const base = { id: 'r', type: 'rect', selrect: { x: 10, y: 10, width: 100, height: 50 }, fills: [{ fillColor: '#ffffff' }] };
+  // A sole "none" entry: no stroke at all, and NO geometry inflation either.
+  const sole = penpotShapeToNode({ ...base,
+    strokes: [{ strokeColor: '#f23ae5', strokeWidth: 4, strokeStyle: 'none', strokeAlignment: 'center' }] }) as any;
+  const soleBox = nodeToBox(sole, { id: 'b0' }) as any;
+  assert.deepEqual([soleBox.stroke, soleBox.strokeW, soleBox.strokeDash], ['', 0, '']);
+  assert.deepEqual([sole.x, sole.y, sole.w, sole.h], [10, 10, 100, 50]);
+  // Topmost "none" over a real stroke: the search continues DOWNWARDS past it.
+  const under = penpotShapeToNode({ ...base, strokes: [
+    { strokeColor: '#123456', strokeWidth: 2, strokeStyle: 'solid', strokeAlignment: 'inner' },
+    { strokeColor: '#f23ae5', strokeWidth: 4, strokeStyle: 'none', strokeAlignment: 'inner' },
+  ] }) as any;
+  assert.equal(under.stroke, '#123456');
+  assert.equal(under.strokeW, 2);
+});
+
+test('penpotShapeToNode: "mixed" maps to dashed; dash/gap read authored or default to w+10', () => {
+  const base = { id: 'r', type: 'rect', selrect: { x: 0, y: 0, width: 100, height: 50 },
+    fills: [{ fillColor: '#ffffff' }] };
+  const mk = (st: Record<string, unknown>) => penpotShapeToNode({ ...base,
+    strokes: [{ strokeColor: '#000000', strokeWidth: 2, strokeAlignment: 'inner', ...st }] }) as any;
+
+  // `mixed` used to fall through to solid silently; dashed is the nearest CSS keyword.
+  assert.equal(mk({ strokeStyle: 'mixed' }).strokeDash, 'dashed');
+  // ...but the authored-length fields stay unset, so a mixed stroke keeps the editor's
+  // width-proportional synthesis rather than pretending it was a two-part dash.
+  assert.equal(mk({ strokeStyle: 'mixed' }).strokeDashLen, undefined);
+
+  const authored = mk({ strokeStyle: 'dashed', strokeDash: 8, strokeGap: 3 });
+  assert.equal(authored.strokeDash, 'dashed');
+  assert.equal(authored.strokeDashLen, 8);
+  assert.equal(authored.strokeGapLen, 3);
+
+  // Neither key written (the user picked "dashed" and never touched the inputs) →
+  // Penpot's own renderer fallback, width + 10 for BOTH.
+  const dflt = mk({ strokeStyle: 'dashed' });
+  assert.equal(dflt.strokeDashLen, 12);
+  assert.equal(dflt.strokeGapLen, 12);
+  // Half-authored never reaches the hook half-filled.
+  const half = mk({ strokeStyle: 'dashed', strokeDash: 5 });
+  assert.deepEqual([half.strokeDashLen, half.strokeGapLen], [5, 12]);
+  // Authored 0 clamps to unset for v1 (SVG treats an all-zero dasharray as no dashing;
+  // what Penpot's Skia renderer does with 0 is a kitchen-sink fixture question).
+  const zero = mk({ strokeStyle: 'dashed', strokeDash: 0, strokeGap: 0 });
+  assert.deepEqual([zero.strokeDashLen, zero.strokeGapLen], [12, 12]);
+  // Fractional values survive (safe-numbers, rounded to 2dp like strokeW).
+  assert.equal(mk({ strokeStyle: 'dashed', strokeDash: 1.239, strokeGap: 4 }).strokeDashLen, 1.24);
+
+  // Key-spelling tolerance: kebab and ":kebab" alongside binfile-v3's camelCase.
+  for (const st of [
+    { 'stroke-style': 'dashed', 'stroke-dash': 8, 'stroke-gap': 3 },
+    { ':stroke-style': 'dashed', ':stroke-dash': 8, ':stroke-gap': 3 },
+  ]) {
+    const n = mk(st);
+    assert.equal(n.strokeDash, 'dashed', `spelling ${Object.keys(st)[0]}`);
+    assert.deepEqual([n.strokeDashLen, n.strokeGapLen], [8, 3]);
+  }
+  // A solid stroke is byte-identical to before these fields existed.
+  const solid = nodeToBox(mk({ strokeStyle: 'solid' }), { id: 'b0' }) as any;
+  assert.deepEqual([solid.strokeDash, solid.strokeDashLen, solid.strokeGapLen], ['', 0, 0]);
+});
+
+test('nodeToBox: authored dash/gap ride the row as numbers, clamped and rounded', () => {
+  const b = nodeToBox({ kind: 'box', x: 0, y: 0, w: 10, h: 10,
+    strokeDashLen: 8.126, strokeGapLen: -4 } as any, { id: 'b0' }) as any;
+  assert.equal(b.strokeDashLen, 8.13);
+  assert.equal(b.strokeGapLen, 0);
+  // Numbers, never strings: the compact blocks URL cannot carry a comma or a tilde.
+  assert.equal(typeof b.strokeDashLen, 'number');
+  const junk = nodeToBox({ kind: 'box', x: 0, y: 0, w: 10, h: 10,
+    strokeDashLen: 'nope', strokeGapLen: Number.NaN } as any, { id: 'b1' }) as any;
+  assert.deepEqual([junk.strokeDashLen, junk.strokeGapLen], [0, 0]);
+});
+
+test('penpotGroupToSvg: dash decoration bakes into the flattened SVG (was always solid)', () => {
+  const mk = (strokes: unknown[]) => {
+    const shapes: Record<string, any> = {
+      g: { id: 'g', type: 'group', selrect: { x: 0, y: 0, width: 50, height: 40 }, shapes: ['p'] },
+      p: { id: 'p', type: 'path', selrect: { x: 0, y: 0, width: 10, height: 10 },
+        content: 'M0,0L10,10Z', fills: [], strokes },
+    };
+    return penpotGroupToSvg(shapes.g, (id) => shapes[id]);
+  };
+  // Authored dash/gap ride the attribute verbatim.
+  assert.ok(mk([{ strokeColor: '#14ceca', strokeWidth: 2, strokeStyle: 'dashed', strokeDash: 8, strokeGap: 3 }])
+    .includes('stroke-dasharray="8,3"'));
+  // Untouched dashed → width + 10 for both, Penpot's renderer fallback.
+  assert.ok(mk([{ strokeColor: '#14ceca', strokeWidth: 2, strokeStyle: 'dashed' }])
+    .includes('stroke-dasharray="12,12"'));
+  // Dotted is a ZERO-length dash, so it needs a cap or it paints nothing at all.
+  const dotted = mk([{ strokeColor: '#14ceca', strokeWidth: 2, strokeStyle: 'dotted' }]);
+  assert.ok(dotted.includes('stroke-dasharray="0,7"'), dotted);
+  assert.ok(dotted.includes('stroke-linecap="round"'), dotted);
+  // An authored cap wins over the dotted default.
+  assert.ok(mk([{ strokeColor: '#14ceca', strokeWidth: 2, strokeStyle: 'dotted', strokeCapStart: 'square' }])
+    .includes('stroke-linecap="square"'));
+  // mixed = Penpot's four-part pattern.
+  assert.ok(mk([{ strokeColor: '#14ceca', strokeWidth: 2, strokeStyle: 'mixed' }])
+    .includes('stroke-dasharray="7,7,3,7"'));
+  // "none" emits no stroke attributes whatsoever.
+  const none = mk([{ strokeColor: '#14ceca', strokeWidth: 2, strokeStyle: 'none' }]);
+  assert.ok(!none.includes('stroke='), none);
+  assert.ok(!none.includes('stroke-dasharray'), none);
+  // Solid keeps the pre-change emission byte-identical: no dasharray, no linecap.
+  const solid = mk([{ strokeColor: '#14ceca', strokeWidth: 2, strokeOpacity: 0.5 }]);
+  assert.ok(solid.includes('fill="none" stroke="#14ceca" stroke-width="2" stroke-opacity="0.5"'), solid);
+  assert.ok(!solid.includes('stroke-dasharray'), solid);
+  assert.ok(!solid.includes('stroke-linecap'), solid);
+});
+
+// ── Kitchen-sink fixture will add (named now, unwritable until a real 2.17 export
+//    with an EDITED dashed stroke exists — the keynote has 0 dashed strokes and 0
+//    strokeDash/strokeGap keys, so the camelCase spelling is inferred from the
+//    encoder plus the fixture's uniform stroke-key convention):
+//    * "fixture: an edited dashed stroke serializes strokeDash/strokeGap as camelCase
+//      numbers on the stroke entry"
+//    * "fixture: an untouched dashed stroke carries neither key"
+//    * "fixture: a user-entered 0 dash exports as 0, and Penpot renders it as X"
+//      (then revisit the clamp-to-unset above)
+//    * "fixture: dotted strokes carry round caps, or the renderer forces one"
+//    * "fixture: per-side stroke keys (strokePerSide, strokeWidthTop...) absent or
+//      present in 2.17 exports"

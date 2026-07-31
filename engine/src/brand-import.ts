@@ -322,27 +322,40 @@ function pv(o: unknown, camel: string): unknown {
  * census matches a whole-file audit rather than one render of it. Never throws
  * on bad input; unusable entries are simply skipped.
  */
-export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): PenpotUsage {
+/**
+ * The ordered page-shape entry paths of an unzipped `.penpot` project:
+ * `files/<id>/pages/<pid>/<sid>.json`, file order from the manifest. A
+ * missing/unusable manifest falls back to scanning every matching path
+ * (sorted, for determinism).
+ *
+ * Shared by every page walker so two censuses of the same archive can never
+ * disagree about which shapes exist.
+ */
+function penpotPagePaths(entries: Record<string, Uint8Array | string>): string[] {
   const warnings: string[] = []; // parseEntry's sink — a census has no warning channel
   const pageShapeRe = /^[^/]+\/[^/]+\.json$/;
-
-  let pagePaths: string[] = [];
   const manifest = parseEntry(entries, 'manifest.json', warnings);
   const manifestFiles = isRecord(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
-  if (manifestFiles) {
-    const sortedKeys = Object.keys(entries).sort();
-    for (const f of manifestFiles) {
-      if (!isRecord(f) || typeof f.id !== 'string') continue;
-      const prefix = `files/${f.id}/pages/`;
-      for (const p of sortedKeys) {
-        if (p.startsWith(prefix) && pageShapeRe.test(p.slice(prefix.length))) pagePaths.push(p);
-      }
-    }
-  } else {
-    pagePaths = Object.keys(entries)
+  if (!manifestFiles) {
+    return Object.keys(entries)
       .filter(p => /^files\/[^/]+\/pages\/[^/]+\/[^/]+\.json$/.test(p))
       .sort();
   }
+  const pagePaths: string[] = [];
+  const sortedKeys = Object.keys(entries).sort();
+  for (const f of manifestFiles) {
+    if (!isRecord(f) || typeof f.id !== 'string') continue;
+    const prefix = `files/${f.id}/pages/`;
+    for (const p of sortedKeys) {
+      if (p.startsWith(prefix) && pageShapeRe.test(p.slice(prefix.length))) pagePaths.push(p);
+    }
+  }
+  return pagePaths;
+}
+
+export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): PenpotUsage {
+  const warnings: string[] = []; // parseEntry's sink — a census has no warning channel
+  const pagePaths = penpotPagePaths(entries);
 
   interface Tally { fills: number; strokes: number; textRuns: number; gradientStops: number }
   const colors = new Map<string, Tally>();
@@ -444,6 +457,107 @@ export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): P
     .map(e => e.row);
 
   return { colors: colorRows, gradients: gradientRows, fonts: [...fonts.values()] };
+}
+
+// ── Applied-token census — which DECLARED tokens the designer actually used ──
+// The third walker over the same archive, and the one that makes a token-first
+// import possible: extractPenpotProject says WHICH tokens a file declares,
+// scanPenpotUsage says which raw colours it paints, and this says which
+// declared token is attached to which kind of attribute, how often. A shell can
+// then propose brand roles from the designer's own names ("the token they put
+// on the most fills is the surface") instead of guessing from hexes.
+//
+// Penpot writes the attachment on each shape as `appliedTokens`, a flat map of
+// shape-attribute name → token name (`{"fill": "brand.primary", "r1": "rad.md"}`
+// — dotted token paths joining straight to createTokenSet's flattened names).
+// Attribute names arrive camelCase in binfile-v3; kebab and ":key" spellings
+// are accepted for the same reason scanPenpotUsage's pv() accepts them.
+
+/** One declared token's applied-attribute tally across a project's shapes. */
+export interface PenpotAppliedToken {
+  /** Token name exactly as the file wrote it — a dotted path into the doc. */
+  name: string;
+  /** `fill` on a non-text shape — the surface/primary signal. */
+  fills: number;
+  /** `strokeColor` and `shadow` — the secondary colour signal. */
+  strokes: number;
+  /** `fill` on a text shape — the text-role signal. Disjoint from `fills`. */
+  text: number;
+  /** `typography`, `fontFamily`, `fontSize`, `fontWeight`, … — the type signal. */
+  type: number;
+  /** Corner radii, padding/margin, row/column gap — the geometry signal. */
+  geometry: number;
+  /** Sum of the five. */
+  total: number;
+}
+
+type AppliedClass = 'fills' | 'strokes' | 'text' | 'type' | 'geometry';
+
+const TYPE_ATTRS = new Set([
+  'typography', 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle',
+  'lineHeight', 'letterSpacing', 'textCase', 'textDecoration',
+]);
+const GEOMETRY_ATTRS = new Set(['rowGap', 'columnGap', 'spacing', 'width', 'height', 'x', 'y']);
+
+/** Attribute name → which signal it feeds, or null when we don't model it. */
+function appliedClassOf(attr: string, isText: boolean): AppliedClass | null {
+  if (attr === 'fill') return isText ? 'text' : 'fills';
+  if (attr === 'strokeColor' || attr === 'shadow') return 'strokes';
+  if (TYPE_ATTRS.has(attr)) return 'type';
+  if (GEOMETRY_ATTRS.has(attr)) return 'geometry';
+  // r1..r4 (corner radii), p1..p4 (padding), m1..m4 (margin), plus the long
+  // padding*/margin* spellings.
+  if (/^[rpm][1-4]$/.test(attr)) return 'geometry';
+  if (attr.startsWith('padding') || attr.startsWith('margin')) return 'geometry';
+  return null;
+}
+
+// ":stroke-color" / "stroke-color" / "strokeColor" all name the same attribute.
+function camelOf(k: string): string {
+  return k.replace(/^:/, '').replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+}
+
+/**
+ * Tally every `appliedTokens` reference across an unzipped `.penpot` project's
+ * page shapes.
+ *
+ * @param entries archive path → bytes (fflate's `unzipSync` shape) or → string,
+ *   exactly like `extractPenpotProject` and `scanPenpotUsage` — the caller
+ *   inflates the zip.
+ *
+ * Rows sort by total desc, then name asc. HIDDEN shapes are counted, the same
+ * whole-file-audit stance as `scanPenpotUsage`. Attributes we don't model are
+ * skipped (they never reach `total`), so a future Penpot attribute can only
+ * under-count, never corrupt a row. Token names are file-controlled, so the
+ * accumulator is a `Map` and never an object literal. Never throws: an archive
+ * with no shapes, no manifest, or no applied tokens returns `[]`.
+ */
+export function scanPenpotAppliedTokens(entries: Record<string, Uint8Array | string>): PenpotAppliedToken[] {
+  const warnings: string[] = [];
+  const rows = new Map<string, Omit<PenpotAppliedToken, 'name' | 'total'>>();
+
+  const bump = (name: string, cls: AppliedClass): void => {
+    let r = rows.get(name);
+    if (!r) { r = { fills: 0, strokes: 0, text: 0, type: 0, geometry: 0 }; rows.set(name, r); }
+    r[cls]++;
+  };
+
+  for (const path of penpotPagePaths(entries)) {
+    const shape = parseEntry(entries, path, warnings);
+    if (!isRecord(shape)) continue;
+    const applied = pv(shape, 'appliedTokens');
+    if (!isRecord(applied)) continue;
+    const isText = String(pv(shape, 'type') ?? '') === 'text';
+    for (const [rawAttr, rawName] of Object.entries(applied)) {
+      if (typeof rawName !== 'string' || !rawName) continue;
+      const cls = appliedClassOf(camelOf(rawAttr), isText);
+      if (cls) bump(rawName, cls);
+    }
+  }
+
+  return [...rows.entries()]
+    .map(([name, r]) => ({ name, ...r, total: r.fills + r.strokes + r.text + r.type + r.geometry }))
+    .sort((a, b) => (b.total - a.total) || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
 }
 
 /**
