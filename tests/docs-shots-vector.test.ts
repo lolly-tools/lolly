@@ -32,12 +32,14 @@ const DOCS = join(ROOT, 'docs');
  * See plans/svg-snapshot-without-print.md §16.3 for the full diagnosis of each.
  */
 const RASTER_ALLOWED: Record<string, string> = {
-  gallery:
-    'Walker drops the fixed topbar and flattens the Cover Flow covers to blank rects '
-    + '(parseCssMatrix rejects the 3-D rotateY, so they fall to the AABB path). Verified '
-    + 'not caused by the backdrop-cap fix. A hero shot missing its own navigation is '
-    + 'worse than a bitmap.',
-  'aud-gallery-landscape': 'Same page and same two walker defects as `gallery`.',
+  // gallery + aud-gallery-landscape left this list 2026-07-31: the missing top nav was a
+  // walker defect, not a property of the page. `.gallery-topbar` is `display: contents`,
+  // whose getBoundingClientRect() is 0x0, and the walker's `rect.width < 0.5` guard was
+  // dropping it AND its whole subtree. Fixed in visitSvgNode; the nav is vector again.
+  // RESIDUAL, accepted: the Cover Flow covers carry a 3-D `rotateY` that parseCssMatrix
+  // refuses, so they fall to the axis-aligned-box path and some cover content mis-scales.
+  // They are decorative, half-cropped at the frame edge, and everything else on the page
+  // — nav, hero card, tiles, footer — is faithful.
   'ov2-phone-audiogram':
     'The audiogram paints to <canvas>. Vector-expressible in principle (all nine '
     + 'non-MilkDrop styles use only the 2D subset that maps onto SVG) but it needs a '

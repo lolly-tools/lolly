@@ -306,6 +306,7 @@ function paramsFor(shot: ShotDef): { params: Omit<CaptureParams, 'url'>; dims: {
     params: {
       scrollDepth: shot.scrollDepth ?? 0,
       waitMs: shot.waitMs ?? 1_000,
+      waitSelector: shot.waitSelector,
       css: [shot.css ?? '', FREEZE_CSS].filter(Boolean).join('\n'),
       cropLeft: shot.cropLeft ?? 0,
       cropRight: shot.cropRight ?? 0,
@@ -505,6 +506,10 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
     // The short settle lets scroll-triggered lazy rendering (content-visibility,
     // reveal observers) paint before measurement/capture.
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
+    // waitSelector: the deterministic settle — block until the page says it is
+    // ready (e.g. the ?neuro demo's data-demo-settled) instead of guessing wall
+    // clock. Applied here too so the measured crop box sees the same final state.
+    if (shot.waitSelector) await page.waitForSelector(shot.waitSelector, { state: 'attached', timeout: 60_000 });
     if (params.scrollDepth > 0) {
       // Retry until the scroll actually TOOK: late layout (locale re-render,
       // reveal observers, content-visibility) can grow the document after the
@@ -639,7 +644,9 @@ function vectorCropCssPx(
  * a vector has no pixels to watermark; C2PA is the provenance (Andy's call —
  * docs stay content-clean, raster only for performance reasons).
  */
-async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array> {
+type VectorCapture = { bytes: Uint8Array; framed: { width: number; height: number } | null };
+
+async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapture> {
   const { params, dims } = paramsFor(shot);
   const browser = await getBrowser();
   const ctx = await browser.newContext({
@@ -661,6 +668,10 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
     // The short settle lets scroll-triggered lazy rendering (content-visibility,
     // reveal observers) paint before measurement/capture.
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
+    // waitSelector: the deterministic settle — block until the page says it is
+    // ready (e.g. the ?neuro demo stamps data-demo-settled once its fixed frame
+    // sequence has rendered) instead of guessing how fast this machine's GL is.
+    if (shot.waitSelector) await page.waitForSelector(shot.waitSelector, { state: 'attached', timeout: 60_000 });
     if (params.scrollDepth > 0) {
       // Retry until the scroll actually TOOK: late layout (locale re-render,
       // reveal observers, content-visibility) can grow the document after the
@@ -742,6 +753,18 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
           else if (target) target.style.removeProperty('background-color');
           if (!r?.svg) return null;
 
+          // Origin of the walker's ROOT coordinate space, in viewport coords.
+          // renderSvgFromHtml emits every node relative to the walked node's
+          // border-box top-left, so root (0,0) IS that corner. A negative
+          // component means part of the node sits above/left of the fold — which
+          // is exactly the band the reader cannot see, and exactly what a
+          // top-anchored window would otherwise publish instead of the visible one.
+          // Read from the node itself rather than window.scrollY: body{margin:0}
+          // makes them equal today, but a collapsed margin on a first child would
+          // put them wildly apart and frame the wrong region.
+          const originRect = (target ?? document.body).getBoundingClientRect();
+          const off = { x: Math.max(0, -originRect.left), y: Math.max(0, -originRect.top) };
+
           // Parse failure is the catastrophic-and-silent case: a well-sized file
           // that no renderer can open.
           let doc = new DOMParser().parseFromString(r.svg, 'image/svg+xml');
@@ -790,6 +813,8 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
           // (defs/clipPath/pattern/mask/symbol) are never culled — a <use> or
           // clip inside the window may reference ink whose source rect is not.
           let winDropped = 0;
+          let framed: { width: number; height: number } | null = null;
+          let anchored: { x: number; y: number } | null = null;
           if (win && !parseErr) {
             const rootEl = doc.documentElement;
             const natW = vb.length === 4 ? (vb[2] as number) : parseFloat(rootEl.getAttribute('width') || '0');
@@ -802,7 +827,15 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
             // dims-mismatch guard) can parse. Skipping it for a shot that exactly fits
             // left the walker's native `width="1440px"` in place and failed that guard.
             const winW = Math.min(win.w, natW), winH = Math.min(win.h, natH);
-            const overflows = winW < natW - 0.5 || winH < natH - 0.5;
+            // Slide the window down/right to the visible band, then clamp inside the
+            // walked box so it is always a sub-rect of real content (hence no
+            // transparent ring). Mirrors walkerWindow() in lib/shot-compare.ts, which
+            // is the unit-tested statement of this arithmetic.
+            const wx = Math.min(Math.max(0, off.x), Math.max(0, natW - winW));
+            const wy = Math.min(Math.max(0, off.y), Math.max(0, natH - winH));
+            // Reframe when the window is smaller than the box on either axis OR is
+            // offset into it. Testing size alone missed the offset case — the defect.
+            const overflows = winW < natW - 0.5 || winH < natH - 0.5 || wx > 0.5 || wy > 0.5;
             const mountBox = document.createElement('div');
             mountBox.style.cssText = `position:absolute;left:-100000px;top:0;visibility:hidden;width:${natW}px;height:${natH}px;overflow:hidden`;
             const live = document.importNode(rootEl, true) as unknown as SVGSVGElement;
@@ -818,12 +851,15 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
                   if (el.closest('defs,clipPath,pattern,mask,symbol')) continue;
                   const b = el.getBoundingClientRect();
                   const x0 = b.left - origin.left, y0 = b.top - origin.top;
-                  if (x0 >= winW || y0 >= winH || x0 + b.width <= 0 || y0 + b.height <= 0) doomed.push(el);
+                  if (x0 >= wx + winW || y0 >= wy + winH
+                      || x0 + b.width <= wx || y0 + b.height <= wy) doomed.push(el);
                 }
                 for (const el of doomed) el.remove();
                 winDropped = doomed.length;
               }
-              live.setAttribute('viewBox', `0 0 ${winW} ${winH}`);
+              framed = { width: Math.round(winW), height: Math.round(winH) };
+              anchored = wx > 0.5 || wy > 0.5 ? { x: Math.round(wx), y: Math.round(wy) } : null;
+              live.setAttribute('viewBox', `${Math.round(wx * 100) / 100} ${Math.round(wy * 100) / 100} ${winW} ${winH}`);
               // Bare numbers: svgRootSize (the dims-mismatch guard) parses width="1440",
               // and the print path emits the same form.
               live.setAttribute('width', String(winW));
@@ -845,6 +881,13 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
             externalHrefs: hrefs.filter((h) => !h.startsWith('data:') && !h.startsWith('#')),
             opaque,
             winDropped,
+            // The frame we INTENDED to publish. Deliberately not re-read off the
+            // root: the serialise/re-parse above silently keeps the unwindowed svg
+            // when the rewrite produces bad XML, and reporting the root back would
+            // make that failure agree with itself. Stating the intent instead turns
+            // it into a dims-mismatch, which is fatal.
+            framed,
+            anchored,
           };
         },
         { s: sel, win },
@@ -862,10 +905,14 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
       // Warn, never fail: <text> is a DESIGNED fallback for a font the outliner
       // cannot resolve, and five committed print baselines already carry 145 such
       // nodes. A new one is worth a look, not a broken build.
+      // Loud on purpose: the anchor slide is latent across the whole corpus today
+      // (every walker viewBox is 0,0), so the first recipe that trips it should say
+      // so rather than quietly publishing a different band than the previous run.
+      if (out.anchored) console.log(`    ⌖ ${shot.slug}: window anchored to the visible band at ${out.anchored.x},${out.anchored.y} (element overflows the frame)`);
       if (out.winDropped) console.log(`    ✂ ${shot.slug}: windowed ${shot.cropSelector ? `${shot.cropSelector} walk` : 'body walk'} culled ${out.winDropped} off-frame node(s)`);
       if (out.texts) console.warn(`  ⚠ ${shot.slug}: ${out.texts} <text> node(s) — a font did not outline`);
       if (!out.opaque) console.warn(`  ⚠ ${shot.slug}: "${sel}" has no opaque background — the shot may read as an empty box on /info's dark theme (add &css= to paint one)`);
-      return new TextEncoder().encode(out.svg);
+      return { bytes: new TextEncoder().encode(out.svg), framed: out.framed };
     }
 
     // Print the FULL page height as one tall page — scroll/crop trim below, in
@@ -935,7 +982,8 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
       outWidth: crop.width,
       outHeight: crop.height,
     });
-    return new TextEncoder().encode(svg);
+    // Print derives its expected dims from the recipe crop, not from here.
+    return { bytes: new TextEncoder().encode(svg), framed: null };
   } finally {
     await ctx.close();
   }
@@ -943,8 +991,9 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<Uint8Array
 
 async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotResult> {
   let bytes: Uint8Array;
+  let framed: { width: number; height: number } | null = null;
   try {
-    bytes = await captureVector(baseUrl, shot);
+    ({ bytes, framed } = await captureVector(baseUrl, shot));
   } catch (e) {
     return { slug: shot.slug, format: shot.format, error: (e as Error).message, wrote: false, bytes: 0 };
   }
@@ -962,11 +1011,16 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   // would make the whole class permanently "failed" and drown the real failures the
   // exit-code fix is meant to surface. So the check is skipped here; what still
   // guards a blank walker capture is the length check in captureVector.
-  const expected = shot.walker && !shot.cropSelector
-    // A6 windows a selector-less body walk to the recipe frame, so its dims are
-    // exact again (a cropSelector walker frame is the element's own box — still null).
-    ? { width: dims.width, height: dims.height }
-    : shot.walker ? null : {
+  // For the walker the frame is whatever `walkerWindow`'s arithmetic resolved,
+  // reported back by the capture itself — same context, same numbers, so the check
+  // is exact rather than reconstructed. Do NOT re-derive it from the recipe: the
+  // print path pads a cropSelector by 24px per side, which puts `expected` +48 over
+  // a walker frame and reports a mismatch on all 38 cropSelector walker recipes.
+  // `framed` is null only when the root was never rewritten (no frame / bad XML),
+  // where there is nothing to compare against.
+  const expected = shot.walker
+    ? framed
+    : {
     width: Math.max(1, Math.round(dims.width * (1 - clampInset(shot.cropLeft) - clampInset(shot.cropRight)))),
     height: Math.max(1, Math.round(dims.height * (1 - clampInset(shot.cropTop) - clampInset(shot.cropBottom)))),
   };
@@ -1011,6 +1065,7 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
   const model = [
     row('url', 'url', shot.route),
     ...(shot.waitMs !== undefined ? [row('waitMs', 'number', shot.waitMs)] : []),
+    ...(shot.waitSelector ? [row('waitSelector', 'text', shot.waitSelector)] : []),
     ...(shot.scrollDepth !== undefined ? [row('scrollDepth', 'number', shot.scrollDepth)] : []),
     ...(shot.zoom !== undefined ? [row('zoom', 'number', shot.zoom)] : []),
     ...(shot.css ? [row('css', 'text', shot.css)] : []),

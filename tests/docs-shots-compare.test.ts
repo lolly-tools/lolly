@@ -2,12 +2,12 @@
 // Docs-screenshot comparison logic (scripts/lib/shot-compare.ts) — the pure rules
 // behind `npm run docs:shots`. Synthetic RGBA buffers only: no Chromium, no sharp.
 import { test } from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   DEFAULT_THRESHOLDS, MAX_SHOT_PX, clampDpr, ineffectiveTolerance, channelStddev, isBlank, pixelDiffFraction, classifyShot,
   parseShotRecipes, stripSvgC2pa, svgRootSize, classifyVectorShot,
-  type RawImage,
-} from '../scripts/lib/shot-compare.ts';
+  type RawImage, walkerWindow } from '../scripts/lib/shot-compare.ts';
 
 /** Uniform w×h RGBA image. */
 function uniform(w: number, h: number, [r, g, b, a]: [number, number, number, number]): RawImage {
@@ -137,6 +137,13 @@ test('parseShotRecipes: cropSelector is carried through verbatim', () => {
   const { recipes, problems } = parseShotRecipes(md);
   assert.deepEqual(problems, []);
   assert.equal(recipes[0]!.cropSelector, '.share-dialog');
+});
+
+test('parseShotRecipes: waitSelector is carried through decoded', () => {
+  const md = '![Viz](/t/url-shot?url=%2F%23%2F%3Fneuro%3Dviz&waitSelector=.viz-panel%5Bdata-demo-settled%5D&walker=1&format=svg&filename=viz)';
+  const { recipes, problems } = parseShotRecipes(md);
+  assert.deepEqual(problems, []);
+  assert.equal(recipes[0]!.waitSelector, '.viz-panel[data-demo-settled]');
 });
 
 test('parseShotRecipes: identical duplicates share a baseline; conflicts and bad params are problems', () => {
@@ -316,4 +323,78 @@ test('ineffectiveTolerance names vector recipes whose tolerance cannot apply', (
     { slug: 'vector-plain', format: 'svg' },
   ] as unknown as Parameters<typeof ineffectiveTolerance>[0];
   assert.deepEqual(ineffectiveTolerance(shots), ['vector-with-tol']);
+});
+
+// ── walkerWindow: anchoring the published frame to the VISIBLE band ──────────
+
+test('a taller-than-viewport centred element frames its visible band, not the top', () => {
+  // The measured defect. renderSvgFromHtml emits nodes relative to the walked
+  // node's top-left, so root (0,0) is that corner — and a 944x2009 element
+  // centred in a 900px viewport sits at rect.top = -554.5. Anchoring the window
+  // at 0,0 published y 0-900 (off-screen) while the reader saw y 554.5-1454.5.
+  const w = walkerWindow({ w: 944, h: 2009 }, { w: 1440, h: 900 }, { x: 0, y: 554.5 });
+  assert.deepEqual(w, { x: 0, y: 554.5, w: 944, h: 900 });
+});
+
+test('an element that fits on screen is unchanged — the common case must not churn', () => {
+  // off is {0,0} for anything fully visible, and min() already no-ops on a box
+  // smaller than the frame, so the arithmetic reduces to what shipped before.
+  assert.deepEqual(walkerWindow({ w: 600, h: 600 }, { w: 1440, h: 900 }, { x: 0, y: 0 }),
+    { x: 0, y: 0, w: 600, h: 600 });
+  assert.deepEqual(walkerWindow({ w: 1440, h: 900 }, { w: 1440, h: 900 }, { x: 0, y: 0 }),
+    { x: 0, y: 0, w: 1440, h: 900 });
+});
+
+test('the window never escapes the walked box, so it can never frame empty space', () => {
+  // Clamped to nat - size on both axes. Without this a large offset would publish
+  // a band past the end of the content, which no backdrop would cover.
+  const w = walkerWindow({ w: 500, h: 1000 }, { w: 400, h: 300 }, { x: 9999, y: 9999 });
+  assert.deepEqual(w, { x: 100, y: 700, w: 400, h: 300 });
+  assert.ok(w.x + w.w <= 500 && w.y + w.h <= 1000);
+});
+
+test('an element SMALLER than the frame keeps its own box rather than being padded', () => {
+  // Padding out to the recipe frame would add a transparent ring the subtree-scoped
+  // walk has no ink for, and /info never upscales, so it would just publish smaller.
+  assert.deepEqual(walkerWindow({ w: 236, h: 39.5 }, { w: 1440, h: 900 }, { x: 0, y: 0 }),
+    { x: 0, y: 0, w: 236, h: 39.5 });
+});
+
+test('a horizontal overflow anchors on x the same way', () => {
+  assert.deepEqual(walkerWindow({ w: 3000, h: 400 }, { w: 1440, h: 900 }, { x: 800, y: 0 }),
+    { x: 800, y: 0, w: 1440, h: 400 });
+});
+
+test('the windowing inlined in the browser context still matches walkerWindow', () => {
+  // build-docs-shots.ts computes the window inside a page.evaluate(), where it
+  // cannot import anything — so the arithmetic is written out a second time and
+  // the unit tests above would keep passing while the pipeline drifted. Rather
+  // than compare source text (which reformats), lift the four expressions out and
+  // run them against the same inputs the helper gets.
+  const src = readFileSync(new URL('../scripts/build-docs-shots.ts', import.meta.url), 'utf-8');
+  const grab = (name: string) => {
+    const m = src.match(new RegExp(`const ${name} = (.+?);`));
+    assert.ok(m, `build-docs-shots.ts no longer declares ${name} — re-point this test`);
+    return m[1] as string;
+  };
+  const winWH = grab('winW'), wx = grab('wx'), wy = grab('wy');
+  assert.match(winWH, /winH = /); // winW and winH share one declaration
+
+  const inline = new Function('win', 'natW', 'natH', 'off', `
+    const winW = ${winWH};
+    const wx = ${wx};
+    const wy = ${wy};
+    return { x: wx, y: wy, w: winW, h: winH };
+  `) as (win: { w: number; h: number }, natW: number, natH: number,
+         off: { x: number; y: number }) => { x: number; y: number; w: number; h: number };
+
+  for (const [nat, frame, off] of [
+    [{ w: 944, h: 2009 }, { w: 1440, h: 900 }, { x: 0, y: 554.5 }],
+    [{ w: 600, h: 600 }, { w: 1440, h: 900 }, { x: 0, y: 0 }],
+    [{ w: 500, h: 1000 }, { w: 400, h: 300 }, { x: 9999, y: 9999 }],
+    [{ w: 3000, h: 400 }, { w: 1440, h: 900 }, { x: 800, y: 0 }],
+  ] as const) {
+    assert.deepEqual(inline(frame, nat.w, nat.h, off), walkerWindow(nat, frame, off),
+      `inline windowing diverged from walkerWindow for ${JSON.stringify(nat)}`);
+  }
 });
