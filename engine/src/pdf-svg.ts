@@ -154,6 +154,15 @@ function imageEl(n: PdfNode, images: Record<string, string>): string {
   return `<image x="${r(n.x)}" y="${r(n.y)}" width="${r(n.w)}" height="${r(n.h)}" preserveAspectRatio="none" href="${escapeXml(href)}"${opacityAttr(n)}${rotateAttr(n)}/>`;
 }
 
+// The leading a text node's lines are placed at, as a multiple of fontSize:
+// the interpreter's measured `lineHeight` when the node carries one, else the
+// historical 1.4 estimate. Every consumer of line geometry (textEl,
+// outlinedTextEl, pdfNodeExtent) MUST read it here so they cannot disagree.
+function leadOf(n: PdfNode): number {
+  const v = +(n.lineHeight ?? 0);
+  return isFinite(v) && v > 0 ? v : 1.4;
+}
+
 // Outlined text: the same baseline/line geometry as textEl, but each line is a
 // real <path> of glyph outlines (font units already resolved to SVG px by the
 // shaper) placed by a translate — so the SVG needs no font at render time. Only
@@ -162,6 +171,7 @@ function outlinedTextEl(n: PdfNode): string {
   const lines = n._outlinePath ?? [];
   if (!lines.length) return '';
   const size = Math.max(1, +(n.fontSize ?? 0) || 12);
+  const lineH = leadOf(n) * size;
   const baseline0 = n.y + size * 0.8;
   const fill = safeAttrColor(n.fg, '#000000');
   const parts: string[] = [];
@@ -170,7 +180,7 @@ function outlinedTextEl(n: PdfNode): string {
     if (!d) continue;
     // Same alpha as the <text> rung — the outlined path is the same run, so the two
     // presentations must not disagree about how strong the ink is.
-    parts.push(`<g transform="translate(${r(n.x)} ${r(baseline0 + i * size * 1.4)})"><path d="${d}" fill="${fill}"${opacityAttr(n)}/></g>`);
+    parts.push(`<g transform="translate(${r(n.x)} ${r(baseline0 + i * lineH)})"><path d="${d}" fill="${fill}"${opacityAttr(n)}/></g>`);
   }
   return parts.join('');
 }
@@ -181,6 +191,7 @@ function textEl(n: PdfNode): string {
   const text = String(n.text ?? '');
   if (!text.trim()) return '';
   const size = Math.max(1, +(n.fontSize ?? 0) || 12);
+  const lineH = leadOf(n) * size;
   const baseline0 = n.y + size * 0.8;
   const family = String(n.fontFamily || '').trim();
   const familyAttr = family
@@ -190,7 +201,7 @@ function textEl(n: PdfNode): string {
   // Text rotates about its PDF anchor (the first line's origin), not the box centre.
   const rot = n.rot ? ` transform="rotate(${r(n.rot)} ${r(n.x)} ${r(baseline0)})"` : '';
   const spans = text.split('\n').map((line, i) =>
-    `<tspan x="${r(n.x)}" y="${r(baseline0 + i * size * 1.4)}">${escapeXml(line)}</tspan>`).join('');
+    `<tspan x="${r(n.x)}" y="${r(baseline0 + i * lineH)}">${escapeXml(line)}</tspan>`).join('');
   // `opacityAttr` like every other element builder: text was the ONE that omitted it,
   // so a muted or secondary label (PDF `/ca`, or a soft mask folded to a constant)
   // rendered at full strength — which reads as the wrong colour, not as slightly off.
@@ -725,6 +736,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
       // outlinedTextEl places line i at translate(x, baseline0 + i·1.4·size) with the
       // baseline at the path's own y=0. So scan the paths — no font, no guessing.
       const size = Math.max(1, +(n.fontSize ?? 0) || 12);
+      const lineH = leadOf(n) * size;
       const baseline0 = n.y + size * 0.8;
       const lines = n._outlinePath ?? [];
       if (!Array.isArray(lines) || lines.length > 1e6) return null;
@@ -736,7 +748,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
         budget -= d.length;
         const lb = budget < 0 ? null : pathDataBox(d, MAX_OUTLINE_D);
         if (!lb) { scannable = false; break; }
-        const dy = baseline0 + i * 1.4 * size;
+        const dy = baseline0 + i * lineH;
         if (n.x + lb.x < minX) minX = n.x + lb.x;
         if (n.x + lb.x + lb.w > maxX) maxX = n.x + lb.x + lb.w;
         if (dy + lb.y < minY) minY = dy + lb.y;
@@ -775,7 +787,7 @@ export function pdfNodeExtent(n: PdfNode): PdfExtent | null {
         const lineCount = Math.max(text.split('\n').length, 1);
         if (!finite(lineCount) || lineCount > 1e6) return null;
         const top = n.y - size * 0.5;                      // = baseline0 − 1.3·size
-        const bottom = baseline0 + (lineCount - 1) * 1.4 * size + size * 0.5;
+        const bottom = baseline0 + (lineCount - 1) * leadOf(n) * size + size * 0.5;
         box = { x: -PLANE, y: top, w: 2 * PLANE, h: bottom - top };
       }
     } else if (kind === 'path') {

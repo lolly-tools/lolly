@@ -274,6 +274,27 @@ test('redact: coverage meter reports repainted pixels from header dims (sandbox-
   assert.match(res.coverageText, /1 mark will repaint about \d+% of the pixels\./);
 });
 
+test('redact: vectorMode is true only for an SVG with the toggle on, and softens the coverage claim', async () => {
+  const hooks = loadHooks();
+  const bars = [{ page: 1, x: 10, y: 10, w: 40, h: 20 }];
+
+  const svgOn = await hooks.onInput({
+    id: 'svgVector', value: true,
+    model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), { svgVector: true, bars }),
+    host: BARE_HOST,
+  });
+  assert.equal(svgOn.vectorMode, true);
+  assert.match(svgOn.coverageText, /will cover about \d+% of the frame\./);
+  assert.doesNotMatch(svgOn.coverageText, /repaint/);
+
+  // A stale svgVector=true with a raster file must NOT flip the copy.
+  const jpeg = await hooks.onInit({
+    model: modelFor(fileRef('beach.jpg', 'image/jpeg', buildGpsJpegWithTrailer()), { svgVector: true }),
+    host: BARE_HOST,
+  });
+  assert.equal(jpeg.vectorMode, false);
+});
+
 // ─── hook patch hygiene ───────────────────────────────────────────────────────
 
 test('redact: onInit/onInput never return a key matching a declared input id', async () => {
@@ -606,7 +627,13 @@ test('redact: pdfPages extras carry per-page preview URLs in PDF points (data-UR
   }
 });
 
-test('redact: page object URLs are revoked when the file changes, and the guard tolerates a missing revoke', async () => {
+// Retirement is DEFERRED (~1.5s): the runtime's pre-hook emit repaints the old
+// extras, so fresh <img> elements can still be loading the old blob URLs for a
+// beat after a new file lands. The tests wait the delay out.
+const RETIRE_WAIT_MS = 1700;
+const settleRetire = () => new Promise((r) => setTimeout(r, RETIRE_WAIT_MS));
+
+test('redact: page object URLs are retired (on a delay) when the file changes, and the guard tolerates a missing revoke', async () => {
   const hooks = loadHooks();
   const savedCreate = (URL as any).createObjectURL;
   const savedRevoke = (URL as any).revokeObjectURL;
@@ -618,13 +645,41 @@ test('redact: page object URLs are revoked when the file changes, and the guard 
     const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
     await hooks.onInit({ model: modelFor(fileRef('doc-a.pdf', 'application/pdf', PDF_SRC)), host });
     assert.equal(revoked.length, 0);
-    // A new file identity retires the previous job's URLs.
+    // A new file identity retires the previous job's URLs — but NOT
+    // immediately: the pre-hook repaint may still be loading them.
     await hooks.onInit({ model: modelFor(fileRef('doc-b.pdf', 'application/pdf', PDF_SRC)), host });
+    assert.equal(revoked.length, 0, 'revocation is deferred past the repaint window');
+    await settleRetire();
     assert.deepEqual(revoked, ['blob:test-1', 'blob:test-2']);
     // No revokeObjectURL at all: the guard must not throw.
     (URL as any).revokeObjectURL = undefined;
     const res = await hooks.onInit({ model: modelFor(fileRef('doc-c.pdf', 'application/pdf', PDF_SRC)), host });
     assert.equal(res.hasPdfPages, true);
+    // Drain doc-c's own retire timer while the missing-revoke guard is still
+    // in place, so it cannot fire into a later test's spy.
+    await settleRetire();
+  } finally {
+    (URL as any).createObjectURL = savedCreate;
+    (URL as any).revokeObjectURL = savedRevoke;
+  }
+});
+
+test('redact: replacing a PDF with an image retires the page URLs instead of leaking them', async () => {
+  const hooks = loadHooks();
+  const savedCreate = (URL as any).createObjectURL;
+  const savedRevoke = (URL as any).revokeObjectURL;
+  const revoked: string[] = [];
+  let n = 0;
+  (URL as any).createObjectURL = () => `blob:leak-${++n}`;
+  (URL as any).revokeObjectURL = (u: string) => { revoked.push(u); };
+  try {
+    const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
+    await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
+    assert.equal(revoked.length, 0);
+    // The replacement never enters the PDF branch — the reset must run anyway.
+    await hooks.onInit({ model: modelFor(fileRef('photo.png', 'image/png', buildDirtyPng())), host });
+    await settleRetire();
+    assert.deepEqual(revoked, ['blob:leak-1', 'blob:leak-2']);
   } finally {
     (URL as any).createObjectURL = savedCreate;
     (URL as any).revokeObjectURL = savedRevoke;
@@ -652,6 +707,58 @@ test('redact: a slow page render reports pagesPending, then a later pass picks u
   assert.equal(second.pagesPending, false);
   assert.equal(second.hasPdfPages, true);
   assert.equal(second.pdfPages.length, 2);
+});
+
+test('redact: a permanently failing analyze reports a terminal state once and never retries', async () => {
+  const hooks = loadHooks();
+  let calls = 0;
+  const host = pdfHost({
+    pdf: {
+      analyze: async () => { calls++; throw new Error('encrypted'); },
+      pages: async () => TWO_PAGES,
+    },
+  });
+  const model = modelFor(fileRef('locked.pdf', 'application/pdf', PDF_SRC));
+  const first = await hooks.onInit({ model, host });
+  assert.equal(first.analysisFailed, true, 'the failure is a visible state, not eternal pending');
+  assert.equal(first.analysisPending, false);
+  assert.equal(first.nothingFound, false, 'a failed analysis never claims a clean bill');
+  const second = await hooks.onInput({ id: 'bars', value: [], model, host });
+  assert.equal(second.analysisFailed, true);
+  assert.equal(calls, 1, 'the failing analyze is not retried on every input');
+});
+
+test('redact: pages the shell could not render are named in a note, not silently absent', async () => {
+  const hooks = loadHooks();
+  const host = pdfHost({
+    pdf: { pages: async () => ({ ...TWO_PAGES, failed: [3] }) },
+  });
+  const res = await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
+  assert.equal(res.hasPdfPages, true);
+  assert.match(res.pagesFailedNote, /Page 3 could not be rendered/);
+  assert.match(res.pagesFailedNote, /export refuses to ship a page that fails to render/);
+
+  const multi = await hooks.onInit({
+    model: modelFor(fileRef('doc2.pdf', 'application/pdf', PDF_SRC)),
+    host: pdfHost({ pdf: { pages: async () => ({ ...TWO_PAGES, failed: [3, 5] }) } }),
+  });
+  assert.match(multi.pagesFailedNote, /Pages 3 and 5 could not be rendered/);
+});
+
+test('redact: an incomplete (zero-area) bars row survives the canvas round-trip JSON', async () => {
+  const hooks = loadHooks();
+  const bars = [{ page: 1, x: 5, y: 5, w: 0, h: 0 }, { page: 1, x: 10, y: 10, w: 40, h: 20 }];
+  const res = await hooks.onInput({
+    id: 'bars', value: bars,
+    model: modelFor(fileRef('shot.png', 'image/png', buildDirtyPng()), { bars }),
+    host: BARE_HOST,
+  });
+  const roundTrip = JSON.parse(res.barsJson);
+  assert.equal(roundTrip.length, 2, 'the half-typed row stays in the canvas array');
+  assert.deepEqual(roundTrip[0], { page: 1, x: 5, y: 5, w: 0, h: 0 });
+  // But it never counts as a real bar anywhere else.
+  assert.equal(res.barCount, 1);
+  assert.equal(res.hasBars, true);
 });
 
 test('redact: a failed page render shows one sentence and keeps the analysis usable', async () => {

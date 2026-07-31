@@ -59,6 +59,20 @@ test('boxAABB of a 45°-rotated square grows by √2', () => {
   near((a.minX + a.maxX) / 2, 50, 1e-4); // centre preserved
 });
 
+test('hitTest/marqueeHit skip predicate: excluded boxes fall through', () => {
+  const boxes = [
+    { id: 'under', x: 0, y: 0, w: 100, h: 100 },
+    { id: 'over', x: 0, y: 0, w: 100, h: 100 },
+  ] as never[];
+  // Without skip the top box wins; skipping it the click falls through.
+  assert.equal(hitTest(boxes, 50, 50, CFG), 1);
+  assert.equal(hitTest(boxes, 50, 50, CFG, (i) => i === 1), 0);
+  assert.equal(hitTest(boxes, 50, 50, CFG, () => true), -1);
+  assert.deepEqual(marqueeHit(boxes, { x: 0, y: 0, w: 100, h: 100 }, CFG, (i) => i === 1), [0]);
+  // No skip argument stays byte-identical to the historical behaviour.
+  assert.deepEqual(marqueeHit(boxes, { x: 0, y: 0, w: 100, h: 100 }, CFG), [0, 1]);
+});
+
 test('hitTest returns the topmost (last) box under a point', () => {
   const boxes = [box({ x: 0, y: 0, w: 100, h: 100 }), box({ x: 50, y: 50, w: 100, h: 100 })];
   assert.equal(hitTest(boxes, 75, 75, CFG), 1); // overlap → top wins

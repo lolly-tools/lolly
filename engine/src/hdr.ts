@@ -7,8 +7,12 @@
  * profile then describes.
  *
  * ─── What "HDR" means here ────────────────────────────────────────────────────
- * The render canvas is 8-bit sRGB (SDR). An HDR display has headroom *above* SDR
- * reference white (~203 nits, ITU-R BT.2408) up to ~1000+ nits. This transform:
+ * An HDR display has headroom *above* SDR reference white (~203 nits, ITU-R
+ * BT.2408) up to ~1000+ nits. Input arrives two ways: the legacy
+ * {@link hdrBoostToPQ} entry takes an 8-bit sRGB (SDR) canvas buffer; the float
+ * path ({@link hdrViewTransform} + {@link pqEncodeFrame}) takes a linear
+ * `DeepFrame` (pixels.ts), which may already carry >1.0 headroom. Either way
+ * the transform:
  *
  *   1. Maps every pixel into a BT.2020 / PQ container so the whole image is a
  *      coherent HDR signal. A pixel with gain 1 lands at its normal SDR
@@ -39,9 +43,38 @@
  * profile from color.ts#pqBt2020IccProfile; PNG: a cICP chunk). Without that
  * signal a decoder reads the raw PQ codes as sRGB and the image looks dark — the
  * transform and the signal MUST travel together.
+ *
+ * ─── The float view transform (deeprichpixels plan §5.2) ──────────────────────
+ * The seam is split in two so the linear invariant of `DeepFrame` stays honest:
+ *
+ *   hdrViewTransform(frame, opts) -> DeepFrame in 'rec2020-linear'
+ *     Scene-referred: LINEAR light, un-premultiplied, unbounded, 1.0 = SDR
+ *     reference white (`sdrWhiteNits`). The brand boost lives here; a boosted
+ *     white sits at ~peakNits/sdrWhiteNits (~4.93 by default). Nothing is
+ *     clipped — >1.0 input headroom rides straight through.
+ *
+ *   pqEncodeFrame(frame, sdrWhiteNits) -> PqImage; pqToU16(pq) -> Uint16Array
+ *     Display-referred ENCODE boundary. PQ signal is a transfer-encoded code
+ *     value, NOT linear light, so it deliberately does not travel as a
+ *     `DeepFrame` (whose contract says linear): `PqImage` is its own type with
+ *     an explicit `encoding: 'pq'` marker. pqToU16 quantises the full 0..65535
+ *     range for the deep PNG-16 / AVIF consumers — the fix for the old 8-bit
+ *     PQ quantise (10/12-bit transfer crushed to 256 codes banded in shadows).
+ *
+ * ─── Legacy byte path: byte-identity contract ─────────────────────────────────
+ * {@link hdrBoostToPQ} (8-bit in-place, quantised to 8-bit PQ) is kept as a
+ * separate hand-rolled loop, NOT a wrapper over the float path: `DeepFrame`
+ * stores float32, and the legacy loop computes in float64 throughout, so
+ * routing bytes through the frame would round differently in the last ulp and
+ * could move output bytes. AVIF HDR exports and their C2PA hashes depend on
+ * that output byte-for-byte (pinned by tests/hdr-view-transform.test.ts's
+ * sha256 snapshot), so byte identity outranks DRY: the two paths share the
+ * constants and per-target/per-pixel submath, and the loop bodies stay
+ * separate.
  */
 
 import { parseHex } from './brand-derive.ts';
+import { convertSpace, type DeepFrame } from './pixels.ts';
 
 /**
  * Rec.2100 PQ coding-independent code points, as they appear in the ICC `cicp`
@@ -260,4 +293,120 @@ export function hdrBoostToPQ<T extends Uint8Array | Uint8ClampedArray>(rgba: T, 
     // rgba[i + 3] (alpha) preserved
   }
   return rgba;
+}
+
+// ─── the float view transform (plan §5.2) ─────────────────────────────────────
+
+/**
+ * Scene-referred HDR view transform over a linear float frame: the same brand
+ * boost + Rec.2020 conversion as {@link hdrBoostToPQ}, minus the encode.
+ *
+ * Output is a NEW `DeepFrame` in `'rec2020-linear'`: LINEAR light where
+ * 1.0 = SDR reference white (`opts.sdrWhiteNits`), unbounded above — a fully
+ * boosted white lands at ~`peakNits / sdrWhiteNits`. The input frame is not
+ * mutated (it is converted to `srgb-linear` first if needed, because the
+ * OKLab target matching is defined against linear sRGB). NOTHING here clips:
+ * input values > 1.0 (real HDR headroom from a deep source) ride straight
+ * through the boost and the primary matrix. Encode with {@link pqEncodeFrame}.
+ */
+export function hdrViewTransform(frame: DeepFrame, opts: HdrBoostOptions): DeepFrame {
+  const f = convertSpace(frame, 'srgb-linear');
+  const targets = resolveTargets(opts);
+  const sdrWhiteNits = opts.sdrWhiteNits ?? DEFAULTS.sdrWhiteNits;
+  const peakNits = opts.peakNits ?? DEFAULTS.peakNits;
+  const richness = opts.richness ?? DEFAULTS.richness;
+  const inner = opts.innerRadius ?? DEFAULTS.innerRadius;
+  const outer = opts.outerRadius ?? DEFAULTS.outerRadius;
+  const maxExtra = Math.max(1, peakNits / sdrWhiteNits) - 1;
+  const [m0, m1, m2] = M_709_TO_2020;
+
+  const src = f.data;
+  const out = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    let lr = src[i]!;
+    let lg = src[i + 1]!;
+    let lb = src[i + 2]!;
+
+    // Same boost model as the legacy loop (see hdrBoostToPQ) — strongest
+    // matching target wins; OKLab handles >1.0 inputs fine (cbrt is total).
+    let extra = 0;
+    if (targets.length) {
+      const [pl, pa, pb] = linearSrgbToOklab(lr, lg, lb);
+      for (const t of targets) {
+        const dE = Math.hypot(pl - t.lab[0], pa - t.lab[1], pb - t.lab[2]);
+        const contribution = (t.gain - 1) * falloff(dE, inner, outer);
+        if (contribution > extra) extra = contribution;
+      }
+    }
+
+    if (richness > 0 && extra > 0 && maxExtra > 0) {
+      const sat = 1 + richness * (extra / maxExtra);
+      const y = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+      lr = Math.max(0, y + (lr - y) * sat);
+      lg = Math.max(0, y + (lg - y) * sat);
+      lb = Math.max(0, y + (lb - y) * sat);
+    }
+
+    // Boost gain only — NO nits scale and NO PQ here; the output stays linear
+    // relative to SDR reference white so DeepFrame's linear contract holds.
+    const gain = 1 + extra;
+    out[i] = (m0[0] * lr + m0[1] * lg + m0[2] * lb) * gain;
+    out[i + 1] = (m1[0] * lr + m1[1] * lg + m1[2] * lb) * gain;
+    out[i + 2] = (m2[0] * lr + m2[1] * lg + m2[2] * lb) * gain;
+    out[i + 3] = src[i + 3]!;
+  }
+  return { width: f.width, height: f.height, data: out, space: 'rec2020-linear' };
+}
+
+/**
+ * A PQ-encoded image. Deliberately NOT a `DeepFrame`: the RGB channels are
+ * SMPTE ST 2084 code values (display-referred transfer signal, 0..1), which
+ * would violate DeepFrame's "data is linear light" contract — the explicit
+ * `encoding` marker keeps the two worlds impossible to confuse. Alpha stays
+ * linear 0..1.
+ */
+export interface PqImage {
+  width: number;
+  height: number;
+  /** RGBA interleaved; RGB = PQ signal in [0,1], A = linear alpha in [0,1]. */
+  data: Float32Array;
+  encoding: 'pq';
+}
+
+/**
+ * Display-referred encode boundary: linear frame -> full-precision PQ signal.
+ * The frame is converted to `'rec2020-linear'` first (Rec.2100 PQ is defined
+ * over BT.2020 primaries), then each channel maps
+ * `linear x sdrWhiteNits -> nits -> PQ` with the 203-nit BT.2408 diffuse-white
+ * anchor by default, so linear 1.0 lands at PQ signal ~0.5806. This is where
+ * >1.0 headroom finally meets the tonescale — pqEncode's only clip is the
+ * 10 000-nit top of the PQ range itself.
+ */
+export function pqEncodeFrame(frame: DeepFrame, sdrWhiteNits: number = DEFAULTS.sdrWhiteNits): PqImage {
+  const f = convertSpace(frame, 'rec2020-linear');
+  const src = f.data;
+  const data = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    data[i] = pqEncode(src[i]! * sdrWhiteNits);
+    data[i + 1] = pqEncode(src[i + 1]! * sdrWhiteNits);
+    data[i + 2] = pqEncode(src[i + 2]! * sdrWhiteNits);
+    const a = src[i + 3]!;
+    data[i + 3] = a <= 0 ? 0 : a >= 1 ? 1 : a;
+  }
+  return { width: f.width, height: f.height, data, encoding: 'pq' };
+}
+
+/**
+ * Quantise a PQ image to full-range 16-bit (0..65535, round-to-nearest) for
+ * the deep consumers (16-bit PNG IDAT, 10/12-bit AVIF after a shift). This —
+ * not the legacy 8-bit quantise — is the precision PQ was designed for.
+ */
+export function pqToU16(pq: PqImage): Uint16Array {
+  const src = pq.data;
+  const out = new Uint16Array(src.length);
+  for (let i = 0; i < src.length; i++) {
+    const v = src[i]!;
+    out[i] = v <= 0 ? 0 : v >= 1 ? 65535 : Math.round(v * 65535);
+  }
+  return out;
 }
