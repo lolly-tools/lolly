@@ -155,6 +155,27 @@ test('a same-baseline tab jump starts a new node at the jump target', () => {
   assert.ok(near(nodes[1].x, 200), `value x ${nodes[1].x}`);
 });
 
+test('positioning before the first show re-latches the origin (Chromium word idiom)', () => {
+  // Chromium prints every word as its own BT block: `1 0 0 -1 0 0 Tm` (a flip
+  // set-up at the LINE BOX's top-left) then `x -leading Td` to the true glyph
+  // origin, then per-glyph `dx 0 Td (g) Tj`. The origin must latch where glyphs
+  // are SHOWN: latching at the first positioning op gave every line-start word
+  // the stale Tm origin — one leading too high, at the block's x=0 — and the
+  // next word (|dx| ≤ 2em) collided at the same point.
+  const c = '1 0 0 -1 0 300 cm'
+    + ' BT /F1 16 Tf 1 0 0 -1 0 0 Tm 10 -18 Td (F) Tj 8 0 Td (irst) Tj ET'
+    + ' BT /F1 16 Tf 1 0 0 -1 0 0 Tm 38 -18 Td (word) Tj ET';
+  const nodes = page(c);
+  assert.equal(nodes.length, 2, nodes.map((n: any) => JSON.stringify(n.text)).join(', '));
+  assert.equal(nodes[0].text, 'First');
+  assert.equal(nodes[1].text, 'word');
+  // Baseline 18 from the page top (outer cm makes box space = stream space).
+  assert.ok(near(nodes[0].x, 10), `First x ${nodes[0].x}`);
+  assert.ok(near(nodes[0].y, 18 - 16 * 0.8, 1), `First y ${nodes[0].y}`);
+  assert.ok(near(nodes[1].x, 38), `word x ${nodes[1].x}`);
+  assert.ok(near(nodes[1].y, 18 - 16 * 0.8, 1), `word y ${nodes[1].y}`);
+});
+
 test('hex-string and TJ array both decode', () => {
   // <48656C6C6F> = "Hello"; TJ with kerning numbers ignored
   const nodes = page('BT /F1 18 Tf 1 0 0 1 10 250 Tm [<48656C6C6F> -250 (X)] TJ ET');

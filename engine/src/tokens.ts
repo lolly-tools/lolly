@@ -168,16 +168,59 @@ function chosenThemes(themes: UnknownRecord[], meta: UnknownRecord, theme: strin
   return out.length ? out : [themes[0]!];
 }
 
+/**
+ * The top-level keys of `doc` that are token SETS, or `null` when the document
+ * is one implicit set (a plain DTCG file, whose top-level keys are groups and
+ * therefore part of every token's path).
+ *
+ * Two signals mark a layered (Tokens-Studio shaped) document, and either is
+ * enough:
+ *   - a non-empty `$themes` array, or
+ *   - a non-empty `$metadata.tokenSetOrder` naming top-level objects.
+ *
+ * The second is not a nicety. A real Penpot export (2.17.1, `design-tokens/v1`)
+ * of a file whose designer never created a theme writes exactly:
+ *   `{ "Global": {…}, "$themes": [], "$metadata": { "tokenSetOrder": ["Global"],
+ *      "activeThemes": [], "activeSets": ["Global"] } }`
+ * — an EMPTY `$themes` beside a real set. Reading `$themes` alone made "Global"
+ * a group, so `brand.primary` flattened to `Global.brand.primary` and no longer
+ * joined to the `appliedTokens: {"fill": "brand.primary"}` Penpot writes on the
+ * shapes, silently dropping the token-first role proposal back to hex guessing.
+ * `tokenSetOrder` is a Tokens-Studio/Penpot key with no DTCG meaning, and every
+ * entry is required to name an existing top-level object, so a plain DTCG doc
+ * can never be mistaken for a layered one.
+ *
+ * @param doc a parsed token document.
+ * @returns the set keys, or null for a single-implicit-set document.
+ */
+export function tokenSetNames(doc: unknown): string[] | null {
+  if (!isRecord(doc)) return null;
+  const setKeys = Object.keys(doc).filter(k => !k.startsWith('$'));
+  if (!setKeys.length) return null;
+  if (Array.isArray(doc.$themes) && doc.$themes.length > 0) return setKeys;
+  const meta = isRecord(doc.$metadata) ? doc.$metadata : null;
+  const order = meta && Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
+  if (order && order.length && order.every(s => typeof s === 'string' && isRecord(doc[s]))) {
+    return setKeys;
+  }
+  return null;
+}
+
 // Which top-level sets are active (and in what order). Unions the selectedTokenSets across
 // every COMPOSED theme (see chosenThemes) so a multi-axis doc resolves fully; a 'source' set
 // counts (it backs alias resolution), 'disabled' does not. Order comes from the global
 // $metadata.tokenSetOrder (later overrides earlier).
 function activeSets(doc: UnknownRecord, theme: string | undefined): string[] {
-  const setKeys = Object.keys(doc).filter(k => !k.startsWith('$'));
+  const setKeys = tokenSetNames(doc) ?? [];
   const meta = isRecord(doc.$metadata) ? doc.$metadata : {};
   const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
   const themes = Array.isArray(doc.$themes) ? doc.$themes.filter(isRecord) : null;
-  if (!themes || !themes.length) return setKeys; // caller handles the no-themes case
+  if (!themes || !themes.length) {
+    // Themeless-but-layered (Penpot's `$themes: []`): tokenSetOrder IS the layering.
+    return order
+      ? order.filter((s): s is string => typeof s === 'string' && setKeys.includes(s))
+      : setKeys;
+  }
   const active = new Set<string>();
   for (const t of chosenThemes(themes, meta, theme)) {
     const sel = isRecord(t.selectedTokenSets) ? t.selectedTokenSets : {};
@@ -191,8 +234,7 @@ function activeSets(doc: UnknownRecord, theme: string | undefined): string[] {
 
 function buildMergedMap(doc: UnknownRecord, theme: string | undefined): Map<string, MutableEntry> {
   const out = new Map<string, MutableEntry>();
-  const themes = Array.isArray(doc.$themes) ? doc.$themes : null;
-  if (!themes || !themes.length) {
+  if (!tokenSetNames(doc)) {
     flattenGroup(doc, null, '', out); // whole document is one implicit set
     return out;
   }

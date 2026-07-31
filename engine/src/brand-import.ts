@@ -34,7 +34,7 @@
  *   - No zip inflation — the shell/script that has the archive inflates it.
  */
 
-import { createTokenSet } from './tokens.ts';
+import { createTokenSet, tokenSetNames } from './tokens.ts';
 import { collectPenpotFontUsage } from './design-map.ts';
 import type { PenpotFontUsage } from './design-map.ts';
 
@@ -564,9 +564,10 @@ export function scanPenpotAppliedTokens(entries: Record<string, Uint8Array | str
  * Cheap import-preview stats for a reassembled document — what a shell shows
  * before the user commits ("14 sets · 4 themes · 391 tokens, 120 colours").
  *
- * `sets` lists top-level non-$ keys only when the doc carries a non-empty
- * `$themes` (the Tokens-Studio layered shape — mirrors createTokenSet's set
- * detection); a plain DTCG doc is one implicit set → `[]`. Counts come from
+ * `sets` lists top-level non-$ keys only when the doc is LAYERED — a non-empty
+ * `$themes`, or the `$metadata.tokenSetOrder` a themeless Penpot export writes
+ * (`tokenSetNames`, so this mirrors createTokenSet's set detection exactly);
+ * a plain DTCG doc is one implicit set → `[]`. Counts come from
  * `createTokenSet(doc)` unthemed, so they reflect the default theme's active
  * layering, exactly what an import would resolve.
  */
@@ -576,8 +577,7 @@ export function summarizeTokensDoc(doc: unknown): {
   tokenCount: number;
   colorCount: number;
 } {
-  const layered = isRecord(doc) && Array.isArray(doc.$themes) && doc.$themes.length > 0;
-  const sets = layered ? Object.keys(doc as UnknownRecord).filter(k => !k.startsWith('$')) : [];
+  const sets = tokenSetNames(doc) ?? [];
   const ts = createTokenSet(doc);
   return { sets, themes: ts.themes(), tokenCount: ts.size, colorCount: ts.colors().length };
 }

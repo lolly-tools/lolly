@@ -443,6 +443,10 @@ async function preflightNeutralState(baseUrl: string, shots: ShotDef[]): Promise
   const routes = ['/#/'];
   const toolRoute = shots.find((s) => s.route.includes('/tool/'))?.route;
   if (toolRoute) routes.push(toolRoute);
+  // The profile view decides jelly from the CANONICAL profile (not the pinned
+  // mirror), so it needs its own probe — this is the route where the pin once
+  // silently failed to reach the rendered page.
+  routes.push('/#/profile');
 
   const browser = await getBrowser();
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: 'block', ...CAPTURE_CONTEXT });
@@ -762,6 +766,17 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
           // Read from the node itself rather than window.scrollY: body{margin:0}
           // makes them equal today, but a collapsed margin on a first child would
           // put them wildly apart and frame the wrong region.
+          //
+          // Latent across the whole corpus as of 2026-07-31 — a --rebuild of all 140
+          // shots moved zero viewBoxes, so the plan's claim that three shipped shots
+          // are already mis-anchored is refuted. The reason is that the stages centre
+          // with `place-items: center`, and an oversized GRID item pins to the
+          // container's top-left under the scroll-container safe-overflow rule
+          // (documented at shells/web/src/styles/parts/catalog.css:669-672), giving
+          // rect.top = 0. Measured in Chromium: grid -> top 0, flex
+          // align-items:center -> top -554.5 for a 944x2009 child in a 900 viewport.
+          // So this guards flex/absolutely-centred overflow, and the day a stage
+          // switches away from grid it keeps framing the band the reader sees.
           const originRect = (target ?? document.body).getBoundingClientRect();
           const off = { x: Math.max(0, -originRect.left), y: Math.max(0, -originRect.top) };
 

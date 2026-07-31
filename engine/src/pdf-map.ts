@@ -989,6 +989,18 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         textMask = maskPaint('raw');
         lastLineY = p.y; lastLineX = p.x;
         leadSum = 0; leadCount = 0;
+      } else if (!textBuf) {
+        // Nothing SHOWN yet in this run, so this move is pen positioning, not
+        // layout — re-latch the origin at the new position. The origin must
+        // belong to where glyphs are shown, not to the first positioning op:
+        // Chromium prints every word as `1 0 0 -1 0 0 Tm` (a flip set-up at the
+        // line box's top-left) followed by `x -leading Td` to the true glyph
+        // origin, and treating that Td as a line MOVE kept the stale Tm origin —
+        // every line-start word painted one leading too high, at x=0 of its
+        // block, colliding with the next word's identically stale origin.
+        originSet = false;
+        onTextMove();
+        return;
       } else {
         // One BT…ET block is NOT always one visual run: producers that write a
         // whole frame/column set in a single block (Penpot exports, TeX, many

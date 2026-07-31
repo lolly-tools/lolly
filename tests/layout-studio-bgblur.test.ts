@@ -155,7 +155,10 @@ test('the radius mapping constant is pinned (Skia sigma → CSS blur radius)', (
   // backdrop-filter: blur(R) is a Gaussian of sigma R/2, so R = 1.1547 * value + 1.
   // An APPROXIMATION — it matches the sigma, not Penpot's clipping/tiling — pinned
   // here so a future pixel comparison against a real Penpot export moves it on
-  // purpose rather than by accident.
+  // purpose rather than by accident. The real-export INPUT side is now settled:
+  // tests/penpot-kitchen-sink.test.ts reads four genuine `backgroundBlur` entries
+  // ({id,type,value,hidden}) through this function; only the constant itself still
+  // awaits a pixel comparison.
   assert.equal(penpotBackgroundBlurPx({ backgroundBlur: { type: 'background-blur', value: 10, hidden: false } }), 12.5);
   assert.equal(penpotBackgroundBlurPx({ backgroundBlur: { type: 'background-blur', value: 100 } }), 116.5);
   // Clamped to the field ceiling, and 1-decimal like every other blur field.
