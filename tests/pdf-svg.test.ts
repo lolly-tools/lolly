@@ -88,6 +88,21 @@ test('text → <text> with per-line tspans on the interpreter baseline model', (
   assert.ok(svg.includes('<tspan x="10" y="122">World</tspan>'), svg);
 });
 
+test('a node carrying its measured lineHeight places lines at the REAL leading', () => {
+  // 10pt type at 2x leading (interpreter-measured) — tspans and outlined lines
+  // must both step 20pt per line, not the 1.4 fallback grid.
+  const n: PdfNode = {
+    kind: 'text', x: 10, y: 100, w: 100, h: 40, rot: 0, lineHeight: 2,
+    text: 'Hello\nWorld', fg: '#112233', fontSize: 10, fontFamily: 'Poppins',
+  };
+  const svg = pdfNodesToSvg([n], OPTS);
+  assert.ok(svg.includes('<tspan x="10" y="108">Hello</tspan>'), svg);
+  assert.ok(svg.includes('<tspan x="10" y="128">World</tspan>'), svg);
+  const outlined = pdfNodesToSvg([{ ...n, _outlinePath: ['M0 0h5', 'M0 0h6'] }], OPTS);
+  assert.ok(outlined.includes('translate(10 108)'), outlined);
+  assert.ok(outlined.includes('translate(10 128)'), outlined);
+});
+
 test('text and attribute values are XML-escaped', () => {
   const n: PdfNode = {
     kind: 'text', x: 0, y: 0, w: 100, h: 14, rot: 0,
