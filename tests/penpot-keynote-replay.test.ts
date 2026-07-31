@@ -655,7 +655,8 @@ test('keynote: with nothing declared the token-first path defers to the usage pr
 // ── dash/gap strokes (Penpot 2.17, PR #9765) ─────────────────────────────────
 // The deck predates the feature: 231 solid strokes, 2 dotted, 1 "none", 0 dashed,
 // and not one strokeDash/strokeGap key. Only the "none" case is therefore
-// assertable against a real file today; the rest waits on a kitchen-sink fixture.
+// assertable against THIS file; the authored dash/gap cases are covered against a
+// real 2.17.1 export by the ungated tests/penpot-kitchen-sink.test.ts.
 
 test('keynote: the one strokeStyle "none" in the deck is a legacy SHAPE-level key, not a strokes[] entry', { skip: SKIP }, async () => {
   const { all } = await loadDeck();
@@ -671,8 +672,10 @@ test('keynote: the one strokeStyle "none" in the deck is a legacy SHAPE-level ke
   assert.deepEqual(sh.strokes, [], 'and its strokes[] is empty, so there is nothing to paint');
 
   // Which is what the importer already produces: an inert stroke row, and the new
-  // dash/gap columns default to the no-op. The entry-level "none" skip is exercised
-  // synthetically in tests/design-map.test.ts until a fixture ships one.
+  // dash/gap columns default to the no-op. The entry-level "none" skip stays
+  // synthetic coverage (tests/design-map.test.ts): the kitchen-sink fixture authored
+  // a "none over solid" stack on purpose and Penpot DROPPED the none entry at save,
+  // so no real export is known to ship one.
   const box = finalizeBoxes([penpotShapeToNode(sh) as any])[0] as any;
   assert.deepEqual([box.stroke, box.strokeW, box.strokeDash], ['', 0, '']);
   assert.deepEqual([box.strokeDashLen, box.strokeGapLen], [0, 0]);

@@ -278,7 +278,7 @@ export { extractPageText, joinPageText } from './pdf-text.ts';
 export type { PageText, TextBlock, TextLine, TextItem, BlockKind, PdfTextOptions, TaggedElement } from './pdf-text.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
-  isAlias, aliasPath, isTokenValue, typographyFamilies, TOKEN_EXT,
+  isAlias, aliasPath, isTokenValue, typographyFamilies, tokenSetNames, TOKEN_EXT,
 } from './tokens.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,

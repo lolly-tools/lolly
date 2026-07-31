@@ -219,19 +219,62 @@ test('a non-finite length is treated as unset, not as the ceiling', async () => 
   assert.equal(dashArray(html), '12 8');
 });
 
-// ── Kitchen-sink fixture will add ────────────────────────────────────────────
-// Named now, unwritable today. The keynote export predates PR #9765 (0 dashed
-// strokes, 0 strokeDash/strokeGap keys), so the camelCase spelling this suite's
-// engine-side sibling parses is inferred from Penpot's encoder plus the fixture's
-// uniform stroke-key convention rather than observed. A fresh 2.17+ export with an
-// EDITED dashed stroke will let these be written:
-//
-//   * "fixture: an edited dashed stroke serializes strokeDash/strokeGap as
-//     camelCase numbers on the stroke entry"
-//   * "fixture: an untouched dashed stroke carries neither key, and imports at the
-//     renderer default of width + 10 for both"
-//   * "fixture: a user-entered 0 dash exports as 0" — then revisit the
-//     clamp-to-unset in applyPenpotStroke, which today treats 0 as unauthored
-//   * "fixture: dotted strokes carry round caps, or the renderer forces one"
-//   * "fixture: an imported dashed path box round-trips its authored numbers
-//     through a shared compact link unchanged"
+// ── the real 2.17.1 export, end to end ───────────────────────────────────────
+// This block used to be a list of tests "named now, unwritable today": the keynote
+// export predates PR #9765, so the camelCase spelling was inferred from Penpot's
+// encoder rather than observed. tests/fixtures/penpot-kitchen-sink.penpot settled
+// it — the serialization census lives in tests/penpot-kitchen-sink.test.ts, and
+// what belongs HERE is the leg that suite cannot reach: a genuinely authored dashed
+// stroke travelling shape → node → block row → compact link → this tool's markup.
+
+test('fixture: a real Penpot dashed stroke renders its authored numbers, and survives a compact link', async () => {
+  const { unzipSync } = await import('fflate');
+  const { penpotShapeToNode } = await import('../engine/src/design-map.ts');
+  const zip = unzipSync(new Uint8Array(readFileSync(join(ROOT, 'tests/fixtures/penpot-kitchen-sink.penpot'))));
+  const dec = new TextDecoder();
+  const shapes = Object.entries(zip)
+    .filter(([p]) => /^files\/[^/]+\/pages\/[^/]+\/[^/]+\.json$/.test(p))
+    .map(([, v]) => JSON.parse(dec.decode(v as Uint8Array)) as any);
+  const shape = shapes.find((s) => s.name === 'dashed 6-3 center');
+  assert.ok(shape, 'the fixture ships an authored 6/3 dashed stroke');
+
+  const node = penpotShapeToNode(shape) as any;
+  assert.deepEqual([node.strokeDash, node.strokeDashLen, node.strokeGapLen], ['dashed', 6, 3]);
+
+  // The imported numbers reach the SVG verbatim, in px, from the real hooks.
+  const html = await mount([{ ...PATH_BOX, ...{
+    strokeDash: node.strokeDash, strokeDashLen: node.strokeDashLen, strokeGapLen: node.strokeGapLen,
+  } }]);
+  assert.equal(dashArray(html), '6 3');
+
+  // And through a shared compact link, unchanged — the wire slot carrying real
+  // designer values, not a synthetic 8.5/3.
+  for (const brand of BRANDS) {
+    const fields = fieldsOf(brand);
+    const parts = fields.map(() => '');
+    const set = (id: string, v: string) => {
+      const i = fields.findIndex((f) => f.id === id);
+      assert.ok(i >= 0, `${brand}: ${id} missing`);
+      parts[i] = v;
+    };
+    set('id', 'p1'); set('kind', 'path'); set('shape', 'rect'); set('path', DIAMOND);
+    set('w', '400'); set('h', '300'); set('stroke', '#11141f'); set('strokeW', '4');
+    set('strokeDash', 'dashed');
+    set('strokeDashLen', String(node.strokeDashLen));
+    set('strokeGapLen', String(node.strokeGapLen));
+    const state = parseUrlState(
+      new URLSearchParams({ boxes: parts.join(',') }),
+      { inputs: [{ id: 'boxes', type: 'blocks', fields }] } as never,
+    );
+    const row = (state.values.boxes as any[])[0];
+    assert.equal(dashArray(await mount([row])), '6 3', `${brand}: authored numbers lost on the wire`);
+  }
+});
+
+// The keyless case ("dashed", neither number authored) imports at Penpot's own
+// renderer default of width + 10 for BOTH — asserted against the real shape in
+// tests/penpot-kitchen-sink.test.ts, since it is a parse-side property. What it
+// produces HERE is the width-proportional path above: a 4px stroke → dashLen 14.
+test('fixture: the keyless dashed default reaches the markup as its imported numbers', async () => {
+  assert.equal(dashArray(await mount([{ ...PATH_BOX, strokeDash: 'dashed', strokeDashLen: 14, strokeGapLen: 14 }])), '14 14');
+});

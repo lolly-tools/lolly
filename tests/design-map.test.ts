@@ -1401,8 +1401,11 @@ test('penpotShapeToNode: "mixed" maps to dashed; dash/gap read authored or defau
   // Half-authored never reaches the hook half-filled.
   const half = mk({ strokeStyle: 'dashed', strokeDash: 5 });
   assert.deepEqual([half.strokeDashLen, half.strokeGapLen], [5, 12]);
-  // Authored 0 clamps to unset for v1 (SVG treats an all-zero dasharray as no dashing;
-  // what Penpot's Skia renderer does with 0 is a kitchen-sink fixture question).
+  // Authored 0 takes the width+10 fallback (SVG treats an all-zero dasharray as no
+  // dashing). The kitchen-sink fixture settled the serialization half of this: Penpot
+  // really does WRITE `strokeDash: 0` for an authored 0, so this is a deliberate
+  // rendering divergence, not a mis-read — see tests/penpot-kitchen-sink.test.ts,
+  // "authored dash/gap land in DesignNode strokeDashLen/strokeGapLen".
   const zero = mk({ strokeStyle: 'dashed', strokeDash: 0, strokeGap: 0 });
   assert.deepEqual([zero.strokeDashLen, zero.strokeGapLen], [12, 12]);
   // Fractional values survive (safe-numbers, rounded to 2dp like strokeW).
