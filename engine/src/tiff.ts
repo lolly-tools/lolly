@@ -8,6 +8,19 @@
  * same code emits RGB (PhotometricInterpretation 2, 3 samples/pixel) or grayscale
  * (Photometric 1, 1 sample) — the plain `tiff` export uses RGB.
  *
+ * Depth: 8-bit unsigned (the default, byte-identical to the original encoder),
+ * 16-bit unsigned, or 32-bit IEEE float (`depth: 'float32'` — the deep/VFX
+ * interchange depth, plans/deeprichpixels.md §6 Phase A). Deep samples are
+ * written little-endian to match the file's "II" byte order. Non-8-bit files
+ * carry the SampleFormat tag (339, TIFF 6.0 Section 19 "Data Sample Format"):
+ * 1 = unsigned integer for 16-bit, 3 = IEEE floating point for float32. 8-bit
+ * output omits it — SampleFormat defaults to 1 per TIFF 6.0, and omitting keeps
+ * the 8-bit bytes identical to the pre-depth encoder.
+ *
+ * SEAM: this writer never converts between depths. The caller hands it samples
+ * already at the requested depth (Uint8/Uint16/Float32Array); depth conversion
+ * and colour math are pixels.ts's job (deeprichpixels.md §5.1).
+ *
  * The shell's DeviceCMYK TIFF path keeps its OWN bespoke encoder
  * (shells/web/src/bridge/export.js → encodeCmykTiff): it's entangled with print
  * geometry, colour-bar marks and the InkSet tag, so it isn't routed through here.
@@ -50,26 +63,50 @@ export interface PackTiffOptions {
   /** ICC profile bytes → InterColorProfile tag (34675). Carries the colour space
    *  the samples are in — e.g. a Rec.2100-PQ profile (its cicp tag) makes an HDR TIFF. */
   icc?: Uint8Array;
+  /** Bits per sample: 8 (default, Uint8Array/Uint8ClampedArray in), 16
+   *  (Uint16Array in, SampleFormat 1), or 'float32' (Float32Array in,
+   *  SampleFormat 3 — IEEE float, TIFF 6.0 §19). The buffer must already be at
+   *  this depth; packTiff never converts (that's pixels.ts's seam). */
+  depth?: 8 | 16 | 'float32';
 }
 
 /**
- * Assemble a baseline TIFF from packed 8-bit samples.
+ * Assemble a baseline TIFF from packed samples.
  *
- * @param pixels  width*height*samplesPerPixel bytes, row-major, 8 bits/sample,
- *   no padding (RGBRGB… for RGB; one byte/pixel for gray).
+ * @param pixels  width*height*samplesPerPixel samples, row-major, no padding
+ *   (RGBRGB… for RGB; one sample/pixel for gray). The element type must match
+ *   `opts.depth`: Uint8Array/Uint8ClampedArray for 8 (default), Uint16Array
+ *   for 16, Float32Array for 'float32'. No depth conversion happens here.
  * @param opts
  * @returns the complete TIFF file bytes.
  */
-export function packTiff(pixels: Uint8Array | Uint8ClampedArray, opts: PackTiffOptions = { width: 0, height: 0 }): Uint8Array {
+export function packTiff(pixels: Uint8Array | Uint8ClampedArray | Uint16Array | Float32Array, opts: PackTiffOptions = { width: 0, height: 0 }): Uint8Array {
   const W = opts.width | 0;
   const H = opts.height | 0;
   const spp = opts.samplesPerPixel ?? 3;
+  const depth = opts.depth ?? 8;
   if (W <= 0 || H <= 0) throw new Error('packTiff: width and height must be positive.');
   if (spp < 1 || spp > 4) throw new Error(`packTiff: unsupported samplesPerPixel ${spp}.`);
-  const expected = W * H * spp;
-  if (pixels.length !== expected) {
-    throw new Error(`packTiff: pixel buffer is ${pixels.length} bytes, expected ${expected} (${W}×${H}×${spp}).`);
+  if (depth !== 8 && depth !== 16 && depth !== 'float32') {
+    throw new Error(`packTiff: unsupported depth ${String(depth)} (8, 16 or 'float32').`);
   }
+  // The buffer must already be at the declared depth — packTiff writes, never converts.
+  if (depth === 8 && !(pixels instanceof Uint8Array || pixels instanceof Uint8ClampedArray)) {
+    throw new Error('packTiff: depth 8 requires a Uint8Array or Uint8ClampedArray.');
+  }
+  if (depth === 16 && !(pixels instanceof Uint16Array)) {
+    throw new Error('packTiff: depth 16 requires a Uint16Array.');
+  }
+  if (depth === 'float32' && !(pixels instanceof Float32Array)) {
+    throw new Error("packTiff: depth 'float32' requires a Float32Array.");
+  }
+  const bits = depth === 'float32' ? 32 : depth;
+  const bytesPerSample = bits >> 3;
+  const expected = W * H * spp;                         // sample count (elements, not bytes)
+  if (pixels.length !== expected) {
+    throw new Error(`packTiff: pixel buffer is ${pixels.length} samples, expected ${expected} (${W}×${H}×${spp}).`);
+  }
+  const stripBytes = expected * bytesPerSample;
   const photometric = opts.photometric ?? (spp === 1 ? 1 : 2);
   const meta = opts.meta || {};
   const description = opts.description ?? meta.description;
@@ -85,11 +122,11 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray, opts: PackTiffO
     entries.push({ tag, type: ASCII, count: d.length, data: d });
   };
 
-  // BitsPerSample: one SHORT per sample, all 8. count===1 (gray) inlines; RGB is
-  // out-of-line (6 bytes > 4). Built as a data blob either way — the layout loop
-  // inlines it automatically when ≤4 bytes.
+  // BitsPerSample: one SHORT per sample (8, 16 or 32). count===1 (gray) inlines;
+  // RGB is out-of-line (6 bytes > 4). Built as a data blob either way — the
+  // layout loop inlines it automatically when ≤4 bytes.
   const bps = new Uint8Array(spp * 2);
-  { const dv = new DataView(bps.buffer); for (let i = 0; i < spp; i++) dv.setUint16(i * 2, 8, true); }
+  { const dv = new DataView(bps.buffer); for (let i = 0; i < spp; i++) dv.setUint16(i * 2, bits, true); }
   const rational = (n2: number, den: number): Uint8Array => {
     const d = new Uint8Array(8);
     const dv = new DataView(d.buffer);
@@ -107,12 +144,21 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray, opts: PackTiffO
   num(273, LONG, 0);                                   // StripOffsets — patched after layout
   num(277, SHORT, spp);                                // SamplesPerPixel
   num(278, LONG, H);                                   // RowsPerStrip (single strip)
-  num(279, LONG, expected);                            // StripByteCounts
+  num(279, LONG, stripBytes);                          // StripByteCounts
   entries.push({ tag: 282, type: RATIONAL, count: 1, data: rational(res, 1) }); // XResolution
   entries.push({ tag: 283, type: RATIONAL, count: 1, data: rational(res, 1) }); // YResolution
   num(296, SHORT, 2);                                  // ResolutionUnit: inch
   asciiTag(305, meta.software);                        // Software
   asciiTag(315, meta.author);                          // Artist
+  if (depth !== 8) {
+    // SampleFormat (339, TIFF 6.0 Section 19): 1 = unsigned integer, 3 = IEEE
+    // float. One SHORT per sample. Omitted for 8-bit — the spec default is 1,
+    // and omission keeps 8-bit output byte-identical to the original encoder.
+    const sampleFormat = depth === 'float32' ? 3 : 1;
+    const sf = new Uint8Array(spp * 2);
+    { const dv = new DataView(sf.buffer); for (let i = 0; i < spp; i++) dv.setUint16(i * 2, sampleFormat, true); }
+    entries.push({ tag: 339, type: SHORT, count: spp, data: sf });
+  }
   if (opts.icc?.length) {                              // InterColorProfile (ICC)
     entries.push({ tag: 34675, type: UNDEFINED, count: opts.icc.length, data: opts.icc as Uint8Array });
   }
@@ -129,7 +175,7 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray, opts: PackTiffO
   const stripOffset = ext + (ext & 1);
   entries.find(e => e.tag === 273)!.n = stripOffset;   // patch StripOffsets
 
-  const out = new Uint8Array(stripOffset + expected);
+  const out = new Uint8Array(stripOffset + stripBytes);
   const dv = new DataView(out.buffer);
   out[0] = 0x49; out[1] = 0x49;                        // "II" little-endian
   dv.setUint16(2, 42, true);
@@ -148,6 +194,13 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray, opts: PackTiffO
     o += 12;
   }
   dv.setUint32(o, 0, true);                            // next IFD: none
-  out.set(pixels, stripOffset);
+  // Strip data: samples written in the file's byte order ("II" → little-endian).
+  if (depth === 8) {
+    out.set(pixels as Uint8Array | Uint8ClampedArray, stripOffset);
+  } else if (depth === 16) {
+    for (let i = 0; i < expected; i++) dv.setUint16(stripOffset + i * 2, (pixels as Uint16Array)[i]!, true);
+  } else {
+    for (let i = 0; i < expected; i++) dv.setFloat32(stripOffset + i * 4, (pixels as Float32Array)[i]!, true);
+  }
   return out;
 }

@@ -237,6 +237,8 @@ export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
 export { packWebpAnim } from './webp-anim.ts';
 export { packTiff } from './tiff.ts';
+export { deflateRaw, zlibCompress, adler32 } from './deflate.ts';
+export type { DeflateOptions } from './deflate.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
 export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export {

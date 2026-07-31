@@ -26,6 +26,7 @@
  *   - c2pa-containers: attachC2paStore(bytes, fmt, store) + embedC2paInPdf — the placement-side container walkers
  *   - url-pack      : unpackToken(token) + expandQuery(query) — the `z` param decoder (DEFLATE bomb caps)
  *   - wav           : parseWav(bytes)                       — the RIFF/WAVE container walker
+ *   - depth-hint    : depthHint(bytes)                      — the ingest bit-depth header sniff (web shell lib)
  */
 
 import { embedC2paInPdf, embedC2pa, attachC2paStore, encodeCbor, type Signer } from '../../engine/src/c2pa.ts';
@@ -50,6 +51,7 @@ import { parseIccProfile, iccGamutSource } from '../../engine/src/icc.ts';
 import { isPptx, readPptx, type PptxParts } from '../../engine/src/pptx-read.ts';
 import { rebrandPptxParts, type PartMap, type RebrandPlan } from '../../engine/src/pptx-patch.ts';
 import { createPptxAPI, looksLikePptxFile } from '../../shells/web/src/bridge/pptx.ts';
+import { depthHint } from '../../shells/web/src/lib/image-sample.ts';
 import { zipSync } from 'fflate';
 import { JSDOM } from 'jsdom'; // typed by tests/jsdom.d.ts (no @types/jsdom exists)
 
@@ -853,10 +855,39 @@ export const wavTarget: FuzzTarget = {
   async invoke(bytes) { parseWav(bytes); },
 };
 
+// depthHint (shells/web/src/lib/image-sample.ts): the ingest path's bit-depth
+// header sniff. Contract mirrors the house reader rule: never throws — hostile,
+// truncated, or lying headers answer nulls — and every read is a bounded slice,
+// so the runner's finding classes here are hangs and allocation blow-ups.
+export const depthHintTarget: FuzzTarget = {
+  name: 'depth-hint',
+  async seeds() {
+    const png16 = (() => {
+      const ihdr = Uint8Array.of(0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 0, 0, 0);
+      return concat([Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10), pngChunk('IHDR', ihdr)]);
+    })();
+    const u16le = (n: number): Uint8Array => Uint8Array.of(n & 0xff, (n >>> 8) & 0xff);
+    const u16be = (n: number): Uint8Array => Uint8Array.of((n >>> 8) & 0xff, n & 0xff);
+    // One inline-value IFD (LE) and one offset-value IFD (BE, count 3, values at 26).
+    const tiffLe = concat([bytesOf('II'), u16le(42), u32le(8),
+      u16le(1), u16le(258), u16le(3), u32le(1), u16le(16), u16le(0), u32le(0)]);
+    const tiffBe = concat([bytesOf('MM'), u16be(42), u32be(8),
+      u16be(1), u16be(258), u16be(3), u32be(3), u32be(26), u32be(0),
+      u16be(16), u16be(16), u16be(16)]);
+    const ftyp = (major: string, ...compat: string[]): Uint8Array => {
+      const brands = concat([bytesOf(major), u32be(0), ...compat.map(bytesOf)]);
+      return concat([u32be(8 + brands.length), bytesOf('ftyp'), brands, new Uint8Array(8)]);
+    };
+    return [tinyPng(), png16, tiffLe, tiffBe, tinyJpeg(), tinyWebp(), ftyp('heic'), ftyp('mif1', 'miaf', 'avif')];
+  },
+  async invoke(bytes) { await depthHint(bytes); },
+};
+
 export const ALL_TARGETS: FuzzTarget[] = [
   c2paVerifyTarget, cborTarget, mediaSniffTarget, pdfMapTarget, x509Target,
   fileMetadataTarget, stripMetadataTarget, videoMetaTarget, dataImportTarget,
   pptxReadTarget, pptxPatchTarget, pptxBridgeTarget, iccTarget,
   derReadTarget, c2paExtractTarget, c2paContainersTarget, urlPackTarget, wavTarget,
+  depthHintTarget,
 ];
 export const TARGETS_BY_NAME: Record<string, FuzzTarget> = Object.fromEntries(ALL_TARGETS.map((t) => [t.name, t]));

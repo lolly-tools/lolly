@@ -1455,3 +1455,9 @@ radii (r1–r4) route through the vector bake as a four-corner rounded-rect path
 (flip-permuted), while equal corners keep the byte-identical `rounded`/`<rect rx>`
 paths; image fills on flipped shapes carry a transient `_fillFlip` marker the web
 shell's media loader bakes into the stored pixels.
+
+Pure additions since, no version bump (no HostV1 method change): `PdfPagesResult`
+gains an optional `failed?: number[]` — the 1-based pages within the cap whose
+render failed, so a host.pdf.pages caller can name the missing previews instead
+of letting a skipped page pass silently. Absent when every requested page
+rendered; existing callers are unaffected.

@@ -1489,6 +1489,12 @@ export interface PdfPagesResult {
   pages: PdfPageSvg[];
   /** True when the document has more pages than the cap allowed to return. */
   truncated: boolean;
+  /**
+   * 1-based numbers of pages within the cap whose render failed (absent when
+   * none did), so a caller can say which previews are missing instead of
+   * letting a skipped page pass silently.
+   */
+  failed?: number[];
 }
 
 // ─── Content Credentials signing (optional, v1.85) ───────────────────────────

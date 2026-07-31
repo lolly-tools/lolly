@@ -51,6 +51,10 @@ export interface PdfNode {
   fontWeight?: string | number;
   fontFamily?: string;
   textAlign?: string;
+  /** A multi-line text node's REAL leading as a multiple of `fontSize` (the
+   *  average of the pen moves its lines were merged across). Serializers place
+   *  line i's baseline at `y + 0.8·size + i·lineHeight·size`; absent, they fall
+   *  back to the historical 1.4 estimate. */
   lineHeight?: number;
   text?: string;
   fit?: string;
@@ -920,6 +924,13 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
     let origin = { x: 0, y: 0 };
     let textSize = 0, textRot = 0, textFill = '', textFont = '';
     let lastLineY = 0;
+    /** Device-space x of the CURRENT LINE'S START — a next-line move is only a
+     *  line break in this node when it returns close to it. */
+    let lastLineX = 0;
+    /** Accumulated real leading (as a multiple of the font size) across the
+     *  '\n' merges in this node, so flushText can record the document's actual
+     *  line height instead of the serializer guessing 1.4. */
+    let leadSum = 0, leadCount = 0;
     /**
      * The fill alpha and the soft-mask decision captured AT THE RUN'S ORIGIN, not at
      * `ET`. A BT…ET block can change `gs` between shows, and the node carries a single
@@ -976,10 +987,30 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         // path fill). It DOES take a real <mask> and a folded constant.
         textAlpha = clamp(s.fillAlpha * s.fillScale, 0, 1);
         textMask = maskPaint('raw');
-        lastLineY = p.y;
+        lastLineY = p.y; lastLineX = p.x;
+        leadSum = 0; leadCount = 0;
       } else {
-        if (p.y - lastLineY > textSize * 0.35 && textBuf && !textBuf.endsWith('\n')) textBuf += '\n';
-        lastLineY = p.y;
+        // One BT…ET block is NOT always one visual run: producers that write a
+        // whole frame/column set in a single block (Penpot exports, TeX, many
+        // office printers) move the pen with Tm/Td between logically separate
+        // runs. Only two moves continue THIS node — anything else (an upward
+        // move, a column-sized x jump, a leading the serializer's line model
+        // cannot reproduce) flushes and starts a fresh node at the true origin,
+        // so every run keeps its real position instead of being re-typeset on a
+        // synthetic grid under the first run.
+        const dy = p.y - lastLineY;
+        const dx = p.x - lastLineX;
+        if (Math.abs(dy) <= textSize * 0.35) {
+          // Same baseline. Small forward positioning (kerning, word placement)
+          // keeps accumulating; a leftward move or a tab/column jump is a new run.
+          if (dx < -textSize * 0.35 || dx > textSize * 3) { flushText(); onTextMove(); return; }
+        } else if (dy > textSize * 0.35 && dy <= textSize * 2.1 && Math.abs(dx) <= textSize * 2) {
+          // Next line: downward, near the line start, at a plausible leading.
+          if (textBuf && !textBuf.endsWith('\n')) { textBuf += '\n'; leadSum += dy / textSize; leadCount++; }
+          lastLineY = p.y; lastLineX = p.x;
+        } else {
+          flushText(); onTextMove(); return;
+        }
       }
     };
 
@@ -1051,10 +1082,15 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
       const txt = textBuf.replace(/[ \t]+\n/g, '\n').replace(/\s+$/g, '');
       if (originSet && txt.trim() && sink.count < sink.max && textMask) {
         const size = Math.max(1, textSize);
+        // The document's real leading (average of the moves merged as '\n'),
+        // as a multiple of the font size — pdf-svg's line placement reads it
+        // so merged lines land on the true baselines, not a synthetic grid.
+        const lead = leadCount ? Math.round((leadSum / leadCount) * 1000) / 1000 : 0;
         sink.nodes.push({
           kind: 'text',
           x: origin.x, y: origin.y - size * 0.8,
-          w: Math.max(4, txt.replace(/\n.*/s, '').length * size * 0.55, size * 2), h: size * 1.4 * (txt.split('\n').length),
+          w: Math.max(4, txt.replace(/\n.*/s, '').length * size * 0.55, size * 2), h: size * (lead || 1.4) * (txt.split('\n').length),
+          ...(lead ? { lineHeight: lead } : {}),
           rot: Math.abs(textRot) < 0.5 ? 0 : textRot,
           fg: safeColor(textFill, '#000000') || '#000000',
           opacity: clamp(Math.round(textAlpha * 100 * textMask.scale), 0, 100),
@@ -1069,7 +1105,7 @@ export function interpretPdfPage(page: PdfPageInput): PdfNode[] {
         });
         sink.count++;
       }
-      textBuf = ''; originSet = false;
+      textBuf = ''; originSet = false; leadSum = 0; leadCount = 0;
       textAlpha = 1; textMcid = -1; textMask = { extra: {}, scale: 1 };
     };
 
