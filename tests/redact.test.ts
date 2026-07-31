@@ -65,7 +65,7 @@ function loadGate(): any {
 function loadGeom(): any {
   const factory = new Function(
     'host',
-    `${HOOKS_SRC}\nreturn { rectTouches, unionBox, effBox, effectiveRect, snapBarToNodes,`
+    `${HOOKS_SRC}\nreturn { rectTouches, rectOverlaps, unionBox, effBox, effectiveRect, snapBarToNodes,`
     + ` subtractBox, uncoveredParts, partialNodes, parseNodeMarks, formatNodeMarks,`
     + ` prepareInlineSvg, scopeCssRules, cleanSvgTokens, tokenize,`
     + ` paintedShape, normaliseInk, inkContrast, stampFit, markStyleOf, stampTextFor,`
@@ -1241,7 +1241,7 @@ test('redact: bars left on other pages by a replaced PDF are reported, not silen
 
 const box = (x: number, y: number, w: number, h: number) => ({ x, y, w, h });
 
-test('redact geom: a bar grows to the union of every node it touches, and keeps growing', () => {
+test('redact geom: a bar grows to the union of the nodes it is over — ONCE, not to a fixed point', () => {
   const { snapBarToNodes } = loadGeom();
 
   // The case Andy hit in the browser: a strikethrough-height bar across a word
@@ -1257,16 +1257,31 @@ test('redact geom: a bar grows to the union of every node it touches, and keeps 
   );
   assert.deepEqual(snapped.hit, [0]);
 
-  // Growth is transitive: reaching node 0 makes the bar reach node 1, which the
-  // original never touched. The deletion set has to be closed under that, or a
-  // covered element would survive in the vector output.
+  // THE BOUND, and the defect it fixes. Growth used to be transitive: reaching
+  // node 0 made the bar reach node 1, then 2, and on a real page of body text
+  // that is a flood fill — a 20x20pt bar came back 455x286pt, and the requested
+  // width was discarded entirely. Only what the ORIGINAL rectangle is over
+  // counts, so the chain is cut at the first link.
   const chain = snapBarToNodes({ x: 0, y: 0, w: 2, h: 2 }, [
-    box(1, 1, 20, 5),   // touched directly (spans x 1..21)
+    box(1, 1, 20, 5),   // the drawn box is over this one
     box(21, 1, 20, 5),  // only reachable once the bar has grown out to 21
     box(200, 200, 5, 5) // never reachable
   ]);
-  assert.deepEqual(chain.hit, [0, 1]);
-  assert.equal(chain.x + chain.w, 41);
+  assert.equal(chain.x + chain.w, 21, 'grew to node 0 and stopped');
+  assert.deepEqual(chain.hit, [0], 'node 1 only ABUTS the grown box, so it is not even addressed');
+
+  // Two bars at the same point with different widths must stay different. This
+  // is the user-visible half of the defect: once text was touched, the drag was
+  // thrown away and both produced byte-identical output.
+  const nodes = [box(10, 0, 10, 8), box(24, 0, 10, 8), box(38, 0, 10, 8)];
+  const narrow = snapBarToNodes({ x: 12, y: 2, w: 4, h: 4 }, nodes);
+  const wide = snapBarToNodes({ x: 12, y: 2, w: 30, h: 4 }, nodes);
+  assert.deepEqual(narrow.hit, [0], 'the narrow bar takes the word it is over');
+  assert.deepEqual(wide.hit, [0, 1, 2], 'the wide bar takes the three it is over');
+  assert.notDeepEqual(
+    { x: narrow.x, w: narrow.w }, { x: wide.x, w: wide.w },
+    'the requested width still decides the result'
+  );
 
   // Nothing to snap to (a raster source has no nodes at all) leaves the drawn
   // bar exactly as drawn.
@@ -1275,13 +1290,58 @@ test('redact geom: a bar grows to the union of every node it touches, and keeps 
   assert.deepEqual(alone.hit, []);
 });
 
+test('redact geom: abutting line boxes do not chain — the paragraph cascade', () => {
+  const { snapBarToNodes, effBox, rectTouches, rectOverlaps } = loadGeom();
+  const W = 600, H = 800;
+
+  // Body text as a page really presents it: line boxes whose bottom edge IS the
+  // next line's top edge, each split into word runs that abut left to right.
+  // Every one of these pairs "touches" its neighbour, which is exactly how a
+  // fixed-point grow walked the whole block.
+  const nodes: any[] = [];
+  for (let line = 0; line < 6; line++) {
+    for (let word = 0; word < 8; word++) {
+      nodes.push(box(50 + word * 60, 100 + line * 14, 60, 14));
+    }
+  }
+  assert.equal(rectTouches(nodes[0], nodes[1]), true, 'the fixture really does abut');
+  assert.equal(rectOverlaps(nodes[0], nodes[1]), false, 'and abutting is not overlapping');
+  assert.equal(rectTouches(nodes[0], nodes[8]), true, 'lines abut vertically too');
+  assert.equal(rectOverlaps(nodes[0], nodes[8]), false);
+
+  // A thin strike through one word in the middle of the block.
+  const snapped = snapBarToNodes({ x: 240, y: 132, w: 30, h: 3 }, nodes, (b: any) => effBox(b, W, H, false));
+  assert.ok(snapped.w <= 90, `stayed word-sized, not paragraph-sized (w=${snapped.w})`);
+  assert.ok(snapped.h <= 20, `stayed on its own line (h=${snapped.h})`);
+  // The whole block is 480x84; the old behaviour returned exactly that.
+  assert.ok(snapped.w * snapped.h < 480 * 84 * 0.1, 'nowhere near the whole block');
+  // And it still fully contains the word it was over.
+  const over = nodes[2 * 8 + 3];
+  assert.ok(snapped.x <= over.x && snapped.x + snapped.w >= over.x + over.w
+    && snapped.y <= over.y && snapped.y + snapped.h >= over.y + over.h,
+    'the targeted word is completely inside the grown bar');
+});
+
+test('redact geom: growth is bounded by intent, deletion is bounded by paint', () => {
+  const { snapBarToNodes, effBox } = loadGeom();
+  const W = 600, H = 200;
+  // Two words. The drawn bar is over the first only; the 2-unit inflation of the
+  // GROWN box then clips the second. The bar must not grow to the second (that
+  // is the cascade), but it must still ADDRESS it — a vector export that painted
+  // over a word without deleting it would leave it extractable under the ink.
+  const nodes = [box(20, 20, 40, 12), box(61, 20, 40, 12)];
+  const s = snapBarToNodes({ x: 25, y: 24, w: 20, h: 4 }, nodes, (b: any) => effBox(b, W, H, false));
+  assert.equal(s.x + s.w, 60, 'grown to the first word and no further');
+  assert.deepEqual(s.hit, [0, 1], 'but both are addressed, because both get painted');
+});
+
 test('redact geom: snapping probes the PAINTED box, so inflation and quantise pull nodes in', () => {
   const { snapBarToNodes, effBox } = loadGeom();
   const W = 400, H = 200;
   // A word sitting just outside the drawn bar, but inside the 2px inflation the
   // export paints. It gets covered either way — so it must also be DELETED,
   // which only happens if the probe is the painted box and not the raw drag.
-  const near = box(52, 10, 20, 10);
+  const near = box(51, 10, 20, 10);
   const raw = { x: 10, y: 10, w: 40, h: 10 };
   assert.deepEqual(snapBarToNodes(raw, [near]).hit, [], 'raw box alone does not reach it');
   const probed = snapBarToNodes(raw, [near], (b: any) => effBox(b, W, H, false));
@@ -1332,6 +1392,28 @@ test('redact geom: partial coverage is exact, and the union of bars counts', () 
   assert.deepEqual(uncoveredParts(word, [box(10, 10, 99.9, 20)]), []);
 });
 
+test('redact geom: the partial warning reports OVERLAP, not adjacency', () => {
+  const { partialNodes } = loadGeom();
+  // The rule, stated as a test. With growth bounded to one pass a bar can end up
+  // clipping a neighbour it was never aimed at, and that neighbour IS reported:
+  // to a reader of the output, half a blacked-out word is half a blacked-out
+  // word whoever aimed at it, and in vector mode the clipped neighbour is
+  // deleted outright. What is NOT reported is a node the bar merely abuts —
+  // nothing of it is covered, so there is nothing to say about it, and on body
+  // text every line has two such neighbours and the toast would be permanent.
+  const bar = box(0, 0, 50, 20);
+  const clipped = box(45, 0, 40, 20);    // 5 units of it are under the bar
+  const abutting = box(50, 0, 40, 20);   // shares the bar's right edge exactly
+  const adjacentLine = box(0, 20, 50, 20); // shares the bar's bottom edge
+
+  assert.deepEqual(partialNodes([clipped], [bar]).map((p: any) => p.index), [0],
+    'a genuinely clipped neighbour is reported');
+  assert.deepEqual(partialNodes([abutting], [bar]), [], 'an abutting node is not');
+  assert.deepEqual(partialNodes([adjacentLine], [bar]), [], 'nor is the line below');
+  // And a grazing overlap under the epsilon is measurement slop, not a finding.
+  assert.deepEqual(partialNodes([box(49.9, 0, 40, 20)], [bar]), []);
+});
+
 test('redact geom: the template mirror and the hook agree, case by case', () => {
   // template.html has to carry its own copy of the maths — the measuring
   // happens where the DOM is, mid-gesture, and a sandboxed hook cannot be
@@ -1347,6 +1429,11 @@ test('redact geom: the template mirror and the hook agree, case by case', () => 
   for (const a of boxes) {
     for (const b of boxes) {
       assert.equal(mirror.rectTouches(a, b), hook.rectTouches(a, b), `rectTouches ${JSON.stringify([a, b])}`);
+      assert.equal(mirror.rectOverlaps(a, b), hook.rectOverlaps(a, b), `rectOverlaps ${JSON.stringify([a, b])}`);
+      for (const eps of [0, 0.25, 2]) {
+        assert.equal(mirror.rectOverlaps(a, b, eps), hook.rectOverlaps(a, b, eps),
+          `rectOverlaps eps=${eps} ${JSON.stringify([a, b])}`);
+      }
       assert.deepEqual(mirror.unionBox(a, b), hook.unionBox(a, b), 'unionBox');
       assert.deepEqual(mirror.subtractBox(a, b), hook.subtractBox(a, b), 'subtractBox');
     }
@@ -1449,21 +1536,30 @@ test('redact resnap: re-planning its own output changes nothing (no creep)', () 
   assert.equal(third.changed, false);
 });
 
-test('redact resnap: a measured bar that leaves a node partly covered is grown', () => {
+test('redact resnap: a measured bar that leaves a node partly covered is REPORTED, not re-grown', () => {
   const resnap = loadTemplateResnap();
-  const { parseNodeMarks } = loadGeom();
+  const { parseNodeMarks, partialNodes } = loadGeom();
   const W = 300, H = 150;
   const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
   const nodes = [{ idx: 0, x: 10, y: 20, w: 90, h: 30 }];
 
   // Measured once, then edited in the sidebar until it only half-covers the
-  // node. The stale `n` is not evidence of coverage, so this must not be
-  // trusted just because it says 'm'.
+  // node. Re-growing it here used to be the correction; with growth bounded to
+  // one pass it becomes the creep instead — a bar whose inflation clips its
+  // neighbour would be regrown into it, clip the next one, and walk across the
+  // line a render at a time. So the geometry is the user's and stays put, and
+  // the partial coverage is what gets raised.
   const shrunk = { page: 1, x: 10, y: 20, w: 30, h: 30, n: 'm:0' };
   const out = resnap.plan([shrunk], 1, nodes, W, H, eff);
-  assert.equal(out.changed, true, 'a stale bar that leaks is re-measured');
-  assert.ok(out.next[0].x + out.next[0].w >= 100, 'grown to finish the node');
-  assert.deepEqual(parseNodeMarks(out.next[0].n), [0]);
+  assert.equal(out.next[0].x, shrunk.x, 'geometry untouched');
+  assert.equal(out.next[0].w, shrunk.w);
+  assert.deepEqual(parseNodeMarks(out.next[0].n), [0], 'still addressed to the node it is over');
+
+  // The warning is the mechanism that replaces the silent correction, and it
+  // fires on exactly this bar.
+  const partials = partialNodes(nodes, [eff(shrunk)], null);
+  assert.equal(partials.length, 1, 'reported as partly covered');
+  assert.equal(partials[0].index, 0);
 });
 
 test('redact resnap: other pages, zero-area rows and raster frames are untouched', () => {
@@ -1502,23 +1598,31 @@ test('redact resnap: a corrected bar keeps every field the row carried', () => {
   assert.equal(out.next[0].page, 1);
 });
 
-test('redact resnap: a chain longer than the snap pass cap still settles in ONE correction', () => {
+test('redact resnap: a long row of abutting glyph boxes is NOT swallowed, and does not creep', () => {
   const resnap = loadTemplateResnap();
   const W = 4000, H = 150;
   const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
-  // snapBarToNodes stops after a bounded number of growth passes. A row of 40
-  // touching glyph boxes is longer than that, so a single call comes back still
-  // touching what it has not swallowed — and the bar would then creep outward
-  // one commit per render, which the user watches happen.
+  // 40 abutting glyph boxes — the shape that used to run away. Whether growth
+  // was capped (a bar that crept outward one commit per render) or run to a
+  // fixed point (a bar that swallowed all 40 at once), the row decided the
+  // answer instead of the drag. Now the drag does.
   const nodes = Array.from({ length: 40 }, (_, i) => ({ idx: i, x: 10 + i * 20, y: 20, w: 20, h: 30 }));
 
   const first = resnap.plan([{ page: 1, x: 12, y: 32, w: 10, h: 4 }], 1, nodes, W, H, eff);
-  assert.equal(first.changed, true);
+  assert.equal(first.changed, true, 'the unmeasured bar is snapped');
+  assert.ok(first.next[0].x + first.next[0].w <= 60,
+    `stopped at the boxes it was over (right edge ${first.next[0].x + first.next[0].w})`);
+
+  // Settled: every later render calls this again, and the bar must not move.
   const second = resnap.plan(first.next, 1, nodes, W, H, eff);
-  assert.equal(second.changed, false, 'settled in one pass — no creep across renders');
-  // And it really did swallow the whole chain rather than stopping part way.
-  assert.ok(first.next[0].x + first.next[0].w >= 10 + 39 * 20 + 20,
-    'grew across the entire chain, not just the first few passes');
+  assert.equal(second.changed, false, 'no creep across renders');
+  const third = resnap.plan(second.next, 1, nodes, W, H, eff);
+  assert.equal(third.changed, false);
+
+  // A wider drag over the same row takes more of it — the row is not what
+  // decides the width.
+  const wide = resnap.plan([{ page: 1, x: 12, y: 32, w: 200, h: 4 }], 1, nodes, W, H, eff);
+  assert.ok(wide.next[0].w > first.next[0].w * 3, 'the drag decides, not the chain');
 });
 
 test('redact resnap: one array threaded through several pages keeps every correction', () => {

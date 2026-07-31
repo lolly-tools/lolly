@@ -69,7 +69,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join, resolve, dirname, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { AddressInfo } from 'node:net';
-import { captureUrl, type CaptureParams } from '../packages/node-shell/src/url-capture.ts';
+import { captureUrl, runDriveSteps, type CaptureParams, type PageLike } from '../packages/node-shell/src/url-capture.ts';
 import { resolveBrowsersDir, getBrowser, closeBrowser } from '../packages/node-shell/src/browsers.ts';
 import { buildExportC2paOpts } from '../packages/node-shell/src/c2pa-opts.ts';
 import { embedC2pa, windowPdfSvg, type summarizeInputs } from '../engine/src/index.ts';
@@ -145,16 +145,18 @@ function localizeRoute(route: string, lang: string): string {
   return `${route}${route.includes('?') ? '&' : '?'}lang=${lang}`;
 }
 
-/** Committed baseline filename: `<slug>.<format>`, or `<slug>.<lang>.<format>` for a
- *  per-locale variant. The single source of truth for the on-disk shot path. */
+/** Committed baseline filename: `<slug>[.<lang>][.dark].<format>`. The single source
+ *  of truth for the on-disk shot path. Theme LAST, so docs/build.ts derives the dark
+ *  twin of whatever the locale resolver already picked with one extension insert. */
 function shotFileName(shot: ShotDef): string {
-  return `${shot.slug}${shot.lang ? `.${shot.lang}` : ''}.${shot.format}`;
+  return `${shot.slug}${shot.lang ? `.${shot.lang}` : ''}${shot.theme ? `.${shot.theme}` : ''}.${shot.format}`;
 }
 
 interface ShotResult {
   slug: string;
   format: string;
   lang?: string;
+  theme?: string;
   verdict?: ShotVerdict;
   error?: string;
   wrote: boolean;
@@ -224,13 +226,20 @@ async function main(): Promise<void> {
       reportLine(r);
       // Per-locale variants: same recipe, `?lang=<loc>` injected into the route,
       // written to `<slug>.<loc>.<format>`. Only for recipes that opted in.
+      const variants: ShotDef[] = [];
       if (shot.localize && opts.locales.length) {
-        for (const lang of opts.locales) {
-          const variant: ShotDef = { ...shot, route: localizeRoute(shot.route, lang), lang };
-          const rv = await captureOne(sharp, baseUrl, variant);
-          results.push(rv);
-          reportLine(rv);
-        }
+        for (const lang of opts.locales) variants.push({ ...shot, route: localizeRoute(shot.route, lang), lang });
+      }
+      // Dark twins: same recipe, same interactions, captured with the app and the
+      // OS preference both pinned dark, written to `<slug>[.<loc>].dark.<format>`.
+      // Crossed with the locale axis so a translated page's dark twin is still in
+      // its own language — a swap that changed the language would be a bug the
+      // reader sees, not a variant.
+      if (shot.dark) for (const base of [shot, ...variants]) variants.push({ ...base, theme: 'dark' });
+      for (const variant of variants) {
+        const rv = await captureOne(sharp, baseUrl, variant);
+        results.push(rv);
+        reportLine(rv);
       }
     }
   } finally {
@@ -292,8 +301,14 @@ function warnOrphans(shots: ShotDef[], prune = false): void {
   const locales = knownLocales();
   const expected = new Set<string>();
   for (const s of shots) {
-    expected.add(`${s.slug}.${s.format}`);
-    if (s.localize) for (const loc of locales) expected.add(`${s.slug}.${loc}.${s.format}`);
+    // The full cross-product of both variant axes — a name missing here is a file
+    // `--rebuild` DELETES, so the expectation set has to grow in the same commit
+    // as any new axis.
+    const stems = [s.slug, ...(s.localize ? locales.map((loc) => `${s.slug}.${loc}`) : [])];
+    for (const stem of stems) {
+      expected.add(`${stem}.${s.format}`);
+      if (s.dark) expected.add(`${stem}.dark.${s.format}`);
+    }
   }
   const orphans = readdirSync(SHOTS_DIR).filter((f) => /\.(svg|png|jpg)$/.test(f) && !expected.has(f));
   if (!orphans.length) return;
@@ -324,6 +339,7 @@ function paramsFor(shot: ShotDef): { params: Omit<CaptureParams, 'url'>; dims: {
       tintColor: '',
       hue: 0,
       zoom: shot.zoom ?? 1,
+      actions: shot.drive,
     },
     dims: clampDims({
       width: shot.width ?? VIEWPORT_DEFAULTS.width,
@@ -390,10 +406,16 @@ function expectedDims(shot: ShotDef, dims: { width: number; height: number; dpi:
 // centrally: "shots are taken with effects off" is a rule about the pipeline, not
 // something 134 recipes should each have to remember.
 const CAPTURE_NEUTRAL_KEY = 'lolly-capture-neutral';
-const CAPTURE_INIT =
+const captureInit = (theme?: string): string =>
   "try{localStorage.setItem('lolly-welcome-dismissed','1');" +
   "localStorage.setItem('lolly-tips-dismissed','1');" +
   "localStorage.setItem('lolly-privacy-ack','1');" +
+  // The THEME is seeded as well as pinned on the context (below). `colorScheme`
+  // alone only works while nothing has ever written the key: the shell's pre-paint
+  // script reads localStorage['theme'] FIRST and only falls back to the OS query
+  // (shells/web/index.html), so a seeded key is what makes a dark baseline a
+  // decision rather than an accident of the machine it was captured on.
+  `localStorage.setItem('theme','${theme === 'dark' ? 'dark' : 'light'}');` +
   `localStorage.setItem('${CAPTURE_NEUTRAL_KEY}','1')}catch(_){}`;
 
 // The other half of neutral state isn't storage and can't be seeded: the OS-level
@@ -403,11 +425,11 @@ const CAPTURE_INIT =
 // a build machine set to dark mode or high contrast would silently publish a
 // different-looking baseline. Pinned on the context, so both capture paths (raster
 // and vector) inherit one answer.
-const CAPTURE_CONTEXT = {
-  colorScheme: 'light',
+const captureContext = (theme?: string) => ({
+  colorScheme: theme === 'dark' ? 'dark' : 'light',
   reducedMotion: 'no-preference',
   forcedColors: 'none',
-} as const;
+}) as const;
 
 /**
  * In-page assertion that the pinned neutral state actually TOOK. Evaluated once
@@ -456,25 +478,34 @@ async function preflightNeutralState(baseUrl: string, shots: ShotDef[]): Promise
   // silently failed to reach the rendered page.
   routes.push('/#/profile');
 
+  // Every theme in play this run, not just light: the dark captures get their own
+  // context and their own seeded storage, so a pin that reaches one and not the
+  // other has to be caught here rather than in a published baseline.
+  const themes: Array<string | undefined> = [undefined, ...(shots.some((s) => s.dark) ? ['dark'] : [])];
+
   const browser = await getBrowser();
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: 'block', ...CAPTURE_CONTEXT });
-  try {
-    await ctx.addInitScript({ content: CAPTURE_INIT });
-    const page = await ctx.newPage();
-    for (const route of routes) {
-      await page.goto(baseUrl + route, { waitUntil: 'load', timeout: 45_000 });
-      await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
-      await page.waitForTimeout(1_500);
-      const bad = (await page.evaluate(NEUTRAL_PROBE)) as string[];
-      if (bad.length) {
-        throw new Error(`capture state is not neutral on ${route}: ${bad.join('; ')}`
-          + ' — the shell may predate lib/capture-neutral.ts (rebuild the dist), or the pin no longer reaches it.');
+  for (const theme of themes) {
+    const ctx = await browser.newContext({
+      viewport: { width: 1280, height: 800 }, serviceWorkers: 'block', ...captureContext(theme),
+    });
+    try {
+      await ctx.addInitScript({ content: captureInit(theme) });
+      const page = await ctx.newPage();
+      for (const route of routes) {
+        await page.goto(baseUrl + route, { waitUntil: 'load', timeout: 45_000 });
+        await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
+        await page.waitForTimeout(1_500);
+        const bad = (await page.evaluate(NEUTRAL_PROBE)) as string[];
+        if (bad.length) {
+          throw new Error(`capture state is not neutral on ${route} (${theme ?? 'light'}): ${bad.join('; ')}`
+            + ' — the shell may predate lib/capture-neutral.ts (rebuild the dist), or the pin no longer reaches it.');
+        }
       }
+    } finally {
+      await ctx.close();
     }
-    console.log(`Capture state verified neutral (${routes.join(', ')})`);
-  } finally {
-    await ctx.close();
   }
+  console.log(`Capture state verified neutral (${routes.join(', ')}${themes.length > 1 ? ' × light,dark' : ''})`);
 }
 
 async function captureOne(sharp: Sharp, baseUrl: string, shot: ShotDef): Promise<ShotResult> {
@@ -504,10 +535,10 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
   const browser = await getBrowser();
   const ctx = await browser.newContext({
     viewport: { width: dims.width, height: dims.height }, deviceScaleFactor: 1,
-    serviceWorkers: 'block', ...CAPTURE_CONTEXT,
+    serviceWorkers: 'block', ...captureContext(shot.theme),
   });
   try {
-    await ctx.addInitScript({ content: CAPTURE_INIT });
+    await ctx.addInitScript({ content: captureInit(shot.theme) });
     const page = await ctx.newPage();
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
@@ -537,6 +568,10 @@ async function resolveSelectorCrop(baseUrl: string, shot: ShotDef): Promise<Part
         if (settled && attempt >= 2) break;
       }
     }
+    // Drive the same interactions the capture will, or the box measured here is
+    // the box BEFORE the menu opened — and the shot would be framed on furniture
+    // that has since moved. Same order as captureUrl: settle, scroll, then act.
+    if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive);
 
     const PAD = 24;
     const box = await page.evaluate(({ sel, pad }: { sel: string; pad: number }) => {
@@ -562,7 +597,7 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   let bytes: Uint8Array;
   try {
     ({ bytes } = await captureUrl(
-      { ...params, url: baseUrl + shot.route, initScript: CAPTURE_INIT, contextPrefs: CAPTURE_CONTEXT },
+      { ...params, url: baseUrl + shot.route, initScript: captureInit(shot.theme), contextPrefs: captureContext(shot.theme) },
       shot.format, dims,
     ));
     // The Lolly Imprint goes in BEFORE the compare: embedWatermark is a fixed,
@@ -595,7 +630,7 @@ async function captureOneRaster(sharp: Sharp, baseUrl: string, shot: ShotDef): P
   // timestamp, so stamping every run would churn bytes for unchanged pixels.
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
   return {
-    slug: shot.slug, format: shot.format, lang: shot.lang, verdict,
+    slug: shot.slug, format: shot.format, lang: shot.lang, theme: shot.theme, verdict,
     wrote: promote, bytes: bytes.byteLength, width: newImg.width,
   };
 }
@@ -664,10 +699,10 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
   const ctx = await browser.newContext({
     viewport: { width: dims.width, height: dims.height },
     serviceWorkers: 'block',
-    ...CAPTURE_CONTEXT,
+    ...captureContext(shot.theme),
   });
   try {
-    await ctx.addInitScript({ content: CAPTURE_INIT });
+    await ctx.addInitScript({ content: captureInit(shot.theme) });
     const page = await ctx.newPage();
     await page.goto(baseUrl + shot.route, { waitUntil: 'load', timeout: 45_000 });
     await page.evaluate(() => (document.fonts?.ready ?? Promise.resolve()).then(() => undefined)).catch(() => {});
@@ -699,6 +734,9 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
         if (settled && attempt >= 2) break;
       }
     }
+    // Interactions, in the same place in the sequence as the raster path and the
+    // crop measurement — three pages per recipe, one state.
+    if (shot.drive?.length) await runDriveSteps(page as unknown as PageLike, shot.drive);
 
     // M5: the walker path. Ask the shell to serialise the live DOM itself rather
     // than round-tripping through Chromium's PDF printer. The crop is applied by
@@ -1079,7 +1117,7 @@ async function captureOneVector(baseUrl: string, shot: ShotDef): Promise<ShotRes
   const verdict = classifyVectorShot({ newText, newBytes: bytes.byteLength, expected, oldText, oldBytes });
   const promote = opts.rebuild || verdict.kind === 'new' || (verdict.kind === 'changed' && opts.accept);
   if (promote) writeFileSync(baselinePath, await stampC2pa(bytes, shot, dims));
-  return { slug: shot.slug, format: shot.format, lang: shot.lang, verdict, wrote: promote, bytes: bytes.byteLength };
+  return { slug: shot.slug, format: shot.format, lang: shot.lang, theme: shot.theme, verdict, wrote: promote, bytes: bytes.byteLength };
 }
 
 async function imprintRaster(sharp: Sharp, raster: Uint8Array, format: string): Promise<Uint8Array> {
@@ -1111,6 +1149,15 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
     ...(shot.scrollDepth !== undefined ? [row('scrollDepth', 'number', shot.scrollDepth)] : []),
     ...(shot.zoom !== undefined ? [row('zoom', 'number', shot.zoom)] : []),
     ...(shot.css ? [row('css', 'text', shot.css)] : []),
+    // The interactions are part of "how to reproduce this": a shot of an open
+    // menu is not reproducible from url + css alone.
+    // The theme leaves no other trace in the recipe (it is pinned on the context and
+    // in storage, not in the URL), so without this row a /verify of the dark file
+    // would report the light recipe.
+    ...(shot.theme ? [row('theme', 'text', shot.theme)] : []),
+    ...(shot.drive?.length
+      ? [row('drive', 'text', shot.drive.map((s) => JSON.stringify(s)).join(' '))]
+      : []),
     ...(['cropTop', 'cropRight', 'cropBottom', 'cropLeft'] as const)
       .filter((k) => shot[k] !== undefined)
       .map((k) => row(k, 'number', shot[k])),
@@ -1133,7 +1180,7 @@ async function stampC2pa(bytes: Uint8Array, shot: ShotDef, dims: { width: number
 // ── Reporting ─────────────────────────────────────────────────────────────────
 
 function reportLine(r: ShotResult): void {
-  const name = `${r.slug}${r.lang ? `.${r.lang}` : ''}.${r.format}`.padEnd(22);
+  const name = `${r.slug}${r.lang ? `.${r.lang}` : ''}${r.theme ? `.${r.theme}` : ''}.${r.format}`.padEnd(22);
   if (r.error) {
     console.log(`  ✗ ${name} FAILED — ${r.error}`);
     return;

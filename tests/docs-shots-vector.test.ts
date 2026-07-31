@@ -45,6 +45,14 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'non-MilkDrop styles use only the 2D subset that maps onto SVG) but it needs a '
     + 'change to the TOOL, not to the pipeline.',
   'um-asset-audiogram': 'Same canvas visualiser as `ov2-phone-audiogram`.',
+  'seq-onion-ghosts':
+    'Onion ghosts over the scene they ghost. Neither vector path can hold both at once: '
+    + 'the ghost layer is [data-export-hide] (editor chrome is deliberately unreachable '
+    + 'from every export, which is what guarantees an export carries none of it), so a '
+    + 'walker walk rooted above it drops the ghosts and one rooted at it drops the scene; '
+    + 'and Chromium print flattens the ghost group opacity to opaque, hiding the live '
+    + 'scene underneath. Re-check when the walker gains a docs-capture root that can opt '
+    + 'INTO export-hidden chrome.',
   // incl-neuro-viz left this list 2026-07-31: the panel chrome is vector now, with only
   // the WebGL canvas embedded as a bitmap <image> (the honest hybrid — a fragment
   // shader's per-pixel field has no geometry to recover, but everything around it does).
@@ -99,9 +107,20 @@ test('docs: no committed baseline is an undeclared bitmap', () => {
   // that went vector while its old pixels stayed behind and kept shipping.
   const bitmaps = readdirSync(join(DOCS, 'shots')).filter((f) => /\.(png|jpg|jpeg)$/.test(f));
   // Localized variants are `<slug>.<loc>.<ext>` and inherit their recipe's format.
-  const undeclared = bitmaps.filter((f) => {
-    const slug = f.replace(/\.(png|jpg|jpeg)$/, '').replace(/\.[a-z]{2}(-[a-z]+)?$/i, '');
-    return !(slug in RASTER_ALLOWED);
-  });
+  // Variants are suffixes on the slug: `<slug>[.<loc>][.dark].<ext>`. Strip by KNOWN
+  // suffix, not by shape — `.dark` is two of the shapes a locale code can take ('de',
+  // 'pt-br'), so a shape match either eats a real slug segment or misses the theme.
+  const locales = readdirSync(join(DOCS, 'i18n'), { withFileTypes: true })
+    .filter((d) => d.isDirectory()).map((d) => d.name);
+  const suffixes = new Set(['dark', ...locales]);
+  const baseSlug = (f: string): string => {
+    let s = f.replace(/\.(png|jpg|jpeg)$/, '');
+    for (;;) {
+      const m = /\.([^.]+)$/.exec(s);
+      if (!m || !suffixes.has(m[1]!)) return s;
+      s = s.slice(0, -m[0].length);
+    }
+  };
+  const undeclared = bitmaps.filter((f) => !(baseSlug(f) in RASTER_ALLOWED));
   assert.deepEqual(undeclared, [], 'Undeclared bitmap baselines in docs/shots — prune them.');
 });

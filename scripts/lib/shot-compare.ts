@@ -413,8 +413,132 @@ export interface ShotDef {
    * filename. Absent on the canonical English shot.
    */
   lang?: string;
+  /**
+   * Recipe opted into a DARK twin (`dark=1`): the pipeline captures it a second
+   * time with the app's theme and the OS preference both pinned dark, writing
+   * `<slug>[.<loc>].dark.<format>`, and /info swaps the two as the reader toggles
+   * the site theme. Worth it where the CHROME is the subject (a panel, the
+   * sidebar, the timeline); pointless on a bare tool canvas, whose CSS is scoped
+   * away from the theme tokens and renders identically either way.
+   */
+  dark?: boolean;
+  /**
+   * Set on a per-theme capture VARIANT (never parsed from a recipe), exactly like
+   * `lang`: the theme pinned for this capture, and the suffix on its filename.
+   * Absent on the canonical light shot.
+   */
+  theme?: 'dark';
+  /**
+   * Interactions to perform after the page settles and before the shot is taken
+   * (`drive=` — see parseDriveSteps for the grammar). The states worth documenting
+   * in an editor are mostly states a user CREATES: an open menu, a popover, a
+   * dialog, a drag in flight. None of them exist in a freshly loaded page and none
+   * of them can be faked with `css=`, because the app builds them on demand.
+   */
+  drive?: DriveStep[];
   /** The verbatim recipe URL as written in the markdown (identity for dedup). */
   raw: string;
+}
+
+/** One interaction — the same shape `packages/node-shell/src/url-capture.ts` runs. */
+export type DriveStep =
+  | { kind: 'click'; selector: string; button?: 'left' | 'right'; count?: number; at?: [number, number] }
+  | { kind: 'hover'; selector: string; at?: [number, number] }
+  | { kind: 'press'; keys: string; selector?: string }
+  | { kind: 'drag'; selector: string; dx: number; dy: number; at?: [number, number]; hold?: boolean }
+  | { kind: 'wait'; ms: number };
+
+/** `at=0.42,0.5` — a point inside the target's box as fractions of its width/height. */
+function parseAt(v: string): [number, number] | null {
+  const [fx, fy] = v.split(',').map(Number);
+  if (!Number.isFinite(fx) || !Number.isFinite(fy)) return null;
+  return [Math.min(1, Math.max(0, fx!)), Math.min(1, Math.max(0, fy!))];
+}
+
+/**
+ * Parse a recipe's `drive=` value: `;`-separated steps, each `kind:target` with
+ * `|`-separated options after it.
+ *
+ *   click:.tl-onion                     left-click the first match
+ *   click:.tl-ruler|at=0.42,0.5         click a POINT inside it (place a playhead)
+ *   click:.tl-clip|right                context menu
+ *   click:.tl-chip|double               double click
+ *   hover:.tl-split                     pointer over it (reveals a data-tip bubble)
+ *   press:Shift+O                       key to whatever has focus
+ *   press:S|on=.tl-panel                focus that element first, then the key
+ *   drag:.tl-clip|dx=90|at=0.99,0.15    press, move, release
+ *   drag:.tl-clip|dx=90|hold            …and stay DOWN, for a mid-drag state
+ *   wait:400                            extra settle
+ *
+ * `at=` exists because an element's CENTRE is often the wrong place to press: a
+ * clip bar's middle is covered by its seam chip, and a ruler has to be clicked at
+ * a time, not in the middle. It is fractions of the target's own box, so a recipe
+ * never hardcodes viewport pixels.
+ *
+ * Deliberately small: a recipe should read as a description of what the reader is
+ * being shown, not as a program. Anything it cannot express is a sign the app needs
+ * a reachable state, not that the grammar needs a loop.
+ */
+export function parseDriveSteps(raw: string): { steps: DriveStep[]; problems: string[] } {
+  const steps: DriveStep[] = [];
+  const problems: string[] = [];
+  for (const chunk of raw.split(';').map((s) => s.trim()).filter(Boolean)) {
+    const colon = chunk.indexOf(':');
+    if (colon < 1) { problems.push(`drive step "${chunk}": expected kind:target`); continue; }
+    const kind = chunk.slice(0, colon).trim();
+    const parts = chunk.slice(colon + 1).split('|').map((s) => s.trim());
+    const target = parts[0] ?? '';
+    const opts = new Map<string, string>();
+    const flags = new Set<string>();
+    for (const part of parts.slice(1)) {
+      const eq = part.indexOf('=');
+      if (eq > 0) opts.set(part.slice(0, eq).trim(), part.slice(eq + 1).trim());
+      else if (part) flags.add(part);
+    }
+    let at: [number, number] | undefined;
+    if (opts.has('at')) {
+      const parsed = parseAt(opts.get('at')!);
+      if (!parsed) { problems.push(`drive step "${chunk}": at= wants two fractions, e.g. at=0.4,0.5`); continue; }
+      at = parsed;
+    }
+    switch (kind) {
+      case 'click':
+        if (!target) { problems.push(`drive step "${chunk}": needs a selector`); break; }
+        steps.push({
+          kind: 'click', selector: target,
+          ...(flags.has('right') ? { button: 'right' as const } : {}),
+          ...(flags.has('double') ? { count: 2 } : {}),
+          ...(at ? { at } : {}),
+        });
+        break;
+      case 'hover':
+        if (!target) { problems.push(`drive step "${chunk}": needs a selector`); break; }
+        steps.push({ kind: 'hover', selector: target, ...(at ? { at } : {}) });
+        break;
+      case 'press':
+        if (!target) { problems.push(`drive step "${chunk}": needs a key`); break; }
+        steps.push({ kind: 'press', keys: target, ...(opts.has('on') ? { selector: opts.get('on')! } : {}) });
+        break;
+      case 'drag': {
+        const dx = Number(opts.get('dx') ?? 0), dy = Number(opts.get('dy') ?? 0);
+        if (!target || !Number.isFinite(dx) || !Number.isFinite(dy) || (!dx && !dy)) {
+          problems.push(`drive step "${chunk}": expected drag:<selector>|dx=<n>[|dy=<n>][|at=fx,fy][|hold]`);
+          break;
+        }
+        steps.push({ kind: 'drag', selector: target, dx, dy, ...(at ? { at } : {}), ...(flags.has('hold') ? { hold: true } : {}) });
+        break;
+      }
+      case 'wait': {
+        const ms = Number(target);
+        if (!Number.isFinite(ms) || ms < 0) { problems.push(`drive step "${chunk}": wait needs milliseconds`); break; }
+        steps.push({ kind: 'wait', ms });
+        break;
+      }
+      default:
+        problems.push(`drive step "${chunk}": unknown kind "${kind}"`);
+    }
+  }
+  return { steps, problems };
 }
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -456,6 +580,13 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
     };
     const tolerance = num('tolerance');
     if (tolerance !== undefined && !(tolerance >= 0 && tolerance <= 1)) problems.push(`${at}: tolerance must be within 0..1`);
+    const driveRaw = q.get('drive');
+    let drive: DriveStep[] | undefined;
+    if (driveRaw) {
+      const parsed = parseDriveSteps(driveRaw);
+      for (const p of parsed.problems) problems.push(`${at}: ${p}`);
+      if (parsed.steps.length) drive = parsed.steps;
+    }
 
     recipes.push({
       slug, route, raw,
@@ -467,8 +598,10 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
       cropSelector: q.get('cropSelector') ?? undefined,
       waitSelector: q.get('waitSelector') ?? undefined,
       css: q.get('css') ?? undefined,
+      drive,
       pixelDiffFrac: tolerance,
       localize: q.get('localize') === '1' || q.get('localize') === 'true',
+      dark: q.get('dark') === '1' || q.get('dark') === 'true',
       walker: q.get('walker') === '1' || q.get('walker') === 'true',
     });
   }
