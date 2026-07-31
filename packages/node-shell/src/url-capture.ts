@@ -61,6 +61,129 @@ export interface CaptureParams {
     reducedMotion?: 'reduce' | 'no-preference';
     forcedColors?: 'active' | 'none';
   };
+  /**
+   * Optional interaction script run after the page has settled and before the
+   * shot is taken — the third pipeline-only field, alongside `initScript` and
+   * `contextPrefs`, and for the same reason: an end user capturing a page wants
+   * the page as it loads, while a docs baseline often has to document a state
+   * that only exists after a click (a menu, a popover, a dialog, a drag).
+   * Without it those states are undocumentable, and the alternative — CSS that
+   * force-shows a panel — would document markup that never appears that way,
+   * because the panels are built on demand.
+   *
+   * Steps run in order, each one a real input event through Playwright, so the
+   * app's own handlers do the work and the captured DOM is the DOM a user gets.
+   */
+  actions?: DriveStep[];
+}
+
+/**
+ * One interaction in a capture's `actions` list. Deliberately a small, declarative
+ * set: enough to reach a state a reader needs to see, never enough to become a
+ * scripting language living inside a query string.
+ */
+export type DriveStep =
+  | { kind: 'click'; selector: string; button?: 'left' | 'right'; count?: number; at?: [number, number] }
+  | { kind: 'hover'; selector: string; at?: [number, number] }
+  | { kind: 'press'; keys: string; selector?: string }
+  | { kind: 'drag'; selector: string; dx: number; dy: number; at?: [number, number]; hold?: boolean }
+  | { kind: 'wait'; ms: number };
+
+/** How long any one step waits for its target before the capture fails loudly. */
+const DRIVE_TIMEOUT_MS = 15_000;
+/** Settle after each step: enough for a popover to mount and lay out. */
+const DRIVE_SETTLE_MS = 250;
+
+/**
+ * Run a capture's interaction steps against a live page.
+ *
+ * Exported because the docs pipeline drives THREE pages per recipe — the crop
+ * measurement, the vector walk and (through captureUrl) the raster shot — and all
+ * three must reach the identical state or the measured frame is not the frame that
+ * gets captured. One implementation, called from each.
+ *
+ * A step that cannot run throws: a docs baseline that silently skipped the click
+ * would publish the wrong picture, which is worse than a failed run.
+ */
+export async function runDriveSteps(page: PageLike, steps: readonly DriveStep[]): Promise<void> {
+  for (const step of steps) {
+    if (step.kind === 'wait') {
+      await page.waitForTimeout(Math.min(15_000, Math.max(0, step.ms)));
+      continue;
+    }
+    if (step.kind === 'press' && !step.selector) {
+      await page.keyboard.press(step.keys);
+      await page.waitForTimeout(DRIVE_SETTLE_MS);
+      continue;
+    }
+    const selector = step.kind === 'press' ? step.selector! : step.selector;
+    const target = page.locator(selector).first();
+    await target.waitFor({ state: 'visible', timeout: DRIVE_TIMEOUT_MS });
+    // `at` is a fraction of the target's own box, resolved to Playwright's
+    // element-relative `position`. Element-relative, never viewport pixels: a
+    // recipe that hardcoded coordinates would silently mis-aim the day a panel
+    // moved, and nothing about the picture would say so.
+    const box = step.kind === 'drag' || (step.kind !== 'press' && step.at)
+      ? await target.boundingBox()
+      : null;
+    const at = step.kind === 'press' ? undefined : step.at;
+    const position = box && at ? { x: box.width * at[0], y: box.height * at[1] } : undefined;
+    switch (step.kind) {
+      case 'click':
+        await target.click({
+          button: step.button === 'right' ? 'right' : 'left',
+          clickCount: step.count && step.count > 1 ? step.count : 1,
+          ...(position ? { position } : {}),
+        });
+        break;
+      case 'hover':
+        await target.hover(position ? { position } : {});
+        break;
+      case 'press':
+        await target.focus();
+        await page.keyboard.press(step.keys);
+        break;
+      case 'drag': {
+        if (!box) throw new BrowserError(`drag target "${selector}" has no box`);
+        const x = box.x + (position ? position.x : box.width / 2);
+        const y = box.y + (position ? position.y : box.height / 2);
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        // Two moves, not one: a drag handler that arms on the first move needs a
+        // second one to produce a delta, and pointer-driven chrome (a trim readout,
+        // a ripple) only paints once it has one.
+        await page.mouse.move(x + step.dx / 2, y + step.dy / 2);
+        await page.mouse.move(x + step.dx, y + step.dy);
+        // `hold` leaves the button DOWN, which is the whole point for a mid-drag
+        // state — the readout, the ghost extent and the limit edge exist only while
+        // dragging. The browser context is torn down after the shot, so nothing leaks.
+        if (!step.hold) await page.mouse.up();
+        break;
+      }
+    }
+    await page.waitForTimeout(DRIVE_SETTLE_MS);
+  }
+}
+
+/** The slice of Playwright's Page that `runDriveSteps` uses (kept structural so
+ *  neither this module nor its callers need a Playwright type import). */
+export interface PageLike {
+  waitForTimeout(ms: number): Promise<void>;
+  keyboard: { press(keys: string): Promise<void> };
+  mouse: {
+    move(x: number, y: number): Promise<void>;
+    down(): Promise<void>;
+    up(): Promise<void>;
+  };
+  locator(selector: string): {
+    first(): {
+      waitFor(opts: { state: 'visible'; timeout: number }): Promise<void>;
+      click(opts: { button: 'left' | 'right'; clickCount: number; position?: { x: number; y: number } }): Promise<void>;
+      hover(opts?: { position?: { x: number; y: number } }): Promise<void>;
+      focus(): Promise<void>;
+      boundingBox(): Promise<{ x: number; y: number; width: number; height: number } | null>;
+    };
+  };
 }
 
 export interface CaptureDims { width: number; height: number; dpi: number }
@@ -165,6 +288,12 @@ export async function captureUrl(
         if (settled && attempt >= 1) break;
       }
     }
+
+    // Interactions LAST — after settle and after scroll, in every capture path
+    // (the docs pipeline drives its own pages the same way). A menu opened before
+    // the page settled gets closed by the app's late layout, and a drag has to
+    // measure the geometry it is about to drag.
+    if (params.actions?.length) await runDriveSteps(page as unknown as PageLike, params.actions);
 
     // ── Vector PDF: a real print of the page, not an embedded screenshot ──
     if (fmt === 'pdf') {

@@ -34,9 +34,12 @@
  * Python with `OpenEXR` is reachable — set `EXR_ORACLE_PYTHON=/path/to/python`
  * (or have `python3 -c "import OpenEXR"` succeed) to make it run in CI.
  *
- * NOT verified, and not claimable: no file here has been opened in Nuke,
- * Resolve, Blender or any other DCC. "Every compositor reads it" rests on the
- * reference library agreeing, which is strong but is not the same statement.
+ * DCC oracle (2026-07-31): Blender 5.1 DOES now open these files and agrees on
+ * every sample, half and float — see the Blender test at the bottom, which runs
+ * headless whenever Blender is installed. That is a second independent reader
+ * (OpenImageIO, not the ASWF bindings) AND the app a designer actually has.
+ * Still not claimable: Nuke, Resolve, Flame and RV have not seen a file, and
+ * nothing has been checked on an HDR display.
  *
  * Run: node --test tests/exr.test.ts
  */
@@ -776,6 +779,79 @@ print('OK')
     writeFileSync(join(dir, 'wide.exr'), packExr(makeFrame('rec2020-linear'), { attributes: { comments: 'made with lolly' } }));
     const out = execFileSync(py, ['-c', script, dir], { encoding: 'utf8' });
     assert.match(out, /OK/);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+// ── DCC oracle: Blender ──────────────────────────────────────────────────────
+// The gap the header used to name ("no file here has been opened in Nuke,
+// Resolve, Blender or any other DCC") — closed for Blender, which is the one a
+// designer is most likely to have. Blender's EXR path is OpenImageIO, i.e. a
+// SECOND independent implementation from the ASWF reference bindings above, and
+// it is what actually matters: a file being spec-legal and a file opening in the
+// app someone uses are different claims.
+//
+// Gated like the Python oracle: set LOLLY_BLENDER=/path/to/blender, or have it
+// at the default macOS location. Runs headless (--background), so it never
+// touches an open GUI session.
+function findBlender(): string | null {
+  const candidates = [
+    process.env.LOLLY_BLENDER,
+    '/Applications/Blender.app/Contents/MacOS/Blender',
+    'blender',
+  ].filter(Boolean) as string[];
+  for (const b of candidates) {
+    try {
+      execFileSync(b, ['--version'], { stdio: 'ignore' });
+      return b;
+    } catch { /* not this one */ }
+  }
+  return null;
+}
+
+const BLENDER = findBlender();
+const SKIP_BLENDER = BLENDER ? false : 'Blender not found (set LOLLY_BLENDER to run the DCC oracle)';
+
+test('DCC oracle: Blender reads our EXR with the exact pixels, half and float', { skip: SKIP_BLENDER }, () => {
+  // Values chosen so the test would fail on the classic mistakes: real HDR
+  // headroom (>1.0) that only a float container can hold, exact powers of two
+  // that survive half rounding, and a bottom-left/top-right asymmetry that
+  // catches a flipped or transposed image.
+  const px = [
+    [0.25, 0.5, 0.75, 1], [1, 1, 1, 1], [4, 2, 0.5, 1], [12.5, 0.125, 0.0625, 1],
+    [0, 0, 0, 1], [0.5, 0.25, 0.125, 1], [2.5, 2.5, 2.5, 1], [0.75, 8, 1.5, 1],
+  ];
+  const f = createDeepFrame(4, 2, 'rec2020-linear');
+  px.forEach((p, i) => { for (let c = 0; c < 4; c++) f.data[i * 4 + c] = p[c]!; });
+
+  const dir = mkdtempSync(join(tmpdir(), 'lolly-blender-'));
+  try {
+    writeFileSync(join(dir, 'half.exr'), packExr(f, { compression: 'zip' }));
+    writeFileSync(join(dir, 'float.exr'), packExr(f, { compression: 'zip', pixelType: 'float' }));
+    const script = join(dir, 'check.py');
+    writeFileSync(script, [
+      'import bpy',
+      `D = ${JSON.stringify(dir)} + "/"`,
+      `EXPECT = ${JSON.stringify(px)}`,
+      'bad = []',
+      'for name, tol in (("half.exr", 1e-3), ("float.exr", 1e-6)):',
+      '    img = bpy.data.images.load(D + name)',
+      '    img.colorspace_settings.name = "Non-Color"',
+      '    p = list(img.pixels); w, h = img.size',
+      '    if (w, h) != (4, 2): bad.append(name + ": size %dx%d" % (w, h))',
+      '    for i in range(8):',
+      '        row, col = divmod(i, 4)',
+      '        b = ((h - 1 - row) * w + col) * 4   # Blender stores bottom-up',
+      '        for c in range(4):',
+      '            got, exp = p[b + c], EXPECT[i][c]',
+      '            if abs(got - exp) > tol * max(1.0, abs(exp)):',
+      '                bad.append("%s px%d ch%d exp %g got %g" % (name, i, c, exp, got))',
+      'print("BLENDER_RESULT:" + ("OK" if not bad else "FAIL " + "; ".join(bad)))',
+    ].join('\n'));
+    const out = execFileSync(BLENDER!, ['--background', '--python', script], { encoding: 'utf8' });
+    const line = out.split('\n').find(l => l.startsWith('BLENDER_RESULT:')) ?? '(no result line)';
+    assert.equal(line, 'BLENDER_RESULT:OK', `Blender disagreed: ${line}`);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

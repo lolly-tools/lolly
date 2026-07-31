@@ -55,7 +55,7 @@ await writeFile(
   join(root, 'catalog', 'tools', 'index.json'),
   JSON.stringify({
     version: '1',
-    tools: [{ id: 'ok-tool' }, { id: 'broken-hook' }, { id: 'layout-broken' }, { id: 'cap-gated' }, { id: 'transform-tool' }],
+    tools: [{ id: 'ok-tool' }, { id: 'broken-hook' }, { id: 'layout-broken' }, { id: 'cap-gated' }, { id: 'transform-tool' }, { id: 'layout-svg' }],
   }),
 );
 await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ assets: [] }));
@@ -76,6 +76,13 @@ for (const [id, files] of Object.entries({
     'hooks.js': THROWING_HOOKS,
   },
   'cap-gated': { 'tool.json': manifest('cap-gated', { capabilities: ['capture'] }) },
+  // A HEALTHY html-layout tool that declares svg first. It has no browser-free vector
+  // path, and smoke may not launch the tier that has one — the `~` bucket. It used to
+  // score `✓ layout-svg svg->html`, i.e. a format substitution scored as a real render.
+  'layout-svg': {
+    'tool.json': manifest('layout-svg'),
+    'template.html': '<div><p>{{label}}</p><p>second box</p></div>',
+  },
   'transform-tool': {
     'tool.json': manifest('transform-tool', {
       hooks: { exportFile: true },
@@ -90,8 +97,12 @@ for (const [id, files] of Object.entries({
   }
 }
 
-// Pin the whole smoke → run → bridge module chain to the fixture BEFORE first import.
+// Pin the whole smoke → run → bridge module chain to the fixture BEFORE first import,
+// and pin the browser tier to a directory with no built shell so the `~` case below is
+// deterministic and no Chromium is ever launched (smoke's own budget rule, enforced).
 process.env.LOLLY_ROOT = root;
+process.env.LOLLY_WEB_DIST = join(root, 'no-such-dist');
+delete process.env.LOLLY_WEB_BASE;
 const { smokeCli, pickSmokeFormat, skipReason } = await import('../shells/cli/src/smoke.ts');
 
 function run(opts: { only?: string; format?: string } = {}): Promise<{ code: number; out: string }> {
@@ -131,7 +142,12 @@ test('smoke over a catalog with broken tools: ✓/✗/skip rows and exit 1', asy
   assert.match(out, /✗ layout-broken\s+html\s+.*onInit failed: deliberately broken fixture hook/);
   assert.match(out, /– cap-gated\s+—\s+skipped: needs capture/);
   assert.match(out, /– transform-tool\s+—\s+skipped: transform tool/);
-  assert.match(out, /smoke: 1 ✓ {2}2 ✗ {2}2 skipped {2}\(5 tools/);
+  // A layout tool with no browser-free path to its own first format is its OWN bucket:
+  // never a ✓ for the format it could not produce, and never a ✗ either (that would be
+  // a statement about smoke's browser-free budget, not about the tool).
+  assert.match(out, /~ layout-svg\s+svg:html\s+.*layout tool: no browser-free svg; hooks ok/);
+  assert.doesNotMatch(out, /✓ layout-svg/);
+  assert.match(out, /smoke: 1 ✓ {2}2 ✗ {2}1 ~ \(layout tools rendered as html\) {2}2 skipped {2}\(6 tools/);
 });
 
 test('smoke --only renders just the requested ids (all green → exit 0)', async () => {
