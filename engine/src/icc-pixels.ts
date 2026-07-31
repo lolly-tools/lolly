@@ -45,11 +45,18 @@
  * profile-defined device spaces):
  *
  *   - `toPcs` reads the frame's first `nChannels` channels (R, or R/G/B) as the
- *     profile's ENCODED device channel values in 0..1 — NOT linear light. A
- *     frame from `fromU8Srgb` holds linear light and is the wrong input; deep
- *     ingest constructs device frames from decoded file bytes directly. The
- *     input `space` tag is carried, not believed (except `lab`, which is
- *     certainly a bug and refused); output is a real `lab` frame (L 0..100,
+ *     profile's ENCODED device channel values in 0..1 — NOT linear light. That
+ *     claim is REQUIRED of the caller, not assumed: the input must be tagged
+ *     {@link ICC_DEVICE_SPACE}, the same sentinel `fromPcs` stamps on its own
+ *     output, so the two halves are symmetric and a device frame flows from one
+ *     into the other untouched. Every member of PixelSpace is refused — the four
+ *     linear ones because a frame from `fromU8Srgb` holds LINEAR LIGHT and
+ *     reading those channels as encoded device values is precisely the
+ *     laundering this module exists to prevent (linear 0.21404114 IS encoded
+ *     0.5, i.e. L* 53.389; read as an encoded value it lands near L* 22.9, a
+ *     plausible-looking 30-unit lie), and `lab` because it is the PCS side, not
+ *     a device side. Deep ingest builds device frames from decoded file bytes
+ *     and tags them ICC_DEVICE_SPACE. Output is a real `lab` frame (L 0..100,
  *     matching pixels.ts's lab convention).
  *   - `fromPcs` takes a colorimetric frame (any real PixelSpace; converted to
  *     Lab per scanline) and returns the profile's encoded device channels. A
@@ -72,7 +79,9 @@
  * Contract, matching icc.ts: NEVER throws — a malformed profile, an unusable
  * intent, an unsupported channel count (only 1- and 3-channel device spaces fit
  * an RGBA frame; CMYK frames have no representation yet) or a nonsense frame
- * yields `null`. Scanline processing throughout: the only whole-frame
+ * yields `null`. {@link iccFrameRefusal} is the pure companion that says WHY a
+ * frame was refused, since a bare null cannot carry a sentence.
+ * Scanline processing throughout: the only whole-frame
  * allocation is the output buffer; `convertViaIcc` fuses both legs per row so
  * no intermediate PCS frame exists.
  *
@@ -150,6 +159,11 @@ export function iccResolvedIntent(
  * links, ProfileMaker) — dense enough that piecewise-linear resampling of a
  * profile's own in-curves adds error well below the source table's 8/16-bit
  * node quantisation, small enough that a build is ~36k reader calls and ~430 kB.
+ *
+ * The number is PINNED by a test, not decorative: an affine fixture is
+ * reproduced exactly at any density, so tests/icc-pixels.test.ts carries a
+ * profile whose in-curves kink at every k/32 and asserts the lattice tracks the
+ * reader to 0.05 Lab. Lowering this constant fails it by tens of Lab units.
  */
 const LATTICE_N = 33;
 
@@ -336,11 +350,40 @@ function frameSane(frame: DeepFrame): boolean {
 const profileSane = (p: IccProfile): boolean =>
   !!p && typeof p.toLab === 'function' && typeof p.fromLab === 'function';
 
-/** Is this frame acceptable as the DEVICE side of a transform? (Anything but a Lab frame — see header.) */
-const deviceInputOk = (frame: DeepFrame): boolean => frame.space !== 'lab';
+/**
+ * Is this frame acceptable as the DEVICE side of a transform? Only the
+ * {@link ICC_DEVICE_SPACE} sentinel is. Every real PixelSpace is colorimetric —
+ * four linear-light spaces and Lab — so accepting one would mean reading light
+ * as encoded ink, which is the laundering the header describes; the sentinel is
+ * the caller's explicit statement that these channels mean "this profile".
+ */
+const deviceInputOk = (frame: DeepFrame): boolean => frame.space === ICC_DEVICE_SPACE;
 
 /** Is this frame acceptable as the PCS side? Must be genuinely colorimetric (a real PixelSpace). */
 const pcsInputOk = (frame: DeepFrame): boolean => PIXEL_SPACES.includes(frame.space);
+
+/**
+ * Why `frame` cannot serve as `direction`'s input — as a sentence naming the
+ * fix — or null when it can. The transforms keep icc.ts's never-throw /
+ * return-null convention, so this is where the reason lives: a caller (or a
+ * test) reads the explanation instead of guessing at a bare null. Pure: it
+ * inspects the frame's shape and tag only, and is the same predicate
+ * {@link applyIccToFrame} and {@link convertViaIcc} gate on.
+ */
+export function iccFrameRefusal(frame: DeepFrame, direction: IccDirection): string | null {
+  if (!frameSane(frame)) return 'not a well-formed DeepFrame: width, height and data length must agree';
+  if (direction !== 'toPcs' && direction !== 'fromPcs') return `unknown direction: ${String(direction)}`;
+  if (direction === 'toPcs') {
+    if (deviceInputOk(frame)) return null;
+    return `toPcs needs ENCODED device channels, but this frame is tagged '${String(frame.space)}' — a colorimetric `
+      + 'space (linear light, or the PCS itself), whose channels are not this profile\'s device values. '
+      + `Tag a genuine device frame with ICC_DEVICE_SPACE ('${String(ICC_DEVICE_SPACE)}'); to transform `
+      + "colorimetric pixels, run the profile's other half with direction 'fromPcs' instead.";
+  }
+  if (pcsInputOk(frame)) return null;
+  return `fromPcs needs a colorimetric frame (a real PixelSpace), but this frame is tagged '${String(frame.space)}' `
+    + "— device channels carry no colorimetry on their own. Run direction 'toPcs' with their profile first.";
+}
 
 // ─── the transforms ───────────────────────────────────────────────────────────
 
@@ -348,7 +391,8 @@ const pcsInputOk = (frame: DeepFrame): boolean => PIXEL_SPACES.includes(frame.sp
  * Run one half of an ICC transform over a frame under `intent` (with the ICC
  * v4 fallback of {@link iccResolvedIntent} when that intent's table is absent).
  *
- * `toPcs`: device-encoded frame → PCS, returned as a `lab` frame.
+ * `toPcs`: device-encoded frame — which must be tagged {@link ICC_DEVICE_SPACE},
+ * see the header — → PCS, returned as a `lab` frame.
  * `fromPcs`: colorimetric frame (converted to Lab per scanline if needed) →
  * device channels, returned tagged {@link ICC_DEVICE_SPACE}.
  *
@@ -362,9 +406,8 @@ export function applyIccToFrame(
   intent: RenderingIntent,
 ): DeepFrame | null {
   try {
-    if (!frameSane(frame) || !profileSane(profile)) return null;
-    if (direction !== 'toPcs' && direction !== 'fromPcs') return null;
-    if (direction === 'toPcs' ? !deviceInputOk(frame) : !pcsInputOk(frame)) return null;
+    if (!profileSane(profile)) return null;
+    if (iccFrameRefusal(frame, direction)) return null;
     const resolved = iccResolvedIntent(profile, direction, intent);
     if (!resolved) return null;
     const ev = rowEvaluator(profile, direction, resolved);
@@ -402,9 +445,10 @@ export function applyIccToFrame(
  * own ICC v4 fallback (the destination's table availability is the one that
  * usually decides; use {@link iccResolvedIntent} to report what actually ran).
  *
- * The input frame holds `srcProfile`'s encoded device channels; the result is
- * tagged {@link ICC_DEVICE_SPACE} and holds `dstProfile`'s. Null on anything
- * either leg refuses.
+ * The input frame holds `srcProfile`'s encoded device channels and must be
+ * tagged {@link ICC_DEVICE_SPACE} like any device side; the result carries the
+ * same tag and holds `dstProfile`'s channels — so the output of one conversion
+ * is a legal input to the next. Null on anything either leg refuses.
  */
 export function convertViaIcc(
   frame: DeepFrame,
@@ -413,8 +457,8 @@ export function convertViaIcc(
   intent: RenderingIntent,
 ): DeepFrame | null {
   try {
-    if (!frameSane(frame) || !profileSane(srcProfile) || !profileSane(dstProfile)) return null;
-    if (!deviceInputOk(frame)) return null;
+    if (!profileSane(srcProfile) || !profileSane(dstProfile)) return null;
+    if (iccFrameRefusal(frame, 'toPcs')) return null;
     const inSrc = iccResolvedIntent(srcProfile, 'toPcs', intent);
     const inDst = iccResolvedIntent(dstProfile, 'fromPcs', intent);
     if (!inSrc || !inDst) return null;

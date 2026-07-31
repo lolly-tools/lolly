@@ -17,6 +17,10 @@
  * output omits it — SampleFormat defaults to 1 per TIFF 6.0, and omitting keeps
  * the 8-bit bytes identical to the pre-depth encoder.
  *
+ * A sample count beyond what the photometric implies (e.g. 4 samples with RGB)
+ * carries ExtraSamples (338) declaring each extra sample as unassociated alpha —
+ * TIFF 6.0 requires the tag in that case (p.31, p.77).
+ *
  * SEAM: this writer never converts between depths. The caller hands it samples
  * already at the requested depth (Uint8/Uint16/Float32Array); depth conversion
  * and colour math are pixels.ts's job (deeprichpixels.md §5.1).
@@ -158,6 +162,20 @@ export function packTiff(pixels: Uint8Array | Uint8ClampedArray | Uint16Array | 
     const sf = new Uint8Array(spp * 2);
     { const dv = new DataView(sf.buffer); for (let i = 0; i < spp; i++) dv.setUint16(i * 2, sampleFormat, true); }
     entries.push({ tag: 339, type: SHORT, count: spp, data: sf });
+  }
+  // ExtraSamples (338, TIFF 6.0 p.31 "ExtraSamples" / p.77 field list): REQUIRED
+  // whenever SamplesPerPixel exceeds the component count the PhotometricInterpretation
+  // implies (3 for RGB, 4 for Separated/CMYK, 1 otherwise) — without it a reader has
+  // no idea what the trailing sample means. One SHORT per extra sample, value 2 =
+  // "unassociated alpha data", which matches the engine's un-premultiplied (straight)
+  // alpha convention. spp <= the photometric's component count emits nothing, so all
+  // existing RGB/gray output stays byte-identical.
+  const baseComponents = photometric === 5 ? 4 : photometric === 2 ? 3 : 1;
+  const extraSamples = spp - baseComponents;
+  if (extraSamples > 0) {
+    const es = new Uint8Array(extraSamples * 2);
+    { const dv = new DataView(es.buffer); for (let i = 0; i < extraSamples; i++) dv.setUint16(i * 2, 2, true); }
+    entries.push({ tag: 338, type: SHORT, count: extraSamples, data: es });
   }
   if (opts.icc?.length) {                              // InterColorProfile (ICC)
     entries.push({ tag: 34675, type: UNDEFINED, count: opts.icc.length, data: opts.icc as Uint8Array });

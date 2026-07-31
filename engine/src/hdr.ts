@@ -51,7 +51,11 @@
  *     Scene-referred: LINEAR light, un-premultiplied, unbounded, 1.0 = SDR
  *     reference white (`sdrWhiteNits`). The brand boost lives here; a boosted
  *     white sits at ~peakNits/sdrWhiteNits (~4.93 by default). Nothing is
- *     clipped — >1.0 input headroom rides straight through.
+ *     clipped — >1.0 input headroom rides straight through, and negative
+ *     (out-of-gamut) channels survive the re-saturation, unlike the legacy byte
+ *     path which clamps because it quantises to unsigned bytes. The brand match
+ *     is scale-invariant (computed on a tone-normalised copy), so the transform
+ *     is monotonic: brighter in is always brighter out.
  *
  *   pqEncodeFrame(frame, sdrWhiteNits) -> PqImage; pqToU16(pq) -> Uint16Array
  *     Display-referred ENCODE boundary. PQ signal is a transfer-encoded code
@@ -101,9 +105,21 @@ const PQ_C1 = 3424 / 4096;
 const PQ_C2 = (2413 / 4096) * 32;
 const PQ_C3 = (2392 / 4096) * 32;
 
-/** Absolute luminance (nits) → PQ code value in [0,1]. Clamps to the PQ range. */
+/**
+ * Non-finite guard, the same idiom (and the same verdict) as
+ * engine/src/icc-pixels.ts#san: NaN/±Infinity are *damage* in a pixel buffer, so
+ * they are mapped to 0 explicitly rather than left to fall through a
+ * `Math.round(NaN) -> NaN -> typed-array store` and become 0 silently. The two
+ * modules must agree, because a frame can pass through both on one export.
+ */
+const san = (v: number): number => (Number.isFinite(v) ? v : 0);
+
+/**
+ * Absolute luminance (nits) → PQ code value in [0,1]. Clamps to the PQ range;
+ * non-finite input is sanitised to 0 (see {@link san}).
+ */
 export function pqEncode(nits: number): number {
-  const yn = Math.min(1, Math.max(0, nits / 10000));
+  const yn = Math.min(1, Math.max(0, san(nits) / 10000));
   if (yn <= 0) return 0;
   const y = yn ** PQ_M1;
   return ((PQ_C1 + PQ_C2 * y) / (1 + PQ_C3 * y)) ** PQ_M2;
@@ -328,10 +344,20 @@ export function hdrViewTransform(frame: DeepFrame, opts: HdrBoostOptions): DeepF
     let lb = src[i + 2]!;
 
     // Same boost model as the legacy loop (see hdrBoostToPQ) — strongest
-    // matching target wins; OKLab handles >1.0 inputs fine (cbrt is total).
+    // matching target wins — but the match is made SCALE-INVARIANT: a pixel
+    // above SDR white is tone-normalised (divided by its own max channel) before
+    // the OKLab lookup, so its *hue/chroma* decides the verdict and its
+    // *brightness* does not. Without this, a neutral riding past 1.0 drifts
+    // through OKLab and its distance to the white target changes as it
+    // brightens, which made the whole transform non-monotonic (a linear 1.2 in
+    // came out brighter than a 1.6 in). Normalised white is still white, so the
+    // includeWhite target keeps matching every neutral highlight. The boost
+    // itself is still applied to the pixel's TRUE value below.
     let extra = 0;
     if (targets.length) {
-      const [pl, pa, pb] = linearSrgbToOklab(lr, lg, lb);
+      const peak = Math.max(lr, lg, lb);
+      const norm = peak > 1 ? 1 / peak : 1;
+      const [pl, pa, pb] = linearSrgbToOklab(lr * norm, lg * norm, lb * norm);
       for (const t of targets) {
         const dE = Math.hypot(pl - t.lab[0], pa - t.lab[1], pb - t.lab[2]);
         const contribution = (t.gain - 1) * falloff(dE, inner, outer);
@@ -342,9 +368,14 @@ export function hdrViewTransform(frame: DeepFrame, opts: HdrBoostOptions): DeepF
     if (richness > 0 && extra > 0 && maxExtra > 0) {
       const sat = 1 + richness * (extra / maxExtra);
       const y = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
-      lr = Math.max(0, y + (lr - y) * sat);
-      lg = Math.max(0, y + (lg - y) * sat);
-      lb = Math.max(0, y + (lb - y) * sat);
+      // NO clamp to 0 here (unlike the legacy byte path, which quantises to
+      // unsigned bytes anyway): this function's contract is that nothing
+      // clips, so a wide-gamut pixel's negative sRGB-linear excursion must
+      // survive into the Rec.2020 output. pqEncodeFrame owns the only clamp,
+      // at the encode boundary.
+      lr = y + (lr - y) * sat;
+      lg = y + (lg - y) * sat;
+      lb = y + (lb - y) * sat;
     }
 
     // Boost gain only — NO nits scale and NO PQ here; the output stays linear
@@ -400,12 +431,13 @@ export function pqEncodeFrame(frame: DeepFrame, sdrWhiteNits: number = DEFAULTS.
  * Quantise a PQ image to full-range 16-bit (0..65535, round-to-nearest) for
  * the deep consumers (16-bit PNG IDAT, 10/12-bit AVIF after a shift). This —
  * not the legacy 8-bit quantise — is the precision PQ was designed for.
+ * Out-of-range clamps at both ends; non-finite samples are sanitised to 0.
  */
 export function pqToU16(pq: PqImage): Uint16Array {
   const src = pq.data;
   const out = new Uint16Array(src.length);
   for (let i = 0; i < src.length; i++) {
-    const v = src[i]!;
+    const v = san(src[i]!); // non-finite -> 0, matching pqEncode / icc-pixels.ts
     out[i] = v <= 0 ? 0 : v >= 1 ? 65535 : Math.round(v * 65535);
   }
   return out;

@@ -238,3 +238,80 @@ test('packTiff: rejects a buffer whose element type does not match depth', () =>
 test('packTiff: 16-bit length check counts samples, not bytes', () => {
   assert.throws(() => packTiff(new Uint16Array(5), { width: 1, height: 1, samplesPerPixel: 3, depth: 16 }), /pixel buffer/);
 });
+
+// --- ExtraSamples (338) ------------------------------------------------------
+// TIFF 6.0 REQUIRES ExtraSamples whenever SamplesPerPixel exceeds the component
+// count the PhotometricInterpretation implies (p.31 "ExtraSamples", p.77 field
+// list). packTiff accepts spp up to 4, so an RGBA or gray+alpha file must declare
+// its trailing sample; value 2 = unassociated (straight) alpha, which is the
+// engine's convention everywhere else.
+
+test('packTiff: RGBA declares ExtraSamples = 2 (unassociated alpha)', () => {
+  const rgba = new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+  const { tags, tagOrder } = readTiff(packTiff(rgba, { width: 2, height: 1, samplesPerPixel: 4 }));
+  assert.equal(tags[277]!.vals[0], 4, 'SamplesPerPixel = 4');
+  assert.equal(tags[262]!.vals[0], 2, 'Photometric = RGB (3 components)');
+  assert.ok(tags[338], 'ExtraSamples tag 338 is present');
+  assert.equal(tags[338]!.type, 3, 'ExtraSamples entries are SHORT');
+  assert.deepEqual(tags[338]!.vals, [2], 'one extra sample, value 2 = unassociated alpha');
+  assert.deepEqual(tagOrder, [...tagOrder].sort((a, b) => a - b), 'IFD still tag-sorted');
+});
+
+test('packTiff: gray + alpha (spp 2) declares one ExtraSample', () => {
+  const ga = new Uint16Array([0x1111, 0xffff, 0x2222, 0x8000]);
+  // photometric is explicit: the default is `spp === 1 ? 1 : 2`, so gray+alpha has
+  // to say BlackIsZero itself (that default predates this change and is unmoved).
+  const { tags } = readTiff(packTiff(ga, { width: 2, height: 1, samplesPerPixel: 2, photometric: 1, depth: 16 }));
+  assert.equal(tags[262]!.vals[0], 1, 'Photometric = BlackIsZero (1 component)');
+  assert.deepEqual(tags[338]!.vals, [2], 'spp 2 over a 1-component photometric = 1 extra sample');
+  assert.deepEqual(tags[339]!.vals, [1, 1], 'SampleFormat still one entry per sample');
+});
+
+test('packTiff: emits one SHORT per extra sample, not a fixed single entry', () => {
+  // photometric 2 (RGB, 3 components) over 4 samples gives exactly 1 extra;
+  // forcing gray (1 component) over 4 samples gives 3, proving the count is derived.
+  const { tags } = readTiff(packTiff(new Uint8Array(4), { width: 1, height: 1, samplesPerPixel: 4, photometric: 1 }));
+  assert.equal(tags[338]!.count, 3, 'gray + 3 extra samples');
+  assert.deepEqual(tags[338]!.vals, [2, 2, 2]);
+});
+
+test('packTiff: a photometric that consumes every sample emits no ExtraSamples', () => {
+  // Separated/CMYK (photometric 5) is a 4-component space — spp 4 has no extras.
+  const { tags } = readTiff(packTiff(new Uint8Array(4), { width: 1, height: 1, samplesPerPixel: 4, photometric: 5 }));
+  assert.equal(tags[338], undefined, 'no ExtraSamples when spp equals the component count');
+});
+
+test('packTiff: spp <= the photometric component count stays byte-identical', () => {
+  // Regression guard for the ExtraSamples change: RGB and gray output must not
+  // move a single byte. These are the pre-338 goldens, re-asserted verbatim.
+  const rgb16 = packTiff(new Uint16Array([0x0001, 0x8000, 0xffff]), {
+    width: 1, height: 1, samplesPerPixel: 3, depth: 16,
+  });
+  assert.equal(hex(rgb16), GOLDEN_RGB16, '16-bit RGB golden unchanged by ExtraSamples');
+  const grayF = packTiff(new Float32Array([0.25]), {
+    width: 1, height: 1, samplesPerPixel: 1, depth: 'float32',
+  });
+  assert.equal(hex(grayF), GOLDEN_GRAY_F32, 'float32 gray golden unchanged by ExtraSamples');
+  const rgb8 = packTiff(new Uint8Array([1, 2, 3, 4, 5, 6]), { width: 2, height: 1, samplesPerPixel: 3, dpi: 300 });
+  assert.equal(readTiff(rgb8).tags[338], undefined, '8-bit RGB carries no ExtraSamples');
+});
+
+// Golden pin for the 8-bit RGBA path. This byte string is NEW as of the
+// spec-conformance fix that added ExtraSamples (338): 8-bit spp=4 output
+// deliberately changed (it was non-conformant before — no reader could tell what
+// the 4th sample was). Nothing in the repo emitted spp=4 at the time, so no
+// shipped bytes moved. spp<=3 is pinned unchanged above.
+// 1x1 RGBA (0x11,0x22,0x33,0x80) at 300 dpi.
+const GOLDEN_RGBA8 =
+  '49492a00080000000d000001040001000000010000000101040001000000010000000201030004000000aa0000000301030001' +
+  '000000010000000601030001000000020000001101040001000000c200000015010300010000000400000016010400010000' +
+  '00010000001701040001000000040000001a01050001000000b20000001b01050001000000ba00000028010300010000000200' +
+  '00005201030001000000020000000000000008000800080008002c010000010000002c010000010000001122' +
+  '3380';
+
+test('packTiff: golden bytes — 8-bit RGBA fixture is byte-exact', () => {
+  const rgba = packTiff(new Uint8Array([0x11, 0x22, 0x33, 0x80]), {
+    width: 1, height: 1, samplesPerPixel: 4, dpi: 300,
+  });
+  assert.equal(hex(rgba), GOLDEN_RGBA8, '1x1 8-bit RGBA golden (includes tag 338)');
+});

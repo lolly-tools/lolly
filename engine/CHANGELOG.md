@@ -1487,7 +1487,10 @@ analytically, pure-LUT profiles pre-linked once into a tetrahedral device-link
 lattice, and `iccResolvedIntent` implementing the ICC v4 clause-8
 rendering-intent fallback. Never throws (null on malformed/unusable, matching
 the reader); device-side outputs carry the `ICC_DEVICE_SPACE` sentinel so
-colorimetric machinery fails loud instead of laundering device values.
+colorimetric machinery fails loud instead of laundering device values — and
+`toPcs` REQUIRES that sentinel on its input symmetrically (a linear-tagged
+`DeepFrame` is refused, `iccFrameRefusal` names why), so a `fromU8Srgb` frame
+can never be silently read as encoded device bytes.
 
 `src/deflate.ts` — a pure raw-DEFLATE compressor (RFC 1951: 32 KB-window LZ77
 with lazy matching, fixed Huffman, stored-block fallback so incompressible input
@@ -1514,3 +1517,53 @@ Ingest honesty landed shell-side in the same pass (web: `depthHint` beside
 but that is shell code, not engine surface.
 
 No v1 bridge method changed.
+
+## 1.87.0 — token-first brand ingest
+
+(The `ENGINE_VERSION` bump to 1.87.0 belongs to the same change set as this
+minor's design-map work; this section covers the brand-ingest modules only.)
+
+`src/brand-import.ts` — new `scanPenpotAppliedTokens(entries)`: the third
+walker over an unzipped `.penpot` archive, tallying every shape's
+`appliedTokens` map (attribute name → declared token name) into fill, text,
+stroke, type and geometry signals per token. It is what lets an import rank a
+file's DECLARED tokens by how the designer actually used them, instead of
+guessing brand roles from raw hexes. Attribute names are read in the camelCase,
+kebab and `:key` spellings `scanPenpotUsage` already tolerates; token names
+accumulate in a `Map` because they are file-controlled. Attributes the census
+does not model are skipped rather than mis-filed, so a future Penpot attribute
+can only under-count. Never throws; an archive with no applied tokens (every
+file exported before the feature, including the UXDays keynote fixture) returns
+`[]` and the caller falls back to the usage census exactly as before. The
+manifest → page-path resolution both walkers need is now one shared helper, so
+two censuses of the same archive cannot disagree about which shapes exist.
+
+`src/tokens.ts` — `$metadata.activeThemes` is now honoured for SINGLE-axis
+docs too, not only the multi-axis branch: a doc with several ungrouped themes
+and no explicit `theme` resolves the theme the file says is active instead of
+always taking the first. Grouped themes may be named bare or as `group/name`.
+Docs without `activeThemes` are unaffected. Also new: `typographyFamilies`, a
+pure reader for the font families in a typography composite — Penpot's encoder
+writes plural keys (`fontFamilies`) and stores split families as arrays, while
+Tokens Studio and hand-authored docs use the singular string form. Families
+only; sizes, weights and line heights carry units this has no business guessing.
+
+No v1 bridge method changed.
+
+`src/design-map.ts` — background blur import (Penpot 2.17, PR #10034). Penpot
+moved background blur out of `blur` onto its own shape attribute,
+`backgroundBlur: {id, type:'background-blur', value, hidden}`, a sibling of
+`blur` that may coexist with it, and narrowed the `blur` enum to `layer-blur`.
+New export `penpotBackgroundBlurPx(shape)` reads it — plus the LEGACY pre-2.17
+`blur: {type:'background-blur'}` spelling, which no Penpot migration rewrites —
+and converts the radius for CSS: Penpot's shipping Skia renderer uses
+sigma = 0.57735 * value + 0.5 and CSS `backdrop-filter: blur(R)` is sigma R/2,
+so R = 1.1547 * value + 1. That constant is an approximation, pinned by a test
+so a fixture comparison moves it deliberately. The value lands on the new
+`bgBlur` box field, on plain boxes and image-fill boxes only: Penpot masks a
+text shape's background blur to the glyphs, and baked vector art would get a
+rectangular frost behind an arbitrary outline, so both drop it and the shell
+warns once per import. `penpotGroupToSvg` now refuses to flatten a subtree
+carrying a visible background blur (a standalone SVG has no primitive that can
+read a backdrop) so the shapes fall to the per-shape import instead. `blur`
+itself is unchanged, and a background blur never reaches it.

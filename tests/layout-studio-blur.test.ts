@@ -165,8 +165,13 @@ test('penpotShapeToNode: hidden and background-blur entries are ignored', () => 
   const base = { id: 'b', type: 'rect', selrect: SEL, fills: [{ fillColor: '#fff' }] };
   const hid = penpotShapeToNode({ ...base, blur: { type: 'layer-blur', value: 5, hidden: true } }) as any;
   assert.equal(hid.blur, undefined, 'hidden blur never maps');
+  // Background blur is its OWN field (bgBlur → CSS backdrop-filter); it must never
+  // leak into `blur`, which blurs the box's own paint rather than what is behind it.
+  // The legacy pre-2.17 in-`blur` spelling is covered here; the modern `backgroundBlur`
+  // attribute and the radius mapping live in layout-studio-bgblur.test.ts.
   const bg = penpotShapeToNode({ ...base, blur: { type: 'background-blur', value: 5 } }) as any;
-  assert.equal(bg.blur, undefined, 'background-blur has no box equivalent');
+  assert.equal(bg.blur, undefined, 'background-blur is never a layer blur');
+  assert.ok(bg.bgBlur > 0, 'background-blur lands on bgBlur instead');
   const zero = penpotShapeToNode({ ...base, blur: { type: 'layer-blur', value: 0 } }) as any;
   assert.equal(zero.blur, undefined, 'value 0 = off');
   const junk = penpotShapeToNode({ ...base, blur: 'nope' }) as any;
@@ -218,8 +223,14 @@ test('penpotGroupToSvg: blur 0 / hidden emit byte-identical output to no blur at
   const plain = groupShapes();
   const before = penpotGroupToSvg(plain.g, (id) => plain[id]);
   for (const b of [{ type: 'layer-blur', value: 0 }, { type: 'layer-blur', value: 9, hidden: true },
-    { type: 'background-blur', value: 9 }]) {
+    { type: 'background-blur', value: 9, hidden: true }]) {
     const shapes = groupShapes(b);
     assert.equal(penpotGroupToSvg(shapes.g, (id) => shapes[id]), before, JSON.stringify(b));
   }
+  // A VISIBLE background blur is different in kind: it reads what is painted behind
+  // the group, which a standalone flattened SVG cannot see. The flatten bails so the
+  // subtree falls to the per-shape import, where bgBlur still reaches a box.
+  const bailed = groupShapes({ type: 'background-blur', value: 9 });
+  assert.equal(penpotGroupToSvg(bailed.g, (id) => bailed[id]), '',
+    'a visible background-blur leaf refuses the flatten rather than dropping the effect');
 });

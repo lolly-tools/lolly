@@ -122,9 +122,11 @@ test('ENGINE_VERSION is 1.86.0', () => {
   // no-ingredients manifest for redacted derivatives) and 1.86.0 (src/pixels.ts —
   // the DeepFrame float-RGBA buffer in linear light with its PixelSpace travelling
   // alongside, plus the u8/u16/binary16 converters and convertSpace; engine-only,
-  // no HostV1 method added);
+  // no HostV1 method added) and 1.87.0 (Penpot format currency: token-first brand
+  // ingest — scanPenpotAppliedTokens/typographyFamilies — plus dash/gap stroke
+  // patterns and background-blur import; engine-only, no HostV1 method added);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.86.0');
+  assert.equal(ENGINE_VERSION, '1.87.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

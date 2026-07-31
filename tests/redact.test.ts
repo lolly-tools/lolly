@@ -44,6 +44,20 @@ function loadHooks(): any {
   return factory(BARE_HOST);
 }
 
+// The raster export gate is three pure functions the hook keeps private
+// (residualRasterMetadata / verifyRasterOutput scan OUTPUT bytes; the pieces
+// they use are the same scanners the analysis runs). They need no canvas, so
+// they are directly testable — reach them through a second harness over the
+// same source rather than leaving the one gate that guards every image export
+// with no coverage at all.
+function loadGate(): any {
+  const factory = new Function(
+    'host',
+    `${HOOKS_SRC}\nreturn { residualRasterMetadata, verifyRasterOutput, trailingBytes, pxLength, quantiseSpan };`
+  );
+  return factory(BARE_HOST);
+}
+
 const fileRef = (name: string, mime: string, bytes: Uint8Array): any =>
   ({ __file: true, name, mime, size: bytes.length, bytes, url: null });
 
@@ -591,9 +605,11 @@ test('redact: a signer that throws fails the resign export visibly', async () =>
 
 // ─── exportFile: SVG vector mode geometry + housekeeping-attr fidelity ───────
 
-test('redact: unit-ed root width/height falls back to the viewBox so bars still paint', async () => {
+test('redact: a root size with no resolvable value falls back to the viewBox so bars still paint', async () => {
   const hooks = loadHooks();
-  for (const size of ['width="100%" height="100%"', 'width="210mm" height="157.5mm"']) {
+  // A percentage or a font-metric unit has no value an <img> can resolve, so the
+  // browser takes the viewBox as the intrinsic size. We must agree with it.
+  for (const size of ['width="100%" height="100%"', 'width="40ex" height="30ex"', '']) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" ${size} viewBox="0 0 800 600">
   <text x="380" y="300">SECRET</text>
 </svg>`;
@@ -604,8 +620,32 @@ test('redact: unit-ed root width/height falls back to the viewBox so bars still 
     const out = new TextDecoder().decode(res.bytes);
     // 380..460 inflated 2px → 378..462 (w 84), quantised UP to 96, centred →
     // 372..468; y 280..320 → 278..322. Mapped 1:1 into the viewBox.
-    assert.match(out, /<rect x="372" y="278" width="96" height="44" fill="#000000" fill-opacity="1"\/>/, size);
+    assert.match(out, /<rect x="372" y="278" width="96" height="44" fill="#000000" fill-opacity="1"\/>/, size || '(no width/height)');
   }
+});
+
+test('redact: an absolute root size IS the natural size, and bars scale through it', async () => {
+  const hooks = loadHooks();
+  // 210mm is 793.7 natural pixels in an <img>, so the drawing surface reports a
+  // 793.7-wide frame while the viewBox is 800 wide. Treating mm as "unresolvable"
+  // put those two spaces 0.79% apart here, and 7.9x apart when the viewBox is
+  // 100 — enough for a bar to cover a different part of the page with the gate
+  // still green. Every absolute CSS unit has to resolve the way the browser does.
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="157.5mm" viewBox="0 0 800 600">'
+    + '<text x="380" y="300">SECRET</text></svg>';
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('mm.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true, bars: [{ page: 1, x: 380, y: 280, w: 80, h: 40 }] }),
+    host: BARE_HOST,
+  });
+  const out = new TextDecoder().decode(res.bytes);
+  const m = /<rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"/.exec(out);
+  assert.ok(m, 'a bar rect was appended');
+  const [x, y, w, h] = m!.slice(1).map(Number) as [number, number, number, number];
+  // 793.7 natural px over an 800-unit viewBox: the same rect, divided by 0.9921.
+  assert.ok(Math.abs(x - 372 / 0.992126) < 0.5, `x scaled through the natural size, got ${x}`);
+  assert.ok(Math.abs(w - 96 / 0.992126) < 0.5, `width scaled through the natural size, got ${w}`);
+  assert.ok(Math.abs(y - 278 / 0.992126) < 0.5, `y scaled through the natural size, got ${y}`);
+  assert.ok(Math.abs(h - 44 / 0.992126) < 0.5, `height scaled through the natural size, got ${h}`);
 });
 
 test('redact: Illustrator data-name beside a kept id does not false-positive the gate', async () => {
@@ -968,4 +1008,197 @@ test('redact: preset height fractions ship to the canvas as JSON from one source
   // parse them on the very first paint after a drop.
   const blank = await hooks.onInit({ model: modelFor(null), host: BARE_HOST });
   assert.equal(blank.presetsJson, res.presetsJson);
+});
+
+// ─── the raster export gate ──────────────────────────────────────────────────
+// Every image export ends in verifyRasterOutput(out, kind) + verifyBarsPainted.
+// The first two are pure byte scans over the OUTPUT, and until now nothing
+// pinned them: a regression that widened the JPEG APPn window (say, to tolerate
+// a segment some browser adds) would have let real EXIF ship with the gate
+// green. These lock the boundaries the gate actually depends on.
+
+// One JPEG segment: FFxx + big-endian length + payload.
+function jpegSeg(marker: number, payload: Uint8Array): Uint8Array {
+  const len = payload.length + 2;
+  const out = new Uint8Array(4 + payload.length);
+  out[0] = 0xFF; out[1] = marker; out[2] = (len >> 8) & 0xFF; out[3] = len & 0xFF;
+  out.set(payload, 4);
+  return out;
+}
+
+const ascii = (s: string) => Uint8Array.from(s.split('').map((c) => c.charCodeAt(0)));
+
+// SOI + the given segments + a minimal scan + EOI. Nothing past FFD9.
+function jpegWith(...segs: Uint8Array[]): Uint8Array {
+  return concat([
+    Uint8Array.from([0xFF, 0xD8]),
+    ...segs,
+    Uint8Array.from([0xFF, 0xDA, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0xAA, 0xBB, 0xFF, 0xD9]),
+  ]);
+}
+
+const JFIF = jpegSeg(0xE0, concat([ascii('JFIF\0'), Uint8Array.from([1, 1, 0, 0, 1, 0, 1, 0, 0])]));
+
+function pngWith(...chunks: Uint8Array[]): Uint8Array {
+  return concat([PNG_SIG, pngChunk('IHDR', ihdr(10, 10)), ...chunks, pngChunk('IDAT', Uint8Array.from([0, 1])), pngChunk('IEND', new Uint8Array(0))]);
+}
+
+// RIFF/WEBP carrying one named chunk plus a VP8 bitstream, sizes consistent.
+function webpWith(fourcc: string, payload: Uint8Array): Uint8Array {
+  const body = concat([
+    ascii(fourcc), (() => { const b = new Uint8Array(4); new DataView(b.buffer).setUint32(0, payload.length, true); return b; })(),
+    payload, payload.length & 1 ? new Uint8Array(1) : new Uint8Array(0),
+    ascii('VP8 '), Uint8Array.from([4, 0, 0, 0, 1, 2, 3, 4]),
+  ]);
+  const head = new Uint8Array(12);
+  const dv = new DataView(head.buffer);
+  head.set(ascii('RIFF'), 0);
+  dv.setUint32(4, 4 + body.length, true);
+  head.set(ascii('WEBP'), 8);
+  return concat([head, body]);
+}
+
+test('redact gate: a clean canvas JPEG passes, every metadata segment class fails', () => {
+  const { residualRasterMetadata } = loadGate();
+
+  // What a canvas re-encode actually produces: SOI, JFIF APP0, scan, EOI.
+  assert.equal(residualRasterMetadata(jpegWith(JFIF), 'JPEG'), null,
+    'APP0 JFIF is the encoder saying "this is a JPEG", not source data');
+
+  // Safari stamps the display profile into canvas output; the source profile
+  // never crosses the canvas, so an ICC APP2 is tolerated BY NAME.
+  assert.equal(residualRasterMetadata(jpegWith(JFIF, jpegSeg(0xE2, concat([ascii('ICC_PROFILE\0'), new Uint8Array(8)]))), 'JPEG'), null);
+  // ...but only when it really is one. An APP2 with any other payload fails.
+  assert.match(residualRasterMetadata(jpegWith(JFIF, jpegSeg(0xE2, ascii('MPF\0secret'))), 'JPEG'), /APP2/);
+
+  // The whole APP1..APPF window is a hard failure — this is the assertion that
+  // stops anyone "just exempting" the segment a browser happens to add.
+  for (let m = 0xE1; m <= 0xEF; m++) {
+    const msg = residualRasterMetadata(jpegWith(JFIF, jpegSeg(m, ascii('Exif\0\0payload'))), 'JPEG');
+    assert.match(String(msg), new RegExp(`APP${m - 0xE0}`), `APP${m - 0xE0} must fail the gate`);
+  }
+  assert.match(residualRasterMetadata(jpegWith(JFIF, jpegSeg(0xFE, ascii('a comment'))), 'JPEG'), /comment/);
+
+  // The scan STOPS at SOS: bytes that look like markers inside entropy-coded
+  // data are not segments, and treating them as such would fail valid output.
+  const afterScan = concat([jpegWith(JFIF).subarray(0, jpegWith(JFIF).length - 2), jpegSeg(0xE1, ascii('Exif\0\0late')), Uint8Array.from([0xFF, 0xD9])]);
+  assert.equal(residualRasterMetadata(afterScan, 'JPEG'), null, 'nothing past SOS is read as a metadata segment');
+});
+
+test('redact gate: PNG ancillary chunks that can carry content all fail', () => {
+  const { residualRasterMetadata } = loadGate();
+  assert.equal(residualRasterMetadata(pngWith(), 'PNG'), null, 'IHDR/IDAT/IEND only is what a canvas encode emits');
+  // A colour profile is encoder output; the content-bearing chunks are not.
+  assert.equal(residualRasterMetadata(pngWith(pngChunk('iCCP', ascii('p\0\0x'))), 'PNG'), null);
+  for (const type of ['tEXt', 'zTXt', 'iTXt', 'eXIf', 'tIME', 'acTL', 'caBX']) {
+    assert.match(String(residualRasterMetadata(pngWith(pngChunk(type, ascii('x'))), 'PNG')), new RegExp(type),
+      `${type} must fail the gate`);
+  }
+});
+
+test('redact gate: WebP metadata and animation chunks fail', () => {
+  const { residualRasterMetadata } = loadGate();
+  assert.equal(residualRasterMetadata(webpWith('ICCP', ascii('prof')), 'WebP'), null);
+  for (const fourcc of ['EXIF', 'XMP ', 'ANIM', 'ANMF', 'C2PA', 'JUMB']) {
+    assert.match(String(residualRasterMetadata(webpWith(fourcc, ascii('xx')), 'WebP')), new RegExp(fourcc.trim()),
+      `${fourcc.trim()} must fail the gate`);
+  }
+});
+
+test('redact gate: verifyRasterOutput throws sentences for residual metadata and for trailing bytes', () => {
+  const { verifyRasterOutput } = loadGate();
+  // Clean output passes silently, in all three families.
+  verifyRasterOutput(jpegWith(JFIF), 'JPEG');
+  verifyRasterOutput(pngWith(), 'PNG');
+  verifyRasterOutput(webpWith('ICCP', ascii('prof')), 'WebP');
+
+  assert.throws(() => verifyRasterOutput(jpegWith(JFIF, jpegSeg(0xE1, ascii('Exif\0\0x'))), 'JPEG'),
+    /^Error: Verification failed: the output still carries a JPEG APP1 metadata segment\. Nothing was downloaded\.$/);
+  assert.throws(() => verifyRasterOutput(pngWith(pngChunk('tEXt', ascii('a\0b'))), 'PNG'),
+    /still carries a PNG tEXt chunk\. Nothing was downloaded\.$/);
+
+  // The aCropalypse class, on our OWN output: anything past the terminator.
+  assert.throws(() => verifyRasterOutput(concat([pngWith(), new Uint8Array(16).fill(0x41)]), 'PNG'),
+    /bytes after the end of the image\. Nothing was downloaded\.$/);
+  assert.throws(() => verifyRasterOutput(concat([jpegWith(JFIF), new Uint8Array(16).fill(0x41)]), 'JPEG'),
+    /bytes after the end of the image\. Nothing was downloaded\.$/);
+});
+
+// ─── quantise is one mitigation, applied in every format ─────────────────────
+
+test('redact: the quantise toggle reaches the PDF rebuild, in points', async () => {
+  const hooks = loadHooks();
+  const seen: any[] = [];
+  const host = pdfHost({
+    pdf: {
+      redact: async (_b: Uint8Array, o: any) => { seen.push(o); return { bytes: new TextEncoder().encode('%PDF-1.4\n%%EOF\n'), pages: 3 }; },
+      analyze: async () => ({ findings: [{ label: 'Pages', detail: '3', tone: '' }] }),
+    },
+  });
+  // A 37pt bar over a short name is exactly the glyph-position hint the sidebar
+  // claims to soften. The rebuild has no width grid of its own (barToPixels only
+  // snaps and inflates), so if the hook hands bars over raw the toggle is a lie
+  // on the ONE format where the attack is documented.
+  const bars = [{ page: 1, x: 100, y: 50, w: 37, h: 12 }];
+  const src = fileRef('doc.pdf', 'application/pdf', PDF_SRC);
+
+  await hooks.exportFile({ model: modelFor(src, { bars }), host });
+  const on = seen[0].bars[0];
+  assert.equal(on.w % 18, 0, `width lands on the 18pt grid, got ${on.w}`);
+  assert.ok(on.w >= 37, 'quantising only ever widens');
+  assert.ok(on.x <= 100 && on.x + on.w >= 137, 'the original span stays fully inside the widened bar');
+
+  await hooks.exportFile({ model: modelFor(src, { bars, quantise: false }), host });
+  assert.deepEqual(seen[1].bars, bars, 'off means the bars cross the bridge untouched');
+});
+
+// ─── SVG vector mode: the bar must land where the browser drew it ────────────
+
+test('redact: an SVG sized in physical units maps bars from the browser natural size', async () => {
+  const hooks = loadHooks();
+  // 210mm is 793.7 natural pixels in an <img> (96 dpi), NOT 210 and not the
+  // viewBox's 100. The drawing surface measures against naturalWidth, so if the
+  // hook falls back to the viewBox the two spaces differ by 7.937x and the bar
+  // covers a different region — silently, with the gate still passing.
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="105mm" viewBox="0 0 100 50">'
+    + '<text x="5" y="20">SECRET</text></svg>';
+  const S = 96 / 25.4 * 210 / 100; // natural px per viewBox unit
+  // A bar the user drew over SECRET (viewBox x 5..50, y 10..25), committed in
+  // natural pixels the way template.html's frameSpace() reports them.
+  const bars = [{ page: 1, x: Math.round(5 * S), y: Math.round(10 * S), w: Math.round(45 * S), h: Math.round(15 * S) }];
+  const out = new TextDecoder().decode(
+    (await hooks.exportFile({
+      model: modelFor(fileRef('mm.svg', 'image/svg+xml', svgBytes(svg)), { bars, svgVector: true }),
+      host: BARE_HOST,
+    })).bytes
+  );
+  const m = /<rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"/.exec(out);
+  assert.ok(m, 'a bar rect was appended');
+  const [x, y, w, h] = m!.slice(1).map(Number) as [number, number, number, number];
+  // Back in viewBox units, the rect must contain the text it was drawn over.
+  assert.ok(x <= 5 && x + w >= 50, `covers the text horizontally, got x=${x} w=${w}`);
+  assert.ok(y <= 12 && y + h >= 20, `covers the text vertically, got y=${y} h=${h}`);
+  assert.ok(x + w <= 101, 'and does not sprawl past the page');
+});
+
+// ─── bars belonging to a document the user replaced ──────────────────────────
+
+test('redact: bars left on other pages by a replaced PDF are reported, not silently burned away', async () => {
+  const hooks = loadHooks();
+  // `bars` is its own input and survives a source swap: redact a PDF, mark page
+  // 3, then Replace with a photo. The UI used to report 3 bars while the export
+  // burned 1, and every gate passed because it only ever inspected the rects
+  // that placed.
+  const res = await hooks.onInput({
+    id: 'bars',
+    model: modelFor(fileRef('shot.png', 'image/png', buildDirtyPng()), {
+      bars: [{ page: 3, x: 10, y: 10, w: 40, h: 12 }, { page: 1, x: 0, y: 0, w: 20, h: 10 }],
+    }),
+    host: BARE_HOST,
+  });
+  assert.equal(res.barCount, 1, 'the count describes the page that exists');
+  assert.match(res.coverageText, /^1 mark /);
+  assert.match(res.staleNote, /replaced/);
+  assert.match(res.staleNote, /dropped from the export/);
+  assert.equal(res.staleBars, 1);
 });

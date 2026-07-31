@@ -91,7 +91,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `bake.ts` | 149 | Bake — freeze a composed render into a static asset, plus the shared compose recursion policy (the depth/cycle guard every shell bridge enforces). | yes | indirect | – |
 | `batch.ts` | 153 | Batch — the shared, DOM-free contract for "many URL-mode rows under one file". | yes | none | – |
 | `brand-derive.ts` | 787 | Brand derivation — OKLCH-native colour math + the semantic-token generator behind the lolly-start onboarding (plans/brand-token-contract.md). | yes | `tests/brand-derive.test.ts` | – |
-| `brand-import.ts` | 469 | Brand token ingestion — container extraction for the three shapes Penpot (and Tokens Studio) export the SAME token document in: | yes | `tests/brand-import.test.ts` | – |
+| `brand-import.ts` | 583 | Brand token ingestion — container extraction for the three shapes Penpot (and Tokens Studio) export the SAME token document in: | yes | `tests/brand-import.test.ts` | – |
 | `brand-map.ts` | 425 | Brand mapper — the "make a foreign document look intentionally on-brand" primitives (plan track E3, plans/fable-new-potential-pptx.md §E3). | yes | `tests/brand-map.test.ts` | – |
 | `brand-schemes.ts` | 98 | Brand scheme accents — a pure, deterministic accent-colour generator for the Lolly brand generator's harmony picker. | yes | `tests/brand-schemes.test.ts` | – |
 | `brand-treatments.ts` | 249 | Brand-derived photo treatments + icon duo themes. | yes | `tests/brand-treatments.test.ts` | – |
@@ -116,7 +116,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `data-import.ts` | 218 | Data-file → blocks rows. | yes | `tests/data-import.test.ts` | yes |
 | `deflate.ts` | 404 | Raw DEFLATE compressor + zlib wrapper — the byte-emitting half the engine was missing. | yes | `tests/deflate.test.ts` | – |
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
-| `design-map.ts` | 1783 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
+| `design-map.ts` | 1972 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `dxf.ts` | 185 | DXF (AutoCAD Drawing Interchange) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/dxf.test.ts` | – |
 | `embed.ts` | 73 | Embed URL grammar — the portable surface of tool composition. | yes | `tests/embed.test.ts` | – |
 | `emf.ts` | 459 | EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/emf.test.ts` | – |
@@ -139,8 +139,8 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `geom/spline.ts` | 1038 | The seam between an AUTHORED path and the cubics geometry runs on. | yes | `tests/geom-spline.test.ts` | – |
 | `geom/stroke.ts` | 375 | Stroke outlining — the region a stroked path paints, as a fillable path. | yes | `tests/geom-stroke.test.ts` | – |
 | `gradient-spec.ts` | 255 | The Lolly gradient spec — one terse, URL-safe string describing a gradient, and the CSS it bakes down to. | yes | `tests/gradient-spec.test.ts` | – |
-| `hdr.ts` | 412 | HDR raster export — brand-colour highlight boost + PQ (SMPTE ST 2084) encoding. | yes | `tests/hdr.test.ts` | – |
-| `icc-pixels.ts` | 438 | ICC profiles applied to deep pixel buffers — the digiKam act (deeprichpixels §3, §5.1): input profile → PCS → working/output space, per pixel, over a {@link DeepFrame}. | yes | `tests/icc-pixels.test.ts` | – |
+| `hdr.ts` | 444 | HDR raster export — brand-colour highlight boost + PQ (SMPTE ST 2084) encoding. | yes | `tests/hdr.test.ts` | – |
+| `icc-pixels.ts` | 482 | ICC profiles applied to deep pixel buffers — the digiKam act (deeprichpixels §3, §5.1): input profile → PCS → working/output space, per pixel, over a {@link DeepFrame}. | yes | `tests/icc-pixels.test.ts` | – |
 | `icc.ts` | 1390 | ICC profile reader — the authority for "what can this device actually print?". | yes | `tests/icc.test.ts` | yes |
 | `icon-theme.ts` | 204 | Two-colour themable icons. | yes | `tests/icon-theme.test.ts` | – |
 | `image-cloud.ts` | 272 | An image's colours as a point cloud in OKLCH, plus what the distribution says. | yes | `tests/image-cloud.test.ts` | – |
@@ -177,8 +177,8 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `svg-path.ts` | 307 | SVG path `d` tokenizer — pure, DOM-free, platform-agnostic. | yes | `tests/svg-path.test.ts` | – |
 | `table-text.ts` | 113 | Text ⇄ table parsing/serialising for the `table` input (the clipboard and file round-trip) — the batch-editing story is "edit in the spreadsheet you already have", so paste-in and copy-out must be lossless against the… | yes | `tests/table-text.test.ts` | – |
 | `template.ts` | 415 | Template hydration. | yes | indirect | – |
-| `tiff.ts` | 206 | Baseline TIFF encoder (uncompressed, single strip, little-endian). | yes | `tests/tiff.test.ts` | – |
-| `tokens.ts` | 427 | Design tokens — a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
+| `tiff.ts` | 224 | Baseline TIFF encoder (uncompressed, single strip, little-endian). | yes | `tests/tiff.test.ts` | – |
+| `tokens.ts` | 483 | Design tokens — a platform-agnostic DTCG model. | yes | `tests/tokens.test.ts` | – |
 | `tool-url.ts` | 133 | Lolly tool-URL recognition — the END-USER surface of tool composition. | yes | `tests/tool-url.test.ts` | – |
 | `trustmark.ts` | 971 | Adobe TrustMark — BCH data-layer decode (pure GF(2^7) math, DOM-free). | yes | `tests/trustmark.test.ts` | – |
 | `units.ts` | 98 | Physical unit conversions for output dimensions — platform-agnostic, no DOM. | yes | `tests/units.test.ts` | – |
