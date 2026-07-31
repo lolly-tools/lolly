@@ -72,10 +72,13 @@ test('kitchen sink: the archive is a Penpot 2.17.1-RC4 export declaring the feat
   for (const f of ['design-tokens/v1', 'variants/v1', 'components/v2']) {
     assert.ok(file.features.includes(f), `manifest declares ${f}`);
   }
-  // 57, not the export's 65: the 8 objects/*.png thumbnail previews are stripped
-  // from the committed fixture (271 KB nothing reads); every JSON entry is the
-  // genuine 2.17.1-RC4 output, untouched.
-  assert.equal(paths.length, 57, 'entry count — a re-export that changes this needs re-reading');
+  // 60, not the export's 65: 5 of the 8 objects/*.png previews are stripped from
+  // the committed fixture (268 KB nothing reads); every JSON entry is the genuine
+  // 2.17.1-RC4 output, untouched. The 3 that stay (3.5 KB) are the ones the
+  // `thumbnails/component/**` pointers reference — restored when the templates
+  // pass started reading them, so that path is exercised by a committed fixture
+  // and not only by the gated keynote replay.
+  assert.equal(paths.length, 60, 'entry count — a re-export that changes this needs re-reading');
   assert.equal(shapes.length, 34, 'page shapes (incl. the root frame)');
   assert.equal(paths.filter(p => /\/components\/[^/]+\.json$/.test(p)).length, 2, 'two component records');
   assert.equal(paths.filter(p => /\/tokens\.json$/.test(p)).length, 1, 'one in-file token doc');
@@ -595,4 +598,37 @@ test('kitchen sink: with the interactions stripped, ordering falls back byte-ide
   assert.equal(flow.hasFlow, false, 'this is the keynote case — zero interactions');
   assert.deepEqual(flow.ordered, ids, 'the input order comes back untouched');
   assert.deepEqual(flow.transitions, {});
+});
+
+// ── (g) component previews: the pointer → object join ────────────────────────
+// (Appended block — the templates pass reads these, so what the export actually
+// writes is pinned here beside every other structure claim.)
+
+test('kitchen sink: a component preview is a pointer record naming an objects/ blob', () => {
+  const ptrs = paths.filter(p => /\/thumbnails\/component\/[^/]+\/[^/]+\.json$/.test(p));
+  assert.equal(ptrs.length, 4, 'one per main instance AND one per placed copy');
+
+  // The pointer names the frame it depicts and the media id holding the bytes;
+  // the bytes themselves are a sibling `objects/<mediaId>.png`, and the JSON of
+  // the same name is metadata (size + contentType), not the image.
+  const rows = ptrs.map(readJson);
+  for (const r of rows) {
+    assert.equal(r.tag, 'component');
+    assert.equal(r.fileId, FILE_ID);
+    assert.equal(r.pageId, PAGE_ID);
+    assert.ok(entries[`objects/${r.mediaId}.png`], `objects/${r.mediaId}.png is in the archive`);
+    const meta = readJson(`objects/${r.mediaId}.json`);
+    assert.equal(meta.contentType, 'image/png');
+    assert.equal(meta.bucket, 'file-object-thumbnail');
+    assert.equal(entries[`objects/${r.mediaId}.png`]!.length, meta.size, 'the meta size is the real byte length');
+    assert.deepEqual([...entries[`objects/${r.mediaId}.png`]!.subarray(0, 4)], [0x89, 0x50, 0x4e, 0x47]);
+  }
+
+  // Every MASTER has one, which is what makes a template tile free. The two
+  // variants of this set depict differently, so a set is not one picture reused.
+  const mains = shapes.filter(s => s.mainInstance);
+  assert.equal(mains.length, 2);
+  const byFrame = new Map(rows.map((r: any) => [r.frameId, r.mediaId]));
+  for (const m of mains) assert.ok(byFrame.get(m.id), `${m.variantName}: has a component preview`);
+  assert.notEqual(byFrame.get(mains[0]!.id), byFrame.get(mains[1]!.id));
 });

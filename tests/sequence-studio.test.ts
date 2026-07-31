@@ -441,7 +441,10 @@ test('canvas: the A/V link sub-field is declared, and the field is panel-owned',
   const link = f.find((x: any) => x.id === 'linkOf');
   assert.ok(link, 'the declared sub-field exists');
   assert.deepEqual(link.showFor, [], 'machine-written, never a sidebar control');
-  assert.equal(f[f.length - 1].id, 'linkOf',
+  const ids = f.map((x: any) => x.id);
+  assert.equal(ids.indexOf('linkOf'), 49,
+    'a SLOT is permanent: later fields append PAST linkOf, they never displace it');
+  assert.deepEqual(ids.slice(-2), ['enterEase', 'exitEase'],
     'APPENDED — `boxes` is a positional wire format, so a new field goes on the end');
 });
 

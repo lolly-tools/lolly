@@ -17,6 +17,7 @@
 // the XMP packet in MP4/QuickTime video (the AI-declaration carrier there).
 
 import { aiKind } from './c2pa-verify.ts';
+import { JPEG_APP_IDS, scanJpegSegments } from './jpeg-segments.ts';
 
 export type MetaGroup =
   | 'location'
@@ -69,9 +70,19 @@ export interface FileMetadata {
    * configs. Deterministic and always sized; `kind` is a best-effort sniff
    * of what the payload is, `offset` is the exact byte index it starts at
    * (so a caller can slice the original bytes to extract it). Note the
-   * legitimate case: motion photos (Samsung/Pixel) append an MP4 here.
+   * legitimate cases: motion photos (Samsung/Pixel) append an MP4 here, and a
+   * multi-picture JPEG — an HDR gain-map file (ours included) or an MPO — keeps
+   * its second image here and DECLARES it in an MPF index. Both are reported
+   * with a `kind` that names them and without the `sensitive` flag; see
+   * {@link readMpfIndex}.
+   *
+   * `declared` is set when the CONTAINER ITSELF accounts for the bytes (today:
+   * an MPF index naming their offset and length). Read it through
+   * {@link appendedIsExpected} rather than re-deriving "is this the legitimate
+   * case" from `kind`, which is how the verify view's warning pip and this
+   * module's `sensitive` flag drifted apart.
    */
-  appended?: { bytes: number; kind: string; offset: number };
+  appended?: { bytes: number; kind: string; offset: number; declared?: boolean };
   /**
    * LSB steganalysis verdict — populated by pixel-capable SHELLS (the analysis
    * is pixel-domain, engine/src/steganalysis.ts; this byte reader can't decode
@@ -354,6 +365,152 @@ function readXmp(text: string, out: FileMetadata): void {
   if (out.ai && !out.ai.credit && credit) out.ai.credit = credit;
 }
 
+// ── MPF: the second image a JPEG legitimately declares ────────────────────────
+//
+// A JPEG ends at its EOI, so a multi-picture file keeps its extra images in the
+// bytes AFTER it — exactly where a smuggled payload would sit. The difference is
+// that a real multi-picture file SAYS SO, in a CIPA DC-007 "MPF" APP2 index that
+// records the byte offset and length of every image. Two shipping cases put a
+// second JPEG there:
+//
+//   - an **HDR gain map** (ISO 21496-1 + Ultra HDR v1.1) — what Lolly's own
+//     `hdr=1` JPEG export writes (plans/deeprichpixels.md §4.2 / §6 B2), and
+//     what Apple, Adobe and Android 15 write. The primary is an ordinary SDR
+//     JPEG; the second image is a greyscale map an HDR-aware decoder applies.
+//   - a plain MPO (stereo pairs, Apple burst/depth companions).
+//
+// Reading the index is what lets the reveal say what IS there instead of
+// "appended data — 41 KB", which for our own export reads as an accusation. The
+// motion-photo precedent (`sniffAppended`'s `video (motion photo)`) is followed
+// exactly: disclosed, sized, offset given — just not flagged `sensitive`.
+//
+// House reader contract, same as the rest of this module: bounded, never throws,
+// `null` for anything it cannot fully verify. Nothing the index CLAIMS is
+// trusted — an offset is only believed once it lands inside the buffer on an SOI.
+
+/** One image an MPF index declares, in absolute file offsets. */
+export interface MpfImageRef {
+  /** Absolute byte offset of the image's SOI. 0 for the primary. */
+  start: number;
+  /** Declared byte length. */
+  length: number;
+}
+
+export interface JpegMpfIndex {
+  /** Every declared image, in index order; `images[0]` is the primary. At least two. */
+  images: MpfImageRef[];
+  /** First byte past the PRIMARY image's EOI — the real start of the trailer, independent of what the index claims. */
+  trailerStart: number;
+  /** True when the second image carries ISO 21496-1 or `hdrgm` gain-map metadata (or the primary's XMP declares a GainMap container item). */
+  gainMap: boolean;
+}
+
+/** The ISO 21496-1 APP2 identifier (Skia's `kISOGainmapSig`). Kept as a local wire constant — see `engine/src/gainmap-jpeg.ts` for the writer that emits it. */
+const ISO_GAINMAP_URN = 'urn:iso:std:iso:ts:21496:-1';
+/** Adobe's gain-map XMP namespace, as it appears inside an `hdrgm` packet. */
+const HDRGM_NS = 'hdr-gain-map';
+/** Hard cap on declared images — a real MPF file has 2–3; this stops a hostile count from sizing an array. */
+const MAX_MPF_IMAGES = 16;
+/** Bytes of a sub-image's APPn payload decoded as text when sniffing for gain-map metadata. */
+const MAX_GAINMAP_SNIFF = 8192;
+
+/** True when the JPEG spanning `[start, end)` carries gain-map metadata in either vocabulary. */
+function hasGainMapMetadata(bytes: Uint8Array, start: number, end: number): boolean {
+  if (start < 0 || end > bytes.length || end - start < 4) return false;
+  const sub = bytes.subarray(start, end);
+  const scan = scanJpegSegments(sub);
+  if (!scan) return false;
+  for (const seg of scan.segments) {
+    if (seg.marker !== 0xe1 && seg.marker !== 0xe2) continue;
+    if (seg.appId === JPEG_APP_IDS.MPF || seg.appId === JPEG_APP_IDS.ICC) continue;
+    if (seg.appId === ISO_GAINMAP_URN) return true; // ISO 21496-1, identified by the URN alone
+    const body = sub.subarray(seg.start + 4, Math.min(seg.end, seg.start + 4 + MAX_GAINMAP_SNIFF));
+    if (body.length && new TextDecoder('latin1').decode(body).includes(HDRGM_NS)) return true;
+  }
+  return false;
+}
+
+/** True when the PRIMARY image's XMP declares a GContainer `GainMap` item (Ultra HDR v1.1). */
+function primaryDeclaresGainMap(bytes: Uint8Array, scan: ReturnType<typeof scanJpegSegments>): boolean {
+  if (!scan) return false;
+  for (const seg of scan.segments) {
+    if (seg.marker !== 0xe1 || seg.appId !== JPEG_APP_IDS.XMP) continue;
+    const body = bytes.subarray(seg.start + 4, Math.min(seg.end, seg.start + 4 + MAX_GAINMAP_SNIFF));
+    const text = new TextDecoder('latin1').decode(body);
+    if (text.includes(HDRGM_NS) && text.includes('GainMap')) return true;
+  }
+  return false;
+}
+
+/**
+ * Read a JPEG's MPF (CIPA DC-007) multi-picture index, or `null` when the file
+ * has none, has a malformed one, or declares fewer than two images.
+ *
+ * Every offset in an MP index is measured from the FIRST BYTE OF THE MP ENDIAN
+ * FIELD (DC-007 §5.2.3.3), not the file start and not the segment start; the
+ * primary's own offset field is zero by definition. Both byte orders are
+ * accepted on read (libultrahdr and our own writer emit `MM`; a reader of files
+ * strangers send does not get to be picky).
+ *
+ * Returns only fully-verified structure: a second image is reported solely when
+ * its declared range lies inside the buffer AND begins with an SOI marker.
+ */
+export function readMpfIndex(bytes: Uint8Array | null | undefined): JpegMpfIndex | null {
+  try {
+    if (!bytes) return null;
+    const scan = scanJpegSegments(bytes);
+    if (!scan || scan.eoi === null) return null;
+    const trailerStart = scan.eoi + 2;
+    const mpf = scan.segments.find((s) => s.marker === 0xe2 && s.appId === JPEG_APP_IDS.MPF);
+    if (!mpf) return null;
+
+    // marker(2) + length(2) + "MPF\0"(4) → the MP Endian field.
+    const h = mpf.start + 8;
+    if (h + 8 > mpf.end || h + 8 > bytes.length) return null;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const endian = dv.getUint16(h);
+    if (endian !== 0x4d4d && endian !== 0x4949) return null;
+    const le = endian === 0x4949;
+    if (dv.getUint16(h + 2, le) !== 0x002a) return null; // TIFF magic
+    const ifd = h + dv.getUint32(h + 4, le);
+    if (ifd < h || ifd + 2 > mpf.end) return null;
+    const count = dv.getUint16(ifd, le);
+    if (count > 64 || ifd + 2 + count * 12 > mpf.end) return null;
+
+    let declared = 0;
+    let entriesAt = -1;
+    for (let i = 0; i < count; i++) {
+      const e = ifd + 2 + i * 12;
+      const tag = dv.getUint16(e, le);
+      if (tag === 0xb001) declared = dv.getUint32(e + 8, le);      // NumberOfImages
+      else if (tag === 0xb002) entriesAt = h + dv.getUint32(e + 8, le); // MPEntry
+    }
+    if (declared < 2 || declared > MAX_MPF_IMAGES) return null;
+    if (entriesAt < h || entriesAt + declared * 16 > mpf.end) return null;
+
+    const images: MpfImageRef[] = [];
+    for (let i = 0; i < declared; i++) {
+      const at = entriesAt + i * 16;
+      const length = dv.getUint32(at + 4, le);
+      const off = dv.getUint32(at + 8, le);
+      // DC-007: the primary's offset field is 0 and means the start of the file.
+      const start = i === 0 && off === 0 ? 0 : h + off;
+      images.push({ start, length });
+    }
+
+    const second = images[1]!;
+    if (second.start <= 0 || second.length <= 0) return null;
+    if (second.start + second.length > bytes.length) return null;
+    if (bytes[second.start] !== 0xff || bytes[second.start + 1] !== 0xd8) return null; // must be a real JPEG
+
+    const gainMap = hasGainMapMetadata(bytes, second.start, second.start + second.length)
+      || primaryDeclaresGainMap(bytes, scan);
+    return { images, trailerStart, gainMap };
+  } catch {
+    return null;
+  }
+}
+
 // ── Appended payloads (bytes after the container ends) ───────────────────────────
 
 // Best-effort sniff of what a trailing payload is. Neutral wording — a motion
@@ -386,18 +543,63 @@ function fmtBytes(n: number): string {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
+/**
+ * When the bytes at `off` are an image the file's own MPF index declares, name
+ * it. `null` means "nothing in the file accounts for these bytes" — which is the
+ * condition that earns the `sensitive` flag, not the mere presence of a trailer.
+ */
+function describeDeclaredImage(bytes: Uint8Array, off: number): { kind: string; gainMap: boolean } | null {
+  const idx = readMpfIndex(bytes);
+  if (!idx) return null;
+  if (!idx.images.some((im, i) => i > 0 && im.start === off)) return null;
+  return idx.gainMap
+    ? { kind: 'HDR gain map (ISO 21496-1 / Ultra HDR)', gainMap: true }
+    : { kind: 'second image (MPF multi-picture)', gainMap: false };
+}
+
 // Record a trailing payload of `len` bytes starting at `off`.
 function noteAppended(bytes: Uint8Array, off: number, out: FileMetadata): void {
   const len = bytes.length - off;
   if (len <= 0) return;
-  const kind = sniffAppended(bytes, off);
-  out.appended = { bytes: len, kind, offset: off };
+  const declared = describeDeclaredImage(bytes, off);
+  const kind = declared ? declared.kind : sniffAppended(bytes, off);
+  out.appended = { bytes: len, kind, offset: off, declared: !!declared };
+  if (declared?.gainMap) {
+    out.fields.push({
+      label: 'HDR gain map',
+      value: 'a second image an HDR display applies to brighten this one; ordinary viewers show the SDR image unchanged',
+      group: 'technical',
+    });
+  }
   out.fields.push({
     label: 'Appended data',
-    value: `${kind} — ${fmtBytes(len)} after the image ends`,
+    value: declared
+      ? `${kind} — ${fmtBytes(len)}, declared by the file's multi-picture (MPF) index`
+      : `${kind} — ${fmtBytes(len)} after the image ends`,
     group: 'technical',
-    sensitive: kind !== 'video (motion photo)',
+    sensitive: !appendedIsExpected(out.appended),
   });
+}
+
+/**
+ * Is a trailing payload accounted for, rather than hidden? The single rule
+ * behind both this module's `sensitive` flag and any UI that warns about
+ * appended data — shells must call this instead of comparing `kind` strings.
+ *
+ * Two ways to qualify, and they are different strengths of evidence:
+ *   - `declared` — the container states the payload's offset and length (an MPF
+ *     multi-picture index: an HDR gain map, an MPO). Strong: verified structure.
+ *   - the motion-photo MP4 append — a convention with no in-file declaration,
+ *     exempt because it is ubiquitous and benign, on the sniff alone.
+ *
+ * Everything else (zips, executables, an undeclared second image) stays flagged.
+ * Note what this is NOT: a safety verdict. It says the bytes are explained, not
+ * that they are harmless — the /verify view still offers to view and extract
+ * every appended payload, expected or not.
+ */
+export function appendedIsExpected(appended: FileMetadata['appended']): boolean {
+  if (!appended) return false;
+  return appended.declared === true || appended.kind === 'video (motion photo)';
 }
 
 // Find the true end of a JPEG's entropy-coded data: from the first SOS scan,

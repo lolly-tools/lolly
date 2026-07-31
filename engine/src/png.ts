@@ -59,39 +59,58 @@
  * measurement is pinned in tests/png.test.ts (a 16-bit gradient is materially
  * smaller filtered than unfiltered).
  *
- * ─── The deflate memory caveat (plan §9, "Phase B blocker") ──────────────────
- * `deflate.ts`'s `tokenize()` allocates ~8 bytes of scratch per input byte and
- * offers no streaming/incremental surface: `deflateRaw` writes BFINAL on its
- * single block, so two calls CANNOT be concatenated into one DEFLATE stream, and
- * PNG requires the concatenated IDAT payload to be exactly one zlib stream
- * (§10.1). So slab-wise compression with a shared window is not expressible
- * against today's module, and this writer takes the documented fallback: one
- * `zlibCompress` call, guarded by `maxDeflateBytes` (default 16 MiB of FILTERED
- * bytes ≈ 128 MiB of tokenizer scratch). Past the guard the caller chooses:
- * throw (default — loud, with the reason) or `oversize: 'store'`, which emits a
- * spec-valid uncompressed zlib stream (RFC 1951 §3.2.4 stored blocks) built here
- * in O(1) extra memory. Stored output is big but correct and bounded; refusing
- * outright would make a large HDR master unencodable.
+ * ─── How big images are compressed (the §9b blocker, now lifted) ─────────────
+ * `deflate.ts` grew the slab-fed deflater its old TODO here asked for
+ * (`createZlibStream`: one 32 KB LZ77 window carried across pushes, blocks
+ * emitted as they are produced, BFINAL only on finish). So there are two
+ * compression paths here, chosen by size and NOTHING else:
  *
- * TODO(deflate.ts): give the compressor an incremental surface — a deflater
- * object fed slabs, holding one 32 KB window across them and writing BFINAL only
- * on finish. Then this module compresses in ~1 MiB slabs, `maxDeflateBytes` and
- * the whole `oversize` option disappear, and large deep PNGs compress properly.
- * Retrofitting that here later is the cheap direction; the guard is the seam.
+ * - up to `STREAM_ABOVE_BYTES` (4 MiB of filtered bytes) — the one-shot
+ *   `zlibCompress`, unchanged. Every PNG this writer has ever emitted is in this
+ *   range, and its bytes are pinned by goldens (tests/png.test.ts) and hashed by
+ *   C2PA, so the small path stays byte-for-byte what it was.
+ * - above it — `createZlibStream`, fed one filtered scanline at a time. Scratch
+ *   is ~450 KB of compressor state regardless of image size, AND the whole-image
+ *   `filtered` buffer is never allocated (rows are filtered straight into the
+ *   stream). A 4K 16-bit RGBA master (66 MiB of scanlines, ~530 MiB of one-shot
+ *   tokenizer scratch before this) now compresses in a few hundred KB of working
+ *   memory. Output is a normal multi-block DEFLATE stream — spec-valid
+ *   everywhere, a fraction of a percent larger than one-shot.
+ *
+ * `maxDeflateBytes` survives as a deliberate ceiling, but it is no longer a
+ * MEMORY ceiling: the default is `DEFAULT_MAX_DEFLATE_BYTES` (1 GiB of filtered
+ * bytes ≈ 134 megapixels of 16-bit RGBA), which is a sanity bound on the single
+ * Uint8Array this function returns, not a statement about scratch. A caller that
+ * passes a small cap still gets the old loud refusal — that is the seam the web
+ * shell's HDR path uses to fall back — or, with `oversize: 'store'`, a
+ * spec-valid uncompressed zlib stream (RFC 1951 §3.2.4 stored blocks) built in
+ * O(1) extra memory.
  *
  * The IDAT payload is split across multiple IDAT chunks (`idatChunkBytes`,
  * default 1 MiB) regardless — decoders concatenate them, and it keeps any single
  * chunk allocation modest.
  */
 
-import { zlibCompress, adler32, type DeflateOptions } from './deflate.ts';
+import { zlibCompress, createZlibStream, adler32, type DeflateOptions } from './deflate.ts';
 import { crc32 } from './zip-crypto.ts';
 
 /** PNG file signature (spec §5.2). */
 const PNG_SIG = Uint8Array.of(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a);
 
-/** Filtered bytes we will hand to the single-shot compressor (see header). */
-const DEFAULT_MAX_DEFLATE_BYTES = 16 * 1024 * 1024;
+/**
+ * Default ceiling on filtered bytes (see header). 1 GiB ≈ 134 MP of 16-bit
+ * RGBA — a sanity bound on the returned buffer, NOT a memory bound: past
+ * `STREAM_ABOVE_BYTES` the compressor's scratch is constant.
+ */
+const DEFAULT_MAX_DEFLATE_BYTES = 1024 * 1024 * 1024;
+
+/**
+ * Filtered bytes above which compression streams instead of running one-shot.
+ * Deliberately well above every PNG this writer emits today, so shipped goldens
+ * and C2PA hashes keep their exact bytes; big deep masters take the bounded
+ * path. Changing this changes output BYTES for images in the crossover range.
+ */
+const STREAM_ABOVE_BYTES = 4 * 1024 * 1024;
 
 /** Default IDAT payload split. */
 const DEFAULT_IDAT_CHUNK_BYTES = 1024 * 1024;
@@ -147,7 +166,11 @@ export interface PackPngOptions {
   filter?: 'auto' | 'none';
   /** Passed through to the deflate compressor. */
   deflate?: DeflateOptions;
-  /** Filtered-byte ceiling for the single-shot compressor. Default 16 MiB. */
+  /**
+   * Deliberate ceiling on filtered bytes. Default 1 GiB — memory no longer
+   * scales with the image (see the header), so this is a sanity bound, and a
+   * caller passing a small value is asking for a refusal seam, not saving RAM.
+   */
   maxDeflateBytes?: number;
   /** What to do past `maxDeflateBytes`: throw (default) or emit stored blocks. */
   oversize?: 'throw' | 'store';
@@ -265,7 +288,8 @@ function filterRow(
 /**
  * A valid RFC 1950 stream carrying RFC 1951 §3.2.4 stored blocks — no LZ77, no
  * Huffman, so no tokenizer scratch. Used only past `maxDeflateBytes` with
- * `oversize: 'store'`; see the module header's TODO.
+ * `oversize: 'store'` — a caller that has deliberately capped the encoder and
+ * still wants a file. Ordinary large images now stream instead (see header).
  */
 function storedZlib(data: Uint8Array): Uint8Array {
   const blocks = Math.max(1, Math.ceil(data.length / STORED_MAX));
@@ -337,8 +361,29 @@ export function packPng(pixels: PngSamples, opts: PackPngOptions): Uint8Array {
   const filteredLen = stride * H;
   if (!Number.isSafeInteger(filteredLen)) throw new Error('packPng: image is too large to address.');
 
-  // ── serialise scanlines (big-endian for 16-bit, spec §7.1) then filter ─────
-  const filtered = new Uint8Array(filteredLen);
+  // ── the ceiling, checked BEFORE anything image-sized is allocated ─────────
+  const cap = opts.maxDeflateBytes ?? DEFAULT_MAX_DEFLATE_BYTES;
+  if (filteredLen > cap && opts.oversize !== 'store') {
+    throw new Error(
+      `packPng: ${filteredLen} filtered bytes exceeds maxDeflateBytes (${cap}). ` +
+      'That ceiling is now deliberate, not a memory limit: deflate.ts had no incremental surface ' +
+      'when the guard was written and now has one (createZlibStream), so a payload this size ' +
+      'compresses in constant scratch. ' +
+      "Pass oversize: 'store' for an uncompressed (but valid) PNG, or raise maxDeflateBytes deliberately.",
+    );
+  }
+
+  // ── serialise scanlines (big-endian for 16-bit, spec §7.1), filter, compress ─
+  // Rows are produced one at a time into `rowOut`. Past STREAM_ABOVE_BYTES each
+  // one is pushed straight into the compressor, so the whole-image `filtered`
+  // buffer is never allocated; below it rows are staged into `filtered` and
+  // compressed in one shot, which is what keeps small-PNG bytes frozen.
+  const streaming = filteredLen > STREAM_ABOVE_BYTES && filteredLen <= cap;
+  const stored = filteredLen > cap;                 // oversize: 'store'
+  const filtered = streaming ? null : new Uint8Array(filteredLen);
+  const zstream = streaming ? createZlibStream(opts.deflate) : null;
+  const zparts: Uint8Array[] = [];
+  const rowOut = new Uint8Array(stride);
   // Two row buffers, swapped each scanline: `cur` is being written, `prev` holds
   // the previous row's UNFILTERED bytes (what Up/Average/Paeth predict against).
   let cur = new Uint8Array(rowBytes);
@@ -359,26 +404,26 @@ export function packPng(pixels: PngSamples, opts: PackPngOptions): Uint8Array {
         cur[i + 1] = v & 0xff;
       }
     }
-    filterRow(cur, y > 0 ? prev : null, bpp, filtered.subarray(y * stride, (y + 1) * stride), scratch, auto);
+    filterRow(cur, y > 0 ? prev : null, bpp, rowOut, scratch, auto);
+    if (zstream) {
+      const part = zstream.push(rowOut);            // copies; rowOut is reusable
+      if (part.length > 0) zparts.push(part);
+    } else {
+      filtered!.set(rowOut, y * stride);
+    }
     const t = prev;
     prev = cur;
     cur = t;
   }
 
-  // ── compress (see the module header's memory caveat) ──────────────────────
-  const cap = opts.maxDeflateBytes ?? DEFAULT_MAX_DEFLATE_BYTES;
   let zdata: Uint8Array;
-  if (filteredLen <= cap) {
-    zdata = zlibCompress(filtered, opts.deflate);
-  } else if (opts.oversize === 'store') {
-    zdata = storedZlib(filtered);
+  if (zstream) {
+    zparts.push(zstream.finish());
+    zdata = concat(zparts);
+  } else if (stored) {
+    zdata = storedZlib(filtered!);
   } else {
-    throw new Error(
-      `packPng: ${filteredLen} filtered bytes exceeds maxDeflateBytes (${cap}). ` +
-      'deflate.ts compresses in one shot with ~8x scratch and has no incremental surface, ' +
-      "so this would allocate ~" + Math.round((filteredLen * 8) / (1024 * 1024)) + ' MiB. ' +
-      "Pass oversize: 'store' for an uncompressed (but valid) PNG, or raise maxDeflateBytes deliberately.",
-    );
+    zdata = zlibCompress(filtered!, opts.deflate);
   }
 
   // ── chunks ────────────────────────────────────────────────────────────────

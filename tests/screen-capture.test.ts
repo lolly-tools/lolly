@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.88.0', () => {
+test('ENGINE_VERSION is 1.90.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -128,9 +128,25 @@ test('ENGINE_VERSION is 1.88.0', () => {
   // 1.88.0 (the reserved `depth` URL param + the additive ExportOpts.depth field,
   // and src/png.ts — the engine's own 8/16-bit PNG writer behind the first deep
   // output: 16-bit cICP HDR PNG. A field, not a method, so every existing shell
-  // is unaffected);
+  // is unaffected) and 1.89.0 (the gain-map JPEG: src/gainmap.ts, src/gainmap-jpeg.ts
+  // and src/jpeg-segments.ts, plus readMpfIndex/appendedIsExpected on the
+  // file-metadata surface, behind ISO 21496-1 / Ultra HDR HDR JPEG export;
+  // engine-only, no HostV1 method added) and 1.90.0 (four additive optional
+  // fields on PdfRedactOpts — color/radius/label/labelColor, the branded
+  // redaction mark — plus the inflate-by-radius containment rule; fields, not a
+  // method, so every existing shell is unaffected) and 1.91.0 (SpotColor.finish
+  // + the OPEN FinishKind union — a brand declaring that one of its inks is a
+  // foil, an emboss/deboss, a spot varnish or a cutting rule, i.e. an ink the
+  // press applies as its own plate rather than part of the process build. A
+  // field, not a method; absent means what it always meant, and an unrecognised
+  // finish degrades to none rather than failing the whole spot lock closed) and
+  // 1.92.0 (src/exr.ts — a scanline OpenEXR writer, half/float, ZIP — and
+  // src/radiance.ts — an RGBE .hdr writer+reader — plus deflate.ts's slab-fed
+  // incremental deflater, which lifts png.ts's 16 MiB single-shot ceiling.
+  // All three are engine-internal (not in the barrel) and surfaced CLI-first as
+  // --export=exr/hdr; no HostV1 method or field was added);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.88.0');
+  assert.equal(ENGINE_VERSION, '1.92.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

@@ -6,7 +6,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { extractFileMetadata } from '../engine/src/file-metadata.ts';
+import { appendedIsExpected, extractFileMetadata, readMpfIndex } from '../engine/src/file-metadata.ts';
+import { assembleGainMapJpeg } from '../engine/src/gainmap-jpeg.ts';
+import type { GainMapMeta } from '../engine/src/gainmap.ts';
 
 const u16le = (n: number): number[] => [n & 0xff, (n >> 8) & 0xff];
 const u32le = (n: number): number[] => [n & 0xff, (n >> 8) & 0xff, (n >> 16) & 0xff, (n >> 24) & 0xff];
@@ -273,4 +275,195 @@ test('extractFileMetadata: APNG (acTL/fcTL/fdAT) already catches appended data v
   assert.equal(dirty.appended?.kind, 'zip archive');
   assert.equal(dirty.appended?.bytes, 7);
   assert.equal(dirty.appended?.offset, clean.length, 'offset must point exactly at the first trailing byte');
+});
+
+// ─── Multi-picture JPEGs: an HDR gain map is DECLARED content, not a payload ──
+//
+// plans/deeprichpixels.md §6 B2 / task E2. Lolly's own `hdr=1` JPEG export is a
+// gain-map file: an ordinary SDR JPEG with a second (gain-map) JPEG past its
+// EOI, described by a CIPA DC-007 MPF index. Before this coverage the reveal
+// called that "JPEG image — N KB after the image ends", flagged `sensitive` —
+// i.e. Lolly accusing its own export of smuggling. These tests pin the honest
+// report AND the negative control that an UNdeclared trailer is still flagged.
+
+const SOS_HDR = [0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3f, 0x00];
+
+/** A structurally-valid JPEG: SOI, an SOS whose length field is honest, entropy bytes, EOI. */
+function minimalJpeg(entropy: number[]): Uint8Array {
+  return bytesOf([0xff, 0xd8], SOS_HDR, entropy, [0xff, 0xd9]);
+}
+
+const GM_META: GainMapMeta = {
+  channels: 1,
+  gainMapMin: 0,
+  gainMapMax: 2,
+  gamma: 1,
+  offsetSdr: 0,
+  offsetHdr: 0,
+  hdrCapacityMin: 0,
+  hdrCapacityMax: 2,
+  baseRendition: 'sdr',
+  useBaseColorSpace: true,
+};
+
+const GAINMAP_JPEG = assembleGainMapJpeg(minimalJpeg([1, 2, 3]), minimalJpeg([4, 5, 6]), GM_META);
+
+test('extractFileMetadata: an HDR gain-map JPEG is named, not accused', () => {
+  const meta = extractFileMetadata(GAINMAP_JPEG);
+  assert.equal(meta.format, 'JPEG');
+
+  // The bytes are still disclosed — sized, offset, and typed. That is the point
+  // of the reveal; suppressing the field would be the wrong fix.
+  assert.ok(meta.appended, 'the second image must still be disclosed');
+  assert.match(meta.appended!.kind, /HDR gain map/);
+  assert.ok(meta.appended!.bytes > 0);
+
+  const appended = meta.fields.find((f) => f.label === 'Appended data');
+  assert.ok(appended, 'the Appended data field is still emitted');
+  assert.ok(!appended!.sensitive, 'declared, named content must not be flagged as hidden data');
+  assert.match(appended!.value, /MPF/, 'the value must say what accounts for the bytes');
+  // The exact defect: the pre-fix reader sniffed the trailer's magic bytes.
+  assert.ok(!/^JPEG image/.test(appended!.value), 'must not report a bare "JPEG image" append');
+
+  const gm = meta.fields.find((f) => f.label === 'HDR gain map');
+  assert.ok(gm, 'a gain map earns its own plain-language field');
+  assert.ok(!gm!.sensitive);
+  assert.equal(gm!.group, 'technical');
+});
+
+test('extractFileMetadata: an UNdeclared JPEG after the EOI is still flagged sensitive', () => {
+  // Negative control for the fix above: same shape (a JPEG past the EOI), no
+  // MPF index accounting for it. This is the smuggling pattern and must stay loud.
+  const smuggled = bytesOf([...minimalJpeg([1, 2, 3])], [...minimalJpeg([4, 5, 6])]);
+  const meta = extractFileMetadata(smuggled);
+  assert.equal(meta.appended?.kind, 'JPEG image');
+  const f = meta.fields.find((x) => x.label === 'Appended data');
+  assert.equal(f?.sensitive, true);
+  assert.equal(meta.fields.some((x) => x.label === 'HDR gain map'), false);
+});
+
+// ── an independent, LITTLE-ENDIAN MPF writer (our own writer only emits MM) ──
+
+function leMpfSegment(sizes: [number, number], offsets: [number, number]): Uint8Array {
+  const payload = 4 + 82;            // "MPF\0" + TIFF stream (50 header/IFD + 32 entries)
+  const seg = new Uint8Array(4 + payload);
+  const dv = new DataView(seg.buffer);
+  seg[0] = 0xff; seg[1] = 0xe2;
+  dv.setUint16(2, seg.length - 2);   // JPEG segment lengths are ALWAYS big-endian
+  seg.set(new TextEncoder().encode('MPF\0'), 4);
+  const h = 8;
+  seg[h] = 0x49; seg[h + 1] = 0x49;  // "II" — little-endian TIFF
+  dv.setUint16(h + 2, 0x002a, true);
+  dv.setUint32(h + 4, 8, true);
+  const ifd = h + 8;
+  dv.setUint16(ifd, 3, true);
+  const put = (i: number, tag: number, type: number, count: number, value: number) => {
+    const e = ifd + 2 + i * 12;
+    dv.setUint16(e, tag, true); dv.setUint16(e + 2, type, true);
+    dv.setUint32(e + 4, count, true); dv.setUint32(e + 8, value, true);
+  };
+  const valuesAt = 8 + 2 + 3 * 12 + 4; // 50, relative to h
+  put(0, 0xb000, 7, 4, 0x30303130);    // MPFVersion "0100" inline (LE byte order)
+  put(1, 0xb001, 4, 1, 2);             // NumberOfImages
+  put(2, 0xb002, 7, 32, valuesAt);     // MPEntry
+  dv.setUint32(ifd + 2 + 3 * 12, 0, true); // next IFD
+  for (let i = 0; i < 2; i++) {
+    const at = h + valuesAt + i * 16;
+    dv.setUint32(at, i === 0 ? 0x030000 : 0, true);
+    dv.setUint32(at + 4, sizes[i]!, true);
+    dv.setUint32(at + 8, offsets[i]!, true);
+  }
+  return seg;
+}
+
+/** A two-image MPF file with no gain-map metadata anywhere — a plain MPO. */
+function plainMpoJpeg(secondEntropy: number[], breakIt?: 'offset' | 'notJpeg'): Uint8Array {
+  const second = minimalJpeg(secondEntropy);
+  const tail = bytesOf(SOS_HDR, [7, 7, 7], [0xff, 0xd9]);
+  const segLen = 4 + 4 + 82;
+  const primaryLen = 2 + segLen + tail.length;
+  const h = 2 + 8; // SOI, then the MPF segment's MP Endian field
+  let offset = primaryLen - h;
+  if (breakIt === 'offset') offset = 0x7ffffff0; // an offset that lies about the buffer
+  const seg = leMpfSegment([primaryLen, second.length], [0, offset]);
+  const body = breakIt === 'notJpeg' ? bytesOf([0x00, 0x00], [...second.subarray(2)]) : second;
+  return bytesOf([0xff, 0xd8], [...seg], [...tail], [...body]);
+}
+
+test('readMpfIndex: reads a little-endian MPF index; a plain MPO is declared but not a gain map', () => {
+  const mpo = plainMpoJpeg([9, 9, 9]);
+  const idx = readMpfIndex(mpo);
+  assert.ok(idx, 'a valid little-endian MPF index must parse');
+  assert.equal(idx!.images.length, 2);
+  assert.equal(idx!.images[0]!.start, 0);
+  assert.equal(idx!.images[1]!.start, idx!.trailerStart, 'the declared offset must land on the real trailer');
+  assert.equal(idx!.gainMap, false, 'no hdrgm/ISO metadata anywhere — not a gain map');
+
+  const meta = extractFileMetadata(mpo);
+  const f = meta.fields.find((x) => x.label === 'Appended data');
+  assert.ok(!f?.sensitive, 'a declared second image is not hidden data');
+  assert.match(meta.appended!.kind, /MPF multi-picture/);
+  assert.equal(meta.fields.some((x) => x.label === 'HDR gain map'), false);
+});
+
+test('readMpfIndex: a lying index is refused, and the trailer goes back to being suspicious', () => {
+  for (const how of ['offset', 'notJpeg'] as const) {
+    const bad = plainMpoJpeg([9, 9, 9], how);
+    assert.equal(readMpfIndex(bad), null, `${how}: nothing an index CLAIMS is trusted`);
+    const f = extractFileMetadata(bad).fields.find((x) => x.label === 'Appended data');
+    assert.equal(f?.sensitive, true, `${how}: unaccounted trailing bytes stay flagged`);
+  }
+});
+
+test('readMpfIndex: our own gain-map file parses, and non-MPF inputs return null', () => {
+  const idx = readMpfIndex(GAINMAP_JPEG);
+  assert.ok(idx);
+  assert.equal(idx!.gainMap, true);
+  assert.equal(idx!.images.length, 2);
+  assert.equal(idx!.images[1]!.start, idx!.trailerStart);
+  assert.equal(idx!.images[0]!.start + idx!.images[0]!.length, idx!.trailerStart);
+  assert.equal(idx!.images[1]!.start + idx!.images[1]!.length, GAINMAP_JPEG.length);
+
+  assert.equal(readMpfIndex(minimalJpeg([1, 2, 3])), null, 'an ordinary JPEG has no MPF index');
+  assert.equal(readMpfIndex(new Uint8Array([1, 2, 3, 4])), null, 'not a JPEG at all');
+  assert.equal(readMpfIndex(new Uint8Array(0)), null);
+  assert.equal(readMpfIndex(null), null);
+  assert.equal(readMpfIndex(GAINMAP_JPEG.subarray(0, 40)), null, 'a truncated file has no EOI to trust');
+});
+
+test('extractFileMetadata: the MPF change leaves ordinary and motion-photo JPEGs alone', () => {
+  // Negative control 1: an ordinary EXIF JPEG gains no new field and no trailer.
+  const plain = extractFileMetadata(jpegWithExif(tiffWithSingleAsciiTag(0x013b, 'Ada Lovelace')));
+  assert.equal(plain.appended, undefined);
+  assert.equal(plain.fields.some((f) => f.label === 'HDR gain map'), false);
+  assert.equal(plain.fields.some((f) => f.label === 'Appended data'), false);
+
+  // Negative control 2: the motion-photo precedent this fix was modelled on is
+  // unchanged — disclosed, sniffed as video, not sensitive, no MPF claim.
+  const mp4 = bytesOf([0, 0, 0, 0x18], 'ftypmp42', [0, 0, 0, 0], 'mp42isom');
+  const motion = extractFileMetadata(bytesOf([...minimalJpeg([1, 2, 3])], [...mp4]));
+  assert.equal(motion.appended?.kind, 'video (motion photo)');
+  const f = motion.fields.find((x) => x.label === 'Appended data');
+  assert.equal(!!f?.sensitive, false);
+  assert.match(f!.value, /after the image ends/, 'unchanged wording for the non-MPF case');
+});
+
+test('appendedIsExpected: one rule for "these bytes are accounted for"', () => {
+  // The predicate exists because the verify view had its own copy of this rule,
+  // spelled as `kind !== 'video (motion photo)'` — which is exactly why a
+  // gain-map export still drew a "Hidden data appended" pip. Shells call this.
+  assert.equal(appendedIsExpected(extractFileMetadata(GAINMAP_JPEG).appended), true);
+  assert.equal(appendedIsExpected(extractFileMetadata(plainMpoJpeg([9, 9, 9])).appended), true);
+
+  const mp4 = bytesOf([0, 0, 0, 0x18], 'ftypmp42', [0, 0, 0, 0], 'mp42isom');
+  assert.equal(appendedIsExpected(extractFileMetadata(bytesOf([...minimalJpeg([1, 2, 3])], [...mp4])).appended), true);
+
+  const zip = extractFileMetadata(bytesOf([...minimalJpeg([1, 2, 3])], 'PK\x03\x04', [1, 2, 3])).appended;
+  assert.equal(zip?.kind, 'zip archive');
+  assert.equal(zip?.declared, false);
+  assert.equal(appendedIsExpected(zip), false);
+
+  assert.equal(appendedIsExpected(undefined), false, 'no payload is not an "expected payload"');
+  // A hand-forged record cannot claim exemption by kind alone.
+  assert.equal(appendedIsExpected({ bytes: 1, kind: 'HDR gain map (ISO 21496-1 / Ultra HDR)', offset: 0 }), false);
 });

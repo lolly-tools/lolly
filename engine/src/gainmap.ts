@@ -33,12 +33,15 @@
  *
  * **Single channel (luminance), not RGB.** ISO 21496-1 allows a per-channel
  * (3-channel) gain map. We emit ONE channel: our HDR rendition comes from
- * {@link hdrViewTransform}, whose boost is a per-pixel *scalar* on linear RGB, so
- * a single luminance gain reproduces it exactly (a 3-channel map would spend 3x
- * the bytes encoding the same number three times). The one case it cannot
- * reproduce is the view transform's `richness` re-saturation, which is a
- * per-channel chroma change, not a scalar — see the round-trip test's documented
- * error there. `meta.channels` is `1` so a future RGB mode is an additive change,
+ * {@link hdrViewTransform}. That transform has two parts: a per-pixel *scalar*
+ * boost on linear RGB, which one luminance channel reproduces exactly, and the
+ * `richness` re-saturation, which is a per-channel chroma change a scalar map
+ * CANNOT carry. Richness is on by default (`hdr.ts` defaults it to 0.4, and the
+ * export dials leave it there unless an author moves them), so the reconstructed
+ * HDR rendition is slightly less saturated than the float transform's — measured
+ * in the round-trip test. That is the concrete case for a future RGB mode; the
+ * trade today is one third of the bytes for exact luminance and approximate
+ * chroma. `meta.channels` is `1` so a future RGB mode is an additive change,
  * not a breaking one.
  *
  * **The ratio is computed in ONE space: `rec2020-linear`.** {@link hdrViewTransform}
@@ -310,7 +313,11 @@ export function gainMapWeight(meta: GainMapMeta, displayHeadroomLog2: number): n
   const lo = meta.hdrCapacityMin;
   const hi = meta.hdrCapacityMax;
   const hr = san(displayHeadroomLog2);
-  if (!(hi > lo)) return hr >= hi ? 1 : 0; // degenerate capacity range: hard switch
+  // Degenerate capacity range (hi == lo): a hard switch at the threshold. An SDR
+  // display (hr <= lo) must NEVER get the gain — applying it there would break the
+  // "degrades to a perfect SDR image" promise, which is the whole point of the
+  // format. Only a display strictly past the threshold takes the full gain.
+  if (!(hi > lo)) return hr > lo ? 1 : 0;
   const w = (hr - lo) / (hi - lo);
   return w <= 0 ? 0 : w >= 1 ? 1 : w;
 }

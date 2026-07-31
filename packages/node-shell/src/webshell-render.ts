@@ -233,6 +233,110 @@ export async function deepScanViaWebShell(files: string[]): Promise<DeepScanResu
   }
 }
 
+/** A file handed to the browser tier for a transform (file-in → file-out) tool. */
+export interface TransformFile { name: string; mime: string; bytes: Uint8Array }
+
+export interface TransformViaWebShellArgs {
+  toolId: string;
+  /** The manifest's `file`-typed input id (the picker the bytes are dropped into). */
+  fileInputId: string;
+  file: TransformFile;
+  /** The tool's URL-state (serializeUrlState) — everything except the file itself. */
+  query?: string;
+  timeoutMs?: number;
+}
+
+/**
+ * Run a TRANSFORM tool (file-in → file-out, the `exportFile` hook) in the real web
+ * shell and capture the file it downloads. The Node host has no canvas and no PDF
+ * page renderer, so utilities that rebuild pixels — redact above all — cannot run
+ * their export in jsdom; this drives the exact browser path a user clicks, so the
+ * tool's own export gate runs on the same bytes the caller receives.
+ *
+ * It uploads the bytes into the sidebar file picker (`setInputFiles` with an
+ * in-memory payload — nothing is written to disk) and clicks the template's
+ * `[data-export-file]` button. A hook that throws (a failed verification gate)
+ * puts its sentence on that button and downloads nothing; we surface that sentence
+ * as the thrown error, so a failed gate is a failure here too, never a quiet pass.
+ */
+export async function transformViaWebShell(
+  { toolId, fileInputId, file, query = '', timeoutMs = 120_000 }: TransformViaWebShellArgs,
+): Promise<{ bytes: Uint8Array; filename: string }> {
+  const base = await webShellBase();
+  const p = new URLSearchParams(query);
+  p.delete('export');            // the render auto-export is not this path
+  const q = p.toString();
+  const url = `${base}/#/tool/${encodeURIComponent(toolId)}${q ? `?${q}` : ''}`;
+  const browser = await getBrowser();
+  const ctx = await browser.newContext({ serviceWorkers: 'block', acceptDownloads: true });
+  try {
+    const page = await ctx.newPage();
+    await page.goto(url, { waitUntil: 'load', timeout: 30_000 });
+    const picker = `.file-picker[data-input-id="${fileInputId}"] input.file-native`;
+    try {
+      await page.waitForSelector(picker, { state: 'attached', timeout: 30_000 });
+    } catch {
+      throw new BrowserError(
+        `The web shell showed no file picker for "${fileInputId}" on "${toolId}" — the built shell ` +
+        `may predate this tool. Rebuild it with \`npm run build:web\`.`,
+      );
+    }
+    await page.setInputFiles(picker, {
+      name: file.name, mimeType: file.mime || 'application/octet-stream', buffer: Buffer.from(file.bytes),
+    });
+    const button = '[data-export-file]';
+    try {
+      await page.waitForSelector(`${button}:not([disabled])`, { state: 'visible', timeout: 60_000 });
+    } catch {
+      throw new BrowserError(
+        `"${toolId}" never offered its export button after the file was loaded — the tool may have ` +
+        `refused this file. Open the same inputs in the app to see what it says.`,
+      );
+    }
+    // A tool whose canvas still owes the inputs work says so with
+    // [data-export-wait] (redact: page previews rendering, or bars that arrived
+    // as instructions and have not been snapped to cover against the real page
+    // yet). The export button enables before that settles, so clicking on sight
+    // shipped bars exactly as supplied — with none of the geometry correction a
+    // person gets. Best-effort: if it never clears we go ahead anyway rather
+    // than turning a slow page into a hard failure.
+    await page.waitForFunction(() => !document.querySelector('[data-export-wait]'), undefined, { timeout: 30_000 })
+      .catch(() => {});
+    const downloadP = page.waitForEvent('download', { timeout: timeoutMs })
+      .then(d => ({ kind: 'download' as const, d }), (e: Error) => ({ kind: 'timeout' as const, e }));
+    // The click handler paints a thrown hook error onto the button (is-error + the
+    // sentence). Never settles when no error appears, so the download always wins.
+    const errorP = page.waitForFunction(
+      () => {
+        const b = document.querySelector('[data-export-file]');
+        return b && b.classList.contains('is-error') ? (b.textContent || '').trim() || 'Export failed.' : null;
+      },
+      undefined,
+      { timeout: timeoutMs },
+    ).then(h => h.jsonValue() as Promise<string>).then(
+      msg => ({ kind: 'error' as const, msg }),
+      () => new Promise<never>(() => {}),
+    );
+    await page.click(button);
+    const outcome = await Promise.race([downloadP, errorP]);
+    if (outcome.kind === 'error') throw new Error(outcome.msg);
+    if (outcome.kind === 'timeout') {
+      throw new BrowserError(
+        `"${toolId}" produced no file for ${file.name} within ${Math.round(timeoutMs / 1000)}s. ` +
+        `Nothing was written.`,
+      );
+    }
+    const path = await outcome.d.path();
+    if (!path) throw new BrowserError(`Download for "${toolId}" yielded no file.`);
+    const bytes = new Uint8Array(await readFile(path));
+    const filename = outcome.d.suggestedFilename() || file.name;
+    await outcome.d.delete().catch(() => {});
+    return { bytes, filename };
+  } finally {
+    await ctx.close();
+  }
+}
+
 /**
  * Render a tool to bytes by driving the web shell in Chromium and capturing its
  * download. `query` is the tool's current URL-state (serializeUrlState).

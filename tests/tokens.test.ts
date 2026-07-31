@@ -402,6 +402,43 @@ test('the existing cmyk/spot locks are untouched by faces', () => {
   assert.deepEqual(s.cmyk, [70, 0, 65, 0]);
   assert.equal(s.spot?.name, 'PANTONE 186 C');
   assert.equal(s.value, '#00b050');
+  // Strictly additive: a spot with no finish is byte-identical to what it always
+  // was. No `finish` key appears, so a JSON.stringify of this swatch (which is
+  // exactly what services/mcp/src/resources.ts ships) is unchanged.
+  assert.equal(s.spot?.finish, undefined);
+  assert.deepEqual(Object.keys(s.spot!), ['name']);
+});
+
+// ── SpotColor.finish — a finish ink is a PLATE, not a colour ────────────────
+// The offered set is brand data, so the union is open and the reader must never
+// gate on membership. See FinishKind in packages/core/src/host-v1.ts.
+
+const spotDoc = (spot: unknown) => ({
+  color: { ink: { $type: 'color', $value: '#123456', $extensions: { [TOKEN_EXT]: { spot } } } },
+});
+
+test('a spot carrying a finish round-trips to ColorSwatch.spot.finish', () => {
+  const s = createTokenSet(spotDoc({ name: 'Gold', book: 'Foilco', finish: 'foil' })).colors()[0]!;
+  // `book` and `finish` coexist — a foil still has a stock it is ordered from.
+  assert.deepEqual(s.spot, { name: 'Gold', book: 'Foilco', finish: 'foil' });
+});
+
+test('a finish outside FinishKind still surfaces — the union is open', () => {
+  // A brand's house process must not need an engine release, so the reader
+  // validates the SHAPE (a string) and never the membership.
+  const s = createTokenSet(spotDoc({ name: 'House Press', finish: 'letterpress' })).colors()[0]!;
+  assert.equal(s.spot?.finish, 'letterpress');
+});
+
+test('a malformed finish degrades to no finish, keeping the ink', () => {
+  // Total-function tolerance: `name` is the field a /Separation plate is named
+  // for, so a hand-edited doc with a nonsense finish must not cost us the ink.
+  for (const bad of [42, null, { kind: 'foil' }, ['foil'], true]) {
+    const s = createTokenSet(spotDoc({ name: 'Gold', book: 'Foilco', finish: bad })).colors()[0]!;
+    assert.deepEqual(s.spot, { name: 'Gold', book: 'Foilco' }, `finish: ${JSON.stringify(bad)}`);
+  }
+  // …and a spot that was never valid is still null, finish or no finish.
+  assert.equal(createTokenSet(spotDoc({ finish: 'foil' })).colors()[0]!.spot, null);
 });
 
 // ── Single-axis activeThemes + typography families ──────────────────────────

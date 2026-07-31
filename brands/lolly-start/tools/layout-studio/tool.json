@@ -116,6 +116,8 @@
         "exitField": "exit",
         "enterMsField": "enterMs",
         "exitMsField": "exitMs",
+        "enterEaseField": "enterEase",
+        "exitEaseField": "exitEase",
         "muteField": "mute",
         "laneField": "lane",
         "minSize": 8,
@@ -1119,6 +1121,22 @@
           "max": 300,
           "showFor": ["box"],
           "help": "Frosted glass. Blurs whatever sits behind the box, px. 0 = off."
+        },
+        {
+          "id": "enterEase",
+          "showFor": [],
+          "type": "text",
+          "label": "In easing",
+          "default": "",
+          "help": "The timing curve the animate-in preset's GEOMETRY follows: a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty leaves the preset on its own built-in curve, which is what every composition authored before this control existed still renders with. Opacity is not governed by it."
+        },
+        {
+          "id": "exitEase",
+          "showFor": [],
+          "type": "text",
+          "label": "Out easing",
+          "default": "",
+          "help": "The same curve control for the animate-out preset. Same wire format, same geometry-only reach."
         }
       ],
       "default": [

@@ -326,6 +326,21 @@ test('meta fields sit in spec ranges', () => {
   assert.ok(Math.abs(meta.hdrCapacityMax - Math.max(meta.gainMapMax, 0)) < 1e-12);
 });
 
+// REGRESSION (adversarial review, 2026-07-31): the degenerate branch used to
+// return 1 for `hr >= hi`, so a meta with hdrCapacityMin == hdrCapacityMax == 0
+// applied the FULL gain on a display with no headroom -- breaking the format's
+// one promise, that it degrades to the plain SDR image.
+test('weight: a degenerate capacity range still gives an SDR display the base back', () => {
+  const meta = {
+    channels: 1 as const, gainMapMin: 0, gainMapMax: 0, gamma: 1,
+    offsetSdr: 0, offsetHdr: 0, hdrCapacityMin: 0, hdrCapacityMax: 0,
+    baseRendition: 'sdr' as const, useBaseColorSpace: true,
+  };
+  assert.equal(gainMapWeight(meta, 0), 0, 'SDR display (hr == lo == hi) must get NO gain');
+  assert.equal(gainMapWeight(meta, -1), 0, 'below the threshold is still no gain');
+  assert.equal(gainMapWeight(meta, 2.3), 1, 'a display past the threshold takes the gain');
+});
+
 test('weight: SDR display gets the base image back, HDR display gets the full boost', () => {
   const sdr = sdrNoiseFrame();
   const hdr = hdrViewTransform(sdr, BOOST);

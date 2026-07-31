@@ -38,8 +38,10 @@ const INDEX_PATH = join(ROOT, 'catalog/tools/index.json');
 // Fields the index mirrors from each manifest. `capabilities` lets the gallery
 // gate tools a shell can't fulfil (e.g. 'capture' in the web PWA) without
 // fetching every manifest first. `privacy` surfaces the on-device note in the
-// gallery's tool-info modal.
-const INDEX_FIELDS = ['id', 'name', 'description', 'version', 'status', 'category', 'capabilities', 'privacy', 'new', 'listed'];
+// gallery's tool-info modal. `tags` is what makes a tool findable by the words a
+// designer actually types — "foil", "riso", "emboss" — rather than only by the
+// handful that happen to appear in its name or description.
+const INDEX_FIELDS = ['id', 'name', 'description', 'version', 'status', 'category', 'capabilities', 'privacy', 'new', 'listed', 'tags'];
 
 export function entryFromManifest(manifest: Manifest): Record<string, unknown> {
   const entry: Record<string, unknown> = {};

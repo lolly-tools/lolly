@@ -665,6 +665,38 @@ function isTransition(v) {
     && Object.prototype.hasOwnProperty.call(TRANSITIONS, v);
 }
 
+// The named easing curves the shell implements (lib/transitions.ts EASINGS).
+var EASINGS = {
+  linear: 1, 'ease-out': 1, 'ease-in': 1, 'ease-in-out': 1, overshoot: 1, anticipate: 1,
+};
+
+// An authored easing, canonicalised for the attribute: a whitelisted preset name, or
+// a cubic-bezier re-emitted from its own PARSED numbers rather than from the user's
+// string — which is what keeps arbitrary text out of an attribute this hook writes
+// through {{{ }}}. The x controls are TIME and must stay inside 0..1 or the curve is
+// not a function of progress (CSS refuses the same thing); y is unbounded on purpose,
+// because that is the whole overshoot family. Anything else answers '' and the
+// attribute is omitted entirely, so the preset keeps the built-in curve it has always
+// had. Mirrors easingPoints/easingToWire in shells/web/src/lib/transitions.ts, which
+// re-validates on the way back in — two guards, one vocabulary.
+function easeAttr(v) {
+  if (typeof v !== 'string') return '';
+  var s = v.trim();
+  if (Object.prototype.hasOwnProperty.call(EASINGS, s)) return s;
+  var m = /^cubic-bezier\(([^)]*)\)$/i.exec(s);
+  if (!m) return '';
+  var raw = m[1].split(',');
+  if (raw.length !== 4) return '';
+  var n = [];
+  for (var i = 0; i < 4; i++) {
+    var x = Number(raw[i].trim());
+    if (!isFinite(x)) return '';
+    n.push(Math.round(x * 1000) / 1000);
+  }
+  if (n[0] < 0 || n[0] > 1 || n[2] < 0 || n[2] > 1) return '';
+  return 'cubic-bezier(' + n.join(',') + ')';
+}
+
 // A box's start offset in seconds, clamped into range. One definition so the
 // attribute and the derived sequence length can never disagree.
 function startSeconds(b) {
@@ -694,9 +726,16 @@ function timeAttrsFor(b) {
   }
   if (isTransition(b.enter)) {
     parts.push(' data-t-enter="' + b.enter + '" data-t-enter-ms="' + Math.round(clamp(num(b.enterMs, 400), 100, 3000)) + '"');
+    // Only ever alongside a kind, and only when it survives easeAttr — an unauthored
+    // or unparseable curve leaves the attribute absent, which is what every reader
+    // treats as "the preset's own curve".
+    var enterEase = easeAttr(b.enterEase);
+    if (enterEase) parts.push(' data-t-enter-ease="' + enterEase + '"');
   }
   if (isTransition(b.exit)) {
     parts.push(' data-t-exit="' + b.exit + '" data-t-exit-ms="' + Math.round(clamp(num(b.exitMs, 400), 100, 3000)) + '"');
+    var exitEase = easeAttr(b.exitEase);
+    if (exitEase) parts.push(' data-t-exit-ease="' + exitEase + '"');
   }
   if (boolVal(b.mute, false)) parts.push(' data-t-mute="1"');
   if (b.lane === 'seq') parts.push(' data-t-lane="seq"');

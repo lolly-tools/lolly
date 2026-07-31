@@ -356,6 +356,27 @@ test('trimClip in: dragging left clamps at clipIn 0 and start 0 (cannot invent s
   assert.equal(e.clipIn, 5);
 });
 
+test('trimClip in: the t=0 bound is an OVERLAY rule — the first seq clip can give its head back', () => {
+  // On the magnetic row `start` is re-derived by packOrder at the end of trimClip, so
+  // "cannot go before t=0" constrains nothing there — except at index 0, where start
+  // really is 0 and the bound used to pin the delta window shut. The result was that a
+  // head trim on the FIRST clip was the one trim in a sequence that could never be
+  // dragged back out, however much source was still sitting behind the in-point.
+  const rows = [clip('a', { start: 0, dur: 3, clipIn: 2 }), clip('b', { start: 3, dur: 3, clipIn: 0 })];
+  const a = byId(trimClip(rows, cfg, 'a', 'in', -1, null), 'a');
+  assert.equal(a.clipIn, 1, 'a second of the source head came back');
+  assert.equal(a.dur, 4, 'and the clip is a second longer for it');
+  assert.equal(a.start, 0, 'the magnetic row still starts at zero');
+  // The same clip at a non-zero start behaves identically — the fix removed a
+  // special case, it did not add one.
+  const b = byId(trimClip(rows, cfg, 'b', 'in', -1, null), 'b');
+  assert.equal(b.clipIn, 0, 'b had no source head, so it is unchanged');
+  assert.equal(b.dur, 3);
+  // And the OVERLAY rule is untouched: t=0 is a real wall for a free-floating clip.
+  const o = byId(trimClip([overlay('o', 0, { dur: 2, clipIn: 5 })], cfg, 'o', 'in', -3, null), 'o');
+  assert.deepEqual({ s: o.start, d: o.dur, ci: o.clipIn }, { s: 0, d: 2, ci: 5 });
+});
+
 test('trimClip out: dur += d, floored at MIN_DUR', () => {
   const before = [overlay('o', 1, { dur: 2, clipIn: 0 })];
   assert.equal(byId(trimClip(before, cfg, 'o', 'out', 1.5, null), 'o').dur, 3.5);

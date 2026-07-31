@@ -23,6 +23,9 @@ import { generateSigner } from './x509.ts';
 import { concatBytes, sha256, bytesToBin } from './bytes.ts';
 import { buildC2paManifest, urnUuid, BMFF_HASH_LABEL } from './c2pa.ts';
 import type { Signer, Exclusion, EmbedOptions, PlaceResult } from './c2pa.ts';
+// Runtime-light: gainmap-jpeg's only value imports are bytes.ts + jpeg-segments.ts
+// (GainMapMeta is type-only), so this pulls no pixel machinery into the C2PA path.
+import { repairMpfOffsets } from './gainmap-jpeg.ts';
 
 const te = new TextEncoder();
 
@@ -455,6 +458,24 @@ function placePng(png: Uint8Array, manifest: Uint8Array): PlaceResult {
 // store's first 8 bytes (superbox LBox+TBox) after the Z field, exactly as
 // jpeg_io.rs writes and its reader strips. Placed after the LAST APP0 (or
 // right after SOI); the exclusion is one contiguous range over all segments.
+//
+// MPF-AWARE (plans/deeprichpixels.md §6 B2, task E1). A gain-map / Ultra HDR
+// JPEG is two JPEGs in one file, and the primary carries a CIPA DC-007 MPF
+// index (APP2) recording the SIZE of the primary image and the OFFSET of the
+// second. The APP11 block above always lands ahead of that APP2 — APP0 sorts
+// before APP2, and with no APP0 the insertion point is offset 2 — so stamping
+// grows the primary without the index noticing: MPEntry[0].size then
+// under-reports by exactly the block length and the index is structurally
+// invalid, in a file that still opens fine everywhere. (MPEntry[1].offset is
+// measured from the MP Endian field, which moved by the same delta, so that one
+// field survives on its own; the size does not.) `repairMpfOffsets` re-derives
+// every entry from the finished bytes — it is a no-op returning the SAME array
+// for any JPEG with no MPF index or no second image, so ordinary JPEGs are
+// spliced byte-identically, and it never throws.
+//
+// This is safe for the two-pass layout in embedC2pa: the rewritten fields are a
+// function of the file and the inserted block LENGTH only, which is the placer
+// contract embedC2pa's post-placement digest check enforces.
 const JPEG_CHUNK = 64000;
 function placeJpeg(jpeg: Uint8Array, manifest: Uint8Array): PlaceResult {
   if (!(jpeg[0] === 0xff && jpeg[1] === 0xd8)) throw new Error('C2PA embed: not a JPEG');
@@ -501,7 +522,9 @@ function placeJpeg(jpeg: Uint8Array, manifest: Uint8Array): PlaceResult {
   parts.push(jpeg.subarray(at));
   const cleaned = drop.length ? concatBytes(parts) : jpeg;
   const pos = insertAt - shift;
-  const out = concatBytes([cleaned.subarray(0, pos), block, cleaned.subarray(pos)]);
+  const spliced = concatBytes([cleaned.subarray(0, pos), block, cleaned.subarray(pos)]);
+  // Same length, same exclusion range: repairMpfOffsets patches a copy in place.
+  const out = repairMpfOffsets(spliced);
   return { out, exclusions: [{ start: pos, length: block.length }] };
 }
 

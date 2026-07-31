@@ -913,3 +913,56 @@ test('keynote: PERSON INTRO’s master hydrates through the real layout-studio',
   assert.ok(html.includes('Pablo Ruiz-M'), 'the master text leaf reaches the markup');
   assert.ok(html.includes('Lorem ipsum'), 'and so does the placeholder body copy');
 });
+
+// ── components as templates: the 1.2 preview census ──────────────────────────
+// (Appended block — imports hoist; kept here so the block stays append-only.)
+import { penpotComponentThumb } from '../shells/web/src/lib/design-templates.ts';
+
+test('keynote: every component preview belongs to an INSTANCE, so a master needs the fallback', { skip: SKIP }, async () => {
+  const { fileId, pages, entries } = await loadDeck();
+  const out = collectPenpotComponents(await componentRecords(), pages, { fileId });
+  const byId: Record<string, Shape> = {};
+  for (const shapes of pages.values()) Object.assign(byId, shapes);
+
+  // `files/<fid>/thumbnails/component/<pageId>/<frameId>.json` → `objects/<mediaId>.png`.
+  const ptrPaths = Object.keys(entries).filter((p) => p.includes('/thumbnails/component/'));
+  assert.equal(ptrPaths.length, 8, 'eight component previews in this export');
+  const frameIds = ptrPaths.map((p) => p.split('/').pop()!.replace(/\.json$/, ''));
+
+  // NOT ONE of them depicts a master: Penpot writes a preview for a frame it has
+  // rendered, and the masters sit on the components page. A template built off
+  // the master alone would therefore be thumbnail-less for this whole deck —
+  // which is why the import falls back to an instance's preview.
+  const masterIds = new Set(out.components.map((c) => c.rootShapeId));
+  assert.equal(frameIds.filter((id) => masterIds.has(id)).length, 0, 'zero master previews');
+  for (const c of out.components) {
+    assert.equal(penpotComponentThumb(entries, fileId, c.pageId, c.rootShapeId), null, `${c.name}: no own preview`);
+  }
+
+  // Of the 8, three are LOCAL instances — one each for TITLES4, TITLES2 and
+  // PERSON INTRO — and those three templates get a real PNG through the
+  // fallback. The other five are foreign instances or uncomponented frames.
+  const localHits = new Map<string, string>();
+  for (const frameId of frameIds) {
+    const s = byId[frameId];
+    if (!s || String(s.componentFile ?? '') !== fileId) continue;
+    const owner = out.components.find((c) => c.variants.some((v) => v.id === String(s.componentId)));
+    if (owner) localHits.set(owner.name, frameId);
+  }
+  assert.deepEqual([...localHits.keys()].sort(), ['PERSON INTRO', 'TITLES2', 'TITLES4']);
+  const pageOf = (shapeId: string): string => [...pages.keys()].find((pid) => pages.get(pid)![shapeId])!;
+  for (const [name, frameId] of localHits) {
+    const url = penpotComponentThumb(entries, fileId, pageOf(frameId), frameId);
+    assert.match(url ?? '', /^data:image\/png;base64,/, `${name}: the fallback resolves a real PNG`);
+  }
+
+  // THE TRAP AGAIN: four of the eight preview frames are FOREIGN instances whose
+  // componentIds also name local components (TEXT 8/9/10). Matching on
+  // componentId alone would hand three keynote templates a library's picture.
+  const foreign = frameIds.map((id) => byId[id])
+    .filter((s): s is Shape => !!s && !!s.componentId && String(s.componentFile) !== fileId);
+  assert.equal(foreign.length, 4);
+  const localRecordIds = new Set(out.components.flatMap((c) => c.variants.map((v) => v.id)));
+  assert.equal(foreign.filter((s) => localRecordIds.has(String(s.componentId))).length, 4,
+    'all four reuse a local componentId — componentFile is the only honest test');
+});
