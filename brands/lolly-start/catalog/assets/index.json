@@ -64,6 +64,30 @@
       ]
     },
     {
+      "id": "lolly/palette/riso-inks",
+      "name": "Riso Ink Colours",
+      "description": "The Risograph duplicator ink drums as named sRGB approximations — a brand-supplied ink book rather than an enum hardcoded in a tool. Each entry is one drum, so these are spot inks for overprinting (one pass per drum), not process colours. Foundation for the Riso pack: a finishing/duotone tool reads this palette instead of shipping its own ink list.",
+      "type": "palette",
+      "version": "1.0.0",
+      "tier": "on-demand",
+      "tags": [
+        "palette",
+        "riso",
+        "ink",
+        "print",
+        "spot",
+        "finishing"
+      ],
+      "formats": [
+        {
+          "format": "json",
+          "url": "/catalog/assets/lolly/palette/riso-inks.json",
+          "checksum": "sha256-89Nhs9kH8rCTZTGMrchSS8KVTGCWtoEeHX+XZDV6HEo=",
+          "size": 3439
+        }
+      ]
+    },
+    {
       "id": "lolly/loops/pixel-quest-save-point",
       "name": "Pixel Quest Save Point",
       "description": "Looping lo-fi beat (focus) — a focus track for Neurospicy Mode, also selectable as a video music bed. Public domain (CC0). Donated to the public domain by Bilal Tahir (next-beats).",

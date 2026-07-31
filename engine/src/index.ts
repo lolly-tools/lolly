@@ -40,8 +40,8 @@ export {
 export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate } from './batch.ts';
 export type { BatchRow, BatchTemplateTool } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
-export { extractFileMetadata, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
-export type { FileMetadata, MetaField, MetaGroup } from './file-metadata.ts';
+export { extractFileMetadata, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
+export type { FileMetadata, MetaField, MetaGroup, JpegMpfIndex } from './file-metadata.ts';
 export { stripMetadata, isStrippableFormat, hasResidualMetadata } from './strip-metadata.ts';
 export type { StripFormat } from './strip-metadata.ts';
 export {

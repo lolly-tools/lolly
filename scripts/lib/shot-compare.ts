@@ -212,10 +212,16 @@ export function classifyShot(c: ShotComparison, t: ShotThresholds = DEFAULT_THRE
 
 /** Remove the C2PA <metadata><c2pa:manifest>…</> block + xmlns (engine placeSvg shape). */
 export function stripSvgC2pa(svg: string): string {
+  // GLOBAL, all three. A shot is not limited to one manifest: the walker inlines catalog
+  // preview SVGs as real nested vector, and those previews are themselves credentialed —
+  // the gallery shot carries EIGHT. Stripping only the first removed the shot's own
+  // manifest from a stamped baseline but the first inlined preview's from a fresh
+  // unstamped capture, so the two could never compare equal and the shot reported
+  // `changed` on every run no matter how deterministic the capture was.
   return svg
-    .replace(/<metadata><c2pa:manifest>[^<]*<\/c2pa:manifest><\/metadata>/, '')
-    .replace(/<c2pa:manifest>[^<]*<\/c2pa:manifest>/, '')
-    .replace(/ xmlns:c2pa="[^"]*"/, '');
+    .replace(/<metadata><c2pa:manifest>[^<]*<\/c2pa:manifest><\/metadata>/g, '')
+    .replace(/<c2pa:manifest>[^<]*<\/c2pa:manifest>/g, '')
+    .replace(/ xmlns:c2pa="[^"]*"/g, '');
 }
 
 /** width/height attributes of the root <svg> element, if numeric. */

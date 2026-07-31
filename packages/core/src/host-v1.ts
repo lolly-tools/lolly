@@ -1461,6 +1461,33 @@ export interface PdfRedactOpts {
   dpi?: number;
   /** Drop colour on the way out (e.g. a scan whose yellow channel carries printer tracking dots). */
   grayscale?: boolean;
+  /**
+   * Bar fill as a 6-digit hex (v1.90). Colour is security-neutral — any fully
+   * opaque fill destroys the pixels underneath equally — so a caller may paint
+   * its brand's own tone instead of black. Translucency is NOT neutral, so a
+   * value carrying alpha below full opacity is REFUSED, as is anything
+   * unreadable: the host falls back to its neutral near-black rather than
+   * painting a bar the caller did not mean. Default: the neutral near-black.
+   */
+  color?: string;
+  /**
+   * Corner radius in PDF points (v1.90). The painted shape is INFLATED by the
+   * radius before the corners are rounded, so the bar the caller asked for
+   * stays entirely inside the opaque region — a rounded mark never leaves an
+   * uncovered corner sliver. A corner whose sides had to clamp to the page edge
+   * is painted square. Default 0 (square).
+   */
+  radius?: number;
+  /**
+   * A short label painted ON TOP of the finished bar (v1.90) — an attribution
+   * stamp, e.g. the redacting person's or organisation's name. Safe because the
+   * pixels beneath are already destroyed. The host never derives this text from
+   * the document; it paints exactly what it is given, trimmed and clipped to
+   * bars with room for it. Default: no label.
+   */
+  label?: string;
+  /** Label colour as a 6-digit hex (v1.90), validated like `color`. Default white. */
+  labelColor?: string;
 }
 
 export interface PdfRedactResult {
@@ -1910,7 +1937,40 @@ export interface ColorSwatch {
 export interface SpotColor {
   name: string;
   book?: string;
+  /** (v1.91) The tactile finish this ink IS, when it is not an ink at all: a foil,
+   *  an emboss/deboss, a spot varnish, a cut/crease. Absent = an ordinary spot ink,
+   *  which is every spot lock that exists today — so this is strictly additive
+   *  and changes nothing for them. `name` still says WHICH ('Gold', 'Silver',
+   *  'Die'); `finish` says what the press DOES with it. */
+  finish?: FinishKind;
 }
+
+/**
+ * (v1.91) Print finishes a brand can declare on a spot.
+ *
+ * A finish ink is not a colour. It is something the press applies as its own
+ * PLATE — a foil stamp, an embossing/debossing die, a spot-UV varnish screen, a
+ * cutting or creasing rule — so it never contributes to the process build and
+ * must not be gamut-mapped, previewed as a pigment, or merged into CMYK. It
+ * rides the spot contract because a finish already IS a named separation whose
+ * "value" is a press instruction, not because it is a kind of colour.
+ *
+ * The contract defines only how a finish is SPELLED. The *offered* set is brand
+ * data: a brand declares the finishes it can actually buy, on its own colour
+ * tokens (plans/tactile-brand-control.md). That is why the union is open — the
+ * listed ids are the canonical spellings (they become plate names), while the
+ * trailing `(string & {})` lets a house process ('letterpress', 'thermography',
+ * 'holographic-foil') exist with no type, schema, or engine release. Editor
+ * autocomplete still offers the known members.
+ *
+ * A consumer MUST treat an unrecognised value as "a finish I do not know how to
+ * render" — never as an error, and never as a reason to discard the surrounding
+ * ink, whose `name` is the one field a plate actually needs. Any `switch` over
+ * it needs a `default:` arm.
+ */
+export type FinishKind =
+  | 'foil' | 'emboss' | 'deboss' | 'spot-uv' | 'soft-touch' | 'cut' | 'crease' | 'perforate'
+  | (string & {});
 
 // ─── Clipboard ──────────────────────────────────────────────────────────────
 

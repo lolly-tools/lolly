@@ -17,7 +17,26 @@
 // throws instead of silently handing back an un-stripped original that a caller
 // would present as a "clean" copy (verify-after-strip; see hasResidualMetadata).
 
+// MULTI-PICTURE JPEGs (decided 2026-07-31, plans/deeprichpixels.md §6 B2).
+// A gain-map HDR JPEG — the kind Lolly's own `hdr=1` export writes — is an
+// ordinary SDR JPEG whose second image (the gain map) rides past the EOI and is
+// described by an APP2 "MPF" index. Dropping every APPn but APP0 therefore used
+// to delete the index and leave the second image orphaned: a file that still
+// decodes as the right SDR picture, but now carries megabytes of unexplained
+// data past its EOI that the read-side flags as hidden appended content.
+//
+// The choice made here is DROP, not refuse: when a JPEG carries an MPF index,
+// stripping removes the index AND every image after the primary, so the clean
+// copy is a valid, single-image, ordinary SDR JPEG with byte-identical scan
+// data. Rationale — "strip" is a privacy control whose promised output is a
+// plain image, refusing would leave the user with no clean copy at all, and the
+// SDR base is exactly what a non-HDR viewer was going to see anyway. The cost is
+// stated plainly: a stripped gain-map JPEG is no longer HDR. Files with no MPF
+// index (including motion photos, whose appended MP4 this module has never
+// claimed to remove) are byte-for-byte unaffected by that rule.
+
 import { concatBytes } from './bytes.ts';
+import { readMpfIndex } from './file-metadata.ts';
 
 export type StripFormat = 'jpeg' | 'png' | 'svg';
 
@@ -59,9 +78,15 @@ function scanJpeg(bytes: Uint8Array): JpegSeg[] | null {
 function stripJpeg(bytes: Uint8Array): Uint8Array {
   const segs = scanJpeg(bytes);
   if (!segs) return bytes;
+  // See the module header: a multi-picture file's extra images are cut off with
+  // the MPF index that describes them, so the clean copy is a single image.
+  // `trailerStart` is the real end of the primary (its EOI), never a byte offset
+  // the file merely claims, so this can only ever truncate at a marker boundary.
+  const mpf = readMpfIndex(bytes);
+  const cut = mpf ? mpf.trailerStart : bytes.length;
   const keep: Uint8Array[] = [bytes.subarray(0, 2)]; // SOI
   for (const s of segs) {
-    if (s.sos) { keep.push(bytes.subarray(s.start)); continue; } // SOS + entropy data + EOI
+    if (s.sos) { keep.push(bytes.subarray(s.start, Math.max(cut, s.start))); continue; } // SOS + entropy data + EOI
     const isApp = s.marker >= 0xe0 && s.marker <= 0xef;
     const isCom = s.marker === 0xfe;
     if ((isApp && s.marker !== 0xe0) || isCom) continue; // drop metadata; keep APP0 (JFIF)
@@ -314,6 +339,12 @@ export function hasResidualMetadata(bytes: Uint8Array, format: StripFormat): str
  * — the image content (pixels or paint commands) is preserved byte-for-byte;
  * only metadata (EXIF/XMP/ICC/IPTC/comments/editor cruft) is removed. PDF is
  * not handled here — clean it via the shell's `host.pdf.strip()`.
+ *
+ * ONE deliberate exception to "image content preserved": a multi-picture JPEG
+ * (HDR gain map, MPO) loses every image after the primary along with the MPF
+ * index that declared them, because keeping orphaned images behind a deleted
+ * index is worse than either alternative. The primary's scan data is still
+ * byte-identical. See the module header for the full rationale.
  *
  * Fails LOUD, never open: this is a privacy control, so rather than swallow an
  * internal error and hand back the un-stripped original (which a caller would

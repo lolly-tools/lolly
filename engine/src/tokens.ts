@@ -49,6 +49,29 @@ const isSpotColor = (v: unknown): v is SpotColor => {
   if (!isRecord(v) || typeof v.name !== 'string') return false;
   return v.book === undefined || typeof v.book === 'string';
 };
+/**
+ * A spot lock read off `$extensions`, or null when there isn't a usable one.
+ *
+ * `finish` is validated as a PLAIN STRING, never against `FinishKind`'s members:
+ * the union is deliberately open (a brand declares its own finishes on its own
+ * tokens), so a finish this build has never heard of must degrade to "a process
+ * I can't render" rather than invalidate the ink.
+ *
+ * A `finish` that is not a string at all (a number, an object, a null out of a
+ * hand-edited doc) drops JUST THAT FIELD — total-function tolerance, the same
+ * way every other reader in this file degrades: rejecting the whole spot would
+ * also lose `name`, the one field every consumer, including the PDF
+ * /Separation emitter, actually needs. The ordinary paths (no finish, or a
+ * string one) return the stored object BY REFERENCE exactly as before, so any
+ * other extension a brand carries on its spot object still passes through
+ * untouched.
+ */
+const readSpotColor = (v: unknown): SpotColor | null => {
+  if (!isSpotColor(v)) return null;
+  if (v.finish === undefined || typeof v.finish === 'string') return v;
+  const { finish: _malformed, ...rest } = v as SpotColor & UnknownRecord;
+  return rest as SpotColor;
+};
 
 /**
  * A token-backed input value: a reference plus the value it last resolved to.
@@ -372,7 +395,7 @@ function toSwatch(e: TokenEntry): ColorSwatch {
     value: srgbFace(ext) ?? colorToHex(e.value) ?? '',
     description: e.description ?? null,
     cmyk: ext && isNumberArray(ext.cmyk) ? ext.cmyk : null,
-    spot: ext && isSpotColor(ext.spot) ? ext.spot : null,
+    spot: ext ? readSpotColor(ext.spot) : null,
     ...(ext ? facesOf(ext) : {}),
   };
 }

@@ -94,7 +94,15 @@ const SITE_URL = 'https://lolly.tools';
 const FREEZE_CSS =
   '*,*::before,*::after{animation-duration:0s!important;animation-delay:0s!important;' +
   'transition-duration:0s!important;transition-delay:0s!important;caret-color:transparent!important}' +
-  'html{scrollbar-width:none!important}::-webkit-scrollbar{display:none!important}';
+  'html{scrollbar-width:none!important}::-webkit-scrollbar{display:none!important}' +
+  // Render everything, always. `content-visibility: auto` lets the browser SKIP
+  // rendering off-screen subtrees, and whether it had got round to a given one by
+  // capture time is a race: the same gallery serialised 26% more nodes on one run than
+  // the next, because more tiles happened to be live. A skipped subtree is not absent
+  // from the walk either — it reports a zero-size box, which lands inside the frame and
+  // survives the off-frame cull, so the two states differ in BOTH directions. Forcing
+  // it visible costs a build step some layout time and buys an identical DOM every run.
+  '*{content-visibility:visible!important}';
 
 const VIEWPORT_DEFAULTS = { width: 1440, height: 900, dpi: 192 };
 
@@ -871,6 +879,25 @@ async function captureVector(baseUrl: string, shot: ShotDef): Promise<VectorCapt
                 }
                 for (const el of doomed) el.remove();
                 winDropped = doomed.length;
+              }
+              // Prune empty <g>/<defs> shells, innermost first. Two reasons, and the
+              // second is the one that matters:
+              //  1. They are pure weight — a group that paints nothing.
+              //  2. They are the last source of NON-DETERMINISM in a gallery shot. Tiles
+              //     off-screen under `content-visibility: auto` are not rendered, so the
+              //     walker emits their wrappers with nothing inside; how many get skipped
+              //     depends on when the browser got round to them, so consecutive runs
+              //     differed only in the COUNT of empty shells. The cull above removes
+              //     drawables, never their wrappers, so it could not settle this.
+              // Each pass strips one LEVEL of a nested-empty chain (removing the children
+              // is what makes the parent match `:empty` on the next pass), so the loop has
+              // to run until it converges rather than a fixed number of times. An 8-pass
+              // cap left a single stray `<g/>` on runs whose chains happened to nest
+              // deeper — which put the run-to-run variance back, 4 bytes of it.
+              for (let pass = 0; pass < 64; pass++) {
+                const empties = [...live.querySelectorAll('g:empty, defs:empty')];
+                if (!empties.length) break;
+                for (const el of empties) el.remove();
               }
               framed = { width: Math.round(winW), height: Math.round(winH) };
               anchored = wx > 0.5 || wy > 0.5 ? { x: Math.round(wx), y: Math.round(wy) } : null;

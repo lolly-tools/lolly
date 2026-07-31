@@ -368,3 +368,68 @@ test('lottie duration math: missing/non-finite fields never produce a durationMs
 test('lottie duration math: op === ip (zero-length) never produces a durationMs (guarded by ms > 0)', () => {
   assert.deepEqual(lottieDurationMs(10, 10, 30), {}, 'zero-length clip → no durationMs stored (never 0)');
 });
+
+// ── 6. authored easing ──────────────────────────────────────────────────────────────
+//
+// `enterEase`/`exitEase` are the one time sub-field that is neither a number nor a
+// closed enum — a cubic-bezier is user-typed text that has to reach an HTML attribute.
+// So the hook never emits the author's string: it emits a whitelisted preset name, or
+// a bezier rebuilt from its own parsed numbers. Everything else is dropped entirely,
+// which the readers treat as "the preset keeps its built-in curve".
+
+const timed = (over: Record<string, unknown>) => ({
+  id: 'a', kind: 'text', x: 0, y: 0, w: 100, h: 100, text: 'x', start: 0, dur: 2, ...over,
+});
+
+test('easing: a whitelisted preset rides through, on the phase that declared it', async () => {
+  const html = await mount([timed({ enter: 'rise', enterEase: 'overshoot', exit: 'fade', exitEase: 'ease-in' })]);
+  const tag = boxTag(html, 'a');
+  assert.match(tag, /data-t-enter-ease="overshoot"/);
+  assert.match(tag, /data-t-exit-ease="ease-in"/);
+});
+
+test('easing: a cubic-bezier is re-emitted from its PARSED numbers, not from the typed string', async () => {
+  const html = await mount([timed({ enter: 'rise', enterEase: '  cubic-bezier( 0.2 , 1.4000004 , 0.6 , 1 )  ' })]);
+  assert.match(boxTag(html, 'a'), /data-t-enter-ease="cubic-bezier\(0\.2,1\.4,0\.6,1\)"/,
+    'whitespace and float noise are normalised away — the attribute is the hook\'s own text');
+});
+
+test('easing: an unauthored curve emits no attribute at all', async () => {
+  for (const ease of [undefined, '', '   ']) {
+    const tag = boxTag(await mount([timed({ enter: 'rise', enterEase: ease })]), 'a');
+    assert.ok(!/data-t-enter-ease=/.test(tag), `${JSON.stringify(ease)} → attribute omitted`);
+  }
+  // And never without a kind to ease: the attribute lives inside the enter/exit guard.
+  const noKind = boxTag(await mount([timed({ enterEase: 'linear', exitEase: 'linear' })]), 'a');
+  assert.ok(!/-ease=/.test(noKind), 'no transition → no curve for it to govern');
+});
+
+test('easing: hostile and malformed curves are dropped, never escaped-and-emitted', async () => {
+  const hostile = [
+    '"onmouseover=alert(1)',
+    'cubic-bezier(0,0,1,1)"><script>alert(1)</script>',
+    'cubic-bezier(0,0,1)',            // three controls
+    'cubic-bezier(0,0,1,1,1)',        // five
+    'cubic-bezier(2,0,1,1)',          // x outside 0..1: not a function of progress
+    'cubic-bezier(-0.1,0,1,1)',
+    'cubic-bezier(a,b,c,d)',
+    'cubic-bezier(0,0,1,Infinity)',
+    'constructor', '__proto__', 'toString', 'valueOf',
+    'linear;background:url(x)',
+  ];
+  for (const enterEase of hostile) {
+    const tag = boxTag(await mount([timed({ enter: 'rise', enterEase })]), 'a');
+    assert.ok(!/data-t-enter-ease=/.test(tag), `${enterEase} → attribute omitted: ${tag}`);
+    assert.ok(!tag.includes('onmouseover') && !tag.includes('<script'), `nothing leaked: ${tag}`);
+    assert.equal((tag.match(/"/g) || []).length % 2, 0, `quoting stays balanced: ${tag}`);
+  }
+});
+
+test('easing: a non-string curve is ignored and never aborts compute()', async () => {
+  const html = await mount([
+    timed({ enter: 'rise', enterEase: ['overshoot'], exit: 'fade', exitEase: { toString: 'x' } }),
+    { id: 'b', kind: 'box', x: 0, y: 150, w: 100, h: 100, bg: '#112233' },
+  ]);
+  assert.ok(!/-ease=/.test(boxTag(html, 'a')), 'array / object curves → attributes omitted');
+  assert.match(boxTag(html, 'b'), /style="[^"]*#112233/, 'the rest of the document still computed');
+});

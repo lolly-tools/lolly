@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-31T10:06:03.526Z",
+  "generatedAt": "2026-07-31T13:28:04.157Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -10,6 +10,19 @@
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
+      "tags": [
+        "pdf",
+        "compress",
+        "shrink",
+        "optimize",
+        "reduce",
+        "size",
+        "document",
+        "scan",
+        "image",
+        "downsample",
+        "privacy"
+      ],
       "formats": [
         "pdf"
       ],
@@ -132,6 +145,11 @@
       "version": "1.0.0",
       "status": "official",
       "category": "utility",
+      "tags": [
+        "timer",
+        "productivity",
+        "utility"
+      ],
       "formats": [
         "html"
       ],
@@ -254,6 +272,13 @@
       "version": "1.1.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "photo",
+        "filter",
+        "duotone",
+        "color",
+        "effect"
+      ],
       "formats": [
         "png",
         "jpg",
@@ -415,6 +440,17 @@
       "version": "1.1.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "halftone",
+        "dots",
+        "photo",
+        "filter",
+        "effect",
+        "newspaper",
+        "comic",
+        "vector",
+        "image"
+      ],
       "formats": [
         "svg",
         "pdf",
@@ -588,6 +624,16 @@
       "version": "1.3.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "photo",
+        "filter",
+        "pixel",
+        "stretch",
+        "smear",
+        "glitch",
+        "distort",
+        "effect"
+      ],
       "formats": [
         "png",
         "jpg",
@@ -744,6 +790,20 @@
       "version": "1.1.0",
       "status": "experimental",
       "category": "designer",
+      "tags": [
+        "photo",
+        "filter",
+        "posterize",
+        "posterise",
+        "vector",
+        "trace",
+        "screenprint",
+        "separations",
+        "halftone",
+        "portrait",
+        "headshot",
+        "on-device"
+      ],
       "formats": [
         "png",
         "svg",
@@ -898,6 +958,17 @@
       "version": "1.1.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "scanline",
+        "crt",
+        "pixel",
+        "retro",
+        "posterize",
+        "halftone",
+        "image",
+        "filter",
+        "effect"
+      ],
       "formats": [
         "svg",
         "png",
@@ -1062,6 +1133,19 @@
       "version": "1.0.0",
       "status": "experimental",
       "category": "designer",
+      "tags": [
+        "photo",
+        "filter",
+        "voronoi",
+        "cells",
+        "mesh",
+        "mosaic",
+        "low-poly",
+        "vector",
+        "camera",
+        "live",
+        "on-device"
+      ],
       "formats": [
         "png",
         "svg",
@@ -1220,6 +1304,12 @@
       "version": "2.0.0",
       "status": "official",
       "category": "everyone",
+      "tags": [
+        "qr",
+        "url",
+        "link",
+        "marketing"
+      ],
       "formats": [
         "svg",
         "emf",
@@ -1423,6 +1513,15 @@
       "version": "0.4.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "map",
+        "street",
+        "city",
+        "location",
+        "vector",
+        "offline",
+        "osm"
+      ],
       "formats": [
         "svg",
         "emf",
@@ -1435,7 +1534,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z\" /><path d=\"M15 5.764v15\" /><path d=\"M9 3.236v15\" /></svg>",
-      "preview": "/catalog/previews/street-map.webp",
+      "preview": "/catalog/previews/street-map.png",
       "examples": [
         {
           "label": "Paris in ink",
@@ -1591,6 +1690,24 @@
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
+      "tags": [
+        "privacy",
+        "exif",
+        "metadata",
+        "gps",
+        "image",
+        "photo",
+        "strip",
+        "clean",
+        "jpeg",
+        "png",
+        "svg",
+        "vector",
+        "pdf",
+        "document",
+        "inkscape",
+        "illustrator"
+      ],
       "formats": [
         "jpg",
         "png",
@@ -1717,6 +1834,27 @@
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
+      "tags": [
+        "privacy",
+        "json",
+        "yaml",
+        "helm",
+        "kubernetes",
+        "jwt",
+        "base64",
+        "url",
+        "hash",
+        "sha256",
+        "developer",
+        "format",
+        "decode",
+        "text",
+        "de-identify",
+        "anonymise",
+        "anonymize",
+        "redact",
+        "pii"
+      ],
       "formats": [
         "html"
       ],
@@ -1841,6 +1979,15 @@
       "category": "utility",
       "capabilities": [
         "capture"
+      ],
+      "tags": [
+        "url",
+        "screenshot",
+        "capture",
+        "web",
+        "preview",
+        "developer",
+        "qa"
       ],
       "formats": [
         "png",
@@ -1969,6 +2116,25 @@
       "version": "1.10.0",
       "status": "community",
       "category": "designer",
+      "tags": [
+        "canvas",
+        "layout",
+        "wysiwyg",
+        "editor",
+        "poster",
+        "compose",
+        "design",
+        "free-form",
+        "import",
+        "figma",
+        "penpot",
+        "pdf",
+        "ai",
+        "illustrator",
+        "idml",
+        "indesign",
+        "adobe"
+      ],
       "formats": [
         "png",
         "svg",
@@ -2103,6 +2269,18 @@
       "category": "everyone",
       "capabilities": [
         "microphone"
+      ],
+      "tags": [
+        "audio",
+        "voice",
+        "record",
+        "recording",
+        "microphone",
+        "voiceover",
+        "podcast",
+        "mp3",
+        "meter",
+        "levels"
       ],
       "formats": [
         "png",
@@ -2257,6 +2435,13 @@
       "version": "2.0.1",
       "status": "community",
       "category": "utility",
+      "tags": [
+        "color",
+        "palette",
+        "tokens",
+        "contrast",
+        "brand"
+      ],
       "formats": [
         "svg",
         "png",
@@ -2430,6 +2615,14 @@
       "version": "1.0.0",
       "status": "official",
       "category": "everyone",
+      "tags": [
+        "gradient",
+        "mesh",
+        "background",
+        "wallpaper",
+        "hero",
+        "brand"
+      ],
       "formats": [
         "svg",
         "png",
@@ -2443,7 +2636,7 @@
       "height": 900,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"9\" cy=\"9\" r=\"7\"/><circle cx=\"15\" cy=\"15\" r=\"7\"/></svg>",
-      "preview": "/catalog/previews/mesh-gradient.webp",
+      "preview": "/catalog/previews/mesh-gradient.png",
       "examples": [
         {
           "label": "Sunset haze",
@@ -2628,6 +2821,16 @@
       "version": "1.0.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "chart",
+        "data",
+        "visualization",
+        "bar",
+        "pie",
+        "donut",
+        "infographic",
+        "svg"
+      ],
       "formats": [
         "png",
         "svg",
@@ -2918,6 +3121,27 @@
       "version": "1.1.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "chart",
+        "d3",
+        "data",
+        "visualization",
+        "graph",
+        "plot",
+        "bar",
+        "line",
+        "area",
+        "scatter",
+        "pie",
+        "donut",
+        "radar",
+        "treemap",
+        "heatmap",
+        "histogram",
+        "svg",
+        "vector",
+        "csv"
+      ],
       "formats": [
         "md",
         "png",
@@ -3130,6 +3354,19 @@
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
+      "tags": [
+        "ai",
+        "llm",
+        "prompt",
+        "tokens",
+        "context",
+        "text",
+        "image",
+        "vision",
+        "developer",
+        "paste",
+        "on-device"
+      ],
       "formats": [
         "png",
         "webp"
@@ -3138,7 +3375,7 @@
       "height": 1024,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"18\" height=\"18\" x=\"3\" y=\"3\" rx=\"2\" /><path d=\"M7 8h4\" /><path d=\"M7 12h4\" /><path d=\"M7 16h4\" /><path d=\"M14 8h3\" /><path d=\"M14 12h3\" /><path d=\"M14 16h3\" /></svg>",
-      "preview": "/catalog/previews/prompt-to-image.webp",
+      "preview": "/catalog/previews/prompt-to-image.png",
       "examples": [
         {
           "label": "Two-column brief",
@@ -3290,6 +3527,15 @@
         "screen",
         "microphone"
       ],
+      "tags": [
+        "screenshot",
+        "screen",
+        "recording",
+        "capture",
+        "crop",
+        "developer",
+        "qa"
+      ],
       "formats": [
         "png",
         "jpg",
@@ -3414,6 +3660,16 @@
       "version": "1.0.0",
       "status": "community",
       "category": "designer",
+      "tags": [
+        "slides",
+        "deck",
+        "presentation",
+        "pptx",
+        "powerpoint",
+        "video",
+        "layout",
+        "blocks"
+      ],
       "formats": [
         "pptx",
         "pdf",
@@ -3540,6 +3796,16 @@
       "version": "1.0.0",
       "status": "community",
       "category": "designer",
+      "tags": [
+        "slides",
+        "deck",
+        "presentation",
+        "pptx",
+        "powerpoint",
+        "tables",
+        "brand",
+        "blocks"
+      ],
       "formats": [
         "pptx",
         "pdf",
@@ -3550,7 +3816,7 @@
       "height": 720,
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.6\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"13\" rx=\"1.5\"/><path d=\"M7 20h10\"/><path d=\"M12 17v3\"/><path d=\"M6.5 8.5h6\"/><path d=\"M6.5 11.5h4\"/><rect x=\"14.5\" y=\"8\" width=\"3.5\" height=\"5.5\" rx=\"0.5\"/></svg>",
-      "preview": "/catalog/previews/deck-studio.webp",
+      "preview": "/catalog/previews/deck-studio.png",
       "examples": [
         {
           "label": "Boardroom title",
@@ -3707,6 +3973,14 @@
       "version": "1.0.0",
       "status": "community",
       "category": "designer",
+      "tags": [
+        "deck",
+        "slides",
+        "presentation",
+        "editor",
+        "pptx",
+        "on-canvas"
+      ],
       "formats": [
         "pptx",
         "pdf",
@@ -3834,6 +4108,20 @@
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
+      "tags": [
+        "pptx",
+        "powerpoint",
+        "presentation",
+        "deck",
+        "slides",
+        "rebrand",
+        "brand",
+        "theme",
+        "colors",
+        "fonts",
+        "convert",
+        "privacy"
+      ],
       "formats": [
         "pptx"
       ],
@@ -3957,6 +4245,22 @@
       "status": "community",
       "category": "utility",
       "privacy": "on-device",
+      "tags": [
+        "image",
+        "convert",
+        "heic",
+        "heif",
+        "avif",
+        "tiff",
+        "webp",
+        "jpeg",
+        "png",
+        "photo",
+        "compress",
+        "resize",
+        "iphone",
+        "privacy"
+      ],
       "formats": [
         "webp",
         "jpg",
@@ -4081,6 +4385,14 @@
       "version": "1.0.1",
       "status": "community",
       "category": "everyone",
+      "tags": [
+        "wordmark",
+        "logo",
+        "type",
+        "font",
+        "lockup",
+        "svg"
+      ],
       "formats": [
         "svg",
         "emf",
@@ -4260,6 +4572,19 @@
       "version": "2.2.3",
       "status": "community",
       "category": "everyone",
+      "tags": [
+        "audio",
+        "audiogram",
+        "waveform",
+        "spectrum",
+        "podcast",
+        "music",
+        "voice",
+        "video",
+        "social",
+        "quote",
+        "visualizer"
+      ],
       "formats": [
         "png",
         "webm",
@@ -4441,6 +4766,24 @@
       "version": "1.0.0",
       "status": "official",
       "category": "utility",
+      "tags": [
+        "provenance",
+        "copyright",
+        "licence",
+        "license",
+        "watermark",
+        "imprint",
+        "c2pa",
+        "content credentials",
+        "metadata",
+        "exif",
+        "creative commons",
+        "image",
+        "photo",
+        "artist",
+        "ip",
+        "rights"
+      ],
       "formats": [
         "png",
         "jpg",
@@ -4567,6 +4910,26 @@
       "status": "community",
       "category": "everyone",
       "new": true,
+      "tags": [
+        "video",
+        "timeline",
+        "sequence",
+        "edit",
+        "editor",
+        "canvas",
+        "clip",
+        "montage",
+        "reel",
+        "social",
+        "motion",
+        "transition",
+        "audio",
+        "music",
+        "overlay",
+        "lower-third",
+        "compose",
+        "story"
+      ],
       "formats": [
         "png",
         "mp4",
@@ -5150,6 +5513,16 @@
       "version": "1.2.0",
       "status": "community",
       "category": "everyone",
+      "tags": [
+        "battlecard",
+        "sales",
+        "competitive",
+        "table",
+        "cards",
+        "pdf",
+        "pages",
+        "batch"
+      ],
       "formats": [
         "pdf",
         "png",
@@ -5272,10 +5645,28 @@
       "id": "redact",
       "name": "Redact",
       "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
-      "version": "1.3.0",
+      "version": "1.5.0",
       "status": "official",
       "category": "utility",
       "privacy": "on-device",
+      "tags": [
+        "privacy",
+        "redact",
+        "redaction",
+        "black out",
+        "censor",
+        "remove",
+        "metadata",
+        "exif",
+        "image",
+        "photo",
+        "screenshot",
+        "pdf",
+        "document",
+        "svg",
+        "acropalypse",
+        "hidden text"
+      ],
       "formats": [
         "png",
         "jpg",
@@ -5296,14 +5687,33 @@
       "version": "1.0.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "imperfections",
+        "print",
+        "risograph",
+        "misregistration",
+        "photocopy",
+        "grain",
+        "paper",
+        "photo",
+        "filter",
+        "effect",
+        "vector",
+        "image"
+      ],
       "formats": [
         "svg",
+        "pdf",
+        "pdf-cmyk",
         "png",
         "jpg",
         "webp",
         "avif",
+        "tiff",
+        "cmyk-tiff",
         "gif",
         "apng",
+        "webp-anim",
         "webm",
         "mp4"
       ],
@@ -5312,6 +5722,10 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"4\" width=\"13\" height=\"13\" rx=\"1.5\" /><rect x=\"7.5\" y=\"7.5\" width=\"13\" height=\"13\" rx=\"1.5\" /><path d=\"M10.5 14.5c1 -1 2 1 3 0\" /></svg>",
       "preview": "/catalog/previews/filter-imperfections.svg",
+      "featured": {
+        "order": 7,
+        "blurb": "Risograph, misregistration and photocopy wear, on purpose"
+      },
       "examples": [
         {
           "label": "Subtle press",
@@ -5325,8 +5739,6 @@
           "label": "Risograph",
           "values": {
             "preset": "riso",
-            "ink1": "#0078bf",
-            "ink2": "#ff48b0",
             "paperTint": "#f7f2e7",
             "grainAmount": 35,
             "seed": 21
@@ -5467,14 +5879,35 @@
       "version": "1.0.0",
       "status": "official",
       "category": "designer",
+      "tags": [
+        "finish",
+        "foil",
+        "spot-uv",
+        "emboss",
+        "deboss",
+        "soft-touch",
+        "print",
+        "plate",
+        "spot-colour",
+        "photo",
+        "filter",
+        "effect",
+        "vector",
+        "image"
+      ],
       "formats": [
         "svg",
         "pdf",
+        "pdf-cmyk",
         "png",
+        "jpg",
         "webp",
         "avif",
+        "tiff",
+        "cmyk-tiff",
         "gif",
         "apng",
+        "webp-anim",
         "webm",
         "mp4"
       ],
@@ -5483,6 +5916,10 @@
       "exportable": true,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" rx=\"2.5\"/><path d=\"M6.5 17.5 17.5 6.5\"/><path d=\"M10.5 20.5 20.5 10.5\"/><path d=\"M8 8v3M6.5 9.5h3\"/></svg>",
       "preview": "/catalog/previews/finish-preview.svg",
+      "featured": {
+        "order": 6,
+        "blurb": "Foil, spot UV and emboss — with the plate your printer needs"
+      },
       "examples": [
         {
           "label": "Gold foil highlights",

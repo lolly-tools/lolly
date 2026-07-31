@@ -172,6 +172,10 @@ Those 7 are the whole allowlist, and it lives in `tests/docs-shots-vector.test.t
 
 The three genuine blockers, diagnosed in `plans/svg-snapshot-without-print.md` §16: the **gallery** shots (the walker drops fixed-position chrome and flattens the Cover Flow covers, whose 3-D `rotateY` `parseCssMatrix` refuses); the **audiogram** shots (canvas by implementation, not necessity — vector-expressible, but it needs a change to the tool); and **`incl-neuro-viz`**, which is a real physical limit (a WebGL2 fragment shader computes a per-pixel colour field — there is no geometry to recover).
 
+**Captures always frame the filmstrip, never Cover Flow** (`captureNeutralPinned()` forces it in `views/gallery.ts`). Not taste — Cover Flow fans its covers with a 3-D `rotateY` that `parseCssMatrix` refuses (covers come out mis-scaled or blank in vector), and it must keep its rAF loop running to lay the fan out, so it can never be fully still.
+
+**A vector baseline compares EXACTLY, so `tolerance=` is inert on one** — the pipeline warns when a recipe sets it. Everything a raster baseline's pixel budget used to absorb becomes churn the moment a shot goes vector: JS-driven motion (`FREEZE_CSS` only zeroes CSS animation), `content-visibility: auto` skipping off-screen subtrees, and observer-driven lazy hydration. The counters live in `lib/capture-neutral.ts` — a capture counts as reduced motion, every example strip hydrates up front, and `settleForCapture()` stamps `data-shots-settled` once the DOM stops growing, which recipes wait on via `waitSelector=`. See `plans/svg-snapshot-without-print.md` §16.7.
+
 Two rules that fall out of this. **`cropSelector` means "frame this", not "walk this subtree entire"** — a walker crop is windowed to `min(element box, recipe frame)`, matching what the print path always did. And **`scripts/propagate-shot-recipes.ts` syncs, it does not just insert**: `docs/build.ts` reads `format=` off each *locale* page, so changing an English recipe without syncing leaves 26 translations pointing at a retired file. Skip-if-present is not idempotence when the thing you skipped has since changed.
 
 ---

@@ -1640,3 +1640,187 @@ ignored there with a logged note, because 8-bit PQ *is* the defect.
 
 Also: catalog asset records gain an optional sniffed `depth` (bits per channel)
 on each format entry — schema-side only, no engine code reads it yet.
+
+## 1.89.0 — the gain-map JPEG: one file, two renditions
+
+Phase B2 of plans/deeprichpixels.md (§4.2, §6 B2, §9c). Three new engine
+modules and one deliberate behaviour change; no HostV1 method was added or
+changed, so no shell had to move. `?hdr=1&format=jpeg` now writes an ISO
+21496-1 / Ultra HDR v1.1 gain-map JPEG instead of an 8-bit PQ-encoded,
+Rec.2100-tagged one — the only HDR still-image output that renders as real HDR
+in Chromium/Safari/Android and degrades to an ordinary SDR JPEG everywhere
+else. The legacy PQ path remains, reached by `depth=8` or by any failure in the
+new one.
+
+`src/gainmap.ts` (new) — the container-agnostic gain-map maths.
+`computeGainMap(sdr, hdr, opts)` derives `log2(HDR/SDR)` per pixel from a pair
+of `DeepFrame`s, quantises it into a single luminance channel against the
+fitted `[min, max]` range, and returns the map plus the ISO/Adobe metadata that
+describes it (gamma, SDR/HDR offsets, HDR capacity, base rendition); its
+inverse `applyGainMap` and the display-side `gainMapWeight` (the headroom ramp a
+viewer applies) are there so the round trip is testable rather than asserted.
+Sources are cited per use site — ISO 21496-1:2025, the Adobe Gain Map
+Specification v1.0, Google's Ultra HDR v1.1 pseudo-code, libultrahdr's
+`gainmapmath.cpp`, BT.2020-2 luma coefficients. The map is emitted at full
+resolution (Ultra HDR commonly ships 1/2 or 1/4 scale — a pure size
+optimisation, and the honest place for it is resampling the linear log2 field
+before quantisation, never the 8-bit map). One channel only: `meta.channels`
+is `1`, so a 3-channel mode stays additive.
+
+`src/jpeg-segments.ts` (new) — the shared JPEG marker-segment walker and
+writer the tree had been re-implementing per feature (`c2pa-containers`'s
+`placeJpeg`, `strip-metadata`'s `scanJpeg`, the shell's metadata splicers).
+`scanJpegSegments` returns segments, SOS, EOI, trailer start and a `truncated`
+flag; malformed input yields a short scan rather than a throw, and only a
+missing SOI returns `null`. `insertJpegSegments` places new segments at a
+documented rank so metadata order is a rule instead of an accident.
+
+`src/gainmap-jpeg.ts` (new) — the container. `assembleGainMapJpeg(base, map,
+meta)` glues an SDR base JPEG and a gain-map JPEG into one file: an MPF APP2
+index (CIPA DC-007 — a big-endian TIFF stream whose MP Index IFD carries
+MPFVersion/NumberOfImages/MPEntry, offsets measured from the MP Endian field),
+the Google Container XMP on the primary, and BOTH of the metadata forms real
+decoders read on the map — the `hdrgm` XMP packet and the ISO 21496-1 APP2 box.
+`repairMpfOffsets(bytes)` re-derives the index after something is spliced into
+the primary; the extended-XMP GUID chain is deliberately NOT implemented (this
+path's packets are under 2 KB, and a silently truncated XMP packet fails
+invisibly), so `buildXmpApp1` throws past 65503 bytes rather than guessing.
+
+`src/c2pa-containers.ts` — `placeJpeg` now runs `repairMpfOffsets` over its
+output. Splicing an APP11 JUMBF store into the primary grows it without growing
+what MPF claims, which left a structurally invalid index (`MPEntry[0].size` no
+longer covered the image it describes) and a gain map an aware decoder could
+not locate. Stamping a gain-map JPEG is now lossless in both directions.
+No-MPF files are byte-identical, so every shipped C2PA hash is unaffected.
+
+`src/file-metadata.ts` — new exports `readMpfIndex` (a verified MPF read: a
+second image is reported only when its declared range lies inside the buffer
+AND begins with SOI) and `appendedIsExpected`, the single rule behind the
+`sensitive` flag on appended data, plus the `JpegMpfIndex` type; all three are
+re-exported from `index.ts` because shells already consume
+`extractFileMetadata` from the barrel and need them to interpret its output.
+The behaviour fix: a trailing payload the file's own container declares is
+described (`HDR gain map (ISO 21496-1 / Ultra HDR)`, `second image (MPF
+multi-picture)`) instead of being flagged as hidden appended data. Undeclared
+trailers — including a real second JPEG with no index, or a zip appended behind
+a genuine MPF segment — stay flagged exactly as before. `appendedIsExpected`
+says the bytes are *explained*, not that they are harmless; /verify still
+offers to view and extract every payload.
+
+`src/strip-metadata.ts` — **behaviour change:** stripping a JPEG whose MPF
+index declares extra images now truncates at the primary's own EOI, so the
+clean copy is a single ordinary SDR image rather than a file whose remaining
+bytes no index accounts for. Files with no MPF index are byte-for-byte
+unaffected. The cut is taken from `trailerStart` — the primary's real EOI, not
+an offset the file merely claims — so it can only ever land on a marker
+boundary.
+
+First consumer (web shell, not engine): `shells/web/src/bridge/export-gainmap-jpeg.ts`,
+a DOM-free seam (pixels in, bytes out, the one DOM-bound step — JPEG encoding —
+injected), wired into `renderRaster`'s JPEG branch. `imprint`/`durable` marks
+are applied to the SDR pixels BEFORE the base is encoded, so the mark lives in
+the delivered image and the gain map is computed from the marked pixels.
+`hdrViewTransform` derives the HDR rendition FROM the SDR frame, so base and map
+are pixel-aligned by construction — one rasterisation, and depth follows
+provenance: the map comes from the float transform, never an upsampled 8-bit
+intermediate.
+
+## 1.90.0 — a redaction mark can carry a brand, and still cover everything
+
+Additive, four optional fields on `PdfRedactOpts` (`host.pdf.redact`). No method
+was added or changed, so every existing shell and tool is unaffected.
+
+`color` — the bar fill as a 6-digit hex. Colour is security-neutral: any fully
+opaque fill destroys the pixels beneath it equally, which is what lets a
+redaction read as an accountable edit by a known entity rather than an anonymous
+smear. Translucency is NOT neutral and is refused, as is anything unreadable —
+the host falls back to its neutral near-black instead. That refusal is load
+bearing rather than defensive: assigning an unreadable string to a canvas
+`fillStyle` is a silent no-op, and the previous fill in the page rebuild is the
+opaque white background, so an unvalidated colour would paint white-on-white
+bars that redact nothing.
+
+`radius` — corner radius in points. The painted shape is INFLATED by the radius
+before its corners are rounded, so the requested rectangle stays entirely inside
+the opaque region: each arc's centre lands exactly on a corner of the requested
+rect, so no point of it can fall outside the shape. A corner whose sides had to
+clamp to the page edge is painted square, because a clamp pulls the arc centre
+inward and would cut back into the rect. `inflateForRadius` in the web shell's
+`pdf-redact-core.ts` owns the maths and is asserted in node.
+
+`label` / `labelColor` — a short attribution stamp painted ON TOP of the
+finished bar (safe: the pixels beneath are already destroyed). The host paints
+exactly the string it is given and never derives it from the document; bars with
+no room for it are left unstamped.
+
+Behaviour change in the same surface: the optional grayscale pass now runs
+BEFORE the bars are burned rather than after. "Scanned page" mode exists to drop
+the source's colour (the yellow channel colour lasers hide tracking dots in);
+the bars are the caller's own mark, and draining them made the burned colour
+disagree with the tool's preview.
+
+## 1.91.0 — an ink that is not a colour
+
+Additive, one optional field on `SpotColor` (`host.tokens` → `ColorSwatch.spot`)
+plus the open `FinishKind` union it takes. No method was added or changed, and
+absent means exactly what it meant before, so every existing brand and shell is
+unaffected.
+
+`finish` — what the press DOES with this ink, when the ink is not an ink at all:
+a foil, an emboss or deboss, a spot varnish, a cutting or creasing rule. `name`
+still says WHICH ('Gold', 'Silver', 'Die'); `finish` says what happens to it. The
+distinction matters because a finish never contributes to the process build: it
+is applied as its own plate, and must not be gamut-mapped or merged into CMYK
+the way an ordinary spot's alternate space is.
+
+The union is deliberately OPEN (`(string & {})`), because the contract's job is
+to define how a finish is SPELLED, not to enumerate what any given press offers.
+The offered set is brand data — a brand declares its own finishes on its own
+swatches — so a house finish this file has never heard of is a normal case, not
+an error. Consequently an unrecognised value must degrade rather than reject:
+`readSpotColor` in `engine/src/tokens.ts` drops ONLY a malformed `finish` and
+keeps the ink, where the guard it replaced would have failed the whole spot lock
+closed and silently un-locked a Pantone because of a typo in a neighbouring
+field. Any `switch` over a finish needs a `default:`.
+
+The shell half is the brand editor's existing print-lock control, which gains a
+third segment beside CMYK and Spot rather than a new tab, and writes the field
+into the same `$extensions` object — so this needs no schema change anywhere.
+
+## 1.92.0 — the formats a video person asks for
+
+Additive, and entirely below the bridge: no HostV1 method was added or changed,
+and nothing here is reachable from a tool. Two new engine writers plus the
+compressor work that both of them (and the deep PNG path) needed.
+
+`exr.ts` — a single-part scanline OpenEXR encoder: HALF (float16) or FLOAT,
+NONE/ZIPS/ZIP compression, INCREASING_Y, channels written in the alphabetical
+A/B/G/R order the format requires. It takes a `DeepFrame` and applies no
+transfer curve, no tone map and no clamp, because scene-linear and
+negative-tolerant is what EXR is FOR — this is the first container in the tree
+that can hold a `DeepFrame` without losing either end of its range. The frame's
+`space` becomes a `chromaticities` attribute whenever it is not Rec.709/D65 (an
+EXR with no such attribute already MEANS Rec.709/D65, so omitting it there is
+the honest encoding); `lab` and `xyz-d50` frames are refused rather than
+reinterpreted, since EXR's R/G/B are RGB primaries by definition.
+
+`radiance.ts` — a Radiance RGBE (`.hdr`) writer AND reader, new-style RLE plus
+the old-style `(1,1,1,n)` shift chain on read. The reader exists so the writer
+is testable against itself and so a future `.hdr` ingest has something to call.
+Its module header derives, and its tests re-measure, the format's real accuracy:
+one shared exponent means error is bounded at 1/256 of the pixel's BRIGHTEST
+channel and effectively unbounded relative to a much darker one. That is why EXR
+half is the interchange format and this is the convenience format.
+
+`deflate.ts` — a slab-fed incremental deflater (`createDeflateStream` /
+`createZlibStream`, create → push → finish, the shape `createStreamingMux`
+already uses). `png.ts` streams through it above 4 MiB of filtered bytes, so the
+16 MiB single-shot ceiling that made a 4K 16-bit PNG choose between a ~66 MB
+stored IDAT and a refusal is gone at the engine level. Verified independently at
+2560×1440 (28.1 MiB filtered): 12.19 MiB compressed against 28.13 MiB stored,
+fixed-Huffman blocks rather than stored ones, decoding to identical pixels.
+
+None of the three is in the barrel, following the `gainmap.ts` / `bytes.ts`
+precedent — they are engine-internal, consumed by deep-path import. The
+surfacing is CLI-first (plan §10 item 4): `--export=exr` and `--export=hdr` in
+`NODE_FORMATS`, refusing an 8-bit-only source rather than padding it.

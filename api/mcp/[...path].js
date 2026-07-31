@@ -763,6 +763,7 @@ var init_tool_schema = __esm({
                       enterMsField: { type: "string", description: "Number sub-field: duration of the enter preset, in MILLISECONDS." },
                       exitMsField: { type: "string", description: "Number sub-field: duration of the exit preset, in MILLISECONDS." },
                       muteField: { type: "string", description: "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
+                      linkField: { type: "string", description: "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked." },
                       laneField: { type: "string", description: "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
                       minSize: { type: "number", description: "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                       addKinds: {
@@ -930,6 +931,12 @@ var init_asset_schema = __esm({
               size: { type: "integer", description: "Bytes. Used for sync progress estimation." },
               width: { type: "integer" },
               height: { type: "integer" },
+              depth: {
+                type: "integer",
+                minimum: 1,
+                maximum: 64,
+                description: "Bits per channel of THIS file. Raster containers only (png/tiff/jpeg/webp). SNIFFED, NOT ASSERTED: absent means unknown or not raster \u2014 a container that buries depth in codec boxes (heic/avif) stays absent rather than guessing. Never hand-authored: `npm run build:catalog` writes it from a bounded header sniff and `npm run validate:catalog` re-sniffs to catch drift. Depth follows provenance (plans/deeprichpixels.md \xA710)."
+              },
               durationMs: { type: "integer", minimum: 0, description: "Playback length in milliseconds, for video, audio and lottie assets." }
             }
           }
@@ -1365,7 +1372,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.85.0";
+    ENGINE_VERSION = "1.90.0";
   }
 });
 
@@ -2714,7 +2721,25 @@ function chosenThemes(themes, meta, theme) {
     if (list2) list2.push(t);
     else byGroup.set(g2, [t]);
   }
-  if (byGroup.size <= 1) return theme ? [themes.find((t) => t.name === theme || t.id === theme) ?? themes[0]] : [themes[0]];
+  const activeNames = Array.isArray(meta.activeThemes) ? meta.activeThemes.filter((x) => typeof x === "string") : [];
+  const isActive = (t) => {
+    const g2 = groupOf(t);
+    for (const key of ["name", "id"]) {
+      const v = t[key];
+      if (typeof v !== "string") continue;
+      if (activeNames.includes(v)) return true;
+      if (g2 && activeNames.includes(`${g2}/${v}`)) return true;
+    }
+    return false;
+  };
+  if (byGroup.size <= 1) {
+    if (theme) return [themes.find((t) => t.name === theme || t.id === theme) ?? themes[0]];
+    if (activeNames.length) {
+      const active = themes.find(isActive);
+      if (active) return [active];
+    }
+    return [themes[0]];
+  }
   const requested = theme ? themes.find((t) => t.name === theme || t.id === theme) : void 0;
   if (requested) {
     const rg = groupOf(requested);
@@ -2722,21 +2747,34 @@ function chosenThemes(themes, meta, theme) {
     for (const [g2, list2] of byGroup) if (g2 !== rg && list2[0]) out2.push(list2[0]);
     return out2;
   }
-  const activeNames = Array.isArray(meta.activeThemes) ? meta.activeThemes.filter((x) => typeof x === "string") : [];
   if (activeNames.length) {
-    const active = themes.filter((t) => activeNames.includes(String(t.name)) || activeNames.includes(String(t.id)));
+    const active = themes.filter(isActive);
     if (active.length) return active;
   }
   const out = [];
   for (const [, list2] of byGroup) if (list2[0]) out.push(list2[0]);
   return out.length ? out : [themes[0]];
 }
-function activeSets(doc, theme) {
+function tokenSetNames(doc) {
+  if (!isRecord(doc)) return null;
   const setKeys = Object.keys(doc).filter((k) => !k.startsWith("$"));
+  if (!setKeys.length) return null;
+  if (Array.isArray(doc.$themes) && doc.$themes.length > 0) return setKeys;
+  const meta = isRecord(doc.$metadata) ? doc.$metadata : null;
+  const order = meta && Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
+  if (order && order.length && order.every((s) => typeof s === "string" && isRecord(doc[s]))) {
+    return setKeys;
+  }
+  return null;
+}
+function activeSets(doc, theme) {
+  const setKeys = tokenSetNames(doc) ?? [];
   const meta = isRecord(doc.$metadata) ? doc.$metadata : {};
   const order = Array.isArray(meta.tokenSetOrder) ? meta.tokenSetOrder : null;
   const themes = Array.isArray(doc.$themes) ? doc.$themes.filter(isRecord) : null;
-  if (!themes || !themes.length) return setKeys;
+  if (!themes || !themes.length) {
+    return order ? order.filter((s) => typeof s === "string" && setKeys.includes(s)) : setKeys;
+  }
   const active = /* @__PURE__ */ new Set();
   for (const t of chosenThemes(themes, meta, theme)) {
     const sel = isRecord(t.selectedTokenSets) ? t.selectedTokenSets : {};
@@ -2752,8 +2790,7 @@ function activeSets(doc, theme) {
 }
 function buildMergedMap(doc, theme) {
   const out = /* @__PURE__ */ new Map();
-  const themes = Array.isArray(doc.$themes) ? doc.$themes : null;
-  if (!themes || !themes.length) {
+  if (!tokenSetNames(doc)) {
     flattenGroup(doc, null, "", out);
     return out;
   }
@@ -2876,7 +2913,7 @@ function toSwatch(e) {
     value: srgbFace(ext) ?? colorToHex(e.value) ?? "",
     description: e.description ?? null,
     cmyk: ext && isNumberArray(ext.cmyk) ? ext.cmyk : null,
-    spot: ext && isSpotColor(ext.spot) ? ext.spot : null,
+    spot: ext ? readSpotColor(ext.spot) : null,
     ...ext ? facesOf(ext) : {}
   };
 }
@@ -2934,7 +2971,7 @@ function rgbaToHex(r, g2, b, a = 1) {
   const base = `#${h(r)}${h(g2)}${h(b)}`;
   return a >= 1 ? base : base + h(a * 255);
 }
-var TOKEN_EXT, ALIAS_RE, isRecord, strOrNull, isNumberArray, isSpotColor;
+var TOKEN_EXT, ALIAS_RE, isRecord, strOrNull, isNumberArray, isSpotColor, readSpotColor;
 var init_tokens = __esm({
   "engine/src/tokens.ts"() {
     "use strict";
@@ -2949,6 +2986,12 @@ var init_tokens = __esm({
     isSpotColor = (v) => {
       if (!isRecord(v) || typeof v.name !== "string") return false;
       return v.book === void 0 || typeof v.book === "string";
+    };
+    readSpotColor = (v) => {
+      if (!isSpotColor(v)) return null;
+      if (v.finish === void 0 || typeof v.finish === "string") return v;
+      const { finish: _malformed, ...rest } = v;
+      return rest;
     };
   }
 });
@@ -3766,6 +3809,171 @@ var init_video_meta = __esm({
   }
 });
 
+// engine/src/jpeg-segments.ts
+function readAppId(bytes, from, to) {
+  const limit = Math.min(to, from + MAX_APP_ID, bytes.length);
+  let s = "";
+  for (let i = from; i < limit; i++) {
+    const b = bytes[i];
+    if (b < 32 || b > 126) break;
+    s += String.fromCharCode(b);
+  }
+  return s.length ? s : null;
+}
+function skipEntropy(bytes, from) {
+  let i = from;
+  while (i + 1 < bytes.length) {
+    if (bytes[i] !== 255) {
+      i++;
+      continue;
+    }
+    const next = bytes[i + 1];
+    if (next === 255) {
+      i++;
+      continue;
+    }
+    if (next === 0) {
+      i += 2;
+      continue;
+    }
+    if (next >= 208 && next <= 215) {
+      i += 2;
+      continue;
+    }
+    return i;
+  }
+  return bytes.length;
+}
+function scanJpegSegments(bytes) {
+  if (!bytes || bytes.length < 2 || bytes[0] !== 255 || bytes[1] !== 216) return null;
+  const segments = [];
+  let sos = null;
+  let eoi = null;
+  let p = 2;
+  while (p + 1 < bytes.length) {
+    if (segments.length >= MAX_SEGMENTS) break;
+    if (bytes[p] !== 255) break;
+    let q = p + 1;
+    while (q < bytes.length && bytes[q] === 255) q++;
+    if (q >= bytes.length) break;
+    const marker = bytes[q];
+    if (marker === 0) break;
+    const start = q - 1;
+    if (marker === 217) {
+      segments.push({ marker, appId: null, start, end: start + 2 });
+      eoi = start;
+      break;
+    }
+    if (marker >= 208 && marker <= 216 || marker === 1) {
+      segments.push({ marker, appId: null, start, end: start + 2 });
+      p = start + 2;
+      continue;
+    }
+    if (start + 4 > bytes.length) break;
+    const len2 = bytes[start + 2] << 8 | bytes[start + 3];
+    if (len2 < 2 || start + 2 + len2 > bytes.length) break;
+    const end = start + 2 + len2;
+    const isApp = marker >= 224 && marker <= 239;
+    segments.push({ marker, appId: isApp ? readAppId(bytes, start + 4, end) : null, start, end });
+    if (marker === 218) {
+      if (sos === null) sos = start;
+      p = skipEntropy(bytes, end);
+      continue;
+    }
+    p = end;
+  }
+  const trailerStart = eoi !== null && eoi + 2 < bytes.length ? eoi + 2 : null;
+  return { segments, sos, eoi, trailerStart, truncated: eoi === null };
+}
+function findJpegSegments(bytes, marker, appId) {
+  const scan = scanJpegSegments(bytes);
+  if (!scan) return [];
+  return scan.segments.filter((s) => s.marker === marker && (appId === void 0 || s.appId === appId));
+}
+function findJpegSegment(bytes, marker, appId) {
+  return findJpegSegments(bytes, marker, appId)[0] ?? null;
+}
+var MAX_SEGMENTS, MAX_APP_ID, JPEG_APP_IDS;
+var init_jpeg_segments = __esm({
+  "engine/src/jpeg-segments.ts"() {
+    "use strict";
+    MAX_SEGMENTS = 4096;
+    MAX_APP_ID = 64;
+    JPEG_APP_IDS = Object.freeze({
+      JFIF: "JFIF",
+      EXIF: "Exif",
+      XMP: "http://ns.adobe.com/xap/1.0/",
+      XMP_EXT: "http://ns.adobe.com/xmp/extension/",
+      ICC: "ICC_PROFILE",
+      MPF: "MPF",
+      /** APP11 JUMBF (C2PA). Note this one is NOT NUL-terminated in the file — see `readAppId`. */
+      JUMBF: "JP"
+    });
+  }
+});
+
+// engine/src/gainmap-jpeg.ts
+function patchMpfEntries(bytes, images) {
+  const seg = findJpegSegment(bytes, M_APP2, JPEG_APP_IDS.MPF);
+  if (!seg) return false;
+  const h = mpHeaderAt(seg.start);
+  if (h + 16 > seg.end) return false;
+  const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const order = dv.getUint16(h);
+  if (order !== 19789 && order !== 18761) return false;
+  const le = order === 18761;
+  const inSeg = (from, len2) => from >= h && from + len2 <= seg.end;
+  const ifd = h + dv.getUint32(h + 4, le);
+  if (!inSeg(ifd, 2)) return false;
+  const count2 = dv.getUint16(ifd, le);
+  if (!inSeg(ifd, 2 + count2 * 12)) return false;
+  let entriesAt = -1;
+  let n2 = 0;
+  for (let i = 0; i < count2; i++) {
+    const e = ifd + 2 + i * 12;
+    const tag = dv.getUint16(e, le);
+    if (tag === 45057) n2 = dv.getUint32(e + 8, le);
+    if (tag === 45058) entriesAt = h + dv.getUint32(e + 8, le);
+  }
+  if (entriesAt < 0 || n2 !== images.length) return false;
+  if (!inSeg(entriesAt, n2 * 16)) return false;
+  for (let i = 0; i < n2; i++) {
+    const at = entriesAt + i * 16;
+    dv.setUint32(at + 4, images[i].length, le);
+    dv.setUint32(at + 8, i === 0 ? 0 : images[i].start - h, le);
+  }
+  return true;
+}
+function repairMpfOffsets(bytes) {
+  try {
+    const scan = scanJpegSegments(bytes);
+    if (!scan || scan.trailerStart === null) return bytes;
+    const trailer = scan.trailerStart;
+    if (bytes[trailer] !== 255 || bytes[trailer + 1] !== 216) return bytes;
+    const out = new Uint8Array(bytes);
+    const ok3 = patchMpfEntries(out, [
+      { start: 0, length: trailer },
+      { start: trailer, length: bytes.length - trailer }
+    ]);
+    return ok3 ? out : bytes;
+  } catch {
+    return bytes;
+  }
+}
+var M_APP2, XMP_APP1_MAX, enc, ISO_FLAG_MULTICHANNEL, ISO_FLAG_USE_BASE_CG, mpHeaderAt;
+var init_gainmap_jpeg = __esm({
+  "engine/src/gainmap-jpeg.ts"() {
+    "use strict";
+    init_jpeg_segments();
+    M_APP2 = 226;
+    XMP_APP1_MAX = 65535 - 2 - (JPEG_APP_IDS.XMP.length + 1);
+    enc = new TextEncoder();
+    ISO_FLAG_MULTICHANNEL = 1 << 7;
+    ISO_FLAG_USE_BASE_CG = 1 << 6;
+    mpHeaderAt = (segStart) => segStart + 4 + 4;
+  }
+});
+
 // engine/src/c2pa-containers.ts
 function binToBytes(s) {
   const out = new Uint8Array(s.length);
@@ -4150,7 +4358,8 @@ function placeJpeg(jpeg, manifest) {
   parts.push(jpeg.subarray(at));
   const cleaned = drop.length ? concatBytes(parts) : jpeg;
   const pos = insertAt - shift;
-  const out = concatBytes([cleaned.subarray(0, pos), block, cleaned.subarray(pos)]);
+  const spliced = concatBytes([cleaned.subarray(0, pos), block, cleaned.subarray(pos)]);
+  const out = repairMpfOffsets(spliced);
   return { out, exclusions: [{ start: pos, length: block.length }] };
 }
 function placeGif(gif, manifest) {
@@ -4566,6 +4775,7 @@ var init_c2pa_containers = __esm({
     init_x509();
     init_bytes();
     init_c2pa();
+    init_gainmap_jpeg();
     te3 = new TextEncoder();
     PDF_WS = " 	\r\n\f\0";
     PDF_DELIM = " 	\r\n\f\0()<>[]{}/%";
@@ -8452,6 +8662,10 @@ function parseHdr(raw) {
     richness: dial(p[3], 0, 100, HDR_DEFAULTS.richness)
   };
 }
+function parseDepth(raw) {
+  if (raw == null) return "auto";
+  return DEPTH_VALUES.get(String(raw).trim().toLowerCase()) ?? "auto";
+}
 function parseCuts(raw) {
   if (raw == null) return 1;
   const n2 = Number(String(raw).trim());
@@ -8517,6 +8731,9 @@ function parseUrlState(searchParams, manifest) {
     durable: parseDurable(params.get("durable")),
     // Opt-in HDR raster export (see header). null ⇒ SDR.
     hdr: parseHdr(params.get("hdr")),
+    // Requested export bit depth (see header). Always 8/16/'float'/'auto'; junk
+    // and absence both read as 'auto'. Depth follows provenance at the consumer.
+    depth: parseDepth(params.get("depth")),
     // Contact-sheet frame count for a still export of a timed composition (see
     // header). Always 1…CUTS_MAX; 1 ⇒ the single playhead frame.
     cuts: parseCuts(params.get("cuts")),
@@ -8562,6 +8779,10 @@ function serializeUrlState(model, opts = {}) {
   if (opts.imprint === false) params.set("imprint", "0");
   if (opts.durable) params.set("durable", "1");
   if (opts.hdr) params.set("hdr", "1");
+  {
+    const d = opts.depth == null ? "auto" : parseDepth(String(opts.depth));
+    if (d !== "auto") params.set("depth", String(d));
+  }
   if (opts.cuts != null && parseCuts(String(opts.cuts)) > 1) params.set("cuts", String(parseCuts(String(opts.cuts))));
   if (opts.lang && opts.lang !== "en") params.set("lang", opts.lang);
   return params.toString();
@@ -8664,7 +8885,7 @@ function splitToFields(str2, count2) {
   if (parts.length <= count2) return parts;
   return [...parts.slice(0, count2 - 1), parts.slice(count2 - 1).join(",")];
 }
-var HDR_DEFAULTS, RESERVED, CUTS_MAX;
+var HDR_DEFAULTS, DEPTH_VALUES, RESERVED, CUTS_MAX;
 var init_url_mode = __esm({
   "engine/src/url-mode.ts"() {
     "use strict";
@@ -8675,7 +8896,8 @@ var init_url_mode = __esm({
     init_lang();
     init_inputs();
     HDR_DEFAULTS = { peakNits: 1e3, reach: 45, lift: 0, richness: 40 };
-    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "hdr", "cuts", "lang", "full", "options", "nostage", "z", "zx"]);
+    DEPTH_VALUES = /* @__PURE__ */ new Map([["8", 8], ["16", 16], ["float", "float"], ["auto", "auto"]]);
+    RESERVED = /* @__PURE__ */ new Set(["format", "export", "copy", "slot", "output", "filename", "_v", "width", "height", "w", "h", "unit", "dpi", "profile", "password", "bleed", "marks", "c2pa", "imprint", "durable", "hdr", "depth", "cuts", "lang", "full", "options", "nostage", "z", "zx"]);
     CUTS_MAX = 64;
   }
 });
@@ -8959,6 +9181,77 @@ function readXmp(text, out) {
   }
   if (out.ai && !out.ai.credit && credit) out.ai.credit = credit;
 }
+function hasGainMapMetadata(bytes, start, end) {
+  if (start < 0 || end > bytes.length || end - start < 4) return false;
+  const sub = bytes.subarray(start, end);
+  const scan = scanJpegSegments(sub);
+  if (!scan) return false;
+  for (const seg of scan.segments) {
+    if (seg.marker !== 225 && seg.marker !== 226) continue;
+    if (seg.appId === JPEG_APP_IDS.MPF || seg.appId === JPEG_APP_IDS.ICC) continue;
+    if (seg.appId === ISO_GAINMAP_URN) return true;
+    const body = sub.subarray(seg.start + 4, Math.min(seg.end, seg.start + 4 + MAX_GAINMAP_SNIFF));
+    if (body.length && new TextDecoder("latin1").decode(body).includes(HDRGM_NS)) return true;
+  }
+  return false;
+}
+function primaryDeclaresGainMap(bytes, scan) {
+  if (!scan) return false;
+  for (const seg of scan.segments) {
+    if (seg.marker !== 225 || seg.appId !== JPEG_APP_IDS.XMP) continue;
+    const body = bytes.subarray(seg.start + 4, Math.min(seg.end, seg.start + 4 + MAX_GAINMAP_SNIFF));
+    const text = new TextDecoder("latin1").decode(body);
+    if (text.includes(HDRGM_NS) && text.includes("GainMap")) return true;
+  }
+  return false;
+}
+function readMpfIndex(bytes) {
+  try {
+    if (!bytes) return null;
+    const scan = scanJpegSegments(bytes);
+    if (!scan || scan.eoi === null) return null;
+    const trailerStart = scan.eoi + 2;
+    const mpf = scan.segments.find((s) => s.marker === 226 && s.appId === JPEG_APP_IDS.MPF);
+    if (!mpf) return null;
+    const h = mpf.start + 8;
+    if (h + 8 > mpf.end || h + 8 > bytes.length) return null;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const endian = dv.getUint16(h);
+    if (endian !== 19789 && endian !== 18761) return null;
+    const le = endian === 18761;
+    if (dv.getUint16(h + 2, le) !== 42) return null;
+    const ifd = h + dv.getUint32(h + 4, le);
+    if (ifd < h || ifd + 2 > mpf.end) return null;
+    const count2 = dv.getUint16(ifd, le);
+    if (count2 > 64 || ifd + 2 + count2 * 12 > mpf.end) return null;
+    let declared = 0;
+    let entriesAt = -1;
+    for (let i = 0; i < count2; i++) {
+      const e = ifd + 2 + i * 12;
+      const tag = dv.getUint16(e, le);
+      if (tag === 45057) declared = dv.getUint32(e + 8, le);
+      else if (tag === 45058) entriesAt = h + dv.getUint32(e + 8, le);
+    }
+    if (declared < 2 || declared > MAX_MPF_IMAGES) return null;
+    if (entriesAt < h || entriesAt + declared * 16 > mpf.end) return null;
+    const images = [];
+    for (let i = 0; i < declared; i++) {
+      const at = entriesAt + i * 16;
+      const length = dv.getUint32(at + 4, le);
+      const off = dv.getUint32(at + 8, le);
+      const start = i === 0 && off === 0 ? 0 : h + off;
+      images.push({ start, length });
+    }
+    const second = images[1];
+    if (second.start <= 0 || second.length <= 0) return null;
+    if (second.start + second.length > bytes.length) return null;
+    if (bytes[second.start] !== 255 || bytes[second.start + 1] !== 216) return null;
+    const gainMap = hasGainMapMetadata(bytes, second.start, second.start + second.length) || primaryDeclaresGainMap(bytes, scan);
+    return { images, trailerStart, gainMap };
+  } catch {
+    return null;
+  }
+}
 function sniffAppended(b, off) {
   const at = (o, s) => matchAscii(b, off + o, s);
   if (at(0, "PK") || at(0, "PK")) return "zip archive";
@@ -8984,17 +9277,35 @@ function fmtBytes(n2) {
   if (n2 < 1024 * 1024) return `${Math.round(n2 / 1024)} KB`;
   return `${(n2 / 1024 / 1024).toFixed(1)} MB`;
 }
+function describeDeclaredImage(bytes, off) {
+  const idx = readMpfIndex(bytes);
+  if (!idx) return null;
+  if (!idx.images.some((im, i) => i > 0 && im.start === off)) return null;
+  return idx.gainMap ? { kind: "HDR gain map (ISO 21496-1 / Ultra HDR)", gainMap: true } : { kind: "second image (MPF multi-picture)", gainMap: false };
+}
 function noteAppended(bytes, off, out) {
   const len2 = bytes.length - off;
   if (len2 <= 0) return;
-  const kind = sniffAppended(bytes, off);
-  out.appended = { bytes: len2, kind, offset: off };
+  const declared = describeDeclaredImage(bytes, off);
+  const kind = declared ? declared.kind : sniffAppended(bytes, off);
+  out.appended = { bytes: len2, kind, offset: off, declared: !!declared };
+  if (declared?.gainMap) {
+    out.fields.push({
+      label: "HDR gain map",
+      value: "a second image an HDR display applies to brighten this one; ordinary viewers show the SDR image unchanged",
+      group: "technical"
+    });
+  }
   out.fields.push({
     label: "Appended data",
-    value: `${kind} \u2014 ${fmtBytes(len2)} after the image ends`,
+    value: declared ? `${kind} \u2014 ${fmtBytes(len2)}, declared by the file's multi-picture (MPF) index` : `${kind} \u2014 ${fmtBytes(len2)} after the image ends`,
     group: "technical",
-    sensitive: kind !== "video (motion photo)"
+    sensitive: !appendedIsExpected(out.appended)
   });
+}
+function appendedIsExpected(appended) {
+  if (!appended) return false;
+  return appended.declared === true || appended.kind === "video (motion photo)";
 }
 function jpegEnd(bytes, scanStart) {
   let q = scanStart;
@@ -9255,11 +9566,12 @@ function extractFileMetadata(bytes) {
   }
   return out;
 }
-var MAX_FIELDS, MAX_VALUE_CHARS, MAX_TEXT_SCAN, TYPE_SIZE, ORIENTATION, PNG_KEYWORD_GROUP, MAX_GIF_BLOCKS, XMP_BOX_UUID;
+var MAX_FIELDS, MAX_VALUE_CHARS, MAX_TEXT_SCAN, TYPE_SIZE, ORIENTATION, ISO_GAINMAP_URN, HDRGM_NS, MAX_MPF_IMAGES, MAX_GAINMAP_SNIFF, PNG_KEYWORD_GROUP, MAX_GIF_BLOCKS, XMP_BOX_UUID;
 var init_file_metadata = __esm({
   "engine/src/file-metadata.ts"() {
     "use strict";
     init_c2pa_verify();
+    init_jpeg_segments();
     MAX_FIELDS = 64;
     MAX_VALUE_CHARS = 2048;
     MAX_TEXT_SCAN = 16 * 1024 * 1024;
@@ -9274,6 +9586,10 @@ var init_file_metadata = __esm({
       7: "Mirrored + rotated 90\xB0 CW",
       8: "Rotated 270\xB0 CW"
     };
+    ISO_GAINMAP_URN = "urn:iso:std:iso:ts:21496:-1";
+    HDRGM_NS = "hdr-gain-map";
+    MAX_MPF_IMAGES = 16;
+    MAX_GAINMAP_SNIFF = 8192;
     PNG_KEYWORD_GROUP = {
       Software: { group: "software" },
       Author: { group: "authorship", sensitive: true },
@@ -15389,13 +15705,13 @@ function setThemeSlot(xml, slot, hex) {
   return { text, changed };
 }
 function setSchemeFont(xml, which, face) {
-  const enc = xmlEncode(face);
+  const enc2 = xmlEncode(face);
   const re = new RegExp(`(<a:${which}Font>\\s*<a:latin(?=[\\s/>])[^>]*?\\stypeface=")([^"]*)(")`);
   let changed = false;
   const text = xml.replace(re, (whole, pre, val, post) => {
-    if (val === enc) return whole;
+    if (val === enc2) return whole;
     changed = true;
-    return pre + enc + post;
+    return pre + enc2 + post;
   });
   return { text, changed };
 }
@@ -16942,18 +17258,18 @@ function parseInner(b) {
   }
   let grayTrc = null;
   if (dataColourSpace === "GRAY") grayTrc = trcOf("kTRC");
-  const decodePcs = (enc, y) => {
+  const decodePcs = (enc2, y) => {
     if (y.length !== 3) return null;
     if (pcs === "Lab") {
-      const k = enc === "legacy16" ? 65535 / 65280 : 1;
+      const k = enc2 === "legacy16" ? 65535 / 65280 : 1;
       return [y[0] * 100 * k, y[1] * 255 * k - 128, y[2] * 255 * k - 128];
     }
     const s = 65535 / 32768;
     return xyzToLab(y[0] * s, y[1] * s, y[2] * s);
   };
-  const encodePcs = (enc, lab) => {
+  const encodePcs = (enc2, lab) => {
     if (pcs === "Lab") {
-      const k = enc === "legacy16" ? 65280 / 65535 : 1;
+      const k = enc2 === "legacy16" ? 65280 / 65535 : 1;
       return [
         clamp014(lab[0] / 100 * k),
         clamp014((lab[1] + 128) / 255 * k),
@@ -17057,9 +17373,9 @@ function parseInner(b) {
       }
       const lut = pipeline(`B2A${INTENT_TAG[intent]}`, false);
       if (lut) {
-        const enc = encodePcs(lut.labEnc, want);
-        if (!enc) return null;
-        return evalPipeline(lut, enc);
+        const enc2 = encodePcs(lut.labEnc, want);
+        if (!enc2) return null;
+        return evalPipeline(lut, enc2);
       }
       const raw = directLinear(want);
       if (raw && matrixTrc) return raw.map((v, i) => invertCurve(matrixTrc.trc[i], clamp014(v)));
@@ -19082,10 +19398,10 @@ async function rebrandPptx(bytes, plan) {
   if (plan?.dropEmbeddedFonts === true) enginePlan.dropEmbeddedFonts = true;
   const { parts: outParts, report } = rebrandPptxParts2(parts, enginePlan);
   const { zipSync } = await import("fflate");
-  const enc = new TextEncoder();
+  const enc2 = new TextEncoder();
   const files = {};
   for (const [path, content] of Object.entries(outParts)) {
-    files[path] = typeof content === "string" ? enc.encode(content) : content;
+    files[path] = typeof content === "string" ? enc2.encode(content) : content;
   }
   return { bytes: zipSync(files), report };
 }
@@ -20483,6 +20799,7 @@ async function captureUrl(params, format, dims) {
       });
     }
     if (params.waitMs > 0) await page2.waitForTimeout(Math.min(15e3, params.waitMs));
+    if (params.waitSelector) await page2.waitForSelector(params.waitSelector, { state: "attached", timeout: 6e4 });
     if (params.scrollDepth > 0) {
       for (let attempt2 = 0; attempt2 < 10; attempt2++) {
         const settled = await page2.evaluate((d) => {
@@ -21414,7 +21731,63 @@ async function render(toolId, query, o = {}) {
   }
   return { bytes, mime: out.mime, format: fmt2, tier: out.tier, warnings };
 }
-async function transform(toolId, file, inputs = {}, profile = {}) {
+function needsBrowserTier(message) {
+  return /browser canvas|not available in this app|needs a browser|requires a browser/i.test(message);
+}
+async function transformTierB(toolId, fileInputId2, file, query) {
+  const base = await webShellBase();
+  const p = new URLSearchParams(query);
+  p.delete("export");
+  const q = p.toString();
+  const tmpl = process.env.LOLLY_TOOL_URL_TEMPLATE || `${base}/#/tool/{id}?{query}`;
+  const url = tmpl.replace("{id}", encodeURIComponent(toolId)).replace("{query}", q);
+  let browser;
+  try {
+    browser = await getBrowser2();
+  } catch (e) {
+    if (e instanceof RenderError) throw e;
+    throw new RenderError(`Tier-B browser unavailable: ${e.message}`);
+  }
+  const ctx = await browser.newContext({ serviceWorkers: "block", acceptDownloads: true });
+  try {
+    const page2 = await ctx.newPage();
+    await page2.goto(url, { waitUntil: "load", timeout: 3e4 });
+    const picker = `.file-picker[data-input-id="${fileInputId2}"] input.file-native`;
+    try {
+      await page2.waitForSelector(picker, { state: "attached", timeout: 3e4 });
+    } catch {
+      throw new RenderError(`The web shell showed no file picker for "${fileInputId2}" on "${toolId}" \u2014 the built shell may predate this tool.`);
+    }
+    await page2.setInputFiles(picker, { name: file.name, mimeType: file.mime || "application/octet-stream", buffer: Buffer.from(file.bytes) });
+    try {
+      await page2.waitForSelector("[data-export-file]:not([disabled])", { state: "visible", timeout: 6e4 });
+    } catch {
+      throw new RenderError(`"${toolId}" never offered its export button for ${file.name} \u2014 the tool may have refused this file.`);
+    }
+    await page2.waitForFunction(() => !document.querySelector("[data-export-wait]"), void 0, { timeout: 3e4 }).catch(() => {
+    });
+    const downloadP = page2.waitForEvent("download", { timeout: 12e4 }).then((d) => ({ kind: "download", d }), () => ({ kind: "timeout" }));
+    const errorP = page2.waitForFunction(() => {
+      const b = document.querySelector("[data-export-file]");
+      return b && b.classList.contains("is-error") ? (b.textContent || "").trim() || "Export failed." : null;
+    }, void 0, { timeout: 12e4 }).then((h) => h.jsonValue()).then((msg) => ({ kind: "error", msg }), () => new Promise(() => {
+    }));
+    await page2.click("[data-export-file]");
+    const outcome = await Promise.race([downloadP, errorP]);
+    if (outcome.kind === "error") throw new RenderError(outcome.msg);
+    if (outcome.kind === "timeout") throw new RenderError(`"${toolId}" produced no file for ${file.name} within the time limit. Nothing was written.`);
+    const path = await outcome.d.path();
+    if (!path) throw new RenderError(`Tier-B download for "${toolId}" yielded no file.`);
+    const bytes = new Uint8Array(await readFile7(path));
+    const filename = outcome.d.suggestedFilename() || file.name;
+    await outcome.d.delete().catch(() => {
+    });
+    return { bytes, filename };
+  } finally {
+    await ctx.close();
+  }
+}
+async function transform(toolId, file, inputs = {}, profile = {}, o = {}) {
   const tool = await loadToolCached(toolId);
   if (!tool.manifest.hooks?.exportFile) {
     throw new RenderError(`Tool "${toolId}" is not a transform (file-in/file-out) tool.`);
@@ -21432,13 +21805,27 @@ async function transform(toolId, file, inputs = {}, profile = {}) {
     url: null
   };
   const values = { ...inputs, [inputId]: fileRef };
-  return withHost(profile, async (_dom, host) => {
-    const runtime = await createRuntime(tool, host, values);
-    const res = await runtime.exportFile();
-    const filename = res.filename || `${toolId}-output`;
+  const done = (out, tier) => {
+    const filename = out.filename || `${toolId}-output`;
     const ext = filename.includes(".") ? filename.split(".").pop() : "";
-    return { bytes: res.bytes, filename, mime: mimeForFormat(ext) };
-  });
+    return { bytes: out.bytes, filename, mime: mimeForFormat(ext), tier };
+  };
+  try {
+    return await withHost(profile, async (_dom, host) => {
+      const runtime = await createRuntime(tool, host, values);
+      const res = await runtime.exportFile();
+      return done(res, "A");
+    });
+  } catch (e) {
+    const msg = e.message;
+    if (!needsBrowserTier(msg)) throw e;
+    if (o.noBrowser) {
+      throw new RenderError(`${msg} That needs the browser tier, which is not available for this request.`);
+    }
+    const query = serializeUrlState(buildInputModel(tool.manifest, { initial: inputs }));
+    const out = await transformTierB(toolId, inputId, { name: fileRef.name, mime: fileRef.mime, bytes }, query);
+    return done(out, "B");
+  }
 }
 
 // services/mcp/src/tools.ts
@@ -21533,6 +21920,41 @@ var TOOL_DEFS = [
     }
   },
   {
+    name: "lolly_redact",
+    description: "Redact regions of an image, SVG or PDF on-device. Covered content is destroyed and the file rebuilt, not drawn over: the returned file has no metadata, no trailing bytes and, for a PDF, no text layer. Instructions are the same canonical string a Lolly share link carries, so one string can be applied to every file of an identical layout. The tool re-checks its own output and returns an error with nothing attached when a check fails. Not watermarked; Content Credentials only when resign is set.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        file: FILE_ARG,
+        instructions: {
+          type: "string",
+          description: `Canonical instruction string: a lolly.tools redact link, or just its query \u2014 e.g. "bars=1,40,60,200,24~1,40,100,120,14&quantise=1&grayscale=1". Bar fields are page,x,y,w,h: PDF bars in points from the page's top-left, image bars in pixels from the top-left.`
+        },
+        bars: {
+          type: "array",
+          description: "Bars as objects instead of a string. Merged over anything in `instructions`.",
+          items: {
+            type: "object",
+            properties: {
+              page: { type: "number", description: "1-based page (1 for a single image)." },
+              x: { type: "number" },
+              y: { type: "number" },
+              w: { type: "number" },
+              h: { type: "number" }
+            },
+            required: ["x", "y", "w", "h"],
+            additionalProperties: true
+          }
+        },
+        quantise: { type: "boolean", description: "Round bar widths up to a coarse grid so width hints at length less (default on)." },
+        grayscale: { type: "boolean", description: "Drop colour \u2014 removes colour-laser tracking dots from a scan." },
+        resign: { type: "boolean", description: "Opt in to a fresh Content Credential on the redacted copy (default off)." }
+      },
+      required: ["file"],
+      additionalProperties: false
+    }
+  },
+  {
     name: "lolly_verify",
     description: "Verify a file's Content Credentials (C2PA) on-device: was it genuinely made with Lolly, who signed it, and has it changed since export. Returns the verdict, signer identity, edit history, and embedded file metadata (EXIF/XMP) as text + JSON. Bytes in, verdict out \u2014 nothing leaves the server.",
     inputSchema: {
@@ -21562,6 +21984,18 @@ function buildLinks(manifest, inputs, o) {
   const editUrl = query ? `${WEB_BASE}/#/tool/${manifest.id}?${query}` : `${WEB_BASE}/#/tool/${manifest.id}`;
   const renderUrl = buildEmbedUrl({ toolId: manifest.id, format: o.format ?? manifest.render.formats[0], query });
   return { query, editUrl, renderUrl };
+}
+async function redactInputs(manifest, args) {
+  const raw = String(args["instructions"] ?? "").trim();
+  const query = raw.includes("?") ? raw.slice(raw.indexOf("?") + 1) : raw;
+  const inputs = {};
+  if (query) Object.assign(inputs, parseUrlState(await expandQuery(query), manifest).values);
+  delete inputs[fileInputId(manifest) ?? "source"];
+  if (Array.isArray(args["bars"])) inputs["bars"] = args["bars"];
+  for (const k of ["quantise", "grayscale", "resign"]) {
+    if (typeof args[k] === "boolean") inputs[k] = args[k];
+  }
+  return inputs;
 }
 function exampleLooks(m, cap) {
   const t = m;
@@ -21747,8 +22181,34 @@ ${links.renderUrl ?? "(unavailable)"}`);
         const res = await transform(toolId, { base64: file.base64, name: file.name, mime: file.mime }, inputs);
         return {
           content: [
-            { type: "text", text: `Transformed ${file.name ?? "file"} \u2192 ${res.filename} (${res.bytes.length} bytes). Not watermarked; no provenance added.` },
+            { type: "text", text: `Transformed ${file.name ?? "file"} \u2192 ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}). Not watermarked; no provenance added.` },
             { type: "resource", resource: { uri: `lolly://transform/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString("base64") } }
+          ]
+        };
+      }
+      case "lolly_redact": {
+        const file = args["file"];
+        if (!file?.base64) return errorResult("file.base64 is required.");
+        const tool = await loadToolCached("redact").catch(() => null);
+        if (!tool) return errorResult("The redact tool is not in this catalog.");
+        const inputs = await redactInputs(tool.manifest, args);
+        const bars = inputs["bars"];
+        if (!Array.isArray(bars) || bars.length === 0) {
+          return errorResult(
+            'No redaction bars given. Pass `instructions` (e.g. "bars=1,40,60,200,24") or a `bars` array \u2014 a redaction with no bars would just re-encode the file.'
+          );
+        }
+        const res = await transform("redact", { base64: file.base64, name: file.name, mime: file.mime }, inputs);
+        const notes = [
+          `Redacted ${file.name ?? "file"} \u2192 ${res.filename} (${res.bytes.length} bytes, tier ${res.tier}).`,
+          `${bars.length} bar${bars.length === 1 ? "" : "s"} applied. The tool rebuilt the file and re-checked its own output; nothing is returned unless those checks pass.`,
+          inputs["resign"] === true ? "Signed as a redacted derivative (fresh Content Credential, no ingredients)." : "Not watermarked; no provenance added.",
+          "Covered content is destroyed, not hidden. Invisible whole-image watermarks are unaffected, and this tool cannot detect whether one is present."
+        ];
+        return {
+          content: [
+            { type: "text", text: notes.join("\n") },
+            { type: "resource", resource: { uri: `lolly://redact/${res.filename}`, mimeType: res.mime, blob: Buffer.from(res.bytes).toString("base64") } }
           ]
         };
       }
@@ -21782,7 +22242,7 @@ ${links.renderUrl ?? "(unavailable)"}`);
 }
 async function serverInstructions() {
   const { tools } = await loadIndex();
-  return `Lolly MCP server (engine ${ENGINE_VERSION}) \u2014 generate on-brand SUSE creative assets. ${tools.length} tools available. Workflow: lolly_list_tools \u2192 lolly_describe_tool \u2192 lolly_render. Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, and lolly_verify to check a file's Content Credentials (C2PA). Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens).`;
+  return `Lolly MCP server (engine ${ENGINE_VERSION}) \u2014 generate on-brand SUSE creative assets. ${tools.length} tools available. Workflow: lolly_list_tools \u2192 lolly_describe_tool \u2192 lolly_render. Use lolly_build_url for a shareable/editable link without rendering, lolly_transform for on-device file utilities, lolly_redact to destroy regions of an image/SVG/PDF from one reusable instruction string, and lolly_verify to check a file's Content Credentials (C2PA). Brand assets, tokens, and tool docs are available as resources (lolly://catalog, lolly://assets, lolly://tool/{id}, lolly://tool/{id}/preview, lolly://asset/{id}, lolly://tokens).`;
 }
 var GENERIC_PROMPT = "create-branded-asset";
 var GENERIC_PROMPT_DEF = {

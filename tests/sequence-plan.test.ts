@@ -67,6 +67,7 @@ function fakeLayer(over: Partial<SeqLayer> & { idx: number }): SeqLayer {
     el: doc.createElement('div'),
     startMs: 0, durMs: 1000, clipInMs: 0, speed: 1, mute: false,
     enter: null, enterMs: DEFAULT_TRANSITION_MS, exit: null, exitMs: DEFAULT_TRANSITION_MS,
+    enterEase: '', exitEase: '',
     lane: 'seq', kind: 'static',
     rect: { x: 0, y: 0, w: 100, h: 100, rot: 0 },
     opacity: 1, blend: '', radius: '', clipPath: '', openEnded: false,
@@ -863,4 +864,122 @@ test('the truncation guard still fires with every new field supplied', () => {
   });
   assert.equal(holes.ok, false);
   assert.ok(Math.abs(holes.shortfallSec - 1) < 1e-9);
+});
+
+// ── 11. authored easing ─────────────────────────────────────────────────────
+//
+// The ease is a per-PHASE string read straight off the box and handed to
+// recTransition, which governs GEOMETRY only (alpha keeps its own ramp — see
+// lib/transitions.ts). It is deliberately NOT validated on the way in: the curve
+// module is the single validator, so a junk value means the same thing to the
+// planner as it does to the clock, which is "the preset's own curve".
+
+test('readLayer carries the authored curves verbatim, and \'\' when there are none', () => {
+  const eased = layerFrom(boxHtml({
+    time: 'data-t-start="0" data-t-dur="1000" data-t-enter="rise" data-t-enter-ease="overshoot"'
+      + ' data-t-exit="fade" data-t-exit-ease="cubic-bezier(0.2,0,0.8,1)"',
+  }));
+  assert.equal(eased.enterEase, 'overshoot');
+  assert.equal(eased.exitEase, 'cubic-bezier(0.2,0,0.8,1)');
+  const bare = layerFrom(boxHtml({ time: 'data-t-start="0" data-t-dur="1000" data-t-enter="rise"' }));
+  assert.equal(bare.enterEase, '');
+  assert.equal(bare.exitEase, '');
+});
+
+test('the plan applies the curve of the phase that WON, not of the kind', () => {
+  // Enter and exit name the same kind with DIFFERENT curves, so a planner that picked
+  // the ease off the kind (or off `enterEase` always) would be indistinguishable from
+  // a correct one until exactly here.
+  const layers = [fakeLayer({
+    idx: 0, startMs: 0, durMs: 1000, rect: { x: 0, y: 0, w: 640, h: 360, rot: 0 },
+    enter: 'rise', enterMs: 400, enterEase: 'linear',
+    exit: 'rise', exitMs: 400, exitEase: 'overshoot',
+  })];
+  const head = sequenceDrawPlan(layers, 100, 1000)[0]!;
+  const tail = sequenceDrawPlan(layers, 900, 1000)[0]!;
+  assert.equal(head.dy, recTransition('rise', 0.25, 640, 360, 'linear').dy);
+  assert.equal(tail.dy, recTransition('rise', 0.25, 640, 360, 'overshoot').dy);
+  assert.notEqual(head.dy, tail.dy, 'the two curves really do differ at the same progress');
+});
+
+test('an unauthored or junk curve plans exactly what it planned before the control existed', () => {
+  // Only the DRAWN state: `item.layer` echoes the authored string back, so comparing
+  // whole plan items would only ever prove that junk is spelled differently.
+  const drawn = (ease: string): Omit<PlanItem, 'layer'> => {
+    const { layer: _layer, ...rest } = sequenceDrawPlan([fakeLayer({
+      idx: 0, startMs: 0, durMs: 1000, rect: { x: 0, y: 0, w: 640, h: 360, rot: 0 },
+      enter: 'pop', enterMs: 400, enterEase: ease,
+    })], 100, 1000)[0]!;
+    return rest;
+  };
+  const bare = drawn('');
+  for (const junk of ['wobble', 'cubic-bezier(0,0,1)', 'cubic-bezier(2,0,1,1)', 'constructor', 'toString']) {
+    assert.deepEqual(drawn(junk), bare, junk);
+  }
+  // And it is the kind's OWN default curve, not a generic one: pop is easeOutBack.
+  assert.equal(bare.scale, recTransition('pop', 0.25, 640, 360).sc);
+});
+
+test('the crossfade tail keeps the curve the AUTHOR wrote, not the junction\'s kind', () => {
+  // At a junction the outgoing kind is 'fade', derived from the two neighbours rather
+  // than read off either field — but the curve still belongs to A's authored exit.
+  const layers = [
+    fakeLayer({ idx: 0, lane: 'seq', startMs: 0, durMs: 1000, rect: { x: 0, y: 0, w: 640, h: 360, rot: 0 }, exit: 'fade', exitMs: 400, exitEase: 'overshoot' }),
+    fakeLayer({ idx: 1, lane: 'seq', startMs: 1000, durMs: 1000, enter: 'fade', enterMs: 400 }),
+  ];
+  const tail = sequenceDrawPlan(layers, 1100, 2000).find((i) => i.layer.idx === 0)!;
+  const expect = recTransition('fade', 0.75, 640, 360, 'overshoot');
+  assert.equal(tail.dx, expect.dx);
+  assert.ok(Math.abs(tail.alpha - expect.alpha) < 1e-12, 'alpha is the fade\'s own ramp, curve or no curve');
+});
+
+test('PARITY: an authored curve moves the planner and the clock the SAME way', () => {
+  // The load-bearing one. The preview the user scrubs and the file that gets rendered
+  // read the ease from the same attributes through two different modules; a drift here
+  // is exactly the class of bug this whole file exists to make impossible.
+  for (const [enterEase, exitEase] of [['', ''], ['linear', 'linear'], ['overshoot', 'anticipate'], ['cubic-bezier(0.2,1.4,0.6,1)', 'wobble']]) {
+    const html = boxHtml({
+      style: 'left:10px;top:20px;width:640px;height:360px;transform:rotate(-6deg);opacity:0.9;',
+      time: 'data-t-start="500" data-t-dur="3000" data-t-enter="swoop" data-t-enter-ms="600"'
+        + ` data-t-exit="tilt" data-t-exit-ms="400" data-t-enter-ease="${enterEase}" data-t-exit-ease="${exitEase}"`,
+    });
+    const stage = parseSequenceStage(stageOf(html, 7000));
+    assert.ok(stage);
+    const timing = readTiming(stage.layers[0]!.el);
+    assert.equal(timing.enterEase, enterEase, 'both readers see the same authored string');
+    assert.equal(stage.layers[0]!.enterEase, enterEase);
+    for (let t = 500; t < 3500; t += 13) {
+      const item: PlanItem | undefined = sequenceDrawPlan(stage.layers, t, stage.totalMs)[0];
+      if (!item) { assert.fail(`nothing planned at ${t}`); return; }
+      const tr = transitionAt(timing, t, stage.totalMs);
+      const off = tr ? recTransition(tr.kind, tr.p, 640, 360, tr.ease) : { dx: 0, dy: 0, sc: 1, alpha: 1, rot: 0 };
+      assert.equal(item.dx, off.dx, `dx at ${t} (${enterEase}/${exitEase})`);
+      assert.equal(item.dy, off.dy, `dy at ${t} (${enterEase}/${exitEase})`);
+      assert.equal(item.scale, off.sc, `scale at ${t} (${enterEase}/${exitEase})`);
+      assert.equal(item.rot, -6 + off.rot, `rot at ${t} (${enterEase}/${exitEase})`);
+      assert.ok(Math.abs(item.alpha - 0.9 * off.alpha) < 1e-12, `alpha at ${t}`);
+    }
+  }
+});
+
+test('PARITY: and an authored curve is not a no-op in either of them', () => {
+  // The sweep above passes vacuously if the ease never reaches recTransition at all.
+  const at = (ease: string): { plan: number; clock: number } => {
+    const html = boxHtml({
+      style: 'left:0px;top:0px;width:640px;height:360px;',
+      time: `data-t-start="0" data-t-dur="3000" data-t-enter="rise" data-t-enter-ms="600" data-t-enter-ease="${ease}"`,
+    });
+    const stage = parseSequenceStage(stageOf(html, 7000))!;
+    const timing = readTiming(stage.layers[0]!.el);
+    const tr = transitionAt(timing, 150, 7000)!;
+    return {
+      plan: sequenceDrawPlan(stage.layers, 150, 7000)[0]!.dy,
+      clock: recTransition(tr.kind, tr.p, 640, 360, tr.ease).dy,
+    };
+  };
+  const bare = at('');
+  const linear = at('linear');
+  assert.equal(bare.plan, bare.clock);
+  assert.equal(linear.plan, linear.clock);
+  assert.notEqual(linear.plan, bare.plan, 'the authored curve really did change the geometry');
 });

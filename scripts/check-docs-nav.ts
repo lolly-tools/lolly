@@ -68,10 +68,6 @@ export const NOT_IN_SIDEBAR: Record<string, string> = {
   index:
     'the /info landing page — the brand wordmark links to it from every page, and it ' +
     'renders the hub cards rather than sitting inside a pathway sidebar',
-  'content-credentials-engineering':
-    'the deep engineering companion to content-credentials-identity, reached from that ' +
-    "page's cross-links; listing both in the sidebar would put two near-identical " +
-    'titles side by side for an audience most readers are not in',
 };
 
 export interface NavReport {
