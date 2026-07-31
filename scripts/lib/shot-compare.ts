@@ -219,6 +219,45 @@ export function stripSvgC2pa(svg: string): string {
 }
 
 /** width/height attributes of the root <svg> element, if numeric. */
+/**
+ * The published frame for a walker shot, in the walked node's OWN coordinate space.
+ *
+ * `nat`   the walker's native root box (it frames getBoundingClientRect, so this is
+ *         the element's border box — NOT its scroll height).
+ * `frame` the recipe's declared width x height.
+ * `off`   how far the node extends above/left of the viewport, i.e.
+ *         max(0, -rect.left) and max(0, -rect.top).
+ *
+ * WHY THE OFFSET EXISTS. renderSvgFromHtml emits every node relative to the walked
+ * node's top-left, so root (0,0) is that corner — which for an element TALLER than
+ * the viewport and centred in it (the tool stage is `place-items:center`) sits above
+ * the fold. Anchoring the window at 0,0 then publishes the off-screen band and cuts
+ * the visible one: measured on a 944x2009 centred element at top=-554.5, the reader
+ * sees local y 554.5-1454.5 while a top-anchored 900px window emitted 0-900.
+ *
+ * SIZE IS min(), NOT the frame. An element smaller than the recipe frame keeps its
+ * own box rather than being padded out to it — padding would add a transparent ring
+ * the subtree-scoped walk has no ink for, and the /info column never upscales
+ * (docs/build.ts, `max-width: min(100%, 40em)`), so it would just publish smaller
+ * content inside a bigger canvas.
+ */
+export function walkerWindow(
+  nat: { w: number; h: number },
+  frame: { w: number; h: number },
+  off: { x: number; y: number },
+): { x: number; y: number; w: number; h: number } {
+  const w = Math.min(frame.w, nat.w);
+  const h = Math.min(frame.h, nat.h);
+  // Slide to the visible band, then clamp inside the box so the window is always a
+  // sub-rect of what was actually walked — which is why no backdrop ring is needed.
+  return {
+    x: Math.min(Math.max(0, off.x), Math.max(0, nat.w - w)),
+    y: Math.min(Math.max(0, off.y), Math.max(0, nat.h - h)),
+    w,
+    h,
+  };
+}
+
 export function svgRootSize(svg: string): { width: number; height: number } | null {
   const root = svg.match(/<svg[^>]*>/);
   if (!root) return null;
@@ -311,6 +350,13 @@ export interface ShotDef {
   height?: number;
   dpi?: number;
   waitMs?: number;
+  /**
+   * Block the capture until this selector matches (after waitMs, before scroll or
+   * serialisation). The deterministic settle for pages that signal readiness in the
+   * DOM — e.g. the ?neuro demo stamps `data-demo-settled` when its fixed frame
+   * sequence has rendered — where any waitMs is a guess about machine speed.
+   */
+  waitSelector?: string;
   css?: string;
   scrollDepth?: number;
   zoom?: number;
@@ -413,6 +459,7 @@ export function parseShotRecipes(md: string): { recipes: ShotDef[]; problems: st
       cropLeft: num('cropLeft'), cropRight: num('cropRight'),
       cropTop: num('cropTop'), cropBottom: num('cropBottom'),
       cropSelector: q.get('cropSelector') ?? undefined,
+      waitSelector: q.get('waitSelector') ?? undefined,
       css: q.get('css') ?? undefined,
       pixelDiffFrac: tolerance,
       localize: q.get('localize') === '1' || q.get('localize') === 'true',

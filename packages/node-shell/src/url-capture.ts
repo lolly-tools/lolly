@@ -35,6 +35,12 @@ export interface CaptureParams {
   hue: number;           // degrees for the 'hue' recolor
   zoom: number;          // browser zoom level (1 = 100%); magnifies before the shot
   /**
+   * Optional readiness selector: after waitMs, block until it matches (60s cap).
+   * Pipeline-only, like `initScript` — the deterministic settle for pages that
+   * signal readiness in the DOM, where any waitMs is a guess about machine speed.
+   */
+  waitSelector?: string;
+  /**
    * Optional page-init script run BEFORE the target page's own scripts, on every
    * navigation (Playwright addInitScript). The end-user url-shot tool never sets
    * this — it exists only so the docs-shots pipeline can seed localStorage (e.g.
@@ -142,6 +148,7 @@ export async function captureUrl(
       }, params.scrollDepth).catch(() => {});
     }
     if (params.waitMs > 0) await page.waitForTimeout(Math.min(15_000, params.waitMs));
+    if (params.waitSelector) await page.waitForSelector(params.waitSelector, { state: 'attached', timeout: 60_000 });
     // Re-assert the scroll after the wait: an SPA lays out well after `load`, so
     // the early scroll can clamp against a still-empty document and silently stay
     // at the top. The early scroll stays (it triggers lazy loading that waitMs
