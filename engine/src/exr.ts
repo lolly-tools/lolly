@@ -335,6 +335,9 @@ export function packExr(frame: DeepFrame, opts: PackExrOptions = {}): Uint8Array
   for (const [k] of extras) {
     if (RESERVED_ATTRS.has(k)) throw new Error(`packExr: attribute "${k}" is written by the encoder and cannot be overridden`);
     if (k.length === 0) throw new Error('packExr: attribute name must not be empty');
+    // A NUL or control byte terminates the name field early, producing a
+    // structurally corrupt header the reference reader cannot open at all.
+    if (/[\x00-\x1f\x7f]/.test(k)) throw new Error(`packExr: attribute name ${JSON.stringify(k)} contains a control byte`);
     if (utf8(k).length > MAX_NAME_LEN) throw new Error(`packExr: attribute name "${k}" exceeds ${MAX_NAME_LEN} bytes`);
   }
   // Long-name flag: set only if some name actually needs it (File Layout,

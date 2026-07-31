@@ -114,7 +114,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `css-color.ts` | 972 | One CSS Color 4 colour value — the engine's single source of truth for parsing, converting, gamut-mapping and serialising colour. | yes | `tests/css-color.test.ts` | – |
 | `css-paint.ts` | 465 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `data-import.ts` | 218 | Data-file → blocks rows. | yes | `tests/data-import.test.ts` | yes |
-| `deflate.ts` | 832 | Raw DEFLATE compressor + zlib wrapper — the byte-emitting half the engine was missing. | yes | `tests/deflate.test.ts` | – |
+| `deflate.ts` | 837 | Raw DEFLATE compressor + zlib wrapper — the byte-emitting half the engine was missing. | yes | `tests/deflate.test.ts` | – |
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
 | `design-components.ts` | 326 | Penpot component definitions → template descriptors (pure collectors). | yes | `tests/design-components.test.ts` | – |
 | `design-map.ts` | 2156 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
@@ -122,7 +122,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `embed.ts` | 73 | Embed URL grammar — the portable surface of tool composition. | yes | `tests/embed.test.ts` | – |
 | `emf.ts` | 459 | EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/emf.test.ts` | – |
 | `eps.ts` | 150 | EPS (Encapsulated PostScript) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/eps.test.ts` | – |
-| `exr.ts` | 495 | OpenEXR encoder — scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP. | no | `tests/exr.test.ts` | – |
+| `exr.ts` | 498 | OpenEXR encoder — scanline, HALF (float16) or FLOAT (32-bit), NONE/ZIPS/ZIP. | no | `tests/exr.test.ts` | – |
 | `file-metadata.ts` | 908 | Embedded-metadata reader | yes | `tests/file-metadata.test.ts` | yes |
 | `fs-token.ts` | 40 | Reversible, filesystem-safe token codec — pure string logic, no storage, DOM, or platform coupling (it just maps a string to a safe token and back). | yes | `tests/fs-token.test.ts` | – |
 | `gainmap-jpeg.ts` | 528 | Gain-map JPEG assembly — the container half of plans/deeprichpixels.md §6 B2. | no | `tests/gainmap-jpeg.test.ts` | – |
@@ -172,7 +172,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `pptx-read.ts` | 901 | pptx-read.ts — PARSE an unzipped .pptx part map into a read-model. | yes | `tests/pptx-read.test.ts` | yes |
 | `pptx.ts` | 756 | PPTX (PowerPoint / OOXML) builder — pure, DOM-free, platform-agnostic. | yes | `tests/pptx.test.ts` | – |
 | `print-marks.ts` | 285 | Print-marks & bleed geometry — platform-agnostic, no DOM. | yes | `tests/print-marks.test.ts` | – |
-| `radiance.ts` | 624 | Radiance RGBE (`.hdr` / `.pic`) reader + writer — pure bytes, DOM-free. | no | `tests/radiance.test.ts` | – |
+| `radiance.ts` | 639 | Radiance RGBE (`.hdr` / `.pic`) reader + writer — pure bytes, DOM-free. | no | `tests/radiance.test.ts` | – |
 | `runtime.ts` | 1164 | Runtime — orchestrates the 5-step lifecycle for a single mounted tool. | yes | indirect | – |
 | `seal.ts` | 728 | SEAL (hackerfactor.com) signature verifier — pure, DOM-free (globalThis.crypto only, like c2pa-verify.ts / x509.ts). | yes | `tests/seal.test.ts` | – |
 | `semver-range.ts` | 112 | Minimal SemVer range satisfaction — just enough to enforce a tool manifest's `engineVersion` against the running ENGINE_VERSION (loader.ts, P0-3). | yes | `tests/semver-range.test.ts` | – |
