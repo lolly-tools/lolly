@@ -12,6 +12,12 @@
  */
 export type * from './contract.ts';
 
+/** The canonical `FinishKind` spellings, as a value: the ONE list. `FinishKind`
+ *  is derived from it, and `engine/src/preflight.ts` builds its recognised-finish
+ *  set from it, so the open union and the check that reports an unrecognised
+ *  spelling cannot drift apart. */
+export { KNOWN_FINISH_KINDS } from './host-v1.ts';
+
 export { validateTool } from './validate.ts';
 export type { ValidationIssue, ValidationResult } from './validate.ts';
 
@@ -23,6 +29,15 @@ export type {
   ExportCall,
   LogLine,
 } from './mock-host.ts';
+
+export type {
+  Severity, UnknownReason, Fact, QuantityKind, QuantityUnit, Bound, Count,
+  FindingId, Evidence, Finding, PreflightReport,
+  ReportedDimension, ReportedSize, ReportedSettings, ReportedJob,
+} from './preflight.ts';
+export {
+  SEVERITY_RANK, knownFact, unknownFact, PREFLIGHT_FORMAT, PREFLIGHT_FORMAT_VERSION,
+} from './preflight.ts';
 
 export { defineTool, defineHooks } from './define-tool.ts';
 export type {

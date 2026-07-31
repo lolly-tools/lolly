@@ -4240,7 +4240,7 @@ ${xrefOff}
   let manifestLen = (await build2(dummyHash, [{ start: pdfBytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round2 = 0; round2 < 8 && !placeholder; round2++) {
+  for (let round3 = 0; round3 < 8 && !placeholder; round3++) {
     const l = layoutFor(manifestLen);
     const m = await build2(dummyHash, [{ start: l.manifestOffset, length: manifestLen }], pad);
     if (m.length === manifestLen) {
@@ -4733,7 +4733,7 @@ async function embedC2pa(bytes, format, opts = {}) {
   let manifestLen = (await build2(dummyHash, [{ start: bytes.length + 512, length: 4096 }], pad)).length;
   let layout = null;
   let placeholder = null;
-  for (let round2 = 0; round2 < 8 && !layout; round2++) {
+  for (let round3 = 0; round3 < 8 && !layout; round3++) {
     const probe = container.place(bytes, new Uint8Array(manifestLen));
     const m = await build2(dummyHash, probe.exclusions, pad);
     if (m.length === manifestLen) {
@@ -9621,6 +9621,34 @@ var init_color = __esm({
   }
 });
 
+// engine/src/cmyk-palette.ts
+function cmykKey(r, g2, b) {
+  return `${Math.round(r * 100)},${Math.round(g2 * 100)},${Math.round(b * 100)}`;
+}
+function buildCmykPaletteMap(palette) {
+  const map = /* @__PURE__ */ new Map();
+  for (const { hex, cmyk, spot } of palette ?? []) {
+    if (!hex || !cmyk && !spot) continue;
+    const h = hex.replace("#", "").toLowerCase();
+    if (h.length !== 6) continue;
+    const r = parseInt(h.slice(0, 2), 16) / 255;
+    const g2 = parseInt(h.slice(2, 4), 16) / 255;
+    const b = parseInt(h.slice(4, 6), 16) / 255;
+    const frac = cmyk && cmyk.length === 4 ? cmyk.map((v) => v / 100) : rgbToCmyk(r, g2, b);
+    const build2 = spot?.finish ? FINISH_MASK_CMYK : frac;
+    map.set(cmykKey(r, g2, b), spot ? { cmyk: build2, spot: { name: spot.name, cmyk: build2, ...spot.finish ? { finish: spot.finish } : {} } } : { cmyk: frac });
+  }
+  return map;
+}
+var FINISH_MASK_CMYK;
+var init_cmyk_palette = __esm({
+  "engine/src/cmyk-palette.ts"() {
+    "use strict";
+    init_color();
+    FINISH_MASK_CMYK = [0, 0, 0, 1];
+  }
+});
+
 // engine/src/gradient-spec.ts
 function readColor(raw) {
   const s = raw.trim();
@@ -14012,7 +14040,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join10 = opts.join ?? "miter";
+  const join11 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners = [];
@@ -14041,7 +14069,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next.dirStart ?? startTangent2(next.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join10, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join11, miterLimit));
   }
   return out;
 }
@@ -14500,7 +14528,7 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
   const a = new Array(m).fill(0);
   const b = new Array(m).fill(1);
   const c = new Array(m).fill(0);
-  const join10 = (k, prevIx, nextIx) => {
+  const join11 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next = segs[nextIx];
     const j = hbJoin(prev, next);
     r[k] = j.r;
@@ -14509,10 +14537,10 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
     c[k] = j.dB * -next.d01;
   };
   if (wrap) {
-    for (let k = 0; k < m; k++) join10(k, (k - 1 + m) % m, k);
+    for (let k = 0; k < m; k++) join11(k, (k - 1 + m) % m, k);
     return { r, a, b, c, segs };
   }
-  for (let k = 1; k < m - 1; k++) join10(k, k - 1, k);
+  for (let k = 1; k < m - 1; k++) join11(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r[0] = mod2pi2(ths[0] - startTh);
@@ -19132,6 +19160,7 @@ var init_src = __esm({
     init_bake();
     init_file_metadata();
     init_units();
+    init_cmyk_palette();
     init_css_color();
     init_pixels();
     init_hdr();
@@ -20373,6 +20402,18 @@ function fail(id, code, message, data) {
 // services/mcp/src/tools.ts
 init_src();
 
+// packages/node-shell/src/verdict-slugs.ts
+var VERDICT_SLUGS = {
+  lolly: { verdict: "made-with-lolly", headline: "Made with Lolly \u2014 credential intact, file unchanged since export" },
+  delivered: { verdict: "delivered-by-lolly", headline: "Delivered by Lolly \u2014 verified authentic official asset; delivered by Lolly, not created by it" },
+  likelyLolly: { verdict: "likely-made-with-lolly", headline: "Likely made with Lolly \u2014 the credential's own content checks out and records a Lolly export, but this file's bytes no longer match it" },
+  expired: { verdict: "credential-expired", headline: "Credential expired \u2014 the file still matches what was signed; the one-year on-device certificate has lapsed" },
+  trusted: { verdict: "credential-intact", headline: "Credential intact \u2014 signed on-device (integrity, not identity)" },
+  valid: { verdict: "credential-intact", headline: "Credential intact \u2014 signed on-device (integrity, not identity)" },
+  invalid: { verdict: "credential-broken", headline: "Credential broken \u2014 the file no longer matches what was signed" },
+  none: { verdict: "no-credential", headline: "No Content Credentials found" }
+};
+
 // services/mcp/src/catalog.ts
 init_src();
 import { readFile as readFile2 } from "node:fs/promises";
@@ -20534,8 +20575,8 @@ import { readFile as readFile7 } from "node:fs/promises";
 
 // shells/cli/src/bridge.ts
 init_src();
-import { readFile as readFile5 } from "node:fs/promises";
-import { join as join7 } from "node:path";
+import { readFile as readFile5, writeFile, mkdir, readdir as readdir2, rm } from "node:fs/promises";
+import { join as join8 } from "node:path";
 
 // shells/web/src/bridge/pdf.ts
 var PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
@@ -22274,6 +22315,55 @@ async function getBrowser() {
 }
 
 // packages/node-shell/src/url-capture.ts
+var DRIVE_TIMEOUT_MS = 15e3;
+var DRIVE_SETTLE_MS = 250;
+async function runDriveSteps(page2, steps) {
+  for (const step of steps) {
+    if (step.kind === "wait") {
+      await page2.waitForTimeout(Math.min(15e3, Math.max(0, step.ms)));
+      continue;
+    }
+    if (step.kind === "press" && !step.selector) {
+      await page2.keyboard.press(step.keys);
+      await page2.waitForTimeout(DRIVE_SETTLE_MS);
+      continue;
+    }
+    const selector = step.kind === "press" ? step.selector : step.selector;
+    const target = page2.locator(selector).first();
+    await target.waitFor({ state: "visible", timeout: DRIVE_TIMEOUT_MS });
+    const box2 = step.kind === "drag" || step.kind !== "press" && step.at ? await target.boundingBox() : null;
+    const at = step.kind === "press" ? void 0 : step.at;
+    const position = box2 && at ? { x: box2.width * at[0], y: box2.height * at[1] } : void 0;
+    switch (step.kind) {
+      case "click":
+        await target.click({
+          button: step.button === "right" ? "right" : "left",
+          clickCount: step.count && step.count > 1 ? step.count : 1,
+          ...position ? { position } : {}
+        });
+        break;
+      case "hover":
+        await target.hover(position ? { position } : {});
+        break;
+      case "press":
+        await target.focus();
+        await page2.keyboard.press(step.keys);
+        break;
+      case "drag": {
+        if (!box2) throw new BrowserError(`drag target "${selector}" has no box`);
+        const x = box2.x + (position ? position.x : box2.width / 2);
+        const y = box2.y + (position ? position.y : box2.height / 2);
+        await page2.mouse.move(x, y);
+        await page2.mouse.down();
+        await page2.mouse.move(x + step.dx / 2, y + step.dy / 2);
+        await page2.mouse.move(x + step.dx, y + step.dy);
+        if (!step.hold) await page2.mouse.up();
+        break;
+      }
+    }
+    await page2.waitForTimeout(DRIVE_SETTLE_MS);
+  }
+}
 var clamp015 = (n2) => Number.isFinite(n2) ? Math.min(0.9, Math.max(0, n2)) : 0;
 function recolorCss(p) {
   switch (p.recolor) {
@@ -22352,6 +22442,7 @@ async function captureUrl(params, format, dims) {
         if (settled && attempt2 >= 1) break;
       }
     }
+    if (params.actions?.length) await runDriveSteps(page2, params.actions);
     if (fmt2 === "pdf") {
       const pdf = await page2.pdf({
         width: `${width}px`,
@@ -22384,22 +22475,323 @@ async function captureUrl(params, format, dims) {
   }
 }
 
+// packages/node-shell/src/images.ts
+import { createRequire } from "node:module";
+var MIME = {
+  jpeg: "image/jpeg",
+  jpg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+  avif: "image/avif",
+  heif: "image/heic",
+  heic: "image/heic",
+  tiff: "image/tiff",
+  svg: "image/svg+xml",
+  bmp: "image/bmp"
+};
+function isImagesAvailable() {
+  try {
+    createRequire(import.meta.url).resolve("sharp");
+    return true;
+  } catch {
+    return false;
+  }
+}
+var sharpModule = null;
+function loadSharp() {
+  sharpModule ??= import("sharp").then((m) => m.default ?? m);
+  return sharpModule;
+}
+async function toBuffer(input) {
+  if (input instanceof Uint8Array) return Buffer.from(input.buffer, input.byteOffset, input.byteLength);
+  return Buffer.from(await input.arrayBuffer());
+}
+function q100(quality) {
+  if (typeof quality !== "number" || !Number.isFinite(quality)) return void 0;
+  return Math.max(1, Math.min(100, Math.round(quality <= 1 ? quality * 100 : quality)));
+}
+function createNodeImagesAPI() {
+  if (!isImagesAvailable()) return null;
+  async function open(input) {
+    const sharp = await loadSharp();
+    const buf = await toBuffer(input);
+    if (!buf.length) throw new Error("host.images: empty input \u2014 nothing to decode.");
+    return { img: sharp(buf), buf };
+  }
+  async function finish(img, format, quality) {
+    const fmt2 = format === "jpg" ? "jpeg" : format;
+    const opts = q100(quality) !== void 0 && fmt2 !== "png" ? { quality: q100(quality) } : void 0;
+    const { data, info } = await img.toFormat(fmt2, opts).toBuffer({ resolveWithObject: true });
+    return {
+      bytes: new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
+      mime: MIME[info.format] ?? `image/${info.format}`,
+      width: info.width,
+      height: info.height
+    };
+  }
+  return {
+    async decode(input) {
+      const { img } = await open(input);
+      const meta = await img.rotate().metadata();
+      if (!meta.width || !meta.height) {
+        throw new Error("host.images: these bytes are not a decodable image here.");
+      }
+      const fmt2 = (meta.format ?? "").toLowerCase();
+      return {
+        width: meta.width,
+        height: meta.height,
+        mime: MIME[fmt2] ?? (fmt2 ? `image/${fmt2}` : "application/octet-stream"),
+        // `pages` is how sharp reports multi-frame containers (GIF/APNG/animated WebP).
+        // Absent for formats it doesn't page, which is why `animated` is optional.
+        ...meta.pages !== void 0 ? { animated: meta.pages > 1 } : {}
+      };
+    },
+    async resize(input, opts = {}) {
+      const { img } = await open(input);
+      const meta = await img.metadata();
+      const srcFmt = (meta.format ?? "png").toLowerCase();
+      const box2 = {};
+      if (typeof opts.maxEdge === "number" && opts.maxEdge > 0) {
+        box2.width = Math.round(opts.maxEdge);
+        box2.height = Math.round(opts.maxEdge);
+      }
+      if (typeof opts.width === "number" && opts.width > 0) box2.width = Math.round(opts.width);
+      if (typeof opts.height === "number" && opts.height > 0) box2.height = Math.round(opts.height);
+      const outFmt = opts.format ?? (["jpeg", "jpg", "png", "webp"].includes(srcFmt) ? srcFmt : "png");
+      let pipe = img.rotate();
+      if (box2.width || box2.height) pipe = pipe.resize({ ...box2, fit: "inside", withoutEnlargement: true });
+      return finish(pipe, outFmt, opts.quality);
+    },
+    async encode(input, opts) {
+      if (!opts?.format) throw new Error("host.images.encode: `format` is required (webp | jpeg | png).");
+      const { img } = await open(input);
+      return finish(img.rotate(), opts.format, opts.quality);
+    }
+  };
+}
+
+// packages/node-shell/src/state-dir.ts
+import { homedir } from "node:os";
+import { join as join7 } from "node:path";
+var deprecationNoted = false;
+function resolveStateDir(env = process.env, onNote = (m) => process.stderr.write(m)) {
+  const fresh = env.LOLLY_STATE_DIR?.trim();
+  if (fresh) return { dir: fresh, explicit: true, deprecated: false };
+  const old = env.LOLLY_TUI_DIR?.trim();
+  if (old) {
+    if (!deprecationNoted) {
+      deprecationNoted = true;
+      onNote("Note: LOLLY_TUI_DIR is deprecated \u2014 use LOLLY_STATE_DIR (both shells read it). LOLLY_TUI_DIR keeps working until the next major.\n");
+    }
+    return { dir: old, explicit: true, deprecated: true };
+  }
+  return { dir: join7(homedir(), ".lolly"), explicit: false, deprecated: false };
+}
+
+// shells/cli/src/svg-outline.ts
+var DROP_ON_PATH = /* @__PURE__ */ new Set([
+  "x",
+  "y",
+  "dx",
+  "dy",
+  "text-anchor",
+  "font-family",
+  "font-weight",
+  "font-style",
+  "font-size",
+  "font-stretch",
+  "font-variant",
+  "letter-spacing",
+  "word-spacing",
+  "xml:space",
+  "dominant-baseline",
+  "alignment-baseline",
+  "textLength",
+  "lengthAdjust",
+  "transform"
+  // re-composed with the glyph translate below
+]);
+function prop2(el, name, getComputed) {
+  for (let cur = el; cur; cur = cur.parentElement) {
+    const attr2 = cur.getAttribute(name);
+    if (attr2) return attr2;
+    const inline = cur.getAttribute("style");
+    if (inline) {
+      const m = new RegExp(`(?:^|;)\\s*${name}\\s*:\\s*([^;]+)`, "i").exec(inline);
+      if (m) return m[1].trim();
+    }
+    if (cur.tagName?.toLowerCase() === "svg") break;
+  }
+  const cs = getComputed?.(el) ?? null;
+  if (!cs) return null;
+  const camel = name.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+  const v = cs[camel];
+  return typeof v === "string" && v ? v : null;
+}
+function coord(v) {
+  if (!v) return 0;
+  const n2 = parseFloat(String(v).trim());
+  return Number.isFinite(n2) ? n2 : 0;
+}
+function familyStack(css) {
+  if (!css) return [];
+  return css.split(",").map((s) => s.trim().replace(/^["']|["']$/g, "")).filter(Boolean);
+}
+function numericWeight(v) {
+  const s = String(v ?? "400").trim().toLowerCase();
+  if (s === "bold") return 700;
+  if (s === "normal") return 400;
+  if (s === "lighter") return 300;
+  if (s === "bolder") return 700;
+  const n2 = parseInt(s, 10);
+  return Number.isFinite(n2) ? Math.min(900, Math.max(100, n2)) : 400;
+}
+function letterSpacingPx2(v, fontSize) {
+  if (!v) return 0;
+  const s = v.trim();
+  if (/^normal$/i.test(s)) return 0;
+  const n2 = parseFloat(s);
+  if (!Number.isFinite(n2)) return 0;
+  if (/em$/i.test(s)) return n2 * fontSize;
+  return n2;
+}
+function unplaceableReason(el) {
+  if (el.children.length) return "the run contains tspan/textPath children";
+  for (const a of ["dominant-baseline", "alignment-baseline"]) {
+    const v = el.getAttribute(a);
+    if (v && !/^(auto|alphabetic)$/i.test(v)) return `${a}="${v}" shifts the baseline`;
+  }
+  if (el.getAttribute("textLength")) return "textLength stretches the run";
+  return null;
+}
+async function outlineSvgText(svg, host, opts = {}) {
+  const result = { outlined: 0, fallbacks: [] };
+  const text = host.text;
+  const doc = svg.ownerDocument;
+  if (!text || !doc) {
+    return result;
+  }
+  const getComputed = opts.getComputedStyle ?? null;
+  const runs = Array.from(svg.querySelectorAll("text"));
+  for (const el of runs) {
+    const raw = (el.textContent ?? "").replace(/\s+/g, " ").trim();
+    if (!raw) continue;
+    const blocked = unplaceableReason(el);
+    if (blocked) {
+      result.fallbacks.push({ text: raw, reason: blocked });
+      continue;
+    }
+    const fontSize = parseFloat(prop2(el, "font-size", getComputed) ?? "16") || 16;
+    const families = familyStack(prop2(el, "font-family", getComputed));
+    const weight = numericWeight(prop2(el, "font-weight", getComputed));
+    const italic = /italic|oblique/i.test(prop2(el, "font-style", getComputed) ?? "");
+    let font = null;
+    for (const family of families) {
+      if (/^(sans-serif|serif|monospace|cursive|fantasy|system-ui)$/i.test(family)) continue;
+      font = await text.fontUrl?.(family, { weight, italic }) ?? null;
+      if (font) break;
+    }
+    if (!font) {
+      result.fallbacks.push({ text: raw, reason: `no font file for "${families.join(", ") || "the inherited family"}"` });
+      continue;
+    }
+    let shaped = null;
+    try {
+      shaped = await text.toPath({
+        text: raw,
+        fontUrl: font.url,
+        fontSize,
+        letterSpacing: letterSpacingPx2(prop2(el, "letter-spacing", getComputed), fontSize),
+        ...font.variations ? { variations: font.variations } : {}
+      });
+    } catch (e) {
+      result.fallbacks.push({ text: raw, reason: `shaping failed \u2014 ${e.message}` });
+      continue;
+    }
+    if (!shaped?.d) {
+      result.fallbacks.push({ text: raw, reason: "the font produced no glyph outlines" });
+      continue;
+    }
+    const anchor = (prop2(el, "text-anchor", getComputed) ?? "start").trim().toLowerCase();
+    const x = coord(el.getAttribute("x")) + coord(el.getAttribute("dx"));
+    const y = coord(el.getAttribute("y")) + coord(el.getAttribute("dy"));
+    const adv = shaped.advanceWidth || 0;
+    const tx = anchor === "middle" ? x - adv / 2 : anchor === "end" ? x - adv : x;
+    const path = doc.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", shaped.d);
+    for (const attr2 of Array.from(el.attributes)) {
+      if (!DROP_ON_PATH.has(attr2.name)) path.setAttribute(attr2.name, attr2.value);
+    }
+    const own = el.getAttribute("transform");
+    path.setAttribute("transform", `${own ? own + " " : ""}translate(${round2(tx)} ${round2(y)})`);
+    el.replaceWith(path);
+    result.outlined++;
+  }
+  return result;
+}
+var round2 = (n2) => Math.round(n2 * 100) / 100;
+
+// shells/cli/src/exit-codes.ts
+var EXIT = {
+  /** The requested thing was produced. */
+  OK: 0,
+  /** It was possible, it ran, it failed. */
+  FAILED: 1,
+  /** You used it wrong: unknown tool/flag/format, missing argument, unreadable path. */
+  USAGE: 2,
+  /** Impossible in this installation; may succeed elsewhere. */
+  UNAVAILABLE_HERE: 3,
+  /** A protective check ran and said no. */
+  REFUSED: 4,
+  /** A legitimate negative answer (validate: no credential present). */
+  NOT_FOUND: 5,
+  /** Missing or wrong password. */
+  AUTH: 6,
+  /** Unclassified exception: a bug in Lolly. */
+  INTERNAL: 70
+};
+var EXIT_NAME = Object.fromEntries(
+  Object.entries(EXIT).map(([k, v]) => [v, k])
+);
+var CliError = class extends Error {
+  exit;
+  kind;
+  detail;
+  constructor(message, exit, kind, detail) {
+    super(message);
+    this.name = "CliError";
+    this.exit = exit;
+    this.kind = kind;
+    if (detail !== void 0) this.detail = detail;
+  }
+};
+var unavailableHere = (message, kind = "UNAVAILABLE_HERE") => new CliError(message, EXIT.UNAVAILABLE_HERE, kind);
+
 // shells/cli/src/bridge.ts
 var REPO_ROOT2 = repoRoot();
+var CLI_CAPABILITIES = ["network", "wasm", "compose", "capture"];
 async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   const w = dom.window;
-  const assetCatalogPath = join7(REPO_ROOT2, "catalog", "assets", "index.json");
+  const assetCatalogPath = join8(REPO_ROOT2, "catalog", "assets", "index.json");
   const assetIndex = JSON.parse(await readFile5(assetCatalogPath, "utf8"));
   const assetById = new Map(assetIndex.assets.map((a) => [a.id, a]));
   const state = /* @__PURE__ */ new Map();
   const host = {
     version: "1",
     shell: "cli",
+    capabilities: CLI_CAPABILITIES,
+    // EVERY level goes to stderr (contract B4). `info`/`debug` used to go to stdout,
+    // where a tool's one chatty log line interleaved itself into a piped PNG — and
+    // tools ship as data from another repository, so this shell cannot assume they are
+    // quiet. stdout carries the payload and nothing else.
     log: (level, msg, ctx) => {
-      const out = level === "error" || level === "warn" ? process.stderr : process.stdout;
-      out.write(`[${level}] ${msg}${ctx ? " " + JSON.stringify(ctx) : ""}
+      if (level === "debug" && !process.env.DEBUG) return;
+      process.stderr.write(`[${level}] ${msg}${ctx ? " " + JSON.stringify(ctx) : ""}
 `);
     }
+    // The literal is built in stages below (profile, assets, state, export, …), so the
+    // assertion is what tells TypeScript the finished object is a CliHost.
   };
   host.profile = {
     async get() {
@@ -22415,7 +22807,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile5(join7(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile5(join8(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -22425,7 +22817,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile5(join7(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile5(join8(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -22435,7 +22827,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     tokensDocCache ??= (async () => {
       const asset = assetIndex.assets.find((a) => a.type === "tokens");
       if (!asset) return null;
-      return JSON.parse(await readFile5(join7(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+      return JSON.parse(await readFile5(join8(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
     })().catch(() => null);
     return tokensDocCache;
   }
@@ -22459,6 +22851,8 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   host.geom = makeGeomApi();
   host.text = createNodeTextAPI({ repoRoot: REPO_ROOT2 });
   host.audio = createNodeAudioAPI({ repoRoot: REPO_ROOT2 });
+  const images = createNodeImagesAPI();
+  if (images) host.images = images;
   host.net = createNetAPI({ allowlist: networkAllowlist });
   host.assets = {
     async get(id) {
@@ -22481,7 +22875,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
       const fmt2 = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      const localPath = join7(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
+      const localPath = join8(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
       let buf = await readFile5(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt2.format === "json") {
@@ -22563,26 +22957,62 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     async _deleteUserAsset() {
     }
   };
+  const stateHome = resolveStateDir();
+  const stateFsDir = stateHome.explicit ? join8(stateHome.dir, "state") : null;
+  const slotFile = (slot) => join8(stateFsDir, encodeURIComponent(slot) + ".json");
   host.state = {
     async save(slot, data) {
-      state.set(slot, { data, updatedAt: (/* @__PURE__ */ new Date()).toISOString() });
+      const entry = { data, updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+      state.set(slot, entry);
+      if (stateFsDir) {
+        await mkdir(stateFsDir, { recursive: true });
+        await writeFile(slotFile(slot), JSON.stringify(entry, null, 2));
+      }
     },
     async load(slot) {
-      return state.get(slot)?.data ?? null;
+      const hit = state.get(slot);
+      if (hit) return hit.data;
+      if (!stateFsDir) return null;
+      try {
+        return JSON.parse(await readFile5(slotFile(slot), "utf8")).data ?? null;
+      } catch {
+        return null;
+      }
     },
     async list() {
-      return Array.from(state.keys()).map((slot) => ({ slot }));
+      const slots = new Set(state.keys());
+      if (stateFsDir) {
+        try {
+          for (const f of await readdir2(stateFsDir)) {
+            if (f.endsWith(".json")) slots.add(decodeURIComponent(f.slice(0, -5)));
+          }
+        } catch {
+        }
+      }
+      return Array.from(slots).map((slot) => ({ slot }));
     },
     async delete(slot) {
       state.delete(slot);
+      if (stateFsDir) {
+        try {
+          await rm(slotFile(slot));
+        } catch {
+        }
+      }
     }
+  };
+  const noClipboard = () => {
+    throw unavailableHere(
+      "The clipboard is not available in the CLI \u2014 write the result with --output=<path> (or --output=- for stdout) instead.",
+      "CAPABILITY_UNAVAILABLE"
+    );
   };
   host.clipboard = {
     async writeText() {
-      throw new Error("Clipboard unavailable in CLI; use --output instead");
+      return noClipboard();
     },
     async writeImage() {
-      throw new Error("Clipboard unavailable in CLI; use --output instead");
+      return noClipboard();
     }
   };
   const NON_DRAWABLE = /* @__PURE__ */ new Set(["script", "style", "template", "link", "meta"]);
@@ -22624,6 +23054,18 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
           if (dw) svg.setAttribute("width", toCssLength(dw));
           if (dh) svg.setAttribute("height", toCssLength(dh));
         }
+        if (opts.text !== "live") {
+          const res = await outlineSvgText(svg, host, {
+            getComputedStyle: w.getComputedStyle ? (el) => {
+              try {
+                return w.getComputedStyle(el);
+              } catch {
+                return null;
+              }
+            } : null
+          });
+          for (const f of res.fallbacks) opts.onTextFallback?.(f);
+        }
         const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
         const xml = injectSvgMeta(raw, opts.meta);
         return new Blob(['<?xml version="1.0" standalone="no"?>\n' + xml], { type: "image/svg+xml" });
@@ -22639,7 +23081,15 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
         const svg = rootSvgOf(node);
         if (!svg) throw new Error("EPS export requires an <svg> in the template (HTML-layout tools need a browser engine \u2014 use the desktop app)");
         const ir = await svgDomToIr(svg, { host, background: opts.background, label: "EPS" });
-        const text = emitEps(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi, cmyk: format === "eps-cmyk", meta: opts.meta });
+        const text = emitEps(ir, {
+          width: opts.width,
+          height: opts.height,
+          unit: opts.unit,
+          dpi: opts.dpi,
+          cmyk: format === "eps-cmyk",
+          ...format === "eps-cmyk" ? { cmykPalette: await brandCmykPalette(host) } : {},
+          meta: opts.meta
+        });
         return new Blob([text], { type: "application/postscript" });
       }
       if (format === "dxf") {
@@ -22710,7 +23160,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   };
   host.pdf = createPdfAPI();
   host.pptx = createPptxAPI({ parseXml: (xml) => new w.DOMParser().parseFromString(xml, "application/xml") });
-  const composeFetchFile = async (p) => readFile5(join7(REPO_ROOT2, "tools", p), "utf8");
+  const composeFetchFile = async (p) => readFile5(join8(REPO_ROOT2, "tools", p), "utf8");
   host.compose = {
     async render(spec) {
       const { toolId, inputs = {}, format, width, height, unit: unit2, dpi, _stack = [] } = spec ?? {};
@@ -22866,6 +23316,20 @@ function mimeFor(format) {
       return "application/octet-stream";
   }
 }
+async function brandCmykPalette(host) {
+  try {
+    const colors = await host.tokens?.colors?.();
+    if (!Array.isArray(colors) || colors.length === 0) return /* @__PURE__ */ new Map();
+    return buildCmykPaletteMap(colors.map((c) => ({
+      hex: c.value,
+      ...Array.isArray(c.cmyk) ? { cmyk: c.cmyk } : {},
+      label: c.name,
+      spot: c.spot ?? null
+    })));
+  } catch {
+    return /* @__PURE__ */ new Map();
+  }
+}
 
 // services/mcp/src/host.ts
 var chain = Promise.resolve();
@@ -22914,8 +23378,8 @@ import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFile as readFile6, stat } from "node:fs/promises";
 import { existsSync as existsSync5 } from "node:fs";
-import { join as join8, resolve as resolve2, extname, normalize } from "node:path";
-var MIME = {
+import { join as join9, resolve as resolve2, extname, normalize } from "node:path";
+var MIME2 = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".mjs": "text/javascript; charset=utf-8",
@@ -22945,15 +23409,15 @@ async function webShellBase() {
   return (await served).base;
 }
 async function buildAndServe() {
-  const dist = process.env.LOLLY_WEB_DIST || join8(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync5(join8(dist, "index.html"))) {
-    if (!existsSync5(join8(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist = process.env.LOLLY_WEB_DIST || join9(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync5(join9(dist, "index.html"))) {
+    if (!existsSync5(join9(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync5(join8(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
+    if (!existsSync5(join9(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
   }
   return serveDist(dist);
 }
@@ -22979,10 +23443,10 @@ function serveDist(dist) {
         return;
       }
       if (urlPath === "/" || !existsSync5(filePath) || !(await stat(filePath)).isFile()) {
-        filePath = join8(root, "index.html");
+        filePath = join9(root, "index.html");
       }
       const data = await readFile6(filePath);
-      res.setHeader("Content-Type", MIME[extname(filePath)] ?? "application/octet-stream");
+      res.setHeader("Content-Type", MIME2[extname(filePath)] ?? "application/octet-stream");
       res.setHeader("Cache-Control", "no-store");
       res.end(data);
     } catch {
@@ -23650,16 +24114,6 @@ function exampleLooks(m, cap) {
   return ex.slice(0, cap).map((v) => ({ ...v.label ? { label: v.label } : {}, inputs: v.values }));
 }
 var clean = (v) => String(v).replace(/[\u0000-\u001f\u007f-\u009f]/g, " ");
-var VERDICT_SLUGS = {
-  lolly: { verdict: "made-with-lolly", headline: "Made with Lolly \u2014 credential intact, file unchanged since export" },
-  delivered: { verdict: "delivered-by-lolly", headline: "Delivered by Lolly \u2014 verified authentic official asset; delivered by Lolly, not created by it" },
-  likelyLolly: { verdict: "likely-made-with-lolly", headline: "Likely made with Lolly \u2014 the credential's own content checks out and records a Lolly export, but this file's bytes no longer match it" },
-  expired: { verdict: "credential-expired", headline: "Credential expired \u2014 the file still matches what was signed; the one-year on-device certificate has lapsed" },
-  trusted: { verdict: "credential-intact", headline: "Credential intact \u2014 signed on-device (integrity, not identity)" },
-  valid: { verdict: "credential-intact", headline: "Credential intact \u2014 signed on-device (integrity, not identity)" },
-  invalid: { verdict: "credential-broken", headline: "Credential broken \u2014 the file no longer matches what was signed" },
-  none: { verdict: "no-credential", headline: "No Content Credentials found" }
-};
 function verifyVerdict(report) {
   const resolved = resolveVerdict(report);
   return { ...VERDICT_SLUGS[resolved.state], resolved };
@@ -23983,7 +24437,7 @@ ${listing}`;
 // services/mcp/src/resources.ts
 init_src();
 import { readFile as readFile8 } from "node:fs/promises";
-import { join as join9 } from "node:path";
+import { join as join10 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -23999,7 +24453,7 @@ async function tokensResource(uri) {
   const idx = JSON.parse(await readFile8(ASSET_INDEX, "utf8"));
   const tokenAsset = idx.assets.find((a) => a.type === "tokens");
   if (!tokenAsset) return { uri, mimeType: "application/json", text: JSON.stringify({ colors: [], note: "No tokens asset in catalog." }) };
-  const doc = JSON.parse(await readFile8(join9(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const doc = JSON.parse(await readFile8(join10(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -24019,11 +24473,11 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
-var PREVIEWS_DIR = join9(REPO_ROOT, "catalog", "previews");
+var PREVIEWS_DIR = join10(REPO_ROOT, "catalog", "previews");
 async function previewResource(uri, id) {
   for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
     try {
-      const text = await readFile8(join9(PREVIEWS_DIR, file), "utf8");
+      const text = await readFile8(join10(PREVIEWS_DIR, file), "utf8");
       return { uri, mimeType: "image/svg+xml", text };
     } catch {
     }

@@ -11,18 +11,25 @@
  * (CSS animations run in an <img>-referenced SVG), is GPU-composited, pauses when
  * off-screen, and is a few KB instead of hundreds.
  *
- * This renders the tool's template with a set of inputs (the engine's real Handlebars
+ * This renders the tool's template at its REAL DEFAULTS (the engine's real Handlebars
  * `hydrate`, so the output is byte-faithful to what the tool shows), lifts the resolved
  * <svg> + <style>, and re-wraps them as a standalone animated SVG (the <style> moves
- * INSIDE the root svg so its keyframes ship with it; an optional background <rect> stands
- * in for the HTML .scene backdrop the file no longer has). It writes:
- *   • tools/<id>/card.svg      — the DEFAULT inputs, the gallery card (a brand backdrop)
+ * INSIDE the root svg so its keyframes ship with it). It writes:
+ *   • tools/<id>/card.svg      — the DEFAULT inputs, the gallery card
  *   • tools/<id>/look<i>.svg   — one per manifest example (`looks: true`), the example
- *                                carousel slides; each is TRANSPARENT so it composites on
- *                                the tile, and each is picked up as a committed look
+ *                                carousel slides; each is picked up as a committed look
  *                                override by build-preview-bundle.ts (which inlines it) and
  *                                skipped by build-previews.ts (so `npm run previews` can't
  *                                clobber it). Run `npm run build:catalog` afterwards.
+ *
+ * AUTHENTICITY RULE (2026-07-31). A card is the tool's own render or it does not exist.
+ * This script therefore stages NOTHING: no input overrides that make the default "a better
+ * teaser", and no backdrop <rect> standing in for the HTML container the lift left behind.
+ * Every card is TRANSPARENT wherever the tool itself paints nothing, and the surface behind
+ * it is the gallery tile's own themed preview shade (.gtile-hero / .gcar in
+ * shells/web/src/styles/parts/gallery.css) — which follows light/dark, where a baked-in
+ * hex could not. A tool that only looks good with a staged backdrop or tuned inputs is
+ * telling you about the tool's defaults, not about the card.
  *
  *   node scripts/build-svg-card.ts <toolId> [<toolId> ...]
  */
@@ -32,33 +39,31 @@ import { hydrate, buildInputModel } from '../engine/src/index.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 
-// Per-tool preview config: the backdrop colour the standalone card SVG paints itself (the
-// tool's HTML container supplies it live; a lifted <svg> has no parent to inherit from),
-// any non-default input overrides that make the DEFAULT look the best teaser, and whether
-// to ALSO emit a transparent animated SVG per manifest example (`looks`).
+// Per-tool config — deliberately only ONE knob: whether to ALSO emit a standalone SVG per
+// manifest example (`looks`). There is no backdrop and no input-override slot; see the
+// authenticity rule above. Anything a card needs beyond "render the tool at its defaults"
+// belongs in the tool.
 //
 // ONLY for tools whose canvas is a self-contained animated inline <svg> with no JS/hooks/
 // assets. bag-video qualifies. digi-ad does NOT — it's HTML/CSS <div> scenes + hooks.js,
-// so it has no <svg> to lift; an animated card for it would need the raster (APNG) route.
-const CARDS: Record<string, { bg: string; overrides?: Record<string, unknown>; looks?: boolean }> = {
-  'bag-video': { bg: '#0c322c', looks: true },
-  // Pose Geeko: default pose is transparent + eyes-open; the card is a clean geeko that
-  // composites on the tile and gently breathes (its `idle` default is on). Card only —
-  // its example carousel keeps its manual-pose looks.
-  'pose-geeko': { bg: 'transparent' },
+// so it has no <svg> to lift; it ships its real `html` export instead (build-html-card.ts).
+const CARDS: Record<string, { looks?: boolean }> = {
+  'bag-video': { looks: true },
+  // Pose Geeko: the default pose composites on the tile and gently breathes (its `idle`
+  // default is on). Card only — its example carousel keeps its manual-pose looks.
+  'pose-geeko': {},
 };
 
 /**
  * Hydrate the template with `values` and lift its <svg> + <style> into ONE standalone
- * animated SVG string. `bg` paints a backdrop rect (skip for a transparent look). The
- * <style> moves inside the root <svg> so its @keyframes travel with the file and animate
- * natively in an <img>.
+ * animated SVG string. The <style> moves inside the root <svg> so its @keyframes travel
+ * with the file and animate natively in an <img>. Nothing is painted that the tool did
+ * not paint — the card is transparent wherever the tool's own canvas is.
  */
 function liftStandaloneSvg(
   manifest: Record<string, unknown>,
   template: string,
   values: Record<string, unknown>,
-  bg: string | null,
   toolId: string,
 ): string {
   const html = hydrate(template, values, { raw: true });
@@ -95,14 +100,9 @@ function liftStandaloneSvg(
   svg = openTag + svg.slice(openEnd);
 
   // Inject the keyframe stylesheet INSIDE the root svg (so the animation travels with the
-  // file); paint the backdrop the lifted markup lost only when an OPAQUE colour is given
-  // (a transparent/none bg composites on the gallery tile). Order: bg rect (behind
-  // everything), then style, then the original children.
-  const paint = bg && bg !== 'transparent' && bg !== 'none';
-  const bgRect = !paint ? ''
-    : viewBox
-      ? `<rect x="${viewBox.split(/\s+/)[0]}" y="${viewBox.split(/\s+/)[1]}" width="100%" height="100%" fill="${bg}"/>`
-      : `<rect width="100%" height="100%" fill="${bg}"/>`;
+  // file). No backdrop rect is added: the HTML container's fill is the SHELL's, not the
+  // tool's art, so painting a stand-in here would bake one theme's surface into the card.
+  // The lifted art composites onto the tile's themed preview shade instead.
   // Escape `&` and `<` in the lifted CSS: a standalone SVG is parsed as strict XML (resvg AND
   // the browser's <img>/<object> loaders), where a raw `&` (e.g. in a comment "Scale & …", or
   // a CSS-nesting `&`) or `<` is a fatal "malformed entity". Escaping keeps the <style> valid
@@ -110,7 +110,7 @@ function liftStandaloneSvg(
   // the latter (HTML parsers treat `<![CDATA[` as a bogus comment and drop the CSS). The XML/
   // HTML parser un-escapes before the CSS parser runs, so the stylesheet is byte-identical.
   const styleXml = style.replace(/&/g, '&amp;').replace(/</g, '&lt;');
-  const inner = `\n<style>${styleXml}</style>\n${bgRect}\n`;
+  const inner = `\n<style>${styleXml}</style>\n`;
   svg = svg.replace(/>/, '>' + inner);   // after the opening tag
   return `<?xml version="1.0" encoding="UTF-8"?>\n${svg}\n`;
 }
@@ -131,7 +131,7 @@ function buildCard(toolId: string): void {
   // builder so vector/synthetic defaults resolve identically to the live tool.
   const defaults = Object.fromEntries(buildInputModel(manifest, {}).map((m) => [m.id, m.value]));
 
-  const out = liftStandaloneSvg(manifest, template, { ...defaults, ...(cfg.overrides ?? {}) }, cfg.bg, toolId);
+  const out = liftStandaloneSvg(manifest, template, defaults, toolId);
   const file = join(dir, 'card.svg');
   writeFileSync(file, out);
   console.log(`✓ ${toolId}: wrote ${file.replace(ROOT, '')} (${(out.length / 1024).toFixed(1)} KB)`);
@@ -141,7 +141,7 @@ function buildCard(toolId: string): void {
   const examples = resolveExamples(manifest);
   examples.forEach((ex, i) => {
     if (!ex.values || typeof ex.values !== 'object') return;
-    const lookOut = liftStandaloneSvg(manifest, template, { ...defaults, ...ex.values }, null, toolId);
+    const lookOut = liftStandaloneSvg(manifest, template, { ...defaults, ...ex.values }, toolId);
     const lookFile = join(dir, `look${i}.svg`);
     writeFileSync(lookFile, lookOut);
     // build-preview-bundle prefers a look<i>.svg over a look<i>.png/.webp, but drop a stale
