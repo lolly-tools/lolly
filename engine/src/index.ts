@@ -25,7 +25,7 @@ export { buildInputModel, summarizeInputs, normalizeTableValue, DEFAULT_FILE_MAX
 export type { TableValue } from './inputs.ts';
 export { parseUrlState, serializeUrlState, serializeHdr, encodeTableCompact, decodeTableCompact, RESERVED, HDR_DEFAULTS } from './url-mode.ts';
 export { looksLikeTable, parseTableText, toTsv, toMarkdown, toHtmlTable } from './table-text.ts';
-export type { HdrSettings } from './url-mode.ts';
+export type { HdrSettings, DepthSetting } from './url-mode.ts';
 export { LANGS, LANG_META, isLang, normalizeLang, flagEmoji, sortedLangs } from './lang.ts';
 export type { Lang, LangMeta, LangSort } from './lang.ts';
 export { packQuery, unpackToken, expandQuery, hasPackedState, isPackAvailable, PACK_PARAM } from './url-pack.ts';
@@ -249,6 +249,8 @@ export { pemToDer, derToPem, generateCaRoot, issueLeafCert } from './x509.ts';
 export { packApng } from './apng.ts';
 export { packWebpAnim } from './webp-anim.ts';
 export { packTiff } from './tiff.ts';
+export { packPng } from './png.ts';
+export type { PackPngOptions, PngCicp, PngTextEntry, PngSamples } from './png.ts';
 export { deflateRaw, zlibCompress, adler32 } from './deflate.ts';
 export type { DeflateOptions } from './deflate.ts';
 export { videoProvenanceTags, embedMp4Meta, embedWebmMeta } from './video-meta.ts';
@@ -257,10 +259,15 @@ export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,
   penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg, penpotDashArray, penpotBackgroundBlurPx,
-  collectPenpotExportMarks,
+  collectPenpotExportMarks, penpotFlowOrder, penpotAnimationToTransition,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
-export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene, PenpotFontUsage, PenpotExportEntry, PenpotExportMark, PenpotStrokeInfo } from './design-map.ts';
+export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene, PenpotFontUsage, PenpotExportEntry, PenpotExportMark, PenpotStrokeInfo, PenpotSceneTransition, PenpotFlowOrder } from './design-map.ts';
+export { collectPenpotComponents, penpotComponentSlots } from './design-components.ts';
+export type {
+  PenpotShapesByPage, PenpotComponent, PenpotComponentVariant, PenpotComponentSlot,
+  PenpotComponentCollection, PenpotExternalCensus, PenpotExternalComponent,
+} from './design-components.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop, PdfSoftMask, PdfSoftMaskDef } from './pdf-map.ts';
 export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pdf-smask.ts';

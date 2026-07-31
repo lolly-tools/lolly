@@ -743,6 +743,7 @@
                   "enterMsField":  { "type": "string", "description": "Number sub-field: duration of the enter preset, in MILLISECONDS." },
                   "exitMsField":   { "type": "string", "description": "Number sub-field: duration of the exit preset, in MILLISECONDS." },
                   "muteField":     { "type": "string", "description": "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
+                  "linkField":     { "type": "string", "description": "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked." },
                   "laneField":     { "type": "string", "description": "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
                   "minSize":       { "type": "number", "description": "Smallest box width/height the overlay will create or resize to, in canvas px. Default 8." },
                   "addKinds": {

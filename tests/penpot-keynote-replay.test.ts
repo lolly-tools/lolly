@@ -709,3 +709,207 @@ test('keynote: zero backgroundBlur keys anywhere (the negative pin)', { skip: SK
   const withBg = all.map((s) => penpotBackgroundBlurPx(s)).filter((v) => v > 0);
   assert.equal(withBg.length, 0, 'penpotBackgroundBlurPx reads 0 for every shape in the file');
 });
+
+// ── components as templates: the 1.1 census ──────────────────────────────────
+// (Appended block — imports hoist; kept here so the block stays append-only.)
+import { collectPenpotComponents, penpotComponentSlots } from '../engine/src/design-components.ts';
+
+/** The deck's parsed `files/<fid>/components/*.json` records. */
+async function componentRecords(): Promise<Shape[]> {
+  const { fileId, entries } = await loadDeck();
+  const { strFromU8 } = await import('fflate');
+  const dir = `files/${fileId}/components/`;
+  return Object.entries(entries)
+    .filter(([p]) => p.startsWith(dir) && p.endsWith('.json'))
+    .map(([, b]) => JSON.parse(strFromU8(b)) as Shape);
+}
+
+test('keynote: exactly 6 component definitions with the known names and paths', { skip: SKIP }, async () => {
+  const { fileId, pages } = await loadDeck();
+  const recs = await componentRecords();
+  assert.equal(recs.length, 6, 'six component records on disk');
+
+  const out = collectPenpotComponents(recs, pages, { fileId });
+  assert.deepEqual(out.warnings, [], 'every master resolves on its declared page');
+  assert.deepEqual(out.components.map((c) => [c.path, c.name]), [
+    ['text', 'TEXT 10'], ['text', 'TEXT 8'], ['text', 'TEXT 9'],
+    ['titles', 'PERSON INTRO'], ['titles', 'TITLES2'], ['titles', 'TITLES4'],
+  ], 'six definitions, sorted by path then name');
+
+  // This deck predates variants/v1 authoring: no record carries a variantId, so
+  // every component is a singleton and its id IS the record id. (The 2-variant
+  // grouping is pinned ungated by tests/penpot-kitchen-sink.test.ts.)
+  assert.ok(out.components.every((c) => !c.isVariantSet && c.variants.length === 1));
+  assert.deepEqual(out.components.map((c) => c.id).sort(), recs.map((r) => String(r.id)).sort());
+  assert.ok(out.components.every((c) => c.variants[0]!.properties.length === 0));
+  assert.deepEqual([...new Set(out.components.map((c) => c.pageId))].length, 1, 'all 6 masters on one page');
+
+  // Every master is the mainInstance frame the record points at, and it lives on
+  // the "Main components" page the board/scene walks deliberately skip.
+  const names = await pageNamesById();
+  assert.equal(names.get(out.components[0]!.pageId), 'Main components');
+  for (const c of out.components) {
+    const master = pages.get(c.pageId)![c.rootShapeId] as Shape;
+    assert.ok(master, `${c.name}: master shape resolved`);
+    assert.equal(master.mainInstance, true);
+    assert.equal(master.componentFile, fileId, 'a master names its own file');
+  }
+
+  // A master is NOT necessarily a componentRoot, and masters are NOT disjoint:
+  // TEXT 9's master frame sits three levels inside PERSON INTRO's master (a
+  // component nested in a component), so it carries mainInstance without
+  // componentRoot and its 39 shapes are also part of PERSON INTRO's 537. A
+  // template pass must therefore key on `mainInstanceId`, never on "the
+  // componentRoot frames of the component page", and must expect overlap.
+  const roots = out.components.filter((c) => (pages.get(c.pageId)![c.rootShapeId] as Shape).componentRoot === true);
+  assert.equal(roots.length, 5, '5 of the 6 masters are componentRoot frames');
+  const nested = out.components.find((c) => !roots.includes(c))!;
+  assert.equal(nested.name, 'TEXT 9');
+  const nestedMaster = pages.get(nested.pageId)![nested.rootShapeId] as Shape;
+  assert.equal(nestedMaster.componentRoot, undefined);
+  assert.equal((pages.get(nested.pageId)![nestedMaster.parentId] as Shape).name, 'backgrounds / screen dark 3');
+  // …and the file id is inferable from exactly that, with no manifest in hand.
+  assert.equal(collectPenpotComponents(recs, pages).localFileId, fileId);
+});
+
+test('keynote: each master subtree maps to boxes through the real resolvers', { skip: SKIP }, async () => {
+  const { fileId, pages } = await loadDeck();
+  const out = collectPenpotComponents(await componentRecords(), pages, { fileId });
+
+  const census: Array<[string, number, number]> = [];
+  for (const c of out.components) {
+    const shapesById = pages.get(c.pageId)!;
+    const sub: Shape[] = [];
+    const seen = new Set<string>();
+    const walk = (id: string): void => {
+      if (seen.has(id)) return;
+      seen.add(id);
+      const s = shapesById[id];
+      if (!s) return;
+      sub.push(s);
+      for (const k of (Array.isArray(s.shapes) ? s.shapes : [])) walk(String(k));
+    };
+    walk(c.rootShapeId);
+    const nodes = sub.map((s) => penpotShapeToNode(s)).filter((n) => n != null);
+    assert.equal(nodes.length, sub.length, `${c.name}: every shape in the subtree maps to a node`);
+    const boxes = finalizeBoxes(nodes as never[]);
+    assert.equal(boxes.length, nodes.length, `${c.name}: every node survives finalize`);
+    // The master frame itself is board-sized — the template's canvas.
+    const root = penpotShapeToNode(shapesById[c.rootShapeId]!) as any;
+    assert.equal(Math.round(root.w), 895, `${c.name}: 895 wide`);
+    assert.equal(Math.round(root.h), 503, `${c.name}: 503 tall`);
+    census.push([c.name, sub.length, boxes.length]);
+  }
+  assert.deepEqual(census, [
+    ['TEXT 10', 32, 32], ['TEXT 8', 17, 17], ['TEXT 9', 39, 39],
+    ['PERSON INTRO', 537, 537], ['TITLES2', 19, 19], ['TITLES4', 541, 541],
+  ], 'the master subtree sizes (they OVERLAP: TEXT 9 is nested inside PERSON INTRO)');
+});
+
+test('keynote: slot inference finds the lorem text leaves and the image fills', { skip: SKIP }, async () => {
+  const { fileId, pages } = await loadDeck();
+  const out = collectPenpotComponents(await componentRecords(), pages, { fileId });
+
+  const slotsOf = (name: string) => {
+    const c = out.components.find((x) => x.name === name)!;
+    const shapesById = pages.get(c.pageId)!;
+    return penpotComponentSlots(shapesById[c.rootShapeId], (id) => shapesById[id]);
+  };
+
+  // 18 slots across the 6 masters: 14 text, 4 image.
+  const all = out.components.flatMap((c) => slotsOf(c.name));
+  assert.equal(all.length, 18, '18 slots in total');
+  assert.equal(all.filter((s) => s.kind === 'text').length, 14);
+  assert.equal(all.filter((s) => s.kind === 'image').length, 4);
+  assert.ok(all.every((s) => s.shapeId && s.label), 'every slot names a shape and carries the author’s label');
+
+  // The evidence the plan rests on: a TEXT master is one lorem-ipsum leaf, which
+  // is exactly the run the deck's four instances override with real copy.
+  const t8 = slotsOf('TEXT 8');
+  assert.equal(t8.length, 1);
+  assert.equal(t8[0]!.kind, 'text');
+  assert.ok(t8[0]!.text!.startsWith('Lorem ipsum dolor sit amet'), 'placeholder copy, by construction');
+  assert.equal(t8[0]!.label, t8[0]!.text, 'Penpot names a text shape after its own content');
+
+  // TITLES2 is the mixed case: two text slots around one image fill, whose
+  // imageId is the media the shell resolves to bytes.
+  assert.deepEqual(slotsOf('TITLES2').map((s) => [s.kind, s.label]),
+    [['text', 'Presentation\nTitle'], ['image', 'penpot-logo-white'], ['text', 'Subtitle']]);
+  assert.equal(slotsOf('TITLES2').find((s) => s.kind === 'image')!.imageId,
+    '6aafd946-1972-8152-8008-0bae3c6b1f86');
+
+  // The busiest master, in authored child order.
+  assert.deepEqual(slotsOf('TITLES4').map((s) => s.kind),
+    ['text', 'image', 'text', 'image', 'text', 'text', 'text', 'text']);
+  assert.deepEqual(slotsOf('PERSON INTRO').map((s) => s.kind), ['image', 'text', 'text', 'text']);
+  // Slot count is a tiny fraction of the subtree — the rest is decoration.
+  assert.ok(slotsOf('PERSON INTRO').length * 100 < 537, 'four slots in a 537-shape master');
+});
+
+test('keynote: the external-library census is 6 instances across 3 files', { skip: SKIP }, async () => {
+  const { fileId, pages } = await loadDeck();
+  const out = collectPenpotComponents(await componentRecords(), pages, { fileId });
+
+  assert.equal(out.externals.instances, 6, '6 instance roots point at foreign libraries');
+  assert.deepEqual(out.externals.files, [
+    '345886aa-f4d1-8033-8005-673825be8c85',
+    '790b4dba-cade-8121-8005-9d9000e47c9f',
+    'a1260e62-73b5-80f7-8004-a11f626f6a15',
+  ], '3 distinct library files');
+  assert.deepEqual(out.externals.components.map((c) => [c.name, c.componentFile, c.instances]), [
+    ['graphic elements / box UI', '345886aa-f4d1-8033-8005-673825be8c85', 1],
+    ['Part I / AX UX and both', '790b4dba-cade-8121-8005-9d9000e47c9f', 2],
+    ['Part I / Classic challenges', '790b4dba-cade-8121-8005-9d9000e47c9f', 1],
+    ['Part I / The end of the web?', '790b4dba-cade-8121-8005-9d9000e47c9f', 1],
+    ['penpot-logo-white', 'a1260e62-73b5-80f7-8004-a11f626f6a15', 1],
+  ], '5 distinct foreign components, one of them placed twice');
+
+  // THE TRAP, pinned: 3 of those 5 foreign componentIds ALSO name a local
+  // definition — the library was duplicated from this file, so ids survive.
+  // "has no local definition" would have classed 4 of the 6 instances as local;
+  // `componentFile` is the only honest test, which is what the collector uses.
+  const localIds = new Set(out.components.map((c) => c.id));
+  const shared = out.externals.components.filter((e) => localIds.has(e.componentId));
+  assert.equal(shared.length, 3, 'TEXT 8 / TEXT 9 / TEXT 10 ids are reused by the foreign library');
+  assert.equal(shared.reduce((n, e) => n + e.instances, 0), 4, 'covering 4 of the 6 external instances');
+
+  // Instance accounting: 20 shapes carry a componentId — 6 masters, 8 local
+  // copies, 6 foreign. Nothing else in the deck is component-linked.
+  const { all } = await loadDeck();
+  const linked = all.filter((s) => s.componentId);
+  assert.equal(linked.length, 20);
+  assert.equal(linked.filter((s) => s.mainInstance).length, 6);
+  assert.equal(linked.filter((s) => !s.mainInstance && s.componentFile === fileId).length, 8);
+  assert.equal(linked.filter((s) => s.componentFile !== fileId).length, 6);
+});
+
+test('keynote: PERSON INTRO’s master hydrates through the real layout-studio', { skip: SKIP }, async () => {
+  const { fileId, pages } = await loadDeck();
+  const out = collectPenpotComponents(await componentRecords(), pages, { fileId });
+  const c = out.components.find((x) => x.name === 'PERSON INTRO')!;
+  const shapesById = pages.get(c.pageId)!;
+
+  const sub: Shape[] = [];
+  const seen = new Set<string>();
+  const walk = (id: string): void => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const s = shapesById[id];
+    if (!s) return;
+    sub.push(s);
+    for (const k of (Array.isArray(s.shapes) ? s.shapes : [])) walk(String(k));
+  };
+  walk(c.rootShapeId);
+  const map = { fonts: { knownFamilies: ['Work Sans', 'Spline Sans Mono'] } };
+  const boxes = finalizeBoxes(sub.map((s) => penpotShapeToNode(s)).filter((n) => n != null) as never[], map);
+  assert.equal(boxes.length, 537);
+
+  const PACK_DIR = join(ROOT, 'brands', 'lolly-start', 'tools');
+  const tool: any = await loadTool('layout-studio', (p: string) => readFile(join(PACK_DIR, p), 'utf8'));
+  const rt = await createRuntime(tool, baseHost(), { boxes: boxes as never });
+  assert.deepEqual(rt.hookErrors ?? [], [], 'no hook errors');
+  const html = rt.getHydrated() as string;
+  // The template's own slot content is what a filled-in copy would replace.
+  assert.ok(html.includes('Pablo Ruiz-M'), 'the master text leaf reaches the markup');
+  assert.ok(html.includes('Lorem ipsum'), 'and so does the placeholder body copy');
+});

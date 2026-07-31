@@ -423,3 +423,46 @@ test('an audio box with an unknown length omits the attribute rather than guessi
     assert.doesNotMatch(html, /data-audio-dur=/, `durationMs ${String(ms)} must not stamp a length`);
   }
 });
+
+// ── detached audio: the manifest opt-in, and the markup the split produces ─────
+//
+// "Detach audio" is a REFERENCE, not a copy: the sound box carries the SAME asset ref
+// as the video it came from — a video file's URL — and the source is muted. So two
+// things have to hold in the hook, and neither is obvious:
+//   1. a box that SAYS kind:'audio' renders the mix marker even when its asset is a
+//      video, because that marker (`.lolly-box-audio[data-audio-src]`) is what
+//      sequence-render's mixSequenceAudio keys off, and what the panel's waveform reads;
+//   2. the muted source still stamps `data-t-mute="1"`, which is the only channel
+//      sequence-clock has for "do not play this one's sound".
+
+test('canvas: the A/V link sub-field is declared, and the field is panel-owned', () => {
+  assert.equal(canvasCfg().linkField, 'linkOf', 'the manifest opts this tool into detach/re-attach');
+  const f = boxesField().fields;
+  const link = f.find((x: any) => x.id === 'linkOf');
+  assert.ok(link, 'the declared sub-field exists');
+  assert.deepEqual(link.showFor, [], 'machine-written, never a sidebar control');
+  assert.equal(f[f.length - 1].id, 'linkOf',
+    'APPENDED — `boxes` is a positional wire format, so a new field goes on the end');
+});
+
+test('a detached sound: kind audio + a VIDEO asset still renders the mix marker, and paints nothing', async () => {
+  const html = await mount([
+    { id: 'v', kind: 'clip', lane: 'seq', start: 0, dur: 4, mute: true, linkOf: 's',
+      x: 0, y: 0, w: 400, h: 400, bg: '#00ff00',
+      image: { id: 'uploads/take.mp4', url: 'asset:uploads/take.mp4', type: 'video' } },
+    { id: 's', kind: 'audio', start: 0, dur: 4, linkOf: 'v',
+      x: 0, y: 0, w: 400, h: 400, bg: '#00ff00', text: 'take.mp4',
+      image: { id: 'uploads/take.mp4', url: 'asset:uploads/take.mp4', type: 'video' } },
+  ]);
+  const inner = boxInner(html, 's');
+  assert.match(inner, /<div class="lolly-box-audio" data-audio-src="[^"]+"/,
+    'the detached box is an AUDIO citizen even though its asset is a video');
+  assert.ok(!/<video/.test(inner), 'and never a second copy of the picture');
+  assert.ok(!/<img/.test(inner));
+  assert.match(boxTag(html, 's'), /background:transparent/, 'a sound paints no fill');
+  assert.equal(inner.match(/<div class="lolly-box-text"[^>]*>([\s\S]*?)<\/div>/)![1], '', 'and no label');
+
+  // The source keeps its picture and is silenced by attribute — the clock's own language.
+  assert.match(boxTag(html, 'v'), /data-t-mute="1"/, 'the muted source declares itself muted');
+  assert.match(boxInner(html, 'v'), /<video/, 'the picture is untouched');
+});

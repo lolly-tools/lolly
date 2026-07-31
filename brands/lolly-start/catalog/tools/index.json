@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-31T03:44:51.552Z",
+  "generatedAt": "2026-07-31T09:33:17.972Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -5288,6 +5288,237 @@
       "exportable": false,
       "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M8 13.5h8\" stroke-width=\"3.4\" stroke-linecap=\"butt\"/><path d=\"M8 18h5\"/></svg>",
       "preview": "/catalog/previews/redact.svg"
+    },
+    {
+      "id": "filter-imperfections",
+      "name": "Filter: Imperfections",
+      "description": "Deliberate print imperfections for any photo — offset ink plates, ink bleed, paper grain and photocopy wear.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "svg",
+        "png",
+        "jpg",
+        "webp",
+        "avif",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1000,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"4\" y=\"4\" width=\"13\" height=\"13\" rx=\"1.5\" /><rect x=\"7.5\" y=\"7.5\" width=\"13\" height=\"13\" rx=\"1.5\" /><path d=\"M10.5 14.5c1 -1 2 1 3 0\" /></svg>",
+      "preview": "/catalog/previews/filter-imperfections.svg",
+      "examples": [
+        {
+          "label": "Subtle press",
+          "values": {
+            "preset": "subtle",
+            "paperTint": "#f2ead9",
+            "seed": 7
+          }
+        },
+        {
+          "label": "Risograph",
+          "values": {
+            "preset": "riso",
+            "ink1": "#0078bf",
+            "ink2": "#ff48b0",
+            "paperTint": "#f7f2e7",
+            "grainAmount": 35,
+            "seed": 21
+          }
+        },
+        {
+          "label": "Photocopy",
+          "values": {
+            "preset": "photocopy",
+            "paperTint": "#f4f4f2",
+            "paperTintStrength": 35,
+            "grainAmount": 40,
+            "seed": 3
+          }
+        },
+        {
+          "label": "Worn print",
+          "values": {
+            "preset": "worn",
+            "grainAmount": 55,
+            "paperTint": "#e9dfc8",
+            "paperTintStrength": 80,
+            "seed": 42
+          }
+        }
+      ]
+    },
+    {
+      "id": "finish-preview",
+      "name": "Finish Preview",
+      "description": "Preview foil, spot UV, emboss and soft-touch finishes on your artwork — then export the printer-ready spot plate. The on-screen sheen is presentation only; the plate is the real deliverable your print house needs.",
+      "version": "1.0.0",
+      "status": "official",
+      "category": "designer",
+      "formats": [
+        "svg",
+        "pdf",
+        "png",
+        "webp",
+        "avif",
+        "gif",
+        "apng",
+        "webm",
+        "mp4"
+      ],
+      "width": 1000,
+      "height": 1000,
+      "exportable": true,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3.5\" y=\"3.5\" width=\"17\" height=\"17\" rx=\"2.5\"/><path d=\"M6.5 17.5 17.5 6.5\"/><path d=\"M10.5 20.5 20.5 10.5\"/><path d=\"M8 8v3M6.5 9.5h3\"/></svg>",
+      "preview": "/catalog/previews/finish-preview.svg",
+      "examples": [
+        {
+          "label": "Gold foil highlights",
+          "values": {
+            "finish": "foil-gold",
+            "maskSource": "light",
+            "threshold": 62
+          }
+        },
+        {
+          "label": "Holographic shadows",
+          "values": {
+            "finish": "foil-holographic",
+            "maskSource": "dark",
+            "threshold": 45
+          }
+        },
+        {
+          "label": "Blind emboss",
+          "values": {
+            "finish": "emboss",
+            "maskSource": "dark",
+            "threshold": 50,
+            "sheen": false
+          }
+        },
+        {
+          "label": "The plate itself",
+          "values": {
+            "finish": "spot-uv-gloss",
+            "maskSource": "light",
+            "threshold": 62,
+            "plateView": true
+          }
+        }
+      ],
+      "i18n": {
+        "ar": {
+          "name": "معاينة التشطيبات",
+          "description": "حاكِ رقائق الفويل وورنيش UV الموضعي والنقش البارز واللمسة الناعمة على عملك الفني، وصدّر لوح الطباعة الجاهز للمطبعة. اللمعان على الشاشة عرض فقط، واللوح هو الملف الفعلي للتسليم."
+        },
+        "bg": {
+          "name": "Преглед на облагородявания",
+          "description": "Симулирайте фолио, UV лак, релеф и soft-touch върху вашата графика и експортирайте готовата за печат плака. Блясъкът на екрана е само презентация, плаката е истинският резултат."
+        },
+        "bn": {
+          "name": "ফিনিশ প্রিভিউ",
+          "description": "আপনার আর্টওয়ার্কে ফয়েল, স্পট UV, এমবস ও সফট-টাচ ফিনিশ সিমুলেট করুন এবং প্রিন্ট-প্রস্তুত প্লেট রপ্তানি করুন। পর্দার চাকচিক্য শুধুই উপস্থাপনা, প্লেটই আসল ডেলিভারেবল।"
+        },
+        "cs": {
+          "name": "Náhled povrchové úpravy",
+          "description": "Simulujte fólii, parciální UV lak, ražbu a soft-touch na svém návrhu a exportujte tiskovou desku připravenou pro tiskárnu. Lesk na obrazovce je jen prezentace, deska je skutečný výstup."
+        },
+        "de": {
+          "name": "Veredelungs-Vorschau",
+          "description": "Folienprägung, Spot-UV, Prägung und Soft-Touch auf deinem Artwork simulieren und die druckfertige Plattenvorlage exportieren. Der Glanz am Bildschirm ist nur Präsentation, die Platte ist die eigentliche Druckvorlage."
+        },
+        "es": {
+          "name": "Vista previa de acabados",
+          "description": "Simula estampado metálico, barniz UV, relieve y soft-touch sobre tu arte y exporta la plancha lista para imprenta. El brillo en pantalla es solo presentación, la plancha es el entregable real."
+        },
+        "fr": {
+          "name": "Aperçu de finitions",
+          "description": "Simulez dorure, vernis UV, gaufrage et soft-touch sur votre visuel puis exportez la plaque prête pour l’imprimeur. Le rendu brillant est une présentation, la plaque est le vrai livrable."
+        },
+        "hi": {
+          "name": "फ़िनिश पूर्वावलोकन",
+          "description": "अपनी आर्टवर्क पर फ़ॉइल, स्पॉट UV, एम्बॉस और सॉफ़्ट-टच फ़िनिश का सिमुलेशन देखें और प्रिंट-तैयार प्लेट निर्यात करें। स्क्रीन की चमक सिर्फ़ प्रस्तुति है, असली डिलिवरेबल प्लेट है।"
+        },
+        "id": {
+          "name": "Pratinjau Finishing",
+          "description": "Simulasikan foil, spot UV, emboss, dan soft-touch pada karya Anda lalu ekspor pelat siap cetak. Kilau di layar hanyalah presentasi, pelatnya adalah hasil akhir yang sebenarnya."
+        },
+        "it": {
+          "name": "Anteprima finiture",
+          "description": "Simula lamina, UV spot, rilievo e soft-touch sul tuo artwork ed esporta la lastra pronta per la stampa. La lucentezza a schermo è solo presentazione, la lastra è il vero deliverable."
+        },
+        "ja": {
+          "name": "加工プレビュー",
+          "description": "箔押し、スポットUV、エンボス、ソフトタッチをアートワーク上でシミュレートし、印刷所に渡せる版下プレートを書き出します。画面上の輝きはプレゼンテーション用で、実際の納品物はプレートです。"
+        },
+        "ko": {
+          "name": "후가공 미리보기",
+          "description": "아트워크 위에 박, 부분 UV, 엠보싱, 소프트터치 후가공을 시뮬레이션하고 인쇄소에 보낼 판을 내보냅니다. 화면의 광택은 프레젠테이션일 뿐, 실제 납품물은 판입니다."
+        },
+        "ms": {
+          "name": "Pratonton Kemasan",
+          "description": "Simulasikan foil, UV spot, emboss dan soft-touch pada karya anda dan eksport plat sedia cetak. Kilauan pada skrin hanyalah persembahan, plat itulah hasil sebenar."
+        },
+        "nl": {
+          "name": "Afwerkingsvoorbeeld",
+          "description": "Simuleer folie, spot-UV, reliëf en soft-touch op je artwork en exporteer de drukklare plaat. De glans op het scherm is alleen presentatie, de plaat is het echte eindproduct."
+        },
+        "no": {
+          "name": "Forhåndsvisning av finish",
+          "description": "Simuler folie, spot-UV, preging og soft-touch på kunstverket ditt og eksporter den trykkeklare platen. Glansen på skjermen er bare presentasjon, platen er den egentlige leveransen."
+        },
+        "pl": {
+          "name": "Podgląd uszlachetnień",
+          "description": "Symuluj folię, lakier UV, tłoczenie i soft-touch na swojej grafice i eksportuj gotową do druku matrycę. Połysk na ekranie to tylko prezentacja, matryca jest właściwym plikiem produkcyjnym."
+        },
+        "pt": {
+          "name": "Pré-visualização de acabamentos",
+          "description": "Simule foil, verniz UV, relevo e soft-touch na sua arte e exporte a chapa pronta para a gráfica. O brilho na tela é só apresentação, a chapa é a entrega real."
+        },
+        "ro": {
+          "name": "Previzualizare finisaje",
+          "description": "Simulează folio, lac UV selectiv, embosare și soft-touch pe grafica ta și exportă placa gata de tipar. Strălucirea de pe ecran e doar prezentare, placa este livrabilul real."
+        },
+        "sv": {
+          "name": "Förhandsvisning av finish",
+          "description": "Simulera folie, spot-UV, prägling och soft-touch på ditt konstverk och exportera den tryckfärdiga plåten. Glansen på skärmen är bara presentation, plåten är den riktiga leveransen."
+        },
+        "tl": {
+          "name": "Preview ng Finish",
+          "description": "I-simulate ang foil, spot UV, emboss at soft-touch sa iyong artwork at i-export ang print-ready na plate. Ang kinang sa screen ay presentasyon lamang, ang plate ang tunay na deliverable."
+        },
+        "tr": {
+          "name": "Kaplama Önizleme",
+          "description": "Yaldız, spot UV lak, kabartma ve soft-touch kaplamaları çalışmanız üzerinde simüle edin ve baskıya hazır kalıbı dışa aktarın. Ekrandaki parlaklık yalnızca sunumdur, kalıp asıl teslim edilecek dosyadır."
+        },
+        "uk": {
+          "name": "Попередній перегляд оздоблень",
+          "description": "Симулюйте фольгу, вибірковий УФ-лак, тиснення та soft-touch на вашій графіці й експортуйте готову до друку форму. Блиск на екрані лише презентація, форма є справжнім результатом."
+        },
+        "ur": {
+          "name": "فنش پیش منظر",
+          "description": "اپنے آرٹ ورک پر فوائل، اسپاٹ UV، ابھار اور سافٹ ٹچ فنش کی نقل دیکھیں اور پرنٹ کے لیے تیار پلیٹ برآمد کریں۔ اسکرین کی چمک صرف پیشکش ہے، اصل ڈیلیوری پلیٹ ہے۔"
+        },
+        "vi": {
+          "name": "Xem trước hiệu ứng gia công",
+          "description": "Mô phỏng ép kim, phủ UV định hình, dập nổi và soft-touch trên tác phẩm của bạn rồi xuất bản kẽm sẵn sàng in. Độ bóng trên màn hình chỉ là trình bày, bản kẽm mới là sản phẩm bàn giao thật."
+        },
+        "zh-hant": {
+          "name": "印後加工預覽",
+          "description": "在作品上模擬燙金、局部UV、擊凸與觸感膜等加工，並匯出可直接交付印刷廠的版面。螢幕上的光澤只是展示，版面才是真正的交付物。"
+        },
+        "zh": {
+          "name": "印后工艺预览",
+          "description": "在作品上模拟烫金、局部UV、击凸和触感膜等工艺，并导出可直接交付印厂的版面。屏幕上的光泽只是演示，版面才是真正的交付物。"
+        }
+      }
     }
   ]
 }

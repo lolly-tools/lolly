@@ -1579,6 +1579,190 @@ export function collectPenpotExportMarks(shapesById: Record<string, unknown>): P
   return out;
 }
 
+// ── Penpot prototype flow → scene order + per-scene enter transitions ────────
+//
+// Observed serialization (tests/fixtures/penpot-kitchen-sink.penpot, a genuine
+// Penpot 2.17.1-RC4 export — pinned in tests/penpot-kitchen-sink.test.ts):
+//
+//   shape.interactions = [{
+//     eventType: 'click', actionType: 'navigate',
+//     destination: '<shape id>', positionRelativeTo: '<shape id>',
+//     preserveScroll: false,
+//     animation: { animationType: 'dissolve', duration: 300, easing: 'linear' },
+//   }]
+//   page.flows = { '<id>': { id, name: 'Flow 1', startingFrame: '<frame id>' } }
+//
+// Two corrections against the inference that shipped in the plan: the action is
+// `navigate`, NOT `navigate-to` (both are accepted below — a Penpot version that
+// writes the hyphenated form still reads), and the starting frame lives on the
+// PAGE record's `flows` map, not on the shape.
+
+/** One board's authored entrance, in sequence-studio's shipped vocabulary. */
+export interface PenpotSceneTransition {
+  /** A `TRANSITIONS` key: 'fade' | 'slide-left'|'slide-right'|'slide-up'|'slide-down' | 'none'. */
+  enter: string;
+  /** The authored duration in ms, clamped to the timeline's 100..3000 range. Absent for a cut. */
+  enterMs?: number;
+}
+
+/** The result of walking a page's prototype graph. */
+export interface PenpotFlowOrder {
+  /** Every input board id, in flow order (identical to the input when `hasFlow` is false). */
+  ordered: string[];
+  /** boardId → the entrance authored on the edge INTO it. Only boards entered via an edge appear. */
+  transitions: Record<string, PenpotSceneTransition>;
+  /** Whether any usable navigate edge was found — false means callers keep the reading-order path. */
+  hasFlow: boolean;
+}
+
+// The timeline's own bounds (bridge/sequence-plan.ts MIN/MAX_TRANSITION_MS),
+// restated here rather than imported: the engine may not depend on a shell.
+const FLOW_MIN_MS = 100;
+const FLOW_MAX_MS = 3000;
+
+/**
+ * Map one Penpot `animation` object onto sequence-studio's per-box `enter`/`enterMs`.
+ *
+ * | Penpot `animationType` | enter |
+ * |---|---|
+ * | `dissolve` | `fade` |
+ * | `slide` / `push` + `direction` | `slide-<direction>` |
+ * | missing / anything else | `none` (a hard cut — no motion is invented) |
+ *
+ * `direction` maps through UNCHANGED because both vocabularies name the direction
+ * the incoming content TRAVELS: Penpot's push-right moves boards rightwards (the
+ * new one starting off-screen left), and lolly's `slide-right` is labelled "Slide
+ * from left" for exactly that reason. A slide with no recognised direction is a
+ * cut, not a guess. `way: 'in'|'out'` is ignored in v1 — exit transitions are not
+ * modelled, so an out-slide still reads as the incoming board's entrance.
+ * @param {unknown} animation the interaction's nested `animation` object.
+ * @returns {PenpotSceneTransition} always a valid entrance; `{enter:'none'}` when unmapped.
+ */
+export function penpotAnimationToTransition(animation: unknown): PenpotSceneTransition {
+  const type = String(get(animation, 'animationType') ?? '').toLowerCase();
+  let enter = 'none';
+  if (type === 'dissolve') enter = 'fade';
+  else if (type === 'slide' || type === 'push') {
+    const dir = String(get(animation, 'direction') ?? '').toLowerCase();
+    if (dir === 'left' || dir === 'right' || dir === 'up' || dir === 'down') enter = 'slide-' + dir;
+  }
+  if (enter === 'none') return { enter: 'none' };
+  const ms = num(get(animation, 'duration'), undefined);
+  return ms === undefined
+    ? { enter }
+    : { enter, enterMs: Math.round(clamp(ms, FLOW_MIN_MS, FLOW_MAX_MS)) };
+}
+
+/**
+ * Order a page's top-level boards by its authored prototype flow, and collect the
+ * entrance transition each board is navigated to with.
+ *
+ * The graph: every `navigate` interaction on any shape INSIDE a board is an edge
+ * from that board to the board owning the interaction's `destination` (a nested
+ * destination frame resolves up to its top-level board). Self-edges, edges to
+ * shapes outside the given board list, and non-navigate actions are dropped.
+ *
+ * The walk, deterministic end to end:
+ *  - **Start** = the first `flows[].startingFrame` that is a known board; else the
+ *    first board (in the given reading order) with out-edges and no in-edges; else
+ *    the first board with any edge; else the first board.
+ *  - **Chain**: follow the first authored, unvisited successor of the current board.
+ *  - **Branches**: first authored edge wins; the other targets are picked up later
+ *    by the reading-order sweep (and their own chains are then followed).
+ *  - **Cycles**: the visited set ends a chain when every successor is already placed.
+ *  - **Orphans / unreachable boards**: appended in reading order at the point the
+ *    walk stalls, each continuing the walk from there.
+ *
+ * With no usable edges `hasFlow` is false and `ordered` is the input order copied,
+ * so a zero-interaction file is byte-identical to the reading-order path.
+ * @param {string[]} boardIds top-level board ids in READING order (the fallback + tie-break).
+ * @param {Record<string, unknown>} shapesById shape-id → parsed shape json for one page.
+ * @param {{flows?: unknown}} [page] the page record, for its `flows` starting frames.
+ * @returns {PenpotFlowOrder}
+ */
+export function penpotFlowOrder(
+  boardIds: string[],
+  shapesById: Record<string, unknown>,
+  page?: { flows?: unknown } | null,
+): PenpotFlowOrder {
+  const order = boardIds.map((id) => String(id));
+  const boards = new Set(order);
+  const empty = (): PenpotFlowOrder => ({ ordered: [...order], transitions: {}, hasFlow: false });
+  if (order.length < 2) return empty();
+
+  // shape id → the top-level board that owns it (a board owns itself). Cycle-guarded:
+  // a malformed file whose `shapes` arrays loop must not hang the import.
+  const owner = new Map<string, string>();
+  for (const bid of order) {
+    const stack = [bid];
+    while (stack.length) {
+      const id = stack.pop()!;
+      if (owner.has(id)) continue;
+      owner.set(id, bid);
+      const kids = get(shapesById[id], 'shapes');
+      if (Array.isArray(kids)) for (const k of kids) stack.push(String(k));
+    }
+  }
+
+  // Edges in authored order: boards in reading order, shapes in the owner walk's
+  // map order, interactions in array order.
+  const edges = new Map<string, Array<{ to: string; anim: PenpotSceneTransition }>>();
+  let edgeCount = 0;
+  for (const [sid, bid] of owner) {
+    const list = get(shapesById[sid], 'interactions');
+    if (!Array.isArray(list)) continue;
+    for (const it of list) {
+      const action = String(get(it, 'actionType') ?? '').toLowerCase();
+      if (action !== 'navigate' && action !== 'navigate-to') continue;
+      const dest = get(it, 'destination');
+      if (typeof dest !== 'string' || !dest) continue;
+      const to = owner.get(dest) ?? (boards.has(dest) ? dest : undefined);
+      if (!to || to === bid) continue;
+      const from = edges.get(bid) ?? [];
+      if (!edges.has(bid)) edges.set(bid, from);
+      from.push({ to, anim: penpotAnimationToTransition(get(it, 'animation')) });
+      edgeCount++;
+    }
+  }
+  if (!edgeCount) return empty();
+
+  const inDeg = new Map<string, number>();
+  for (const [, outs] of edges) for (const e of outs) inDeg.set(e.to, (inDeg.get(e.to) ?? 0) + 1);
+
+  // Start: authored flow first — the page record is the file's own answer.
+  let start = '';
+  const flows = get(page, 'flows');
+  const flowList: unknown[] = Array.isArray(flows) ? flows : (flows && typeof flows === 'object' ? Object.values(flows as Record<string, unknown>) : []);
+  for (const f of flowList) {
+    const sf = get(f, 'startingFrame');
+    const bid = typeof sf === 'string' ? (owner.get(sf) ?? '') : '';
+    if (bid && boards.has(bid)) { start = bid; break; }
+  }
+  if (!start) start = order.find((b) => (edges.get(b)?.length ?? 0) > 0 && !(inDeg.get(b) ?? 0)) ?? '';
+  if (!start) start = order.find((b) => (edges.get(b)?.length ?? 0) > 0 || inDeg.has(b)) ?? order[0]!;
+
+  const ordered: string[] = [];
+  const transitions: Record<string, PenpotSceneTransition> = {};
+  const placed = new Set<string>();
+  let cursor: string | undefined = start;
+  while (ordered.length < order.length) {
+    if (cursor === undefined || placed.has(cursor)) {
+      cursor = order.find((b) => !placed.has(b));
+      if (cursor === undefined) break;
+    }
+    ordered.push(cursor);
+    placed.add(cursor);
+    const next: { to: string; anim: PenpotSceneTransition } | undefined =
+      (edges.get(cursor) ?? []).find((e) => !placed.has(e.to));
+    if (next) {
+      // Only a real entrance is recorded — a cut leaves the scene's own default alone.
+      if (next.anim.enter !== 'none') transitions[next.to] = next.anim;
+      cursor = next.to;
+    } else cursor = undefined;
+  }
+  return { ordered, transitions, hasFlow: true };
+}
+
 // ── Figma .fig (Kiwi) document → DesignNodes ─────────────────────────────────
 // A .fig decodes to a flat `nodeChanges` list forming a tree via `parentIndex.guid`.
 // Geometry is a parent-RELATIVE 2×3 `transform` {m00,m01,m02,m10,m11,m12} + `size`

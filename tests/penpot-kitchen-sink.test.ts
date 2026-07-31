@@ -463,3 +463,136 @@ test('kitchen sink: an instance is shapeRef + componentId, and an override is a 
   assert.equal(cleanChild.touched, undefined);
   assert.deepEqual(cleanChild.appliedTokens, { fill: 'brand.primary' });
 });
+
+// ── (f) the component collectors read the observed structure ─────────────────
+// (Appended block — imports hoist; kept here so the block stays append-only.)
+import { collectPenpotComponents, penpotComponentSlots } from '../engine/src/design-components.ts';
+
+const FILE_ID = 'ddb7145f-a1be-80bb-8008-69139da641d1';
+const PAGE_ID = 'd1b6b7c9-cced-466c-b71e-3575b7196282';
+/** The fixture's one page as the collectors take it: pageId → shapeId → shape. */
+const shapesByPage = (): Map<string, Record<string, Shape>> =>
+  new Map([[PAGE_ID, Object.fromEntries(shapes.map(s => [String(s.id), s]))]]);
+const componentRecords = (): Shape[] =>
+  paths.filter(p => /\/components\/[^/]+\.json$/.test(p)).map(readJson);
+
+test('kitchen sink: the 2-variant component set collects as ONE logical component', () => {
+  const container = shapes.find(s => s.isVariantContainer)!;
+  const out = collectPenpotComponents(componentRecords(), shapesByPage(), { fileId: FILE_ID });
+  assert.deepEqual(out.warnings, []);
+
+  // THE REASON THIS GROUPING EXISTS: two records, one name, and every shape in
+  // the set carries that same name — ungrouped, the user sees two templates
+  // called "radii 4-8-16-32" with nothing to tell them apart.
+  assert.equal(componentRecords().length, 2, 'two records on disk…');
+  assert.equal(out.components.length, 1, '…one logical component');
+  const c = out.components[0]!;
+  assert.equal(c.id, container.id, 'the set id is the variant CONTAINER id, not either record id');
+  assert.equal(c.name, 'radii 4-8-16-32');
+  assert.equal(c.path, '', 'the fixture authored no grouping path');
+  assert.equal(c.isVariantSet, true);
+  assert.equal(c.external, false);
+
+  assert.deepEqual(c.variants.map(v => v.label), ['Value 1', 'Value 2'], 'ordered by property value');
+  assert.deepEqual(c.variants.map(v => v.properties), [
+    [{ name: 'Property 1', value: 'Value 1' }],
+    [{ name: 'Property 1', value: 'Value 2' }],
+  ], 'the property pair rides the RECORD, mirrored onto the variant');
+  // Each variant points at its own main instance, and the default is the first.
+  const mainOf = (label: string): Shape => shapes.find(s => s.mainInstance && s.variantName === label)!;
+  assert.deepEqual(c.variants.map(v => v.rootShapeId), [mainOf('Value 1').id, mainOf('Value 2').id]);
+  assert.equal(c.rootShapeId, mainOf('Value 1').id, 'the default variant is Value 1');
+  assert.ok(c.variants.every(v => v.pageId === PAGE_ID));
+  assert.deepEqual(c.variants.map(v => v.id).sort(), componentRecords().map((r: Shape) => r.id).sort());
+});
+
+test('kitchen sink: every instance is local, so the external-library census is empty', () => {
+  const out = collectPenpotComponents(componentRecords(), shapesByPage());
+  // No fileId passed: it is inferred from a master, which names its own file.
+  assert.equal(out.localFileId, FILE_ID);
+  assert.deepEqual(out.externals, { instances: 0, files: [], components: [] });
+  assert.deepEqual(out.warnings, []);
+  // The two placed copies DO carry componentFile — it is simply the local one.
+  const copies = shapes.filter(s => s.componentRoot && !s.mainInstance);
+  assert.equal(copies.length, 2);
+  assert.ok(copies.every(s => s.componentFile === FILE_ID));
+});
+
+test('kitchen sink: this variant set has no fill-in-the-blank slots, and says so', () => {
+  const out = collectPenpotComponents(componentRecords(), shapesByPage(), { fileId: FILE_ID });
+  const byId = Object.fromEntries(shapes.map(s => [String(s.id), s]));
+  const lookup = (id: string): unknown => byId[id];
+
+  // The honest negative: the fixture's set is a solid-fill rect in a frame — no
+  // text, no image fill — so inference must return nothing rather than invent a
+  // slot per shape. The positive path is pinned by the keynote replay (14 text +
+  // 4 image slots across its 6 masters) and by tests/design-components.test.ts.
+  for (const v of out.components[0]!.variants) {
+    assert.deepEqual(penpotComponentSlots(byId[v.rootShapeId], lookup), [], `variant ${v.label}: no slots`);
+  }
+  const master = byId[out.components[0]!.rootShapeId]!;
+  assert.equal(master.shapes.length, 1);
+  assert.equal(byId[master.shapes[0]]!.type, 'rect');
+  // Worth pinning: that rect maps to a node of kind 'image' — the per-corner
+  // radii take design-map's baked-vector branch. Slot inference reads the FILL,
+  // not the node kind, so a baked vector is decoration and not an asset slot.
+  const child = penpotShapeToNode(byId[master.shapes[0]]!) as any;
+  assert.equal(child.kind, 'image');
+  assert.ok(child._vectorPath, 'a baked outline, not a fillImage');
+  assert.equal(child._fillImageId, undefined);
+  // …and a placed copy of it is equally slotless (instances are full copies).
+  const copy = shapes.find(s => s.componentRoot && !s.mainInstance)!;
+  assert.deepEqual(penpotComponentSlots(copy, lookup), []);
+});
+
+// ── (f) prototype flow → scene order (penpot-design-system.md §4) ────────────
+// Imported here rather than at the top so this block appends cleanly.
+import { readingOrder, penpotFlowOrder } from '../engine/src/design-map.ts';
+//
+// (d) above pins the raw interaction JSON; this block runs the real ordering
+// pass over it. Two things the plan inferred wrong, corrected here against the
+// file: `actionType` is `navigate`, not `navigate-to`, and the flow's starting
+// frame lives on the PAGE record (`flows[].startingFrame`), not on the shape.
+
+test('kitchen sink: the authored flow drives scene order, and the dissolve becomes the destination scene entrance', () => {
+  const root = shapes.find(s => String(s.id).startsWith('00000000'))!;
+  const byId: Record<string, any> = {};
+  for (const s of shapes) byId[String(s.id)] = s;
+  const boards = (root.shapes as string[]).map(id => byId[id]).filter(s => s && s.type === 'frame');
+  const spatial = readingOrder(boards, (b: any) => ({ x: b.selrect.x, y: b.selrect.y, w: b.selrect.width, h: b.selrect.height }));
+  assert.deepEqual(spatial.map((b: any) => b.name),
+    ['effects', 'strokes', 'geometry', 'radii 4-8-16-32', 'radii 4-8-16-32'],
+    'the reading-order baseline this file has shipped with');
+
+  const page = readJson('files/ddb7145f-a1be-80bb-8008-69139da641d1/pages/d1b6b7c9-cced-466c-b71e-3575b7196282.json');
+  const flow = penpotFlowOrder(spatial.map((b: any) => String(b.id)), byId, page);
+  assert.equal(flow.hasFlow, true, 'one navigate edge is a flow');
+  const names = (ids: string[]): string[] => ids.map(id => String(byId[id].name));
+  // effects → strokes is the authored edge; the three boards the flow never
+  // reaches follow in reading order, which is what this file's layout already said.
+  assert.deepEqual(names(flow.ordered), ['effects', 'strokes', 'geometry', 'radii 4-8-16-32', 'radii 4-8-16-32']);
+  assert.deepEqual(flow.transitions, {
+    '47daf613-b10b-41f2-926f-9bac1e20ae5c': { enter: 'fade', enterMs: 300 },
+  }, 'dissolve/300ms on the edge INTO "strokes" becomes that scene fade; nothing else animates');
+
+  // The flow really is doing the ordering, not agreeing with it by accident: feed
+  // the boards in REVERSE reading order and the walk still opens on the starting
+  // frame and puts its destination second.
+  const rev = penpotFlowOrder([...spatial].reverse().map((b: any) => String(b.id)), byId, page);
+  assert.deepEqual(names(rev.ordered).slice(0, 2), ['effects', 'strokes']);
+  assert.deepEqual(names(rev.ordered).slice(2), ['radii 4-8-16-32', 'radii 4-8-16-32', 'geometry'],
+    'the unreached remainder keeps the order it was handed — reversed in, reversed out');
+});
+
+test('kitchen sink: with the interactions stripped, ordering falls back byte-identically to reading order', () => {
+  const root = shapes.find(s => String(s.id).startsWith('00000000'))!;
+  const byId: Record<string, any> = {};
+  for (const s of shapes) byId[String(s.id)] = s;
+  const stripped: Record<string, any> = {};
+  for (const [id, s] of Object.entries(byId)) { const { interactions, ...rest } = s; stripped[id] = rest; }
+  const ids = (root.shapes as string[]).filter(id => byId[id] && byId[id].type === 'frame');
+  const flow = penpotFlowOrder(ids, stripped, null);
+  assert.equal(flow.hasFlow, false, 'this is the keynote case — zero interactions');
+  assert.deepEqual(flow.ordered, ids, 'the input order comes back untouched');
+  assert.deepEqual(flow.transitions, {});
+});
