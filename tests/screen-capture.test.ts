@@ -144,9 +144,13 @@ test('ENGINE_VERSION is 1.90.0', () => {
   // src/radiance.ts — an RGBE .hdr writer+reader — plus deflate.ts's slab-fed
   // incremental deflater, which lifts png.ts's 16 MiB single-shot ceiling.
   // All three are engine-internal (not in the barrel) and surfaced CLI-first as
-  // --export=exr/hdr; no HostV1 method or field was added);
+  // --export=exr/hdr; no HostV1 method or field was added) and 1.93.0 (src/preflight.ts
+  // — the rules-over-facts preflight evaluator, plus the Finding contract in
+  // @lolly-tools/core and src/cmyk-palette.ts lifted so both shells build the spot
+  // palette identically. Rules in the engine, facts collected per shell, exactly the
+  // print-marks split; no HostV1 method or field was added);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.92.0');
+  assert.equal(ENGINE_VERSION, '1.93.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

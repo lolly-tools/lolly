@@ -1374,7 +1374,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.92.0";
+    ENGINE_VERSION = "1.93.0";
   }
 });
 
@@ -20570,6 +20570,19 @@ function buildExportC2paOpts(o) {
   };
 }
 
+// packages/node-shell/src/browser-tier.ts
+var NEEDS_BROWSER = "NEEDS_BROWSER";
+var PROSE = /browser canvas|n(?:['’]|o)t available in this app|needs a browser|requires a browser/i;
+function needsBrowserTier(err) {
+  if (err && typeof err === "object") {
+    const e = err;
+    if (e.code === NEEDS_BROWSER || e.needsBrowser === true) return true;
+  }
+  const message = typeof err === "string" ? err : err?.message;
+  if (typeof message !== "string") return false;
+  return PROSE.test(message);
+}
+
 // services/mcp/src/render.ts
 import { readFile as readFile7 } from "node:fs/promises";
 
@@ -23778,9 +23791,6 @@ async function render(toolId, query, o = {}) {
     warnings.push(`Format "${fmt2}" cannot carry Content Credentials \u2014 skipped.`);
   }
   return { bytes, mime: out.mime, format: fmt2, tier: out.tier, warnings };
-}
-function needsBrowserTier(message) {
-  return /browser canvas|not available in this app|needs a browser|requires a browser/i.test(message);
 }
 async function transformTierB(toolId, fileInputId2, file, query) {
   const base = await webShellBase();

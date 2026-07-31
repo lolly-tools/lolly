@@ -27,6 +27,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { readShotProvenance } from '../docs/shot-provenance.ts';
+import { readShotAnatomy } from '../docs/shot-anatomy.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const BUILD_TS = readFileSync(join(ROOT, 'docs/build.ts'), 'utf8');
@@ -149,7 +150,15 @@ test('an AI declaration is never hidden behind the hover', () => {
   const label = /const label = \[([^\]]*)\]/.exec(credFn);
   assert.ok(label, 'the trigger must build an aria-label');
   assert.match(label[1]!, /p\.ai/, 'the AI declaration must be in the trigger label, not only the hover line');
-  assert.match(BUILD_TS, /\.shot-cred--ai \.shot-cred-btn\{opacity:1/, 'an AI-declaring shot must show a full-opacity glyph');
+  // Promoted by CONTRAST, not by opacity. The glyph no longer rests at partial opacity
+  // (that faded its strokes into the screenshot behind it), so "louder" now means a
+  // filled puck and a ring rather than opacity:1 — which would be a no-op today and a
+  // test that passed while proving nothing.
+  const ai = /\.shot-cred--ai \.shot-cred-btn\{([^}]*)\}/.exec(BUILD_TS);
+  assert.ok(ai, 'an AI-declaring shot must style its glyph distinctly');
+  assert.match(ai[1]!, /background:/, 'the AI glyph must be filled, not merely un-faded');
+  assert.doesNotMatch(ai[1]!, /opacity:1(?![\d.])/,
+    'opacity:1 is inert now that the glyph never rests faded — promote it with colour instead');
 });
 
 test('the showcase strips the manifest it inlines, and keeps the file it points at', () => {
@@ -195,6 +204,46 @@ test('a showcase recipe names a captured vector baseline', () => {
     }
   }
   assert.ok(found >= 1, 'expected at least one ::: showcase block (docs/exporting.md)');
+});
+
+// ── Anatomy (docs/shot-anatomy.ts) ───────────────────────────────────────────
+
+test('the anatomy reader counts a real vector shot and never throws on a bad one', () => {
+  const sample = readdirSync(SHOTS_DIR).find((f) => f.endsWith('.svg'))!;
+  const a = readShotAnatomy(join(SHOTS_DIR, sample));
+  assert.equal(a?.kind, 'vector');
+  assert.ok(a!.elements > 1, `${sample} counted ${a!.elements} elements — the tag scan is broken`);
+  assert.ok(a!.bytes > 0);
+  assert.ok(a!.paths <= a!.elements, 'paths are elements; the counts cannot disagree that way');
+  // Nothing here may be the reason a build fails: the credential is a garnish on a
+  // page, and a missing or unreadable file is a fact to omit, not an exception.
+  assert.equal(readShotAnatomy(join(SHOTS_DIR, 'no-such-shot.svg')), null);
+  assert.equal(readShotAnatomy(SHOTS_DIR), null);
+  const png = readdirSync(SHOTS_DIR).find((f) => f.endsWith('.png'));
+  if (png) {
+    const r = readShotAnatomy(join(SHOTS_DIR, png));
+    // A raster must not report zero paths as if it had been measured for them.
+    assert.equal(r?.kind, 'raster');
+    assert.ok(r!.bytes > 0);
+  }
+});
+
+test('the anatomy row lives inside the expanded line, and only when there is something to say', () => {
+  const credFn = fnSource('shotCredential');
+  // Inside .shot-cred-line — NOT between the button and the line. The reveal is
+  // `.shot-cred-btn:hover + .shot-cred-line`, an adjacency, so anything emitted
+  // between those two siblings stops every credential opening on hover.
+  const line = /<span class="shot-cred-line" id="\$\{id\}">([\s\S]*?)`;/.exec(credFn);
+  assert.ok(line, 'the credential must still emit its .shot-cred-line');
+  assert.match(line[1]!, /shot-cred-row shot-cred-anat/, 'the anatomy row belongs inside the line');
+  assert.match(credFn, /facts\.length \?/, 'a shot with no readable file must get the line it had before');
+  // The row is a second ROW, so the line stacks; a row that still declared nowrap on
+  // the line itself would put the anatomy facts back on the end of the first one.
+  const lineCss = /\n\.shot-cred-line\{([^}]*)\}/.exec(BUILD_TS);
+  assert.ok(lineCss, 'expected the .shot-cred-line rule');
+  assert.match(lineCss[1]!, /flex-direction:column/);
+  assert.match(BUILD_TS, /\.shot-cred-row\{[^}]*flex-wrap:nowrap/,
+    'each row keeps nowrap — the one-row rule was about wrapping, not about stacking');
 });
 
 // ── Search placement ─────────────────────────────────────────────────────────

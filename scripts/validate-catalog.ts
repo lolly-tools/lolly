@@ -57,6 +57,9 @@ import { verifySharedRegions } from './sync-shared-hooks.ts';
 // re-sniffs and compares). Same import-without-side-effect pattern as above:
 // that module only rewrites the index when run directly.
 import { depthForFormat } from './checksum-assets.ts';
+// The frozen CLI verb list has exactly one home (shells/cli/src/args.ts); a tool id that
+// collides with one is unreachable from the terminal. See §1.1 of the GA contract.
+import { RESERVED_SUBCOMMANDS } from '../shells/cli/src/args.ts';
 
 // Fields tools/index.json mirrors from each manifest — kept in sync with
 // scripts/build-catalog-index.ts.
@@ -117,6 +120,19 @@ for (const dir of toolDirs) {
 
   if (seenToolIds.has(manifest.id)) {
     errors.push(`[${dir}] duplicate tool id "${manifest.id}"`);
+  }
+
+  // A tool id may never be a CLI subcommand word (plans/cli-ga-contract.md §1.1). The
+  // verbs win the first positional, so `brands/acme/tools/run/` would ship, pass every
+  // other check, appear in `lolly list`, and be unreachable by any spelling — with no
+  // diagnostic. Post-GA the only fixes are renaming a tool id (a permanent-contract
+  // violation) or changing verb dispatch (breaking), so the guard belongs here, now.
+  if ((RESERVED_SUBCOMMANDS as readonly string[]).includes(manifest.id)) {
+    errors.push(
+      `[${dir}] tool id "${manifest.id}" is a reserved CLI subcommand word ` +
+      `(${RESERVED_SUBCOMMANDS.join(', ')}) — \`lolly ${manifest.id}\` would run the verb, ` +
+      `so the tool would be permanently unreachable. Rename the tool.`,
+    );
   }
   seenToolIds.add(manifest.id);
   toolManifests.set(manifest.id, manifest);

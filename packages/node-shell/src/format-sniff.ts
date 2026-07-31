@@ -116,7 +116,14 @@ export function sniffFormat(bytes: Uint8Array): SniffedFormat | null {
  * eps-cmyk is an EPS — the container is what gets checked; the colour model is not
  * something a magic number can speak to.
  */
-const ACCEPTS: Record<string, readonly SniffedFormat[]> = {
+/**
+ * NULL PROTOTYPE, deliberately. The key is a user-controlled file extension — the CLI's
+ * transform path takes it from `extname(--output)` — so a plain object literal answered
+ * `ACCEPTS['constructor']` with a function (`want.includes is not a function`, exit 70)
+ * and `ACCEPTS['toString']` with a truthy value that silently skipped the check. An
+ * inherited key is not a format row.
+ */
+const ACCEPTS: Record<string, readonly SniffedFormat[]> = Object.assign(Object.create(null) as Record<string, readonly SniffedFormat[]>, {
   png: ['png', 'apng'],          // an APNG is a valid PNG; asking for png and getting one is fine
   apng: ['apng'],                // …but asking for APNG and getting a still is NOT
   jpg: ['jpg'],
@@ -143,7 +150,7 @@ const ACCEPTS: Record<string, readonly SniffedFormat[]> = {
   'svg-anim': ['svg'],
   eps: ['eps'],
   'eps-cmyk': ['eps'],
-};
+});
 
 /** Thrown when the produced bytes are demonstrably not the requested container. */
 export class FormatMismatchError extends Error {
@@ -175,6 +182,19 @@ const LABEL: Record<SniffedFormat, string> = {
  *
  * Call it after the bytes are final and BEFORE anything is written.
  */
+/**
+ * Does a format NAME legitimately describe a sniffed identity?
+ *
+ * The same table `assertFormatBytes` gates on, exposed for callers that want to REPORT a
+ * mismatch rather than refuse it — the CLI's transform path, where the bytes are already
+ * final and the only question is whether the filename the caller chose describes them.
+ * A name with no row is "no opinion", and returns true.
+ */
+export function formatAllows(name: string, sniffed: SniffedFormat): boolean {
+  const want = ACCEPTS[name.toLowerCase()];
+  return !want || want.includes(sniffed);
+}
+
 export function assertFormatBytes(requested: string, bytes: Uint8Array): void {
   const want = ACCEPTS[requested.toLowerCase()];
   if (!want) return;

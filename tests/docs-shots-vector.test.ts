@@ -53,6 +53,15 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'and Chromium print flattens the ghost group opacity to opaque, hiding the live '
     + 'scene underneath. Re-check when the walker gains a docs-capture root that can opt '
     + 'INTO export-hidden chrome.',
+  'cc-verify-masthead':
+    'A Verify verdict whose subject is the generated storm PHOTOGRAPH (the-flood.webp, '
+    + '0.8 MB). The DOM->SVG walker inlines an <img> by embedding its source bytes verbatim, '
+    + 'so a vector capture carries the whole webp as base64 (~1 MB) and blows the 1024 KB '
+    + 'vector budget on the photo alone — the badges around it are cheap, the photo is not. '
+    + 'The raster path flattens the composite at display resolution instead, so it is both '
+    + 'faithful and far smaller. Re-check if the walker ever downscales embedded rasters to '
+    + 'their rendered box.',
+  'cc-verify-mobile': 'Same generated-photo subject as `cc-verify-masthead`, framed mobile-width.',
   // incl-neuro-viz left this list 2026-07-31: the panel chrome is vector now, with only
   // the WebGL canvas embedded as a bitmap <image> (the honest hybrid — a fragment
   // shader's per-pixel field has no geometry to recover, but everything around it does).

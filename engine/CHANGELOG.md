@@ -1825,3 +1825,45 @@ fixed-Huffman blocks rather than stored ones, decoding to identical pixels.
 (`deflate.ts` itself IS barrel-exported; its new streaming API is not.) The
 surfacing is CLI-first (plan §10 item 4): `--export=exr` and `--export=hdr` in
 `NODE_FORMATS`, refusing an 8-bit-only source rather than padding it.
+
+## 1.93.0 — the check that says what it could not check
+
+`src/preflight.ts`, plus the `Finding` contract in `@lolly-tools/core`
+(`packages/core/src/preflight.ts`) and `src/cmyk-palette.ts` lifted out of the web
+shell. No HostV1 method or field was added — a tool cannot see any of this, and
+deliberately so: a tool must not be able to contribute a verdict about its own
+export.
+
+The split is `print-marks.ts`'s, for the same reason. The engine owns the RULES
+and the vocabulary; each shell collects the FACTS from its own platform. So the
+engine never touches a DOM, never learns a brand, and the web panel, the CLI's
+`lolly preflight` and the batch pre-pass all reach the same verdict from the same
+evaluator instead of three implementations drifting apart — which is what already
+happened to export settings, where five readers ended up disagreeing.
+
+The design decision worth recording is what happens when a check CANNOT run. A
+preflight that stays quiet because it could not look is indistinguishable, to a
+reader, from one that looked and found nothing — and that is the worst outcome
+available, because it reads as a pass. So a gap is a first-class result: a finding
+carrying `needs` (`not-set`, `needs-mount`, `needs-render`, `not-computable`) is
+forced to info severity and forced to carry no count, in `add()` rather than at
+forty call sites. "Lolly cannot measure ink coverage, and a guess would be worse
+than nothing" is an answer. Silence is not.
+
+The same rule governs bounds. A plate count derived from a brand's declared spots
+is a ceiling — the artwork decides what actually separates, and that is only known
+once the file is written — so it reports as *at most*, and stays a ceiling in every
+surface it reaches. Nothing in this module converts a bound into a bare number.
+
+It counts; it does not cost. There is no currency, no rate and no monetary field
+anywhere in it, and none may be added: pricing arrives later, from a rate card the
+user or their printer supplies, and an invented price is worse than no price.
+
+Also in this minor: `SpotColor.finish` now reaches the export path. A finish ink
+declared by a brand — a foil, an emboss, a spot varnish, a die — previously emitted
+an ordinary `/Separation` whose tint transform ran to the swatch's colour build, so
+a RIP that flattened it printed plausible metallic gold and nothing in the file said
+otherwise. The alternate is now 100% K, which changes nothing for a RIP that honours
+the plate and turns the flattened case into an unmistakable black mask a prepress
+operator catches. Overprint is still not implemented, so the plate knocks out the
+artwork beneath it; preflight says so rather than leaving it to be discovered.

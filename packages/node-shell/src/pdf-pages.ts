@@ -251,9 +251,43 @@ function contentString(ctx: PDFContext, pageNode: Ref): string {
   return parts.join('\n');
 }
 
-function extractResources(ctx: PDFContext, resDict: Ref, depth: number): Resources {
+/** How many Resources dicts one page may expand before the walk stops. A depth cap does
+ *  not bound a branching walk (8 deep x 8 wide is 16.7M nodes), and the heap goes first. */
+const RESOURCE_NODE_BUDGET = 4096;
+
+/**
+ * @param stack   Resources dicts currently being expanded — the CYCLE cut.
+ * @param budget  Shared node allowance for this page — the FAN-OUT cut.
+ *
+ * The depth cap alone does NOT bound this. A Form XObject may point its /Resources back
+ * at the dict it came from, and a page whose /Resources holds 8 such forms fans out to
+ * 8^8 calls — each one retaining a `resources: sub` tree — which exhausted the heap and
+ * killed the process with SIGABRT (`validate <file> --metadata --json` wrote 0 bytes
+ * despite `--json`). This module promises "fewer findings, never a crash".
+ *
+ * `stack` is popped on the way out rather than accumulating, so two sibling forms that
+ * legitimately share one Resources dict both still resolve — only a dict reachable from
+ * itself is refused.
+ */
+function extractResources(
+  ctx: PDFContext, resDict: Ref, depth: number,
+  stack: Set<PDFDict> = new Set(), budget: { left: number } = { left: RESOURCE_NODE_BUDGET },
+): Resources {
   const res: Resources = { fonts: {}, fontNames: {}, xobjects: {}, extgstates: {}, ocgs: {} };
-  if (!dictOf(ctx, resDict) || depth > 8) return res;
+  const dict = dictOf(ctx, resDict);
+  if (!dict || depth > 8 || stack.has(dict) || budget.left-- <= 0) return res;
+  stack.add(dict);
+  try {
+    return fillResources(ctx, res, resDict, depth, stack, budget);
+  } finally {
+    stack.delete(dict);
+  }
+}
+
+function fillResources(
+  ctx: PDFContext, res: Resources, resDict: Ref, depth: number,
+  stack: Set<PDFDict>, budget: { left: number },
+): Resources {
 
   for (const [name, ref] of dictEntries(ctx, getKey(ctx, resDict, 'ExtGState'))) {
     const ca = numOf(ctx, getKey(ctx, ref, 'ca')), CA = numOf(ctx, getKey(ctx, ref, 'CA'));
@@ -272,7 +306,7 @@ function extractResources(ctx: PDFContext, resDict: Ref, depth: number): Resourc
       res.xobjects[name] = { kind: 'image', imageKey: `img${name}` };
     } else if (subtype === 'Form') {
       const mtx = ctx.lookup(getKey(ctx, ref, 'Matrix'));
-      const sub = extractResources(ctx, getKey(ctx, ref, 'Resources'), depth + 1);
+      const sub = extractResources(ctx, getKey(ctx, ref, 'Resources'), depth + 1, stack, budget);
       res.xobjects[name] = {
         kind: 'form',
         content: decodedText(ctx, ref) || '',

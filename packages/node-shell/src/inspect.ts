@@ -290,8 +290,22 @@ export async function inspectBytes(bytes: Uint8Array, options: InspectOptions = 
       // Skipped entirely when no page could be read — `hiddenText: null` means "this
       // was not established", and printing "nothing hidden found (0 pages scanned)"
       // would be a reassurance nobody earned.
+      // The same argument covers a page that READ fine but yielded no text at all. A
+      // Lolly vector export outlines its text to paths by default, so "No text found
+      // hidden under opaque shapes (1 page scanned)" was printed for documents from
+      // which not a single character was extracted — a reassurance nobody earned, on
+      // the common case rather than an edge case.
+      const textChars = scan.pages.reduce(
+        (n, p) => n + p.nodes.reduce((m, node) => m + (node.kind === 'text' ? (node.text ?? '').length : 0), 0),
+        0,
+      );
       if (!scan.pages.length) {
         out.limits.push('No page could be read, so the hidden-text pass did not run. Nothing is claimed about this file’s contents.');
+      } else if (textChars === 0) {
+        out.limits.push(
+          `No extractable text was found on the ${scan.pages.length} page${scan.pages.length === 1 ? '' : 's'} read, so the hidden-text pass had nothing to examine. ` +
+          'That is normal for a vector export whose text is outlined to paths, and it is not a statement that nothing is hidden.',
+        );
       } else {
         try {
           const opts = options.minCoverage === undefined ? {} : { minCoverage: options.minCoverage };

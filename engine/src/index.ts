@@ -37,7 +37,7 @@ export {
   bakeAssetRef, isBakedRef, MAX_BAKED_URL_CHARS,
   assetIdForUrl, blocksForUrl,
 } from './bake.ts';
-export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate } from './batch.ts';
+export { toCSV, parseDelimited, detectDelimiter, parseBatchCsv, batchCsvTemplate, batchCsvTemplateWithNotes } from './batch.ts';
 export type { BatchRow, BatchTemplateTool } from './batch.ts';
 export { buildExportMeta } from './metadata.ts';
 export { extractFileMetadata, readMpfIndex, appendedIsExpected, META_GROUP_ORDER, META_GROUP_LABEL } from './file-metadata.ts';
