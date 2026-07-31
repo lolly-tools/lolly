@@ -24,11 +24,20 @@
  * is dense SYNTHETIC vector with no rasters (a halftone's ~10 k circles, a scanline's
  * one giant integer-coordinate path) can't shrink this way — it wants a committed
  * tools/<id>/card.png override, which the index honours and this script skips.
- * so the gallery shows a full, pretty masonry — no saved sessions required. These are
- * generated artifacts, NOT committed; the gallery falls back to a plain "open to start"
- * tile when one is absent (dev, or before this has run). A tool can ship a committed
- * AUTHORED override instead — tools/<id>/card.svg or card.png — which wins over the
- * generated preview (and is skipped here). Run before serving/deploying.
+ * so the gallery shows a full, pretty masonry — no saved sessions required. (Despite the
+ * "git-ignored" note above, these ARE committed on purpose — see .gitignore. Don't "clean
+ * up" the diff.) The gallery falls back to a plain "open to start" tile when one is absent
+ * (dev, or before this has run). Run before serving/deploying.
+ *
+ * A tool can ship a committed card — tools/<id>/card.svg or card.html — which wins over
+ * the generated preview and is skipped here. As of 2026-07-31 a card is NOT an "authored
+ * override" slot: it exists only to preserve MOTION that this script's still capture would
+ * lose (the vector screenshot flattens the canvas and drops the outer <style>, so CSS
+ * keyframes don't survive). It must still be the tool's own render, emitted by
+ * build-svg-card.ts (lifts the tool's animated inline <svg> at its real defaults) or
+ * build-html-card.ts (ships the tool's real `html` export). Nine hand-drawn illustration
+ * cards were deleted on that date; if a tool's tile looks wrong, fix the tool's defaults
+ * or this capture — do not draw a nicer picture of the tool and commit it as a card.
  *
  * Why a browser (not the node CLI): the lean CLI has no layout engine, so it
  * can't render the HTML-layout tools or rasterise. Full coverage of every tool

@@ -25,11 +25,11 @@
  *     XMLSerializer (bridge.ts `format === 'svg'` branch); the web shell's
  *     renderSvg walks/rewrites the DOM. The CLI svg golden is per-CLI output —
  *     do NOT expect byte parity with a web export of the same tool.
- *   • No text outlining on CLI *svg* export: the CLI svg branch keeps live
- *     <text> elements verbatim (the text-svg golden asserts `<text` survives),
- *     where the web shell outlines runs to <path>. CLI EMF/EPS/DXF *do* outline
- *     (svgDomToIr + host.text = createNodeTextAPI — see bridge.ts:198-203; the
- *     old "lean CLI has no host.text" comments were stale and are fixed).
+ *   (The old "no text outlining on CLI svg" divergence is GONE as of the GA
+ *   contract, plans/cli-ga-contract.md §6a: the svg branch outlines through the
+ *   same host.text EMF/EPS/DXF already used, and this fixture was regenerated
+ *   for it. `--text=live` is the opt-out; an unresolvable font keeps live
+ *   <text> with a warning, which only SVG can afford.)
  *   • No annotation-comment stripping on CLI svg: nothing strips the engine's
  *     input-marker HTML comments (the CLI never calls annotateTemplate, so none
  *     appear — but the branch has no strip step either).
@@ -259,11 +259,11 @@ test('negative control: a perturbed input changes the svg AND emf bytes', async 
 
 // ── text-mark: where outlining happens on the CLI, per format ───────────────
 
-test('golden: CLI svg export keeps live <text> — NO outlining on the svg branch', { skip: SKIP_NO_OUTFIT }, async () => {
+test('golden: CLI svg export OUTLINES <text> like every other vector format (contract §6a)', { skip: SKIP_NO_OUTFIT }, async () => {
   const svg = (await goldenCase('text-mark.svg', 'text-mark', 'svg')).toString('utf8');
-  assert.match(svg, /<text\b/, 'CLI svg export serialises live <text> (divergence from web, which outlines)');
-  assert.match(svg, /Hamburg/, 'hydrated label missing');
-  assert.doesNotMatch(svg, /<path\b[^>]*d="M[^"]{200,}/, 'unexpectedly found glyph-outline paths in CLI svg');
+  assert.doesNotMatch(svg, /<text\b/, 'live <text> must not survive: the recipient may not have the font');
+  assert.doesNotMatch(svg, /Hamburg/, 'once the run is geometry, the string is gone');
+  assert.match(svg, /<path\b[^>]*\bd="M/, 'glyph outlines must be present');
 });
 
 test('golden: CLI eps DOES outline <text> via host.text (Outfit, HarfBuzz in node)', { skip: SKIP_NO_OUTFIT }, async () => {

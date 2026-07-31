@@ -1968,9 +1968,11 @@ export interface SpotColor {
  * ink, whose `name` is the one field a plate actually needs. Any `switch` over
  * it needs a `default:` arm.
  */
-export type FinishKind =
-  | 'foil' | 'emboss' | 'deboss' | 'spot-uv' | 'soft-touch' | 'cut' | 'crease' | 'perforate'
-  | (string & {});
+export const KNOWN_FINISH_KINDS = [
+  'foil', 'emboss', 'deboss', 'spot-uv', 'soft-touch', 'cut', 'crease', 'perforate',
+] as const;
+
+export type FinishKind = (typeof KNOWN_FINISH_KINDS)[number] | (string & {});
 
 // ─── Clipboard ──────────────────────────────────────────────────────────────
 

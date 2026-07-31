@@ -69,6 +69,10 @@ export {
   rgbToCmyk, cmykCondition, CMYK_CONDITIONS, DEFAULT_CMYK_CONDITION,
 } from './color.ts';
 export {
+  FINISH_MASK_CMYK, buildCmykPaletteMap, cmykKey, paletteHasFinish,
+} from './cmyk-palette.ts';
+export type { BrandPaletteEntry, PaletteHit, PaletteSpotHit } from './cmyk-palette.ts';
+export {
   parseColor, parseColorToSrgb8, convertColor, gamutMapSrgb,
   colorToSrgb, colorToSrgb8, colorToHexString, formatColor,
   interpolateColor, deltaEOkColor, gradientStops, findColorToken,
@@ -100,6 +104,22 @@ export type { HdrBoostOptions, PqImage } from './hdr.ts';
 export {
   computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
 } from './print-marks.ts';
+// Preflight — pre-export findings over a plain job description. Sits beside
+// print-marks: the engine owns the RULES, each shell collects the FACTS from its
+// own platform. Counts and assertions only; there is no cost/currency concept
+// anywhere in it (plans/preflight-and-cost.md §8).
+export {
+  preflight,
+  PRINT_MARK_FORMATS, SEPARATING_FORMATS, SPOT_PLATE_FORMATS,
+  HDR_FORMATS, DURABLE_FORMATS, CUTS_FORMATS, MOTION_FORMATS, PAGED_FORMATS,
+  KNOWN_FINISHES,
+} from './preflight.ts';
+export type {
+  PreflightJob, PreflightReport, PreflightManifest, PreflightInput, PreflightSettings,
+  PreflightSize, PreflightSwatch, PreflightSource, StageFacts, ModelPhase, SizeSource,
+  Finding, FindingId, Severity, Count, Bound, QuantityKind, QuantityUnit,
+  Fact, UnknownReason, Evidence,
+} from './preflight.ts';
 export { parseSvgPath, parseSvgPathArgs, svgArcToBeziers } from './svg-path.ts';
 export { extractSvgColors } from './svg-colors.ts';
 export { renderZzfxm, zzfxG, zzfxM, zzfxR, zzfxV } from './zzfxm.ts';

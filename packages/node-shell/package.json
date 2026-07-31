@@ -11,7 +11,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./repo-root": "./src/repo-root.ts",
+    "./state-dir": "./src/state-dir.ts",
     "./browsers": "./src/browsers.ts",
+    "./browser-tier": "./src/browser-tier.ts",
     "./webshell-render": "./src/webshell-render.ts",
     "./raster": "./src/raster.ts",
     "./format-sniff": "./src/format-sniff.ts",
@@ -21,7 +23,12 @@
     "./render-integrity": "./src/render-integrity.ts",
     "./url-capture": "./src/url-capture.ts",
     "./net": "./src/net.ts",
-    "./pptx": "./src/pptx.ts"
+    "./pptx": "./src/pptx.ts",
+    "./inspect": "./src/inspect.ts",
+    "./inspect-render": "./src/inspect-render.ts",
+    "./pdf-pages": "./src/pdf-pages.ts",
+    "./verdict-slugs": "./src/verdict-slugs.ts",
+    "./trust-anchors": "./src/trust-anchors.ts"
   },
   "files": [
     "src",
@@ -36,6 +43,7 @@
     "@resvg/resvg-js": "^2.6.2",
     "fflate": "^0.8.3",
     "harfbuzzjs": "^1.4.0",
+    "pdf-lib": "^1.17.1",
     "playwright-core": "^1.49.0"
   },
   "optionalDependencies": {
