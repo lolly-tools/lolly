@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-31T09:33:17.972Z",
+  "generatedAt": "2026-07-31T10:06:03.526Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -5352,7 +5352,113 @@
             "seed": 42
           }
         }
-      ]
+      ],
+      "i18n": {
+        "ar": {
+          "name": "مرشح: عيوب الطباعة",
+          "description": "عيوب طباعة مقصودة لأي صورة: ألواح حبر مزاحة، وحبر ينزف، وحبيبات ورق، وتآكل آلة النسخ."
+        },
+        "bg": {
+          "name": "Филтър: Несъвършенства",
+          "description": "Умишлени печатни несъвършенства за всяка снимка: разместени печатни форми, разтичащо се мастило, зърно на хартията и износване от копирна машина."
+        },
+        "bn": {
+          "name": "ফিল্টার: ছাপার খুঁত",
+          "description": "যেকোনো ছবিতে ইচ্ছাকৃত ছাপার খুঁত: সরে যাওয়া কালির প্লেট, কালি ছড়ানো, কাগজের গ্রেইন ও ফটোকপির ক্ষয়।"
+        },
+        "cs": {
+          "name": "Filtr: Nedokonalosti",
+          "description": "Záměrné tiskové nedokonalosti pro jakoukoli fotku: posunuté tiskové desky, roztékající se barva, zrnění papíru a opotřebení kopírky."
+        },
+        "de": {
+          "name": "Filter: Druckfehler",
+          "description": "Gewollte Druckfehler für jedes Foto: versetzte Druckplatten, ausblutende Farbe, Papierkorn und Kopierer-Abnutzung."
+        },
+        "es": {
+          "name": "Filtro: Imperfecciones",
+          "description": "Imperfecciones de impresión intencionadas para cualquier foto: planchas desalineadas, tinta que se corre, grano de papel y desgaste de fotocopia."
+        },
+        "fr": {
+          "name": "Filtre : Imperfections",
+          "description": "Des imperfections d'impression assumées sur n'importe quelle photo : plaques décalées, encre qui bave, grain du papier et usure de photocopie."
+        },
+        "hi": {
+          "name": "फ़िल्टर: प्रिंट खामियाँ",
+          "description": "किसी भी फ़ोटो के लिए जानबूझकर दी गई प्रिंट खामियाँ: खिसकी हुई इंक प्लेटें, फैलती इंक, कागज़ का ग्रेन और फ़ोटोकॉपी की घिसाई।"
+        },
+        "id": {
+          "name": "Filter: Cacat cetak",
+          "description": "Cacat cetak yang disengaja untuk foto apa pun: pelat tinta bergeser, tinta merembes, grain kertas, dan aus fotokopi."
+        },
+        "it": {
+          "name": "Filtro: Imperfezioni",
+          "description": "Imperfezioni di stampa volute su qualsiasi foto: lastre fuori registro, inchiostro che sborda, grana della carta e usura da fotocopia."
+        },
+        "ja": {
+          "name": "フィルター: 印刷の粗さ",
+          "description": "どんな写真にも意図的な印刷の粗さを加えます。版ズレ、インクのにじみ、紙の粒状感、コピー機の劣化。"
+        },
+        "ko": {
+          "name": "필터: 인쇄 결함",
+          "description": "어떤 사진에도 의도적인 인쇄 결함을 더해요. 판 어긋남, 잉크 번짐, 종이 결, 복사기 마모."
+        },
+        "ms": {
+          "name": "Penapis: Kecacatan cetak",
+          "description": "Kecacatan cetakan yang disengajakan untuk mana-mana foto: plat dakwat terpesong, dakwat meresap, butiran kertas dan haus fotokopi."
+        },
+        "nl": {
+          "name": "Filter: Imperfecties",
+          "description": "Bewuste drukfouten voor elke foto: verschoven inktplaten, uitlopende inkt, papierkorrel en kopieerslijtage."
+        },
+        "no": {
+          "name": "Filter: Trykkfeil",
+          "description": "Bevisste trykkfeil for et hvilket som helst foto: forskjøvne trykkplater, blødende trykkfarge, papirkorn og kopimaskinslitasje."
+        },
+        "pl": {
+          "name": "Filtr: Niedoskonałości",
+          "description": "Zamierzone niedoskonałości druku dla każdego zdjęcia: przesunięte formy drukowe, rozlewająca się farba, ziarno papieru i zużycie kserokopii."
+        },
+        "pt": {
+          "name": "Filtro: Imperfeições",
+          "description": "Imperfeições de impressão intencionais para qualquer foto: chapas fora de registro, tinta escorrendo, grão do papel e desgaste de fotocópia."
+        },
+        "ro": {
+          "name": "Filtru: Imperfecțiuni",
+          "description": "Imperfecțiuni de tipar intenționate pentru orice fotografie: plăci decalate, cerneală care se întinde, granulație de hârtie și uzură de fotocopiator."
+        },
+        "sv": {
+          "name": "Filter: Tryckfel",
+          "description": "Medvetna tryckfel för vilket foto som helst: förskjutna tryckplåtar, blödande färg, papperskorn och kopiatorslitage."
+        },
+        "tl": {
+          "name": "Filter: Mga imperpeksiyon",
+          "description": "Sinadyang mga imperpeksiyon sa print para sa kahit anong larawan: naka-offset na ink plates, tumatagos na tinta, grain ng papel at pagkaluma ng photocopy."
+        },
+        "tr": {
+          "name": "Filtre: Kusurlar",
+          "description": "Her fotoğraf için bilinçli baskı kusurları: kayık mürekkep kalıpları, dağılan mürekkep, kağıt tanesi ve fotokopi aşınması."
+        },
+        "uk": {
+          "name": "Фільтр: Недосконалості",
+          "description": "Навмисні друкарські недосконалості для будь-якого фото: зміщені друкарські форми, розтікання фарби, зернистість паперу та зношення копіювального апарата."
+        },
+        "ur": {
+          "name": "فلٹر: طباعتی نقائص",
+          "description": "کسی بھی تصویر کے لیے جان بوجھ کر طباعتی نقائص: کھسکی ہوئی سیاہی پلیٹیں، پھیلتی سیاہی، کاغذ کا دانہ اور فوٹو کاپی کی گھساوٹ۔"
+        },
+        "vi": {
+          "name": "Bộ lọc: Khiếm khuyết in",
+          "description": "Khiếm khuyết in có chủ ý cho mọi bức ảnh: bản kẽm lệch, mực loang, hạt giấy và hao mòn máy photo."
+        },
+        "zh-hant": {
+          "name": "濾鏡：印刷瑕疵",
+          "description": "為任何照片加上刻意的印刷瑕疵：套印偏移、油墨暈開、紙張顆粒與影印磨損。"
+        },
+        "zh": {
+          "name": "滤镜：印刷瑕疵",
+          "description": "为任意照片添加刻意的印刷瑕疵：套印偏移、油墨扩散、纸张颗粒与复印磨损。"
+        }
+      }
     },
     {
       "id": "finish-preview",

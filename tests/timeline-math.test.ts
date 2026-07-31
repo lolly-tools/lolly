@@ -27,6 +27,7 @@ import {
   moveSeqClip, packSeq,
   removeAndRipple, rippleOverlays, seqBoxes, setClipIn, setDuration, setSpeed,
   detachAudio, isThroughEdit, joinClips, reattachAudio, splitAll,
+  onionNeighbours, ONION_MAX_STEPS,
   snapTime, splitBox, trimClip,
   type Box, type TimeCfg,
 } from '../shells/web/src/views/timeline-math.ts';
@@ -1218,4 +1219,100 @@ test('reattachAudio: removing a SEQ-lane sound closes the gap it leaves', () => 
   ];
   const back = reattachAudio(rows, linkCfg, 'v')!;
   assert.deepEqual(seqBoxes(back, cfg).map((b) => [b.id, b.start]), [['v', 0], ['w', 2]], 'gapless after the removal');
+});
+
+// ── onionNeighbours (the onion skin's model half) ──────────────────────────────
+//
+// The DRAWING is views/onion-skin.ts and is covered on jsdom; everything about WHICH
+// scenes are ghosted is decided here, where it can be asserted exactly.
+
+/** Four scenes back to back: 0-2, 2-4, 4-6, 6-8. */
+const SCENES = (): Box[] => ([
+  clip('s1', { start: 0, dur: 2 }),
+  clip('s2', { start: 2, dur: 2 }),
+  clip('s3', { start: 4, dur: 2 }),
+  clip('s4', { start: 6, dur: 2 }),
+]);
+
+test('onionNeighbours: the active window is HALF-OPEN, exactly like isActiveAt', () => {
+  const rows = SCENES();
+  // Just inside s2.
+  assert.deepEqual(onionNeighbours(rows, cfg, 2.5, 1, 1), { past: ['s1'], future: ['s3'] });
+  // The frame at s2's own start belongs to s2 (start is INSIDE).
+  assert.deepEqual(onionNeighbours(rows, cfg, 2, 1, 1), { past: ['s1'], future: ['s3'] });
+  // One instant earlier is still s1 — so the ghosts flip on the SAME frame the picture
+  // does, never one frame early and never one frame late.
+  assert.deepEqual(onionNeighbours(rows, cfg, 1.999, 1, 1), { past: [], future: ['s2'] });
+  // And the frame at s2's END belongs to s3, not to s2.
+  assert.deepEqual(onionNeighbours(rows, cfg, 4, 1, 1), { past: ['s2'], future: ['s4'] });
+});
+
+test('onionNeighbours: two either side, NEAREST first, clamped at the row ends', () => {
+  const rows = SCENES();
+  assert.deepEqual(onionNeighbours(rows, cfg, 4.5, 2, 2), { past: ['s2', 's1'], future: ['s4'] },
+    'nearest first in both lists; the future runs out after one');
+  assert.deepEqual(onionNeighbours(rows, cfg, 0.5, 2, 2), { past: [], future: ['s2', 's3'] },
+    'the first scene has no past at all — clamped, never wrapped');
+  assert.deepEqual(onionNeighbours(rows, cfg, 7.5, 2, 2), { past: ['s3', 's2'], future: [] });
+});
+
+test('onionNeighbours: before and after are honoured INDEPENDENTLY', () => {
+  const rows = SCENES();
+  const at = 4.5;   // inside s3
+  assert.deepEqual(onionNeighbours(rows, cfg, at, 0, 0), { past: [], future: [] }, 'off');
+  assert.deepEqual(onionNeighbours(rows, cfg, at, 2, 0), { past: ['s2', 's1'], future: [] },
+    '"two behind, none ahead" is a real way to work (the Procreate Dreams pattern)');
+  assert.deepEqual(onionNeighbours(rows, cfg, at, 0, 1), { past: [], future: ['s4'] });
+  assert.deepEqual(onionNeighbours(rows, cfg, at, 1, 2), { past: ['s2'], future: ['s4'] });
+});
+
+test('onionNeighbours: counts clamp to 0…ONION_MAX_STEPS and survive junk', () => {
+  const rows = SCENES();
+  assert.equal(ONION_MAX_STEPS, 2);
+  assert.deepEqual(onionNeighbours(rows, cfg, 6.5, 99, 99).past, ['s3', 's2'], 'never more than two');
+  assert.deepEqual(onionNeighbours(rows, cfg, 6.5, -5, -5), { past: [], future: [] });
+  // A junk count draws NOTHING on that side — the safe direction for a decoration.
+  assert.deepEqual(onionNeighbours(rows, cfg, 6.5, NaN as unknown as number, 2), { past: [], future: [] });
+  assert.deepEqual(onionNeighbours(rows, cfg, 6.5, 1.9, 0), { past: ['s3'], future: [] }, 'a fraction floors');
+});
+
+test('onionNeighbours: nothing active, an empty lane and a gap all return two empty arrays', () => {
+  const rows = SCENES();
+  assert.deepEqual(onionNeighbours(rows, cfg, 99, 2, 2), { past: [], future: [] }, 'past the end');
+  assert.deepEqual(onionNeighbours([], cfg, 1, 2, 2), { past: [], future: [] }, 'empty model');
+  assert.deepEqual(onionNeighbours([scenery('x'), overlay('o', 0, { dur: 5 })], cfg, 1, 2, 2),
+    { past: [], future: [] }, 'no seq lane at all');
+  // A gap in the row (possible only from a hand-edited ?boxes= — packSeq never leaves
+  // one): the playhead is inside nothing, so there is no "either side" to speak of.
+  const gapped = [clip('a', { start: 0, dur: 1 }), clip('b', { start: 5, dur: 1 })];
+  assert.deepEqual(onionNeighbours(gapped, cfg, 3, 2, 2), { past: [], future: [] });
+});
+
+test('onionNeighbours: SEQ LANE ONLY — overlays are never ghosted and never counted', () => {
+  const rows: Box[] = [
+    ...SCENES(),
+    overlay('lower3', 3, { dur: 2 }),     // straddles the s2/s3 cut
+    scenery('logo'),
+  ];
+  const n = onionNeighbours(rows, cfg, 4.5, 2, 2);
+  assert.deepEqual(n, { past: ['s2', 's1'], future: ['s4'] },
+    'the overlay is neither a ghost nor a step in the walk');
+});
+
+test('onionNeighbours: an open-ended seq clip runs to the DERIVED sequence end', () => {
+  // No authored dur on the last clip. The panel's own span() reads that as "runs to the
+  // end of the sequence", where the end is deriveDuration's — here stretched to 10s by
+  // an overlay. This must agree with span() or the ghosts would blink out early.
+  const rows: Box[] = [
+    clip('a', { start: 0, dur: 3 }),
+    clip('b', { start: 3 }),
+    overlay('bed', 0, { dur: 10 }),
+  ];
+  assert.deepEqual(onionNeighbours(rows, cfg, 5, 1, 1), { past: ['a'], future: [] },
+    'b is still on screen at 5s because the sequence runs to 10');
+  // With nothing else to stretch it the derived end IS a's end, so the open clip
+  // collapses to the MIN_DUR floor — the same (deliberate) reading span() takes.
+  const bare = [clip('a', { start: 0, dur: 3 }), clip('b', { start: 3 })];
+  assert.deepEqual(onionNeighbours(bare, cfg, 3.05, 1, 1), { past: ['a'], future: [] });
+  assert.deepEqual(onionNeighbours(bare, cfg, 3.5, 1, 1), { past: [], future: [] });
 });
