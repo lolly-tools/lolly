@@ -91,7 +91,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `bake.ts` | 149 | Bake — freeze a composed render into a static asset, plus the shared compose recursion policy (the depth/cycle guard every shell bridge enforces). | yes | indirect | – |
 | `batch.ts` | 153 | Batch — the shared, DOM-free contract for "many URL-mode rows under one file". | yes | none | – |
 | `brand-derive.ts` | 787 | Brand derivation — OKLCH-native colour math + the semantic-token generator behind the lolly-start onboarding (plans/brand-token-contract.md). | yes | `tests/brand-derive.test.ts` | – |
-| `brand-import.ts` | 256 | Brand token ingestion — container extraction for the three shapes Penpot (and Tokens Studio) export the SAME token document in: | yes | `tests/brand-import.test.ts` | – |
+| `brand-import.ts` | 469 | Brand token ingestion — container extraction for the three shapes Penpot (and Tokens Studio) export the SAME token document in: | yes | `tests/brand-import.test.ts` | – |
 | `brand-map.ts` | 425 | Brand mapper — the "make a foreign document look intentionally on-brand" primitives (plan track E3, plans/fable-new-potential-pptx.md §E3). | yes | `tests/brand-map.test.ts` | – |
 | `brand-schemes.ts` | 98 | Brand scheme accents — a pure, deterministic accent-colour generator for the Lolly brand generator's harmony picker. | yes | `tests/brand-schemes.test.ts` | – |
 | `brand-treatments.ts` | 249 | Brand-derived photo treatments + icon duo themes. | yes | `tests/brand-treatments.test.ts` | – |
@@ -115,7 +115,7 @@ The table is generated. Run `node scripts/gen-engine-modules.ts` after adding, r
 | `css-paint.ts` | 465 | Pure, DOM-free CSS "paint" value parsers: clip-path basic shapes, gradient stops + radial-gradient geometry, and drop-shadow filters. | yes | `tests/css-paint.test.ts` | – |
 | `data-import.ts` | 218 | Data-file → blocks rows. | yes | `tests/data-import.test.ts` | yes |
 | `der-read.ts` | 120 | DER/ASN.1 read-side authority — the bounds-checked TLV walker plus the ECDSA signature-shape conversions and the EC named-curve table, shared by the certificate/signature modules (c2pa-verify.ts, x509.ts, seal.ts). | no | `tests/der-read.test.ts` | yes |
-| `design-map.ts` | 1545 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
+| `design-map.ts` | 1783 | Design-file → Layout Studio boxes (pure mapper). | yes | `tests/design-map.test.ts` | – |
 | `dxf.ts` | 185 | DXF (AutoCAD Drawing Interchange) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/dxf.test.ts` | – |
 | `embed.ts` | 73 | Embed URL grammar — the portable surface of tool composition. | yes | `tests/embed.test.ts` | – |
 | `emf.ts` | 459 | EMF (Enhanced Metafile) emitter — pure, DOM-free, platform-agnostic. | yes | `tests/emf.test.ts` | – |

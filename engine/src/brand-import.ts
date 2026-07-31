@@ -35,6 +35,8 @@
  */
 
 import { createTokenSet } from './tokens.ts';
+import { collectPenpotFontUsage } from './design-map.ts';
+import type { PenpotFontUsage } from './design-map.ts';
 
 type UnknownRecord = Record<string, unknown>;
 const isRecord = (v: unknown): v is UnknownRecord =>
@@ -231,6 +233,217 @@ export function extractPenpotProject(entries: Record<string, Uint8Array | string
     return { doc: null, warnings, source: 'penpot-project' };
   }
   return { doc, warnings, source: 'penpot-project' };
+}
+
+// ── Usage scan — a token-LESS Penpot project's paints, gradients and fonts ───
+// The dual of extractPenpotProject: when a project declares no design tokens
+// (the common case — see the ':declared design-tokens/v1 but has no tokens.json'
+// warning above), the file's actual usage is the only brand signal there is.
+// scanPenpotUsage walks every page-shape JSON and tallies every paint source so
+// a shell can PROPOSE brand roles from what the designer really used. Container
+// walking only, still: no colour theory here — role picking is shell policy.
+
+/** One colour's tally across every paint source, #RRGGBB uppercase. */
+export interface PenpotUsageColor {
+  hex: string;
+  /** Shape-level fill paints (`fills[].fillColor`). */
+  fills: number;
+  /** Shape-level stroke paints (`strokes[].strokeColor`). */
+  strokes: number;
+  /** Text-leaf fill paints inside `content` trees. */
+  textRuns: number;
+  /** Gradient stop occurrences (fill AND stroke gradients, per paint). */
+  gradientStops: number;
+  /** Sum of the four. */
+  total: number;
+}
+
+/** One distinct gradient (deduped by type + stop signature) with its paint count. */
+export interface PenpotUsageGradient {
+  type: 'linear' | 'radial';
+  stops: { color: string; offset: number; opacity: number }[];
+  /** How many paints across the project use this exact gradient. */
+  count: number;
+  /**
+   * Modal per-paint angle: `round(atan2(dx, -dy))` in CSS degrees computed on
+   * the RAW endpoint fractions — deliberately aspect-IGNORANT, unlike
+   * `penpotGradientToSpec`'s pixel-space angle, because no shape box exists at
+   * census level and the modal over many differently-sized shapes only means
+   * something in the shared fraction space. Ties break toward the smaller
+   * angle. Always 0 for radial.
+   */
+  angle: number;
+}
+
+/** Everything scanPenpotUsage learns from a project's pages. */
+export interface PenpotUsage {
+  /** Sorted by total desc, then hex asc. */
+  colors: PenpotUsageColor[];
+  /** Sorted by count desc, then signature asc. */
+  gradients: PenpotUsageGradient[];
+  /** collectPenpotFontUsage aggregated across every text shape, `fontId` verbatim. */
+  fonts: PenpotFontUsage[];
+}
+
+const HEX6_RE = /^#[0-9a-fA-F]{6}$/;
+const normHex = (v: unknown): string | null => {
+  const s = String(v ?? '').trim();
+  return HEX6_RE.test(s) ? s.toUpperCase() : null;
+};
+const numOr = (v: unknown, d: number): number => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : d;
+};
+// Shape/leaf keys arrive camelCase (binfile-v3), kebab, or keyworded (":key")
+// depending on the exporter — same tolerance as design-map's internal reader.
+const kebabOf = (k: string): string => k.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
+function pv(o: unknown, camel: string): unknown {
+  if (!isRecord(o)) return undefined;
+  if (o[camel] !== undefined) return o[camel];
+  const kb = kebabOf(camel);
+  if (o[kb] !== undefined) return o[kb];
+  if (o[`:${kb}`] !== undefined) return o[`:${kb}`];
+  return undefined;
+}
+
+/**
+ * Tally every paint source in an unzipped `.penpot` project: shape fills,
+ * strokes, text-run leaf fills, gradient stops (from both `fillColorGradient`
+ * and `strokeColorGradient`), distinct gradients, and font usage.
+ *
+ * @param entries archive path → bytes (fflate's `unzipSync` shape) or → string,
+ *   exactly like `extractPenpotProject` — the caller inflates the zip.
+ *
+ * Page-shape paths come from the manifest's file ids
+ * (`files/<id>/pages/<pid>/<sid>.json`); a missing/unusable manifest falls back
+ * to scanning every matching path (sorted, for determinism). Colours normalise
+ * through `/^#[0-9a-fA-F]{6}$/` to uppercase; anything else is dropped. HIDDEN
+ * shapes are counted — the per-shape `hidden` flag is not consulted — so the
+ * census matches a whole-file audit rather than one render of it. Never throws
+ * on bad input; unusable entries are simply skipped.
+ */
+export function scanPenpotUsage(entries: Record<string, Uint8Array | string>): PenpotUsage {
+  const warnings: string[] = []; // parseEntry's sink — a census has no warning channel
+  const pageShapeRe = /^[^/]+\/[^/]+\.json$/;
+
+  let pagePaths: string[] = [];
+  const manifest = parseEntry(entries, 'manifest.json', warnings);
+  const manifestFiles = isRecord(manifest) && Array.isArray(manifest.files) ? manifest.files : null;
+  if (manifestFiles) {
+    const sortedKeys = Object.keys(entries).sort();
+    for (const f of manifestFiles) {
+      if (!isRecord(f) || typeof f.id !== 'string') continue;
+      const prefix = `files/${f.id}/pages/`;
+      for (const p of sortedKeys) {
+        if (p.startsWith(prefix) && pageShapeRe.test(p.slice(prefix.length))) pagePaths.push(p);
+      }
+    }
+  } else {
+    pagePaths = Object.keys(entries)
+      .filter(p => /^files\/[^/]+\/pages\/[^/]+\/[^/]+\.json$/.test(p))
+      .sort();
+  }
+
+  interface Tally { fills: number; strokes: number; textRuns: number; gradientStops: number }
+  const colors = new Map<string, Tally>();
+  const bump = (hex: string | null, key: keyof Tally): void => {
+    if (!hex) return;
+    let t = colors.get(hex);
+    if (!t) { t = { fills: 0, strokes: 0, textRuns: 0, gradientStops: 0 }; colors.set(hex, t); }
+    t[key]++;
+  };
+
+  interface GradVariant {
+    type: 'linear' | 'radial';
+    stops: { color: string; offset: number; opacity: number }[];
+    count: number;
+    angles: Map<number, number>;
+  }
+  const gradients = new Map<string, GradVariant>();
+
+  const seeGradient = (g: unknown): void => {
+    if (!isRecord(g)) return;
+    const rawStops = Array.isArray(g.stops) ? g.stops : [];
+    const stops: { color: string; offset: number; opacity: number }[] = [];
+    let usable = rawStops.length >= 2;
+    for (const raw of rawStops) {
+      const st = isRecord(raw) ? raw : null;
+      const color = normHex(st ? pv(st, 'color') : undefined);
+      if (color) bump(color, 'gradientStops');
+      if (!st || !color) { usable = false; continue; }
+      stops.push({ color, offset: numOr(pv(st, 'offset'), 0), opacity: numOr(pv(st, 'opacity'), 1) });
+    }
+    if (!usable) return;
+    const type: 'linear' | 'radial' = String(pv(g, 'type') ?? '') === 'radial' ? 'radial' : 'linear';
+    const sig = `${type}|${stops.map(s => `${s.color}@${s.offset.toFixed(4)}/${s.opacity.toFixed(4)}`).join('|')}`;
+    // Aspect-ignorant angle on the raw endpoint fractions (see PenpotUsageGradient).
+    let angle = 0;
+    if (type === 'linear') {
+      const dx = numOr(pv(g, 'endX'), 1) - numOr(pv(g, 'startX'), 0);
+      const dy = numOr(pv(g, 'endY'), 1) - numOr(pv(g, 'startY'), 0);
+      angle = Math.round(((Math.atan2(dx, -dy) * 180 / Math.PI) + 360) % 360) % 360;
+    }
+    let v = gradients.get(sig);
+    if (!v) { v = { type, stops, count: 0, angles: new Map() }; gradients.set(sig, v); }
+    v.count++;
+    v.angles.set(angle, (v.angles.get(angle) ?? 0) + 1);
+  };
+
+  const seePaints = (list: unknown, colorKey: 'fillColor' | 'strokeColor', gradKey: 'fillColorGradient' | 'strokeColorGradient', tally: 'fills' | 'strokes' | 'textRuns'): void => {
+    if (!Array.isArray(list)) return;
+    for (const p of list) {
+      if (!isRecord(p)) continue;
+      bump(normHex(pv(p, colorKey)), tally);
+      seeGradient(pv(p, gradKey));
+    }
+  };
+
+  const fonts = new Map<string, PenpotFontUsage>();
+
+  const walkText = (n: unknown): void => {
+    if (Array.isArray(n)) { for (const c of n) walkText(c); return; }
+    if (!isRecord(n)) return;
+    // A leaf carries `text` + `fills`; its fill paints are the text-run census.
+    if (pv(n, 'text') !== undefined && Array.isArray(pv(n, 'fills'))) {
+      seePaints(pv(n, 'fills'), 'fillColor', 'fillColorGradient', 'textRuns');
+    }
+    walkText(pv(n, 'children'));
+  };
+
+  for (const path of pagePaths) {
+    const shape = parseEntry(entries, path, warnings);
+    if (!isRecord(shape)) continue;
+    seePaints(pv(shape, 'fills'), 'fillColor', 'fillColorGradient', 'fills');
+    seePaints(pv(shape, 'strokes'), 'strokeColor', 'strokeColorGradient', 'strokes');
+    const content = pv(shape, 'content');
+    if (String(pv(shape, 'type') ?? '') === 'text' && content != null) {
+      walkText(content);
+      for (const u of collectPenpotFontUsage(content)) {
+        const key = `${u.fontId}|${u.fontVariantId}|${u.fontStyle}`;
+        const cur = fonts.get(key);
+        if (cur) cur.runs += u.runs;
+        else fonts.set(key, { ...u });
+      }
+    }
+  }
+
+  const colorRows: PenpotUsageColor[] = [...colors.entries()]
+    .map(([hex, t]) => ({ hex, ...t, total: t.fills + t.strokes + t.textRuns + t.gradientStops }))
+    .sort((a, b) => (b.total - a.total) || (a.hex < b.hex ? -1 : a.hex > b.hex ? 1 : 0));
+
+  const gradientRows: PenpotUsageGradient[] = [...gradients.entries()]
+    .map(([sig, v]) => {
+      // Modal angle; ties break toward the smaller angle.
+      let angle = 0, best = -1;
+      for (const [a, n] of v.angles) {
+        if (n > best || (n === best && a < angle)) { angle = a; best = n; }
+      }
+      return { sig, row: { type: v.type, stops: v.stops, count: v.count, angle } };
+    })
+    .sort((a, b) => (b.row.count - a.row.count) || (a.sig < b.sig ? -1 : a.sig > b.sig ? 1 : 0))
+    .map(e => e.row);
+
+  return { colors: colorRows, gradients: gradientRows, fonts: [...fonts.values()] };
 }
 
 /**

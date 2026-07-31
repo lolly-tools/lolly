@@ -104,7 +104,10 @@ async function main(): Promise<void> {
   await waitForServer(opts.url);
   console.log(`Rendering animated previews against ${opts.url}\n`);
 
-  const browser = await chromium.launch({ headless: true });
+  // Rendering-intent pins matching packages/node-shell/src/browsers.ts (see the
+  // comment there): committed output must not depend on the build host's display
+  // profile or font hinting.
+  const browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
   // serviceWorkers:'block' so the PWA's SW can't serve a stale bundle mid-run.
   const context = await browser.newContext({ serviceWorkers: 'block' });
   try {

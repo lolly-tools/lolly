@@ -49,6 +49,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync, mkdirSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { join, dirname, relative } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -836,7 +837,14 @@ function validate(source: string, translated: string): string | null {
   const srcCode = codeBag(source);
   const outCode = codeBag(translated);
   if (srcCode.join(' ') !== outCode.join(' ')) return `<code> content changed: source has [${srcCode.join(' | ')}], output has [${outCode.join(' | ')}]`;
-  if (translated.length > source.length * 3 && source.length > 3) return 'output is >3x source length (likely hallucinated padding)';
+  // Padding guard, with an absolute floor. A ratio alone is wrong for short UI
+  // labels: "Unmute" -> "Stummschaltung aufheben" is 3.8x and completely correct,
+  // as are "Mute" -> "Disattiva audio" and "Stops" -> "Pontos de parada". Real
+  // hallucinated padding is long in absolute terms, not merely proportionally
+  // long, so both conditions must hold before a translation is thrown away.
+  if (translated.length > source.length * 3 && source.length > 3 && translated.length > 40) {
+    return 'output is >3x source length and over 40 chars (likely hallucinated padding)';
+  }
   if (!translated.trim()) return 'empty output';
   return null;
 }
@@ -992,6 +1000,57 @@ async function translateRetry(client: Anthropic, lang: Lang, items: BatchItem[],
   if (!textBlock) return new Map();
   const parsed = JSON.parse(textBlock.text) as { translations: BatchItem[] };
   return new Map(parsed.translations.map(t => [t.id, t.text]));
+}
+
+/**
+ * One-shot migration: seed cache.docs from the translated page sidecars already
+ * on disk, so a docs run only pays for what genuinely changed.
+ *
+ * cache.json carries no `docs` key at all, yet docs/i18n/<lang>/*.md are full of
+ * translated pages - the cache was lost at some point and the pages outlived it.
+ * Without seeding, the next docs run re-translates every block of every page in
+ * every language (~800 blocks x 26) and writes fresh machine output over copy
+ * that has been reviewed and hand-swept.
+ *
+ * PAIRING IS BY BLOCK INDEX, which is only sound while the English page has not
+ * moved since the sidecar was written - otherwise an edited paragraph would be
+ * cached under its NEW hash with its OLD translation, which is worse than no
+ * cache at all because nothing would ever report it. So the rule is git, not
+ * guesswork: seed a page only when its sidecar's last commit is at least as new
+ * as the English page's, AND the two split into the same number of blocks. Every
+ * page that fails either test is left uncached and simply re-translates.
+ */
+function seedDocsCacheFromSidecars(cache: Cache, lang: Lang): { pages: number; blocks: number; skipped: string[] } {
+  const docs = (cache.docs ??= {});
+  const langCache: Record<string, string> = (docs[lang] ??= {});
+  const skipped: string[] = [];
+  let pages = 0;
+  let blocks = 0;
+
+  const commitTime = (rel: string): number => {
+    const r = spawnSync('git', ['log', '-1', '--format=%ct', '--', rel], { cwd: join(REPO_ROOT, 'docs'), encoding: 'utf8' });
+    const t = Number((r.stdout ?? '').trim());
+    return Number.isFinite(t) ? t : 0;
+  };
+
+  for (const page of DOCS_PAGES) {
+    const sidecarRel = join('i18n', lang, `${page.slug}.md`);
+    const sidecarAbs = join(REPO_ROOT, 'docs', sidecarRel);
+    if (!existsSync(sidecarAbs)) { skipped.push(`${page.slug} (no sidecar)`); continue; }
+    const enTime = commitTime(page.src);
+    const trTime = commitTime(sidecarRel);
+    if (enTime && trTime && enTime > trTime) { skipped.push(`${page.slug} (English newer)`); continue; }
+
+    const enBlocks = splitDocBlocks(readFileSync(join(REPO_ROOT, 'docs', page.src), 'utf8')).filter(b => b.translatable && b.text.trim());
+    const trBlocks = splitDocBlocks(readFileSync(sidecarAbs, 'utf8')).filter(b => b.translatable && b.text.trim());
+    if (enBlocks.length !== trBlocks.length) { skipped.push(`${page.slug} (${enBlocks.length} vs ${trBlocks.length} blocks)`); continue; }
+
+    enBlocks.forEach((b, i) => { langCache[sha256(b.text)] = trBlocks[i]!.text; blocks++; });
+    pages++;
+  }
+  console.log(`  [docs/${lang}] seeded ${blocks} block(s) from ${pages} page(s)`
+    + (skipped.length ? `; will re-translate: ${skipped.join(', ')}` : ''));
+  return { pages, blocks, skipped };
 }
 
 /**
@@ -1202,14 +1261,14 @@ async function runCorpus(client: Anthropic | null, corpus: CorpusDef, lang: Lang
 }
 
 // ─── CLI ────────────────────────────────────────────────────────────────────
-function parseArgs(argv: string[]): { corpus?: string; lang?: Lang; all: boolean; check: boolean; only?: string; seedSiteCache: boolean; force: boolean; exportPending: boolean; importPath?: string; outDir?: string } {
+function parseArgs(argv: string[]): { corpus?: string; lang?: Lang; all: boolean; check: boolean; only?: string; seedSiteCache: boolean; force: boolean; exportPending: boolean; seedDocsCache: boolean; importPath?: string; outDir?: string } {
   const flags: Record<string, string | boolean> = {};
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i]!;
     if (!a.startsWith('--')) continue;
     const eq = a.indexOf('=');
     const key = eq === -1 ? a.slice(2) : a.slice(2, eq);
-    if (key === 'all' || key === 'check' || key === 'seed-site-cache' || key === 'force' || key === 'export-pending') { flags[key] = true; continue; }
+    if (key === 'all' || key === 'check' || key === 'seed-site-cache' || key === 'force' || key === 'export-pending' || key === 'seed-docs-cache') { flags[key] = true; continue; }
     const value = eq === -1 ? argv[++i] : a.slice(eq + 1);
     if (value !== undefined) flags[key] = value;
   }
@@ -1221,6 +1280,7 @@ function parseArgs(argv: string[]): { corpus?: string; lang?: Lang; all: boolean
     only: typeof flags.only === 'string' ? flags.only : undefined,
     seedSiteCache: !!flags['seed-site-cache'], force: !!flags.force,
     exportPending: !!flags['export-pending'],
+    seedDocsCache: !!flags['seed-docs-cache'],
     importPath: typeof flags.import === 'string' ? flags.import : undefined,
     outDir: typeof flags['out'] === 'string' ? flags['out'] : undefined,
   };
@@ -1233,7 +1293,7 @@ const ALL_CORPUS_IDS = [...Object.keys(CORPORA), 'tools', 'docs'];
 
 
 async function main(): Promise<void> {
-  const { corpus: corpusId, lang, all, check, only, seedSiteCache, force, exportPending: doExport, importPath, outDir } = parseArgs(process.argv.slice(2));
+  const { corpus: corpusId, lang, all, check, only, seedSiteCache, force, exportPending: doExport, seedDocsCache, importPath, outDir } = parseArgs(process.argv.slice(2));
 
   // One-shot migration, before any corpus work: lift the 26 shipped site.json
   // catalogs into the cache so the first real `--corpus site` run translates
@@ -1253,6 +1313,19 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (seedDocsCache) {
+    const seedCache = loadCache();
+    if (seedCache.docs && !force) {
+      console.error('cache.json already has a `docs` entry - pass --force to re-seed.');
+      process.exit(1);
+    }
+    let blocks = 0;
+    for (const l of LANGS) blocks += seedDocsCacheFromSidecars(seedCache, l).blocks;
+    saveCache(seedCache);
+    console.log(`\nSeeded ${blocks} block(s). Review the cache.json diff, then run the docs corpus.`);
+    return;
+  }
+
   // Offline import: fold completed work files back in, then fall through to the
   // normal run so catalogs are regenerated from cache+overrides as usual.
   if (importPath) {
@@ -1265,7 +1338,18 @@ async function main(): Promise<void> {
     let rejected = 0;
     const imported: string[] = [];
     for (const f of files) {
-      const r = importWorkFile(f, cache);
+      // Per-file isolation. The cache is saved once, after the loop, so a single
+      // unreadable work file used to abort the run and throw away every
+      // successful import before it - which is how a stray wrapper tag in one
+      // agent's output cost 76 good files.
+      let r: { ok: number; rejected: number };
+      try {
+        r = importWorkFile(f, cache);
+      } catch (err) {
+        console.warn(`  ✗ ${relative(REPO_ROOT, f)}: ${(err as Error).message}`);
+        rejected++;
+        continue;
+      }
       ok += r.ok; rejected += r.rejected;
       // Only files that actually contributed a translation get their catalog
       // rewritten. A still-pending file must not trigger a regeneration that

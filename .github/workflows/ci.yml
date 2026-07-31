@@ -106,10 +106,16 @@ jobs:
       # EXPECTED_SKIPS is a RATCHET BASELINE, not a hand-derived invariant: the
       # per-test conditions (fixture presence, loops, dynamic t.skip) make the
       # exact number impractical to derive statically, so it is pinned to the
-      # count observed on main (run 30541115113, 2026-07-30). What legitimately
-      # skips on this runner, by reason (sums to 200):
-      #   81  no browser — Playwright Chromium not installed (80 bridge/export
-      #       tests) + 1 CLI headless-browser test
+      # count observed on main (run 30541115113, 2026-07-30; +16 browser-gated
+      # golden/emission tests added 2026-07-31). What legitimately skips on
+      # this runner, by reason (informational; these lines sum to 217 — one
+      # bucket has overcounted by 1 since the 2026-07-30 baseline run, which
+      # observed 200 against lines then summing to 201. Reconcile against the
+      # next CI run's per-reason output; the baseline number is the observed
+      # count, so the GATE is right even while the breakdown is off by one):
+      #   97  no browser — Playwright Chromium not installed (96 bridge/export
+      #       tests, incl. the 14 export-format golden/flag tests and 2
+      #       emission-decision tests added 2026-07-31) + 1 CLI headless-browser test
       #   33  SUSE brand pack not mounted — brands/suse is `update = none` in CI
       #       (31 pack tests + 2 brand-token tests)
       #   39  macOS ColorSync stock profiles absent on ubuntu (icc.test.ts)
@@ -126,7 +132,7 @@ jobs:
       - name: Skipped tests must not exceed the CI baseline
         if: always()
         env:
-          EXPECTED_SKIPS: 200
+          EXPECTED_SKIPS: 216
         run: |
           # node:test prints a run summary — "ℹ skipped N" (spec reporter) or
           # "# skipped N" (tap, the non-TTY default on some Node lines). Strip

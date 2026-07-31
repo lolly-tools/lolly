@@ -218,6 +218,21 @@ export interface HostV1 {
    */
   geom?: GeomAPI;
 
+  /**
+   * Content Credentials signing — embed a FRESH signed C2PA manifest into
+   * finished bytes, with NO ingredients and no ingredient thumbnails. This is
+   * the redacted-derivative path: carrying the source's manifest forward would
+   * re-embed a pixel-accurate thumbnail of the un-redacted original, so the
+   * output is signed as a new work instead, and the caller says so in the UI.
+   * Not a general provenance surface — ordinary exports keep going through
+   * `host.export` (which owns ingredients, action history and the opt-in
+   * gates). Optional/additive (v1.85) and not gated by a `capabilities` flag:
+   * a tool feature-detects `host.c2pa?.sign`. Signing runs locally with the
+   * enrolled device identity when one is valid, else an ephemeral on-device
+   * key; the bytes are never uploaded.
+   */
+  c2pa?: C2paAPI;
+
   /** Logging — goes to console in dev, to a log buffer for support diagnostics. */
   log: (level: 'debug' | 'info' | 'warn' | 'error', msg: string, ctx?: object) => void;
 }
@@ -1363,6 +1378,39 @@ export interface PdfAPI {
    * must feature-detect `host.pdf?.compress` — an older shell may lack it.
    */
   compress(bytes: Uint8Array, opts?: PdfCompressOpts): Promise<PdfCompressResult>;
+
+  /**
+   * Redact by rasterise-and-rebuild. Each page is rendered to an image, the
+   * given bars are burned in as fully opaque fills, and a BRAND-NEW document is
+   * constructed whose pages contain only those images at the original page
+   * sizes — no text layer, fonts, annotations, attachments, layers, scripts or
+   * metadata survive, because nothing is carried over. Bar coordinates are in
+   * PDF points with y measured from the TOP of the page, and each bar names its
+   * page by 1-based index. Like strip(), the output is not byte-identical and
+   * any digital signature is invalidated; unlike strip(), the content under a
+   * bar is destroyed, not hidden. Needs a real canvas, so shells without one
+   * (the node CLI) omit it — a tool must feature-detect `host.pdf?.redact`
+   * per method, exactly as for compress. Runs locally; the bytes are never
+   * uploaded.
+   */
+  redact?(bytes: Uint8Array, opts: PdfRedactOpts): Promise<PdfRedactResult>;
+
+  /**
+   * Render each page to a self-contained SVG document, for interactive tools
+   * that need a live preview to draw on (the Redact tool's bar overlay). Text
+   * is outlined to real paths with fonts embedded as a safety net, so the SVG
+   * renders identically with no document fonts installed. Each page's viewBox
+   * is in PDF points with the origin at the TOP-LEFT — the same coordinate
+   * space as PdfRedactBar, so an overlay measured against the rendered SVG
+   * converts to bars with a single scale factor (widthPt / rendered width) and
+   * no DPI involved. At most `maxPages` pages are returned (default 40), with
+   * `truncated` reporting that more exist; a page that fails to render is
+   * SKIPPED from `pages` rather than thrown, so one broken page cannot kill
+   * the preview. Optional per method like redact: the web shell provides it
+   * and the node CLI does not — a tool must feature-detect `host.pdf?.pages`.
+   * Runs locally; the bytes are never uploaded.
+   */
+  pages?(bytes: Uint8Array, opts?: { maxPages?: number }): Promise<PdfPagesResult>;
 }
 
 export interface PdfCompressOpts {
@@ -1394,6 +1442,68 @@ export interface PdfFinding {
   detail: string;
   /** 'warn' flags personally-identifying / fingerprinting data; '' is neutral. */
   tone: '' | 'warn';
+}
+
+/** One redaction bar, in PDF points, y measured from the TOP of the page. */
+export interface PdfRedactBar {
+  /** 1-based page index the bar sits on. */
+  page: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+export interface PdfRedactOpts {
+  /** The bars to burn in. Bars on out-of-range pages are ignored. */
+  bars: PdfRedactBar[];
+  /** Raster resolution for the rebuilt pages. Default 200, clamped 72..300. */
+  dpi?: number;
+  /** Drop colour on the way out (e.g. a scan whose yellow channel carries printer tracking dots). */
+  grayscale?: boolean;
+}
+
+export interface PdfRedactResult {
+  /** The rebuilt document — page images only, nothing else. */
+  bytes: Uint8Array;
+  /** Page count of the output (same as the input's). */
+  pages: number;
+  /** Per-page render fallbacks (a page that could not be rendered ships blank). */
+  warnings?: string[];
+}
+
+/** One page of a host.pdf.pages preview: a self-contained SVG document. */
+export interface PdfPageSvg {
+  /** Standalone SVG markup — text outlined, fonts embedded, images inlined. */
+  svg: string;
+  /** 1-based page index in the source document. */
+  page: number;
+  /** Page width in PDF points (the viewBox width). */
+  widthPt: number;
+  /** Page height in PDF points (the viewBox height). */
+  heightPt: number;
+}
+
+export interface PdfPagesResult {
+  /** Rendered pages in document order. A page that failed to render is absent. */
+  pages: PdfPageSvg[];
+  /** True when the document has more pages than the cap allowed to return. */
+  truncated: boolean;
+}
+
+// ─── Content Credentials signing (optional, v1.85) ───────────────────────────
+
+export interface C2paAPI {
+  /**
+   * Embed a freshly signed C2PA manifest into `bytes` and return the stamped
+   * bytes. The manifest carries NO ingredients — this is for derivatives (a
+   * redacted file) where referencing the source would carry removed content
+   * forward. `format` is the output format key ('pdf', 'png', 'jpg', …);
+   * `opts.description` labels the redaction step in the action history.
+   * Throws when the format cannot carry a manifest or signing fails — the
+   * caller decides whether unsigned bytes may still ship.
+   */
+  sign(bytes: Uint8Array, format: string, opts?: { description?: string }): Promise<Uint8Array>;
 }
 
 // ─── PPTX (optional) ──────────────────────────────────────────────────────────

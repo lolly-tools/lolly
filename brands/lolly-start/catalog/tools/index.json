@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "generatedAt": "2026-07-30T15:51:34.216Z",
+  "generatedAt": "2026-07-31T00:32:03.603Z",
   "tools": [
     {
       "id": "compress-pdf",
@@ -5267,6 +5267,27 @@
           "description": "Turn any table into a deck of cards — one card per row, ready as a multi-page PDF. Paste straight from your spreadsheet, doc, or chat."
         }
       }
+    },
+    {
+      "id": "redact",
+      "name": "Redact",
+      "description": "Black out sensitive content by rebuilding the file, then verify the output before it downloads, all on your device.",
+      "version": "1.0.1",
+      "status": "official",
+      "category": "utility",
+      "privacy": "on-device",
+      "formats": [
+        "png",
+        "jpg",
+        "webp",
+        "svg",
+        "pdf"
+      ],
+      "width": 760,
+      "height": 620,
+      "exportable": false,
+      "icon": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"/><path d=\"M14 2v6h6\"/><path d=\"M8 13.5h8\" stroke-width=\"3.4\" stroke-linecap=\"butt\"/><path d=\"M8 18h5\"/></svg>",
+      "preview": "/catalog/previews/redact.webp"
     }
   ]
 }

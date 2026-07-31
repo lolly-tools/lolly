@@ -1097,3 +1097,257 @@ test('penpotGroupToSvg: non-groups, empty and degenerate groups refuse', () => {
   // a dangling child ref bails rather than emitting partial art
   assert.equal(penpotGroupToSvg({ type: 'group', selrect: { x: 0, y: 0, width: 9, height: 9 }, shapes: ['ghost'] }, () => undefined), '');
 });
+
+// ── collectPenpotExportMarks ─────────────────────────────────────────────────
+// (Spec: exports-marked asset ingest. Synthetic pages; the real-file census
+// lives in tests/penpot-keynote-replay.test.ts.)
+
+import { collectPenpotExportMarks } from '../engine/src/design-map.ts';
+
+const ROOT_ID = '00000000-0000-0000-0000-000000000000';
+const pageWith = (shapes: Record<string, any>): Record<string, any> => ({
+  [ROOT_ID]: { id: ROOT_ID, type: 'frame', shapes: Object.keys(shapes).filter((k) => !shapes[k].__nested) },
+  ...Object.fromEntries(Object.entries(shapes).map(([k, v]) => { const { __nested, ...s } = v; return [k, s]; })),
+});
+
+test('collectPenpotExportMarks: (a) marked shapes collect in paint order with the entry triple', () => {
+  const page = pageWith({
+    a: { id: 'a', type: 'frame', exports: [{ type: 'png', suffix: '', scale: 2 }] },
+    b: { id: 'b', type: 'rect' },
+    c: { id: 'c', type: 'group', exports: [{ type: 'svg', suffix: '', scale: 1 }, { type: 'jpeg', suffix: '', scale: 4 }] },
+  });
+  const marks = collectPenpotExportMarks(page);
+  assert.equal(marks.length, 2);
+  assert.equal(marks[0]!.shape.id, 'a');
+  assert.deepEqual(marks[0]!.entries, [{ type: 'png', scale: 2, suffix: '' }]);
+  assert.deepEqual(marks[1]!.entries, [
+    { type: 'svg', scale: 1, suffix: '' },
+    { type: 'jpeg', scale: 4, suffix: '' },
+  ]);
+});
+
+test('collectPenpotExportMarks: (b) identical duplicate entries dedupe; distinct configs survive', () => {
+  const page = pageWith({
+    a: { id: 'a', type: 'rect', exports: [
+      { type: 'png', suffix: '', scale: 1 },
+      { type: 'png', suffix: '', scale: 1 },   // the keynote's "captura" duplicate
+      { type: 'png', suffix: '', scale: 2 },
+      { type: 'png', suffix: '@x', scale: 2 }, // different suffix = different entry
+    ] },
+  });
+  const marks = collectPenpotExportMarks(page);
+  assert.equal(marks.length, 1);
+  assert.deepEqual(marks[0]!.entries, [
+    { type: 'png', scale: 1, suffix: '' },
+    { type: 'png', scale: 2, suffix: '' },
+    { type: 'png', scale: 2, suffix: '@x' },
+  ]);
+});
+
+test('collectPenpotExportMarks: (c) a component master subtree is a definition — 0 marks from master OR descendant', () => {
+  // Descendant-marked: the master board itself is unmarked, a child inside it is.
+  const descendantMarked: Record<string, any> = {
+    [ROOT_ID]: { id: ROOT_ID, type: 'frame', shapes: ['master'] },
+    master: { id: 'master', type: 'frame', componentRoot: true, mainInstance: true, shapes: ['inner'] },
+    inner: { id: 'inner', type: 'rect', exports: [{ type: 'png', suffix: '', scale: 1 }] },
+  };
+  assert.deepEqual(collectPenpotExportMarks(descendantMarked), []);
+  // Directly-marked master: also nothing.
+  const directMarked: Record<string, any> = {
+    [ROOT_ID]: { id: ROOT_ID, type: 'frame', shapes: ['master'] },
+    master: { id: 'master', type: 'frame', componentRoot: true, mainInstance: true,
+      exports: [{ type: 'svg', suffix: '', scale: 1 }], shapes: [] },
+  };
+  assert.deepEqual(collectPenpotExportMarks(directMarked), []);
+  // An ordinary instance (componentRoot without mainInstance) still collects.
+  const instance: Record<string, any> = {
+    [ROOT_ID]: { id: ROOT_ID, type: 'frame', shapes: ['inst'] },
+    inst: { id: 'inst', type: 'frame', componentRoot: true,
+      exports: [{ type: 'png', suffix: '', scale: 1 }], shapes: [] },
+  };
+  assert.equal(collectPenpotExportMarks(instance).length, 1);
+});
+
+test('collectPenpotExportMarks: (d) hidden shapes and hidden ancestors prune the mark', () => {
+  const page: Record<string, any> = {
+    [ROOT_ID]: { id: ROOT_ID, type: 'frame', shapes: ['hid', 'holder', 'kept'] },
+    hid: { id: 'hid', type: 'rect', hidden: true, exports: [{ type: 'png', suffix: '', scale: 1 }] },
+    holder: { id: 'holder', type: 'group', hidden: true, shapes: ['inside'] },
+    inside: { id: 'inside', type: 'rect', exports: [{ type: 'png', suffix: '', scale: 1 }] },
+    kept: { id: 'kept', type: 'rect', exports: [{ type: 'png', suffix: '', scale: 1 }] },
+  };
+  const marks = collectPenpotExportMarks(page);
+  assert.equal(marks.length, 1);
+  assert.equal(marks[0]!.shape.id, 'kept');
+});
+
+test('collectPenpotExportMarks: (e) scale 0 clamps to 0.1 (not default 1); null suffix becomes empty', () => {
+  const page = pageWith({
+    a: { id: 'a', type: 'rect', exports: [{ type: 'svg', scale: 0, suffix: null }] },
+  });
+  const marks = collectPenpotExportMarks(page);
+  assert.equal(marks.length, 1);
+  assert.deepEqual(marks[0]!.entries, [{ type: 'svg', scale: 0.1, suffix: '' }]);
+});
+
+test('collectPenpotExportMarks: (f) unknown export types drop silently; a shape with none usable yields no mark', () => {
+  const page = pageWith({
+    a: { id: 'a', type: 'rect', exports: [{ type: 'webp', suffix: '', scale: 2 }] },
+    b: { id: 'b', type: 'rect', exports: [{ type: 'pdf', suffix: '', scale: 1 }, { type: 'png', suffix: '', scale: 1 }] },
+    c: { id: 'c', type: 'rect', exports: [] },
+    d: { id: 'd', type: 'rect', exports: 'nonsense' },
+  });
+  const marks = collectPenpotExportMarks(page);
+  assert.equal(marks.length, 1);
+  assert.equal(marks[0]!.shape.id, 'b');
+  assert.deepEqual(marks[0]!.entries, [{ type: 'png', scale: 1, suffix: '' }]);
+});
+
+// ── Spec 3: per-corner radii + flipX/flipY fidelity ──────────────────────────
+// (Appended block — imports are hoisted, kept here so the block stays append-only.)
+import {
+  penpotTransformBaked, pathDBounds, mirrorPenpotGradient, penpotRoundedRectD,
+} from '../engine/src/design-map.ts';
+import { cornerRadii, roundedRectPath } from '../engine/src/css-box.ts';
+
+// The keynote's "square" rect: R(188.83°)·FlipY baked into `transform` (det −1).
+const SQUARE_RF = { a: -0.9881129902634416, b: -0.15372936763233724, c: -0.15319146723702826, d: 0.9881965261858454, e: 1.59e-12, f: 8.82e-11 };
+// The keynote slide-background gradient (895×503 board, #151035→#312470, angle 117).
+const KEYNOTE_G = {
+  type: 'linear',
+  startX: 0.22696941509810883, startY: 0.3352543335727551,
+  endX: 0.9443598198336676, endY: 0.9871518587811399,
+  stops: [{ color: '#151035', opacity: 1, offset: 0 }, { color: '#312470', opacity: 1, offset: 1 }],
+};
+
+test('penpotTransformBaked: identity (with e/f float noise) is not baked; R·F is', () => {
+  assert.equal(penpotTransformBaked({ a: 1, b: 0, c: 0, d: 1, e: 2.7e-9, f: 1.5e-9 }), false);
+  assert.equal(penpotTransformBaked(SQUARE_RF), true);
+  assert.equal(penpotTransformBaked({ a: 0, b: 1, c: -1, d: 0 }), true); // pure rot 90
+  // junk / absent fields default to identity
+  assert.equal(penpotTransformBaked(null), false);
+  assert.equal(penpotTransformBaked(undefined), false);
+  assert.equal(penpotTransformBaked('matrix(1,0,0,1,0,0)'), false);
+  assert.equal(penpotTransformBaked({}), false);
+});
+
+test('pathDBounds: loose control-point bbox of absolute M/L/C/Z; anything else null', () => {
+  // Control points COUNT (deliberately loose — cheap placement rect, not exact bounds).
+  assert.deepEqual(pathDBounds('M10,20L30,5C40,50,60,-4,35,80Z'), { x: 10, y: -4, w: 50, h: 84 });
+  // Exponents parse as numbers, never as command letters.
+  assert.deepEqual(pathDBounds('M1e2,2e1L3e2,4e1Z'), { x: 100, y: 20, w: 200, h: 20 });
+  // Arc / relative / quadratic commands need real interpretation → null.
+  assert.equal(pathDBounds('M0,0A5,5 0 0 1 10,10Z'), null);
+  assert.equal(pathDBounds('M0,0l10,10Z'), null);
+  assert.equal(pathDBounds('M0,0Q5,5,10,10'), null);
+  // No commands / no finite pair → null.
+  assert.equal(pathDBounds(''), null);
+  assert.equal(pathDBounds('Z'), null);
+});
+
+test('penpotShapeToNode: a baked-transform path places on its content bbox with rot 0', () => {
+  const base = {
+    id: 'p1', type: 'path', rotation: 90,
+    selrect: { x: 500, y: 900, width: 60, height: 50 },
+    fills: [{ fillColor: '#14ceca', fillOpacity: 1 }],
+    content: 'M100,200L150,200L150,260Z',
+  };
+  // Non-identity transform: content is page-space-final → bbox route, rot 0.
+  const baked = penpotShapeToNode({ ...base, transform: { a: 0, b: 1, c: -1, d: 0 } }) as any;
+  assert.deepEqual([baked.x, baked.y, baked.w, baked.h, baked.rot], [100, 200, 50, 60, 0]);
+  assert.deepEqual(baked._vectorSize, { w: 50, h: 60, x: 100, y: 200 });
+  // Identity transform (float noise only): byte-identical selrect + rot route.
+  const ident = penpotShapeToNode({ ...base, transform: { a: 1, b: 0, c: 0, d: 1, e: 1e-9, f: -1e-9 } }) as any;
+  assert.deepEqual([ident.x, ident.y, ident.w, ident.h, ident.rot], [500, 900, 60, 50, 90]);
+  assert.deepEqual(ident._vectorSize, { w: 60, h: 50, x: 500, y: 900 });
+  // Degenerate bbox dims clamp to 1 (a zero-height line is still placeable).
+  const flat = penpotShapeToNode({ ...base, transform: { a: 0, b: 1, c: -1, d: 0 }, content: 'M5,7L9,7Z' }) as any;
+  assert.deepEqual([flat.x, flat.y, flat.w, flat.h, flat.rot], [5, 7, 4, 1, 0]);
+});
+
+test('mirrorPenpotGradient: identity return without flip; endpoint mirror per axis', () => {
+  // No flip → the SAME object back (no copy, byte-identical downstream).
+  assert.equal(mirrorPenpotGradient(KEYNOTE_G, false, false), KEYNOTE_G);
+  const mx = mirrorPenpotGradient(KEYNOTE_G, true, false) as any;
+  assert.ok(close(mx.startX, 1 - KEYNOTE_G.startX));
+  assert.ok(close(mx.endX, 1 - KEYNOTE_G.endX));
+  assert.equal(mx.startY, KEYNOTE_G.startY);
+  assert.equal(mx.endY, KEYNOTE_G.endY);
+  assert.equal(mx.stops, KEYNOTE_G.stops); // stops untouched (shallow copy)
+  const my = mirrorPenpotGradient(KEYNOTE_G, false, true) as any;
+  assert.equal(my.startX, KEYNOTE_G.startX);
+  assert.ok(close(my.endY, 1 - KEYNOTE_G.endY));
+  // The keynote background: 117° unflipped, 243° mirrored through the real spec fn.
+  assert.equal(penpotGradientToSpec(KEYNOTE_G, 895, 503, 1), 'lin.srgb_117_151035-0_312470-100');
+  assert.equal(penpotGradientToSpec(mirrorPenpotGradient(KEYNOTE_G, true, false), 895, 503, 1),
+    'lin.srgb_243_151035-0_312470-100');
+  // Junk passes through.
+  assert.equal(mirrorPenpotGradient(null, true, true), null);
+});
+
+test('penpotShapeToNode: a flipX frame mirrors its gradient spec (the keynote slide bg)', () => {
+  const frame = (flipX: boolean) => ({
+    id: 'f1', type: 'frame', flipX,
+    selrect: { x: 0, y: 0, width: 895, height: 503 },
+    fills: [{ fillOpacity: 1, fillColorGradient: KEYNOTE_G }],
+  });
+  assert.equal((penpotShapeToNode(frame(false)) as any).grad, 'lin.srgb_117_151035-0_312470-100');
+  assert.equal((penpotShapeToNode(frame(true)) as any).grad, 'lin.srgb_243_151035-0_312470-100');
+  // The flat first-stop degrade is flip-independent.
+  assert.equal((penpotShapeToNode(frame(true)) as any).fill, '#151035');
+});
+
+test('penpotRoundedRectD: a thin adapter over cornerRadii + roundedRectPath', () => {
+  const expected = (x: number, y: number, w: number, h: number, r: [number, number, number, number]) =>
+    roundedRectPath(x, y, w, h, cornerRadii(
+      { topLeft: `${r[0]}px`, topRight: `${r[1]}px`, bottomRight: `${r[2]}px`, bottomLeft: `${r[3]}px` }, w, h));
+  assert.equal(penpotRoundedRectD(5, 7, 100, 80, [10, 20, 30, 40]), expected(5, 7, 100, 80, [10, 20, 30, 40]));
+  // The CSS §5.5 overlap clamp comes from the one shared implementation.
+  assert.equal(penpotRoundedRectD(0, 0, 100, 50, [80, 80, 0, 0]), expected(0, 0, 100, 50, [80, 80, 0, 0]));
+  assert.ok(penpotRoundedRectD(0, 0, 100, 50, [80, 80, 0, 0]).includes('A50,'), 'top corners clamp to 50 each');
+  // Negative radii sanitize to 0.
+  assert.equal(penpotRoundedRectD(0, 0, 10, 10, [-5, 0, 0, 0]), expected(0, 0, 10, 10, [0, 0, 0, 0]));
+});
+
+test('penpotShapeToNode + penpotGroupToSvg: unequal corner radii route via the rounded-rect path, flip-permuted', () => {
+  const base = {
+    id: 'r1', type: 'rect', rotation: 5,
+    selrect: { x: 10, y: 20, width: 100, height: 80 },
+    fills: [{ fillColor: '#ff0000', fillOpacity: 1 }],
+    strokes: [{ strokeColor: '#151035', strokeWidth: 2, strokeAlignment: 'center' }],
+    r1: 4, r2: 8, r3: 12, r4: 16,
+  };
+  const n = penpotShapeToNode(base) as any;
+  assert.equal(n.kind, 'image');
+  assert.equal(n.rot, 5); // selrect space keeps rot
+  assert.equal(n._vectorPath, penpotRoundedRectD(10, 20, 100, 80, [4, 8, 12, 16]));
+  assert.equal(n._vectorFill, '#ff0000');
+  assert.deepEqual(n._vectorSize, { w: 100, h: 80, x: 10, y: 20 });
+  // Stroke rides the bake — NO CSS-border inflation of the rect.
+  assert.deepEqual(n._vectorStroke, { color: '#151035', width: 2, opacity: 1 });
+  assert.deepEqual([n.x, n.y, n.w, n.h], [10, 20, 100, 80]);
+  assert.equal(n.radius, undefined);
+  // Flip permutes the corners: flipX swaps left↔right, flipY swaps top↔bottom.
+  assert.equal((penpotShapeToNode({ ...base, flipX: true }) as any)._vectorPath,
+    penpotRoundedRectD(10, 20, 100, 80, [8, 4, 16, 12]));
+  assert.equal((penpotShapeToNode({ ...base, flipY: true }) as any)._vectorPath,
+    penpotRoundedRectD(10, 20, 100, 80, [16, 12, 8, 4]));
+  assert.equal((penpotShapeToNode({ ...base, flipX: true, flipY: true }) as any)._vectorPath,
+    penpotRoundedRectD(10, 20, 100, 80, [12, 16, 4, 8]));
+  // Equal corners (r2–r4 defaulting to r1) keep the byte-identical rounded box.
+  const eq = penpotShapeToNode({ ...base, r1: 10, r2: 10, r3: 10, r4: 10 }) as any;
+  assert.equal(eq.kind, 'box');
+  assert.equal(eq.shape, 'rounded');
+  assert.equal(eq.radius, 11); // 10 + center-stroke inflation of 1, as before
+  const eqDefault = penpotShapeToNode({ ...base, r2: undefined, r3: undefined, r4: undefined, r1: 10 }) as any;
+  assert.equal(eqDefault.shape, 'rounded');
+  // Group bake: unequal → <path d>, equal → the unchanged <rect rx>.
+  const shapes: Record<string, any> = {
+    g: { id: 'g', type: 'group', selrect: { x: 0, y: 0, width: 200, height: 200 }, shapes: ['u', 'e'] },
+    u: { ...base, id: 'u', rotation: 0, strokes: [] },
+    e: { ...base, id: 'e', rotation: 0, strokes: [], r1: 6, r2: 6, r3: 6, r4: 6 },
+  };
+  const svg = penpotGroupToSvg(shapes.g, (id) => shapes[id]);
+  assert.ok(svg.includes(`<path d="${penpotRoundedRectD(10, 20, 100, 80, [4, 8, 12, 16])}" fill="#ff0000"/>`));
+  assert.ok(svg.includes('<rect x="10" y="20" width="100" height="80" rx="6" fill="#ff0000"/>'));
+});

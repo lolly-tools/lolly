@@ -1388,3 +1388,70 @@ solid/gradient circles/rects, nested groups, `maskedGroup` via `<clipPath>`)
 into ONE standalone SVG string in `shapes` z-order, so a 500-path illustration
 imports as one image box instead of hundreds of colour blobs. Mixed subtrees
 (text, image fills, shadows) refuse and fall through to the per-shape import.
+
+## 1.85.0 — PDF redaction + fresh-manifest signing
+
+Additive, two optional bridge surfaces for the Redact utility:
+
+`host.pdf.redact(bytes, { bars, dpi?, grayscale? })` — rasterise-and-rebuild
+redaction. Every page is rendered to an image, each bar (PDF points, y from the
+TOP of the page, 1-based page index) is burned in as a fully opaque fill, and a
+brand-new pdf-lib document is constructed whose pages contain only those images
+at the original MediaBox sizes — no text layer, fonts, annotations,
+attachments, layers, scripts or metadata survive, because nothing is carried
+over. Optional per-method like compress: it needs a real canvas, so the web
+shell provides it and the node CLI does not — tools feature-detect
+`host.pdf?.redact`.
+
+`host.pdf.pages(bytes, { maxPages? })` — each page rendered to a
+self-contained SVG document (text outlined to paths, fonts embedded as a
+safety net, viewBox in PDF points with the origin at the TOP-LEFT), the live
+preview an interactive tool draws on. The viewBox space is exactly the space
+PdfRedactBar lives in, so an overlay converts client rects to bars with one
+scale factor and no DPI. At most `maxPages` pages return (default 40,
+`truncated` flags the rest), and a page that fails to render is skipped, not
+thrown. No canvas needed, but it reaches the web shell's own page interpreter,
+so like redact it is optional per method — feature-detect `host.pdf?.pages`;
+the node CLI omits it.
+
+`host.c2pa.sign(bytes, format, { description? })` — embed a FRESH signed C2PA
+manifest with NO ingredients and no ingredient thumbnails, for the opt-in
+re-sign of a redacted derivative (carrying the source manifest forward would
+re-embed a thumbnail of the un-redacted original). Reuses the web shell's
+existing manifest build + signing path (enrolled identity when valid, else the
+ephemeral on-device key). Throws on an unstampable format or signing failure.
+
+Both absent → byte-identical behaviour; no v1 method changed.
+
+Pure additions since, no version bump (the `HostV1` contract is untouched, so there
+is no minor to name): `scanPenpotUsage` in `src/brand-import.ts` (+ the
+`PenpotUsage`/`PenpotUsageColor`/`PenpotUsageGradient` types, barrel-exported) — a
+usage census for token-LESS Penpot projects, the dual of `extractPenpotProject`'s
+dead end. It tallies every paint source per colour (fills, strokes, text-run leaf
+fills, gradient stops from both fill and stroke gradients), dedupes gradients by
+type + stop signature with a modal aspect-ignorant angle (raw endpoint fractions,
+ties toward the smaller angle), and aggregates `collectPenpotFontUsage` across text
+shapes with `fontId` verbatim, so a shell can propose brand roles from what a
+designer actually used. Container walking only — no colour theory in the engine.
+
+Pure additions since, no version bump (no HostV1 change): `collectPenpotExportMarks`
+in `src/design-map.ts` (+ the `PenpotExportEntry`/`PenpotExportMark` types,
+barrel-exported) — collects a Penpot page's export-marked shapes in paint order,
+normalizes each `exports` entry (explicit png/jpeg/svg type comparisons, scale
+clamped 0.1..8, suffix stringified) and dedupes identical entries, pruning hidden
+subtrees and component-master subtrees (a mark on a master OR any descendant is a
+definition, not content). The shell decides how each entry becomes a stored asset.
+
+Pure additions/fixes since, no version bump (no HostV1 change): Penpot per-corner
+radii + flip fidelity in `src/design-map.ts`. New pure helpers
+`penpotTransformBaked`, `pathDBounds`, `mirrorPenpotGradient` and
+`penpotRoundedRectD` (a thin adapter over css-box's `cornerRadii` +
+`roundedRectPath`, so the CSS §5.5 overlap clamp stays shared with the export
+walker). Fixes: a path whose `transform` bakes rotation/flip into its page-space
+`content` now maps to the content bbox with rot 0 instead of double-transforming
+on selrect + rot; flipped shapes mirror their gradient endpoints (box `grad`,
+group-bake defs) since consumers emit unflipped geometry; unequal per-corner rect
+radii (r1–r4) route through the vector bake as a four-corner rounded-rect path
+(flip-permuted), while equal corners keep the byte-identical `rounded`/`<rect rx>`
+paths; image fills on flipped shapes carry a transient `_fillFlip` marker the web
+shell's media loader bakes into the stored pixels.
