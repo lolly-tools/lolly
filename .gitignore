@@ -255,3 +255,7 @@ api/ca/[...path].js.map
 # hang or crash leaves the culprit on disk. Transient; saved reproducers that are
 # meant to be kept live in tests/fuzz/regressions/ instead.
 tests/fuzz/current-*.bin
+
+# Translation work files: the offline path's scratch (npm run translate -- --export-pending).
+# Intermediate by design - the durable artefacts are scripts/i18n/cache.json and the catalogs.
+scripts/i18n/pending/

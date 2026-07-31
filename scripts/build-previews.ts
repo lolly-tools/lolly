@@ -191,7 +191,10 @@ async function main(): Promise<void> {
     await waitForServer(baseUrl);
   }
 
-  const browser = await chromium.launch({ headless: !opts.headed });
+  // Rendering-intent pins matching packages/node-shell/src/browsers.ts (see the
+  // comment there): committed output must not depend on the build host's display
+  // profile or font hinting.
+  const browser = await chromium.launch({ headless: !opts.headed, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
   // serviceWorkers:'block' so the PWA's SW can't serve a stale catalog mid-run.
   const context = await browser.newContext({ serviceWorkers: 'block', deviceScaleFactor: 2 });
 

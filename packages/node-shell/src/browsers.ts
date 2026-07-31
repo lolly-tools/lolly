@@ -63,7 +63,22 @@ export async function getBrowser(): Promise<import('playwright-core').Browser> {
           // SwiftShader gives headless runs a software WebGL2 context (recent
           // Chromium disables it without the explicit opt-in) — the docs pipeline's
           // ?neuro=viz capture needs one to render the MilkDrop visualizer at all.
-          args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+          // The two rendering-intent flags pin what the user's export looks like
+          // regardless of the machine doing the rendering. force-color-profile=srgb
+          // takes the host display profile out of every canvas/raster path (a brand
+          // #30ba78 exports as those bytes on any box — HDR is unaffected: the
+          // engine's PQ boost embeds its own BT.2020 profile downstream). Playwright
+          // already passes this flag in its OWN default args, so here it is an
+          // explicit pin, not a behaviour change — it keeps the intent if the
+          // launcher ever sets ignoreDefaultArgs or moves off Playwright.
+          // font-render-hinting=none removes the largest source of Linux/macOS
+          // glyph-metric divergence (FreeType hint distortion) so server layouts
+          // (MCP, lolly.work) don't reflow vs desktop — antialiasing and subpixel
+          // positioning still differ per-OS, so raster BYTES are not cross-OS
+          // identical. Mirrored in services/mcp/src/render.ts and the byte-golden
+          // test harnesses (export-format-golden / export-text-emission).
+          args: ['--no-sandbox', '--use-angle=swiftshader', '--enable-unsafe-swiftshader',
+                 '--force-color-profile=srgb', '--font-render-hinting=none'],
         });
       } catch (err) {
         const msg = (err as Error).message || '';

@@ -175,6 +175,10 @@ const regenerated: Record<string, GoldenEntry> = {};
 
 after(() => {
   if (!UPDATE_GOLDENS) return;
+  // The text-mark cases skip without the Outfit face, so `regenerated` would be
+  // missing their four entries — a rebuild-from-scratch write would silently drop
+  // them from the committed fixture. Refuse loudly instead.
+  if (SKIP_NO_OUTFIT) assert.fail(`UPDATE_GOLDENS=1 but ${SKIP_NO_OUTFIT}; refusing a partial fixture rewrite`);
   const sorted: Record<string, GoldenEntry> = {};
   for (const key of Object.keys(regenerated).sort()) sorted[key] = regenerated[key]!;
   writeFileSync(FIXTURE_PATH, `${JSON.stringify(sorted, null, 2)}\n`, 'utf8');

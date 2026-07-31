@@ -1,0 +1,732 @@
+// SPDX-License-Identifier: MPL-2.0
+/**
+ * Contract tests for the Redact tool (community/redact/) — the REAL on-disk
+ * hooks.js is executed, both directly (a `new Function('host', …)` harness,
+ * the same shape the engine loader uses) and end-to-end via createRuntime
+ * with the real manifest + template.
+ *
+ * Fixtures are crafted in-test: a JPEG with an EXIF GPS IFD and trailing
+ * garbage past FFD9, a PNG with tEXt + eXIf chunks and bytes after IEND, an
+ * APNG (acTL), a WebP with the VP8X ANIM flag, and SVGs with metadata,
+ * comments, editor attributes, scripts and visible text.
+ *
+ * Run with: node --test tests/redact.test.ts
+ */
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+
+import { createRuntime } from '../engine/src/runtime.ts';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const TOOL_DIR = join(ROOT, 'community/redact');
+
+const HOOKS_SRC = readFileSync(join(TOOL_DIR, 'hooks.js'), 'utf8');
+const MANIFEST = JSON.parse(readFileSync(join(TOOL_DIR, 'tool.json'), 'utf8'));
+const TEMPLATE = readFileSync(join(TOOL_DIR, 'template.html'), 'utf8');
+
+const INPUT_IDS = MANIFEST.inputs.map((i: any) => i.id);
+
+const BARE_HOST: any = { version: '1', profile: { get: async () => ({}) }, log: () => {} };
+
+function redactTool(): any {
+  return { manifest: MANIFEST, hooksSource: HOOKS_SRC, template: TEMPLATE };
+}
+
+// Load the real hooks the way the engine loader does: closure-scope host
+// injection via new Function. Gives us direct access to onInit/onInput/
+// exportFile for assertions that don't need the template.
+function loadHooks(): any {
+  const factory = new Function('host', `${HOOKS_SRC}\nreturn { onInit, onInput, exportFile };`);
+  return factory(BARE_HOST);
+}
+
+const fileRef = (name: string, mime: string, bytes: Uint8Array): any =>
+  ({ __file: true, name, mime, size: bytes.length, bytes, url: null });
+
+// A model in the shape hooks receive: [{id, value}] for every declared input.
+function modelFor(source: any, over: Record<string, any> = {}): any[] {
+  const values: Record<string, any> = {
+    source, bars: [], quantise: true, grayscale: false, svgVector: false, resign: false,
+    ...over,
+  };
+  return INPUT_IDS.map((id: string) => ({ id, value: values[id] }));
+}
+
+// ─── byte fixtures ────────────────────────────────────────────────────────────
+
+function concat(parts: Uint8Array[]): Uint8Array {
+  let n = 0; for (const p of parts) n += p.length;
+  const out = new Uint8Array(n); let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
+
+// TIFF (little-endian): IFD0 {Make, GPS pointer} → GPS IFD with a known
+// latitude/longitude (37°48'30"N, 122°25'00"W → 37.80833, -122.41667).
+function buildExifTiff(): Uint8Array {
+  const buf = new Uint8Array(148);
+  const dv = new DataView(buf.buffer);
+  const LE = true;
+  const MAKE_OFF = 38, GPS_IFD = 46, LAT_OFF = 100, LON_OFF = 124;
+  buf[0] = 0x49; buf[1] = 0x49;            // "II"
+  dv.setUint16(2, 42, LE);
+  dv.setUint32(4, 8, LE);                  // IFD0 at offset 8
+  dv.setUint16(8, 2, LE);                  // IFD0: 2 entries
+  const entry = (off: number, tag: number, type: number, count: number) => { dv.setUint16(off, tag, LE); dv.setUint16(off + 2, type, LE); dv.setUint32(off + 4, count, LE); };
+  entry(10, 0x010F, 2, 8); dv.setUint32(18, MAKE_OFF, LE);          // Make → out-of-line
+  entry(22, 0x8825, 4, 1); dv.setUint32(30, GPS_IFD, LE);          // GPS IFD pointer
+  dv.setUint32(34, 0, LE);                                          // next IFD: none
+  'TestCam'.split('').forEach((c, i) => { buf[MAKE_OFF + i] = c.charCodeAt(0); });
+  dv.setUint16(GPS_IFD, 4, LE);                                     // GPS IFD: 4 entries
+  entry(48, 0x0001, 2, 2); buf[56] = 0x4E;                          // LatRef "N" (inline)
+  entry(60, 0x0002, 5, 3); dv.setUint32(68, LAT_OFF, LE);          // Latitude → 3 rationals
+  entry(72, 0x0003, 2, 2); buf[80] = 0x57;                          // LonRef "W" (inline)
+  entry(84, 0x0004, 5, 3); dv.setUint32(92, LON_OFF, LE);          // Longitude → 3 rationals
+  dv.setUint32(96, 0, LE);                                          // next IFD: none
+  const rat = (off: number, n: number, d: number) => { dv.setUint32(off, n, LE); dv.setUint32(off + 4, d, LE); };
+  rat(LAT_OFF, 37, 1); rat(LAT_OFF + 8, 48, 1); rat(LAT_OFF + 16, 30, 1);
+  rat(LON_OFF, 122, 1); rat(LON_OFF + 8, 25, 1); rat(LON_OFF + 16, 0, 1);
+  return buf;
+}
+
+// JPEG: SOI + APP1/EXIF(GPS) + SOS + scan data + EOI, then trailing garbage —
+// the aCropalypse shape (bytes past the terminator).
+function buildGpsJpegWithTrailer(trailerLen = 64): Uint8Array {
+  const tiff = buildExifTiff();
+  const exifId = Uint8Array.from([0x45, 0x78, 0x69, 0x66, 0x00, 0x00]);   // "Exif\0\0"
+  const segLen = 2 + exifId.length + tiff.length;
+  const app1 = new Uint8Array(4 + exifId.length + tiff.length);
+  app1[0] = 0xFF; app1[1] = 0xE1; app1[2] = (segLen >> 8) & 0xFF; app1[3] = segLen & 0xFF;
+  app1.set(exifId, 4); app1.set(tiff, 4 + exifId.length);
+  return concat([
+    Uint8Array.from([0xFF, 0xD8]),                                        // SOI
+    app1,
+    Uint8Array.from([0xFF, 0xDA, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3F, 0x00, 0xAA, 0xBB, 0xFF, 0xD9]),
+    new Uint8Array(trailerLen).fill(0x41),                                // the "earlier version"
+  ]);
+}
+
+function pngChunk(type: string, data: Uint8Array): Uint8Array {
+  const out = new Uint8Array(12 + data.length);
+  const dv = new DataView(out.buffer);
+  dv.setUint32(0, data.length);
+  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  dv.setUint32(8 + data.length, 0); // CRC unchecked by the scanners
+  return out;
+}
+
+const PNG_SIG = Uint8Array.from([137, 80, 78, 71, 13, 10, 26, 10]);
+
+function ihdr(w: number, h: number): Uint8Array {
+  const d = new Uint8Array(13);
+  const dv = new DataView(d.buffer);
+  dv.setUint32(0, w); dv.setUint32(4, h);
+  d[8] = 8; d[9] = 6; // bit depth / colour type — irrelevant to the scanners
+  return d;
+}
+
+function buildDirtyPng(): Uint8Array {
+  return concat([
+    PNG_SIG,
+    pngChunk('IHDR', ihdr(100, 80)),
+    pngChunk('tEXt', Uint8Array.from('Author\0Jane'.split('').map((c) => c.charCodeAt(0)))),
+    pngChunk('eXIf', buildExifTiff()),
+    pngChunk('IDAT', Uint8Array.from([0, 1, 2, 3])),
+    pngChunk('IEND', new Uint8Array(0)),
+    new Uint8Array(32).fill(0x42),                                        // bytes after IEND
+  ]);
+}
+
+function buildApng(): Uint8Array {
+  return concat([
+    PNG_SIG,
+    pngChunk('IHDR', ihdr(10, 10)),
+    pngChunk('acTL', new Uint8Array(8)),
+    pngChunk('IDAT', Uint8Array.from([0, 1, 2, 3])),
+    pngChunk('IEND', new Uint8Array(0)),
+  ]);
+}
+
+// WebP: RIFF/WEBP with a single VP8X chunk whose ANIM flag (0x02) is set.
+function buildAnimWebp(): Uint8Array {
+  const vp8x = new Uint8Array(10);
+  vp8x[0] = 0x02;                              // flags: ANIM
+  vp8x[4] = 15; vp8x[7] = 15;                  // 16x16 (width-1 / height-1, 24-bit LE)
+  const riffSize = 4 + 8 + vp8x.length;        // "WEBP" + VP8X header + payload
+  const head = new Uint8Array(20);
+  const dv = new DataView(head.buffer);
+  'RIFF'.split('').forEach((c, i) => { head[i] = c.charCodeAt(0); });
+  dv.setUint32(4, riffSize, true);
+  'WEBP'.split('').forEach((c, i) => { head[8 + i] = c.charCodeAt(0); });
+  'VP8X'.split('').forEach((c, i) => { head[12 + i] = c.charCodeAt(0); });
+  dv.setUint32(16, vp8x.length, true);
+  return concat([head, vp8x]);
+}
+
+const DIRTY_SVG = `<?xml version="1.0" encoding="UTF-8"?>
+<!-- hushtoken, drafted at /Users/jane/moodboard.ai -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+  width="200" height="100" viewBox="0 0 200 100" inkscape:version="1.2 (kabc123)">
+  <metadata>quietschema Jane Zebra wrote this</metadata>
+  <script>alert('espionage')</script>
+  <text x="10" y="50">Visible caption</text>
+</svg>`;
+
+const svgBytes = (text: string) => new TextEncoder().encode(text);
+
+const findLabel = (findings: any[], label: string): any =>
+  findings.find((f) => f.label === label);
+
+// ─── classification by magic bytes ────────────────────────────────────────────
+
+test('redact: classifies JPEG/PNG/WebP/SVG/PDF by magic bytes, junk stays unsupported', async () => {
+  const hooks = loadHooks();
+  const kindOf = async (name: string, mime: string, bytes: Uint8Array) =>
+    (await hooks.onInit({ model: modelFor(fileRef(name, mime, bytes)), host: BARE_HOST })).kind;
+
+  // The declared mime is a lie in every case — magic bytes must win.
+  assert.equal(await kindOf('a.bin', 'application/octet-stream', buildGpsJpegWithTrailer()), 'JPEG');
+  assert.equal(await kindOf('b.bin', 'application/octet-stream', buildDirtyPng()), 'PNG');
+  assert.equal(await kindOf('c.bin', 'application/octet-stream', buildAnimWebp()), 'WebP');
+  assert.equal(await kindOf('d.bin', 'application/octet-stream', svgBytes(DIRTY_SVG)), 'SVG');
+  assert.equal(await kindOf('e.bin', 'application/octet-stream', svgBytes('%PDF-1.4\n1 0 obj\nendobj\n%%EOF\n')), 'PDF');
+
+  const junk = await hooks.onInit({ model: modelFor(fileRef('f.jpg', 'image/jpeg', Uint8Array.from([1, 2, 3, 4]))), host: BARE_HOST });
+  assert.equal(junk.kind, 'file');
+  assert.equal(junk.supported, false);
+});
+
+// ─── findings: GPS, trailing bytes, animation, C2PA absence ──────────────────
+
+test('redact: JPEG findings surface GPS as warn and trailing bytes with the un-cropped framing', async () => {
+  const hooks = loadHooks();
+  const res = await hooks.onInit({ model: modelFor(fileRef('beach.jpg', 'image/jpeg', buildGpsJpegWithTrailer())), host: BARE_HOST });
+
+  const gps = findLabel(res.findings, 'GPS location');
+  assert.ok(gps, 'GPS finding present');
+  assert.equal(gps.tone, 'warn');
+  assert.equal(gps.detail, '37.80833, -122.41667');
+
+  const trailing = findLabel(res.findings, 'Data after end of image');
+  assert.ok(trailing, 'trailing-bytes finding present');
+  assert.equal(trailing.tone, 'warn');
+  assert.match(trailing.detail, /64 B past the JPEG terminator/);
+  assert.match(trailing.detail, /earlier un-cropped or un-redacted version/);
+
+  // No C2PA bytes in the fixture → no Content Credentials finding, and its
+  // absence is never claimed as a fact elsewhere.
+  assert.equal(findLabel(res.findings, 'Content Credentials (C2PA)'), undefined);
+});
+
+test('redact: PNG findings surface eXIf GPS, text chunks and bytes after IEND', async () => {
+  const hooks = loadHooks();
+  const res = await hooks.onInit({ model: modelFor(fileRef('shot.png', 'image/png', buildDirtyPng())), host: BARE_HOST });
+
+  assert.equal(findLabel(res.findings, 'GPS location')?.tone, 'warn');
+  assert.ok(findLabel(res.findings, 'Text chunks'));
+  const trailing = findLabel(res.findings, 'Data after end of image');
+  assert.ok(trailing);
+  assert.match(trailing.detail, /32 B past the PNG terminator/);
+  assert.equal(findLabel(res.findings, 'Content Credentials (C2PA)'), undefined);
+});
+
+test('redact: APNG acTL and WebP VP8X ANIM flag are reported as animation warnings', async () => {
+  const hooks = loadHooks();
+
+  const apng = await hooks.onInit({ model: modelFor(fileRef('anim.png', 'image/png', buildApng())), host: BARE_HOST });
+  const a = findLabel(apng.findings, 'Animated PNG');
+  assert.ok(a, 'APNG finding present');
+  assert.equal(a.tone, 'warn');
+  assert.match(a.detail, /later frames may show unredacted content/);
+
+  const webp = await hooks.onInit({ model: modelFor(fileRef('anim.webp', 'image/webp', buildAnimWebp())), host: BARE_HOST });
+  const w = findLabel(webp.findings, 'Animated WebP');
+  assert.ok(w, 'animated WebP finding present');
+  assert.equal(w.tone, 'warn');
+});
+
+test('redact: SVG findings report editor, comment file path, metadata and scripts', async () => {
+  const hooks = loadHooks();
+  const res = await hooks.onInit({ model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG))), host: BARE_HOST });
+
+  assert.equal(findLabel(res.findings, 'Created with')?.detail, 'Inkscape 1.2');
+  assert.ok(findLabel(res.findings, 'File path in comment'));
+  assert.ok(findLabel(res.findings, 'Metadata block'));
+  assert.equal(findLabel(res.findings, 'Scripts')?.tone, 'warn');
+  assert.ok(findLabel(res.findings, 'Comments'));
+});
+
+test('redact: coverage meter reports repainted pixels from header dims (sandbox-pure)', async () => {
+  const hooks = loadHooks();
+  const bars = [{ page: 1, x: 10, y: 10, w: 40, h: 20 }];
+  const res = await hooks.onInput({
+    id: 'bars', value: bars,
+    model: modelFor(fileRef('shot.png', 'image/png', buildDirtyPng()), { bars }),
+    host: BARE_HOST,
+  });
+  assert.equal(res.hasCoverage, true);
+  assert.ok(res.coveragePct > 0 && res.coveragePct < 100);
+  assert.match(res.coverageText, /1 mark will repaint about \d+% of the pixels\./);
+});
+
+// ─── hook patch hygiene ───────────────────────────────────────────────────────
+
+test('redact: onInit/onInput never return a key matching a declared input id', async () => {
+  const hooks = loadHooks();
+  const fixtures = [
+    fileRef('a.jpg', 'image/jpeg', buildGpsJpegWithTrailer()),
+    fileRef('b.png', 'image/png', buildDirtyPng()),
+    fileRef('c.webp', 'image/webp', buildAnimWebp()),
+    fileRef('d.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)),
+    fileRef('e.pdf', 'application/pdf', svgBytes('%PDF-1.4\n%%EOF\n')),
+    null, // no file at all
+  ];
+  for (const f of fixtures) {
+    const init = await hooks.onInit({ model: modelFor(f), host: BARE_HOST });
+    const input = await hooks.onInput({ id: 'quantise', value: true, model: modelFor(f), host: BARE_HOST });
+    for (const patch of [init, input]) {
+      for (const key of Object.keys(patch)) {
+        assert.ok(!INPUT_IDS.includes(key), `patch key "${key}" collides with an input id (file: ${f ? f.name : 'none'})`);
+      }
+    }
+  }
+});
+
+test('redact: hooks never mutate the input bytes', async () => {
+  const hooks = loadHooks();
+  const jpeg = buildGpsJpegWithTrailer();
+  const before = Array.from(jpeg);
+  const f = fileRef('beach.jpg', 'image/jpeg', jpeg);
+
+  await hooks.onInit({ model: modelFor(f), host: BARE_HOST });
+  // The raster export path throws headless — the input must still be intact.
+  await assert.rejects(() => hooks.exportFile({ model: modelFor(f), host: BARE_HOST }));
+  assert.deepEqual(Array.from(jpeg), before);
+
+  const svg = svgBytes(DIRTY_SVG);
+  const beforeSvg = Array.from(svg);
+  const fs = fileRef('art.svg', 'image/svg+xml', svg);
+  await hooks.onInit({ model: modelFor(fs), host: BARE_HOST });
+  await hooks.exportFile({ model: modelFor(fs, { svgVector: true, bars: [{ page: 1, x: 20, y: 30, w: 50, h: 20 }] }), host: BARE_HOST });
+  assert.deepEqual(Array.from(svg), beforeSvg);
+});
+
+// ─── exportFile: SVG vector mode (the only path that runs headless) ──────────
+
+test('redact: SVG vector export removes metadata/comments/scripts and appends opaque bars', async () => {
+  const hooks = loadHooks();
+  const bars = [{ page: 1, x: 20, y: 30, w: 50, h: 20 }];
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), { svgVector: true, bars }),
+    host: BARE_HOST,
+  });
+  assert.equal(res.mime, 'image/svg+xml');
+  assert.equal(res.filename, 'art-redacted.svg');
+
+  const out = new TextDecoder().decode(res.bytes);
+  // Removed content greps clean.
+  assert.doesNotMatch(out, /<metadata|quietschema|Jane Zebra/);
+  assert.doesNotMatch(out, /<!--|hushtoken|moodboard|Generator/);
+  assert.doesNotMatch(out, /<script|espionage|alert/);
+  assert.doesNotMatch(out, /inkscape/i);
+  // The visible artwork survives.
+  assert.match(out, /<text x="10" y="50">Visible caption<\/text>/);
+  assert.match(out, /viewBox="0 0 200 100"/);
+  // The bar: 20..70 x 30..50, inflated 2px each side, width quantised UP to the
+  // 24px grid (54 → 72, centred) → x 9, y 28, 72x24 — opaque black.
+  assert.match(out, /<rect x="9" y="28" width="72" height="24" fill="#000000" fill-opacity="1"\/>/);
+});
+
+test('redact: SVG vector export works with no bars (still strips hidden data)', async () => {
+  const hooks = loadHooks();
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), { svgVector: true }),
+    host: BARE_HOST,
+  });
+  const out = new TextDecoder().decode(res.bytes);
+  assert.doesNotMatch(out, /<metadata|<script|<!--/);
+  assert.match(out, /Visible caption/);
+});
+
+// ─── exportFile: failures throw sentences, nothing downloads ─────────────────
+
+test('redact: vector-mode verification failure throws a sentence when removed content survives', async () => {
+  // The comment's token also appears in visible text — the gate must catch the
+  // survivor and refuse to hand bytes back.
+  const tricky = `<!-- ZEBRAWORD -->
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <text x="5" y="50">ZEBRAWORD stays visible</text>
+</svg>`;
+  const hooks = loadHooks();
+  await assert.rejects(
+    () => hooks.exportFile({ model: modelFor(fileRef('t.svg', 'image/svg+xml', svgBytes(tricky)), { svgVector: true }), host: BARE_HOST }),
+    (e: any) => {
+      assert.match(e.message, /Verification failed: removed content is still present in the SVG output\. Nothing was downloaded\./);
+      return true;
+    }
+  );
+});
+
+test('redact: raster export throws a plain sentence when no browser canvas exists', async () => {
+  const hooks = loadHooks();
+  for (const f of [
+    fileRef('a.jpg', 'image/jpeg', buildGpsJpegWithTrailer()),
+    fileRef('b.png', 'image/png', buildDirtyPng()),
+    fileRef('c.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)), // default (raster) SVG path
+  ]) {
+    await assert.rejects(
+      () => hooks.exportFile({ model: modelFor(f), host: BARE_HOST }),
+      (e: any) => {
+        assert.match(e.message, /needs a browser canvas/);
+        assert.match(e.message, /\.$/, 'error reads as a sentence');
+        return true;
+      }
+    );
+  }
+});
+
+test('redact: exportFile refuses missing/unsupported files and hostless PDF with sentences', async () => {
+  const hooks = loadHooks();
+  await assert.rejects(
+    () => hooks.exportFile({ model: modelFor(null), host: BARE_HOST }),
+    /Choose a file first\./
+  );
+  await assert.rejects(
+    () => hooks.exportFile({ model: modelFor(fileRef('x.bin', 'application/octet-stream', Uint8Array.from([9, 9, 9, 9]))), host: BARE_HOST }),
+    /That file is not a supported image, SVG or PDF\./
+  );
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', svgBytes('%PDF-1.4\n%%EOF\n')), { bars: [{ page: 1, x: 0, y: 0, w: 10, h: 10 }] }),
+      host: BARE_HOST, // no host.pdf at all
+    }),
+    /PDF redaction is not available in this app\./
+  );
+});
+
+test('redact: SVG with no usable size refuses vector mode with guidance', async () => {
+  const hooks = loadHooks();
+  const sizeless = '<svg xmlns="http://www.w3.org/2000/svg"><text>hello there</text></svg>';
+  await assert.rejects(
+    () => hooks.exportFile({ model: modelFor(fileRef('s.svg', 'image/svg+xml', svgBytes(sizeless)), { svgVector: true }), host: BARE_HOST }),
+    /This SVG has no usable size\. Turn off vector mode to export it as a PNG instead\./
+  );
+});
+
+// ─── exportFile: PDF path against a contract-shaped host stub ────────────────
+
+const PDF_SRC = svgBytes('%PDF-1.4\n1 0 obj\nendobj\n%%EOF\n');
+const PDF_OUT = svgBytes('%PDF-1.7\nrebuilt image-only body\n%%EOF\n');
+
+function pdfHost(over: any = {}): any {
+  return {
+    ...BARE_HOST,
+    pdf: {
+      analyze: async () => ({ findings: [] }),
+      redact: async () => ({ bytes: PDF_OUT, pages: 2 }),
+      ...over.pdf,
+    },
+    ...(over.c2pa ? { c2pa: over.c2pa } : {}),
+  };
+}
+
+test('redact: PDF export ships the redacted bytes once every gate passes', async () => {
+  const hooks = loadHooks();
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+    host: pdfHost(),
+  });
+  assert.equal(res.mime, 'application/pdf');
+  assert.equal(res.filename, 'doc-redacted.pdf');
+  assert.deepEqual(Array.from(res.bytes), Array.from(PDF_OUT));
+});
+
+test('redact: a bar aimed past the last PDF page fails the export instead of vanishing', async () => {
+  const hooks = loadHooks();
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 3, x: 10, y: 10, w: 40, h: 12 }] }),
+      host: pdfHost(),
+    }),
+    /Verification failed: a bar targets page 3 but the PDF has only 2 pages\. Nothing was downloaded\./
+  );
+});
+
+test('redact: a page-render warning from the bridge fails the export closed', async () => {
+  const hooks = loadHooks();
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+      host: pdfHost({ pdf: { redact: async () => ({ bytes: PDF_OUT, pages: 2, warnings: ['Page 2 could not be rendered. It ships as a blank page with its bars burned in.'] }) } }),
+    }),
+    /Verification failed: Page 2 could not be rendered\..*Nothing was downloaded\./
+  );
+});
+
+test('redact: analyzer findings on the rebuilt PDF fail the export', async () => {
+  const hooks = loadHooks();
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+      host: pdfHost({ pdf: { analyze: async () => ({ findings: [{ label: 'Author', detail: 'Jane', tone: 'warn' }] }), redact: async () => ({ bytes: PDF_OUT, pages: 2 }) } }),
+    }),
+    /Verification failed: the rebuilt PDF still carries Author\. Nothing was downloaded\./
+  );
+});
+
+test('redact: resign calls host.c2pa.sign with the contract shape and ships its return value', async () => {
+  const hooks = loadHooks();
+  const SIGNED = svgBytes('%PDF-1.7\nrebuilt image-only body\n%%EOF\nsigned incremental update\n%%EOF\n');
+  let seen: any = null;
+  const host = pdfHost({
+    c2pa: {
+      sign: async (bytes: Uint8Array, format: string, opts: any) => {
+        seen = { bytes, format, opts };
+        return SIGNED;
+      },
+    },
+  });
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }], resign: true }),
+    host,
+  });
+  assert.ok(seen, 'sign was called');
+  assert.ok(seen.bytes instanceof Uint8Array, 'sign receives bytes');
+  assert.equal(seen.format, 'pdf', 'sign receives the format KEY, not an options object');
+  assert.equal(typeof seen.opts.description, 'string');
+  // The signed bytes ship verbatim — even though signing legitimately added a
+  // second %%EOF (the gate ran on the unsigned rebuild, before signing).
+  assert.deepEqual(Array.from(res.bytes), Array.from(SIGNED));
+});
+
+test('redact: a signer that throws fails the resign export visibly', async () => {
+  const hooks = loadHooks();
+  const host = pdfHost({ c2pa: { sign: async () => { throw new Error('No signing identity is available.'); } } });
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }], resign: true }),
+      host,
+    }),
+    /No signing identity is available\./
+  );
+});
+
+// ─── exportFile: SVG vector mode geometry + housekeeping-attr fidelity ───────
+
+test('redact: unit-ed root width/height falls back to the viewBox so bars still paint', async () => {
+  const hooks = loadHooks();
+  for (const size of ['width="100%" height="100%"', 'width="210mm" height="157.5mm"']) {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" ${size} viewBox="0 0 800 600">
+  <text x="380" y="300">SECRET</text>
+</svg>`;
+    const res = await hooks.exportFile({
+      model: modelFor(fileRef('t.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true, bars: [{ page: 1, x: 380, y: 280, w: 80, h: 40 }] }),
+      host: BARE_HOST,
+    });
+    const out = new TextDecoder().decode(res.bytes);
+    // 380..460 inflated 2px → 378..462 (w 84), quantised UP to 96, centred →
+    // 372..468; y 280..320 → 278..322. Mapped 1:1 into the viewBox.
+    assert.match(out, /<rect x="372" y="278" width="96" height="44" fill="#000000" fill-opacity="1"\/>/, size);
+  }
+});
+
+test('redact: Illustrator data-name beside a kept id does not false-positive the gate', async () => {
+  const hooks = loadHooks();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="100" viewBox="0 0 200 100">
+  <g id="Layer_2" data-name="Layer 2"><text x="10" y="50">Account 4417</text></g>
+</svg>`;
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('ai.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true }),
+    host: BARE_HOST,
+  });
+  const out = new TextDecoder().decode(res.bytes);
+  assert.match(out, /id="Layer_2"/);
+  assert.doesNotMatch(out, /data-name/);
+  assert.match(out, /Account 4417/);
+});
+
+test('redact: vector export removes title/desc, embedded data-URI images and external hrefs', async () => {
+  const hooks = loadHooks();
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="100" viewBox="0 0 200 100">
+  <title>quarterly figures draft</title>
+  <desc>drawn from the payroll extract</desc>
+  <image xlink:href="data:image/jpeg;base64,QUFBQUJCQkJDQ0ND" width="50" height="50"/>
+  <a href="https://tracker.example/pixel"><text x="10" y="50">Keep me</text></a>
+</svg>`;
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('mix.svg', 'image/svg+xml', svgBytes(svg)), { svgVector: true }),
+    host: BARE_HOST,
+  });
+  const out = new TextDecoder().decode(res.bytes);
+  assert.doesNotMatch(out, /<title|quarterly|payroll|<desc/);
+  assert.doesNotMatch(out, /data:image|QUFBQUJCQkJDQ0ND|<image/);
+  assert.doesNotMatch(out, /tracker\.example|https?:\/\/tracker/);
+  assert.match(out, /Keep me/, 'the link text survives, only the external href goes');
+});
+
+// ─── PDF page previews (host.pdf.pages → pdfPages extras) ────────────────────
+
+const pageSvg = (n: number): string =>
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 612 792"><text x="10" y="20">page ${n}</text></svg>`;
+
+const TWO_PAGES = {
+  pages: [
+    { svg: pageSvg(1), page: 1, widthPt: 612, heightPt: 792 },
+    { svg: pageSvg(2), page: 2, widthPt: 612, heightPt: 792 },
+  ],
+  truncated: false,
+};
+
+test('redact: pdfPages extras carry per-page preview URLs in PDF points (data-URL fallback)', async () => {
+  const hooks = loadHooks();
+  const saved = (URL as any).createObjectURL;
+  (URL as any).createObjectURL = undefined; // force the data: fallback (node shells without object URLs)
+  try {
+    const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
+    const res = await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
+    assert.equal(res.hasPdfPages, true);
+    assert.equal(res.pagesPending, false);
+    assert.equal(res.pagesTruncated, false);
+    assert.equal(res.pagesError, '');
+    assert.equal(res.pdfPages.length, 2);
+    for (const [i, p] of res.pdfPages.entries()) {
+      assert.equal(p.page, i + 1);
+      assert.equal(p.w, 612);
+      assert.equal(p.h, 792);
+      assert.match(p.url, /^data:image\/svg\+xml;charset=utf-8,/);
+      assert.match(decodeURIComponent(p.url), new RegExp(`page ${i + 1}`));
+    }
+  } finally {
+    (URL as any).createObjectURL = saved;
+  }
+});
+
+test('redact: page object URLs are revoked when the file changes, and the guard tolerates a missing revoke', async () => {
+  const hooks = loadHooks();
+  const savedCreate = (URL as any).createObjectURL;
+  const savedRevoke = (URL as any).revokeObjectURL;
+  const revoked: string[] = [];
+  let n = 0;
+  (URL as any).createObjectURL = () => `blob:test-${++n}`;
+  (URL as any).revokeObjectURL = (u: string) => { revoked.push(u); };
+  try {
+    const host = pdfHost({ pdf: { pages: async () => TWO_PAGES } });
+    await hooks.onInit({ model: modelFor(fileRef('doc-a.pdf', 'application/pdf', PDF_SRC)), host });
+    assert.equal(revoked.length, 0);
+    // A new file identity retires the previous job's URLs.
+    await hooks.onInit({ model: modelFor(fileRef('doc-b.pdf', 'application/pdf', PDF_SRC)), host });
+    assert.deepEqual(revoked, ['blob:test-1', 'blob:test-2']);
+    // No revokeObjectURL at all: the guard must not throw.
+    (URL as any).revokeObjectURL = undefined;
+    const res = await hooks.onInit({ model: modelFor(fileRef('doc-c.pdf', 'application/pdf', PDF_SRC)), host });
+    assert.equal(res.hasPdfPages, true);
+  } finally {
+    (URL as any).createObjectURL = savedCreate;
+    (URL as any).revokeObjectURL = savedRevoke;
+  }
+});
+
+test('redact: a slow page render reports pagesPending, then a later pass picks up the cached result', async () => {
+  const hooks = loadHooks();
+  let resolvePages: (v: any) => void = () => {};
+  const deferred = new Promise((r) => { resolvePages = r; });
+  const host = pdfHost({ pdf: { pages: () => deferred } });
+  const model = modelFor(fileRef('slow.pdf', 'application/pdf', PDF_SRC));
+
+  // First pass: the job outlives the budget → pending, analysis still usable.
+  const first = await hooks.onInit({ model, host });
+  assert.equal(first.pagesPending, true);
+  assert.equal(first.hasPdfPages, false);
+  assert.equal(first.supported, true);
+
+  // The job settles; the next pass (the template's poll re-committing bars)
+  // reads the cached result synchronously — no second host.pdf.pages call.
+  resolvePages(TWO_PAGES);
+  await deferred;
+  const second = await hooks.onInput({ id: 'bars', value: [], model, host });
+  assert.equal(second.pagesPending, false);
+  assert.equal(second.hasPdfPages, true);
+  assert.equal(second.pdfPages.length, 2);
+});
+
+test('redact: a failed page render shows one sentence and keeps the analysis usable', async () => {
+  const hooks = loadHooks();
+  const host = pdfHost({
+    pdf: {
+      analyze: async () => ({ findings: [{ label: 'Author', detail: 'Jane', tone: 'warn' }] }),
+      pages: async () => { throw new Error('renderer exploded'); },
+    },
+  });
+  const res = await hooks.onInit({ model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC)), host });
+  assert.equal(res.hasPdfPages, false);
+  assert.equal(res.pagesPending, false);
+  assert.match(res.pagesError, /could not be rendered/);
+  assert.ok(findLabel(res.findings, 'Author'), 'analysis findings still surface');
+});
+
+// ─── end-to-end: real manifest + template through createRuntime ──────────────
+
+test('redact (e2e): JPEG analysis renders GPS + trailing-bytes findings in the template', async () => {
+  const rt = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('beach.jpg', 'image/jpeg', buildGpsJpegWithTrailer()),
+  });
+  const html = rt.getHydrated();
+  assert.match(html, /GPS location/);
+  assert.match(html, /37\.80833, -122\.41667/);
+  assert.match(html, /Data after end of image/);
+  assert.match(html, /earlier un-cropped or un-redacted version/);
+  // The reveal toggle exists and defaults OFF (no checked attribute).
+  assert.match(html, /id="rd-show-details"/);
+  assert.doesNotMatch(html, /id="rd-show-details"[^>]*\bchecked\b/);
+  // Honest register: the limits section never claims SynthID detection.
+  assert.match(html, /cannot detect or remove them/);
+  assert.match(html, /Blurred text has been recovered in practice/);
+});
+
+test('redact (e2e): unsupported file renders guidance, not a crash', async () => {
+  const rt = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('notes.txt', 'text/plain', new TextEncoder().encode('just some text')),
+  });
+  assert.match(rt.getHydrated(), /doesn't look like a supported file/);
+});
+
+test('redact (e2e): PDF without host.pdf renders the unavailable branch', async () => {
+  const rt = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('doc.pdf', 'application/pdf', new TextEncoder().encode('%PDF-1.4\n1 0 obj\nendobj\n%%EOF\n')),
+  });
+  assert.match(rt.getHydrated(), /PDF redaction isn't available here\./);
+});
+
+test('redact (e2e): PDF pages render as frames in point space with the no-bars button disabled', async () => {
+  const rt = await createRuntime(redactTool(), pdfHost({ pdf: { pages: async () => TWO_PAGES } }), {
+    source: fileRef('doc.pdf', 'application/pdf', PDF_SRC),
+  });
+  const html = rt.getHydrated();
+  // One frame per page, coordinate space declared in PDF points.
+  assert.match(html, /class="rd-frame rd-pageframe" data-page="1" data-ptw="612" data-pth="792"/);
+  assert.match(html, /class="rd-frame rd-pageframe" data-page="2"/);
+  assert.match(html, /Page 2<\/span>/);
+  // The stage element carries no pending flag (the IIFE source still names it).
+  assert.match(html, /class="rd-stage" data-bars="\[\]">/);
+  // No bars yet: the download button is really disabled, with guidance as label.
+  assert.match(html, /<button type="button" class="rd-download" data-export-file disabled>Draw a bar over what should go first<\/button>/);
+});
+
+test('redact (e2e): exportFile through the runtime returns verified SVG bytes', async () => {
+  const rt = await createRuntime(redactTool(), BARE_HOST, {
+    source: fileRef('art.svg', 'image/svg+xml', svgBytes(DIRTY_SVG)),
+    svgVector: true,
+    bars: [{ page: 1, x: 20, y: 30, w: 50, h: 20 }],
+  });
+  const { bytes, mime, filename } = await rt.exportFile() as any;
+  assert.equal(mime, 'image/svg+xml');
+  assert.equal(filename, 'art-redacted.svg');
+  const out = new TextDecoder().decode(bytes);
+  assert.doesNotMatch(out, /<metadata|<script|hushtoken/);
+  assert.match(out, /fill="#000000"/);
+});

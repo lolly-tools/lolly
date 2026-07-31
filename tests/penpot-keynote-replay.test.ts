@@ -26,7 +26,12 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
-import { penpotShapeToNode, penpotGroupToSvg, finalizeBoxes, collectPenpotFontUsage } from '../engine/src/design-map.ts';
+import { penpotShapeToNode, penpotGroupToSvg, finalizeBoxes, collectPenpotFontUsage, collectPenpotExportMarks } from '../engine/src/design-map.ts';
+import { scanPenpotUsage } from '../engine/src/brand-import.ts';
+import { createTokenSet } from '../engine/src/tokens.ts';
+import { contrastRatio } from '../engine/src/brand-derive.ts';
+import { proposeBrandRoles, buildBrandDocFromUsage } from '../shells/web/src/lib/brand-propose.ts';
+import { listStudioTokens } from '../shells/web/src/lib/token-studio.ts';
 import { loadTool } from '../engine/src/loader.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
 import { baseHost } from './helpers/host.ts';
@@ -42,6 +47,8 @@ interface Deck {
   pages: Map<string, Record<string, Shape>>;
   /** every shape across every page. */
   all: Shape[];
+  /** the raw unzipped archive, path → bytes — for the entry-level engine APIs. */
+  entries: Record<string, Uint8Array>;
 }
 
 let deckPromise: Promise<Deck> | null = null;
@@ -66,7 +73,7 @@ function loadDeck(): Promise<Deck> {
       all.push(shape);
     }
     assert.ok(all.length > 0, 'the keynote export contains shape JSONs');
-    return { fileId, pages, all };
+    return { fileId, pages, all, entries };
   })();
   return deckPromise;
 }
@@ -244,4 +251,372 @@ test('keynote: a Work Sans box hydrates to font-family:\'Work Sans\' via the rea
   // Hydration HTML-escapes quotes in style attributes, so the ' appears as &#x27;.
   assert.ok(html.includes('font-family:&#x27;Work Sans&#x27;, var(--font-brand,'),
     'the hydrated markup paints the imported family ahead of the brand stack');
+});
+
+// ── 8. usage: the whole-file paint census (scanPenpotUsage) ──────────────────
+
+test('keynote: scanPenpotUsage census matches the audit scan exactly', { skip: SKIP }, async () => {
+  const { entries } = await loadDeck();
+  const u = scanPenpotUsage(entries);
+
+  assert.equal(u.colors.length, 22, '22 distinct colours across every paint source');
+  assert.deepEqual(u.colors[0], { hex: '#151035', fills: 1066, strokes: 6, textRuns: 58, gradientStops: 76, total: 1206 });
+  assert.equal(u.colors.filter(c => c.fills > 0).length, 14, '14 distinct fill colours');
+  assert.equal(u.colors.filter(c => c.strokes > 0).length, 6, '6 distinct stroke colours');
+  assert.equal(u.colors.filter(c => c.textRuns > 0).length, 6, '6 distinct text-run colours');
+  assert.equal(u.colors.filter(c => c.gradientStops > 0).length, 9, '9 distinct gradient-stop colours');
+  assert.equal(u.colors.find(c => c.hex === '#EEEEEE')!.fills, 929);
+
+  assert.equal(u.gradients.length, 7, '7 distinct gradients by stop signature');
+  assert.equal(u.gradients.reduce((n, g) => n + g.count, 0), 101, '101 gradient paints in total');
+  assert.ok(u.gradients.every(g => g.type === 'linear'), 'every gradient is linear');
+  assert.equal(u.gradients[0]!.count, 74, 'the main slide-background gradient dominates');
+  assert.equal(u.gradients[0]!.angle, 180, 'modal fraction-space angle');
+  assert.deepEqual(u.gradients[0]!.stops.map(s => s.color), ['#151035', '#312470']);
+
+  assert.deepEqual([...new Set(u.fonts.map(f => f.fontFamily))].sort(),
+    ['Spline Sans Mono', 'Work Sans', 'sourcesanspro']);
+});
+
+// ── 9. usage: the proposal assigns the roles a designer would ────────────────
+
+test('keynote: the usage proposal assigns the roles a designer would', { skip: SKIP }, async () => {
+  const { entries } = await loadDeck();
+  const roles = proposeBrandRoles(scanPenpotUsage(entries));
+  assert.ok(roles, 'a file this colourful always yields a proposal');
+
+  assert.equal(roles.surface, '#151035', 'the dominant fill is the surface');
+  assert.equal(roles.surfaceLook, 'dark', 'OKLCH L 0.205 → a dark look');
+  assert.equal(roles.primary, '#F23AE5', 'top weight x chroma accent');
+  assert.equal(roles.secondary, '#14CECA', 'next accent at least 30 degrees of hue away');
+  assert.equal(roles.scheme, 'triad', 'a 139-degree arc reads as triad');
+  assert.equal(roles.text, '#FFFFFF', 'the most-used text colour that clears 4.5:1 on the surface');
+  assert.ok(contrastRatio(roles.text, roles.surface) >= 4.5, 'the text pick actually reads');
+
+  // The load-bearing exclusion: #312470 is the surface's gradient partner. Its
+  // weight x chroma score (76 x 0.125) would beat #14CECA's (57 x 0.130) if it
+  // stayed in the pool — the shade rule is what keeps the real accent second.
+  assert.notEqual(roles.secondary, '#312470');
+  assert.ok(!roles.extras.includes('#312470'), 'the surface shade never reaches the accent pool');
+});
+
+// ── 10. usage: the proposal doc installs cleanly as a resolvable brand ───────
+
+test('keynote: the proposal doc installs cleanly as a resolvable brand', { skip: SKIP }, async () => {
+  const { entries } = await loadDeck();
+  const u = scanPenpotUsage(entries);
+  const { doc, roles, fonts, gradientCount } = buildBrandDocFromUsage(u, 'UXDays 2026 Keynote (3)');
+
+  assert.equal(fonts.brand, 'Work Sans', 'the most-run family is the brand face');
+  assert.equal(fonts.mono, 'Spline Sans Mono', 'the /mono/ family is the mono face');
+  assert.deepEqual(fonts.google, ['Work Sans', 'Spline Sans Mono']);
+  assert.deepEqual(fonts.missing, ['sourcesanspro']);
+
+  const base = doc.base as Record<string, any>;
+  assert.deepEqual(base.font.brand.$value, ['Work Sans'], 'font.brand rides the doc so carryUserFontTokens keeps it');
+  assert.deepEqual(base.font.mono.$value, ['Spline Sans Mono']);
+
+  assert.equal(gradientCount, 3, 'the top three gradients became tokens');
+  const gradTokens = listStudioTokens(doc).filter(t => t.kind === 'gradient');
+  assert.equal(gradTokens.length, 3);
+  const g1 = gradTokens.find(t => t.key === 'gradient.file-gradient-1');
+  assert.ok(g1, 'the dominant gradient is token one');
+  assert.equal(g1!.angle, 180);
+  assert.deepEqual((g1!.raw as Array<{ color: string }>).map(s => s.color), ['#151035', '#312470']);
+
+  // Resolvability: the dark look leads, and the observed secondary is pinned
+  // as a literal in BOTH themes (the alias-detach write).
+  const ts = createTokenSet(doc);
+  assert.equal(ts.themes()[0]!.name, 'dark', 'surface dark makes dark the default theme');
+  assert.equal(String(ts.resolve('color.semantic.secondary')).toUpperCase(), '#14CECA');
+  const tsLight = createTokenSet(doc, { theme: 'light' });
+  assert.equal(String(tsLight.resolve('color.semantic.secondary')).toUpperCase(), '#14CECA');
+  assert.ok(ts.colors().length > 0, 'the palette walks');
+  assert.equal(String(roles.secondary).toUpperCase(), '#14CECA');
+});
+
+// ── 11. export marks: the census ─────────────────────────────────────────────
+// (Spec: exports-marked asset ingest — slot 11 per the cross-spec coordination.)
+
+/** pageId → declared page name, read from the page-level meta JSONs. */
+async function pageNamesById(): Promise<Map<string, string>> {
+  const { fileId, pages, entries } = await loadDeck();
+  const { strFromU8 } = await import('fflate');
+  const names = new Map<string, string>();
+  for (const pid of pages.keys()) {
+    const meta = entries[`files/${fileId}/pages/${pid}.json`];
+    if (!meta) continue;
+    try { names.set(pid, String(JSON.parse(strFromU8(meta)).name ?? '')); } catch { /* unnamed */ }
+  }
+  return names;
+}
+
+test('keynote: the export-marks census matches the audit scan exactly', { skip: SKIP }, async () => {
+  const { pages, all } = await loadDeck();
+  const names = await pageNamesById();
+
+  // Raw census: 72 marked shapes, {frame:29, group:38, rect:5}, 73 raw entries
+  // (one identical-duplicate pair), every entry png|jpeg|svg at scale 1|2|4 with
+  // suffix '', none hidden and none under a hidden ancestor.
+  const marked = all.filter((s) => Array.isArray(s.exports) && s.exports.length > 0);
+  assert.equal(marked.length, 72, '72 export-marked shapes');
+  const typeCensus: Record<string, number> = {};
+  for (const s of marked) typeCensus[String(s.type)] = (typeCensus[String(s.type)] ?? 0) + 1;
+  assert.deepEqual(typeCensus, { frame: 29, group: 38, rect: 5 }, 'carrier type census');
+  let rawTotal = 0;
+  let dupPairs = 0;
+  for (const s of marked) {
+    assert.notEqual(s.hidden, true, `marked shape ${s.id} is not hidden`);
+    const sigs: string[] = [];
+    for (const e of s.exports) {
+      rawTotal++;
+      assert.ok(['png', 'jpeg', 'svg'].includes(String(e.type)), `type ${e.type}`);
+      assert.ok([1, 2, 4].includes(Number(e.scale)), `scale ${e.scale}`);
+      assert.equal(String(e.suffix ?? ''), '', 'suffix is always empty');
+      sigs.push(`${e.type}|${e.scale}|${e.suffix}`);
+    }
+    dupPairs += sigs.length - new Set(sigs).size;
+  }
+  assert.equal(rawTotal, 73, '73 raw entries');
+  assert.equal(dupPairs, 1, 'exactly one identical-duplicate pair');
+  // No marked shape sits under a hidden ancestor (checked per page via parents).
+  for (const shapesById of pages.values()) {
+    const hiddenSubtree = new Set<string>();
+    const sweep = (id: string): void => {
+      hiddenSubtree.add(id);
+      const s = shapesById[id];
+      for (const k of (s && Array.isArray(s.shapes) ? s.shapes : [])) sweep(String(k));
+    };
+    for (const s of Object.values(shapesById)) if (s.hidden === true) sweep(String(s.id));
+    for (const s of Object.values(shapesById)) {
+      if (Array.isArray(s.exports) && s.exports.length) {
+        assert.ok(!hiddenSubtree.has(String(s.id)), `marked shape ${s.id} has no hidden ancestor`);
+      }
+    }
+  }
+
+  // Collector: 57 kept on the deck page, 0 on the component page (3 direct
+  // masters + 12 master-subtree descendants pruned), kept census, deduped totals.
+  const deckPid = [...names].find(([, n]) => n === 'UX DAYS 2026')?.[0];
+  const compPid = [...names].find(([, n]) => n === 'Main components')?.[0];
+  assert.ok(deckPid && compPid, 'both pages found by name');
+  const deckMarks = collectPenpotExportMarks(pages.get(deckPid!)!);
+  assert.equal(deckMarks.length, 57, '57 kept marks on UX DAYS 2026');
+  assert.equal(collectPenpotExportMarks(pages.get(compPid!)!).length, 0, '0 kept marks on Main components');
+  const keptCensus: Record<string, number> = {};
+  for (const m of deckMarks) keptCensus[String(m.shape.type)] = (keptCensus[String(m.shape.type)] ?? 0) + 1;
+  assert.deepEqual(keptCensus, { frame: 22, group: 30, rect: 5 }, 'kept carrier census');
+  const entriesTotal = deckMarks.reduce((n, m) => n + m.entries.length, 0);
+  assert.equal(entriesTotal, 57, '57 deduped entries');
+  const configCensus = new Map<string, number>();
+  for (const m of deckMarks) {
+    for (const e of m.entries) {
+      const k = `${e.type},${e.scale}`;
+      configCensus.set(k, (configCensus.get(k) ?? 0) + 1);
+    }
+  }
+  assert.deepEqual(
+    [...configCensus].sort((a, b) => a[0].localeCompare(b[0])),
+    [['jpeg,2', 6], ['jpeg,4', 2], ['png,1', 10], ['png,2', 17], ['png,4', 12], ['svg,1', 10]],
+    'deduped per-config census',
+  );
+});
+
+// ── 12. export marks: the pure-vector rule on the kept marks ─────────────────
+// (Slot 12.)
+
+test('keynote: the pure-vector rule on the kept marks', { skip: SKIP }, async () => {
+  const { pages } = await loadDeck();
+  const names = await pageNamesById();
+  const deckPid = [...names].find(([, n]) => n === 'UX DAYS 2026')?.[0];
+  assert.ok(deckPid, 'deck page found');
+  const shapesById = pages.get(deckPid!)!;
+  const marks = collectPenpotExportMarks(shapesById);
+
+  // Groups: 25 flatten to one pure-vector SVG, 5 refuse (the bake path);
+  // 9 of the flattening groups are svg-marked (the direct-store fast path).
+  const groups = marks.filter((m) => String(m.shape.type) === 'group');
+  assert.equal(groups.length, 30, '30 kept group marks');
+  let pure = 0;
+  let refuse = 0;
+  let svgMarkedPure = 0;
+  for (const m of groups) {
+    const svg = penpotGroupToSvg(m.shape, (id) => shapesById[id]);
+    if (svg) {
+      pure++;
+      assert.ok(svg.startsWith('<svg'), 'a flattened group is a standalone SVG');
+      const sh: any = m.shape;
+      const sel = (sh.selrect && typeof sh.selrect === 'object') ? sh.selrect : sh;
+      assert.ok(svg.includes(`viewBox="${Number(sel.x)} ${Number(sel.y)} ${Number(sel.width)} ${Number(sel.height)}"`),
+        `group ${sh.id}: selrect viewBox`);
+      if (m.entries.some((e) => e.type === 'svg')) svgMarkedPure++;
+    } else {
+      refuse++;
+    }
+  }
+  assert.equal(pure, 25, '25 groups flatten pure');
+  assert.equal(refuse, 5, '5 groups fall to the bake path');
+  assert.equal(svgMarkedPure, 9, '9 flattening groups are svg-marked');
+
+  // Rects: all 5 kept rect marks map to plain 464x503 box nodes and survive finalize.
+  const rects = marks.filter((m) => String(m.shape.type) === 'rect');
+  assert.equal(rects.length, 5, '5 kept rect marks');
+  for (const m of rects) {
+    const node = penpotShapeToNode(m.shape) as any;
+    assert.ok(node, 'the rect maps');
+    assert.equal(node.kind, 'box', 'kind box');
+    assert.equal(Math.round(node.w), 464, 'width 464');
+    assert.equal(Math.round(node.h), 503, 'height 503');
+    assert.equal(finalizeBoxes([node]).length, 1, 'one box row');
+  }
+});
+
+// ── Spec 3: per-corner radii + flip fidelity (slots 13–17) ───────────────────
+// (Appended block — imports hoist; kept here so the block stays append-only.)
+import { penpotTransformBaked, pathDBounds, mirrorPenpotGradient } from '../engine/src/design-map.ts';
+
+const isFlipped = (s: Shape): boolean => s.flipX === true || s.flipY === true;
+
+// ── 13. the flip + radius census ─────────────────────────────────────────────
+
+test('keynote: the flip and corner-radius census matches the audit scan exactly', { skip: SKIP }, async () => {
+  const { all } = await loadDeck();
+  const flipped = all.filter(isFlipped);
+  assert.equal(flipped.length, 96, '96 flipped shapes');
+  assert.equal(all.filter((s) => s.flipX === true).length, 82, '82 flipX');
+  assert.equal(all.filter((s) => s.flipY === true).length, 63, '63 flipY');
+  assert.equal(all.filter((s) => s.flipX === true && s.flipY === true).length, 49, '49 both');
+  const byType: Record<string, number> = {};
+  for (const s of flipped) byType[String(s.type)] = (byType[String(s.type)] || 0) + 1;
+  assert.deepEqual(byType, { path: 61, circle: 20, rect: 11, frame: 4 });
+  assert.equal(all.filter((s) => String(s.type) === 'text' && isFlipped(s)).length, 0, 'zero flipped text');
+  // Corner radii: 13 shapes, every one with all four corners EQUAL — the deck never
+  // exercises the unequal-corner route, which is why it's pinned by unit tests.
+  const withR = all.filter((s) => [s.r1, s.r2, s.r3, s.r4].some((r) => Number(r) > 0));
+  assert.equal(withR.length, 13, '13 shapes carry corner radii');
+  for (const s of withR) {
+    const r1 = Number(s.r1) || 0;
+    assert.ok([s.r2, s.r3, s.r4].every((r) => (r == null ? r1 : Number(r)) === r1),
+      `shape ${s.id}: all four corners equal`);
+  }
+  // Every path carries an object transform (identity or baked) — the field the
+  // double-transform fix keys on.
+  const paths = all.filter((s) => String(s.type) === 'path');
+  assert.equal(paths.length, 2290, '2290 paths');
+  assert.ok(paths.every((s) => s.transform && typeof s.transform === 'object'),
+    'every path has an object transform');
+});
+
+// ── 14. the coordinate-model invariant on a baked flipX path ─────────────────
+
+test('keynote: path content is page-space-final — inverse transform lands on selrect (<0.1px)', { skip: SKIP }, async () => {
+  const { all } = await loadDeck();
+  const s = all.find((x) => x.id === '9f538c81-bdb5-8040-8008-04f3d4329d45');
+  assert.ok(s, 'the flipX rot-336.56 arrow path exists');
+  assert.equal(s!.flipX, true);
+  assert.ok(Math.abs(Number(s!.rotation) - 336.5608257454455) < 1e-6);
+  assert.ok(penpotTransformBaked(s!.transform), 'its transform is baked (R·F, det −1)');
+  const t = s!.transform as { a: number; b: number; c: number; d: number };
+  assert.ok(Math.abs(t.a * t.d - t.b * t.c - -1) < 1e-4, 'det −1 (a flip is orientation-reversing)');
+  // Undo the baked transform about the selrect centre: the content maps back onto
+  // the selrect — proving content is selrect-geometry with R·F applied, so using
+  // selrect + rot AND the final content together transforms the shape twice.
+  const sel = s!.selrect;
+  const cx = sel.x + sel.width / 2, cy = sel.y + sel.height / 2;
+  const det = t.a * t.d - t.b * t.c;
+  const inv = { a: t.d / det, b: -t.b / det, c: -t.c / det, d: t.a / det };
+  const nums = String(s!.content).match(/-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g)!;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    const px = parseFloat(nums[i]!) - cx, py = parseFloat(nums[i + 1]!) - cy;
+    const ix = inv.a * px + inv.c * py + cx, iy = inv.b * px + inv.d * py + cy;
+    minX = Math.min(minX, ix); maxX = Math.max(maxX, ix);
+    minY = Math.min(minY, iy); maxY = Math.max(maxY, iy);
+  }
+  assert.ok(Math.abs(minX - sel.x) < 0.1, 'x lands on selrect');
+  assert.ok(Math.abs(minY - sel.y) < 0.1, 'y lands on selrect');
+  assert.ok(Math.abs((maxX - minX) - sel.width) < 0.1, 'width lands on selrect');
+  assert.ok(Math.abs((maxY - minY) - sel.height) < 0.1, 'height lands on selrect');
+});
+
+// ── 15. the baked-path fix: content bbox + rot 0, identity untouched ─────────
+
+test('keynote: a baked path maps to its content bbox with rot 0; identity paths keep selrect + rot', { skip: SKIP }, async () => {
+  const { all } = await loadDeck();
+  const s = all.find((x) => x.id === '9f538c81-bdb5-8040-8008-04f3d4329d45')!;
+  const node = penpotShapeToNode(s) as any;
+  assert.ok(node && node._vectorPath, 'takes the vector branch');
+  assert.equal(node.rot, 0, 'rot 0 — the transform is already in the content');
+  const r3 = (v: number): number => Math.round(v * 1000) / 1000;
+  assert.equal(r3(node.x), 484.166, 'x = content bbox, not selrect');
+  assert.equal(r3(node.y), 244);
+  assert.equal(r3(node.w), 55.163);
+  assert.equal(r3(node.h), 82.02);
+  assert.deepEqual(
+    [r3(node._vectorSize.x), r3(node._vectorSize.y), r3(node._vectorSize.w), r3(node._vectorSize.h)],
+    [484.166, 244, 55.163, 82.02], '_vectorSize rides the same bbox');
+  const bb = pathDBounds(String(s.content))!;
+  assert.equal(r3(bb.x), r3(node.x), 'the bbox is pathDBounds’s');
+  // An identity-transform path keeps the byte-identical selrect + rot route.
+  const ident = all.find((x) => String(x.type) === 'path' && x.transform
+    && !penpotTransformBaked(x.transform) && penpotShapeToNode(x));
+  assert.ok(ident, 'an identity-transform path exists');
+  const inode = penpotShapeToNode(ident!) as any;
+  const isel = ident!.selrect;
+  assert.equal(inode.x, Number(isel.x));
+  assert.equal(inode.y, Number(isel.y));
+  assert.equal(inode.w, Number(isel.width));
+  assert.equal(inode.h, Number(isel.height));
+  assert.equal(inode.rot, Number(ident!.rotation) || 0);
+});
+
+// ── 16. slide backgrounds: the flipX frames mirror their gradient ────────────
+
+test('keynote: the 4 flipX slide-background frames mirror 117° → 243°', { skip: SKIP }, async () => {
+  const { all } = await loadDeck();
+  const flippedFrames = all.filter((s) => String(s.type) === 'frame' && isFlipped(s));
+  assert.equal(flippedFrames.length, 4, 'exactly 4 flipped frames');
+  for (const f of flippedFrames) {
+    assert.equal(f.flipX, true, `frame ${f.id}: all are flipX`);
+    assert.notEqual(f.flipY, true);
+    assert.equal(Math.round(f.selrect.width), 895);
+    assert.equal(Math.round(f.selrect.height), 503);
+    const node = penpotShapeToNode(f) as any;
+    assert.equal(node.grad, 'lin.srgb_243_151035-0_312470-100', `frame ${f.id}: mirrored spec`);
+  }
+  // The flipped board …82ce and its unflipped sibling …82b1 sit on the same page.
+  const flipped = all.find((s) => s.id === '31d3cc1f-7979-8010-8008-0501390882ce')!;
+  const plain = all.find((s) => s.id === '31d3cc1f-7979-8010-8008-0501390882b1')!;
+  assert.ok(flipped && plain, 'both boards exist');
+  assert.equal((penpotShapeToNode(plain) as any).grad, 'lin.srgb_117_151035-0_312470-100',
+    'the unflipped sibling keeps the authored 117° spec');
+  // And the mirror is exactly the engine helper applied to the same fill.
+  const g = flipped.fills[0].fillColorGradient;
+  const mg = mirrorPenpotGradient(g, true, false) as any;
+  assert.ok(Math.abs(mg.startX - (1 - g.startX)) < 1e-12 && Math.abs(mg.endX - (1 - g.endX)) < 1e-12);
+});
+
+// ── 17. image flip: the two "square" rects carry the _fillFlip marker ────────
+
+test('keynote: the 2 flipY image-fill "square" rects mark _fillFlip \'y\' with the shared media', { skip: SKIP }, async () => {
+  const { all } = await loadDeck();
+  const flippedImages = all.filter((s) => isFlipped(s)
+    && Array.isArray(s.fills) && s.fills.some((f: any) => f?.fillImage?.id != null));
+  assert.equal(flippedImages.length, 2, 'exactly 2 flipped image-fill shapes');
+  for (const s of flippedImages) {
+    assert.equal(s.name, 'square');
+    assert.equal(s.flipY, true);
+    assert.notEqual(s.flipX, true, 'flipY only');
+    const node = penpotShapeToNode(s) as any;
+    assert.equal(node.kind, 'image');
+    assert.equal(node._fillFlip, 'y', `shape ${s.id}: the marker the shell's media loader bakes`);
+    assert.equal(node._fillImageId, '6aafd946-1972-8152-8008-0bae3c6b1f80', 'both share the one media');
+  }
+  const target = flippedImages.find((s) => s.id === 'adf652d7-b996-8054-8005-9d80912e9a89');
+  assert.ok(target, 'the verified page-b2c5fbf9 "square" is one of them');
+  // Unflipped image fills carry NO marker — the field stays absent, not ''.
+  const plainImg = all.find((s) => !isFlipped(s)
+    && Array.isArray(s.fills) && s.fills.some((f: any) => f?.fillImage?.id != null));
+  assert.ok(plainImg, 'an unflipped image fill exists');
+  assert.equal((penpotShapeToNode(plainImg!) as any)._fillFlip, undefined);
 });

@@ -23,6 +23,8 @@
  * below mirror the neutral blank-brand (brands/lolly-start) layout-studio fork.
  */
 
+import { cornerRadii, roundedRectPath } from './css-box.ts';
+
 /** A 2-D affine matrix (SVG/CSS convention: [a c e / b d f]). */
 interface Matrix { a: number; b: number; c: number; d: number; e: number; f: number; }
 
@@ -135,6 +137,7 @@ interface DesignNode {
   strokeW?: number;
   strokeDash?: string;
   _fillImageId?: string;
+  _fillFlip?: string;
   _imageHash?: string | null;
   _vectorPath?: string;
   _vectorFill?: string;
@@ -679,12 +682,21 @@ interface PenpotShape {
   fills?: unknown;
   strokes?: unknown;
   content?: unknown;
+  transform?: unknown;
+  flipX?: unknown;
+  flipY?: unknown;
   r1?: unknown;
+  r2?: unknown;
+  r3?: unknown;
+  r4?: unknown;
   shadow?: unknown;
   blur?: unknown;
   hidden?: unknown;
   shapes?: unknown;
   maskedGroup?: unknown;
+  exports?: unknown;
+  componentRoot?: unknown;
+  mainInstance?: unknown;
 }
 
 // Cap mirrors gradient-spec.ts MAX_GRADIENT_STOPS (kept literal: design-map must
@@ -726,6 +738,98 @@ export function penpotGradientToSpec(g: unknown, w: number, h: number, fillOpaci
     parts.push(`${hex}-${pos}`);
   }
   return `${kind}.srgb_${angle}_${parts.join('_')}`;
+}
+
+/**
+ * True when a Penpot shape's `transform` matrix is non-identity — i.e. rotation /
+ * flip / skew have been BAKED into the shape's path `content` (which Penpot writes
+ * page-space-final). e/f are ignored: they carry ~1e-9 float noise, never real
+ * translation, and translation wouldn't change the double-transform question anyway.
+ * @param {*} t the shape's `transform`.
+ * @returns {boolean}
+ */
+export function penpotTransformBaked(t: unknown): boolean {
+  if (!t || typeof t !== 'object') return false;
+  const m = t as { a?: unknown; b?: unknown; c?: unknown; d?: unknown };
+  return Math.abs(num(m.a, 1) - 1) + Math.abs(num(m.b, 0)) + Math.abs(num(m.c, 0)) + Math.abs(num(m.d, 1) - 1) > 1e-3;
+}
+
+/**
+ * Loose bounding box of an absolute-command SVG path `d`: scans every coordinate
+ * pair, so cubic CONTROL points can bulge the box slightly — a deliberately cheap
+ * contract that's sufficient for a placement rect (parseSvgPath/pathBounds is the
+ * exact-but-heavier one). Returns null unless the commands are only M/L/C/Z
+ * (relative/arc commands would need real interpretation) with ≥1 finite pair.
+ * @param {string} d absolute path data.
+ * @returns {{x:number,y:number,w:number,h:number}|null}
+ */
+export function pathDBounds(d: string): { x: number; y: number; w: number; h: number } | null {
+  const s = String(d ?? '');
+  const NUM_RE = /-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g;
+  // Strip numbers first so exponent e/E can't read as a command letter.
+  const cmds = s.replace(NUM_RE, ' ').match(/[A-Za-z]/g) || [];
+  if (!cmds.length || cmds.some((c) => c !== 'M' && c !== 'L' && c !== 'C' && c !== 'Z')) return null;
+  const nums = s.match(NUM_RE) || [];
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i + 1 < nums.length; i += 2) {
+    const px = parseFloat(nums[i]!), py = parseFloat(nums[i + 1]!);
+    if (!Number.isFinite(px) || !Number.isFinite(py)) continue;
+    if (px < minX) minX = px;
+    if (px > maxX) maxX = px;
+    if (py < minY) minY = py;
+    if (py > maxY) maxY = py;
+  }
+  if (!Number.isFinite(minX)) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+/**
+ * Mirror a Penpot gradient's endpoints for a flipped shape. Penpot stores start/end
+ * as fractions of the UNFLIPPED shape box and renders the gradient through the flip
+ * transform; consumers here emit unflipped geometry, so the endpoints must mirror
+ * instead (x → 1−x under flipX, y → 1−y under flipY; stops untouched). Returns the
+ * input object itself when there is no flip.
+ * @param {*} g the fill's `fillColorGradient`.
+ * @param {boolean} flipX,flipY the shape's flip flags.
+ * @returns {*}
+ */
+export function mirrorPenpotGradient(g: unknown, flipX: boolean, flipY: boolean): unknown {
+  if ((!flipX && !flipY) || !g || typeof g !== 'object') return g;
+  const grad = g as PenpotGradient;
+  const out: PenpotGradient = { ...grad };
+  if (flipX) { out.startX = 1 - num(grad.startX, 0); out.endX = 1 - num(grad.endX, 1); }
+  if (flipY) { out.startY = 1 - num(grad.startY, 0); out.endY = 1 - num(grad.endY, 1); }
+  return out;
+}
+
+/**
+ * Path data for a rect with four independent corner radii — a thin adapter over the
+ * one existing rounded-corner implementation (css-box.ts): cornerRadii applies the
+ * CSS §5.5 overlap clamp, roundedRectPath emits the four-arc path, so the clamp and
+ * arc conventions stay shared with the HTML→SVG export walker.
+ * @param {number} x,y,w,h the rect.
+ * @param {number[]} r `[tl, tr, br, bl]` corner radii in px.
+ * @returns {string}
+ */
+export function penpotRoundedRectD(x: number, y: number, w: number, h: number, r: [number, number, number, number]): string {
+  const px = (v: number): string => `${Math.max(0, num(v, 0))}px`;
+  const radii = cornerRadii({ topLeft: px(r[0]), topRight: px(r[1]), bottomRight: px(r[2]), bottomLeft: px(r[3]) }, w, h);
+  return roundedRectPath(x, y, w, h, radii);
+}
+
+// Per-corner radii, r1=top-left r2=top-right r3=bottom-right r4=bottom-left with
+// r2–r4 defaulting to r1 (Penpot omits them for uniform corners). Returns null when
+// all four are equal — the caller keeps its byte-identical rx/'rounded' fast path —
+// else the FLIP-PERMUTED [tl,tr,br,bl]: consumers emit unflipped geometry, and a
+// mirrored rect shows its corners swapped (flipX left↔right, flipY top↔bottom).
+function penpotUnequalCorners(sh: PenpotShape): [number, number, number, number] | null {
+  const r1 = num(sh.r1, 0);
+  const r2 = num(sh.r2, r1), r3 = num(sh.r3, r1), r4 = num(sh.r4, r1);
+  if (r1 === r2 && r1 === r3 && r1 === r4) return null;
+  let c: [number, number, number, number] = [r1, r2, r3, r4];
+  if (sh.flipX === true) c = [c[1], c[0], c[3], c[2]];
+  if (sh.flipY === true) c = [c[3], c[2], c[1], c[0]];
+  return c;
 }
 
 /**
@@ -866,7 +970,10 @@ export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown
     let fill = 'none', fillOp = '';
     if (gradFill) {
       const id = `pg${seq++}`;
-      const def = penpotGradientSvgDef(gradFill.fillColorGradient, id, num(gradFill.fillOpacity, 1));
+      // A flipped shape is emitted unflipped, so its gradient endpoints mirror.
+      const def = penpotGradientSvgDef(
+        mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true),
+        id, num(gradFill.fillOpacity, 1));
       if (!def) return null;
       defs.push(def);
       fill = `url(#${id})`;
@@ -927,6 +1034,12 @@ export function penpotGroupToSvg(group: unknown, lookup: (id: string) => unknown
       return `<ellipse cx="${x + w / 2}" cy="${y + h / 2}" rx="${w / 2}" ry="${h / 2}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
     }
     if (type === 'rect') {
+      // Unequal corner radii can't ride <rect rx>; bake the four-corner path
+      // (flip-permuted). Equal corners keep the byte-identical <rect> emission.
+      const corners = penpotUnequalCorners(sh);
+      if (corners) {
+        return `<path d="${penpotRoundedRectD(x, y, w, h, corners)}"${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
+      }
       const r1 = num(sh.r1, 0);
       return `<rect x="${x}" y="${y}" width="${w}" height="${h}"${r1 > 0 ? ` rx="${r1}"` : ''}${p}${rotAttr(sh, x + w / 2, y + h / 2)}${filterAttr}/>`;
     }
@@ -1015,6 +1128,10 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
       opacity: clamp(Math.round(shapeOp * num(imgFill.fillOpacity, 1) * 100), 0, 100),
       fit: imgFill.fillImage!.keepAspectRatio === false ? 'fill' : 'cover',
     };
+    // Flip flags mirror the PIXELS, not the box — a transient marker the shell's
+    // media loader consumes (boxes have no mirror field; geometry is unaffected).
+    const flip = (sh.flipX === true ? 'x' : '') + (sh.flipY === true ? 'y' : '');
+    if (flip) node._fillFlip = flip;
     applyPenpotStroke(sh, node);
     applyPenpotShadow(sh, node);
     applyPenpotBlur(sh, node);
@@ -1033,10 +1150,19 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     const d = penpotPathContentToD(sh.content);
     if (d) {
       const gradFirst = gradFill ? ((gradFill.fillColorGradient!.stops![0] ?? null) as { color?: unknown } | null) : null;
+      // Penpot path `content` is page-space-FINAL: when the shape's transform is
+      // non-identity (rotation/flip baked in), placing the baked SVG on the
+      // pre-rotation selrect AND re-applying `rot` transforms it twice — so the
+      // node rect becomes the content's own bbox with rot 0. Identity transforms
+      // keep the byte-identical selrect + rot route (bbox ≡ selrect there anyway,
+      // and paths whose bounds we can't scan fall back to it too).
+      const bb = penpotTransformBaked(sh.transform) ? pathDBounds(d) : null;
+      const bx = bb ? bb.x : x, by = bb ? bb.y : y;
+      const bw = bb ? Math.max(1, bb.w) : w, bh = bb ? Math.max(1, bb.h) : h;
       const node: DesignNode = {
         // Explicit fill:'' — the baked SVG is transparent outside its outline, so the
         // image box must not seed a backing colour behind it (nodeToBox seedBg).
-        kind: 'image', x, y, w, h, rot, fit: 'fill', fill: '',
+        kind: 'image', x: bx, y: by, w: bw, h: bh, rot: bb ? 0 : rot, fit: 'fill', fill: '',
         _vectorPath: d,
         // Gradient degrades to its first stop when the bake can't emit the def;
         // fill-less paths (stroke-only lines/arrows) stay unfilled, not black.
@@ -1044,7 +1170,7 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
           : (topFill && topFill.fillColor != null) ? String(topFill.fillColor) : 'none',
         _vectorGradient: gradFill ? gradFill.fillColorGradient : null,
         _vectorStroke: topPenpotStroke(sh),
-        _vectorSize: { w, h, x, y },
+        _vectorSize: { w: bw, h: bh, x: bx, y: by },
         // fillOpacity folds into node opacity (uniform over the one fill this branch bakes).
         opacity: clamp(Math.round(shapeOp * num((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100),
       };
@@ -1068,7 +1194,10 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
   // field — paints a plausible solid instead of transparent. Stop alpha already
   // folds the fill's own opacity, so node opacity carries the shape's alone.
   if (gradFill) {
-    const spec = penpotGradientToSpec(gradFill.fillColorGradient, w, h, num(gradFill.fillOpacity, 1));
+    // The box paints unflipped, so a flipped shape's gradient endpoints mirror.
+    const spec = penpotGradientToSpec(
+      mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true),
+      w, h, num(gradFill.fillOpacity, 1));
     if (spec) {
       node.grad = spec;
       const first = (gradFill.fillColorGradient!.stops![0] ?? null) as { color?: unknown } | null;
@@ -1077,6 +1206,28 @@ export function penpotShapeToNode(shape: unknown): DesignNode | null {
     }
   }
   if (type === 'circle') node.shape = 'ellipse';
+  // Per-corner radii: equal corners keep the byte-identical 'rounded' box; unequal
+  // corners have no box-field encoding (radius is one number), so the rect routes
+  // through the EXISTING vector bake as a four-corner rounded-rect path in selrect
+  // space, keeping rot. Stroke rides _vectorStroke (no CSS-border inflation).
+  const corners = type !== 'circle' ? penpotUnequalCorners(sh) : null;
+  if (corners) {
+    const gradFirst = gradFill ? ((gradFill.fillColorGradient!.stops![0] ?? null) as { color?: unknown } | null) : null;
+    const vnode: DesignNode = {
+      kind: 'image', x, y, w, h, rot, fit: 'fill', fill: '',
+      _vectorPath: penpotRoundedRectD(x, y, w, h, corners),
+      _vectorFill: gradFirst ? (safeColor(String(gradFirst.color ?? ''), '') || 'none')
+        : (topFill && topFill.fillColor != null) ? String(topFill.fillColor) : 'none',
+      _vectorGradient: gradFill
+        ? mirrorPenpotGradient(gradFill.fillColorGradient, sh.flipX === true, sh.flipY === true) : null,
+      _vectorStroke: topPenpotStroke(sh),
+      _vectorSize: { w, h, x, y },
+      opacity: clamp(Math.round(shapeOp * num((gradFill ?? topFill)?.fillOpacity, 1) * 100), 0, 100),
+    };
+    applyPenpotShadow(sh, vnode);
+    applyPenpotBlur(sh, vnode);
+    return vnode;
+  }
   const r1 = num(sh.r1, 0);
   if (r1 > 0) { node.shape = 'rounded'; node.radius = r1; }
   applyPenpotStroke(sh, node);
@@ -1150,6 +1301,93 @@ function applyPenpotBlur(sh: PenpotShape, node: DesignNode): void {
   if (String(get(b, 'type') || '') !== 'layer-blur') return;
   const v = num(get(b, 'value'), 0);
   if (v > 0) node.blur = v;
+}
+
+// ── Penpot export marks ──────────────────────────────────────────────────────
+// Penpot's "mark for export" data rides each shape as an `exports` array of
+// {type, suffix, scale} entries. The walk below is pure tree/tally work (no
+// provider or storage knowledge), so it lives here beside the other Penpot
+// mappers; the shell decides how each entry becomes a stored asset.
+
+/** One normalized entry from a shape's `exports` array. */
+export interface PenpotExportEntry {
+  type: 'png' | 'jpeg' | 'svg';
+  scale: number;
+  suffix: string;
+}
+
+/** One export-marked shape with its deduped, normalized entries. */
+export interface PenpotExportMark {
+  shape: PenpotShape;
+  entries: PenpotExportEntry[];
+}
+
+// Normalize one shape's raw `exports` array: explicit === type comparisons (an
+// object-keyed whitelist would answer true for prototype keys), scale clamped to
+// 0.1..8 (default 1 — a scale of 0 clamps to 0.1, it does not default), suffix
+// stringified with null/undefined → ''. Entries dedupe by type|scale|suffix
+// (the wild identical-duplicate case). Unknown types drop SILENTLY here — the
+// shell scans the raw array itself when it wants to warn about them.
+function normalizePenpotExports(raw: unknown): PenpotExportEntry[] {
+  if (!Array.isArray(raw)) return [];
+  const out: PenpotExportEntry[] = [];
+  const seen = new Set<string>();
+  for (const e of raw) {
+    if (!e || typeof e !== 'object') continue;
+    const t = String(get(e, 'type') ?? '');
+    const type = t === 'png' ? 'png' : t === 'jpeg' ? 'jpeg' : t === 'svg' ? 'svg' : null;
+    if (!type) continue;
+    const scale = clamp(num(get(e, 'scale'), 1), 0.1, 8);
+    const suffixRaw = get(e, 'suffix');
+    const suffix = suffixRaw == null ? '' : String(suffixRaw);
+    const key = `${type}|${scale}|${suffix}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push({ type, scale, suffix });
+  }
+  return out;
+}
+
+/**
+ * Collect every export-marked shape on one Penpot page, in paint order (DFS from
+ * the root frame along each container's `shapes` array; unreachable orphans
+ * follow in map order). Pruned wholesale, subtree included: `hidden` shapes
+ * (hidden hides the whole subtree in Penpot) and component MASTER boards
+ * (componentRoot + mainInstance) — a master subtree is a definition, not
+ * content, so a mark on the master OR on any of its descendants yields nothing.
+ * @param {object} shapesById shape-id → parsed `<shape-id>.json` for one page.
+ * @returns {PenpotExportMark[]} kept marks with normalized, deduped entries.
+ */
+export function collectPenpotExportMarks(shapesById: Record<string, unknown>): PenpotExportMark[] {
+  const out: PenpotExportMark[] = [];
+  const seen = new Set<string>();
+  // Consume a pruned subtree so the orphan sweep can't revisit its descendants.
+  const markSubtreeSeen = (id: string): void => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const s = shapesById[id];
+    const kids = (s && typeof s === 'object' && Array.isArray((s as PenpotShape).shapes))
+      ? (s as PenpotShape).shapes as unknown[] : [];
+    for (const k of kids) markSubtreeSeen(String(k));
+  };
+  const visit = (id: string): void => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    const s = shapesById[id];
+    if (!s || typeof s !== 'object') return;
+    const sh = s as PenpotShape;
+    const kids = Array.isArray(sh.shapes) ? sh.shapes as unknown[] : [];
+    if (sh.hidden === true || (sh.componentRoot === true && sh.mainInstance === true)) {
+      for (const k of kids) markSubtreeSeen(String(k));
+      return;
+    }
+    const entries = normalizePenpotExports(sh.exports);
+    if (entries.length) out.push({ shape: sh, entries });
+    for (const k of kids) visit(String(k));
+  };
+  visit('00000000-0000-0000-0000-000000000000');
+  for (const id of Object.keys(shapesById)) visit(id);
+  return out;
 }
 
 // ── Figma .fig (Kiwi) document → DesignNodes ─────────────────────────────────

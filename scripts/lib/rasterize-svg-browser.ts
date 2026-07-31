@@ -94,7 +94,10 @@ export async function createSvgRasterizer(repoRoot: string): Promise<SvgRasteriz
     );
   }).join('');
 
-  const browser: Browser = await chromium.launch({ headless: true });
+  // Rendering-intent pins matching packages/node-shell/src/browsers.ts (see the
+  // comment there): committed output must not depend on the build host's display
+  // profile or font hinting.
+  const browser: Browser = await chromium.launch({ headless: true, args: ['--force-color-profile=srgb', '--font-render-hinting=none'] });
   // deviceScaleFactor 1: OG cards are authored at their exact output px (1200×630), the
   // same 1:1 basis resvg used — no retina upscaling of a fixed-size social image.
   const context: BrowserContext = await browser.newContext({ deviceScaleFactor: 1 });

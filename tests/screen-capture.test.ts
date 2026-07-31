@@ -117,9 +117,11 @@ test('ENGINE_VERSION is 1.74.0', () => {
   // web shell's on-canvas table editing binds to) and 1.83.0 (figmaNodesToScenes
   // — per-frame design-import scenes, behind the sequence editor's
   // canvas.import.mode:'scenes') and 1.84.0 (readingOrder — scene import plays
-  // decks in reading order, not Z order);
+  // decks in reading order, not Z order) and 1.85.0 (host.pdf.redact —
+  // rasterise-and-rebuild PDF redaction — and host.c2pa.sign — a fresh
+  // no-ingredients manifest for redacted derivatives);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.84.0');
+  assert.equal(ENGINE_VERSION, '1.85.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────
