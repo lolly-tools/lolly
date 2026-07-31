@@ -570,7 +570,12 @@ export interface DeflateStream {
 export function createDeflateStream(opts: DeflateStreamOptions = {}): DeflateStream {
   const lazy = opts.lazy !== false;
   const maxChain = Math.max(1, opts.maxChain ?? 128);
-  const blockBytes = Math.min(STORED_MAX - 300, Math.max(1024, Math.floor(opts.blockBytes ?? DEFAULT_BLOCK_BYTES)));
+  // Reject rather than clamp: Math.floor(NaN) survives min/max as NaN, and a NaN
+  // token-array length becomes a ZERO-length array, whose out-of-bounds writes are
+  // silently dropped -- producing a well-formed but undecodable stream. Loud is right.
+  const rawBlock = opts.blockBytes ?? DEFAULT_BLOCK_BYTES;
+  if (!Number.isFinite(rawBlock)) throw new Error('deflate stream: blockBytes must be a finite number');
+  const blockBytes = Math.min(STORED_MAX - 300, Math.max(1024, Math.floor(rawBlock)));
 
   // ── O(1) state: 64 KB window + 128 KB head + 128 KB prev + one block of tokens
   const win = new Uint8Array(2 * WINDOW);

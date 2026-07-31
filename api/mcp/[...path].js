@@ -762,6 +762,8 @@ var init_tool_schema = __esm({
                       exitField: { type: "string", description: "Select sub-field: named animate-out preset played at the box's end (e.g. fade, rise, pop; 'none' disables). Presets are shell-rendered; no keyframes are authored." },
                       enterMsField: { type: "string", description: "Number sub-field: duration of the enter preset, in MILLISECONDS." },
                       exitMsField: { type: "string", description: "Number sub-field: duration of the exit preset, in MILLISECONDS." },
+                      enterEaseField: { type: "string", description: "String sub-field: the timing curve the enter preset's GEOMETRY follows \u2014 a preset name (linear, ease-out, ease-in, ease-in-out, overshoot, anticipate) or a CSS cubic-bezier(a,b,c,d). Empty = the preset's own built-in curve. Opacity is deliberately not governed by it: a fade that tracks a slow curve turns to mud under video compression, so alpha keeps its fixed ramp." },
+                      exitEaseField: { type: "string", description: "String sub-field: the same curve control for the exit preset. Same wire format, same geometry-only reach." },
                       muteField: { type: "string", description: "Boolean sub-field: silence this box's own audio track when the sequence is mixed." },
                       linkField: { type: "string", description: "String sub-field: the id of the box this one is A/V-linked to (written on BOTH sides when audio is detached from a video). Absent or naming a missing box reads as unlinked." },
                       laneField: { type: "string", description: "Select sub-field: '' places the box on a free overlay lane; 'seq' places it on the magnetic main sequence row, where clips are kept gapless and edits ripple." },
@@ -1372,7 +1374,7 @@ var ENGINE_VERSION;
 var init_version = __esm({
   "engine/src/version.ts"() {
     "use strict";
-    ENGINE_VERSION = "1.90.0";
+    ENGINE_VERSION = "1.92.0";
   }
 });
 
@@ -9740,6 +9742,363 @@ var init_gradient_spec = __esm({
   }
 });
 
+// engine/src/pixels.ts
+function assertSpace(space) {
+  if (!PIXEL_SPACES.includes(space)) throw new Error(`unknown pixel space: ${String(space)}`);
+}
+function assertDims(len2, width, height, what) {
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
+    throw new Error(`invalid frame dimensions ${width}x${height}`);
+  }
+  if (len2 !== width * height * 4) {
+    throw new Error(`${what}: buffer length ${len2} != ${width}x${height}x4 (${width * height * 4})`);
+  }
+}
+function fromU8Srgb(src, width, height) {
+  assertDims(src.length, width, height, "fromU8Srgb");
+  const data = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    data[i] = LINEAR_LUT[src[i]];
+    data[i + 1] = LINEAR_LUT[src[i + 1]];
+    data[i + 2] = LINEAR_LUT[src[i + 2]];
+    data[i + 3] = src[i + 3] / 255;
+  }
+  return { width, height, data, space: "srgb-linear" };
+}
+function roundTiesToEven(x) {
+  const fl = Math.floor(x);
+  const frac = x - fl;
+  if (frac > 0.5) return fl + 1;
+  if (frac < 0.5) return fl;
+  return fl % 2 === 0 ? fl : fl + 1;
+}
+function floatToHalf(v) {
+  if (Number.isNaN(v)) return 32256;
+  const sign = v < 0 || Object.is(v, -0) ? 32768 : 0;
+  const a = Math.abs(v);
+  if (a === Number.POSITIVE_INFINITY) return sign | 31744;
+  if (a === 0) return sign;
+  if (a < 2 ** -14) {
+    const hm2 = roundTiesToEven(a * 2 ** 24);
+    return hm2 >= 1024 ? sign | 1024 : sign | hm2;
+  }
+  let E = Math.floor(Math.log2(a));
+  if (2 ** E > a) E--;
+  else if (2 ** (E + 1) <= a) E++;
+  if (E >= 16) return sign | 31744;
+  let hm = roundTiesToEven(a * 2 ** (10 - E));
+  if (hm === 2048) {
+    E++;
+    hm = 1024;
+  }
+  if (E >= 16) return sign | 31744;
+  return sign | E + 15 << 10 | hm - 1024;
+}
+function packF16(src) {
+  if (F16) {
+    const h = new F16(src.length);
+    h.set(src);
+    return new Uint16Array(h.buffer, 0, src.length);
+  }
+  const out = new Uint16Array(src.length);
+  for (let i = 0; i < src.length; i++) out[i] = floatToHalf(src[i]);
+  return out;
+}
+function xyzD50ToLab(X, Y, Z) {
+  const f = (t) => t > LAB_E2 ? Math.cbrt(t) : (LAB_K2 * t + 16) / 116;
+  const fx = f(X / D50_WHITE3[0]);
+  const fy = f(Y / D50_WHITE3[1]);
+  const fz = f(Z / D50_WHITE3[2]);
+  return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+}
+function labToXyzD50(L, a, b) {
+  const fy = (L + 16) / 116;
+  const fx = fy + a / 500;
+  const fz = fy - b / 200;
+  const xr = fx ** 3 > LAB_E2 ? fx ** 3 : (116 * fx - 16) / LAB_K2;
+  const yr = L > LAB_K2 * LAB_E2 ? fy ** 3 : L / LAB_K2;
+  const zr = fz ** 3 > LAB_E2 ? fz ** 3 : (116 * fz - 16) / LAB_K2;
+  return [xr * D50_WHITE3[0], yr * D50_WHITE3[1], zr * D50_WHITE3[2]];
+}
+function convertSpace(frame, target) {
+  assertSpace(frame.space);
+  assertSpace(target);
+  if (frame.space === target) return frame;
+  const srcLab = frame.space === "lab";
+  const dstLab = target === "lab";
+  const matSrc = frame.space === "lab" ? "xyz-d50" : frame.space;
+  const matDst = target === "lab" ? "xyz-d50" : target;
+  const M = matSrc === matDst ? null : mul3(FROM_XYZ_D65[matDst], TO_XYZ_D65[matSrc]);
+  const src = frame.data;
+  const out = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    let x = src[i];
+    let y = src[i + 1];
+    let z = src[i + 2];
+    if (srcLab) [x, y, z] = labToXyzD50(x, y, z);
+    if (M) {
+      const nx = M[0] * x + M[1] * y + M[2] * z;
+      const ny = M[3] * x + M[4] * y + M[5] * z;
+      const nz = M[6] * x + M[7] * y + M[8] * z;
+      x = nx;
+      y = ny;
+      z = nz;
+    }
+    if (dstLab) [x, y, z] = xyzD50ToLab(x, y, z);
+    out[i] = x;
+    out[i + 1] = y;
+    out[i + 2] = z;
+    out[i + 3] = src[i + 3];
+  }
+  return { width: frame.width, height: frame.height, data: out, space: target };
+}
+var PIXEL_SPACES, srgbToLinear3, LINEAR_LUT, F16, mul3, SRGB_TO_XYZ_D65, XYZ_D65_TO_SRGB, P3_TO_XYZ_D65, XYZ_D65_TO_P3, REC2020_TO_XYZ_D65, XYZ_D65_TO_REC2020, XYZ_D65_TO_D50, XYZ_D50_TO_D65, TO_XYZ_D65, FROM_XYZ_D65, D50_WHITE3, LAB_K2, LAB_E2;
+var init_pixels = __esm({
+  "engine/src/pixels.ts"() {
+    "use strict";
+    PIXEL_SPACES = [
+      "srgb-linear",
+      "display-p3-linear",
+      "rec2020-linear",
+      "xyz-d50",
+      "lab"
+    ];
+    srgbToLinear3 = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    LINEAR_LUT = new Float64Array(256);
+    for (let i = 0; i < 256; i++) LINEAR_LUT[i] = srgbToLinear3(i / 255);
+    F16 = globalThis.Float16Array;
+    mul3 = (a, b) => [
+      a[0] * b[0] + a[1] * b[3] + a[2] * b[6],
+      a[0] * b[1] + a[1] * b[4] + a[2] * b[7],
+      a[0] * b[2] + a[1] * b[5] + a[2] * b[8],
+      a[3] * b[0] + a[4] * b[3] + a[5] * b[6],
+      a[3] * b[1] + a[4] * b[4] + a[5] * b[7],
+      a[3] * b[2] + a[4] * b[5] + a[5] * b[8],
+      a[6] * b[0] + a[7] * b[3] + a[8] * b[6],
+      a[6] * b[1] + a[7] * b[4] + a[8] * b[7],
+      a[6] * b[2] + a[7] * b[5] + a[8] * b[8]
+    ];
+    SRGB_TO_XYZ_D65 = [
+      0.41239079926595934,
+      0.357584339383878,
+      0.1804807884018343,
+      0.21263900587151027,
+      0.715168678767756,
+      0.07219231536073371,
+      0.01933081871559182,
+      0.11919477979462598,
+      0.9505321522496607
+    ];
+    XYZ_D65_TO_SRGB = [
+      3.2409699419045226,
+      -1.537383177570094,
+      -0.4986107602930034,
+      -0.9692436362808796,
+      1.8759675015077202,
+      0.04155505740717559,
+      0.05563007969699366,
+      -0.20397695888897652,
+      1.0569715142428786
+    ];
+    P3_TO_XYZ_D65 = [
+      0.4865709486482162,
+      0.26566769316909306,
+      0.19821728523436247,
+      0.2289745640697488,
+      0.6917385218365064,
+      0.079286914093745,
+      0,
+      0.04511338185890264,
+      1.043944368900976
+    ];
+    XYZ_D65_TO_P3 = [
+      2.493496911941425,
+      -0.9313836179191239,
+      -0.40271078445071684,
+      -0.8294889695615747,
+      1.7626640603183463,
+      0.023624685841943577,
+      0.03584583024378447,
+      -0.07617238926804182,
+      0.9568845240076872
+    ];
+    REC2020_TO_XYZ_D65 = [
+      0.6369580483012914,
+      0.14461690358620832,
+      0.16888097516417205,
+      0.2627002120112671,
+      0.6779980715188708,
+      0.05930171646986196,
+      0,
+      0.028072693049087428,
+      1.060985057710791
+    ];
+    XYZ_D65_TO_REC2020 = [
+      1.716651187971268,
+      -0.355670783776392,
+      -0.25336628137366,
+      -0.666684351832489,
+      1.616481236634939,
+      0.0157685458139111,
+      0.017639857445311,
+      -0.042770613257809,
+      0.942103121235474
+    ];
+    XYZ_D65_TO_D50 = [
+      1.0479298208405488,
+      0.022946793341019088,
+      -0.05019222954313557,
+      0.029627815688159344,
+      0.990434484573249,
+      -0.01707382502938514,
+      -0.009243058152591178,
+      0.015055144896577895,
+      0.7518742899580008
+    ];
+    XYZ_D50_TO_D65 = [
+      0.9554734527042182,
+      -0.023098536874261423,
+      0.0632593086610217,
+      -0.028369706963208136,
+      1.0099954580058226,
+      0.021041398966943008,
+      0.012314001688319899,
+      -0.020507696433477912,
+      1.3303659366080753
+    ];
+    TO_XYZ_D65 = {
+      "srgb-linear": SRGB_TO_XYZ_D65,
+      "display-p3-linear": P3_TO_XYZ_D65,
+      "rec2020-linear": REC2020_TO_XYZ_D65,
+      "xyz-d50": XYZ_D50_TO_D65
+    };
+    FROM_XYZ_D65 = {
+      "srgb-linear": XYZ_D65_TO_SRGB,
+      "display-p3-linear": XYZ_D65_TO_P3,
+      "rec2020-linear": XYZ_D65_TO_REC2020,
+      "xyz-d50": XYZ_D65_TO_D50
+    };
+    D50_WHITE3 = [0.9642956764295677, 1, 0.8251046025104602];
+    LAB_K2 = 24389 / 27;
+    LAB_E2 = 216 / 24389;
+  }
+});
+
+// engine/src/hdr.ts
+function linearSrgbToOklab2(r, g2, b) {
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g2 + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g2 + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g2 + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s
+  ];
+}
+function smoothstep(lo, hi, x) {
+  if (x <= lo) return 0;
+  if (x >= hi) return 1;
+  const t = (x - lo) / (hi - lo);
+  return t * t * (3 - 2 * t);
+}
+function falloff(dE, inner, outer) {
+  return 1 - smoothstep(inner, outer, dE);
+}
+function resolveTargets(opts) {
+  const sdrWhiteNits = opts.sdrWhiteNits ?? DEFAULTS.sdrWhiteNits;
+  const peakNits = opts.peakNits ?? DEFAULTS.peakNits;
+  const kneeLo = opts.kneeLo ?? DEFAULTS.kneeLo;
+  const kneeHi = opts.kneeHi ?? DEFAULTS.kneeHi;
+  const boostFloor = opts.boostFloor ?? DEFAULTS.boostFloor;
+  const maxGain = Math.max(1, peakNits / sdrWhiteNits);
+  const hexes = [...opts.targets];
+  if (opts.includeWhite ?? DEFAULTS.includeWhite) hexes.push("#ffffff");
+  const out = [];
+  for (const hex of hexes) {
+    const rgb = parseHex(hex);
+    if (!rgb) continue;
+    const lab = linearSrgbToOklab2(LINEAR_LUT2[rgb[0]], LINEAR_LUT2[rgb[1]], LINEAR_LUT2[rgb[2]]);
+    const frac = boostFloor + (1 - boostFloor) * smoothstep(kneeLo, kneeHi, lab[0]);
+    const gain = 1 + (maxGain - 1) * frac;
+    out.push({ lab, gain });
+  }
+  return out;
+}
+function hdrViewTransform(frame, opts) {
+  const f = convertSpace(frame, "srgb-linear");
+  const targets = resolveTargets(opts);
+  const sdrWhiteNits = opts.sdrWhiteNits ?? DEFAULTS.sdrWhiteNits;
+  const peakNits = opts.peakNits ?? DEFAULTS.peakNits;
+  const richness = opts.richness ?? DEFAULTS.richness;
+  const inner = opts.innerRadius ?? DEFAULTS.innerRadius;
+  const outer = opts.outerRadius ?? DEFAULTS.outerRadius;
+  const maxExtra = Math.max(1, peakNits / sdrWhiteNits) - 1;
+  const [m0, m1, m2] = M_709_TO_2020;
+  const src = f.data;
+  const out = new Float32Array(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    let lr = src[i];
+    let lg = src[i + 1];
+    let lb = src[i + 2];
+    let extra = 0;
+    if (targets.length) {
+      const peak = Math.max(lr, lg, lb);
+      const norm2 = peak > 1 ? 1 / peak : 1;
+      const [pl, pa, pb] = linearSrgbToOklab2(lr * norm2, lg * norm2, lb * norm2);
+      for (const t of targets) {
+        const dE = Math.hypot(pl - t.lab[0], pa - t.lab[1], pb - t.lab[2]);
+        const contribution = (t.gain - 1) * falloff(dE, inner, outer);
+        if (contribution > extra) extra = contribution;
+      }
+    }
+    if (richness > 0 && extra > 0 && maxExtra > 0) {
+      const sat = 1 + richness * (extra / maxExtra);
+      const y = 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+      lr = y + (lr - y) * sat;
+      lg = y + (lg - y) * sat;
+      lb = y + (lb - y) * sat;
+    }
+    const gain = 1 + extra;
+    out[i] = (m0[0] * lr + m0[1] * lg + m0[2] * lb) * gain;
+    out[i + 1] = (m1[0] * lr + m1[1] * lg + m1[2] * lb) * gain;
+    out[i + 2] = (m2[0] * lr + m2[1] * lg + m2[2] * lb) * gain;
+    out[i + 3] = src[i + 3];
+  }
+  return { width: f.width, height: f.height, data: out, space: "rec2020-linear" };
+}
+var srgbToLinear4, PQ_M1, PQ_M2, PQ_C1, PQ_C2, PQ_C3, M_709_TO_2020, LINEAR_LUT2, DEFAULTS;
+var init_hdr = __esm({
+  "engine/src/hdr.ts"() {
+    "use strict";
+    init_brand_derive();
+    init_pixels();
+    srgbToLinear4 = (c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    PQ_M1 = 2610 / 16384;
+    PQ_M2 = 2523 / 4096 * 128;
+    PQ_C1 = 3424 / 4096;
+    PQ_C2 = 2413 / 4096 * 32;
+    PQ_C3 = 2392 / 4096 * 32;
+    M_709_TO_2020 = [
+      [0.6274038959, 0.3292830384, 0.0433130657],
+      [0.0690972894, 0.9195403951, 0.0113623156],
+      [0.0163914389, 0.0880132309, 0.8955953302]
+    ];
+    LINEAR_LUT2 = new Float64Array(256);
+    for (let i = 0; i < 256; i++) LINEAR_LUT2[i] = srgbToLinear4(i / 255);
+    DEFAULTS = {
+      sdrWhiteNits: 203,
+      peakNits: 1e3,
+      kneeLo: 0.32,
+      kneeHi: 0.55,
+      boostFloor: 0,
+      richness: 0.4,
+      innerRadius: 0.06,
+      outerRadius: 0.22,
+      includeWhite: true
+    };
+  }
+});
+
 // engine/src/svg-path.ts
 function parseSvgPathArgs(str2) {
   const m = str2.match(/[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?/g);
@@ -13653,7 +14012,7 @@ function finiteContour(c) {
 }
 function buildOffset(c, d, opts) {
   const tol = opts.tol ?? DEFAULT_TOL2;
-  const join9 = opts.join ?? "miter";
+  const join10 = opts.join ?? "miter";
   const miterLimit = opts.miterLimit ?? DEFAULT_MITER_LIMIT;
   const seq = [];
   const corners = [];
@@ -13682,7 +14041,7 @@ function buildOffset(c, d, opts) {
     const pivot = corners[i] ?? { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
     const t0 = cur.dirEnd ?? endTangent2(cur.curve);
     const t1 = next.dirStart ?? startTangent2(next.curve);
-    out.push(...joinPieces(a, b, pivot, t0, t1, d, join9, miterLimit));
+    out.push(...joinPieces(a, b, pivot, t0, t1, d, join10, miterLimit));
   }
   return out;
 }
@@ -14141,7 +14500,7 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
   const a = new Array(m).fill(0);
   const b = new Array(m).fill(1);
   const c = new Array(m).fill(0);
-  const join9 = (k, prevIx, nextIx) => {
+  const join10 = (k, prevIx, nextIx) => {
     const prev = segs[prevIx], next = segs[nextIx];
     const j = hbJoin(prev, next);
     r[k] = j.r;
@@ -14150,10 +14509,10 @@ function hbSystem(pts, wrap, startTh, endTh, ths) {
     c[k] = j.dB * -next.d01;
   };
   if (wrap) {
-    for (let k = 0; k < m; k++) join9(k, (k - 1 + m) % m, k);
+    for (let k = 0; k < m; k++) join10(k, (k - 1 + m) % m, k);
     return { r, a, b, c, segs };
   }
-  for (let k = 1; k < m - 1; k++) join9(k, k - 1, k);
+  for (let k = 1; k < m - 1; k++) join10(k, k - 1, k);
   const first = segs[0];
   if (startTh !== null) {
     r[0] = mod2pi2(ths[0] - startTh);
@@ -15676,10 +16035,10 @@ function hexNorm(v) {
   const h = v.replace("#", "").replace(/[^0-9A-Fa-f]/g, "").slice(0, 6).toUpperCase();
   return h.length === 6 ? h : h.padStart(6, "0");
 }
-function rewriteTagAttr(xml, qname, attr, map) {
+function rewriteTagAttr(xml, qname, attr2, map) {
   let count2 = 0;
   const tagRe = new RegExp(`<${reEsc(qname)}(?=[\\s/>])[^>]*>`, "g");
-  const attrRe = new RegExp(`(\\s${reEsc(attr)}=")([^"]*)(")`);
+  const attrRe = new RegExp(`(\\s${reEsc(attr2)}=")([^"]*)(")`);
   const text = xml.replace(tagRe, (tag) => {
     let changed = false;
     const out = tag.replace(attrRe, (whole, pre, val, post) => {
@@ -16453,6 +16812,517 @@ var init_pptx_read = __esm({
       "hlink",
       "folHlink"
     ];
+  }
+});
+
+// engine/src/deflate.ts
+function revBits(code, len2) {
+  let r = 0;
+  for (let i = 0; i < len2; i++) {
+    r = r << 1 | code & 1;
+    code >>= 1;
+  }
+  return r;
+}
+function writeTokens(w, tokens, count2) {
+  for (let t = 0; t < count2; t++) {
+    const tok = tokens[t];
+    if (tok < 256) {
+      w.writeBits(FIXED_LIT_CODE[tok], FIXED_LIT_BITS[tok]);
+    } else {
+      const len2 = (tok & 255) + MIN_MATCH;
+      const dist = tok >>> 8 & 65535;
+      const ls = LEN_SLOT[len2 - MIN_MATCH];
+      const ds = DIST_SLOT[dist];
+      w.writeBits(FIXED_LIT_CODE[257 + ls], FIXED_LIT_BITS[257 + ls]);
+      if (LEN_EXTRA[ls] > 0) w.writeBits(len2 - LEN_BASE[ls], LEN_EXTRA[ls]);
+      w.writeBits(FIXED_DIST_CODE[ds], 5);
+      if (DIST_EXTRA[ds] > 0) w.writeBits(dist - DIST_BASE[ds], DIST_EXTRA[ds]);
+    }
+  }
+  w.writeBits(FIXED_LIT_CODE[256], FIXED_LIT_BITS[256]);
+}
+function fixedCost(tokens, count2) {
+  let bits = 3 + FIXED_LIT_BITS[256];
+  for (let t = 0; t < count2; t++) {
+    const tok = tokens[t];
+    if (tok < 256) {
+      bits += FIXED_LIT_BITS[tok];
+    } else {
+      const lenSlot = LEN_SLOT[tok & 255];
+      const distSlot = DIST_SLOT[tok >>> 8 & 65535];
+      bits += FIXED_LIT_BITS[257 + lenSlot] + LEN_EXTRA[lenSlot] + 5 + DIST_EXTRA[distSlot];
+    }
+  }
+  return bits;
+}
+function adler32(data, seed = 1) {
+  const MOD = 65521;
+  const NMAX = 5552;
+  let s1 = seed & 65535;
+  let s2 = seed >>> 16 & 65535;
+  const n2 = data.length;
+  let i = 0;
+  while (i < n2) {
+    const end = Math.min(n2, i + NMAX);
+    for (; i < end; i++) {
+      s1 += data[i];
+      s2 += s1;
+    }
+    s1 %= MOD;
+    s2 %= MOD;
+  }
+  return (s2 << 16 | s1) >>> 0;
+}
+function createDeflateStream(opts = {}) {
+  const lazy = opts.lazy !== false;
+  const maxChain = Math.max(1, opts.maxChain ?? 128);
+  const rawBlock = opts.blockBytes ?? DEFAULT_BLOCK_BYTES;
+  if (!Number.isFinite(rawBlock)) throw new Error("deflate stream: blockBytes must be a finite number");
+  const blockBytes = Math.min(STORED_MAX - 300, Math.max(1024, Math.floor(rawBlock)));
+  const win = new Uint8Array(2 * WINDOW);
+  const head = new Int32Array(HASH_SIZE).fill(-1);
+  const prev = new Int32Array(WINDOW).fill(-1);
+  const tokens = new Uint32Array(blockBytes + MAX_MATCH + 8);
+  const w = new StreamWriter();
+  let winLen = 0;
+  let strstart = 0;
+  let blockStart = 0;
+  let tokenEnd = 0;
+  let tokenCount = 0;
+  let prevLen = 0;
+  let prevDist = 0;
+  let havePrev = false;
+  let finished = false;
+  let bytesIn = 0;
+  let bytesOut = 0;
+  const hashAt = (i) => (win[i] << 10 ^ win[i + 1] << 5 ^ win[i + 2]) & HASH_SIZE - 1;
+  const insert = (i) => {
+    const h = hashAt(i);
+    prev[i & WINDOW - 1] = head[h];
+    head[h] = i;
+  };
+  const findMatch = (pos) => {
+    const maxLen = Math.min(MAX_MATCH, winLen - pos);
+    if (maxLen < MIN_MATCH) return 0;
+    const floor = pos - MAX_DIST;
+    let best = 0;
+    let bestDist = 0;
+    let chain2 = maxChain;
+    let cand = head[hashAt(pos)];
+    while (cand >= 0 && cand >= floor && chain2-- > 0) {
+      if (win[cand + best] === win[pos + best] && win[cand] === win[pos]) {
+        let l = 0;
+        while (l < maxLen && win[cand + l] === win[pos + l]) l++;
+        if (l > best) {
+          best = l;
+          bestDist = pos - cand;
+          if (l >= maxLen || l >= NICE_LEN) break;
+        }
+      }
+      cand = prev[cand & WINDOW - 1];
+    }
+    return best >= MIN_MATCH ? bestDist << 9 | best : 0;
+  };
+  const flushBlock = (final) => {
+    if (!final && tokenCount === 0) return;
+    const rawLen = tokenEnd - blockStart;
+    const fixedBytes = Math.ceil(fixedCost(tokens, tokenCount) / 8);
+    if (fixedBytes <= rawLen + 5) {
+      w.writeBits(final ? 1 : 0, 1);
+      w.writeBits(1, 2);
+      writeTokens(w, tokens, tokenCount);
+    } else {
+      w.writeBits(final ? 1 : 0, 1);
+      w.writeBits(0, 2);
+      w.alignByte();
+      w.writeBytes(Uint8Array.of(rawLen & 255, rawLen >>> 8 & 255, ~rawLen & 255, ~rawLen >>> 8 & 255));
+      w.writeBytes(win.subarray(blockStart, tokenEnd));
+    }
+    tokenCount = 0;
+    blockStart = tokenEnd;
+  };
+  const maybeFlush = () => {
+    if (tokenEnd - blockStart >= blockBytes) flushBlock(false);
+  };
+  const emitLiteral = (b) => {
+    tokens[tokenCount++] = b;
+    tokenEnd++;
+    maybeFlush();
+  };
+  const emitMatch = (dist, len2) => {
+    tokens[tokenCount++] = 1073741824 | dist << 8 | len2 - MIN_MATCH;
+    tokenEnd += len2;
+    maybeFlush();
+  };
+  const run = (final) => {
+    const runTo = final ? winLen : winLen - MIN_LOOKAHEAD;
+    const hashLimit = winLen - MIN_MATCH;
+    while (strstart < runTo) {
+      let mLen = 0;
+      let mDist = 0;
+      if (strstart <= hashLimit) {
+        const m = findMatch(strstart);
+        mLen = m & 511;
+        mDist = m >>> 9;
+        insert(strstart);
+      }
+      if (havePrev) {
+        if (mLen > prevLen) {
+          emitLiteral(win[strstart - 1]);
+          prevLen = mLen;
+          prevDist = mDist;
+          strstart++;
+          continue;
+        }
+        emitMatch(prevDist, prevLen);
+        const end = Math.min(strstart - 1 + prevLen, hashLimit + 1);
+        for (let j = strstart + 1; j < end; j++) insert(j);
+        strstart = strstart - 1 + prevLen;
+        havePrev = false;
+        continue;
+      }
+      if (mLen >= MIN_MATCH) {
+        if (lazy && mLen < NICE_LEN && strstart + 1 < winLen) {
+          prevLen = mLen;
+          prevDist = mDist;
+          havePrev = true;
+          strstart++;
+          continue;
+        }
+        emitMatch(mDist, mLen);
+        const end = Math.min(strstart + mLen, hashLimit + 1);
+        for (let j = strstart + 1; j < end; j++) insert(j);
+        strstart += mLen;
+      } else {
+        emitLiteral(win[strstart]);
+        strstart++;
+      }
+    }
+  };
+  const slide = () => {
+    flushBlock(false);
+    win.copyWithin(0, WINDOW, winLen);
+    winLen -= WINDOW;
+    strstart -= WINDOW;
+    blockStart -= WINDOW;
+    tokenEnd -= WINDOW;
+    for (let i = 0; i < HASH_SIZE; i++) {
+      const v = head[i];
+      head[i] = v >= WINDOW ? v - WINDOW : -1;
+    }
+    for (let i = 0; i < WINDOW; i++) {
+      const v = prev[i];
+      prev[i] = v >= WINDOW ? v - WINDOW : -1;
+    }
+  };
+  return {
+    push(slab) {
+      if (finished) throw new Error("deflate stream: push after finish.");
+      bytesIn += slab.length;
+      let off = 0;
+      while (off < slab.length) {
+        if (winLen === win.length) {
+          run(false);
+          slide();
+        }
+        const n2 = Math.min(win.length - winLen, slab.length - off);
+        win.set(slab.subarray(off, off + n2), winLen);
+        winLen += n2;
+        off += n2;
+        run(false);
+      }
+      const out = w.drain();
+      bytesOut += out.length;
+      return out;
+    },
+    finish() {
+      if (finished) throw new Error("deflate stream: finish called twice.");
+      run(true);
+      flushBlock(true);
+      w.alignByte();
+      finished = true;
+      const out = w.drain();
+      bytesOut += out.length;
+      return out;
+    },
+    get bytesIn() {
+      return bytesIn;
+    },
+    get bytesOut() {
+      return bytesOut;
+    }
+  };
+}
+function createZlibStream(opts = {}) {
+  const raw = createDeflateStream(opts);
+  let adler = 1;
+  let headerPending = true;
+  let bytesOut = 0;
+  const withHeader = (body) => {
+    if (!headerPending) return body;
+    headerPending = false;
+    const out = new Uint8Array(2 + body.length);
+    out[0] = 120;
+    out[1] = 156;
+    out.set(body, 2);
+    return out;
+  };
+  return {
+    push(slab) {
+      adler = adler32(slab, adler);
+      const out = withHeader(raw.push(slab));
+      bytesOut += out.length;
+      return out;
+    },
+    finish() {
+      const body = raw.finish();
+      const out = new Uint8Array((headerPending ? 2 : 0) + body.length + 4);
+      let o = 0;
+      if (headerPending) {
+        headerPending = false;
+        out[0] = 120;
+        out[1] = 156;
+        o = 2;
+      }
+      out.set(body, o);
+      o += body.length;
+      out[o] = adler >>> 24 & 255;
+      out[o + 1] = adler >>> 16 & 255;
+      out[o + 2] = adler >>> 8 & 255;
+      out[o + 3] = adler & 255;
+      bytesOut += out.length;
+      return out;
+    },
+    get bytesIn() {
+      return raw.bytesIn;
+    },
+    get bytesOut() {
+      return bytesOut;
+    }
+  };
+}
+var LEN_BASE, LEN_EXTRA, DIST_BASE, DIST_EXTRA, MIN_MATCH, MAX_MATCH, WINDOW, STORED_MAX, HASH_BITS, HASH_SIZE, NICE_LEN, LEN_SLOT, DIST_SLOT, FIXED_LIT_BITS, FIXED_LIT_CODE, FIXED_DIST_CODE, MIN_LOOKAHEAD, MAX_DIST, DEFAULT_BLOCK_BYTES, StreamWriter;
+var init_deflate = __esm({
+  "engine/src/deflate.ts"() {
+    "use strict";
+    LEN_BASE = [
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      15,
+      17,
+      19,
+      23,
+      27,
+      31,
+      35,
+      43,
+      51,
+      59,
+      67,
+      83,
+      99,
+      115,
+      131,
+      163,
+      195,
+      227,
+      258
+    ];
+    LEN_EXTRA = [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      3,
+      3,
+      3,
+      3,
+      4,
+      4,
+      4,
+      4,
+      5,
+      5,
+      5,
+      5,
+      0
+    ];
+    DIST_BASE = [
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      9,
+      13,
+      17,
+      25,
+      33,
+      49,
+      65,
+      97,
+      129,
+      193,
+      257,
+      385,
+      513,
+      769,
+      1025,
+      1537,
+      2049,
+      3073,
+      4097,
+      6145,
+      8193,
+      12289,
+      16385,
+      24577
+    ];
+    DIST_EXTRA = [
+      0,
+      0,
+      0,
+      0,
+      1,
+      1,
+      2,
+      2,
+      3,
+      3,
+      4,
+      4,
+      5,
+      5,
+      6,
+      6,
+      7,
+      7,
+      8,
+      8,
+      9,
+      9,
+      10,
+      10,
+      11,
+      11,
+      12,
+      12,
+      13,
+      13
+    ];
+    MIN_MATCH = 3;
+    MAX_MATCH = 258;
+    WINDOW = 32768;
+    STORED_MAX = 65535;
+    HASH_BITS = 15;
+    HASH_SIZE = 1 << HASH_BITS;
+    NICE_LEN = 128;
+    LEN_SLOT = (() => {
+      const t = new Uint8Array(256);
+      for (let s = 0; s < 29; s++) {
+        const hi = s === 28 ? 258 : LEN_BASE[s] + (1 << LEN_EXTRA[s]) - 1;
+        for (let l = LEN_BASE[s]; l <= Math.min(hi, 258); l++) t[l - 3] = s;
+      }
+      return t;
+    })();
+    DIST_SLOT = (() => {
+      const t = new Uint8Array(WINDOW + 1);
+      for (let s = 0; s < 30; s++) {
+        const hi = DIST_BASE[s] + (1 << DIST_EXTRA[s]) - 1;
+        for (let d = DIST_BASE[s]; d <= Math.min(hi, WINDOW); d++) t[d] = s;
+      }
+      return t;
+    })();
+    FIXED_LIT_BITS = new Uint8Array(288);
+    FIXED_LIT_CODE = new Uint16Array(288);
+    (() => {
+      for (let s = 0; s < 288; s++) {
+        let code, bits;
+        if (s < 144) {
+          code = 48 + s;
+          bits = 8;
+        } else if (s < 256) {
+          code = 400 + (s - 144);
+          bits = 9;
+        } else if (s < 280) {
+          code = s - 256;
+          bits = 7;
+        } else {
+          code = 192 + (s - 280);
+          bits = 8;
+        }
+        FIXED_LIT_BITS[s] = bits;
+        FIXED_LIT_CODE[s] = revBits(code, bits);
+      }
+    })();
+    FIXED_DIST_CODE = new Uint8Array(30);
+    for (let s = 0; s < 30; s++) FIXED_DIST_CODE[s] = revBits(s, 5);
+    MIN_LOOKAHEAD = MAX_MATCH + MIN_MATCH + 1;
+    MAX_DIST = WINDOW - MIN_LOOKAHEAD;
+    DEFAULT_BLOCK_BYTES = 32768;
+    StreamWriter = class {
+      out = new Uint8Array(1 << 16);
+      len = 0;
+      bitBuf = 0;
+      bitCnt = 0;
+      ensure(n2) {
+        if (this.len + n2 <= this.out.length) return;
+        const grown = new Uint8Array(Math.max(this.out.length * 2, this.len + n2));
+        grown.set(this.out.subarray(0, this.len));
+        this.out = grown;
+      }
+      writeBits(value, count2) {
+        this.bitBuf |= value << this.bitCnt;
+        this.bitCnt += count2;
+        while (this.bitCnt >= 8) {
+          this.ensure(1);
+          this.out[this.len++] = this.bitBuf & 255;
+          this.bitBuf >>>= 8;
+          this.bitCnt -= 8;
+        }
+      }
+      alignByte() {
+        if (this.bitCnt > 0) {
+          this.ensure(1);
+          this.out[this.len++] = this.bitBuf & 255;
+          this.bitBuf = 0;
+          this.bitCnt = 0;
+        }
+      }
+      writeBytes(bytes) {
+        this.ensure(bytes.length);
+        this.out.set(bytes, this.len);
+        this.len += bytes.length;
+      }
+      /** Complete bytes emitted since the last drain. Partial bits stay buffered. */
+      drain() {
+        const out = this.out.slice(0, this.len);
+        this.len = 0;
+        return out;
+      }
+    };
   }
 });
 
@@ -18263,6 +19133,8 @@ var init_src = __esm({
     init_file_metadata();
     init_units();
     init_css_color();
+    init_pixels();
+    init_hdr();
     init_svg_path();
     init_zzfxm();
     init_audio_analyse();
@@ -18390,6 +19262,692 @@ var init_schema = __esm({
   "services/mcp/src/schema.ts"() {
     "use strict";
     init_src();
+  }
+});
+
+// engine/src/exr.ts
+function zipPreprocess(raw) {
+  const n2 = raw.length;
+  const tmp = new Uint8Array(n2);
+  if (n2 === 0) return tmp;
+  let t1 = 0;
+  let t2 = n2 + 1 >> 1;
+  let s = 0;
+  for (; ; ) {
+    if (s < n2) tmp[t1++] = raw[s++];
+    else break;
+    if (s < n2) tmp[t2++] = raw[s++];
+    else break;
+  }
+  let p = tmp[0];
+  for (let i = 1; i < n2; i++) {
+    const cur = tmp[i];
+    tmp[i] = cur - p + (128 + 256) & 255;
+    p = cur;
+  }
+  return tmp;
+}
+function zlibBlock(pre) {
+  const z = createZlibStream();
+  const parts = [];
+  let total = 0;
+  for (let o = 0; o < pre.length; o += DEFLATE_SLAB) {
+    const part = z.push(pre.subarray(o, Math.min(o + DEFLATE_SLAB, pre.length)));
+    if (part.length) {
+      parts.push(part);
+      total += part.length;
+    }
+  }
+  const tail = z.finish();
+  if (tail.length) {
+    parts.push(tail);
+    total += tail.length;
+  }
+  const out = new Uint8Array(total);
+  let at = 0;
+  for (const p of parts) {
+    out.set(p, at);
+    at += p.length;
+  }
+  return out;
+}
+function packExr(frame, opts = {}) {
+  const { width, height, data, space } = frame;
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
+    throw new Error(`packExr: invalid frame dimensions ${width}x${height}`);
+  }
+  if (data.length !== width * height * 4) {
+    throw new Error(`packExr: buffer length ${data.length} != ${width}x${height}x4`);
+  }
+  if (space === "lab" || space === "xyz-d50") {
+    throw new Error(`packExr: ${space} is not an RGB space; convertSpace to an RGB space first`);
+  }
+  const pixelType = opts.pixelType ?? "half";
+  const compression = opts.compression ?? "zip";
+  if (!(pixelType in PIXEL_TYPE_CODE)) throw new Error(`packExr: unknown pixelType ${String(pixelType)}`);
+  if (!(compression in COMPRESSION_CODE)) throw new Error(`packExr: unknown compression ${String(compression)}`);
+  const withAlpha = (opts.channels ?? "rgba") === "rgba";
+  const premultiplied = withAlpha && (opts.alpha ?? "premultiplied") === "premultiplied";
+  const par = opts.pixelAspectRatio ?? 1;
+  if (!Number.isFinite(par) || par <= 0) throw new Error(`packExr: pixelAspectRatio must be > 0, got ${par}`);
+  const channels = withAlpha ? [{ name: "A", srcIndex: 3 }, { name: "B", srcIndex: 2 }, { name: "G", srcIndex: 1 }, { name: "R", srcIndex: 0 }] : [{ name: "B", srcIndex: 2 }, { name: "G", srcIndex: 1 }, { name: "R", srcIndex: 0 }];
+  const chroma = resolveChromaticities(opts.chromaticities ?? "auto", space);
+  const extras = Object.entries(opts.attributes ?? {}).sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0);
+  for (const [k] of extras) {
+    if (RESERVED_ATTRS.has(k)) throw new Error(`packExr: attribute "${k}" is written by the encoder and cannot be overridden`);
+    if (k.length === 0) throw new Error("packExr: attribute name must not be empty");
+    if (/[\x00-\x1f\x7f]/.test(k)) throw new Error(`packExr: attribute name ${JSON.stringify(k)} contains a control byte`);
+    if (utf82(k).length > MAX_NAME_LEN) throw new Error(`packExr: attribute name "${k}" exceeds ${MAX_NAME_LEN} bytes`);
+  }
+  const longNames = extras.some(([k]) => utf82(k).length > 31);
+  const h = new Sink(512);
+  h.i32(EXR_MAGIC);
+  h.i32(EXR_VERSION | (longNames ? FLAG_LONG_NAMES : 0));
+  attr(h, "channels", "chlist", (s) => {
+    for (const c of channels) {
+      s.name(c.name);
+      s.i32(PIXEL_TYPE_CODE[pixelType]);
+      s.u8(0);
+      s.u8(0);
+      s.u8(0);
+      s.u8(0);
+      s.i32(1);
+      s.i32(1);
+    }
+    s.u8(0);
+  });
+  if (chroma) {
+    attr(h, "chromaticities", "chromaticities", (s) => {
+      for (const v of chroma) s.f32(v);
+    });
+  }
+  attr(h, "compression", "compression", (s) => s.u8(COMPRESSION_CODE[compression]));
+  const box2 = (s) => {
+    s.i32(0);
+    s.i32(0);
+    s.i32(width - 1);
+    s.i32(height - 1);
+  };
+  attr(h, "dataWindow", "box2i", box2);
+  attr(h, "displayWindow", "box2i", box2);
+  attr(h, "lineOrder", "lineOrder", (s) => s.u8(0));
+  attr(h, "pixelAspectRatio", "float", (s) => s.f32(par));
+  attr(h, "screenWindowCenter", "v2f", (s) => {
+    s.f32(0);
+    s.f32(0);
+  });
+  attr(h, "screenWindowWidth", "float", (s) => s.f32(1));
+  for (const [k, v] of extras) {
+    attr(h, k, "string", (s) => s.bytes(utf82(v)));
+  }
+  h.u8(0);
+  const linesPerBlock = LINES_PER_BLOCK[compression];
+  const numBlocks = Math.ceil(height / linesPerBlock);
+  const bps = BYTES_PER_SAMPLE[pixelType];
+  const rowBytes = width * bps * channels.length;
+  const chunks = [];
+  const rowF32 = new Float32Array(width);
+  for (let b = 0; b < numBlocks; b++) {
+    const y0 = b * linesPerBlock;
+    const lines = Math.min(linesPerBlock, height - y0);
+    const raw = new Uint8Array(lines * rowBytes);
+    const rv = new DataView(raw.buffer);
+    let off = 0;
+    for (let dy = 0; dy < lines; dy++) {
+      const rowStart = (y0 + dy) * width * 4;
+      for (const c of channels) {
+        for (let x = 0; x < width; x++) {
+          const i = rowStart + x * 4;
+          const v = data[i + c.srcIndex];
+          rowF32[x] = premultiplied && c.srcIndex !== 3 ? v * data[i + 3] : v;
+        }
+        if (pixelType === "half") {
+          const bits = packF16(rowF32);
+          for (let x = 0; x < width; x++) {
+            rv.setUint16(off, bits[x], true);
+            off += 2;
+          }
+        } else {
+          for (let x = 0; x < width; x++) {
+            rv.setFloat32(off, rowF32[x], true);
+            off += 4;
+          }
+        }
+      }
+    }
+    let body = raw;
+    if (compression !== "none") {
+      const deflated = zlibBlock(zipPreprocess(raw));
+      if (deflated.length < raw.length) body = deflated;
+    }
+    chunks.push({ y: y0, body });
+  }
+  const tableBytes = numBlocks * 8;
+  const headerBytes = h.take();
+  let cursor = headerBytes.length + tableBytes;
+  const table = new Sink(tableBytes);
+  for (const c of chunks) {
+    table.u64(cursor);
+    cursor += 8 + c.body.length;
+  }
+  const out = new Uint8Array(cursor);
+  let at = 0;
+  out.set(headerBytes, at);
+  at += headerBytes.length;
+  out.set(table.take(), at);
+  at += tableBytes;
+  const ov = new DataView(out.buffer);
+  for (const c of chunks) {
+    ov.setInt32(at, c.y, true);
+    at += 4;
+    ov.setInt32(at, c.body.length, true);
+    at += 4;
+    out.set(c.body, at);
+    at += c.body.length;
+  }
+  return out;
+}
+function attr(h, name, type, write) {
+  const body = new Sink(64);
+  write(body);
+  const bytes = body.take();
+  h.name(name);
+  h.name(type);
+  h.i32(bytes.length);
+  h.bytes(bytes);
+}
+function resolveChromaticities(mode, space) {
+  if (Array.isArray(mode) || ArrayBuffer.isView(mode)) {
+    const arr = mode;
+    if (arr.length !== 8) throw new Error(`packExr: chromaticities must be 8 numbers, got ${arr.length}`);
+    for (const v of arr) if (!Number.isFinite(v)) throw new Error("packExr: chromaticities must be finite");
+    return arr;
+  }
+  if (mode === "never") return null;
+  const known = CHROMATICITIES[space];
+  if (!known) throw new Error(`packExr: no chromaticities known for space ${space}`);
+  if (mode === "auto" && space === "srgb-linear") return null;
+  return known;
+}
+var EXR_MAGIC, EXR_VERSION, FLAG_LONG_NAMES, MAX_NAME_LEN, COMPRESSION_CODE, LINES_PER_BLOCK, PIXEL_TYPE_CODE, BYTES_PER_SAMPLE, DEFLATE_SLAB, CHROMATICITIES, Sink, utf82, RESERVED_ATTRS;
+var init_exr = __esm({
+  "engine/src/exr.ts"() {
+    "use strict";
+    init_deflate();
+    init_pixels();
+    EXR_MAGIC = 20000630;
+    EXR_VERSION = 2;
+    FLAG_LONG_NAMES = 1024;
+    MAX_NAME_LEN = 255;
+    COMPRESSION_CODE = { none: 0, zips: 2, zip: 3 };
+    LINES_PER_BLOCK = { none: 1, zips: 1, zip: 16 };
+    PIXEL_TYPE_CODE = { half: 1, float: 2 };
+    BYTES_PER_SAMPLE = { half: 2, float: 4 };
+    DEFLATE_SLAB = 65536;
+    CHROMATICITIES = {
+      "srgb-linear": [0.64, 0.33, 0.3, 0.6, 0.15, 0.06, 0.3127, 0.329],
+      "display-p3-linear": [0.68, 0.32, 0.265, 0.69, 0.15, 0.06, 0.3127, 0.329],
+      "rec2020-linear": [0.708, 0.292, 0.17, 0.797, 0.131, 0.046, 0.3127, 0.329]
+    };
+    Sink = class {
+      buf;
+      view;
+      len = 0;
+      constructor(capacity = 1024) {
+        this.buf = new Uint8Array(Math.max(64, capacity));
+        this.view = new DataView(this.buf.buffer);
+      }
+      ensure(n2) {
+        if (this.len + n2 <= this.buf.length) return;
+        const grown = new Uint8Array(Math.max(this.buf.length * 2, this.len + n2));
+        grown.set(this.buf.subarray(0, this.len));
+        this.buf = grown;
+        this.view = new DataView(grown.buffer);
+      }
+      u8(v) {
+        this.ensure(1);
+        this.buf[this.len++] = v & 255;
+      }
+      i32(v) {
+        this.ensure(4);
+        this.view.setInt32(this.len, v, true);
+        this.len += 4;
+      }
+      u64(v) {
+        this.ensure(8);
+        this.view.setBigUint64(this.len, BigInt(v), true);
+        this.len += 8;
+      }
+      f32(v) {
+        this.ensure(4);
+        this.view.setFloat32(this.len, v, true);
+        this.len += 4;
+      }
+      bytes(b) {
+        this.ensure(b.length);
+        this.buf.set(b, this.len);
+        this.len += b.length;
+      }
+      /** Null-terminated name (File Layout uses C strings for every name field). */
+      name(s) {
+        this.bytes(utf82(s));
+        this.u8(0);
+      }
+      take() {
+        return this.buf.slice(0, this.len);
+      }
+    };
+    utf82 = (s) => {
+      const out = [];
+      for (const ch of s) {
+        const cp = ch.codePointAt(0);
+        if (cp < 128) out.push(cp);
+        else if (cp < 2048) out.push(192 | cp >> 6, 128 | cp & 63);
+        else if (cp < 65536) out.push(224 | cp >> 12, 128 | cp >> 6 & 63, 128 | cp & 63);
+        else out.push(240 | cp >> 18, 128 | cp >> 12 & 63, 128 | cp >> 6 & 63, 128 | cp & 63);
+      }
+      return Uint8Array.from(out);
+    };
+    RESERVED_ATTRS = /* @__PURE__ */ new Set([
+      "channels",
+      "chromaticities",
+      "compression",
+      "dataWindow",
+      "displayWindow",
+      "lineOrder",
+      "pixelAspectRatio",
+      "screenWindowCenter",
+      "screenWindowWidth",
+      "tiles",
+      "name",
+      "type",
+      "version",
+      "chunkCount"
+    ]);
+  }
+});
+
+// engine/src/radiance.ts
+function frexpExp(x) {
+  FREXP_VIEW.setFloat64(0, x);
+  let biased = FREXP_VIEW.getUint32(0) >>> 20 & 2047;
+  if (biased === 0) {
+    FREXP_VIEW.setFloat64(0, x * 2 ** 64);
+    biased = (FREXP_VIEW.getUint32(0) >>> 20 & 2047) - 64;
+  }
+  return biased - 1022;
+}
+function floatToRgbe(r, g2, b, out, o) {
+  const rr = Number.isNaN(r) ? 0 : r;
+  const gg = Number.isNaN(g2) ? 0 : g2;
+  const bb = Number.isNaN(b) ? 0 : b;
+  let max = rr > gg ? rr : gg;
+  if (bb > max) max = bb;
+  if (!(max > MIN_LEVEL)) {
+    out[o] = 0;
+    out[o + 1] = 0;
+    out[o + 2] = 0;
+    out[o + 3] = 0;
+    return;
+  }
+  if (max === Infinity) {
+    out[o] = rr > 0 ? 255 : 0;
+    out[o + 1] = gg > 0 ? 255 : 0;
+    out[o + 2] = bb > 0 ? 255 : 0;
+    out[o + 3] = 255;
+    return;
+  }
+  const e = frexpExp(max);
+  if (e > 127) {
+    const d2 = 2 ** (8 - 127);
+    out[o] = rr > 0 ? Math.min(255, Math.floor(rr * d2)) : 0;
+    out[o + 1] = gg > 0 ? Math.min(255, Math.floor(gg * d2)) : 0;
+    out[o + 2] = bb > 0 ? Math.min(255, Math.floor(bb * d2)) : 0;
+    out[o + 3] = 255;
+    return;
+  }
+  const d = 2 ** (8 - e);
+  out[o] = rr > 0 ? Math.min(255, Math.floor(rr * d)) : 0;
+  out[o + 1] = gg > 0 ? Math.min(255, Math.floor(gg * d)) : 0;
+  out[o + 2] = bb > 0 ? Math.min(255, Math.floor(bb * d)) : 0;
+  out[o + 3] = e + EXP_BIAS;
+}
+function sanitize(s) {
+  let out = "";
+  for (const ch of s) {
+    const c = ch.codePointAt(0);
+    out += c >= 32 && c <= 126 ? ch : " ";
+  }
+  return out.trim();
+}
+function packRadiance(frame, opts = {}) {
+  const { width, height, data, space } = frame;
+  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
+    throw new Error(`packRadiance: invalid dimensions ${width}x${height}`);
+  }
+  if (data.length !== width * height * 4) {
+    throw new Error(`packRadiance: buffer length ${data.length} != ${width}x${height}x4`);
+  }
+  if (width > 65535 || height > 65535 || width * height > MAX_PIXELS) {
+    throw new Error(`packRadiance: ${width}x${height} exceeds the Radiance limits (65535 per axis, ${MAX_PIXELS} pixels)`);
+  }
+  if (space === "lab" || space === "xyz-d50") {
+    throw new Error(`packRadiance: ${space} frames must be converted to an RGB space first`);
+  }
+  const exposure = opts.exposure ?? 1;
+  if (!Number.isFinite(exposure) || exposure === 0) {
+    throw new Error(`packRadiance: exposure must be a non-zero finite number (got ${exposure})`);
+  }
+  const lines = ["#?RADIANCE"];
+  for (const c of opts.comments ?? []) lines.push(`#${sanitize(c)}`);
+  if (opts.software !== void 0) lines.push(`SOFTWARE=${sanitize(opts.software)}`);
+  lines.push(`FORMAT=${RADIANCE_FORMAT}`);
+  lines.push(`EXPOSURE=${exposure}`);
+  if (opts.gamma !== void 0) lines.push(`GAMMA=${opts.gamma}`);
+  const prim = opts.primaries === void 0 || opts.primaries === "auto" ? PRIMARIES[space] ?? null : opts.primaries;
+  if (prim && (prim.length !== 8 || !prim.every((n2) => Number.isFinite(n2)))) {
+    throw new Error("packRadiance: primaries must be 8 finite numbers (rx ry gx gy bx by wx wy)");
+  }
+  if (prim) lines.push(`PRIMARIES=${prim.join(" ")}`);
+  lines.push("");
+  lines.push(`-Y ${height} +X ${width}`);
+  const headerText = `${lines.join("\n")}
+`;
+  const header = new Uint8Array(headerText.length);
+  for (let i = 0; i < headerText.length; i++) header[i] = headerText.charCodeAt(i) & 255;
+  const rgbe = new Uint8Array(width * height * 4);
+  for (let i = 0, o = 0; i < data.length; i += 4, o += 4) {
+    floatToRgbe(data[i] * exposure, data[i + 1] * exposure, data[i + 2] * exposure, rgbe, o);
+  }
+  const useRle = (opts.rle ?? true) && width >= RLE_MIN_WIDTH && width <= RLE_MAX_WIDTH;
+  const body = useRle ? encodeRle(rgbe, width, height) : rgbe;
+  const out = new Uint8Array(header.length + body.length);
+  out.set(header, 0);
+  out.set(body, header.length);
+  return out;
+}
+function encodeRle(rgbe, width, height) {
+  const worst = height * (4 + 4 * (width + Math.ceil(width / 128) + 2));
+  const out = new Uint8Array(worst);
+  let n2 = 0;
+  for (let y = 0; y < height; y++) {
+    const row = y * width * 4;
+    out[n2++] = 2;
+    out[n2++] = 2;
+    out[n2++] = width >> 8 & 255;
+    out[n2++] = width & 255;
+    for (let c = 0; c < 4; c++) {
+      const at = (x) => rgbe[row + x * 4 + c];
+      let j = 0;
+      while (j < width) {
+        let beg = j;
+        let cnt = 1;
+        for (beg = j; beg < width; beg += cnt) {
+          for (cnt = 1; cnt < 127 && beg + cnt < width && at(beg + cnt) === at(beg); cnt++) ;
+          if (cnt >= MIN_RUN) break;
+        }
+        if (beg - j > 1 && beg - j < MIN_RUN) {
+          let c2 = j + 1;
+          while (at(c2) === at(j)) {
+            c2++;
+            if (c2 === beg) {
+              out[n2++] = 128 + (beg - j);
+              out[n2++] = at(j);
+              j = beg;
+              break;
+            }
+          }
+        }
+        while (j < beg) {
+          let k = beg - j;
+          if (k > 128) k = 128;
+          out[n2++] = k;
+          for (let m = 0; m < k; m++) out[n2++] = at(j + m);
+          j += k;
+        }
+        if (cnt >= MIN_RUN) {
+          out[n2++] = 128 + cnt;
+          out[n2++] = at(beg);
+          j += cnt;
+        }
+      }
+    }
+  }
+  if (n2 > out.length) throw new Error(`packRadiance: RLE buffer overrun (${n2} > ${out.length})`);
+  return out.subarray(0, n2);
+}
+var EXP_BIAS, MIN_LEVEL, MIN_RUN, RLE_MIN_WIDTH, RLE_MAX_WIDTH, MAX_HEADER_BYTES, MAX_PIXELS, FREXP_VIEW, PRIMARIES, RADIANCE_FORMAT;
+var init_radiance = __esm({
+  "engine/src/radiance.ts"() {
+    "use strict";
+    EXP_BIAS = 128;
+    MIN_LEVEL = 1e-32;
+    MIN_RUN = 4;
+    RLE_MIN_WIDTH = 8;
+    RLE_MAX_WIDTH = 32767;
+    MAX_HEADER_BYTES = 64 * 1024;
+    MAX_PIXELS = 32 * 1024 * 1024;
+    FREXP_VIEW = new DataView(new ArrayBuffer(8));
+    PRIMARIES = {
+      "srgb-linear": [0.64, 0.33, 0.3, 0.6, 0.15, 0.06, 0.3127, 0.329],
+      "display-p3-linear": [0.68, 0.32, 0.265, 0.69, 0.15, 0.06, 0.3127, 0.329],
+      "rec2020-linear": [0.708, 0.292, 0.17, 0.797, 0.131, 0.046, 0.3127, 0.329]
+    };
+    RADIANCE_FORMAT = "32-bit_rle_rgbe";
+  }
+});
+
+// packages/node-shell/src/repo-root.ts
+import { existsSync as existsSync2 } from "node:fs";
+import { join as join2, dirname as dirname2 } from "node:path";
+import { fileURLToPath as fileURLToPath2 } from "node:url";
+function hasMarker(root) {
+  return existsSync2(join2(root, "catalog", "tools", "index.json")) || existsSync2(join2(root, "catalog", "assets", "index.json"));
+}
+function repoRoot() {
+  if (!cached) cached = resolve();
+  return cached;
+}
+function resolve() {
+  if (process.env.LOLLY_ROOT && hasMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
+  let dir = dirname2(fileURLToPath2(import.meta.url));
+  for (; ; ) {
+    if (hasMarker(dir)) return dir;
+    const parent = dirname2(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  if (hasMarker(process.cwd())) return process.cwd();
+  return join2(dirname2(fileURLToPath2(import.meta.url)), "..", "..", "..");
+}
+var cached;
+var init_repo_root = __esm({
+  "packages/node-shell/src/repo-root.ts"() {
+    "use strict";
+    cached = null;
+  }
+});
+
+// packages/node-shell/src/raster.ts
+var raster_exports = {};
+__export(raster_exports, {
+  DEEP_FORMATS: () => DEEP_FORMATS,
+  DeepSourceError: () => DeepSourceError,
+  NODE_FORMATS: () => NODE_FORMATS,
+  deepFormatMime: () => deepFormatMime,
+  deepSourceRefusal: () => deepSourceRefusal,
+  isDeepFormat: () => isDeepFormat,
+  matchedExportFormat: () => matchedExportFormat,
+  pxDims: () => pxDims,
+  rasterizeSvgToPng: () => rasterizeSvgToPng,
+  rasterizeSvgToRgba: () => rasterizeSvgToRgba,
+  renderDeepRaster: () => renderDeepRaster
+});
+import { join as join3 } from "node:path";
+function deepFormatMime(fmt2) {
+  return fmt2.toLowerCase() === "exr" ? "image/x-exr" : "image/vnd.radiance";
+}
+function isDeepFormat(fmt2) {
+  const f = fmt2.toLowerCase();
+  return f === "exr" || f === "hdr";
+}
+function pxDims(dims, manifest) {
+  const dpi = dims.dpi && dims.dpi > 0 ? dims.dpi : 300;
+  const render2 = manifest.render ?? {};
+  const toPx = (v, fallback) => {
+    if (!(typeof v === "number" && v > 0)) return fallback;
+    const u = dims.unit || "px";
+    if (u === "px") return Math.round(v);
+    const d = parseDimension(`${v}${u}`);
+    return d ? Math.round(toPixels(d, dpi)) : Math.round(v);
+  };
+  return { width: toPx(dims.width, render2.width ?? 1280), height: toPx(dims.height, render2.height ?? 720), dpi };
+}
+async function rasterizeSvgToPng(svg, width, height) {
+  const { Resvg } = await import("@resvg/resvg-js");
+  const r = new Resvg(sizeSvg(svg, width, height), {
+    fitTo: { mode: "original" },
+    font: { fontDirs: [FONTS_DIR2], loadSystemFonts: true }
+  });
+  return r.render().asPng();
+}
+function sizeSvg(svg, width, height) {
+  const w = Math.max(1, Math.round(width));
+  const h = Math.max(1, Math.round(height));
+  const m = svg.match(/<svg\b([^>]*)>/);
+  if (!m) return svg;
+  let attrs = m[1];
+  if (!/\bviewBox=/.test(attrs)) {
+    const ow = attrs.match(/\bwidth="([\d.]+)"/)?.[1];
+    const oh = attrs.match(/\bheight="([\d.]+)"/)?.[1];
+    if (ow && oh) attrs += ` viewBox="0 0 ${ow} ${oh}"`;
+  }
+  attrs = attrs.replace(/\s(width|height)="[^"]*"/g, "");
+  return svg.replace(/<svg\b[^>]*>/, `<svg${attrs} width="${w}" height="${h}">`);
+}
+async function rasterizeSvgToRgba(svg, width, height) {
+  const { Resvg } = await import("@resvg/resvg-js");
+  const r = new Resvg(sizeSvg(svg, width, height), {
+    fitTo: { mode: "original" },
+    font: { fontDirs: [FONTS_DIR2], loadSystemFonts: true }
+  });
+  const img = r.render();
+  const src = img.pixels;
+  const out = new Uint8Array(src.length);
+  for (let i = 0; i < src.length; i += 4) {
+    const a = src[i + 3];
+    if (a === 0) {
+      out[i] = 0;
+      out[i + 1] = 0;
+      out[i + 2] = 0;
+      out[i + 3] = 0;
+      continue;
+    }
+    if (a === 255) {
+      out[i] = src[i];
+      out[i + 1] = src[i + 1];
+      out[i + 2] = src[i + 2];
+      out[i + 3] = 255;
+      continue;
+    }
+    out[i] = Math.min(255, Math.round(src[i] * 255 / a));
+    out[i + 1] = Math.min(255, Math.round(src[i + 1] * 255 / a));
+    out[i + 2] = Math.min(255, Math.round(src[i + 2] * 255 / a));
+    out[i + 3] = a;
+  }
+  return { data: out, width: img.width, height: img.height };
+}
+function hasHeadroom(frame) {
+  const d = frame.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i] > 1 || d[i + 1] > 1 || d[i + 2] > 1) return true;
+  }
+  return false;
+}
+function deepSourceRefusal(format, reason = "no-hdr") {
+  const f = format.toLowerCase();
+  if (reason === "no-headroom") {
+    return `"${f}" is a floating-point format, and the HDR view transform found nothing in this render to lift above 1.0, so every sample would still be an 8-bit value padded into float. The transform only boosts pixels that clear its lightness knee AND match a boost target (near-white by default, plus the brand colours), so a dark or fully-saturated design can pass hdr=1 and still produce no headroom. Try a render with near-white or brand-coloured areas, raise the dials (hdr=<peak>-<reach>-<lift>-<richness>), or export png/tiff instead. See plans/deeprichpixels.md section 10 - depth follows provenance.`;
+  }
+  return `"${f}" is a floating-point format, and this render has no floating-point pixels behind it: the terminal render path rasterises the tool's vector output to 8-bit sRGB (resvg), so writing it as float samples would pad 8 bits of picture into 16 or 32 without adding any. Add hdr=1 (--hdr=1) to route the render through the HDR view transform, which generates genuine above-1.0 float headroom from continuous float maths rather than padding. Deep sources from ingest (16-bit PNG/TIFF) and float vector rendering are later phases. See plans/deeprichpixels.md section 10 - depth follows provenance.`;
+}
+function hdrTune(h) {
+  const t = {};
+  if (h.peakNits != null) t.peakNits = h.peakNits;
+  if (h.reach != null) {
+    const r = Math.min(1, Math.max(0, h.reach / 100));
+    const center = 0.65 - 0.45 * r;
+    t.kneeLo = Math.max(0, center - 0.12);
+    t.kneeHi = Math.min(1, center + 0.12);
+  }
+  if (h.lift != null) t.boostFloor = Math.min(1, Math.max(0, h.lift / 100));
+  if (h.richness != null) t.richness = Math.min(1, Math.max(0, h.richness / 100));
+  return t;
+}
+async function renderDeepRaster(req) {
+  const fmt2 = req.format.toLowerCase();
+  if (!isDeepFormat(fmt2)) throw new DeepSourceError(`renderDeepRaster: unsupported format "${req.format}"`);
+  if (!req.hdr) throw new DeepSourceError(deepSourceRefusal(fmt2));
+  const raster = await rasterizeSvgToRgba(req.svg, req.width, req.height);
+  const sdr = fromU8Srgb(raster.data, raster.width, raster.height);
+  const frame = hdrViewTransform(sdr, {
+    targets: req.hdr.targets ?? [],
+    ...hdrTune(req.hdr)
+  });
+  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt2, "no-headroom"));
+  if (fmt2 === "hdr") {
+    if (req.depth === "float" || req.depth === 16 || req.depth === 8) {
+      req.log?.("info", `Note: depth=${req.depth} is not a Radiance .hdr option \u2014 RGBE is 8-bit mantissas with one shared exponent per pixel. Wrote RGBE.`);
+    }
+    return {
+      bytes: packRadiance(frame, { software: "Lolly", comments: ["Rec.2020 primaries, linear light, 1.0 = 203 nits (BT.2408 diffuse white)"] }),
+      mime: deepFormatMime("hdr")
+    };
+  }
+  let pixelType = "half";
+  if (req.depth === "float") pixelType = "float";
+  else if (req.depth === 8 || req.depth === 16) {
+    req.log?.("info", `Note: depth=${req.depth} has no OpenEXR sample type (EXR is float-only) \u2014 wrote HALF. Use depth=float for 32-bit samples.`);
+  }
+  return {
+    bytes: packExr(frame, {
+      pixelType,
+      attributes: {
+        comments: "Linear light, 1.0 = 203 nits (BT.2408 diffuse white); above 1.0 is HDR headroom",
+        software: "Lolly"
+      }
+    }),
+    mime: deepFormatMime("exr")
+  };
+}
+function matchedExportFormat(manifest, model) {
+  const flagged = (manifest.inputs ?? []).find((i) => i.matchExportFormat);
+  if (!flagged) return null;
+  const v = model.find((m) => m.id === flagged.id)?.value;
+  if (!v || typeof v !== "object") return null;
+  let f = (v.format ? String(v.format) : v.mime ? String(v.mime).split("/")[1] ?? "" : "").toLowerCase();
+  if (f === "jpeg") f = "jpg";
+  if (f === "svg+xml") f = "svg";
+  const formats = (manifest.render?.formats ?? []).map((x) => x.toLowerCase());
+  return f && formats.includes(f) ? f : null;
+}
+var NODE_FORMATS, DEEP_FORMATS, FONTS_DIR2, DeepSourceError;
+var init_raster = __esm({
+  "packages/node-shell/src/raster.ts"() {
+    "use strict";
+    init_src();
+    init_exr();
+    init_radiance();
+    init_repo_root();
+    NODE_FORMATS = ["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "html", "json", "csv", "ics", "vcf", "txt", "md"];
+    DEEP_FORMATS = ["exr", "hdr"];
+    FONTS_DIR2 = join3(repoRoot(), "catalog", "fonts");
+    DeepSourceError = class extends Error {
+      constructor(message) {
+        super(message);
+        this.name = "DeepSourceError";
+      }
+    };
   }
 });
 
@@ -18940,6 +20498,9 @@ function utf8(bytes) {
   return Buffer.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("utf8");
 }
 
+// services/mcp/src/render.ts
+init_raster();
+
 // packages/node-shell/src/c2pa-opts.ts
 init_src();
 function buildExportC2paOpts(o) {
@@ -18974,7 +20535,7 @@ import { readFile as readFile7 } from "node:fs/promises";
 // shells/cli/src/bridge.ts
 init_src();
 import { readFile as readFile5 } from "node:fs/promises";
-import { join as join6 } from "node:path";
+import { join as join7 } from "node:path";
 
 // shells/web/src/bridge/pdf.ts
 var PDF_LOAD_OPTS = { ignoreEncryption: true, updateMetadata: false };
@@ -19986,8 +21547,8 @@ function parseSvgDropShadow(filt) {
     "fecomponenttransfer"
   ];
   if (kids.some((k) => UNEXPECTED.includes(k))) return null;
-  const num3 = (el, attr, dflt) => {
-    const v = Number.parseFloat(el?.getAttribute(attr) ?? "");
+  const num3 = (el, attr2, dflt) => {
+    const v = Number.parseFloat(el?.getAttribute(attr2) ?? "");
     return Number.isFinite(v) ? v : dflt;
   };
   const find = (name) => Array.from(filt.children).find((c) => c.tagName.toLowerCase().replace(/^svg:/, "") === name);
@@ -20302,35 +21863,13 @@ function safeComputed(fn, el) {
   }
 }
 
-// packages/node-shell/src/repo-root.ts
-import { existsSync as existsSync2 } from "node:fs";
-import { join as join2, dirname as dirname2 } from "node:path";
-import { fileURLToPath as fileURLToPath2 } from "node:url";
-function hasMarker(root) {
-  return existsSync2(join2(root, "catalog", "tools", "index.json")) || existsSync2(join2(root, "catalog", "assets", "index.json"));
-}
-var cached = null;
-function repoRoot() {
-  if (!cached) cached = resolve();
-  return cached;
-}
-function resolve() {
-  if (process.env.LOLLY_ROOT && hasMarker(process.env.LOLLY_ROOT)) return process.env.LOLLY_ROOT;
-  let dir = dirname2(fileURLToPath2(import.meta.url));
-  for (; ; ) {
-    if (hasMarker(dir)) return dir;
-    const parent = dirname2(dir);
-    if (parent === dir) break;
-    dir = parent;
-  }
-  if (hasMarker(process.cwd())) return process.cwd();
-  return join2(dirname2(fileURLToPath2(import.meta.url)), "..", "..", "..");
-}
+// shells/cli/src/bridge.ts
+init_repo_root();
 
 // packages/node-shell/src/text.ts
 import { readFile as readFile3, readdir } from "node:fs/promises";
 import { existsSync as existsSync3 } from "node:fs";
-import { join as join3 } from "node:path";
+import { join as join4 } from "node:path";
 import { fileURLToPath as fileURLToPath3 } from "node:url";
 var _hb = null;
 async function loadHarfBuzz() {
@@ -20357,12 +21896,12 @@ async function loadFontBytes(fontUrl, repoRoot2) {
   if (fontUrl.startsWith("file://")) {
     filePath = fileURLToPath3(fontUrl);
   } else if (fontUrl.startsWith("/")) {
-    filePath = join3(repoRoot2, fontUrl.slice(1));
+    filePath = join4(repoRoot2, fontUrl.slice(1));
     if (!existsSync3(filePath) && fontUrl.startsWith("/fonts/")) {
-      filePath = join3(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
+      filePath = join4(repoRoot2, "shells", "web", "public", fontUrl.slice(1));
     }
   } else {
-    filePath = join3(repoRoot2, fontUrl);
+    filePath = join4(repoRoot2, fontUrl);
   }
   return new Uint8Array(await readFile3(filePath));
 }
@@ -20413,8 +21952,8 @@ function fmt(n2) {
   return Math.round(n2 * 100) / 100;
 }
 var FONT_DIRS = [
-  { rel: join3("catalog", "fonts", "ttf"), url: "/catalog/fonts/ttf/" },
-  { rel: join3("shells", "web", "public", "fonts"), url: "/fonts/" }
+  { rel: join4("catalog", "fonts", "ttf"), url: "/catalog/fonts/ttf/" },
+  { rel: join4("shells", "web", "public", "fonts"), url: "/fonts/" }
 ];
 var WEIGHT_NAMES = {
   thin: 100,
@@ -20460,7 +21999,7 @@ function scanDiskFaces(repoRoot2) {
     cached2 = (async () => {
       const faces = [];
       for (const dir of FONT_DIRS) {
-        const abs = join3(repoRoot2, dir.rel);
+        const abs = join4(repoRoot2, dir.rel);
         if (!existsSync3(abs)) continue;
         let names;
         try {
@@ -20597,7 +22136,7 @@ function createNodeTextAPI({ repoRoot: repoRoot2 }) {
 init_src();
 import { readFile as readFile4 } from "node:fs/promises";
 import { fileURLToPath as fileURLToPath4 } from "node:url";
-import { isAbsolute, join as join4 } from "node:path";
+import { isAbsolute, join as join5 } from "node:path";
 var NEEDS_PLATFORM_CODEC = /\.(mp3|m4a|aac|ogg|oga|opus|flac|weba|webm|mp4)$/i;
 function isRef(src) {
   return typeof src === "object" && src !== null && "url" in src && typeof src.url === "string";
@@ -20621,7 +22160,7 @@ function createNodeAudioAPI(opts) {
       return new Uint8Array(await res.arrayBuffer());
     }
     if (url.startsWith("file:")) return new Uint8Array(await readFile4(fileURLToPath4(url)));
-    const path = isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join4(repoRoot2, url.replace(/^\//, ""));
+    const path = isAbsolute(url) && !url.startsWith("/catalog/") && !url.startsWith("/community/") ? url : join5(repoRoot2, url.replace(/^\//, ""));
     return new Uint8Array(await readFile4(path));
   }
   async function songOf(src) {
@@ -20665,10 +22204,11 @@ function createNodeAudioAPI(opts) {
 }
 
 // packages/node-shell/src/browsers.ts
-import { join as join5 } from "node:path";
+init_repo_root();
+import { join as join6 } from "node:path";
 import { existsSync as existsSync4 } from "node:fs";
-var INSTALL_BROWSERS_DIR = join5(repoRoot(), ".browsers");
-var SIBLING_BROWSERS_DIR = join5(repoRoot(), "services", "mcp", ".browsers");
+var INSTALL_BROWSERS_DIR = join6(repoRoot(), ".browsers");
+var SIBLING_BROWSERS_DIR = join6(repoRoot(), "services", "mcp", ".browsers");
 var BrowserError = class extends Error {
 };
 function resolveBrowsersDir() {
@@ -20848,7 +22388,7 @@ async function captureUrl(params, format, dims) {
 var REPO_ROOT2 = repoRoot();
 async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   const w = dom.window;
-  const assetCatalogPath = join6(REPO_ROOT2, "catalog", "assets", "index.json");
+  const assetCatalogPath = join7(REPO_ROOT2, "catalog", "assets", "index.json");
   const assetIndex = JSON.parse(await readFile5(assetCatalogPath, "utf8"));
   const assetById = new Map(assetIndex.assets.map((a) => [a.id, a]));
   const state = /* @__PURE__ */ new Map();
@@ -20875,7 +22415,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     iconThemesCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("icon-themes"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile5(join6(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile5(join7(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parseIconThemesDoc(doc);
     })().catch(() => []);
     return iconThemesCache;
@@ -20885,7 +22425,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     photoTreatmentsCache ??= (async () => {
       const pal = [...assetById.values()].find((a) => a.type === "palette" && a.tags?.includes("photo-treatments"));
       if (!pal) return [];
-      const doc = JSON.parse(await readFile5(join6(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
+      const doc = JSON.parse(await readFile5(join7(REPO_ROOT2, pal.formats[0].url.replace(/^\//, "")), "utf8"));
       return parsePhotoTreatmentsDoc(doc);
     })().catch(() => []);
     return photoTreatmentsCache;
@@ -20895,7 +22435,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
     tokensDocCache ??= (async () => {
       const asset = assetIndex.assets.find((a) => a.type === "tokens");
       if (!asset) return null;
-      return JSON.parse(await readFile5(join6(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
+      return JSON.parse(await readFile5(join7(REPO_ROOT2, asset.formats[0].url.replace(/^\//, "")), "utf8"));
     })().catch(() => null);
     return tokensDocCache;
   }
@@ -20941,7 +22481,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
       const meta = assetById.get(baseId);
       if (!meta) throw new Error(`Asset not in catalog: ${baseId}`);
       const fmt2 = meta.type === "lottie" ? meta.formats.find((f) => f.format === "json") ?? meta.formats[0] : meta.formats[0];
-      const localPath = join6(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
+      const localPath = join7(REPO_ROOT2, fmt2.url.replace(/^\//, ""));
       let buf = await readFile5(localPath);
       let extraMeta = { name: meta.name, tags: meta.tags };
       if (meta.type === "palette" && fmt2.format === "json") {
@@ -21109,7 +22649,28 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
         const { text } = emitDxf(ir, { width: opts.width, height: opts.height, unit: opts.unit, dpi: opts.dpi });
         return new Blob([text], { type: "image/vnd.dxf" });
       }
-      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, eps, dxf, json, csv, ics, vcf), or run the Tauri-bundled CLI for raster/pdf/zip.`);
+      if (format === "exr" || format === "hdr") {
+        const svg = rootSvgOf(node);
+        if (!svg) throw new Error("EXR/HDR export needs the template's root drawable to be a vector image (HTML-layout tools have no browser-free raster here \u2014 use the desktop app or the web shell)");
+        const raw = w.XMLSerializer ? new w.XMLSerializer().serializeToString(svg) : svg.outerHTML;
+        const { renderDeepRaster: renderDeepRaster2, deepFormatMime: deepFormatMime2 } = await Promise.resolve().then(() => (init_raster(), raster_exports));
+        const dpi = opts.dpi ?? 300;
+        const px = (v, fallback) => {
+          const d = parseDimension(v);
+          return d ? Math.max(1, Math.round(toPixels(d, dpi))) : fallback;
+        };
+        const { bytes, mime } = await renderDeepRaster2({
+          svg: raw,
+          width: px(opts.width, parseFloat(svg.getAttribute("width")) || 1280),
+          height: px(opts.height, parseFloat(svg.getAttribute("height")) || 720),
+          format,
+          hdr: opts.hdr ?? null,
+          depth: opts.depth,
+          log: (level, message) => host.log(level, message)
+        });
+        return new Blob([bytes], { type: mime || deepFormatMime2(format) });
+      }
+      throw new Error(`CLI shell does not support format "${format}" (needs a browser engine). Use a text/data format (html, svg, emf, eps, dxf, json, csv, ics, vcf), a pro float format (exr, hdr \u2014 with hdr=1), or run the Tauri-bundled CLI for raster/pdf/zip.`);
     },
     async download() {
       throw new Error("CLI cannot trigger a browser download \u2014 pipe the blob to a file via --output");
@@ -21149,7 +22710,7 @@ async function createCliBridge({ profile = {}, dom, networkAllowlist } = {}) {
   };
   host.pdf = createPdfAPI();
   host.pptx = createPptxAPI({ parseXml: (xml) => new w.DOMParser().parseFromString(xml, "application/xml") });
-  const composeFetchFile = async (p) => readFile5(join6(REPO_ROOT2, "tools", p), "utf8");
+  const composeFetchFile = async (p) => readFile5(join7(REPO_ROOT2, "tools", p), "utf8");
   host.compose = {
     async render(spec) {
       const { toolId, inputs = {}, format, width, height, unit: unit2, dpi, _stack = [] } = spec ?? {};
@@ -21293,6 +22854,12 @@ function mimeFor(format) {
     case "eps":
     case "eps-cmyk":
       return "application/postscript";
+    // Pro float formats (plans/deeprichpixels.md §6 B3). `image/x-exr` is the de-facto
+    // OpenEXR type (never IANA-registered); `image/vnd.radiance` IS registered for RGBE.
+    case "exr":
+      return "image/x-exr";
+    case "hdr":
+      return "image/vnd.radiance";
     case "json":
       return "application/json";
     default:
@@ -21347,7 +22914,7 @@ import { createServer } from "node:http";
 import { spawn } from "node:child_process";
 import { readFile as readFile6, stat } from "node:fs/promises";
 import { existsSync as existsSync5 } from "node:fs";
-import { join as join7, resolve as resolve2, extname, normalize } from "node:path";
+import { join as join8, resolve as resolve2, extname, normalize } from "node:path";
 var MIME = {
   ".html": "text/html; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
@@ -21378,15 +22945,15 @@ async function webShellBase() {
   return (await served).base;
 }
 async function buildAndServe() {
-  const dist = process.env.LOLLY_WEB_DIST || join7(REPO_ROOT, "shells", "web", "dist");
-  if (!existsSync5(join7(dist, "index.html"))) {
-    if (!existsSync5(join7(REPO_ROOT, "shells", "web", "package.json"))) {
+  const dist = process.env.LOLLY_WEB_DIST || join8(REPO_ROOT, "shells", "web", "dist");
+  if (!existsSync5(join8(dist, "index.html"))) {
+    if (!existsSync5(join8(REPO_ROOT, "shells", "web", "package.json"))) {
       throw new Error(
         `No built web shell at ${dist}. Set LOLLY_WEB_DIST to a prebuilt shell, or LOLLY_WEB_BASE to a running one. Tier-B (pdf/video/HTML-raster) needs it; SVG/data formats render without it.`
       );
     }
     await buildWebShell();
-    if (!existsSync5(join7(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
+    if (!existsSync5(join8(dist, "index.html"))) throw new Error(`Web shell build produced no ${dist}/index.html`);
   }
   return serveDist(dist);
 }
@@ -21412,7 +22979,7 @@ function serveDist(dist) {
         return;
       }
       if (urlPath === "/" || !existsSync5(filePath) || !(await stat(filePath)).isFile()) {
-        filePath = join7(root, "index.html");
+        filePath = join8(root, "index.html");
       }
       const data = await readFile6(filePath);
       res.setHeader("Content-Type", MIME[extname(filePath)] ?? "application/octet-stream");
@@ -21434,7 +23001,7 @@ function serveDist(dist) {
 }
 
 // services/mcp/src/render.ts
-var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
+var TIER_A = /* @__PURE__ */ new Set(["svg", "emf", "eps", "eps-cmyk", "dxf", "exr", "hdr", "html", "md", "txt", "json", "csv", "ics", "vcf"]);
 var MAX_RASTER_EDGE_PX = 1e4;
 var RenderError = class extends Error {
 };
@@ -21468,6 +23035,12 @@ function mimeForFormat(fmt2) {
       return "application/postscript";
     case "dxf":
       return "image/vnd.dxf";
+    // Pro float formats. `image/x-exr` is the de-facto OpenEXR type (never IANA-
+    // registered); `image/vnd.radiance` IS registered for RGBE.
+    case "exr":
+      return "image/x-exr";
+    case "hdr":
+      return "image/vnd.radiance";
     case "tiff":
     case "cmyk-tiff":
       return "image/tiff";
@@ -21514,6 +23087,8 @@ function exportOpts(o) {
   if (o.background) opts.background = o.background;
   if (o.colorProfile) opts.colorProfile = o.colorProfile;
   if (o.password) opts.password = o.password;
+  if (o.depth && o.depth !== "auto") opts.depth = o.depth;
+  if (o.hdr) opts.hdr = { targets: [], peakNits: o.hdr.peakNits, reach: o.hdr.reach, lift: o.hdr.lift, richness: o.hdr.richness };
   return opts;
 }
 async function renderTierA(toolId, values, fmt2, opts, profile) {
@@ -21523,7 +23098,13 @@ async function renderTierA(toolId, values, fmt2, opts, profile) {
     const canvas = dom.window.document.getElementById("canvas");
     if (!canvas) throw new RenderError("render canvas missing");
     canvas.innerHTML = runtime.getHydrated();
-    const blob = await runtime.export(canvas, fmt2, opts);
+    let blob;
+    try {
+      blob = await runtime.export(canvas, fmt2, opts);
+    } catch (e) {
+      if (e instanceof DeepSourceError) throw new RenderError(e.message);
+      throw e;
+    }
     const bytes = new Uint8Array(await blob.arrayBuffer());
     try {
       assertRenderOk({ hookErrors: runtime.hookErrors, format: fmt2, bytes });
@@ -21675,8 +23256,8 @@ async function render(toolId, query, o = {}) {
   const q = await expandQuery(query);
   const st = parseUrlState(q, tool.manifest);
   const fmt2 = normFormat(o.format ?? st.format ?? formats[0] ?? "svg");
-  if (!supported.has(fmt2)) {
-    throw new RenderError(`Tool "${toolId}" does not support format "${fmt2}". Supported: ${formats.join(", ")}`);
+  if (!supported.has(fmt2) && !isDeepFormat(fmt2)) {
+    throw new RenderError(`Tool "${toolId}" does not support format "${fmt2}". Supported: ${formats.join(", ")} (plus the pro float formats exr, hdr, which need hdr=1)`);
   }
   const exportFmt = fmt2 === "jpg" && !formats.includes("jpg") ? "jpg" : fmt2;
   const values = { ...st.values };
@@ -21689,7 +23270,10 @@ async function render(toolId, query, o = {}) {
     unit: o.unit ?? st.unit ?? void 0,
     dpi: o.dpi ?? st.dpi ?? void 0,
     password: o.password ?? st.password ?? void 0,
-    c2pa: o.c2pa ?? st.c2pa ?? null
+    c2pa: o.c2pa ?? st.c2pa ?? null,
+    // The `hdr=` request, the CLI/MCP's only float pixel source (see exportOpts).
+    hdr: o.hdr ?? st.hdr ?? null,
+    depth: o.depth ?? st.depth ?? void 0
   };
   const profile = o.profile ?? {};
   const warnings = [];
@@ -21850,6 +23434,55 @@ var RENDER_ARGS = {
   unit: { type: "string", enum: ["px", "mm", "cm", "in", "pt"], description: "Unit for width/height (default px)." },
   dpi: { type: "number", description: "Raster DPI for physical units (default 300)." }
 };
+var EXPORT_ARGS = {
+  depth: {
+    type: "string",
+    enum: ["8", "16", "float", "auto"],
+    description: "Bits per channel. A REQUEST, not a promise: the writers never emit bits the render did not produce, so asking for float on an 8-bit source still returns 8-bit."
+  },
+  hdr: {
+    type: "object",
+    description: "Opt-in HDR raster export (Rec.2100 PQ, or a gain-map JPEG). Presence turns it on; every dial is optional.",
+    properties: {
+      peakNits: { type: "number", description: "Peak luminance ceiling in nits (default 1000)." },
+      reach: { type: "number", description: "0-100: how far down the lightness range the glow reaches (default 45)." },
+      lift: { type: "number", description: "0-100: how much darks are lifted (default 0 \u2014 darks stay dark)." },
+      richness: { type: "number", description: "0-100: colour-richness focus of the boost (default 40)." }
+    },
+    additionalProperties: false
+  },
+  bleed: { type: "string", description: "Print bleed, e.g. '3mm'. Grows the page past the trim so a trim that drifts still lands on artwork." },
+  marks: { type: "string", description: "Printer's marks to draw, comma-separated (e.g. 'crop,registration,colorbar,info')." },
+  cuts: { type: "number", description: "Emit N frames of a timed tool as a contact sheet instead of the single playhead frame." },
+  imprint: { type: "boolean", description: "Lolly's own pixel watermark on raster exports. ON by default \u2014 pass false to opt out." },
+  durable: { type: "boolean", description: "Embed the durable Content Credential that survives re-encoding (opt-in, off by default)." }
+};
+function exportSettings(args) {
+  const rawDepth = args["depth"] == null ? null : String(args["depth"]);
+  const depth = rawDepth === "8" ? 8 : rawDepth === "16" ? 16 : rawDepth === "float" ? "float" : rawDepth === "auto" ? "auto" : void 0;
+  const h = args["hdr"];
+  const hdr = h && typeof h === "object" ? (() => {
+    const o = h;
+    const num3 = (v, d) => typeof v === "number" && isFinite(v) ? v : d;
+    return {
+      peakNits: num3(o["peakNits"], HDR_DEFAULTS.peakNits),
+      reach: num3(o["reach"], HDR_DEFAULTS.reach),
+      lift: num3(o["lift"], HDR_DEFAULTS.lift),
+      richness: num3(o["richness"], HDR_DEFAULTS.richness)
+    };
+  })() : void 0;
+  const cuts = typeof args["cuts"] === "number" && args["cuts"] > 1 ? args["cuts"] : void 0;
+  return {
+    ...depth !== void 0 ? { depth } : {},
+    ...hdr ? { hdr } : {},
+    ...args["bleed"] ? { bleed: String(args["bleed"]) } : {},
+    ...args["marks"] ? { marks: String(args["marks"]) } : {},
+    ...cuts !== void 0 ? { cuts } : {},
+    // Only an explicit false is an opt-out; absent means the default (on).
+    ...args["imprint"] === false ? { imprint: false } : {},
+    ...args["durable"] === true ? { durable: true } : {}
+  };
+}
 var TOOL_DEFS = [
   {
     name: "lolly_list_tools",
@@ -21881,7 +23514,7 @@ var TOOL_DEFS = [
     description: "Build a shareable, editable lolly.tools link (and a raw render URL) for a tool + inputs, without rendering.",
     inputSchema: {
       type: "object",
-      properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, format: RENDER_ARGS.format, width: RENDER_ARGS.width, height: RENDER_ARGS.height, unit: RENDER_ARGS.unit, dpi: RENDER_ARGS.dpi },
+      properties: { toolId: RENDER_ARGS.toolId, inputs: RENDER_ARGS.inputs, format: RENDER_ARGS.format, width: RENDER_ARGS.width, height: RENDER_ARGS.height, unit: RENDER_ARGS.unit, dpi: RENDER_ARGS.dpi, ...EXPORT_ARGS },
       required: ["toolId"],
       additionalProperties: false
     }
@@ -21893,6 +23526,7 @@ var TOOL_DEFS = [
       type: "object",
       properties: {
         ...RENDER_ARGS,
+        ...EXPORT_ARGS,
         transparentBg: { type: "boolean", description: "Remove the background fill (alpha formats)." },
         convertPaths: { type: "boolean", description: "Outline text to vector paths in SVG/PDF (default on)." },
         background: { type: "string", description: "Override background colour." },
@@ -21979,7 +23613,20 @@ function buildLinks(manifest, inputs, o) {
     width: o.width ?? null,
     height: o.height ?? null,
     unit: o.unit ?? null,
-    dpi: o.dpi ?? null
+    dpi: o.dpi ?? null,
+    // The press setup and provenance choices ride the link too, so opening it
+    // reproduces the file rather than a differently-configured cousin. They
+    // also carry the browser tier's whole configuration: exportUrl() strips the
+    // params it sets itself and passes the rest through untouched.
+    bleed: o.bleed ?? null,
+    marks: o.marks ?? null,
+    cuts: o.cuts ?? null,
+    depth: o.depth ?? null,
+    // `hdr` serialises as a presence flag (`hdr=1`); the dials only exist on the
+    // engine-side opts, so the link carries "HDR on" and the render carries how.
+    hdr: o.hdr ? "1" : null,
+    imprint: o.imprint,
+    durable: o.durable
   });
   const editUrl = query ? `${WEB_BASE}/#/tool/${manifest.id}?${query}` : `${WEB_BASE}/#/tool/${manifest.id}`;
   const renderUrl = buildEmbedUrl({ toolId: manifest.id, format: o.format ?? manifest.render.formats[0], query });
@@ -22113,7 +23760,14 @@ ${lines.join("\n")}`;
         const tool = await loadToolCached(toolId).catch(() => null);
         if (!tool) return errorResult(`Tool not found: ${toolId}.`);
         const inputs = args["inputs"] ?? {};
-        const links = buildLinks(tool.manifest, inputs, args);
+        const links = buildLinks(tool.manifest, inputs, {
+          format: args["format"],
+          width: args["width"],
+          height: args["height"],
+          unit: args["unit"],
+          dpi: args["dpi"],
+          ...exportSettings(args)
+        });
         return textOnly(`Editable link:
 ${links.editUrl}
 
@@ -22138,7 +23792,8 @@ ${links.renderUrl ?? "(unavailable)"}`);
           transparentBg: args["transparentBg"],
           convertPaths: args["convertPaths"],
           password: args["password"],
-          c2pa: c2paSetting(args["c2pa"])
+          c2pa: c2paSetting(args["c2pa"]),
+          ...exportSettings(args)
         };
         const links = buildLinks(tool.manifest, inputs, opts);
         const result = await render(toolId, links.query, opts);
@@ -22328,7 +23983,7 @@ ${listing}`;
 // services/mcp/src/resources.ts
 init_src();
 import { readFile as readFile8 } from "node:fs/promises";
-import { join as join8 } from "node:path";
+import { join as join9 } from "node:path";
 init_schema();
 var RESOURCES = [
   { uri: "lolly://catalog", name: "Tool catalog", description: "The full generated Lolly tool index.", mimeType: "application/json" },
@@ -22344,7 +23999,7 @@ async function tokensResource(uri) {
   const idx = JSON.parse(await readFile8(ASSET_INDEX, "utf8"));
   const tokenAsset = idx.assets.find((a) => a.type === "tokens");
   if (!tokenAsset) return { uri, mimeType: "application/json", text: JSON.stringify({ colors: [], note: "No tokens asset in catalog." }) };
-  const doc = JSON.parse(await readFile8(join8(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
+  const doc = JSON.parse(await readFile8(join9(REPO_ROOT, tokenAsset.formats[0].url.replace(/^\//, "")), "utf8"));
   const set = createTokenSet(doc);
   return { uri, mimeType: "application/json", text: JSON.stringify({ colors: set.colors() }, null, 2) };
 }
@@ -22364,11 +24019,11 @@ async function assetsListing(uri) {
   }));
   return { uri, mimeType: "application/json", text: JSON.stringify({ count: assets.length, assets }, null, 2) };
 }
-var PREVIEWS_DIR = join8(REPO_ROOT, "catalog", "previews");
+var PREVIEWS_DIR = join9(REPO_ROOT, "catalog", "previews");
 async function previewResource(uri, id) {
   for (const file of [`${id}.svg`, `${id}.look0.svg`]) {
     try {
-      const text = await readFile8(join8(PREVIEWS_DIR, file), "utf8");
+      const text = await readFile8(join9(PREVIEWS_DIR, file), "utf8");
       return { uri, mimeType: "image/svg+xml", text };
     } catch {
     }

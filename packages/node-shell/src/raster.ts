@@ -162,6 +162,19 @@ export interface DeepHdrRequest {
 
 /** Thrown when a pro float format is asked for over a source that has no float in
  *  it. Its own class so callers can distinguish "won't" from "can't". */
+/**
+ * Did the view transform actually produce out-of-SDR-range light? Alpha is skipped
+ * (it is 0..1 by definition); one sample over 1 is enough, so this exits early on
+ * any real HDR frame and only walks the whole buffer to prove a negative.
+ */
+function hasHeadroom(frame: { data: Float32Array }): boolean {
+  const d = frame.data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i]! > 1 || d[i + 1]! > 1 || d[i + 2]! > 1) return true;
+  }
+  return false;
+}
+
 export class DeepSourceError extends Error {
   constructor(message: string) { super(message); this.name = 'DeepSourceError'; }
 }
@@ -175,8 +188,19 @@ export class DeepSourceError extends Error {
  * those to fall back to writing HTML, and this refusal must fail loudly instead of
  * silently handing the user a .html file.
  */
-export function deepSourceRefusal(format: string): string {
+export function deepSourceRefusal(format: string, reason: 'no-hdr' | 'no-headroom' = 'no-hdr'): string {
   const f = format.toLowerCase();
+  if (reason === 'no-headroom') {
+    return (
+      `"${f}" is a floating-point format, and the HDR view transform found nothing in this render to ` +
+      'lift above 1.0, so every sample would still be an 8-bit value padded into float. The transform ' +
+      'only boosts pixels that clear its lightness knee AND match a boost target (near-white by ' +
+      'default, plus the brand colours), so a dark or fully-saturated design can pass hdr=1 and still ' +
+      'produce no headroom. Try a render with near-white or brand-coloured areas, raise the dials ' +
+      '(hdr=<peak>-<reach>-<lift>-<richness>), or export png/tiff instead. ' +
+      'See plans/deeprichpixels.md section 10 - depth follows provenance.'
+    );
+  }
   return (
     `"${f}" is a floating-point format, and this render has no floating-point pixels behind it: ` +
     'the terminal render path rasterises the tool\'s vector output to 8-bit sRGB (resvg), so writing ' +
@@ -250,6 +274,14 @@ export async function renderDeepRaster(req: DeepRasterRequest): Promise<{ bytes:
     targets: req.hdr.targets ?? [],
     ...hdrTune(req.hdr),
   });
+
+  // THE RULE, enforced on the OUTPUT rather than on the request: hdr=1 is a
+  // request, not a guarantee. hdrViewTransform only lifts pixels that clear its
+  // lightness knee and match a boost target, so a dark or unmatched design can
+  // ask for HDR and get an unchanged SDR frame back - float samples over 8-bit
+  // picture, which is exactly the padding this plan refuses. One linear scan,
+  // negligible beside the encode.
+  if (!hasHeadroom(frame)) throw new DeepSourceError(deepSourceRefusal(fmt, 'no-headroom'));
 
   if (fmt === 'hdr') {
     // Radiance ignores `depth`: RGBE is one shared exponent per pixel, full stop.

@@ -325,6 +325,11 @@ export function parseRadianceHeader(bytes: Uint8Array): RadianceHeader | null {
   if (width > 0xffff || height > 0xffff || width * height > MAX_PIXELS) return null;
   // +X means left-to-right (the universal case); -X would mirror each row.
   if (m[3] !== '+') return null;
+  // -Y means top-down, the universal case. A +Y (bottom-up) file is legal
+  // Radiance, but this reader returns rows in FILE order, so accepting one would
+  // hand back a vertically flipped image -- a silent mis-decode. Refuse it the
+  // same way -X is refused, rather than lie about the picture.
+  if (m[1] !== '-') return null;
 
   return {
     format, width, height, exposure, gamma, primaries, software, comments,
@@ -389,6 +394,11 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
   if (data.length !== width * height * 4) {
     throw new Error(`packRadiance: buffer length ${data.length} != ${width}x${height}x4`);
   }
+  // Keep the writer inside what readRadiance (and the format's own scanline
+  // fields) can express, so we never emit a file we cannot read back.
+  if (width > 0xffff || height > 0xffff || width * height > MAX_PIXELS) {
+    throw new Error(`packRadiance: ${width}x${height} exceeds the Radiance limits (65535 per axis, ${MAX_PIXELS} pixels)`);
+  }
   if (space === 'lab' || space === 'xyz-d50') {
     throw new Error(`packRadiance: ${space} frames must be converted to an RGB space first`);
   }
@@ -408,6 +418,11 @@ export function packRadiance(frame: DeepFrame, opts: PackRadianceOptions = {}): 
   const prim = opts.primaries === undefined || opts.primaries === 'auto'
     ? PRIMARIES[space] ?? null
     : opts.primaries;
+  // A wrong-length or non-finite array would emit a malformed PRIMARIES line that
+  // every reader then misinterprets; refuse like the EXR chromaticities option.
+  if (prim && (prim.length !== 8 || !prim.every(n => Number.isFinite(n)))) {
+    throw new Error('packRadiance: primaries must be 8 finite numbers (rx ry gx gy bx by wx wy)');
+  }
   if (prim) lines.push(`PRIMARIES=${prim.join(' ')}`);
   lines.push(''); // blank line closes the header
   lines.push(`-Y ${height} +X ${width}`); // top-down rows, left-to-right columns

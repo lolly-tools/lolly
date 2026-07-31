@@ -177,6 +177,29 @@ async function pixelRgb(path: string, w: number, h: number, x: number, y: number
 
 // ── 1. the refusal (the load-bearing half) ──────────────────────────────────
 
+// Adversarial review (2026-07-31): the gate used to check only that hdr= was
+// PASSED, not that the view transform actually lifted anything. hdrViewTransform
+// only boosts pixels that clear its lightness knee AND match a boost target
+// (near-white by default), so a dark design could ask for HDR and get an
+// unchanged SDR frame written out as float -- exactly the padding the plan
+// refuses. The rule is now enforced on the OUTPUT.
+test('refuses exr when hdr=1 was asked for but the render has nothing to lift', async () => {
+  const out = join(root, 'no-headroom.exr');
+  await assert.rejects(
+    // Both halves dark: the left rect is overridden to near-black, the right is
+    // already #000, so no pixel clears the knee and nothing exceeds 1.0.
+    () => runToolCli({ toolId: 'swatch', params: { fill: '#050505', hdr: '1' }, outputPath: out, format: 'exr' }),
+    (e: Error) => {
+      assert.match(e.message, /found nothing in this render to lift above 1\.0/);
+      assert.match(e.message, /depth follows provenance/);
+      // Must NOT tell the user to add hdr=1 -- they already did.
+      assert.doesNotMatch(e.message, /Add hdr=1/);
+      return true;
+    },
+  );
+  assert.equal(existsSync(out), false, 'a refused export must leave no file behind');
+});
+
 test('refuses exr over an 8-bit-only source, naming why, and writes nothing', async () => {
   const out = join(root, 'refused.exr');
   await assert.rejects(

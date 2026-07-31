@@ -1820,7 +1820,8 @@ stored IDAT and a refusal is gone at the engine level. Verified independently at
 2560×1440 (28.1 MiB filtered): 12.19 MiB compressed against 28.13 MiB stored,
 fixed-Huffman blocks rather than stored ones, decoding to identical pixels.
 
-None of the three is in the barrel, following the `gainmap.ts` / `bytes.ts`
-precedent — they are engine-internal, consumed by deep-path import. The
+`exr.ts` and `radiance.ts` are not in the barrel, following the `gainmap.ts` /
+`bytes.ts` precedent — they are engine-internal, consumed by deep-path import.
+(`deflate.ts` itself IS barrel-exported; its new streaming API is not.) The
 surfacing is CLI-first (plan §10 item 4): `--export=exr` and `--export=hdr` in
 `NODE_FORMATS`, refusing an 8-bit-only source rather than padding it.
