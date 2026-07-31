@@ -14,6 +14,8 @@
     "./browsers": "./src/browsers.ts",
     "./webshell-render": "./src/webshell-render.ts",
     "./raster": "./src/raster.ts",
+    "./format-sniff": "./src/format-sniff.ts",
+    "./images": "./src/images.ts",
     "./c2pa-opts": "./src/c2pa-opts.ts",
     "./text": "./src/text.ts",
     "./render-integrity": "./src/render-integrity.ts",
@@ -35,6 +37,9 @@
     "fflate": "^0.8.3",
     "harfbuzzjs": "^1.4.0",
     "playwright-core": "^1.49.0"
+  },
+  "optionalDependencies": {
+    "sharp": "^0.35.3"
   },
   "devDependencies": {
     "typescript": "^5.5.0"

@@ -6,12 +6,13 @@ Contract + integration tests for the engine and cross-cutting behaviour (node:te
 node --test "tests/**/*.test.js" "tests/**/*.test.ts" \
   "packages/core/test/**/*.test.ts" \
   "shells/web/src/**/*.test.js" "shells/web/src/**/*.test.ts" \
+  "shells/tui/src/**/*.test.ts" \
   "services/mcp/test/**/*.test.ts"
 ```
 
 Use quoted globs — on current Node, `node --test tests/` tries to load the directory as a module instead of discovering test files. The repo root owns the run: tests import engine modules across the workspace boundary via `../engine/src/*.ts` (native type-stripping, explicit `.ts` extensions).
 
-The six globs collect **302 test files** today: 164 in `tests/`, 132 co-located under `shells/web/src/`, 4 in `services/mcp/test/` and 2 in `packages/core/test/`. The two `*.test.js` globs match nothing — the suite is entirely TypeScript — and are kept so a stray `.js` test can never be silently skipped.
+The seven globs collect **307 test files** today: 164 in `tests/`, 132 co-located under `shells/web/src/`, 5 co-located under `shells/tui/src/`, 4 in `services/mcp/test/` and 2 in `packages/core/test/`. The two `*.test.js` globs match nothing — the suite is entirely TypeScript — and are kept so a stray `.js` test can never be silently skipped.
 
 ## Layout
 
@@ -19,6 +20,7 @@ The six globs collect **302 test files** today: 164 in `tests/`, 132 co-located 
 - `tests/helpers/` — shared non-test helpers (`photo-like.ts`, the calibrated pixel-watermark content generator; `host.ts`, the minimal stub host for tool-contract suites). The glob only collects `*.test.ts`, so these are never run as tests; `tests/tsconfig.json`'s `./**/*` include still typechecks them.
 - `tests/fuzz/` — the untrusted-input fuzz harness (`prng.ts`, `mutate.ts`, `targets.ts`, saved inputs in `regressions/`). `fuzz-regression.test.ts` runs in the normal suite: it replays every saved regression input plus a short seeded sweep. The long discovery soak is standalone: `FUZZ_ITERS=50000 node tests/fuzz/run.ts`.
 - `shells/web/src/**/*.test.ts` — co-located tests for pure (DOM-free at import) web-shell modules, e.g. `bridge/text-svg.test.ts`, `bridge/font-registry.test.ts`, `lib/*.test.ts`.
+- `shells/tui/src/**/*.test.ts` — co-located tests for the TUI shell's pure, Ink-free modules (`lib/block-tree.ts`, `lib/table-edit.ts`, `folders.ts`, `trust-anchors.ts`, `batch-export.ts`'s `planFolderRefs`). The run uses Node's native type-stripping, which does NOT transform JSX, so these suites must never import a `.tsx` view; anything a view needs tested lives in a `.ts` module beside it.
 - `packages/core/test/`, `services/mcp/test/` — tool-author SDK and MCP service suites.
 
 ## Gated / conditional tests
