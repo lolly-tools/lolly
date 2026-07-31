@@ -115,6 +115,46 @@ test('multi-line text (Td line breaks) joins into one text node', () => {
   assert.equal(nodes[0].text, 'Line one\nLine two');
 });
 
+test('multi-line text records the document\'s real leading as lineHeight', () => {
+  // 20pt font, 30pt line advance → lineHeight 1.5, and the box height uses it.
+  const c = 'BT /F1 20 Tf 24 TL 1 0 0 1 40 200 Tm (Line one) Tj 0 -30 Td (Line two) Tj ET';
+  const nodes = page(c);
+  assert.equal(nodes.length, 1);
+  assert.ok(near(nodes[0].lineHeight, 1.5, 0.01), `lineHeight ${nodes[0].lineHeight}`);
+  assert.ok(near(nodes[0].h, 20 * 1.5 * 2), `h ${nodes[0].h}`);
+});
+
+test('one BT block with column-sized pen moves splits into separate nodes at true origins', () => {
+  // The Penpot/TeX construct: one BT…ET writing a left column, then jumping UP
+  // and RIGHT to a second column, with a leading (40pt at 12pt type) no fixed
+  // line grid can reproduce. Merging this into one node collapsed whole pages.
+  const c = 'BT /F1 12 Tf'
+    + ' 1 0 0 1 40 260 Tm (Left one) Tj'
+    + ' 1 0 0 1 40 220 Tm (Left two) Tj'
+    + ' 1 0 0 1 220 260 Tm (Right one) Tj'
+    + ' 1 0 0 1 220 220 Tm (Right two) Tj ET';
+  const nodes = page(c);
+  assert.equal(nodes.length, 4, `expected 4 runs, got ${nodes.length}: ${nodes.map((n: any) => JSON.stringify(n.text)).join(', ')}`);
+  const at = (text: string) => nodes.find((n: any) => n.text === text);
+  for (const [text, x, baseline] of [['Left one', 40, 40], ['Left two', 40, 80], ['Right one', 220, 40], ['Right two', 220, 80]] as const) {
+    const n = at(text);
+    assert.ok(n, `missing run ${text}`);
+    assert.ok(near(n.x, x), `${text} x ${n.x}`);
+    assert.ok(near(n.y, baseline - 12 * 0.8, 1), `${text} y ${n.y}`);
+  }
+});
+
+test('a same-baseline tab jump starts a new node at the jump target', () => {
+  // A TOC-style row: label, then a pen move several ems right on the SAME
+  // baseline. Concatenating it re-typeset the right cell under the label.
+  const c = 'BT /F1 12 Tf 1 0 0 1 20 260 Tm (Label) Tj 1 0 0 1 200 260 Tm (Value) Tj ET';
+  const nodes = page(c);
+  assert.equal(nodes.length, 2);
+  assert.equal(nodes[0].text, 'Label');
+  assert.equal(nodes[1].text, 'Value');
+  assert.ok(near(nodes[1].x, 200), `value x ${nodes[1].x}`);
+});
+
 test('hex-string and TJ array both decode', () => {
   // <48656C6C6F> = "Hello"; TJ with kerning numbers ignored
   const nodes = page('BT /F1 18 Tf 1 0 0 1 10 250 Tm [<48656C6C6F> -250 (X)] TJ ET');

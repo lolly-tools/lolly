@@ -204,8 +204,9 @@ function toItems(nodes: PdfNode[]): { items: TextItem[]; rotated: number } {
       items.push({
         text,
         x: n.x,
-        // Undo pdf-map's box-top shift, then step down one line per split line.
-        baseline: n.y + size * 0.8 + i * size * 1.4,
+        // Undo pdf-map's box-top shift, then step down one line per split line
+        // at the node's REAL leading when the interpreter measured one.
+        baseline: n.y + size * 0.8 + i * size * (typeof n.lineHeight === 'number' && isFinite(n.lineHeight) && n.lineHeight > 0 ? n.lineHeight : 1.4),
         // 0.55em per character is pdf-map's own estimate; reused so the two
         // agree, and only ever consulted for gutter-width decisions.
         right: n.x + text.length * size * 0.55,

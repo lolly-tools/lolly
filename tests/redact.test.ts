@@ -500,6 +500,58 @@ test('redact: analyzer findings on the rebuilt PDF fail the export', async () =>
   );
 });
 
+test('redact: the structural Pages finding alone never fails the gate', async () => {
+  // The analyzer inventories the page count of EVERY valid PDF — a rebuild can
+  // never scan clean of it, so treating it as a leak made PDF export always fail.
+  const hooks = loadHooks();
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+    host: pdfHost({ pdf: { analyze: async () => ({ findings: [{ label: 'Pages', detail: '2 pages', tone: '' }] }) } }),
+  });
+  assert.deepEqual(Array.from(res.bytes), Array.from(PDF_OUT));
+});
+
+// ─── the gate against the REAL analyzer (the shipped false-positive) ─────────
+
+// A 1x1 baseline JPEG — enough for pdf-lib's embedJpg to parse dimensions.
+const TINY_JPEG = new Uint8Array(Buffer.from(
+  '/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0a'
+  + 'HBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/wAALCAABAAEBAREA/8QAFAABAAAAAAAA'
+  + 'AAAAAAAAAAAAB//EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AN//Z', 'base64'));
+
+test('redact: a real rebuild through the real analyzer passes the gate', async () => {
+  // The exact pipeline Andy hit in the browser: buildImagePdf output re-scanned
+  // by analyzePdf. The only finding is the structural page count, which must pass.
+  const { buildImagePdf } = await import('../shells/web/src/bridge/pdf-redact-core.ts');
+  const { analyzePdf } = await import('../shells/web/src/bridge/pdf.ts');
+  const rebuilt = await buildImagePdf([{ jpeg: TINY_JPEG, widthPt: 612, heightPt: 792 }]);
+  const hooks = loadHooks();
+  const res = await hooks.exportFile({
+    model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+    host: pdfHost({ pdf: { analyze: analyzePdf, redact: async () => ({ bytes: rebuilt, pages: 1 }) } }),
+  });
+  assert.equal(res.mime, 'application/pdf');
+  assert.deepEqual(Array.from(res.bytes), Array.from(rebuilt));
+});
+
+test('redact: the real analyzer still fails the gate on genuine metadata leaks', async () => {
+  // A "rebuild" that carries Info metadata — the class the gate exists to stop.
+  const { PDFDocument } = await import('pdf-lib');
+  const { analyzePdf } = await import('../shells/web/src/bridge/pdf.ts');
+  const doc = await PDFDocument.create();
+  doc.addPage([612, 792]);
+  doc.setAuthor('Jane Leak');
+  const leaky = await doc.save({ useObjectStreams: false });
+  const hooks = loadHooks();
+  await assert.rejects(
+    () => hooks.exportFile({
+      model: modelFor(fileRef('doc.pdf', 'application/pdf', PDF_SRC), { bars: [{ page: 1, x: 10, y: 10, w: 40, h: 12 }] }),
+      host: pdfHost({ pdf: { analyze: analyzePdf, redact: async () => ({ bytes: leaky, pages: 1 }) } }),
+    }),
+    /Verification failed: the rebuilt PDF still carries (?!Pages)\S.*\. Nothing was downloaded\./
+  );
+});
+
 test('redact: resign calls host.c2pa.sign with the contract shape and ships its return value', async () => {
   const hooks = loadHooks();
   const SIGNED = svgBytes('%PDF-1.7\nrebuilt image-only body\n%%EOF\nsigned incremental update\n%%EOF\n');
