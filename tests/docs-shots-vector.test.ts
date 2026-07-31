@@ -43,10 +43,11 @@ const RASTER_ALLOWED: Record<string, string> = {
     + 'non-MilkDrop styles use only the 2D subset that maps onto SVG) but it needs a '
     + 'change to the TOOL, not to the pipeline.',
   'um-asset-audiogram': 'Same canvas visualiser as `ov2-phone-audiogram`.',
-  'incl-neuro-viz':
-    'A genuine physical limit: .viz-surface is a WebGL2 canvas painted by per-frame GLSL '
-    + 'fragment shaders. A shader computes a per-pixel colour field — there is no geometry '
-    + 'to recover, so no faithful vector form exists.',
+  // incl-neuro-viz left this list 2026-07-31: the panel chrome is vector now, with only
+  // the WebGL canvas embedded as a bitmap <image> (the honest hybrid — a fragment
+  // shader's per-pixel field has no geometry to recover, but everything around it does).
+  // The ?neuro demo renders a fixed driven frame sequence so the embedded bitmap is
+  // byte-stable under the exact-string vector compare.
 };
 
 /** Every recipe declared across the English docs pages. */
