@@ -83,8 +83,20 @@ export {
   GRADIENT_KINDS, DEFAULT_GRADIENT_SPACE, MAX_GRADIENT_STOPS,
 } from './gradient-spec.ts';
 export type { GradientSpec, GradientKind, GradientSpecStop } from './gradient-spec.ts';
-export { hdrBoostToPQ, pqEncode, HDR_PQ_CICP } from './hdr.ts';
-export type { HdrBoostOptions } from './hdr.ts';
+// Deep pixel buffers (plans/deeprichpixels.md §5.1) — the Float32Array
+// linear-light working frame whose space travels with the data, plus every
+// converter between it and the byte world. Exported alongside hdr.ts because
+// hdrViewTransform/pqEncodeFrame consume and return DeepFrames — a caller of
+// those needs createDeepFrame/fromU8Srgb/convertSpace from the same surface.
+export {
+  PIXEL_SPACES, createDeepFrame, srgbToLinear, linearToSrgb,
+  fromU8Srgb, toU8Srgb, fromU16, toU16,
+  floatToHalf, halfToFloat, packF16, unpackF16,
+  premultiply, unpremultiply, mapScanlines, convertSpace,
+} from './pixels.ts';
+export type { PixelSpace, DeepFrame } from './pixels.ts';
+export { hdrBoostToPQ, pqEncode, hdrViewTransform, pqEncodeFrame, pqToU16, HDR_PQ_CICP } from './hdr.ts';
+export type { HdrBoostOptions, PqImage } from './hdr.ts';
 export {
   computePrintGeometry, cmykToRgbApprox, PRINT_MARK_DEFAULTS,
 } from './print-marks.ts';
@@ -244,10 +256,11 @@ export { parseDataRows, DEFAULT_ROW_LIMIT } from './data-import.ts';
 export {
   decomposeMatrix, boxGeomFromBBox, mapWeight, mapFontFamily, mapAlign,
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode, penpotGradientToSpec,
-  penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg, collectPenpotExportMarks,
+  penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg, penpotDashArray, penpotBackgroundBlurPx,
+  collectPenpotExportMarks,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath,
 } from './design-map.ts';
-export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene, PenpotFontUsage, PenpotExportEntry, PenpotExportMark } from './design-map.ts';
+export type { DesignMapFonts, DesignMapSeedColors, DesignMapOptions, DesignFrameScene, PenpotFontUsage, PenpotExportEntry, PenpotExportMark, PenpotStrokeInfo } from './design-map.ts';
 export { interpretPdfPage, parseToUnicode, toUnicodeDecoder } from './pdf-map.ts';
 export type { PdfPageInput, PdfNode, PdfResources, PdfXObject, PdfFontInfo, FontDecoder, PdfShading, PdfPattern, PdfGradient, PdfGradientStop, PdfSoftMask, PdfSoftMaskDef } from './pdf-map.ts';
 export { isShadowPlate, maskRegion, relativeLuminance, constantMask } from './pdf-smask.ts';
@@ -265,7 +278,7 @@ export { extractPageText, joinPageText } from './pdf-text.ts';
 export type { PageText, TextBlock, TextLine, TextItem, BlockKind, PdfTextOptions, TaggedElement } from './pdf-text.ts';
 export {
   createTokenSet, resolveColorValue, colorToHex,
-  isAlias, aliasPath, isTokenValue, TOKEN_EXT,
+  isAlias, aliasPath, isTokenValue, typographyFamilies, TOKEN_EXT,
 } from './tokens.ts';
 export {
   parseOklch, formatOklch, hexToOklch, oklchToHex, mixOklch, contrastRatio, deriveBrandTokens,
@@ -309,6 +322,12 @@ export {
   iccRoundTripDeltaE, iccRoundTripDecides, ICC_GAMUT_DELTA_E,
 } from './icc.ts';
 export type { IccProfile } from './icc.ts';
+// ICC profiles APPLIED to DeepFrame pixels (the digiKam act): device ↔ PCS per
+// scanline, tetrahedral device-link lattices for pure-LUT profiles, and the
+// ICC v4 clause-8 rendering-intent fallback. Sits beside the reader it drives;
+// like the reader it never throws — null on malformed/unusable input.
+export { ICC_DEVICE_SPACE, iccResolvedIntent, applyIccToFrame, convertViaIcc } from './icc-pixels.ts';
+export type { IccDirection } from './icc-pixels.ts';
 export { SCHEME_KINDS, generateSchemeAccents } from './brand-schemes.ts';
 export type { SchemeKind, AccentCandidate } from './brand-schemes.ts';
 export {
@@ -323,8 +342,9 @@ export { nearestBrandColor, mapPaletteToBrand, mapFontsToBrand, suggestRebrandTh
 export type { BrandSwatch, RoleHint, NearestBrandColorOptions, NearestBrandColor, BrandFonts } from './brand-map.ts';
 export {
   coerceTokensDoc, assembleTokenSetFiles, extractPenpotProject, summarizeTokensDoc, scanPenpotUsage,
+  scanPenpotAppliedTokens,
 } from './brand-import.ts';
-export type { TokensExtraction, PenpotUsage, PenpotUsageColor, PenpotUsageGradient } from './brand-import.ts';
+export type { TokensExtraction, PenpotUsage, PenpotUsageColor, PenpotUsageGradient, PenpotAppliedToken } from './brand-import.ts';
 export {
   parseThemedAssetId, buildThemedAssetId, isThemableIconSvg, isValidThemeId,
   applyIconTheme, restyleIconTheme, parseIconThemesDoc,

@@ -1087,6 +1087,38 @@
           "min": 0,
           "max": 300,
           "help": "Gaussian blur of the whole box (layer blur), px. 0 = off. Raster-faithful; carried as a real SVG filter in vector export."
+        },
+        {
+          "id": "strokeDashLen",
+          "type": "number",
+          "label": "Dash length",
+          "default": 0,
+          "min": 0,
+          "max": 400,
+          "showFor": ["path"],
+          "showIf": { "strokeDash": "dashed" },
+          "help": "Length of each dash in px. 0 uses a pattern based on the stroke width."
+        },
+        {
+          "id": "strokeGapLen",
+          "type": "number",
+          "label": "Gap length",
+          "default": 0,
+          "min": 0,
+          "max": 400,
+          "showFor": ["path"],
+          "showIf": { "strokeDash": "dashed" },
+          "help": "Space between dashes in px. 0 uses a pattern based on the stroke width."
+        },
+        {
+          "id": "bgBlur",
+          "type": "number",
+          "label": "Backdrop blur",
+          "default": 0,
+          "min": 0,
+          "max": 300,
+          "showFor": ["box"],
+          "help": "Frosted glass. Blurs whatever sits behind the box, px. 0 = off."
         }
       ],
       "default": [

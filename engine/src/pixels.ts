@@ -38,9 +38,8 @@
  *     constants as brand-derive.ts#labToOklch, kept in sync.
  *   - IEEE 754-2008 binary16 for the half-float pack/unpack.
  *
- * Not exported from the engine barrel yet — the consumers (view transforms,
- * deep encoders, filter migration) land in later phases and will pull the
- * barrel export with them.
+ * Exported from the engine barrel since 1.86.0, alongside the first consumers
+ * (hdr.ts's float view transform and icc-pixels.ts).
  */
 
 // ─── the buffer ───────────────────────────────────────────────────────────────

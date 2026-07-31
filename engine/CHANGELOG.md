@@ -1461,3 +1461,56 @@ gains an optional `failed?: number[]` — the 1-based pages within the cap whose
 render failed, so a host.pdf.pages caller can name the missing previews instead
 of letting a skipped page pass silently. Absent when every requested page
 rendered; existing callers are unaffected.
+
+## 1.86.0 — deep pixels: the float foundation
+
+Additive, engine-only (no HostV1 method added or changed — the minor names the
+pixel-pipeline foundation the deep encoders and filter migration will build on;
+plans/deeprichpixels.md Phase A):
+
+`src/pixels.ts` — the `DeepFrame` buffer (`Float32Array` RGBA, LINEAR light,
+un-premultiplied, UNBOUNDED — >1.0 headroom and <0 out-of-gamut excursions are
+legal) whose `PixelSpace` travels with the data, babl-style, so downstream
+operations never silently assume sRGB. Plus every converter between it and the
+byte world: u8-sRGB decode/encode (IEC 61966-2.1, the encode being the ONE
+display-referred clamp boundary), u16 linear interchange, IEEE 754-2008 binary16
+pack/unpack (ties-to-even in a single rounding step, `Float16Array` fast path
+when the platform has it), `convertSpace` hubbed through XYZ-D65 with CSS Color 4
+full-precision matrices (Bradford folded in for the D50 legs, CIELAB per CIE 15),
+premultiply/unpremultiply at encode boundaries only, and zero-copy
+`mapScanlines`. Barrel-exported, with `DeepFrame`/`PixelSpace` types.
+
+`src/icc-pixels.ts` — parsed ICC profiles APPLIED to frames (the digiKam act):
+`applyIccToFrame` (device ↔ PCS Lab per scanline), `convertViaIcc` (both legs
+fused per row, no intermediate PCS frame), matrix/TRC + gray profiles evaluated
+analytically, pure-LUT profiles pre-linked once into a tetrahedral device-link
+lattice, and `iccResolvedIntent` implementing the ICC v4 clause-8
+rendering-intent fallback. Never throws (null on malformed/unusable, matching
+the reader); device-side outputs carry the `ICC_DEVICE_SPACE` sentinel so
+colorimetric machinery fails loud instead of laundering device values.
+
+`src/deflate.ts` — a pure raw-DEFLATE compressor (RFC 1951: 32 KB-window LZ77
+with lazy matching, fixed Huffman, stored-block fallback so incompressible input
+costs at most 5 bytes per block) plus `zlibCompress` (RFC 1950 wrapper) and
+`adler32`. The half of zlib the tree lacked — inflate already ships (url-pack);
+this is what the own-PNG-writer and OpenEXR phases need for IDAT/ZIP chunks.
+Validated against node:zlib and DecompressionStream as independent oracles.
+
+`src/hdr.ts` — the float view transform: `hdrViewTransform` returns a LINEAR
+`rec2020-linear` DeepFrame (boost gain only — no PQ, no clip), the PQ encode
+moved behind `pqEncodeFrame` → `PqImage` (`encoding: 'pq'`, deliberately NOT a
+DeepFrame: PQ signal is not linear light) and `pqToU16` for 16-bit consumers.
+The legacy `hdrBoostToPQ` 8-bit entry is kept byte-identical (sha256-pinned by
+tests) so existing AVIF HDR output and its C2PA hashes cannot drift.
+
+`src/tiff.ts` — `packTiff` gains `depth?: 8 | 16 | 'float32'`: BitsPerSample
+16 with SampleFormat 1, or 32 with SampleFormat 3 (IEEE float, TIFF 6.0 §19).
+Default-8 output stays byte-identical (SampleFormat omitted = spec default);
+the writer never converts depths — buffer element type must match, conversion
+is pixels.ts's seam. Fixtures validated against libtiff + sips and pinned.
+
+Ingest honesty landed shell-side in the same pass (web: `depthHint` beside
+`profileHint` — a >8-bit upload now says so instead of being silently crushed),
+but that is shell code, not engine surface.
+
+No v1 bridge method changed.
