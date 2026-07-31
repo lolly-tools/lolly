@@ -63,6 +63,16 @@
  *                  peak luminance, so white text and brand colours glow on HDR
  *                  displays while dark areas stay dark (see engine/src/hdr.ts). Off
  *                  by default; SDR otherwise.
+ *   - `depth`      — REQUESTED bits per channel for the export: `8`, `16`, `float`
+ *                  or `auto` (the default). A *request*, never a promise: the
+ *                  governing rule is DEPTH FOLLOWS PROVENANCE — a consumer emits
+ *                  deep bits only where the pipeline actually produced them, so a
+ *                  16-bit container over an 8-bit canvas render is padding and must
+ *                  not be written. `auto` means "the deepest the provenance chain
+ *                  supports", mirroring the gamut rule in docs/color-spaces.md.
+ *                  Junk (`depth=32`, `depth=deep`, empty) degrades to `auto`
+ *                  rather than erroring — same total-function discipline as
+ *                  `cuts`/`unit`. See plans/deeprichpixels.md §10.
  *   - `cuts`     — CONTACT SHEET for a still export (`png`/`jpg`/`webp`/`svg`/`pdf`)
  *                  of a TIMED composition (a stage carrying `data-sequence`).
  *                  An integer, default `1`. `cuts=1` renders the frame at the
@@ -158,6 +168,20 @@ export interface HdrSettings {
  *  boostFloor 0, richness 0.4, peak 1000). `hdr=1` selects these. */
 export const HDR_DEFAULTS: HdrSettings = { peakNits: 1000, reach: 45, lift: 0, richness: 40 };
 
+/** Requested export bit depth (the `depth` param). `8`/`16` are bits per channel,
+ *  `'float'` is floating-point samples (EXR/`.hdr`/float TIFF), `'auto'` (the
+ *  default) means "the deepest the provenance chain supports".
+ *
+ *  A REQUEST, not a promise. Consumers apply the depth-follows-provenance rule
+ *  from plans/deeprichpixels.md §10: never emit bits the pipeline did not
+ *  produce — a 16-bit file made from an 8-bit render is padding. */
+export type DepthSetting = 8 | 16 | 'float' | 'auto';
+
+/** Accepted `depth` values, in the spelling the param takes. A Map, not an object
+ *  literal — a plain-object whitelist answers truthily for inherited keys
+ *  (`WHITELIST['constructor']`), and this one is indexed by untrusted URL text. */
+const DEPTH_VALUES = new Map<string, DepthSetting>([['8', 8], ['16', 16], ['float', 'float'], ['auto', 'auto']]);
+
 /** Parsed URL state: input values plus the reserved export/render controls. */
 export interface UrlState {
   values: Record<string, InputValue>;
@@ -190,6 +214,11 @@ export interface UrlState {
    *  PQ encoding with brand-colour luminance boost (raster only), carrying the
    *  author's tuning dials; null ⇒ absent/off ⇒ SDR. `hdr=1` ⇒ HDR_DEFAULTS. */
   hdr: HdrSettings | null;
+  /** REQUESTED export bit depth (the `depth` param). Always one of 8 / 16 /
+   *  'float' / 'auto'; absent or unrecognized ⇒ 'auto' (the default), so there is
+   *  no null case to handle. Consumers must apply depth-follows-provenance — see
+   *  DepthSetting and the header. */
+  depth: DepthSetting;
   /** Contact-sheet frame count for a still export of a timed composition (the
    *  `cuts` param). Always a whole number in 1…CUTS_MAX; 1 (the default) means the
    *  single playhead frame — the WYSIWYG contract. See the header for the midpoint
@@ -236,6 +265,10 @@ export interface SerializeUrlOpts {
   /** HDR raster export (the `hdr` param). Truthy serialised as `hdr=1`; omitted
    *  otherwise — opt-in, off by default. */
   hdr?: string | null;
+  /** Requested export bit depth (the `depth` param). Written only for a real
+   *  request — 'auto' (the default) and anything unrecognized write nothing, so a
+   *  plain link stays clean. */
+  depth?: DepthSetting | string | number | null;
   /** Contact-sheet frame count (the `cuts` param). Clamped like the parser; only
    *  a value > 1 writes the param — 1 is the default and would be link noise. */
   cuts?: number | null;
@@ -247,7 +280,7 @@ export interface SerializeUrlOpts {
 // Param names that are NOT tool inputs (export/render controls). Exported so the
 // engine contract test can assert it stays in lock-step with the documented list
 // (the header comment above + docs/url-mode.md) and nothing drifts silently.
-export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'cuts', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
+export const RESERVED = new Set(['format', 'export', 'copy', 'slot', 'output', 'filename', '_v', 'width', 'height', 'w', 'h', 'unit', 'dpi', 'profile', 'password', 'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'depth', 'cuts', 'lang', 'full', 'options', 'nostage', 'z', 'zx']);
 
 // Parse the `marks` param (csv: crop,reg,bleed,bars,prov) into a print-mark
 // toggle map. Returns null when absent so callers fall back to their own defaults.
@@ -310,6 +343,17 @@ function parseHdr(raw: string | null): HdrSettings | null {
     lift:     dial(p[2], 0, 100, HDR_DEFAULTS.lift),
     richness: dial(p[3], 0, 100, HDR_DEFAULTS.richness),
   };
+}
+
+// Parse the `depth` param (requested bits per channel for the export). Total
+// function over user input, like parseCuts: absent, empty, or anything outside
+// 8/16/float/auto — '32', 'deep', 'constructor', 'NaN' — degrades to 'auto', the
+// default, rather than throwing or inventing a depth. Deliberately silent (the
+// engine has no logger and every other reserved param degrades quietly); the
+// contract is that 'auto' always renders, at whatever depth provenance allows.
+function parseDepth(raw: string | null): DepthSetting {
+  if (raw == null) return 'auto';
+  return DEPTH_VALUES.get(String(raw).trim().toLowerCase()) ?? 'auto';
 }
 
 /** Serialise HDR dials to the compact `hdr` value: `1` when all-default (a clean
@@ -421,6 +465,9 @@ export function parseUrlState(searchParams: string | URLSearchParams, manifest: 
     durable:  parseDurable(params.get('durable')),
     // Opt-in HDR raster export (see header). null ⇒ SDR.
     hdr:      parseHdr(params.get('hdr')),
+    // Requested export bit depth (see header). Always 8/16/'float'/'auto'; junk
+    // and absence both read as 'auto'. Depth follows provenance at the consumer.
+    depth:    parseDepth(params.get('depth')),
     // Contact-sheet frame count for a still export of a timed composition (see
     // header). Always 1…CUTS_MAX; 1 ⇒ the single playhead frame.
     cuts:     parseCuts(params.get('cuts')),
@@ -478,6 +525,13 @@ export function serializeUrlState(model: UrlSerializableInput[], opts: Serialize
   // Opt-in, off by default: only an explicit request writes the param.
   if (opts.durable) params.set('durable', '1');
   if (opts.hdr) params.set('hdr', '1');
+  // Only a real depth request writes the param: 'auto' is the default and junk is
+  // not worth round-tripping, so both leave the link clean (the parser reads either
+  // back as 'auto' anyway).
+  {
+    const d = opts.depth == null ? 'auto' : parseDepth(String(opts.depth));
+    if (d !== 'auto') params.set('depth', String(d));
+  }
   // Default (1 = the playhead frame) writes nothing; anything else goes through the
   // same clamp as the parser so a serialised link can't carry a value parse rejects.
   if (opts.cuts != null && parseCuts(String(opts.cuts)) > 1) params.set('cuts', String(parseCuts(String(opts.cuts))));

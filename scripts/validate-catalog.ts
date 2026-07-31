@@ -14,6 +14,8 @@
  *   - tools/index.json entries match their manifest (no denormalisation drift)
  *   - Every asset format URL resolves to a file that exists on disk
  *   - Every asset checksum matches the file's actual SHA-256 on disk
+ *   - Every asset `depth` label matches a re-sniff of the file's own header
+ *     (and no unsniffable/non-raster format carries one)
  *   - Default `bindToProfile` values reference real profile fields
  *   - `palette` references on color inputs point to real palette assets
  *   - `replacedBy` on deprecated assets points to a real, non-deprecated asset
@@ -51,6 +53,10 @@ import { LANGS } from '../engine/src/lang.ts';
 // entryFromManifest above), so "what sync writes" and "what CI accepts" can't
 // drift apart.
 import { verifySharedRegions } from './sync-shared-hooks.ts';
+// The one bit-depth sniff (checksum-assets.ts writes `depth` with it; this
+// re-sniffs and compares). Same import-without-side-effect pattern as above:
+// that module only rewrites the index when run directly.
+import { depthForFormat } from './checksum-assets.ts';
 
 // Fields tools/index.json mirrors from each manifest — kept in sync with
 // scripts/build-catalog-index.ts.
@@ -385,6 +391,19 @@ for (const asset of assetsIndex.assets) {
         if (fmt.checksum !== actual) {
           errors.push(`[asset ${asset.id}] format "${fmt.format}" checksum stale — run \`npm run build:catalog\``);
         }
+      }
+
+      // Depth label matches a re-sniff of the actual bytes, in BOTH directions.
+      // `depth` is generated, never hand-authored (plans/deeprichpixels.md §10
+      // item 6): a present-but-wrong label would be exactly the "bits the
+      // pipeline did not produce" the plan forbids, and a missing label on a
+      // sniffable raster is a stale index. Same function the writer uses, so
+      // the two can only disagree if the index is out of date.
+      const expectedDepth = await depthForFormat(asset.type, bytes);
+      if (expectedDepth == null && fmt.depth !== undefined) {
+        errors.push(`[asset ${asset.id}] format "${fmt.format}" declares depth ${fmt.depth} but its bytes state no depth (not a raster, or an unsniffable container) — run \`npm run build:catalog\``);
+      } else if (expectedDepth != null && fmt.depth !== expectedDepth) {
+        errors.push(`[asset ${asset.id}] format "${fmt.format}" depth ${fmt.depth ?? '(absent)'} does not match the file's ${expectedDepth}-bit header — run \`npm run build:catalog\``);
       }
 
       // Tokens assets carry a DTCG document — validate its structure too.

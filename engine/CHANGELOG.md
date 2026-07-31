@@ -1567,3 +1567,76 @@ warns once per import. `penpotGroupToSvg` now refuses to flatten a subtree
 carrying a visible background blur (a standalone SVG has no primitive that can
 read a backdrop) so the shapes fall to the per-shape import instead. `blur`
 itself is unchanged, and a background blur never reaches it.
+
+---
+
+## 1.88.0 — depth follows provenance: the `depth` param and our own PNG writer
+
+Also in 1.88.0, pure additions with no bridge surface (Penpot design-system
+import, plans/penpot-design-system.md):
+
+`src/design-components.ts` (new) — `collectPenpotComponents` enumerates a
+Penpot file's component definitions, grouping a variant set into ONE logical
+component (Penpot writes one record per variant, sharing `variantId`; the
+container id is the logical identity) and censusing instances that point at
+external shared libraries by `componentFile`, which is the only honest test:
+in a real deck three foreign component ids also exist locally, because the
+library was duplicated from that file. `penpotComponentSlots` infers the
+editable slots of a master subtree — text shapes and image fills, labelled by
+the author's own shape names. Pure: parsed JSON in, data out.
+
+`src/design-map.ts` — `penpotFlowOrder` orders boards by a file's prototype
+flow (navigate edges from the page's declared `startingFrame`, triggers on
+nested shapes resolved to their board, cycles terminated, first authored
+branch taken, orphans appended) with the caller's reading order as the
+fallback; `penpotAnimationToTransition` maps Penpot's animation types onto the
+scene enter vocabulary (dissolve → fade with its authored duration, slide/push
+→ directional slides). A file with no interactions produces no flow and no
+transitions, so its scenes are unchanged.
+
+Both are observed-from-fixture, not inferred: tests/fixtures/penpot-kitchen-sink.penpot
+is a real 2.17.1-RC4 export authored for this purpose. It corrected two guesses
+already — the action type is `navigate`, not `navigate-to`, and the flow's
+start lives on the page record rather than a shape.
+
+The first slice of plans/deeprichpixels.md Phase B, plus the URL-mode plumbing
+its §10 calls for. Additive: one optional FIELD on `ExportOpts`, no HostV1
+method added or changed, so every existing shell behaves exactly as before.
+
+`src/url-mode.ts` — new reserved param `depth` (`8 | 16 | float | auto`,
+default `auto`), beside `hdr`/`dpi`/`unit`. `parseDepth()` is total over
+untrusted input: accepted spellings are case- and whitespace-insensitive and
+everything else (absent, empty, `32`, `deep`, `constructor`) degrades quietly
+to `'auto'`. The whitelist is a `Map`, not an object literal, because it is
+indexed by URL text — a plain object answers truthily for `constructor` and
+`__proto__`. Web (`?depth=16`), CLI (`--depth=16`) and MCP inherit it from this
+one change; the plumbing IS the surface.
+
+`ExportOpts.depth` (packages/core/src/host-v1.ts) — the request as it reaches an
+export bridge. A request, never a promise: consumers apply the governing rule,
+**depth follows provenance** — emit deep bits only where the pipeline produced
+them. A 16-bit container over an 8-bit render is padding, and shipping it is the
+export-side twin of the silent-ingest lie Phase A fixed.
+
+`src/png.ts` — new: `packPng`, the engine's own PNG encoder. 8-bit and 16-bit
+truecolour (RGB/RGBA), IHDR/cICP/pHYs/iTXt/IDAT/IEND, adaptive row filtering
+(libpng's MSAD heuristic), IDAT split into 1 MiB chunks. 16-bit samples are
+big-endian per PNG spec §7.1 — deliberately the opposite of `tiff.ts`'s
+little-endian files, so the same `Uint16Array` lands as different bytes in each
+writer. It NEVER converts depth: `depth: 16` demands a `Uint16Array` the caller
+already produced at 16 bits, which is the provenance rule expressed as a type
+error. `deflate.ts` still has no incremental surface, so a single-shot ceiling
+(default 16 MiB of FILTERED bytes) either throws or, with `oversize: 'store'`,
+writes spec-valid uncompressed zlib blocks in O(1) extra memory. mDCV and cLLI
+are deliberately NOT emitted — nothing in the pipeline produces mastering-display
+or content-light-level values yet, and inventing them would break the same rule.
+
+First consumer (web shell, not engine): `?hdr=1&format=png` now runs
+`fromU8Srgb → hdrViewTransform → pqEncodeFrame → pqToU16 → packPng(depth 16,
+cICP 9/16/0/1)` instead of 8-bit `hdrBoostToPQ` + a chunk splice, closing the
+plan's sharpest recorded defect (PQ quantised to 8 bits bands the shadows). No
+new toggle — an invisible upgrade under the existing `hdr=`. `depth=8` is
+ignored there with a logged note, because 8-bit PQ *is* the defect.
+
+Also: catalog asset records gain an optional sniffed `depth` (bits per channel)
+on each format entry — schema-side only, no engine code reads it yet.

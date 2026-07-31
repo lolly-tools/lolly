@@ -78,7 +78,7 @@ test('the sensor capabilities still validate (screen is additive, not a replacem
 
 // ─── version ─────────────────────────────────────────────────────────────────
 
-test('ENGINE_VERSION is 1.86.0', () => {
+test('ENGINE_VERSION is 1.88.0', () => {
   // A literal pin: the screencap surface shipped at 1.54, and tools declare
   // ^1.54.0 to require it. session-record only checks the stamp equals whatever
   // ENGINE_VERSION happens to be (tautological) — this catches an errant bump.
@@ -124,9 +124,13 @@ test('ENGINE_VERSION is 1.86.0', () => {
   // alongside, plus the u8/u16/binary16 converters and convertSpace; engine-only,
   // no HostV1 method added) and 1.87.0 (Penpot format currency: token-first brand
   // ingest — scanPenpotAppliedTokens/typographyFamilies — plus dash/gap stroke
-  // patterns and background-blur import; engine-only, no HostV1 method added);
+  // patterns and background-blur import; engine-only, no HostV1 method added) and
+  // 1.88.0 (the reserved `depth` URL param + the additive ExportOpts.depth field,
+  // and src/png.ts — the engine's own 8/16-bit PNG writer behind the first deep
+  // output: 16-bit cICP HDR PNG. A field, not a method, so every existing shell
+  // is unaffected);
   // the ^1.54.0 screencap floor below is unaffected (a minor bump still satisfies it).
-  assert.equal(ENGINE_VERSION, '1.87.0');
+  assert.equal(ENGINE_VERSION, '1.88.0');
 });
 
 // ─── loadTool: a ^1.54.0 tool loads against this engine ───────────────────────

@@ -21,10 +21,12 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import {
-  DEFAULT_CLIP_S, DEFAULT_SEQ_S, MAX_TIME_S, MIN_DUR, SNAP_PX,
-  boxTiming, deriveDuration, dropIndexAt, fmtTime, indexOfId, isTimed, moveOverlay,
+  DEFAULT_CLIP_S, DEFAULT_SEQ_S, MAX_TIME_S, MIN_DUR, MIN_TRIM_BAR_PX, SNAP_PX,
+  boxTiming, deriveDuration, dropIndexAt, edgeZonePx, fmtDelta, fmtDur,
+  fmtTime, indexOfId, isTimed, moveOverlay,
   moveSeqClip, packSeq,
   removeAndRipple, rippleOverlays, seqBoxes, setClipIn, setDuration, setSpeed,
+  detachAudio, isThroughEdit, joinClips, reattachAudio, splitAll,
   snapTime, splitBox, trimClip,
   type Box, type TimeCfg,
 } from '../shells/web/src/views/timeline-math.ts';
@@ -585,6 +587,73 @@ test('fmtTime: hostile input degrades to 0:00.0, negatives carry a sign', () => 
   assert.equal(fmtTime(-1.5), '-0:01.5');
 });
 
+// ── 10b. the trim readout's formatters, and the edge-zone cap ──────────────────
+
+test('fmtDur: one decimal under 10s, whole seconds to a minute, m:ss beyond', () => {
+  assert.equal(fmtDur(0), '0.0s');
+  assert.equal(fmtDur(0.04), '0.0s');
+  assert.equal(fmtDur(0.6), '0.6s');
+  assert.equal(fmtDur(4.24), '4.2s');
+  assert.equal(fmtDur(9.9), '9.9s');
+  // The band is picked from the ROUNDED value, so 9.96 is not printed as "10.0s".
+  assert.equal(fmtDur(9.96), '10s');
+  assert.equal(fmtDur(10), '10s', 'exactly ten seconds is the first whole-second reading');
+  assert.equal(fmtDur(12.4), '12s');
+  assert.equal(fmtDur(59.4), '59s');
+  assert.equal(fmtDur(59.9), '1:00', 'and 59.9 carries into the minute rather than reading "60s"');
+  assert.equal(fmtDur(60), '1:00', 'exactly a minute is the first m:ss reading');
+  assert.equal(fmtDur(65.25), '1:05');
+  assert.equal(fmtDur(600), '10:00');
+  assert.equal(fmtDur(3725.6), '1:02:06', 'past an hour it inherits fmtTime’s hours field');
+});
+
+test('fmtDur: hostile input degrades to 0.0s, and a negative length carries a sign', () => {
+  assert.equal(fmtDur(Number.NaN), '0.0s');
+  assert.equal(fmtDur(Number.POSITIVE_INFINITY), '0.0s');
+  assert.equal(fmtDur(undefined as never), '0.0s');
+  assert.equal(fmtDur('2.5' as never), '2.5s');
+  assert.equal(fmtDur(-1.5), '-1.5s');
+});
+
+test('fmtDelta: ASCII sign, one decimal under 10s, and no negative zero', () => {
+  assert.equal(fmtDelta(0.6), '+0.6s');
+  assert.equal(fmtDelta(-0.6), '-0.6s');
+  assert.equal(fmtDelta(0), '+0.0s');
+  assert.equal(fmtDelta(-0.04), '+0.0s', 'a delta that rounds away is never "-0.0s"');
+  assert.equal(fmtDelta(-0.05), '-0.1s');
+  assert.equal(fmtDelta(12.4), '+12s');
+  assert.equal(fmtDelta(-65), '-1:05');
+  // The sign is the ASCII one a screen reader reads correctly, not U+2212.
+  assert.ok(!/[−±]/.test(fmtDelta(-1)), 'no typographic minus');
+});
+
+test('edgeZonePx: never lets the two zones meet, and gives up entirely on a narrow bar', () => {
+  // Below the floor there is no zone at all — the whole bar stays grabbable.
+  assert.equal(edgeZonePx(0, 10), 0);
+  assert.equal(edgeZonePx(27, 10), 0);
+  assert.equal(edgeZonePx(MIN_TRIM_BAR_PX - 0.5, 10), 0, 'the floor is inclusive, and fractional widths respect it');
+  // At and above the floor, a third of the bar is the ceiling.
+  assert.equal(edgeZonePx(28, 10), 9);
+  assert.equal(edgeZonePx(29, 10), 9);
+  assert.equal(edgeZonePx(30, 10), 10);
+  assert.equal(edgeZonePx(60, 10), 10);
+  assert.equal(edgeZonePx(300, 10), 10);
+  // A coarse pointer asks for more, and is still capped by the bar.
+  assert.equal(edgeZonePx(30, 24), 10);
+  assert.equal(edgeZonePx(300, 24), 24);
+  // THE invariant: two zones can never cover the whole bar, at any width or base.
+  for (const w of [0, 27, 28, 29, 30, 60, 300, 1000]) {
+    for (const base of [10, 24]) {
+      const zone = edgeZonePx(w, base);
+      assert.ok(2 * zone < w || zone === 0, `two ${zone}px zones still leave body on a ${w}px bar`);
+    }
+  }
+  // Hostile input is a refusal, never a NaN width.
+  assert.equal(edgeZonePx(Number.NaN, 10), 0);
+  assert.equal(edgeZonePx(100, Number.NaN), 0);
+  assert.equal(edgeZonePx(100, 0), 0);
+});
+
 // ── 11. hostile input ──────────────────────────────────────────────────────────
 
 test('hostile input: no mutator throws, and none writes NaN into a time field', () => {
@@ -897,4 +966,256 @@ test('an unknown id is a no-op that still returns a fresh array', () => {
     assert.deepEqual(out, rows);
     assert.notEqual(out, rows, 'callers may mutate what they get back');
   }
+});
+
+// ── 12. splitAll (one array, one undo step) ────────────────────────────────────
+
+test('splitAll: three clips cut at one instant produce ONE array and three right halves', () => {
+  minted = 0;
+  // Three clips stacked on overlay lanes so a single instant is inside all of them.
+  const before = [
+    overlay('a', 0, { dur: 4 }),
+    overlay('b', 0, { dur: 4 }),
+    overlay('c', 0, { dur: 4 }),
+  ];
+  const r = splitAll(before, cfg, ['a', 'b', 'c'], 2, mintId);
+  assert.deepEqual(r.skipped, []);
+  assert.equal(r.split.length, 3, 'one minted right half per clip');
+  assert.equal(new Set(r.split).size, 3, 'and every minted id is distinct');
+  assert.equal(r.next.length, 6, 'three clips became six, in ONE array');
+  for (const id of ['a', 'b', 'c']) assert.equal(byId(r.next, id).dur, 2, `${id} kept its left half`);
+  for (const id of r.split) {
+    assert.equal(byId(r.next, id).start, 2);
+    assert.equal(byId(r.next, id).dur, 2);
+  }
+  assert.equal(before.length, 3, 'the input array is untouched');
+});
+
+test('splitAll: a minter that reads a SNAPSHOT cannot mint the same id twice', () => {
+  // The panel's mintId reads getBoxes(), which does not move during the fold — so a
+  // naive fold hands `b4` to all three halves and two of them vanish into the third.
+  const before = [overlay('a', 0, { dur: 4 }), overlay('b', 0, { dur: 4 }), overlay('c', 0, { dur: 4 })];
+  const frozen = (): string => 'dup';
+  const r = splitAll(before, cfg, ['a', 'b', 'c'], 2, frozen);
+  assert.equal(r.split.length, 3);
+  assert.equal(new Set(r.split).size, 3, `distinct ids, got ${r.split.join(',')}`);
+  assert.equal(r.next.length, 6);
+  assert.equal(new Set(r.next.map((x) => String(x!.id))).size, 6, 'no id collides in the result');
+});
+
+test('splitAll: nothing to split returns the input array BY IDENTITY (no undo entry)', () => {
+  minted = 0;
+  const before = [clip('a', { start: 0, dur: 4 })];
+  // Exactly on the clip's own start: splitBox refuses, so the whole command is a no-op.
+  const r = splitAll(before, cfg, ['a'], 0, mintId);
+  assert.equal(r.next, before, 'IDENTITY, so the caller can skip write() entirely');
+  assert.deepEqual(r.split, []);
+  assert.deepEqual(r.skipped, ['a']);
+  // …and an empty id list is the same shape.
+  assert.equal(splitAll(before, cfg, [], 2, mintId).next, before);
+});
+
+test('splitAll: an open-ended clip is SKIPPED without aborting the rest', () => {
+  minted = 0;
+  const before = [overlay('open', 0, { dur: '' }), overlay('ok', 0, { dur: 4 })];
+  const r = splitAll(before, cfg, ['open', 'ok', 'ghost'], 2, mintId);
+  assert.deepEqual(r.skipped, ['open', 'ghost'], 'open-ended and unknown ids are refused, in order');
+  assert.equal(r.split.length, 1, 'the splittable one still split');
+  assert.equal(byId(r.next, 'ok').dur, 2);
+  assert.equal(byId(r.next, 'open').dur, '', 'the open-ended clip is untouched');
+});
+
+// ── 13. through edits + Join ───────────────────────────────────────────────────
+
+/** The panel injects an asset-ref comparison; these fixtures carry a plain `src`. */
+const sameSrc = (a: Box, b: Box): boolean => (a.src ?? null) === (b.src ?? null);
+
+test('isThroughEdit: true immediately after a split, false once a transition lands', () => {
+  minted = 0;
+  const before = [clip('x', { start: 0, dur: 4, clipIn: 0, speed: 1, src: 'v.mp4' })];
+  const after = splitBox(before, cfg, 'x', 2, mintId)!;
+  assert.equal(isThroughEdit(after, cfg, 'x', 'new-1', sameSrc), true,
+    'a fresh cut is a through edit — nothing has been decided yet');
+
+  // A transition on either side ends it.
+  const faded = after.map((b) => (b!.id === 'x' ? { ...b!, exit: 'fade' } : b));
+  assert.equal(isThroughEdit(faded, cfg, 'x', 'new-1', sameSrc), false, 'A grew an exit');
+  const entered = after.map((b) => (b!.id === 'new-1' ? { ...b!, enter: 'fade' } : b));
+  assert.equal(isThroughEdit(entered, cfg, 'x', 'new-1', sameSrc), false, 'B grew an enter');
+});
+
+test('isThroughEdit: an edited in-point, a rate change or a different source ends it', () => {
+  minted = 0;
+  const after = splitBox([clip('x', { start: 0, dur: 4, clipIn: 0, speed: 1, src: 'v.mp4' })], cfg, 'x', 2, mintId)!;
+  const patch = (id: string, p: Box): Box[] => after.map((b) => (b!.id === id ? { ...b!, ...p } : b));
+  assert.equal(isThroughEdit(patch('new-1', { clipIn: 2.5 }), cfg, 'x', 'new-1', sameSrc), false, 'B was trimmed in');
+  assert.equal(isThroughEdit(patch('new-1', { speed: 2 }), cfg, 'x', 'new-1', sameSrc), false, 'rates differ');
+  assert.equal(isThroughEdit(patch('new-1', { src: 'other.mp4' }), cfg, 'x', 'new-1', sameSrc), false, 'different source');
+  // A tolerance, not an equality: a millisecond of float drift is still contiguous.
+  assert.equal(isThroughEdit(patch('new-1', { clipIn: 2.0005 }), cfg, 'x', 'new-1', sameSrc), true);
+});
+
+test('isThroughEdit: only ADJACENT seq clips, in that order, and never a clip with itself', () => {
+  const rows = [
+    clip('a', { start: 0, dur: 2, clipIn: 0, speed: 1, src: 'v' }),
+    clip('b', { start: 2, dur: 2, clipIn: 2, speed: 1, src: 'v' }),
+    clip('c', { start: 4, dur: 2, clipIn: 4, speed: 1, src: 'v' }),
+  ];
+  assert.equal(isThroughEdit(rows, cfg, 'a', 'b', sameSrc), true);
+  assert.equal(isThroughEdit(rows, cfg, 'b', 'c', sameSrc), true);
+  assert.equal(isThroughEdit(rows, cfg, 'a', 'c', sameSrc), false, 'not adjacent');
+  assert.equal(isThroughEdit(rows, cfg, 'b', 'a', sameSrc), false, 'order matters — b does not precede a');
+  assert.equal(isThroughEdit(rows, cfg, 'a', 'a', sameSrc), false);
+  assert.equal(isThroughEdit(rows, cfg, 'a', 'zz', sameSrc), false);
+  // An overlay pair is not a seq adjacency at all.
+  const ovs = [overlay('p', 0, { dur: 2, clipIn: 0, speed: 1 }), overlay('q', 2, { dur: 2, clipIn: 2, speed: 1 })];
+  assert.equal(isThroughEdit(ovs, cfg, 'p', 'q', sameSrc), false);
+});
+
+test('joinClips: split then join round-trips the clip, modulo the minted id', () => {
+  minted = 0;
+  const before = [
+    { id: 'x', lane: 'seq', start: 0, dur: 4, clipIn: 0, speed: 1, enter: 'rise', exit: 'fade', exitMs: 600 } as Box,
+    overlay('ov', 3, { dur: 1 }),
+  ];
+  const after = splitBox(before, cfg, 'x', 2, mintId)!;
+  const rejoined = joinClips(after, cfg, 'x', 'new-1')!;
+  assert.ok(rejoined, 'the pair is adjacent, so the join lands');
+  assert.deepEqual(rejoined, before, 'byte-identical to the pre-split array');
+});
+
+test('joinClips: a clip with NO exit round-trips too — absence is carried, not undefined', () => {
+  minted = 0;
+  const before = [clip('x', { start: 0, dur: 4, clipIn: 0, speed: 1 })];
+  const after = splitBox(before, cfg, 'x', 1.5, mintId)!;
+  assert.equal(after[0]!.exit, 'none', 'precondition: the split wrote an exit on A');
+  const rejoined = joinClips(after, cfg, 'x', 'new-1')!;
+  assert.deepEqual(rejoined, before);
+  assert.ok(!('exit' in rejoined[0]!), 'the key is DELETED, never written as undefined');
+});
+
+test('joinClips: B\'s length and outer edge move to A, and the row repacks', () => {
+  const before = [
+    clip('a', { start: 0, dur: 2, exit: 'none' }),
+    clip('b', { start: 2, dur: 3, exit: 'fade', exitMs: 250 }),
+    clip('c', { start: 5, dur: 1 }),
+    overlay('ov', 5.5, { dur: 0.5 }),
+  ];
+  const out = joinClips(before, cfg, 'a', 'b')!;
+  assert.deepEqual(out.map((x) => x!.id), ['a', 'c', 'ov'], 'B is gone');
+  assert.equal(byId(out, 'a').dur, 5);
+  assert.equal(byId(out, 'a').exit, 'fade');
+  assert.equal(byId(out, 'a').exitMs, 250);
+  assert.deepEqual(seqBoxes(out, cfg).map((x) => [x.id, x.start]), [['a', 0], ['c', 5]], 'gapless');
+  assert.equal(byId(out, 'ov').start, 5.5, 'the overlay anchored in c travelled with it (c did not move)');
+});
+
+test('joinClips: refuses a non-adjacent pair, a reversed pair and an unknown id', () => {
+  const rows = [clip('a', { start: 0, dur: 2 }), clip('b', { start: 2, dur: 2 }), clip('c', { start: 4, dur: 2 })];
+  assert.equal(joinClips(rows, cfg, 'a', 'c'), null);
+  assert.equal(joinClips(rows, cfg, 'b', 'a'), null);
+  assert.equal(joinClips(rows, cfg, 'a', 'zz'), null);
+  assert.equal(joinClips([overlay('p', 0, { dur: 1 }), overlay('q', 1, { dur: 1 })], cfg, 'p', 'q'), null);
+});
+
+// ── 14. detach / re-attach audio (the symmetric link) ──────────────────────────
+
+/** A cfg that DECLARES the link sub-field — the opt-in the manifest makes. */
+const linkCfg: TimeCfg = { ...cfg, linkField: 'linkOf' };
+
+test('detachAudio: one new OVERLAY box, same ref and timing, symmetric link, source muted', () => {
+  minted = 0;
+  const before = [
+    clip('v', { start: 0, dur: 4, clipIn: 1, speed: 2, image: { id: 'a/b.mp4' } as never, enter: 'rise', exit: 'fade' }),
+    clip('w', { start: 4, dur: 2 }),
+  ];
+  const out = detachAudio(before, linkCfg, 'v', mintId, { kind: 'audio' })!;
+  assert.ok(out, 'detach landed');
+  assert.equal(out.length, 3, 'exactly ONE new box');
+  const audio = byId(out, 'new-1');
+  const video = byId(out, 'v');
+
+  // Reference, not copy: the same asset ref and the same timing, verbatim.
+  assert.deepEqual(audio.image, before[0]!.image);
+  assert.equal(audio.start, 0);
+  assert.equal(audio.dur, 4);
+  assert.equal(audio.clipIn, 1);
+  assert.equal(audio.speed, 2);
+  assert.equal(audio.kind, 'audio', 'the add-kind seed is applied over the copy');
+
+  assert.equal(audio.lane, '', 'the sound lands on an OVERLAY lane — packSeq must never see it');
+  assert.equal(audio.mute, '', 'the sound is the half that plays');
+  assert.equal(audio.enter, 'none');
+  assert.equal(audio.exit, 'none');
+
+  // The link is written on BOTH sides — that is what makes re-attach reachable either way.
+  assert.equal(audio.linkOf, 'v');
+  assert.equal(video.linkOf, 'new-1');
+  assert.equal(video.mute, true, 'the picture is silenced');
+  assert.equal(video.dur, 4, 'and otherwise untouched');
+  assert.equal(byId(out, 'w').start, 4, 'the seq row did not move');
+  assert.equal(before.length, 2, 'the input array is untouched');
+});
+
+test('detachAudio: refused without a link field, on a missing box, and when already linked', () => {
+  minted = 0;
+  const rows = [clip('v', { start: 0, dur: 4 })];
+  assert.equal(detachAudio(rows, cfg, 'v', mintId), null, 'no linkField declared — the feature is not offered');
+  assert.equal(detachAudio(rows, linkCfg, 'nope', mintId), null);
+  const linked = [clip('v', { start: 0, dur: 4, linkOf: 'x' })];
+  assert.equal(detachAudio(linked, linkCfg, 'v', mintId), null, 'already detached');
+});
+
+test('reattachAudio: un-mutes BOTH halves of a video that was split after detaching', () => {
+  // The case the symmetric link exists for: splitBox copies fields, so cutting the
+  // muted video leaves two halves that both name the sound.
+  minted = 0;
+  const detached = detachAudio([clip('v', { start: 0, dur: 4 })], linkCfg, 'v', mintId, { kind: 'audio' })!;
+  const split = splitBox(detached, linkCfg, 'v', 2, mintId)!;
+  assert.equal(byId(split, 'new-2').linkOf, 'new-1', 'precondition: both halves name the sound');
+
+  const back = reattachAudio(split, linkCfg, 'v')!;
+  assert.ok(back, 're-attach landed');
+  assert.deepEqual(back.map((b) => String(b!.id)), ['v', 'new-2'], 'the sound box is gone');
+  for (const id of ['v', 'new-2']) {
+    assert.equal(byId(back, id).mute, '', `${id} is audible again`);
+    assert.equal(byId(back, id).linkOf, '', `${id} is unlinked`);
+  }
+});
+
+test('reattachAudio: works from the SOUND\'s side too, and removes every audio member', () => {
+  minted = 0;
+  const detached = detachAudio([clip('v', { start: 0, dur: 4 })], linkCfg, 'v', mintId, { kind: 'audio' })!;
+  const back = reattachAudio(detached, linkCfg, 'new-1')!;
+  assert.deepEqual(back.map((b) => String(b!.id)), ['v']);
+  assert.equal(byId(back, 'v').mute, '');
+});
+
+test('reattachAudio: refuses when the muted side is empty rather than guessing', () => {
+  minted = 0;
+  const detached = detachAudio([clip('v', { start: 0, dur: 4 })], linkCfg, 'v', mintId, { kind: 'audio' })!;
+  // The user un-muted the picture by hand: two unmuted linked boxes, and deleting the
+  // wrong one is unrecoverable.
+  const unmuted = detached.map((b) => (b!.id === 'v' ? { ...b!, mute: '' } : b));
+  assert.equal(reattachAudio(unmuted, linkCfg, 'v'), null);
+});
+
+test('reattachAudio: null without a link field, on a singleton, and on a dangling id', () => {
+  const rows = [clip('v', { start: 0, dur: 4, linkOf: 'ghost' })];
+  assert.equal(reattachAudio(rows, cfg, 'v'), null, 'no linkField declared');
+  assert.equal(reattachAudio(rows, linkCfg, 'v'), null, 'the partner does not exist — group of one');
+  assert.equal(reattachAudio([clip('v', { start: 0, dur: 4 })], linkCfg, 'v'), null, 'nothing linked');
+  assert.equal(reattachAudio(rows, linkCfg, 'zz'), null, 'unknown id');
+});
+
+test('reattachAudio: removing a SEQ-lane sound closes the gap it leaves', () => {
+  // A detached sound normally lands on an overlay lane, but a user can promote it onto
+  // the magnetic row; pulling it back out must repack like any other removal.
+  const rows = [
+    clip('v', { start: 0, dur: 2, mute: true, linkOf: 's' }),
+    clip('s', { start: 2, dur: 2, linkOf: 'v' }),
+    clip('w', { start: 4, dur: 2 }),
+  ];
+  const back = reattachAudio(rows, linkCfg, 'v')!;
+  assert.deepEqual(seqBoxes(back, cfg).map((b) => [b.id, b.start]), [['v', 0], ['w', 2]], 'gapless after the removal');
 });

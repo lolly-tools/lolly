@@ -8,9 +8,11 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import { validateManifest } from '../engine/src/validate.ts';
 import { parseUrlState, serializeUrlState, serializeHdr, RESERVED, CUTS_MAX, cutTime } from '../engine/src/url-mode.ts';
+import type { DepthSetting } from '../engine/src/url-mode.ts';
 import { buildInputModel, updateInput, modelToValues } from '../engine/src/inputs.ts';
 import { hydrate, annotateTemplate } from '../engine/src/template.ts';
 import { createRuntime } from '../engine/src/runtime.ts';
@@ -148,9 +150,65 @@ test('url-mode: RESERVED set matches the documented reserved-param list', () => 
   const documented = [
     'format', 'export', 'copy', 'full', 'options', 'slot', 'output', 'filename',
     '_v', 'width', 'w', 'height', 'h', 'unit', 'dpi', 'profile', 'password',
-    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'cuts', 'lang', 'nostage', 'z', 'zx',
+    'bleed', 'marks', 'c2pa', 'imprint', 'durable', 'hdr', 'depth', 'cuts', 'lang', 'nostage', 'z', 'zx',
   ];
   assert.deepEqual([...RESERVED].sort(), [...documented].sort());
+
+  // ...and the user-facing table in docs/url-mode.md is checked mechanically, not
+  // by hope: every reserved name must appear as a row key there (first cell, e.g.
+  // "| `width` / `w` | web + CLI | …"), so adding a param without documenting it
+  // fails here rather than shipping an undocumented control.
+  const md = readFileSync(new URL('../docs/url-mode.md', import.meta.url), 'utf8');
+  const rowKeys = new Set<string>();
+  for (const line of md.split('\n')) {
+    const m = /^\|\s*(`[^|]+?)\s*\|/.exec(line);
+    if (!m) continue;
+    for (const k of m[1]!.matchAll(/`([^`]+)`/g)) rowKeys.add(k[1]!);
+  }
+  const undocumented = [...RESERVED].filter(k => !rowKeys.has(k));
+  assert.deepEqual(undocumented, [], `reserved params with no docs/url-mode.md row: ${undocumented.join(', ')}`);
+  // Negative control: the scan is genuinely reading rows, not matching anything —
+  // a name that is not a reserved param has no row key either.
+  assert.equal(rowKeys.has('depth'), true);
+  assert.equal(rowKeys.has('bitdepth'), false);
+});
+
+test('url-mode: depth param — requested export bit depth (8/16/float/auto)', () => {
+  const tool = { inputs: [], render: {} };
+  const depth = (qs: string): DepthSetting => parseUrlState(qs, tool).depth;
+
+  // Absent ⇒ 'auto' — the default IS the contract, so a link without `depth`
+  // behaves exactly as it did before the param existed.
+  assert.equal(depth(''), 'auto');
+
+  // The four accepted spellings, case- and whitespace-insensitive (URL-encoding
+  // artefacts are not errors). 8/16 come back as NUMBERS, float/auto as strings.
+  assert.equal(depth('depth=8'), 8);
+  assert.equal(depth('depth=16'), 16);
+  assert.equal(depth('depth=float'), 'float');
+  assert.equal(depth('depth=auto'), 'auto');
+  assert.equal(depth('depth=FLOAT'), 'float');
+  assert.equal(depth('depth=%2016%20'), 16);
+
+  // Junk NEVER throws and never invents a depth — it degrades to 'auto', like
+  // `cuts`→1 and an unrecognized `unit`→null. '32'/'10' are plausible-looking but
+  // unsupported, and the prototype-key cases are why the whitelist is a Map.
+  for (const raw of ['', '32', '10', '0', '-8', '8.5', 'deep', 'true', 'NaN', 'Infinity',
+                     'constructor', '__proto__', 'toString', 'hasOwnProperty']) {
+    assert.equal(depth(`depth=${encodeURIComponent(raw)}`), 'auto', raw);
+  }
+
+  // Reserved — never mistaken for a tool input, and never leaks into values.
+  assert.equal('depth' in parseUrlState('depth=16', tool).values, false);
+
+  // Serialize: only a real request writes the param; 'auto'/absent/junk stay off
+  // the link, and a written value round-trips back to the same setting.
+  assert.equal(serializeUrlState([], {}), '');
+  assert.equal(serializeUrlState([], { depth: 'auto' }), '');
+  assert.equal(serializeUrlState([], { depth: '32' }), '');
+  assert.equal(serializeUrlState([], { depth: 16 }), 'depth=16');
+  assert.equal(serializeUrlState([], { depth: 'float' }), 'depth=float');
+  assert.equal(parseUrlState(serializeUrlState([], { depth: 8 }), tool).depth, 8);
 });
 
 test('url-mode: cuts param — contact-sheet frame count parse', () => {

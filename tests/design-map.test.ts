@@ -19,6 +19,7 @@ import {
   safeColor, nodeToBox, finalizeBoxes, parsePenpotContent, collectPenpotFontUsage, penpotShapeToNode,
   figmaNodesToNodes, figmaNodesToScenes, readingOrder, colorRunsToText, decodeFigVectorPath, penpotGradientToSpec,
   penpotPathContentToD, penpotGradientSvgDef, penpotGroupToSvg,
+  penpotFlowOrder, penpotAnimationToTransition,
 } from '../engine/src/design-map.ts';
 
 const close = (a: number, b: number, eps = 1e-9) => Math.abs(a - b) <= eps;
@@ -1485,3 +1486,135 @@ test('penpotGroupToSvg: dash decoration bakes into the flattened SVG (was always
 //    * "fixture: dotted strokes carry round caps, or the renderer forces one"
 //    * "fixture: per-side stroke keys (strokePerSide, strokeWidthTop...) absent or
 //      present in 2.17 exports"
+
+// ── prototype-flow scene ordering (penpot-design-system.md §4) ───────────────
+//
+// Synthetic pages here — the shape of the real thing is pinned against the
+// committed 2.17.1-RC4 export in tests/penpot-kitchen-sink.test.ts. These cover
+// the walk's policy decisions, which one authored fixture can't enumerate.
+
+/** Minimal page: boards `a,b,c...` each optionally carrying interactions. */
+function flowPage(spec: Record<string, unknown[]>, extra: Record<string, unknown> = {}): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [id, interactions] of Object.entries(spec)) {
+    out[id] = { id, type: 'frame', shapes: [], ...(interactions.length ? { interactions } : {}) };
+  }
+  return { ...out, ...extra };
+}
+const nav = (destination: string, animation?: unknown): Record<string, unknown> =>
+  ({ eventType: 'click', actionType: 'navigate', destination, ...(animation ? { animation } : {}) });
+
+test('penpotFlowOrder: no interactions → hasFlow false and the reading order copied through', () => {
+  const shapes = flowPage({ a: [], b: [], c: [] });
+  const r = penpotFlowOrder(['c', 'a', 'b'], shapes);
+  assert.equal(r.hasFlow, false);
+  assert.deepEqual(r.ordered, ['c', 'a', 'b']);
+  assert.deepEqual(r.transitions, {});
+  // A single board (or none) can carry no flow at all.
+  assert.equal(penpotFlowOrder(['a'], shapes).hasFlow, false);
+  assert.deepEqual(penpotFlowOrder([], shapes).ordered, []);
+});
+
+test('penpotFlowOrder: a click chain reorders the boards and the start is the in-degree-0 board', () => {
+  // Reading order c,b,a; the flow says a → b → c.
+  const shapes = flowPage({ a: [nav('b')], b: [nav('c')], c: [] });
+  const r = penpotFlowOrder(['c', 'b', 'a'], shapes);
+  assert.equal(r.hasFlow, true);
+  assert.deepEqual(r.ordered, ['a', 'b', 'c']);
+});
+
+test('penpotFlowOrder: the page flow record beats the in-degree heuristic', () => {
+  // b has an in-edge AND an out-edge, so the heuristic would start at a; the file
+  // names b as the starting frame, and the file wins.
+  const shapes = flowPage({ a: [nav('b')], b: [nav('c')], c: [] });
+  const r = penpotFlowOrder(['a', 'b', 'c'], shapes, { flows: { f1: { name: 'Flow 1', startingFrame: 'b' } } });
+  assert.deepEqual(r.ordered, ['b', 'c', 'a']);
+  // An array-shaped flows collection reads the same, and an unknown startingFrame
+  // falls back to the heuristic rather than dropping the flow.
+  assert.deepEqual(penpotFlowOrder(['a', 'b', 'c'], shapes, { flows: [{ startingFrame: 'b' }] }).ordered, ['b', 'c', 'a']);
+  assert.deepEqual(penpotFlowOrder(['a', 'b', 'c'], shapes, { flows: { f: { startingFrame: 'zz' } } }).ordered, ['a', 'b', 'c']);
+});
+
+test('penpotFlowOrder: a trigger anywhere INSIDE a board is an edge from that board, and nested destinations resolve up', () => {
+  const shapes: Record<string, unknown> = {
+    a: { id: 'a', type: 'frame', shapes: ['a-btn'] },
+    'a-btn': { id: 'a-btn', type: 'rect', interactions: [nav('b-inner')] },
+    b: { id: 'b', type: 'frame', shapes: ['b-inner'] },
+    'b-inner': { id: 'b-inner', type: 'frame', shapes: [] },
+  };
+  const r = penpotFlowOrder(['b', 'a'], shapes);
+  assert.equal(r.hasFlow, true);
+  assert.deepEqual(r.ordered, ['a', 'b'], 'the button edge belongs to its board, and b-inner resolves to b');
+});
+
+test('penpotFlowOrder: cycles terminate, branches take the first authored edge and the rest follow in reading order', () => {
+  // a → b → a is a cycle; a also branches to c (authored second).
+  const shapes = flowPage({ a: [nav('b'), nav('c')], b: [nav('a')], c: [], d: [] });
+  const r = penpotFlowOrder(['a', 'b', 'c', 'd'], shapes);
+  assert.deepEqual(r.ordered, ['a', 'b', 'c', 'd']);
+  assert.equal(r.ordered.length, new Set(r.ordered).size, 'every board placed exactly once');
+});
+
+test('penpotFlowOrder: unreachable boards are appended in reading order and keep walking their own chain', () => {
+  // Flow a → b. Orphans: d (which navigates to c) and c, reading order c before d.
+  const shapes = flowPage({ a: [nav('b')], b: [], c: [], d: [nav('c')] });
+  const r = penpotFlowOrder(['a', 'b', 'c', 'd'], shapes);
+  assert.deepEqual(r.ordered, ['a', 'b', 'c', 'd']);
+  // With d ahead of c in reading order, d's own edge pulls c after it.
+  assert.deepEqual(penpotFlowOrder(['a', 'b', 'd', 'c'], shapes).ordered, ['a', 'b', 'd', 'c']);
+});
+
+test('penpotFlowOrder: self-edges, unknown destinations and non-navigate actions are not flow', () => {
+  const shapes = flowPage({
+    a: [nav('a'), { eventType: 'click', actionType: 'open-url', destination: 'b' }, nav('nope')],
+    b: [],
+  });
+  const r = penpotFlowOrder(['a', 'b'], shapes);
+  assert.equal(r.hasFlow, false, 'none of those three is a usable edge');
+  assert.deepEqual(r.ordered, ['a', 'b']);
+  // The hyphenated spelling a future Penpot might write is accepted too.
+  const hy = flowPage({ a: [{ eventType: 'click', actionType: 'navigate-to', destination: 'b' }], b: [] });
+  assert.equal(penpotFlowOrder(['b', 'a'], hy).hasFlow, true);
+  assert.deepEqual(penpotFlowOrder(['b', 'a'], hy).ordered, ['a', 'b']);
+});
+
+test('penpotAnimationToTransition: the full mapping table, and unknowns are a hard cut', () => {
+  assert.deepEqual(penpotAnimationToTransition({ animationType: 'dissolve', duration: 300, easing: 'linear' }),
+    { enter: 'fade', enterMs: 300 });
+  // Both vocabularies name the direction the content TRAVELS, so direction passes
+  // through: lolly's 'slide-right' is labelled "Slide from left".
+  for (const type of ['slide', 'push']) {
+    for (const dir of ['left', 'right', 'up', 'down']) {
+      assert.deepEqual(penpotAnimationToTransition({ animationType: type, direction: dir, duration: 500, way: 'in' }),
+        { enter: 'slide-' + dir, enterMs: 500 });
+    }
+  }
+  // `way: 'out'` is ignored in v1 (exit transitions are not modelled).
+  assert.deepEqual(penpotAnimationToTransition({ animationType: 'push', direction: 'up', duration: 200, way: 'out' }),
+    { enter: 'slide-up', enterMs: 200 });
+  // No animation, an unknown type, and a slide with no usable direction are cuts —
+  // and a cut carries no enterMs at all.
+  for (const a of [undefined, null, {}, { animationType: 'wobble', duration: 300 }, { animationType: 'slide', duration: 300 }, { animationType: 'slide', direction: 'sideways' }]) {
+    assert.deepEqual(penpotAnimationToTransition(a), { enter: 'none' });
+  }
+  // Duration clamps into the timeline's 100..3000 window and rounds.
+  assert.equal(penpotAnimationToTransition({ animationType: 'dissolve', duration: 10 }).enterMs, 100);
+  assert.equal(penpotAnimationToTransition({ animationType: 'dissolve', duration: 99999 }).enterMs, 3000);
+  assert.equal(penpotAnimationToTransition({ animationType: 'dissolve', duration: 249.6 }).enterMs, 250);
+  assert.equal(penpotAnimationToTransition({ animationType: 'dissolve' }).enterMs, undefined, 'no duration → no enterMs');
+});
+
+test('penpotFlowOrder: the transition on the edge INTO a board becomes that board entrance, cuts excluded', () => {
+  const shapes = flowPage({
+    a: [nav('b', { animationType: 'dissolve', duration: 300 })],
+    b: [nav('c', { animationType: 'push', direction: 'left', duration: 450 })],
+    c: [nav('d', { animationType: 'wobble' })],
+    d: [],
+  });
+  const r = penpotFlowOrder(['a', 'b', 'c', 'd'], shapes);
+  assert.deepEqual(r.ordered, ['a', 'b', 'c', 'd']);
+  assert.deepEqual(r.transitions, {
+    b: { enter: 'fade', enterMs: 300 },
+    c: { enter: 'slide-left', enterMs: 450 },
+  }, 'the start board and a cut-entered board carry no entry at all');
+});

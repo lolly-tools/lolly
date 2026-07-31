@@ -1986,6 +1986,25 @@ export interface ExportOpts {
   height?: number | string;
   dpi?: number;          // raster DPI for physical units (default 300; px → 96)
 
+  /**
+   * REQUESTED bits per channel for the output (the `depth` URL param): 8, 16,
+   * 'float' (floating-point samples — EXR / Radiance .hdr / float TIFF), or
+   * 'auto' (the default when omitted) meaning "the deepest the provenance chain
+   * supports".
+   *
+   * A request, never a promise. Consumers MUST apply the depth-follows-provenance
+   * rule: emit deep bits only where the pipeline actually produced them. A 16-bit
+   * container written over an 8-bit canvas render is padding, and shipping it is
+   * the export-side twin of the silent-ingest lie — so an unsupported request
+   * degrades to what the source can honestly carry rather than upsampling.
+   * Formats that are inherently deep (EXR, .hdr) ignore it; the first consumer is
+   * the HDR PNG path (16-bit cICP PNG). Optional/additive (engine 1.88+, with the
+   * Phase B deep-pixel writers) — a field, not a method, and unset by default, so
+   * a shell that ignores it behaves exactly as before.
+   * See plans/deeprichpixels.md §10.
+   */
+  depth?: 8 | 16 | 'float' | 'auto';
+
   // Provenance embedded into the asset via the format's native metadata
   // (PNG iTXt, JPEG EXIF, PDF info dict, SVG <metadata>, …). Auto-assembled by
   // the runtime from the host profile; pass your own to override, or set
