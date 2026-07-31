@@ -18,6 +18,12 @@
  *      byte-for-byte no-op with no warning.
  *   6. BROWSER ESCALATION was keyed on error PROSE across a submodule boundary.
  *   7. Unknown flags were swallowed silently.
+ *   8. The --output EXTENSION was decoration. `--output=times.csv` on a tool that does
+ *      not declare csv fell through to the tool's first format and wrote PNG under the
+ *      .csv name, exit 0 — while `--export=csv` on the same tool exited 2.
+ *   9. `--export`/`--format` on a TRANSFORM tool (file in → bytes out) was accepted and
+ *      dropped: the reserved param never reaches an exportFile hook, so `--export=png`
+ *      printed a success line for a file full of JPEG.
  *
  * Hermetic, like tests/cli-redact-instructions.test.ts: a fixture repo pinned via
  * LOLLY_ROOT, and LOLLY_WEB_DIST pointed at a directory with no built shell so the
@@ -67,7 +73,7 @@ await mkdir(join(root, 'catalog', 'tools'), { recursive: true });
 await mkdir(join(root, 'catalog', 'assets'), { recursive: true });
 await writeFile(
   join(root, 'catalog', 'tools', 'index.json'),
-  JSON.stringify({ version: '1', tools: [{ id: 'layout-tool' }, { id: 'vec-tool' }] }),
+  JSON.stringify({ version: '1', tools: [{ id: 'layout-tool' }, { id: 'vec-tool' }, { id: 'xform-tool' }] }),
 );
 await writeFile(join(root, 'catalog', 'assets', 'index.json'), JSON.stringify({ assets: [] }));
 
@@ -79,6 +85,26 @@ for (const [id, template, formats] of [
   await writeFile(join(root, 'tools', id, 'tool.json'), manifest(id, formats));
   await writeFile(join(root, 'tools', id, 'template.html'), template);
 }
+
+// xform-tool: an on-device transform (file in → bytes out). Its output container is
+// dictated by the file it was given, so a reserved `format`/`export` has nothing to act
+// on — accepting one printed a success line for a mislabelled file.
+await mkdir(join(root, 'tools', 'xform-tool'), { recursive: true });
+await writeFile(join(root, 'tools', 'xform-tool', 'tool.json'), JSON.stringify({
+  id: 'xform-tool',
+  name: 'xform-tool',
+  version: '1.0.0',
+  engineVersion: '^1.0.0',
+  status: 'community',
+  render: { width: 10, height: 10, formats: ['png'] },
+  hooks: { exportFile: true },
+  inputs: [{ id: 'source', type: 'file', label: 'Source' }],
+}));
+await writeFile(join(root, 'tools', 'xform-tool', 'template.html'), '<div>transform</div>');
+await writeFile(
+  join(root, 'tools', 'xform-tool', 'hooks.js'),
+  'function exportFile(){ return { bytes: new Uint8Array([1,2,3]), filename: "out.bin" }; }\n',
+);
 
 // Pin the run → bridge chain to the fixture BEFORE the first import, and pin the
 // browser tier to a directory with no built shell so it is deterministically absent.
@@ -345,4 +371,63 @@ test('an unknown flag warns but does not fail the render', async () => {
   const { stderr } = await run({ toolId: 'vec-tool', params: { labell: 'typo' }, outputPath: out, format: 'svg' });
   assert.match(stderr, /--labell is not an input of "vec-tool"/);
   assert.equal(existsSync(out), true, 'url mode is deliberately tolerant of extra params');
+});
+
+// ── 8. the --output EXTENSION is a format request, not decoration ─────────────
+//
+// `lolly meeting-planner --output=times.csv` used to write 113 KB of PNG into a file
+// called .csv and exit 0: `formatFromOutput` returned null for an undeclared extension
+// and the chain fell through to the tool's FIRST declared format. `--export=csv` on the
+// same tool already exited 2, so the two spellings of one request disagreed.
+
+test('an --output extension the tool does not declare is refused, not substituted', async () => {
+  const out = outPath('csv');
+  await assert.rejects(
+    () => run({ toolId: 'vec-tool', params: {}, outputPath: out }),
+    (e: Error & { exit?: number; kind?: string }) => {
+      assert.equal(e.exit, 2);
+      assert.equal(e.kind, 'UNDECLARED_FORMAT');
+      assert.match(e.message, /asks for "\.csv"/);
+      return true;
+    },
+  );
+  assert.equal(existsSync(out), false, 'nothing is written under a name the format cannot fill');
+});
+
+test('an explicit --export still lets you choose your own filename', async () => {
+  const out = join(root, `out-named-${seq++}.txt`);
+  await run({ toolId: 'vec-tool', params: {}, outputPath: out, format: 'svg' });
+  assert.equal(existsSync(out), true, 'naming the format is how you opt out of the extension check');
+});
+
+test('an --output with no extension at all still renders the default format', async () => {
+  const out = join(root, `out-bare-${seq++}`);
+  await run({ toolId: 'vec-tool', params: {}, outputPath: out });
+  assert.equal(existsSync(out), true);
+});
+
+// ── 9. a transform tool has no render format to choose ───────────────────────
+//
+// `strip-data --source=photo.jpg --export=png --output=clean.png` wrote JPEG bytes,
+// printed `✓ … → clean.png`, and exited 0: the reserved `format` param never reaches an
+// exportFile hook, so the flag was accepted and dropped. Worse, `convert-image` declares
+// its OWN `format` input, so `--format=png` was swallowed by the reserved param and the
+// tool converted to its default WebP under a .png name.
+
+test('--export on a transform tool is refused rather than dropped', async () => {
+  await assert.rejects(
+    () => run({ toolId: 'xform-tool', params: {}, outputPath: outPath('bin'), format: 'png' }),
+    (e: Error & { exit?: number; kind?: string }) => {
+      assert.equal(e.exit, 2);
+      assert.equal(e.kind, 'UNSUPPORTED_FLAG');
+      assert.match(e.message, /on-device transform/);
+      return true;
+    },
+  );
+});
+
+test('a transform tool still runs with no format flag at all', async () => {
+  const out = join(root, `xform-${seq++}.bin`);
+  await run({ toolId: 'xform-tool', params: {}, outputPath: out });
+  assert.equal(existsSync(out), true);
 });

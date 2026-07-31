@@ -139,15 +139,48 @@ export function parseBatchCsv(text: string): BatchRow[] {
 /** A tool the template emitter needs — id + its input ids (order preserved). */
 export interface BatchTemplateTool { id: string; inputs: Array<{ id: string }> }
 
+/** The template's own output columns, and the alternative spellings that reach them. */
+const TEMPLATE_OUTPUT_COLUMNS = ['toolId', 'format', 'width', 'height', 'unit', 'dpi'];
+
 /**
  * Emit a starter CSV grid for a set of tools: the reserved output columns followed by
  * the union of the tools' input ids, and one prefilled `toolId` row per tool.
+ *
+ * An input whose id is ALSO a reserved header (`chart-creator` declares `width` and
+ * `height`) is left out rather than emitted a second time. A duplicate column name in a
+ * CSV is not a choice a reader can make: `parseBatchCsv` walks the header left to right,
+ * so the second `width` silently overwrote the first, and a grid whose two `width` cells
+ * said 600 and 300 rendered at 300 with nothing to say why. The input is unreachable in
+ * a batch either way — the reserved header owns the name, exactly as the reserved export
+ * param owns `--width` on a single render — so the honest grid says so by omission.
+ * `shadowedInputs` names them for a caller that wants to tell the user.
  */
 export function batchCsvTemplate(tools: BatchTemplateTool[]): string {
+  return batchCsvTemplateWithNotes(tools).csv;
+}
+
+export function batchCsvTemplateWithNotes(
+  tools: BatchTemplateTool[],
+): { csv: string; shadowedInputs: string[] } {
   const inputIds: string[] = [];
+  const shadowed: string[] = [];
+  const reserved = new Set(TEMPLATE_OUTPUT_COLUMNS.map(h => h.toLowerCase()));
   const seen = new Set<string>();
-  for (const t of tools) for (const i of t.inputs) if (!seen.has(i.id)) { seen.add(i.id); inputIds.push(i.id); }
-  const header = ['toolId', 'format', 'width', 'height', 'unit', 'dpi', ...inputIds];
+  for (const t of tools) {
+    for (const i of t.inputs) {
+      if (seen.has(i.id)) continue;
+      seen.add(i.id);
+      // Any spelling parseBatchCsv treats as a reserved header collides, not just the
+      // six emitted above: a `w` or an `output` input column would be read as a size or
+      // a filename just the same.
+      if (reserved.has(i.id.toLowerCase()) || i.id.toLowerCase() in RESERVED_HEADERS) {
+        shadowed.push(i.id);
+        continue;
+      }
+      inputIds.push(i.id);
+    }
+  }
+  const header = [...TEMPLATE_OUTPUT_COLUMNS, ...inputIds];
   const rows = tools.map(t => ({ toolId: t.id }));
-  return toCSV(header, rows);
+  return { csv: toCSV(header, rows), shadowedInputs: shadowed };
 }

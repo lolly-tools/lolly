@@ -22,7 +22,13 @@ import { repoRoot } from './repo-root.ts';
  *  frame. Everything else — raster, pdf, video — is produced by the raster tiers
  *  (resvg fast path, else the scoped Chromium driving the built web shell — see
  *  webshell-render.ts). */
-export const NODE_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'txt', 'md'];
+// NOT `txt`. It was listed here, reported by `describe --json`'s `nativeFormats` and
+// documented as browser-free, but the engine has no txt path at all: `DATA_FORMATS` in
+// engine/src/runtime.ts covers json/csv/ics/vcf, `md` is special-cased beside it, and
+// `txt` is in neither — the web shell produces it by serialising the RENDERED DOM
+// (`renderPlainText`). So it is a browser-tier format like `ico`, and claiming otherwise
+// made `--export=txt` exit 3 with a message blaming a browser that was never consulted.
+export const NODE_FORMATS = ['svg', 'emf', 'eps', 'eps-cmyk', 'dxf', 'exr', 'hdr', 'html', 'json', 'csv', 'ics', 'vcf', 'md'];
 
 /**
  * The float interchange formats (plans/deeprichpixels.md §4.2 / §6 B3, surfaced

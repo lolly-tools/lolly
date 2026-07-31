@@ -202,8 +202,11 @@ test('the reserved subcommand words are frozen, and include the deferred `comple
   for (const word of ['list', 'describe', 'run', 'assets', 'batch', 'smoke', 'validate', 'install-browser', 'help', 'version', 'completion']) {
     assert.ok(RESERVED_SUBCOMMANDS.includes(word as never), `${word} must be reserved`);
   }
-  // No shipped tool id may collide — verified against the fixture ids here, and against
-  // the real catalog by scripts/validate-catalog.ts.
+  // No shipped tool id may collide. The fixture ids here are synthetic and can never
+  // collide, so this line proves nothing about the catalog on its own — the REAL guard
+  // is in scripts/validate-catalog.ts, which imports this same list and errors on a
+  // shipped tool id that matches. (That guard was decided in §1.1 and, until
+  // 2026-08-01, never written, while this comment claimed it existed.)
   for (const [id] of TOOLS) assert.ok(!RESERVED_SUBCOMMANDS.includes(id as never));
 });
 
@@ -637,4 +640,71 @@ test('a transform tool streams to stdout without --output, and reads `-` from st
   const named = await cli(['run', 'xform-tool', `--source=${src}`, '--filename=out.txt']);
   assert.equal(named.code, EXIT.OK);
   assert.equal(await readFile(join(root, 'out.txt'), 'utf8'), 'QUIET WORDS');
+});
+
+// ── B16-B20: preflight's surface, and the envelope before the parse ─────────
+
+test('preflight refuses with 4, never 1, and is 2 only when it could not run (B16)', async () => {
+  // Clean: a declared format, nothing to fix.
+  const clean = await cli(['preflight', 'vec-tool', '--export=svg']);
+  assert.equal(clean.code, EXIT.OK);
+  // An error finding — an undeclared format is one the engine's rules emit — is REFUSED.
+  // 4 is what `validate` answers for the same class of event; two check commands must
+  // not return opposite codes, or a CI wrapper sends a real finding down the retry path.
+  const refused = await cli(['preflight', 'vec-tool', '--export=pdf']);
+  assert.equal(refused.code, EXIT.REFUSED);
+  assert.notEqual(refused.code, EXIT.FAILED);
+  // Could not run at all: exit 2, and NOT 4 — "the check never happened" is the fact
+  // this subcommand exists to state.
+  assert.equal((await cli(['preflight', 'no-such-tool'])).code, EXIT.USAGE);
+});
+
+test('preflight has no --out: it refuses the flag and names the redirect (§1.4)', async () => {
+  const outFile = join(root, 'pf-report.json');
+  const r = await cli(['preflight', 'vec-tool', '--export=svg', '--json', `--out=${outFile}`]);
+  assert.equal(r.code, EXIT.USAGE);
+  assert.equal(existsSync(outFile), false, 'no file is ever written by preflight');
+  assert.match(r.stderr, /--out was removed before GA/);
+  // …and stdout still carries a complete envelope, on the refusal path too.
+  const env = JSON.parse(r.stdout.toString('utf8')) as { ok: boolean; command: string; error: { exit: number } };
+  assert.equal(env.ok, false);
+  assert.equal(env.command, 'preflight');
+  assert.equal(env.error.exit, EXIT.USAGE);
+});
+
+test('preflight honours --input.<id>= and warns on a reserved flag that shadows an input (B7)', async () => {
+  // The bare form goes to the export and says so — the same warning `run` prints.
+  const shadowed = await cli(['preflight', 'shadow-tool', '--width=333', '--export=svg']);
+  assert.match(shadowed.stderr, /--width is a reserved export flag AND an input of "shadow-tool"/);
+  assert.match(shadowed.stdout.toString('utf8'), /collect\.reserved-flag-shadows-input/);
+  // The namespace reaches the INPUT, and preflight sees it: the model it checks must be
+  // the model the render would use, or the report is about a different job.
+  const explicit = await cli(['preflight', 'shadow-tool', '--input.width=333', '--export=svg', '--json']);
+  assert.equal(explicit.code, EXIT.OK);
+  assert.doesNotMatch(explicit.stderr, /reserved export flag/);
+});
+
+test('--profile refuses its bare form exactly as --press-profile does (B17)', () => {
+  for (const spelling of ['profile', 'press-profile']) {
+    assert.ok(VALUE_FLAGS.has(spelling), `--${spelling} must reject its bare form`);
+    assert.throws(() => parseArgs(['vec-tool', `--${spelling}`]), (e: CliErr) => {
+      assert.equal(e.exit, EXIT.USAGE);
+      assert.equal(e.kind, 'MISSING_FLAG_VALUE');
+      return true;
+    });
+  }
+  // A bare `--out` is NOT a usage error any more: preflight's --out is gone, so the word
+  // is free again and a tool declaring a boolean input `out` is reachable (§1.4).
+  assert.equal(VALUE_FLAGS.has('out'), false);
+  assert.equal(parseArgs(['vec-tool', '--out']).flags.out, '1');
+});
+
+test('a --json run gets its envelope even when the PARSER refuses (B20)', async () => {
+  const r = await cli(['validate', join(root, 'nope.png'), '--json', '--require']);
+  assert.equal(r.code, EXIT.USAGE);
+  const env = JSON.parse(r.stdout.toString('utf8')) as { ok: boolean; command: string; error: { kind: string; exit: number } };
+  assert.equal(env.ok, false);
+  assert.equal(env.command, 'validate', 'the verb is recovered from a raw argv scan');
+  assert.equal(env.error.kind, 'MISSING_FLAG_VALUE');
+  assert.equal(env.error.exit, EXIT.USAGE);
 });
