@@ -1719,6 +1719,13 @@ export interface Profile {
    *  personalisation nudge — the one-time prompt to opt into `useDetails`. Rides
    *  the profile (not device storage) so the prompt is per-user, not per-device. */
   personalizeNudgeDismissed?: boolean;
+  /** True once the user has dismissed (or acted on) the gallery's one-time
+   *  offline-downloads nudge — the prompt pointing at Profile → Available
+   *  offline. Deliberately RE-CLEARED by the web shell when the PWA is
+   *  installed (`appinstalled`): installing reads as "I have the app now", and
+   *  the app must say "not all of it, yet" once more before the user finds out
+   *  the hard way on a plane. */
+  offlineNudgeDismissed?: boolean;
   city?: string;
   country?: string;
   headshot?: AssetRef; // Yes — the user's headshot is an AssetRef too.
